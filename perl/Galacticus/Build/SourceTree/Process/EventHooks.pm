@@ -353,6 +353,7 @@ CODE
 		$code::name = $hook->{'name'};
 		$copyIn .= fill_in_string(<<'CODE', PACKAGE => 'code');
    allocate(eventHookBackup)
+   allocate(eventHookBackup%eventHook_,mold={$name}Event_)
    {$name}Event               =  {$name}Event_
    eventHookBackup%eventHook_ =  {$name}Event_
    if (associated({$name}EventBackups)) eventHookBackup%next => {$name}EventBackups

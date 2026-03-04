@@ -161,6 +161,7 @@ module Events_Hooks
        <method description="Filter events to match the current OpenMP thread/level." method="filter"             />
        <method description="Lock the event."                                         method="lock"               />
        <method description="Unlock the event."                                       method="unlock"             />
+       <method description="Assign the event."                                       method="assignment(=)"      />
      </methods>
      !!]
      procedure :: count               => eventHookCount
@@ -168,6 +169,8 @@ module Events_Hooks
      procedure :: filter              => eventHookFilter
      procedure :: lock                => eventHookLock
      procedure :: unlock              => eventHookUnlock
+     procedure ::                        eventHookAssign
+     generic   :: assignment(=)       => eventHookAssign
   end type eventHook
 
   type :: eventHookList
@@ -200,15 +203,15 @@ module Events_Hooks
   type   (ompLock) :: copyLock
 
   ! Globally-unique ID for events.
-  integer          :: eventID           = 0
+  integer        :: eventID            = 0
 
   ! Future-thread number, used for setting up events that attach to yet-to-be-created threads.
-  integer          :: futureThread_      =-1
+  integer        :: futureThread_      =-1
   !$omp threadprivate(futureThread_)
 
   ! State controlling whether "atLevel" attachment should be promoted to "allLevels" attachment. This is needed for objects
   ! created in the master thread. Once all objects are deepCopied from the master thread this should no longer be needed.
-  logical          :: atLevelToAllLevels_=.false.
+  logical        :: atLevelToAllLevels_=.false.
   !$omp threadprivate(atLevelToAllLevels_)
   
   !![
@@ -511,6 +514,30 @@ contains
     return
   end subroutine eventHookUnspecifiedDetach
 
+  subroutine eventHookAssign(to,from)
+    !!{
+    Assignment operator for {\normalfont \ttfamily eventHook} objects.
+    !!}
+    implicit none
+    class(eventHook), intent(  out) :: to
+    class(eventHook), intent(in   ) :: from
+
+    to   %isGlobal=from%isGlobal
+    to   %label   =from%label
+    to   %count_  =from%count_
+    !$ to%lock_   =from%lock_
+#ifdef OMPPROFILE
+    !$ to%waitTimeRead =from%waitTimeRead
+    !$ to%waitTimeWrite=from%waitTimeWrite
+#endif
+    if (allocated(to%hooks_)) deallocate(to%hooks_)
+    if (allocated(from%hooks_)) then
+       allocate(to%hooks_(size(from%hooks_)))
+       to%hooks_=from%hooks_
+    end if
+    return
+  end subroutine eventHookAssign
+  
   integer function eventHookCount(self)
     !!{
     Return a count of the number of hooks into this event.
