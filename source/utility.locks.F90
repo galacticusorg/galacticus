@@ -95,8 +95,10 @@ module Locks
      OpenMP lock type which supports read/write locking.
      !!}
      private
-     !$ integer(omp_lock_kind), allocatable, dimension(:) :: locks
-     !$ logical               , allocatable, dimension(:) :: owns
+     !$ type   (resourceManager)                            :: lockManager
+     !$ integer                 , pointer                   :: lock        => null()
+     !$ integer(omp_lock_kind  ), pointer    , dimension(:) :: locks       => null()
+     !$ logical                 , allocatable, dimension(:) :: owns
    contains
      !![
      <methods>
@@ -108,13 +110,15 @@ module Locks
        <method description="Return true if the current thread owns this lock." method="owned" />
      </methods>
      !!]
-     final     ::               ompReadWriteLockDestructor
-     procedure :: initialize => ompReadWriteLockInitialize
-     procedure :: setRead    => ompReadWriteLockSetRead
-     procedure :: unsetRead  => ompReadWriteLockUnsetRead
-     procedure :: setWrite   => ompReadWriteLockSetWrite
-     procedure :: unsetWrite => ompReadWriteLockUnsetWrite
-     procedure :: owned      => ompReadWriteLockOwned
+     final     ::                  ompReadWriteLockDestructor
+     procedure :: initialize    => ompReadWriteLockInitialize
+     procedure :: setRead       => ompReadWriteLockSetRead
+     procedure :: unsetRead     => ompReadWriteLockUnsetRead
+     procedure :: setWrite      => ompReadWriteLockSetWrite
+     procedure :: unsetWrite    => ompReadWriteLockUnsetWrite
+     procedure :: owned         => ompReadWriteLockOwned
+     procedure ::                  ompReadWriteLockAssign
+     generic   :: assignment(=) => ompReadWriteLockAssign
   end type ompReadWriteLock
 
   interface ompReadWriteLock
@@ -129,8 +133,9 @@ module Locks
      OpenMP lock type which requires (and forces) locking to proceed in order.
      !!}
      private
-     !$ integer(omp_lock_kind) :: lock
-     integer   (c_size_t     ) :: lockValue
+     !$ type   (resourceManager)          :: lockManager
+     !$ integer(omp_lock_kind  ), pointer :: lock
+     integer   (c_size_t       )          :: lockValue
    contains
      !![
      <methods>
@@ -139,10 +144,13 @@ module Locks
        <method description="(Re)initialize an OpenMP incremental lock object." method="initialize" />
      </methods>
      !!]
-     final     ::               ompIncrementalLockDestructor
-     procedure :: initialize => ompIncrementalLockInitialize
-     procedure :: set        => ompIncrementalLockSet
-     procedure :: unset      => ompIncrementalLockUnset
+     final     ::                  ompIncrementalLockDestructor
+     procedure :: initialize    => ompIncrementalLockInitialize
+     procedure :: set           => ompIncrementalLockSet
+     procedure :: unset         => ompIncrementalLockUnset
+     procedure ::                  ompIncrementalLockAssign
+     generic   :: assignment(=) => ompIncrementalLockAssign
+
   end type ompIncrementalLock
 
   interface ompIncrementalLock
@@ -305,6 +313,8 @@ contains
     implicit none
     type(ompLock), intent(inout) :: self
 
+    ! If this is the last reference to the lock, destroy it.
+    !$ if (self%lockManager%count() == 1) call OMP_Destroy_Lock(self%lock)
     ! Release the lock.
     call self%lockManager%release()
     return
@@ -400,11 +410,22 @@ contains
     !!}
     !$ use :: OMP_Lib, only : omp_get_max_threads
     implicit none
-    type(ompReadWriteLock) :: self
+    type (ompReadWriteLock)          :: self
+    class(*               ), pointer :: dummyPointer_
 
     ! Allocate a lock for each thread in the current scope.
+    !$ allocate(self%lock                            )
     !$ allocate(self%locks(0:omp_get_max_threads()-1))
     !$ allocate(self%owns (0:omp_get_max_threads()-1))
+    !![
+    <workaround type="gfortran" PR="105807" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=105807">
+      <description>ICE when passing a derived type component to a class(*) function argument.</description>
+    !!]
+    !$ dummyPointer_    => self%lock
+    !$ self%lockManager =  resourceManager(dummyPointer_,threadSafe=.true.)
+    !![
+    </workaround>
+    !!]
     call self%initialize()
     return
   end function ompReadWriteLockConstructor
@@ -415,21 +436,42 @@ contains
     !!}
     !$ use :: OMP_Lib, only : OMP_Destroy_Lock
     implicit none
-    type   (ompReadWriteLock), intent(inout) :: self
-    integer                                  :: i
+    type      (ompReadWriteLock), intent(inout) :: self
+    !$ integer                                  :: i
 
-    ! Check if initialized.
-    !$ if (.not.allocated(self%locks)) return
-    ! Destroy each lock.
-    !$ do i=0,ubound(self%locks,dim=1)
-    !$    call OMP_Destroy_Lock(self%locks(i))
-    !$ end do
-    ! Deallocate the locks.
-    !$ deallocate(self%locks)
-    !$ deallocate(self%owns )
+    ! If this is the last reference to the locks, destroy them now.
+    !$ if (self%lockManager%count() == 1) then
+      ! Destroy each lock.
+      !$ do i=0,ubound(self%locks,dim=1)
+      !$    call OMP_Destroy_Lock(self%locks(i))
+      !$ end do
+      !$ deallocate(self%locks)
+      !$ deallocate(self%lock )
+    !$ end if
+    ! Release the lock.
+    call self%lockManager%release()
     return
   end subroutine ompReadWriteLockDestructor
 
+  subroutine ompReadWriteLockAssign(to,from)
+    !!{
+    Assignment operator for the {\normalfont \ttfamily ompReadWriteLock} class.
+    !!}
+    implicit none
+    class(ompReadWriteLock), intent(  out) :: to
+    class(ompReadWriteLock), intent(in   ) :: from
+
+    if (allocated(to  %owns)) deallocate(to%owns)
+    if (allocated(from%owns)) then
+      allocate(to%owns(lbound(from%owns,dim=1):ubound(from%owns,dim=1)))
+      to %owns        =  from%owns
+    end if
+    !$ to%lockManager =  from%lockManager
+    !$ to%lock        => from%lock
+    !$ to%locks       => from%locks
+    return
+  end subroutine ompReadWriteLockAssign
+  
   subroutine ompReadWriteLockInitialize(self)
     !!{
     (Re)initialize an OpenMP read/write lock object.
@@ -537,8 +579,19 @@ contains
     Constructor for OpenMP incremental lock objects.
     !!}
     implicit none
-    type(ompIncrementalLock) :: self
+    type (ompIncrementalLock)         :: self
+    class(*                ), pointer :: dummyPointer_
 
+    !$ allocate(self%lock)
+    !![
+    <workaround type="gfortran" PR="105807" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=105807">
+      <description>ICE when passing a derived type component to a class(*) function argument.</description>
+    !!]
+    !$ dummyPointer_    => self%lock
+    !$ self%lockManager =  resourceManager(dummyPointer_)
+    !![
+    </workaround>
+    !!]
     call self%initialize()
     return
   end function ompIncrementalLockConstructor
@@ -550,19 +603,35 @@ contains
     !$ use :: OMP_Lib, only : OMP_Destroy_Lock
     implicit none
     type   (ompIncrementalLock), intent(inout) :: self
-
-    ! Destroy the lock.
-    !$ call OMP_Destroy_Lock(self%lock)
+   
+    ! If this is the last reference to the lock, destroy it now.
+    !$ if (self%lockManager%count() == 1) call OMP_Destroy_Lock(self%lock)
+    ! Release the lock.
+    call self%lockManager%release()
     return
   end subroutine ompIncrementalLockDestructor
 
+  subroutine ompIncrementalLockAssign(to,from)
+    !!{
+    Assignment operator for the {\normalfont \ttfamily ompIncrementalLock} class.
+    !!}
+    implicit none
+    class(ompIncrementalLock), intent(  out) :: to
+    class(ompIncrementalLock), intent(in   ) :: from
+
+    !$ to%lockManager =  from%lockManager
+    !$ to%lock        => from%lock
+    to   %lockValue   =  from%lockValue
+    return
+  end subroutine ompIncrementalLockAssign
+  
   subroutine ompIncrementalLockInitialize(self)
     !!{
     (Re)initialize an OpenMP incremental lock object.
     !!}
     !$ use :: OMP_Lib, only : OMP_Init_Lock
     implicit none
-    class  (ompIncrementalLock), intent(inout) :: self
+    class(ompIncrementalLock), intent(inout) :: self
 
     ! Initialize the lock.
     !$ call OMP_Init_Lock(self%lock)
