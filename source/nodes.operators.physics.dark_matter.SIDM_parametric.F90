@@ -710,7 +710,7 @@ contains
       tau_local = 0.0d0
     end if
 
-    get_r_c = r_s0 * (2.555d0 * sqrt(tau_local) - 3.632d0 * tau_local + 2.131d0 * tau_local ** 2 - 1.415d0 * tau_local ** 3 + 0.4683d0 * tau_local ** 4)
+    get_r_c = r_s0 * max((2.555d0 * sqrt(tau_local) - 3.632d0 * tau_local + 2.131d0 * tau_local ** 2 - 1.415d0 * tau_local ** 3 + 0.4683d0 * tau_local ** 4),1.0d-3)
   end function get_r_c
 
 
