@@ -33,7 +33,7 @@ module Interfaces_AxionCAMB
 
   ! Current file format version for transfer function files. Note that this file format matches that used by the "file" transfer
   ! function class.
-  integer                         , parameter :: axionCambFormatVersionCurrent       =     2
+  integer                         , parameter :: axionCambFormatVersionCurrent       =       2
 
   ! Default maximum wavenumber to tabulate.
   double precision                , parameter :: axionCambLogWavenumberMaximumDefault=log(2500.0d0)
@@ -78,7 +78,7 @@ contains
     integer                                          :: status
     type   (varying_string)                          :: command
     type   (lockDescriptor)                          :: fileLock
-    type   (varying_string)                          :: lockPath
+    type   (varying_string)                          :: lockPath     , exePath
     !![
     <optionalArgument name="static" defaultsTo=".false." />
     !!]
@@ -86,10 +86,11 @@ contains
     ! Set path and version
     axionCambPath   =inputPath(pathTypeDataDynamic)//"AxionCAMB/"
     lockPath        =inputPath(pathTypeDataDynamic)//"axion_camb"
+    exePath         =axionCambPath//"camb"
     axionCambVersion="?"
     call File_Lock(char(lockPath),fileLock,lockIsShared=.false.)
     ! Build the AxionCAMB code.
-    if (.not.File_Exists(axionCambPath//"camb")) then
+    if (.not.File_Exists(exePath)) then
        if (.not.File_Exists(axionCambPath)) then
           ! Download AxionCAMB if necessary.
           call displayMessage("downloading AxionCAMB code....",verbosityLevelWorking)

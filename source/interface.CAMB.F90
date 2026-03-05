@@ -76,9 +76,9 @@ contains
     integer                                            :: status
     type     (varying_string)                          :: command        , forutilsVersion , &
          &                                                makeFile       , makeFileForUtils, &
-         &                                                tarBall        , executable
+         &                                                tarBall        , executable      , &
+         &                                                url            , tarBallForUtils
     type     (lockDescriptor)                          :: fileLock
-    character(len=128       )                          :: tarBallForUtils
     !![
     <optionalArgument name="static" defaultsTo=".false." />
     !!]
@@ -94,28 +94,32 @@ contains
     tarBallForUtils =cambPath//"../forutils_"//char(forutilsVersion)//".tar.gz"
     ! Build the CAMB code.
     if (.not.File_Exists(executable)) then
-       call Directory_Make(     cambPath                                       )
-       call File_Lock     (char(cambPath//"camb"),fileLock,lockIsShared=.false.)
+       call Directory_Make(cambPath                                      )
+       call File_Lock     (cambPath//"camb",fileLock,lockIsShared=.false.)
        ! Unpack the code.
        if (.not.File_Exists(makeFile)) then
           ! Download CAMB if necessary.
           if (.not.File_Exists(tarBall)) then
              call displayMessage("downloading CAMB code....",verbosityLevelWorking)
-             call download("https://github.com/cmbant/CAMB/archive/refs/tags/"//char(cambVersion)//".tar.gz",char(inputPath(pathTypeDataDynamic))//"CAMB_"//char(cambVersion)//".tar.gz",status=status,retries=5,retryWait=60)
+             url="https://github.com/cmbant/CAMB/archive/refs/tags/"//cambVersion//".tar.gz"
+             call download(url,tarBall,status=status,retries=5,retryWait=60)
              if (status /= 0 .or. .not.File_Exists(tarBall)) call Error_Report("unable to download CAMB"//{introspection:location})
           end if
           call displayMessage("unpacking CAMB code....",verbosityLevelWorking)
-          call System_Command_Do("tar -x -v -z -C "//inputPath(pathTypeDataDynamic)//" -f "//inputPath(pathTypeDataDynamic)//"CAMB_"//char(cambVersion)//".tar.gz",status);
+          command="tar -x -v -z -C "//inputPath(pathTypeDataDynamic)//" -f "//inputPath(pathTypeDataDynamic)//"CAMB_"//cambVersion//".tar.gz"
+          call System_Command_Do(command,status);
           if (status /= 0 .or. .not.File_Exists(cambPath)) call Error_Report('failed to unpack CAMB code'//{introspection:location})
           ! Download the "forutils" package if necessary.
           if (.not.File_Exists(makeFileForUtils)) then
              if (.not.File_Exists(tarBallForUtils)) then
                 call displayMessage("downloading forutils code....",verbosityLevelWorking)
-                call download("https://github.com/cmbant/forutils/archive/refs/tags/"//char(forutilsVersion)//".tar.gz",trim(tarBallForUtils),status=status,retries=5,retryWait=60)
+                url="https://github.com/cmbant/forutils/archive/refs/tags/"//forutilsVersion//".tar.gz"
+                call download(url,tarBallForUtils,status=status,retries=5,retryWait=60)
                 if (status /= 0 .or. .not.File_Exists(tarBallForUtils)) call Error_Report("unable to download forutils"//{introspection:location})
              end if
              call displayMessage("unpacking forutils code....",verbosityLevelWorking)
-             call System_Command_Do("tar -x -v -z -C "//cambPath//"../forutils -f "//cambPath//"../forutils_"//char(forutilsVersion)//".tar.gz --strip-components 1");          
+             command="tar -x -v -z -C "//cambPath//"../forutils -f "//cambPath//"../forutils_"//forutilsVersion//".tar.gz --strip-components 1"
+             call System_Command_Do(command);          
              if (status /= 0 .or. .not.File_Exists(makeFileForUtils)) call Error_Report('failed to unpack forutils code'//{introspection:location})
           end if
        end if       
@@ -125,8 +129,8 @@ contains
        command=command//'"/ Makefile'
        if (static_) command=command//'; cp $GALACTICUS_EXEC_PATH/source/utility.OpenMP.workaround.c '//cambPath//'; gcc -DSTATIC -c utility.OpenMP.workaround.c -o utility.OpenMP.workaround.o; sed -E -i~ s/"\-o camb$"/"utility\.OpenMP\.workaround\.o \-o camb"/ Makefile_main'
        command=command//'; find . -name "*.f90" | xargs sed -E -i~ s/"error stop"/"error stop "/; make -j1 camb'
-       call System_Command_Do(char(command),status);
-       if (status /= 0 .or. .not.File_Exists(cambPath//"camb")) call Error_Report("failed to build CAMB code"//{introspection:location})
+       call System_Command_Do(command,status);
+       if (status /= 0 .or. .not.File_Exists(executable)) call Error_Report("failed to build CAMB code"//{introspection:location})
        call File_Unlock(fileLock)
     end if
     return
