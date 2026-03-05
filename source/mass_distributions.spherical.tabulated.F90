@@ -792,13 +792,24 @@ contains
     type            (multiCounter                      )                                :: counter
 
     ! Compute interpolating factors.
-    allocate(hParameters(3,size(parameters)))
-    hRadius    (2  )=min(log(radiusScaled/tabulation%radiusMinimum    )*tabulation%radiusInverseStep    +1.0d0,dble(tabulation%countRadii     -1_c_size_t))
-    hParameters(2,:)=min(log(parameters  /tabulation%parametersMinimum)*tabulation%parametersInverseStep+1.0d0,dble(tabulation%countParameters-1_c_size_t))
-    iRadius         =int(hRadius    (2  ),kind=c_size_t)
-    iParameters     =int(hParameters(2,:),kind=c_size_t)
-    hRadius    (2  )=hRadius    (2  )-dble(iRadius    )
-    hParameters(2,:)=hParameters(2,:)-dble(iParameters)
+    allocate(hParameters(2,size(parameters)))
+    allocate(iParameters(  size(parameters)))
+    hRadius    (2  )=log(radiusScaled/tabulation%radiusMinimum    )*tabulation%radiusInverseStep    +1.0d0
+    hParameters(2,:)=log(parameters  /tabulation%parametersMinimum)*tabulation%parametersInverseStep+1.0d0
+    if    (hRadius    (2  ) > dble(tabulation%countRadii     -1_c_size_t)) then
+       iRadius         =tabulation%countRadii     -1_c_size_t
+       hRadius    (2  )=1.0d0
+    else
+       iRadius         =int(hRadius    (2  ),kind=c_size_t)
+       hRadius    (2  )=    hRadius    (2  )-dble(iRadius    )
+    end if
+    where (hParameters(2,:) > dble(tabulation%countParameters-1_c_size_t))
+       iParameters     =tabulation%countParameters     -1_c_size_t
+       hParameters(2,:)=1.0d0
+    elsewhere
+       iParameters     =int(hParameters(2,:),kind=c_size_t)
+       hParameters(2,:)=    hParameters(2,:)-dble(iParameters)
+    end where
     hRadius    (1  )=1.0d0-hRadius    (2  )
     hParameters(1,:)=1.0d0-hParameters(2,:)    
     ! Perform the interpolation.
