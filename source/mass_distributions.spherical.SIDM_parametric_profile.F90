@@ -37,15 +37,18 @@
      !!{
      A mass distribution class for the SIDM parametric profile of \cite{yang_parametric_2024}.
      !!}
-     double precision :: beta      , radiusScale         , &
-          &              radiusCore, densityNormalization 
+     double precision :: beta          , radiusScale         , &
+          &              radiusCore    , densityNormalization, &
+          &              densityCentral
    contains
-     procedure :: density               => SIDMParametricProfileDensity
-     procedure :: densityGradientRadial => SIDMParametricProfileDensityGradientRadial
-     procedure :: parameters            => SIDMParametricProfileParameters
-     procedure :: factoryTabulation     => SIDMParametricProfileFactoryTabulation
-     procedure :: descriptor            => SIDMParametricProfileDescriptor
-     procedure :: suffix                => SIDMParametricProfileSuffix
+     procedure :: density                         => SIDMParametricProfileDensity
+     procedure :: densityGradientRadial           => SIDMParametricProfileDensityGradientRadial
+     procedure :: radiusEnclosingDensity          => SIDMParametricProfileRadiusEnclosingDensity
+     procedure :: radiusEnclosingDensityNumerical => SIDMParametricProfileRadiusEnclosingDensityNumerical
+     procedure :: parameters                      => SIDMParametricProfileParameters
+     procedure :: factoryTabulation               => SIDMParametricProfileFactoryTabulation
+     procedure :: descriptor                      => SIDMParametricProfileDescriptor
+     procedure :: suffix                          => SIDMParametricProfileSuffix
   end type massDistributionSIDMParametricProfile
   
   interface massDistributionSIDMParametricProfile
@@ -145,6 +148,9 @@ contains
     !!]
 
     self%dimensionless=.false.
+    self%densityCentral=+densityNormalization &
+         &              *radiusScale          &
+         &              /radiusCore
     return
   end function SIDMParametricProfileConstructorInternal
 
@@ -219,6 +225,62 @@ contains
     end if
     return
   end function SIDMParametricProfileDensityGradientRadial
+  
+  double precision function SIDMParametricProfileRadiusEnclosingDensity(self,density,radiusGuess) result(radius)
+    !!{
+    Computes the radius enclosing a given mean density for SIDM parametric mass distributions.
+    !!}
+    implicit none
+    class           (massDistributionSIDMParametricProfile), intent(inout), target   :: self
+    double precision                                       , intent(in   )           :: density
+    double precision                                       , intent(in   ), optional :: radiusGuess
+    double precision                                       , parameter               :: epsilonDeltaDensityFractional=1.0d-3
+
+    if (density >= self%densityCentral) then
+       ! Above the central density, return a radius of zero.
+       radius=0.0d0
+    else if (density >  self%densityCentral*(1.0d0-epsilonDeltaDensityFractional)) then
+       ! For densities close to, but below the central density, use a series solution.
+       radius=+0.5d0                       &
+            & *(                           &
+            &   +self%radiusScale          &
+            &   -self%radiusCore           &
+            &   *     density              &
+            &   /self%densityNormalization &
+            &  )
+    else
+       radius=sphericalTabulatedRadiusEnclosingDensity(self,density,radiusGuess)
+    end if
+    return
+  end function SIDMParametricProfileRadiusEnclosingDensity
+
+  double precision function SIDMParametricProfileRadiusEnclosingDensityNumerical(self,density,radiusGuess) result(radius)
+    !!{
+    Computes the radius enclosing a given mean density for SIDM parametric mass distributions.
+    !!}
+    implicit none
+    class           (massDistributionSIDMParametricProfile), intent(inout), target   :: self
+    double precision                                       , intent(in   )           :: density
+    double precision                                       , intent(in   ), optional :: radiusGuess
+    double precision                                       , parameter               :: epsilonDeltaDensityFractional=1.0d-3
+
+    if (density >= self%densityCentral) then
+       ! Above the central density, return a radius of zero.
+       radius=0.0d0
+    else if (density >  self%densityCentral*(1.0d0-epsilonDeltaDensityFractional)) then
+       ! For densities close to, but below the central density, use a series solution.
+       radius=+0.5d0                       &
+            & *(                           &
+            &   +self%radiusScale          &
+            &   -self%radiusCore           &
+            &   *     density              &
+            &   /self%densityNormalization &
+            &  )
+    else
+       radius=massDistributionRadiusEnclosingDensityNumerical(self,density,radiusGuess)
+    end if
+    return
+  end function SIDMParametricProfileRadiusEnclosingDensityNumerical
 
   subroutine SIDMParametricProfileParameters(self,densityNormalization,radiusNormalization,parameters,container)
     !!{
