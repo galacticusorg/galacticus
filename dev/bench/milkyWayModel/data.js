@@ -1,36 +1,8 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1772575870864,
+  "lastUpdate": 1772689639649,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Milky Way model benchmarks": [
-      {
-        "commit": {
-          "author": {
-            "name": "Andrew Benson",
-            "username": "abensonca",
-            "email": "abensonca@gmail.com"
-          },
-          "committer": {
-            "name": "GitHub",
-            "username": "web-flow",
-            "email": "noreply@github.com"
-          },
-          "id": "2a8a5af380b234a8e812b7e3d59d62834b7f460e",
-          "message": "Merge pull request #775 from galacticusorg/featMassDistributionsTabulated\n\nAdd an abstract class which automates tabulation of parametric, spherically-symmetric, collisionless mass distributions",
-          "timestamp": "2025-01-28T23:38:08Z",
-          "url": "https://github.com/galacticusorg/galacticus/commit/2a8a5af380b234a8e812b7e3d59d62834b7f460e"
-        },
-        "date": 1738340656874,
-        "tool": "customSmallerIsBetter",
-        "benches": [
-          {
-            "name": "Milky Way model - Wall Time",
-            "value": 26.805,
-            "unit": "seconds",
-            "range": 0.0624059292054949
-          }
-        ]
-      },
       {
         "commit": {
           "author": {
@@ -10716,6 +10688,34 @@ window.BENCHMARK_DATA = {
             "name": "Milky Way model - Likelihood - localGroupStellarMassHaloMassRelation",
             "value": 2.925253201407479,
             "unit": "-logℒ"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "name": "Andrew Benson",
+            "username": "abensonca",
+            "email": "abensonca@gmail.com"
+          },
+          "committer": {
+            "name": "GitHub",
+            "username": "web-flow",
+            "email": "noreply@github.com"
+          },
+          "id": "18d6c3f638b0e215939598b4579dcd2c4863fd97",
+          "message": "Merge pull request #1009 from galacticusorg/fixEvolveStatusPrivate\n\nUse a private `status` variable when evolving merger trees",
+          "timestamp": "2026-03-03T15:17:54Z",
+          "url": "https://github.com/galacticusorg/galacticus/commit/18d6c3f638b0e215939598b4579dcd2c4863fd97"
+        },
+        "date": 1772689639123,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Milky Way model - Wall Time",
+            "value": 73.494,
+            "range": "0.12945423901897",
+            "unit": "seconds"
           }
         ]
       }
