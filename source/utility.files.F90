@@ -240,6 +240,11 @@ module File_Utilities
      !$ type(resourceManager)          :: unitManager
      integer                 , pointer :: unit        => null()
    contains
+     !![
+     <methods>
+       <method method="assignment(=)" description="Assignment operator."/>
+     </methods>
+     !!]
      final     ::                  fileDestructor
      procedure ::                  fileAssign
      generic   :: assignment(=) => fileAssign
