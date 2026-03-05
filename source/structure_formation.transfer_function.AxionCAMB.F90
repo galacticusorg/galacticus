@@ -139,14 +139,19 @@ contains
     ! Set initialization state.
     self%initialized=.false.
     ! No reference transfer function is used.
-    self%transferFunctionReferenceAvailable =  .false.
-    self%transferFunctionReference          => null()
+    self%transferFunctionReferenceAvailable  =  .false.
+    self%transferFunctionReference           => null()
+    ! Transfer function type is dark matter.
+    self%transferFunctionType                =  transferFunctionTypeDarkMatter
+    ! Do not permit negative values.
+    self%acceptNegativeValues                =  .false.
     ! Set the epoch time for this transfer function.
-    self%time=self%cosmologyFunctions_%cosmicTime(self%cosmologyFunctions_%expansionFactorFromRedshift(redshift))
+    self%time                                =  +self%cosmologyFunctions_ %cosmicTime    (self%cosmologyFunctions_%expansionFactorFromRedshift(redshift))
     ! Set maximum wavenumber.
-    self%wavenumberMaximum=+wavenumberMaximumLimit                                             &
-         &                 *self%cosmologyParameters_%hubbleConstant(units=hubbleUnitsLittleH)
-    self%wavenumberMaximumReached=.false.
+    self%wavenumberMaximum                   =  +wavenumberMaximumLimit                                            &
+         &                                      *self%cosmologyParameters_%hubbleConstant(units=hubbleUnitsLittleH)
+    self%wavenumberMaximumReached            =  .false.
+    self%factorWavenumberSmoothExtrapolation =  +2.0d0
     return
   end function axionCambConstructorInternal
 
@@ -170,13 +175,11 @@ contains
     Check that the provided wavenumber is within the tabulated range and, if not, recompute
     the AxionCAMB transfer function.
     !!}
-    use :: File_Utilities      , only : File_Lock                            , File_Unlock
     use :: Interfaces_AxionCAMB, only : Interface_AxionCAMB_Transfer_Function
     implicit none
     class           (transferFunctionAxionCAMB), intent(inout) :: self
     double precision                           , intent(in   ) :: wavenumber
     logical                                                    :: makeTransferFunction
-    type            (lockDescriptor           )                :: fileLock
 
     ! If the file has been read and the wavenumber is within range, simply return.
     makeTransferFunction=.false.
@@ -192,12 +195,8 @@ contains
     if (.not.makeTransferFunction) return
     ! Retrieve the transfer function.
     call Interface_AxionCAMB_Transfer_Function(self%cosmologyParameters_,self%darkMatterParticle_,[self%redshift],wavenumber,self%wavenumberMaximum,self%countPerDecade,self%fileName,self%wavenumberMaximumReached)
-    ! Get a lock on the relevant lock file.
-    call File_Lock(char(self%fileName),fileLock)
     ! Read the newly created file.
     call self%readFile(char(self%fileName))
-    ! Unlock the lock file.
-    call File_Unlock(fileLock)
     ! Check the maximum wavenumber.
     if (self%transfer%x(-1) > log(self%wavenumberMaximum)-0.01d0) self%wavenumberMaximumReached=.true.
     ! Record that the transfer function has now been initialized.

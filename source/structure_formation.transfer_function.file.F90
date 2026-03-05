@@ -334,7 +334,7 @@ contains
     integer                                                                         :: versionNumber                  , i                        , &
          &                                                                             countLocalMinima               , useCache
     character       (len=32                          )                              :: datasetName
-    type            (varying_string                  )                              :: limitTypeVar
+    type            (varying_string                  )                              :: limitTypeVar                   , hashedDescriptor
     type            (lockDescriptor                  )                              :: fileLock
     !$GLC attributes initialized :: wavenumber, transfer
     !![
@@ -451,13 +451,16 @@ contains
                &     +transferBaryons    *             OmegaBaryon  &
                &    )                                               &
                &   /                       OmegaMatter
+       case default
+          call Error_Report('unknown transfer function type'//{introspection:location})
        end select
        ! Cache this transfer function for possible later reuse.
        !$omp critical(transferFunctionFileCache)
        useCache=0
        if (countCache > 0) then
           do i=1,countCache
-             if (cachedTransferFunctions(i)%hashedDescriptor == self%hashedDescriptor()) then
+             hashedDescriptor=self%hashedDescriptor()
+             if (cachedTransferFunctions(i)%hashedDescriptor == hashedDescriptor) then
                 useCache=i
                 exit
              end if
@@ -541,11 +544,13 @@ contains
       Attempt to restore the transfer function from cache.
       !!}
       implicit none
+      type(varying_string) :: hashedDescriptor
       
       useCache=0
       if (.not.invalidateCache_ .and. countCache > 0) then
          do i=1,countCache
-            if (cachedTransferFunctions(i)%hashedDescriptor == self%hashedDescriptor()) then
+            hashedDescriptor=self%hashedDescriptor()
+            if (cachedTransferFunctions(i)%hashedDescriptor == hashedDescriptor) then
                useCache=i
                exit
             end if
