@@ -810,13 +810,13 @@ contains
 
     if (self%remakeTable(mass,time)) then
        ! Always obtain the file lock before the hdf5Access lock to avoid deadlocks between OpenMP threads.
-       if (self%storeTabulations) call File_Lock(char(self%fileName),self%fileLock,lockIsShared=.true.)
+       if (self%storeTabulations) call File_Lock(self%fileName,self%fileLock,lockIsShared=.true.)
        call self%fileRead()
        if (self%storeTabulations) call File_Unlock(self%fileLock,sync=.false.)
     end if
     if (self%remakeTable(mass,time)) then
        ! Always obtain the file lock before the hdf5Access lock to avoid deadlocks between OpenMP threads.
-       if (self%storeTabulations) call File_Lock(char(self%fileName),self%fileLock,lockIsShared=.false.)
+       if (self%storeTabulations) call File_Lock(self%fileName,self%fileLock,lockIsShared=.false.)
        ! Try again to read the file - another process/thread may have already created the file in which case we may not need to do so again.
        call self%fileRead()
        if (self%remakeTable(mass,time)) then
