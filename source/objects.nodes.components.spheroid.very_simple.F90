@@ -401,7 +401,7 @@ contains
   !!]
   subroutine Node_Component_Spheroid_Very_Simple_Scale_Set(node)
     !!{
-    Set scales for properties of \source{node}.
+    Set scales for properties of \mono{node}.
     !!}
     use :: Abundances_Structure          , only : abs                     , abundances           , max                            , unitAbundances         , &
           &                                       zeroAbundances
@@ -451,7 +451,7 @@ contains
 
   subroutine satelliteMerger(self,node)
     !!{
-    Transfer any very simple spheroid associated with \source{node} to its host halo.
+    Transfer any very simple spheroid associated with \mono{node} to its host halo.
     !!}
     use :: Abundances_Structure            , only : zeroAbundances
     use :: Error                           , only : Error_Report

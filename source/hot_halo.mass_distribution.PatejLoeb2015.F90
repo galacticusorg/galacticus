@@ -54,7 +54,7 @@ contains
 
   function patejLoeb2015ConstructorParameters(parameters) result(self)
     !!{
-    Default constructor for the \source{patejLoeb2015} hot halo mass distribution class.
+    Default constructor for the \mono{patejLoeb2015} hot halo mass distribution class.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -163,7 +163,7 @@ contains
 
   function patejLoeb2015Get(self,node,weightBy,weightIndex) result(massDistribution_)
     !!{
-    Return the \cite{patej_simple_2015} hot halo mass distribution for the given \source{node}.
+    Return the \cite{patej_simple_2015} hot halo mass distribution for the given \mono{node}.
     !!}
     use :: Mass_Distributions        , only : massDistributionPatejLoeb2015
     use :: Galacticus_Nodes          , only : nodeComponentHotHalo, treeNode

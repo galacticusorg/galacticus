@@ -248,7 +248,7 @@ contains
 
   subroutine Coordinates_Assign_To(coordinates,x)
     !!{
-    Assign a 3-component vector to a \source{coordinate} object.
+    Assign a 3-component vector to a \mono{coordinate} object.
     !!}
     implicit none
     class           (coordinate)              , intent(  out) :: coordinates
@@ -260,7 +260,7 @@ contains
 
   subroutine Coordinates_Assign_From(x,coordinates)
     !!{
-    Return a 3-component vector from a \source{coordinate} object.
+    Return a 3-component vector from a \mono{coordinate} object.
     !!}
     implicit none
     class           (coordinate)              , intent(in   ) :: coordinates
@@ -273,7 +273,7 @@ contains
   ! Cartesian coordinate object.
   subroutine Coordinates_Cartesian_From_Cartesian(self,x)
     !!{
-    Create a Cartesian \source{coordinate} object from a Cartesian vector.
+    Create a Cartesian \mono{coordinate} object from a Cartesian vector.
     !!}
     implicit none
     class           (coordinateCartesian)              , intent(  out) :: self
@@ -285,7 +285,7 @@ contains
 
   function Coordinates_Cartesian_To_Cartesian(self)
     !!{
-    Return a Cartesian vector from a Cartesian \source{coordinate} object.
+    Return a Cartesian vector from a Cartesian \mono{coordinate} object.
     !!}
     implicit none
     class           (coordinateCartesian), intent(in   ) :: self
@@ -297,7 +297,7 @@ contains
 
   double precision function Coordinates_Cartesian_X(self)
     !!{
-    Return the $x$-component of a Cartesian \source{coordinate} object.
+    Return the $x$-component of a Cartesian \mono{coordinate} object.
     !!}
     implicit none
     class(coordinateCartesian), intent(in   ) :: self
@@ -308,7 +308,7 @@ contains
 
   double precision function Coordinates_Cartesian_Y(self)
     !!{
-    Return the $y$-component of a Cartesian \source{coordinate} object.
+    Return the $y$-component of a Cartesian \mono{coordinate} object.
     !!}
     implicit none
     class(coordinateCartesian), intent(in   ) :: self
@@ -319,7 +319,7 @@ contains
 
   double precision function Coordinates_Cartesian_Z(self)
     !!{
-    Return the $z$-component of a Cartesian \source{coordinate} object.
+    Return the $z$-component of a Cartesian \mono{coordinate} object.
     !!}
     implicit none
     class(coordinateCartesian), intent(in   ) :: self
@@ -330,7 +330,7 @@ contains
 
   subroutine Coordinates_Cartesian_Set_X(self,x)
     !!{
-    Return the $x$-component of a Cartesian \source{coordinate} object.
+    Return the $x$-component of a Cartesian \mono{coordinate} object.
     !!}
     implicit none
     class           (coordinateCartesian), intent(inout) :: self
@@ -342,7 +342,7 @@ contains
 
   subroutine Coordinates_Cartesian_Set_Y(self,y)
     !!{
-    Return the $y$-component of a Cartesian \source{coordinate} object.
+    Return the $y$-component of a Cartesian \mono{coordinate} object.
     !!}
     implicit none
     class           (coordinateCartesian), intent(inout) :: self
@@ -354,7 +354,7 @@ contains
 
   subroutine Coordinates_Cartesian_Set_Z(self,z)
     !!{
-    Return the $z$-component of a Cartesian \source{coordinate} object.
+    Return the $z$-component of a Cartesian \mono{coordinate} object.
     !!}
     implicit none
     class           (coordinateCartesian), intent(inout) :: self
@@ -366,7 +366,7 @@ contains
 
   function Coordinates_Cartesian_Scalar_Multiply(self,multiplier) result(scaled)
     !!{
-    Multiply a Cartesian \source{coordinate} object by a scalar.
+    Multiply a Cartesian \mono{coordinate} object by a scalar.
     !!}
     implicit none
     class           (coordinate         ), allocatable   :: scaled
@@ -381,7 +381,7 @@ contains
 
   function Coordinates_Cartesian_Scalar_Divide(self,divisor) result(scaled)
     !!{
-    Divide a Cartesian \source{coordinate} object by a scalar.
+    Divide a Cartesian \mono{coordinate} object by a scalar.
     !!}
     implicit none
     class           (coordinate         ), allocatable   :: scaled
@@ -405,7 +405,7 @@ contains
   !!]
   subroutine Coordinates_Cartesian_Scale(self,scalar,selfScaled)
     !!{
-    Scale a Cartesian \source{coordinate} object by a scalar.
+    Scale a Cartesian \mono{coordinate} object by a scalar.
     !!}
     implicit none
     class           (coordinateCartesian), intent(in   )              :: self
@@ -420,7 +420,7 @@ contains
 
   double precision function Coordinates_Cartesian_R_Spherical_Squared(self)
     !!{
-    Return the squared spherical radius, $r^2$ of a Cartesian \source{coordinate} object.
+    Return the squared spherical radius, $r^2$ of a Cartesian \mono{coordinate} object.
     !!}
     implicit none
     class(coordinateCartesian), intent(in   ) :: self
@@ -432,7 +432,7 @@ contains
   ! Spherical coordinate object.
   subroutine Coordinates_Spherical_From_Cartesian(self,x)
     !!{
-    Create a spherical \source{coordinate} object from a Cartesian vector.
+    Create a spherical \mono{coordinate} object from a Cartesian vector.
     !!}
     implicit none
     class           (coordinateSpherical)              , intent(  out) :: self
@@ -454,7 +454,7 @@ contains
 
   function Coordinates_Spherical_To_Cartesian(self)
     !!{
-    Return a Cartesian vector from a spherical \source{coordinate} object.
+    Return a Cartesian vector from a spherical \mono{coordinate} object.
     !!}
     implicit none
     class           (coordinateSpherical), intent(in   ) :: self
@@ -477,7 +477,7 @@ contains
 
   double precision function Coordinates_Spherical_R(self)
     !!{
-    Return the $r$-component of a Spherical \source{coordinate} object.
+    Return the $r$-component of a Spherical \mono{coordinate} object.
     !!}
     implicit none
     class(coordinateSpherical), intent(in   ) :: self
@@ -488,7 +488,7 @@ contains
 
   double precision function Coordinates_Spherical_Theta(self)
     !!{
-    Return the $\theta$-component of a Spherical \source{coordinate} object.
+    Return the $\theta$-component of a Spherical \mono{coordinate} object.
     !!}
     implicit none
     class(coordinateSpherical), intent(in   ) :: self
@@ -499,7 +499,7 @@ contains
 
   double precision function Coordinates_Spherical_Phi(self)
     !!{
-    Return the $\phi$-component of a Spherical \source{coordinate} object.
+    Return the $\phi$-component of a Spherical \mono{coordinate} object.
     !!}
     implicit none
     class(coordinateSpherical), intent(in   ) :: self
@@ -510,7 +510,7 @@ contains
 
   subroutine Coordinates_Spherical_Set_R(self,r)
     !!{
-    Return the $r$-component of a Spherical \source{coordinate} object.
+    Return the $r$-component of a Spherical \mono{coordinate} object.
     !!}
     implicit none
     class           (coordinateSpherical), intent(inout) :: self
@@ -522,7 +522,7 @@ contains
 
   subroutine Coordinates_Spherical_Set_Theta(self,theta)
     !!{
-    Return the $\theta$-component of a Spherical \source{coordinate} object.
+    Return the $\theta$-component of a Spherical \mono{coordinate} object.
     !!}
     implicit none
     class           (coordinateSpherical), intent(inout) :: self
@@ -534,7 +534,7 @@ contains
 
   subroutine Coordinates_Spherical_Set_Phi(self,phi)
     !!{
-    Return the $\phi$-component of a Spherical \source{coordinate} object.
+    Return the $\phi$-component of a Spherical \mono{coordinate} object.
     !!}
     implicit none
     class           (coordinateSpherical), intent(inout) :: self
@@ -546,7 +546,7 @@ contains
 
   double precision function Coordinates_Spherical_R_Spherical(self)
     !!{
-    Return the spherical radius, $r$ of a spherical \source{coordinate} object.
+    Return the spherical radius, $r$ of a spherical \mono{coordinate} object.
     !!}
     implicit none
     class(coordinateSpherical), intent(in   ) :: self
@@ -557,7 +557,7 @@ contains
 
   double precision function Coordinates_Spherical_R_Spherical_Squared(self)
     !!{
-    Return the squared spherical radius, $r^2$ of a spherical \source{coordinate} object.
+    Return the squared spherical radius, $r^2$ of a spherical \mono{coordinate} object.
     !!}
     implicit none
     class(coordinateSpherical), intent(in   ) :: self
@@ -568,7 +568,7 @@ contains
 
   function Coordinates_Spherical_Scalar_Multiply(self,multiplier) result(scaled)
     !!{
-    Multiply a spherical \source{coordinate} object by a scalar.
+    Multiply a spherical \mono{coordinate} object by a scalar.
     !!}
     implicit none
     class           (coordinate         ), allocatable   :: scaled
@@ -584,7 +584,7 @@ contains
 
   function Coordinates_Spherical_Scalar_Divide(self,divisor) result(scaled)
     !!{
-    Divide a spherical \source{coordinate} object by a scalar.
+    Divide a spherical \mono{coordinate} object by a scalar.
     !!}
     implicit none
     class           (coordinate         ), allocatable   :: scaled
@@ -608,7 +608,7 @@ contains
   !!]
   subroutine Coordinates_Spherical_Scale(self,scalar,selfScaled)
     !!{
-    Scale a spherical \source{coordinate} object by a scalar.
+    Scale a spherical \mono{coordinate} object by a scalar.
     !!}
     implicit none
     class           (coordinateSpherical), intent(in   )              :: self
@@ -624,7 +624,7 @@ contains
   ! Cylindrical coordinate object.
   subroutine Coordinates_Cylindrical_From_Cartesian(self,x)
     !!{
-    Create a cylindrical \source{coordinate} object from a Cartesian vector.
+    Create a cylindrical \mono{coordinate} object from a Cartesian vector.
     !!}
     implicit none
     class           (coordinateCylindrical)              , intent(  out) :: self
@@ -640,7 +640,7 @@ contains
 
   function Coordinates_Cylindrical_To_Cartesian(self)
     !!{
-    Return a Cartesian vector from a cylindrical \source{coordinate} object.
+    Return a Cartesian vector from a cylindrical \mono{coordinate} object.
     !!}
     implicit none
     class           (coordinateCylindrical), intent(in   ) :: self
@@ -662,7 +662,7 @@ contains
 
   double precision function Coordinates_Cylindrical_R(self)
     !!{
-    Return the $r$-component of a Cylindrical \source{coordinate} object.
+    Return the $r$-component of a Cylindrical \mono{coordinate} object.
     !!}
     implicit none
     class(coordinateCylindrical), intent(in   ) :: self
@@ -673,7 +673,7 @@ contains
 
   double precision function Coordinates_Cylindrical_Phi(self)
     !!{
-    Return the $\phi$-component of a Cylindrical \source{coordinate} object.
+    Return the $\phi$-component of a Cylindrical \mono{coordinate} object.
     !!}
     implicit none
     class(coordinateCylindrical), intent(in   ) :: self
@@ -684,7 +684,7 @@ contains
 
   double precision function Coordinates_Cylindrical_Z(self)
     !!{
-    Return the $z$-component of a Cylindrical \source{coordinate} object.
+    Return the $z$-component of a Cylindrical \mono{coordinate} object.
     !!}
     implicit none
     class(coordinateCylindrical), intent(in   ) :: self
@@ -695,7 +695,7 @@ contains
 
   subroutine Coordinates_Cylindrical_Set_R(self,r)
     !!{
-    Return the $r$-component of a Cylindrical \source{coordinate} object.
+    Return the $r$-component of a Cylindrical \mono{coordinate} object.
     !!}
     implicit none
     class           (coordinateCylindrical), intent(inout) :: self
@@ -707,7 +707,7 @@ contains
 
   subroutine Coordinates_Cylindrical_Set_Phi(self,phi)
     !!{
-    Return the $\phi$-component of a Cylindrical \source{coordinate} object.
+    Return the $\phi$-component of a Cylindrical \mono{coordinate} object.
     !!}
     implicit none
     class           (coordinateCylindrical), intent(inout) :: self
@@ -719,7 +719,7 @@ contains
 
   subroutine Coordinates_Cylindrical_Set_Z(self,z)
     !!{
-    Return the $z$-component of a Cylindrical \source{coordinate} object.
+    Return the $z$-component of a Cylindrical \mono{coordinate} object.
     !!}
     implicit none
     class           (coordinateCylindrical), intent(inout) :: self
@@ -731,7 +731,7 @@ contains
 
   double precision function Coordinates_Cylindrical_R_Spherical_Squared(self)
     !!{
-    Return the squared spherical radius, $r^2$ of a cylindrical \source{coordinate} object.
+    Return the squared spherical radius, $r^2$ of a cylindrical \mono{coordinate} object.
     !!}
     implicit none
     class(coordinateCylindrical), intent(in   ) :: self
@@ -742,7 +742,7 @@ contains
 
   function Coordinates_Cylindrical_Scalar_Multiply(self,multiplier) result(scaled)
     !!{
-    Multiply a cylindrical \source{coordinate} object by a scalar.
+    Multiply a cylindrical \mono{coordinate} object by a scalar.
     !!}
     implicit none
     class           (coordinate           ), allocatable   :: scaled
@@ -759,7 +759,7 @@ contains
 
   function Coordinates_Cylindrical_Scalar_Divide(self,divisor) result(scaled)
     !!{
-    Divide a cylindrical \source{coordinate} object by a scalar.
+    Divide a cylindrical \mono{coordinate} object by a scalar.
     !!}
     implicit none
     class           (coordinate           ), allocatable   :: scaled
@@ -785,7 +785,7 @@ contains
   !!]
   subroutine Coordinates_Cylindrical_Scale(self,scalar,selfScaled)
     !!{
-    Scale a cylindrical \source{coordinate} object by a scalar.
+    Scale a cylindrical \mono{coordinate} object by a scalar.
     !!}
     implicit none
     class           (coordinateCylindrical), intent(in   )              :: self
@@ -828,7 +828,7 @@ contains
 
   function Coordinates_Scalar_Multiply_Switched(multiplier,self) result(scaled)
     !!{
-    Multiply a Cartesian \source{coordinate} object by a scalar.
+    Multiply a Cartesian \mono{coordinate} object by a scalar.
     !!}
     implicit none
     class           (coordinate), allocatable   :: scaled

@@ -30,7 +30,7 @@
     \begin{equation}
     \dot{M}_\mathrm{infall, cold mode} = f_\mathrm{infall, cold mode}{M_\mathrm{cold mode} \over \tau_\mathrm{dyn}},
     \end{equation}
-    where $f_\mathrm{infall, cold mode}=$\source{[dynamicalRateFraction]}.
+    where $f_\mathrm{infall, cold mode}=$\mono{[dynamicalRateFraction]}.
    </description>
   </coldModeInfallRate>
   !!]

@@ -524,7 +524,7 @@ contains
 
   subroutine localGroupStellarMassFunctionAnalyze(self,node,iOutput)
     !!{
-    Implement a \source{localGroupStellarMassFunction} output analysis.
+    Implement a \mono{localGroupStellarMassFunction} output analysis.
     !!}
     implicit none
     class  (outputAnalysisLocalGroupStellarMassFunction), intent(inout) :: self
@@ -539,7 +539,7 @@ contains
 
   subroutine localGroupStellarMassFunctionReduce(self,reduced)
     !!{
-    Implement a \source{localGroupStellarMassFunction} output analysis reduction.
+    Implement a \mono{localGroupStellarMassFunction} output analysis reduction.
     !!}
     use :: Error, only : Error_Report
     implicit none
@@ -558,7 +558,7 @@ contains
 
   subroutine localGroupStellarMassFunctionFinalizeAnalysis(self)
     !!{
-    Finalize analysis of a \source{localGroupStellarMassFunction} output analysis.
+    Finalize analysis of a \mono{localGroupStellarMassFunction} output analysis.
     !!}
     implicit none
     class           (outputAnalysisLocalGroupStellarMassFunction), intent(inout)                 :: self
@@ -594,7 +594,7 @@ contains
 
   subroutine localGroupStellarMassFunctionFinalize(self,groupName)
     !!{
-    Implement a \source{localGroupStellarMassFunction} output analysis finalization.
+    Implement a \mono{localGroupStellarMassFunction} output analysis finalization.
     !!}
     use :: Output_HDF5                     , only : outputFile
     use :: HDF5_Access                     , only : hdf5Access
@@ -646,7 +646,7 @@ contains
 
   double precision function localGroupStellarMassFunctionLogLikelihood(self)
     !!{
-    Return the log-likelihood of a \source{localGroupStellarMassFunction} output analysis. The likelihood function
+    Return the log-likelihood of a \mono{localGroupStellarMassFunction} output analysis. The likelihood function
     assumes that the model prediction for the number of satellite galaxies in any given mass bin follows a negative binomial
     distribution as was found for dark matter subhalos \citep[][see also
     \protect\citealt{lu_connection_2016}]{boylan-kolchin_theres_2010}. This has been confirmed by examining the results of many

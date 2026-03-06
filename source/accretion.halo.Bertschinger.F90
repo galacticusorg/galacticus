@@ -53,7 +53,7 @@ contains
 
   function bertschingerConstructorParameters(parameters) result(self)
     !!{
-    Default constructor for the \source{bertschinger} halo accretion class.
+    Default constructor for the \mono{bertschinger} halo accretion class.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -106,7 +106,7 @@ contains
 
   double precision function bertschingerVelocityScale(self,node) result(velocityScale)
     !!{
-    Returns the velocity scale to use for \source{node}. Use the maximum circular velocity.
+    Returns the velocity scale to use for \mono{node}. Use the maximum circular velocity.
     !!}
     use :: Mass_Distributions, only : massDistributionClass
     implicit none

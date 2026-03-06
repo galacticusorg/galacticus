@@ -83,9 +83,9 @@ contains
 
   logical function isolatedNodesBranchNext(self,node)
     !!{
-    This function will update the given \source{node} to the next node which should be visited in a tree branch
-    to perform a depth-first walk. Once the entire branch has been walked, a \source{null()} pointer will be
-    set, and a value of \source{false} returned indicating that there are no more nodes to walk. Each node will
+    This function will update the given \mono{node} to the next node which should be visited in a tree branch
+    to perform a depth-first walk. Once the entire branch has been walked, a \mono{null()} pointer will be
+    set, and a value of \mono{false} returned indicating that there are no more nodes to walk. Each node will
     be visited once and once only if the branch is walked in this way.
     !!}
     use :: Galacticus_Nodes, only : nodeComponentBasic, treeNode

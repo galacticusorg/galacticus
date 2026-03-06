@@ -27,14 +27,14 @@
     This class adaptively changes $\gamma$ in an attempt to maintain the acceptance rate at an acceptable level. The algorithm is
     controlled by the following sub-parameters:
     \begin{description}
-    \item[\source{[gammaInitial]}] The initial value for $\gamma$.
-    \item[\source{[gammaFactor]}] The multiplicative factor by which $\gamma$ should be increased or decreased if the
+    \item[\mono{[gammaInitial]}] The initial value for $\gamma$.
+    \item[\mono{[gammaFactor]}] The multiplicative factor by which $\gamma$ should be increased or decreased if the
       acceptance rate is out of range.
-    \item[\source{[gammaMinimum]}] The smallest value allowed for $\gamma$.
-    \item[\source{[gammaMaximum]}] The largest value allowed for $\gamma$.
-    \item[\source{[acceptanceRateMinimum]}] The minimum acceptance rate to accept before reducing $\gamma$.
-    \item[\source{[acceptanceRateMaximum]}] The maximum acceptance rate to accept before reducing $\gamma$.
-    \item[\source{[updateCount]}] The number of steps between successive checks of the acceptance rate.
+    \item[\mono{[gammaMinimum]}] The smallest value allowed for $\gamma$.
+    \item[\mono{[gammaMaximum]}] The largest value allowed for $\gamma$.
+    \item[\mono{[acceptanceRateMinimum]}] The minimum acceptance rate to accept before reducing $\gamma$.
+    \item[\mono{[acceptanceRateMaximum]}] The maximum acceptance rate to accept before reducing $\gamma$.
+    \item[\mono{[updateCount]}] The number of steps between successive checks of the acceptance rate.
     \end{description}
    </description>
   </posteriorSampleDffrntlEvltnProposalSize>

@@ -33,7 +33,7 @@
      M_\mathrm{halo,i} = \exp\left[ \ln(M_\mathrm{halo,min}) + \ln\left({M_\mathrm{halo,max}/M_\mathrm{halo,min}}\right)
      x_i^{1+\alpha} \right].
     \end{equation}
-    Here, $x_i$ is a number between 0 and 1 and $\alpha=$\source{[exponent]} is an
+    Here, $x_i$ is a number between 0 and 1 and $\alpha=$\mono{[exponent]} is an
     input parameter that controls the relative number of low and high mass tree produced.
    </description>
   </mergerTreeBuildMassDistribution>
@@ -72,7 +72,7 @@ contains
     <inputParameter>
       <name>exponent</name>
       <defaultValue>1.0d0</defaultValue>
-      <description>Halo masses will be (pseudo-)uniformly distributed in $[\log(M)]^{1/(1+\alpha)}$ where $\alpha=$\source{exponent}.</description>
+      <description>Halo masses will be (pseudo-)uniformly distributed in $[\log(M)]^{1/(1+\alpha)}$ where $\alpha=$\mono{exponent}.</description>
       <source>parameters</source>
     </inputParameter>
     !!]

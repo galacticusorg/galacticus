@@ -30,7 +30,7 @@
     \begin{equation}
     p(n_\mathrm{H}) = \delta(n_\mathrm{H} - n_\mathrm{H,0}),
     \end{equation}
-    where $n_\mathrm{H,0}=$\source{[densityHydrogen]}.
+    where $n_\mathrm{H,0}=$\mono{[densityHydrogen]}.
    </description>
   </hiiRegionDensityDistribution>
   !!]

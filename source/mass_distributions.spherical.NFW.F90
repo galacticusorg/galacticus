@@ -252,7 +252,7 @@ contains
 
   double precision function nfwDensity(self,coordinates)
     !!{
-    Return the density at the specified \source{coordinates} in an NFW mass distribution.
+    Return the density at the specified \mono{coordinates} in an NFW mass distribution.
     !!}
     implicit none
     class           (massDistributionNFW), intent(inout) :: self
@@ -270,7 +270,7 @@ contains
 
   double precision function nfwDensityGradientRadial(self,coordinates,logarithmic) result(densityGradientRadial)
     !!{
-    Return the density at the specified \source{coordinates} in an NFW \citep{navarro_structure_1996} mass distribution.
+    Return the density at the specified \mono{coordinates} in an NFW \citep{navarro_structure_1996} mass distribution.
     !!}
     use :: Error, only : Error_Report
     implicit none
@@ -390,7 +390,7 @@ contains
 
   double precision function nfwMassEnclosedBySphere(self,radius) result(mass)
     !!{
-    Computes the mass enclosed within a sphere of given \source{radius} for nfw mass distributions.
+    Computes the mass enclosed within a sphere of given \mono{radius} for nfw mass distributions.
     !!}
     use :: Numerical_Constants_Math, only : Pi
     implicit none
@@ -661,7 +661,7 @@ contains
 
   double precision function nfwPotential(self,coordinates,status) result(potential)
     !!{
-    Return the potential at the specified \source{coordinates} in an nfw mass distribution.
+    Return the potential at the specified \mono{coordinates} in an nfw mass distribution.
     !!}
     use :: Coordinates                     , only : assignment(=)
     use :: Galactic_Structure_Options      , only : structureErrorCodeSuccess     , structureErrorCodeInfinite
@@ -744,7 +744,7 @@ contains
   
   double precision function nfwFourierTransform(self,radiusOuter,wavenumber) result(fourierTransform)
     !!{
-    Compute the Fourier transform of the density profile at the given \source{wavenumber} in an NFW mass
+    Compute the Fourier transform of the density profile at the given \mono{wavenumber} in an NFW mass
     distribution, using the expression given in \citeauthor{cooray_halo_2002}~(\citeyear{cooray_halo_2002}; eqn.~81).
     !!}
     use :: Exponential_Integrals, only : Cosine_Integral, Sine_Integral
@@ -766,7 +766,7 @@ contains
   
   double precision function nfwRadiusFreefall(self,time) result(radius)
     !!{
-    Compute the freefall radius at the given \source{time} in an NFW mass distribution.
+    Compute the freefall radius at the given \mono{time} in an NFW mass distribution.
     !!}
     use :: Numerical_Constants_Astronomical, only : MpcPerKmPerSToGyr, gravitationalConstant_internal
     implicit none
@@ -794,7 +794,7 @@ contains
   
   double precision function nfwRadiusFreefallIncreaseRate(self,time) result(radiusIncreaseRate)
     !!{
-    Compute the rate of increase of the freefall radius at the given \source{time} in an nfw mass
+    Compute the rate of increase of the freefall radius at the given \mono{time} in an nfw mass
     distribution.
     !!}
     use :: Numerical_Constants_Astronomical, only : MpcPerKmPerSToGyr, gravitationalConstant_internal
@@ -824,7 +824,7 @@ contains
   
   subroutine nfwTimeFreefallTabulate(self,timeScaleFree)
     !!{
-    Tabulate the freefall radius at the given \source{time} in an NFW mass distribution.
+    Tabulate the freefall radius at the given \mono{time} in an NFW mass distribution.
     !!}
     use :: Numerical_Integration, only : integrator
     use :: Numerical_Ranges     , only : Make_Range, rangeTypeLogarithmic
@@ -915,7 +915,7 @@ contains
   
   double precision function nfwEnergyPotential(self,radiusOuter) result(energy)
     !!{
-    Compute the potential energy within a given \source{radius} in an NFW mass distribution. This is
+    Compute the potential energy within a given \mono{radius} in an NFW mass distribution. This is
     \begin{eqnarray}
       W &=& - \frac{\mathrm{G}}{2} \rho_0^2 r_\mathrm{s}^5 \int_0^{x_\mathrm{out}} \frac{m^2(x)}{x^2} \mathrm{d} x, \nonumber \\
         &-& - \frac{\mathrm{G}}{2} \rho_0^2 r_\mathrm{s}^5 \left[ \frac{x}{1+x} - \frac{\log^2(1+x)}{x} + \frac{\left\{\log(1+x)-x/(1+x)\right\}^2}{x} \right],
@@ -946,7 +946,7 @@ contains
 
   double precision function nfwEnergyKinetic(self,radiusOuter,massDistributionEmbedding) result(energy)
     !!{
-    Compute the kinetic energy within a given \source{radius} in an NFW mass distribution. This is
+    Compute the kinetic energy within a given \mono{radius} in an NFW mass distribution. This is
     \begin{eqnarray}
       T &=& 6 \pi \mathrm{G} \rho_0^2 r_\mathrm{s}^5 \int_0^{x_\mathrm{out}} \rho(x) \sigma^2(x) x^2 \mathrm{d} x, \nonumber \\
         &=& \pi \mathrm{G} \rho_0^2 r_\mathrm{s}^5 \left[ 6 x^3 \text{Li}_2(-x)+x^3 (-\log (x))+\log (x+1) \left(3 x^3 \log (x+1)+((x-6) x+3) x-2\right)+\left(x \left(\pi ^2 x-7\right)+5\right) x+\frac{3}{x+1} \right],

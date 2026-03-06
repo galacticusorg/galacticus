@@ -45,7 +45,7 @@ module Math_Exponentiation
    contains
      !![
      <methods>
-       <method description="Evaluate \source{x}$^y$ using table look-up." method="exponentiate" />
+       <method description="Evaluate \mono{x}$^y$ using table look-up." method="exponentiate" />
      </methods>
      !!]
      procedure :: exponentiate => fastExponentiatorExponentiate
@@ -108,7 +108,7 @@ contains
 
   pure double precision function cubeRoot(x)
     !!{
-    Utilize the fast \source{cbrt()} function from the standard C library for computing cube roots.
+    Utilize the fast \mono{cbrt()} function from the standard C library for computing cube roots.
     !!}
     use, intrinsic :: ISO_C_Binding, only : c_double
     implicit none

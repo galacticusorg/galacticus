@@ -124,7 +124,7 @@ contains
 
   logical function anyPasses(self,node)
     !!{
-    Apply a set of filters to a \source{node} combined with ``any'' operations.
+    Apply a set of filters to a \mono{node} combined with ``any'' operations.
     !!}
     implicit none
     class(galacticFilterAny), intent(inout)         :: self

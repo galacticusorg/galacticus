@@ -78,7 +78,7 @@ contains
       <defaultValue>.false.</defaultValue>
       <description>
 	Controls whether the \gls{cgm} gas content of nodes should be limited to not exceed the universal baryon fraction at node
-        merger events. If set to \source{true}, \gls{cgm} hot gas (and angular momentum, abundances, and chemicals
+        merger events. If set to \mono{true}, \gls{cgm} hot gas (and angular momentum, abundances, and chemicals
         proportionally) will be removed from the merged halo to the unaccreted gas reservoir to limit the baryonic mass to the
         universal baryon fraction where possible.
       </description>

@@ -79,7 +79,7 @@ contains
 
   function indexLastHostExtract(self,node,time,instance)
     !!{
-    Implement a \source{indexLastHost} node property extractor.
+    Implement a \mono{indexLastHost} node property extractor.
     !!}
     use :: Galacticus_Nodes, only : nodeComponentBasic
     implicit none

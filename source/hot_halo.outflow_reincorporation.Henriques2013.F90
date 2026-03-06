@@ -109,7 +109,7 @@ contains
 
   function henriques2013ConstructorInternal(gamma,delta1,delta2,cosmologyFunctions_,darkMatterHaloScale_) result(self)
     !!{
-    Default constructor for the \source{henriques2013} hot halo outflow reincorporation class.
+    Default constructor for the \mono{henriques2013} hot halo outflow reincorporation class.
     !!}
     implicit none
     type            (hotHaloOutflowReincorporationHenriques2013)                        :: self

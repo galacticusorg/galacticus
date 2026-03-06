@@ -145,7 +145,7 @@ contains
   
   subroutine radiativeEfficiencyBlackHolesNames(self,names)
     !!{
-    Return the names of the \source{radiativeEfficiencyBlackHoles} properties.
+    Return the names of the \mono{radiativeEfficiencyBlackHoles} properties.
     !!}
     implicit none
     class(nodePropertyExtractorRadiativeEfficiencyBlackHoles), intent(inout)                             :: self
@@ -159,7 +159,7 @@ contains
 
   subroutine radiativeEfficiencyBlackHolesDescriptions(self,descriptions)
     !!{
-    Return the descriptions of the \source{radiativeEfficiencyBlackHoles} properties.
+    Return the descriptions of the \mono{radiativeEfficiencyBlackHoles} properties.
     !!}
     implicit none
     class(nodePropertyExtractorRadiativeEfficiencyBlackHoles), intent(inout)                             :: self
@@ -173,7 +173,7 @@ contains
 
   function radiativeEfficiencyBlackHolesUnitsInSI(self) result(unitsInSI)
     !!{
-    Return the units of the \source{radiativeEfficiencyBlackHoles} properties in the SI system.
+    Return the units of the \mono{radiativeEfficiencyBlackHoles} properties in the SI system.
     !!}
     implicit none
     double precision                                                    , dimension(:) , allocatable :: unitsInSI

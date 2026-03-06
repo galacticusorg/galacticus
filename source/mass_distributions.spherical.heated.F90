@@ -37,7 +37,7 @@
      heating. With the assumption of no shell crossing, $M^\prime(r^\prime)=M(r)$ and this equation can be solved for $r$ given
      $r^\prime$ and $\epsilon(r)$.
      
-     Not all methods have analytic solutions for this profile. If \source{[nonAnalyticSolver]}$=${\normalfont
+     Not all methods have analytic solutions for this profile. If \mono{[nonAnalyticSolver]}$=${\normalfont
      \ttfamily fallThrough} then attempts to call these methods in heated profiles will simply return the result from the
      unheated profile, otherwise a numerical calculation is performed.
     </description>
@@ -115,7 +115,7 @@ contains
       <name>nonAnalyticSolver</name>
       <defaultValue>var_str('fallThrough')</defaultValue>
       <source>parameters</source>
-      <description>Selects how solutions are computed when no analytic solution is available. If set to ``\source{fallThrough}'' then the solution ignoring heating is used, while if set to ``\source{numerical}'' then numerical solvers are used to find solutions.</description>
+      <description>Selects how solutions are computed when no analytic solution is available. If set to ``\mono{fallThrough}'' then the solution ignoring heating is used, while if set to ``\mono{numerical}'' then numerical solvers are used to find solutions.</description>
     </inputParameter>
     <inputParameter>
       <name>componentType</name>
@@ -139,13 +139,13 @@ contains
       <name>tolerateEnclosedMassIntegrationFailure</name>
       <defaultValue>.false.</defaultValue>
       <source>parameters</source>
-      <description>If \source{true}, tolerate failures to find the mass enclosed as a function of radius.</description>
+      <description>If \mono{true}, tolerate failures to find the mass enclosed as a function of radius.</description>
     </inputParameter>
     <inputParameter>
       <name>toleratePotentialIntegrationFailure</name>
       <defaultValue>.false.</defaultValue>
       <source>parameters</source>
-      <description>If \source{true}, tolerate failures to compute the potential.</description>
+      <description>If \mono{true}, tolerate failures to compute the potential.</description>
     </inputParameter>
     <inputParameter>
       <name>fractionRadiusFinalSmall</name>
@@ -234,7 +234,7 @@ contains
   
   double precision function sphericalHeatedDensity(self,coordinates) result(density)
     !!{
-    Return the density at the specified \source{coordinates} in a scaled spherical mass distribution.
+    Return the density at the specified \mono{coordinates} in a scaled spherical mass distribution.
     !!}
     use :: Coordinates                     , only : coordinateSpherical           , assignment(=)
     use :: Numerical_Constants_Math        , only : Pi
@@ -307,7 +307,7 @@ contains
 
   double precision function sphericalHeatedMassEnclosedBySphere(self,radius) result(mass)
     !!{
-    Computes the mass enclosed within a sphere of given \source{radius} for a heated mass distributions.
+    Computes the mass enclosed within a sphere of given \mono{radius} for a heated mass distributions.
     !!}
     implicit none
     class           (massDistributionSphericalHeated), intent(inout), target :: self
@@ -319,7 +319,7 @@ contains
   
   double precision function sphericalHeatedRadiusInitial(self,radiusFinal) result(radiusInitial)
     !!{
-    Find the initial radius corresponding to the given \source{radiusFinal} in
+    Find the initial radius corresponding to the given \mono{radiusFinal} in
     the heated mass distribution.
     !!}
     use :: Root_Finder, only : rangeExpandMultiplicative, rangeExpandSignExpectNegative, rangeExpandSignExpectPositive

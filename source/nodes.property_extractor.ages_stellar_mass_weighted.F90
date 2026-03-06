@@ -95,7 +95,7 @@ contains
 
   integer function agesStellarMassWeightedElementCount(self,time)
     !!{
-    Return the number of elements in the \source{agesStellarMassWeighted} property extractors.
+    Return the number of elements in the \mono{agesStellarMassWeighted} property extractors.
     !!}
     implicit none
     class           (nodePropertyExtractorAgesStellarMassWeighted), intent(inout) :: self
@@ -200,7 +200,7 @@ contains
 
   subroutine agesStellarMassWeightedNames(self,time,names)
     !!{
-    Return the names of the \source{agesStellarMassWeighted} properties.
+    Return the names of the \mono{agesStellarMassWeighted} properties.
     !!}
     implicit none
     class           (nodePropertyExtractorAgesStellarMassWeighted), intent(inout)                             :: self
@@ -217,7 +217,7 @@ contains
 
   subroutine agesStellarMassWeightedDescriptions(self,time,descriptions)
     !!{
-    Return the descriptions of the \source{agesStellarMassWeighted} properties.
+    Return the descriptions of the \mono{agesStellarMassWeighted} properties.
     !!}
     implicit none
     class           (nodePropertyExtractorAgesStellarMassWeighted), intent(inout)                             :: self
@@ -234,7 +234,7 @@ contains
 
   function agesStellarMassWeightedUnitsInSI(self,time)
     !!{
-    Return the units of the \source{agesStellarMassWeighted} properties in the SI system.
+    Return the units of the \mono{agesStellarMassWeighted} properties in the SI system.
     !!}
     use :: Numerical_Constants_Astronomical, only : gigaYear
     implicit none

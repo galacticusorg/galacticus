@@ -251,7 +251,7 @@ contains
 
   function icmXRayTemperatureName(self)
     !!{
-    Return the names of the \source{icmXRayTemperature} properties.
+    Return the names of the \mono{icmXRayTemperature} properties.
     !!}
     implicit none
     type (varying_string                         )                :: icmXRayTemperatureName
@@ -264,7 +264,7 @@ contains
 
   function icmXRayTemperatureDescription(self)
     !!{
-    Return descriptions of the \source{icmXRayTemperature} properties.
+    Return descriptions of the \mono{icmXRayTemperature} properties.
     !!}
     implicit none
     type (varying_string                         )                :: icmXRayTemperatureDescription
@@ -277,7 +277,7 @@ contains
 
   double precision function icmXRayTemperatureUnitsInSI(self)
     !!{
-    Return the units of the \source{icmXRayTemperature} properties in the SI system.
+    Return the units of the \mono{icmXRayTemperature} properties in the SI system.
     !!}
     use :: Numerical_Constants_Prefixes, only : kilo
     use :: Numerical_Constants_Units   , only : electronVolt

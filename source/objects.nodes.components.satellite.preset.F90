@@ -144,7 +144,7 @@ contains
 
   subroutine nodePromotion(self,node)
     !!{
-    Ensure that \source{node} is ready for promotion to its parent. In this case, we simply copy any preset satellite orbit
+    Ensure that \mono{node} is ready for promotion to its parent. In this case, we simply copy any preset satellite orbit
     from the parent.
     !!}
     use :: Galacticus_Nodes, only : treeNode
@@ -161,7 +161,7 @@ contains
   subroutine interTreeSatelliteInsert(self,node,replaceNode)
     !!{
     A satellite node is being moved between trees, and being added as a new satellite. Its (future-)histories will have been
-    assigned to the \source{replaceNode} so must be transferred.
+    assigned to the \mono{replaceNode} so must be transferred.
     !!}
     use :: Galacticus_Nodes, only : defaultSatelliteComponent, nodeComponentBasic, nodeComponentSatellite, treeNode
     use :: Histories       , only : history                  , longIntegerHistory

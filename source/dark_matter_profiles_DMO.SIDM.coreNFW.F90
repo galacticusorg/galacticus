@@ -40,7 +40,7 @@
        M(r) = M_\mathrm{NFW}(r) \mathrm{tanh}\left(\frac{r}{r_\mathrm{c}}\right),
      \end{equation}
      where $r_\mathrm{c} = \alpha r_1$ is a characteristic core size related to the interaction radius $r_1$ by a constant factor
-     $\alpha = $\source{[factorRadiusCore]}.
+     $\alpha = $\mono{[factorRadiusCore]}.
      !!}
      private
      class           (darkMatterParticleClass  ), pointer :: darkMatterParticle_   => null()
@@ -150,7 +150,7 @@ contains
 
   function sidmCoreNFWGet(self,node,weightBy,weightIndex) result(massDistribution_)
     !!{
-    Return the dark matter mass distribution for the given \source{node}.
+    Return the dark matter mass distribution for the given \mono{node}.
     !!}
     use :: Galacticus_Nodes          , only : nodeComponentBasic
     use :: Galactic_Structure_Options, only : componentTypeDarkHalo               , massTypeDark                       , weightByMass

@@ -28,8 +28,8 @@
   <mergerTreeOperator name="mergerTreeOperatorPruneNonEssential">
    <description>
     A merger tree operator class which prunes branches that do not directly influence an ``essential'' node. Any branch which
-    does not connect to the branch into which the node identified by ID \source{[essentialNodeID]} descends by
-    time \source{essentialNodeTime]} will be pruned. Specifying the time is important---if the node is a
+    does not connect to the branch into which the node identified by ID \mono{[essentialNodeID]} descends by
+    time \mono{essentialNodeTime]} will be pruned. Specifying the time is important---if the node is a
     satellite at this time, then the pruning will not remove any progenitors of the parent node in which the essential node
     lives at the specified time.
    </description>

@@ -25,7 +25,7 @@ Implements a galactic high-pass filter for stellar mass effective radius.
   <galacticFilter name="galacticFilterRadiusEffective">
    <description>
    A galactic high-pass filter for stellar mass effective radius. Galaxies with a stellar mass effective radius greater than or
-   equal to a fixed threshold, $R_{\mathrm{eff},0}=$\source{[radiusEffectiveThreshold]}, are passed.
+   equal to a fixed threshold, $R_{\mathrm{eff},0}=$\mono{[radiusEffectiveThreshold]}, are passed.
    </description>
   </galacticFilter>
   !!]

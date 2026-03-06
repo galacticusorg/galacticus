@@ -146,7 +146,7 @@ contains
     <inputParameter>
       <name>redshiftRange</name>
       <source>parameters</source>
-      <description>The redshift range (``\source{low}'' or ``\source{high}'') for this analysis.</description>
+      <description>The redshift range (``\mono{low}'' or ``\mono{high}'') for this analysis.</description>
     </inputParameter>
     <objectBuilder class="cosmologyParameters"                  name="cosmologyParameters_"                  source="parameters"/>
     <objectBuilder class="cosmologyFunctions"                   name="cosmologyFunctions_"                   source="parameters"/>

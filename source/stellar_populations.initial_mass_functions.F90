@@ -49,7 +49,7 @@ module Stellar_Populations_Initial_Mass_Functions
     <pass>yes</pass>
    </method>
    <method name="phi" >
-    <description>Return the initial mass function, $\phi(M)=\mathrm{d}N/\mathrm{d}M$, at the given mass $M=$\source{massInitial}.</description>
+    <description>Return the initial mass function, $\phi(M)=\mathrm{d}N/\mathrm{d}M$, at the given mass $M=$\mono{massInitial}.</description>
     <type>double precision</type>
     <pass>yes</pass>
     <argument>double precision, intent(in   ) :: massInitial</argument>
@@ -61,7 +61,7 @@ module Stellar_Populations_Initial_Mass_Functions
     <argument>double precision, intent(in   ) :: massLower, massUpper</argument>
    </method>
    <method name="tabulate" >
-    <description>Return the initial mass function, $\phi(M)=\mathrm{d}N/\mathrm{d}M$, at the given mass $M=$\source{initialMass}.</description>
+    <description>Return the initial mass function, $\phi(M)=\mathrm{d}N/\mathrm{d}M$, at the given mass $M=$\mono{initialMass}.</description>
     <type>void</type>
     <argument>class(table1D), allocatable, intent(inout) :: imfTable</argument>
     <pass>yes</pass>

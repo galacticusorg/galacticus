@@ -36,7 +36,7 @@ module Dark_Matter_Profile_Scales
    <description>Class providing dark matter profile scale radii.</description>
    <default>concentration</default>
    <method name="radius" >
-    <description>Returns the scale radius for the given \source{node}.</description>
+    <description>Returns the scale radius for the given \mono{node}.</description>
     <type>double precision</type>
     <pass>yes</pass>
     <selfTarget>yes</selfTarget>

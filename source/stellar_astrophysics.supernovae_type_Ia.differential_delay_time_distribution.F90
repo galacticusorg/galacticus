@@ -92,7 +92,7 @@ contains
   double precision function differentialDTDNumberCumulative(self,age,metallicity) result(number)
     !!{
     Compute the cumulative number of Type Ia supernovae originating per unit interval of secondary star mass with given
-    \source{initialMass} and \source{metallicity} after a time \source{age}. Here we
+    \mono{initialMass} and \mono{metallicity} after a time \mono{age}. Here we
     assume that the total number of Type Ias is specified independent of secondary star mass.
     !!}
     use :: Numerical_Integration, only : integrator

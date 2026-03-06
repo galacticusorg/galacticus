@@ -24,8 +24,8 @@
     \begin{equation}
      L_\lambda (\lambda) = \begin{array}{cc} A (\lambda/\lambda_\mathrm{min})^\alpha &amp; \hbox{if } \lambda_\mathrm{min} \le \lambda &lt; \lambda_\mathrm{max} \\ 0 &amp; \hbox{otherwise,} \end{array}
     \end{equation}
-    where $A=$\source{normalization}, $\alpha=$\source{exponent}, $\lambda_\mathrm{min}=${\normalfont
-    \ttfamily wavelengthMinimum}, and $\lambda_\mathrm{max}=$\source{wavelengthMaximum}.
+    where $A=$\mono{normalization}, $\alpha=$\mono{exponent}, $\lambda_\mathrm{min}=${\normalfont
+    \ttfamily wavelengthMinimum}, and $\lambda_\mathrm{max}=$\mono{wavelengthMaximum}.
    </description>
   </radiativeTransferSpectrum>
   !!]

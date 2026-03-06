@@ -426,7 +426,7 @@ contains
 
   double precision function cllsnlssMttCsmlgclCnstntRadiusPerturbationMaximum(epsilonPerturbation)
     !!{
-    Find the maximum radius of a perturbation with initial curvature \source{epsilonPerturbation}.
+    Find the maximum radius of a perturbation with initial curvature \mono{epsilonPerturbation}.
     !!}
     use :: Root_Finder, only : rootFinder
     implicit none

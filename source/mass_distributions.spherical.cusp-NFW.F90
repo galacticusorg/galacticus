@@ -258,7 +258,7 @@ contains
   
   double precision function cuspNFWDensity(self,coordinates) result(density)
     !!{
-    Return the density at the specified \source{coordinates} in a cusp-NFW mass distribution.
+    Return the density at the specified \mono{coordinates} in a cusp-NFW mass distribution.
     !!}
     implicit none
     class           (massDistributionCuspNFW), intent(inout) :: self
@@ -277,7 +277,7 @@ contains
   
   double precision function cuspNFWDensityGradientRadial(self,coordinates,logarithmic) result(densityGradient)
     !!{
-    Return the radial density gradient at the specified \source{coordinates} in a cusp-NFW mass distribution.
+    Return the radial density gradient at the specified \mono{coordinates} in a cusp-NFW mass distribution.
     !!}
     implicit none
     class           (massDistributionCuspNFW), intent(inout), target   :: self
@@ -303,7 +303,7 @@ contains
 
   double precision function cuspNFWMassEnclosedBySphere(self,radius) result(mass)
     !!{
-    Return the mass enclosed by a sphere of the specified \source{radius} in a cusp-NFW mass distribution.
+    Return the mass enclosed by a sphere of the specified \mono{radius} in a cusp-NFW mass distribution.
     !!}
     use :: Numerical_Constants_Math, only : Pi
     implicit none

@@ -29,7 +29,7 @@ Implements a filter for subhalos that could impact a stream during the timestep.
   <galacticFilter name="galacticFilterStreamKick">
    <description>
      A filter for the velocity kick imparted by subhalos to a stellar stream. We compute an upper limit on the velocity kick a
-     subhalo can impart on the stream, for any orientation along a sphere of radius \source{[radiusOrbitalStream]},
+     subhalo can impart on the stream, for any orientation along a sphere of radius \mono{[radiusOrbitalStream]},
      and filter out any subhalos that do not create a total velocity kick greater than {\normalfont \ttfamily
      [cutoffVelocityKick]}.
   </description>

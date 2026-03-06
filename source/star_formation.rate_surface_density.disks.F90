@@ -64,7 +64,7 @@ module Star_Formation_Rate_Surface_Density_Disks
     </code>
    </method>
    <method name="rate" >
-    <description>Returns the star formation rate surface density (in $M_\odot$ Gyr$^{-1}$ Mpc$^{-2}$) in the disk component of \source{node} at the given \source{radius}.</description>
+    <description>Returns the star formation rate surface density (in $M_\odot$ Gyr$^{-1}$ Mpc$^{-2}$) in the disk component of \mono{node} at the given \mono{radius}.</description>
     <type>double precision</type>
     <pass>yes</pass>
     <argument>type            (treeNode), intent(inout) :: node</argument>

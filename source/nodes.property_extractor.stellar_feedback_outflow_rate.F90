@@ -30,9 +30,9 @@
   <nodePropertyExtractor name="nodePropertyExtractorStellarFeedbackOutflowRate">
    <description>
     A node property extractor which extracts the stellar feedback-driven mass outflow rate from a galaxy. The type of mass outflow rate is controlled
-    by the \source{[component]} parameter, which can be either ``\source{disk}'', ``{\normalfont
-    \ttfamily spheroid}'', or ``\source{total}''. The corresponding mass outflow rate is extracted as
-    \source{\textless\ component\textgreater\ StellarFeedbackOutflowRate} in units of $M_\odot$/Gyr.
+    by the \mono{[component]} parameter, which can be either ``\mono{disk}'', ``{\normalfont
+    \ttfamily spheroid}'', or ``\mono{total}''. The corresponding mass outflow rate is extracted as
+    \mono{\textless\ component\textgreater\ StellarFeedbackOutflowRate} in units of $M_\odot$/Gyr.
    </description>
   </nodePropertyExtractor>
   !!]

@@ -25,7 +25,7 @@
   <posteriorSampleDffrntlEvltnProposalSize name="posteriorSampleDffrntlEvltnProposalSizeFixed">
    <description>
     A posterior sampling differential evolution proposal size class in which the proposal size is a fixed value
-    $\gamma=$\source{[gamma]}.
+    $\gamma=$\mono{[gamma]}.
    </description>
   </posteriorSampleDffrntlEvltnProposalSize>
   !!]

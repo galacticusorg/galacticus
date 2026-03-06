@@ -33,8 +33,8 @@
     \begin{equation}
      n_\mathrm{eff,i}(k) = n_\mathrm{s,i} + {1\over 2}{\d n \over \d \ln k}_i \ln \left( {k \over k_\mathrm{ref,i}} \right) + {1\over 6}{\d^2 n \over \d \ln k^2}_i \left[ \ln \left( {k \over k_\mathrm{ref}} \right) \right]^2,
     \end{equation}
-    where $n_\mathrm{s,i}=$\source{[index]} is the power spectrum index at wavenumber
-    $k_\mathrm{ref,i}=$\source{[wavenumberReference]}, $\d n / \d \ln k_i=$\source{[running]}, and $\d^2 n / \d \ln k^2_i=$\source{[runningRunning]}
+    where $n_\mathrm{s,i}=$\mono{[index]} is the power spectrum index at wavenumber
+    $k_\mathrm{ref,i}=$\mono{[wavenumberReference]}, $\d n / \d \ln k_i=$\mono{[running]}, and $\d^2 n / \d \ln k^2_i=$\mono{[runningRunning]}
     describes the running of this index with wavenumber. The subscript ``i'', which runs from $1$ to $N$ refers to each interval of the piecewise power-law. Note that $k_\mathrm{ref,i}$ is defined only for $i\ge 2$. For the first ($i=1$) interval, the wavenumber ranges from $0$ to $k_\mathrm{ref,2}$.
 
     The amplitudes, $A_i$, are chosen to make the power spectrum continuous.
@@ -128,7 +128,7 @@ contains
       <name>wavenumberReference</name>
       <source>parameters</source>
       <defaultValue>[1.0d0]</defaultValue>
-      <description>When a running power spectrum index is used, this is the wavenumber, $k_\mathrm{ref}$, at which the index is equal to \source{[index]}.</description>
+      <description>When a running power spectrum index is used, this is the wavenumber, $k_\mathrm{ref}$, at which the index is equal to \mono{[index]}.</description>
     </inputParameter>
     !!]
     self=powerSpectrumPrimordialPiecewisePowerLaw(index_,running,runningRunning,wavenumberReference)
@@ -174,7 +174,7 @@ contains
 
   double precision function piecewisePowerLawPower(self,wavenumber)
     !!{
-    Return the primordial power spectrum at the given \source{wavenumber}.
+    Return the primordial power spectrum at the given \mono{wavenumber}.
     !!}
     implicit none
     class           (powerSpectrumPrimordialPiecewisePowerLaw), intent(inout) :: self
@@ -192,7 +192,7 @@ contains
 
   double precision function piecewisePowerLawLogarithmicDerivative(self,wavenumber)
     !!{
-    Return the logarithmic derivative of the primordial power spectrum at the given \source{wavenumber}.
+    Return the logarithmic derivative of the primordial power spectrum at the given \mono{wavenumber}.
     !!}
     implicit none
     class           (powerSpectrumPrimordialPiecewisePowerLaw), intent(inout) :: self

@@ -33,8 +33,8 @@ contains
 
   double precision function Poisson_Binomial_Distribution(k,p)
     !!{
-    Computes the Poisson binomial distribution with event probabilities \source{p} at argument
-    \source{k}. Uses the discrete Fourier transform method proposed by \cite{fernandez_closed-form_2010}.
+    Computes the Poisson binomial distribution with event probabilities \mono{p} at argument
+    \mono{k}. Uses the discrete Fourier transform method proposed by \cite{fernandez_closed-form_2010}.
     !!}
     use :: Numerical_Constants_Math, only : Pi
     implicit none
@@ -68,8 +68,8 @@ contains
 
   function Poisson_Binomial_Distribution_Jacobian(k,p)
     !!{
-    Computes the Jacobian of the Poisson binomial distribution with event probabilities \source{p} at argument
-    \source{k}. Uses the discrete Fourier transform method proposed by \cite{fernandez_closed-form_2010}.
+    Computes the Jacobian of the Poisson binomial distribution with event probabilities \mono{p} at argument
+    \mono{k}. Uses the discrete Fourier transform method proposed by \cite{fernandez_closed-form_2010}.
     !!}
     use :: Numerical_Constants_Math, only : Pi
     implicit none
@@ -126,7 +126,7 @@ contains
   double precision function Poisson_Binomial_Distribution_Mean_Pairs(p)
     !!{
     Computes the mean number of pairs expected from a Poisson binomial distribution with
-    event probabilities \source{p}. Assumes that pair order is significant, i.e. both $AB$ and
+    event probabilities \mono{p}. Assumes that pair order is significant, i.e. both $AB$ and
     $BA$ are counted.
     !!}
     implicit none
@@ -143,7 +143,7 @@ contains
   function Poisson_Binomial_Distribution_Mean_Pairs_Jacobian(p)
     !!{
     Computes the Jacobian of the mean number of pairs expected from a Poisson binomial distribution with
-    event probabilities \source{p}. Assumes that pair order is significant, i.e. both $AB$ and
+    event probabilities \mono{p}. Assumes that pair order is significant, i.e. both $AB$ and
     $BA$ are counted.
     !!}
     implicit none

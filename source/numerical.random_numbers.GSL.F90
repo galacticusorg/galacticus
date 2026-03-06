@@ -430,7 +430,7 @@ contains
 
   subroutine gslDeepCopy(self,destination)
     !!{
-    Perform a deep copy for the \source{GSL} random number generator class.
+    Perform a deep copy for the \mono{GSL} random number generator class.
     !!}
     use :: Error, only : Error_Report
     implicit none

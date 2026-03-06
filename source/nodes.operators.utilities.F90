@@ -47,7 +47,7 @@ contains
   !!]
   subroutine nodeOperatorConstruct(parameters,nodeOperator_)
     !!{
-    Build a \source{nodeOperator} object from a given parameter set. This is a globally-callable function
+    Build a \mono{nodeOperator} object from a given parameter set. This is a globally-callable function
     to allow us to subvert the class/module hierarchy.
     !!}
     use :: Error           , only : Error_Report
@@ -89,7 +89,7 @@ contains
   !!]
   subroutine nodeOperatorPredeterminedSolveAnalytics(nodeOperator_,node,time)
     !!{
-    Evaluate analytic ppre-determined roperties using a \source{nodeOperator} object passed to us as an unlimited polymorphic object.
+    Evaluate analytic ppre-determined roperties using a \mono{nodeOperator} object passed to us as an unlimited polymorphic object.
     !!}
     use :: Error             , only : Error_Report
     use :: Nodes_Operators   , only : nodeOperatorClass
@@ -118,7 +118,7 @@ contains
   !!]
   subroutine nodeOperatorDestruct(nodeOperator_)
     !!{
-    Destruct a \source{taskEvolveForests} object passed to us as an unlimited polymorphic object.
+    Destruct a \mono{taskEvolveForests} object passed to us as an unlimited polymorphic object.
     !!}
     use :: Error          , only : Error_Report
     use :: Nodes_Operators, only : nodeOperatorClass

@@ -539,7 +539,7 @@ contains
 
   subroutine localGroupMassVelocityDispersionRelationAnalyze(self,node,iOutput)
     !!{
-    Implement a \source{localGroupMassVelocityDispersionRelation} output analysis.
+    Implement a \mono{localGroupMassVelocityDispersionRelation} output analysis.
     !!}
     implicit none
     class  (outputAnalysisLocalGroupMassVelocityDispersionRelation), intent(inout) :: self
@@ -552,7 +552,7 @@ contains
 
   subroutine localGroupMassVelocityDispersionRelationReduce(self,reduced)
     !!{
-    Implement a \source{localGroupMassVelocityDispersionRelation} output analysis reduction.
+    Implement a \mono{localGroupMassVelocityDispersionRelation} output analysis reduction.
     !!}
     use :: Error, only : Error_Report
     implicit none
@@ -570,7 +570,7 @@ contains
 
   subroutine localGroupMassVelocityDispersionRelationFinalize(self,groupName)
     !!{
-    Implement a \source{localGroupMassVelocityDispersionRelation} output analysis finalization.
+    Implement a \mono{localGroupMassVelocityDispersionRelation} output analysis finalization.
     !!}
     implicit none
     class(outputAnalysisLocalGroupMassVelocityDispersionRelation), intent(inout)           :: self
@@ -582,7 +582,7 @@ contains
 
   double precision function localGroupMassVelocityDispersionRelationLogLikelihood(self)
     !!{
-    Return the log-likelihood of a \source{localGroupMassVelocityDispersionRelation} output analysis.
+    Return the log-likelihood of a \mono{localGroupMassVelocityDispersionRelation} output analysis.
     !!}
     implicit none
     class(outputAnalysisLocalGroupMassVelocityDispersionRelation), intent(inout) :: self

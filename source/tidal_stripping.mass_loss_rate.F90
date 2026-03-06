@@ -37,7 +37,7 @@ module Tidal_Stripping_Mass_Loss_Rate
    </description>
    <default>simple</default>
    <method name="rateMassLoss" >
-    <description>Returns the rate of mass loss (in $M_\odot$~Gyr$^{-1}$) due to tidal stripping of \source{component}.</description>
+    <description>Returns the rate of mass loss (in $M_\odot$~Gyr$^{-1}$) due to tidal stripping of \mono{component}.</description>
     <type>double precision</type>
     <pass>yes</pass>
     <argument>class(nodeCOmponent), intent(inout) :: component</argument>

@@ -382,7 +382,7 @@ contains
   double precision function cllsnlssMttrDarkEnergyRadiusPerturbation(epsilonPerturbation)
     !!{
     Return the radius of a spherical top-hat perturbation in a dark energy universe given an initial perturbation
-    amplitude \source{epsilonPerturbation}.
+    amplitude \mono{epsilonPerturbation}.
     !!}
     implicit none
     double precision, intent(in   ) :: epsilonPerturbation
@@ -394,7 +394,7 @@ contains
   double precision function cllsnlssMttrDarkEnergyExpansionRatePerturbation(time)
     !!{
     Return the expansion rate of a spherical top-hat perturbation in a dark energy universe given an initial perturbation
-    amplitude \source{epsilonPerturbation}.
+    amplitude \mono{epsilonPerturbation}.
     !!}
     implicit none
     double precision, intent(in   ) :: time
@@ -406,7 +406,7 @@ contains
   subroutine cllsnlssMttrDarkEnergyPerturbationDynamicsSolver(epsilonPerturbation,time,radiusPerturbation,expansionRatePerturbation)
     !!{
     Integrate the dynamics of a spherical top-hat perturbation in a dark energy universe given an initial perturbation
-    amplitude \source{epsilonPerturbation}.
+    amplitude \mono{epsilonPerturbation}.
     !!}
     use :: Interface_GSL        , only : GSL_Success
     use :: Numerical_ODE_Solvers, only : odeSolver

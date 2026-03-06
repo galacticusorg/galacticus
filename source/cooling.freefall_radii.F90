@@ -36,13 +36,13 @@ module Freefall_Radii
    <description>Class providing models of the freefall radius for gas in the hot atmosphere surrounding a galaxy.</description>
    <default>darkMatterHalo</default>
    <method name="radius" >
-    <description>Returns the freefall radius for gas in the hot atmosphere surrounding the galaxy in \source{node} in units of Mpc.</description>
+    <description>Returns the freefall radius for gas in the hot atmosphere surrounding the galaxy in \mono{node} in units of Mpc.</description>
     <type>double precision</type>
     <pass>yes</pass>
     <argument>type(treeNode), intent(inout) :: node</argument>
    </method>
    <method name="radiusGrowthRate" >
-    <description>Returns the rate of increase of the freefall radius for gas in the hot atmosphere surrounding the galaxy in \source{node} in units of Mpc/Gyr.</description>
+    <description>Returns the rate of increase of the freefall radius for gas in the hot atmosphere surrounding the galaxy in \mono{node} in units of Mpc/Gyr.</description>
     <type>double precision</type>
     <pass>yes</pass>
     <argument>type(treeNode), intent(inout) :: node</argument>

@@ -228,7 +228,7 @@ contains
 
   subroutine Array_Which(mask,indices)
     !!{
-    Return an array of indices for which \source{mask} is true.
+    Return an array of indices for which \mono{mask} is true.
     !!}
     use :: Error, only : Error_Report
     implicit none

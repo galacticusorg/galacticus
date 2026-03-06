@@ -25,7 +25,7 @@ Implements a redshift property extractor class.
 
   !![
   <nodePropertyExtractor name="nodePropertyExtractorRedshift">
-   <description>A node property extractor class which extracts the current redshift at which a \gls{node} exists---named ``\source{redshift}''.</description>
+   <description>A node property extractor class which extracts the current redshift at which a \gls{node} exists---named ``\mono{redshift}''.</description>
   </nodePropertyExtractor>
   !!]
   type, extends(nodePropertyExtractorScalar) :: nodePropertyExtractorRedshift

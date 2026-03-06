@@ -40,18 +40,18 @@
     on a grid of time and metallicity. A minimum size for the time bins is specified via $\Delta t=${\normalfont \ttfamily
     [timeStepMinimum]}, and a maximum number of time bins allowed is specified via {\normalfont \ttfamily
     [countTimeStepsMaximum]}. For the first output time, a set of timesteps starting from $t=0$ to the output time is generated
-    with size $\Delta t$. If the number of steps exceeds \source{[countTimeStepsMaximum]} then one pair of
+    with size $\Delta t$. If the number of steps exceeds \mono{[countTimeStepsMaximum]} then one pair of
     consecutive steps are merged. The pair merged is chosen to minimize the global increase in the metric
     $(t_{i+1}-t_i)/(t\mathrm{out}-t_i)$ where $t_i$ are the current timesteps and $t_\mathrm{out}$ is the output time. This
-    process is repeated until the number of timesteps is reduced to \source{[countTimeStepsMaximum]}. This
+    process is repeated until the number of timesteps is reduced to \mono{[countTimeStepsMaximum]}. This
     results in timesteps distributed approximately uniformly in the logarithm of the age of the timestep.
   
     For subsequent output times, the prior set of times is first extended, in steps of $\Delta t$, to reach the new output
     time, and then, if necessary, the same timestep consolidation algorithm is applied to reduce the number of steps to
-    \source{[countTimeStepsMaximum]}. Any accumulated star formation in the time bins used for the previous
+    \mono{[countTimeStepsMaximum]}. Any accumulated star formation in the time bins used for the previous
     output time are accumulated over each consolidated pair of bins.
   
-    This approach ensures that the number of timesteps never exceeds \source{[countTimeStepsMaximum]}, results
+    This approach ensures that the number of timesteps never exceeds \mono{[countTimeStepsMaximum]}, results
     in timesteps that are small close to the output time, but increase (approximately logarithmically) for times earlier than
     the output time, and allows simple (interpolation-free) consolidation of accumulated star formation from the previous output
     time's timesteps to those of the current output time.
@@ -59,14 +59,14 @@
     The time associated with each bin is the maximum time for which star formation will be accumulated to the bin, with the
     minimum time corresponding to the value associated with the previous bin (or $t=0$ for the first bin).
 
-    The metallicity bins are arranged logarithmically in metallicity with \source{[countMetallicities]} bins
-    between \source{[metallicityMinimum]} and \source{[metallicityMaximum]} (specified in Solar
+    The metallicity bins are arranged logarithmically in metallicity with \mono{[countMetallicities]} bins
+    between \mono{[metallicityMinimum]} and \mono{[metallicityMaximum]} (specified in Solar
     units). Note that the metallicity associated with each bin is the maximum metallicity for that bin, with the minimum
     metallicity corresponding to the value associated with the previous bin (or zero metallicity for the first bin). Note that a
     final bin, extending to infinite metallicity, is always added automatically. If {\normalfont \ttfamily
     [countMetallicities]}$=0$ is set, then the star formation history is not split by metallicity (i.e. a single metallicity bin
     encompassing all metallicities from zero to infinity is used). Alternatively, specific metallicity bin boundaries can be set
-    via the \source{[metallicityBoundaries]} parameter---a final boundary corresponding to infinity is always added
+    via the \mono{[metallicityBoundaries]} parameter---a final boundary corresponding to infinity is always added
     automatically.
    </description>
   </starFormationHistory>
@@ -428,7 +428,7 @@ contains
 
   subroutine adaptiveRate(self,node,historyStarFormation,abundancesFuel,rateStarFormation)
     !!{
-    Set the rate the star formation history for \source{node}.
+    Set the rate the star formation history for \mono{node}.
     !!}
     use :: Abundances_Structure, only : abundances        , metallicityTypeLinearByMassSolar
     use :: Arrays_Search       , only : searchArray

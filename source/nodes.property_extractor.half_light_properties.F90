@@ -25,9 +25,9 @@ Implements a half-light radii property extractor class.
   <nodePropertyExtractor name="nodePropertyExtractorRadiiHalfLightProperties">
    <description>
     A node property extractor which extracts half-light radii and the masses enclosed within them. The half-light radius in
-    each specified luminosity band is extracted as \source{[halfLightRadius\{luminosityID\}]} (in Mpc), where
+    each specified luminosity band is extracted as \mono{[halfLightRadius\{luminosityID\}]} (in Mpc), where
     {\normalfont \ttfamily\{luminosityID\}} is the usual luminosity identifier suffix, and the total (dark + baryonic) mass
-    within that radius is extracted as \source{[halfLightMass\{luminosityID\}]} (in $M_\odot$).
+    within that radius is extracted as \mono{[halfLightMass\{luminosityID\}]} (in $M_\odot$).
    </description>
   </nodePropertyExtractor>
   !!]
@@ -71,7 +71,7 @@ contains
 
   integer function radiiHalfLightPropertiesElementCount(self,time)
     !!{
-    Return the number of elements in the \source{radiiHalfLightProperties} property extractor class.
+    Return the number of elements in the \mono{radiiHalfLightProperties} property extractor class.
     !!}
     use :: Stellar_Luminosities_Structure, only : unitStellarLuminosities
     implicit none
@@ -85,7 +85,7 @@ contains
 
   function radiiHalfLightPropertiesExtract(self,node,time,instance)
     !!{
-    Implement a \source{radiiHalfLightProperties} property extractor.
+    Implement a \mono{radiiHalfLightProperties} property extractor.
     !!}
     use :: Galactic_Structure_Options    , only : componentTypeAll       , massTypeAll, massTypeStellar, weightByLuminosity
     use :: Mass_Distributions            , only : massDistributionClass
@@ -124,7 +124,7 @@ contains
 
   subroutine radiiHalfLightPropertiesNames(self,time,names)
     !!{
-    Return the names of the \source{radiiHalfLightProperties} properties.
+    Return the names of the \mono{radiiHalfLightProperties} properties.
     !!}
     use :: Stellar_Luminosities_Structure, only : unitStellarLuminosities
     implicit none
@@ -148,7 +148,7 @@ contains
 
   subroutine radiiHalfLightPropertiesDescriptions(self,time,descriptions)
     !!{
-    Return descriptions of the \source{radiiHalfLightProperties} property extractor class.
+    Return descriptions of the \mono{radiiHalfLightProperties} property extractor class.
     !!}
     use :: Stellar_Luminosities_Structure, only : unitStellarLuminosities
     implicit none

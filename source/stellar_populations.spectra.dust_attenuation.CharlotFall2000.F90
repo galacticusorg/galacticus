@@ -49,7 +49,7 @@ contains
 
   function charlotFall2000ConstructorParameters(parameters) result(self)
     !!{
-    Default constructor for the \source{charlotFall2000} stellar spectra dust attenuation class.
+    Default constructor for the \mono{charlotFall2000} stellar spectra dust attenuation class.
     !!}
     implicit none
     type            (stellarSpectraDustAttenuationCharlotFall2000)                :: self

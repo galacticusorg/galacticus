@@ -26,7 +26,7 @@
     \begin{eqnarray}
     \Delta t &amp;\le&amp; \epsilon_\mathrm{hostTidalMassLoss} (M_\mathrm{host}/\dot{M}_\mathrm{host}|),
     \end{eqnarray}
-    where $\epsilon_\mathrm{hostTidalMassLoss}=$\source{[timeStepRelative]}, and $M_\mathrm{host}$ is the
+    where $\epsilon_\mathrm{hostTidalMassLoss}=$\mono{[timeStepRelative]}, and $M_\mathrm{host}$ is the
     bound mass of the host satellite. This criterion is intended to prevent any satellite evolving over an excessively
     large time in one step ahead of its host satellite.
    </description>
@@ -120,8 +120,8 @@ contains
 
   double precision function hostTidalMassLossTimeEvolveTo(self,timeEnd,node,task,taskSelf,report,lockNode,lockType)
     !!{
-    Determine a suitable timestep for \source{node} using the \source{hostTidalMassLoss} method.
-    This sets the time step size to \source{timeStepRelative}$M_\mathrm{host}/|\dot{M}_\mathrm{host}|$.
+    Determine a suitable timestep for \mono{node} using the \mono{hostTidalMassLoss} method.
+    This sets the time step size to \mono{timeStepRelative}$M_\mathrm{host}/|\dot{M}_\mathrm{host}|$.
     !!}
     use :: Evolve_To_Time_Reports, only : Evolve_To_Time_Report
     use :: Galacticus_Nodes      , only : nodeComponentBasic   , nodeComponentSatellite, treeNode

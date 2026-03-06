@@ -25,7 +25,7 @@ Implements a galactic high-pass filter for total black hole mass.
   <galacticFilter name="galacticFilterBlackHoleMass">
    <description>
    A galactic high-pass filter for black hole mass. Galaxies with a central black hole mass greater than or equal
-   to a fixed threshold, $M_{\bullet,0}=$\source{[massThreshold]}, are passed.
+   to a fixed threshold, $M_{\bullet,0}=$\mono{[massThreshold]}, are passed.
    </description>
   </galacticFilter>
   !!]

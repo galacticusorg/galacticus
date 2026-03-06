@@ -115,17 +115,17 @@
     }
     }
     \end{verbatim}
-    The \source{temperature} dataset should specify temperature (in Kelvin), while the {\normalfont \ttfamily
+    The \mono{temperature} dataset should specify temperature (in Kelvin), while the {\normalfont \ttfamily
     metallicity} dataset should give the logarithmic metallicity relative to Solar (a value of -999 or less is taken to imply
-    zero metallicity). The \source{coolingRate} dataset should specify the cooling function (in ergs cm$^3$
+    zero metallicity). The \mono{coolingRate} dataset should specify the cooling function (in ergs cm$^3$
     s$^{-1}$ computed for a hydrogen density of 1 cm$^{-3}$) respectively at each temperature/metallicity pair. The
-    \source{extrapolateLow} and \source{extrapolateHigh} attributes of the {\normalfont \ttfamily
-    temperature} and \source{metallicity} datasets specify how the cooling rate should be extrapolated in the
+    \mono{extrapolateLow} and \mono{extrapolateHigh} attributes of the {\normalfont \ttfamily
+    temperature} and \mono{metallicity} datasets specify how the cooling rate should be extrapolated in the
     low and high vale limits. Allowed options for these attributes are:
     \begin{description}
-     \item[\source{zero}] The cooling function is set to zero beyond the relevant limit.
-     \item[\source{fixed}] The cooling function is held fixed at the value at the relevant limit.
-     \item[\source{powerLaw}] The cooling function is extrapolated assuming a
+     \item[\mono{zero}] The cooling function is set to zero beyond the relevant limit.
+     \item[\mono{fixed}] The cooling function is held fixed at the value at the relevant limit.
+     \item[\mono{powerLaw}] The cooling function is extrapolated assuming a
      power-law dependence beyond the relevant limit. This option is only allowed if the
      cooling function is everywhere positive.
     \end{description}
@@ -136,10 +136,10 @@
     and cooling function. Otherwise, interpolation is linear in these quantities. The cooling
     function is scaled assuming a quadratic dependence on hydrogen density.
   
-    The \source{energyContinuum} and \source{powerEmittedFractionalCumulative} are optional. If
-    present, \source{powerEmittedFractionalCumulative} gives the cumulative emitted power as a function of
+    The \mono{energyContinuum} and \mono{powerEmittedFractionalCumulative} are optional. If
+    present, \mono{powerEmittedFractionalCumulative} gives the cumulative emitted power as a function of
     energy for each tabulated metallicity and temperature. The energies at which the emitted power is tabulated are given by
-    \source{energyContinuum}.
+    \mono{energyContinuum}.
    </description>
    <runTimeFileDependencies paths="fileName"/>
   </coolingFunction>

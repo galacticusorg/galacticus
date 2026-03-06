@@ -27,7 +27,7 @@
   <nodePropertyExtractor name="nodePropertyExtractorRotationCurve">
    <description>
     A property extractor class for the rotation curve at a set of radii. The radii and types of rotation curve to output
-    are specified by the \source{radiusSpecifiers} parameter. This parameter's value can contain multiple
+    are specified by the \mono{radiusSpecifiers} parameter. This parameter's value can contain multiple
     entries, each of which should be a valid
     \href{https://github.com/galacticusorg/galacticus/releases/download/bleeding-edge/Galacticus_Physics.pdf\#sec.radiusSpecifiers}{radius
     specifier}.
@@ -153,7 +153,7 @@ contains
 
   integer function rotationCurveElementCount(self,time)
     !!{
-    Return the number of elements in the \source{rotationCurve} property extractors.
+    Return the number of elements in the \mono{rotationCurve} property extractors.
     !!}
     implicit none
     class           (nodePropertyExtractorRotationCurve), intent(inout) :: self
@@ -166,7 +166,7 @@ contains
 
   function rotationCurveSize(self,time)
     !!{
-    Return the number of array elements in the \source{rotationCurve} property extractors.
+    Return the number of array elements in the \mono{rotationCurve} property extractors.
     !!}
     implicit none
     integer         (c_size_t                          )                :: rotationCurveSize
@@ -180,7 +180,7 @@ contains
 
   function rotationCurveExtract(self,node,time,instance)
     !!{
-    Implement a \source{rotationCurve} property extractor.
+    Implement a \mono{rotationCurve} property extractor.
     !!}
     use :: Galactic_Structure_Options          , only : componentTypeAll               , massTypeGalactic                  , massTypeStellar
     use :: Galactic_Structure_Radii_Definitions, only : radiusTypeDarkMatterScaleRadius, radiusTypeDiskHalfMassRadius      , radiusTypeDiskRadius                      , radiusTypeGalacticLightFraction, &
@@ -288,7 +288,7 @@ contains
 
   subroutine rotationCurveNames(self,names,time)
     !!{
-    Return the names of the \source{rotationCurve} properties.
+    Return the names of the \mono{rotationCurve} properties.
     !!}
     implicit none
     class           (nodePropertyExtractorRotationCurve), intent(inout)                             :: self
@@ -305,7 +305,7 @@ contains
 
   subroutine rotationCurveDescriptions(self,descriptions,time)
     !!{
-    Return descriptions of the \source{rotationCurve} property.
+    Return descriptions of the \mono{rotationCurve} property.
     !!}
     implicit none
     class           (nodePropertyExtractorRotationCurve), intent(inout)                             :: self
@@ -322,7 +322,7 @@ contains
 
   subroutine rotationCurveColumnDescriptions(self,descriptions,values,valuesDescription,valuesUnitsInSI,time)
     !!{
-    Return column descriptions of the \source{rotationCurve} property.
+    Return column descriptions of the \mono{rotationCurve} property.
     !!}
     implicit none
     class           (nodePropertyExtractorRotationCurve), intent(inout)                            :: self
@@ -343,7 +343,7 @@ contains
 
   function rotationCurveUnitsInSI(self,time)
     !!{
-    Return the units of the \source{rotationCurve} properties in the SI system.
+    Return the units of the \mono{rotationCurve} properties in the SI system.
     !!}
     use :: Numerical_Constants_Astronomical, only : megaParsec
     use :: Numerical_Constants_Prefixes    , only : kilo

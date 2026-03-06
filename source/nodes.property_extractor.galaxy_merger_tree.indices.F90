@@ -115,7 +115,7 @@ contains
   
   subroutine galaxyMergerTreeIndicesNames(self,names)
     !!{
-    Return the names of the \source{galaxyMergerTreeIndices} properties.
+    Return the names of the \mono{galaxyMergerTreeIndices} properties.
     !!}
     implicit none
     class(nodePropertyExtractorGalaxyMergerTreeIndices), intent(inout)                             :: self
@@ -130,7 +130,7 @@ contains
 
   subroutine galaxyMergerTreeIndicesDescriptions(self,descriptions)
     !!{
-    Return the descriptions of the \source{galaxyMergerTreeIndices} properties.
+    Return the descriptions of the \mono{galaxyMergerTreeIndices} properties.
     !!}
     implicit none
     class(nodePropertyExtractorGalaxyMergerTreeIndices), intent(inout)                             :: self
@@ -145,7 +145,7 @@ contains
 
   function galaxyMergerTreeIndicesUnitsInSI(self) result(unitsInSI)
     !!{
-    Return the units of the \source{galaxyMergerTreeIndices} properties in the SI system.
+    Return the units of the \mono{galaxyMergerTreeIndices} properties in the SI system.
     !!}
     implicit none
     double precision                                              , dimension(:) , allocatable :: unitsInSI

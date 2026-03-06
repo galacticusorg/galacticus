@@ -143,7 +143,7 @@ contains
 
   subroutine inSituRate(self,node,historyStarFormation,abundancesFuel,rateStarFormation)
     !!{
-    Set the rate the star formation history for \source{node}.
+    Set the rate the star formation history for \mono{node}.
     !!}
     use :: Error, only : Error_Report
     implicit none

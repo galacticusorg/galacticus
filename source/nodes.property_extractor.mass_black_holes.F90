@@ -98,7 +98,7 @@ contains
 
   subroutine massBlackHolesNames(self,names)
     !!{
-    Return the names of the \source{massBlackHoles} properties.
+    Return the names of the \mono{massBlackHoles} properties.
     !!}
     implicit none
     class(nodePropertyExtractorMassBlackHoles), intent(inout)                             :: self
@@ -112,7 +112,7 @@ contains
 
   subroutine massBlackHolesDescriptions(self,descriptions)
     !!{
-    Return the descriptions of the \source{massBlackHoles} properties.
+    Return the descriptions of the \mono{massBlackHoles} properties.
     !!}
     implicit none
     class(nodePropertyExtractorMassBlackHoles), intent(inout)                             :: self
@@ -126,7 +126,7 @@ contains
 
   function massBlackHolesUnitsInSI(self) result(unitsInSI)
     !!{
-    Return the units of the \source{massBlackHoles} properties in the SI system.
+    Return the units of the \mono{massBlackHoles} properties in the SI system.
     !!}
     use :: Numerical_Constants_Astronomical, only : massSolar
     implicit none

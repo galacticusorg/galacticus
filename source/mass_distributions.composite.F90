@@ -481,7 +481,7 @@ contains
 
   double precision function compositeDensity(self,coordinates)
     !!{
-    Return the density at the specified \source{coordinates} in a composite mass distribution.
+    Return the density at the specified \mono{coordinates} in a composite mass distribution.
     !!}
     implicit none
     class(massDistributionComposite), intent(inout) :: self
@@ -502,7 +502,7 @@ contains
 
   double precision function compositeDensitySphericalAverage(self,radius)
     !!{
-    Return the spherically-averaged density at the specified \source{radius} in a composite mass distribution.
+    Return the spherically-averaged density at the specified \mono{radius} in a composite mass distribution.
     !!}
     implicit none
     class           (massDistributionComposite), intent(inout) :: self
@@ -542,7 +542,7 @@ contains
 
   double precision function compositeSurfaceDensity(self,coordinates)
     !!{
-    Return the surface density at the specified \source{coordinates} in a composite mass distribution.
+    Return the surface density at the specified \mono{coordinates} in a composite mass distribution.
     !!}
     use :: Coordinates, only : coordinate
     implicit none
@@ -565,7 +565,7 @@ contains
 
   double precision function compositeDensityGradientRadial(self,coordinates,logarithmic)
     !!{
-    Return the radial density gradient at the specified \source{coordinates} in a composite mass distribution.
+    Return the radial density gradient at the specified \mono{coordinates} in a composite mass distribution.
     !!}
     use :: Error, only : Error_Report
     implicit none
@@ -784,7 +784,7 @@ contains
 
   function compositeAcceleration(self,coordinates)
     !!{
-    Computes the gravitational acceleration at \source{coordinates} for a composite mass distribution.
+    Computes the gravitational acceleration at \mono{coordinates} for a composite mass distribution.
     !!}
     implicit none
     double precision                              , dimension(3  ) :: compositeAcceleration
@@ -806,7 +806,7 @@ contains
 
   function compositeTidalTensor(self,coordinates)
     !!{
-    Computes the gravitational tidal tensor at \source{coordinates} for exponential disk mass distributions.
+    Computes the gravitational tidal tensor at \mono{coordinates} for exponential disk mass distributions.
     !!}
     implicit none
     type (tensorRank2Dimension3Symmetric)                :: compositeTidalTensor
@@ -910,7 +910,7 @@ contains
   
   function compositeChandrasekharIntegral(self,massDistributionEmbedding,massDistributionPerturber,massPerturber,coordinates,velocity)
     !!{
-    Compute the Chandrasekhar integral at the specified \source{coordinates} in a composite mass distribution.
+    Compute the Chandrasekhar integral at the specified \mono{coordinates} in a composite mass distribution.
     !!}
     implicit none
     double precision                              , dimension(3)  :: compositeChandrasekharIntegral

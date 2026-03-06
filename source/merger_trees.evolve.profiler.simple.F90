@@ -33,11 +33,11 @@
     determine step size) is determined and a record of this is kept.
   
     At the end of a run the accumulated data is written to the \glc\ output file, into a group named {\normalfont \ttfamily
-    metaData/evolverProfiler}. A histogram of time step sizes is written to \source{timeStepCount} with bins
-    specified in \source{timeStep}---these bins can be adjusted using \source{[timeStepMinimum]},
-    \source{[timeStepMaximum]} and \source{[timeStepPointsPerDecade]}. A histogram of which
-    properties limited step size is written to \source{propertyHitCount} with the associated property names
-    written to \source{[propertyNames]}.
+    metaData/evolverProfiler}. A histogram of time step sizes is written to \mono{timeStepCount} with bins
+    specified in \mono{timeStep}---these bins can be adjusted using \mono{[timeStepMinimum]},
+    \mono{[timeStepMaximum]} and \mono{[timeStepPointsPerDecade]}. A histogram of which
+    properties limited step size is written to \mono{propertyHitCount} with the associated property names
+    written to \mono{[propertyNames]}.
    </description>
    <deepCopy>
     <ignore variables="deepCopiedFrom, node"/>

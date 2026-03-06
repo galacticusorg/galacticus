@@ -27,8 +27,8 @@
   <hiiRegionEscapeFraction name="hiiRegionEscapeFractionFixed">
    <description>
     Computes the escape fraction of hydrogen ionizing photons from HII regions. A fixed escape fraction of
-    $f_\mathrm{esc}$\source{[escapeFraction]} is assumed for HII regions with ages less than
-    $\tau_\mathrm{limit}=$\source{{ageLimit}}.
+    $f_\mathrm{esc}$\mono{[escapeFraction]} is assumed for HII regions with ages less than
+    $\tau_\mathrm{limit}=$\mono{{ageLimit}}.
    </description>
   </hiiRegionEscapeFraction>
   !!]

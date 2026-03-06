@@ -102,7 +102,7 @@ contains
 
   double precision function fractionAccretionHotModeExtract(self,node,instance)
     !!{
-    Implement a \source{fractionAccretionHotMode} property extractor.
+    Implement a \mono{fractionAccretionHotMode} property extractor.
     !!}
     use :: Accretion_Halos, only : accretionModeHot, accretionModeTotal
     implicit none
@@ -124,7 +124,7 @@ contains
 
   function fractionAccretionHotModeName(self)
     !!{
-    Return the name of the \source{fractionAccretionHotMode} property.
+    Return the name of the \mono{fractionAccretionHotMode} property.
     !!}
     implicit none
     type (varying_string                               )                :: fractionAccretionHotModeName
@@ -137,7 +137,7 @@ contains
 
   function fractionAccretionHotModeDescription(self)
     !!{
-    Return a description of the \source{fractionAccretionHotMode} property.
+    Return a description of the \mono{fractionAccretionHotMode} property.
     !!}
     implicit none
     type (varying_string                               )                :: fractionAccretionHotModeDescription
@@ -150,7 +150,7 @@ contains
 
   double precision function fractionAccretionHotModeUnitsInSI(self)
     !!{
-    Return the units of the \source{fractionAccretionHotMode} property in the SI system.
+    Return the units of the \mono{fractionAccretionHotMode} property in the SI system.
     !!}
     implicit none
     class(nodePropertyExtractorFractionAccretionHotMode), intent(inout) :: self

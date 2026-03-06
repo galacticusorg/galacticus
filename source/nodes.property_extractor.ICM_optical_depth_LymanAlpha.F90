@@ -283,7 +283,7 @@ contains
 
   double precision function icmOpticalDepthLymanAlphaUnitsInSI(self)
     !!{
-    Return the units of the \source{icmOpticalDepthLymanAlpha} properties in the SI system.
+    Return the units of the \mono{icmOpticalDepthLymanAlpha} properties in the SI system.
     !!}
     implicit none
     class(nodePropertyExtractorICMOpticalDepthLymanAlpha), intent(inout) :: self

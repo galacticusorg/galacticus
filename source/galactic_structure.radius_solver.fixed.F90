@@ -42,9 +42,9 @@
    <description>
     A galactic structure solver that determines the sizes of galactic components by assuming that radius equals \begin{equation} r
     = f_\mathrm{r} \lambda r_0 \end{equation} where $r_0$ is the virial or turnaround radius of the \gls{node} if {\normalfont
-    \ttfamily [radiusFixed]}$=$\source{virialRadius} or \source{turnaround} respectively, $\lambda$
-    is its spin parameter and $f_\mathrm{r}=$\source{[factor]} is a parameter. Optionally, different values of
-    $f_\mathrm{r}$ can be specified for disks and spheroids using the \source{[factorDisk]} and {\normalfont
+    \ttfamily [radiusFixed]}$=$\mono{virialRadius} or \mono{turnaround} respectively, $\lambda$
+    is its spin parameter and $f_\mathrm{r}=$\mono{[factor]} is a parameter. Optionally, different values of
+    $f_\mathrm{r}$ can be specified for disks and spheroids using the \mono{[factorDisk]} and {\normalfont
     \ttfamily [factorSpheroid]} parameters respectively---if either or both are not provided the value of {\normalfont \ttfamily
     [factor]} will be used for the corresponding component.
    </description>
@@ -105,14 +105,14 @@ contains
       <name>factorDisk</name>
       <defaultSource>\citep{mo_formation_1998}</defaultSource>
       <defaultValue>sqrt(0.5d0)</defaultValue>
-      <description>The ratio of galaxy radius to $\lambda r_\mathrm{vir}$ in the ``fixed'' galactic structure radius solver algorithm for disks. This will override the generic value supplied by \source{[factor]} for disks.</description>
+      <description>The ratio of galaxy radius to $\lambda r_\mathrm{vir}$ in the ``fixed'' galactic structure radius solver algorithm for disks. This will override the generic value supplied by \mono{[factor]} for disks.</description>
       <source>parameters</source>
     </inputParameter>
     <inputParameter>
       <name>factorSpheroid</name>
       <defaultSource>\citep{mo_formation_1998}</defaultSource>
       <defaultValue>sqrt(0.5d0)</defaultValue>
-      <description>The ratio of galaxy radius to $\lambda r_\mathrm{vir}$ in the ``fixed'' galactic structure radius solver algorithm for spheroids. This will override the generic value supplied by \source{[factor]} for spheroids.</description>
+      <description>The ratio of galaxy radius to $\lambda r_\mathrm{vir}$ in the ``fixed'' galactic structure radius solver algorithm for spheroids. This will override the generic value supplied by \mono{[factor]} for spheroids.</description>
       <source>parameters</source>
     </inputParameter>
     <inputParameter>

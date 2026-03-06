@@ -29,10 +29,10 @@ Implements a merger tree branching probability class using the algorithm of \cit
   <mergerTreeBranchingProbability name="mergerTreeBranchingProbabilityParkinsonColeHelly">
    <description>
     A merger tree branching probability class using the algorithm of \cite{parkinson_generating_2008}. The parameters $G_0$,
-    $\gamma_1$ and $\gamma_2$ of their algorithm are specified by the input parameters \source{[G0]},
-    \source{[gamma]} and \source{[gamma2]} respectively. Additionally, the parameter {\normalfont
+    $\gamma_1$ and $\gamma_2$ of their algorithm are specified by the input parameters \mono{[G0]},
+    \mono{[gamma]} and \mono{[gamma2]} respectively. Additionally, the parameter {\normalfont
     \ttfamily accuracyFirstOrder} limits the step in $\delta_\mathrm{crit}$ so that it never exceeds
-    \source{accuracyFirstOrder}$\sqrt{2[\sigma^2(M_2/2)-\sigma^2(M_2)]}$, which ensures
+    \mono{accuracyFirstOrder}$\sqrt{2[\sigma^2(M_2/2)-\sigma^2(M_2)]}$, which ensures
     the the first order expansion of the merging rate that is assumed is accurate. To find bounds on the branching probability,
     we make use of the fact that eqn.~(4) of \cite{parkinson_generating_2008} can be written as
     \begin{equation}
@@ -46,7 +46,7 @@ Implements a merger tree branching probability class using the algorithm of \cit
     Calculation of branching probabilities involves computation of several hypergeometric functions which are numerically
     slow. Two parameters control the accuracy and application of these functions. First, {\normalfont \ttfamily
     [precisionHypergeometric]}($=10^{-6}$) specifies the fractional tolerance to which these functions should be
-    computed. Second, if \source{[hypergeometricTabulate]}$=$\source{true} then these functions
+    computed. Second, if \mono{[hypergeometricTabulate]}$=$\mono{true} then these functions
     will be tabulated for rapid lookup (at some loss of precision).
    </description>
   </mergerTreeBranchingProbability>
@@ -159,7 +159,7 @@ contains
       <name>accuracyFirstOrder</name>
       <defaultValue>0.1d0</defaultValue>
       <description>Limits the step in $\delta_\mathrm{crit}$ when constructing merger trees using the \cite{parkinson_generating_2008}
-         algorithm, so that it never exceeds \source{accuracyFirstOrder}$\sqrt{2[\sigma^2(M_2/2)-\sigma^2(M_2)]}$.</description>
+         algorithm, so that it never exceeds \mono{accuracyFirstOrder}$\sqrt{2[\sigma^2(M_2/2)-\sigma^2(M_2)]}$.</description>
       <source>parameters</source>
     </inputParameter>
     <inputParameter>
@@ -377,7 +377,7 @@ contains
     double precision function massBranchGeneric()
       !!{
       Determine the mass of one of the halos to which the given halo branches, given the branching probability, {\normalfont
-      \ttfamily probability}. Typically, \source{probabilityFraction} is found by multiplying \source{probability}
+      \ttfamily probability}. Typically, \mono{probabilityFraction} is found by multiplying \mono{probability}
       by a random variable drawn in the interval 0--1 if a halo branches. This routine then finds the progenitor mass
       corresponding to this value.
       !!}
@@ -501,7 +501,7 @@ contains
 
   double precision function parkinsonColeHellyStepMaximum(self,haloMass,deltaCritical,time,massResolution)
     !!{
-    Return the maximum allowed step in $\delta_\mathrm{crit}$ that a halo of mass \source{haloMass} at time {\normalfont \ttfamily
+    Return the maximum allowed step in $\delta_\mathrm{crit}$ that a halo of mass \mono{haloMass} at time {\normalfont \ttfamily
     deltaCritical} should be allowed to take.
     !!}
     implicit none
@@ -536,8 +536,8 @@ contains
 
   double precision function parkinsonColeHellyRate(self,mass,deltaCritical,time,massBranch,node)
     !!{
-    Return the rate per unit mass and per unit change in $\delta_\mathrm{crit}$ that a halo of mass \source{haloMass} at time
-    \source{deltaCritical} will undergo a branching to progenitors with mass \source{massBranch}.
+    Return the rate per unit mass and per unit change in $\delta_\mathrm{crit}$ that a halo of mass \mono{haloMass} at time
+    \mono{deltaCritical} will undergo a branching to progenitors with mass \mono{massBranch}.
     !!}
     implicit none
     class           (mergerTreeBranchingProbabilityParkinsonColeHelly), intent(inout), target :: self
@@ -562,8 +562,8 @@ contains
 
   double precision function parkinsonColeHellyProbability(self,haloMass,deltaCritical,time,massResolution,node)
     !!{
-    Return the probability per unit change in $\delta_\mathrm{crit}$ that a halo of mass \source{haloMass} at time
-    \source{deltaCritical} will undergo a branching to progenitors with mass greater than \source{massResolution}.
+    Return the probability per unit change in $\delta_\mathrm{crit}$ that a halo of mass \mono{haloMass} at time
+    \mono{deltaCritical} will undergo a branching to progenitors with mass greater than \mono{massResolution}.
     !!}
     use :: Display        , only : displayGreen    , displayBlue             , displayYellow     , displayReset
     use :: Error          , only : errorStatusRound, errorStatusMaxIterations, errorStatusSuccess
@@ -705,8 +705,8 @@ contains
   double precision function parkinsonColeHellyProbabilityBound(self,haloMass,deltaCritical,time,massResolution,bound,node)
     !!{
     Return a bound on the probability per unit change in $\delta_\mathrm{crit}$ that a halo of mass {\normalfont \ttfamily
-    haloMass} at time \source{deltaCritical} will undergo a branching to progenitors with mass greater than
-    \source{massResolution}.
+    haloMass} at time \mono{deltaCritical} will undergo a branching to progenitors with mass greater than
+    \mono{massResolution}.
     !!}
     use            :: Display                 , only : displayMessage    , verbosityLevelWarn, displayMagenta, displayReset
     use            :: Error                   , only : Error_Report
@@ -925,8 +925,8 @@ contains
 
   double precision function parkinsonColeHellyFractionSubresolution(self,haloMass,deltaCritical,time,massResolution,node)
     !!{
-    Return the fraction of mass accreted in subresolution halos, i.e. those below \source{massResolution}, per unit change in
-    $\delta_\mathrm{crit}$ for a halo of mass \source{haloMass} at time \source{deltaCritical}. The integral is computed analytically in
+    Return the fraction of mass accreted in subresolution halos, i.e. those below \mono{massResolution}, per unit change in
+    $\delta_\mathrm{crit}$ for a halo of mass \mono{haloMass} at time \mono{deltaCritical}. The integral is computed analytically in
     terms of the $_2F_1$ hypergeometric function.
     !!}
     use :: Hypergeometric_Functions, only : Hypergeometric_2F1

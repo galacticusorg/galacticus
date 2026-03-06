@@ -161,7 +161,7 @@ contains
 
   double precision function blackHoleDensity(self,coordinates)
     !!{
-    Return the density at the specified \source{coordinates} in a $\beta$-profile mass distribution.
+    Return the density at the specified \mono{coordinates} in a $\beta$-profile mass distribution.
     !!}
     implicit none
     class(massDistributionBlackHole), intent(inout) :: self
@@ -191,7 +191,7 @@ contains
 
   double precision function blackHoleMassEnclosedBySphere(self,radius)
     !!{
-    Computes the mass enclosed within a sphere of given \source{radius} for a black hole.
+    Computes the mass enclosed within a sphere of given \mono{radius} for a black hole.
     !!}
     implicit none
     class           (massDistributionBlackHole), intent(inout), target :: self
@@ -272,7 +272,7 @@ contains
 
   double precision function blackHolePotential(self,coordinates,status)
     !!{
-    Return the potential at the specified \source{coordinates} for a point mass.
+    Return the potential at the specified \mono{coordinates} for a point mass.
     !!}
     use :: Galactic_Structure_Options      , only : structureErrorCodeSuccess
     use :: Numerical_Constants_Astronomical, only : gravitationalConstant_internal

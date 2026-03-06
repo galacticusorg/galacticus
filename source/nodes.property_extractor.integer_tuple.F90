@@ -34,7 +34,7 @@
      !![
      <methods>
        <method method="elementCount" description="Return the number of properties in the tuple."                      />
-       <method method="extract"      description="Extract the properties from the given \source{node}."/>
+       <method method="extract"      description="Extract the properties from the given \mono{node}."/>
        <method method="names"        description="Return the names of the properties extracted."                      />
        <method method="descriptions" description="Return descriptions of the properties extracted."                   />
        <method method="unitsInSI"    description="Return the units of the properties extracted in the SI system."     />
@@ -52,7 +52,7 @@
   abstract interface
      function integerTupleExtract(self,node,time,instance)
        !!{
-       Interface for \source{integerTuple} property extraction.
+       Interface for \mono{integerTuple} property extraction.
        !!}
        import nodePropertyExtractorIntegerTuple, treeNode, multiCounter, kind_int8
        integer         (kind_int8                        ), dimension(:) , allocatable :: integerTupleExtract
@@ -66,7 +66,7 @@
   abstract interface
      subroutine integerTupleNames(self,time,names)
        !!{
-       Interface for \source{integerTuple} property names.
+       Interface for \mono{integerTuple} property names.
        !!}
        import varying_string, nodePropertyExtractorIntegerTuple
        class           (nodePropertyExtractorIntegerTuple), intent(inout)                             :: self
@@ -78,7 +78,7 @@
   abstract interface
      subroutine integerTupleDescriptions(self,time,descriptions)
        !!{
-       Interface for \source{integerTuple} property descriptions.
+       Interface for \mono{integerTuple} property descriptions.
        !!}
        import varying_string, nodePropertyExtractorIntegerTuple
        class           (nodePropertyExtractorIntegerTuple), intent(inout)                             :: self
@@ -90,7 +90,7 @@
   abstract interface
      function integerTupleUnitsInSI(self,time)
        !!{
-       Interface for \source{integerTuple property units.
+       Interface for \mono{integerTuple property units.
        !!}
        import nodePropertyExtractorIntegerTuple
        double precision                                   , dimension(:) , allocatable :: integerTupleUnitsInSI
@@ -102,7 +102,7 @@
   abstract interface
      integer function integerTupleElementCount(self,time)
        !!{
-       Interface for \source{integerTuple} element count.
+       Interface for \mono{integerTuple} element count.
        !!}
        import nodePropertyExtractorIntegerTuple
        class           (nodePropertyExtractorIntegerTuple), intent(inout) :: self

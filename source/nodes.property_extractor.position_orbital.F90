@@ -75,7 +75,7 @@ contains
 
   integer function positionOrbitalElementCount(self,time)
     !!{
-    Return the number of elements in the \source{positionOrbital} property extractors.
+    Return the number of elements in the \mono{positionOrbital} property extractors.
     !!}
     implicit none
     class           (nodePropertyExtractorPositionOrbital), intent(inout) :: self

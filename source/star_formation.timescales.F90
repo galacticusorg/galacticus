@@ -37,7 +37,7 @@ module Star_Formation_Timescales
    </description>
    <default>dynamicalTime</default>
    <method name="timescale" >
-    <description>Returns the timescale (in Gyr) for star formation in the provided \source{component}.</description>
+    <description>Returns the timescale (in Gyr) for star formation in the provided \mono{component}.</description>
     <type>double precision</type>
     <pass>yes</pass>
     <argument>class(nodeComponent), intent(inout) :: component</argument>

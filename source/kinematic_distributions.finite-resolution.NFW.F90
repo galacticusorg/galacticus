@@ -119,7 +119,7 @@ contains
 
   double precision function finiteResolutionNFWVelocityDispersion1D(self,coordinates,massDistribution_,massDistributionEmbedding) result(velocityDispersion)
     !!{
-    Return the 1D velocity dispersion at the specified \source{coordinates} in an finite-resolution NFW kinematic distribution.
+    Return the 1D velocity dispersion at the specified \mono{coordinates} in an finite-resolution NFW kinematic distribution.
     !!}
     use :: Numerical_Constants_Astronomical, only : gravitationalConstant_internal
     implicit none

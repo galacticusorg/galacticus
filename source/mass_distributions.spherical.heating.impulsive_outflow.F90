@@ -117,7 +117,7 @@ contains
 
   double precision function impulsiveOutflowSpecificEnergy(self,radius,massDistribution_) result(energySpecific)
     !!{
-    Returns the specific energy of heating in the given \source{node}.
+    Returns the specific energy of heating in the given \mono{node}.
     !!}
     use :: Galactic_Structure_Options      , only : componentTypeDisk             , componentTypeSpheroid
     use :: Numerical_Constants_Astronomical, only : gravitationalConstant_internal

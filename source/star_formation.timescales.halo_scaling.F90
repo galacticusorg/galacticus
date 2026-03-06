@@ -31,8 +31,8 @@
     \begin{equation}
      \tau_\star = \tau_\mathrm{\star,0} \left( {V_\mathrm{vir} \over 200\hbox{km/s}} \right)^{\alpha_\star} (1+z)^{\beta_\star},
     \end{equation}
-    where $\tau_\mathrm{\star,0}=$\source{[timescale]}, $\alpha_\star=${\normalfont \ttfamily
-    [exponentVelocityVirial]}, and $\beta_\star=$\source{[exponentRedshift]}.
+    where $\tau_\mathrm{\star,0}=$\mono{[timescale]}, $\alpha_\star=${\normalfont \ttfamily
+    [exponentVelocityVirial]}, and $\beta_\star=$\mono{[exponentRedshift]}.
    </description>
   </starFormationTimescale>
   !!]
@@ -193,7 +193,7 @@ contains
 
   double precision function haloScalingTimescale(self,component) result(timescale)
     !!{
-    Returns the timescale (in Gyr) for star formation in the given \source{component} in the halo scaling
+    Returns the timescale (in Gyr) for star formation in the given \mono{component} in the halo scaling
     timescale model.
     !!}
     use :: Galacticus_Nodes, only : nodeComponentBasic

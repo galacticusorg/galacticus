@@ -147,7 +147,7 @@ contains
   !!]
   subroutine Node_Component_Hot_Halo_VS_Delayed_Scale_Set(node)
     !!{
-    Set scales for properties of \source{node}.
+    Set scales for properties of \mono{node}.
     !!}
     use :: Abundances_Structure, only : unitAbundances
     use :: Galacticus_Nodes    , only : nodeComponentBasic     , nodeComponentHotHalo, nodeComponentHotHaloVerySimpleDelayed, treeNode, &

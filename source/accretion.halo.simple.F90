@@ -41,7 +41,7 @@
      otherwise,}\end{array} \right.
     \label{eq:accretionHalo:truncation}
     \end{equation}
-    where $z_\mathrm{reionization}=$\source{[redshiftReionization]} is the redshift at which the Universe is
+    where $z_\mathrm{reionization}=$\mono{[redshiftReionization]} is the redshift at which the Universe is
     reionized (alternatively, the optical depth to reionization can be specified via {\normalfont \ttfamily
     [opticalDepthReionization]} and the corresponding redshift will be computed) and $V_\mathrm{reionization}=${\normalfont
     \ttfamily [velocitySuppressionReionization]} is the virial velocity below which accretion is suppressed after
@@ -56,12 +56,12 @@
     chemical state functions (see \refPhysics{chemicalState}).
   
     Note that, if $\dot{M}_\mathrm{halo} &lt; 0$ then negative accretion rates of gas into the node can result. This can be
-    prevented by setting \source{[accretionNegativeAllowed]}$=$\source{false}.
+    prevented by setting \mono{[accretionNegativeAllowed]}$=$\mono{false}.
   
     By default, gas is accreted whenever the halo is growing in total mass. However, setting {\normalfont \ttfamily
-    [accretionNewGrowthOnly]}$=$\source{true} causes accretion to occur only if the node mass is growing and
+    [accretionNewGrowthOnly]}$=$\mono{true} causes accretion to occur only if the node mass is growing and
     exceeds the previous maximum node mass achieved along this branch of the merger tree. This requires use of a basic
-    component which tracks the maximum mass along the branch (i.e. the \source{massMaximum} property).
+    component which tracks the maximum mass along the branch (i.e. the \mono{massMaximum} property).
    </description>
    <deepCopy>
     <functionClass variables="radiation"/>
@@ -92,7 +92,7 @@
      !![
      <methods>
        <method description="Returns the fraction of potential accretion onto a halo from the \gls{igm} which fails." method="failedFraction"/>
-       <method description="Returns the velocity scale to use for \source{node}."                     method="velocityScale" />
+       <method description="Returns the velocity scale to use for \mono{node}."                     method="velocityScale" />
        <method description="Compute masses of chemical species given a total mass."                                  method="chemicalMasses"/>
      </methods>
      !!]
@@ -125,7 +125,7 @@ contains
 
   function simpleConstructorParameters(parameters) result(self)
     !!{
-    Default constructor for the \source{simple} halo accretion class.
+    Default constructor for the \mono{simple} halo accretion class.
     !!}
     use :: Error           , only : Error_Report
     use :: Input_Parameters, only : inputParameter, inputParameters
@@ -284,7 +284,7 @@ contains
 
   double precision function simpleAccretionRate(self,node,accretionMode)
     !!{
-    Computes the baryonic accretion rate onto \source{node}.
+    Computes the baryonic accretion rate onto \mono{node}.
     !!}
     use :: Galacticus_Nodes, only : nodeComponentBasic, nodeComponentHotHalo, treeNode
     implicit none
@@ -324,7 +324,7 @@ contains
 
   double precision function simpleAccretedMass(self,node,accretionMode)
     !!{
-    Computes the mass of baryons accreted into \source{node}.
+    Computes the mass of baryons accreted into \mono{node}.
     !!}
     use :: Galacticus_Nodes, only : nodeComponentBasic, treeNode
     implicit none
@@ -346,7 +346,7 @@ contains
 
   double precision function simpleFailedAccretionRate(self,node,accretionMode)
     !!{
-    Computes the baryonic accretion rate onto \source{node}.
+    Computes the baryonic accretion rate onto \mono{node}.
     !!}
     use :: Galacticus_Nodes, only : nodeComponentBasic, nodeComponentHotHalo, treeNode
     implicit none
@@ -383,7 +383,7 @@ contains
 
   double precision function simpleFailedAccretedMass(self,node,accretionMode)
     !!{
-    Computes the mass of baryons accreted into \source{node}.
+    Computes the mass of baryons accreted into \mono{node}.
     !!}
     use :: Galacticus_Nodes, only : nodeComponentBasic, treeNode
     implicit none
@@ -405,7 +405,7 @@ contains
 
   function simpleAccretionRateMetals(self,node,accretionMode)
     !!{
-    Computes the rate of mass of abundance accretion (in $M_\odot/$Gyr) onto \source{node} from the intergalactic medium.
+    Computes the rate of mass of abundance accretion (in $M_\odot/$Gyr) onto \mono{node} from the intergalactic medium.
     !!}
     use :: Abundances_Structure, only : metallicityTypeLinearByMass, adjustElementsReset
     use :: Galacticus_Nodes    , only : nodeComponentBasic
@@ -428,7 +428,7 @@ contains
 
   function simpleAccretedMassMetals(self,node,accretionMode)
     !!{
-    Computes the mass of abundances accreted (in $M_\odot$) onto \source{node} from the intergalactic medium.
+    Computes the mass of abundances accreted (in $M_\odot$) onto \mono{node} from the intergalactic medium.
     !!}
     use :: Abundances_Structure, only : metallicityTypeLinearByMass, adjustElementsReset
     use :: Galacticus_Nodes    , only : nodeComponentBasic
@@ -451,7 +451,7 @@ contains
 
   function simpleFailedAccretionRateMetals(self,node,accretionMode)
     !!{
-    Computes the rate of failed mass of abundance accretion (in $M_\odot/$Gyr) onto \source{node} from the intergalactic medium.
+    Computes the rate of failed mass of abundance accretion (in $M_\odot/$Gyr) onto \mono{node} from the intergalactic medium.
     !!}
     use :: Abundances_Structure, only : metallicityTypeLinearByMass, adjustElementsReset
     use :: Galacticus_Nodes    , only : nodeComponentBasic
@@ -474,7 +474,7 @@ contains
 
   function simpleFailedAccretedMassMetals(self,node,accretionMode)
     !!{
-    Computes the mass of abundances that failed to accrete (in $M_\odot$) onto \source{node} from the intergalactic medium.
+    Computes the mass of abundances that failed to accrete (in $M_\odot$) onto \mono{node} from the intergalactic medium.
     !!}
     use :: Abundances_Structure, only : metallicityTypeLinearByMass, adjustElementsReset
     use :: Galacticus_Nodes    , only : nodeComponentBasic
@@ -497,7 +497,7 @@ contains
   
   function simpleAccretionRateChemicals(self,node,accretionMode)
     !!{
-    Computes the rate of mass of chemicals accretion (in $M_\odot/$Gyr) onto \source{node} from the intergalactic medium. Assumes a
+    Computes the rate of mass of chemicals accretion (in $M_\odot/$Gyr) onto \mono{node} from the intergalactic medium. Assumes a
     primordial mixture of hydrogen and helium and that accreted material is in collisional ionization equilibrium at the virial
     temperature.
     !!}
@@ -522,7 +522,7 @@ contains
 
   function simpleAccretedMassChemicals(self,node,accretionMode)
     !!{
-    Computes the mass of chemicals accreted (in $M_\odot$) onto \source{node} from the intergalactic medium.
+    Computes the mass of chemicals accreted (in $M_\odot$) onto \mono{node} from the intergalactic medium.
     !!}
     use :: Chemical_Abundances_Structure, only : chemicalAbundances
     implicit none
@@ -545,7 +545,7 @@ contains
 
   function simpleChemicalMasses(self,node,massAccreted,accretionMode)
     !!{
-    Compute the masses of chemicals accreted (in $M_\odot$) onto \source{node} from the intergalactic medium.
+    Compute the masses of chemicals accreted (in $M_\odot$) onto \mono{node} from the intergalactic medium.
     !!}
     use :: Abundances_Structure             , only : zeroAbundances
     use :: Chemical_Abundances_Structure    , only : chemicalAbundances
@@ -585,7 +585,7 @@ contains
 
   double precision function simpleVelocityScale(self,node)
     !!{
-    Returns the velocity scale to use for \source{node}. Use the virial velocity.
+    Returns the velocity scale to use for \mono{node}. Use the virial velocity.
     !!}
     implicit none
     class(accretionHaloSimple), intent(inout) :: self

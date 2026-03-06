@@ -146,7 +146,7 @@ contains
 
   double precision function isothermalTemperature(self,coordinates)
     !!{
-    Return the temperature at the specified \source{coordinates} in an isothermal kinematic distribution.
+    Return the temperature at the specified \mono{coordinates} in an isothermal kinematic distribution.
     !!}
     implicit none
     class(kinematicsDistributionIsothermal), intent(inout) :: self
@@ -159,7 +159,7 @@ contains
 
   double precision function isothermalTemperatureGradientLogarithmic(self,coordinates)
     !!{
-    Return the logarithmic gradient of temperature at the specified \source{coordinates} in an isothermal kinematic distribution.
+    Return the logarithmic gradient of temperature at the specified \mono{coordinates} in an isothermal kinematic distribution.
     !!}
     implicit none
     class(kinematicsDistributionIsothermal), intent(inout) :: self
@@ -172,7 +172,7 @@ contains
 
   double precision function isothermalVelocityDispersion1D(self,coordinates,massDistribution_,massDistributionEmbedding) result(velocityDispersion)
     !!{
-    Return the 1D velocity dispersion at the specified \source{coordinates} in an isothermal kinematic distribution.
+    Return the 1D velocity dispersion at the specified \mono{coordinates} in an isothermal kinematic distribution.
     !!}
     implicit none
     class(kinematicsDistributionIsothermal), intent(inout)          :: self

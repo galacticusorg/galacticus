@@ -61,7 +61,7 @@ contains
       <name>preciseZero</name>
       <source>parameters</source>
       <defaultValue>.true.</defaultValue>
-      <description>If true, then input value of 0 will be mapped to precisely 0. Otherwise, they are mapped to the smallest representable non-zero value, \source{epsilon(0.0d0)}. This is useful since a precise 0 is treated differently by the \refClass{outputAnalysisMeanFunction1D} class.</description>
+      <description>If true, then input value of 0 will be mapped to precisely 0. Otherwise, they are mapped to the smallest representable non-zero value, \mono{epsilon(0.0d0)}. This is useful since a precise 0 is treated differently by the \refClass{outputAnalysisMeanFunction1D} class.</description>
     </inputParameter>
     !!]
     self=outputAnalysisPropertyOperatorBoolean(preciseZero)

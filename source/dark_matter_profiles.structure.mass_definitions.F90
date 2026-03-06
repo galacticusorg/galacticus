@@ -32,7 +32,7 @@ contains
 
   function Dark_Matter_Profile_Mass_Definition(node,densityContrast,radius,velocity,cosmologyParameters_,cosmologyFunctions_,virialDensityContrast_,darkMatterProfileDMO_,useLastIsolatedTime) result(massHalo)
     !!{
-    Compute the mass of \source{node} under the given density contrast definition.
+    Compute the mass of \mono{node} under the given density contrast definition.
     !!}
     use :: Cosmology_Functions             , only : cosmologyFunctionsClass
     use :: Cosmology_Parameters            , only : cosmologyParametersClass

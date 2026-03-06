@@ -28,7 +28,7 @@
       \begin{equation}
       \epsilon(r) = \gamma \frac{\mathrm{G}\Delta M(r)}{r},
       \end{equation}
-      where $\gamma=$\source{[gamma]} sets the magnitude of the heating.
+      where $\gamma=$\mono{[gamma]} sets the magnitude of the heating.
     </description>
   </massDistributionHeating>
   !!]

@@ -134,7 +134,7 @@ contains
 
   function satelliteStatusExtract(self,node,time,instance)
     !!{
-    Implement a \source{satelliteStatus} node property extractor.
+    Implement a \mono{satelliteStatus} node property extractor.
     !!}
     use :: Galacticus_Nodes, only : nodeComponentBasic, nodeComponentPosition, nodeComponentSatellite, treeNode
     use :: Histories       , only : history

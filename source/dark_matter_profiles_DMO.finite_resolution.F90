@@ -73,7 +73,7 @@ contains
 
   function finiteResolutionConstructorParameters(parameters) result(self)
     !!{
-    Default constructor for the \source{finiteResolution} dark matter halo profile class.
+    Default constructor for the \mono{finiteResolution} dark matter halo profile class.
     !!}
     use :: Input_Parameters  , only : inputParameter                     , inputParameters
     use :: Mass_Distributions, only : enumerationNonAnalyticSolversEncode
@@ -106,7 +106,7 @@ contains
       <name>nonAnalyticSolver</name>
       <defaultValue>var_str('fallThrough')</defaultValue>
       <source>parameters</source>
-      <description>Selects how solutions are computed when no analytic solution is available. If set to ``\source{fallThrough}'' then the solution ignoring heating is used, while if set to ``\source{numerical}'' then numerical solvers are used to find solutions.</description>
+      <description>Selects how solutions are computed when no analytic solution is available. If set to ``\mono{fallThrough}'' then the solution ignoring heating is used, while if set to ``\mono{numerical}'' then numerical solvers are used to find solutions.</description>
     </inputParameter>
     <objectBuilder class="darkMatterProfileDMO" name="darkMatterProfileDMO_" source="parameters"/>
     <objectBuilder class="cosmologyFunctions"   name="cosmologyFunctions_"   source="parameters"/>
@@ -186,7 +186,7 @@ contains
 
   function finiteResolutionGet(self,node,weightBy,weightIndex) result(massDistribution_)
     !!{
-    Return the dark matter mass distribution for the given \source{node}.
+    Return the dark matter mass distribution for the given \mono{node}.
     !!}
     use :: Galactic_Structure_Options, only : componentTypeDarkHalo                    , massTypeDark                       , weightByMass
     use :: Mass_Distributions        , only : massDistributionSphericalFiniteResolution, kinematicsDistributionCollisionless, massDistributionSpherical

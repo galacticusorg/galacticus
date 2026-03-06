@@ -65,7 +65,7 @@ contains
 
   function enzoHydrostaticConstructorParameters(parameters) result(self)
     !!{
-    Default constructor for the \source{enzoHydrostatic} hot halo mass distribution class.
+    Default constructor for the \mono{enzoHydrostatic} hot halo mass distribution class.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -118,7 +118,7 @@ contains
 
   function enzoHydrostaticGet(self,node,weightBy,weightIndex) result(massDistribution_)
     !!{
-    Return the Enzo hydrostatic hot halo mass distribution for the given \source{node}.
+    Return the Enzo hydrostatic hot halo mass distribution for the given \mono{node}.
     !!}
     use :: Galacticus_Nodes          , only : nodeComponentHotHalo           , treeNode
     use :: Galactic_Structure_Options, only : componentTypeHotHalo           , massTypeGaseous, weightByMass

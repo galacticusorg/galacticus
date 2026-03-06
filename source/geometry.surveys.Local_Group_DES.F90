@@ -134,7 +134,7 @@ contains
 
   integer function localGroupDESAngularPowerMaximumDegree(self)
     !!{
-    Return the maximum degree for which angular power is computed for the \source{localGroupDES} survey.
+    Return the maximum degree for which angular power is computed for the \mono{localGroupDES} survey.
     !!}
     implicit none
     class(surveyGeometryLocalGroupDES), intent(inout) :: self

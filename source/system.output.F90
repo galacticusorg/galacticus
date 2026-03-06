@@ -44,7 +44,7 @@ contains
 
   logical function stdOutIsATTY()
     !!{
-    Return \source{true} if stdout is a \source{TTY}.
+    Return \mono{true} if stdout is a \mono{TTY}.
     !!}
     implicit none
 

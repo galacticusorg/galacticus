@@ -24,13 +24,13 @@
   !![
   <posteriorSampleSimulation name="posteriorSampleSimulationStochasticDffrntlEvltn">
    <description>
-    This option extends the \source{differentialEvolution} option to run chains at a temperature matched to the
+    This option extends the \mono{differentialEvolution} option to run chains at a temperature matched to the
     uncertainty in the log-likelihood. This is designed to work with stochastic likelihood functions where an estimate of the
     uncertainty in the log-likelihood is available, and prevents the chains from becoming trapped in local maxima arising purely from
-    random fluctuations.  In addition to the options for the \source{differentialEvolution} algorithm, the details of
+    random fluctuations.  In addition to the options for the \mono{differentialEvolution} algorithm, the details of
     the algorithm are controlled by the following parameters:
     \begin{description}
-    \item[\source{temperatureScale}] The temperature scaling factor, $alpha$, described below.
+    \item[\mono{temperatureScale}] The temperature scaling factor, $alpha$, described below.
     \end{description}
     In computing the acceptance probability for transitions between states, the chain temperature is set to
     \begin{equation}

@@ -32,7 +32,7 @@
     \begin{equation}
      \dot{M}_\mathrm{gas}^\mathrm{NSC} = A_\mathrm{res}\dot{M}_\star^\mathrm{spheroid},
     \end{equation}    
-    where $A_\mathrm{res}=$\source{[efficiency]} is a free parameter, and $\dot{M}_\star^\mathrm{spheroid}$ is the
+    where $A_\mathrm{res}=$\mono{[efficiency]} is a free parameter, and $\dot{M}_\star^\mathrm{spheroid}$ is the
     star formation rate of the spheroid component.
    </description>
   </nuclearStarClusterGrowthRates>

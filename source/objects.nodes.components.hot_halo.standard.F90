@@ -343,7 +343,7 @@ contains
          <name>fractionBaryonLimitInNodeMerger</name>
          <defaultValue>.false.</defaultValue>
          <description>Controls whether the hot gas content of nodes should be limited to not exceed the universal baryon fraction at node
-           merger events. If set to \source{true}, hot gas (and angular momentum, abundances, and chemicals proportionally) will be
+           merger events. If set to \mono{true}, hot gas (and angular momentum, abundances, and chemicals proportionally) will be
            removed from the merged halo to the unaccreted gas reservoir to limit the baryonic mass to the universal baryon
            fraction where possible.</description>
          <source>subParameters</source>
@@ -1079,7 +1079,7 @@ contains
   !!]
   subroutine Node_Component_Hot_Halo_Standard_Scale_Set(node)
     !!{
-    Set scales for properties of \source{node}.
+    Set scales for properties of \mono{node}.
     !!}
     use :: Abundances_Structure         , only : unitAbundances
     use :: Chemical_Abundances_Structure, only : unitChemicalAbundances
@@ -1181,7 +1181,7 @@ contains
 
   subroutine Node_Component_Hot_Halo_Standard_Create(node)
     !!{
-    Creates a hot halo component for \source{node}.
+    Creates a hot halo component for \mono{node}.
     !!}
     use :: Galacticus_Nodes, only : nodeComponentHotHalo, nodeComponentHotHaloStandard, treeNode
     implicit none

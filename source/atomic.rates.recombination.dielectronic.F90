@@ -36,7 +36,7 @@ module Atomic_Rates_Recombination_Dielectronic
    <description>Class providing atomic dielectronic recombination rates.</description>
    <default>arnaud1985</default>
    <method name="rate" >
-    <description>Return the dielectroninc recombination rate (in units of cm$^3$ s$^{-1}$) for the ion of given \source{atomicNumber} and \source{electronNumber} at the given \source{temperature} (in Kelvin).</description>
+    <description>Return the dielectroninc recombination rate (in units of cm$^3$ s$^{-1}$) for the ion of given \mono{atomicNumber} and \mono{electronNumber} at the given \mono{temperature} (in Kelvin).</description>
     <type>double precision</type>
     <pass>yes</pass>
     <argument>integer         , intent(in   ) :: atomicNumber, electronNumber</argument>

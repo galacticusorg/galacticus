@@ -81,7 +81,7 @@ contains
 
   subroutine nullRate(self,node,historyStarFormation,abundancesFuel,rateStarFormation)
     !!{
-    Set the rate the star formation history for \source{node}.
+    Set the rate the star formation history for \mono{node}.
     !!}
     implicit none
     class           (starFormationHistoryNull), intent(inout) :: self

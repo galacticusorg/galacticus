@@ -58,13 +58,13 @@
       &lt;/spectra>
     &lt;/spectrum>
     \end{verbatim}
-    The optional \source{URL}, \source{description}, \source{reference} and
-    \source{source} elements can be used to give the provenance of the data. The {\normalfont \ttfamily
-    wavelengths} element should contain a set of \source{datum} elements each containing a wavelength (in
+    The optional \mono{URL}, \mono{description}, \mono{reference} and
+    \mono{source} elements can be used to give the provenance of the data. The {\normalfont \ttfamily
+    wavelengths} element should contain a set of \mono{datum} elements each containing a wavelength (in
     increasing order) at which the spectrum will be tabulated. Wavelengths must be given in Angstroms. Multiple {\normalfont
     \ttfamily spectra} elements can be given, each specifying the spectrum at a redshift as given in the {\normalfont \ttfamily
-    redshift} element. Each \source{spectra} element must contain an array of \source{datum}
-    elements that gives the spectrum at each wavelength listed in the \source{wavelength} element. Spectra must
+    redshift} element. Each \mono{spectra} element must contain an array of \mono{datum}
+    elements that gives the spectrum at each wavelength listed in the \mono{wavelength} element. Spectra must
     be in units of erg cm$^{-2}$ s$^{-1}$ Hz$^{-1}$ sr$^{-1}$.
    </description>
    <runTimeFileDependencies paths="fileName"/>

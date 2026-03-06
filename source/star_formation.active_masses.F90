@@ -35,7 +35,7 @@ module Star_Formation_Active_Masses
    <description>Class providing models of active masses for star formation.</description>
    <default>totalISM</default>
    <method name="massActive" >
-    <description>Returns the mass (in $\mathrm{M}_\odot$) of gas which is actively star forming in the provided \source{component}.</description>
+    <description>Returns the mass (in $\mathrm{M}_\odot$) of gas which is actively star forming in the provided \mono{component}.</description>
     <type>double precision</type>
     <pass>yes</pass>
     <argument>class(nodeComponent), intent(inout) :: component</argument>

@@ -130,7 +130,7 @@ contains
       <name>doPing</name>
       <defaultValue>.false.</defaultValue>
       <description>
-        If true, the master MPI process will attach to the \source{calculationReset} event and ping the MPI
+        If true, the master MPI process will attach to the \mono{calculationReset} event and ping the MPI
         counter. This can help to ensure that the counter updates regularly.
       </description>
       <source>parameters</source>

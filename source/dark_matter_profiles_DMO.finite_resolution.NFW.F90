@@ -56,7 +56,7 @@ contains
 
   function finiteResolutionNFWConstructorParameters(parameters) result(self)
     !!{
-    Default constructor for the \source{finiteResolutionNFW} dark matter halo profile class.
+    Default constructor for the \mono{finiteResolutionNFW} dark matter halo profile class.
     !!}
     use :: Mass_Distributions, only : enumerationNonAnalyticSolversEncode
     use :: Input_Parameters  , only : inputParameter, inputParameters
@@ -89,7 +89,7 @@ contains
       <name>nonAnalyticSolver</name>
       <defaultValue>var_str('fallThrough')</defaultValue>
       <source>parameters</source>
-      <description>Selects how solutions are computed when no analytic solution is available. If set to ``\source{fallThrough}'' then the solution ignoring heating is used, while if set to ``\source{numerical}'' then numerical solvers are used to find solutions.</description>
+      <description>Selects how solutions are computed when no analytic solution is available. If set to ``\mono{fallThrough}'' then the solution ignoring heating is used, while if set to ``\mono{numerical}'' then numerical solvers are used to find solutions.</description>
     </inputParameter>
     <objectBuilder class="darkMatterHaloScale"  name="darkMatterHaloScale_"  source="parameters"/>
     <objectBuilder class="cosmologyFunctions"   name="cosmologyFunctions_"   source="parameters"/>
@@ -151,7 +151,7 @@ contains
 
   function finiteResolutionNFWGet(self,node,weightBy,weightIndex) result(massDistribution_)
     !!{
-    Return the dark matter mass distribution for the given \source{node}.
+    Return the dark matter mass distribution for the given \mono{node}.
     !!}
     use :: Galacticus_Nodes          , only : nodeComponentBasic                          , nodeComponentDarkMatterProfile
     use :: Galactic_Structure_Options, only : componentTypeDarkHalo                       , massTypeDark                             , weightByMass

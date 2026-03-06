@@ -70,9 +70,9 @@ module Stellar_Population_Spectra_Postprocess
    <description>
     Class providing builders for postprocessors for stellar population spectra. These act as a factory for {\normalfont
     \ttfamily stellarPopulationSpectraPostprocessor} objects. Different postprocessors can be applied to different filters. The
-    \source{[luminosityPostprocessSet]} parameter specifies, for each filter, a descriptor which is passed to
+    \mono{[luminosityPostprocessSet]} parameter specifies, for each filter, a descriptor which is passed to
     the builder object, which then uses that descriptor to build a postprocessor. (If this parameter is not present then
-    ``\source{default}'' is assumed for all filters.)
+    ``\mono{default}'' is assumed for all filters.)
    </description>
    <default>lookup</default>
    <method name="build" >

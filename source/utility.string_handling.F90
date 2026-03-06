@@ -84,7 +84,7 @@ contains
 
   integer function String_Count_Words_VarString(inputString,separator,bracketing) result(countWords)
     !!{
-    Return a count of the number of space separated words in \source{inputString}.
+    Return a count of the number of space separated words in \mono{inputString}.
     !!}
     use :: ISO_Varying_String, only : varying_string, char
     implicit none
@@ -98,7 +98,7 @@ contains
 
   integer function String_Count_Words_Char(inputString,separator,bracketing) result(countWords)
     !!{
-    Return a count of the number of space separated words in \source{inputString}.
+    Return a count of the number of space separated words in \mono{inputString}.
     !!}
     use :: ISO_Varying_String, only : varying_string, assignment(=), index
     implicit none
@@ -139,7 +139,7 @@ contains
 
   subroutine String_Split_Words_VarString(words,inputString,separator,bracketing)
     !!{
-    Split \source{inputString} into words and return as an array.
+    Split \mono{inputString} into words and return as an array.
     !!}
     use :: ISO_Varying_String, only : varying_string, assignment(=), index
     implicit none
@@ -191,7 +191,7 @@ contains
 
   subroutine String_Split_Words_Char(words,inputString,separator,bracketing)
     !!{
-    Split \source{inputString} into words and return as an array.
+    Split \mono{inputString} into words and return as an array.
     !!}
     use :: ISO_Varying_String, only : varying_string, index, assignment(=)
     implicit none
@@ -243,7 +243,7 @@ contains
 
   function Concatenate_VarStr_Integer(varStrVariable,intVariable)
     !!{
-    Provides a concatenation operator to append an integer number to a \source{varying\_string}.
+    Provides a concatenation operator to append an integer number to a \mono{varying\_string}.
     !!}
     use :: ISO_Varying_String, only : varying_string, operator(//)
     implicit none
@@ -259,7 +259,7 @@ contains
 
   function Concatenate_VarStr_Integer8(varStrVariable,intVariable)
     !!{
-    Provides a concatenation operator to append an integer number to a \source{varying\_string}.
+    Provides a concatenation operator to append an integer number to a \mono{varying\_string}.
     !!}
     use :: Kind_Numbers      , only : kind_int8
     use :: ISO_Varying_String, only : varying_string, operator(//)
@@ -484,7 +484,7 @@ contains
 
   integer function String_Levenshtein_Distance(s,t)
     !!{
-    Compute the \href{http://en.wikipedia.org/wiki/Levenshtein_distance}{Levenshtein distance} between strings \source{a} and {\normalfont \ttfamily
+    Compute the \href{http://en.wikipedia.org/wiki/Levenshtein_distance}{Levenshtein distance} between strings \mono{a} and {\normalfont \ttfamily
     b}.
     !!}
     implicit none
@@ -639,7 +639,7 @@ contains
 
   function String_Value_Extract_Integer_Size_T(input,status) result(valueInteger)
     !!{
-    Extract a \source{size\_t} integer value from a string.
+    Extract a \mono{size\_t} integer value from a string.
     !!}
     use, intrinsic :: ISO_C_Binding   , only : c_size_t
     implicit none
@@ -680,8 +680,8 @@ contains
     element per line, automatic indenting (an initial indent, if required, can be specified via the optional {\normalfont
     \ttfamily indentInitial} argument). Some special formatting codes are supported:
     \begin{description}
-      \item[\source{**B}:] Highlight the remainder of the line using bold.
-      \item[\source{**C}:] Display a continuation line (to indicate arbitrary additional content), \source{......}.
+      \item[\mono{**B}:] Highlight the remainder of the line using bold.
+      \item[\mono{**C}:] Display a continuation line (to indicate arbitrary additional content), \mono{......}.
     \end{description}
     !!}
     use :: ISO_Varying_String, only : varying_string, char
@@ -701,8 +701,8 @@ contains
     element per line, automatic indenting (an initial indent, if required, can be specified via the optional {\normalfont
     \ttfamily indentInitial} argument). Some special formatting codes are supported:
     \begin{description}
-      \item[\source{**B}:] Highlight the remainder of the line using bold.
-      \item[\source{**C}:] Display a continuation line (to indicate arbitrary additional content), \source{......}.
+      \item[\mono{**B}:] Highlight the remainder of the line using bold.
+      \item[\mono{**C}:] Display a continuation line (to indicate arbitrary additional content), \mono{......}.
     \end{description}
     !!}
     use :: ISO_Varying_String, only : varying_string, len         , assignment(=), operator(//), &

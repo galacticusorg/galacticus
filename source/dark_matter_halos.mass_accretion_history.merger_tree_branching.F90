@@ -114,7 +114,7 @@ contains
 
   double precision function mergerTreeBranchingTime(self,node,mass)
     !!{
-    Compute the time corresponding to \source{mass} in the mass accretion history.
+    Compute the time corresponding to \mono{mass} in the mass accretion history.
     !!}
     use :: Error, only : Error_Report
     implicit none
@@ -130,7 +130,7 @@ contains
 
   double precision function mergerTreeBranchingMass(self,node,time)
     !!{
-    Compute the mass corresponding to \source{time} in the mass accretion history.
+    Compute the mass corresponding to \mono{time} in the mass accretion history.
     !!}
     use :: Error, only : Error_Report
     implicit none
@@ -146,8 +146,8 @@ contains
 
   double precision function mergerTreeBranchingMassAccretionRate(self,node,time)
     !!{
-    Compute the mass accretion rate at the given \source{time} in the mass accretion history of
-    \source{node}.
+    Compute the mass accretion rate at the given \mono{time} in the mass accretion history of
+    \mono{node}.
     !!}
     use :: Galacticus_Nodes, only : nodeComponentBasic
     implicit none

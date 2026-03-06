@@ -61,7 +61,7 @@
     <description>
       The standard merger tree node evolver.
 
-      If the parameter \source{[enforceNonNegativity] = true} then properties which are marked as being
+      If the parameter \mono{[enforceNonNegativity] = true} then properties which are marked as being
       non-negative (e.g. masses) are evolved in such a way to ensure that they remain non-negative. This typically requires
       smaller time step size and so longer run times. In some cases it may be impossible to ensure non-negativity even for
       arbitrarily small timesteps\footnote{This can occur if a property as a non-zero, negative derivative as the property
@@ -361,7 +361,7 @@ contains
 
   subroutine standardEvolve(self,tree,node,timeEnd,interrupted,functionInterrupt,galacticStructureSolver__,treeLock,systemClockMaximum,status)
     !!{
-    Evolves \source{node} to time \source{timeEnd}, or until evolution is interrupted.
+    Evolves \mono{node} to time \mono{timeEnd}, or until evolution is interrupted.
     !!}
     use            :: Display               , only : displayIndent              , displayMessage                                  , displayUnindent                                , displayMagenta    , &
          &                                           displayReset
@@ -1040,7 +1040,7 @@ contains
 
   subroutine standardDerivativesCompute(node,interrupt,functionInterruptReturn,propertyType)
     !!{
-    Call routines to set all derivatives for \source{node}.
+    Call routines to set all derivatives for \mono{node}.
     !!}
     use :: Calculations_Resets, only : Calculations_Reset
     !![
@@ -1275,7 +1275,7 @@ contains
 
   subroutine standardPromote(self,node)
     !!{
-    Transfer the properties of \source{node} to its parent node, then destroy it.
+    Transfer the properties of \mono{node} to its parent node, then destroy it.
     !!}
     use :: Display        , only : displayMessage, displayVerbosity, verbosityLevelInfo
     use :: String_Handling, only : operator(//)
@@ -1363,7 +1363,7 @@ contains
 
   subroutine standardMerge(self,node)
     !!{
-    Handles instances where \source{node} is about to merge with its parent node.
+    Handles instances where \mono{node} is about to merge with its parent node.
     !!}
     use :: Display         , only : displayMessage    , displayVerbosity, verbosityLevelInfo
     use :: Galacticus_Nodes, only : nodeComponentBasic

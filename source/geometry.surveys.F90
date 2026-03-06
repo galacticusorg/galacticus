@@ -46,7 +46,7 @@ module Geometry_Surveys
     </code>
    </method>
    <method name="distanceMinimum" >
-    <description>Returns the minimum distance (in Mpc) at which a galaxy of the specified \source{mass} (in $M_\odot$) would be included in the survey.</description>
+    <description>Returns the minimum distance (in Mpc) at which a galaxy of the specified \mono{mass} (in $M_\odot$) would be included in the survey.</description>
     <type>double precision</type>
     <pass>yes</pass>
     <argument>double precision, intent(in   ), optional :: mass , magnitudeAbsolute, luminosity, starFormationRate</argument>
@@ -57,7 +57,7 @@ module Geometry_Surveys
     </code>
    </method>
    <method name="distanceMaximum" >
-    <description>Returns the maximum distance (in Mpc) at which a galaxy of the specified \source{mass} (in $M_\odot$) could be detected.</description>
+    <description>Returns the maximum distance (in Mpc) at which a galaxy of the specified \mono{mass} (in $M_\odot$) could be detected.</description>
     <type>double precision</type>
     <pass>yes</pass>
     <argument>double precision, intent(in   ), optional :: mass , magnitudeAbsolute, luminosity, starFormationRate</argument>
@@ -70,7 +70,7 @@ module Geometry_Surveys
     <argument>integer, intent(in   ), optional :: field</argument>
    </method>
    <method name="volumeMaximum" >
-    <description>Returns the maximum volume (in Mpc$^3$) at which a galaxy of the specified \source{mass} (in $M_\odot$) could be detected.</description>
+    <description>Returns the maximum volume (in Mpc$^3$) at which a galaxy of the specified \mono{mass} (in $M_\odot$) could be detected.</description>
     <type>double precision</type>
     <pass>yes</pass>
     <argument>double precision, intent(in   )           :: mass</argument>
@@ -88,7 +88,7 @@ module Geometry_Surveys
     <pass>yes</pass>
    </method>
    <method name="windowFunctions" >
-    <description>Returns the window functions on a grid of the specified size (\source{gridCount} cells in each dimension) for galaxies of the specified \source{mass1} and \source{mass2} (in $M_\odot$). The \source{boxLength} should be set to an appropriate value to fully enclose (with sufficient buffering to allow for Fourier transformation) the two window functions.</description>
+    <description>Returns the window functions on a grid of the specified size (\mono{gridCount} cells in each dimension) for galaxies of the specified \mono{mass1} and \mono{mass2} (in $M_\odot$). The \mono{boxLength} should be set to an appropriate value to fully enclose (with sufficient buffering to allow for Fourier transformation) the two window functions.</description>
     <type>void</type>
     <pass>yes</pass>
     <argument>double precision                  , intent(in   )                                           :: mass1          , mass2</argument>

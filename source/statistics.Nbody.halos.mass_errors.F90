@@ -34,19 +34,19 @@ module Statistics_NBody_Halo_Mass_Errors
    <description>Class providing models of errors on N-body halo masses.</description>
    <default>null</default>
    <method name="errorFractional" >
-    <description>Return the fractional error on the mass of an N-body halo corresponding to the given \source{\gls{node}}.</description>
+    <description>Return the fractional error on the mass of an N-body halo corresponding to the given \mono{\gls{node}}.</description>
     <type>double precision</type>
     <pass>yes</pass>
     <argument>type(treeNode), intent(inout) :: node</argument>
    </method>
    <method name="correlation" >
-    <description>Return the correlation in the  error on the mass of a pair of N-body halos corresponding to the given \source{node1} and \source{node2}.</description>
+    <description>Return the correlation in the  error on the mass of a pair of N-body halos corresponding to the given \mono{node1} and \mono{node2}.</description>
     <type>double precision</type>
     <pass>yes</pass>
     <argument>type(treeNode), intent(inout) :: node1, node2</argument>
    </method>
    <method name="errorZeroAlways" >
-    <description>Return \source{true} if the mass error is always zero for any halo.</description>
+    <description>Return \mono{true} if the mass error is always zero for any halo.</description>
     <type>logical</type>
     <pass>yes</pass>
     <code>

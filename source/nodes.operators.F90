@@ -39,7 +39,7 @@ module Nodes_Operators
 	Perform initialization of node properties prior to tree evolution. This typically includes initializations related to the
 	evolution of the tree (e.g. growth rates of scale radii, baryonic component initialization). Initializations related to
 	the static structure of the tree (e.g. assigning scale radii, merging orbits, etc.) are typically handled by the
-	\source{nodeTreeInitialize} method.
+	\mono{nodeTreeInitialize} method.
       </description>
       <type>void</type>
       <pass>yes</pass>
@@ -54,7 +54,7 @@ module Nodes_Operators
 	Perform initialization of node properties immediately after tree construction. This typically includes initializations
 	related to the static structure of the tree (e.g. assign scale radii, merging orbits, etc.). Initializations related to
 	evolution of the tree (e.g. growth rates of scale radii, baryonic component initialization) are typically handled by the
-	\source{nodeInitialize} method.
+	\mono{nodeInitialize} method.
       </description>
       <type>void</type>
       <pass>yes</pass>

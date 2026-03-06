@@ -72,7 +72,7 @@ module Hashes
        <method description="Set the value of a key in the hash."                                                       method="set"       />
        <method description="Delete a key from the hash."                                                               method="delete"    />
        <method description="Return the value for the given key."                                                       method="value"     />
-       <method description="Return the key of the \source{indexValue}$^\mathrm{th}$ entry in the hash." method="key"       />
+       <method description="Return the key of the \mono{indexValue}$^\mathrm{th}$ entry in the hash." method="key"       />
        <method description="Return an array of all keys in the hash."                                                  method="keys"      />
        <method description="Return an array of all values in the hash."                                                method="values"    />
        <method description="Return true if the specified key exists in the hash."                                      method="exists"    />
@@ -141,7 +141,7 @@ contains
 
   integer function {Type¦label}Size(self)
     !!{
-    Returns the number of elements in the specified \source{Hash}.
+    Returns the number of elements in the specified \mono{Hash}.
     !!}
     implicit none
     class({Type¦label}Hash), intent(in   ) :: self
@@ -152,7 +152,7 @@ contains
 
   logical function {Type¦label}ExistsChar(self,keyCH)
     !!{
-    Returns true if the specified \source{key} exists in the specified \source{self}, false otherwise.
+    Returns true if the specified \mono{key} exists in the specified \mono{self}, false otherwise.
     !!}
     use :: ISO_Varying_String, only : assignment(=)
     implicit none
@@ -167,7 +167,7 @@ contains
 
   logical function {Type¦label}ExistsVarStr(self,key)
     !!{
-    Returns true if the specified \source{key} exists in the specified \source{self}, false otherwise.
+    Returns true if the specified \mono{key} exists in the specified \mono{self}, false otherwise.
     !!}
     use :: ISO_Varying_String, only : operator(==)
     implicit none
@@ -184,7 +184,7 @@ contains
 
   subroutine {Type¦label}DeleteChar(self,keyCH)
     !!{
-    Deletes entry \source{key} from \source{self}.
+    Deletes entry \mono{key} from \mono{self}.
     !!}
     use :: ISO_Varying_String, only : assignment(=)
     implicit none
@@ -199,7 +199,7 @@ contains
 
   subroutine {Type¦label}DeleteVarStr(self,key)
     !!{
-    Deletes entry \source{key} from \source{Hash}.
+    Deletes entry \mono{key} from \mono{Hash}.
     !!}
     use            :: Arrays_Search     , only : searchArray
     use            :: Error             , only : Error_Report
@@ -230,7 +230,7 @@ contains
 
   function {Type¦label}KeyInt(self,indexValue) result (key)
     !!{
-    Returns the key of entry number \source{index} in \source{self}.
+    Returns the key of entry number \mono{index} in \mono{self}.
     !!}
     implicit none
     type   (varying_string  )                :: key
@@ -243,7 +243,7 @@ contains
 
   subroutine {Type¦label}Keys(self,keys)
     !!{
-    Returns an array of all keys in \source{self}.
+    Returns an array of all keys in \mono{self}.
     !!}
     implicit none
     type (varying_string  ), allocatable, dimension(:), intent(inout) :: keys
@@ -257,7 +257,7 @@ contains
 
   subroutine {Type¦label}Values(self,values)
     !!{
-    Returns an array of all values in \source{self}.
+    Returns an array of all values in \mono{self}.
     !!}
     use :: Error, only : Error_Report
     implicit none
@@ -280,7 +280,7 @@ contains
 
   function {Type¦label}ValueInt(self,indexValue)
     !!{
-    Returns the value of entry number \source{index} in \source{Hash}.
+    Returns the value of entry number \mono{index} in \mono{Hash}.
     !!}
     implicit none
     {Type¦intrinsic}                  {Type¦attributes} :: {Type¦label}ValueInt
@@ -293,7 +293,7 @@ contains
 
   function {Type¦label}ValueChar(self,keyCH)
     !!{
-    Returns the value of \source{Key} in \source{Hash}.
+    Returns the value of \mono{Key} in \mono{Hash}.
     !!}
     use :: ISO_Varying_String, only : assignment(=)
     implicit none
@@ -309,7 +309,7 @@ contains
 
   function {Type¦label}ValueVarStr(self,key)
     !!{
-    Returns the value of \source{key} in \source{self}.
+    Returns the value of \mono{key} in \mono{self}.
     !!}
     use            :: Arrays_Search     , only : searchArray
     use            :: Error             , only : Error_Report
@@ -335,7 +335,7 @@ contains
 
   subroutine {Type¦label}SetChar(self,keyCH,value)
     !!{
-    Sets the value of \source{key} in \source{self} to \source{value}.
+    Sets the value of \mono{key} in \mono{self} to \mono{value}.
     !!}
     use :: ISO_Varying_String, only : assignment(=)
     implicit none
@@ -352,7 +352,7 @@ contains
 
   subroutine {Type¦label}SetVarStr(self,key,value)
     !!{
-    Sets the value of \source{key} in \source{self} to \source{value}.
+    Sets the value of \mono{key} in \mono{self} to \mono{value}.
     !!}
     use            :: Arrays_Search     , only : searchArray
     use, intrinsic :: ISO_C_Binding     , only : c_size_t
@@ -452,7 +452,7 @@ contains
 
   subroutine {Type¦label}Destroy(self)
     !!{
-    Destroys \source{self}.
+    Destroys \mono{self}.
     !!}
     implicit none
     class  ({Type¦label}Hash), intent(inout) :: self
@@ -470,7 +470,7 @@ contains
 
   subroutine {Type¦label}Destructor(self)
     !!{
-    Destroys \source{self}.
+    Destroys \mono{self}.
     !!}
     implicit none
     type({Type¦label}Hash), intent(inout) :: self

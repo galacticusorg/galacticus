@@ -88,7 +88,7 @@ contains
     <inputParameter>
       <name>forward</name>
       <defaultValue>.true.</defaultValue>
-      <description>If true, updates to the scale radius are determined by walking forward along the branch until the mass exceeds by \source{[factor]} that for which the scale radius was last computed. If false, updates are computed by walking backward along the branch until the mass is less than $1/$\source{[factor]} of that for which the scale radius was last computed.</description>
+      <description>If true, updates to the scale radius are determined by walking forward along the branch until the mass exceeds by \mono{[factor]} that for which the scale radius was last computed. If false, updates are computed by walking backward along the branch until the mass is less than $1/$\mono{[factor]} of that for which the scale radius was last computed.</description>
       <source>parameters</source>
     </inputParameter>
     <objectBuilder class="darkMatterProfileScaleRadius" name="darkMatterProfileScaleRadius_" source="parameters"/>
@@ -249,8 +249,8 @@ contains
     
   subroutine darkMatterProfileScaleSetNodePromote(self,node)
     !!{
-    Ensure that \source{node} is ready for promotion to its parent. In this case, we simply update the scale radius
-    of \source{node} to be that of its parent.
+    Ensure that \mono{node} is ready for promotion to its parent. In this case, we simply update the scale radius
+    of \mono{node} to be that of its parent.
     !!}
     use :: Galacticus_Nodes, only : nodeComponentDarkMatterProfile
     implicit none

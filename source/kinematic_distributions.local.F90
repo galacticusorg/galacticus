@@ -28,7 +28,7 @@
       \begin{equation}
       \sigma_\mathrm{1D}(\mathbf{r}) = \alpha V_\mathrm{c}(r),
       \end{equation}      
-      where $r = |\mathbf{r}|$ and $V_\mathrm{c}(r)$ is the rotation curve. Here, $\alpha=$\source{[]} is a
+      where $r = |\mathbf{r}|$ and $V_\mathrm{c}(r)$ is the rotation curve. Here, $\alpha=$\mono{[]} is a
       parameter.
     </description>
   </kinematicsDistribution>
@@ -106,7 +106,7 @@ contains
 
   double precision function localVelocityDispersion1D(self,coordinates,massDistribution_,massDistributionEmbedding)
     !!{
-    Return the 1D velocity dispersion at the specified \source{coordinates} in an local kinematic distribution.
+    Return the 1D velocity dispersion at the specified \mono{coordinates} in an local kinematic distribution.
     !!}
     implicit none
     class(kinematicsDistributionLocal), intent(inout)         :: self

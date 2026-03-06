@@ -2,7 +2,7 @@
 \def\glc{{\normalfont \scshape Galacticus}}
 
 % Monospace/source code formatting.
-\newcommand{\source}[1]{{\normalfont \ttfamily #1}}
+\newcommand{\mono}[1]{{\normalfont \ttfamily #1}}
 
 % Physical constants.
 \def\G{\mathrm{G}}
@@ -30,9 +30,9 @@
 
 % Macros for linking to sections either through internal LaTeX label/ref or externally through hyperdef/hyperref.
 %% Link to a class by class name.
-\newcommand{\refClass}[1]{\ifthenelse{\equal{\docname}{Development}}{\source{#1} (see \S\ref{class:#1})}{\href{https://github.com/galacticusorg/galacticus/releases/download/bleeding-edge/Galacticus_Development.pdf\#class.#1}{\source{#1}}}}
+\newcommand{\refClass}[1]{\ifthenelse{\equal{\docname}{Development}}{\mono{#1} (see \S\ref{class:#1})}{\href{https://github.com/galacticusorg/galacticus/releases/download/bleeding-edge/Galacticus_Development.pdf\#class.#1}{\mono{#1}}}}
 %% Link to a physics description by class name.
-\newcommand{\refPhysics}[1]{\ifthenelse{\equal{\docname}{Physics}}{\source{#1} (see \S\ref{phys:#1})}{\href{https://github.com/galacticusorg/galacticus/releases/download/bleeding-edge/Galacticus_Physics.pdf\#physics.#1}{\source{#1}}}}
+\newcommand{\refPhysics}[1]{\ifthenelse{\equal{\docname}{Physics}}{\mono{#1} (see \S\ref{phys:#1})}{\href{https://github.com/galacticusorg/galacticus/releases/download/bleeding-edge/Galacticus_Physics.pdf\#physics.#1}{\mono{#1}}}}
 
 % Define XML formatting.
 \definecolor{maroon}{rgb}{0.5,0,0}

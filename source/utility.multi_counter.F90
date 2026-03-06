@@ -44,10 +44,10 @@ module Multi_Counters
      <methods>
        <method method="reset"     description="Reset the multi-counter back to its initial count state, such that the next increment will return the first count."                                                                                />
        <method method="count"     description="Return the number of counters configured in this multi-counter."                                                                                                                                   />
-       <method method="append"    description="Append a new counter to the multi-counter, with the specified \source{range}."                                                                                                      />
-       <method method="increment" description="Increment the state of the multi-counter. Return \source{.false.} if incrementing was not possible (i.e. counter was in the final state), \source{.true.} otherwise."/>
-       <method method="isFinal"   description="Return \source{.true.} if the counter is in its final state, \source{.false.} otherwise."                                                                            />
-       <method method="state"     description="Return the state of the \source{i}$^\mathrm{th}$ counter."                                                                                                                          />
+       <method method="append"    description="Append a new counter to the multi-counter, with the specified \mono{range}."                                                                                                      />
+       <method method="increment" description="Increment the state of the multi-counter. Return \mono{.false.} if incrementing was not possible (i.e. counter was in the final state), \mono{.true.} otherwise."/>
+       <method method="isFinal"   description="Return \mono{.true.} if the counter is in its final state, \mono{.false.} otherwise."                                                                            />
+       <method method="state"     description="Return the state of the \mono{i}$^\mathrm{th}$ counter."                                                                                                                          />
        <method method="states"    description="Return the states of all counters."                                                                                                                                                                />
      </methods>
      !!]
@@ -185,7 +185,7 @@ contains
 
   subroutine multiCounterAppend(self,range)
     !!{
-    Append a new counter with the given \source{range}.
+    Append a new counter with the given \mono{range}.
     !!}
     use :: Error, only : Error_Report
     implicit none

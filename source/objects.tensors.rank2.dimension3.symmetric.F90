@@ -33,7 +33,7 @@ contains
 
   module procedure tensorRank2Dimension3SymmetricNull
     !!{
-    Constructor for \source{tensorRank2Dimension3Symmetric} objects which sets all components to zero.
+    Constructor for \mono{tensorRank2Dimension3Symmetric} objects which sets all components to zero.
     !!}
 
     self%x00=0.0d0
@@ -47,7 +47,7 @@ contains
   
   function tensorRank2Dimension3SymmetricInternal(x00,x01,x02,x11,x12,x22) result(self)
     !!{
-    Constructor for \source{tensorRank2Dimension3Symmetric} objects.
+    Constructor for \mono{tensorRank2Dimension3Symmetric} objects.
     !!}
     implicit none
     type            (tensorRank2Dimension3Symmetric)                :: self
@@ -63,7 +63,7 @@ contains
   
   module procedure Tensor_R2_D3_Sym_Destroy
     !!{
-    Destroy a \source{tensorRank2Dimension3Symmetric} symmetric object.
+    Destroy a \mono{tensorRank2Dimension3Symmetric} symmetric object.
     !!}
     implicit none
     !$GLC attributes unused :: self
@@ -73,7 +73,7 @@ contains
 
   module procedure Tensor_R2_D3_Sym_Builder
     !!{
-    Build a \source{tensorRank2Dimension3Symmetric} object from the given XML \source{tensorDefinition}.
+    Build a \mono{tensorRank2Dimension3Symmetric} object from the given XML \mono{tensorDefinition}.
     !!}
     use :: FoX_DOM, only : node                        , extractDataContent
     use :: Error  , only : Error_Report
@@ -126,7 +126,7 @@ contains
 
   module procedure Tensor_R2_D3_Sym_Dump
     !!{
-    Dump properties of a \source{tensorRank2Dimension3Symmetric} symmetric object.
+    Dump properties of a \mono{tensorRank2Dimension3Symmetric} symmetric object.
     !!}
     use :: Display           , only : displayMessage
     use :: ISO_Varying_String, only : assignment(=) , varying_string
@@ -157,7 +157,7 @@ contains
 
   module procedure Tensor_R2_D3_Sym_Dump_Raw
     !!{
-    Dump a \source{tensorRank2Dimension3Symmetric} object to binary.
+    Dump a \mono{tensorRank2Dimension3Symmetric} object to binary.
     !!}
     implicit none
 
@@ -173,7 +173,7 @@ contains
 
   module procedure Tensor_R2_D3_Sym_Read_Raw
     !!{
-    Read a \source{tensorRank2Dimension3Symmetric} object from binary.
+    Read a \mono{tensorRank2Dimension3Symmetric} object from binary.
     !!}
     implicit none
 
@@ -189,7 +189,7 @@ contains
 
   module procedure Tensor_R2_D3_Sym_Reset
     !!{
-    Reset a \source{tensorRank2Dimension3Symmetric} object.
+    Reset a \mono{tensorRank2Dimension3Symmetric} object.
     !!}
     implicit none
 
@@ -205,7 +205,7 @@ contains
 
   module procedure Tensor_R2_D3_Sym_Set_To_Unity
     !!{
-    Set a \source{tensorRank2Dimension3Symmetric} object to unity.
+    Set a \mono{tensorRank2Dimension3Symmetric} object to unity.
     !!}
     implicit none
 
@@ -221,7 +221,7 @@ contains
 
   module procedure Tensor_R2_D3_Sym_Set_To_Identity
     !!{
-    Set a \source{tensorRank2Dimension3Symmetric} object to the identity matrix.
+    Set a \mono{tensorRank2Dimension3Symmetric} object to the identity matrix.
     !!}
     implicit none
 
@@ -237,7 +237,7 @@ contains
 
   module procedure Tensor_R2_D3_Sym_Is_Zero
     !!{
-    Test whether a \source{tensorRank2Dimension3Symmetric} object is zero.
+    Test whether a \mono{tensorRank2Dimension3Symmetric} object is zero.
     !!}
     implicit none
 
@@ -261,7 +261,7 @@ contains
 
   module procedure Tensor_R2_D3_Sym_Element
     !!{
-    Return the enumeration element of a \source{tensorRank2Dimension3Symmetric} object.
+    Return the enumeration element of a \mono{tensorRank2Dimension3Symmetric} object.
     !!}
     use :: Error, only : Error_Report
     implicit none
@@ -311,7 +311,7 @@ contains
 
   module procedure Tensor_R2_D3_Sym_Add
     !!{
-    Add two \source{tensorRank2Dimension3Symmetric} objects.
+    Add two \mono{tensorRank2Dimension3Symmetric} objects.
     !!}
     implicit none
 
@@ -334,7 +334,7 @@ contains
 
   module procedure Tensor_R2_D3_Sym_Increment
     !!{
-    Increment a \source{tensorRank2Dimension3Symmetric} object.
+    Increment a \mono{tensorRank2Dimension3Symmetric} object.
     !!}
     implicit none
 
@@ -349,7 +349,7 @@ contains
 
   module procedure Tensor_R2_D3_Sym_Subtract
     !!{
-    Subtract two \source{tensorRank2Dimension3Symmetric} objects.
+    Subtract two \mono{tensorRank2Dimension3Symmetric} objects.
     !!}
     implicit none
 
@@ -373,7 +373,7 @@ contains
 
   module procedure Tensor_R2_D3_Sym_Scalar_Multiply
     !!{
-    Multiply a \source{tensorRank2Dimension3Symmetric} object by a scalar.
+    Multiply a \mono{tensorRank2Dimension3Symmetric} object by a scalar.
     !!}
     implicit none
 
@@ -388,7 +388,7 @@ contains
 
   module procedure Tensor_R2_D3_Sym_Scalar_Multiply_Switched
     !!{
-    Multiply a scalar by a \source{tensorRank2Dimension3Symmetric} object.
+    Multiply a scalar by a \mono{tensorRank2Dimension3Symmetric} object.
     !!}
     implicit none
 
@@ -398,7 +398,7 @@ contains
 
   module procedure Tensor_R2_D3_Sym_Max
     !!{
-    Return an element-by-element \source{max()} on two \source{tensorRank2Dimension3Symmetric} objects.
+    Return an element-by-element \mono{max()} on two \mono{tensorRank2Dimension3Symmetric} objects.
     !!}
     implicit none
 
@@ -413,7 +413,7 @@ contains
 
   module procedure Tensor_R2_D3_Sym_Scalar_Divide
     !!{
-    Multiply a \source{tensorRank2Dimension3Symmetric} object by a scalar.
+    Multiply a \mono{tensorRank2Dimension3Symmetric} object by a scalar.
     !!}
     implicit none
 
@@ -428,7 +428,7 @@ contains
   
   module procedure Tensor_R2_D3_Sym_Vector_Project
     !!{
-     Find the magnitude of the projection of a \source{tensorRank2Dimension3Symmetric}/vector dot product onto
+     Find the magnitude of the projection of a \mono{tensorRank2Dimension3Symmetric}/vector dot product onto
     the same vector, $\mathbf{x} \cdot \mathbf{A} \cdot \mathbf{x}$.
     !!}
 
@@ -444,7 +444,7 @@ contains
 
   module procedure Tensor_R2_D3_Sym_Double_Contract
     !!{
-    Find the double contraction of two \source{tensorRank2Dimension3Symmetric} objects, $\mathbf{A}:\mathbf{B}$.
+    Find the double contraction of two \mono{tensorRank2Dimension3Symmetric} objects, $\mathbf{A}:\mathbf{B}$.
     !!}
     implicit none
 
@@ -460,7 +460,7 @@ contains
 
  module procedure Tensor_R2_D3_Sym_Contract
     !!{
-    Return the contraction (trace) of a \source{tensorRank2Dimension3Symmetric}.
+    Return the contraction (trace) of a \mono{tensorRank2Dimension3Symmetric}.
     !!}
     implicit none
 
@@ -481,7 +481,7 @@ contains
 
   module procedure Tensor_R2_D3_Sym_Deserialize
     !!{
-    Pack an array into a \source{tensorRank2Dimension3Symmetric} symmetric structure.
+    Pack an array into a \mono{tensorRank2Dimension3Symmetric} symmetric structure.
     !!}
     implicit none
 
@@ -496,7 +496,7 @@ contains
 
   module procedure Tensor_R2_D3_Sym_Serialize
     !!{
-    Pack a \source{tensorRank2Dimension3Symmetric} into an array.
+    Pack a \mono{tensorRank2Dimension3Symmetric} into an array.
     !!}
     implicit none
 
@@ -512,7 +512,7 @@ contains
 
   module procedure Tensor_R2_D3_Sym_From_Matrix
     !!{
-    Construct a \source{tensorRank2Dimension3Symmetric} object from a matrix.
+    Construct a \mono{tensorRank2Dimension3Symmetric} object from a matrix.
     !!}
     use :: Error, only : Error_Report
     implicit none
@@ -537,7 +537,7 @@ contains
 
   module procedure Tensor_R2_D3_Sym_To_Matrix
     !!{
-    Construct a matrix from a \source{tensorRank2Dimension3Symmetric}.
+    Construct a matrix from a \mono{tensorRank2Dimension3Symmetric}.
     !!}
     implicit none
 
@@ -555,7 +555,7 @@ contains
 
   module procedure Tensor_R2_D3_Sym_Assign_To
     !!{
-    Assign a matrix to a \source{tensorRank2Dimension3Symmetric} object.
+    Assign a matrix to a \mono{tensorRank2Dimension3Symmetric} object.
     !!}
     implicit none
 
@@ -565,7 +565,7 @@ contains
 
   module procedure Tensor_R2_D3_Sym_Assign_From
     !!{
-    Assign a \source{tensorRank2Dimension3Symmetric} to a matrix.
+    Assign a \mono{tensorRank2Dimension3Symmetric} to a matrix.
     !!}
     implicit none
 

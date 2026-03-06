@@ -46,7 +46,7 @@ module Supernovae_Type_Ia
     <argument>double precision                          , intent(  out) :: massInitialMinimum  , massInitialMaximum</argument>
    </method>
    <method name="number" >
-    <description>Return the cumulative number of Type Ia supernovae from a stellar population of the given \source{initialMass}, \source{age}, and \source{metallicity}.</description>
+    <description>Return the cumulative number of Type Ia supernovae from a stellar population of the given \mono{initialMass}, \mono{age}, and \mono{metallicity}.</description>
     <type>double precision</type>
     <pass>yes</pass>
     <selfTarget>yes</selfTarget>
@@ -54,7 +54,7 @@ module Supernovae_Type_Ia
     <argument>double precision                          , intent(in   )         :: initialMass         , age, metallicity</argument>
    </method>
    <method name="yield" >
-    <description>Return the cumulative yield from Type Ia supernoave from a stellar population of the given \source{initialMass}, \source{age}, and \source{metallicity}.</description>
+    <description>Return the cumulative yield from Type Ia supernoave from a stellar population of the given \mono{initialMass}, \mono{age}, and \mono{metallicity}.</description>
     <type>double precision</type>
     <pass>yes</pass>
     <argument>class           (initialMassFunctionClass), intent(inout)           :: initialMassFunction_                  </argument>

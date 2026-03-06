@@ -102,7 +102,7 @@ contains
 
   function virialGet(self,node) result(kinematicsDistribution_)
     !!{
-    Return the virial hot halo temperature distribution for the given \source{node}.
+    Return the virial hot halo temperature distribution for the given \mono{node}.
     !!}
     use :: Mass_Distributions              , only : kinematicsDistributionIsothermal
     use :: Numerical_Constants_Astronomical, only : meanAtomicMassPrimordial

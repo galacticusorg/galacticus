@@ -66,7 +66,7 @@ contains
 
   integer function massAccretionHistoryHearin2021ElementCount(self,time)
     !!{
-    Return the number of elements in the \source{massAccretionHistoryHearin2021} property extractor.
+    Return the number of elements in the \mono{massAccretionHistoryHearin2021} property extractor.
     !!}
     implicit none
     class           (nodePropertyExtractorMassAccretionHistoryHearin2021), intent(inout) :: self
@@ -120,7 +120,7 @@ contains
 
   subroutine massAccretionHistoryHearin2021Names(self,time,names)
     !!{
-    Return the name of the \source{massAccretionHistoryHearin2021} property.
+    Return the name of the \mono{massAccretionHistoryHearin2021} property.
     !!}
     implicit none
     class           (nodePropertyExtractorMassAccretionHistoryHearin2021), intent(inout)                             :: self
@@ -137,7 +137,7 @@ contains
 
   subroutine massAccretionHistoryHearin2021Descriptions(self,time,descriptions)
     !!{
-    Return a description of the \source{massAccretionHistoryHearin2021} property.
+    Return a description of the \mono{massAccretionHistoryHearin2021} property.
     !!}
     implicit none
     class           (nodePropertyExtractorMassAccretionHistoryHearin2021), intent(inout)                             :: self
@@ -154,7 +154,7 @@ contains
 
   function massAccretionHistoryHearin2021UnitsInSI(self,time)
     !!{
-    Return the units of the \source{massAccretionHistoryHearin2021} property in the SI system.
+    Return the units of the \mono{massAccretionHistoryHearin2021} property in the SI system.
     !!}
     implicit none
     double precision                                                     , allocatable  , dimension(:) :: massAccretionHistoryHearin2021UnitsInSI

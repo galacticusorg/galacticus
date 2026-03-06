@@ -145,7 +145,7 @@ contains
 
   integer function luminosityStellarFromSEDElementCount(self,time)
     !!{
-    Return the number of elements in the \source{luminosityStellarFromSED} property extractors.
+    Return the number of elements in the \mono{luminosityStellarFromSED} property extractors.
     !!}
     implicit none
     class           (nodePropertyExtractorLuminosityStellarFromSED), intent(inout) :: self

@@ -76,7 +76,7 @@ contains
 
   double precision function zhao1996VelocityDispersion1D(self,coordinates,massDistribution_,massDistributionEmbedding) result(velocityDispersion)
     !!{
-    Return the 1D velocity dispersion at the specified \source{coordinates} in an Zhao1996 kinematic distribution.
+    Return the 1D velocity dispersion at the specified \mono{coordinates} in an Zhao1996 kinematic distribution.
     !!}
     use :: Numerical_Constants_Astronomical, only : gravitationalConstant_internal
     use :: Dilogarithms                    , only : Dilogarithm

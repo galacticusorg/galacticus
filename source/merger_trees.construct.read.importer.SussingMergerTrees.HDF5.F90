@@ -117,7 +117,7 @@ contains
 
   subroutine sussingHDF5Open(self,fileName)
     !!{
-    Validate a \source{sussing} HDF5 format merger tree file.
+    Validate a \mono{sussing} HDF5 format merger tree file.
     !!}
     use :: Cosmology_Parameters            , only : hubbleUnitsLittleH
     use :: Display                         , only : displayMessage    , verbosityLevelWarn
@@ -234,7 +234,7 @@ contains
 
   subroutine sussingHDF5Load(self,nodeSelfIndices,nodeIndexRanks,nodeDescendantLocations,nodeIncomplete,nodeCountTrees,nodeTreeIndices,treeIndicesAssigned,branchJumpCheckRequired,massUnits,lengthUnits,velocityUnits)
     !!{
-    Load a \source{sussing} HDF5 format merger tree data.
+    Load a \mono{sussing} HDF5 format merger tree data.
     !!}
     use            :: Arrays_Search    , only : searchIndexed
     use            :: Display          , only : displayCounter         , displayCounterClear, displayIndent, displayUnindent, &

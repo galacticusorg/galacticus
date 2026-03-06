@@ -108,7 +108,7 @@ contains
 
   double precision function undecoratorVelocityDispersion1D(self,coordinates,massDistribution_,massDistributionEmbedding) result(velocityDispersion)
     !!{
-    Return the 1D velocity dispersion at the specified \source{coordinates} in an undecorator kinematic distribution.
+    Return the 1D velocity dispersion at the specified \mono{coordinates} in an undecorator kinematic distribution.
     !!}
     implicit none
     class(kinematicsDistributionUndecorator), intent(inout)          :: self

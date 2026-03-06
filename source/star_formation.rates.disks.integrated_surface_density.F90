@@ -130,7 +130,7 @@ contains
 
   double precision function intgrtdSurfaceDensityRate(self,node)
     !!{
-    Returns the star formation rate (in $\mathrm{M}_\odot$ Gyr$^{-1}$) in the galactic disk of \source{node}, by
+    Returns the star formation rate (in $\mathrm{M}_\odot$ Gyr$^{-1}$) in the galactic disk of \mono{node}, by
     integrating over the surface density of star formation rate.
     !!}
     use :: Galacticus_Nodes        , only : nodeComponentDisk, treeNode

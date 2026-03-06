@@ -51,15 +51,15 @@
     on the change in redshift across the timestep due to the dependence of virial densities on redshift. In practice, we ignore
     this dependence and absorb such effects into the parameter $\sigma$.}, $\sigma^2$ represents the variance in angular momentum
     per unit increase in $J_\mathrm{v}^2$, and $N(0,1)$ is a random variable distributed as a standard normal. The parameter
-    $\sigma=$\source{[angularMomentumVarianceSpecific]}.
+    $\sigma=$\mono{[angularMomentumVarianceSpecific]}.
 
     The factor $f_\mathrm{u}$ can take on one of two forms. If {\normalfont \ttfamily
-    [useOriginalSubresolutionMethod]}=\source{false} (which should be preferred) then:
+    [useOriginalSubresolutionMethod]}=\mono{false} (which should be preferred) then:
     \begin{equation}
     f_\mathrm{u} = \frac{M_\mathrm{u}}{M(t_2)},
     \end{equation}
     in which case the variance is proportional to the mass in unresolved accretion (i.e. the ``time'' variable in the Wiener
-    process is just mass). If \source{[useOriginalSubresolutionMethod]}=\source{true} then the
+    process is just mass). If \mono{[useOriginalSubresolutionMethod]}=\mono{true} then the
     original form,
     \begin{equation}
     f_\mathrm{u} = \left\{ \frac{M(t_1)+M_\mathrm{r}}{M(t_1)} \right\}^2 = \left\{ \frac{M(t_2)-M_\mathrm{u}}{M(t_1)} \right\}^2
@@ -216,7 +216,7 @@ contains
 
   subroutine haloAngularMomentumVitvitska2002NodeTreeInitialize(self,node)
     !!{
-    Initialize the spin of \source{node}.
+    Initialize the spin of \mono{node}.
     !!}
     use :: Dark_Matter_Halo_Spins  , only : Dark_Matter_Halo_Angular_Momentum_Scale
     use :: Galacticus_Nodes        , only : nodeComponentSpin                      , nodeComponentBasic                 , nodeComponentDarkMatterProfile, nodeComponentSatellite

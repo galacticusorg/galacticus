@@ -121,7 +121,7 @@ contains
 
   double precision function concentrationLimiterRadius(self,node)
     !!{
-    Compute the scale radius of the dark matter profile of \source{node}.
+    Compute the scale radius of the dark matter profile of \mono{node}.
     !!}
     implicit none
     class           (darkMatterProfileScaleRadiusConcentrationLimiter), intent(inout), target :: self

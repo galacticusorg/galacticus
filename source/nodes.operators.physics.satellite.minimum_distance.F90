@@ -88,9 +88,9 @@ contains
       <name>relativeTo</name>
       <defaultValue>var_str('immediateHost')</defaultValue>
       <description>
-	Specifies to which host halo the minimum distance should be referenced. ``\source{immediateHost}'' computes
+	Specifies to which host halo the minimum distance should be referenced. ``\mono{immediateHost}'' computes
 	the minimum distance to the first host (so, for a sub-subhalo, this would be the subhalo in which it is
-	orbiting). ``\source{isolatedHost}'' computes the minimum distance to the final (isolated halo) host.
+	orbiting). ``\mono{isolatedHost}'' computes the minimum distance to the final (isolated halo) host.
       </description>
       <source>parameters</source>
     </inputParameter>

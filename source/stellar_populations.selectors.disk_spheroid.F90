@@ -25,8 +25,8 @@
   <stellarPopulationSelector name="stellarPopulationSelectorDiskSpheroid">
    <description>
     A stellar population selector class which selects a different population for disks and spheroids, irrespective of other
-    physical conditions. The populations to use are specified by the \source{[stellarPopulationDisk]} and
-    \source{[stellarPopulationSpheroid]} parameters.
+    physical conditions. The populations to use are specified by the \mono{[stellarPopulationDisk]} and
+    \mono{[stellarPopulationSpheroid]} parameters.
    </description>
   </stellarPopulationSelector>
   !!]

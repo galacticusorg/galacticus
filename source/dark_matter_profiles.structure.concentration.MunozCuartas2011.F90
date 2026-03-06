@@ -166,7 +166,7 @@ contains
 
   double precision function munozCuartas2011Concentration(self,node)
     !!{
-    Return the concentration of the dark matter halo profile of \source{node} using the
+    Return the concentration of the dark matter halo profile of \mono{node} using the
     \cite{munoz-cuartas_redshift_2011} algorithm.
     !!}
     use :: Cosmology_Parameters, only : hubbleUnitsLittleH

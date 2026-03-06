@@ -30,7 +30,7 @@
       \rho(\mathbf{x}) = \frac{f_\mathrm{M}}{f_\mathrm{r}^3} \rho^\prime(\mathbf{x}/f_\mathrm{r}),
       \end{equation}      
       where $\rho^\prime(\mathbf{x})$ is the original mass distribution, and $f_\mathrm{r}=${\normalfont \ttfamily
-      [factorScalingLength]}, and $f_\mathrm{M}=$\source{[factorScalingMass]}.
+      [factorScalingLength]}, and $f_\mathrm{M}=$\mono{[factorScalingMass]}.
     </description>
   </massDistribution>
   !!]
@@ -200,7 +200,7 @@ contains
 
   double precision function cylindricalScalerDensity(self,coordinates)
     !!{
-    Return the density at the specified \source{coordinates} in a scaled cylindrical distribution.
+    Return the density at the specified \mono{coordinates} in a scaled cylindrical distribution.
     !!}
     implicit none
     class(massDistributionCylindricalScaler), intent(inout) :: self
@@ -241,7 +241,7 @@ contains
 
   double precision function cylindricalScalerDensitySphericalAverage(self,radius)
     !!{
-    Return the spherically-averaged density at the specified \source{coordinates} in a scaled cylindrical mass
+    Return the spherically-averaged density at the specified \mono{coordinates} in a scaled cylindrical mass
     distribution.
     !!}
     implicit none
@@ -271,7 +271,7 @@ contains
 
   double precision function cylindricalScalerMassEnclosedBySphere(self,radius)
     !!{
-    Computes the mass enclosed within a sphere of given \source{radius} for a scaled cylindrical mass
+    Computes the mass enclosed within a sphere of given \mono{radius} for a scaled cylindrical mass
     distribution.
     !!}
     implicit none
@@ -288,7 +288,7 @@ contains
 
   double precision function cylindricalScalerMassEnclosedByCylinder(self,radius) result(mass)
     !!{
-    Computes the mass enclosed within a cylinder of given \source{radius} for a scaled cylindrical mass
+    Computes the mass enclosed within a cylinder of given \mono{radius} for a scaled cylindrical mass
     distribution.
     !!}
     implicit none
@@ -399,7 +399,7 @@ contains
   
   double precision function cylindricalScalerSurfaceDensity(self,coordinates)
     !!{
-    Return the surface density at the specified \source{coordinates} in a scaled cylindrical distribution.
+    Return the surface density at the specified \mono{coordinates} in a scaled cylindrical distribution.
     !!}
     use :: Coordinates, only : coordinate
     implicit none
@@ -520,7 +520,7 @@ contains
 
   function cylindricalScalerAcceleration(self,coordinates)
     !!{
-    Computes the gravitational acceleration at \source{coordinates} for a scaled cylindrical distribution.
+    Computes the gravitational acceleration at \mono{coordinates} for a scaled cylindrical distribution.
     !!}
     use :: Numerical_Constants_Astronomical, only : gigaYear, gravitationalConstant_internal, megaParsec
     use :: Numerical_Constants_Prefixes    , only : kilo
@@ -545,7 +545,7 @@ contains
 
   function cylindricalScalerTidalTensor(self,coordinates)
     !!{
-    Computes the gravitational tidal tensor at \source{coordinates} for a scaled cylindrical distribution.
+    Computes the gravitational tidal tensor at \mono{coordinates} for a scaled cylindrical distribution.
     !!}
     use :: Numerical_Constants_Astronomical, only : gravitationalConstant_internal
     implicit none

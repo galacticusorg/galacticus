@@ -27,11 +27,11 @@ Implements a dump to \gls{graphviz} operator on merger trees.
   <mergerTreeOperator name="mergerTreeOperatorDumpToGraphViz">
    <description>
       A merger tree operator class which dumps the full structure of each merger tree to a file using the \gls{graphviz}
-      format. All trees with root node basic mass between \source{[massMinimum]} and {\normalfont \ttfamily
-      [massMaximum]} will be dumped to a file named ``\source{mergerTreeDump:\textless
-      treeIndex\textgreater:1.gv}'' in the directory specified by \source{[path]}. If {\normalfont \ttfamily
-      [scaleNodesByLogMass]}$=$\source{true} then the size of each \gls{graphviz} node is scaled in proportion to
-      the logarithm of the halo mass. If \source{[edgeLengthsToTimes]}$=$\source{true} then the
+      format. All trees with root node basic mass between \mono{[massMinimum]} and {\normalfont \ttfamily
+      [massMaximum]} will be dumped to a file named ``\mono{mergerTreeDump:\textless
+      treeIndex\textgreater:1.gv}'' in the directory specified by \mono{[path]}. If {\normalfont \ttfamily
+      [scaleNodesByLogMass]}$=$\mono{true} then the size of each \gls{graphviz} node is scaled in proportion to
+      the logarithm of the halo mass. If \mono{[edgeLengthsToTimes]}$=$\mono{true} then the
       lengths of edges in the \gls{graphviz} graph are scaled in proportion to the time difference between the connected nodes.
    </description>
   </mergerTreeOperator>
@@ -183,7 +183,7 @@ contains
 
   subroutine dumpToGraphVizOperatePreEvolution(self,tree)
     !!{
-    Output the structure of \source{tree}.
+    Output the structure of \mono{tree}.
     !!}
     use :: Galacticus_Nodes , only : mergerTree      , nodeComponentBasic
     use :: Merger_Trees_Dump, only : Merger_Tree_Dump

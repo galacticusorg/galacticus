@@ -122,7 +122,7 @@ contains
   !!]
   subroutine Node_Component_Black_Hole_Simple_Scale_Set(node)
     !!{
-    Set scales for properties of \source{node}.
+    Set scales for properties of \mono{node}.
     !!}
     use :: Galacticus_Nodes, only : nodeComponentBlackHole   , nodeComponentBlackHoleSimple, nodeComponentSpheroid, treeNode, &
          &                          defaultBlackHoleComponent
@@ -157,7 +157,7 @@ contains
 
   subroutine satelliteMerger(self,node)
     !!{
-    Merge (instantaneously) any simple black hole associated with \source{node} before it merges with its host halo.
+    Merge (instantaneously) any simple black hole associated with \mono{node} before it merges with its host halo.
     !!}
     use :: Galacticus_Nodes, only : nodeComponentBlackHole, treeNode
     implicit none

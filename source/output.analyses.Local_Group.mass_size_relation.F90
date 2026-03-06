@@ -524,7 +524,7 @@ contains
 
   subroutine localGroupMassSizeRelationAnalyze(self,node,iOutput)
     !!{
-    Implement a \source{localGroupMassSizeRelation} output analysis.
+    Implement a \mono{localGroupMassSizeRelation} output analysis.
     !!}
     implicit none
     class  (outputAnalysisLocalGroupMassSizeRelation), intent(inout) :: self
@@ -537,7 +537,7 @@ contains
 
   subroutine localGroupMassSizeRelationReduce(self,reduced)
     !!{
-    Implement a \source{localGroupMassSizeRelation} output analysis reduction.
+    Implement a \mono{localGroupMassSizeRelation} output analysis reduction.
     !!}
     use :: Error, only : Error_Report
     implicit none
@@ -555,7 +555,7 @@ contains
 
   subroutine localGroupMassSizeRelationFinalize(self,groupName)
     !!{
-    Implement a \source{localGroupMassSizeRelation} output analysis finalization.
+    Implement a \mono{localGroupMassSizeRelation} output analysis finalization.
     !!}
     implicit none
     class(outputAnalysisLocalGroupMassSizeRelation), intent(inout)           :: self
@@ -567,7 +567,7 @@ contains
 
   double precision function localGroupMassSizeRelationLogLikelihood(self)
     !!{
-    Return the log-likelihood of a \source{localGroupMassSizeRelation} output analysis.
+    Return the log-likelihood of a \mono{localGroupMassSizeRelation} output analysis.
     !!}
     implicit none
     class(outputAnalysisLocalGroupMassSizeRelation), intent(inout) :: self

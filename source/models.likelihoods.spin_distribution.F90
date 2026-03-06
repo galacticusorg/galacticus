@@ -140,7 +140,7 @@ contains
       <source>parameters</source>
       <defaultValue>100.0d0</defaultValue>
       <defaultSource>A large range which will include (almost) the entirety of the distribution.</defaultSource>
-      <description>The multiplicative range of the log-normal distribution used to model the distribution of the mass and energy terms in the spin parameter. Specifically, the lognormal distribution is truncated outside the range $(\lambda_\mathrm{m}/R,\lambda_\mathrm{m} R$, where $\lambda_\mathrm{m}$ is the measured spin, and $R=$\source{[logNormalRange]}</description>
+      <description>The multiplicative range of the log-normal distribution used to model the distribution of the mass and energy terms in the spin parameter. Specifically, the lognormal distribution is truncated outside the range $(\lambda_\mathrm{m}/R,\lambda_\mathrm{m} R$, where $\lambda_\mathrm{m}$ is the measured spin, and $R=$\mono{[logNormalRange]}</description>
     </inputParameter>
     <objectBuilder class="cosmologyFunctions"           name="cosmologyFunctions_"           source="parameters"/>
     <objectBuilder class="haloMassFunction"             name="haloMassFunction_"             source="parameters"/>

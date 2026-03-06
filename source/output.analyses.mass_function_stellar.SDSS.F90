@@ -37,7 +37,7 @@ Implements a stellar mass function output analysis class.
     \begin{equation}
      \log_\mathrm{10} S = \sum_{i=0}^N s_i \log_\mathrm{10}^i \left({M_\star \over 10^{11.3}M_\odot}\right),
     \end{equation}
-    where $s=$\source{[systematicErrorPolynomialCoefficient]}, the {\normalfont \bfseries G} operator is a
+    where $s=$\mono{[systematicErrorPolynomialCoefficient]}, the {\normalfont \bfseries G} operator is a
     multiplicative factor drawn from a log-normal distribution of width $\sigma(M)$~dex for each galaxy to mimic the effects of random
     errors on stellar masses (motivated by the discussion of \cite{behroozi_comprehensive_2010}), the {\normalfont \bfseries L}
     operator accounts for gravitational lensing, and the {\normalfont \bfseries C} operator accounts for the difference between model
@@ -45,8 +45,8 @@ Implements a stellar mass function output analysis class.
     \begin{equation}
      \sigma(M) = \hbox{min}\left[\sigma_\mathrm{max},\hbox{max}\left[\sigma_\mathrm{min},\sum_{i=0}^N r_i \log_\mathrm{10}^i \left({M_\star \over 10^{11.3}M_\odot}\right)\right]\right],
     \end{equation}
-    where $r=$\source{[randomErrorPolynomialCoefficient]}, $\sigma_\mathrm{min}$={\normalfont \ttfamily
-      [randomErrorMinimum]}, and $\sigma_\mathrm{max}$=\source{[randomErrorMaximum]}.
+    where $r=$\mono{[randomErrorPolynomialCoefficient]}, $\sigma_\mathrm{min}$={\normalfont \ttfamily
+      [randomErrorMinimum]}, and $\sigma_\mathrm{max}$=\mono{[randomErrorMaximum]}.
     
     The model masses are then used to construct a mass function by binning into a histogram using the masses reported by
     \cite{li_distribution_2009} (modified as described above) as the centers of the bins (with bin boundaries placed at the geometric

@@ -34,12 +34,12 @@
     <description>
       A task which postprocesses galaxies within a set of merger tree forests. This task assumes that a prior model was run, with
       raw forest data written to file using the \refClass{mergerTreeOutputterFullState} class. The name of that file is specified
-      via the \source{fileName} parameter. Forests data will be re-read, and re-output. Note that you should use
-      the \emph{exact same} parameter file (other than changing the \source{task}, and possibly removing the use of
+      via the \mono{fileName} parameter. Forests data will be re-read, and re-output. Note that you should use
+      the \emph{exact same} parameter file (other than changing the \mono{task}, and possibly removing the use of
       the \refClass{mergerTreeOutputterFullState} outputter) as was used to run the original model. This ensures that the raw data
       structures read from the file follow the same format as was used to write them. Also note that forests are not guaranteed to
       be output in the same order as in the original model if OpenMP parallelism is used. If the same order is required, it is
-      recommend to run the postprocessing after setting the environment variable \source{OMP\_NUM\_THREADS=1}.
+      recommend to run the postprocessing after setting the environment variable \mono{OMP\_NUM\_THREADS=1}.
     </description>
   </task>
   !!]

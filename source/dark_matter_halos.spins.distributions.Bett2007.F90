@@ -29,7 +29,7 @@
   <haloSpinDistribution name="haloSpinDistributionBett2007">
    <description>
     A halo spin distribution in which the spin is drawn from the distribution found by \cite{bett_spin_2007}. The $\lambda_0$
-    and $\alpha$ parameter of Bett et al.'s distribution are set by the \source{[lambda0]} and {\normalfont
+    and $\alpha$ parameter of Bett et al.'s distribution are set by the \mono{[lambda0]} and {\normalfont
     \ttfamily [alpha]} input parameters.
    </description>
   </haloSpinDistribution>
@@ -204,7 +204,7 @@ contains
 
   double precision function bett2007Distribution(self,node)
     !!{
-    Compute the spin parameter distribution for the given \source{node} assuming the fitting function of
+    Compute the spin parameter distribution for the given \mono{node} assuming the fitting function of
     \cite{bett_spin_2007}.
     !!}
     use :: Dark_Matter_Halo_Spins, only : Dark_Matter_Halo_Angular_Momentum_Scale

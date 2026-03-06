@@ -30,7 +30,7 @@ Implements the gravitational lensing distribution by modifying another distribut
     \begin{equation}
     P(\mu) \rightarrow P(\mu) + \hbox{min}[\alpha,\beta P(\mu)]
     \end{equation}
-    where $\alpha=$\source{[gravitationalLensingBaryonicModifierAlpha]} and $\beta=${\normalfont \ttfamily
+    where $\alpha=$\mono{[gravitationalLensingBaryonicModifierAlpha]} and $\beta=${\normalfont \ttfamily
     [gravitationalLensingBaryonicModifierBeta]}. The distribution is then renormalized to ensure that the cumulative
     probability reaches unity for infinite magnification. As an example, values of $\alpha=2.05\times 10^{-3}$ and $\beta=0.62$
     approximately reproduce the results of \cite[][their Fig.~1]{hilbert_strong-lensing_2008}.
@@ -66,7 +66,7 @@ contains
 
   function baryonicModifierConstructorParameters(parameters) result(self)
     !!{
-    Default constructor for the \source{baryonicModifier} gravitational lensing class.
+    Default constructor for the \mono{baryonicModifier} gravitational lensing class.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -209,7 +209,7 @@ contains
 
   double precision function baryonicModifierMagnificationPDF(self,magnification,redshift,scaleSource)
     !!{
-    Compute the magnification probability density function at the given \source{magnification} and \source{redshift} by modifying
+    Compute the magnification probability density function at the given \mono{magnification} and \mono{redshift} by modifying
     another distribution for the effects of baryons.
     !!}
     implicit none
@@ -230,7 +230,7 @@ contains
 
   double precision function baryonicModifierMagnificationCDF(self,magnification,redshift,scaleSource)
     !!{
-    Compute the magnification probability density function at the given \source{magnification} and \source{redshift} by modifying
+    Compute the magnification probability density function at the given \mono{magnification} and \mono{redshift} by modifying
     another distribution for the effects of baryons.
     !!}
     implicit none

@@ -36,7 +36,7 @@ Implements a stellar mass function output analysis class for the VIPERS survey o
     \begin{equation}
      \log_\mathrm{10} S = \sum_{i=0}^N s_i \log_\mathrm{10}^i \left({M_\star \over 10^{11.3}M_\odot}\right),
     \end{equation}
-    where $s=$\source{[systematicErrorPolynomialCoefficient]}, the {\normalfont \bfseries G} operator is a
+    where $s=$\mono{[systematicErrorPolynomialCoefficient]}, the {\normalfont \bfseries G} operator is a
     multiplicative factor drawn from a log-normal distribution of width $\sigma(M)$~dex for each galaxy to mimic the effects of random
     errors on stellar masses (motivated by the discussion of \cite{behroozi_comprehensive_2010}), the {\normalfont \bfseries L}
     operator accounts for gravitational lensing, and the {\normalfont \bfseries C} operator accounts for the difference between model
@@ -44,8 +44,8 @@ Implements a stellar mass function output analysis class for the VIPERS survey o
     \begin{equation}
      \sigma(M) = \hbox{min}\left[\sigma_\mathrm{max},\hbox{max}\left[\sigma_\mathrm{min},\sum_{i=0}^N r_i \log_\mathrm{10}^i \left({M_\star \over 10^{11.3}M_\odot}\right)\right]\right],
     \end{equation}
-    where $r=$\source{[randomErrorPolynomialCoefficient]}, $\sigma_\mathrm{min}$={\normalfont \ttfamily
-      [randomErrorMinimum]}, and $\sigma_\mathrm{max}$=\source{[randomErrorMaximum]}.
+    where $r=$\mono{[randomErrorPolynomialCoefficient]}, $\sigma_\mathrm{min}$={\normalfont \ttfamily
+      [randomErrorMinimum]}, and $\sigma_\mathrm{max}$=\mono{[randomErrorMaximum]}.
    </description>
   </outputAnalysis>
   !!]

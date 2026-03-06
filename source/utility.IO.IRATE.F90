@@ -45,8 +45,8 @@ module IO_IRATE
        <method method="writeHalos"      description="Write a snapshot to a \gls{irate} format file."                                                   />
        <method method="readSimulation"  description="Read the requested properties of the simulation from an \gls{irate} format file."                 />
        <method method="writeSimulation" description="Write the requested properties of the simulation from an \gls{irate} format file."                />
-       <method method="copySimulation"  description="Copy ``\source{SimulationProperties}'' group from one \gls{irate} file to another."/>
-       <method method="copyCosmology"   description="Copy ``\source{Cosmology}'' group from one \gls{irate} file to another."           />
+       <method method="copySimulation"  description="Copy ``\mono{SimulationProperties}'' group from one \gls{irate} file to another."/>
+       <method method="copyCosmology"   description="Copy ``\mono{Cosmology}'' group from one \gls{irate} file to another."           />
      </methods>
      !!]
      procedure :: readHalos       => irateReadHalos
@@ -187,7 +187,7 @@ contains
 
   subroutine irateCopySimulation(self,targetFile)
     !!{
-    Copy ``\source{SimulationProperties}'' group from one \gls{irate} file to another.
+    Copy ``\mono{SimulationProperties}'' group from one \gls{irate} file to another.
     !!}
     use :: IO_HDF5           , only : hdf5Object
     use :: ISO_Varying_String, only : char
@@ -206,7 +206,7 @@ contains
 
   subroutine irateCopyCosmology(self,targetFile)
     !!{
-    Copy ``\source{Cosmology}'' group from one \gls{irate} file to another.
+    Copy ``\mono{Cosmology}'' group from one \gls{irate} file to another.
     !!}
     use :: IO_HDF5           , only : hdf5Object
     use :: ISO_Varying_String, only : char

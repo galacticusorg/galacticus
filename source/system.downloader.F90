@@ -65,7 +65,7 @@ contains
   
   subroutine downloadVarStr(url,outputFileName,retries,retryWait,status)
     !!{
-    Download content from the given {\normalfont url} to the given \source{outputFileName}.
+    Download content from the given {\normalfont url} to the given \mono{outputFileName}.
     !!}
     use :: ISO_Varying_String, only : char, varying_string
     implicit none
@@ -79,7 +79,7 @@ contains
 
   subroutine downloadChar(url,outputFileName,retries,retryWait,status)
     !!{
-    Download content from the given {\normalfont url} to the given \source{outputFileName}.
+    Download content from the given {\normalfont url} to the given \mono{outputFileName}.
     !!}
     use :: Error         , only : Error_Report     , errorStatusFail, errorStatusSuccess
     use :: System_Command, only : System_Command_Do

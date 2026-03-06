@@ -117,7 +117,7 @@ contains
 
   subroutine fileDestructor(self)
     !!{
-    Default destructor for the \source{file} accretion disk spectra class.
+    Default destructor for the \mono{file} accretion disk spectra class.
     !!}
     implicit none
     type(accretionDiskSpectraFile), intent(inout) :: self

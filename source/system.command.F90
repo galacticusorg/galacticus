@@ -38,7 +38,7 @@ contains
 
   subroutine System_Command_VarStr(command,iStatus)
     !!{
-    Executes the system command \source{command}, optionally returning the resulting status in \source{iStatus}.
+    Executes the system command \mono{command}, optionally returning the resulting status in \mono{iStatus}.
     !!}
     use :: ISO_Varying_String, only : char, varying_string
     implicit none
@@ -51,7 +51,7 @@ contains
 
   subroutine System_Command_Char(command,iStatus)
     !!{
-    Executes the system command \source{command}, optionally returning the resulting status in \source{iStatus}.
+    Executes the system command \mono{command}, optionally returning the resulting status in \mono{iStatus}.
     !!}
     use :: Error, only : Error_Report
     implicit none

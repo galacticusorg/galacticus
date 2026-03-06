@@ -35,12 +35,12 @@
       \begin{equation}
        y(x) = y_0+(y_1-y_0)/(1+\exp[-(x-x_\nu)/\Delta x]),
       \end{equation}
-      where $r_0=$\source{[radiusLow]}, $r_1=$\source{[radiusHigh]}, $r_\nu=${\normalfont \ttfamily
-      [radiusTransition]}, $\Delta r=$\source{[radiusWidth]}, $\alpha_0=$\source{[massLow]},
-      $\alpha_1=$\source{[massHigh]}, $\alpha_\nu=$\source{[massTransition]}, $\Delta
-      \alpha=$\source{[massWidth]}, $\beta_0=$\source{[expansionFactorLow]}, $\beta_1=${\normalfont
-      \ttfamily [expansionFactorHigh]}, $\beta_\nu=$\source{[expansionFactorTransition]}, and $\Delta
-      \beta=$\source{[expansionFactorWidth]} , plus a random log-normal scatter of {\normalfont \ttfamily
+      where $r_0=$\mono{[radiusLow]}, $r_1=$\mono{[radiusHigh]}, $r_\nu=${\normalfont \ttfamily
+      [radiusTransition]}, $\Delta r=$\mono{[radiusWidth]}, $\alpha_0=$\mono{[massLow]},
+      $\alpha_1=$\mono{[massHigh]}, $\alpha_\nu=$\mono{[massTransition]}, $\Delta
+      \alpha=$\mono{[massWidth]}, $\beta_0=$\mono{[expansionFactorLow]}, $\beta_1=${\normalfont
+      \ttfamily [expansionFactorHigh]}, $\beta_\nu=$\mono{[expansionFactorTransition]}, and $\Delta
+      \beta=$\mono{[expansionFactorWidth]} , plus a random log-normal scatter of {\normalfont \ttfamily
       [scatter]}~dex.
     </description>
   </darkMatterProfileScaleRadius>

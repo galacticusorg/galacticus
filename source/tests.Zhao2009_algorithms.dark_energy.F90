@@ -25,9 +25,9 @@ dark energy Universe.
 program Test_Zhao2009_Dark_Energy
   !!{
   Tests the \cite{zhao_accurate_2009} halo mass formation history and halo concentration algorithms in a dark energy
-  Universe. Comparisons are made to the \href{https://web.archive.org/web/20220313133927/http://202.127.29.4/dhzhao/mandc_calculator.htm}{``\source{mandc}''} Note that
+  Universe. Comparisons are made to the \href{https://web.archive.org/web/20220313133927/http://202.127.29.4/dhzhao/mandc_calculator.htm}{``\mono{mandc}''} Note that
   comparison tolerances are relatively large since we have not attempted to match details (such as critical density
-  calculation) with ``\source{mandc}''.
+  calculation) with ``\mono{mandc}''.
   !!}
   use :: Cosmological_Density_Field               , only : criticalOverdensitySphericalCollapseClsnlssMttrCsmlgclCnstnt, cosmologicalMassVarianceFilteredPower
   use :: Cosmology_Functions                      , only : cosmologyFunctionsMatterLambda

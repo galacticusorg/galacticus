@@ -215,7 +215,7 @@ contains
 
   double precision function isothermalDensity(self,coordinates)
     !!{
-    Return the density at the specified \source{coordinates} in an isothermal mass distribution.
+    Return the density at the specified \mono{coordinates} in an isothermal mass distribution.
     !!}
     use :: Coordinates, only : assignment(=), coordinateSpherical
     implicit none
@@ -232,7 +232,7 @@ contains
 
   double precision function isothermalDensityGradientRadial(self,coordinates,logarithmic)
     !!{
-    Return the density at the specified \source{coordinates} in an isothermal mass distribution.
+    Return the density at the specified \mono{coordinates} in an isothermal mass distribution.
     !!}
     implicit none
     class           (massDistributionIsothermal), intent(inout), target   :: self
@@ -260,7 +260,7 @@ contains
 
   double precision function isothermalMassEnclosedBySphere(self,radius)
     !!{
-    Computes the mass enclosed within a sphere of given \source{radius} for isothermal mass distributions.
+    Computes the mass enclosed within a sphere of given \mono{radius} for isothermal mass distributions.
     !!}
     use :: Numerical_Constants_Math, only : Pi
     implicit none
@@ -463,7 +463,7 @@ contains
 
   double precision function isothermalPotential(self,coordinates,status)
     !!{
-    Return the potential at the specified \source{coordinates} in an isothermal mass distribution.
+    Return the potential at the specified \mono{coordinates} in an isothermal mass distribution.
     !!}
     use :: Coordinates                     , only : assignment(=)
     use :: Galactic_Structure_Options      , only : structureErrorCodeSuccess     , structureErrorCodeInfinite
@@ -501,7 +501,7 @@ contains
 
   double precision function isothermalFourierTransform(self,radiusOuter,wavenumber) result(fourierTransform)
     !!{
-    Compute the Fourier transform of the density profile at the given \source{wavenumber} in an isothermal mass distribution.
+    Compute the Fourier transform of the density profile at the given \mono{wavenumber} in an isothermal mass distribution.
     !!}
     use :: Exponential_Integrals, only : Sine_Integral
     implicit none
@@ -518,7 +518,7 @@ contains
   
   double precision function isothermalRadiusFreefall(self,time) result(radius)
     !!{
-    Compute the freefall radius at the given \source{time} in an isothermal mass distribution. For an isothermal
+    Compute the freefall radius at the given \mono{time} in an isothermal mass distribution. For an isothermal
     potential, the freefall radius, $r_\mathrm{ff}(t)$, is:
     \begin{equation}
     r_\mathrm{ff}(t) = \sqrt{{2 \over \pi}} V_\mathrm{virial} t.
@@ -542,7 +542,7 @@ contains
   
   double precision function isothermalRadiusFreefallIncreaseRate(self,time) result(radiusIncreaseRate)
     !!{
-    Compute the rate of increase of the freefall radius at the given \source{time} in an isothermal mass
+    Compute the rate of increase of the freefall radius at the given \mono{time} in an isothermal mass
     distribution. For an isothermal potential, the rate of increase of the freefall radius, $\dot{r}_\mathrm{ff}(t)$, is:
     \begin{equation}
     \dot{r}_\mathrm{ff}(t) = \sqrt{{2 \over \pi}} V_\mathrm{virial}.
@@ -566,7 +566,7 @@ contains
   
   double precision function isothermalEnergyPotential(self,radiusOuter) result(energy)
     !!{
-    Compute the potential energy within a given \source{radius} in an isothermal mass distribution.
+    Compute the potential energy within a given \mono{radius} in an isothermal mass distribution.
     !!}
     use :: Numerical_Constants_Astronomical, only : gravitationalConstant_internal
     use :: Numerical_Constants_Math        , only : Pi
@@ -585,7 +585,7 @@ contains
 
   double precision function isothermalEnergyKinetic(self,radiusOuter,massDistributionEmbedding) result(energy)
     !!{
-    Compute the kinetic energy within a given \source{radius} in an isothermal mass distribution.
+    Compute the kinetic energy within a given \mono{radius} in an isothermal mass distribution.
     !!}
     use :: Coordinates, only : assignment(=), coordinateSpherical
     implicit none

@@ -134,9 +134,9 @@ module Input_Parameters
    contains
      !![
      <methods>
-       <method description="Build a tree of \source{inputParameter} objects from the structure of an XML parameter file." method="buildTree" />
-       <method description="Resolve references in the tree of \source{inputParameter} objects." method="resolveReferences" />
-       <method description="Evaluate conditionals in the tree of \source{inputParameter} objects." method="evaluateConditionals" />
+       <method description="Build a tree of \mono{inputParameter} objects from the structure of an XML parameter file." method="buildTree" />
+       <method description="Resolve references in the tree of \mono{inputParameter} objects." method="resolveReferences" />
+       <method description="Evaluate conditionals in the tree of \mono{inputParameter} objects." method="evaluateConditionals" />
        <method description="Return the HDF5 group to which this parameters content will be written." method="parametersGroup" />
        <method description="Open an output group for parameters in the given HDF5 object." method="parametersGroupOpen" />
        <method description="Copy the HDF5 output group for parameters from another parameters object." method="parametersGroupCopy" />
@@ -144,8 +144,8 @@ module Input_Parameters
        <method description="Check that parameters are valid and, optionally, check if they match expected names in the provided list." method="checkParameters" />
        <method description="Return the XML node containing the named parameter." method="node" />
        <method description="Return true if the named parameter is present in the set." method="isPresent" />
-       <method description="Return a count of the number copies of the named parameter. If the parameter is not present, this function aborts, unless \source{zeroIfNotPresent} is set to \source{true}, in which case a result of 0 is returned." method="copiesCount" />
-       <method description="Return a count of the number of values in the named parameter. If the parameter is not present, this function aborts, unless \source{zeroIfNotPresent} is set to \source{true}, in which case a result of 0 is returned." method="count" />
+       <method description="Return a count of the number copies of the named parameter. If the parameter is not present, this function aborts, unless \mono{zeroIfNotPresent} is set to \mono{true}, in which case a result of 0 is returned." method="copiesCount" />
+       <method description="Return a count of the number of values in the named parameter. If the parameter is not present, this function aborts, unless \mono{zeroIfNotPresent} is set to \mono{true}, in which case a result of 0 is returned." method="count" />
        <method description="Return the set of subparameters of the named parameter." method="subParameters" />
        <method description="Return the parent parameters given the path to a parameter" method="findParent"/>
        <method description="Return the value of a parameter specified by name or XML node. A default value can be specified only if the parameter is specified by name. Supported types include rank-0 and rank-1 logicals, integers, long integers, doubles, characters, and varying strings." method="value" />
@@ -188,7 +188,7 @@ module Input_Parameters
 
   interface inputParameters
      !!{
-     Constructors for the \source{inputParameters} class.
+     Constructors for the \mono{inputParameters} class.
      !!}
      module procedure inputParametersConstructorVarStr
      module procedure inputParametersConstructorFileChar
@@ -218,7 +218,7 @@ module Input_Parameters
 
   interface inputParameterList
      !!{
-     Constructors for \source{inputParameterList} objects.
+     Constructors for \mono{inputParameterList} objects.
      !!}
      module procedure inputParameterListConstructor
   end interface inputParameterList
@@ -274,7 +274,7 @@ contains
 
   function inputParametersConstructorNull() result(self)
     !!{
-    Constructor for the \source{inputParameters} class creating a null instance.
+    Constructor for the \mono{inputParameters} class creating a null instance.
     !!}
     use :: FoX_dom, only : createDocument, getDocumentElement, getImplementation, setLiveNodeLists
     implicit none
@@ -300,7 +300,7 @@ contains
 
   function inputParametersConstructorVarStr(xmlString,allowedParameterNames,outputParametersGroup,noOutput,changeFiles) result(self)
     !!{
-    Constructor for the \source{inputParameters} class from an XML file
+    Constructor for the \mono{inputParameters} class from an XML file
     specified as a variable length string.
     !!}
     use :: FoX_dom           , only : node
@@ -346,7 +346,7 @@ contains
 
   function inputParametersConstructorFileChar(fileName,allowedParameterNames,outputParametersGroup,noOutput,changeFiles) result(self)
     !!{
-    Constructor for the \source{inputParameters} class from an XML file
+    Constructor for the \mono{inputParameters} class from an XML file
     specified as a character variable.
     !!}
     use :: Display           , only : displayGreen                     , displayReset
@@ -556,7 +556,7 @@ contains
 
   function inputParametersConstructorCopy(parameters) result(self)
     !!{
-    Constructor for the \source{inputParameters} class from an existing parameters object.
+    Constructor for the \mono{inputParameters} class from an existing parameters object.
     !!}
     implicit none
     type(inputParameters)                :: self
@@ -581,7 +581,7 @@ contains
 
   function inputParametersConstructorNode(parametersNode,allowedParameterNames,outputParametersGroup,noOutput,noBuild,fileName) result(self)
     !!{
-    Constructor for the \source{inputParameters} class from a FoX node.
+    Constructor for the \mono{inputParameters} class from a FoX node.
     !!}
     use, intrinsic :: ISO_C_Binding     , only : c_null_char
     use            :: Display           , only : displayGreen                     , displayMessage  , displayMagenta  , displayReset  , &
@@ -1034,7 +1034,7 @@ contains
 
   subroutine inputParametersDestroy(self)
     !!{
-    Destructor for the \source{inputParameters} class.
+    Destructor for the \mono{inputParameters} class.
     !!}
     use :: FoX_DOM, only : destroy
     implicit none    
@@ -1057,7 +1057,7 @@ contains
 
   subroutine inputParametersFinalize(self)
     !!{
-    Finalizer for the \source{inputParameters} class.
+    Finalizer for the \mono{inputParameters} class.
     !!}
     use :: FoX_dom           , only : destroy
     use :: HDF5_Access       , only : hdf5Access
@@ -1098,7 +1098,7 @@ contains
 
   recursive subroutine inputParameterDestroy(self)
     !!{
-    Destructor for the \source{inputParameter} class.
+    Destructor for the \mono{inputParameter} class.
     !!}
     class(inputParameter), intent(inout) :: self
     type (inputParameter), pointer       :: child, childNext
@@ -2300,7 +2300,7 @@ contains
 
   function inputParameterListConstructor() result(self)
     !!{
-    Construct an \source{inputParameterList} object.
+    Construct an \mono{inputParameterList} object.
     !!}
     implicit none
     type(inputParameterList) :: self
@@ -2311,7 +2311,7 @@ contains
 
   subroutine inputParameterListDestructor(self)
     !!{
-    Destroy an \source{inputParameterList} object.
+    Destroy an \mono{inputParameterList} object.
     !!}
     implicit none
     type(inputParameterList), intent(inout) :: self

@@ -54,7 +54,7 @@ contains
 
   function isothermalConstructorParameters(parameters) result(self)
     !!{
-    Default constructor for the \source{isothermal} dark matter halo profile class.
+    Default constructor for the \mono{isothermal} dark matter halo profile class.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -102,7 +102,7 @@ contains
 
   function isothermalGet(self,node,weightBy,weightIndex) result(massDistribution_)
     !!{
-    Return the dark matter mass distribution for the given \source{node}.
+    Return the dark matter mass distribution for the given \mono{node}.
     !!}
     use :: Galacticus_Nodes          , only : nodeComponentBasic
     use :: Galactic_Structure_Options, only : componentTypeDarkHalo     , massTypeDark                    , weightByMass

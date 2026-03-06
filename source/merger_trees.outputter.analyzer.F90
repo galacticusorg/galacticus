@@ -89,7 +89,7 @@ contains
 
   subroutine analyzerDestructor(self)
     !!{
-    Destructor  for the \source{analyzer} merger tree outputter class.
+    Destructor  for the \mono{analyzer} merger tree outputter class.
     !!}
     implicit none
     type(mergerTreeOutputterAnalyzer), intent(inout) :: self
@@ -102,7 +102,7 @@ contains
 
   subroutine analyzerOutputTree(self,tree,indexOutput,time)
     !!{
-    Write properties of nodes in \source{tree} to the \glc\ output file.
+    Write properties of nodes in \mono{tree} to the \glc\ output file.
     !!}
     use :: Calculations_Resets, only : Calculations_Reset
     use :: Galacticus_Nodes   , only : mergerTree              , nodeComponentBasic, treeNode

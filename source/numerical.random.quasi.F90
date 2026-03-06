@@ -97,7 +97,7 @@ module Numerical_Quasi_Random_Sequences
   
   interface quasiRandomNumberGenerator
      !!{
-     Constructor for the \source{quasiRandomNumberGenerator} class.
+     Constructor for the \mono{quasiRandomNumberGenerator} class.
      !!}
      module procedure quasiRandomNumberGeneratorConstructor
   end interface quasiRandomNumberGenerator
@@ -106,7 +106,7 @@ contains
 
   function quasiRandomNumberGeneratorConstructor(qrngType) result(self)
     !!{
-    Constructor for \source{quasiRandomNumberGenerator} objects.
+    Constructor for \mono{quasiRandomNumberGenerator} objects.
     !!}
     use :: Error, only : Error_Report
     implicit none
@@ -128,7 +128,7 @@ contains
 
   subroutine quasiRandomNumberGeneratorDestructor(self)
     !!{
-    Destructor for \source{quasiRandomNumberGenerator} objects.
+    Destructor for \mono{quasiRandomNumberGenerator} objects.
     !!}
     implicit none
     type(quasiRandomNumberGenerator), intent(inout) :: self

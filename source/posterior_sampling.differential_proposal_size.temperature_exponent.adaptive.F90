@@ -28,14 +28,14 @@
     This class adaptively changes $\alpha$ in an attempt to maintain the gradient of the acceptance rate with the logarithm of
     temperature, $\mathrm{d} R/\mathrm{d}\ln T$, at an acceptable level. The algorithm is controlled by the following sub-parameters:
     \begin{description}
-    \item[\source{[exponentInitial]}] The initial value for $\alpha$;
-    \item[\source{[exponentFactor]}] The additive factor by which $\alpha$ should be increased or decreased if the
+    \item[\mono{[exponentInitial]}] The initial value for $\alpha$;
+    \item[\mono{[exponentFactor]}] The additive factor by which $\alpha$ should be increased or decreased if the
       acceptance rate gradient is out of range;
-    \item[\source{[exponentMinimum]}] The smallest value allowed for $\alpha$;
-    \item[\source{[exponentMaximum]}] The largest value allowed for $\alpha$;
-    \item[\source{[acceptanceRateMinimum]}] The minimum acceptance rate gradient to accept before reducing $\alpha$;
-    \item[\source{[acceptanceRateMaximum]}] The maximum acceptance rate gradient to accept before reducing $\alpha$;
-    \item[\source{[updateCount]}] The number of steps between successive checks of the acceptance rate gradient.
+    \item[\mono{[exponentMinimum]}] The smallest value allowed for $\alpha$;
+    \item[\mono{[exponentMaximum]}] The largest value allowed for $\alpha$;
+    \item[\mono{[acceptanceRateMinimum]}] The minimum acceptance rate gradient to accept before reducing $\alpha$;
+    \item[\mono{[acceptanceRateMaximum]}] The maximum acceptance rate gradient to accept before reducing $\alpha$;
+    \item[\mono{[updateCount]}] The number of steps between successive checks of the acceptance rate gradient.
     \end{description}
    </description>
   </posteriorSampleDffrntlEvltnPrpslSzTmpExp>

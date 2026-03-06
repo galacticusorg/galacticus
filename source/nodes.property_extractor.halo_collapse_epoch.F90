@@ -35,7 +35,7 @@
       \right)^{1/2}+\delta_\mathrm{c}(z_0),
     \end{equation}
     where $\delta_\mathrm{c}(z)$ is the critical overdensity for collapse at redshift $z$, and $f$ is the fraction of a halo's
-    mass assembled at formation time (given by the \source{[massFractionFormation]} parameter.
+    mass assembled at formation time (given by the \mono{[massFractionFormation]} parameter.
    </description>
   </nodePropertyExtractor>
   !!]
@@ -186,7 +186,7 @@ contains
   
   function haloCollapseEpochName(self)
     !!{
-    Return the names of the \source{haloCollapseEpoch} properties.
+    Return the names of the \mono{haloCollapseEpoch} properties.
     !!}
     implicit none
     type (varying_string                        )                :: haloCollapseEpochName
@@ -199,7 +199,7 @@ contains
 
   function haloCollapseEpochDescription(self)
     !!{
-    Return the descriptions of the \source{haloCollapseEpoch} properties.
+    Return the descriptions of the \mono{haloCollapseEpoch} properties.
     !!}
     implicit none
     type (varying_string                        )                :: haloCollapseEpochDescription
@@ -212,7 +212,7 @@ contains
 
   double precision function haloCollapseEpochUnitsInSI(self)
     !!{
-    Return the units of the \source{haloCollapseEpoch} properties in the SI system.
+    Return the units of the \mono{haloCollapseEpoch} properties in the SI system.
     !!}
     implicit none
     class(nodePropertyExtractorHaloCollapseEpoch), intent(inout) :: self

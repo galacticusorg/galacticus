@@ -31,7 +31,7 @@
   !![
   <enumeration>
    <name>klypin2015DensityContrast</name>
-   <description>Enumeration of density contrasts in the \source{klypin2015} dark matter halo profile concentration class.</description>
+   <description>Enumeration of density contrasts in the \mono{klypin2015} dark matter halo profile concentration class.</description>
    <visibility>private</visibility>
    <entry label="fixed" />
    <entry label="virial"/>
@@ -42,7 +42,7 @@
   !![
   <enumeration>
    <name>klypin2015FittingFunction</name>
-   <description>Enumeration of fitting functions in the \source{klypin2015} dark matter halo profile concentration class.</description>
+   <description>Enumeration of fitting functions in the \mono{klypin2015} dark matter halo profile concentration class.</description>
    <visibility>private</visibility>
    <entry label="eqn24"/>
    <entry label="eqn25"/>
@@ -53,7 +53,7 @@
   !![
   <enumeration>
    <name>klypin2015Sample</name>
-   <description>Enumeration of sample choices available in the \source{klypin2015} dark matter halo profile concentration class.</description>
+   <description>Enumeration of sample choices available in the \mono{klypin2015} dark matter halo profile concentration class.</description>
    <visibility>private</visibility>
    <encodeFunction>yes</encodeFunction>
    <entry label="planck200CritRelaxedMass"   />
@@ -121,7 +121,7 @@ contains
 
   function klypin2015ConstructorParameters(parameters) result(self)
     !!{
-    Default constructor for the \source{klypin2015} dark matter halo profile concentration class.
+    Default constructor for the \mono{klypin2015} dark matter halo profile concentration class.
     !!}
     implicit none
     type (darkMatterProfileConcentrationKlypin2015)                :: self
@@ -735,7 +735,7 @@ contains
 
   double precision function klypin2015Concentration(self,node)
     !!{
-    Return the concentration of the dark matter halo profile of \source{node} using the
+    Return the concentration of the dark matter halo profile of \mono{node} using the
     \cite{klypin_multidark_2014} algorithm.
     !!}
     use :: Cosmology_Parameters, only : hubbleUnitsLittleH

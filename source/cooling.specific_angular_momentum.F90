@@ -38,7 +38,7 @@ module Cooling_Specific_Angular_Momenta
    </description>
    <default>constantRotation</default>
    <method name="angularMomentumSpecific" >
-    <description>Return the specific angular momentum (in units of km/s Mpc) of cooling gas in \source{node}.</description>
+    <description>Return the specific angular momentum (in units of km/s Mpc) of cooling gas in \mono{node}.</description>
     <type>double precision</type>
     <pass>yes</pass>
     <argument>type            (treeNode), intent(inout) :: node</argument>

@@ -35,7 +35,7 @@ module Cooling_Rates
    <description>Class providing models of the cooling rate of gas in the hot atmosphere surrounding a galaxy.</description>
    <default>whiteFrenk1991</default>
    <method name="rate" >
-    <description>Returns the cooling rate of gas in the hot atmosphere surrounding the galaxy in \source{node} in units of $M_\odot/$Gyr.</description>
+    <description>Returns the cooling rate of gas in the hot atmosphere surrounding the galaxy in \mono{node} in units of $M_\odot/$Gyr.</description>
     <type>double precision</type>
     <pass>yes</pass>
     <argument>type(treeNode), intent(inout) :: node</argument>

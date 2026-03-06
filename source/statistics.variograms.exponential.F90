@@ -132,7 +132,7 @@ contains
 
   double precision function exponentialVariogram(self,separation)
     !!{
-    Compute the variogram at the given \source{separation}. Here we use the ``exponential model'':
+    Compute the variogram at the given \mono{separation}. Here we use the ``exponential model'':
     \begin{equation}
       \gamma(h) =C_0 + C_1 [ 1 - \exp\left(-\frac{h}{a}\right)]
     \end{equation}

@@ -123,7 +123,7 @@ module Intergalactic_Medium_State
     </code>
    </method>
    <method name="electronScatteringOpticalDepth" >
-    <description>Return the electron scattering optical depth from the present day back to the given \source{time} in the \gls{igm}.</description>
+    <description>Return the electron scattering optical depth from the present day back to the given \mono{time} in the \gls{igm}.</description>
     <type>double precision</type>
     <pass>yes</pass>
     <modules>Error</modules>
@@ -149,7 +149,7 @@ module Intergalactic_Medium_State
     </code>
    </method>
    <method name="electronScatteringTime" >
-    <description>Return the cosmological time at which the given electron scattering \source{opticalDepth} is reached (integrating from the present day) in the \gls{igm}.</description>
+    <description>Return the cosmological time at which the given electron scattering \mono{opticalDepth} is reached (integrating from the present day) in the \gls{igm}.</description>
     <type>double precision</type>
     <pass>yes</pass>
     <modules>Error</modules>

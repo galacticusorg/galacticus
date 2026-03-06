@@ -36,7 +36,7 @@
     \end{equation}
     where $\gamma_1=15$, $\gamma_2=0.3$, $M_\mathrm{1/2}$ is the mass corresponding to the wavenumber at which the WDM transfer
     function is suppressed below the CDM transfer function by a factor of 2, and $M_\mathrm{halo}$ is the mass of the dark
-    matter halo, to a CDM concentration algorithm as specified by \source{[cdmConcentration]}.
+    matter halo, to a CDM concentration algorithm as specified by \mono{[cdmConcentration]}.
    </description>
   </darkMatterProfileConcentration>
   !!]
@@ -68,7 +68,7 @@ contains
 
   function wdmConstructorParameters(parameters) result(self)
     !!{
-    Default constructor for the \source{wdm} dark matter halo profile concentration class.
+    Default constructor for the \mono{wdm} dark matter halo profile concentration class.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -121,7 +121,7 @@ contains
 
   double precision function wdmConcentration(self,node)
     !!{
-    Return the concentration of the dark matter halo profile of \source{node}
+    Return the concentration of the dark matter halo profile of \mono{node}
     using the warm dark matter modifier of \cite{schneider_non-linear_2012}.
     !!}
     use :: Galacticus_Nodes, only : nodeComponentBasic, treeNode

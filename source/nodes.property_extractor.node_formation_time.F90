@@ -95,7 +95,7 @@ contains
   
   function nodeFormationTimeName(self)
     !!{
-    Return the names of the \source{nodeFormationTime} properties.
+    Return the names of the \mono{nodeFormationTime} properties.
     !!}
     implicit none
     type (varying_string                        )                :: nodeFormationTimeName
@@ -108,7 +108,7 @@ contains
 
   function nodeFormationTimeDescription(self)
     !!{
-    Return the descriptions of the \source{nodeFormationTime} properties.
+    Return the descriptions of the \mono{nodeFormationTime} properties.
     !!}
     implicit none
     type (varying_string                        )                :: nodeFormationTimeDescription
@@ -121,7 +121,7 @@ contains
 
   double precision function nodeFormationTimeUnitsInSI(self)
     !!{
-    Return the units of the \source{nodeFormationTime} properties in the SI system.
+    Return the units of the \mono{nodeFormationTime} properties in the SI system.
     !!}
     use :: Numerical_Constants_Astronomical, only : gigaYear
     implicit none

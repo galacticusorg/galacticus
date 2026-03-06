@@ -186,7 +186,7 @@ contains
 
   subroutine satelliteMerger(self,node)
     !!{
-    Remove any hot halo associated with \source{node} before it merges with its host halo.
+    Remove any hot halo associated with \mono{node} before it merges with its host halo.
     !!}
     use :: Error                        , only : Error_Report
     use :: Abundances_Structure         , only : zeroAbundances

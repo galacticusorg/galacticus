@@ -154,7 +154,7 @@ contains
   
   subroutine outputRootMassesOperatePreEvolution(self,tree)
     !!{
-    Compute conditional mass function on \source{tree}.
+    Compute conditional mass function on \mono{tree}.
     !!}
     use :: Galacticus_Nodes    , only : mergerTree                   , nodeComponentBasic, treeNode
     use :: Merger_Tree_Walkers , only : mergerTreeWalkerIsolatedNodes

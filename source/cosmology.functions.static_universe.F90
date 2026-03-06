@@ -196,7 +196,7 @@ contains
 
   double precision function staticUniverseExpansionFactor(self,time)
     !!{
-    Returns the expansion factor at cosmological time \source{time}.
+    Returns the expansion factor at cosmological time \mono{time}.
     !!}
     implicit none
     class           (cosmologyFunctionsStaticUniverse), intent(inout) :: self
@@ -209,7 +209,7 @@ contains
 
   double precision function staticUniverseExpansionRate(self,expansionFactor)
     !!{
-    Returns the cosmological expansion rate, $\dot{a}/a$ at expansion factor \source{expansionFactor}.
+    Returns the cosmological expansion rate, $\dot{a}/a$ at expansion factor \mono{expansionFactor}.
     !!}
     implicit none
     class           (cosmologyFunctionsStaticUniverse), intent(inout) :: self
@@ -222,7 +222,7 @@ contains
 
   double precision function staticUniverseHubbleParameterEpochal(self,time,expansionFactor,collapsingPhase)
     !!{
-    Returns the Hubble parameter at the request cosmological time, \source{time}, or expansion factor, \source{expansionFactor}.
+    Returns the Hubble parameter at the request cosmological time, \mono{time}, or expansion factor, \mono{expansionFactor}.
     !!}
     implicit none
     class           (cosmologyFunctionsStaticUniverse), intent(inout)           :: self
@@ -236,7 +236,7 @@ contains
 
   double precision function staticUniverseHubbleParameterRateOfChange(self,time,expansionFactor,collapsingPhase)
     !!{
-    Returns the rate of change of the Hubble parameter at the request cosmological time, \source{time}, or expansion factor, \source{expansionFactor}.
+    Returns the rate of change of the Hubble parameter at the request cosmological time, \mono{time}, or expansion factor, \mono{expansionFactor}.
     !!}
     implicit none
     class           (cosmologyFunctionsStaticUniverse), intent(inout)           :: self
@@ -250,7 +250,7 @@ contains
 
   double precision function staticUniverseOmegaMatterEpochal(self,time,expansionFactor,collapsingPhase)
     !!{
-    Return the matter density parameter at expansion factor \source{expansionFactor}.
+    Return the matter density parameter at expansion factor \mono{expansionFactor}.
     !!}
     use :: Error, only : Error_Report
     implicit none
@@ -266,7 +266,7 @@ contains
 
   double precision function staticUniverseMatterDensityEpochal(self,time,expansionFactor,collapsingPhase)
     !!{
-    Return the matter density at expansion factor \source{expansionFactor}.
+    Return the matter density at expansion factor \mono{expansionFactor}.
     !!}
     implicit none
     class           (cosmologyFunctionsStaticUniverse), intent(inout)           :: self
@@ -280,7 +280,7 @@ contains
 
   double precision function staticUniverseOmegaMatterRateOfChange(self,time,expansionFactor,collapsingPhase)
     !!{
-    Return the rate of change of the matter density parameter at expansion factor \source{expansionFactor}.
+    Return the rate of change of the matter density parameter at expansion factor \mono{expansionFactor}.
     !!}
     use :: Error, only : Error_Report
     implicit none
@@ -296,7 +296,7 @@ contains
 
   double precision function staticUniverseOmegaDarkEnergyEpochal(self,time,expansionFactor,collapsingPhase)
     !!{
-    Return the dark energy density parameter at expansion factor \source{expansionFactor}.
+    Return the dark energy density parameter at expansion factor \mono{expansionFactor}.
     !!}
     use :: Error, only : Error_Report
     implicit none
@@ -312,7 +312,7 @@ contains
 
   double precision function staticUniverseTemperatureCMBEpochal(self,time,expansionFactor,collapsingPhase)
     !!{
-    Return the temperature of the CMB at expansion factor \source{expansionFactor}.
+    Return the temperature of the CMB at expansion factor \mono{expansionFactor}.
     !!}
     implicit none
     class           (cosmologyFunctionsStaticUniverse), intent(inout)           :: self
@@ -399,7 +399,7 @@ contains
 
   double precision function staticUniverseTimeAtDistanceComoving(self,comovingDistance)
     !!{
-    Returns the cosmological time corresponding to given \source{comovingDistance}.
+    Returns the cosmological time corresponding to given \mono{comovingDistance}.
     !!}
     use :: Error, only : Error_Report
     implicit none
@@ -414,7 +414,7 @@ contains
 
   double precision function staticUniverseDistanceComoving(self,time)
     !!{
-    Returns the comoving distance to cosmological time \source{time}.
+    Returns the comoving distance to cosmological time \mono{time}.
     !!}
     use :: Error, only : Error_Report
     implicit none
@@ -429,7 +429,7 @@ contains
 
   double precision function staticUniverseDistanceLuminosity(self,time)
     !!{
-    Returns the luminosity distance to cosmological time \source{time}.
+    Returns the luminosity distance to cosmological time \mono{time}.
     !!}
     use :: Error, only : Error_Report
     implicit none
@@ -443,7 +443,7 @@ contains
 
   double precision function staticUniverseDistanceAngular(self,time,timeOrigin)
     !!{
-    Returns the angular diameter distance to cosmological time \source{time}.
+    Returns the angular diameter distance to cosmological time \mono{time}.
     !!}
     use :: Error, only : Error_Report
     implicit none

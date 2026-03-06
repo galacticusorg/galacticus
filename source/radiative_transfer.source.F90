@@ -41,7 +41,7 @@ module Radiative_Transfer_Sources
     <argument>class(radiativeTransferPhotonPacketClass), intent(inout) :: photonPacket</argument>
    </method>
    <method name="spectrum" >
-    <description>Return the spectrum (in units of $L_\odot$ \AA$^{-1}$) of the source at the given \source{wavelength}.</description>
+    <description>Return the spectrum (in units of $L_\odot$ \AA$^{-1}$) of the source at the given \mono{wavelength}.</description>
     <type>double precision</type>
     <pass>yes</pass>
     <argument>double precision, intent(in   )           :: wavelength</argument>

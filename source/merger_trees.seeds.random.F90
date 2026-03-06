@@ -29,7 +29,7 @@ Implements a merger tree random number seed in which the seed is chosen at rando
     <description>
       A merger tree random number seed in which the seed is chosen at random (without repetition) from the available
       range. Specifically, a list of random numbers are selected in the range $1$ to $2^{31}$ without repetition. For a tree with
-      index \source{i}, the \source{i}$^\mathrm{th}$ entry from that list is used as its seed. The
+      index \mono{i}, the \mono{i}$^\mathrm{th}$ entry from that list is used as its seed. The
       list is extended as needed given the tree index.
 
       Changing the seed of the \refClass{randomNumberGeneratorClass} object specified in the parameter file will ensure a
@@ -132,7 +132,7 @@ contains
 
   subroutine randomSet(self,tree)
     !!{
-    Set the random number seed in the given \source{tree}.
+    Set the random number seed in the given \mono{tree}.
     !!}
     !$ use :: omp_lib, only : omp_get_thread_num
     implicit none

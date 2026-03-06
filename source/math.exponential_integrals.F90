@@ -83,7 +83,7 @@ contains
 
   double complex function Exponential_Integral_Double_Complex(z)
     !!{
-    Exponential integral, $E_\mathrm{i}(z)$, for complex argument \source{z}.
+    Exponential integral, $E_\mathrm{i}(z)$, for complex argument \mono{z}.
     !!}
     use :: Numerical_Constants_Math, only : Pi
     implicit none
@@ -96,7 +96,7 @@ contains
 
   double precision function Exponential_Integral_Double(x)
     !!{
-    Exponential integral for real argument \source{x}.
+    Exponential integral for real argument \mono{x}.
     !!}
     implicit none
     double precision, intent(in   ) :: x

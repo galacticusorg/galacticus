@@ -204,7 +204,7 @@ contains
 
   integer function cgmCoolingFunctionElementCount(self,time)
     !!{
-    Return the number of elements in the \source{cgmCoolingFunction} property extractors.
+    Return the number of elements in the \mono{cgmCoolingFunction} property extractors.
     !!}
     implicit none
     class           (nodePropertyExtractorCGMCoolingFunction), intent(inout) :: self
@@ -217,7 +217,7 @@ contains
 
   function cgmCoolingFunctionSize(self,time)
     !!{
-    Return the number of array elements in the \source{cgmCoolingFunction} property extractors.
+    Return the number of array elements in the \mono{cgmCoolingFunction} property extractors.
     !!}
     implicit none
     integer         (c_size_t                               )                :: cgmCoolingFunctionSize
@@ -231,7 +231,7 @@ contains
 
   function cgmCoolingFunctionExtract(self,node,time,instance)
     !!{
-    Implement a \source{cgmCoolingFunction} property extractor.
+    Implement a \mono{cgmCoolingFunction} property extractor.
     !!}
     use :: Abundances_Structure                , only : abundances
     use :: Chemical_Abundances_Structure       , only : chemicalAbundances
@@ -400,7 +400,7 @@ contains
 
   subroutine cgmCoolingFunctionNames(self,names,time)
     !!{
-    Return the names of the \source{cgmCoolingFunction} properties.
+    Return the names of the \mono{cgmCoolingFunction} properties.
     !!}
     implicit none
     class           (nodePropertyExtractorCGMCoolingFunction), intent(inout)                             :: self
@@ -417,7 +417,7 @@ contains
 
   subroutine cgmCoolingFunctionDescriptions(self,descriptions,time)
     !!{
-    Return descriptions of the \source{cgmCoolingFunction} property.
+    Return descriptions of the \mono{cgmCoolingFunction} property.
     !!}
     implicit none
     class           (nodePropertyExtractorCGMCoolingFunction), intent(inout)                             :: self
@@ -436,7 +436,7 @@ contains
 
   subroutine cgmCoolingFunctionColumnDescriptions(self,descriptions,values,valuesDescription,valuesUnitsInSI,time)
     !!{
-    Return column descriptions of the \source{cgmCoolingFunction} property.
+    Return column descriptions of the \mono{cgmCoolingFunction} property.
     !!}
     implicit none
     class           (nodePropertyExtractorCGMCoolingFunction), intent(inout)                            :: self
@@ -457,7 +457,7 @@ contains
 
   function cgmCoolingFunctionUnitsInSI(self,time)
     !!{
-    Return the units of the \source{cgmCoolingFunction} properties in the SI system.
+    Return the units of the \mono{cgmCoolingFunction} properties in the SI system.
     !!}
     use :: Numerical_Constants_Astronomical, only : megaParsec
     use :: Numerical_Constants_Prefixes    , only : centi

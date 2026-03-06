@@ -76,7 +76,7 @@ module Mass_Distributions
      </code>
    </method>
    <method name="subset">
-      <description>Return the subset of the mass distribution matching the given {\normalfont componentType} and \source{massType}.</description>
+      <description>Return the subset of the mass distribution matching the given {\normalfont componentType} and \mono{massType}.</description>
       <type>class(massDistributionClass)</type>
       <pass>yes</pass>
       <argument>type(enumerationComponentTypeType), intent(in   ), optional :: componentType</argument>
@@ -574,13 +574,13 @@ module Mass_Distributions
     <argument>class           (coordinate           ), intent(in   ) :: coordinates              , velocity                 </argument>
    </method>
    <method name="radiusFreefall" >
-    <description>Return the radius at which the freefall time to the center equals the given \source{time}.</description>
+    <description>Return the radius at which the freefall time to the center equals the given \mono{time}.</description>
     <type>double precision</type>
     <pass>yes</pass>
     <argument>double precision, intent(in   ) :: time</argument>
    </method>
    <method name="radiusFreefallIncreaseRate" >
-    <description>Return the rate of increase of the freefall radius corresponding to the given \source{time}.</description>
+    <description>Return the rate of increase of the freefall radius corresponding to the given \mono{time}.</description>
     <type>double precision</type>
     <pass>yes</pass>
     <argument>double precision, intent(in   ) :: time</argument>
@@ -835,7 +835,7 @@ module Mass_Distributions
   !![
   <enumeration>
    <name>massDistributionSymmetry</name>
-   <description>Specifies the symmetry of \source{massDistribution} objects.</description>
+   <description>Specifies the symmetry of \mono{massDistribution} objects.</description>
    <visibility>public</visibility>
    <entry label="none"        />
    <entry label="cylindrical" />

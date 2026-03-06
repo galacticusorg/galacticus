@@ -35,7 +35,7 @@ module Merger_Tree_Filters
    <description> Class providing merger tree filters.</description>
    <default>always</default>
    <method name="passes" >
-    <description>Return true if the given \source{tree} passes the filter.</description>
+    <description>Return true if the given \mono{tree} passes the filter.</description>
     <type>logical</type>
     <pass>yes</pass>
     <argument>type(mergerTree), intent(in   ) :: tree</argument>

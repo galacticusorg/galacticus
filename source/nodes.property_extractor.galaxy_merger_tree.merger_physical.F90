@@ -112,7 +112,7 @@ contains
   
   subroutine galaxyMergerTreeMergerPhysicalNames(self,names)
     !!{
-    Return the names of the \source{galaxyMergerTreeMergerPhysical} properties.
+    Return the names of the \mono{galaxyMergerTreeMergerPhysical} properties.
     !!}
     implicit none
     class(nodePropertyExtractorGalaxyMergerTreeMergerPhysical), intent(inout)                             :: self
@@ -126,7 +126,7 @@ contains
 
   subroutine galaxyMergerTreeMergerPhysicalDescriptions(self,descriptions)
     !!{
-    Return the descriptions of the \source{galaxyMergerTreeMergerPhysical} properties.
+    Return the descriptions of the \mono{galaxyMergerTreeMergerPhysical} properties.
     !!}
     implicit none
     class(nodePropertyExtractorGalaxyMergerTreeMergerPhysical), intent(inout)                             :: self
@@ -140,7 +140,7 @@ contains
 
   function galaxyMergerTreeMergerPhysicalUnitsInSI(self) result(unitsInSI)
     !!{
-    Return the units of the \source{galaxyMergerTreeMergerPhysical} properties in the SI system.
+    Return the units of the \mono{galaxyMergerTreeMergerPhysical} properties in the SI system.
     !!}
     use :: Numerical_Constants_Astronomical, only : gigaYear, massSolar
     implicit none

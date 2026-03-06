@@ -35,7 +35,7 @@ module Galactic_Filters
    <description>Object providing boolean filters acting on galaxies.</description>
    <default>always</default>
    <method name="passes" >
-    <description>Return true if the given \source{node} passes the filter.</description>
+    <description>Return true if the given \mono{node} passes the filter.</description>
     <type>logical</type>
     <pass>yes</pass>
     <argument>type(treeNode), intent(inout), target :: node</argument>

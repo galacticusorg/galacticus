@@ -51,12 +51,12 @@
       .
      &lt;/stars&gt;
     \end{verbatim}
-    Each \source{star} element must contain the \source{initialMass} (given in $M_\odot$) and
-    \source{metallicity} tags. Other tags are optional. \source{lifetime} gives the lifetime of
-    such a star (in Gyr), \source{ejectedMass} gives the total mass (in $M_\odot$) ejected by such a star during
-    its lifetime, \source{metalYieldMass} gives the total mass of metals yielded by the star during its lifetime
-    while \source{elementYieldMassX} gives the mass of element \source{X} yielded by the star
-    during its lifetime. The \source{source} and \source{url} tags are not used, but are strongly
+    Each \mono{star} element must contain the \mono{initialMass} (given in $M_\odot$) and
+    \mono{metallicity} tags. Other tags are optional. \mono{lifetime} gives the lifetime of
+    such a star (in Gyr), \mono{ejectedMass} gives the total mass (in $M_\odot$) ejected by such a star during
+    its lifetime, \mono{metalYieldMass} gives the total mass of metals yielded by the star during its lifetime
+    while \mono{elementYieldMassX} gives the mass of element \mono{X} yielded by the star
+    during its lifetime. The \mono{source} and \mono{url} tags are not used, but are strongly
     recommended to provide a reference to the origin of the stellar data.
    </description>
    <runTimeFileDependencies paths="fileName"/>
@@ -335,7 +335,7 @@ contains
 
   double precision function fileMassInitial(self,lifetime,metallicity)
     !!{
-    Return the initial mass of a star of given \source{lifetime} and \source{metallicity}.
+    Return the initial mass of a star of given \mono{lifetime} and \mono{metallicity}.
     !!}
     use :: Numerical_Interpolation_2D_Irregular, only : Interpolate_2D_Irregular
     implicit none
@@ -358,7 +358,7 @@ contains
 
   double precision function fileLifetime(self,massInitial,metallicity)
     !!{
-    Return the lifetime of a star (in Gyr) given an \source{massInitial} and \source{metallicity}.
+    Return the lifetime of a star (in Gyr) given an \mono{massInitial} and \mono{metallicity}.
     !!}
     use :: Numerical_Interpolation_2D_Irregular, only : Interpolate_2D_Irregular
     implicit none
@@ -380,7 +380,7 @@ contains
 
   double precision function fileMassEjected(self,massInitial,metallicity)
     !!{
-    Return the mass ejected during the lifetime of a star of given \source{massInitial} and \source{metallicity}.
+    Return the mass ejected during the lifetime of a star of given \mono{massInitial} and \mono{metallicity}.
     !!}
     use :: Numerical_Interpolation_2D_Irregular, only : Interpolate_2D_Irregular
     implicit none
@@ -405,7 +405,7 @@ contains
 
   double precision function fileMassYield(self,massInitial,metallicity,atomIndex)
     !!{
-    Return the mass of metals yielded by a star of given \source{massInitial} and \source{metallicity}.
+    Return the mass of metals yielded by a star of given \mono{massInitial} and \mono{metallicity}.
     !!}
     use :: Numerical_Interpolation_2D_Irregular, only : Interpolate_2D_Irregular
     implicit none

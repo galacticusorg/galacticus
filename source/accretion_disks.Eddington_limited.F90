@@ -158,7 +158,7 @@ contains
 
   double precision function eddingtonLimitedRateSpinUp(self,blackHole,accretionRateMass)
     !!{
-    Computes the spin up rate of the given \source{blackHole} due to accretion from an Eddington-limited
+    Computes the spin up rate of the given \mono{blackHole} due to accretion from an Eddington-limited
     accretion disk. This is always zero, as no physical model is specified for this accretion disk method.
     !!}
     implicit none

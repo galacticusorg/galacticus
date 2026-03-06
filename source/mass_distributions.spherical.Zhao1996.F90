@@ -26,7 +26,7 @@
   !![
   <enumeration>
    <name>specialCase</name>
-   <description>Special cases for \source{zhao1996} dark matter halo profile class.</description>
+   <description>Special cases for \mono{zhao1996} dark matter halo profile class.</description>
    <entry label="general"    />
    <entry label="coredNFW"   />
    <entry label="gamma0_5NFW"/>
@@ -335,7 +335,7 @@ contains
 
   double precision function zhao1996Density(self,coordinates) result(density)
     !!{
-    Return the density at the specified \source{coordinates} in a Zhao1996 mass distribution.
+    Return the density at the specified \mono{coordinates} in a Zhao1996 mass distribution.
     !!}
     implicit none
     class           (massDistributionZhao1996), intent(inout) :: self
@@ -389,7 +389,7 @@ contains
 
   double precision function zhao1996DensityGradientRadial(self,coordinates,logarithmic) result(densityGradientRadial)
     !!{
-    Return the density at the specified \source{coordinates} in an Zhao1996 \citep{zhao_analytical_1996} mass distribution.
+    Return the density at the specified \mono{coordinates} in an Zhao1996 \citep{zhao_analytical_1996} mass distribution.
     !!}
     implicit none
     class           (massDistributionZhao1996), intent(inout), target   :: self
@@ -486,7 +486,7 @@ contains
 
   double precision function zhao1996MassEnclosedBySphere(self,radius) result(mass)
     !!{
-    Computes the mass enclosed within a sphere of given \source{radius} for zhao1996 mass distributions.
+    Computes the mass enclosed within a sphere of given \mono{radius} for zhao1996 mass distributions.
     !!}
     implicit none
     class           (massDistributionZhao1996), intent(inout), target :: self
@@ -860,7 +860,7 @@ contains
 
   double precision function zhao1996Potential(self,coordinates,status) result(potential)
     !!{
-    Return the potential at the specified \source{coordinates} in an zhao1996 mass distribution.
+    Return the potential at the specified \mono{coordinates} in an zhao1996 mass distribution.
     !!}
     use :: Coordinates                     , only : assignment(=)
     use :: Galactic_Structure_Options      , only : structureErrorCodeSuccess     , structureErrorCodeInfinite
@@ -1064,7 +1064,7 @@ contains
     
   double precision function zhao1996RadiusFreefall(self,time) result(radius)
     !!{
-    Compute the freefall radius at the given \source{time} in an Zhao1996 mass distribution.
+    Compute the freefall radius at the given \mono{time} in an Zhao1996 mass distribution.
     !!}
     use :: Numerical_Constants_Astronomical, only : MpcPerKmPerSToGyr, gravitationalConstant_internal
     implicit none
@@ -1091,7 +1091,7 @@ contains
   
   double precision function zhao1996RadiusFreefallIncreaseRate(self,time) result(radiusIncreaseRate)
     !!{
-    Compute the rate of increase of the freefall radius at the given \source{time} in an zhao1996 mass
+    Compute the rate of increase of the freefall radius at the given \mono{time} in an zhao1996 mass
     distribution.
     !!}
     use :: Numerical_Constants_Astronomical, only : MpcPerKmPerSToGyr, gravitationalConstant_internal
@@ -1120,7 +1120,7 @@ contains
   
   subroutine zhao1996TimeFreefallTabulate(self,timeScaleFree)
     !!{
-    Tabulate the freefall radius at the given \source{time} in an Zhao1996 mass distribution.
+    Tabulate the freefall radius at the given \mono{time} in an Zhao1996 mass distribution.
     !!}
     use :: Numerical_Integration, only : integrator
     use :: Numerical_Ranges     , only : Make_Range, rangeTypeLogarithmic
@@ -1204,7 +1204,7 @@ contains
 
   double precision function zhao1996FourierTransform(self,radiusOuter,wavenumber) result(fourierTransform)
     !!{
-    Compute the Fourier transform of the density profile at the given \source{wavenumber} in an Zhao1996 mass
+    Compute the Fourier transform of the density profile at the given \mono{wavenumber} in an Zhao1996 mass
     distribution.
     !!}
     use :: Exponential_Integrals   , only : Exponential_Integral
@@ -1282,7 +1282,7 @@ contains
 
   double precision function zhao1996EnergyPotential(self,radiusOuter) result(energy)
     !!{
-    Compute the potential energy within a given \source{radius} in a Zhao1996 mass distribution.
+    Compute the potential energy within a given \mono{radius} in a Zhao1996 mass distribution.
     \begin{eqnarray}
     \end{eqnarray}
     where $x=r/r_\mathrm{s}$ and $\mathrm{G}$ is Catalan's constant.
@@ -1398,7 +1398,7 @@ contains
 
   double precision function zhao1996EnergyKinetic(self,radiusOuter,massDistributionEmbedding) result(energy)
     !!{
-    Compute the kinetic energy within a given \source{radius} in a Zhao1996 mass distribution.
+    Compute the kinetic energy within a given \mono{radius} in a Zhao1996 mass distribution.
     !!}
     use :: Numerical_Constants_Astronomical, only : gravitationalConstant_internal
     use :: Numerical_Constants_Math        , only : Pi

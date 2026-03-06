@@ -29,8 +29,8 @@
      \begin{equation}
      \rho(r) = \rho^\prime(r) \left( 1 + \left[ \frac{\Delta x}{r} \right]^2 \right)^{-1/2},
      \end{equation}
-     where $\Delta x$ is the larger of the resolution length, \source{[lengthResolution]}, and the radius in the
-     original profile enclosing the mass resolution, \source{[massResolution]}.
+     where $\Delta x$ is the larger of the resolution length, \mono{[lengthResolution]}, and the radius in the
+     original profile enclosing the mass resolution, \mono{[massResolution]}.
      
      Note that this choice was constructed to give a constant density core in an NFW density profile. For a density profile,
      $\rho^\prime(r)$, which rises more steeply than $r^{-1}$ as $r \rightarrow 0$ we will still have a cuspy density profile
@@ -85,7 +85,7 @@ contains
       <name>nonAnalyticSolver</name>
       <defaultValue>var_str('fallThrough')</defaultValue>
       <source>parameters</source>
-      <description>Selects how solutions are computed when no analytic solution is available. If set to ``\source{fallThrough}'' then the solution ignoring heating is used, while if set to ``\source{numerical}'' then numerical solvers are used to find solutions.</description>
+      <description>Selects how solutions are computed when no analytic solution is available. If set to ``\mono{fallThrough}'' then the solution ignoring heating is used, while if set to ``\mono{numerical}'' then numerical solvers are used to find solutions.</description>
     </inputParameter>
     <inputParameter>
       <name>componentType</name>
@@ -148,7 +148,7 @@ contains
 
   double precision function sphericalFiniteResolutionDensity(self,coordinates) result(density)
     !!{
-    Return the density at the specified \source{coordinates} in a scaled spherical mass distribution.
+    Return the density at the specified \mono{coordinates} in a scaled spherical mass distribution.
     !!}
     implicit none
     class(massDistributionSphericalFiniteResolution), intent(inout)           :: self
@@ -167,7 +167,7 @@ contains
 
   double precision function sphericalFiniteResolutionDensityGradientRadial(self,coordinates,logarithmic) result(densityGradient)
     !!{
-    Return the density at the specified \source{coordinates} in a finiteResolution spherical mass distribution.
+    Return the density at the specified \mono{coordinates} in a finiteResolution spherical mass distribution.
     !!}
     implicit none
     class  (massDistributionSphericalFiniteResolution), intent(inout), target   :: self

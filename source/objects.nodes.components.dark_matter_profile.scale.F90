@@ -191,7 +191,7 @@ contains
   !!]
   subroutine Node_Component_Dark_Matter_Profile_Scale_Scale_Set(node)
     !!{
-    Set scales for properties of \source{node}.
+    Set scales for properties of \mono{node}.
     !!}
     use :: Galacticus_Nodes, only : nodeComponentDarkMatterProfile, nodeComponentDarkMatterProfileScale, treeNode
     implicit none

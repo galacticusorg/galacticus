@@ -185,7 +185,7 @@ contains
 
   subroutine nodeFormationTimeCole2000Reform(self,node)
     !!{
-    Creates a halo formation time component for \source{node}. This function is also used to ``reform'' the halo, since it
+    Creates a halo formation time component for \mono{node}. This function is also used to ``reform'' the halo, since it
     simply resets the formation time and mass to the current values.
     !!}
     use :: Events_Halo_Formation, only : Event_Halo_Formation

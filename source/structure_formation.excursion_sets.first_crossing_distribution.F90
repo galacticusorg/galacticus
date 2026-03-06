@@ -39,21 +39,21 @@ module Excursion_Sets_First_Crossings
    <default>linearBarrier</default>
    <data>logical :: coordinatedMPI_=.false. </data>
    <method name="probability" >
-    <description>Return the probability for a trajectory to make its first crossing of the barrier at the given \source{variance} and \source{time}.</description>
+    <description>Return the probability for a trajectory to make its first crossing of the barrier at the given \mono{variance} and \mono{time}.</description>
     <type>double precision</type>
     <pass>yes</pass>
     <argument>double precision          , intent(in   ) :: variance, time</argument>
     <argument>type            (treeNode), intent(inout) :: node</argument>
    </method>
    <method name="rate" >
-    <description>Return the rate of first crossing for excursion sets beginning at the given \source{variance} and \source{time} to transition to a first crossing at the given \source{varianceProgenitor}.</description>
+    <description>Return the rate of first crossing for excursion sets beginning at the given \mono{variance} and \mono{time} to transition to a first crossing at the given \mono{varianceProgenitor}.</description>
     <type>double precision</type>
     <pass>yes</pass>
     <argument>double precision          , intent(in   ) :: variance, varianceProgenitor, time</argument>
     <argument>type            (treeNode), intent(inout) :: node</argument>
    </method>
    <method name="rateNonCrossing" >
-    <description>Return the rate of non-crossing for excursion sets beginning at the given \source{variance} and \source{time}.</description>
+    <description>Return the rate of non-crossing for excursion sets beginning at the given \mono{variance} and \mono{time}.</description>
     <type>double precision</type>
     <pass>yes</pass>
     <argument>double precision          , intent(in   ) :: variance, massMinimum, time</argument>

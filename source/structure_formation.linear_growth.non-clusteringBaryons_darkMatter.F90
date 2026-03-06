@@ -139,7 +139,7 @@ contains
 
   subroutine nonClusteringBaryonsDarkMatterRetabulate(self,time)
     !!{
-    Returns the linear growth factor $D(a)$ for expansion factor \source{aExpansion}, normalized such that
+    Returns the linear growth factor $D(a)$ for expansion factor \mono{aExpansion}, normalized such that
     $D(1)=1$ for a nonClusteringBaryonsDarkMatter matter plus cosmological constant cosmology.
     !!}
     use :: Interface_GSL        , only : GSL_Success

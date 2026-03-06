@@ -31,7 +31,7 @@
     \begin{equation}
      t_\mathrm{available} = \exp\left[ f \ln t_\mathrm{Universe} + (1-f)\ln t_\mathrm{dynamical} \right],
     \end{equation}
-    where $f=$\source{[ageFactor]} is an interpolating factor, $t_\mathrm{Universe}$ is the age of the Universe
+    where $f=$\mono{[ageFactor]} is an interpolating factor, $t_\mathrm{Universe}$ is the age of the Universe
     and $t_\mathrm{dynamical}$ is the dynamical time in the halo. The original \cite{white_galaxy_1991} algorithm corresponds
     to $f=1$.
    </description>

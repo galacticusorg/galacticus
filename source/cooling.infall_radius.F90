@@ -38,13 +38,13 @@ module Cooling_Infall_Radii
    </description>
    <default>coolingRadius</default>
    <method name="radius" >
-    <description>Return the infall radius for \source{node} (in units of Mpc).</description>
+    <description>Return the infall radius for \mono{node} (in units of Mpc).</description>
     <type>double precision</type>
     <pass>yes</pass>
     <argument>type(treeNode), intent(inout) :: node</argument>
    </method>
    <method name="radiusIncreaseRate" >
-    <description>Return the rate at which the infall radius grows for \source{node} (in units of Mpc/Gyr).</description>
+    <description>Return the rate at which the infall radius grows for \mono{node} (in units of Mpc/Gyr).</description>
     <type>double precision</type>
     <pass>yes</pass>
     <argument>type(treeNode), intent(inout) :: node</argument>

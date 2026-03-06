@@ -42,20 +42,20 @@ module Statistics_Distributions
      <type>double precision</type>
      <pass>yes</pass>
      <argument>double precision, intent(in   ) :: x</argument>
-     <description>Return the probability density at \source{x}.</description>
+     <description>Return the probability density at \mono{x}.</description>
    </method>
    <method name="cumulative" >
      <type>double precision</type>
      <pass>yes</pass>
      <argument>double precision, intent(in   ) :: x</argument>
-     <description>Return the cumulative probability at \source{x}.</description>
+     <description>Return the cumulative probability at \mono{x}.</description>
    </method>
    <method name="inverse" >
      <type>double precision</type>
      <pass>yes</pass>
      <selfTarget>yes</selfTarget>
      <argument>double precision, intent(in   ) :: p</argument>
-     <description>Return the value of the independent variable corresponding to cumulative probability \source{p}.</description>
+     <description>Return the value of the independent variable corresponding to cumulative probability \mono{p}.</description>
      <modules>Root_Finder Error</modules>
      <code>
        ! Numerically solve for the inverse.

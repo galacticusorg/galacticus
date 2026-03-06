@@ -25,7 +25,7 @@
   !![
   <posteriorSampleDffrntlEvltnRandomJump name="posteriorSampleDffrntlEvltnRandomJumpSimple">
    <description>
-    In this class, the random jumps are drawn directly from the distributions specified in the \source{random} object
+    In this class, the random jumps are drawn directly from the distributions specified in the \mono{random} object
     of each \refClass{modelParameterClass} object.
    </description>
   </posteriorSampleDffrntlEvltnRandomJump>

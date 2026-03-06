@@ -55,7 +55,7 @@ module Node_Property_Extractors
     </code>
    </method>
    <method name="addInstances" >
-    <description>Add multiple instances of this property to a \source{multiCounter} object.</description>
+    <description>Add multiple instances of this property to a \mono{multiCounter} object.</description>
     <type>void</type>
     <pass>yes</pass>
     <argument>type(treeNode    ), intent(inout) :: node</argument>

@@ -52,15 +52,15 @@
     \end{eqnarray}
     where $a=\tan(\psi/2)$ and $x=\tan^{-1}[\sqrt{2}\tan (\psi/2)]$.
   
-    Various sub-parameters specify the details of the lightcone geometry. The \source{lengthReplication} parameter
+    Various sub-parameters specify the details of the lightcone geometry. The \mono{lengthReplication} parameter
     should give the length of the simulation box (the box will be replicated to span the volume covered by the lightcone),
-    with the \source{lengthUnitsInSI} parameter giving the length unit in SI units and {\normalfont \ttfamily
-    lengthHubbleExponent} giving the exponent of $h$ that appears in the length unit. The \source{angularSize}
-    parameter of \source{fieldOfView} should gives the length of the side of the square field of view in
-    degrees. The \source{origin} element must contain the $x$, $y$, $z$ coordinates of the origin of the
-    lightcone within the simulation box, while the \source{unitVectorX} parameters must give unit vectors which
-    point along the lightcone (for \source{X}$=1$), and in the two directions perpendicular to the lightcone
-    (for \source{X}$=2$ and 3). The \source{redshift} parameters must list the redshifts of
+    with the \mono{lengthUnitsInSI} parameter giving the length unit in SI units and {\normalfont \ttfamily
+    lengthHubbleExponent} giving the exponent of $h$ that appears in the length unit. The \mono{angularSize}
+    parameter of \mono{fieldOfView} should gives the length of the side of the square field of view in
+    degrees. The \mono{origin} element must contain the $x$, $y$, $z$ coordinates of the origin of the
+    lightcone within the simulation box, while the \mono{unitVectorX} parameters must give unit vectors which
+    point along the lightcone (for \mono{X}$=1$), and in the two directions perpendicular to the lightcone
+    (for \mono{X}$=2$ and 3). The \mono{redshift} parameters must list the redshifts of
     available outputs.
    </description>
    <stateStore>
@@ -98,15 +98,15 @@
      !![
      <methods>
       <method method="positionAtOutput">
-       <description>Returns the position of a point, \source{nodePosition} (given in physical coordinates within the primary replicant volume), in comoving coordinates in the replicant volume in which it appears in the lightcone. If the point is \emph{not} in the lightcone the returned position is set to the largest possible negative number in each coordinate. If the optional \source{positionFound} argument is given it will be set to true or false to indicate whether or not the point was found in the lightcone volume.</description>
+       <description>Returns the position of a point, \mono{nodePosition} (given in physical coordinates within the primary replicant volume), in comoving coordinates in the replicant volume in which it appears in the lightcone. If the point is \emph{not} in the lightcone the returned position is set to the largest possible negative number in each coordinate. If the optional \mono{positionFound} argument is given it will be set to true or false to indicate whether or not the point was found in the lightcone volume.</description>
       </method>
       <method method="replicants">
        <description>
-        Performs various actions related to replicants of nodes appearing in lightcone output, depending on the value of the \source{action} argument:
+        Performs various actions related to replicants of nodes appearing in lightcone output, depending on the value of the \mono{action} argument:
         \begin{description}
-        \item[\source{replicantActionCount}] returns in \source{count} the number of replicants in which the node appears in the lightcone;
-        \item[\source{replicantActionAny}] returns true in \source{isInLightcone} if the given position appears in \emph{any} replicant in the lightcone;
-        \item[\source{replicantActionInstance}] returns in \source{position} the position in the \source{instance}$^\mathrm{th}$ replicant in which this position appears in the lightcone.
+        \item[\mono{replicantActionCount}] returns in \mono{count} the number of replicants in which the node appears in the lightcone;
+        \item[\mono{replicantActionAny}] returns true in \mono{isInLightcone} if the given position appears in \emph{any} replicant in the lightcone;
+        \item[\mono{replicantActionInstance}] returns in \mono{position} the position in the \mono{instance}$^\mathrm{th}$ replicant in which this position appears in the lightcone.
         \end{description}
        </description>
       </method>
@@ -268,7 +268,7 @@ contains
       <source>parameters</source>
       <defaultValue>.true.</defaultValue>
       <variable>timeEvolvesAlongLightcone</variable>
-      <description>If \source{true}, cosmic time evolves along the lightcone as expected. Otherwise, time is fixed at the present epoch throughout the lightcone. This allows construction of lightcones with no evolution.</description>
+      <description>If \mono{true}, cosmic time evolves along the lightcone as expected. Otherwise, time is fixed at the present epoch throughout the lightcone. This allows construction of lightcones with no evolution.</description>
     </inputParameter>
     <objectBuilder class="cosmologyFunctions"  name="cosmologyFunctions_"  source="parameters"/>
     <objectBuilder class="cosmologyParameters" name="cosmologyParameters_" source="parameters"/>
@@ -487,7 +487,7 @@ contains
 
   function squareReplicationCount(self,node)
     !!{
-    Determine the number of times \source{node} appears in the lightcone.
+    Determine the number of times \mono{node} appears in the lightcone.
     !!}
     use            :: Arrays_Search   , only : searchArrayClosest
     use            :: Galacticus_Nodes, only : nodeComponentBasic, nodeComponentPosition, treeNode
@@ -531,7 +531,7 @@ contains
 
   logical function squareIsInLightcone(self,node,atPresentEpoch,radiusBuffer)
     !!{
-    Determine if the given \source{node} lies within the lightcone. Note that, when called with {\normalfont
+    Determine if the given \mono{node} lies within the lightcone. Note that, when called with {\normalfont
     \ttfamily atPresentEpoch=false} this function returns true if the node is in the lightcone at any point during its
     existence. However, this check is made assuming that each node remains at fixed comoving coordinates between each output
     time---there is no consideration of movement between output times. It is therefore recommended that some buffer is added to
@@ -1109,7 +1109,7 @@ contains
 
   function squareReplicantLightConeCrossing(self,node) result(replicant)
     !!{
-    Return the indices of the replicant for which the given \source{node} is crossing the lightcone.
+    Return the indices of the replicant for which the given \mono{node} is crossing the lightcone.
     !!}
     use :: Error               , only : Error_Report
     use :: Galacticus_Nodes    , only : nodeComponentBasic

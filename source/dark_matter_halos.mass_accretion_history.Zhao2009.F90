@@ -132,7 +132,7 @@ contains
 
   double precision function zhao2009Time(self,node,mass)
     !!{
-    Compute the time corresponding to \source{mass} in the mass accretion history of {\normalfont \ttfamily
+    Compute the time corresponding to \mono{mass} in the mass accretion history of {\normalfont \ttfamily
     node} using the algorithm of \cite{zhao_accurate_2009}.
     !!}
     use :: Error                , only : Error_Report
@@ -230,7 +230,7 @@ contains
 
   double precision function zhao2009MassAccretionRate(self,node,time)
     !!{
-    Compute the mass accretion rate at the given \source{mass} in the mass accretion history of {\normalfont
+    Compute the mass accretion rate at the given \mono{mass} in the mass accretion history of {\normalfont
     \ttfamily node} using the algorithm of \cite{zhao_accurate_2009}.
     !!}
     use :: Error, only : Error_Report

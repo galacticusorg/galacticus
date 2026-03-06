@@ -37,7 +37,7 @@ module Merger_Trees_Merge_Node
    </description>
    <default>singleLevelHierarchy</default>
    <method name="process" >
-    <description>Process the merger between \source{node} and its parent node, then destroy it.</description>
+    <description>Process the merger between \mono{node} and its parent node, then destroy it.</description>
     <type>void</type>
     <pass>yes</pass>
     <argument>type(treeNode), intent(inout), target :: node</argument>

@@ -87,7 +87,7 @@ contains
 
   recursive logical function treeConstructionNext(self,node)
     !!{
-    This function will update the given \source{node} to the next node which should be visited in a tree to
+    This function will update the given \mono{node} to the next node which should be visited in a tree to
     perform a walk suitable for trees under construction.
     !!}
     implicit none

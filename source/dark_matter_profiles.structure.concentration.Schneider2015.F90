@@ -38,7 +38,7 @@
       \right)^{1/2}+\delta_\mathrm{c})(z_0),
     \end{equation}
     where $\delta_\mathrm{c}(z)$ is the critical overdensity for collapse at redshift $z$, and $f$ is the fraction of a halo's
-    mass assembled at formation time (given by the \source{[massFractionFormation]} parameter. From this, the
+    mass assembled at formation time (given by the \mono{[massFractionFormation]} parameter. From this, the
     mass of a halo in the reference model with the same redshift of collapse is found, and the reference model is used to
     compute the concentration of a halo of that mass.
    </description>
@@ -58,7 +58,7 @@
    contains
      !![
      <methods>
-     <method method="concentrationCompute" description="Compute the concentration for the given \source{node}"/>
+     <method method="concentrationCompute" description="Compute the concentration for the given \mono{node}"/>
      </methods>
      !!]
     final     ::                                   schneider2015Destructor
@@ -92,7 +92,7 @@ contains
 
  function schneider2015ConstructorParameters(parameters) result(self)
     !!{
-    Default constructor for the \source{schneider2015} dark matter halo profile concentration class.
+    Default constructor for the \mono{schneider2015} dark matter halo profile concentration class.
     !!}
     use :: Error           , only : Error_Report
     use :: Input_Parameters, only : inputParameter, inputParameters
@@ -190,7 +190,7 @@ contains
 
   double precision function schneider2015Concentration(self,node) result(concentration)
     !!{
-    Return the concentration of the dark matter halo profile of \source{node} using the algorithm of
+    Return the concentration of the dark matter halo profile of \mono{node} using the algorithm of
     \cite{schneider_structure_2015}.
     !!}
     implicit none
@@ -203,7 +203,7 @@ contains
   
   double precision function schneider2015ConcentrationMean(self,node) result(concentration)
     !!{
-    Return the mean concentration of the dark matter halo profile of \source{node} using the algorithm of
+    Return the mean concentration of the dark matter halo profile of \mono{node} using the algorithm of
     \cite{schneider_structure_2015}.
     !!}
     implicit none
@@ -216,7 +216,7 @@ contains
   
   double precision function schneider2015ConcentrationCompute(self,node,mean) result(concentration)
     !!{
-    Return the concentration of the dark matter halo profile of \source{node} using the algorithm of
+    Return the concentration of the dark matter halo profile of \mono{node} using the algorithm of
     \cite{schneider_structure_2015}.
     !!}
     use :: Error                   , only : Error_Report      , errorStatusSuccess

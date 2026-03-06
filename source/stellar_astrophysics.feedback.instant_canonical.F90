@@ -66,7 +66,7 @@ contains
 
   double precision function instantCanonicalEnergyInputCumulative(self,initialMassFunction_,initialMass,age,metallicity)
     !!{
-    Compute the cumulative energy input from a star of given \source{initialMass}, \source{age} and \source{metallicity}.
+    Compute the cumulative energy input from a star of given \mono{initialMass}, \mono{age} and \mono{metallicity}.
     !!}
     implicit none
     class           (stellarFeedbackInstantCanonical), intent(inout), target :: self

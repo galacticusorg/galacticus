@@ -72,7 +72,7 @@ contains
 
   double precision function uniformOverdensityLinear(self,node,presentDay)
     !!{
-    Return the environment of the given \source{node}.
+    Return the environment of the given \mono{node}.
     !!}
     implicit none
     class  (haloEnvironmentUniform), intent(inout)           :: self
@@ -86,7 +86,7 @@ contains
 
   double precision function uniformOverdensityLinearGradientTime(self,node)
     !!{
-    Return the time gradient of the environment of the given \source{node}.
+    Return the time gradient of the environment of the given \mono{node}.
     !!}
     implicit none
     class(haloEnvironmentUniform), intent(inout) :: self
@@ -99,7 +99,7 @@ contains
 
   double precision function uniformOverdensityNonLinear(self,node)
     !!{
-    Return the environment of the given \source{node}.
+    Return the environment of the given \mono{node}.
     !!}
     implicit none
     class(haloEnvironmentUniform), intent(inout) :: self

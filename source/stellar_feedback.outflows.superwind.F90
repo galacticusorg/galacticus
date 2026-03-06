@@ -30,8 +30,8 @@
      V_\mathrm{superwind}/V\right)^2 &amp; \hbox{ if } V &gt; V_\mathrm{superwind} \\ 1 &amp; \hbox{ otherwise,} \end{array}
      \right.
     \end{equation}
-    where $V_\mathrm{superwind}=$\source{[velocityCharacteristic]} (in km/s) and
-    $\beta_\mathrm{superwind}=$\source{[massLoading]} are input parameters, $V$ is the characteristic velocity
+    where $V_\mathrm{superwind}=$\mono{[velocityCharacteristic]} (in km/s) and
+    $\beta_\mathrm{superwind}=$\mono{[massLoading]} are input parameters, $V$ is the characteristic velocity
     of the component, $\dot{E}$ is the rate of energy input from stellar populations and $E_\mathrm{canonical}$ is the total
     energy input by a canonical stellar population normalized to $1 M_\odot$ after infinite time.
    </description>
@@ -104,12 +104,12 @@ contains
 
   subroutine superWindOutflowRate(self,component,rateStarFormation,rateEnergyInput,rateOutflowEjective,rateOutflowExpulsive)
     !!{
-    Returns the outflow rate (in $M_\odot$ Gyr$^{-1}$) for star formation in the given \source{component}. The outflow
+    Returns the outflow rate (in $M_\odot$ Gyr$^{-1}$) for star formation in the given \mono{component}. The outflow
     rate is given by 
     \begin{equation}
     \dot{M}_\mathrm{outflow} = f_\mathrm{SW,0} \left\{ \begin{array}{ll} 1 & \hbox{ if } V_\mathrm{disk} < V_\mathrm{disk,SW} \\ (V_\mathrm{disk,SW}/V_\mathrm{disk})^2 &  \hbox{ if } V_\mathrm{disk} \ge V_\mathrm{disk,SW} \end{array} \right. ,
     \end{equation}
-    where $V_\mathrm{disk,SW}=$\source{[velocityCharacteristic]} and $f_\mathrm{SW,0}=${\normalfont \ttfamily
+    where $V_\mathrm{disk,SW}=$\mono{[velocityCharacteristic]} and $f_\mathrm{SW,0}=${\normalfont \ttfamily
     [massLoading]}. Note that the velocity $V_\mathrm{ disk}$ is whatever characteristic value returned by the disk
     method. This scaling is functionally similar to that adopted by \cite{cole_hierarchical_2000} and \cite{baugh_can_2005},
     except that they specifically used the circular velocity at half-mass radius.

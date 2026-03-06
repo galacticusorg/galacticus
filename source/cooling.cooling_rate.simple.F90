@@ -28,7 +28,7 @@
     \begin{equation}
     \dot{M}_\mathrm{cool} = M_\mathrm{hot}/\tau_\mathrm{cool} ,
     \end{equation}
-    where $\tau_\mathrm{cool}=$\source{[timeScale]}.
+    where $\tau_\mathrm{cool}=$\mono{[timeScale]}.
    </description>
   </coolingRate>
   !!]

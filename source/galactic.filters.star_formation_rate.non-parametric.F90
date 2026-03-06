@@ -41,9 +41,9 @@ Implements a galactic (high- or low-pass) filter for total star formation rate w
   <galacticFilter name="galacticFilterStarFormationRateNonParametric">
    <description>
     A galactic (high- or low-pass) filter for star formation rate. Galaxies with a combined disk, spheroid, plus \gls{nsc} star
-    formation rate are passed if they are above or below (for \source{[filterType]}$=${\normalfont \ttfamily
-    highPass} or \source{lowPass} respectively) a mass-dependent threshold. The threshold is linearly interpolated
-    in log(\source{[rateStarFormation]}) vs. log(\source{[massStellar]}).
+    formation rate are passed if they are above or below (for \mono{[filterType]}$=${\normalfont \ttfamily
+    highPass} or \mono{lowPass} respectively) a mass-dependent threshold. The threshold is linearly interpolated
+    in log(\mono{[rateStarFormation]}) vs. log(\mono{[massStellar]}).
    </description>
   </galacticFilter>
   !!]
@@ -92,7 +92,7 @@ contains
     <inputParameter>
       <name>filterType</name>
       <source>parameters</source>
-      <description>The type of filter: \source{lowPass} or \source{highPass}.</description>
+      <description>The type of filter: \mono{lowPass} or \mono{highPass}.</description>
     </inputParameter>
     <inputParameter>
       <name>massStellar</name>

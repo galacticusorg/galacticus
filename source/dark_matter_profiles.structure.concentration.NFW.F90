@@ -34,7 +34,7 @@
     A dark matter profile concentration class in which the concentration is computed using the algorithm from
     \cite{navarro_structure_1996}. In this algorithm, for a given halo of mass $M$ at time $t_0$, a formation time is defined as
     the epoch at which there is a 50\% probability (according to extended Press-Schechter theory) for a progenitor halo to have
-    a mass greater than $fM$, where $f=$\source{[f]} is a parameter of the algorithm. This implies formation
+    a mass greater than $fM$, where $f=$\mono{[f]} is a parameter of the algorithm. This implies formation
     when the critical overdensity for collapse is
     \begin{equation}
      \delta_\mathrm{crit}(t_\mathrm{form}) = \left[ 2 \nu_{1/2}^2 \left\{\sigma(fM)^22-\sigma(M)^2\right\}
@@ -44,7 +44,7 @@
     \begin{equation}
      \Delta(t_\mathrm{form}) = C  \left[ {a(t_0) \over a(t_\mathrm{form})} \right]^3
     \end{equation}
-    where $C=$\source{[C]} is a parameter of the algorithm. The concentration is then determined by solving
+    where $C=$\mono{[C]} is a parameter of the algorithm. The concentration is then determined by solving
     \begin{equation}
      {\Delta(t_\mathrm{form}) \over \Delta_\mathrm{virial}(t_0)} = {c^3 \over 3 [\ln(1+c)-c/(1+c)]}.
     \end{equation}
@@ -94,7 +94,7 @@ contains
 
   function nfw1996ConstructorParameters(parameters) result(self)
     !!{
-    Default constructor for the \source{nfw1996} dark matter halo profile
+    Default constructor for the \mono{nfw1996} dark matter halo profile
     concentration class.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
@@ -232,7 +232,7 @@ contains
 
   double precision function nfw1996Concentration(self,node)
     !!{
-    Return the concentration of the dark matter halo profile of \source{node}
+    Return the concentration of the dark matter halo profile of \mono{node}
     using the \cite{navarro_structure_1996} algorithm.
     !!}
     use :: Galacticus_Nodes, only : nodeComponentBasic, treeNode

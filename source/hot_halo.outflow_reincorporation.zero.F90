@@ -46,7 +46,7 @@ contains
 
   function zeroConstructorParameters(parameters) result(self)
     !!{
-    Default constructor for the \source{zero} hot halo outflow reincorporation class which takes a parameter set
+    Default constructor for the \mono{zero} hot halo outflow reincorporation class which takes a parameter set
     as input.
     !!}
     use :: Input_Parameters, only : inputParameters

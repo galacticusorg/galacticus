@@ -30,10 +30,10 @@
     \end{equation}
     Specified using:
     \begin{description}
-    \item[\source{[mean]}] The mean, $\mu$;
-    \item[\source{[variance]}] The variance, $S$;
-    \item[\source{[minimum]}] The lower limit of the range, $x_\mathrm{l}$;
-    \item[\source{[maximum]}] The upper limit of the range, $x_\mathrm{u}$.
+    \item[\mono{[mean]}] The mean, $\mu$;
+    \item[\mono{[variance]}] The variance, $S$;
+    \item[\mono{[minimum]}] The lower limit of the range, $x_\mathrm{l}$;
+    \item[\mono{[maximum]}] The upper limit of the range, $x_\mathrm{u}$.
     \end{description}
    </description>
   </distributionFunction1D>
@@ -396,7 +396,7 @@ contains
     !!{
     Evaluates a polynomial based on the implementation by John Burkardt. For sanity's sake, the value of N indicates the
     \emph{number} of coefficients, or more precisely, the \emph{order} of the polynomial, rather than the \emph{degree} of the
-    polynomial. The two quantities differ by 1, but cause a great deal of confusion. Given \source{n} and \source{a}, the form of the
+    polynomial. The two quantities differ by 1, but cause a great deal of confusion. Given \mono{n} and \mono{a}, the form of the
     polynomial is:
     \begin{equation}
     p(x) = a(1) + a(2) * x + \ldots + a(n-1) * x^{n-2} + a(n) * x^{n-1}.

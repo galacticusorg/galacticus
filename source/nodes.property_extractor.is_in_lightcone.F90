@@ -101,7 +101,7 @@ contains
 
   function isInLightconeExtract(self,node,time,instance)
     !!{
-    Implement a \source{isInLightcone} node property extractor.
+    Implement a \mono{isInLightcone} node property extractor.
     !!}
     implicit none
     integer         (kind_int8                         )                          :: isInLightconeExtract

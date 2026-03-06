@@ -78,15 +78,15 @@
     to work with single descendant merger trees, i.e. ones in which the tree structure is entirely defined by specifying which
     \gls{node} a given \gls{node} is physically associated with at a later time. Additionally, \glc\ expects the merger tree file to
     contain information on the host \gls{node}, i.e. the node within which a given node is physically located. In the following, these
-    two properties are labeled \source{descendantNode} and \source{hostNode}. \glc\ assumes that nodes
-    for which \source{descendantNode}$=$\source{hostNode} are isolated halos (i.e. they are their own
+    two properties are labeled \mono{descendantNode} and \mono{hostNode}. \glc\ assumes that nodes
+    for which \mono{descendantNode}$=$\mono{hostNode} are isolated halos (i.e. they are their own
     hosts) while other nodes are subhalos (i.e. they are hosted by some other node). An example of a simple tree structure is shown in
     Fig.~\ref{fig:MergerTreeSimple}. The particular structure would be represented by the following list of nodes and node properties
     (a $-1$ indicates that no descendant node exists):
     \begin{center}
     \begin{tabular}{rrr}
     \hline
-    \source{node} &amp; \source{descendantNode} &amp; \source{hostNode} \\
+    \mono{node} &amp; \mono{descendantNode} &amp; \mono{hostNode} \\
     \hline
     1 &amp; -1 &amp; 1 \\
     2 &amp;  1 &amp; 2 \\
@@ -106,7 +106,7 @@
      \end{center}
      \caption{An example of a simple merger tree structure. Colored circles represent nodes in the merger tree. Each node has a unique
        index indicated by the number inside each circle. Black arrows link each node to its descendant node (as specified by the
-       \source{descendantNode} property. Where a node is not its own host node it is placed inside its host node.}
+       \mono{descendantNode} property. Where a node is not its own host node it is placed inside its host node.}
      \label{fig:MergerTreeSimple}
     \end{figure}
     
@@ -125,7 +125,7 @@
       not affect the evolution of the tree.
     \item \hyperdef{physics}{mergerTreeConstructRead.missingHosts}{} Normally, cases where a node's host node cannot be found in
       the \gls{forest} will cause \glc\ to exit with an error. Setting {\normalfont \ttfamily
-      [missingHostsAreFatal]}$=$\source{false} will instead circumvent this issue by making any such
+      [missingHostsAreFatal]}$=$\mono{false} will instead circumvent this issue by making any such
       nodes self-hosting (i.e. they become isolated nodes rather than subhalos). Note that this behavior is not a physically
       correct way to treat such cases---it is intended only to allow trees to be processed in cases where the full \gls{forest}
       is not available.
@@ -134,13 +134,13 @@
       forest (with multiple root-nodes) in the merger tree file. \glc\ will process this \gls{forest} of trees simultaneously,
       allowing to nodes to move between their branches.
     \item It is acceptable for a subhalo to later become an isolated halo (as can happen due to three-body interactions; see
-      \citealt{sales_cosmic_2007}). If \source{[allowSubhaloPromotions]}$=$\source{true} then such
+      \citealt{sales_cosmic_2007}). If \mono{[allowSubhaloPromotions]}$=$\mono{true} then such
       cases will be handled correctly (i.e. the subhalo will be promoted back to being an isolated halo). If the parameter
-      \source{[alwaysPromoteMostMassive]}$=$\source{true} then the most massive progenitor is treated
+      \mono{[alwaysPromoteMostMassive]}$=$\mono{true} then the most massive progenitor is treated
       as the primary progenitor, even if that progenitor is a subhalo. Alternatively, if {\normalfont \ttfamily
-      [alwaysPromoteMostMassive]}$=$\source{false} then a most massive progenitor that is a subhalo is only treated
+      [alwaysPromoteMostMassive]}$=$\mono{false} then a most massive progenitor that is a subhalo is only treated
       as the primary progenitor \emph{if} no isolated progenitors exist (otherwise, the most massive of the isolated progenitors
-      is treated as the primary progenitor). If \source{[allowSubhaloPromotions]}$=$\source{false}
+      is treated as the primary progenitor). If \mono{[allowSubhaloPromotions]}$=$\mono{false}
       then subhalos are not permitted to become isolated halos. In this case, the following logic will be applied to remove all
       such cases from the tree:\\
     
@@ -183,14 +183,14 @@
     \begin{itemize}
     \item The cosmological parameters ($\Omega_\mathrm{M}$, $\Omega_\Lambda$, $\Omega_\mathrm{b}$, $H_0$, $\sigma_8$), if defined in
       the file, must be set identically in the \glc\ input file unless you set {\normalfont \ttfamily
-        [mismatchIsFatal]}$=$\source{false} in which case you'll just be warned about any mismatch;
+        [mismatchIsFatal]}$=$\mono{false} in which case you'll just be warned about any mismatch;
     \item \glc\ assumes by default that all merger trees exist at the final output time---if this is not the case set {\normalfont
-        \ttfamily [allTreesExistAtFinalTime]}$=$\source{false}.
+        \ttfamily [allTreesExistAtFinalTime]}$=$\mono{false}.
     \end{itemize}
     
     \textbf{Dark Matter Scale Radii}: \index{dark matter halo!concentration}\index{dark matter halo!scale radius} If {\normalfont
-      \ttfamily [presetScaleRadii]}$=$\source{true} and the \source{halfMassRadius}
-    dataset is available within the \source{haloTrees} group (see
+      \ttfamily [presetScaleRadii]}$=$\mono{true} and the \mono{halfMassRadius}
+    dataset is available within the \mono{haloTrees} group (see
     \href{https://github.com/galacticusorg/galacticus/wiki/Merger-Tree-File-Format#forest-halos-group}{here}) then the half-mass radii
     of nodes will be used to compute the corresponding scale length of the dark matter halo profile\footnote{The scale radius is found
       by seeking a value which gives the correct half mass radius. It is therefore important that the definition of halo mass
@@ -199,14 +199,14 @@
     \href{https://github.com/galacticusorg/galacticus/releases/download/bleeding-edge/Galacticus_Physics.pdf\#sec.DarkMatterProfileScale}{here}).
     
     \textbf{Satellite Merger Times:}\index{merger times}\index{satellite!merger times} If {\normalfont \ttfamily
-      [presetMergerTimes]}$=$\source{true} then merger times for satellites will be computed directly
+      [presetMergerTimes]}$=$\mono{true} then merger times for satellites will be computed directly
     from the merger tree data read from file. When a subhalo has an isolated halo as a descendant it is assumed to undergo a merger
     with that isolated halo at that time. Note that this requires a satellite orbit component method which supports setting of merger
-    times (e.g. \source{[componentSatellite]}$=$\source{preset}).
+    times (e.g. \mono{[componentSatellite]}$=$\mono{preset}).
     
     \textbf{Dark Matter Halo Angular Momenta:}\index{dark matter halo!angular momentum} If {\normalfont \ttfamily
-      [presetAngularMomenta]}$=$\source{true} and the \source{angularMomentum} dataset is available
-    within the \source{haloTrees} group (see
+      [presetAngularMomenta]}$=$\mono{true} and the \mono{angularMomentum} dataset is available
+    within the \mono{haloTrees} group (see
     \href{https://github.com/galacticusorg/galacticus/wiki/Merger-Tree-File-Format#forest-halos-group}{here}) then the angular momenta
     of nodes will be computed and set. This requires a dark matter halo spin component which supports setting of the angular momentum (see
     \href{https://github.com/galacticusorg/galacticus/releases/download/bleeding-edge/Galacticus_Physics.pdf\#sec.DarkMatterHaloSpinComponent}{here}).
@@ -282,8 +282,8 @@
        <method description="Ensure that any node which was once a subhalo remains a subhalo." method="enforceSubhaloStatus" />
        <method description="Scan for cases where a subhalo stops being a subhalo and so must be promoted." method="scanForSubhaloPromotions" />
        <method description="Create a sorted list of node indices with an index into the original array." method="createNodeIndices" />
-       <method description="Return the location in the original array of the given \source{nodeIndex}." method="nodeLocation" />
-       <method description="Return the sort index of the given \source{descendantIndex}." method="descendantNodeSortIndex" />
+       <method description="Return the location in the original array of the given \mono{nodeIndex}." method="nodeLocation" />
+       <method description="Return the sort index of the given \mono{descendantIndex}." method="descendantNodeSortIndex" />
        <method description="Destroy the sorted list of node indices." method="destroyNodeIndices" />
        <method description="Builds pointers from each node to its descendant node." method="buildDescendantPointers" />
        <method description="Create parent pointer links between isolated nodes and assign times and masses to those nodes." method="buildIsolatedParentPointers" />
@@ -306,7 +306,7 @@
        <method description="Return the index of the given node in the ``pull-from'' list of nodes for split forests." method="pullListIndex" />
        <method description="Return the number of the given node in the ``pull-from'' list of nodes for split forests." method="pullListCount" />
        <method description="Assign events to nodes if they jump between trees in a forest." method="assignSplitForestEvents" />
-       <method description="Returns true if \source{node} undergoes a subhalo-subhalo merger." method="isSubhaloSubhaloMerger" />
+       <method description="Returns true if \mono{node} undergoes a subhalo-subhalo merger." method="isSubhaloSubhaloMerger" />
        <method description="Create an array of standard nodes and associated structures." method="createNodeArray" />
      </methods>
      !!]
@@ -436,7 +436,7 @@ contains
     !![
     <inputParameter>
       <name>fileNames</name>
-      <description>The name of the file(s) from which merger tree data should be read when using the \source{[mergerTreeConstruct]}$=$\source{read} tree construction method.</description>
+      <description>The name of the file(s) from which merger tree data should be read when using the \mono{[mergerTreeConstruct]}$=$\mono{read} tree construction method.</description>
       <source>parameters</source>
     </inputParameter>
     <inputParameter>
@@ -508,7 +508,7 @@ contains
     <inputParameter>
       <name>presetScaleRadiiMinimumMass</name>
       <defaultValue>0.0d0</defaultValue>
-      <description>The minimum halo mass for which scale radii should be preset (if \source{[presetScaleRadii]}$=$\source{true}).</description>
+      <description>The minimum halo mass for which scale radii should be preset (if \mono{[presetScaleRadii]}$=$\mono{true}).</description>
       <source>parameters</source>
     </inputParameter>
     <inputParameter>
@@ -601,7 +601,7 @@ contains
        !![
        <inputParameter>
          <name>presetNamedReals</name>
-         <description>Names of real datasets to be additionally read and stored in the nodes of the merger tree when using the \source{[mergerTreeConstruct]}$=$\source{read} tree construction method.</description>
+         <description>Names of real datasets to be additionally read and stored in the nodes of the merger tree when using the \mono{[mergerTreeConstruct]}$=$\mono{read} tree construction method.</description>
          <source>parameters</source>
        </inputParameter>
        !!]
@@ -611,7 +611,7 @@ contains
        !![
        <inputParameter>
          <name>presetNamedIntegers</name>
-         <description>Names of integer datasets to be additionally read and stored in the nodes of the merger tree when using the \source{[mergerTreeConstruct]}$=$\source{read} tree construction method.</description>
+         <description>Names of integer datasets to be additionally read and stored in the nodes of the merger tree when using the \mono{[mergerTreeConstruct]}$=$\mono{read} tree construction method.</description>
          <source>parameters</source>
        </inputParameter>
        !!]
@@ -1462,7 +1462,7 @@ contains
 
   function readNodeLocation(self,nodeIndex)
     !!{
-    Return the location in the original array of the given \source{nodeIndex}.
+    Return the location in the original array of the given \mono{nodeIndex}.
     !!}
     use :: Arrays_Search, only : searchArray
     implicit none
@@ -1482,7 +1482,7 @@ contains
 
   function readDescendantNodeSortIndex(self,descendantIndex)
     !!{
-    Return the sort index of the given \source{descendantIndex}.
+    Return the sort index of the given \mono{descendantIndex}.
     !!}
     use :: Arrays_Search, only : searchArray
     implicit none
@@ -2764,7 +2764,7 @@ contains
 
   logical function massIsGreater(node1,node2)
     !!{
-    Return true if the mass of \source{node1} is greater than that of \source{node2}. In cases of
+    Return true if the mass of \mono{node1} is greater than that of \mono{node2}. In cases of
     precisely equal masses the tie is broken by considering the node indices (which should never be equal). This ensures that
     there is always a well-defined primary progenitor halo for example.
     !!}
@@ -3030,7 +3030,7 @@ contains
 
   function readLastHostDescendant(node) result (currentHost)
     !!{
-    Return a pointer to the last descendant that can be reached from \source{node} when descending through hosts.
+    Return a pointer to the last descendant that can be reached from \mono{node} when descending through hosts.
     !!}
     use :: Merger_Tree_Read_Importers, only : nodeData
     implicit none
@@ -3295,7 +3295,7 @@ contains
 
   logical function readIsSubhaloSubhaloMerger(self,nodes,node)
     !!{
-    Returns true if \source{node} undergoes a subhalo-subhalo merger.
+    Returns true if \mono{node} undergoes a subhalo-subhalo merger.
     !!}
     use :: Merger_Tree_Read_Importers, only : nodeData
     implicit none
@@ -3638,7 +3638,7 @@ contains
 
   subroutine progenitorIteratorDescendantSet(self,constructor,node,nodes)
     !!{
-    Initialize a progenitor iterator object by storing the index of the target \source{node} and finding the location of the first
+    Initialize a progenitor iterator object by storing the index of the target \mono{node} and finding the location of the first
     progenitor (if any).
     !!}
     use :: Merger_Tree_Read_Importers, only : nodeData

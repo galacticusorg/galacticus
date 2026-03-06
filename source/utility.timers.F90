@@ -51,7 +51,7 @@ module Timers
 
   interface timer
      !!{
-     Constructors for the \source{timer} class.
+     Constructors for the \mono{timer} class.
      !!}
      module procedure timerConstructorInternal
   end interface timer
@@ -60,7 +60,7 @@ contains
 
   function timerConstructorInternal() result(self)
     !!{
-    Constructor for the \source{timer} class.
+    Constructor for the \mono{timer} class.
     !!}
     type(timer) :: self
 

@@ -149,7 +149,7 @@ contains
 
   subroutine haloScalingOutflowRate(self,component,rateStarFormation,rateEnergyInput,rateOutflowEjective,rateOutflowExpulsive)
     !!{
-    Returns the outflow rate (in $M_\odot$ Gyr$^{-1}$) for star formation in the given \source{component}.
+    Returns the outflow rate (in $M_\odot$ Gyr$^{-1}$) for star formation in the given \mono{component}.
     !!}
     use :: Galacticus_Nodes, only : treeNode, nodeComponentBasic
     implicit none

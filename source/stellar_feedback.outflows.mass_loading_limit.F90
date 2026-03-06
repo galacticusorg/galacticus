@@ -29,7 +29,7 @@
     \dot{M}_\mathrm{out} = \mathrm{tanh} (\beta / \beta_\mathrm{max}) \beta_\mathrm{max} \dot{M}_\star,
     \end{equation}
     where $\dot{M}_\star$ is the star formation rate, $\beta$ is the mass-loading factor of the decorated
-    model, and $\beta_\mathrm{max}=$\source{[factorMassLoadingMaximum]} is the maximum mass
+    model, and $\beta_\mathrm{max}=$\mono{[factorMassLoadingMaximum]} is the maximum mass
     loading factor.
     </description>
   </stellarFeedbackOutflows>

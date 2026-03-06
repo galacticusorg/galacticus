@@ -268,7 +268,7 @@ contains
 
   subroutine displayMessageChar(message,verbosity)
     !!{
-    Display a message (input as a \source{character} variable).
+    Display a message (input as a \mono{character} variable).
     !!}
     use   , intrinsic :: ISO_Fortran_Env, only : output_unit
     !$ use            :: OMP_Lib        , only : OMP_In_Parallel, OMP_Get_Thread_Num
@@ -297,7 +297,7 @@ contains
 
   subroutine displayMessageVarStr(message,verbosity)
     !!{
-    Display a message (input as a \source{varying\_string} variable).
+    Display a message (input as a \mono{varying\_string} variable).
     !!}
     use   , intrinsic :: ISO_Fortran_Env   , only : output_unit
     !$ use            :: OMP_Lib           , only : OMP_In_Parallel, OMP_Get_Thread_Num

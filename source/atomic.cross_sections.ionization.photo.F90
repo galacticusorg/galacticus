@@ -34,7 +34,7 @@ module Atomic_Cross_Sections_Ionization_Photo
    <description>Class providing atomic cross sections for photo-ionization.</description>
    <default>verner</default>
    <method name="crossSection" >
-    <description>Returns the cross-section for photoionization (in units of cm$^2$) for a given atom in a given ionization state at the specified \source{wavelength} (given in units of \AA).</description>
+    <description>Returns the cross-section for photoionization (in units of cm$^2$) for a given atom in a given ionization state at the specified \mono{wavelength} (given in units of \AA).</description>
     <type>double precision</type>
     <pass>yes</pass>
     <argument>integer         , intent(in   ) :: atomicNumber, ionizationState, shellNumber</argument>

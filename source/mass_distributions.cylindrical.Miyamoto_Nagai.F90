@@ -192,7 +192,7 @@ contains
 
   double precision function miyamotoNagaiDensity(self,coordinates)
     !!{
-    Return the density at the specified \source{coordinates} in an \citep{miyamoto_three-dimensional_1975} disk mass distribution.
+    Return the density at the specified \mono{coordinates} in an \citep{miyamoto_three-dimensional_1975} disk mass distribution.
     !!}
     use :: Coordinates, only : assignment(=), coordinateCylindrical
     implicit none
@@ -248,7 +248,7 @@ contains
 
   double precision function miyamotoNagaiDensitySphericalAverage(self,radius)
     !!{
-    Return the spherically-averaged density at the specified \source{radius} in an \citep{miyamoto_three-dimensional_1975} disk mass distribution.
+    Return the spherically-averaged density at the specified \mono{radius} in an \citep{miyamoto_three-dimensional_1975} disk mass distribution.
     !!}
     implicit none
     class           (massDistributionMiyamotoNagai), intent(inout) :: self
@@ -261,7 +261,7 @@ contains
 
   double precision function miyamotoNagaiMassEnclosedBySphere(self,radius)
     !!{
-    Computes the mass enclosed within a sphere of given \source{radius} for \citep{miyamoto_three-dimensional_1975} disk mass distributions.
+    Computes the mass enclosed within a sphere of given \mono{radius} for \citep{miyamoto_three-dimensional_1975} disk mass distributions.
     !!}
     implicit none
     class           (massDistributionMiyamotoNagai), intent(inout), target :: self
@@ -445,7 +445,7 @@ contains
 
   double precision function miyamotoNagaiSurfaceDensity(self,coordinates)
     !!{
-    Return the surface density at the specified \source{coordinates} in a Miyamoto-Nagai mass distribution.
+    Return the surface density at the specified \mono{coordinates} in a Miyamoto-Nagai mass distribution.
     !!}
     use :: Coordinates, only : assignment(=), coordinateCylindrical
     implicit none

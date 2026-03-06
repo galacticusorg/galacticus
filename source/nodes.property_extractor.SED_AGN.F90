@@ -28,11 +28,11 @@
     <description>
       A property extractor class for the SED of the AGN. The spectrum is computed using the provided
       \refClass{accretionDiskSpectraClass} object, and will be output between wavelengths {\normalfont \ttfamily
-      [wavelengthMinimum]} and \source{[wavelengthMaximum]}. If \source{[resolution]} is set to a
+      [wavelengthMinimum]} and \mono{[wavelengthMaximum]}. If \mono{[resolution]} is set to a
       positive value then this specifies the resolution, $\lambda/\Delta\lambda$, at which to compute the SED. If {\normalfont
       \ttfamily [resolution]} is non-positive then the SED will be output at the full native resolution provided by the
-      \refClass{accretionDiskSpectraClass} object. The frame for the SED, \source{rest} or {\normalfont \ttfamily
-      observed}, is specified by \source{[frame]}. Note that using \source{observed} merely means
+      \refClass{accretionDiskSpectraClass} object. The frame for the SED, \mono{rest} or {\normalfont \ttfamily
+      observed}, is specified by \mono{[frame]}. Note that using \mono{observed} merely means
       that the extracted spectrum is evaluated at wavelength $\lambda_\mathrm{r} = \lambda_\mathrm{o} / (1+z)$ where
       $\lambda_\mathrm{o}$ is the observed wavelength (and is the wavelength returned by the `columnDescriptions` method),
       $\lambda_\mathrm{r}$ is the rest-frame wavelength, and $z$ is redshift---\emph{no adjustment} is made for the boost in observed
@@ -100,7 +100,7 @@ contains
       <name>frame</name>
       <source>parameters</source>
       <defaultValue>var_str('rest')</defaultValue>
-      <description>The frame (\source{rest} or \source{observed}) for which to compute the SED.</description>
+      <description>The frame (\mono{rest} or \mono{observed}) for which to compute the SED.</description>
     </inputParameter>
     <inputParameter>
       <name>wavelengthMinimum</name>
@@ -174,7 +174,7 @@ contains
 
   integer function sedAGNElementCount(self,time)
     !!{
-    Return the number of elements in the \source{sedAGN} property extractors.
+    Return the number of elements in the \mono{sedAGN} property extractors.
     !!}
     implicit none
     class           (nodePropertyExtractorSEDAGN), intent(inout) :: self
@@ -187,7 +187,7 @@ contains
 
   function sedAGNSize(self,time) result(size)
     !!{
-    Return the number of array elements in the \source{sedAGN} property extractors.
+    Return the number of array elements in the \mono{sedAGN} property extractors.
     !!}
     use :: Error                         , only : Error_Report
     use :: Stellar_Luminosities_Structure, only : frameRest   , frameObserved 
@@ -229,7 +229,7 @@ contains
 
   function sedAGNExtract(self,node,time,instance) result(sed)
     !!{
-    Implement a \source{sedAGN} property extractor.
+    Implement a \mono{sedAGN} property extractor.
     !!}
     use :: Error                         , only : Error_Report
     use :: Stellar_Luminosities_Structure, only : frameRest   , frameObserved
@@ -268,7 +268,7 @@ contains
 
   subroutine sedAGNNames(self,names,time)
     !!{
-    Return the names of the \source{sedAGN} properties.
+    Return the names of the \mono{sedAGN} properties.
     !!}
     implicit none
     class           (nodePropertyExtractorSEDAGN), intent(inout)                             :: self
@@ -283,7 +283,7 @@ contains
 
   subroutine sedAGNDescriptions(self,descriptions,time)
     !!{
-    Return descriptions of the \source{agnSED} property.
+    Return descriptions of the \mono{agnSED} property.
     !!}
     implicit none
     class           (nodePropertyExtractorSEDAGN), intent(inout)                             :: self
@@ -345,7 +345,7 @@ contains
 
   subroutine sedAGNColumnDescriptions(self,descriptions,values,valuesDescription,valuesUnitsInSI,time)
     !!{
-    Return column descriptions of the \source{sedAGN} property.
+    Return column descriptions of the \mono{sedAGN} property.
     !!}
     use :: Numerical_Constants_Units, only : metersToAngstroms
     implicit none
@@ -373,7 +373,7 @@ contains
 
   function sedAGNUnitsInSI(self,time) result(unitsInSI)
     !!{
-    Return the units of the \source{sedAGN} properties in the SI system.
+    Return the units of the \mono{sedAGN} properties in the SI system.
     !!}
     use :: Numerical_Constants_Astronomical, only : luminositySolar
     implicit none

@@ -55,7 +55,7 @@ contains
 
   function virialFractionConstructorParameters(parameters) result(self)
     !!{
-    A constructor for the \source{virialFraction} hot halo mass distribution core radius class which builds the
+    A constructor for the \mono{virialFraction} hot halo mass distribution core radius class which builds the
     object from a parameter set.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
@@ -84,7 +84,7 @@ contains
 
   function virialFractionConstructorInternal(coreRadiusOverVirialRadius,darkMatterHaloScale_) result(self)
     !!{
-    Default constructor for the \source{virialFraction} hot halo mass distribution core radius class.
+    Default constructor for the \mono{virialFraction} hot halo mass distribution core radius class.
     !!}
     implicit none
     type            (hotHaloMassDistributionCoreRadiusVirialFraction)                        :: self

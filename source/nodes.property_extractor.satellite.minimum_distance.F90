@@ -101,7 +101,7 @@ contains
   
   function satelliteMinimumDistanceName(self)
     !!{
-    Return the names of the \source{satelliteMinimumDistance} properties.
+    Return the names of the \mono{satelliteMinimumDistance} properties.
     !!}
     implicit none
     type (varying_string                               )                :: satelliteMinimumDistanceName
@@ -114,7 +114,7 @@ contains
 
   function satelliteMinimumDistanceDescription(self)
     !!{
-    Return the descriptions of the \source{satelliteMinimumDistance} properties.
+    Return the descriptions of the \mono{satelliteMinimumDistance} properties.
     !!}
     implicit none
     type (varying_string                               )                :: satelliteMinimumDistanceDescription
@@ -127,7 +127,7 @@ contains
 
   double precision function satelliteMinimumDistanceUnitsInSI(self)
     !!{
-    Return the units of the \source{satelliteMinimumDistance} properties in the SI system.
+    Return the units of the \mono{satelliteMinimumDistance} properties in the SI system.
     !!}
     use :: Numerical_Constants_Astronomical, only : megaParsec
     implicit none

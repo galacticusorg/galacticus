@@ -55,7 +55,7 @@ module Numerical_Random_Numbers
     <pass>yes</pass>
    </method>
    <method name="sample" >
-    <description>Return a random integer. If the optional argument \source{n} is supplied the random integer will lie in the range 0 to  \source{n}-1 inclusive (with all integers being equally likely). Otherwise, the integer will be drawn from the full range provided by the generator.</description>
+    <description>Return a random integer. If the optional argument \mono{n} is supplied the random integer will lie in the range 0 to  \mono{n}-1 inclusive (with all integers being equally likely). Otherwise, the integer will be drawn from the full range provided by the generator.</description>
     <type>integer(c_long)</type>
     <pass>yes</pass>
     <argument>integer(c_long), intent(in   ), optional :: n</argument>
@@ -66,7 +66,7 @@ module Numerical_Random_Numbers
     <pass>yes</pass>
    </method>
    <method name="poissonSample" >
-    <description>Return a random number drawn from a Poisson distribution with the given \source{mean}.</description>
+    <description>Return a random number drawn from a Poisson distribution with the given \mono{mean}.</description>
     <type>integer</type>
     <pass>yes</pass>
     <argument>double precision, intent(in   ) :: mean</argument>

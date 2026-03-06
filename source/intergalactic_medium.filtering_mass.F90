@@ -34,31 +34,31 @@ module Intergalactic_Medium_Filtering_Masses
    <description>Class providing intergalactic medium filtering mass.</description>
    <default>gnedin2000</default>
    <method name="massFiltering" >
-    <description>Return the filtering mass at the given \source{time}.</description>
+    <description>Return the filtering mass at the given \mono{time}.</description>
     <type>double precision</type>
     <pass>yes</pass>
     <argument>double precision, intent(in   ) :: time</argument>
    </method>
    <method name="massFilteringRateOfChange" >
-    <description>Return the rate of change of the filtering mass at the given \source{time}.</description>
+    <description>Return the rate of change of the filtering mass at the given \mono{time}.</description>
     <type>double precision</type>
     <pass>yes</pass>
     <argument>double precision, intent(in   ) :: time</argument>
    </method>
    <method name="fractionBaryons" >
-    <description>Return the fraction of baryons accreted into a halo of the given \source{mass} at the \source{time}.</description>
+    <description>Return the fraction of baryons accreted into a halo of the given \mono{mass} at the \mono{time}.</description>
     <type>double precision</type>
     <pass>yes</pass>
     <argument>double precision, intent(in   ) :: mass, time</argument>
    </method>
    <method name="fractionBaryonsGradientMass" >
-    <description>Return the gradient with respect to mass of the fraction of baryons accreted into a halo of the given \source{mass} at the \source{time}.</description>
+    <description>Return the gradient with respect to mass of the fraction of baryons accreted into a halo of the given \mono{mass} at the \mono{time}.</description>
     <type>double precision</type>
     <pass>yes</pass>
     <argument>double precision, intent(in   ) :: mass, time</argument>
    </method>
    <method name="fractionBaryonsRateOfChange" >
-    <description>Return the rate of change of the fraction of baryons accreted into a halo of the given \source{mass} at the \source{time}.</description>
+    <description>Return the rate of change of the fraction of baryons accreted into a halo of the given \mono{mass} at the \mono{time}.</description>
     <type>double precision</type>
     <pass>yes</pass>
     <argument>double precision, intent(in   ) :: mass, time</argument>

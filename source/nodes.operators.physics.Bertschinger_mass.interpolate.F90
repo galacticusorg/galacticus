@@ -250,7 +250,7 @@ contains
     
     recursive double precision function nodeMassUnresolved(node)
       !!{
-      Return the unresolved mass for \source{node}.
+      Return the unresolved mass for \mono{node}.
       !!}
       use :: Galacticus_Nodes, only : nodeComponentBasic, treeNode
       implicit none
@@ -318,7 +318,7 @@ contains
 
   subroutine bertschingerMassNodePromote(self,node)
     !!{
-    Ensure that \source{node} is ready for promotion to its parent.
+    Ensure that \mono{node} is ready for promotion to its parent.
     !!}
     use :: Error             , only : Error_Report
     use :: Galacticus_Nodes  , only : nodeComponentBasic

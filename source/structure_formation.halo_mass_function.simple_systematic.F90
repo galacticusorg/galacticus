@@ -33,7 +33,7 @@ Implements a dark matter halo mass function class which modifies another mass fu
       {\mathrm{d} n\over \mathrm{d}M}(M) \rightarrow {\mathrm{d} n\over \mathrm{d}M}(M) \left( 1 + \alpha + \beta
       \log_{10}\left[ {M \over 10^{12}M_\odot} \right] \right)
     \end{equation}
-    where $\alpha=$\source{[alpha]}, and $\beta=$\source{[beta]}.
+    where $\alpha=$\mono{[alpha]}, and $\beta=$\mono{[beta]}.
    </description>
   </haloMassFunction>
   !!]

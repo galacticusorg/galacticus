@@ -27,7 +27,7 @@
   <posteriorSampleLikelihood name="posteriorSampleLikelihoodMultivariateNormal">
    <description>
     The likelihood is a simple multivariate Gaussian, intended primarily for testing purposes. The distribution parameters are
-    specified within the \source{likelihood} element using:
+    specified within the \mono{likelihood} element using:
     \begin{verbatim}
       &lt;mean>0.45 0.50&lt;/mean>
       &lt;covariance>
@@ -35,8 +35,8 @@
         &lt;row>-0.9e-4 1.0e-4&lt;/row>
       &lt;/covariance>
     \end{verbatim}
-    where the \source{mean} element gives the mean vector of $N$ elements, and the \source{covariance}
-    element contains $N$ \source{row} elements each containing a vector of $N$ elements giving a single row of the
+    where the \mono{mean} element gives the mean vector of $N$ elements, and the \mono{covariance}
+    element contains $N$ \mono{row} elements each containing a vector of $N$ elements giving a single row of the
     covariance matrix. The likelihood is then:
     \begin{equation}
     \log \mathcal{L} = - {1 \over 2} \Delta \mathcal{C}^{-1} \Delta^\mathrm{T},

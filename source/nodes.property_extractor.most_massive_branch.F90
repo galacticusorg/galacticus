@@ -25,7 +25,7 @@
   <nodePropertyExtractor name="nodePropertyExtractorBranchMostMassive">
    <description>
     A node property extractor class which indicates if a node is on the most massive branch of its tree. The status will be
-    extracted as \source{nodeIsOnMostMassiveBranch}, with a value of 1 indicating that the node is on the most
+    extracted as \mono{nodeIsOnMostMassiveBranch}, with a value of 1 indicating that the node is on the most
     massive branch and a value of 0 indicating that it is not.
    </description>
   </nodePropertyExtractor>
@@ -33,7 +33,7 @@
   type, extends(nodePropertyExtractorIntegerScalar) :: nodePropertyExtractorBranchMostMassive
      !!{
      A node property extractor class which indicates if a node is on the most massive branch of its tree. The status will be
-     extracted as \source{nodeIsOnMostMassiveBranch}, with a value of 1 indicating that the node is on the most
+     extracted as \mono{nodeIsOnMostMassiveBranch}, with a value of 1 indicating that the node is on the most
      massive branch and a value of 0 indicating that it is not.
      !!}
      private
@@ -85,7 +85,7 @@ contains
 
   function branchMostMassiveExtract(self,node,time,instance)
     !!{
-    Implement a \source{branchMostMassive} node property extractor.
+    Implement a \mono{branchMostMassive} node property extractor.
     !!}
     use :: Galacticus_Nodes, only : nodeComponentBasic
     implicit none

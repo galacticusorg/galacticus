@@ -123,7 +123,7 @@ contains
 
   logical function allPasses(self,node)
     !!{
-    Apply a set of filters to a \source{node} combined with \source{all} operations.
+    Apply a set of filters to a \mono{node} combined with \mono{all} operations.
     !!}
     implicit none
     class(galacticFilterAll), intent(inout)         :: self

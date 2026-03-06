@@ -99,7 +99,7 @@ contains
 
   double precision function nfwVelocityDispersion1D(self,coordinates,massDistribution_,massDistributionEmbedding) result(velocityDispersion)
     !!{
-    Return the 1D velocity dispersion at the specified \source{coordinates} in an NFW kinematic distribution.
+    Return the 1D velocity dispersion at the specified \mono{coordinates} in an NFW kinematic distribution.
     !!}
     use :: Dilogarithms                    , only : Dilogarithm
     use :: Numerical_Constants_Math        , only : Pi

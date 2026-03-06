@@ -152,7 +152,7 @@ contains
 
   double precision function correlationFunctionDensity(self,coordinates) result(density)
     !!{
-    Return the density at the specified \source{coordinates} in a accretion flow modeled on the 2-halo correlation function.
+    Return the density at the specified \mono{coordinates} in a accretion flow modeled on the 2-halo correlation function.
     !!}
     implicit none
     class(massDistributionCorrelationFunction), intent(inout) :: self
@@ -168,7 +168,7 @@ contains
 
   double precision function correlationFunctionDensityGradientRadial(self,coordinates,logarithmic) result(densityGradientRadial)
     !!{
-    Return the radial density gradient at the specified \source{coordinates} in a accretion flow modeled on the 2-halo correlation function.
+    Return the radial density gradient at the specified \mono{coordinates} in a accretion flow modeled on the 2-halo correlation function.
     !!}
     implicit none
     class  (massDistributionCorrelationFunction), intent(inout), target   :: self

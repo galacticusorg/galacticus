@@ -64,7 +64,7 @@ contains
 
   function indicesTreeExtract(self,node,time,instance)
     !!{
-    Implement a \source{indicesTree} node property extractor.
+    Implement a \mono{indicesTree} node property extractor.
     !!}
     implicit none
     integer         (kind_int8                       )                          :: indicesTreeExtract

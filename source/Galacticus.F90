@@ -19,7 +19,7 @@
 
 !!{
 {\normalfont \scshape Galacticus} is a semi-analytic model of galaxy formation written by Andrew Benson
-\href{mailto:abenson@carnegiescience.edu}{\source{<abenson@carnegiescience.edu>}}.
+\href{mailto:abenson@carnegiescience.edu}{\mono{<abenson@carnegiescience.edu>}}.
 !!}
 
 program Galacticus

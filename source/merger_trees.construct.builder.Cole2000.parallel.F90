@@ -110,7 +110,7 @@ contains
       <name>branchIntervalStep</name>
       <source>parameters</source>
       <defaultValue>.true.</defaultValue>
-      <description>If \source{false} use the original \cite{cole_hierarchical_2000} method to determine whether branching occurs in a timestep. If \source{true} draw branching intervals from a negative exponential distribution.</description>
+      <description>If \mono{false} use the original \cite{cole_hierarchical_2000} method to determine whether branching occurs in a timestep. If \mono{true} draw branching intervals from a negative exponential distribution.</description>
     </inputParameter>
     <inputParameter>
       <name>toleranceResolutionSelf</name>

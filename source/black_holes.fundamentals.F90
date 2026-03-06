@@ -78,7 +78,7 @@ contains
   double precision function Black_Hole_ISCO_Radius_Spin(spinBlackHole,orbit)
     !!{
     Returns the radius (in gravitational units and for a prograde or retrograde orbit) of the innermost stable
-    circular orbit for a black hole with spin \source{spinBlackHole}.
+    circular orbit for a black hole with spin \mono{spinBlackHole}.
     !!}
     use :: Error, only : Error_Report
     implicit none
@@ -123,7 +123,7 @@ contains
 
   double precision function Black_Hole_Eddington_Accretion_Rate(blackHole)
     !!{
-    Return the Eddington accretion rate (in $M_\odot$ Gyr$^{-1}$) for the black hole in \source{blackHole}.
+    Return the Eddington accretion rate (in $M_\odot$ Gyr$^{-1}$) for the black hole in \mono{blackHole}.
     !!}
     use :: Galacticus_Nodes                , only : nodeComponentBlackHole
     use :: Numerical_Constants_Astronomical, only : gigaYear
@@ -141,7 +141,7 @@ contains
   double precision function Black_Hole_ISCO_Radius_Node(blackHole,units,orbit)
     !!{
     Returns the radius (in physical or gravitational units and for a prograde or retrograde orbit) of the innermost stable
-    circular orbit for the black hole in \source{blackHole}.
+    circular orbit for the black hole in \mono{blackHole}.
     !!}
     use :: Galacticus_Nodes, only : nodeComponentBlackHole
     implicit none
@@ -178,7 +178,7 @@ contains
   double precision function Black_Hole_ISCO_Specific_Energy_Node(blackHole,units,orbit)
     !!{
     Returns the specific energy (in physical or gravitational units and for a prograde or retrograde orbit) of the innermost
-    stable circular orbit for the given \source{blackHole}.
+    stable circular orbit for the given \mono{blackHole}.
     !!}
     use :: Galacticus_Nodes                , only : nodeComponentBlackHole
     use :: Numerical_Constants_Astronomical, only : gravitationalConstant_internal
@@ -210,7 +210,7 @@ contains
   double precision function Black_Hole_ISCO_Specific_Energy_Spin(spinBlackHole,orbit)
     !!{
     Returns the specific energy (in physical or gravitational units and for a prograde or retrograde orbit) of the innermost
-    stable circular orbit for a black hole of given \source{spinBlackHole}.
+    stable circular orbit for a black hole of given \mono{spinBlackHole}.
     !!}
     implicit none
     double precision           , intent(inout)           :: spinBlackHole
@@ -239,7 +239,7 @@ contains
   double precision function Black_Hole_ISCO_Specific_Angular_Momentum(blackHole,units,orbit)
     !!{
     Returns the specific angular momentum (in physical or gravitational units and for a prograde or retrograde orbit) of the
-    innermost stable circular orbit for the black hole in \source{blackHole}.
+    innermost stable circular orbit for the black hole in \mono{blackHole}.
     !!}
     use :: Galacticus_Nodes                , only : nodeComponentBlackHole
     use :: Numerical_Constants_Astronomical, only : gravitationalConstant_internal
@@ -288,7 +288,7 @@ contains
 
   double precision function Black_Hole_Gravitational_Radius(blackHole)
     !!{
-    Computes the gravitational radius (in Mpc) for the \source{blackHole}.
+    Computes the gravitational radius (in Mpc) for the \mono{blackHole}.
     !!}
     use :: Galacticus_Nodes                , only : nodeComponentBlackHole
     use :: Numerical_Constants_Astronomical, only : gravitationalConstant_internal
@@ -352,7 +352,7 @@ contains
 
   double precision function Black_Hole_Metric_A_Factor_Node(blackHole,radius,units)
     !!{
-    Returns the $\mathcal{A}$ factor appearing in the Kerr metric for \source{blackHole}.
+    Returns the $\mathcal{A}$ factor appearing in the Kerr metric for \mono{blackHole}.
     !!}
     use :: Error           , only : Error_Report
     use :: Galacticus_Nodes, only : nodeComponentBlackHole
@@ -390,7 +390,7 @@ contains
 
   double precision function Black_Hole_Metric_A_Factor_Spin(spinBlackHole,radius)
     !!{
-    Returns the $\mathcal{A}$ factor appearing in the Kerr metric for spin \source{spinBlackHole}.
+    Returns the $\mathcal{A}$ factor appearing in the Kerr metric for spin \mono{spinBlackHole}.
     !!}
     implicit none
     double precision, intent(in   ) :: spinBlackHole, radius
@@ -401,7 +401,7 @@ contains
 
   double precision function Black_Hole_Metric_D_Factor_Node(blackHole,radius,units)
     !!{
-    Returns the $\mathcal{D}$ factor appearing in the Kerr metric for \source{blackHole}.
+    Returns the $\mathcal{D}$ factor appearing in the Kerr metric for \mono{blackHole}.
     !!}
     use :: Error           , only : Error_Report
     use :: Galacticus_Nodes, only : nodeComponentBlackHole
@@ -439,7 +439,7 @@ contains
 
   double precision function Black_Hole_Metric_D_Factor_Spin(spinBlackHole,radius)
     !!{
-    Returns the $\mathcal{D}$ factor appearing in the Kerr metric for spin \source{spinBlackHole}.
+    Returns the $\mathcal{D}$ factor appearing in the Kerr metric for spin \mono{spinBlackHole}.
     !!}
     implicit none
     double precision, intent(in   ) :: spinBlackHole, radius
@@ -450,7 +450,7 @@ contains
 
   double precision function Black_Hole_Horizon_Radius_Node(blackHole,units)
     !!{
-    Return the radius of the horizon for a Kerr metric with dimensionless angular momentum \source{j}.
+    Return the radius of the horizon for a Kerr metric with dimensionless angular momentum \mono{j}.
     The radius is in units of the gravitational radius.
     !!}
     use :: Error           , only : Error_Report
@@ -486,7 +486,7 @@ contains
 
   double precision function Black_Hole_Horizon_Radius_Spin(spinBlackHole)
     !!{
-    Return the radius of the horizon for a Kerr metric with dimensionless angular momentum \source{j}.
+    Return the radius of the horizon for a Kerr metric with dimensionless angular momentum \mono{j}.
     The radius is in units of the gravitational radius.
     !!}
     implicit none
@@ -498,7 +498,7 @@ contains
 
   double precision function Black_Hole_Static_Radius_Node(blackHole,theta,units)
     !!{
-    Return the radius of the static limit for a Kerr metric for the black hole in \source{blackHole} and angle \source{theta}.
+    Return the radius of the static limit for a Kerr metric for the black hole in \mono{blackHole} and angle \mono{theta}.
     !!}
     use :: Error           , only : Error_Report
     use :: Galacticus_Nodes, only : nodeComponentBlackHole
@@ -537,7 +537,7 @@ contains
 
   double precision function Black_Hole_Static_Radius_Spin(spinBlackHole,theta)
     !!{
-    Return the radius of the static limit for a Kerr metric for a black hole of given \source{spinBlackHole} and angle \source{theta}.
+    Return the radius of the static limit for a Kerr metric for a black hole of given \mono{spinBlackHole} and angle \mono{theta}.
     !!}
     use :: Numerical_Constants_Math, only : Pi
     implicit none
@@ -559,7 +559,7 @@ contains
 
   double precision function A1(spinBlackHole)
     !!{
-    Return the function $A_1(j)$ that appears in the Kerr metric with spin \source{spinBlackHole}.
+    Return the function $A_1(j)$ that appears in the Kerr metric with spin \mono{spinBlackHole}.
     !!}
     implicit none
     double precision, intent(in   ) :: spinBlackHole
@@ -570,7 +570,7 @@ contains
 
   double precision function A2(spinBlackHole)
     !!{
-    Return the function $A_2(j)$ that appears in the Kerr metric with spin \source{spinBlackHole}.
+    Return the function $A_2(j)$ that appears in the Kerr metric with spin \mono{spinBlackHole}.
     !!}
     implicit none
     double precision, intent(in   ) :: spinBlackHole

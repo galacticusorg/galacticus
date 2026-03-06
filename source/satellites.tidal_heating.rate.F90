@@ -40,7 +40,7 @@ module Satellite_Tidal_Heating
    </description>
    <default>zero</default>
    <method name="heatingRate" >
-    <description>Return the satellite tidal heating rate for \source{node} (in units of (km/s/Mpc)$^2$/Gyr).</description>
+    <description>Return the satellite tidal heating rate for \mono{node} (in units of (km/s/Mpc)$^2$/Gyr).</description>
     <type>double precision</type>
     <pass>yes</pass>
     <argument>type(treeNode), intent(inout) :: node</argument>

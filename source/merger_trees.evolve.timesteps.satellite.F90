@@ -135,7 +135,7 @@ contains
 
   double precision function satelliteTimeEvolveTo(self,timeEnd,node,task,taskSelf,report,lockNode,lockType)
     !!{
-    Determine a suitable timestep for \source{node} such that it does not exceed the time of the next satellite merger.
+    Determine a suitable timestep for \mono{node} such that it does not exceed the time of the next satellite merger.
     !!}
     use :: Evolve_To_Time_Reports, only : Evolve_To_Time_Report
     use :: Galacticus_Nodes      , only : nodeComponentBasic   , nodeComponentSatellite, treeNode

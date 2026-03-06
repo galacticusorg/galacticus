@@ -112,7 +112,7 @@ contains
 
   integer function spinBullockElementCount(self,time)
     !!{
-    Return the number of elements in the \source{spinBullock} property extractor.
+    Return the number of elements in the \mono{spinBullock} property extractor.
     !!}
     implicit none
     class           (nodePropertyExtractorSpinBullock), intent(inout) :: self
@@ -160,7 +160,7 @@ contains
 
   subroutine spinBullockNames(self,time,names)
     !!{
-    Return the name of the \source{spinBullock} property.
+    Return the name of the \mono{spinBullock} property.
     !!}
     implicit none
     class           (nodePropertyExtractorSpinBullock), intent(inout)                             :: self
@@ -180,7 +180,7 @@ contains
 
   subroutine spinBullockDescriptions(self,time,descriptions)
     !!{
-    Return a description of the \source{spinBullock} property.
+    Return a description of the \mono{spinBullock} property.
     !!}
     implicit none
     class           (nodePropertyExtractorSpinBullock), intent(inout)                             :: self
@@ -200,7 +200,7 @@ contains
 
   function spinBullockUnitsInSI(self,time)
     !!{
-    Return the units of the \source{spinBullock} property in the SI system.
+    Return the units of the \mono{spinBullock} property in the SI system.
     !!}
     implicit none
     double precision                                  , allocatable  , dimension(:) :: spinBullockUnitsInSI

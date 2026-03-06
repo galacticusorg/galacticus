@@ -160,7 +160,7 @@ contains
 
   integer function massProfileElementCount(self,time)
     !!{
-    Return the number of elements in the \source{massProfile} property extractors.
+    Return the number of elements in the \mono{massProfile} property extractors.
     !!}
     implicit none
     class           (nodePropertyExtractorMassProfile), intent(inout) :: self
@@ -173,7 +173,7 @@ contains
 
   function massProfileSize(self,time)
     !!{
-    Return the number of array elements in the \source{massProfile} property extractors.
+    Return the number of array elements in the \mono{massProfile} property extractors.
     !!}
     implicit none
     integer         (c_size_t                        )                :: massProfileSize
@@ -187,7 +187,7 @@ contains
 
   function massProfileExtract(self,node,time,instance)
     !!{
-    Implement a \source{massProfile} property extractor.
+    Implement a \mono{massProfile} property extractor.
     !!}
 
     use :: Galactic_Structure_Options          , only : componentTypeAll                          , massTypeGalactic            , massTypeStellar                     , massTypeDark
@@ -316,7 +316,7 @@ contains
 
   subroutine massProfileNames(self,names,time)
     !!{
-    Return the names of the \source{massProfile} properties.
+    Return the names of the \mono{massProfile} properties.
     !!}
     implicit none
     class           (nodePropertyExtractorMassProfile), intent(inout)                             :: self
@@ -332,7 +332,7 @@ contains
 
   subroutine massProfileDescriptions(self,descriptions,time)
     !!{
-    Return descriptions of the \source{massProfile} property.
+    Return descriptions of the \mono{massProfile} property.
     !!}
     implicit none
     class           (nodePropertyExtractorMassProfile), intent(inout)                             :: self
@@ -349,7 +349,7 @@ contains
 
   subroutine massProfileColumnDescriptions(self,descriptions,values,valuesDescription,valuesUnitsInSI,time)
     !!{
-    Return column descriptions of the \source{massProfile} property.
+    Return column descriptions of the \mono{massProfile} property.
     !!}
     implicit none
     class           (nodePropertyExtractorMassProfile), intent(inout)                            :: self
@@ -370,7 +370,7 @@ contains
 
   function massProfileUnitsInSI(self,time)
     !!{
-    Return the units of the \source{massProfile} properties in the SI system.
+    Return the units of the \mono{massProfile} properties in the SI system.
     !!}
     use :: Numerical_Constants_Astronomical, only : massSolar, megaParsec
     implicit none

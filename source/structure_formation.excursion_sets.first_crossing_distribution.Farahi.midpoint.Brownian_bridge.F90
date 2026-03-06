@@ -34,8 +34,8 @@ method to perform the integrations \citep{du_substructure_2017}, and with a Brow
       to perform the integrations \citep{du_substructure_2017}, and with a \href{https://en.wikipedia.org/wiki/Brownian_bridge}{Brownian bridge} constraint.
 
       Specifically, the trajectories are constrained to pass through a point $(S_2,\delta_2)$ (specified by the parameter
-      \source{[varianceConstrained]} and \source{[criticalOverdensityConstrained]}, or equivalently
-      by the parameters \source{[massConstrained]} and \source{[timeConstrained]}---note that
+      \mono{[varianceConstrained]} and \mono{[criticalOverdensityConstrained]}, or equivalently
+      by the parameters \mono{[massConstrained]} and \mono{[timeConstrained]}---note that
       $(S_2,\delta_2)$ here follow the convention in excursion set literature that $S_2$ is the variance evaluated at the present
       day, while $\delta_2$ the the critical overdensity for collapse divided by the linear growth factor), and, of course, always
       pass through the initial point $(S_1,\delta_1)$ corresponding to the current halo.

@@ -40,33 +40,33 @@ module Output_Times
     <pass>yes</pass>
    </method>
    <method name="time" >
-    <description>Return the output time index by \source{indexOutput}.</description>
+    <description>Return the output time index by \mono{indexOutput}.</description>
     <type>double precision</type>
     <pass>yes</pass>
     <argument>integer(c_size_t), intent(in   ) :: indexOutput</argument>
    </method>
    <method name="redshift" >
-    <description>Return the output redshift index by \source{indexOutput}.</description>
+    <description>Return the output redshift index by \mono{indexOutput}.</description>
     <type>double precision</type>
     <pass>yes</pass>
     <argument>integer(c_size_t), intent(in   ) :: indexOutput</argument>
    </method>
    <method name="index" >
-    <description>Return the index of the output at the given \source{time}. If \source{findClosest} is given and is true then the closest matching output is returned.</description>
+    <description>Return the index of the output at the given \mono{time}. If \mono{findClosest} is given and is true then the closest matching output is returned.</description>
     <type>integer(c_size_t)</type>
     <pass>yes</pass>
     <argument>double precision, intent(in   )           :: time       </argument>
     <argument>logical         , intent(in   ), optional :: findClosest</argument>
    </method>
    <method name="timeNext" >
-    <description>Given a \source{time}, return the time of the next output, and (optionally) the index of that output.</description>
+    <description>Given a \mono{time}, return the time of the next output, and (optionally) the index of that output.</description>
     <type>double precision</type>
     <pass>yes</pass>
     <argument>double precision          , intent(in   )           :: timeCurrent</argument>
     <argument>integer         (c_size_t), intent(  out), optional :: indexOutput</argument>
    </method>
    <method name="timePrevious" >
-    <description>Given a \source{time}, return the time of the previous output, and (optionally) the index of that output.</description>
+    <description>Given a \mono{time}, return the time of the previous output, and (optionally) the index of that output.</description>
     <type>double precision</type>
     <pass>yes</pass>
     <argument>double precision          , intent(in   )           :: timeCurrent</argument>

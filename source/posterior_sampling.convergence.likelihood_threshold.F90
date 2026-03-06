@@ -150,7 +150,7 @@ contains
 
   subroutine likelihoodThresholdLogReport(self,fileUnit)
     !!{
-    Write a convergence report to the given \source{fileUnit}.
+    Write a convergence report to the given \mono{fileUnit}.
     !!}
     implicit none
     class  (posteriorSampleConvergenceLikelihoodThreshold), intent(inout) :: self

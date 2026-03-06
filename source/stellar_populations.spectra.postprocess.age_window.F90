@@ -24,7 +24,7 @@
   !![
   <stellarPopulationSpectraPostprocessor name="stellarPopulationSpectraPostprocessorAgeWindow">
    <description>
-    A stellar population postprocessor class which keeps only emission from populations with ages between \source{[ageMinimum]} and \source{[ageMaximum]}.
+    A stellar population postprocessor class which keeps only emission from populations with ages between \mono{[ageMinimum]} and \mono{[ageMaximum]}.
    </description>
   </stellarPopulationSpectraPostprocessor>
   !!]

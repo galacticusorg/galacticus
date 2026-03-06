@@ -52,13 +52,13 @@ module Merger_Trees_Evolve_Node
     <argument>integer                                       , intent(  out), optional :: status                   </argument>
    </method>
    <method name="promote" >
-    <description>Promote \source{node} to its parent node, then destroy it.</description>
+    <description>Promote \mono{node} to its parent node, then destroy it.</description>
     <type>void</type>
     <pass>yes</pass>
     <argument>type(treeNode), intent(inout), pointer :: node</argument>
    </method>
    <method name="merge" >
-    <description>Handles instances where \source{node} is about to merge with its parent node.</description>
+    <description>Handles instances where \mono{node} is about to merge with its parent node.</description>
     <type>void</type>
     <pass>yes</pass>
     <argument>type(treeNode), intent(inout) :: node</argument>

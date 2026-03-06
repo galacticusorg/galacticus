@@ -860,7 +860,7 @@ contains
 
   subroutine correlationFunctionReduce(self,reduced)
     !!{
-    Implement a \source{correlationFunction} output analysis reduction.
+    Implement a \mono{correlationFunction} output analysis reduction.
     !!}
     use :: Error, only : Error_Report
     implicit none
@@ -887,7 +887,7 @@ contains
 
   subroutine correlationFunctionFinalize(self,groupName)
     !!{
-    Implement a \source{correlationFunction} output analysis finalization.
+    Implement a \mono{correlationFunction} output analysis finalization.
     !!}
     use :: Output_HDF5                     , only : outputFile
     use :: HDF5_Access                     , only : hdf5Access

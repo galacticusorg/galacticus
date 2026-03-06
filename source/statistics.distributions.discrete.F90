@@ -42,25 +42,25 @@ module Statistics_Distributions_Discrete
      <type>double precision</type>
      <pass>yes</pass>
      <argument>integer, intent(in   ) :: x</argument>
-     <description>Return the probability mass at \source{x}.</description>
+     <description>Return the probability mass at \mono{x}.</description>
    </method>
    <method name="massLogarithmic" >
      <type>double precision</type>
      <pass>yes</pass>
      <argument>integer, intent(in   ) :: x</argument>
-     <description>Return the logarithm of the probability mass at \source{x}.</description>
+     <description>Return the logarithm of the probability mass at \mono{x}.</description>
    </method>
    <method name="cumulative" >
      <type>double precision</type>
      <pass>yes</pass>
      <argument>integer, intent(in   ) :: x</argument>
-     <description>Return the cumulative probability at \source{x}.</description>
+     <description>Return the cumulative probability at \mono{x}.</description>
    </method>
    <method name="inverse" >
      <type>integer</type>
      <pass>yes</pass>
      <argument>double precision, intent(in   ) :: p</argument>
-     <description>Return the value of the independent variable corresponding to cumulative probability \source{p}.</description>
+     <description>Return the value of the independent variable corresponding to cumulative probability \mono{p}.</description>
    </method>
    <method name="sample" >
      <type>integer</type>
@@ -99,7 +99,7 @@ contains
   
   subroutine distributionFunctionDiscrete1DFinalize(self)
     !!{
-    Finalizer for \source{distributionFunctionDiscrete1D} objects.
+    Finalizer for \mono{distributionFunctionDiscrete1D} objects.
     !!}
     type(distributionFunctionDiscrete1DClass), intent(inout) :: self
 

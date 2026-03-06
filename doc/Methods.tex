@@ -2,34 +2,34 @@
 
 \section{Code Directives}\label{sec:CodeDirectives}\hyperdef{sec}{CodeDirectives}{}\index{directives}\index{code!directives}
 
-\glc\ is designed to be flexible and extensible, allowing you to add new classes and functionality without having to hack the code extensively. To achieve this it makes much use of embedded code directives which, for example, explain to the build system how a particular subroutine or function connects into the \glc\ code. Such code directives are indicated by lines beginning with \source{!\#}, and take the form of short blocks of XML. For example, a typical code directive might look like:
+\glc\ is designed to be flexible and extensible, allowing you to add new classes and functionality without having to hack the code extensively. To achieve this it makes much use of embedded code directives which, for example, explain to the build system how a particular subroutine or function connects into the \glc\ code. Such code directives are indicated by lines beginning with \mono{!\#}, and take the form of short blocks of XML. For example, a typical code directive might look like:
 \begin{verbatim}
  !# <accretionDisks>
  !#  <unitName>Accretion_Disks_Shakura_Sunyaev_Initialize</unitName>
  !# </accretionDisks>
 \end{verbatim}
-This directive would typically appear just prior to a subroutine which initializes the Shakura-Sunyaev accretion disk module (it could appear anywhere throughout that module, but it makes sense to keep it close to the subroutine that it references). The \source{accretionDisks} tag explains to the \glc\ build system that this module contains an implementation of black hole accretion disks. The \source{unitName} tag specifies the name of a program unit which (in this case) should be called to initialize this accretion disk implementation. The build system will then insert appropriate \source{use} and \source{call} statements into the \glc\ code such that this routine will be called if and when accretion disks are required by \glc.
+This directive would typically appear just prior to a subroutine which initializes the Shakura-Sunyaev accretion disk module (it could appear anywhere throughout that module, but it makes sense to keep it close to the subroutine that it references). The \mono{accretionDisks} tag explains to the \glc\ build system that this module contains an implementation of black hole accretion disks. The \mono{unitName} tag specifies the name of a program unit which (in this case) should be called to initialize this accretion disk implementation. The build system will then insert appropriate \mono{use} and \mono{call} statements into the \glc\ code such that this routine will be called if and when accretion disks are required by \glc.
 
 \section{Identifying Components and Mass Types}\label{sec:ComponentMassTypes}
 
-Many functions can be applied to different components or groups of components and to different types of mass within a node. In general, these functions make use of a set of label defined in the \href{https://github.com/galacticusorg/galacticus/releases/download/bleeding-edge/Galacticus_Source.pdf#source.galactic_structure_options_F90:galactic_structure_options}{\source{Galactic\_Structure\_Options}} module. Components are identified by a \source{componentType} label which can take on the following values:
+Many functions can be applied to different components or groups of components and to different types of mass within a node. In general, these functions make use of a set of label defined in the \href{https://github.com/galacticusorg/galacticus/releases/download/bleeding-edge/Galacticus_Source.pdf#source.galactic_structure_options_F90:galactic_structure_options}{\mono{Galactic\_Structure\_Options}} module. Components are identified by a \mono{componentType} label which can take on the following values:
 \begin{description}
- \item [\source{componentTypeAll}] All components are matched;
- \item [\source{componentTypeDisk}] Only disk components are matched;
- \item [\source{componentTypeSpheroid}] Only spheroid components are matched.
- \item [\source{componentTypeBlackHole}] Only black hole components are matched.
- \item [\source{componentTypeHotHalo}] Only hot halo components are matched.
- \item [\source{componentTypeDarkHalo}] Only dark matter halo components are matched.
+ \item [\mono{componentTypeAll}] All components are matched;
+ \item [\mono{componentTypeDisk}] Only disk components are matched;
+ \item [\mono{componentTypeSpheroid}] Only spheroid components are matched.
+ \item [\mono{componentTypeBlackHole}] Only black hole components are matched.
+ \item [\mono{componentTypeHotHalo}] Only hot halo components are matched.
+ \item [\mono{componentTypeDarkHalo}] Only dark matter halo components are matched.
 \end{description}
-Types of mass are identified by a \source{massType} which can take one of the following values:
+Types of mass are identified by a \mono{massType} which can take one of the following values:
 \begin{description}
- \item [\source{massTypeAll}] All mass is included;
- \item [\source{massTypeDark}] Only dark matter is included;
- \item [\source{massTypeBaryonic}] Only baryonic mass is included;
- \item [\source{massTypeGalactic}] Only galactic mass is included.
- \item [\source{massTypeGaseous}] Only gaseous mass is included.
- \item [\source{massTypeStellar}] Only stellar mass is included.
- \item [\source{massTypeBlackHole}] Only black hole mass is included.
+ \item [\mono{massTypeAll}] All mass is included;
+ \item [\mono{massTypeDark}] Only dark matter is included;
+ \item [\mono{massTypeBaryonic}] Only baryonic mass is included;
+ \item [\mono{massTypeGalactic}] Only galactic mass is included.
+ \item [\mono{massTypeGaseous}] Only gaseous mass is included.
+ \item [\mono{massTypeStellar}] Only stellar mass is included.
+ \item [\mono{massTypeBlackHole}] Only black hole mass is included.
 \end{description}
 
 \section{Components}\index{components}
@@ -38,25 +38,25 @@ This section describes the internal structure of node components, and how a comp
 
 \subsection{Component Structure}\index{components!structure}
 
-Each node in the merger tree consists of an arbitrary number of ``components'', each of which can actually be an array, allowing multiple components of a given class. Each component represents a specific class of object, which could be a dark matter halo, a galactic disk or a black hole etc. A component of each class may be of one or more different implementations of that component class. Component classes are extensions of the \source{nodeComponent} base class, while each implementation is an extension of its component class (or, sometimes, of another implementation of that same class). Each component implementation type consists of a set of data\footnote{Data objects in components can be real, integer, boolean or of derived type. For derived types, currently \source{history}, \source{abundances}, \source{chemicals}, and \source{keplerOrbit} are supported. Adding additional derived types is possible, providing that the type supports the required methods for output, serialization, etc. Data objects can currently be scalar or rank-1 arrays.}, representing the properties (mass, size etc.) of the component, along with the rates of change (and ODE solver tolerances) for any properties which are evolvable. Additionally, each component contains a large number of methods (functions) which can be used to access its properties, query its interfaces and which are used internally to perform ODE evolution, output etc. The \source{nodeComponent} base class and all classes derived from it are built automatically by \source{Galacticus::Build::Components} at compile time (take a look in \source{work/build/objects.nodes.components.Inc} if you want to see the generated code).
+Each node in the merger tree consists of an arbitrary number of ``components'', each of which can actually be an array, allowing multiple components of a given class. Each component represents a specific class of object, which could be a dark matter halo, a galactic disk or a black hole etc. A component of each class may be of one or more different implementations of that component class. Component classes are extensions of the \mono{nodeComponent} base class, while each implementation is an extension of its component class (or, sometimes, of another implementation of that same class). Each component implementation type consists of a set of data\footnote{Data objects in components can be real, integer, boolean or of derived type. For derived types, currently \mono{history}, \mono{abundances}, \mono{chemicals}, and \mono{keplerOrbit} are supported. Adding additional derived types is possible, providing that the type supports the required methods for output, serialization, etc. Data objects can currently be scalar or rank-1 arrays.}, representing the properties (mass, size etc.) of the component, along with the rates of change (and ODE solver tolerances) for any properties which are evolvable. Additionally, each component contains a large number of methods (functions) which can be used to access its properties, query its interfaces and which are used internally to perform ODE evolution, output etc. The \mono{nodeComponent} base class and all classes derived from it are built automatically by \mono{Galacticus::Build::Components} at compile time (take a look in \mono{work/build/objects.nodes.components.Inc} if you want to see the generated code).
 
 \subsection{Extending Components}
 
-It is possible to create a component which extends an existing component (see the discussion of the \source{extends} element in \S\ref{sec:ComponentDefinition}). This capability is intended to allow new properties to be added to a component without having to create a whole new copy of the component. It is \emph{not} intended to allow changes in the way in which the component is evolved through the halo hierarchy. (With the exception that rules to describe how the newly added properties will evolve through the halo hierarchy can be added of course.)
+It is possible to create a component which extends an existing component (see the discussion of the \mono{extends} element in \S\ref{sec:ComponentDefinition}). This capability is intended to allow new properties to be added to a component without having to create a whole new copy of the component. It is \emph{not} intended to allow changes in the way in which the component is evolved through the halo hierarchy. (With the exception that rules to describe how the newly added properties will evolve through the halo hierarchy can be added of course.)
 
-A simple example of this extension capability can be found in the \href{https://github.com/galacticusorg/galacticus/releases/download/bleeding-edge/Galacticus_Physics.pdf#sec.DarkMatterProfileScaleShape}\source{scaleShape} dark matter profile component, which extends the \href{https://github.com/galacticusorg/galacticus/releases/download/bleeding-edge/Galacticus_Physics.pdf#sec.DarkMatterProfileScale}\source{scale} dark matter profile component. In this case, the \source{scaleShape} component adds a new property, \source{shape}, and specifies how it is to be initialized, evolved, output, and change by node promotion events. It \emph{does not} affect how the \source{scale} property, inherited from the \source{scale} dark matter profile component, is evolved.
+A simple example of this extension capability can be found in the \href{https://github.com/galacticusorg/galacticus/releases/download/bleeding-edge/Galacticus_Physics.pdf#sec.DarkMatterProfileScaleShape}\mono{scaleShape} dark matter profile component, which extends the \href{https://github.com/galacticusorg/galacticus/releases/download/bleeding-edge/Galacticus_Physics.pdf#sec.DarkMatterProfileScale}\mono{scale} dark matter profile component. In this case, the \mono{scaleShape} component adds a new property, \mono{shape}, and specifies how it is to be initialized, evolved, output, and change by node promotion events. It \emph{does not} affect how the \mono{scale} property, inherited from the \mono{scale} dark matter profile component, is evolved.
 
 \subsection{Implementing a New Component}\label{sec:ComponentImplement}\index{components!implementing}
 
 Implementing a new component involves writing some modules and functions which contain a definition of the component and, if necessary, handle initialization, creation, evolution, and responses to any events. Frequently, the easiest way to make a new component is to copy a previously existing one and modify it as needed. Details of the various functions that component modules must perform are given below.
-By convention, a component's implementation is split into three or four files, although some components might not need all of these files. These files are named as follows (with \source{\textless component\textgreater} acting as a placeholder for the name of the component in question):
+By convention, a component's implementation is split into three or four files, although some components might not need all of these files. These files are named as follows (with \mono{\textless component\textgreater} acting as a placeholder for the name of the component in question):
 \begin{description}
- \item [\source{objects.nodes.components.\textless component\textgreater.F90}] The primary file which describes the component and its properties, and which contains functions that manipulate the component as it evolves through a merger tree (ODE rates, behavior during mergers, etc.);
- \item [\source{objects.nodes.components.\textless component\textgreater.bound\_functions.F90}] Contains functions which will be bound to the component object (i.e. the \source{nodeComponent\textless Class\textgreater\textless Implementation\textgreater} class), and so will be available as type bound procedures. Generally, these functions will include any which get or set values of properties in the component, those which return information about its internal state (such as the density at some position in the component; see \S\ref{sec:GalacticComponentDensity}), and any other functions which we may want to be overridden by extensions to the component.
- \item [\source{objects.nodes.components.\textless component\textgreater.data.F90}] Contains any data which may need to be shared between the above two files. This might contain parameters which control some property of the component that is the same for all instances (e.g. if spheroids are modeled as S\'ersic profiles all with the same value of the S\'ersic index, that value might be placed into this file).
- \item [\source{objects.nodes.components.\textless component\textgreater.structure.F90}] Contains any functions which implement the structure (e.g. density, rotation curve) of the component and which cannot be placed in \source{objects.nodes.components.\textless component\textgreater.bound\_functions.Inc} due to dependencies on modules which in turn depend on the \source{Galacticus\_Nodes} module.
+ \item [\mono{objects.nodes.components.\textless component\textgreater.F90}] The primary file which describes the component and its properties, and which contains functions that manipulate the component as it evolves through a merger tree (ODE rates, behavior during mergers, etc.);
+ \item [\mono{objects.nodes.components.\textless component\textgreater.bound\_functions.F90}] Contains functions which will be bound to the component object (i.e. the \mono{nodeComponent\textless Class\textgreater\textless Implementation\textgreater} class), and so will be available as type bound procedures. Generally, these functions will include any which get or set values of properties in the component, those which return information about its internal state (such as the density at some position in the component; see \S\ref{sec:GalacticComponentDensity}), and any other functions which we may want to be overridden by extensions to the component.
+ \item [\mono{objects.nodes.components.\textless component\textgreater.data.F90}] Contains any data which may need to be shared between the above two files. This might contain parameters which control some property of the component that is the same for all instances (e.g. if spheroids are modeled as S\'ersic profiles all with the same value of the S\'ersic index, that value might be placed into this file).
+ \item [\mono{objects.nodes.components.\textless component\textgreater.structure.F90}] Contains any functions which implement the structure (e.g. density, rotation curve) of the component and which cannot be placed in \mono{objects.nodes.components.\textless component\textgreater.bound\_functions.Inc} due to dependencies on modules which in turn depend on the \mono{Galacticus\_Nodes} module.
 \end{description}
-In general, \source{objects.nodes.components.\textless component\textgreater.F90} is the place for the component definition and functions which process the component during tree evolution (including output), while \source{objects.nodes.components.\textless component\textgreater.bound\_functions.Inc} is intended for functions which record or report the internal state of the component.
+In general, \mono{objects.nodes.components.\textless component\textgreater.F90} is the place for the component definition and functions which process the component during tree evolution (including output), while \mono{objects.nodes.components.\textless component\textgreater.bound\_functions.Inc} is intended for functions which record or report the internal state of the component.
 
 \subsubsection{Component Definition}\label{sec:ComponentDefinition}
 
@@ -125,22 +125,22 @@ Component definition itself takes the form of an embedded XML document. The foll
 
 The elements of this document have the following meaning:
 \begin{description}
-\item [\source{class}] \emph{[Required]} Specifies the component class of which this is an implementation.
-\item [\source{name}] \emph{[Required]} Specifies the name of this specific implementation.
-\item [\source{extends}] \emph{[Optional]} If present, this element must contain \source{class} and \source{name} elements which specify the type of component which should be extended. The component then automatically inherits all properties and type-bound functions of the extended type.
-\item [\source{isDefault}] \emph{[Required]} Specifies whether or not this should be the default implementation of this class. Note that only one implementation of each class can be declared to be the default. If no implementation of a given class is declared to be the default then the (automatically generated) \source{null} implementation will be made the default.
-\item [\source{properties}] \emph{[Optional]} Contains an array of \source{property} elements which specify the properties of this implementation. Each member \source{property} has the following structure:
+\item [\mono{class}] \emph{[Required]} Specifies the component class of which this is an implementation.
+\item [\mono{name}] \emph{[Required]} Specifies the name of this specific implementation.
+\item [\mono{extends}] \emph{[Optional]} If present, this element must contain \mono{class} and \mono{name} elements which specify the type of component which should be extended. The component then automatically inherits all properties and type-bound functions of the extended type.
+\item [\mono{isDefault}] \emph{[Required]} Specifies whether or not this should be the default implementation of this class. Note that only one implementation of each class can be declared to be the default. If no implementation of a given class is declared to be the default then the (automatically generated) \mono{null} implementation will be made the default.
+\item [\mono{properties}] \emph{[Optional]} Contains an array of \mono{property} elements which specify the properties of this implementation. Each member \mono{property} has the following structure:
 \begin{description}
-\item [\source{name}] \emph{[Required]} The name of the property. 
-\item [\source{type}] \emph{[Required]} The type (one of \source{real}, \source{integer}, \source{logical}, \source{history}, \source{abundances}, \source{chemicals}, or \source{keplerOrbit} at present) of the property.
-\item [\source{rank}] \emph{[Required]} The rank of this property (currently \source{0} for a scalar or \source{1} for a 1-D array).
-\item [\source{attributes}] \emph{[Required]} Attributes of this property:
+\item [\mono{name}] \emph{[Required]} The name of the property. 
+\item [\mono{type}] \emph{[Required]} The type (one of \mono{real}, \mono{integer}, \mono{logical}, \mono{history}, \mono{abundances}, \mono{chemicals}, or \mono{keplerOrbit} at present) of the property.
+\item [\mono{rank}] \emph{[Required]} The rank of this property (currently \mono{0} for a scalar or \mono{1} for a 1-D array).
+\item [\mono{attributes}] \emph{[Required]} Attributes of this property:
 \begin{description}
-\item [\source{isSettable}] If \source{true} then the value of this property can be set directly.
-\item [\source{isGettable}] If \source{true} then the value of this property can be got directly.
-\item [\source{isEvolvable}] If \source{true} this property evolves as part of the \glc\ \gls{ode} system.
-\item [\source{createIfNeeded}] If \source{true} then any attempt to get, set, or adjust the rate of this property will cause the component to be created if it does not already exist. This is useful if the component should be created in response to mass transfer from some other component for example.
-\item [\source{isDeferred}] Contains a ``\source{:}'' separated list which can contain \source{get}, \source{set}, and \source{rate}. The methods present in this list will not have functions bound to them at compile time. Instead a function will be created which allows a function to be bound to these methods at run time. For example:
+\item [\mono{isSettable}] If \mono{true} then the value of this property can be set directly.
+\item [\mono{isGettable}] If \mono{true} then the value of this property can be got directly.
+\item [\mono{isEvolvable}] If \mono{true} this property evolves as part of the \glc\ \gls{ode} system.
+\item [\mono{createIfNeeded}] If \mono{true} then any attempt to get, set, or adjust the rate of this property will cause the component to be created if it does not already exist. This is useful if the component should be created in response to mass transfer from some other component for example.
+\item [\mono{isDeferred}] Contains a ``\mono{:}'' separated list which can contain \mono{get}, \mono{set}, and \mono{rate}. The methods present in this list will not have functions bound to them at compile time. Instead a function will be created which allows a function to be bound to these methods at run time. For example:
 \begin{verbatim}
   call myComponent%massFunction    (My_Component_Mass_Get_Function)
   call myComponent%massSetFunction (My_Component_Mass_Set_Function)
@@ -153,58 +153,58 @@ Additionally, a method is created which returns true or false depending on wheth
  myComponent%massRateIsAttached()
 \end{verbatim}
 \end{description}
-\item [\source{output}] \emph{[Optional]} If present, the property will be included in the \glc\ output file. The following attributes control the details of that output:
+\item [\mono{output}] \emph{[Optional]} If present, the property will be included in the \glc\ output file. The following attributes control the details of that output:
 \begin{description}
-\item [\source{unitsInSI}] The units of the output quantity in the SI system.
-\item [\source{comment}] A comment to be included with the HDF5 dataset for this property.
-\item [\source{condition}] A statement which must evaluate to \source{true} or \source{false} and which will be used to determine if the property will be output. The present output time for is available as \source{time}. In the case of an array property the construct ``\source{\{i\}}'' can be used to pass the index of the element for which the condition should be evaluated.
-\item [\source{modules}] A comma-separated list of any modules required to perform the output (e.g. modules which contain functions or values that are used).
+\item [\mono{unitsInSI}] The units of the output quantity in the SI system.
+\item [\mono{comment}] A comment to be included with the HDF5 dataset for this property.
+\item [\mono{condition}] A statement which must evaluate to \mono{true} or \mono{false} and which will be used to determine if the property will be output. The present output time for is available as \mono{time}. In the case of an array property the construct ``\mono{\{i\}}'' can be used to pass the index of the element for which the condition should be evaluated.
+\item [\mono{modules}] A comma-separated list of any modules required to perform the output (e.g. modules which contain functions or values that are used).
 \end{description}
 Additional attributes are required for array properties:
 \begin{description}
-\item [\source{labels}] This can be an array, declared as ``\source{[$L_1$,\ldots,$L_N$]}'', specifying the suffix to be added to the property name for each component of the array in the output, or a function which returns the suffix. In the case of a function the construct ``\source{\{i\}}'' can be used to pass the index of the element for which the suffix is required.
-\item [\source{count}] A statement which evaluates the the number of elements to be output (i.e. the length of the array).
+\item [\mono{labels}] This can be an array, declared as ``\mono{[$L_1$,\ldots,$L_N$]}'', specifying the suffix to be added to the property name for each component of the array in the output, or a function which returns the suffix. In the case of a function the construct ``\mono{\{i\}}'' can be used to pass the index of the element for which the suffix is required.
+\item [\mono{count}] A statement which evaluates the the number of elements to be output (i.e. the length of the array).
 \end{description}
-\item [\source{isVirtual}] \emph{[Optional]} If present and set to ``\source{true}'', this property is a virtual property. A virtual property has no data associated with it and must supply its own functions for getting, setting and adjusting its rate of change (if allowed by the property's attributes). Virtual properties are used for quantities which are derived from actual properties of the component implementation (for example, a star formation rate could be a virtual property if it is derived from an actual gas mass property) or for adjusting the rates of several actual properties simultaneously.
-\item [\source{isNonNegative}] \emph{[Optional]} If present and set to ``\source{true}'', this property should always be non-negative (i.e. zero or positive). This is typically the case for quantities such as masses for example. This attribute is informative only---it may or may not be taking into account by the class responsible for evolving the component properties. For example, the \refClass{mergerTreeNodeEvolverStandard} class will evolve properties marked as non-negative in such a way as to ensure they remain non-negative, but only if its parameter \source{[enforceNonNegativity]=true}.
-\item [\source{getFunction}] \emph{[Optional]} Specifies the function to be used for getting the value of the property, overriding the default get function. The function must be included in the \href{https://github.com/galacticusorg/galacticus/releases/download/bleeding-edge/Galacticus_Source.pdf#source.objects_nodes_F90:galacticus_nodes}\source{Galacticus\_Nodes} module by use of the \source{functions} element described below. Note that this function, by virtue of its privileged access to the internal structure of node components, can access the value of the data associated with the property using:
+\item [\mono{isVirtual}] \emph{[Optional]} If present and set to ``\mono{true}'', this property is a virtual property. A virtual property has no data associated with it and must supply its own functions for getting, setting and adjusting its rate of change (if allowed by the property's attributes). Virtual properties are used for quantities which are derived from actual properties of the component implementation (for example, a star formation rate could be a virtual property if it is derived from an actual gas mass property) or for adjusting the rates of several actual properties simultaneously.
+\item [\mono{isNonNegative}] \emph{[Optional]} If present and set to ``\mono{true}'', this property should always be non-negative (i.e. zero or positive). This is typically the case for quantities such as masses for example. This attribute is informative only---it may or may not be taking into account by the class responsible for evolving the component properties. For example, the \refClass{mergerTreeNodeEvolverStandard} class will evolve properties marked as non-negative in such a way as to ensure they remain non-negative, but only if its parameter \mono{[enforceNonNegativity]=true}.
+\item [\mono{getFunction}] \emph{[Optional]} Specifies the function to be used for getting the value of the property, overriding the default get function. The function must be included in the \href{https://github.com/galacticusorg/galacticus/releases/download/bleeding-edge/Galacticus_Source.pdf#source.objects_nodes_F90:galacticus_nodes}\mono{Galacticus\_Nodes} module by use of the \mono{functions} element described below. Note that this function, by virtue of its privileged access to the internal structure of node components, can access the value of the data associated with the property using:
 \begin{verbatim}
 myComponent%<property>Data%value
 \end{verbatim}
-\item [\source{setFunction}] \emph{[Optional]} The same as \source{getFunction} but defines a function to set the value of the property.
-\item [\source{classDefault}] \emph{[Optional]} Specifies the default value for this property if the component class has not been created (i.e. has no specific implementation yet). The content of this element gives the default value (which can be a scalar, an array, a function, etc.). Additional, optional attributes control the use of this element:
+\item [\mono{setFunction}] \emph{[Optional]} The same as \mono{getFunction} but defines a function to set the value of the property.
+\item [\mono{classDefault}] \emph{[Optional]} Specifies the default value for this property if the component class has not been created (i.e. has no specific implementation yet). The content of this element gives the default value (which can be a scalar, an array, a function, etc.). Additional, optional attributes control the use of this element:
 \begin{description}
- \item [\source{modules}] Specifies a comma-separated list of modules which are required to set the default values (e.g. modules which contain the value or function to be used).
- \item [\source{count}] For array properties whose size is not known at compile-time, it is possible to specify a function which will return the appropriate size of the array at run-time. The scalar default value given in the \source{classDefault} element will then be replicated the appropriate number of times.
+ \item [\mono{modules}] Specifies a comma-separated list of modules which are required to set the default values (e.g. modules which contain the value or function to be used).
+ \item [\mono{count}] For array properties whose size is not known at compile-time, it is possible to specify a function which will return the appropriate size of the array at run-time. The scalar default value given in the \mono{classDefault} element will then be replicated the appropriate number of times.
 \end{description}
 \end{description}
-\item [\source{bindings}] \emph{[Optional]} Contains an array of \source{binding} elements which specify functions to bind to this implementation. Each member \source{binding} has the following structure:
+\item [\mono{bindings}] \emph{[Optional]} Contains an array of \mono{binding} elements which specify functions to bind to this implementation. Each member \mono{binding} has the following structure:
 \begin{description}
-\item [\source{method}] The name of the bound method, such that the function can be accessed using
+\item [\mono{method}] The name of the bound method, such that the function can be accessed using
 \begin{verbatim}
  myComponent%<method>(...)
 \end{verbatim}
-\item [\source{function}] The function to which the method should be bound. (This function must be included in the \href{https://github.com/galacticusorg/galacticus/releases/download/bleeding-edge/Galacticus_Source.pdf#source.objects_nodes_F90:galacticus_nodes}\source{Galacticus\_Nodes} module by use of the \source{functions} element described below.
-\item [\source{type}] The type of function.
+\item [\mono{function}] The function to which the method should be bound. (This function must be included in the \href{https://github.com/galacticusorg/galacticus/releases/download/bleeding-edge/Galacticus_Source.pdf#source.objects_nodes_F90:galacticus_nodes}\mono{Galacticus\_Nodes} module by use of the \mono{functions} element described below.
+\item [\mono{type}] The type of function.
 \end{description}
-\item [\source{functions}] \emph{[Optional]} Contains the name of a file which will be included into the \href{https://github.com/galacticusorg/galacticus/releases/download/bleeding-edge/Galacticus_Source.pdf#source.objects_nodes_F90:galacticus_nodes}\source{Galacticus\_Nodes} module. This file can contain functions which will be bound to this implementation. By virtue of being included in the \href{https://github.com/galacticusorg/galacticus/releases/download/bleeding-edge/Galacticus_Source.pdf#source.objects_nodes_F90:galacticus_nodes}\source{Galacticus\_Nodes} module these functions have privileged access to the internal structure of all node component objects.
+\item [\mono{functions}] \emph{[Optional]} Contains the name of a file which will be included into the \href{https://github.com/galacticusorg/galacticus/releases/download/bleeding-edge/Galacticus_Source.pdf#source.objects_nodes_F90:galacticus_nodes}\mono{Galacticus\_Nodes} module. This file can contain functions which will be bound to this implementation. By virtue of being included in the \href{https://github.com/galacticusorg/galacticus/releases/download/bleeding-edge/Galacticus_Source.pdf#source.objects_nodes_F90:galacticus_nodes}\mono{Galacticus\_Nodes} module these functions have privileged access to the internal structure of all node component objects.
 \end{description}
 
 \subsubsection{Component Initialization}\index{components!initialization}
 
 Initialization of a component module (if necessary, for example, to read parameters or allocate workspace) can occur at a number of different points in the execution of \glc. Providing initialization occurs in advance of any calculations then any point is acceptable. One possibility is simply to call an initialization function at the head of all functions defined in the component module. This initialization function should return immediately if it has already been called (to avoid duplicate initialization). Another option is to use a \refPhysics{mergerTreeOperator} to perform initialization just before merger trees are constructed (the initialization function must again return immediately if it has been previously called).
 
-Optionally, a component may include a \source{mergerTreeEvolveThreadInitialize} directive, which gives the name of a subroutine in its \source{unitName} element. The routine specified by \source{mergerTreeEvolveThreadInitialize} is called by all threads prior to merger tree evolution, and can therefore be used to perform any ``per thread'' initialization. Note that this routine will be called many times during a given \glc\ run---it is the responsibility of the routine to ensure that it performs any initialization only once.
+Optionally, a component may include a \mono{mergerTreeEvolveThreadInitialize} directive, which gives the name of a subroutine in its \mono{unitName} element. The routine specified by \mono{mergerTreeEvolveThreadInitialize} is called by all threads prior to merger tree evolution, and can therefore be used to perform any ``per thread'' initialization. Note that this routine will be called many times during a given \glc\ run---it is the responsibility of the routine to ensure that it performs any initialization only once.
 
 \subsubsection{Component Access, Creation and Destruction}\index{components!creation}\index{components!destruction}
 
-When a node is created, it initially contains no components. A component must therefore create itself on the fly as needed. Typically, a component is first created when an attempt is made to set a property value, or to adjust the rate of change of a property value or in response to some event (e.g. a satellite component may be created in response to a node merging with a larger node). Requests for property values frequently \emph{do not} require that the component exist, as a zero value can often be returned instead\footnote{Or some other value if a \source{classDefault} has been specified (see \S\ref{sec:ComponentImplement}).}.
+When a node is created, it initially contains no components. A component must therefore create itself on the fly as needed. Typically, a component is first created when an attempt is made to set a property value, or to adjust the rate of change of a property value or in response to some event (e.g. a satellite component may be created in response to a node merging with a larger node). Requests for property values frequently \emph{do not} require that the component exist, as a zero value can often be returned instead\footnote{Or some other value if a \mono{classDefault} has been specified (see \S\ref{sec:ComponentImplement}).}.
 
 To access a component from a node, use:
 \begin{verbatim}
  myComponent => thisNode%<class>([instance=<N>,autoCreate=<create>])
 \end{verbatim}
-where \source{class} is the component class required, the optional \source{instance} argument requests a specific instance of the component (relevant if the node contains more than one of a particular component, e.g. if it contains two supermassive black holes for example; if no \source{instance} is specified the first instance will be returned), and the \source{autoCreate} option specifies whether or not the component should be automatically created (assuming it does not already exist). \source{autoCreate}$=$\source{true} should be used to create components initially.
+where \mono{class} is the component class required, the optional \mono{instance} argument requests a specific instance of the component (relevant if the node contains more than one of a particular component, e.g. if it contains two supermassive black holes for example; if no \mono{instance} is specified the first instance will be returned), and the \mono{autoCreate} option specifies whether or not the component should be automatically created (assuming it does not already exist). \mono{autoCreate}$=$\mono{true} should be used to create components initially.
 
 A component of a node can be destroyed using:
 \begin{verbatim}
@@ -213,7 +213,7 @@ call thisNode%<class>Destroy()
 
 \subsubsection{Component Implementations}\label{sec:ComponentMethods}\index{components!implementations}
 
-Component implementations optionally provide functions to get and set their properties (and to set the rate of change of evolvable properties) so that other components and functions within \glc\ to can interact with them in a way that is independent of the specific component implementation chosen. To permit this, \glc\ creates functions for each property to access it in all permitted ways. For example, the \source{exponential} implementation of the \source{disk} component class has a ``\source{massStellar}'' property defined by:
+Component implementations optionally provide functions to get and set their properties (and to set the rate of change of evolvable properties) so that other components and functions within \glc\ to can interact with them in a way that is independent of the specific component implementation chosen. To permit this, \glc\ creates functions for each property to access it in all permitted ways. For example, the \mono{exponential} implementation of the \mono{disk} component class has a ``\mono{massStellar}'' property defined by:
 \begin{verbatim}
  <method>
    <name>massStellar</name>
@@ -222,20 +222,20 @@ Component implementations optionally provide functions to get and set their prop
    <attributes isSettable="true" isGettable="true" isEvolvable="true" />
  </method>
 \end{verbatim}
-This causes \glc\ to define several functions bound to the \source{nodeComponentDisk} class:
+This causes \glc\ to define several functions bound to the \mono{nodeComponentDisk} class:
 \begin{description}
-\item [\source{massStellarIsSettable}] Returns \source{true} if this property is settable;
-\item [\source{massStellarIsGettable}] Returns \source{true} if this property is gettable;
-\item [\source{massStellarSet}] Sets the value of this property to the supplied argument;
-\item [\source{massStellarGet}] Gets the value of this property;
-\item [\source{massStellarRate}] Cumulates its argument to the rate of change of this property;
-\item [\source{massStellarScale}] Sets the absolute scale for this property used in ODE error control;
+\item [\mono{massStellarIsSettable}] Returns \mono{true} if this property is settable;
+\item [\mono{massStellarIsGettable}] Returns \mono{true} if this property is gettable;
+\item [\mono{massStellarSet}] Sets the value of this property to the supplied argument;
+\item [\mono{massStellarGet}] Gets the value of this property;
+\item [\mono{massStellarRate}] Cumulates its argument to the rate of change of this property;
+\item [\mono{massStellarScale}] Sets the absolute scale for this property used in ODE error control;
 \end{description}
 along with several others used internally for output, serialization etc.
 
 \subsubsection{Component Evolution}\label{sec:ComponentEvolution}\index{evolution}\index{components!evolution}
 
-All component properties which have an \source{isEvolvable} attribute set to \source{true} are included in \glc's ODE solver as the node is evolved forward in time. As described in \S\ref{sec:ComponentMethods}, \glc\ will create two functions that permit the rate of change of a property adjusted and for the absolute scale used in ODE error control to be set.
+All component properties which have an \mono{isEvolvable} attribute set to \mono{true} are included in \glc's ODE solver as the node is evolved forward in time. As described in \S\ref{sec:ComponentMethods}, \glc\ will create two functions that permit the rate of change of a property adjusted and for the absolute scale used in ODE error control to be set.
 
 A ``rate compute'' function should be defined to perform any calculations necessary to determine the rate of change of the property and adjust the rate appropriately. Below is an example of the rate compute subroutine for the stellar mass property of the exponential disk component, with only the basic structure shown:
 \begin{lstlisting}[escapechar=@,breaklines,prebreak=\&,postbreak=\&]
@@ -262,13 +262,13 @@ A ``rate compute'' function should be defined to perform any calculations necess
     return
   end subroutine Node_Component_Disk_Exponential_Rate_Compute
 \end{lstlisting}
-Here, we get the disk component and check that it of the \source{exponential} variety. If it is, we compute the rates of change for one or more properties and then adjust their rates appropriately. If multiple instances of a component are used then the rate compute function should loop over all instances and adjust rates appropriately. The \source{propertyType} argument will be set either to \source{propertyTypeActive} or \source{propertyTypeInactive}, and indicates if rates should be computed for active or inactive variables. (Rates for active variables can be computed and set even if inactive variables are requested, and vice versa. They will simply be ignored, and so this merely wastes compute time.) The \source{odeConverged} variable indicates if the ODE solver has reached convergence---in some instances it is useful to trigger interrupts only once convergence is reached. If an interrupt occurs, \source{interrupt} should be set to \source{true}, and \source{interruptProcedure} should be set to point to the function to call on interrupt.
+Here, we get the disk component and check that it of the \mono{exponential} variety. If it is, we compute the rates of change for one or more properties and then adjust their rates appropriately. If multiple instances of a component are used then the rate compute function should loop over all instances and adjust rates appropriately. The \mono{propertyType} argument will be set either to \mono{propertyTypeActive} or \mono{propertyTypeInactive}, and indicates if rates should be computed for active or inactive variables. (Rates for active variables can be computed and set even if inactive variables are requested, and vice versa. They will simply be ignored, and so this merely wastes compute time.) The \mono{odeConverged} variable indicates if the ODE solver has reached convergence---in some instances it is useful to trigger interrupts only once convergence is reached. If an interrupt occurs, \mono{interrupt} should be set to \mono{true}, and \mono{interruptProcedure} should be set to point to the function to call on interrupt.
 
 When evolving ODEs the ODE solver aims to keep the error on property $i$ below
 \begin{equation}
  D_i = \epsilon_\mathrm{abs} s_i + \epsilon_\mathrm{rel} |y_i|,
 \end{equation}
-where $epsilon_\mathrm{abs}=$\source{[odeToleranceAbsolute]}, $epsilon_\mathrm{rel}=$\source{[odeToleranceRelative]}, $y_i$ is the value of property $i$ and $s_i$ is a scaling factor which controls the absolute tolerance for this property. By default, $s_i=1$, but this can be changed for a component utilizing the \source{scaleSetTask} directive. This allows a function to be called in which the component sets suitable scale factors for each of its properties prior to any ODE evolution being carried out. This can be very useful, for example, in cases where two components are coupled. Consider a case where a disk is transferring material to a spheroid via a bar instability. If the disk is orders of magnitude more massive that the spheroid then the rate of mass transfer can be very high (i.e. $\dot{y}/y$ for the spheroid will be large). With just a relative tolerance (i.e. the $\epsilon_\mathrm{rel} |y_i|$ term) this would require very short timesteps for the spheroid. However, in such cases we don't care about such tiny tolerances for the spheroid (since it will grow to be substantially more massive). Therefore, it may be appropriate to set $s_i$ to be equal to the sum of the disk and spheroid properties for example. The scale set directive and associated subroutine should follow this template:
+where $epsilon_\mathrm{abs}=$\mono{[odeToleranceAbsolute]}, $epsilon_\mathrm{rel}=$\mono{[odeToleranceRelative]}, $y_i$ is the value of property $i$ and $s_i$ is a scaling factor which controls the absolute tolerance for this property. By default, $s_i=1$, but this can be changed for a component utilizing the \mono{scaleSetTask} directive. This allows a function to be called in which the component sets suitable scale factors for each of its properties prior to any ODE evolution being carried out. This can be very useful, for example, in cases where two components are coupled. Consider a case where a disk is transferring material to a spheroid via a bar instability. If the disk is orders of magnitude more massive that the spheroid then the rate of mass transfer can be very high (i.e. $\dot{y}/y$ for the spheroid will be large). With just a relative tolerance (i.e. the $\epsilon_\mathrm{rel} |y_i|$ term) this would require very short timesteps for the spheroid. However, in such cases we don't care about such tiny tolerances for the spheroid (since it will grow to be substantially more massive). Therefore, it may be appropriate to set $s_i$ to be equal to the sum of the disk and spheroid properties for example. The scale set directive and associated subroutine should follow this template:
 \begin{verbatim}
   !# <scaleSetTask>
   !#  <unitName>Node_Component_Disk_Exponential_Scale_Set</unitName>
@@ -294,7 +294,7 @@ Sensible choices for the $s_i$ factors can significantly speed-up execution of \
 
 \subsubsection{Evolution Interrupts}\index{interrupts}\index{evolution!interrupt}
 
-It is often necessary to interrupt the smooth ODE evolution of a node in \glc. This can happen if, for example, a galaxy mergers with another galaxy (in which case the merger must be processed prior to further evolution) or if a component must be created before evolution can continue. The rate adjust and rate compute subroutines allow for interrupts to be flagged via their \source{interrupt} and \source{interruptProcedure} arguments. If an interrupt is required then \source{interrupt} should be set to true, while \source{interruptProcedure} should be set to point to a procedure which will handle the interrupt. Then, providing no other interrupt occurred earlier, the evolution will be stopped and the interrupt procedure called before evolution is continued.
+It is often necessary to interrupt the smooth ODE evolution of a node in \glc. This can happen if, for example, a galaxy mergers with another galaxy (in which case the merger must be processed prior to further evolution) or if a component must be created before evolution can continue. The rate adjust and rate compute subroutines allow for interrupts to be flagged via their \mono{interrupt} and \mono{interruptProcedure} arguments. If an interrupt is required then \mono{interrupt} should be set to true, while \mono{interruptProcedure} should be set to point to a procedure which will handle the interrupt. Then, providing no other interrupt occurred earlier, the evolution will be stopped and the interrupt procedure called before evolution is continued.
 
 An interrupt procedure should have the form:
 \begin{lstlisting}[escapechar=@,breaklines,prebreak=\&,postbreak=\&]
@@ -312,13 +312,13 @@ An interrupt procedure should have the form:
 
 \subsection{Function Classes}
 
-Functions implement basic calculations (e.g. computing the power spectrum). Additional implementations of a \source{functionClass} are added using the a directive with the name of that \source{functionClass}. The implementation should be placed in a file containing the directive. For example, for the \source{mergerTreeTimestep} \source{functionClass} the file must containing a directive of the form
+Functions implement basic calculations (e.g. computing the power spectrum). Additional implementations of a \mono{functionClass} are added using the a directive with the name of that \mono{functionClass}. The implementation should be placed in a file containing the directive. For example, for the \mono{mergerTreeTimestep} \mono{functionClass} the file must containing a directive of the form
 \begin{verbatim}
 !# <mergerTreeTimestep name="mergerTreeTimestepMyImplementation">
 !# <description>A short description of the implementation.</description>
 !# </mergerTreeTimestep>
 \end{verbatim}
-where \source{MyImplementation} is an appropriate name for the implementation. This file should be treated as a regular Fortran submodule, but without the initial \source{submodule} and final \source{end submodule} lines. That is, it may contain \source{use} statements and variable declarations prior to the \source{contains} line, and should contain all functions required by the implementation after that line. It is standard, but not required, that function names should be prefixed with the name of the implementation (e.g. ``\source{MyImplementation}'' in the above example). The file \emph{must} define a type that extends the named \source{functionClass} class (or extends another type which is itself an extension of the named \source{functionClass} class), containing any data needed by the implementation along with type-bound functions required by the implementation.
+where \mono{MyImplementation} is an appropriate name for the implementation. This file should be treated as a regular Fortran submodule, but without the initial \mono{submodule} and final \mono{end submodule} lines. That is, it may contain \mono{use} statements and variable declarations prior to the \mono{contains} line, and should contain all functions required by the implementation after that line. It is standard, but not required, that function names should be prefixed with the name of the implementation (e.g. ``\mono{MyImplementation}'' in the above example). The file \emph{must} define a type that extends the named \mono{functionClass} class (or extends another type which is itself an extension of the named \mono{functionClass} class), containing any data needed by the implementation along with type-bound functions required by the implementation.
 
 \subsection{Events}
 
@@ -326,13 +326,13 @@ Events are triggered during merger tree evolution. Examples are when a node need
 
 \subsubsection{Node Promotion Events}
 
-Additional methods for node promotion (i.e. when a primary progenitor reaches its parent halo) can be added using the \source{nodePromotionTask} directive. The directive should contain a single argument, giving the name of a subroutine to be called to initialize the method. For example, the \source{basic} tree node method uses this directive as follows:
+Additional methods for node promotion (i.e. when a primary progenitor reaches its parent halo) can be added using the \mono{nodePromotionTask} directive. The directive should contain a single argument, giving the name of a subroutine to be called to initialize the method. For example, the \mono{basic} tree node method uses this directive as follows:
 \begin{verbatim}
   !# <nodePromotionTask>
   !#  <unitName>Tree_Node_Basic_Promote</unitName>
   !# </nodePromotionTask>
 \end{verbatim}
-Here, \source{Tree\_Node\_Basic\_Promote} is the name of a subroutine which will be called to perform whatever tasks are required prior to the promotion. The subroutine must have the following form:
+Here, \mono{Tree\_Node\_Basic\_Promote} is the name of a subroutine which will be called to perform whatever tasks are required prior to the promotion. The subroutine must have the following form:
 \begin{verbatim}
    subroutine Node_Promotion_Task(thisNode)
     implicit none
@@ -343,7 +343,7 @@ Here, \source{Tree\_Node\_Basic\_Promote} is the name of a subroutine which will
     return
   end subroutine Node_Promotion_Task
 \end{verbatim}
-where \source{thisNode} is the node about to be promoted.
+where \mono{thisNode} is the node about to be promoted.
 
 \subsection{Tasks}
 
@@ -355,25 +355,25 @@ Tasks are any processing which must be performed on a node as a result of some s
 
 \subsection{Simple Disk Satellites}
 
-This solver, which can be activated by setting \source{[diskVerySimpleUseAnalyticSolver]}$=$\source{true} is applicable to satellite systems in the very simple disk component. In particular, the following conditions must be met for it to be valid:
+This solver, which can be activated by setting \mono{[diskVerySimpleUseAnalyticSolver]}$=$\mono{true} is applicable to satellite systems in the very simple disk component. In particular, the following conditions must be met for it to be valid:
 \begin{itemize}
-\item The hot halo component must be of type \source{verySimple} or \source{verySimpleDelayed};
-\item The satellite component must be of type \source{verySimple};
-\item The disk component must be of type \source{verySimple};
-\item Properties of all other components must not change for satellite galaxies (with the exception of the \source{time} property of the basic component), or else the component must be \source{null};
+\item The hot halo component must be of type \mono{verySimple} or \mono{verySimpleDelayed};
+\item The satellite component must be of type \mono{verySimple};
+\item The disk component must be of type \mono{verySimple};
+\item Properties of all other components must not change for satellite galaxies (with the exception of the \mono{time} property of the basic component), or else the component must be \mono{null};
   \item Disk star formation and outflow rates must scale as $M_\mathrm{gas}/\tau$ where $M_\mathrm{gas}$ is the instantaneous mass of gas in the galaxy disk, and $\tau$ is a fixed timescale for any given satellite galaxy.
 \end{itemize}
 Under these conditions, the flow of mass between gas, stellar, and outflowed phases is analytically solvable.
 
 \subsubsection{Calculation Reset Tasks}\label{sec:CalculationResetTask}
 
-Additional methods for calculation reset tasks (i.e. flagging that the properties of a node may have changed so that any calculations must be performed anew) can be added using the \source{calculationResetTask} directive. The directive should contain a single argument, giving the name of a subroutine to be called to perform the task. For example, the standard hot halo component adds a task as follows:
+Additional methods for calculation reset tasks (i.e. flagging that the properties of a node may have changed so that any calculations must be performed anew) can be added using the \mono{calculationResetTask} directive. The directive should contain a single argument, giving the name of a subroutine to be called to perform the task. For example, the standard hot halo component adds a task as follows:
 \begin{verbatim}
   !# <calculationResetTask>
   !#  <unitName>Tree_Node_Hot_Halo_Reset_Standard</unitName>
   !# </calculationResetTask>
 \end{verbatim}
-Here, \source{Tree\_Node\_Hot\_Halo\_Reset\_Standard} is the name of a subroutine which will be called to perform whatever tasks are required. The subroutine must have the following form:
+Here, \mono{Tree\_Node\_Hot\_Halo\_Reset\_Standard} is the name of a subroutine which will be called to perform whatever tasks are required. The subroutine must have the following form:
 \begin{verbatim}
    subroutine Reset_Task(thisNode)
     implicit none
@@ -384,17 +384,17 @@ Here, \source{Tree\_Node\_Hot\_Halo\_Reset\_Standard} is the name of a subroutin
     return
   end subroutine Prederivative_Task
 \end{verbatim}
-where \source{thisNode} is the node for which derivatives will be computed. Tasks typically involve precomputing quantities that will be used in finding the derivatives or resetting the state so that stored quantities will be recomputed as needed.
+where \mono{thisNode} is the node for which derivatives will be computed. Tasks typically involve precomputing quantities that will be used in finding the derivatives or resetting the state so that stored quantities will be recomputed as needed.
 
 \subsubsection{Galactic Component Density}\label{sec:GalacticComponentDensity}
 
-The function \source{Galactic\_Structure\_Density()} computes the density of material at a given position within a node. To have their density counted, each component must register a task using:
+The function \mono{Galactic\_Structure\_Density()} computes the density of material at a given position within a node. To have their density counted, each component must register a task using:
 \begin{verbatim}
  !# <densityTask>
  !#  <unitName>Density_Procedure</unitName>
  !# </densityTask>
 \end{verbatim}
-where \source{Density\_Procedure} is the name of a function with the following template
+where \mono{Density\_Procedure} is the name of a function with the following template
 \begin{verbatim}
  double precision function Density_Procedure(thisNode,position,coordinateSystem,componentType,massType,weightBy,weightIndex)
     type(treeNode),   intent(inout), pointer  :: thisNode
@@ -406,21 +406,21 @@ where \source{Density\_Procedure} is the name of a function with the following t
     return
  end function Density_Procedure
 \end{verbatim}
-If \source{componentType} is a match to the component then the function should return the density of the component matching type \source{massType} at \source{position} for \source{thisNode}. \source{componentType} and \source{massType} can take one of the values described in \S\ref{sec:ComponentMassTypes}. In the above ``density'' can actually refer to different quantities depending on the values of \source{weightBy} (and \source{weightIndex}):
+If \mono{componentType} is a match to the component then the function should return the density of the component matching type \mono{massType} at \mono{position} for \mono{thisNode}. \mono{componentType} and \mono{massType} can take one of the values described in \S\ref{sec:ComponentMassTypes}. In the above ``density'' can actually refer to different quantities depending on the values of \mono{weightBy} (and \mono{weightIndex}):
 \begin{description}
-\item [\source{weightByMass}] The actual mass should be returned (the value of \source{weightIndex} is irrelevant);
-\item [\source{weightByLuminosity}] The \source{weightIndex}$^\mathrm{th}$ luminosity should be returned.
+\item [\mono{weightByMass}] The actual mass should be returned (the value of \mono{weightIndex} is irrelevant);
+\item [\mono{weightByLuminosity}] The \mono{weightIndex}$^\mathrm{th}$ luminosity should be returned.
 \end{description}
 
 \subsubsection{Galactic Component Enclosed Mass}
 
-The function \source{Galactic\_Structure\_Enclosed\_Mass()} computes the mass within a specified radius in a node. To have their mass counted, each component must register a task using:
+The function \mono{Galactic\_Structure\_Enclosed\_Mass()} computes the mass within a specified radius in a node. To have their mass counted, each component must register a task using:
 \begin{verbatim}
  !# <enclosedMassTask>
  !#  <unitName>Enclosed_Mass_Procedure</unitName>
  !# </enclosedMassTask>
 \end{verbatim}
-where \source{Enclosed\_Mass\_Procedure} is the name of a function with the following template
+where \mono{Enclosed\_Mass\_Procedure} is the name of a function with the following template
 \begin{verbatim}
  double precision function Enclosed_Mass_Procedure(thisNode,radius,componentType,massType,weightBy,weightIndex)
     type(treeNode),   intent(inout), pointer  :: thisNode
@@ -432,22 +432,22 @@ where \source{Enclosed\_Mass\_Procedure} is the name of a function with the foll
     return
  end function Enclosed_Mass_Procedure
 \end{verbatim}
-If \source{componentType} is a match to the component then the function should return the ``mass'' of the component matching type \source{massType} within \source{radius} for \source{thisNode}.  \source{componentType} and \source{massType} can take one of the values described in \S\ref{sec:ComponentMassTypes}.
-If \source{radius} is equal to or greater than \source{radiusLarge} the routine should the total ``mass'' (i.e. ``mass'' within infinite radius). In the above ``mass'' can actually refer to different quantities depending on the values of \source{weightBy} (and \source{weightIndex}):
+If \mono{componentType} is a match to the component then the function should return the ``mass'' of the component matching type \mono{massType} within \mono{radius} for \mono{thisNode}.  \mono{componentType} and \mono{massType} can take one of the values described in \S\ref{sec:ComponentMassTypes}.
+If \mono{radius} is equal to or greater than \mono{radiusLarge} the routine should the total ``mass'' (i.e. ``mass'' within infinite radius). In the above ``mass'' can actually refer to different quantities depending on the values of \mono{weightBy} (and \mono{weightIndex}):
 \begin{description}
-\item [\source{weightByMass}] The actual mass should be returned (the value of \source{weightIndex} is irrelevant);
-\item [\source{weightByLuminosity}] The \source{weightIndex}$^\mathrm{th}$ luminosity should be returned.
+\item [\mono{weightByMass}] The actual mass should be returned (the value of \mono{weightIndex} is irrelevant);
+\item [\mono{weightByLuminosity}] The \mono{weightIndex}$^\mathrm{th}$ luminosity should be returned.
 \end{description}
 
 \subsubsection{Galactic Component Rotation Curve}
 
-The function \source{Galactic\_Structure\_Rotation\_Curve()} computes the rotation curve at a specified radius in a node. To have their contribution counted, each component must register a task using:
+The function \mono{Galactic\_Structure\_Rotation\_Curve()} computes the rotation curve at a specified radius in a node. To have their contribution counted, each component must register a task using:
 \begin{verbatim}
  !# <rotationCurveTask>
  !#  <unitName>Rotation_Curve_Procedure</unitName>
  !# </rotationCurveTask>
 \end{verbatim}
-where \source{Rotation\_Curve\_Procedure} is the name of a function with the following template
+where \mono{Rotation\_Curve\_Procedure} is the name of a function with the following template
 \begin{verbatim}
  double precision function Rotation_Curve_Procedure(thisNode,radius,componentType,massType)
     type(treeNode),   intent(inout), pointer  :: thisNode
@@ -459,17 +459,17 @@ where \source{Rotation\_Curve\_Procedure} is the name of a function with the fol
     return
  end function Rotation_Curve_Procedure
 \end{verbatim}
-If \source{componentType} is a match to the component then the procedure should return the contribution to the rotation curve due to the component matching type \source{massType} within \source{radius} for \source{thisNode}. \source{componentType} and \source{massType} can take one of the values described in \S\ref{sec:ComponentMassTypes}.
+If \mono{componentType} is a match to the component then the procedure should return the contribution to the rotation curve due to the component matching type \mono{massType} within \mono{radius} for \mono{thisNode}. \mono{componentType} and \mono{massType} can take one of the values described in \S\ref{sec:ComponentMassTypes}.
 
 \subsubsection{Galactic Component Rotation Curve Gradient}
 
-The function \source{Galactic\_Structure\_Rotation\_Curve\_Gradient()} computes the gradient of the rotation curve at a specified radius in a node. To have their contribution counted, each component must register a task using:
+The function \mono{Galactic\_Structure\_Rotation\_Curve\_Gradient()} computes the gradient of the rotation curve at a specified radius in a node. To have their contribution counted, each component must register a task using:
 \begin{verbatim}
  !# <rotationCurveGradientTask>
  !#  <unitName>Rotation_Curve_Gradient_Procedure</unitName>
  !# </rotationCurveGradientTask>
 \end{verbatim}
-where \source{Rotation\_Curve\_Gradient\_Procedure} is the name of a function with the following template
+where \mono{Rotation\_Curve\_Gradient\_Procedure} is the name of a function with the following template
 \begin{verbatim}
  double precision function Rotation_Curve_Gradient_Procedure(thisNode,radius,componentType,massType)
     type(treeNode),   intent(inout), pointer  :: thisNode
@@ -481,17 +481,17 @@ where \source{Rotation\_Curve\_Gradient\_Procedure} is the name of a function wi
     return
  end function Rotation_Curve_Gradient_Procedure
 \end{verbatim}
-If \source{componentType} is a match to the component then the function should return the contribution to the gradient of $V_\mathrm{c}^2(r)$ due to the component matching type \source{massType} within \source{radius} for \source{thisNode}. \emph{Note that this is the gradient of the square of the rotation curve to permit gradients to be directly summed.} \source{componentType} and \source{massType} can take one of the values described in \S\ref{sec:ComponentMassTypes}.
+If \mono{componentType} is a match to the component then the function should return the contribution to the gradient of $V_\mathrm{c}^2(r)$ due to the component matching type \mono{massType} within \mono{radius} for \mono{thisNode}. \emph{Note that this is the gradient of the square of the rotation curve to permit gradients to be directly summed.} \mono{componentType} and \mono{massType} can take one of the values described in \S\ref{sec:ComponentMassTypes}.
 
 \subsubsection{Galactic Component Potential}
 
-The function \source{Galactic\_Structure\_Potential()} computes the potential at a specified radius in a node. To have their contribution counted, each component must register a task using:
+The function \mono{Galactic\_Structure\_Potential()} computes the potential at a specified radius in a node. To have their contribution counted, each component must register a task using:
 \begin{verbatim}
   !# <potentialTask>
   !#  <unitName>Potential_Task</unitName>
   !# </potentialTask>
 \end{verbatim}
-where \source{Potential\_Task} is the name of a function with the following template
+where \mono{Potential\_Task} is the name of a function with the following template
 \begin{verbatim}
  double precision function Potential_Procedure(thisNode,radius,componentType,massType)
     type(treeNode),   intent(inout), pointer   :: thisNode
@@ -502,17 +502,17 @@ where \source{Potential\_Task} is the name of a function with the following temp
     return
  end function Potential_Procedure
 \end{verbatim}
-If \source{componentType} is a match to the component then the procedure should return the contribution to the rotation curve due to the component matching type \source{massType} within \source{radius} for \source{thisNode}. \source{componentType} and \source{massType} can take one of the values described in \S\ref{sec:ComponentMassTypes}.
+If \mono{componentType} is a match to the component then the procedure should return the contribution to the rotation curve due to the component matching type \mono{massType} within \mono{radius} for \mono{thisNode}. \mono{componentType} and \mono{massType} can take one of the values described in \S\ref{sec:ComponentMassTypes}.
 
 \subsubsection{Galactic Component Surface Density}
 
-The function \source{Galactic\_Structure\_Surface\_Density()} computes the surface density of material at a given position within a node. Note that while a 3-D position is specified the routine should return the surface density corresponding to integrating the component density through the minor axis (typically the $z$-axis). To have their surface density counted, each component must register a task using:
+The function \mono{Galactic\_Structure\_Surface\_Density()} computes the surface density of material at a given position within a node. Note that while a 3-D position is specified the routine should return the surface density corresponding to integrating the component density through the minor axis (typically the $z$-axis). To have their surface density counted, each component must register a task using:
 \begin{verbatim}
  !# <surfaceDensityTask>
  !#  <unitName>Surface_Density_Procedure</unitName>
  !# </surfaceDensityTask>
 \end{verbatim}
-where \source{Surface\_Density\_Procedure} is the name of a function with the following template
+where \mono{Surface\_Density\_Procedure} is the name of a function with the following template
 \begin{verbatim}
  double precision function Surface_Density_Procedure(thisNode,position,coordinateSystem,componentType,massType)
     type(treeNode),   intent(inout), pointer     :: thisNode
@@ -524,37 +524,37 @@ where \source{Surface\_Density\_Procedure} is the name of a function with the fo
     return
  end function Surface_Density_Procedure
 \end{verbatim}
-If \source{componentType} is a match to the component then the function should return the surface density of the component matching type \source{massType} at \source{position} for \source{thisNode}. \source{componentType} and \source{massType} can take one of the values described in \S\ref{sec:ComponentMassTypes}.
-The coordinate system in which \source{position} is specified is given by \source{coordinateSystem} which can take on the following values:
+If \mono{componentType} is a match to the component then the function should return the surface density of the component matching type \mono{massType} at \mono{position} for \mono{thisNode}. \mono{componentType} and \mono{massType} can take one of the values described in \S\ref{sec:ComponentMassTypes}.
+The coordinate system in which \mono{position} is specified is given by \mono{coordinateSystem} which can take on the following values:
 \begin{description}
- \item [\source{coordinateSystemCartesian}] Cartesian $(x,y,z)$;
- \item [\source{coordinateSystemSpherical}] Spherical $(r,\theta,\phi)$;
- \item [\source{coordinateSystemCylindrical}] Cylindrical $(R,\phi,z)$.
+ \item [\mono{coordinateSystemCartesian}] Cartesian $(x,y,z)$;
+ \item [\mono{coordinateSystemSpherical}] Spherical $(r,\theta,\phi)$;
+ \item [\mono{coordinateSystemCylindrical}] Cylindrical $(R,\phi,z)$.
 \end{description}
 
 \subsubsection{Halo Formation Events}\label{sec:HaloFormationEvents}\hyperdef{sec}{HaloFormationEvents}{}
 
-Tasks to be performed when a halo is deemed to have ``formed'' (or reformed) can be registered using the \source{haloFormationTask} directive. For example, the \source{Tree\_Node\_Methods\_Hot\_Halo} module registers a task using
+Tasks to be performed when a halo is deemed to have ``formed'' (or reformed) can be registered using the \mono{haloFormationTask} directive. For example, the \mono{Tree\_Node\_Methods\_Hot\_Halo} module registers a task using
 \begin{verbatim}
  !# <haloFormationTask>
  !#  <unitName>Hot_Halo_Formation_Task</unitName>
  !# </haloFormationTask>
 \end{verbatim}
-The contents of \source{<unitName>} should give the name of the subroutine to be called on halo formation. The subroutine should have a single argument, \source{thisNode}, which is the node that has (re)formed.
+The contents of \mono{<unitName>} should give the name of the subroutine to be called on halo formation. The subroutine should have a single argument, \mono{thisNode}, which is the node that has (re)formed.
 
 \subsubsection{HDF5 File Close}\label{sec:HDFFileClose}
 
-Tasks to be performed just prior to closing the \glc\ output HDF5 file (typically involving writing accumulated data to that file) can be registered using the \source{hdfPreCloseTask} directive. For example, the \source{Merger\_Tree\_Timesteps\_History} module registers a task using
+Tasks to be performed just prior to closing the \glc\ output HDF5 file (typically involving writing accumulated data to that file) can be registered using the \mono{hdfPreCloseTask} directive. For example, the \mono{Merger\_Tree\_Timesteps\_History} module registers a task using
 \begin{verbatim}
  !# <hdfPreCloseTask>
  !#  <unitName>Merger_Tree_History_Write</unitName>
  !# </hdfPreCloseTask>
 \end{verbatim}
-The contents of \source{<unitName>} should give the name of the subroutine to be called prior to HDF5 file closure. The subroutine should have no arguments.
+The contents of \mono{<unitName>} should give the name of the subroutine to be called prior to HDF5 file closure. The subroutine should have no arguments.
 
 \subsubsection{Merger Tree Extra Output Tasks}
 
-Extra outputs for merger trees (i.e. those which do not involve output of a fixed number of properties for every node---examples might be star formation histories for a subset of galaxies) can be added using the directive: \source{mergerTreeExtraOutputTask}. The directive should give the name of the subroutine to be called to perform the task. A template for this task is:
+Extra outputs for merger trees (i.e. those which do not involve output of a fixed number of properties for every node---examples might be star formation histories for a subset of galaxies) can be added using the directive: \mono{mergerTreeExtraOutputTask}. The directive should give the name of the subroutine to be called to perform the task. A template for this task is:
 \begin{verbatim}
   !# <mergerTreeExtraOutputTask>
   !#  <unitName>Galacticus_Extra_Output_Example</unitName>
@@ -571,11 +571,11 @@ Extra outputs for merger trees (i.e. those which do not involve output of a fixe
     return
   end subroutine Galacticus_Extra_Output_Example
 \end{verbatim}
-The subroutine will be called for each node in each merger tree at each output, and should perform whatever extra output related to \source{thisNode}. The index of the output and tree are provided as \source{iOutput} and \source{treeIndex} for reference, and may be used in organizing output. The \source{nodePassesFilter} flag will be set to \source{true} if \source{thisNode} passed all active output filters (see \refPhysics{galacticFilter}). If it is \source{false} then typically no output should occur (although other tasks may still be undertaken).
+The subroutine will be called for each node in each merger tree at each output, and should perform whatever extra output related to \mono{thisNode}. The index of the output and tree are provided as \mono{iOutput} and \mono{treeIndex} for reference, and may be used in organizing output. The \mono{nodePassesFilter} flag will be set to \mono{true} if \mono{thisNode} passed all active output filters (see \refPhysics{galacticFilter}). If it is \mono{false} then typically no output should occur (although other tasks may still be undertaken).
 
 \subsubsection{Merger Tree Output Tasks}
 
-Additional outputs for merger trees can be added using three directives: \source{mergerTreeOutputPropertyCount}, \source{mergerTreeOutputNames} and \source{mergerTreeOutputTask}. Each directive should give the name of the subroutine to be called to perform the task and, additionally, a name for sorting (this should be the same for all three directives and ensures that output tasks are always called in the correct order). Templates for these tasks are:
+Additional outputs for merger trees can be added using three directives: \mono{mergerTreeOutputPropertyCount}, \mono{mergerTreeOutputNames} and \mono{mergerTreeOutputTask}. Each directive should give the name of the subroutine to be called to perform the task and, additionally, a name for sorting (this should be the same for all three directives and ensures that output tasks are always called in the correct order). Templates for these tasks are:
 \begin{verbatim}
   !# <mergerTreeOutputNames>
   !#  <unitName>Galacticus_Output_Tree_Example_Names</unitName>
@@ -625,18 +625,18 @@ Additional outputs for merger trees can be added using three directives: \source
     return
   end subroutine Galacticus_Output_Tree_Example
 \end{verbatim}
-The \source{mergerTreeOutputPropertyCount} subroutine must simply increment \source{integerPropertyCount} and \source{doublePropertyCount} by the number of integer and double precision properties that will be output respectively. The \source{mergerTreeOutputNames} subroutine must store the dataset names, comments and units in the SI system\footnote{For dimensionless quantities, the units may be set to zero. In such cases, the \source{unitsInSI} attribute for the dataset will not be written to the \protect\glc\ output file.} for each integer and double precision property in the supplied arrays. The value of \source{integerProperty} and \source{doubleProperty} should be incremented by 1 before each property name/comment is set---these then supply the position within the input arrays in which to store the name. The \source{mergerTreeOutputTask} subroutine must similarly place the desired property values for \source{thisNode} into the supplied arrays. The value of \source{integerProperty} and \source{doubleProperty} should be incremented by 1 
-before each property value is set. The value can then be stored in, for example, \source{integerBuffer(integerBufferCount,integerProperty)}.
+The \mono{mergerTreeOutputPropertyCount} subroutine must simply increment \mono{integerPropertyCount} and \mono{doublePropertyCount} by the number of integer and double precision properties that will be output respectively. The \mono{mergerTreeOutputNames} subroutine must store the dataset names, comments and units in the SI system\footnote{For dimensionless quantities, the units may be set to zero. In such cases, the \mono{unitsInSI} attribute for the dataset will not be written to the \protect\glc\ output file.} for each integer and double precision property in the supplied arrays. The value of \mono{integerProperty} and \mono{doubleProperty} should be incremented by 1 before each property name/comment is set---these then supply the position within the input arrays in which to store the name. The \mono{mergerTreeOutputTask} subroutine must similarly place the desired property values for \mono{thisNode} into the supplied arrays. The value of \mono{integerProperty} and \mono{doubleProperty} should be incremented by 1 
+before each property value is set. The value can then be stored in, for example, \mono{integerBuffer(integerBufferCount,integerProperty)}.
 
 \subsubsection{Merger Tree Initialization Tasks}
 
-Additional tasks to be performed during merger tree initialization can be added using the \source{mergerTreeInitializeTask} directive. The directive should contain a single argument, giving the name of a subroutine to be called to initialize the method. For example, the \source{standard} basic component method uses this directive as follows:
+Additional tasks to be performed during merger tree initialization can be added using the \mono{mergerTreeInitializeTask} directive. The directive should contain a single argument, giving the name of a subroutine to be called to initialize the method. For example, the \mono{standard} basic component method uses this directive as follows:
 \begin{verbatim}
   !# <mergerTreeInitializeTask>
   !#  <unitName>Halo_Mass_Accretion_Rate</unitName>
   !# </mergerTreeInitializeTask>
 \end{verbatim}
-Here, \source{Halo\_Mass\_Accretion\_Rate} is the name of a subroutine which will be called to perform whatever tasks are required as a result of the merger. The subroutine must have the following form:
+Here, \mono{Halo\_Mass\_Accretion\_Rate} is the name of a subroutine which will be called to perform whatever tasks are required as a result of the merger. The subroutine must have the following form:
 \begin{verbatim}
    subroutine Merger_Tree_Initialize_Task(thisNode)
     implicit none
@@ -647,17 +647,17 @@ Here, \source{Halo\_Mass\_Accretion\_Rate} is the name of a subroutine which wil
     return
   end subroutine Merger_Tree_Initialize_Task
 \end{verbatim}
-where \source{thisNode} is the node to be initialized. The subroutine will be called once for each node in the tree.
+where \mono{thisNode} is the node to be initialized. The subroutine will be called once for each node in the tree.
 
 \subsubsection{Post-step Tasks}\index{post-step task}\index{task, post-step}
 
-Additional methods for post-step tasks (i.e. things that should be done after each ODE solver step when evolving a node differentially) can be added using the \source{postStepTask} directive. The directive should contain a single argument, giving the name of a subroutine to be called to perform the task. For example, the standard hot halo component adds a task as follows:
+Additional methods for post-step tasks (i.e. things that should be done after each ODE solver step when evolving a node differentially) can be added using the \mono{postStepTask} directive. The directive should contain a single argument, giving the name of a subroutine to be called to perform the task. For example, the standard hot halo component adds a task as follows:
 \begin{verbatim}
   !# <postStepTask>
   !#  <unitName>Tree_Node_Hot_Halo_Poststep_Standard</unitName>
   !# </postStepTask>
 \end{verbatim}
-Here, \source{Tree\_Node\_Hot\_Halo\_Poststep\_Standard} is the name of a subroutine which will be called to perform whatever tasks are required. The subroutine must have the following form:
+Here, \mono{Tree\_Node\_Hot\_Halo\_Poststep\_Standard} is the name of a subroutine which will be called to perform whatever tasks are required. The subroutine must have the following form:
 \begin{verbatim}
    subroutine Post_Step_Task(node,status)
     implicit none
@@ -669,7 +669,7 @@ Here, \source{Tree\_Node\_Hot\_Halo\_Poststep\_Standard} is the name of a subrou
     return
   end subroutine Post_Step_Task
 \end{verbatim}
-where \source{node} is the node for which tasks should be performed. If any change is made to the state of the node then \source{status} should be set equal to \source{GSL\_Failure}. Tasks typically involve cleaning up after differential evolution.
+where \mono{node} is the node for which tasks should be performed. If any change is made to the state of the node then \mono{status} should be set equal to \mono{GSL\_Failure}. Tasks typically involve cleaning up after differential evolution.
 
 \subsubsection{Radius Solver Tasks}\label{sec:radius_solver}
 
@@ -678,7 +678,7 @@ Galactic radii solver functions (see \refPhysics{galacticStructureSolver}) need 
  \item Determine which components want a radius to be solved for;
  \item Get and set the properties of those components.
 \end{enumerate}
-The  \source{radiusSolverPlausibility} and \source{radiusSolverTask} directives facilitate this. A component which has a radius to be solved for should include directives of the form:
+The  \mono{radiusSolverPlausibility} and \mono{radiusSolverTask} directives facilitate this. A component which has a radius to be solved for should include directives of the form:
 \begin{verbatim}
  !# <radiusSolverTask>
  !#  <unitName>Component_Radius_Solver_Plausibility</unitName>
@@ -690,7 +690,7 @@ and
  !#  <unitName>Component_Radius_Solver</unitName>
  !# </radiusSolverTask>
 \end{verbatim}
-where \source{Component\_Radius\_Solver\_Plausibility} is the name of a subroutine which will specify whether or not the component is physically plausible for radius solving (e.g. has non-negative mass) and should have the following form:
+where \mono{Component\_Radius\_Solver\_Plausibility} is the name of a subroutine which will specify whether or not the component is physically plausible for radius solving (e.g. has non-negative mass) and should have the following form:
 \begin{verbatim}
  subroutine Component_Radius_Solver_Plausibility(thisNode,galaxyIsPhysicallyPlausible)
     implicit none
@@ -702,7 +702,7 @@ where \source{Component\_Radius\_Solver\_Plausibility} is the name of a subrouti
     return
  end subroutine Component_Radius_Solver_Plausibility
 \end{verbatim}
-which should set \source{galaxyIsPhysicallyPlausible} to false if the component is not physically plausible, but should otherwise leave \source{galaxyIsPhysicallyPlausible} unchanged. Additionally, \source{Component\_Radius\_Solver} is the name of a subroutine which will supply the necessary information about the node, and which should have the following form:
+which should set \mono{galaxyIsPhysicallyPlausible} to false if the component is not physically plausible, but should otherwise leave \mono{galaxyIsPhysicallyPlausible} unchanged. Additionally, \mono{Component\_Radius\_Solver} is the name of a subroutine which will supply the necessary information about the node, and which should have the following form:
 \begin{verbatim}
  subroutine Component_Radius_Solver(thisNode,componentActive,specificAngularMomentum,Radius_Get,Radius_Set,Velocity_Get,Velocity_Set)
     implicit none
@@ -717,19 +717,19 @@ which should set \source{galaxyIsPhysicallyPlausible} to false if the component 
     return
  end subroutine Component_Radius_Solver
 \end{verbatim}
-When called, the subroutine should set \source{componentActive} to indicate whether or not this nod contains an active component of the type. If it does, it should also set \source{specificAngularMomentum} to reflect the specific angular momentum (in km s$^{-1}$ Mpc) of the component (at whatever point in its profile the radius is required) and should point the four procedure pointers to routines which get and set the radius and circular velocity properties of the component (which should have the standard form for component get and set methods). It is acceptable for the set procedures to point to dummy routines.
+When called, the subroutine should set \mono{componentActive} to indicate whether or not this nod contains an active component of the type. If it does, it should also set \mono{specificAngularMomentum} to reflect the specific angular momentum (in km s$^{-1}$ Mpc) of the component (at whatever point in its profile the radius is required) and should point the four procedure pointers to routines which get and set the radius and circular velocity properties of the component (which should have the standard form for component get and set methods). It is acceptable for the set procedures to point to dummy routines.
 
 The galactic structure radii solver routines will use this information to determine (and set) the radius and circular velocity of the component. An advantage of this approach is that different radii solver methods can all use this same system, ensuring that just a single interface is needed in each component.
 
 \subsubsection{Satellite Host Change Tasks}
 
-Additional methods for satellite host change events (i.e. when a satellite node moves to a new host) can be added using the \source{satelliteHostChangeTask} directive. The directive should contain a single argument, giving the name of a subroutine to be called to initialize the method. For example, the \source{simple} satellite orbits components uses this directive as follows:
+Additional methods for satellite host change events (i.e. when a satellite node moves to a new host) can be added using the \mono{satelliteHostChangeTask} directive. The directive should contain a single argument, giving the name of a subroutine to be called to initialize the method. For example, the \mono{simple} satellite orbits components uses this directive as follows:
 \begin{verbatim}
   !# <satelliteHostChangeTask>
   !#  <unitName>Satellite_Orbit_New_Host</unitName>
   !# </satelliteHostChangeTask>
 \end{verbatim}
-Here, \source{Satellite\_Orbit\_New\_Host} is the name of a subroutine which will be called to perform whatever tasks are required as a result of the host change. The subroutine must have the following form:
+Here, \mono{Satellite\_Orbit\_New\_Host} is the name of a subroutine which will be called to perform whatever tasks are required as a result of the host change. The subroutine must have the following form:
 \begin{verbatim}
    subroutine New_Host_Task(thisNode)
     implicit none
@@ -740,7 +740,7 @@ Here, \source{Satellite\_Orbit\_New\_Host} is the name of a subroutine which wil
     return
   end subroutine New_Host_Task
 \end{verbatim}
-where \source{thisNode} is the node which has changed host (the new host halo is \source{thisNode\%parentNode}).
+where \mono{thisNode} is the node which has changed host (the new host halo is \mono{thisNode\%parentNode}).
 
 \section{Subsystems}
 
@@ -748,12 +748,12 @@ This section describes some of the subsystems within \glc\ that support various 
 
 \subsection{Kepler Orbits}\label{sec:KeplerOrbits}\hyperdef{sec}{KeplerOrbits}{}
 
-The \source{keplerOrbit} object (provided by the \href{https://github.com/galacticusorg/galacticus/releases/download/bleeding-edge/Galacticus_Source.pdf#source.objects_kepler_orbits_F90:kepler_orbits}{\source{Kepler\_Orbits\_Structure}} module) stores the parameters of a single Keplerian orbit. It internally handles computation of additional/alternate orbital parameters once an orbit has been fully defined. Currently, the orientation of orbits (i.e. the unit vector normal to the orbital plane and the argument of periapsis) is not tracked. As such, orbits are fully defined by three parameters (in addition to the masses of the orbiting bodies). The following limitations presently apply to the \source{keplerOrbit} object:
+The \mono{keplerOrbit} object (provided by the \href{https://github.com/galacticusorg/galacticus/releases/download/bleeding-edge/Galacticus_Source.pdf#source.objects_kepler_orbits_F90:kepler_orbits}{\mono{Kepler\_Orbits\_Structure}} module) stores the parameters of a single Keplerian orbit. It internally handles computation of additional/alternate orbital parameters once an orbit has been fully defined. Currently, the orientation of orbits (i.e. the unit vector normal to the orbital plane and the argument of periapsis) is not tracked. As such, orbits are fully defined by three parameters (in addition to the masses of the orbiting bodies). The following limitations presently apply to the \mono{keplerOrbit} object:
 \begin{itemize}
  \item If an orbit is overdefined (i.e. if more than three parameters are set manually) no checking is performed to ensure that the parameters are consistent with a Keplerian orbit;
- \item Not all interconversions between parameters are supported\footnote{The \source{keplerOrbit} object works by trying to convert to the combination radius, radial and tangential velocities. Once these are defined, all other parameters can be computed. However, for orbits defined in terms of other parameters, the \source{keplerOrbit} object does not know how to convert from every such combination of parameters.}. If a conversion cannot be performed, an error message will be given. 
+ \item Not all interconversions between parameters are supported\footnote{The \mono{keplerOrbit} object works by trying to convert to the combination radius, radial and tangential velocities. Once these are defined, all other parameters can be computed. However, for orbits defined in terms of other parameters, the \mono{keplerOrbit} object does not know how to convert from every such combination of parameters.}. If a conversion cannot be performed, an error message will be given. 
 \end{itemize}
-A \source{keplerOrbit} object can be reset by calling the \source{reset()} method, and its defined/undefined status can be tested with the \source{isDefined()} method or asserted with the \source{assertIsDefined()} method. The following orbital parameters are supported, each method returning the value of the parameter and a corresponding method suffixed with \source{Set} can be used to set the parameter: \source{radius}, \source{velocityRadial}, \source{velocityTangential}, \source{energy}, \source{angularMomentum}, \source{eccentricity}, \source{semiMajorAxis}, \source{radiusPericenter}, \source{radiusApocenter}. Additionally, the masses of the orbiting bodies are provided by the \source{hostMass()} and \source{reducedMassSpecific()}$=M_\mathrm{host}/(M_\mathrm{host}+M_\mathrm{satellite})$ methods. Finally, the \source{velocityScale()} method returns $\mathrm{G}M_\mathrm{host}/r$ where $r$ is the radius of the orbit.
+A \mono{keplerOrbit} object can be reset by calling the \mono{reset()} method, and its defined/undefined status can be tested with the \mono{isDefined()} method or asserted with the \mono{assertIsDefined()} method. The following orbital parameters are supported, each method returning the value of the parameter and a corresponding method suffixed with \mono{Set} can be used to set the parameter: \mono{radius}, \mono{velocityRadial}, \mono{velocityTangential}, \mono{energy}, \mono{angularMomentum}, \mono{eccentricity}, \mono{semiMajorAxis}, \mono{radiusPericenter}, \mono{radiusApocenter}. Additionally, the masses of the orbiting bodies are provided by the \mono{hostMass()} and \mono{reducedMassSpecific()}$=M_\mathrm{host}/(M_\mathrm{host}+M_\mathrm{satellite})$ methods. Finally, the \mono{velocityScale()} method returns $\mathrm{G}M_\mathrm{host}/r$ where $r$ is the radius of the orbit.
 
 \subsection{Chemicals}\label{sec:ChemicalSubsystem}
 
@@ -761,7 +761,7 @@ The chemicals subsystem provides both a interface to a database of known chemica
 
 \subsubsection{Chemical Database}
 
-The file \source{data/Chemical\_Database.cml} contains a database of chemicals that can currently be used by \glc. It uses a simplified version of the \href{http://www.xml-cml.org}{Chemical Markup Language} to describe chemicals. An excerpt from the database is shown below:
+The file \mono{data/Chemical\_Database.cml} contains a database of chemicals that can currently be used by \glc. It uses a simplified version of the \href{http://www.xml-cml.org}{Chemical Markup Language} to describe chemicals. An excerpt from the database is shown below:
 \begin{verbatim}
  <list>
   <chemical>
@@ -789,29 +789,29 @@ The file \source{data/Chemical\_Database.cml} contains a database of chemicals t
   .
  </list>
 \end{verbatim}
-The database contains a \source{list} of chemicals, each contained within a \source{chemical} element. The \source{id} element provides a label for the chemical (usually a descriptive name with no white space). The \source{formalCharge} element gives the charge of the chemical in units of the elementary charge. The chemical is then describe by a list of atoms and bonds inside \source{atomArray} and \source{bondArray} elements respectively. The \source{atomArray} can contain any number of \source{atom} elements, which should describe each atom in the chemical giving it a unique \source{id} number and an \source{elementType}, which is the short one or two letter label for the element (e.g. H, Ni, etc.). The \source{bondArray} should contain a \source{bond} entry for each atomic bond, which itself contains a \source{atomRefs2} element giving the IDs of the two atoms participating in the bond and an \source{order} element which gives the order of the bond (e.g. ``1'' for a single bond).
+The database contains a \mono{list} of chemicals, each contained within a \mono{chemical} element. The \mono{id} element provides a label for the chemical (usually a descriptive name with no white space). The \mono{formalCharge} element gives the charge of the chemical in units of the elementary charge. The chemical is then describe by a list of atoms and bonds inside \mono{atomArray} and \mono{bondArray} elements respectively. The \mono{atomArray} can contain any number of \mono{atom} elements, which should describe each atom in the chemical giving it a unique \mono{id} number and an \mono{elementType}, which is the short one or two letter label for the element (e.g. H, Ni, etc.). The \mono{bondArray} should contain a \mono{bond} entry for each atomic bond, which itself contains a \mono{atomRefs2} element giving the IDs of the two atoms participating in the bond and an \mono{order} element which gives the order of the bond (e.g. ``1'' for a single bond).
 
 \subsubsection{Chemical Structure}
 
-Within \glc\ a chemical is represented using the \source{chemicalStructure} type which is provided by the \source{Chemical\_Structures} module. A \source{chemicalStructure} object can be assigned a particular chemical by retrieving that chemical from the database using:
+Within \glc\ a chemical is represented using the \mono{chemicalStructure} type which is provided by the \mono{Chemical\_Structures} module. A \mono{chemicalStructure} object can be assigned a particular chemical by retrieving that chemical from the database using:
 \begin{verbatim}
  call myChemical%retrieve("chemicalID")
 \end{verbatim}
-where \source{chemicalID} is the ID of the chemical in the database. Any chemical can be exported to a CML file using
+where \mono{chemicalID} is the ID of the chemical in the database. Any chemical can be exported to a CML file using
 \begin{verbatim}
  call myChemical%export(fileName)
 \end{verbatim}
-where \source{fileName} gives the name of the file to which to export.
+where \mono{fileName} gives the name of the file to which to export.
 
-Once assigned a chemical, basic properties such as mass and charge (in atomic units) can be accessed using \source{myChemical\%mass} and \source{myChemical\%charge} respectively. The mass is computed from the known atomic masses of the constituent atoms of the chemical.
+Once assigned a chemical, basic properties such as mass and charge (in atomic units) can be accessed using \mono{myChemical\%mass} and \mono{myChemical\%charge} respectively. The mass is computed from the known atomic masses of the constituent atoms of the chemical.
 
 \subsubsection{Chemical Abundances}
 
-Within \glc\ a set of abundances (or masses, or densities\ldots) for all chemicals being tracked, as specified by the \source{[chemicalsToTrack]} input parameter, is stored within a \source{chemicalAbundancesStructure} type, as provided by the \source{Chemical\_Abundances\_Structure} module. The structure provides interfaces for setting and retrieving the abundance of a given chemical species, to pack/unpack all chemicals to/from an array, to convert from mass-weighted to number-weighted quantities and to multiply and divide the chemicals abundances by a given amount. Additionally, the \source{Chemical\_Abundances\_Structure} module provides functions which provide a count of the number of chemicals tracked, to look up the index of a chemical array representation from its name, and to retrieve the name of a given chemical.
+Within \glc\ a set of abundances (or masses, or densities\ldots) for all chemicals being tracked, as specified by the \mono{[chemicalsToTrack]} input parameter, is stored within a \mono{chemicalAbundancesStructure} type, as provided by the \mono{Chemical\_Abundances\_Structure} module. The structure provides interfaces for setting and retrieving the abundance of a given chemical species, to pack/unpack all chemicals to/from an array, to convert from mass-weighted to number-weighted quantities and to multiply and divide the chemicals abundances by a given amount. Additionally, the \mono{Chemical\_Abundances\_Structure} module provides functions which provide a count of the number of chemicals tracked, to look up the index of a chemical array representation from its name, and to retrieve the name of a given chemical.
 
 \subsection{Coordinates}\label{sec:Coordinates}
 
-The \refClass{coordinate} class describes a position in three-dimensional space. Each extension of this class (currently, \refClass{coordinateCartesian}, \refClass{coordinateCylindrical}, and \refClass{coordinateSpherical}) supply methods to convert to and from Cartesian coordinates. The assignment operator (\source{=}) is overloaded such that coordinate objects of any class can be assigned to any other class and conversion to the appropriate coordinate system will happen automatically. A function accepting a \refClass{coordinate} object can therefore convert it to, for example, spherical coordinates simply using
+The \refClass{coordinate} class describes a position in three-dimensional space. Each extension of this class (currently, \refClass{coordinateCartesian}, \refClass{coordinateCylindrical}, and \refClass{coordinateSpherical}) supply methods to convert to and from Cartesian coordinates. The assignment operator (\mono{=}) is overloaded such that coordinate objects of any class can be assigned to any other class and conversion to the appropriate coordinate system will happen automatically. A function accepting a \refClass{coordinate} object can therefore convert it to, for example, spherical coordinates simply using
 \begin{verbatim}
  class(coordinate         ), intent(in) :: coordinates
  type (coordinateSpherical)             :: coordinatesSpherical

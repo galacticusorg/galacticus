@@ -40,8 +40,8 @@
   <coolingRate name="coolingRateCutOff">
    <description>
     A cooling rate class which sets the cooling rate to zero in halos with virial velocities below {\normalfont \ttfamily
-    [velocityCutOff]} at redshifts below/above \source{[redshiftCutOff]} for {\normalfont \ttfamily
-    [whenCutOff]}$=$\source{after/before}. In other halos the cooling rate is not modified.
+    [velocityCutOff]} at redshifts below/above \mono{[redshiftCutOff]} for {\normalfont \ttfamily
+    [whenCutOff]}$=$\mono{after/before}. In other halos the cooling rate is not modified.
    </description>
   </coolingRate>
   !!]
@@ -111,7 +111,7 @@ contains
       <name>whenCutOff</name>
       <defaultValue>var_str('after')</defaultValue>
       <source>parameters</source>
-      <description>Specifies whether cooling is cut off before or after \source{[redshiftCutOff]}.</description>
+      <description>Specifies whether cooling is cut off before or after \mono{[redshiftCutOff]}.</description>
     </inputParameter>
     <objectBuilder class="coolingRate"         name="coolingRate_"         source="parameters"/>
     <objectBuilder class="cosmologyFunctions"  name="cosmologyFunctions_"  source="parameters"/>

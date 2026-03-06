@@ -25,7 +25,7 @@
   !![
   <posteriorSampleDffrntlEvltnPrpslSzTmpExp name="posteriorSampleDffrntlEvltnPrpslSzTmpExpFixed">
    <description>
-    This class uses a fixed $\alpha=$\source{[alpha]}.
+    This class uses a fixed $\alpha=$\mono{[alpha]}.
    </description>
   </posteriorSampleDffrntlEvltnPrpslSzTmpExp>
   !!]

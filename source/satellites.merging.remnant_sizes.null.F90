@@ -65,7 +65,7 @@ contains
 
   subroutine nullGet(self,node,radius,velocityCircular,angularMomentumSpecific)
     !!{
-    Do not compute the size of the merger remnant for \source{node}.
+    Do not compute the size of the merger remnant for \mono{node}.
     !!}
     implicit none
     class           (mergerRemnantSizeNull), intent(inout) :: self

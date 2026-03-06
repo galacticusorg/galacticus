@@ -106,7 +106,7 @@ contains
 
   subroutine pruneBaryonsOperatePreEvolution(self,tree)
     !!{
-    Prune branches from \source{tree}.
+    Prune branches from \mono{tree}.
     !!}
     use :: Galacticus_Nodes              , only : mergerTree                    , nodeComponentBasic             , treeNode
     use :: Merger_Tree_Walkers           , only : mergerTreeWalkerIsolatedNodes

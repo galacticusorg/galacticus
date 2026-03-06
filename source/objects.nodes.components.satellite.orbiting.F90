@@ -177,7 +177,7 @@ contains
        <inputParameter>
          <name>radiusMaximumOverRadiusVirial</name>
          <defaultValue>1.0d0</defaultValue>
-         <description>The maximum radius of the satellite halo in units of its virial radius. If \source{[initializationTypeMassBound]} is set to 'maximumRadius', this value will be used to compute the initial bound mass of the satellite halo assuming that its density profile is 0 beyond this maximum radius.</description>
+         <description>The maximum radius of the satellite halo in units of its virial radius. If \mono{[initializationTypeMassBound]} is set to 'maximumRadius', this value will be used to compute the initial bound mass of the satellite halo assuming that its density profile is 0 beyond this maximum radius.</description>
          <source>subParameters</source>
        </inputParameter>
        <inputParameter>
@@ -315,7 +315,7 @@ contains
   !!]
   subroutine Node_Component_Satellite_Orbiting_Scale_Set(node)
     !!{
-    Set scales for properties of \source{node}.
+    Set scales for properties of \mono{node}.
     !!}
     use :: Galacticus_Nodes                , only : nodeComponentSatellite, nodeComponentSatelliteOrbiting, nodeComponentBasic, treeNode
     use :: Numerical_Constants_Astronomical, only : gigaYear              , megaParsec
@@ -441,7 +441,7 @@ contains
   
   subroutine nodePromotion(self,node)
     !!{
-    Ensure that \source{node} is ready for promotion to its parent. In this case, we simply copy any preexisting satellite orbit
+    Ensure that \mono{node} is ready for promotion to its parent. In this case, we simply copy any preexisting satellite orbit
     from the parent.
     !!}
     use :: Error           , only : Error_Report

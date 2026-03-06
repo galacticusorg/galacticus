@@ -466,7 +466,7 @@ contains
 
   double precision function matterLambdaExpansionFactor(self,time)
     !!{
-    Returns the expansion factor at cosmological time \source{time}.
+    Returns the expansion factor at cosmological time \mono{time}.
     !!}
     use :: Error             , only : Error_Report
     use :: ISO_Varying_String, only : varying_string
@@ -538,7 +538,7 @@ contains
 
   double precision function matterLambdaExpansionRate(self,expansionFactor)
     !!{
-    Returns the cosmological expansion rate, $\dot{a}/a$ at expansion factor \source{expansionFactor}.
+    Returns the cosmological expansion rate, $\dot{a}/a$ at expansion factor \mono{expansionFactor}.
     !!}
     use :: Cosmology_Parameters, only : hubbleUnitsStandard, hubbleUnitsTime
     implicit none
@@ -564,7 +564,7 @@ contains
 
   double precision function matterLambdaHubbleParameterEpochal(self,time,expansionFactor,collapsingPhase)
     !!{
-    Returns the Hubble parameter at the request cosmological time, \source{time}, or expansion factor, \source{expansionFactor}.
+    Returns the Hubble parameter at the request cosmological time, \mono{time}, or expansion factor, \mono{expansionFactor}.
     !!}
     use :: Cosmology_Parameters, only : hubbleUnitsStandard
     use :: Error               , only : Error_Report
@@ -615,7 +615,7 @@ contains
 
   double precision function matterLambdaHubbleParameterRateOfChange(self,time,expansionFactor,collapsingPhase)
     !!{
-    Returns the rate of change of the Hubble parameter at the request cosmological time, \source{time}, or expansion factor, \source{expansionFactor}.
+    Returns the rate of change of the Hubble parameter at the request cosmological time, \mono{time}, or expansion factor, \mono{expansionFactor}.
     !!}
     implicit none
     class           (cosmologyFunctionsMatterLambda), intent(inout)           :: self
@@ -648,7 +648,7 @@ contains
 
   double precision function matterLambdaOmegaMatterEpochal(self,time,expansionFactor,collapsingPhase)
     !!{
-    Return the matter density parameter at expansion factor \source{expansionFactor}.
+    Return the matter density parameter at expansion factor \mono{expansionFactor}.
     !!}
     use :: Cosmology_Parameters, only : hubbleUnitsStandard
     implicit none
@@ -676,7 +676,7 @@ contains
 
   double precision function matterLambdaMatterDensityEpochal(self,time,expansionFactor,collapsingPhase)
     !!{
-    Return the matter density at expansion factor \source{expansionFactor}.
+    Return the matter density at expansion factor \mono{expansionFactor}.
     !!}
     use :: Error, only : Error_Report
     implicit none
@@ -708,7 +708,7 @@ contains
 
   double precision function matterLambdaOmegaMatterRateOfChange(self,time,expansionFactor,collapsingPhase)
     !!{
-    Return the rate of change of the matter density parameter at expansion factor \source{expansionFactor}.
+    Return the rate of change of the matter density parameter at expansion factor \mono{expansionFactor}.
     !!}
     implicit none
     class           (cosmologyFunctionsMatterLambda), intent(inout)           :: self
@@ -735,7 +735,7 @@ contains
 
   double precision function matterLambdaOmegaDarkEnergyEpochal(self,time,expansionFactor,collapsingPhase)
     !!{
-    Return the dark energy density parameter at expansion factor \source{expansionFactor}.
+    Return the dark energy density parameter at expansion factor \mono{expansionFactor}.
     !!}
     use :: Cosmology_Parameters, only : hubbleUnitsStandard
     implicit none
@@ -762,7 +762,7 @@ contains
 
   double precision function matterLambdaTemperatureCMBEpochal(self,time,expansionFactor,collapsingPhase)
     !!{
-    Return the temperature of the CMB at expansion factor \source{expansionFactor}.
+    Return the temperature of the CMB at expansion factor \mono{expansionFactor}.
     !!}
     implicit none
     class           (cosmologyFunctionsMatterLambda), intent(inout)           :: self
@@ -1040,7 +1040,7 @@ contains
 
   double precision function matterLambdaTimeAtDistanceComoving(self,comovingDistance)
     !!{
-    Returns the cosmological time corresponding to given \source{comovingDistance}.
+    Returns the cosmological time corresponding to given \mono{comovingDistance}.
     !!}
     use :: Error, only : Error_Report
     implicit none
@@ -1071,7 +1071,7 @@ contains
 
   double precision function matterLambdaDistanceComoving(self,time)
     !!{
-    Returns the comoving distance to cosmological time \source{time}.
+    Returns the comoving distance to cosmological time \mono{time}.
     !!}
     use :: Error, only : Error_Report
     implicit none
@@ -1105,7 +1105,7 @@ contains
 
   double precision function matterLambdaDistanceLuminosity(self,time)
     !!{
-    Returns the luminosity distance to cosmological time \source{time}.
+    Returns the luminosity distance to cosmological time \mono{time}.
     !!}
     implicit none
     class           (cosmologyFunctionsMatterLambda), intent(inout) :: self
@@ -1118,7 +1118,7 @@ contains
 
   double precision function matterLambdaDistanceAngular(self,time,timeOrigin) result(distance)
     !!{
-    Returns the angular diameter distance to cosmological time \source{time}.
+    Returns the angular diameter distance to cosmological time \mono{time}.
     !!}
     use :: Cosmology_Parameters            , only : hubbleUnitsTime
     use :: Error                           , only : Error_Report
@@ -1236,7 +1236,7 @@ contains
 
   double precision function matterLambdaDistanceParticleHorizonComoving(self,time)
     !!{
-    Returns the comoving distance to the particle horizon at cosmological time \source{time}.
+    Returns the comoving distance to the particle horizon at cosmological time \mono{time}.
     !!}
     use :: Numerical_Integration, only : integrator
     implicit none

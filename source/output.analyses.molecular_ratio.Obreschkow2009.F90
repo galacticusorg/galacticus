@@ -43,9 +43,9 @@ Implements a molecular ratio class that assumes the model of \cite{obreschkow_si
     \begin{equation}
      M_\mathrm{HI} = X_\mathrm{H} M_\mathrm{gas} / ( 1 + R_\mathrm{mol} ),
     \end{equation}
-    where $X_\mathrm{H}=0.778$ is the primordial hydrogen fraction by mass. In the above $K=$\source{[K]},
-    $\langle f_\sigma \rangle=$\source{[fSigma]}, $A_1=$\source{[A1]}, $A_2=${\normalfont \ttfamily
-    [A2]}, $\alpha_1=$\source{[alpha1]}, $\alpha_2=$\source{[alpha2]}, and $\beta=${\normalfont
+    where $X_\mathrm{H}=0.778$ is the primordial hydrogen fraction by mass. In the above $K=$\mono{[K]},
+    $\langle f_\sigma \rangle=$\mono{[fSigma]}, $A_1=$\mono{[A1]}, $A_2=${\normalfont \ttfamily
+    [A2]}, $\alpha_1=$\mono{[alpha1]}, $\alpha_2=$\mono{[alpha2]}, and $\beta=${\normalfont
     \ttfamily [beta]}. Default values for these parameters are taken from \cite{obreschkow_simulation_2009}. According to
     Obreschkow (private communication), there remains significant scatter of $\sigma_{R_\mathrm{mol}}=0.4$~dex between the
     predicted $R_\mathrm{mol}$ from this model and that observed. This is accounted for in when constructing the mass function
@@ -177,7 +177,7 @@ contains
 
   double precision function obreschkow2009Ratio(self,massISM,node)
     !!{
-    Compute the molecular fraction in the \source{obreschkow2009} class.
+    Compute the molecular fraction in the \mono{obreschkow2009} class.
     !!}
     use :: Galacticus_Nodes                , only : nodeComponentDisk, treeNode
     use :: Numerical_Constants_Astronomical, only : massSolar        , megaParsec
@@ -228,7 +228,7 @@ contains
 
   double precision function obreschkow2009RatioScatter(self,massISM,node)
     !!{
-    Compute the scatter in molecular fraction in the \source{obreschkow2009} class.
+    Compute the scatter in molecular fraction in the \mono{obreschkow2009} class.
     !!}
     implicit none
     class           (outputAnalysisMolecularRatioObreschkow2009), intent(inout) :: self

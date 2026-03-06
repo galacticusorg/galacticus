@@ -39,21 +39,21 @@ Implements a merger tree evolution timestepping class which limits the step the 
     which $t_{\mathrm{history},i} &gt; t$ this criterion is not applied. If this criterion is the limiting criterion for $\Delta
     t$ then the properties of the galaxy will be accumulated to the global history arrays at the end of the timestep.
   
-    Volume-averaged properties are stored to the \source{globalHistory} group of the output file. Currently, the
+    Volume-averaged properties are stored to the \mono{globalHistory} group of the output file. Currently, the
     properties stored are:
     \begin{description}
-     \item[\source{historyTime}] Cosmic time (in Gyr);
-     \item[\source{historyExpansion}] Expansion factor;
-     \item[\source{historyStarFormationRate}] Volume averaged star formation rate (in $M_\odot/$Gyr/Mpc$^3$).
-     \item[\source{historyDiskStarFormationRate}] Volume averaged star formation rate in disks (in $M_\odot/$Gyr/Mpc$^3$).
-     \item[\source{historySpheroidStarFormationRate}] Volume averaged star formation rate in spheroids (in $M_\odot/$Gyr/Mpc$^3$).
-     \item[\source{historyStellarDensity}] Volume averaged stellar mass density (in $M_\odot/$Mpc$^3$).
-     \item[\source{historyDiskStellarDensity}] Volume averaged stellar mass density in disks (in $M_\odot/$Mpc$^3$).
-     \item[\source{historySpheroidStellarDensity}] Volume averaged stellar mass density in spheroids (in $M_\odot/$Mpc$^3$).
-     \item[\source{historyGasDensity}] Volume averaged cooled gas density (in $M_\odot/$Mpc$^3$).
-     \item[\source{historyNodeDensity}] Volume averaged resolved node density (in $M_\odot/$Mpc$^3$).
+     \item[\mono{historyTime}] Cosmic time (in Gyr);
+     \item[\mono{historyExpansion}] Expansion factor;
+     \item[\mono{historyStarFormationRate}] Volume averaged star formation rate (in $M_\odot/$Gyr/Mpc$^3$).
+     \item[\mono{historyDiskStarFormationRate}] Volume averaged star formation rate in disks (in $M_\odot/$Gyr/Mpc$^3$).
+     \item[\mono{historySpheroidStarFormationRate}] Volume averaged star formation rate in spheroids (in $M_\odot/$Gyr/Mpc$^3$).
+     \item[\mono{historyStellarDensity}] Volume averaged stellar mass density (in $M_\odot/$Mpc$^3$).
+     \item[\mono{historyDiskStellarDensity}] Volume averaged stellar mass density in disks (in $M_\odot/$Mpc$^3$).
+     \item[\mono{historySpheroidStellarDensity}] Volume averaged stellar mass density in spheroids (in $M_\odot/$Mpc$^3$).
+     \item[\mono{historyGasDensity}] Volume averaged cooled gas density (in $M_\odot/$Mpc$^3$).
+     \item[\mono{historyNodeDensity}] Volume averaged resolved node density (in $M_\odot/$Mpc$^3$).
     \end{description}
-    Dimensionful datasets have a \source{unitsInSI} attribute which gives their units\index{units} in the SI
+    Dimensionful datasets have a \mono{unitsInSI} attribute which gives their units\index{units} in the SI
     system.
    </description>
   </mergerTreeEvolveTimestep>
@@ -221,7 +221,7 @@ contains
 
   double precision function historyTimeEvolveTo(self,timeEnd,node,task,taskSelf,report,lockNode,lockType)
     !!{
-    Determine a suitable timestep for \source{node} using the history method.
+    Determine a suitable timestep for \mono{node} using the history method.
     !!}
     use            :: Evolve_To_Time_Reports, only : Evolve_To_Time_Report
     use            :: Galacticus_Nodes      , only : nodeComponentBasic   , treeNode

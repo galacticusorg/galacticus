@@ -42,7 +42,7 @@
     will become part of the spheroid \gls{component} of the remnant.}, $r_\mathrm{new}$ is the half mass radius of the
     spheroidal \gls{component} of the remnant galaxy and $c$ is a constant which depends on the distribution of the mass. For a
     Hernquist spheroid $c=0.40$ can be found by numerical integration while for a exponential disk $c=0.49$. For simplicity a
-    value of $c=0.5$ is adopted for all components. The parameter $f_\mathrm{orbit}=$\source{energyOrbital}
+    value of $c=0.5$ is adopted for all components. The parameter $f_\mathrm{orbit}=$\mono{energyOrbital}
     depends on the orbital parameters of the galaxy pair. For example, a value of $f_\mathrm{orbit} = 1$ corresponds to point
     mass galaxies in circular orbits about their center of mass.
     
@@ -222,7 +222,7 @@ contains
 
   subroutine cole2000Get(self,node,radius,velocityCircular,angularMomentumSpecific)
     !!{
-    Compute the size of the merger remnant for \source{node} using the \cite{cole_hierarchical_2000} algorithm.
+    Compute the size of the merger remnant for \mono{node} using the \cite{cole_hierarchical_2000} algorithm.
     !!}
     use :: Display                         , only : displayMessage                , verbosityLevelSilent
     use :: Galactic_Structure_Options      , only : massTypeDark

@@ -95,7 +95,7 @@ contains
   
   function nodeMajorMergerTimeName(self)
     !!{
-    Return the names of the \source{nodeMajorMergerTime} properties.
+    Return the names of the \mono{nodeMajorMergerTime} properties.
     !!}
     implicit none
     type (varying_string                          )                :: nodeMajorMergerTimeName
@@ -108,7 +108,7 @@ contains
 
   function nodeMajorMergerTimeDescription(self)
     !!{
-    Return the descriptions of the \source{nodeMajorMergerTime} properties.
+    Return the descriptions of the \mono{nodeMajorMergerTime} properties.
     !!}
     implicit none
     type (varying_string                          )                :: nodeMajorMergerTimeDescription
@@ -121,7 +121,7 @@ contains
 
   double precision function nodeMajorMergerTimeUnitsInSI(self)
     !!{
-    Return the units of the \source{nodeMajorMergerTime} properties in the SI system.
+    Return the units of the \mono{nodeMajorMergerTime} properties in the SI system.
     !!}
     use :: Numerical_Constants_Astronomical, only : gigaYear
     implicit none

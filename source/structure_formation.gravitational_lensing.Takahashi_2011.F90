@@ -151,7 +151,7 @@ contains
 
   double precision function takahashi2011MagnificationPDF(self,magnification,redshift,scaleSource)
     !!{
-    Compute the magnification probability density function at the given \source{magnification} and \source{redshift} using the
+    Compute the magnification probability density function at the given \mono{magnification} and \mono{redshift} using the
     \cite{takahashi_probability_2011} formalism.
     !!}
     implicit none
@@ -190,7 +190,7 @@ contains
 
   double precision function takahashi2011MagnificationCDF(self,magnification,redshift,scaleSource)
     !!{
-    Compute the magnification probability density function at the given \source{magnification} and \source{redshift} using the
+    Compute the magnification probability density function at the given \mono{magnification} and \mono{redshift} using the
     \cite{takahashi_probability_2011} formalism.
     !!}
     implicit none

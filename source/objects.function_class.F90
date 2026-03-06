@@ -18,12 +18,12 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
 !!{
-Contains a module which defines the base class for all \source{functionClass} classes.
+Contains a module which defines the base class for all \mono{functionClass} classes.
 !!}
 
 module Function_Classes
   !!{
-  Defines the base class for all \source{functionClass} classes.
+  Defines the base class for all \mono{functionClass} classes.
   !!}
   use :: ISO_Varying_String, only : assignment(=), varying_string
   implicit none
@@ -35,7 +35,7 @@ module Function_Classes
 
   type, abstract :: functionClass
      !!{
-     The base class for all \source{functionClass} classes.
+     The base class for all \mono{functionClass} classes.
      !!}
      logical :: isDefaultOfClass=.false.
      integer :: referenceCount  =0

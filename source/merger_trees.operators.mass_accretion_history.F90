@@ -32,12 +32,12 @@
     A merger tree operator class which outputs mass accretion histories (i.e. the mass of the \gls{node} on the primary branch
     as a function of time). Histories are written into the \glc\ output file in a group with name given by {\normalfont
     \ttfamily [outputGroupName]}. Within that group, each merger tree has its own group named {\normalfont \ttfamily
-    mergerTree\textless\ N\textgreater} where \source{\textless\ N\textgreater} is the tree index. Within each
-    such merger tree group datasets giving the node index (``\source{nodeIndex}''), time (``{\normalfont
-    \ttfamily nodeTime}''), basic mass (``\source{nodeMass}''), expansion factor (``{\normalfont \ttfamily
-    nodeExpansionFactor}'') are written. Optionally, datasets giving the spin parameter (``\source{nodeSpin}'')
-    and its vector components (``\source{nodeSpinVector}'') are included if {\normalfont \ttfamily
-    [includeSpin]} and \source{[includeSpinVector]} respectively are set to \source{true}.
+    mergerTree\textless\ N\textgreater} where \mono{\textless\ N\textgreater} is the tree index. Within each
+    such merger tree group datasets giving the node index (``\mono{nodeIndex}''), time (``{\normalfont
+    \ttfamily nodeTime}''), basic mass (``\mono{nodeMass}''), expansion factor (``{\normalfont \ttfamily
+    nodeExpansionFactor}'') are written. Optionally, datasets giving the spin parameter (``\mono{nodeSpin}'')
+    and its vector components (``\mono{nodeSpinVector}'') are included if {\normalfont \ttfamily
+    [includeSpin]} and \mono{[includeSpinVector]} respectively are set to \mono{true}.
    </description>
   </mergerTreeOperator>
   !!]

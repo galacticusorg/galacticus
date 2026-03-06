@@ -41,7 +41,7 @@ contains
 
   double precision function FFTW_Wavenumber(k,n)
     !!{
-    Return the wavenumber (in units of $1/L$ where $L$ is the box length) corresponding to element \source{k} out of \source{n} of a
+    Return the wavenumber (in units of $1/L$ where $L$ is the box length) corresponding to element \mono{k} out of \mono{n} of a
     1-D FFT using the FFTW convention.
     !!}
     implicit none

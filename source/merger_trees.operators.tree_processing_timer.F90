@@ -28,11 +28,11 @@
   <mergerTreeOperator name="mergerTreeOperatorTreeProcessingTimer">
    <description>
     A merger tree operator class which records and outputs tree processing time information. Tree timing data to be recorded
-    and output to the \source{metaData/treeTiming} group. Three datasets are written to this group:
+    and output to the \mono{metaData/treeTiming} group. Three datasets are written to this group:
     \begin{description}
-     \item[\source{treeMasses}] Gives the base node masses of the recorded trees (in units of $M_\odot$);
-     \item[\source{treeConstructTimes}] Gives the time (in seconds) taken to construct each merger tree;
-     \item[\source{treeEvolveTimes}] Gives the time (in seconds) taken to evolve each merger tree.
+     \item[\mono{treeMasses}] Gives the base node masses of the recorded trees (in units of $M_\odot$);
+     \item[\mono{treeConstructTimes}] Gives the time (in seconds) taken to construct each merger tree;
+     \item[\mono{treeEvolveTimes}] Gives the time (in seconds) taken to evolve each merger tree.
     \end{description}
    </description>
   </mergerTreeOperator>
@@ -165,7 +165,7 @@ contains
 
   subroutine treeProcessingTimerOperatePreEvolution(self,tree)
     !!{
-    Record the CPU time prior to evolving \source{tree}.
+    Record the CPU time prior to evolving \mono{tree}.
     !!}
     use    :: Galacticus_Nodes   , only : mergerTree              , nodeComponentBasic, treeNode
     use    :: Merger_Tree_Walkers, only : mergerTreeWalkerAllNodes

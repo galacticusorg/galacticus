@@ -169,7 +169,7 @@ contains
 
   double precision function sphericalTabulatedMassEnclosedBySphere(self,radius) result(mass)
     !!{
-    Computes the mass enclosed within a sphere of given \source{radius} for spherically-symmetric mass
+    Computes the mass enclosed within a sphere of given \mono{radius} for spherically-symmetric mass
     distributions using a tabulation.
     !!}
     implicit none
@@ -202,7 +202,7 @@ contains
 
   double precision function sphericalTabulatedRadiusEnclosingDensity(self,density,radiusGuess) result(radius)
     !!{
-    Computes the radius enclosing the given \source{radius} for spherically-symmetric mass
+    Computes the radius enclosing the given \mono{radius} for spherically-symmetric mass
     distributions using a tabulation.
     !!}
     implicit none
@@ -231,7 +231,7 @@ contains
 
   double precision function sphericalTabulatedPotential(self,coordinates,status) result(potential)
     !!{
-    Compute the potential at the given \source{coordinates} in a spherical mass distribution using a tabulation.
+    Compute the potential at the given \mono{coordinates} in a spherical mass distribution using a tabulation.
     !!}
     use :: Galactic_Structure_Options, only : structureErrorCodeSuccess
     implicit none
@@ -264,7 +264,7 @@ contains
 
   double precision function sphericalTabulatedPotentialDifference(self,coordinates1,coordinates2,status) result(potentialDifference)
     !!{
-    Compute the potential difference between the given \source{coordinates1} and \source{coordinates2} in a spherical mass distribution using a tabulation.
+    Compute the potential difference between the given \mono{coordinates1} and \mono{coordinates2} in a spherical mass distribution using a tabulation.
     !!}
     use :: Galactic_Structure_Options, only : structureErrorCodeSuccess
     implicit none
@@ -296,7 +296,7 @@ contains
 
   double precision function sphericalTabulatedVelocityDispersion1D(self,coordinates) result(velocityDispersion)
     !!{
-    Compute the 1D velocity dispersion at the given \source{coordinates} in a spherical mass distribution using a tabulation.
+    Compute the 1D velocity dispersion at the given \mono{coordinates} in a spherical mass distribution using a tabulation.
     !!}
     use :: Galactic_Structure_Options, only : structureErrorCodeSuccess
     implicit none
@@ -326,7 +326,7 @@ contains
 
   double precision function sphericalTabulatedEnergy(self,radiusOuter,massDistributionEmbedding) result(energy)
     !!{
-    Compute the energy within a given \source{radius} in a spherical mass distribution using a tabulation.
+    Compute the energy within a given \mono{radius} in a spherical mass distribution using a tabulation.
     !!}
     implicit none
     class           (massDistributionSphericalTabulated), intent(inout) , target      :: self
@@ -358,7 +358,7 @@ contains
 
   double precision function sphericalTabulatedFourierTransform(self,radiusOuter,wavenumber) result(fourierTransform)
     !!{    
-    Compute the Fourier transform of the density profile at the given \source{wavenumber} in a spherical mass
+    Compute the Fourier transform of the density profile at the given \mono{wavenumber} in a spherical mass
     distribution using a tabulation.
     !!}
     implicit none
@@ -392,7 +392,7 @@ contains
 
   double precision function sphericalTabulatedRadiusFreefall(self,time) result(radius)
     !!{
-    Compute the freefall radius at a given \source{time} in a spherical mass distribution using a tabulation.
+    Compute the freefall radius at a given \mono{time} in a spherical mass distribution using a tabulation.
     !!}
     implicit none
     class           (massDistributionSphericalTabulated), intent(inout)               :: self
@@ -421,7 +421,7 @@ contains
 
   double precision function sphericalTabulatedRadiusFreefallIncreaseRate(self,time) result(radiusIncreaseRate)
     !!{
-    Compute the rate of increase of freefall radius at a given \source{time} in a spherical mass distribution using a tabulation.
+    Compute the rate of increase of freefall radius at a given \mono{time} in a spherical mass distribution using a tabulation.
     !!}
     implicit none
     class           (massDistributionSphericalTabulated), intent(inout)               :: self

@@ -49,7 +49,7 @@ contains
 
   function presetConstructorParameters(parameters) result(self)
     !!{
-    A constructor for the \source{preset} satellite merging timescale class which builds the object from a
+    A constructor for the \mono{preset} satellite merging timescale class which builds the object from a
     parameter set.
     !!}
     use :: Input_Parameters, only : inputParameters

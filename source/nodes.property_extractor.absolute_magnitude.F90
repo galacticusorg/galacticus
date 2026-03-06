@@ -96,7 +96,7 @@ contains
   
   integer function magnitudesAbsoluteElementCount(self,time)
     !!{
-    Return the number of elements in the \source{magnitudesAbsolute} property extractor class.
+    Return the number of elements in the \mono{magnitudesAbsolute} property extractor class.
     !!}
     use :: Stellar_Luminosities_Structure, only : unitStellarLuminosities
     implicit none
@@ -110,7 +110,7 @@ contains
 
   function magnitudesAbsoluteExtract(self,node,time,instance) result(magnitudes)
     !!{
-    Implement a \source{magnitudesAbsolute} property extractor.
+    Implement a \mono{magnitudesAbsolute} property extractor.
     !!}
     use :: Galacticus_Nodes              , only : nodeComponentDisk  , nodeComponentSpheroid
     use :: Galactic_Structure_Options    , only : componentTypeDisk  , componentTypeSpheroid
@@ -161,7 +161,7 @@ contains
 
   subroutine magnitudesAbsoluteNames(self,time,names)
     !!{
-    Return the names of the \source{magnitudesAbsolute} properties.
+    Return the names of the \mono{magnitudesAbsolute} properties.
     !!}
     use :: Stellar_Luminosities_Structure, only : unitStellarLuminosities
     use :: Galactic_Structure_Options    , only : enumerationComponentTypeDecode
@@ -185,7 +185,7 @@ contains
 
   subroutine magnitudesAbsoluteDescriptions(self,time,descriptions)
     !!{
-    Return descriptions of the \source{magnitudesAbsolute} property extractor class.
+    Return descriptions of the \mono{magnitudesAbsolute} property extractor class.
     !!}
     use :: Stellar_Luminosities_Structure, only : unitStellarLuminosities
     implicit none

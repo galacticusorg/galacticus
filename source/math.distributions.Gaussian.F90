@@ -32,7 +32,7 @@ contains
 
   double precision function Gaussian_Distribution(x,sigma)
     !!{
-    Computes the Gaussian distribution with dispersion \source{sigma} at argument \source{x}.
+    Computes the Gaussian distribution with dispersion \mono{sigma} at argument \mono{x}.
     !!}
     use :: Numerical_Constants_Math, only : Pi
     implicit none

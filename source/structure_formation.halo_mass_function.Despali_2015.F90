@@ -143,7 +143,7 @@ contains
 
   double precision function despali2015A(self,time,mass)
     !!{
-    Return the parameter $a$ in the \source{despali2015} halo mass function at the given time and mass.
+    Return the parameter $a$ in the \mono{despali2015} halo mass function at the given time and mass.
     !!}
     implicit none
     class           (haloMassFunctionDespali2015), intent(inout) :: self
@@ -159,7 +159,7 @@ contains
 
   double precision function despali2015P(self,time,mass)
     !!{
-    Return the parameter $p$ in the \source{despali2015} halo mass function at the given time and mass.
+    Return the parameter $p$ in the \mono{despali2015} halo mass function at the given time and mass.
     !!}
     implicit none
     class           (haloMassFunctionDespali2015), intent(inout) :: self
@@ -175,7 +175,7 @@ contains
 
   double precision function despali2015Normalization(self,time,mass)
     !!{
-    Return the normalization, $A$, in the \source{despali2015} halo mass function at the given time and mass.
+    Return the normalization, $A$, in the \mono{despali2015} halo mass function at the given time and mass.
     !!}
     implicit none
     class           (haloMassFunctionDespali2015), intent(inout) :: self
@@ -190,7 +190,7 @@ contains
 
   double precision function despali2015X(self,time,mass)
     !!{
-    Return the parameter $x$ in the \source{despali2015} halo mass function at the given time and mass.
+    Return the parameter $x$ in the \mono{despali2015} halo mass function at the given time and mass.
     !!}
     implicit none
     class           (haloMassFunctionDespali2015), intent(inout) :: self

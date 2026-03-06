@@ -79,7 +79,7 @@ contains
 
   double precision function sidmIsothermalVelocityDispersion1D(self,coordinates,massDistribution_,massDistributionEmbedding) result(velocityDispersion)
     !!{
-    Return the 1D velocity dispersion at the specified \source{coordinates} in an SIDMIsothermal kinematic distribution.
+    Return the 1D velocity dispersion at the specified \mono{coordinates} in an SIDMIsothermal kinematic distribution.
     !!}
     use :: ISO_Varying_String, only : char
     implicit none

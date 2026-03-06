@@ -69,7 +69,7 @@
     \AA) and spectra (in $L_\odot$ Hz$^{-1}$).
   
     Scripts to convert the data provided by \cite{maraston_evolutionary_2005} and \cite{bruzual_stellar_2003} into \glc's
-    format are provided in the \source{scripts/ssps} folder.
+    format are provided in the \mono{scripts/ssps} folder.
    </description>
    <stateStorable>
     <exclude variables="spectra, forceZeroMetallicity, fileName, fileRead"/>
@@ -160,8 +160,8 @@ contains
 
   double precision function fileLuminosity(self,abundancesStellar,age,wavelength,status)
     !!{
-    Return the luminosity (in units of $L_\odot$ Hz$^{-1}$) for a stellar population with composition \source{abundances}, of the
-    given \source{age} (in Gyr) and the specified \source{wavelength} (in Angstroms). This is found by interpolating in tabulated
+    Return the luminosity (in units of $L_\odot$ Hz$^{-1}$) for a stellar population with composition \mono{abundances}, of the
+    given \mono{age} (in Gyr) and the specified \mono{wavelength} (in Angstroms). This is found by interpolating in tabulated
     spectra.
     !!}
     use            :: Abundances_Structure, only : Abundances_Get_Metallicity           , abundances            , logMetallicityZero, max, &

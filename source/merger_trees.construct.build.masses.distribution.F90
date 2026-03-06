@@ -36,7 +36,7 @@ module Merger_Trees_Build_Masses_Distributions
    </description>
    <default>haloMassFunction</default>
    <method name="sample" >
-    <description>Returns the sampling rate for merger trees of the given \source{mass}, per decade of halo mass.</description>
+    <description>Returns the sampling rate for merger trees of the given \mono{mass}, per decade of halo mass.</description>
     <type>double precision</type>
     <pass>yes</pass>
     <argument>double precision, intent(in   ) :: mass,time,massMinimum,massMaximum</argument>

@@ -78,7 +78,7 @@ contains
 
   function brown2021ConstructorParameters(parameters) result(self)
     !!{
-    Default constructor for the \source{brown2021} dark matter halo
+    Default constructor for the \mono{brown2021} dark matter halo
     profile concentration class.
     !!}
     implicit none
@@ -180,7 +180,7 @@ contains
 
   double precision function brown2021Concentration(self,node)
     !!{
-    Return the mean concentration of the dark matter halo profile of \source{node}
+    Return the mean concentration of the dark matter halo profile of \mono{node}
     using the \cite{brown_towards_2022} algorithm.
     !!}
     use :: Galacticus_Nodes        , only : nodeComponentBasic

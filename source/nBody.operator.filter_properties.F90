@@ -90,12 +90,12 @@ contains
     <inputParameter>
       <name>rangeLow</name>
       <source>parameters</source>
-      <description>The lowest value of each property to pass (``\source{-infinity}'' is interpreted as the lowest possible value for the property.</description>
+      <description>The lowest value of each property to pass (``\mono{-infinity}'' is interpreted as the lowest possible value for the property.</description>
     </inputParameter>
     <inputParameter>
       <name>rangeHigh</name>
       <source>parameters</source>
-      <description>The highest value of each property to pass (``\source{+infinity}'' is interpreted as the lowest possible value for the property.</description>
+      <description>The highest value of each property to pass (``\mono{+infinity}'' is interpreted as the lowest possible value for the property.</description>
     </inputParameter>
     !!]
     allocate(propertyRanges(size(propertyNames)))

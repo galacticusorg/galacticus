@@ -708,7 +708,7 @@ contains
   !!]
   subroutine Node_Component_NSC_Standard_Scale_Set(node)
     !!{
-    Set scales for properties of \source{node}.
+    Set scales for properties of \mono{node}.
     !!}
     use :: Abundances_Structure          , only : abs                   , abundances      , max                     , operator(*)            , &
           &                                       unitAbundances
@@ -849,7 +849,7 @@ contains
   !!]
   subroutine Node_Component_NSC_Standard_Inactive(node)
     !!{
-    Set Jacobian zero status for properties of \source{node}.
+    Set Jacobian zero status for properties of \mono{node}.
     !!}
     use :: Galacticus_Nodes, only : nodeComponentNSC, nodeComponentNSCStandard, treeNode
     implicit none
@@ -868,7 +868,7 @@ contains
 
   subroutine satelliteMerger(self,node)
     !!{
-    Transfer any standard nuclear star cluster associated with \source{node} to its host halo.
+    Transfer any standard nuclear star cluster associated with \mono{node} to its host halo.
     !!}
     use :: Abundances_Structure            , only : zeroAbundances
     use :: Error                           , only : Error_Report
@@ -1199,7 +1199,7 @@ contains
 
   subroutine Node_Component_NSC_Standard_Star_Formation_History_Extend(node,timeEnd)
     !!{
-    Extend the range of a star formation history in a standard nuclear star cluster component for \source{node}.
+    Extend the range of a star formation history in a standard nuclear star cluster component for \mono{node}.
     !!}
     use :: Galacticus_Nodes, only : nodeComponentNSC, treeNode
     implicit none
@@ -1220,7 +1220,7 @@ contains
 
   subroutine Node_Component_NSC_Standard_Stellar_Prprts_History_Extend(node,timeEnd)
     !!{
-    Extend the range of a stellar properties history in a standard nuclear star cluster component for \source{node}.
+    Extend the range of a stellar properties history in a standard nuclear star cluster component for \mono{node}.
     !!}
     use :: Galacticus_Nodes, only : nodeComponentNSC, treeNode
     implicit none

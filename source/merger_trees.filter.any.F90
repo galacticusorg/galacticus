@@ -23,13 +23,13 @@ Implements a merger tree filter class which is the ``any'' combination of a set 
 
   !![
   <mergerTreeFilter name="mergerTreeFilterAny">
-   <description>A merger tree filter class which is the \source{any} combination of a set of other filters.</description>
+   <description>A merger tree filter class which is the \mono{any} combination of a set of other filters.</description>
    <linkedList type="filterList" variable="filters" next="next" object="filter_" objectType="mergerTreeFilterClass"/>
   </mergerTreeFilter>
   !!]
   type, extends(mergerTreeFilterClass) :: mergerTreeFilterAny
      !!{
-     A merger tree filter class which is the \source{any} combination of a set of other filters.
+     A merger tree filter class which is the \mono{any} combination of a set of other filters.
      !!}
      private
      type(filterList), pointer :: filters => null()
@@ -123,7 +123,7 @@ contains
 
   logical function anyPasses(self,tree)
     !!{
-    Apply a set of filters to a \source{tree} combined with \source{any} operations.
+    Apply a set of filters to a \mono{tree} combined with \mono{any} operations.
     !!}
     implicit none
     class(mergerTreeFilterAny), intent(inout) :: self

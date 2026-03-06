@@ -121,7 +121,7 @@ contains
 
   double precision function enzoHydrostaticTemperature(self,coordinates) result(temperature)
     !!{
-    Return the temperature at the specified \source{coordinates} in an Enzo hydrostatic kinematic distribution.
+    Return the temperature at the specified \mono{coordinates} in an Enzo hydrostatic kinematic distribution.
     !!}
     use :: Numerical_Constants_Astronomical, only : meanAtomicMassPrimordial, gravitationalConstant_internal
     use :: Numerical_Constants_Atomic      , only : massHydrogenAtom
@@ -153,7 +153,7 @@ contains
 
   double precision function enzoHydrostaticTemperatureGradientLogarithmic(self,coordinates) result(temperatureGradientLogarithmic)
     !!{
-    Return the logarithmic gradient of the temperature at the specified \source{coordinates} in an Enzo hydrostatic kinematic distribution.
+    Return the logarithmic gradient of the temperature at the specified \mono{coordinates} in an Enzo hydrostatic kinematic distribution.
     !!}
     use :: Numerical_Constants_Math, only : Pi
     implicit none

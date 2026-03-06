@@ -27,7 +27,7 @@
   <posteriorSampleStateInitialize name="posteriorSampleStateInitializeMaximumLikelihood">
    <description>
     This class initializes state to the maximum likelihood state from a previous simulation---the state will be the same for all
-    chains. The \source{[logFileRoot]} parameter is used to specify the log-file root name used in the previous
+    chains. The \mono{[logFileRoot]} parameter is used to specify the log-file root name used in the previous
     simulation.
   </description>
   </posteriorSampleStateInitialize>

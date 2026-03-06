@@ -32,14 +32,14 @@
     simulation to be used as a prior on the current simulation. The details of the likelihood are specified by the follow
     subparameters:
     \begin{description}
-    \item[\source{chainBaseName}] The base name for the old set of MCMC chains to use as the new prior;
-    \item[\source{neighborCount}] The number of neighbor points to use in kernel density estimation of the posterior probability;
-    \item[\source{tolerance}] Tolerance used in finding nearest neighbors;
-    \item[\source{wrappedLikelihood}] Contains another likelihood function definition which will be used to provide the current likelihood.
+    \item[\mono{chainBaseName}] The base name for the old set of MCMC chains to use as the new prior;
+    \item[\mono{neighborCount}] The number of neighbor points to use in kernel density estimation of the posterior probability;
+    \item[\mono{tolerance}] Tolerance used in finding nearest neighbors;
+    \item[\mono{wrappedLikelihood}] Contains another likelihood function definition which will be used to provide the current likelihood.
     \end{description}
     
-    This method uses the \gls{ann} library to locate \source{neighborCount} nearest neighbor points in the set of
-    converged states found in the given chains. The \source{tolerance} element determines the accuracy of nearest
+    This method uses the \gls{ann} library to locate \mono{neighborCount} nearest neighbor points in the set of
+    converged states found in the given chains. The \mono{tolerance} element determines the accuracy of nearest
     neighbor finding (see the \gls{ann} documentation for details).When finding nearest neighbors in the MCMC chains, parameters are
     mapped using whatever mappings are currently active, and distances in each dimension (as used in the metric to determine nearest
     neighbors) are scaled by the root-variance in that parameter in the converged MCMC chains. The posterior likelihood of the MCMC

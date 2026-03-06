@@ -126,7 +126,7 @@ contains
       <name>massCutOff</name>
       <source>parameters</source>
       <defaultValue>1.0d10</defaultValue>
-      <description>For the \source{augment} operator a description of resolution limit for new trees.</description>
+      <description>For the \mono{augment} operator a description of resolution limit for new trees.</description>
     </inputParameter>
     <inputParameter>
       <name>performChecks</name>
@@ -196,7 +196,7 @@ contains
          <name>snapshotRedshifts</name>
          <variable>timeSnapshots</variable>
          <source>parameters</source>
-         <description>For \source{augment} description of redshift snapshots.</description>
+         <description>For \mono{augment} description of redshift snapshots.</description>
        </inputParameter>
        !!]
        do i=1,size(timeSnapshots)
@@ -1067,10 +1067,10 @@ contains
 
   subroutine augmentExtendByOverlap(nodeBottom,nodeTop,keepTop,exchangeProperties)
     !!{
-    Conjoin two trees by overlapping the \source{nodeTop} of one tree with the chosen {\normalfont \ttfamily
-    nodeBottom} of the other. If \source{keepTop} is \source{true}, {\normalfont \ttfamily
-    nodeTop} replaces \source{nodeBottom}, otherwise, \source{nodeBottom} replaces {\normalfont
-    \ttfamily nodeTop}. If \source{exchangeProperties} is \source{true}, the mass and time
+    Conjoin two trees by overlapping the \mono{nodeTop} of one tree with the chosen {\normalfont \ttfamily
+    nodeBottom} of the other. If \mono{keepTop} is \mono{true}, {\normalfont \ttfamily
+    nodeTop} replaces \mono{nodeBottom}, otherwise, \mono{nodeBottom} replaces {\normalfont
+    \ttfamily nodeTop}. If \mono{exchangeProperties} is \mono{true}, the mass and time
     information of the deleted node overwrites the mass and time of the retained node.
     !!}
     use :: Galacticus_Nodes, only : nodeComponentBasic, treeNode
@@ -1139,7 +1139,7 @@ contains
 
   subroutine augmentSortChildren(self,node)
     !!{
-    Sort the children of the given \source{node} such that they are in descending mass order.
+    Sort the children of the given \mono{node} such that they are in descending mass order.
     !!}
     use :: Error           , only : Error_Report
     use :: Galacticus_Nodes, only : nodeComponentBasic, treeNode
@@ -1324,7 +1324,7 @@ contains
 
   integer function augmentTreeStatistics(tree,desiredOutput)
     !!{
-    Walks through tree and quietly collects information specified by \source{desiredOutput} input enumeration and
+    Walks through tree and quietly collects information specified by \mono{desiredOutput} input enumeration and
     returns that information.
     !!}
     use :: Error              , only : Error_Report

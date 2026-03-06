@@ -65,7 +65,7 @@
 
   abstract interface
      !!{
-     Abstract interface for the velocity dispersion in the \source{randomIsotropic} orphan satellite
+     Abstract interface for the velocity dispersion in the \mono{randomIsotropic} orphan satellite
      distribution class.
      !!}
      double precision function randomIsotropicVelocityDispersion(self,node)
@@ -79,7 +79,7 @@ contains
 
   subroutine randomIsotropicInitialize(self)
     !!{
-    Perform initialization for the \source{randomIsotropic} orphan satellite distribution class.
+    Perform initialization for the \mono{randomIsotropic} orphan satellite distribution class.
     !!}
     implicit none
     class           (satelliteOrphanDistributionRandomIsotropic), intent(inout) :: self
