@@ -25,7 +25,7 @@ Implements a galactic low-pass filter for time since the last major node merger.
   <galacticFilter name="galacticFilterNodeMajorMergerRecent">
    <description>
    A low-pass filter for time since the last major node merger. Halos with a time of the last major node merger greater than or equal to the current time minus
-   $\Delta t=${\normalfont \ttfamily [timeRecent]} are passed.
+   $\Delta t=$\source{[timeRecent]} are passed.
    </description>
   </galacticFilter>
   !!]

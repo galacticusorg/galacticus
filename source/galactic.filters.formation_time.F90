@@ -25,7 +25,7 @@ Implements a galactic filter which removes recently-formed halos.
   <galacticFilter name="galacticFilterFormationTime">
    <description>
    A filter which removes recently-formed halos. Halos with a formation time greater than the current time minus $\Delta
-   t=${\normalfont \ttfamily [timeRecent]} are removed.
+   t=$\source{[timeRecent]} are removed.
    </description>
   </galacticFilter>
   !!]

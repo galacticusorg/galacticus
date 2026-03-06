@@ -108,7 +108,7 @@ contains
 
   function growingConstructorInternal(coreRadiusOverScaleRadius,coreRadiusOverVirialRadiusMaximum,darkMatterHaloScale_,cosmologyParameters_) result(self)
     !!{
-    Default constructor for the {\normalfont \ttfamily growing} hot halo mass distribution core radius class.
+    Default constructor for the \source{growing} hot halo mass distribution core radius class.
     !!}
     use :: Error           , only : Component_List                   , Error_Report
     use :: Galacticus_Nodes, only : defaultDarkMatterProfileComponent

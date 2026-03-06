@@ -31,8 +31,8 @@
     \begin{equation}
     \tau_\star = \tau_0 (V_\mathrm{disk}/V_0)^\alpha a^\beta
     \end{equation}
-    where $\tau_0=${\normalfont \ttfamily [timescale]}, $\alpha=${\normalfont \ttfamily [exponentVelocity]},
-    $\beta=${\normalfont \ttfamily [exponentExpansionFactor]}, and $V_0=${\normalfont \ttfamily [velocityNormalization]}.
+    where $\tau_0=$\source{[timescale]}, $\alpha=$\source{[exponentVelocity]},
+    $\beta=$\source{[exponentExpansionFactor]}, and $V_0=$\source{[velocityNormalization]}.
    </description>
   </starFormationTimescale>
   !!]
@@ -139,7 +139,7 @@ contains
 
   double precision function baugh2005Timescale(self,component)
     !!{
-    Returns the timescale (in Gyr) for star formation in the given {\normalfont \ttfamily component} in the {\normalfont
+    Returns the timescale (in Gyr) for star formation in the given \source{component} in the {\normalfont
     \ttfamily baugh2005} timescale model.
     !!}
     use :: Error           , only : Error_Report

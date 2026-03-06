@@ -24,7 +24,7 @@
   !![
   <enumeration>
    <name>wittGordon2000Model</name>
-   <description>Enumerates the models available in the {\normalfont \ttfamily wittGordon2000} dust attenuation class.</description>
+   <description>Enumerates the models available in the \source{wittGordon2000} dust attenuation class.</description>
    <encodeFunction>yes</encodeFunction>
    <validator>yes</validator>
    <visibility>public</visibility>
@@ -59,7 +59,7 @@ contains
 
   function wittGordon2003ConstructorParameters(parameters) result(self)
     !!{
-    Default constructor for the {\normalfont \ttfamily wittGordon2003} stellar spectra dust attenuation class.
+    Default constructor for the \source{wittGordon2003} stellar spectra dust attenuation class.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none

@@ -27,7 +27,7 @@ Implements satellite orbital extrema property extractor class.
   <nodePropertyExtractor name="nodePropertyExtractorSatelliteOrbitalExtrema">
    <description>
     A node property extractor which extracts the radii of a satellite's orbital extrema (i.e. pericenter and apocenter) as
-    {\normalfont \ttfamily satellitePericenterRadius} and {\normalfont \ttfamily satellitePericenterVelocity}.
+    \source{satellitePericenterRadius} and \source{satellitePericenterVelocity}.
    </description>
   </nodePropertyExtractor>
   !!]
@@ -134,7 +134,7 @@ contains
   
   integer function satelliteOrbitalExtremaElementCount(self,time)
     !!{
-    Return the number of elements in the {\normalfont \ttfamily satelliteOrbitalExtrema} property extractor class.
+    Return the number of elements in the \source{satelliteOrbitalExtrema} property extractor class.
     !!}
     implicit none
     class           (nodePropertyExtractorSatelliteOrbitalExtrema), intent(inout) :: self
@@ -147,7 +147,7 @@ contains
 
   function satelliteOrbitalExtremaExtract(self,node,time,instance)
     !!{
-    Implement a {\normalfont \ttfamily satelliteOrbitalExtrema} property extractor
+    Implement a \source{satelliteOrbitalExtrema} property extractor
     !!}
     use :: Galacticus_Nodes, only : nodeComponentSatellite                          , treeNode
     use :: Kepler_Orbits   , only : keplerOrbit
@@ -194,7 +194,7 @@ contains
 
   subroutine satelliteOrbitalExtremaNames(self,time,names)
     !!{
-    Return the name of the {\normalfont \ttfamily satelliteOrbitalExtrema} property.
+    Return the name of the \source{satelliteOrbitalExtrema} property.
     !!}
     implicit none
     class           (nodePropertyExtractorSatelliteOrbitalExtrema), intent(inout)                             :: self
@@ -238,7 +238,7 @@ contains
 
   function satelliteOrbitalExtremaUnitsInSI(self,time)
     !!{
-    Return the units of the {\normalfont \ttfamily satelliteOrbitalExtrema} property in the SI system.
+    Return the units of the \source{satelliteOrbitalExtrema} property in the SI system.
     !!}
     use :: Numerical_Constants_Astronomical, only : megaParsec
     use :: Numerical_Constants_Prefixes    , only : kilo

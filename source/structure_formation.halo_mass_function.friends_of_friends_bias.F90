@@ -31,7 +31,7 @@ systematic errors arising in the friends-of-friends halo finding algorithm.
     The halo mass function is computed by modifying another halo mass function to mimic systematic
     errors arising in the friends-of-friends halo finding algorithm. Specifically, a
     systematic shift in mass motivated by the results of percolation theory \cite[their eqn. B11]{more_overdensity_2011}
-    is applied. In particular, $M_\mathrm{particle}=${\normalfont \ttfamily [massParticle]} is the mass of the particle in the simulation
+    is applied. In particular, $M_\mathrm{particle}=$\source{[massParticle]} is the mass of the particle in the simulation
     to which the friends-of-friends algorithm was applied.
    </description>
   </haloMassFunction>

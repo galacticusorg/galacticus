@@ -472,7 +472,7 @@ contains
 
   subroutine morphologicalFractionGAMAMoffett2016Finalize(self,groupName)
     !!{
-    Implement a {\normalfont \ttfamily morphologicalFractionGAMAMoffett2016} output analysis finalization.
+    Implement a \source{morphologicalFractionGAMAMoffett2016} output analysis finalization.
     !!}
     use :: Output_HDF5, only : outputFile
     use :: HDF5_Access, only : hdf5Access

@@ -40,7 +40,7 @@
     $r_\mathrm{new}$ is the half mass radius of the spheroidal \gls{component} of the remnant galaxy and $c$ is a constant
     which depends on the distribution of the mass. For a Hernquist spheroid $c=0.40$ can be found by numerical integration
     while for a exponential disk $c=0.49$. For simplicity a value of $c=0.5$ is adopted for all components. The parameter
-    $f_\mathrm{orbit}=${\normalfont \ttfamily mergerRemnantSizeOrbitalEnergy} depends on the orbital parameters of the galaxy
+    $f_\mathrm{orbit}=$\source{mergerRemnantSizeOrbitalEnergy} depends on the orbital parameters of the galaxy
     pair. For example, a value of $f_\mathrm{orbit} = 1$ corresponds to point mass galaxies in circular orbits about their
     center of mass. The final term on the right hand side of eqn.~(\ref{eq:Covington2008Radius}) gives a correction to the
     final energy of the remnant due to dissipational losses based on the results of \cite{covington_effects_2011}, with
@@ -211,7 +211,7 @@ contains
   
   subroutine covington2008Get(self,node,radius,velocityCircular,angularMomentumSpecific)
     !!{
-    Compute the size of the merger remnant for {\normalfont \ttfamily node} using the \cite{covington_predicting_2008} algorithm.
+    Compute the size of the merger remnant for \source{node} using the \cite{covington_predicting_2008} algorithm.
     !!}
     use :: Display                         , only : displayMagenta                , displayMessage, displayReset, displayVerbosity, &
           &                                         verbosityLevelWarn

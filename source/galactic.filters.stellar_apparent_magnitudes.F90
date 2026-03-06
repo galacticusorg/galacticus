@@ -27,7 +27,7 @@ Implements a galactic low-pass (i.e. bright-pass) filter for stellar apparent ma
   <galacticFilter name="galacticFilterStellarApparentMagnitudes">
    <description>
    A galactic low-pass (i.e. bright-pass) filter for stellar apparent magnitudes. Galaxies with apparent magnitude in each
-   band, $i$, less than or equal to a fixed threshold, $m_{0,i}=${\normalfont \ttfamily [apparentMagnitudeThreshold]}.
+   band, $i$, less than or equal to a fixed threshold, $m_{0,i}=$\source{[apparentMagnitudeThreshold]}.
    </description>
   </galacticFilter>
   !!]

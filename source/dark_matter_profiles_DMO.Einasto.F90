@@ -129,7 +129,7 @@ contains
 
   function einastoGet(self,node,weightBy,weightIndex) result(massDistribution_)
     !!{
-    Return the dark matter mass distribution for the given {\normalfont \ttfamily node}.
+    Return the dark matter mass distribution for the given \source{node}.
     !!}
     use :: Galacticus_Nodes          , only : nodeComponentBasic     , nodeComponentDarkMatterProfile
     use :: Galactic_Structure_Options, only : componentTypeDarkHalo  , massTypeDark                       , weightByMass

@@ -180,7 +180,7 @@ contains
 
   double precision function fixedHEOverdensityLinear(self,node,presentDay)
     !!{
-    Return the environment of the given {\normalfont \ttfamily node}.
+    Return the environment of the given \source{node}.
     !!}
     use :: Galacticus_Nodes, only : nodeComponentBasic, treeNode
     implicit none
@@ -203,7 +203,7 @@ contains
 
   double precision function fixedHEOverdensityLinearGradientTime(self,node)
     !!{
-    Return the time gradient of the environment of the given {\normalfont \ttfamily node}.
+    Return the time gradient of the environment of the given \source{node}.
     !!}
     use :: Galacticus_Nodes, only : nodeComponentBasic
     implicit none
@@ -222,7 +222,7 @@ contains
 
   double precision function fixedHEOverdensityNonLinear(self,node)
     !!{
-    Return the environment of the given {\normalfont \ttfamily node}.
+    Return the environment of the given \source{node}.
     !!}
     use :: Galacticus_Nodes, only : nodeComponentBasic
     implicit none

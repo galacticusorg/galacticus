@@ -31,8 +31,8 @@
     \begin{equation}
     \rho(r) = \rho_\mathrm{NFW}(r) \left( 1 + \left[ \frac{\Delta x}{r} \right]^2 \right)^{-1/2},
     \end{equation}
-    where $\Delta x$ is the larger of the resolution length, {\normalfont \ttfamily [lengthResolution]}, and the radius in the
-    original profile enclosing the mass resolution, {\normalfont \ttfamily [massResolution]}.
+    where $\Delta x$ is the larger of the resolution length, \source{[lengthResolution]}, and the radius in the
+    original profile enclosing the mass resolution, \source{[massResolution]}.
    </description>
   </massDistribution>
   !!]
@@ -259,7 +259,7 @@ contains
 
   double precision function sphericalFiniteResolutionNFWDensity(self,coordinates) result(density)
     !!{
-    Return the density at the specified {\normalfont \ttfamily coordinates} in a scaled spherical mass distribution.
+    Return the density at the specified \source{coordinates} in a scaled spherical mass distribution.
     !!}
     implicit none
     class           (massDistributionSphericalFiniteResolutionNFW), intent(inout) :: self
@@ -277,7 +277,7 @@ contains
 
   double precision function sphericalFiniteResolutionNFWDensityGradientRadial(self,coordinates,logarithmic) result(densityGradient)
     !!{
-    Return the density at the specified {\normalfont \ttfamily coordinates} in a finiteResolution spherical mass distribution.
+    Return the density at the specified \source{coordinates} in a finiteResolution spherical mass distribution.
     !!}
     implicit none
     class           (massDistributionSphericalFiniteResolutionNFW), intent(inout), target   :: self
@@ -302,7 +302,7 @@ contains
 
   double precision function sphericalFiniteResolutionNFWMassEnclosedBySphere(self,radius) result(mass)
     !!{
-    Returns the enclosed mass (in $M_\odot$) at the given {\normalfont \ttfamily radius} (given in units of Mpc). The analytic
+    Returns the enclosed mass (in $M_\odot$) at the given \source{radius} (given in units of Mpc). The analytic
     solution (computed using Mathematica) is
     \begin{equation}
     M(x) = 4 \pi \rho_0 r_\mathrm{s}^3 \left[ -\frac{\sqrt{x^2+X^2}}{(1+x) \left(1+X^2\right)}+\tanh ^{-1}\left(\frac{x}{\sqrt{x^2+X^2}}\right)+\frac{\left(1+2X^2\right) \tanh ^{-1}\left(\frac{X^2-x}{\sqrt{1+X^2} \sqrt{x^2+X^2}}\right)}{\left(1+X^2\right)^{3/2}} -\frac{\left(1 + 2 X^2\right) \tanh ^{-1}\left(\sqrt{\frac{X^2}{1 + X^2}}\right)}{\left(1+ X^2\right)^{3/2}}+\frac{\sqrt{X^2}}{1 + X^2} \right],
@@ -458,7 +458,7 @@ contains
 
   double precision function sphericalFiniteResolutionNFWPotential(self,coordinates,status) result(potential)
     !!{
-    Returns the potential (in (km/s)$^2$) in the dark matter profile of {\normalfont \ttfamily node} at the given {\normalfont
+    Returns the potential (in (km/s)$^2$) in the dark matter profile of \source{node} at the given {\normalfont
     \ttfamily radius} (given in units of Mpc). The analytic solution (computed using Mathematica) is
     \begin{eqnarray}
     \Phi(x) &=& -\frac{\mathrm{G} M}{r_\mathrm{s}}  \nonumber \\
@@ -1089,7 +1089,7 @@ contains
 
   double precision function sphericalFiniteResolutionNFWEnergy(self,radiusOuter,massDistributionEmbedding) result(energy)
     !!{
-    Compute the energy within a given {\normalfont \ttfamily radius} in a finite-resolution NFW mass distribution.
+    Compute the energy within a given \source{radius} in a finite-resolution NFW mass distribution.
     !!}
     use :: Numerical_Constants_Astronomical, only : gravitationalConstant_internal
     implicit none
@@ -1273,7 +1273,7 @@ contains
 
   double precision function sphericalFiniteResolutionNFWDensityScaleFree(self,radius,radiusCore) result(densityScaleFree)
     !!{
-    Returns the scale-free density in the dark matter profile at the given {\normalfont \ttfamily radius}.
+    Returns the scale-free density in the dark matter profile at the given \source{radius}.
     !!}
     implicit none
     class           (massDistributionSphericalFiniteResolutionNFW), intent(inout) :: self

@@ -26,7 +26,7 @@
   !![
   <mergerTreeOperator name="mergerTreeOperatorPruneBranchComplement">
    <description>
-    A merger tree operator class which prunes all but the branch starting from {\normalfont \ttfamily [branchNodeID]}.
+    A merger tree operator class which prunes all but the branch starting from \source{[branchNodeID]}.
    </description>
   </mergerTreeOperator>
   !!]

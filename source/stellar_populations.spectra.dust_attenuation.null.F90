@@ -46,7 +46,7 @@ contains
 
   function zeroConstructorParameters(parameters) result(self)
     !!{
-    Default constructor for the {\normalfont \ttfamily zero} stellar spectra dust attenuation class.
+    Default constructor for the \source{zero} stellar spectra dust attenuation class.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none

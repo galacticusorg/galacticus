@@ -37,7 +37,7 @@ module Ram_Pressure_Stripping_Mass_Loss_Rate
    </description>
    <default>simpleCylindrical</default>
    <method name="rateMassLoss" >
-    <description>Returns the rate of mass loss (in $M_\odot$~Gyr$^{-1}$) due to ram pressure stripping of the given {\normalfont \ttfamily component}.</description>
+    <description>Returns the rate of mass loss (in $M_\odot$~Gyr$^{-1}$) due to ram pressure stripping of the given \source{component}.</description>
     <type>double precision</type>
     <pass>yes</pass>
     <argument>class(nodeComponent), intent(inout) :: component</argument>

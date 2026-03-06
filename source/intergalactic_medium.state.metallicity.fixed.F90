@@ -26,13 +26,13 @@
   !![
   <intergalacticMediumState name="intergalacticMediumStateMetallicityFixed">
    <description>
-    An intergalactic medium state class which provides a fixed metallicity for the \gls{igm}, given by {\normalfont \ttfamily [metallicity]}.
+    An intergalactic medium state class which provides a fixed metallicity for the \gls{igm}, given by \source{[metallicity]}.
    </description>
   </intergalacticMediumState>
   !!]
   type, extends(intergalacticMediumStateClass) :: intergalacticMediumStateMetallicityFixed
      !!{
-     An intergalactic medium state class which provides a fixed metallicity for the \gls{igm}, given by {\normalfont \ttfamily [metallicity]}.
+     An intergalactic medium state class which provides a fixed metallicity for the \gls{igm}, given by \source{[metallicity]}.
      !!}
      private
      class           (intergalacticMediumStateClass), pointer :: intergalacticMediumState_ => null()

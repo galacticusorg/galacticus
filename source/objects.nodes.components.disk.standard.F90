@@ -721,7 +721,7 @@ contains
   !!]
   subroutine Node_Component_Disk_Standard_Scale_Set(node)
     !!{
-    Set scales for properties of {\normalfont \ttfamily node}.
+    Set scales for properties of \source{node}.
     !!}
     use :: Abundances_Structure          , only : abs                 , abundances       , max                      , operator(*)            , &
           &                                       unitAbundances
@@ -817,7 +817,7 @@ contains
   !!]
   subroutine Node_Component_Disk_Standard_Inactive(node)
     !!{
-    Set Jacobian zero status for properties of {\normalfont \ttfamily node}.
+    Set Jacobian zero status for properties of \source{node}.
     !!}
     use :: Galacticus_Nodes, only : nodeComponentDisk, nodeComponentDiskStandard, treeNode
     implicit none
@@ -836,7 +836,7 @@ contains
 
   subroutine satelliteMerger(self,node)
     !!{
-    Transfer any standard disk associated with {\normalfont \ttfamily node} to its host halo.
+    Transfer any standard disk associated with \source{node} to its host halo.
     !!}
     use :: Abundances_Structure            , only : zeroAbundances
     use :: Error                           , only : Error_Report

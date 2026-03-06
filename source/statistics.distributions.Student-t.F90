@@ -35,7 +35,7 @@
     \end{equation}
     Specified using:
     \begin{description}
-    \item[{\normalfont \ttfamily degreesOfFreedom}] The number of degrees of freedom, $\nu$.
+    \item[\source{degreesOfFreedom}] The number of degrees of freedom, $\nu$.
     \end{description}
    </description>
   </distributionFunction1D>

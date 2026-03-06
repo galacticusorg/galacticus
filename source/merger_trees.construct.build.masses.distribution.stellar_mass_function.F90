@@ -165,7 +165,7 @@
     M_\odot}\right)^{\beta_\mathrm{cut}}.
    \end{equation}
   
-   We use the best fit parameters from the {\normalfont \ttfamily SIG\_MOD1} method of \cite{leauthaud_new_2011} for their
+   We use the best fit parameters from the \source{SIG\_MOD1} method of \cite{leauthaud_new_2011} for their
    $z_1$ sample, but apply a shift of $-0.2$ dex in masses to bring the fit into line with the $z=0.07$ mass function of
    \cite{li_distribution_2009}. The resulting parameter values are shown in Table~\ref{tb:z0SMFFitParameters}.
   

@@ -34,13 +34,13 @@ module Power_Spectra_Primordial_Transferred
    <description>Class providing the transferred primordial power spectrum.</description>
    <default>simple</default>
    <method name="power" >
-    <description>Return the (unnormalized) power in the transferred primordial power spectrum at the given {\normalfont \ttfamily wavenumber} (specified in units of Mpc$^{-1}$.</description>
+    <description>Return the (unnormalized) power in the transferred primordial power spectrum at the given \source{wavenumber} (specified in units of Mpc$^{-1}$.</description>
     <type>double precision</type>
     <pass>yes</pass>
     <argument>double precision, intent(in   ) :: wavenumber, time</argument>
    </method>
    <method name="logarithmicDerivative" >
-    <description>Return the logarithmic derivative with respect to wavenumber of the transferred primordial power spectrum at the given {\normalfont \ttfamily wavenumber} (specified in units of Mpc$^{-1}$.</description>
+    <description>Return the logarithmic derivative with respect to wavenumber of the transferred primordial power spectrum at the given \source{wavenumber} (specified in units of Mpc$^{-1}$.</description>
     <type>double precision</type>
     <pass>yes</pass>
     <argument>double precision, intent(in   ) :: wavenumber, time</argument>

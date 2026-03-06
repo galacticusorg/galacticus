@@ -19,7 +19,7 @@
 
   !![
   <mergerTreeEvolveTimestep name="mergerTreeEvolveTimestepStandard">
-   <description>A merger tree evolution timestepping class which limits the step to the minimum of that given by the {\normalfont \ttfamily simple}, {\normalfont \ttfamily satellite}, and {\normalfont \ttfamily satelliteDestruction} timesteps.</description>
+   <description>A merger tree evolution timestepping class which limits the step to the minimum of that given by the \source{simple}, \source{satellite}, and \source{satelliteDestruction} timesteps.</description>
    <deepCopy>
     <functionClass variables="simple, satellite, satelliteDestruction"/>
    </deepCopy>
@@ -31,7 +31,7 @@
   type, extends(mergerTreeEvolveTimestepClass) :: mergerTreeEvolveTimestepStandard
      !!{
      Implementation of a merger tree evolution timestepping class which limits the step to the minimum of that given by the
-     {\normalfont \ttfamily simple} and {\normalfont \ttfamily satellite} timesteps.
+     \source{simple} and \source{satellite} timesteps.
      !!}
      private
      type (mergerTreeEvolveTimestepSimple              ), pointer :: simple               => null()
@@ -133,8 +133,8 @@ contains
 
   double precision function standardTimeEvolveTo(self,timeEnd,node,task,taskSelf,report,lockNode,lockType)
     !!{
-    Determine a suitable timestep for {\normalfont \ttfamily node} by combining the {\normalfont \ttfamily simple},
-    {\normalfont \ttfamily satellite}, and {\normalfont \ttfamily satelliteDestruction} timesteps.
+    Determine a suitable timestep for \source{node} by combining the \source{simple},
+    \source{satellite}, and \source{satelliteDestruction} timesteps.
     !!}
     use :: Error             , only : Error_Report
     use :: ISO_Varying_String, only : varying_string

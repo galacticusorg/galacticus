@@ -67,7 +67,7 @@ contains
 
   function penarrubia2010ConstructorParameters(parameters) result(self)
     !!{
-    Default constructor for the {\normalfont \ttfamily penarrubia2010} dark matter halo profile class.
+    Default constructor for the \source{penarrubia2010} dark matter halo profile class.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -182,7 +182,7 @@ contains
   
   subroutine penarrubia2010Exponents(self,node,alpha,beta,gamma)
     !!{
-    Compute the exponents of the {\normalfont \ttfamily penarrubia2010} dark matter halo profile.
+    Compute the exponents of the \source{penarrubia2010} dark matter halo profile.
     !!}
     use :: Galacticus_Nodes, only : nodeComponentSatellite, nodeComponentBasic
     implicit none
@@ -209,7 +209,7 @@ contains
   
   double precision function penarrubia2010ScaleRadius(self,node) result(radiusScale)
     !!{
-    Compute the scale radius of the {\normalfont \ttfamily penarrubia2010} dark matter halo profile.
+    Compute the scale radius of the \source{penarrubia2010} dark matter halo profile.
     !!}
     use :: Galacticus_Nodes, only : nodeComponentSatellite, nodeComponentBasic, nodeComponentDarkMatterProfile
     implicit none
@@ -246,7 +246,7 @@ contains
 
   double precision function penarrubia2010Normalization(self,node)
     !!{
-    Compute the mass normalization of the {\normalfont \ttfamily penarrubia2010} dark matter halo profile.
+    Compute the mass normalization of the \source{penarrubia2010} dark matter halo profile.
     !!}
     use :: Galacticus_Nodes, only : nodeComponentSatellite, nodeComponentBasic, nodeComponentDarkMatterProfile
     implicit none

@@ -31,12 +31,12 @@
   <accretionHalo name="accretionHaloColdMode">
    <description>
     Accretion onto halos using simple truncation to mimic the effects of reionization and accounting for cold mode
-    accretion. This class extends the {\normalfont \ttfamily simple} class by dividing the accretion into hot and cold mode
+    accretion. This class extends the \source{simple} class by dividing the accretion into hot and cold mode
     components. The cold mode fraction follows the approximation introduced by \cite{benson_cold_2010}, namely:
     \begin{equation}
     f_\mathrm{cold}=(1+r^{1/\delta})^{-1},
     \end{equation}
-    where $\delta=${\normalfont \ttfamily [accretionColdModeShockStabilityTransitionWidth]}, $r =
+    where $\delta=$\source{[accretionColdModeShockStabilityTransitionWidth]}, $r =
     \epsilon_\mathrm{crit}/\epsilon$, and
     \begin{equation}
     \epsilon = r_\mathrm{s} \Lambda / \rho_\mathrm{s} v_\mathrm{s}^3,
@@ -104,7 +104,7 @@ contains
 
   function coldModeConstructorParameters(parameters) result(self)
     !!{
-    Default constructor for the {\normalfont \ttfamily coldMode} halo accretion class.
+    Default constructor for the \source{coldMode} halo accretion class.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -218,7 +218,7 @@ contains
 
   double precision function coldModeAccretionRate(self,node,accretionMode)
     !!{
-    Computes the baryonic accretion rate onto {\normalfont \ttfamily node}.
+    Computes the baryonic accretion rate onto \source{node}.
     !!}
     implicit none
     class(accretionHaloColdMode       ), intent(inout) :: self
@@ -232,7 +232,7 @@ contains
   
   double precision function coldModeAccretedMass(self,node,accretionMode)
     !!{
-    Computes the mass of baryons accreted into {\normalfont \ttfamily node}.
+    Computes the mass of baryons accreted into \source{node}.
     !!}
     implicit none
     class(accretionHaloColdMode       ), intent(inout) :: self
@@ -246,7 +246,7 @@ contains
 
   double precision function coldModeFailedAccretionRate(self,node,accretionMode)
     !!{
-    Computes the baryonic accretion rate onto {\normalfont \ttfamily node}.
+    Computes the baryonic accretion rate onto \source{node}.
     !!}
     implicit none
     class(accretionHaloColdMode       ), intent(inout) :: self
@@ -260,7 +260,7 @@ contains
   
   double precision function coldModeFailedAccretedMass(self,node,accretionMode)
     !!{
-    Computes the mass of baryons accreted into {\normalfont \ttfamily node}.
+    Computes the mass of baryons accreted into \source{node}.
     !!}
     implicit none
     class(accretionHaloColdMode       ), intent(inout) :: self
@@ -274,7 +274,7 @@ contains
 
   function coldModeAccretionRateMetals(self,node,accretionMode)
     !!{
-    Computes the rate of mass of abundance accretion (in $M_\odot/$Gyr) onto {\normalfont \ttfamily node} from the intergalactic medium.
+    Computes the rate of mass of abundance accretion (in $M_\odot/$Gyr) onto \source{node} from the intergalactic medium.
     !!}
     implicit none
     type (abundances                  )                :: coldModeAccretionRateMetals
@@ -289,7 +289,7 @@ contains
 
   function coldModeAccretedMassMetals(self,node,accretionMode)
     !!{
-    Computes the mass of abundances accreted (in $M_\odot$) onto {\normalfont \ttfamily node} from the intergalactic medium.
+    Computes the mass of abundances accreted (in $M_\odot$) onto \source{node} from the intergalactic medium.
     !!}
     implicit none
     type (abundances                  )                :: coldModeAccretedMassMetals
@@ -304,7 +304,7 @@ contains
 
   function coldModeFailedAccretionRateMetals(self,node,accretionMode)
     !!{
-    Computes the rate of failed mass of abundance accretion (in $M_\odot/$Gyr) onto {\normalfont \ttfamily node} from the intergalactic medium.
+    Computes the rate of failed mass of abundance accretion (in $M_\odot/$Gyr) onto \source{node} from the intergalactic medium.
     !!}
     implicit none
     type (abundances                  )                :: coldModeFailedAccretionRateMetals
@@ -319,7 +319,7 @@ contains
 
   function coldModeFailedAccretedMassMetals(self,node,accretionMode)
     !!{
-    Computes the mass of abundances that failed to accrete (in $M_\odot$) onto {\normalfont \ttfamily node} from the intergalactic medium.
+    Computes the mass of abundances that failed to accrete (in $M_\odot$) onto \source{node} from the intergalactic medium.
     !!}
     implicit none
     type (abundances                  )                :: coldModeFailedAccretedMassMetals
@@ -334,7 +334,7 @@ contains
   
   function coldModeAccretionRateChemicals(self,node,accretionMode)
     !!{
-    Computes the rate of mass of chemicals accretion (in $M_\odot/$Gyr) onto {\normalfont \ttfamily node} from the intergalactic medium. Assumes a
+    Computes the rate of mass of chemicals accretion (in $M_\odot/$Gyr) onto \source{node} from the intergalactic medium. Assumes a
     primordial mixture of hydrogen and helium and that accreted material is in collisional ionization equilibrium at the virial
     temperature.
     !!}
@@ -359,7 +359,7 @@ contains
 
   function coldModeAccretedMassChemicals(self,node,accretionMode)
     !!{
-    Computes the mass of chemicals accreted (in $M_\odot$) onto {\normalfont \ttfamily node} from the intergalactic medium.
+    Computes the mass of chemicals accreted (in $M_\odot$) onto \source{node} from the intergalactic medium.
     !!}
     use :: Chemical_Abundances_Structure, only : chemicalAbundances
     implicit none
@@ -382,7 +382,7 @@ contains
 
   function coldModeChemicalMasses(self,node,massAccreted,accretionMode)
     !!{
-    Compute the masses of chemicals accreted (in $M_\odot$) onto {\normalfont \ttfamily node} from the intergalactic medium.
+    Compute the masses of chemicals accreted (in $M_\odot$) onto \source{node} from the intergalactic medium.
     !!}
     use :: Abundances_Structure             , only : zeroAbundances
     use :: Chemical_Abundances_Structure    , only : chemicalAbundances

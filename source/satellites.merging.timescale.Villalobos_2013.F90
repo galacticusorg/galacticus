@@ -32,7 +32,7 @@
     \begin{equation}
     \tau_\mathrm{merge} = (1+z)^\alpha \tau^\prime_\mathrm{merge},
     \end{equation}
-    where $\alpha=${\normalfont \ttfamily [exponent]} and $\tau^\prime_\mathrm{merge}$ is the merging timescale computed by
+    where $\alpha=$\source{[exponent]} and $\tau^\prime_\mathrm{merge}$ is the merging timescale computed by
     another satellite merging timescale.
    </description>
   </satelliteMergingTimescales>

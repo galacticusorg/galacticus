@@ -30,8 +30,8 @@
     \end{equation}
     Specified using:
     \begin{description}
-    \item[{\normalfont \ttfamily [minimum]}] The lower limit of the range, $x_\mathrm{l}$;
-    \item[{\normalfont \ttfamily [maximum]}] The upper limit of the range, $x_\mathrm{u}$.
+    \item[\source{[minimum]}] The lower limit of the range, $x_\mathrm{l}$;
+    \item[\source{[maximum]}] The upper limit of the range, $x_\mathrm{u}$.
     \end{description}
    </description>
   </distributionFunction1D>

@@ -149,7 +149,7 @@ contains
 
   subroutine vlctyMxSclngOutflowRate(self,component,rateStarFormation,rateEnergyInput,rateOutflowEjective,rateOutflowExpulsive)
     !!{
-    Returns the outflow rate (in $M_\odot$ Gyr$^{-1}$) for star formation in the given {\normalfont \ttfamily component}.
+    Returns the outflow rate (in $M_\odot$ Gyr$^{-1}$) for star formation in the given \source{component}.
     !!}
     use :: Galacticus_Nodes  , only : nodeComponentBasic
     use :: Mass_Distributions, only : massDistributionClass

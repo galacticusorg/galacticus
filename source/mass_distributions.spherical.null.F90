@@ -109,7 +109,7 @@ contains
 
   double precision function zeroDensity(self,coordinates)
     !!{
-    Return the density at the specified {\normalfont \ttfamily coordinates} in a zero distribution.
+    Return the density at the specified \source{coordinates} in a zero distribution.
     !!}
     implicit none
     class(massDistributionZero), intent(inout) :: self
@@ -136,7 +136,7 @@ contains
 
   double precision function zeroMassEnclosedBySphere(self,radius)
     !!{
-    Computes the mass enclosed within a sphere of given {\normalfont \ttfamily radius} for a zero distribution.
+    Computes the mass enclosed within a sphere of given \source{radius} for a zero distribution.
     !!}
     implicit none
     class           (massDistributionZero), intent(inout), target :: self
@@ -186,7 +186,7 @@ contains
 
   double precision function zeroPotential(self,coordinates,status)
     !!{
-    Return the potential at the specified {\normalfont \ttfamily coordinates} for a point mass.
+    Return the potential at the specified \source{coordinates} for a point mass.
     !!}
     use :: Galactic_Structure_Options, only : structureErrorCodeSuccess
     implicit none

@@ -88,7 +88,7 @@ contains
 
   integer function solitonElementCount(self,time)
     !!{
-    Return the number of elements in the {\normalfont \ttfamily soliton} property extractors.
+    Return the number of elements in the \source{soliton} property extractors.
     !!}
     implicit none
     class           (nodePropertyExtractorSoliton), intent(inout) :: self
@@ -101,7 +101,7 @@ contains
 
   function solitonExtract(self,node,time,instance)
     !!{
-    Implement a {\normalfont \ttfamily soliton} property extractor.
+    Implement a \source{soliton} property extractor.
     !!}
     use :: Galacticus_Nodes, only : nodeComponentDarkMatterProfile
     implicit none
@@ -141,7 +141,7 @@ contains
 
   subroutine solitonNames(self,time,names)
     !!{
-    Return the names of the {\normalfont \ttfamily soliton} property.
+    Return the names of the \source{soliton} property.
     !!}
     implicit none
     class(nodePropertyExtractorSoliton), intent(inout)                             :: self
@@ -161,7 +161,7 @@ contains
 
   subroutine solitonDescriptions(self,time,descriptions)
     !!{
-    Return the descriptions of the {\normalfont \ttfamily soliton} property.
+    Return the descriptions of the \source{soliton} property.
     !!}
     implicit none
     class(nodePropertyExtractorSoliton), intent(inout)                             :: self
@@ -181,7 +181,7 @@ contains
 
   function solitonUnitsInSI(self,time)
     !!{
-    Return the units of the {\normalfont \ttfamily Soliton} property in the SI system.
+    Return the units of the \source{Soliton} property in the SI system.
     !!}
     use :: Numerical_Constants_Astronomical, only : massSolar, megaParsec
     implicit none

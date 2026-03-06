@@ -60,8 +60,8 @@
       $i^\mathrm{th}$ non-primary progenitor halo about the primary progenitor halo, $\mu = M_i/M_0$ is the mass ratio of the
       $i^\mathrm{th}$ non-primary progenitor and the primary progenitor ratio, $\nu$ is the peak height parameter for the primary
       progenitor halo, $w_i$ is the subsampling weight of the $i^\mathrm{th}$ non-primary progenitor, $\mathcal{N}(0,1)$ is a
-      standard normal deviate, $\alpha=${\normalfont \ttfamily [massExponent]}, $\beta=${\normalfont \ttfamily
-      [peakHeightExponent]}, $b=${\normalfont \ttfamily [energyBoost]}, and $\sigma=${\normalfont \ttfamily [scatterExcess]}.
+      standard normal deviate, $\alpha=$\source{[massExponent]}, $\beta=${\normalfont \ttfamily
+      [peakHeightExponent]}, $b=$\source{[energyBoost]}, and $\sigma=$\source{[scatterExcess]}.
 
       To account for the contribution to the energy from unresolved accretion, we proceed as follows. First, the unresolved mass
       is determined by subtracting the mass of all progenitors from the halo mass:
@@ -108,12 +108,12 @@
       We next estimate the mean and root-variance, $\bar{E}_\mathrm{unres}$ and $\sigma_\mathrm{unres}$, respectively, of the
       energy of a halo of mass $M_\mathrm{unres}$ via a Monte Carlo approach. We generate $N_\mathrm{MC}=${\normalfont \ttfamily
       [countSampleEnergyUnresolved]} such halos, each with scale radii set using the fall-back \refClass{darkMatterHaloScaleClass}
-      object with an added scatter of $\sigma^\prime=${\normalfont \ttfamily [scatter]} dex, and a randomly selected orbit. For
+      object with an added scatter of $\sigma^\prime=$\source{[scatter]} dex, and a randomly selected orbit. For
       each such halo, the energy is computed as
       \begin{equation}
       E_\mathrm{unres} = u (E_\mathrm{orb} c_\mathrm{orb} f_\mathrm{orb} + E_\mathrm{int} c_\mathrm{int} f_\mathrm{int}) (1+b \nu^\beta),
       \end{equation}
-      where $u = ${\normalfont \ttfamily [unresolvedEnergy]}.
+      where $u = $\source{[unresolvedEnergy]}.
 
       To estimate the deviation from the mean unresolved energy we again consider the contributions from a spectrum of unresolved
       halo masses. For simplicity we here ignore the internal energies (which are typically small relative to the orbital energy
@@ -135,7 +135,7 @@
       \begin{equation}
       \bar{E}_\mathrm{unres} \exp\left( \left[ \frac{2+a}{3+a} \left(\frac{\sigma_\mathrm{unres}}{\bar{E}_\mathrm{unres}}\right)^2 + (\sigma_e \log_\mathrm{e}10)^2 \right]^{1/2} \mathcal{N}(0,1) \right).
       \end{equation}
-      where $\sigma_\mathrm{e}=${\normalfont \ttfamily [scatterExcess]} accounts for scatter missed by this model.
+      where $\sigma_\mathrm{e}=$\source{[scatterExcess]} accounts for scatter missed by this model.
 
       The scale radius which corresponds to this energy is then solved for.
 
@@ -156,7 +156,7 @@
       \end{equation}
 
       where\footnote{These values were found by fitting to results from this class.} $\gamma = ${\normalfont \ttfamily
-      [correlationRateDecay]}, $\mu =${\normalfont \ttfamily [correlationExponent]} and $M_i$ is the mass of the $i^\mathrm{th}$
+      [correlationRateDecay]}, $\mu =$\source{[correlationExponent]} and $M_i$ is the mass of the $i^\mathrm{th}$
       halo in the sub-branch. This results in a scale radius along the sub-branch with the correct mean and scatter, but
       correlated over mass increment scales in a way that matches the predictions of this algorithm.
     </description>
@@ -265,7 +265,7 @@ contains
       <name>factorMassResolution</name>
       <defaultValue>1.0d2</defaultValue>
       <source>parameters</source>
-      <description>The \cite{johnson_random_2021} model is applied only for halos with mass greater than $f M_\mathrm{res}$ where $f=${\normalfont \ttfamily [factorMassResolution]}. Below this mass the fall-back method is used, with correlated scatter along the branch.</description>
+      <description>The \cite{johnson_random_2021} model is applied only for halos with mass greater than $f M_\mathrm{res}$ where $f=$\source{[factorMassResolution]}. Below this mass the fall-back method is used, with correlated scatter along the branch.</description>
     </inputParameter>
     <inputParameter>
       <name>scatter</name>

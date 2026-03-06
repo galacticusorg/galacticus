@@ -107,7 +107,7 @@ contains
 
   integer function fluxFromLuminosityElementCount(self,time)
     !!{
-    Return the number of elements in the {\normalfont \ttfamily fluxFromLuminosity} property extractors.
+    Return the number of elements in the \source{fluxFromLuminosity} property extractors.
     !!}
     use :: Error, only : Error_Report
     implicit none

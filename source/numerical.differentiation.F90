@@ -43,7 +43,7 @@ module Numerical_Differentiation
    contains
      !![
      <methods>
-       <method description="Returns the derivative of the function at argument {\normalfont \ttfamily x}." method="derivative" />
+       <method description="Returns the derivative of the function at argument \source{x}." method="derivative" />
      </methods>
      !!]
      final     ::               differentiatorDestructor
@@ -71,7 +71,7 @@ contains
 
   function differentiatorConstructorInternal(f) result(self)
     !!{
-    Constructor for the numerical derivative class. Must be passed the function {\normalfont \ttfamily f} for which derivatives
+    Constructor for the numerical derivative class. Must be passed the function \source{f} for which derivatives
     will be computed.
     !!}
     implicit none
@@ -96,8 +96,8 @@ contains
 
   double precision function differentiatorDerivative(self,x,h,errorAbsolute)
     !!{
-    Compute a numerical derivative of the function at {\normalfont \ttfamily x}. The initial stepsize is {\normalfont \ttfamily
-    h}. If present, the absolute error estimate is returned in {\normalfont \ttfamily errorAbsolute}.
+    Compute a numerical derivative of the function at \source{x}. The initial stepsize is {\normalfont \ttfamily
+    h}. If present, the absolute error estimate is returned in \source{errorAbsolute}.
     !!}
     use :: Error, only : Error_Report, errorStatusSuccess
     implicit none

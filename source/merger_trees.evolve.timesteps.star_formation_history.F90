@@ -97,8 +97,8 @@ contains
 
   double precision function starFormationHistoryTimeEvolveTo(self,timeEnd,node,task,taskSelf,report,lockNode,lockType) result(timeEvolveTo)
     !!{
-    Determine a suitable timestep for {\normalfont \ttfamily node} using the starFormationHistory method. This simply selects the smaller of {\normalfont \ttfamily
-    timeStepAbsolute} and {\normalfont \ttfamily timeStepRelative}$H^{-1}(t)$.
+    Determine a suitable timestep for \source{node} using the starFormationHistory method. This simply selects the smaller of {\normalfont \ttfamily
+    timeStepAbsolute} and \source{timeStepRelative}$H^{-1}(t)$.
     !!}
     use :: Evolve_To_Time_Reports, only : Evolve_To_Time_Report
     use :: Galacticus_Nodes      , only : nodeComponentBasic   , nodeComponentDisk, nodeComponentSpheroid

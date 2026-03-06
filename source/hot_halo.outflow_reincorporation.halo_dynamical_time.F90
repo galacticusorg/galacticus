@@ -53,7 +53,7 @@ contains
 
   function haloDynamicalTimeConstructorParameters(parameters) result(self)
     !!{
-    Default constructor for the {\normalfont \ttfamily haloDynamicalTime} hot halo outflow reincorporation class which
+    Default constructor for the \source{haloDynamicalTime} hot halo outflow reincorporation class which
     takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
@@ -82,7 +82,7 @@ contains
 
   function haloDynamicalTimeConstructorInternal(multiplier,darkMatterHaloScale_) result(self)
     !!{
-    Default constructor for the {\normalfont \ttfamily haloDynamicalTime} hot halo outflow reincorporation class.
+    Default constructor for the \source{haloDynamicalTime} hot halo outflow reincorporation class.
     !!}
     implicit none
     type            (hotHaloOutflowReincorporationHaloDynamicalTime)                        :: self

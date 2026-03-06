@@ -35,8 +35,8 @@
     \tau_\mathrm{cool}=\tau_\mathrm{cool,0} (1+z)^{\beta_\mathrm{cool}} \exp \left(\left[{M_\mathrm{halo} \over
     M_\mathrm{transition}}\right]^{\gamma_\mathrm{cool}}\right),
     \end{equation}
-    $\tau_\mathrm{cool,0}=${\normalfont \ttfamily [timescale]}, $\beta_\mathrm{cool}=${\normalfont \ttfamily
-    [exponentRedshift]}, $M_\mathrm{transition}=${\normalfont \ttfamily [massCutOff]}, and $\gamma_\mathrm{cool}=${\normalfont
+    $\tau_\mathrm{cool,0}=$\source{[timescale]}, $\beta_\mathrm{cool}=${\normalfont \ttfamily
+    [exponentRedshift]}, $M_\mathrm{transition}=$\source{[massCutOff]}, and $\gamma_\mathrm{cool}=${\normalfont
     \ttfamily [exponentCutOff]}.
    </description>
   </coolingRate>

@@ -23,9 +23,9 @@
   <outputTimes name="outputTimesList">
     <description>      
       An output times class which simply reads a list of output times specified via parameters. Times can be given as a
-      (space-separated) list of actual cosmic times (in Gyr) via the {\normalfont \ttfamily [times]} parameter, or as a
-      (space-separated) list of redshifts via the {\normalfont \ttfamily [redshifts]} parameter, or by a combination of the
-      two. The {\normalfont \ttfamily [times]} parameter allows negative values which are interpreted as lookback times. For
+      (space-separated) list of actual cosmic times (in Gyr) via the \source{[times]} parameter, or as a
+      (space-separated) list of redshifts via the \source{[redshifts]} parameter, or by a combination of the
+      two. The \source{[times]} parameter allows negative values which are interpreted as lookback times. For
       example, in a cosmological model where the universe is currently 13.8~Gyr old the following:
       \begin{verbatim}
       &lt;outputTimes value="list"&gt;
@@ -180,7 +180,7 @@ contains
 
   double precision function listTime(self,indexOutput)
     !!{
-    Returns the time of the output indexed by {\normalfont \ttfamily iOutput}.
+    Returns the time of the output indexed by \source{iOutput}.
     !!}
     implicit none
     class  (outputTimesList), intent(inout) :: self
@@ -196,7 +196,7 @@ contains
 
   double precision function listRedshift(self,indexOutput)
     !!{
-    Returns the redshift of the output indexed by {\normalfont \ttfamily indexOutput}.
+    Returns the redshift of the output indexed by \source{indexOutput}.
     !!}
     implicit none
     class  (outputTimesList), intent(inout) :: self
@@ -253,7 +253,7 @@ contains
 
   double precision function listTimeNext(self,timeCurrent,indexOutput)
     !!{
-    Returns the time of the next output after {\normalfont \ttfamily currentTime}.
+    Returns the time of the next output after \source{currentTime}.
     !!}
     use :: Arrays_Search, only : searchArray
     implicit none
@@ -279,7 +279,7 @@ contains
 
   double precision function listTimePrevious(self,timeCurrent,indexOutput)
     !!{
-    Returns the time of the previous output prior to {\normalfont \ttfamily timeCurrent}.
+    Returns the time of the previous output prior to \source{timeCurrent}.
     !!}
     use :: Arrays_Search, only : searchArray
     implicit none

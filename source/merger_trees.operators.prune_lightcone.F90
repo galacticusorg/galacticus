@@ -29,10 +29,10 @@
   <mergerTreeOperator name="mergerTreeOperatorPruneLightcone">
    <description>
     Provides a pruning-by-lightcone operator on merger trees. Trees which have no nodes which lie within the lightcone are
-    completely pruned away. If the parameter {\normalfont \ttfamily [splitTrees]} is set to {\normalfont \ttfamily true} then
+    completely pruned away. If the parameter \source{[splitTrees]} is set to \source{true} then
     any parts of a merger tree which does intersect the light that exist after the latest time at which a constituent node of
     the tree intersects the lightcone will be pruned away also (possibly causing the tree to be split into multiple trees in a
-    forest). If the parameter {\normalfont \ttfamily [bufferIsolatedHalos]} is set to {\normalfont \ttfamily true} then, when
+    forest). If the parameter \source{[bufferIsolatedHalos]} is set to \source{true} then, when
     testing whether an isolated halo intersects the lightcone a buffer radius equal in size to the extent of any possible
     orphan galaxies associated with the halo is added around the lightcone---this ensures that if orphan galaxies of the halo
     might possibly intersect the lightcone the halo will not be pruned away.
@@ -83,7 +83,7 @@ contains
       <name>bufferIsolatedHalos</name>
       <source>parameters</source>
       <defaultValue>.false.</defaultValue>
-      <description>If true, intersection of a tree with the lightcone will be determined using the positions of non-isolated (a.k.a. ``satellite'') halos, and of isolated halos (a.k.a ``centrals'') with a buffer region (with radius equal to the extent of the orphan satellite distribution---see \refPhysics{satelliteOrphanDistribution}) placed around each such halo, and any intersection of that region with the lightcone is sufficient to prevent pruning of the tree. If this parameter is {\normalfont \ttfamily false} then (unbuffered) positions of all halos are used for determining intersection with the lightcone---this requires complete (i.e. throughout the extent of their existence) knowledge of non-isolated halos prior to application of this operator.</description>
+      <description>If true, intersection of a tree with the lightcone will be determined using the positions of non-isolated (a.k.a. ``satellite'') halos, and of isolated halos (a.k.a ``centrals'') with a buffer region (with radius equal to the extent of the orphan satellite distribution---see \refPhysics{satelliteOrphanDistribution}) placed around each such halo, and any intersection of that region with the lightcone is sufficient to prevent pruning of the tree. If this parameter is \source{false} then (unbuffered) positions of all halos are used for determining intersection with the lightcone---this requires complete (i.e. throughout the extent of their existence) knowledge of non-isolated halos prior to application of this operator.</description>
     </inputParameter>
     <inputParameter>
       <name>splitTrees</name>

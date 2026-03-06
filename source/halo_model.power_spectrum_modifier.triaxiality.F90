@@ -94,7 +94,7 @@ contains
 
   function triaxialityConstructorParameters(parameters) result(self)
     !!{
-    Default constructor for the {\normalfont \ttfamily triaxiality} hot halo outflow reincorporation class which
+    Default constructor for the \source{triaxiality} hot halo outflow reincorporation class which
     takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters

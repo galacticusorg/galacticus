@@ -220,7 +220,7 @@ module Numerical_ODE_Solvers
   
   interface odeSolver
      !!{
-     Constructor for the {\normalfont \ttfamily odeSolver} class.
+     Constructor for the \source{odeSolver} class.
      !!}
      module procedure odeSolverConstructor
   end interface odeSolver
@@ -310,7 +310,7 @@ contains
 
   function odeSolverConstructor(dim,derivatives,jacobian,integrator,integrands,integratorErrorTolerant,stepperType,toleranceAbsolute,toleranceRelative,hStart,dydtScale,yScale,scale,finalState,postStep,errorAnalyzer,errorHandler,isNonNegative) result(self)
     !!{
-    Constructor for {\normalfont \ttfamily odeSolver} objects.
+    Constructor for \source{odeSolver} objects.
     !!}
     use            :: Error        , only : Error_Report
     use, intrinsic :: ISO_C_Binding, only : c_funloc    , c_null_funptr
@@ -380,7 +380,7 @@ contains
 
   subroutine odeSolverDestructor(self)
     !!{
-    Destructor for {\normalfont \ttfamily odeSolver} objects.
+    Destructor for \source{odeSolver} objects.
     !!}
     implicit none
     type(odeSolver), intent(inout) :: self

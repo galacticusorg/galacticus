@@ -28,9 +28,9 @@ Implements the geometry of the VIPERS survey used by \cite{davidzon_vimos_2013}.
    <description>
     A survey geometry class that describes the survey geometry of \cite{davidzon_vimos_2013}. 
     
-    For the angular mask, we make use of {\normalfont \ttfamily mangle} polygon files provided by I.~Davidzon (private
+    For the angular mask, we make use of \source{mangle} polygon files provided by I.~Davidzon (private
     communication) corresponding to the VIPERS fields. The solid angle of each mask is computed using the {\normalfont
-    \ttfamily mangle} {\normalfont \ttfamily harmonize} command.
+    \ttfamily mangle} \source{harmonize} command.
     
     To determine the depth as a function of stellar mass, we make use of the tabulated mass function, $\phi$, and number of
     galaxies per bin, $N$, supplied by I.~Davidzon (private communication). The effective volume of each bin is found as $V_i =

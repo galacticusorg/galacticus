@@ -612,7 +612,7 @@ contains
 
   subroutine stellarVsHaloMassRelationLeauthaud2012Reduce(self,reduced)
     !!{
-    Implement reduction for the {\normalfont \ttfamily stellarVsHaloMassRelationLeauthaud2012} output analysis class.
+    Implement reduction for the \source{stellarVsHaloMassRelationLeauthaud2012} output analysis class.
     !!}
     use :: Error, only : Error_Report
     implicit none
@@ -630,7 +630,7 @@ contains
 
   subroutine stellarVsHaloMassRelationLeauthaud2012Finalize(self,groupName)
     !!{
-    Implement a {\normalfont \ttfamily stellarVsHaloMassRelationLeauthaud2012} output analysis finalization.
+    Implement a \source{stellarVsHaloMassRelationLeauthaud2012} output analysis finalization.
     !!}
     use :: Output_HDF5, only : outputFile
     use :: HDF5_Access, only : hdf5Access
@@ -663,7 +663,7 @@ contains
 
   double precision function stellarVsHaloMassRelationLeauthaud2012LogLikelihood(self) result(logLikelihood)
     !!{
-    Return the log-likelihood of a {\normalfont \ttfamily stellarVsHaloMassRelationLeauthaud2012} output analysis.
+    Return the log-likelihood of a \source{stellarVsHaloMassRelationLeauthaud2012} output analysis.
     !!}
     use :: Error                       , only : Error_Report
     use :: Linear_Algebra              , only : assignment(=), matrix, operator(*), vector

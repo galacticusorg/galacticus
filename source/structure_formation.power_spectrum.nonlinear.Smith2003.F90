@@ -94,7 +94,7 @@ contains
       <name>includePeacockCorrection</name>
       <source>parameters</source>
       <defaultValue>.true.</defaultValue>
-      <defaultSource>\href{https://www.roe.ac.uk/~jap/haloes/}{{\normalfont \ttfamily https://www.roe.ac.uk/\~jap/haloes/}}</defaultSource>
+      <defaultSource>\href{https://www.roe.ac.uk/~jap/haloes/}{\source{https://www.roe.ac.uk/\~jap/haloes/}}</defaultSource>
       <description>If true, include the correction proposed on John Peacock's \href{https://www.roe.ac.uk/~jap/haloes/}{web page}.</description>
     </inputParameter>
     <inputParameter>

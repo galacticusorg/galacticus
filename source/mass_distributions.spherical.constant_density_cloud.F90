@@ -121,7 +121,7 @@ contains
 
   double precision function constantDensityCloudDensity(self,coordinates)
     !!{
-    Return the density at the specified {\normalfont \ttfamily coordinates} in a $\beta$-profile mass distribution.
+    Return the density at the specified \source{coordinates} in a $\beta$-profile mass distribution.
     !!}
     implicit none
     class(massDistributionConstantDensityCloud), intent(inout) :: self
@@ -151,7 +151,7 @@ contains
 
   double precision function constantDensityCloudMassEnclosedBySphere(self,radius)
     !!{
-    Computes the mass enclosed within a sphere of given {\normalfont \ttfamily radius} for a constant density cloud.
+    Computes the mass enclosed within a sphere of given \source{radius} for a constant density cloud.
     !!}
     implicit none
     class           (massDistributionConstantDensityCloud), intent(inout), target :: self
@@ -182,7 +182,7 @@ contains
 
   double precision function constantDensityCloudPotential(self,coordinates,status)
     !!{
-    Return the potential at the specified {\normalfont \ttfamily coordinates} in a constant density cloud.
+    Return the potential at the specified \source{coordinates} in a constant density cloud.
     !!}
     use :: Galactic_Structure_Options      , only : structureErrorCodeSuccess
     use :: Numerical_Constants_Astronomical, only : gravitationalConstant_internal

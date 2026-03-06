@@ -38,12 +38,12 @@
     proposals are constructed by selecting two chains at random, taking a fraction, $\gamma$, of the vector connecting the two chain
     states and adding this to the state of the current chain. The details of the algorithm are controlled by the following parameters:
     \begin{description}
-    \item[{\normalfont \ttfamily [stepsMaximum]}] The maximum number of steps to take.
-    \item[{\normalfont \ttfamily [acceptanceAverageCount]}] The number of steps over which to average the acceptance rate.
-    \item[{\normalfont \ttfamily [stateSwapCount]}] The number of steps after which to set $\gamma=1$ to allow chains to swap states.
-    \item[{\normalfont \ttfamily [logFileRoot]}] The full path and root name of a file to log results to. The actual file name will
+    \item[\source{[stepsMaximum]}] The maximum number of steps to take.
+    \item[\source{[acceptanceAverageCount]}] The number of steps over which to average the acceptance rate.
+    \item[\source{[stateSwapCount]}] The number of steps after which to set $\gamma=1$ to allow chains to swap states.
+    \item[\source{[logFileRoot]}] The full path and root name of a file to log results to. The actual file name will
       have the rank of the \gls{mpi} process appended to it.
-    \item[{\normalfont \ttfamily [sampleOutliers]}] If set to {\normalfont \ttfamily false} then proposals for non-outlier chains
+    \item[\source{[sampleOutliers]}] If set to \source{false} then proposals for non-outlier chains
       post-convergence are constructed only from other non-outlier chains. Otherwise, proposals for non-outlier chains
       post-convergence are constructed from all other chains.
     \end{description}
@@ -78,8 +78,8 @@
      !![
      <methods>
        <method method="logging"           description="Return true if the simulator is currently logging state."                                           />
-       <method method="posterior"         description="Return the log of posterior probability for the given {\normalfont \ttfamily posteriorSampleState}."/>
-       <method method="update"            description="Update the simulator to the new {\normalfont \ttfamily stateVector} after a step."                  />
+       <method method="posterior"         description="Return the log of posterior probability for the given \source{posteriorSampleState}."/>
+       <method method="update"            description="Update the simulator to the new \source{stateVector} after a step."                  />
        <method method="temperature"       description="Return the current temperature."                                                                    />
        <method method="acceptProposal"    description="Return true if the proposed state should be accepted."                                              />
        <method method="stepSize"          description="Return the step size parameter, $\gamma$, for the differential evolution proposal vector."          />
@@ -190,7 +190,7 @@ contains
     <inputParameter>
       <name>interactionRoot</name>
       <defaultValue>var_str('none')</defaultValue>
-      <description>Root file name for interaction files, or `{\normalfont \ttfamily none}' if interaction is not required.</description>
+      <description>Root file name for interaction files, or `\source{none}' if interaction is not required.</description>
       <source>parameters</source>
     </inputParameter>
     <inputParameter>

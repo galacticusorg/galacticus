@@ -311,7 +311,7 @@ contains
 
   double precision function icmCoolingPowerInBandUnitsInSI(self)
     !!{
-    Return the units of the {\normalfont \ttfamily icmCoolingPowerInBand} properties in the SI system.
+    Return the units of the \source{icmCoolingPowerInBand} properties in the SI system.
     !!}
     implicit none
     class(nodePropertyExtractorICMCoolingPowerInBand), intent(inout) :: self

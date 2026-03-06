@@ -39,7 +39,7 @@ $\delta_\mathrm{c}/\sigma(M)$ (and, therefore, the same halo mass function) on a
       $\sigma_\mathrm{r}(M)$ is the reference cosmological mass variance (typically computed using a top-hat window function), and
       $M_\mathrm{match}$ is the mass at which to match the mass variance. The mass variances are evaluated at the present epoch.
 
-      The matching scale is given by $M_\mathrm{match}=${\normalfont \ttfamily [massMatch]} if this parameter is
+      The matching scale is given by $M_\mathrm{match}=$\source{[massMatch]} if this parameter is
       present. Otherwise $M_\mathrm{match}=M_*$ is used, where $\sigma(M_*)=\delta_\mathrm{crit}$, computed at the present epoch.
    </description>
   </criticalOverdensity>

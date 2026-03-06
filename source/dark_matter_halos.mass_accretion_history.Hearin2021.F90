@@ -180,7 +180,7 @@ contains
   
   double precision function hearin2021Mass(self,node,time)
     !!{
-    Compute the mass corresponding to {\normalfont \ttfamily time} in the mass accretion history of {\normalfont \ttfamily
+    Compute the mass corresponding to \source{time} in the mass accretion history of {\normalfont \ttfamily
     node}.
     !!}
     use :: Galacticus_Nodes, only : nodeComponentBasic
@@ -204,8 +204,8 @@ contains
 
   double precision function hearin2021MassAccretionRate(self,node,time)
     !!{
-    Compute the mass accretion rate at the given {\normalfont \ttfamily time} in the mass accretion history of
-    {\normalfont \ttfamily node}.
+    Compute the mass accretion rate at the given \source{time} in the mass accretion history of
+    \source{node}.
     !!}
     use :: Galacticus_Nodes, only : nodeComponentBasic
     implicit none
@@ -230,7 +230,7 @@ contains
 
   double precision function hearin2021MassMaximum(self,node)
     !!{
-    Compute the maximum mass in the mass accretion history of {\normalfont \ttfamily node}.
+    Compute the maximum mass in the mass accretion history of \source{node}.
     !!}
     use :: Galacticus_Nodes, only : nodeComponentBasic
     implicit none

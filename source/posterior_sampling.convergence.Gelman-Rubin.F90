@@ -31,13 +31,13 @@
     compares the variance in parameter values within chains to that between chains. Outlier detection is applied to the chains using a
     standard Grubb's outlier test. The behavior of this criterion is controlled by the following subparameters:
     \begin{description}
-    \item [{\normalfont \ttfamily Rhat}] The correlation coefficient, $\hat{R}$, value at which to declare convergence.
-    \item [{\normalfont \ttfamily burnCount}] Set number of steps to burn before applying the convergence test.
-    \item [{\normalfont \ttfamily testCount}] Set the number of steps between successive applications of the convergence test.
-    \item [{\normalfont \ttfamily outlierSignificance}] The significance level required in outlier detection.
-    \item [{\normalfont \ttfamily outlierLogLikelihoodOffset}] The offset in log-likelihood from the current maximum likelihood chain
+    \item [\source{Rhat}] The correlation coefficient, $\hat{R}$, value at which to declare convergence.
+    \item [\source{burnCount}] Set number of steps to burn before applying the convergence test.
+    \item [\source{testCount}] Set the number of steps between successive applications of the convergence test.
+    \item [\source{outlierSignificance}] The significance level required in outlier detection.
+    \item [\source{outlierLogLikelihoodOffset}] The offset in log-likelihood from the current maximum likelihood chain
       required for a chain to be declared to be an outlier.
-    \item [{\normalfont \ttfamily outlierCountMaximum}] The maximum number of outlier chains allowed.
+    \item [\source{outlierCountMaximum}] The maximum number of outlier chains allowed.
     \end{description}
    </description>
   </posteriorSampleConvergence>
@@ -512,7 +512,7 @@ contains
 
   subroutine gelmanRubinLogReport(self,fileUnit)
     !!{
-    Write a convergence report to the given {\normalfont \ttfamily fileUnit}.
+    Write a convergence report to the given \source{fileUnit}.
     !!}
     implicit none
     class    (posteriorSampleConvergenceGelmanRubin), intent(inout) :: self

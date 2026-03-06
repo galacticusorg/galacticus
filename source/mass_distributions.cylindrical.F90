@@ -72,7 +72,7 @@ contains
 
   function cylindricalChandrasekharIntegral(self,massDistributionEmbedding,massDistributionPerturber,massPerturber,coordinates,velocity)
     !!{
-    Compute the Chandrasekhar integral at the specified {\normalfont \ttfamily coordinates} in a spherical mass distribution.
+    Compute the Chandrasekhar integral at the specified \source{coordinates} in a spherical mass distribution.
     !!}
     use :: Coordinates                     , only : coordinateCartesian           , coordinateSpherical, coordinateCylindrical       , assignment(=)
     use :: Galactic_Structure_Options      , only : componentTypeAll              , massTypeAll        , enumerationComponentTypeType, enumerationMassTypeType

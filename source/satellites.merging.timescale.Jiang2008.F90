@@ -33,7 +33,7 @@
     merging time from their fitting formula and $T_\mathrm{sim}$ is that measured from their N-body simulation. Furthermore,
     they show that the distribution of $T_\mathrm{fit}/T_\mathrm{sim}$ is well described by a log-normal with dispersion (in
     $\log[T_\mathrm{fit}/T_\mathrm{sim}]$) of $\sigma=0.4$. Random perturbations can be applied to the merger times returned by
-    this implementation by setting $\sigma=${\normalfont \ttfamily [scatter]}$>0$ which will cause the merger time to be drawn
+    this implementation by setting $\sigma=$\source{[scatter]}$>0$ which will cause the merger time to be drawn
     from a log-normal distribution of width $\sigma$ with median equal to $T_\mathrm{fit}$.
    </description>
   </satelliteMergingTimescales>
@@ -88,7 +88,7 @@ contains
     <inputParameter>
       <name>scatter</name>
       <defaultValue>0.0d0</defaultValue>
-      <description>Specifies whether or not to add random scatter to the dynamical friction timescales in the {\normalfont \ttfamily Jiang2008} satellite merging time implementation.</description>
+      <description>Specifies whether or not to add random scatter to the dynamical friction timescales in the \source{Jiang2008} satellite merging time implementation.</description>
       <source>parameters</source>
     </inputParameter>
     <objectBuilder class="darkMatterHaloScale"  name="darkMatterHaloScale_"  source="parameters"/>

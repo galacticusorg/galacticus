@@ -137,7 +137,7 @@ contains
   double precision function simpleLogarithmicDerivative(self,wavenumber,time)
     !!{
     Return the logarithmic derivative of the transferred primordial power spectrum at the
-    given {\normalfont \ttfamily wavenumber}.
+    given \source{wavenumber}.
     !!}
     implicit none
     class           (powerSpectrumPrimordialTransferredSimple), intent(inout) :: self

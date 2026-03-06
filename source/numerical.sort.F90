@@ -142,7 +142,7 @@ contains
 
   subroutine sort{Type¦label}(array)
     !!{
-    Given an unsorted {\normalfont \ttfamily array}, sorts it in place.
+    Given an unsorted \source{array}, sorts it in place.
     !!}
     use                         , intrinsic :: ISO_C_Binding     , only : c_loc  , c_funloc
     {Type¦match¦^(varstr)$¦  use            :: ISO_Varying_String, only : var_str¦}
@@ -155,7 +155,7 @@ contains
   
   subroutine sortBoth{Type¦label}(array,array2)
     !!{
-    Given an unsorted double precision {\normalfont \ttfamily array}, sorts it in place while also rearranging {\normalfont \ttfamily array2} in the same way.
+    Given an unsorted double precision \source{array}, sorts it in place while also rearranging \source{array2} in the same way.
     !!}
     implicit none
     {Type¦intrinsic}                , dimension(:                        ), intent(inout) :: array, array2
@@ -177,7 +177,7 @@ contains
 
   function sortIndex{Type¦label}(array) result(order)
     !!{
-    Given an unsorted {\normalfont \ttfamily array}, return the sort index.
+    Given an unsorted \source{array}, return the sort index.
     !!}
     use                         , intrinsic :: ISO_C_Binding     , only : c_loc  , c_funloc
     {Type¦match¦^(varstr)$¦  use            :: ISO_Varying_String, only : var_str¦}
@@ -193,7 +193,7 @@ contains
 
   subroutine sortByIndex{Type¦label}(array,index)
     !!{
-    Given an {\normalfont \ttfamily array}, sort it in place using the supplied index.
+    Given an \source{array}, sort it in place using the supplied index.
     !!}
     implicit none
     {Type¦intrinsic}               , dimension(:          ), intent(inout) :: array
@@ -232,7 +232,7 @@ contains
 
   function sortSmallest(array,k,mask) result(arraySort)
     !!{
-    Given an {\normalfont \ttfamily array}, find the k smallest elements.
+    Given an \source{array}, find the k smallest elements.
     !!}
     use, intrinsic :: ISO_C_Binding, only : c_loc
     implicit none
@@ -260,7 +260,7 @@ contains
 
   function sortLargest(array,k,mask) result(arraySort)
     !!{
-    Given an {\normalfont \ttfamily array}, find the k largest elements.
+    Given an \source{array}, find the k largest elements.
     !!}
     use, intrinsic :: ISO_C_Binding, only : c_loc
     implicit none
@@ -288,7 +288,7 @@ contains
 
   function sortSmallestIndex(array,k,mask) result(index)
     !!{
-    Given an {\normalfont \ttfamily array}, find the indices of k smallest elements.
+    Given an \source{array}, find the indices of k smallest elements.
     !!}
     use, intrinsic :: ISO_C_Binding, only : c_loc
     implicit none
@@ -317,7 +317,7 @@ contains
 
   function sortLargestIndex(array,k,mask) result(index)
     !!{
-     Given an {\normalfont \ttfamily array}, find the indices of k largest elements.
+     Given an \source{array}, find the indices of k largest elements.
     !!}
     use, intrinsic :: ISO_C_Binding, only : c_loc
     implicit none

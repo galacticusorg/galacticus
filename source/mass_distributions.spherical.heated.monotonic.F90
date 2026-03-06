@@ -44,7 +44,7 @@
      monotonicity relation $r_1 &lt; r_2 \implies \xi(r_1) \le \xi(r_2)$ is enforced by starting at large radius and stepping inward,
      enforcing the condition in the next innermost shell as necessary.
      
-     Not all methods have analytic solutions for this profile. If {\normalfont \ttfamily [nonAnalyticSolver]}$=${\normalfont
+     Not all methods have analytic solutions for this profile. If \source{[nonAnalyticSolver]}$=${\normalfont
      \ttfamily fallThrough} then attempts to call these methods in heated profiles will simply return the result from the
      unheated profile, otherwise a numerical calculation is performed.
    </description>
@@ -111,7 +111,7 @@ contains
       <name>nonAnalyticSolver</name>
       <defaultValue>var_str('fallThrough')</defaultValue>
       <source>parameters</source>
-      <description>Selects how solutions are computed when no analytic solution is available. If set to ``{\normalfont \ttfamily fallThrough}'' then the solution ignoring heating is used, while if set to ``{\normalfont \ttfamily numerical}'' then numerical solvers are used to find solutions.</description>
+      <description>Selects how solutions are computed when no analytic solution is available. If set to ``\source{fallThrough}'' then the solution ignoring heating is used, while if set to ``\source{numerical}'' then numerical solvers are used to find solutions.</description>
     </inputParameter>
     <inputParameter>
       <name>componentType</name>
@@ -195,7 +195,7 @@ contains
   
   double precision function sphericalHeatedMonotonicMassEnclosedBySphere(self,radius) result(mass)
     !!{
-    Returns the enclosed mass (in $M_\odot$) in the dark matter profile of {\normalfont \ttfamily node} at the given {\normalfont \ttfamily radius} (given in
+    Returns the enclosed mass (in $M_\odot$) in the dark matter profile of \source{node} at the given \source{radius} (given in
     units of Mpc).
     !!}
     implicit none
@@ -232,7 +232,7 @@ contains
 
   double precision function sphericalHeatedMonotonicDensity(self,coordinates) result(density)
     !!{
-    Return the density at the specified {\normalfont \ttfamily coordinates} in a scaled spherical mass distribution.
+    Return the density at the specified \source{coordinates} in a scaled spherical mass distribution.
     !!}
     use :: Numerical_Constants_Math, only : Pi
     implicit none

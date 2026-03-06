@@ -38,13 +38,13 @@ module Stellar_Astrophysics_Tracks
    </description>
    <default>file</default>
    <method name="luminosity" >
-    <description>Returns the bolometric luminosity of a star of given {\normalfont \ttfamily initialMass}, {\normalfont \ttfamily metallicity} and {\normalfont \ttfamily age}.</description>
+    <description>Returns the bolometric luminosity of a star of given \source{initialMass}, \source{metallicity} and \source{age}.</description>
     <type>double precision</type>
     <pass>yes</pass>
     <argument>double precision, intent(in   ) :: initialMass, metallicity, age</argument>
    </method>
    <method name="temperatureEffective" >
-    <description>Returns the effective temperature of a star of given {\normalfont \ttfamily initialMass}, {\normalfont \ttfamily metallicity} and {\normalfont \ttfamily age}.</description>
+    <description>Returns the effective temperature of a star of given \source{initialMass}, \source{metallicity} and \source{age}.</description>
     <type>double precision</type>
     <pass>yes</pass>
     <argument>double precision, intent(in   ) :: initialMass, metallicity, age</argument>

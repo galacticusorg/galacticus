@@ -96,7 +96,7 @@ contains
 
   integer function blackHoleSeedingVergara2023ElementCount(self,time)
     !!{
-    Return the number of elements in the {\normalfont \ttfamily blackHoleSeedingVergara2023} property extractors.
+    Return the number of elements in the \source{blackHoleSeedingVergara2023} property extractors.
     !!}
     implicit none
     class           (nodePropertyExtractorBlackHoleSeedingVergara2023), intent(inout) :: self
@@ -109,7 +109,7 @@ contains
 
   function blackHoleSeedingVergara2023Extract(self,node,time,instance)
     !!{
-    Implement a {\normalfont \ttfamily blackHoleSeedingVergara2023} property extractor.
+    Implement a \source{blackHoleSeedingVergara2023} property extractor.
     !!}
     use :: Galacticus_Nodes, only : nodeComponentNSC
     implicit none
@@ -154,7 +154,7 @@ contains
 
   subroutine blackHoleSeedingVergara2023Names(self,time,names)
     !!{
-    Return the names of the {\normalfont \ttfamily blackHoleSeedingVergara2023} properties.
+    Return the names of the \source{blackHoleSeedingVergara2023} properties.
     !!}
     implicit none
     class           (nodePropertyExtractorBlackHoleSeedingVergara2023), intent(inout)                             :: self
@@ -176,7 +176,7 @@ contains
 
   subroutine blackHoleSeedingVergara2023Descriptions(self,time,descriptions)
     !!{
-    Return descriptions of the {\normalfont \ttfamily blackHoleSeedingVergara2023} property.
+    Return descriptions of the \source{blackHoleSeedingVergara2023} property.
     !!}
     implicit none
     class           (nodePropertyExtractorBlackHoleSeedingVergara2023), intent(inout)                             :: self
@@ -198,7 +198,7 @@ contains
 
   function blackHoleSeedingVergara2023UnitsInSI(self,time)
     !!{
-    Return the units of the {\normalfont \ttfamily BlackHoleSeedingVergara2023} properties in the SI system.
+    Return the units of the \source{BlackHoleSeedingVergara2023} properties in the SI system.
     !!}
     use :: Numerical_Constants_Astronomical, only : massSolar, megaParsec, gigayear
     use :: Numerical_Constants_Prefixes    , only : kilo

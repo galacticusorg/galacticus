@@ -146,7 +146,7 @@ contains
 
   double precision function sphericalDensityGradientRadial(self,coordinates,logarithmic) result(densityGradient)
     !!{
-    Return the radial density gradient at the specified {\normalfont \ttfamily coordinates} in a spherical mass distribution.
+    Return the radial density gradient at the specified \source{coordinates} in a spherical mass distribution.
     !!}
     implicit none
     class  (massDistributionSpherical), intent(inout), target   :: self
@@ -159,7 +159,7 @@ contains
 
   double precision function sphericalDensityGradientRadialNumerical(self,coordinates,logarithmic) result(densityGradient)
     !!{
-    Return the radial density gradient at the specified {\normalfont \ttfamily coordinates} in a spherical mass distribution using a numerical calculation.
+    Return the radial density gradient at the specified \source{coordinates} in a spherical mass distribution using a numerical calculation.
     !!}
     use :: Numerical_Differentiation, only : differentiator
     implicit none
@@ -201,7 +201,7 @@ contains
 
   double precision function sphericalMassEnclosedBySphere(self,radius) result(mass)
     !!{
-    Computes the mass enclosed within a sphere of given {\normalfont \ttfamily radius} for spherically-symmetric mass
+    Computes the mass enclosed within a sphere of given \source{radius} for spherically-symmetric mass
     distributions.
     !!}
     implicit none
@@ -214,7 +214,7 @@ contains
 
   double precision function sphericalMassEnclosedBySphereNumerical(self,radius) result(mass)
     !!{
-    Computes the mass enclosed within a sphere of given {\normalfont \ttfamily radius} for spherically-symmetric mass
+    Computes the mass enclosed within a sphere of given \source{radius} for spherically-symmetric mass
     distributions using numerical integration.
     !!}
     use, intrinsic :: ISO_C_Binding           , only : c_size_t
@@ -490,7 +490,7 @@ contains
 
   double precision function sphericalPotential(self,coordinates,status) result(potential)
     !!{
-    Return the potential at the specified {\normalfont \ttfamily coordinates} in a spherical mass distribution.
+    Return the potential at the specified \source{coordinates} in a spherical mass distribution.
     !!}
     implicit none
     class(massDistributionSpherical        ), intent(inout), target   :: self
@@ -503,7 +503,7 @@ contains
 
   double precision function sphericalPotentialNumerical(self,coordinates,status) result(potential)
     !!{
-    Return the potential at the specified {\normalfont \ttfamily coordinates} in a spherical mass distribution.
+    Return the potential at the specified \source{coordinates} in a spherical mass distribution.
     !!}
     use, intrinsic :: ISO_C_Binding, only : c_size_t
     use            :: Coordinates                     , only : assignment(=)
@@ -695,7 +695,7 @@ contains
 
   double precision function sphericalPotentialDifferenceNumerical(self,coordinates1,coordinates2,status) result(potential)
     !!{
-    Return the potential difference between the two specified {\normalfont \ttfamily coordinates} in a spherical mass distribution
+    Return the potential difference between the two specified \source{coordinates} in a spherical mass distribution
     using a numerical calculation.
     !!}
     use :: Coordinates                     , only : assignment(=)
@@ -775,7 +775,7 @@ contains
 
   function sphericalAcceleration(self,coordinates) result(acceleration)
     !!{
-    Computes the gravitational acceleration at {\normalfont \ttfamily coordinates} for spherically-symmetric mass
+    Computes the gravitational acceleration at \source{coordinates} for spherically-symmetric mass
     distributions.
     !!}
     use :: Coordinates                     , only : assignment(=), coordinateSpherical, coordinateCartesian
@@ -814,7 +814,7 @@ contains
 
   function sphericalTidalTensor(self,coordinates)
     !!{
-    Computes the gravitational tidal tensor at {\normalfont \ttfamily coordinates} for spherically-symmetric mass
+    Computes the gravitational tidal tensor at \source{coordinates} for spherically-symmetric mass
     distributions.
     !!}
     use :: Coordinates                     , only : assignment(=)                 , coordinateSpherical, coordinateCartesian
@@ -933,7 +933,7 @@ contains
 
   double precision function sphericalSurfaceDensity(self,coordinates)
     !!{
-    Return the surface density at the specified {\normalfont \ttfamily coordinates} in an exponential disk mass distribution.
+    Return the surface density at the specified \source{coordinates} in an exponential disk mass distribution.
     !!}
     use :: Error, only : Error_Report
     implicit none
@@ -947,7 +947,7 @@ contains
 
   function sphericalChandrasekharIntegral(self,massDistributionEmbedding,massDistributionPerturber,massPerturber,coordinates,velocity) result(integral)
     !!{
-    Compute the Chandrasekhar integral at the specified {\normalfont \ttfamily coordinates} in a spherical mass distribution.
+    Compute the Chandrasekhar integral at the specified \source{coordinates} in a spherical mass distribution.
     !!}
     use :: Coordinates               , only : coordinateCartesian  , assignment(=)
     use :: Numerical_Constants_Math  , only : Pi
@@ -1012,7 +1012,7 @@ contains
 
   double precision function sphericalFourierTransform(self,radiusOuter,wavenumber) result(fourierTransform)
     !!{
-    Compute the Fourier transform of the density profile at the given {\normalfont \ttfamily wavenumber} in a spherical mass distribution.
+    Compute the Fourier transform of the density profile at the given \source{wavenumber} in a spherical mass distribution.
     !!}
     implicit none
     class           (massDistributionSpherical), intent(inout) :: self
@@ -1024,7 +1024,7 @@ contains
 
   double precision function sphericalFourierTransformNumerical(self,radiusOuter,wavenumber) result(fourierTransform)
     !!{   
-    Compute the Fourier transform of the density profile at the given {\normalfont \ttfamily wavenumber} in a spherical mass
+    Compute the Fourier transform of the density profile at the given \source{wavenumber} in a spherical mass
     distribution using a numerical calculation.
     !!}
     use :: Numerical_Integration, only : integrator
@@ -1069,7 +1069,7 @@ contains
   
   double precision function sphericalRadiusFreefall(self,time) result(radius)
     !!{
-    Compute the freefall radius at the given {\normalfont \ttfamily time} in a spherical mass distribution.
+    Compute the freefall radius at the given \source{time} in a spherical mass distribution.
     !!}
     implicit none
     class           (massDistributionSpherical), intent(inout) :: self
@@ -1176,7 +1176,7 @@ contains
 
   double precision function sphericalRadiusFreefallIncreaseRate(self,time) result(radiusIncreaseRate)
     !!{
-    Compute the rate of increase of the freefall radius at the given {\normalfont \ttfamily time} in an spherical mass
+    Compute the rate of increase of the freefall radius at the given \source{time} in an spherical mass
     distribution.
     !!}
     implicit none
@@ -1189,7 +1189,7 @@ contains
 
   double precision function sphericalRadiusFreefallIncreaseRateNumerical(self,time) result(radiusIncreaseRate)
     !!{
-    Compute the rate of increase of the freefall radius at the given {\normalfont \ttfamily time} in an spherical mass
+    Compute the rate of increase of the freefall radius at the given \source{time} in an spherical mass
     distribution using a numerical calculation.
     !!}
     use :: Numerical_Differentiation, only : differentiator
@@ -1220,7 +1220,7 @@ contains
 
   double precision function sphericalEnergy(self,radiusOuter,massDistributionEmbedding) result(energy)
     !!{
-    Compute the energy within a given {\normalfont \ttfamily radius} in a spherical mass distribution.
+    Compute the energy within a given \source{radius} in a spherical mass distribution.
     !!}
     implicit none
     class           (massDistributionSpherical), intent(inout), target :: self
@@ -1233,7 +1233,7 @@ contains
 
   double precision function sphericalEnergyNumerical(self,radiusOuter,massDistributionEmbedding) result(energy)
     !!{
-    Compute the energy within a given {\normalfont \ttfamily radius} in a spherical mass distribution using a numerical calculation.
+    Compute the energy within a given \source{radius} in a spherical mass distribution using a numerical calculation.
     !!}
     implicit none
     class           (massDistributionSpherical), intent(inout) :: self
@@ -1247,7 +1247,7 @@ contains
 
   double precision function sphericalEnergyPotential(self,radiusOuter) result(energy)
     !!{
-    Compute the potential energy within a given {\normalfont \ttfamily radius} in a spherical mass distribution.
+    Compute the potential energy within a given \source{radius} in a spherical mass distribution.
     !!}
     implicit none
     class           (massDistributionSpherical), intent(inout) :: self
@@ -1259,7 +1259,7 @@ contains
 
   double precision function sphericalEnergyKinetic(self,radiusOuter,massDistributionEmbedding) result(energy)
     !!{
-    Compute the kinetic energy within a given {\normalfont \ttfamily radius} in a spherical mass distribution.
+    Compute the kinetic energy within a given \source{radius} in a spherical mass distribution.
     !!}
     implicit none
     class           (massDistributionSpherical), intent(inout) :: self
@@ -1272,7 +1272,7 @@ contains
   
   double precision function sphericalEnergyPotentialNumerical(self,radiusOuter) result(energy)
     !!{
-    Compute (numerically) the potential energy within a given {\normalfont \ttfamily radius} in a spherical mass distribution.
+    Compute (numerically) the potential energy within a given \source{radius} in a spherical mass distribution.
     !!}
     use :: Numerical_Constants_Astronomical, only : gravitationalConstant_internal
     use :: Numerical_Integration           , only : integrator
@@ -1315,7 +1315,7 @@ contains
 
   double precision function sphericalEnergyKineticNumerical(self,radiusOuter,massDistributionEmbedding) result(energy)
     !!{
-    Compute (numerically) the kinetic energy within a given {\normalfont \ttfamily radius} in a spherical mass distribution.
+    Compute (numerically) the kinetic energy within a given \source{radius} in a spherical mass distribution.
     !!}
     use :: Numerical_Constants_Math, only : Pi
     use :: Numerical_Integration   , only : integrator

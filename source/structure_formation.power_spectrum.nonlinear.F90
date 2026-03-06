@@ -34,7 +34,7 @@ module Power_Spectra_Nonlinear
    <description>Class providing non-linear power spectra.</description>
    <default>cosmicEmu</default>
    <method name="value" >
-    <description>Return the nonlinear power spectrum for $k=${\normalfont \ttfamily wavenumber} [Mpc$^{-1}$] at cosmic time $t=${\normalfont \ttfamily time} [Gyr].</description>
+    <description>Return the nonlinear power spectrum for $k=$\source{wavenumber} [Mpc$^{-1}$] at cosmic time $t=$\source{time} [Gyr].</description>
     <type>double precision</type>
     <pass>yes</pass>
     <argument>double precision, intent(in   ) :: wavenumber, time</argument>

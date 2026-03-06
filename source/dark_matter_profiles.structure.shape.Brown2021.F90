@@ -65,7 +65,7 @@ contains
 
   function brown2021ConstructorParameters(parameters) result(self)
     !!{
-    Default constructor for the {\normalfont \ttfamily brown2021} dark matter halo profile
+    Default constructor for the \source{brown2021} dark matter halo profile
     shape class.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
@@ -120,7 +120,7 @@ contains
 
   double precision function brown2021Shape(self,node)
     !!{
-    Return the Einasto profile shape parameter of the dark matter halo profile of {\normalfont \ttfamily node} using the
+    Return the Einasto profile shape parameter of the dark matter halo profile of \source{node} using the
     \cite[][eqn. 21]{brown_towards_2022} algorithm. Specifically, the parameter is given by:
     \begin{equation}
      \alpha = \left\{ \begin{array}{ll} 8.52 \times 10^{-4} \nu_\alpha^4 + 0.166 & \hbox{ if } \nu_\alpha < 3.541 \\ 0.3 & \hbox{ if } \nu_\alpha \ge 3.541, \end{array} \right.

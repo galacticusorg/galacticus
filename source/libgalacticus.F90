@@ -18,7 +18,7 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
   !!{
-  A wrapper file which simply includes the auto-generated content for {\normalfont \ttfamily libgalacticus}.
+  A wrapper file which simply includes the auto-generated content for \source{libgalacticus}.
   !!}
 
   include 'libgalacticus.inc'

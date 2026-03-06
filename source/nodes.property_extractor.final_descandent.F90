@@ -64,7 +64,7 @@ contains
 
   function finalDescendantExtract(self,node,time,instance)
     !!{
-    Implement a {\normalfont \ttfamily finalDescendant} node property extractor.
+    Implement a \source{finalDescendant} node property extractor.
     !!}
     implicit none
     integer         (kind_int8                           )                          :: finalDescendantExtract

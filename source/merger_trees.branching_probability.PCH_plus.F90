@@ -97,7 +97,7 @@ contains
       <name>accuracyFirstOrder</name>
       <defaultValue>0.1d0</defaultValue>
       <description>Limits the step in $\delta_\mathrm{crit}$ when constructing merger trees using the \cite{parkinson_generating_2008}
-         algorithm, so that it never exceeds {\normalfont \ttfamily accuracyFirstOrder}$\sqrt{2[\sigma^2(M_2/2)-\sigma^2(M_2)]}$.</description>
+         algorithm, so that it never exceeds \source{accuracyFirstOrder}$\sqrt{2[\sigma^2(M_2/2)-\sigma^2(M_2)]}$.</description>
       <source>parameters</source>
     </inputParameter>
     <inputParameter>

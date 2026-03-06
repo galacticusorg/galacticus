@@ -109,7 +109,7 @@ contains
 
   double precision function timescaleRate(self,node)
     !!{
-    Returns the star formation rate (in $\mathrm{M}_\odot$ Gyr$^{-1}$) in the galactic disk of {\normalfont \ttfamily node}, by
+    Returns the star formation rate (in $\mathrm{M}_\odot$ Gyr$^{-1}$) in the galactic disk of \source{node}, by
     dividing the available gas mass by a timescale.
     !!}
     use :: Galacticus_Nodes, only : nodeComponentDisk

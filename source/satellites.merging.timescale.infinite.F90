@@ -52,7 +52,7 @@ contains
 
   function infiniteConstructorParameters(parameters) result(self)
     !!{
-    A constructor for the {\normalfont \ttfamily infinite} satellite merging timescale class which builds the object from a
+    A constructor for the \source{infinite} satellite merging timescale class which builds the object from a
     parameter set.
     !!}
     use :: Input_Parameters, only : inputParameters

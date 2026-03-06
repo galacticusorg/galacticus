@@ -222,7 +222,7 @@ contains
 
   function icmXRayLuminosityName(self)
     !!{
-    Return the names of the {\normalfont \ttfamily icmXRayLuminosity} properties.
+    Return the names of the \source{icmXRayLuminosity} properties.
     !!}
     implicit none
     type (varying_string                        )                :: icmXRayLuminosityName
@@ -235,7 +235,7 @@ contains
 
   function icmXRayLuminosityDescription(self)
     !!{
-    Return descriptions of the {\normalfont \ttfamily icmXRayLuminosity} properties.
+    Return descriptions of the \source{icmXRayLuminosity} properties.
     !!}
     implicit none
     type (varying_string                        )                :: icmXRayLuminosityDescription
@@ -248,7 +248,7 @@ contains
 
   double precision function icmXRayLuminosityUnitsInSI(self)
     !!{
-    Return the units of the {\normalfont \ttfamily icmXRayLuminosity} properties in the SI system.
+    Return the units of the \source{icmXRayLuminosity} properties in the SI system.
     !!}
     use :: Numerical_Constants_Units, only : ergs
     implicit none

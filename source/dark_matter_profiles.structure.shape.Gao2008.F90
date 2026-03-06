@@ -62,7 +62,7 @@ contains
 
   function gao2008ConstructorParameters(parameters) result(self)
     !!{
-    Default constructor for the {\normalfont \ttfamily gao2008} dark matter halo profile
+    Default constructor for the \source{gao2008} dark matter halo profile
     shape class.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
@@ -117,7 +117,7 @@ contains
 
   double precision function gao2008Shape(self,node)
     !!{
-    Return the Einasto profile shape parameter of the dark matter halo profile of {\normalfont \ttfamily node} using the
+    Return the Einasto profile shape parameter of the dark matter halo profile of \source{node} using the
     \cite{gao_redshift_2008} algorithm. More specifically, the parameter is given by:
     \begin{equation}
     \alpha = \left\{ \begin{array}{ll} 0.155 + 0.0095\nu^2 & \hbox{ if } \nu < 3.907 \\ 0.3 & \hbox{ if } \nu \ge 3.907, \end{array} \right.

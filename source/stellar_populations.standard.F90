@@ -52,7 +52,7 @@
 
   interface populationTable
      !!{
-     Constructors for the {\normalfont \ttfamily populationTable} class.
+     Constructors for the \source{populationTable} class.
      !!}
      module procedure populationTableConstructor
   end interface populationTable
@@ -93,7 +93,7 @@
       \end{lstlisting}
       in which case the recycled fraction and metal yield will be computed that all stars with mass greater than {\normalfont
       \ttfamily massLongLived} have fully evolved, and energy input (from stellar winds and supernovae) will be computed assuming
-      that stellar populations instantaneously reach an age of {\normalfont \ttfamily ageEffective}.
+      that stellar populations instantaneously reach an age of \source{ageEffective}.
 
       Similar options are available to control whether metal yields and energy input from stellar populations are computed using
       the fully non-instantaneous or instantaneous approximations, e.g.:
@@ -370,8 +370,8 @@ contains
   double precision function standardRateRecycling(self,abundances_,ageMinimum,ageMaximum)
     !!{
     Return the rate at which mass is being recycled from this stellar population. The mean recycling rate (i.e. the fraction of
-    the population's mass returned to the \gls{ism} per Gyr) is computed between the given {\normalfont \ttfamily ageMinimum}
-    and {\normalfont \ttfamily ageMaximum} (in Gyr).
+    the population's mass returned to the \gls{ism} per Gyr) is computed between the given \source{ageMinimum}
+    and \source{ageMaximum} (in Gyr).
     !!}
     implicit none
     class           (stellarPopulationStandard), intent(inout) :: self
@@ -385,8 +385,8 @@ contains
   double precision function standardRateYield(self,abundances_,ageMinimum,ageMaximum,elementIndex)
     !!{
     Return the rate at which mass is being recycled from this stellar population. The mean recycling rate (i.e. the fraction of
-    the population's mass returned to the \gls{ism} per Gyr) is computed between the given {\normalfont \ttfamily ageMinimum}
-    and {\normalfont \ttfamily ageMaximum} (in Gyr).
+    the population's mass returned to the \gls{ism} per Gyr) is computed between the given \source{ageMinimum}
+    and \source{ageMaximum} (in Gyr).
     !!}
     use :: Abundances_Structure, only : Abundances_Atomic_Index
     implicit none
@@ -406,7 +406,7 @@ contains
   double precision function standardRateEnergy(self,abundances_,ageMinimum,ageMaximum)
     !!{
     Return the rate at which energy is being output by this stellar population in (km/s)$^2$ Gyr$^{-1}$. The mean energy output
-    rate per Gyr is computed between the given {\normalfont \ttfamily ageMinimum} and {\normalfont \ttfamily ageMaximum} (in
+    rate per Gyr is computed between the given \source{ageMinimum} and \source{ageMaximum} (in
     Gyr).
     !!}
     implicit none
@@ -725,7 +725,7 @@ contains
 
   logical function standardStarIsEvolved(self,massInitial,metallicity,age)
     !!{
-    Returns true if the specified star is evolved by the given {\normalfont \ttfamily age}.
+    Returns true if the specified star is evolved by the given \source{age}.
     !!}
     implicit none
     class           (stellarPopulationStandard), intent(inout) :: self

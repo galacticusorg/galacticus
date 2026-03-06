@@ -115,7 +115,7 @@ contains
   
   subroutine excursionNames(self,names)
     !!{
-    Return the names of the {\normalfont \ttfamily excursion} properties.
+    Return the names of the \source{excursion} properties.
     !!}
     implicit none
     class(nodePropertyExtractorExcursion), intent(inout)                             :: self
@@ -130,7 +130,7 @@ contains
 
   subroutine excursionDescriptions(self,descriptions)
     !!{
-    Return the descriptions of the {\normalfont \ttfamily excursion} properties.
+    Return the descriptions of the \source{excursion} properties.
     !!}
     implicit none
     class(nodePropertyExtractorExcursion), intent(inout)                             :: self
@@ -145,7 +145,7 @@ contains
 
   function excursionUnitsInSI(self) result(unitsInSI)
     !!{
-    Return the units of the {\normalfont \ttfamily excursion} properties in the SI system.
+    Return the units of the \source{excursion} properties in the SI system.
     !!}
     implicit none
     double precision                                , dimension(:) , allocatable :: unitsInSI

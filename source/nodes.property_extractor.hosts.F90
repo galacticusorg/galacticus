@@ -92,7 +92,7 @@ contains
 
   function indicesHostExtract(self,node,time,instance)
     !!{
-    Implement a {\normalfont \ttfamily indicesHost} node property extractor.
+    Implement a \source{indicesHost} node property extractor.
     !!}
     implicit none
     integer         (kind_int8                       )                          :: indicesHostExtract

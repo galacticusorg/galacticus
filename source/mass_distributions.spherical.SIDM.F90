@@ -56,7 +56,7 @@ contains
 
   double precision function sidmRadiusInteraction(self) result(radiusInteraction)
     !!{
-    Returns the characteristic interaction radius (in Mpc) of the self-interacting dark matter profile of {\normalfont \ttfamily node}.
+    Returns the characteristic interaction radius (in Mpc) of the self-interacting dark matter profile of \source{node}.
     !!}
     use :: Dark_Matter_Particles           , only : darkMatterParticleSelfInteractingDarkMatter
     use :: Error                           , only : Error_Report

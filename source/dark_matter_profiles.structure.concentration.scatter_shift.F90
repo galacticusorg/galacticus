@@ -118,7 +118,7 @@ contains
 
   double precision function scatterShiftConcentration(self,node) result(concentration)
     !!{
-    Return the concentration of the dark matter halo profile of {\normalfont \ttfamily node} by shifting relative to another
+    Return the concentration of the dark matter halo profile of \source{node} by shifting relative to another
     concentration calculation.
     !!}
     implicit none

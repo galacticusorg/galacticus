@@ -40,7 +40,7 @@
      !![
      <methods>
        <method description="Handles construction of the abstract parent class." method="construct" />
-       <method description="Return a set of values {\normalfont \ttfamily sampleCount} in the interval 0--1, corresponding to values of the cumulative mass distribution." method="sampleCMF" />
+       <method description="Return a set of values \source{sampleCount} in the interval 0--1, corresponding to values of the cumulative mass distribution." method="sampleCMF" />
      </methods>
      !!]
      final     ::              sampledDistributionDestructor

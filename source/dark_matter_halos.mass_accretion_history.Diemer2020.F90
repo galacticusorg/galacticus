@@ -114,7 +114,7 @@ contains
 
   double precision function diemer2020Time(self,node,mass)
     !!{
-    Compute the time corresponding to {\normalfont \ttfamily mass} in the mass accretion history.
+    Compute the time corresponding to \source{mass} in the mass accretion history.
     !!}
     use :: Error, only : Error_Report
     implicit none
@@ -130,7 +130,7 @@ contains
 
   double precision function diemer2020Mass(self,node,time)
     !!{
-    Compute the mass corresponding to {\normalfont \ttfamily time} in the mass accretion history.
+    Compute the mass corresponding to \source{time} in the mass accretion history.
     !!}
     use :: Error, only : Error_Report
     implicit none
@@ -146,8 +146,8 @@ contains
 
   double precision function diemer2020MassAccretionRate(self,node,time)
     !!{
-    Compute the mass accretion rate at the given {\normalfont \ttfamily time} in the mass accretion history of
-    {\normalfont \ttfamily node}.
+    Compute the mass accretion rate at the given \source{time} in the mass accretion history of
+    \source{node}.
     !!}
     use :: Galacticus_Nodes, only : nodeComponentBasic
     implicit none

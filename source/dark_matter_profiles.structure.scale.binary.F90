@@ -52,7 +52,7 @@ contains
 
   function binaryConstructorParameters(parameters) result(self)
     !!{
-    Default constructor for the {\normalfont \ttfamily binary} dark matter halo profile concentration class.
+    Default constructor for the \source{binary} dark matter halo profile concentration class.
     !!}
     use :: Error           , only : Error_Report
     use :: Input_Parameters, only : inputParameter, inputParameters
@@ -111,7 +111,7 @@ contains
 
   double precision function binaryRadius(self,node)
     !!{
-    Return the scale radius of the dark matter halo profile of {\normalfont \ttfamily node}.
+    Return the scale radius of the dark matter halo profile of \source{node}.
     !!}
     implicit none
     class (darkMatterProfileScaleRadiusBinary), intent(inout), target :: self

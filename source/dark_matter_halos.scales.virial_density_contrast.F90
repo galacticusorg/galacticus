@@ -122,7 +122,7 @@ contains
 
   recursive function virialDensityContrastDefinitionInternal(cosmologyParameters_,cosmologyFunctions_,virialDensityContrast_) result(self)
     !!{
-    Default constructor for the {\normalfont \ttfamily virialDensityContrastDefinition} dark matter halo scales class.
+    Default constructor for the \source{virialDensityContrastDefinition} dark matter halo scales class.
     !!}
     use :: Error, only : Error_Report
     implicit none
@@ -199,7 +199,7 @@ contains
 
   double precision function virialDensityContrastDefinitionDynamicalTimescale(self,node)
     !!{
-    Returns the dynamical timescale for {\normalfont \ttfamily node}.
+    Returns the dynamical timescale for \source{node}.
     !!}
     use :: Numerical_Constants_Astronomical, only : gigaYear, megaParsec
     use :: Numerical_Constants_Prefixes    , only : kilo
@@ -228,7 +228,7 @@ contains
 
   double precision function virialDensityContrastDefinitionVirialVelocity(self,node)
     !!{
-    Returns the virial velocity scale for {\normalfont \ttfamily node}.
+    Returns the virial velocity scale for \source{node}.
     !!}
     use :: Galacticus_Nodes                , only : nodeComponentBasic            , treeNode
     use :: Numerical_Constants_Astronomical, only : gravitationalConstant_internal
@@ -261,7 +261,7 @@ contains
 
   double precision function virialDensityContrastDefinitionVirialVelocityGrowthRate(self,node)
     !!{
-    Returns the growth rate of the virial velocity scale for {\normalfont \ttfamily node}.
+    Returns the growth rate of the virial velocity scale for \source{node}.
     !!}
     use :: Galacticus_Nodes, only : nodeComponentBasic, treeNode
     implicit none
@@ -290,7 +290,7 @@ contains
 
   double precision function virialDensityContrastDefinitionVirialTemperature(self,node)
     !!{
-    Returns the virial temperature (in Kelvin) for {\normalfont \ttfamily node}.
+    Returns the virial temperature (in Kelvin) for \source{node}.
     !!}
     use :: Numerical_Constants_Astronomical, only : meanAtomicMassPrimordial
     use :: Numerical_Constants_Atomic      , only : atomicMassUnit
@@ -320,7 +320,7 @@ contains
 
   double precision function virialDensityContrastDefinitionVirialRadius(self,node)
     !!{
-    Returns the virial radius scale for {\normalfont \ttfamily node}.
+    Returns the virial radius scale for \source{node}.
     !!}
     use :: Galacticus_Nodes        , only : nodeComponentBasic, treeNode
     use :: Math_Exponentiation     , only : cubeRoot
@@ -353,7 +353,7 @@ contains
 
   double precision function virialDensityContrastDefinitionVirialRadiusGradientLogMass(self,node)
     !!{
-    Returns the logarithmic gradient of virial radius with halo mass at fixed epoch for {\normalfont \ttfamily node}.
+    Returns the logarithmic gradient of virial radius with halo mass at fixed epoch for \source{node}.
     !!}
     implicit none
     class(darkMatterHaloScaleVirialDensityContrastDefinition), intent(inout) :: self
@@ -372,7 +372,7 @@ contains
 
   double precision function virialDensityContrastDefinitionVirialRadiusGrowthRate(self,node)
     !!{
-    Returns the growth rate of the virial radius scale for {\normalfont \ttfamily node}.
+    Returns the growth rate of the virial radius scale for \source{node}.
     !!}
     use :: Galacticus_Nodes, only : nodeComponentBasic, treeNode
     implicit none
@@ -395,7 +395,7 @@ contains
 
   double precision function virialDensityContrastDefinitionMeanDensity(self,node)
     !!{
-    Returns the mean density for {\normalfont \ttfamily node}.
+    Returns the mean density for \source{node}.
     !!}
     use :: Galacticus_Nodes, only : nodeComponentBasic, treeNode
     implicit none
@@ -455,7 +455,7 @@ contains
 
   double precision function virialDensityContrastDefinitionMeanDensityGrowthRate(self,node)
     !!{
-    Returns the growth rate of the mean density for {\normalfont \ttfamily node}.
+    Returns the growth rate of the mean density for \source{node}.
     !!}
     use :: Galacticus_Nodes, only : nodeComponentBasic, treeNode
     implicit none

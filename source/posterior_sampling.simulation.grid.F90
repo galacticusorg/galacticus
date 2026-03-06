@@ -45,7 +45,7 @@
    contains
      !![
      <methods>
-       <method method="posterior"         description="Return the log of posterior probability for the given {\normalfont \ttfamily simulationState}."/>
+       <method method="posterior"         description="Return the log of posterior probability for the given \source{simulationState}."/>
        <method method="descriptorSpecial" description="Handle adding special parameters to the descriptor."                                           />
      </methods>
      !!]

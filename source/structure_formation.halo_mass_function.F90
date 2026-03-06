@@ -42,7 +42,7 @@ module Halo_Mass_Functions
     <content>class(haloMassFunctionClass), pointer :: globalSelf</content>
    </data>
    <method name="differential" >
-    <description>Return the differential halo mass function for {\normalfont \ttfamily mass} [$M_\odot$] at {\normalfont \ttfamily time} [Gyr].</description>
+    <description>Return the differential halo mass function for \source{mass} [$M_\odot$] at \source{time} [Gyr].</description>
     <type>double precision</type>
     <pass>yes</pass>
     <selfTarget>yes</selfTarget>
@@ -50,7 +50,7 @@ module Halo_Mass_Functions
     <argument>type            (treeNode), intent(inout), optional :: node      </argument>
    </method>
    <method name="integrated" >
-    <description>Return the halo mass function at {\normalfont \ttfamily time} [Gyr] integrated between {\normalfont \ttfamily massLow} and {\normalfont \ttfamily massHigh} [$M_\odot$].</description>
+    <description>Return the halo mass function at \source{time} [Gyr] integrated between \source{massLow} and \source{massHigh} [$M_\odot$].</description>
     <type>double precision</type>
     <pass>yes</pass>
     <selfTarget>yes</selfTarget>
@@ -75,7 +75,7 @@ module Halo_Mass_Functions
     </code>
    </method>
    <method name="massFraction" >
-    <description>Return the halo mass fraction at {\normalfont \ttfamily time} [Gyr] integrated between {\normalfont \ttfamily massLow} and {\normalfont \ttfamily massHigh} [$M_\odot$].</description>
+    <description>Return the halo mass fraction at \source{time} [Gyr] integrated between \source{massLow} and \source{massHigh} [$M_\odot$].</description>
     <type>double precision</type>
     <pass>yes</pass>
     <selfTarget>yes</selfTarget>

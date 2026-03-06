@@ -249,7 +249,7 @@ contains
 
   subroutine baryonsDarkMatterRetabulate(self,time,wavenumber)
     !!{
-    Returns the linear growth factor $D(a)$ for expansion factor {\normalfont \ttfamily aExpansion}, normalized such that
+    Returns the linear growth factor $D(a)$ for expansion factor \source{aExpansion}, normalized such that
     $D(1)=1$ for a baryons plus dark matter plus cosmological constant cosmology.
     !!}
     use    :: File_Utilities       , only : File_Lock                       , File_Unlock

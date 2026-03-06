@@ -52,19 +52,19 @@ module Black_Hole_Seeds
    </description>
    <default>fixed</default>
    <method name="mass" >
-    <description>Computes the mass of the black hole seed in the given {\normalfont \ttfamily node}.</description>
+    <description>Computes the mass of the black hole seed in the given \source{node}.</description>
     <type>double precision</type>
     <pass>yes</pass>
     <argument>type(treeNode), intent(inout) :: node</argument>
    </method>
    <method name="spin" >
-    <description>Computes the spin of the black hole seed in the given {\normalfont \ttfamily node}.</description>
+    <description>Computes the spin of the black hole seed in the given \source{node}.</description>
     <type>double precision</type>
     <pass>yes</pass>
     <argument>type(treeNode), intent(inout) :: node</argument>
    </method>
    <method name="formationChannel">
-    <description>Returns the formation channel of the seed in the given {\normalfont \ttfamily node}.</description>
+    <description>Returns the formation channel of the seed in the given \source{node}.</description>
     <type>type(enumerationBlackHoleFormationChannelType)</type>
     <pass>yes</pass>
     <argument>type(treeNode), intent(inout) :: node</argument>

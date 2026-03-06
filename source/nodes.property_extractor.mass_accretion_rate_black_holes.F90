@@ -140,7 +140,7 @@ contains
 
   subroutine massAccretionRateBlackHolesNames(self,names)
     !!{
-    Return the names of the {\normalfont \ttfamily massAccretionRateBlackHoles} properties.
+    Return the names of the \source{massAccretionRateBlackHoles} properties.
     !!}
     implicit none
     class(nodePropertyExtractorMassAccretionRateBlackHoles), intent(inout)                             :: self
@@ -154,7 +154,7 @@ contains
 
   subroutine massAccretionRateBlackHolesDescriptions(self,descriptions)
     !!{
-    Return the descriptions of the {\normalfont \ttfamily massAccretionRateBlackHoles} properties.
+    Return the descriptions of the \source{massAccretionRateBlackHoles} properties.
     !!}
     implicit none
     class(nodePropertyExtractorMassAccretionRateBlackHoles), intent(inout)                             :: self
@@ -168,7 +168,7 @@ contains
 
   function massAccretionRateBlackHolesUnitsInSI(self) result(unitsInSI)
     !!{
-    Return the units of the {\normalfont \ttfamily massAccretionRateBlackHoles} properties in the SI system.
+    Return the units of the \source{massAccretionRateBlackHoles} properties in the SI system.
     !!}
     use :: Numerical_Constants_Astronomical, only : massSolar, gigaYear
     implicit none

@@ -40,7 +40,7 @@ module Interface_GSL
 
   abstract interface
      !!{
-     Interface for {\normalfont \ttfamily gslFunction} type. We ignore the {\normalfont \ttfamily parameters} argument here as
+     Interface for \source{gslFunction} type. We ignore the \source{parameters} argument here as
      it is not used by \glc.
      !!}
      double precision function gslFunctionTemplate(x)
@@ -51,7 +51,7 @@ module Interface_GSL
 
   abstract interface
      !!{
-     Interface for {\normalfont \ttfamily gslFunctionFdF} type.
+     Interface for \source{gslFunctionFdF} type.
      !!}
      subroutine gslFunctionFdFTemplate(x,parameters,f,df)
        import c_ptr
@@ -63,7 +63,7 @@ module Interface_GSL
 
   abstract interface
      !!{
-     Interface for {\normalfont \ttfamily  gsl\_error\_handler\_t} type.
+     Interface for \source{ gsl\_error\_handler\_t} type.
      !!}
      subroutine gslErrorHandlerTemplate(reason,file,line,errorNumber)
        import c_char, c_int
@@ -78,7 +78,7 @@ module Interface_GSL
      !!}
      function gslFunctionConstructor(f) bind(c,name="gslFunctionConstructor")
        !!{
-       Interface to a C function which establishes a {\normalfont \ttfamily gslFunction} type.
+       Interface to a C function which establishes a \source{gslFunction} type.
        !!}
        import c_ptr, c_funptr
        type(c_ptr   )        :: gslFunctionConstructor
@@ -87,7 +87,7 @@ module Interface_GSL
 
      function gslFunctionFdFConstructor(f,df,fdf) bind(c,name="gslFunctionFdFConstructor")
        !!{
-       Interface to a C function which establishes a {\normalfont \ttfamily gslFunctionFdF} type.
+       Interface to a C function which establishes a \source{gslFunctionFdF} type.
        !!}
        import c_ptr, c_funptr
        type(c_ptr   )        :: gslFunctionFdFConstructor
@@ -97,7 +97,7 @@ module Interface_GSL
 
      subroutine gslFunctionDestructor(f) bind(c,name="gslFunctionDestructor")
        !!{
-       Interface to a C function which destroys a {\normalfont \ttfamily gslFunction} type.
+       Interface to a C function which destroys a \source{gslFunction} type.
        !!}
        import c_funptr
        type(c_funptr), value :: f
@@ -222,7 +222,7 @@ contains
 
   function gslFunction(f)
     !!{
-    Return a {\normalfont \ttfamily c\_ptr} object for the given function {\normalfont \ttfamily f}.
+    Return a \source{c\_ptr} object for the given function \source{f}.
     !!}
     use, intrinsic :: ISO_C_Binding, only : c_funloc
     implicit none
@@ -235,7 +235,7 @@ contains
 
   function gslFunctionFdF(f,df,fdf)
     !!{
-    Return a {\normalfont \ttfamily c\_ptr} object for the given function {\normalfont \ttfamily f}.
+    Return a \source{c\_ptr} object for the given function \source{f}.
     !!}
     use, intrinsic :: ISO_C_Binding, only : c_funloc
     implicit none
@@ -249,7 +249,7 @@ contains
 
   subroutine gslFunctionDestroy(f)
     !!{
-    Destroy a {\normalfont \ttfamily c\_ptr} to a {\normalfont \ttfamily gslFunction} object.
+    Destroy a \source{c\_ptr} to a \source{gslFunction} object.
     !!}
     implicit none
     type(c_ptr), intent(in   ) :: f

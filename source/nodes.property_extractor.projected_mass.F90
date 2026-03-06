@@ -27,7 +27,7 @@
   <nodePropertyExtractor name="nodePropertyExtractorProjectedMass">
    <description>
     A property extractor class for the projected mass at a set of radii. The radii and types of projected mass to output
-    is specified by the {\normalfont \ttfamily radiusSpecifiers} parameter. This parameter's value can contain multiple
+    is specified by the \source{radiusSpecifiers} parameter. This parameter's value can contain multiple
     entries, each of which should be a valid
     \href{https://github.com/galacticusorg/galacticus/releases/download/bleeding-edge/Galacticus_Physics.pdf\#sec.radiusSpecifiers}{radius
     specifier}.
@@ -157,7 +157,7 @@ contains
 
   integer function projectedMassElementCount(self,time)
     !!{
-    Return the number of elements in the {\normalfont \ttfamily projectedMass} property extractors.
+    Return the number of elements in the \source{projectedMass} property extractors.
     !!}
     implicit none
     class           (nodePropertyExtractorProjectedMass), intent(inout) :: self
@@ -170,7 +170,7 @@ contains
 
   function projectedMassSize(self,time)
     !!{
-    Return the number of array elements in the {\normalfont \ttfamily projectedMass} property extractors.
+    Return the number of array elements in the \source{projectedMass} property extractors.
     !!}
     implicit none
     integer         (c_size_t                          )                :: projectedMassSize
@@ -184,7 +184,7 @@ contains
 
   function projectedMassExtract(self,node,time,instance) result(massProjected)
     !!{
-    Implement a {\normalfont \ttfamily projectedMass} property extractor.
+    Implement a \source{projectedMass} property extractor.
     !!}
     use :: Galactic_Structure_Options          , only : componentTypeAll                          , massTypeGalactic                  , massTypeStellar
     use :: Galactic_Structure_Radii_Definitions, only : radiusTypeDarkMatterScaleRadius           , radiusTypeDiskHalfMassRadius      , radiusTypeDiskRadius            , radiusTypeGalacticLightFraction, &
@@ -343,7 +343,7 @@ contains
 
   subroutine projectedMassNames(self,names,time)
     !!{
-    Return the names of the {\normalfont \ttfamily projectedMass} properties.
+    Return the names of the \source{projectedMass} properties.
     !!}
     implicit none
     class           (nodePropertyExtractorProjectedMass), intent(inout)                             :: self
@@ -360,7 +360,7 @@ contains
 
   subroutine projectedMassDescriptions(self,descriptions,time)
     !!{
-    Return descriptions of the {\normalfont \ttfamily projectedMass} property.
+    Return descriptions of the \source{projectedMass} property.
     !!}
     implicit none
     class           (nodePropertyExtractorProjectedMass), intent(inout)                             :: self
@@ -377,7 +377,7 @@ contains
 
   subroutine projectedMassColumnDescriptions(self,descriptions,values,valuesDescription,valuesUnitsInSI,time)
     !!{
-    Return column descriptions of the {\normalfont \ttfamily projectedMass} property.
+    Return column descriptions of the \source{projectedMass} property.
     !!}
     implicit none
     class           (nodePropertyExtractorProjectedMass), intent(inout)                            :: self
@@ -399,7 +399,7 @@ contains
 
   function projectedMassUnitsInSI(self,time)
     !!{
-    Return the units of the {\normalfont \ttfamily projectedMass} properties in the SI system.
+    Return the units of the \source{projectedMass} properties in the SI system.
     !!}
     use :: Numerical_Constants_Astronomical, only : massSolar, megaParsec
     implicit none

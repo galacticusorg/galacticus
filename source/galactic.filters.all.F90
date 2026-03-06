@@ -123,7 +123,7 @@ contains
 
   logical function allPasses(self,node)
     !!{
-    Apply a set of filters to a {\normalfont \ttfamily node} combined with {\normalfont \ttfamily all} operations.
+    Apply a set of filters to a \source{node} combined with \source{all} operations.
     !!}
     implicit none
     class(galacticFilterAll), intent(inout)         :: self

@@ -29,22 +29,22 @@
   <starFormationHistory name="starFormationHistoryFixedAges" recursive="yes">
    <description>
      A star formation histories class which records star formation in logarithmically-sized time bins of fixed age and split by
-     metallicity. The minimum age is specified via the {\normalfont \ttfamily [ageMinimum]} parameter (the maximum age is always
-     the age of the universe), with the number of ages specified via {\normalfont \ttfamily [countAges]}. (One additional bin, at
+     metallicity. The minimum age is specified via the \source{[ageMinimum]} parameter (the maximum age is always
+     the age of the universe), with the number of ages specified via \source{[countAges]}. (One additional bin, at
      age zero, is always added.) This class is intended for use with lightcone output where the lightcone crossing times for each
      node can be computed in advance. One star formation history is computed for each lightcone crossing.
      
      The time associated with each bin is the maximum time for which star formation will be accumulated to the bin, with the
      minimum time corresponding to the value associated with the previous bin (or $t=0$ for the first bin).
      
-     The metallicity bins are arranged logarithmically in metallicity with {\normalfont \ttfamily [countMetallicities]} bins
-     between {\normalfont \ttfamily [metallicityMinimum]} and {\normalfont \ttfamily [metallicityMaximum]} (specified in Solar
+     The metallicity bins are arranged logarithmically in metallicity with \source{[countMetallicities]} bins
+     between \source{[metallicityMinimum]} and \source{[metallicityMaximum]} (specified in Solar
      units). Note that the metallicity associated with each bin is the maximum metallicity for that bin, with the minimum
      metallicity corresponding to the value associated with the previous bin (or zero metallicity for the first bin). Note that a
      final bin, extending to infinite metallicity, is always added automatically. If {\normalfont \ttfamily
      [countMetallicities]}$=0$ is set, then the star formation history is not split by metallicity (i.e. a single metallicity bin
      encompassing all metallicities from zero to infinity is used). Alternatively, specific metallicity bin boundaries can be set
-     via the {\normalfont \ttfamily [metallicityBoundaries]} parameter---a final boundary corresponding to infinity is always
+     via the \source{[metallicityBoundaries]} parameter---a final boundary corresponding to infinity is always
      added automatically.
    </description>
    <deepCopy>
@@ -397,7 +397,7 @@ contains
 
   subroutine fixedAgesRate(self,node,historyStarFormation,abundancesFuel,rateStarFormation)
     !!{
-    Set the rate the star formation history for {\normalfont \ttfamily node}.
+    Set the rate the star formation history for \source{node}.
     !!}
     use :: Abundances_Structure, only : abundances        , metallicityTypeLinearByMassSolar
     use :: Arrays_Search       , only : searchArray

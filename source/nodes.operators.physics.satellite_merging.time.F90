@@ -218,7 +218,7 @@ contains
 
   subroutine satelliteMergingTimeTimeMergingSet(self,node)
     !!{
-    Set the time of merging for the given {\normalfont \ttfamily node}.
+    Set the time of merging for the given \source{node}.
     !!}
     use :: Galacticus_Nodes, only : nodeComponentBasic, nodeComponentSatellite
     use :: Kepler_Orbits   , only : keplerOrbit       , keplerOrbitMasses        , keplerOrbitRadius            , keplerOrbitTheta, &

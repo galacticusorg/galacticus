@@ -65,7 +65,7 @@ contains
 
   subroutine nullGet(self,node,radius,velocityCircular,angularMomentumSpecific)
     !!{
-    Do not compute the size of the merger remnant for {\normalfont \ttfamily node}.
+    Do not compute the size of the merger remnant for \source{node}.
     !!}
     implicit none
     class           (mergerRemnantSizeNull), intent(inout) :: self

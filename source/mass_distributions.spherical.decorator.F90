@@ -100,7 +100,7 @@ contains
 
   double precision function sphericalDecoratorMassEnclosedBySphere(self,radius) result(mass)
     !!{
-    Computes the mass enclosed within a sphere of given {\normalfont \ttfamily radius} for decorator mass distributions.
+    Computes the mass enclosed within a sphere of given \source{radius} for decorator mass distributions.
     !!}
     implicit none
     class           (massDistributionSphericalDecorator), intent(inout), target :: self
@@ -112,7 +112,7 @@ contains
   
   double precision function sphericalDecoratorMassEnclosedBySphereNonAnalytic(self,radius) result(mass)
     !!{
-    Computes the mass enclosed within a sphere of given {\normalfont \ttfamily radius} for decorator mass distributions.
+    Computes the mass enclosed within a sphere of given \source{radius} for decorator mass distributions.
     !!}
     implicit none
     class           (massDistributionSphericalDecorator), intent(inout), target :: self
@@ -128,7 +128,7 @@ contains
   
   double precision function sphericalDecoratorDensityGradientRadial(self,coordinates,logarithmic) result(densityGradient)
     !!{
-    Return the density at the specified {\normalfont \ttfamily coordinates} in a decorator spherical mass distribution.
+    Return the density at the specified \source{coordinates} in a decorator spherical mass distribution.
     !!}
     implicit none
     class  (massDistributionSphericalDecorator), intent(inout), target   :: self
@@ -141,7 +141,7 @@ contains
   
   double precision function sphericalDecoratorDensityGradientRadialNonAnalytic(self,coordinates,logarithmic) result(densityGradient)
     !!{
-    Return the density at the specified {\normalfont \ttfamily coordinates} in a decorator spherical mass distribution.
+    Return the density at the specified \source{coordinates} in a decorator spherical mass distribution.
     !!}
     implicit none
     class  (massDistributionSphericalDecorator), intent(inout), target   :: self
@@ -287,7 +287,7 @@ contains
 
   double precision function sphericalDecoratorPotential(self,coordinates,status) result(potential)
     !!{
-    Return the potential at the specified {\normalfont \ttfamily coordinates} in a decorator spherical mass distribution.
+    Return the potential at the specified \source{coordinates} in a decorator spherical mass distribution.
     !!}
     implicit none
     class(massDistributionSphericalDecorator), intent(inout), target   :: self
@@ -300,7 +300,7 @@ contains
 
   double precision function sphericalDecoratorPotentialNonAnalytic(self,coordinates,status) result(potential)
     !!{
-    Return the potential at the specified {\normalfont \ttfamily coordinates} in a decorator spherical mass distribution.
+    Return the potential at the specified \source{coordinates} in a decorator spherical mass distribution.
     !!}
     implicit none
     class(massDistributionSphericalDecorator), intent(inout), target   :: self
@@ -317,7 +317,7 @@ contains
 
   double precision function sphericalDecoratorFourierTransform(self,radiusOuter,wavenumber) result(fourierTransform)
     !!{
-    Compute the Fourier transform of the density profile at the given {\normalfont \ttfamily wavenumber} in a decorator spherical mass distribution.
+    Compute the Fourier transform of the density profile at the given \source{wavenumber} in a decorator spherical mass distribution.
     !!}
     implicit none
     class           (massDistributionSphericalDecorator), intent(inout) :: self
@@ -329,7 +329,7 @@ contains
   
   double precision function sphericalDecoratorFourierTransformNonAnalytic(self,radiusOuter,wavenumber) result(fourierTransform)
     !!{
-    Compute the Fourier transform of the density profile at the given {\normalfont \ttfamily wavenumber} in a decorator spherical mass distribution.
+    Compute the Fourier transform of the density profile at the given \source{wavenumber} in a decorator spherical mass distribution.
     !!}
     implicit none
     class           (massDistributionSphericalDecorator), intent(inout) :: self
@@ -345,7 +345,7 @@ contains
   
   double precision function sphericalDecoratorRadiusFreefall(self,time) result(radius)
     !!{
-    Compute the freefall radius at the given {\normalfont \ttfamily time} in a decorator spherical mass distribution.
+    Compute the freefall radius at the given \source{time} in a decorator spherical mass distribution.
     !!}
     implicit none
     class           (massDistributionSphericalDecorator), intent(inout) :: self
@@ -357,7 +357,7 @@ contains
   
   double precision function sphericalDecoratorRadiusFreefallNonAnalytic(self,time) result(radius)
     !!{
-    Compute the freefall radius at the given {\normalfont \ttfamily time} in a decorator spherical mass distribution.
+    Compute the freefall radius at the given \source{time} in a decorator spherical mass distribution.
     !!}
     implicit none
     class           (massDistributionSphericalDecorator), intent(inout) :: self
@@ -373,7 +373,7 @@ contains
   
   double precision function sphericalDecoratorRadiusFreefallIncreaseRate(self,time) result(radiusIncreaseRate)
     !!{
-    Compute the rate of increase of the freefall radius at the given {\normalfont \ttfamily time} in a decorator spherical mass
+    Compute the rate of increase of the freefall radius at the given \source{time} in a decorator spherical mass
     distribution.
     !!}
     implicit none
@@ -386,7 +386,7 @@ contains
 
   double precision function sphericalDecoratorRadiusFreefallIncreaseRateNonAnalytic(self,time) result(radiusIncreaseRate)
     !!{
-    Compute the rate of increase of the freefall radius at the given {\normalfont \ttfamily time} in a decorator spherical mass
+    Compute the rate of increase of the freefall radius at the given \source{time} in a decorator spherical mass
     distribution.
     !!}
     implicit none
@@ -403,7 +403,7 @@ contains
 
   double precision function sphericalDecoratorEnergy(self,radiusOuter,massDistributionEmbedding) result(energy)
     !!{
-    Compute the total energy within a given {\normalfont \ttfamily radius}.
+    Compute the total energy within a given \source{radius}.
     !!}
     implicit none
     class           (massDistributionSphericalDecorator), intent(inout), target :: self
@@ -416,7 +416,7 @@ contains
 
   double precision function sphericalDecoratorEnergyNonAnalytic(self,radiusOuter,massDistributionEmbedding) result(energy)
     !!{
-    Compute the total energy within a given {\normalfont \ttfamily radius}.
+    Compute the total energy within a given \source{radius}.
     !!}
     implicit none
     class           (massDistributionSphericalDecorator), intent(inout) :: self
@@ -433,7 +433,7 @@ contains
   
   double precision function sphericalDecoratorEnergyPotential(self,radiusOuter) result(energy)
     !!{
-    Compute the potential energy within a given {\normalfont \ttfamily radius}.
+    Compute the potential energy within a given \source{radius}.
     !!}
     implicit none
     class           (massDistributionSphericalDecorator), intent(inout) :: self
@@ -445,7 +445,7 @@ contains
 
   double precision function sphericalDecoratorEnergyPotentialNonAnalytic(self,radiusOuter) result(energy)
     !!{
-    Compute the potential energy within a given {\normalfont \ttfamily radius}.
+    Compute the potential energy within a given \source{radius}.
     !!}
     implicit none
     class           (massDistributionSphericalDecorator), intent(inout) :: self
@@ -461,7 +461,7 @@ contains
 
   double precision function sphericalDecoratorEnergyKinetic(self,radiusOuter,massDistributionEmbedding) result(energy)
     !!{
-    Compute the kinetic energy within a given {\normalfont \ttfamily radius}.
+    Compute the kinetic energy within a given \source{radius}.
     !!}
     implicit none
     class           (massDistributionSphericalDecorator), intent(inout) :: self
@@ -474,7 +474,7 @@ contains
 
   double precision function sphericalDecoratorEnergyKineticNonAnalytic(self,radiusOuter,massDistributionEmbedding) result(energy)
     !!{
-    Compute the kinetic energy within a given {\normalfont \ttfamily radius}.
+    Compute the kinetic energy within a given \source{radius}.
     !!}
     implicit none
     class           (massDistributionSphericalDecorator), intent(inout) :: self

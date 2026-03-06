@@ -152,7 +152,7 @@ contains
 
   double precision function gaussianSlabDensity(self,coordinates)
     !!{
-    Return the density at the specified {\normalfont \ttfamily coordinates} in a Gaussian slab mass distribution.
+    Return the density at the specified \source{coordinates} in a Gaussian slab mass distribution.
     !!}
     use :: Coordinates, only : assignment(=), coordinateCylindrical
     use :: Error      , only : Error_Report
@@ -174,7 +174,7 @@ contains
 
   double precision function gaussianSlabDensitySphericalAverage(self,radius)
     !!{
-    Return the spherically-averaged density at the specified {\normalfont \ttfamily radius} in a Gaussian slab mass distribution.
+    Return the spherically-averaged density at the specified \source{radius} in a Gaussian slab mass distribution.
     !!}
     implicit none
     class           (massDistributionGaussianSlab), intent(inout) :: self
@@ -214,7 +214,7 @@ contains
 
   double precision function gaussianSlabSurfaceDensity(self,coordinates)
     !!{
-    Return the surface density at the specified {\normalfont \ttfamily coordinates} in a Gaussian slab mass distribution.
+    Return the surface density at the specified \source{coordinates} in a Gaussian slab mass distribution.
     !!}
     use :: Coordinates             , only : coordinate
     use :: Numerical_Constants_Math, only : Pi

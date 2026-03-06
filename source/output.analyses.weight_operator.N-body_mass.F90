@@ -130,7 +130,7 @@ contains
 
   double precision function nbodyMassRootVariance(self,node,propertyValue,propertyValueIntrinsic,propertyType,propertyQuantity,outputIndex)
     !!{
-    Return the root variance for use in the {\normalfont \ttfamily nbodyMass} output analysis weight operator class.
+    Return the root variance for use in the \source{nbodyMass} output analysis weight operator class.
     !!}
     use :: Node_Property_Extractors, only : nodePropertyExtractorScalar
     implicit none

@@ -39,11 +39,11 @@
       equilibrium values. This can be advantageous as the timescales for the reactions controlling the ionization state of atomic
       hydrogen can become extremely small, resulting in extremely slow evolution of the ODE system.
 
-      The parameter {\normalfont \ttfamily fractionTimescaleEquilibrium} controls when the equilibrium assumption should be made. Specifically, equilibrium is assume if:
+      The parameter \source{fractionTimescaleEquilibrium} controls when the equilibrium assumption should be made. Specifically, equilibrium is assume if:
       \begin{equation}
       \tau_\mathrm{H} &lt; f_\mathrm{dyn} \tau_\mathrm{dyn},
       \end{equation}
-      where $f_\mathrm{dyn}=${\normalfont \ttfamily [fractionTimescaleEquilibrium]}, $\tau_\mathrm{dyn}$ is the dynamical time in
+      where $f_\mathrm{dyn}=$\source{[fractionTimescaleEquilibrium]}, $\tau_\mathrm{dyn}$ is the dynamical time in
       the halo, and
       \begin{equation}
       \tau_\mathrm{H} = \mathrm{min}\left(\tau_\alpha,\tau_\beta,\tau_\Gamma\right),

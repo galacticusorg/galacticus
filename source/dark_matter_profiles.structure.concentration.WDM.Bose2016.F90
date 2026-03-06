@@ -37,7 +37,7 @@
     \end{equation}
     where $\gamma_1=60$, $\gamma_2=0.17$, $M_\mathrm{1/2}$ is the mass corresponding to the wavenumber at which the WDM transfer
     function is suppressed below the CDM transfer function by a factor of 2, $M_\mathrm{halo}$ is the mass of the dark matter
-    halo, and $\beta(z)=0.026 z-0.04$, to a CDM concentration algorithm as specified by {\normalfont \ttfamily [cdmConcentration]}.
+    halo, and $\beta(z)=0.026 z-0.04$, to a CDM concentration algorithm as specified by \source{[cdmConcentration]}.
    </description>
   </darkMatterProfileConcentration>
   !!]
@@ -70,7 +70,7 @@ contains
 
   function wdmBose2016ConstructorParameters(parameters) result(self)
     !!{
-    Default constructor for the {\normalfont \ttfamily wdm} dark matter halo profile concentration class.
+    Default constructor for the \source{wdm} dark matter halo profile concentration class.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -128,7 +128,7 @@ contains
 
   double precision function wdmBose2016Concentration(self,node)
     !!{
-    Return the concentration of the dark matter halo profile of {\normalfont \ttfamily node}
+    Return the concentration of the dark matter halo profile of \source{node}
     using the warm dark matter modifier of \cite{bose_copernicus_2016}.
     !!}
     use :: Galacticus_Nodes, only : nodeComponentBasic, treeNode

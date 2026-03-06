@@ -88,9 +88,9 @@
      !![
      <methods>
        <method description="Load the halo data." method="load" />
-       <method description="Return true if the given {\normalfont \ttfamily x,y,z} position lies within the current subvolume (plus the buffer region if {\normalfont \ttfamily buffered} is true." method="inSubvolume" />
-       <method description="Return true if the given {\normalfont \ttfamily x} position lies within the {\normalfont \ttfamily iSubvolume}$^\mathrm{th}$ subvolume (plus the buffer region if {\normalfont \ttfamily buffered} is true." method="inSubvolume1D" />
-       <method description="Return true if the given {\normalfont \ttfamily x} value is bad." method="valueIsBad" />
+       <method description="Return true if the given \source{x,y,z} position lies within the current subvolume (plus the buffer region if \source{buffered} is true." method="inSubvolume" />
+       <method description="Return true if the given \source{x} position lies within the \source{iSubvolume}$^\mathrm{th}$ subvolume (plus the buffer region if \source{buffered} is true." method="inSubvolume1D" />
+       <method description="Return true if the given \source{x} value is bad." method="valueIsBad" />
      </methods>
      !!]
      final     ::                                  sussingDestructor
@@ -178,7 +178,7 @@ contains
     <inputParameter>
       <name>subvolumeIndex</name>
       <defaultValue>[0,0,0]</defaultValue>
-      <description>Specifies the index (in each dimension) of the subvolume of a ``Sussing Merger Trees'' format \citep{srisawat_sussing_2013} merger tree file to process. Indices range from 0 to {\normalfont \ttfamily [subvolumeCount]}$-1$.</description>
+      <description>Specifies the index (in each dimension) of the subvolume of a ``Sussing Merger Trees'' format \citep{srisawat_sussing_2013} merger tree file to process. Indices range from 0 to \source{[subvolumeCount]}$-1$.</description>
       <source>parameters</source>
     </inputParameter>
     <inputParameter>
@@ -273,7 +273,7 @@ contains
 
   subroutine sussingClose(self)
     !!{
-    Close a {\normalfont \ttfamily sussing} format merger tree file.
+    Close a \source{sussing} format merger tree file.
     !!}
     implicit none
     class(mergerTreeImporterSussing), intent(inout) :: self
@@ -1105,7 +1105,7 @@ contains
 
   subroutine sussingLoad(self,nodeSelfIndices,nodeIndexRanks,nodeDescendantLocations,nodeIncomplete,nodeCountTrees,nodeTreeIndices,treeIndicesAssigned,branchJumpCheckRequired,massUnits,lengthUnits,velocityUnits)
     !!{
-    Stub function for the {\normalfont \ttfamily load} method of the {\normalfont \ttfamily sussing} merger tree importer.
+    Stub function for the \source{load} method of the \source{sussing} merger tree importer.
     !!}
     use :: Error, only : Error_Report
     implicit none

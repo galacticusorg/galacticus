@@ -30,13 +30,13 @@
    <description>
     Provides the \cite{eisenstein_baryonic_1998} fitting function to the transfer function. The effective number of neutrino
     species and the summed mass (in electron volts) of all neutrino species are specified via the {\normalfont \ttfamily
-   neutrinoNumberEffective} and {\normalfont \ttfamily neutrinoMassSummed} parameters respectively.
+   neutrinoNumberEffective} and \source{neutrinoMassSummed} parameters respectively.
    </description>
   </transferFunction>
   !!]
   type, extends(transferFunctionClass) :: transferFunctionEisensteinHu1998
      !!{
-     The {\normalfont \ttfamily eisensteinHu1998} transfer function class.
+     The \source{eisensteinHu1998} transfer function class.
      !!}
      private
      class           (cosmologyFunctionsClass ), pointer :: cosmologyFunctions_      => null()
@@ -241,7 +241,7 @@ contains
 
   subroutine eisensteinHu1998ComputeFactors(self,wavenumber)
     !!{
-    Compute common factors required by {\normalfont \ttfamily eisensteinHu1998} transfer function class.
+    Compute common factors required by \source{eisensteinHu1998} transfer function class.
     !!}
     use :: Numerical_Constants_Math, only : e
     implicit none

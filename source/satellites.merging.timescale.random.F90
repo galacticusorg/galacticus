@@ -49,7 +49,7 @@ contains
 
   function randomConstructorParameters(parameters) result(self)
     !!{
-    A constructor for the {\normalfont \ttfamily random} satellite merging timescale class which builds the object from a
+    A constructor for the \source{random} satellite merging timescale class which builds the object from a
     parameter set.
     !!}
     use :: Input_Parameters, only : inputParameters

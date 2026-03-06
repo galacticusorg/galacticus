@@ -1331,9 +1331,9 @@ contains
 
   double precision function timeAlongOrbit(radius,radiusApocenter,radiusPericenter,velocityTangentialVirial)
     !!{
-    Compute the time taken along the orbit specified by the pericenter radius, {\normalfont \ttfamily radiusPericenter}, and the
-    tangential velocity at the virial radius, {\normalfont \ttfamily velocityTangentialVirial}, to travel from the pericenter to
-    the given radius, {\normalfont \ttfamily radius}. All quantities are in virial units. Writing
+    Compute the time taken along the orbit specified by the pericenter radius, \source{radiusPericenter}, and the
+    tangential velocity at the virial radius, \source{velocityTangentialVirial}, to travel from the pericenter to
+    the given radius, \source{radius}. All quantities are in virial units. Writing
     \begin{equation}
      v^\prime_\mathrm{r}(r) = \left( -{2 \over r_\mathrm{p}} + {2 \over r} + {v_\theta^2 \over r_\mathrm{p}^2} - {v_\theta^2 \over r^2} \right)^{1/2}
     \end{equation}

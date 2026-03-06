@@ -28,7 +28,7 @@ Implements a linear excursion set barrier class.
     \begin{equation}
     B(S) = B_0 + B_1 S,
     \end{equation}
-    where $B_0=${\normalfont \ttfamily [coefficientConstant]}, and $B_0=${\normalfont \ttfamily [coefficientLinear]}.
+    where $B_0=$\source{[coefficientConstant]}, and $B_0=$\source{[coefficientLinear]}.
    </description>
   </excursionSetBarrier>
   !!]

@@ -33,7 +33,7 @@
      !![
      <methods>
        <method method="elementCount" description="Return the number of properties in the tuple."                      />
-       <method method="extract"      description="Extract the properties from the given {\normalfont \ttfamily node}."/>
+       <method method="extract"      description="Extract the properties from the given \source{node}."/>
        <method method="names"        description="Return the names of the properties extracted."                      />
        <method method="descriptions" description="Return descriptions of the properties extracted."                   />
        <method method="unitsInSI"    description="Return the units of the properties extracted in the SI system."     />

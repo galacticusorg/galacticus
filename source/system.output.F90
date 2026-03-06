@@ -44,7 +44,7 @@ contains
 
   logical function stdOutIsATTY()
     !!{
-    Return {\normalfont \ttfamily true} if stdout is a {\normalfont \ttfamily TTY}.
+    Return \source{true} if stdout is a \source{TTY}.
     !!}
     implicit none
 

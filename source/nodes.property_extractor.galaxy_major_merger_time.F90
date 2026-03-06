@@ -112,7 +112,7 @@ contains
   
   subroutine galaxyMajorMergerTimeNames(self,names)
     !!{
-    Return the names of the {\normalfont \ttfamily galaxyMajorMergerTime} properties.
+    Return the names of the \source{galaxyMajorMergerTime} properties.
     !!}
     implicit none
     class(nodePropertyExtractorGalaxyMajorMergerTime), intent(inout)                             :: self
@@ -126,7 +126,7 @@ contains
 
   subroutine galaxyMajorMergerTimeDescriptions(self,descriptions)
     !!{
-    Return the descriptions of the {\normalfont \ttfamily galaxyMajorMergerTime} properties.
+    Return the descriptions of the \source{galaxyMajorMergerTime} properties.
     !!}
     implicit none
     class(nodePropertyExtractorGalaxyMajorMergerTime), intent(inout)                             :: self
@@ -140,7 +140,7 @@ contains
 
   function galaxyMajorMergerTimeUnitsInSI(self) result(unitsInSI)
     !!{
-    Return the units of the {\normalfont \ttfamily galaxyMajorMergerTime} properties in the SI system.
+    Return the units of the \source{galaxyMajorMergerTime} properties in the SI system.
     !!}
     use :: Numerical_Constants_Astronomical, only : gigaYear
     implicit none

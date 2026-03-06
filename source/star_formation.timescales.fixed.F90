@@ -24,7 +24,7 @@
   !![
   <starFormationTimescale name="starFormationTimescaleFixed">
    <description>
-    A star formation timescale class which fixed timescale for star formation {\normalfont \ttfamily [timescale]} (in Gyr).
+    A star formation timescale class which fixed timescale for star formation \source{[timescale]} (in Gyr).
    </description>
   </starFormationTimescale>
   !!]
@@ -87,7 +87,7 @@ contains
 
   double precision function fixedTimescale(self,component)
     !!{
-    Returns the timescale (in Gyr) for star formation in the given {\normalfont \ttfamily component}, assuming a fixed
+    Returns the timescale (in Gyr) for star formation in the given \source{component}, assuming a fixed
     timescale.
     !!}
     implicit none

@@ -25,7 +25,7 @@
   <mergerTreeMassResolution name="mergerTreeMassResolutionScaled">
    <description>
     A merger tree mass resolution class which computes the mass resolution to be min({\normalfont \ttfamily
-    [massResolutionMaximum]},max({\normalfont \ttfamily [massResolutionMinimum]},{\normalfont \ttfamily
+    [massResolutionMaximum]},max(\source{[massResolutionMinimum]},{\normalfont \ttfamily
     [massResolutionFractional]}$\times M_\mathrm{base}$)), where $M_\mathrm{base}$ is the base mass of the merger tree.
    </description>
   </mergerTreeMassResolution>

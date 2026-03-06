@@ -49,7 +49,7 @@ contains
 
   function ludlow2014ConstructorParameters(parameters) result(self)
     !!{
-    Default constructor for the {\normalfont \ttfamily ludlow2014} dark matter halo profile concentration class.
+    Default constructor for the \source{ludlow2014} dark matter halo profile concentration class.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -103,7 +103,7 @@ contains
 
   double precision function ludlow2014FormationTimeRoot(timeFormation)
     !!{
-    Function used to find the formation time of a halo in the {\normalfont \ttfamily ludlow2014} concentration algorithm.
+    Function used to find the formation time of a halo in the \source{ludlow2014} concentration algorithm.
     !!}
     use :: Dark_Matter_Profile_Mass_Definitions, only : Dark_Matter_Profile_Mass_Definition
     use :: Galacticus_Nodes                    , only : nodeComponentBasic                 , treeNode

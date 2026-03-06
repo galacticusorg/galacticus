@@ -30,23 +30,23 @@
   !![
   <mergerTreeOperator name="mergerTreeOperatorExport">
    <description>
-    This operator will export merger trees to a file specified by the {\normalfont \ttfamily [outputFileName]} using the format
-    specified by {\normalfont \ttfamily [exportFormat]}. Currently, node indices (plus host indices, which are assumed identical to
+    This operator will export merger trees to a file specified by the \source{[outputFileName]} using the format
+    specified by \source{[exportFormat]}. Currently, node indices (plus host indices, which are assumed identical to
     the node indices), descendant indices, masses and redshifts are exported. Positions and velocities are exported if available. If
-    {\normalfont \ttfamily IRATE}-format output is requested then ``snapshot'' numbers will be assigned to nodes based on the time
+    \source{IRATE}-format output is requested then ``snapshot'' numbers will be assigned to nodes based on the time
     at which they exist. This usually only makes sense if the nodes are defined on a time grid (i.e. if merger trees were extracted
     from an N-body simulation, or if trees were re-gridded onto such a time grid; see \refPhysics{mergerTreeOperatorRegridTimes}).
     Export happens during the merger tree pre-evolution phase.
 
     Node positions and velocities will be exported if they are available.
     
-    If {\normalfont \ttfamily [skipSingleNodeTrees]} is true then trees consisting of a single node (which are typically left over
-    from pruning operators, and which are effectively inert) are not output. If {\normalfont \ttfamily [includeScaleRadii]} is
+    If \source{[skipSingleNodeTrees]} is true then trees consisting of a single node (which are typically left over
+    from pruning operators, and which are effectively inert) are not output. If \source{[includeScaleRadii]} is
     true then scale radii will be included in the output (if they are available and have been set).  If {\normalfont \ttfamily
     [includeAngularMomenta]} is true then halo angular momenta will be included in the output (if they are available and have been
     set).
 
-    If {\normalfont \ttfamily [includeSubhalos]} is true then subhalos are included in the exported data. Note that if particle
+    If \source{[includeSubhalos]} is true then subhalos are included in the exported data. Note that if particle
     positions were used to track subhalos after their destruction in an N-body simulation, attempting to output subhalos may lead
     to errors.
    </description>
@@ -191,7 +191,7 @@ contains
 
   subroutine exportOperatePreEvolution(self,tree)
     !!{
-    Output the structure of {\normalfont \ttfamily tree}.
+    Output the structure of \source{tree}.
     !!}
     use :: Cosmology_Parameters            , only : hubbleUnitsLittleH
     use :: Dates_and_Times                 , only : Formatted_Date_and_Time

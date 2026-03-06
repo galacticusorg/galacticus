@@ -41,7 +41,7 @@
    contains
      !![
      <methods>
-	<method method="isActive" description="Return true if the operators are active for the given {\normalfont \ttfamily node}."/>
+	<method method="isActive" description="Return true if the operators are active for the given \source{node}."/>
      </methods>
      !!]
      final     ::                                        multiDestructor
@@ -424,7 +424,7 @@ contains
 
   logical function multiIsActive(self,node) result(isActive)
     !!{
-    Return true if the operators are active for the given {\normalfont \ttfamily node}.
+    Return true if the operators are active for the given \source{node}.
     !!}
     implicit none
     class(nodeOperatorMulti), intent(inout) :: self

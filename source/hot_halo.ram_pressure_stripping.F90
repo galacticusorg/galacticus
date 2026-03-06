@@ -37,7 +37,7 @@ module Hot_Halo_Ram_Pressure_Stripping
    </description>
    <default>font2008</default>
    <method name="radiusStripped" >
-    <description>Return the radius to which {\normalfont \ttfamily node} is stripped due to ram pressure from its host halo (in units of Mpc).</description>
+    <description>Return the radius to which \source{node} is stripped due to ram pressure from its host halo (in units of Mpc).</description>
     <type>double precision</type>
     <pass>yes</pass>
     <selfTarget>yes</selfTarget>

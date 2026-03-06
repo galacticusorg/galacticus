@@ -19,7 +19,7 @@
 
   !![
   <nodePropertyExtractor name="nodePropertyExtractorSatelliteVirialOrbit">
-   <description>A property extractor class for {\normalfont \ttfamily keplerOrbit} objects.</description>
+   <description>A property extractor class for \source{keplerOrbit} objects.</description>
   </nodePropertyExtractor>
   !!]
   type, extends(nodePropertyExtractorKeplerOrbit) :: nodePropertyExtractorSatelliteVirialOrbit

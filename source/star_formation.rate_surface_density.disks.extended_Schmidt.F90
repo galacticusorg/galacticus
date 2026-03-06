@@ -31,7 +31,7 @@
     \dot{\Sigma}_\star = A \left(x_\mathrm{H} {\Sigma_\mathrm{gas}\over M_\odot \hbox{pc}^{-2}}\right)^{N_1}
     \left({\Sigma_{\star}\over M_\odot \hbox{pc}^{-2}}\right)^{N_2}
     \end{equation}
-    where $A=${\normalfont \ttfamily [normalization]}, $N_1=${\normalfont \ttfamily [exponentGas]} and $N_2=${\normalfont
+    where $A=$\source{[normalization]}, $N_1=$\source{[exponentGas]} and $N_2=${\normalfont
     \ttfamily [exponentStars]} are parameters.
    </description>
   </starFormationRateSurfaceDensityDisks>
@@ -174,13 +174,13 @@ contains
   double precision function extendedSchmidtRate(self,node,radius)
     !!{
     Returns the star formation rate surface density (in $M_\odot$ Gyr$^{-1}$ Mpc$^{-2}$) for star formation
-    in the galactic disk of {\normalfont \ttfamily node}. The disk is assumed to obey the extended Schmidt law of \cite{shi_extended_2011}:
+    in the galactic disk of \source{node}. The disk is assumed to obey the extended Schmidt law of \cite{shi_extended_2011}:
     \begin{equation}
     \dot{\Sigma}_\star = A \left(x_\mathrm{H} {\Sigma_\mathrm{gas}\over M_\odot \hbox{pc}^{-2}}\right)
     ^{N_1} \left({\Sigma_{\star}\over M_\odot \hbox{pc}^{-2}}\right)^{N_2},
     \end{equation}
-    where $A=${\normalfont \ttfamily [normalization]}, $N_1=${\normalfont \ttfamily
-    [exponentGas]}, and $N_2=${\normalfont \ttfamily [exponentStars]}.
+    where $A=$\source{[normalization]}, $N_1=${\normalfont \ttfamily
+    [exponentGas]}, and $N_2=$\source{[exponentStars]}.
     !!}
     use :: Abundances_Structure      , only : abundances
     use :: Coordinates               , only : coordinateCylindrical, assignment(=)

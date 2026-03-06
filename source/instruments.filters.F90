@@ -430,7 +430,7 @@ contains
 
   double precision function Filter_Response(filterIndex,wavelength)
     !!{
-    Return the filter response function at the given {\normalfont \ttfamily wavelength} (specified in Angstroms).
+    Return the filter response function at the given \source{wavelength} (specified in Angstroms).
     !!}
     use :: Numerical_Interpolation, only : interpolator
     implicit none

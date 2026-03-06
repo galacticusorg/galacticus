@@ -34,7 +34,7 @@
     \begin{equation}
     \dot{M}_\mathrm{sat}=-\alpha \frac{M_\mathrm{sat}(>r_\mathrm{tidal})}{T_\mathrm{loss}},
     \end{equation}
-    where $\alpha=${\normalfont \ttfamily [efficiency]}, $T_\mathrm{loss}$ is the time scale of mass loss, and $r_\mathrm{tidal}$
+    where $\alpha=$\source{[efficiency]}, $T_\mathrm{loss}$ is the time scale of mass loss, and $r_\mathrm{tidal}$
     is the tidal radius of the satellite, given by the \cite{king_structure_1962} formula:
     \begin{equation}
     r_\mathrm{tidal}=\left(\frac{GM_\mathrm{sat}}{\gamma_\mathrm{c}\omega^2-d^2\Phi/dr^2}\right)^{1/3},
@@ -47,7 +47,7 @@
     T_\mathrm{orb} = {1 \over \hbox{max}(\omega/2\pi,v_\mathrm{r}/r)},
     \end{equation}
     where $\omega$ is the angular velocity of the satellite, $v_\mathrm{r}$ is the radial velocity, $r$ is the orbital radius.
-    If {\normalfont \ttfamily [useDynamicalTimeScale]} is set to true, $T_\mathrm{loss}$ is taken to be the dynamical time scale
+    If \source{[useDynamicalTimeScale]} is set to true, $T_\mathrm{loss}$ is taken to be the dynamical time scale
     computed at the tidal radius
     \begin{equation}
     T_\mathrm{dyn} = \sqrt{\frac{3 \pi}{16 G \overline{\rho}_\mathrm{sat}(r_\mathrm{tidal})}} = 2 \pi \sqrt{\frac{r_\mathrm{tidal}^3}{16 G M_\mathrm{sat}(r_\mathrm{tidal})}}.

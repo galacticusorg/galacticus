@@ -35,7 +35,7 @@
     r_\mathrm{tidal}=\left(\frac{GM_\mathrm{sat}}{\gamma_\mathrm{c} \omega^2-d^2\Phi/dr^2}\right)^{1/3},
     \end{equation}
     where $\omega$ is the orbital angular velocity of the satellite, $\Phi(r)$ is the gravitational potential due to the host,
-    and $\gamma_\mathrm{c}=${\normalfont \ttfamily [efficiencyCentrifugal]} is the a model parameter that controls the efficiency of
+    and $\gamma_\mathrm{c}=$\source{[efficiencyCentrifugal]} is the a model parameter that controls the efficiency of
     centrifugal force. The calculation is based on the dark matter only density profile of the satellite---no accounting is
     made for the baryonic components.
    </description>

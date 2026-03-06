@@ -38,7 +38,7 @@ module Cooling_Cold_Mode_Infall_Rates
    </description>
    <default>dynamicalTime</default>
    <method name="infallRate" >
-    <description>Returns the cold mode infall rate for {\normalfont \ttfamily node} (in units of $M_\odot$ Gyr$^{-1}$).</description>
+    <description>Returns the cold mode infall rate for \source{node} (in units of $M_\odot$ Gyr$^{-1}$).</description>
     <type>double precision</type>
     <pass>yes</pass>
     <argument>type(treeNode), intent(inout) :: node</argument>

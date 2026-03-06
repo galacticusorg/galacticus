@@ -34,7 +34,7 @@ module Accretion_Halos
   !![
   <enumeration>
    <name>accretionMode</name>
-   <description>Enumeration of accretion modes for the {\normalfont \ttfamily accretionHalo} class.</description>
+   <description>Enumeration of accretion modes for the \source{accretionHalo} class.</description>
    <visibility>public</visibility>
    <entry label="total"/>
    <entry label="hot"  />
@@ -53,76 +53,76 @@ module Accretion_Halos
    </description>
    <default>simple</default>
    <method name="branchHasBaryons" >
-    <description>Returns {\normalfont \ttfamily true} if this tree branch may accrete baryons, and {\normalfont \ttfamily false} otherwise.</description>
+    <description>Returns \source{true} if this tree branch may accrete baryons, and \source{false} otherwise.</description>
     <type>logical</type>
     <pass>yes</pass>
     <argument>type(treeNode), intent(inout), target :: node</argument>
    </method>
    <method name="accretionRate" >
-    <description>Returns the rate (in units of $M_\odot$ Gyr$^{-1}$) of accretion of mass from the \gls{igm} onto {\normalfont \ttfamily node} in the given {\normalfont \ttfamily accretionMode}.</description>
+    <description>Returns the rate (in units of $M_\odot$ Gyr$^{-1}$) of accretion of mass from the \gls{igm} onto \source{node} in the given \source{accretionMode}.</description>
     <type>double precision</type>
     <pass>yes</pass>
     <argument>type(treeNode                    ), intent(inout) :: node</argument>
     <argument>type(enumerationAccretionModeType), intent(in   ) :: accretionMode</argument>
    </method>
    <method name="accretedMass" >
-    <description>Returns the mass (in units of $M_\odot$) of accreted from the \gls{igm} onto {\normalfont \ttfamily node} in the given {\normalfont \ttfamily accretionMode}. Used to initialize nodes.</description>
+    <description>Returns the mass (in units of $M_\odot$) of accreted from the \gls{igm} onto \source{node} in the given \source{accretionMode}. Used to initialize nodes.</description>
     <type>double precision</type>
     <pass>yes</pass>
     <argument>type(treeNode                    ), intent(inout) :: node</argument>
     <argument>type(enumerationAccretionModeType), intent(in   ) :: accretionMode</argument>
    </method>
    <method name="failedAccretionRate" >
-    <description>Returns the rate (in units of $M_\odot$ Gyr$^{-1}$) of failed accretion of mass from the \gls{igm} onto {\normalfont \ttfamily node} in the given {\normalfont \ttfamily accretionMode}.</description>
+    <description>Returns the rate (in units of $M_\odot$ Gyr$^{-1}$) of failed accretion of mass from the \gls{igm} onto \source{node} in the given \source{accretionMode}.</description>
     <type>double precision</type>
     <pass>yes</pass>
     <argument>type(treeNode                    ), intent(inout) :: node</argument>
     <argument>type(enumerationAccretionModeType), intent(in   ) :: accretionMode</argument>
    </method>
    <method name="failedAccretedMass" >
-    <description>Returns the mass (in units of $M_\odot$) that failed to accrete from the \gls{igm} onto {\normalfont \ttfamily node} in the given {\normalfont \ttfamily accretionMode}. Used to initialize nodes.</description>
+    <description>Returns the mass (in units of $M_\odot$) that failed to accrete from the \gls{igm} onto \source{node} in the given \source{accretionMode}. Used to initialize nodes.</description>
     <type>double precision</type>
     <pass>yes</pass>
     <argument>type(treeNode                    ), intent(inout) :: node</argument>
     <argument>type(enumerationAccretionModeType), intent(in   ) :: accretionMode</argument>
    </method>
    <method name="accretionRateMetals" >
-    <description>Returns the rate (in units of $M_\odot$ Gyr$^{-1}$) of accretion of metals from the \gls{igm} onto {\normalfont \ttfamily node} in the given {\normalfont \ttfamily accretionMode}.</description>
+    <description>Returns the rate (in units of $M_\odot$ Gyr$^{-1}$) of accretion of metals from the \gls{igm} onto \source{node} in the given \source{accretionMode}.</description>
     <type>type(abundances)</type>
     <pass>yes</pass>
     <argument>type(treeNode                    ), intent(inout) :: node</argument>
     <argument>type(enumerationAccretionModeType), intent(in   ) :: accretionMode</argument>
    </method>
    <method name="accretedMassMetals" >
-    <description>Returns the mass of metals (in units of $M_\odot$) of accreted from the \gls{igm} onto {\normalfont \ttfamily node} in the given {\normalfont \ttfamily accretionMode}. Used to initialize nodes.</description>
+    <description>Returns the mass of metals (in units of $M_\odot$) of accreted from the \gls{igm} onto \source{node} in the given \source{accretionMode}. Used to initialize nodes.</description>
     <type>type(abundances)</type>
     <pass>yes</pass>
     <argument>type(treeNode                    ), intent(inout) :: node</argument>
     <argument>type(enumerationAccretionModeType), intent(in   ) :: accretionMode</argument>
    </method>
    <method name="failedAccretionRateMetals" >
-    <description>Returns the rate (in units of $M_\odot$ Gyr$^{-1}$) of failed accretion of metals from the \gls{igm} onto {\normalfont \ttfamily node} in the given {\normalfont \ttfamily accretionMode}.</description>
+    <description>Returns the rate (in units of $M_\odot$ Gyr$^{-1}$) of failed accretion of metals from the \gls{igm} onto \source{node} in the given \source{accretionMode}.</description>
     <type>type(abundances)</type>
     <pass>yes</pass>
     <argument>type(treeNode                    ), intent(inout) :: node</argument>
     <argument>type(enumerationAccretionModeType), intent(in   ) :: accretionMode</argument>
    </method>
    <method name="failedAccretedMassMetals" >
-    <description>Returns the mass of metals (in units of $M_\odot$) that failed to accrete from the \gls{igm} onto {\normalfont \ttfamily node} in the given {\normalfont \ttfamily accretionMode}. Used to initialize nodes.</description>
+    <description>Returns the mass of metals (in units of $M_\odot$) that failed to accrete from the \gls{igm} onto \source{node} in the given \source{accretionMode}. Used to initialize nodes.</description>
     <type>type(abundances)</type>
     <pass>yes</pass>
     <argument>type(treeNode                    ), intent(inout) :: node</argument>
     <argument>type(enumerationAccretionModeType), intent(in   ) :: accretionMode</argument>
    </method>
    <method name="accretionRateChemicals" >
-    <description>Returns the rate (in units of $M_\odot$ Gyr$^{-1}$) of accretion of chemicals from the \gls{igm} onto {\normalfont \ttfamily node} in the given {\normalfont \ttfamily accretionMode}.</description>
+    <description>Returns the rate (in units of $M_\odot$ Gyr$^{-1}$) of accretion of chemicals from the \gls{igm} onto \source{node} in the given \source{accretionMode}.</description>
     <type>type(chemicalAbundances)</type>
     <pass>yes</pass>
     <argument>type(treeNode                    ), intent(inout) :: node</argument>
     <argument>type(enumerationAccretionModeType), intent(in   ) :: accretionMode</argument>
    </method>
    <method name="accretedMassChemicals" >
-    <description>Returns the mass of chemicals (in units of $M_\odot$) of accreted from the \gls{igm} onto {\normalfont \ttfamily node} in the given {\normalfont \ttfamily accretionMode}. Used to initialize nodes.</description>
+    <description>Returns the mass of chemicals (in units of $M_\odot$) of accreted from the \gls{igm} onto \source{node} in the given \source{accretionMode}. Used to initialize nodes.</description>
     <type>type(chemicalAbundances)</type>
     <pass>yes</pass>
     <argument>type(treeNode                    ), intent(inout) :: node</argument>

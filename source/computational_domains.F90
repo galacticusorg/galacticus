@@ -62,7 +62,7 @@ module Computational_Domains
     <pass>yes</pass>
    </method>
    <method name="indicesFromPosition" >
-    <description>Return a set of indices identifying the domain cell containing a position. For points outside the domain values of {\normalfont \ttfamily -huge(0)} will be returned.</description>
+    <description>Return a set of indices identifying the domain cell containing a position. For points outside the domain values of \source{-huge(0)} will be returned.</description>
     <type>void</type>
     <pass>yes</pass>
     <argument>double precision                       , dimension(3), intent(in   ) :: position</argument>

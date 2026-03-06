@@ -186,7 +186,7 @@ contains
 
   double precision function concentrationRadius(self,node)
     !!{
-    Compute the scale radius of the dark matter profile of {\normalfont \ttfamily node}.
+    Compute the scale radius of the dark matter profile of \source{node}.
     !!}
     use :: Calculations_Resets , only : Calculations_Reset
     use :: Numerical_Comparison, only : Values_Differ

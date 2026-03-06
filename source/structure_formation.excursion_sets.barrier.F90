@@ -37,7 +37,7 @@ module Excursion_Sets_Barriers
    </description>
    <default>criticalOverdensity</default>
    <method name="barrier" >
-    <description>Return the barrier height at the given variance and time. The {\normalfont \ttfamily rateCompute} should be set to {\normalfont \ttfamily true} if the barrier is being used in a calculation of barrier crossing rates, and to {\normalfont \ttfamily false} otherwise.</description>
+    <description>Return the barrier height at the given variance and time. The \source{rateCompute} should be set to \source{true} if the barrier is being used in a calculation of barrier crossing rates, and to \source{false} otherwise.</description>
     <type>double precision</type>
     <pass>yes</pass>
     <argument>double precision          , intent(in   ) :: variance   , time</argument>
@@ -45,7 +45,7 @@ module Excursion_Sets_Barriers
     <argument>logical                   , intent(in   ) :: rateCompute</argument>
    </method>
    <method name="barrierGradient" >
-    <description>Return the gradient of the barrier with respect to variance at the given variance and time. The {\normalfont \ttfamily rateCompute} should be set to {\normalfont \ttfamily true} if the barrier is being used in a calculation of barrier crossing rates, and to {\normalfont \ttfamily false} otherwise.</description>
+    <description>Return the gradient of the barrier with respect to variance at the given variance and time. The \source{rateCompute} should be set to \source{true} if the barrier is being used in a calculation of barrier crossing rates, and to \source{false} otherwise.</description>
     <type>double precision</type>
     <pass>yes</pass>
     <argument>double precision          , intent(in   ) :: variance   , time</argument>

@@ -24,7 +24,7 @@ Implements a galactic filter which applies another filter to a child node of the
   !![
   <galacticFilter name="galacticFilterChildNode">
    <description>
-     Applies a filter to a child node of the given node. The {\normalfont \ttfamily [childRank]} parameter specifies which child
+     Applies a filter to a child node of the given node. The \source{[childRank]} parameter specifies which child
      to use---a rank of 1 means the first child, a rank of $N$ means the sibling of the $N-1$ rank child. If a child of the
      specified rank does not exist this filter fails to pass.
    </description>

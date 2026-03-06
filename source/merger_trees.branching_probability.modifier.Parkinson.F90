@@ -36,7 +36,7 @@ Implements a merger tree branching probability rate modifier which uses the mode
     where $\delta_\mathrm{p}$ is the current critical overdensity for collapse for the parent halo, and $\sigma_\mathrm{c}$ and
     $\sigma_\mathrm{p}$ are the root-variance of the smooth mass-density field on scales corresponding to the masses of child
     and parent halos respectively. The parameters of the fit can be adjusted via input parameters: $G_0=${\normalfont \ttfamily
-    [G0]}, $\gamma_1=${\normalfont \ttfamily [gamma1]}, and $\gamma_2=${\normalfont \ttfamily [gamma2]}.
+    [G0]}, $\gamma_1=$\source{[gamma1]}, and $\gamma_2=$\source{[gamma2]}.
    </description>
   </mergerTreeBranchingProbabilityModifier>
   !!]
@@ -66,7 +66,7 @@ contains
 
   function parkinson2008ConstructorParameters(parameters) result(self)
     !!{
-    A constructor for the {\normalfont \ttfamily parkinson2008} merger tree branching probability rate class which builds the
+    A constructor for the \source{parkinson2008} merger tree branching probability rate class which builds the
     object from a parameter set.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
@@ -108,7 +108,7 @@ contains
 
   function parkinson2008ConstructorInternal(G0,gamma1,gamma2,criticalOverdensity_) result(self)
     !!{
-    Default constructor for the {\normalfont \ttfamily parkinson2008} merger tree branching probability rate class.
+    Default constructor for the \source{parkinson2008} merger tree branching probability rate class.
     !!}
     implicit none
     type            (mergerTreeBranchingProbabilityModifierParkinson2008)                        :: self

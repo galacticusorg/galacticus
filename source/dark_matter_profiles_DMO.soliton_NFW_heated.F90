@@ -85,7 +85,7 @@
 
   interface darkMatterProfileDMOSolitonNFWHeated
      !!{
-     Constructors for the {\normalfont \ttfamily solitonNFWHeated} dark matter halo profile class.
+     Constructors for the \source{solitonNFWHeated} dark matter halo profile class.
      !!}
      module procedure solitonNFWHeatedConstructorParameters
      module procedure solitonNFWHeatedConstructorInternal
@@ -125,31 +125,31 @@ contains
       <name>nonAnalyticSolver</name>
       <defaultValue>var_str('fallThrough')</defaultValue>
       <source>parameters</source>
-      <description>Selects how solutions are computed when no analytic solution is available. If set to ``{\normalfont \ttfamily fallThrough}'' then the solution ignoring heating is used, while if set to ``{\normalfont \ttfamily numerical}'' then numerical solvers are used to find solutions.</description>
+      <description>Selects how solutions are computed when no analytic solution is available. If set to ``\source{fallThrough}'' then the solution ignoring heating is used, while if set to ``\source{numerical}'' then numerical solvers are used to find solutions.</description>
     </inputParameter>
     <inputParameter>
       <name>tolerateEnclosedMassIntegrationFailure</name>
       <defaultValue>.false.</defaultValue>
       <source>parameters</source>
-      <description>If {\normalfont \ttfamily true}, tolerate failures to find the mass enclosed as a function of radius.</description>
+      <description>If \source{true}, tolerate failures to find the mass enclosed as a function of radius.</description>
     </inputParameter>
     <inputParameter>
       <name>tolerateVelocityMaximumFailure</name>
       <defaultValue>.false.</defaultValue>
       <source>parameters</source>
-      <description>If {\normalfont \ttfamily true}, tolerate failures to find the radius of the maximum circular velocity.</description>
+      <description>If \source{true}, tolerate failures to find the radius of the maximum circular velocity.</description>
     </inputParameter>
     <inputParameter>
       <name>toleratePotentialIntegrationFailure</name>
       <defaultValue>.false.</defaultValue>
       <source>parameters</source>
-      <description>If {\normalfont \ttfamily true}, tolerate failures to compute the potential.</description>
+      <description>If \source{true}, tolerate failures to compute the potential.</description>
     </inputParameter>
     <inputParameter>
       <name>velocityDispersionApproximate</name>
       <defaultValue>.true.</defaultValue>
       <source>parameters</source>
-      <description>If {\normalfont \ttfamily true}, radial velocity dispersion is computed using an approximate method in which we assume that $\sigma_\mathrm{r}^2(r) \rightarrow \sigma_\mathrm{r}^2(r) - (2/3) \epsilon(r)$, where $\epsilon(r)$ is the specific heating energy. If {\normalfont \ttfamily false} then radial velocity dispersion is computed by numerically solving the Jeans equation.</description>
+      <description>If \source{true}, radial velocity dispersion is computed using an approximate method in which we assume that $\sigma_\mathrm{r}^2(r) \rightarrow \sigma_\mathrm{r}^2(r) - (2/3) \epsilon(r)$, where $\epsilon(r)$ is the specific heating energy. If \source{false} then radial velocity dispersion is computed by numerically solving the Jeans equation.</description>
     </inputParameter>
     <inputParameter>
       <name>toleranceRelativeVelocityDispersion</name>
@@ -287,7 +287,7 @@ contains
 
   subroutine solitonNFWHeatedDestructor(self)
     !!{
-    Destructor for the {\normalfont \ttfamily solitonNFWHeated} dark matter halo profile class.
+    Destructor for the \source{solitonNFWHeated} dark matter halo profile class.
     !!}
     use :: Events_Hooks, only : calculationResetEvent
     implicit none
@@ -331,7 +331,7 @@ contains
 
   function solitonNFWHeatedGet(self,node,weightBy,weightIndex) result(massDistribution_)
     !!{
-    Return the soliton plus NFW fuzzy dark matter mass distribution for the given {\normalfont \ttfamily node}.
+    Return the soliton plus NFW fuzzy dark matter mass distribution for the given \source{node}.
     !!}
     use :: Error                     , only : Error_Report
     use :: Galacticus_Nodes          , only : nodeComponentBasic

@@ -53,7 +53,7 @@
    contains
      !![
      <methods>
-       <method description="Tabulate the filtering mass to encompass at least the given {\normalfont \ttfamily time}." method="tabulate" />
+       <method description="Tabulate the filtering mass to encompass at least the given \source{time}." method="tabulate" />
        <method description="Set the initial conditions for the ODE system." method="conditionsInitialODEs" />
        <method description="Return coefficients for the early-epoch fitting function to the filtering mass." method="coefficientsEarlyEpoch" />
        <method description="Return the early-epoch solution for the filtering mass." method="massFilteringEarlyEpoch" />
@@ -176,7 +176,7 @@ contains
 
   double precision function gnedin2000MassFiltering(self,time)
     !!{
-    Return the filtering mass at the given {\normalfont \ttfamily time}.
+    Return the filtering mass at the given \source{time}.
     !!}
     implicit none
     class           (intergalacticMediumFilteringMassGnedin2000), intent(inout) :: self
@@ -189,7 +189,7 @@ contains
 
   double precision function gnedin2000MassFilteringRateOfChange(self,time)
     !!{
-    Return the rate of change of the filtering mass at the given {\normalfont \ttfamily time}.
+    Return the rate of change of the filtering mass at the given \source{time}.
     !!}
     implicit none
     class           (intergalacticMediumFilteringMassGnedin2000), intent(inout) :: self
@@ -202,8 +202,8 @@ contains
 
   double precision function gnedin2000FractionBaryons(self,mass,time)
     !!{
-    Return the rate of change of the fraction of baryons accreted into a halo of the given {\normalfont \ttfamily mass} at the
-    {\normalfont \ttfamily time}.
+    Return the rate of change of the fraction of baryons accreted into a halo of the given \source{mass} at the
+    \source{time}.
     !!}
     implicit none
     class           (intergalacticMediumFilteringMassGnedin2000), intent(inout) :: self
@@ -215,8 +215,8 @@ contains
 
   double precision function gnedin2000FractionBaryonsRateOfChange(self,mass,time)
     !!{
-    Return the rate of change of the fraction of baryons accreted into a halo of the given {\normalfont \ttfamily mass} at the
-    {\normalfont \ttfamily time}.
+    Return the rate of change of the fraction of baryons accreted into a halo of the given \source{mass} at the
+    \source{time}.
     !!}
     implicit none
     class           (intergalacticMediumFilteringMassGnedin2000), intent(inout) :: self
@@ -233,7 +233,7 @@ contains
   double precision function gnedin2000FractionBaryonsGradientMass(self,mass,time)
     !!{
     Return the gradient with respect to mass of the fraction of baryons accreted into a halo of the given {\normalfont
-    \ttfamily mass} at the {\normalfont \ttfamily time}.
+    \ttfamily mass} at the \source{time}.
     !!}
     implicit none
     class           (intergalacticMediumFilteringMassGnedin2000), intent(inout) :: self

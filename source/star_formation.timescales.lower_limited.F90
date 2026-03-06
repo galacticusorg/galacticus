@@ -104,7 +104,7 @@ contains
 
   double precision function lowerLimitedTimescale(self,component)
     !!{
-    Return a star formation rate for the given {\normalfont \ttfamily component} which is limited to be no smaller than a given
+    Return a star formation rate for the given \source{component} which is limited to be no smaller than a given
     multiple of the dynamical time.
     !!}
     use :: Array_Utilities                 , only : operator(.intersection.)

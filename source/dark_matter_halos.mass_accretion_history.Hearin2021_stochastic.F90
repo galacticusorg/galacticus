@@ -614,7 +614,7 @@ contains
 
   subroutine hearin2021StochasticSample(self,node)
     !!{
-    Sample parameters from the distribution function for the given {\normalfont \ttfamily node}.
+    Sample parameters from the distribution function for the given \source{node}.
     !!}
     use, intrinsic :: ISO_C_Binding   , only : c_size_t
     use            :: Galacticus_Nodes, only : nodeComponentBasic
@@ -784,7 +784,7 @@ contains
 
   double precision function softPlus(x)
     !!{
-    Implementation of the \href{https://en.wikipedia.org/wiki/Rectifier_(neural_networks)\#Softplus}{\normalfont \ttfamily softPlus} function.
+    Implementation of the \href{https://en.wikipedia.org/wiki/Rectifier_(neural_networks)\#Softplus}\source{softPlus} function.
     !!}
     implicit none
     double precision, intent(in   ) :: x

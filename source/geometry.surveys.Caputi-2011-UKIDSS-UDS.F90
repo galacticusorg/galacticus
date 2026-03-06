@@ -33,7 +33,7 @@ Implements the survey geometry used by \cite{caputi_stellar_2011}.
     
     To estimate the depth of the \cite{caputi_stellar_2011} sample as a function of galaxy stellar mass we make use of semi-analytic
     models in the Millennium Database. Specifically, we use the \glspl{sam} of \cite{guo_dwarf_2011} and
-    \cite{henriques_confronting_2012} specifically the {\normalfont \ttfamily Guo2010a..MR} and {\normalfont \ttfamily
+    \cite{henriques_confronting_2012} specifically the \source{Guo2010a..MR} and {\normalfont \ttfamily
       Henriques2012a.wmap1.BC03\_001} tables in the Millennium Database. For each snapshot in the database, we extract the stellar
     masses and observed-frame IRAC 4.5$\mu$m apparent magnitudes (including dust extinction), and determine the median apparent
     magnitude as a function of stellar mass. Using the limiting apparent magnitude of the \cite{caputi_stellar_2011} sample,

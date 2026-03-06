@@ -36,7 +36,7 @@
      (\Sigma_\mathrm{HI}/\Sigma_0)^{-1/3}, &amp; \hbox{ if } \Sigma_\mathrm{HI}/\Sigma_0 \le 1 \\
      (\Sigma_\mathrm{HI}/\Sigma_0)^{1/3}, &amp; \hbox{ if } \Sigma_\mathrm{HI}/\Sigma_0 &gt; 1 \end{array} \right. ,
     \end{equation}
-    where $\nu_\mathrm{SF}=${\normalfont \ttfamily [frequencyStarFormation]} is a frequency and $\Sigma_0=85 M_\odot
+    where $\nu_\mathrm{SF}=$\source{[frequencyStarFormation]} is a frequency and $\Sigma_0=85 M_\odot
     \hbox{pc}^{-2}$. The molecular fraction is given by
     \begin{equation}
      f_\mathrm{H_2} = 1 - \left( 1 + \left[ { 3 s \over 4 (1+\delta)} \right]^{-5} \right)^{-1/5},
@@ -55,7 +55,7 @@
     \end{equation}
     and $\Sigma_\mathrm{comp,0}=c \Sigma_\mathrm{HI}/M_\odot \hbox{pc}^{-2}$ where $c=${\normalfont \ttfamily
     [clumpingFactorMolecularComplex]} is a density enhancement factor relating the surface density of molecular complexes to
-    the gas density on larger scales. Alternatively, if {\normalfont \ttfamily [molecularFractionFast]} is set to true, the
+    the gas density on larger scales. Alternatively, if \source{[molecularFractionFast]} is set to true, the
     molecular fraction will be computed using the faster (but less accurate at low molecular fraction) formula
     \begin{equation}
      f_\mathrm{H_2} = 1 - { 3s/4 \over (1 + s/4)}.
@@ -315,7 +315,7 @@ contains
   double precision function krumholz2009Rate(self,node,radius)
     !!{
     Returns the star formation rate surface density (in $M_\odot$ Gyr$^{-1}$ Mpc$^{-2}$) for star formation
-    in the galactic disk of {\normalfont \ttfamily node}. The disk is assumed to obey the
+    in the galactic disk of \source{node}. The disk is assumed to obey the
     \cite{krumholz_star_2009} star formation rule.
     !!}
     implicit none

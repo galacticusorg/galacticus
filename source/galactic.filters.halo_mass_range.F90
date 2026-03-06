@@ -28,7 +28,7 @@ Implements a galactic filter for halo mass under a given definition.
   !![
   <galacticFilter name="galacticFilterHaloMassRange">
    <description>
-    Halos with a halo mass {\normalfont \ttfamily massLow} $\le M &lt;$ {\normalfont \ttfamily [massHigh]} are passed.
+    Halos with a halo mass \source{massLow} $\le M &lt;$ \source{[massHigh]} are passed.
    </description>
   </galacticFilter>
   !!]

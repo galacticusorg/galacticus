@@ -150,7 +150,7 @@ contains
 
   function betaProfileGet(self,node,weightBy,weightIndex) result(massDistribution_)
     !!{
-    Return the $\beta$-profile hot halo mass distribution for the given {\normalfont \ttfamily node}.
+    Return the $\beta$-profile hot halo mass distribution for the given \source{node}.
     !!}
     use :: Galacticus_Nodes          , only : nodeComponentHotHalo , treeNode
     use :: Galactic_Structure_Options, only : componentTypeColdHalo, massTypeGaseous, weightByMass

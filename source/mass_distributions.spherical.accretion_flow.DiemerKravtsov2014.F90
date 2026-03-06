@@ -136,7 +136,7 @@ contains
 
   double precision function diemerKravtsov2014Density(self,coordinates) result(density)
     !!{
-    Return the density at the specified {\normalfont \ttfamily coordinates} in a \cite{diemer_dependence_2014} mass distribution.
+    Return the density at the specified \source{coordinates} in a \cite{diemer_dependence_2014} mass distribution.
     !!}
     use :: Coordinates, only : assignment(=), coordinateSpherical
     implicit none
@@ -158,7 +158,7 @@ contains
 
   double precision function diemerKravtsov2014DensityGradientRadial(self,coordinates,logarithmic) result(densityGradient)
     !!{
-    Return the density gradient at the specified {\normalfont \ttfamily coordinates} in a \cite{diemer_dependence_2014} mass distribution.
+    Return the density gradient at the specified \source{coordinates} in a \cite{diemer_dependence_2014} mass distribution.
     !!}
     implicit none
     class  (massDistributionDiemerKravtsov2014), intent(inout), target   :: self

@@ -1380,7 +1380,7 @@ contains
 
   subroutine integratorMultiDestructor(self)
     !!{
-    Destructor for the {\normalfont \ttfamily integratorMulti} class.
+    Destructor for the \source{integratorMulti} class.
     !!}
     implicit none
     type(integratorMulti), intent(inout) :: self

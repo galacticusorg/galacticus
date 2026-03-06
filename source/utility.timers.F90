@@ -51,7 +51,7 @@ module Timers
 
   interface timer
      !!{
-     Constructors for the {\normalfont \ttfamily timer} class.
+     Constructors for the \source{timer} class.
      !!}
      module procedure timerConstructorInternal
   end interface timer
@@ -60,7 +60,7 @@ contains
 
   function timerConstructorInternal() result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily timer} class.
+    Constructor for the \source{timer} class.
     !!}
     type(timer) :: self
 

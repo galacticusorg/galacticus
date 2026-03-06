@@ -282,7 +282,7 @@ contains
   
   double precision function modeSolver(wavenumber)
     !!{
-    Function used in solving for half- and quarter-mode masses in the {\normalfont \ttfamily fuzzyDMPassaglia2022} transfer function.
+    Function used in solving for half- and quarter-mode masses in the \source{fuzzyDMPassaglia2022} transfer function.
     !!}
     implicit none
     double precision, intent(in   ) :: wavenumber

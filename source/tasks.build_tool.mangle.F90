@@ -19,12 +19,12 @@
 
   !![
   <task name="taskBuildToolMangle">
-   <description>A task which builds the {\normalfont \ttfamily mangle} tool.</description>
+   <description>A task which builds the \source{mangle} tool.</description>
   </task>
   !!]
   type, extends(taskClass) :: taskBuildToolMangle
      !!{
-     Implementation of a task which builds the {\normalfont \ttfamily mangle} tool.
+     Implementation of a task which builds the \source{mangle} tool.
      !!}
      private
    contains

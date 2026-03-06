@@ -34,7 +34,7 @@
       velocity dispersion, $v_\mathrm{rms}$, we use $\sqrt{3} \sigma_\mathrm{r}(r)$, the radial velocity dispersion in the dark
       matter profile scaled to the total velocity dispersion assuming an isotropic velocity distribution. The position-velocity
       correlation function, $\chi_\mathrm{r,v}$, is taken to be a constant given by the parameter {\normalfont \ttfamily
-      [correlationVelocityRadius]}. The coefficient, $f=${\normalfont \ttfamily [coefficientSecondOrder]} is introduced to allow
+      [correlationVelocityRadius]}. The coefficient, $f=$\source{[coefficientSecondOrder]} is introduced to allow
       some freedom to adjust the contribution of the second order term. It is degenerate with the value of $\chi_\mathrm{r,v}$
       but is introduced to allow for possible future promotion of $\chi_\mathrm{r,v}$ from a constant to a function of the dark
       matter profile potential \citep[see, for example,][appendix~B]{gnedin_self-consistent_1999}.

@@ -720,8 +720,8 @@ contains
 
   subroutine darkMatterProfilePromptCuspsNodePromote(self,node)
     !!{
-    Ensure that {\normalfont \ttfamily node} is ready for promotion to its parent. In this case, we simply update the scale radius
-    growth rate of {\normalfont \ttfamily node} to be that of its parent.
+    Ensure that \source{node} is ready for promotion to its parent. In this case, we simply update the scale radius
+    growth rate of \source{node} to be that of its parent.
     !!}
     use :: Galacticus_Nodes, only : nodeComponentDarkMatterProfile
     implicit none

@@ -66,7 +66,7 @@ contains
 
   subroutine nBodyDataDestructorScalar(self)
     !!{
-    Destruct for scalar {\normalfont \ttfamily nBodyData} objects.
+    Destruct for scalar \source{nBodyData} objects.
     !!}
     use, intrinsic :: ISO_C_Binding, only : c_size_t
     use iso_varying_string
@@ -104,7 +104,7 @@ contains
   
   subroutine nBodyDataDestructorRank1(self)
     !!{
-    Destruct for rank-1 {\normalfont \ttfamily nBodyData} objects.
+    Destruct for rank-1 \source{nBodyData} objects.
     !!}
     implicit none
     type   (nBodyData), intent(inout), dimension(:) :: self

@@ -83,22 +83,22 @@
    <description>
     A circumnuclear accretion disk class, in which accretion is via an \gls{adaf} \citep{narayan_advection-dominated_1994}
     which is radiatively inefficient and geometrically thick. The radiative efficiency of the flow, which will be zero for a
-    pure \gls{adaf}, is controlled by {\normalfont \ttfamily [efficiencyRadiationType]}. If set to {\normalfont \ttfamily
+    pure \gls{adaf}, is controlled by \source{[efficiencyRadiationType]}. If set to {\normalfont \ttfamily
     fixed}, then the radiative efficiency is set to the value of the input parameter {\normalfont \ttfamily
-    [efficiencyRadiation]}. Alternatively, if set to {\normalfont \ttfamily thinDisk} the radiative efficiency will be set to
+    [efficiencyRadiation]}. Alternatively, if set to \source{thinDisk} the radiative efficiency will be set to
     that of a Shakura-Sunyaev thin disk. The spin up rate of the black hole and the jet power produced as material accretes
     into the black hole are computed using the method of \cite{benson_maximum_2009}. The maximum efficiency of the jet (in
-    units of the accretion power $\dot{M} \mathrm{c}^2$) is set by {\normalfont \ttfamily [efficiencyJetMaximum]}---in the
+    units of the accretion power $\dot{M} \mathrm{c}^2$) is set by \source{[efficiencyJetMaximum]}---in the
     model of \cite{benson_maximum_2009} the jet efficiency diverges as $j\rightarrow 1$, setting a maximum is important to
     avoid numerical instabilities. The energy of the accreted material can be set equal to the energy at infinity (as expected
-    for a pure \gls{adaf}) or the energy at the \gls{isco} by use of the {\normalfont \ttfamily [energyOption]} parameter (set
-    to {\normalfont \ttfamily pureADAF} or {\normalfont \ttfamily ISCO} respectively). The \gls{adaf} structure is controlled
+    for a pure \gls{adaf}) or the energy at the \gls{isco} by use of the \source{[energyOption]} parameter (set
+    to \source{pureADAF} or \source{ISCO} respectively). The \gls{adaf} structure is controlled
     by the adiabatic index, $\gamma$, and viscosity parameter, $\alpha$, which are specified via the {\normalfont \ttfamily
-    [adiabaticIndex]} and {\normalfont \ttfamily [viscosityOption]} input parameters respectively. The field-enhancing shear,
-    $g$, is computed using $g=\exp(\omega \tau)$ if {\normalfont \ttfamily [fieldEnhancementOption]} is set to ``exponential''
+    [adiabaticIndex]} and \source{[viscosityOption]} input parameters respectively. The field-enhancing shear,
+    $g$, is computed using $g=\exp(\omega \tau)$ if \source{[fieldEnhancementOption]} is set to ``exponential''
     where $\omega$ is the frame-dragging frequency and $\tau$ is the smaller of the radial inflow and azimuthal velocity
-    timescales. If {\normalfont \ttfamily [fieldEnhancementOption]} is set to ``linear'' then the alternative version,
-    $g=1+\omega \tau$ is used instead. {\normalfont \ttfamily [viscosityOption]} may be set to ``{\normalfont \ttfamily fit}'',
+    timescales. If \source{[fieldEnhancementOption]} is set to ``linear'' then the alternative version,
+    $g=1+\omega \tau$ is used instead. \source{[viscosityOption]} may be set to ``\source{fit}'',
     in which case the fitting function for $\alpha$ as a function of black hole spin is used:
     \begin{eqnarray}
      \alpha(j)=0.015+0.02 j^4 &amp; \hbox{ if  }&amp; g=\exp(\omega\tau) \hbox{ and } E=E_\mathrm{ISCO}, \\
@@ -239,8 +239,8 @@ contains
       <name>efficiencyRadiationType</name>
       <source>parameters</source>
       <defaultValue>var_str('thinDisk')</defaultValue>
-      <description>Specifies the specific energy of material at the inner edge of an ADAF. {\normalfont \ttfamily pureADAF} makes the specific energy equal
-        to 1 (i.e. all energy is advected with the flow); {\normalfont \ttfamily ISCO} makes the specific energy equal to that for the innermost
+      <description>Specifies the specific energy of material at the inner edge of an ADAF. \source{pureADAF} makes the specific energy equal
+        to 1 (i.e. all energy is advected with the flow); \source{ISCO} makes the specific energy equal to that for the innermost
         stable circular orbit.</description>
     </inputParameter>
     <inputParameter>
@@ -253,16 +253,16 @@ contains
       <name>energyOption</name>
       <source>parameters</source>
       <defaultValue>var_str('pureADAF')</defaultValue>
-      <description>Specifies the specific energy of material at the inner edge of an ADAF. {\normalfont \ttfamily pureADAF} makes the specific energy equal
-        to 1 (i.e. all energy is advected with the flow); {\normalfont \ttfamily ISCO} makes the specific energy equal to that for the innermost
+      <description>Specifies the specific energy of material at the inner edge of an ADAF. \source{pureADAF} makes the specific energy equal
+        to 1 (i.e. all energy is advected with the flow); \source{ISCO} makes the specific energy equal to that for the innermost
         stable circular orbit.</description>
     </inputParameter>
     <inputParameter>
       <name>fieldEnhancementOption</name>
       <source>parameters</source>
       <defaultValue>var_str('exponential')</defaultValue>
-      <description>Controls how the field enhancing shear is determined. {\normalfont \ttfamily exponential} will cause the form $g=\exp(\omega t)$ \citep{benson_maximum_2009}
-       to be used, while {\normalfont \ttfamily linear} will cause $g=1+\omega t$ to be used instead. The functional form of $\alpha(j)$ (if used) will be adjusted
+      <description>Controls how the field enhancing shear is determined. \source{exponential} will cause the form $g=\exp(\omega t)$ \citep{benson_maximum_2009}
+       to be used, while \source{linear} will cause $g=1+\omega t$ to be used instead. The functional form of $\alpha(j)$ (if used) will be adjusted
        to achieve a sensible spin-up function in each case.</description>
     </inputParameter>
     <inputParameter>
@@ -275,15 +275,15 @@ contains
       <name>viscosityOption</name>
       <source>parameters</source>
       <defaultValue>var_str('fit')</defaultValue>
-      <description>Controls how the viscosity parameter $\alpha$ in an ADAF is determined. {\normalfont \ttfamily fit} will cause $\alpha$ to be computed
-       using the fitting function of \cite{benson_maximum_2009}; {\normalfont \ttfamily fixed} will cause $\alpha=${\normalfont \ttfamily [adafViscosityFixedAlpha]}
+      <description>Controls how the viscosity parameter $\alpha$ in an ADAF is determined. \source{fit} will cause $\alpha$ to be computed
+       using the fitting function of \cite{benson_maximum_2009}; \source{fixed} will cause $\alpha=$\source{[adafViscosityFixedAlpha]}
        to be used.</description>
     </inputParameter>
     <inputParameter>
       <name>viscosityAlpha</name>
       <source>parameters</source>
       <defaultValue>0.1d0</defaultValue>
-      <description>The value for the viscosity parameter $\alpha$ in an ADAF to be used if {\normalfont \ttfamily [adafViscosityOption]}$=${\normalfont \ttfamily fixed}.</description>
+      <description>The value for the viscosity parameter $\alpha$ in an ADAF to be used if \source{[adafViscosityOption]}$=$\source{fixed}.</description>
     </inputParameter>
     <inputParameter>
       <name>efficiencyJetMaximum</name>
@@ -493,7 +493,7 @@ contains
 
   double precision function adafRateSpinUp(self,blackHole,accretionRateMass)
     !!{
-    Computes the spin up rate of the black hole in {\normalfont \ttfamily blackHole} due to accretion from an ADAF.
+    Computes the spin up rate of the black hole in \source{blackHole} due to accretion from an ADAF.
     disk.
     !!}
     implicit none
@@ -1049,8 +1049,8 @@ contains
 
   double precision function adafVelocity(self,spinBlackHole,radius)
     !!{
-    Return the (dimensionless) velocity in an ADAF at given {\normalfont \ttfamily radius}, for a black hole of given
-    {\normalfont \ttfamily spinBlackHole}.
+    Return the (dimensionless) velocity in an ADAF at given \source{radius}, for a black hole of given
+    \source{spinBlackHole}.
     !!}
     use :: Black_Hole_Fundamentals, only : Black_Hole_Horizon_Radius, Black_Hole_ISCO_Radius
     implicit none
@@ -1180,7 +1180,7 @@ contains
 
   double precision function adafHeight(self,spinBlackHole,radius)
     !!{
-    Return the (dimensionless) height in an ADAF at given {\normalfont \ttfamily radius}, for a black hole of given {\normalfont \ttfamily spinBlackHole}.
+    Return the (dimensionless) height in an ADAF at given \source{radius}, for a black hole of given \source{spinBlackHole}.
     !!}
     use :: Black_Hole_Fundamentals, only : Black_Hole_Frame_Dragging_Frequency, Black_Hole_Metric_A_Factor, Black_Hole_Metric_D_Factor
     implicit none

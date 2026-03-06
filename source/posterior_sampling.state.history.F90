@@ -24,7 +24,7 @@
   !![
   <posteriorSampleState name="posteriorSampleStateHistory">
    <description>
-    An extension of the {\normalfont \ttfamily simple} state, this class also records the mean and variance of each parameter over the
+    An extension of the \source{simple} state, this class also records the mean and variance of each parameter over the
     history of the simulation.
    </description>
   </posteriorSampleState>

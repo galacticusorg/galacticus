@@ -86,7 +86,7 @@
    contains
      !![
      <methods>
-       <method description="Make an group in the \glc\ file in which to store {\normalfont \ttfamily tree}." method="makeGroup"             />
+       <method description="Make an group in the \glc\ file in which to store \source{tree}." method="makeGroup"             />
        <method description="Dump the contents of the integer properties buffer to the \glc\ output file."    method="dumpIntegerBuffer"     />
        <method description="Dump the contents of the double properties buffer to the \glc\ output file."     method="dumpDoubleBuffer"      />
        <method description="Extend the size of the integer buffer."                                          method="extendIntegerBuffer"   />
@@ -221,7 +221,7 @@ contains
 
   subroutine standardOutputTree(self,tree,indexOutput,time)
     !!{
-    Write properties of nodes in {\normalfont \ttfamily tree} to the \glc\ output file.
+    Write properties of nodes in \source{tree} to the \glc\ output file.
     !!}
     use            :: Error              , only : Error_Report
     use            :: Galacticus_Nodes   , only : mergerTree              , nodeComponentBasic, treeNode
@@ -699,7 +699,7 @@ contains
 
   subroutine standardMakeGroup(self,tree,indexOutput)
     !!{
-    Make an group in the \glc\ file in which to store {\normalfont \ttfamily tree}.
+    Make an group in the \glc\ file in which to store \source{tree}.
     !!}
     use            :: Galacticus_Nodes                , only : mergerTree
     use, intrinsic :: ISO_C_Binding                   , only : c_size_t

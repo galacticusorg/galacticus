@@ -32,13 +32,13 @@ module Unevolved_Subhalo_Mass_Functions
    <description>Class providing unevolved subhalo mass functions.</description>
    <default>giocoli2008</default>
    <method name="differential" >
-    <description>Return the differential unevolved subhalo mass function per halo for {\normalfont \ttfamily mass} [$M_\odot$] subhalos in {\normalfont \ttfamily massHost} [$M_\odot$] hosts at {\normalfont \ttfamily time} [Gyr].</description>
+    <description>Return the differential unevolved subhalo mass function per halo for \source{mass} [$M_\odot$] subhalos in \source{massHost} [$M_\odot$] hosts at \source{time} [Gyr].</description>
     <type>double precision</type>
     <pass>yes</pass>
     <argument>double precision, intent(in   ) :: time, mass, massHost</argument>
    </method>
    <method name="integrated" >
-    <description>Return the unevolved subhalo mass function per host at {\normalfont \ttfamily time} [Gyr] in hosts of mass {\normalfont \ttfamily massHost} [$M_\odot$] integrated between {\normalfont \ttfamily massLow} and {\normalfont \ttfamily massHigh} [$M_\odot$].</description>
+    <description>Return the unevolved subhalo mass function per host at \source{time} [Gyr] in hosts of mass \source{massHost} [$M_\odot$] integrated between \source{massLow} and \source{massHigh} [$M_\odot$].</description>
     <type>double precision</type>
     <pass>yes</pass>
     <argument>double precision, intent(in   ) :: time, massLow, massHigh, massHost</argument>

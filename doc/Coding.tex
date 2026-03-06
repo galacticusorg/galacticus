@@ -2,14 +2,14 @@
 
 \section{Node Class Hierarchy Builder}
 
-The hierarchy of classes describing a merger tree node and its galaxy (i.e. {\normalfont \ttfamily treeNode}, {\normalfont \ttfamily nodeComponent}, {\normalfont \ttfamily nodeComponentBasic}, {\normalfont \ttfamily nodeComponentBasicStandard}, etc.) are built automatically to realize the set of component implementations and properties specified in source files.
+The hierarchy of classes describing a merger tree node and its galaxy (i.e. \source{treeNode}, \source{nodeComponent}, \source{nodeComponentBasic}, \source{nodeComponentBasicStandard}, etc.) are built automatically to realize the set of component implementations and properties specified in source files.
 
 \subsection{Variable Definitions}\label{sec:nodeBuilderVariableDefinitions}
 
 Throughout the node objects builder code, Fortran variables are defined using a common specification. This is a simple hash containing the following entries:
 \begin{description}
-  \item[intrinsic] a string specifying the intrinsic Fortran type ({\normalfont \ttfamily integer}, {\normalfont \ttfamily logical}, {\normalfont \ttfamily real}, {\normalfont \ttfamily double precision}, {\normalfont \ttfamily complex}, {\normalfont \ttfamily double complex}, {\normalfont \ttfamily type}, {\normalfont \ttfamily class}, {\normalfont \ttfamily procedure});
-  \item[type] \emph{[optional, except for {\normalfont \ttfamily type} and {\normalfont \ttfamily class} intrinsics]} a string specifying the type of the variables;
+  \item[intrinsic] a string specifying the intrinsic Fortran type (\source{integer}, \source{logical}, \source{real}, \source{double precision}, \source{complex}, \source{double complex}, \source{type}, \source{class}, \source{procedure});
+  \item[type] \emph{[optional, except for \source{type} and \source{class} intrinsics]} a string specifying the type of the variables;
   \item[attributes] an array of strings specifying all attributes of the variables;
   \item[variables] an array of strings giving the names of the variables.
 \end{description}
@@ -23,13 +23,13 @@ For example, rank-1, long integer arguments which will not be modified in their 
 }
 \end{verbatim}
 
-\subsection{The {\normalfont \ttfamily \$build} Data Structure}
+\subsection{The \source{\$build} Data Structure}
 
-The {\normalfont \ttfamily \$build} data structure is used to accumulate all objects, variables, interfaces, and functions needed to build the class hierarchy used to represent nodes and components in \glc. At the end of the node objects build process, this object is processed to generate the required Fortran code. The following subsections describe how to add information to this object.
+The \source{\$build} data structure is used to accumulate all objects, variables, interfaces, and functions needed to build the class hierarchy used to represent nodes and components in \glc. At the end of the node objects build process, this object is processed to generate the required Fortran code. The following subsections describe how to add information to this object.
 
 \subsubsection{Component Classes and Implementations}
 
-A reference to a hash of structures which define all component classes, keyed by class name, is provided as {\normalfont \ttfamily \$build->\{'componentClasses'\}}. Each component class structure has the form:
+A reference to a hash of structures which define all component classes, keyed by class name, is provided as \source{\$build->\{'componentClasses'\}}. Each component class structure has the form:
 \begin{verbatim}
 {
  name    => <name of the class>,
@@ -46,7 +46,7 @@ Each member implementation structure has the form:
 
 \subsubsection{Types}\label{sec:buildHierarchyTypes}
 
-Definitions of derived types are accumulated to the hash {\normalfont \ttfamily \$build->\{'types'\}}, with the key of each entry being the derived type's name. Each derived type structure has the form:
+Definitions of derived types are accumulated to the hash \source{\$build->\{'types'\}}, with the key of each entry being the derived type's name. Each derived type structure has the form:
 \begin{verbatim}
 {
  name           => <name of the derived type>
@@ -67,11 +67,11 @@ Definitions of derived types are accumulated to the hash {\normalfont \ttfamily 
   ]
 }
 \end{verbatim}
-The preferred approach is to provide a function descriptor (see \S\ref{sec:buildHierarchyFunctions}), and to omit the {\normalfont \ttfamily function}, {\normalfont \ttfamily description}, {\normalfont \ttfamily returnType}, and {\normalfont \ttfamily arguments} entries (which will be inferred from the function descriptor). The {\normalfont \ttfamily function}, {\normalfont \ttfamily description}, {\normalfont \ttfamily returnType}, and {\normalfont \ttfamily arguments} entries will eventually be deprecated in favor of the {\normalfont \ttfamily descriptor} entry.
+The preferred approach is to provide a function descriptor (see \S\ref{sec:buildHierarchyFunctions}), and to omit the \source{function}, \source{description}, \source{returnType}, and \source{arguments} entries (which will be inferred from the function descriptor). The \source{function}, \source{description}, \source{returnType}, and \source{arguments} entries will eventually be deprecated in favor of the \source{descriptor} entry.
 
 \subsubsection{Interfaces}\label{sec:buildHierarchyInterfaces}
 
-Definitions of interfaces are accumulated to the hash {\normalfont \ttfamily \$build->\{interfaces\}}, with the key of each entry being the interfaces name. Each interface structure has the form:
+Definitions of interfaces are accumulated to the hash \source{\$build->\{interfaces\}}, with the key of each entry being the interfaces name. Each interface structure has the form:
 \begin{verbatim}
 {
  name           => <name of the interface>
@@ -82,7 +82,7 @@ Definitions of interfaces are accumulated to the hash {\normalfont \ttfamily \$b
 
 \subsubsection{Functions}\label{sec:buildHierarchyFunctions}
 
-Definitions of functions are accumulated either to the list {\normalfont \ttfamily \$build->\{'functions'\}} or are included as the {\normalfont \ttfamily descriptor} in a derived type structure (this is the preferred method for functions that \emph{are} bound to a derived type; see \S\ref{sec:buildHierarchyTypes}). Each function structure has the form:
+Definitions of functions are accumulated either to the list \source{\$build->\{'functions'\}} or are included as the \source{descriptor} in a derived type structure (this is the preferred method for functions that \emph{are} bound to a derived type; see \S\ref{sec:buildHierarchyTypes}). Each function structure has the form:
 \begin{verbatim}
 {
  type        => <the type of function>
@@ -96,17 +96,17 @@ Definitions of functions are accumulated either to the list {\normalfont \ttfami
 
 \subsubsection{Module-scope Variables}
 
-Any module-scope variables can be pushed to the array {\normalfont \ttfamily \@\{\$build->\{'variables'\}\}}, using the usual definition format described in \S\ref{sec:nodeBuilderVariableDefinitions}.
+Any module-scope variables can be pushed to the array \source{\@\{\$build->\{'variables'\}\}}, using the usual definition format described in \S\ref{sec:nodeBuilderVariableDefinitions}.
 
 \section{Galacticus Preprocessor Directives}\label{sec:sourceTreePreprocessor}
 
-\glc\ has its own preprocessor for Fortran source files. This preprocesses parses each source file into an internal tree representation, performs various manipulations on that tree, and then outputs the preprocessed file for compilation. The preprocessor is used to automate and standardize many common tasks, through the inclusion of directives into the source code. Directives are specified in comment lines beginning {\normalfont \ttfamily !\#}, and are written in XML. The remainder of this section describes the various preprocessor functionalities, and gives examples of their usage.
+\glc\ has its own preprocessor for Fortran source files. This preprocesses parses each source file into an internal tree representation, performs various manipulations on that tree, and then outputs the preprocessed file for compilation. The preprocessor is used to automate and standardize many common tasks, through the inclusion of directives into the source code. Directives are specified in comment lines beginning \source{!\#}, and are written in XML. The remainder of this section describes the various preprocessor functionalities, and gives examples of their usage.
 
 \subsection{Source Code Introspection}
 
 The source code introspection functionality allows automated generation of information about the source code. Specifically:
 \begin{itemize}
-\item The directive {\normalfont \ttfamily \{introspection:location\}} in source code will be replaced with a character string giving a backtrace of the current location in the code, including any function, module, and file (including line number).
+\item The directive \source{\{introspection:location\}} in source code will be replaced with a character string giving a backtrace of the current location in the code, including any function, module, and file (including line number).
 \end{itemize}
 
 \subsection{Function Attributes}
@@ -115,28 +115,28 @@ The source code introspection functionality allows automated generation of infor
 \begin{verbatim}
 !$GLC function attributes {attributes} :: {functionNames}
 \end{verbatim}
-where {\normalfont \ttfamily \{attributes\}} is a space-separated list of attributes, and {\normalfont \ttfamily \{functionNames\}} is a space-separated list of functions to apply these functions to. Function attribute directives may appear anywhere in a file containing the named function, but it is good practice to locate them immediately before the function.
+where \source{\{attributes\}} is a space-separated list of attributes, and \source{\{functionNames\}} is a space-separated list of functions to apply these functions to. Function attribute directives may appear anywhere in a file containing the named function, but it is good practice to locate them immediately before the function.
 
 Currently, the supported attributes are:
 \begin{description}
-\item[{\normalfont \ttfamily unused}] The function is marked as being \emph{possibly} unused. Compiler warnings about unused functions will be suppressed for this function.
+\item[\source{unused}] The function is marked as being \emph{possibly} unused. Compiler warnings about unused functions will be suppressed for this function.
 \end{description}
 
 \subsection{Source Digest}
 
-The {\normalfont \ttfamily sourceDigest} directive will generate an \gls{MD5hash} hash of the source code of the file in which the directive is placed, along with the source code of any files upon which it depends. This can be useful in generating unique labels (e.g. to use as suffixes in file names) which automatically update if the source code is modified. To generate a source digest simply use:
+The \source{sourceDigest} directive will generate an \gls{MD5hash} hash of the source code of the file in which the directive is placed, along with the source code of any files upon which it depends. This can be useful in generating unique labels (e.g. to use as suffixes in file names) which automatically update if the source code is modified. To generate a source digest simply use:
 
 \begin{lstlisting}
   !# <sourceDigest name="mySourceDigest"/>
 \end{lstlisting}
 
-A source digest will be generated and stored as a {\normalfont \ttfamily character(len=22)} variable called {\normalfont \ttfamily mySourceDigest}.
+A source digest will be generated and stored as a \source{character(len=22)} variable called \source{mySourceDigest}.
 
 \subsection{Object Builder}
 
-When constructing instances of a class from a provided parameter set, a common pattern is to need to construct other objects based on those parameters, which will be used by the instance. For example, a transfer function class might require a cosmological parameters object for its operation. In such cases, we often want to use the default instance of the required class unless a different instance is explicitly specified. The {\normalfont \ttfamily objectBuilder} directive automates this process.
+When constructing instances of a class from a provided parameter set, a common pattern is to need to construct other objects based on those parameters, which will be used by the instance. For example, a transfer function class might require a cosmological parameters object for its operation. In such cases, we often want to use the default instance of the required class unless a different instance is explicitly specified. The \source{objectBuilder} directive automates this process.
 
-As an example, the following constructor requires an instance of the {\normalfont \ttfamily cosmologyParameters} class, which is passes to an internal constructor:
+As an example, the following constructor requires an instance of the \source{cosmologyParameters} class, which is passes to an internal constructor:
 
 \begin{lstlisting}  
   function myConstructorParameters(parameters)
@@ -152,11 +152,11 @@ As an example, the following constructor requires an instance of the {\normalfon
   end function myConstructorParameters
 \end{lstlisting}
 
-The {\normalfont \ttfamily objectBuilder} directive will assign a member of the class specified by the {\normalfont \ttfamily class} attribute to the variable specified by the {\normalfont \ttfamily name} attribute. If the parameter set specified by the {\normalfont \ttfamily parameters} attribute contains an explicit definition of the relevant class, that definition will be used to construct the instance. Otherwise, the parent parameter set will be checked for a definition of the relevant class, and so on. If no definition is found when the root parameter set is found the default instance will be used. Note that objects created by an {\normalfont \ttfamily objectBuilder} directive are directly associated with the element in the input parameters XML document from which they were created. Therefore, if a later {\normalfont \ttfamily objectBuilder} requires the object from that same XML element, it will reuse the one previously created.
+The \source{objectBuilder} directive will assign a member of the class specified by the \source{class} attribute to the variable specified by the \source{name} attribute. If the parameter set specified by the \source{parameters} attribute contains an explicit definition of the relevant class, that definition will be used to construct the instance. Otherwise, the parent parameter set will be checked for a definition of the relevant class, and so on. If no definition is found when the root parameter set is found the default instance will be used. Note that objects created by an \source{objectBuilder} directive are directly associated with the element in the input parameters XML document from which they were created. Therefore, if a later \source{objectBuilder} requires the object from that same XML element, it will reuse the one previously created.
 
-The {\normalfont \ttfamily objectBuilder} directive by default searches for a parameter named {\normalfont \ttfamily \{class\}} where {\normalfont \ttfamily \{class\}} is the value of the {\normalfont \ttfamily class} attribute in the directive. An alternative name may be specified via the addition of a {\normalfont \ttfamily parameterName} attribute.
+The \source{objectBuilder} directive by default searches for a parameter named \source{\{class\}} where \source{\{class\}} is the value of the \source{class} attribute in the directive. An alternative name may be specified via the addition of a \source{parameterName} attribute.
 
-In cases where an explicit {\normalfont \ttfamily parameterName} attribute is given, it is possible to specify an explicit default for the object if no such named parameter is found. (Where no explicit {\normalfont \ttfamily parameterName} attribute is given the global default of the class is used.) A default is specified by adding a {\normalfont \ttfamily default} element to the directive, which should contain default specification for the object (and any subobjects) in the usual format. For example:
+In cases where an explicit \source{parameterName} attribute is given, it is possible to specify an explicit default for the object if no such named parameter is found. (Where no explicit \source{parameterName} attribute is given the global default of the class is used.) A default is specified by adding a \source{default} element to the directive, which should contain default specification for the object (and any subobjects) in the usual format. For example:
 \begin{verbatim}
  !# <objectBuilder class="massDistribution" parameterName="diskMassDistribution" name="diskMassDistribution" source="globalParameters">
  !#  <default>
@@ -169,7 +169,7 @@ In cases where an explicit {\normalfont \ttfamily parameterName} attribute is gi
 
 \subsection{Object Destructor}
 
-This directive can (and should) be used to destroy objects built by the {\normalfont \ttfamily objectBuilder} directive. The {\normalfont \ttfamily objectDestructor} directive automates the process of deciding if these objects should be destroyed (or merely have pointers to them nullified). As an example, the following destructor destroys two associated objects:
+This directive can (and should) be used to destroy objects built by the \source{objectBuilder} directive. The \source{objectDestructor} directive automates the process of deciding if these objects should be destroyed (or merely have pointers to them nullified). As an example, the following destructor destroys two associated objects:
 \begin{lstlisting}  
   subroutine simpleDestructor(self)
     implicit none
@@ -183,7 +183,7 @@ This directive can (and should) be used to destroy objects built by the {\normal
 
 \subsection{Constructor Assignments}
 
-A common requirement in object constructors is to assign the values of arguments to the constructor to corresponding entries in the object. The {\normalfont \ttfamily constructorAssign} directive performs this assignment for a list of comma-separated variables. For example:
+A common requirement in object constructors is to assign the values of arguments to the constructor to corresponding entries in the object. The \source{constructorAssign} directive performs this assignment for a list of comma-separated variables. For example:
 \begin{lstlisting}  
  function stellarMassConstructorInternal(massThreshold)
     implicit none
@@ -193,11 +193,11 @@ A common requirement in object constructors is to assign the values of arguments
     return
   end function stellarMassConstructorInternal
 \end{lstlisting}
-will cause the value of the {\normalfont \ttfamily massThreshold} argument to {\normalfont \ttfamily stellarMassConstructorInternal\%massThreshold}. If an argument name is prefixed with {\normalfont \ttfamily \textasteriskcentered} in the variables list, pointer assignment is used instead of standard assignment.
+will cause the value of the \source{massThreshold} argument to \source{stellarMassConstructorInternal\%massThreshold}. If an argument name is prefixed with \source{\textasteriskcentered} in the variables list, pointer assignment is used instead of standard assignment.
 
 \subsection{State Storing}
 
-\glc\ supports storing its internal state to file to allow \href{https://github.com/galacticusorg/galacticus/releases/download/bleeding-edge/Galacticus_Usage.pdf\#sec.Restarting}{restarts}. Code to store and restore the internal state of objects of a given class can be generated automatically through use of the {\normalfont \ttfamily stateStorable} directive. An example is:
+\glc\ supports storing its internal state to file to allow \href{https://github.com/galacticusorg/galacticus/releases/download/bleeding-edge/Galacticus_Usage.pdf\#sec.Restarting}{restarts}. Code to store and restore the internal state of objects of a given class can be generated automatically through use of the \source{stateStorable} directive. An example is:
 \begin{verbatim}
  !# <stateStorable class="table">
  !#  <table1DGeneric>
@@ -209,11 +209,11 @@ will cause the value of the {\normalfont \ttfamily massThreshold} argument to {\
  !#  </table2DLinLinLin>  
  !# </stateStorable>
 \end{verbatim}
-This specifies that the {\normalfont \ttfamily table} class (and all child classes) can and should be stored to file as part of the representation of the internal state. Code to store and restore all data associated with any object of this class (as well as restoring polymorphic objects to the correct type) will be generated. If certain variables of the class or subclass should be restored to specific values this can be specified through a {\normalfont \ttfamily restoreTo} element placed within an element with the name of the class or subclass (e.g. the {\normalfont \ttfamily table1DGeneric} in the above example). The {\normalfont \ttfamily restoreTo} element should specify a comma-separated list of one or more variables to set in its {\normalfont \ttfamily variables} attribute, and the state to which they should be restored in its {\normalfont \ttfamily state} attribute. Any variables which should be excluded from state store/restore (e.g. if their values are known to be determined statically at construction) can be specified via a {\normalfont \ttfamily exclude} element---a list of variables to exclude should be given as a comma-separated list in its {\normalfont \ttfamily variables} attribute.
+This specifies that the \source{table} class (and all child classes) can and should be stored to file as part of the representation of the internal state. Code to store and restore all data associated with any object of this class (as well as restoring polymorphic objects to the correct type) will be generated. If certain variables of the class or subclass should be restored to specific values this can be specified through a \source{restoreTo} element placed within an element with the name of the class or subclass (e.g. the \source{table1DGeneric} in the above example). The \source{restoreTo} element should specify a comma-separated list of one or more variables to set in its \source{variables} attribute, and the state to which they should be restored in its \source{state} attribute. Any variables which should be excluded from state store/restore (e.g. if their values are known to be determined statically at construction) can be specified via a \source{exclude} element---a list of variables to exclude should be given as a comma-separated list in its \source{variables} attribute.
 
 \subsection{Conditional Call}
 
-In some instances it is useful to be able to call a function with different combinations of optional arguments depending on certain conditions. (For example, if some combinations of optional arguments are mutually exclusive.) This can be achieved using the {\normalfont \ttfamily conditionalCall} directive. An example is:
+In some instances it is useful to be able to call a function with different combinations of optional arguments depending on certain conditions. (For example, if some combinations of optional arguments are mutually exclusive.) This can be achieved using the \source{conditionalCall} directive. An example is:
 \begin{verbatim}
   !# <conditionalCall>
   !#  <call>self=massDistributionBetaProfile(beta{conditions})</call>
@@ -225,13 +225,13 @@ In some instances it is useful to be able to call a function with different comb
   !# </conditionalCall>
   !# <inputParametersValidate source="parameters"/>
 \end{verbatim}
-The {\normalfont \ttfamily call} element specifies the function call, and contains the special sequence {\normalfont \ttfamily \{conditions\}} which will be replaced with the conditionally-present arguments. One or more {\normalfont \ttfamily argument} elements should specify the various arguments which should be included in the call. For each such element the {\normalfont \ttfamily name} attribute specifies the name of the dummy argument in the called function, the {\normalfont \ttfamily value} attribute specifies the value (or variables) to pass this this dummy argument. A condition for inclusion of the argument must also be specified. In the above, the special {\normalfont \ttfamily parameterPresent} condition is used. The argument will be included in the call if a parameter with a name matching the {\normalfont \ttfamily name} attribute exists in the parameter set named in the {\normalfont \ttfamily parameterPresent} attribute. Alternatively a {\normalfont \ttfamily condition} attribute can be given. An argument is included in the call if the expression given in the {\normalfont \ttfamily condition} attribute evaluates to true.
+The \source{call} element specifies the function call, and contains the special sequence \source{\{conditions\}} which will be replaced with the conditionally-present arguments. One or more \source{argument} elements should specify the various arguments which should be included in the call. For each such element the \source{name} attribute specifies the name of the dummy argument in the called function, the \source{value} attribute specifies the value (or variables) to pass this this dummy argument. A condition for inclusion of the argument must also be specified. In the above, the special \source{parameterPresent} condition is used. The argument will be included in the call if a parameter with a name matching the \source{name} attribute exists in the parameter set named in the \source{parameterPresent} attribute. Alternatively a \source{condition} attribute can be given. An argument is included in the call if the expression given in the \source{condition} attribute evaluates to true.
 
 Code will be generated to call the function with all possible combinations of arguments.
 
 \subsection{Optional Arguments}
 
-Fortran supports optional arguments to functions, but does not provide for a default value if those arguments are not present. The {\normalfont \ttfamily optionalArgument} directive allows a default value to be specified. In the following example, a default value is defined for the {\normalfont \ttfamily units} argument:
+Fortran supports optional arguments to functions, but does not provide for a default value if those arguments are not present. The \source{optionalArgument} directive allows a default value to be specified. In the following example, a default value is defined for the \source{units} argument:
 
 \begin{lstlisting}
   double precision function simpleHubbleConstant(self,units)
@@ -249,13 +249,13 @@ Fortran supports optional arguments to functions, but does not provide for a def
     return
   end function simpleHubbleConstant
 \end{lstlisting}
-The {\normalfont \ttfamily optionalArgument} directive should appear after variable declarations and before any attempt to use the optional argument, and should have two attributes, {\normalfont \ttfamily name} and {\normalfont \ttfamily defaultsTo} which give the name of the argument variable and its default value respectively. The preprocessor will add a new variable with the same name plus an underscore suffix, and will ensure that it is initialized to the default value if the optional variable is not present, otherwise setting it to the value of the optional variable.
+The \source{optionalArgument} directive should appear after variable declarations and before any attempt to use the optional argument, and should have two attributes, \source{name} and \source{defaultsTo} which give the name of the argument variable and its default value respectively. The preprocessor will add a new variable with the same name plus an underscore suffix, and will ensure that it is initialized to the default value if the optional variable is not present, otherwise setting it to the value of the optional variable.
 
-Note that for optional arguments that are {\normalfont \ttfamily intent(out)} or {\normalfont \ttfamily intent(inout)} the preprocessor currently \emph{does not} ensure that the value of the new variable is copied back to the argument prior to exit from the function.
+Note that for optional arguments that are \source{intent(out)} or \source{intent(inout)} the preprocessor currently \emph{does not} ensure that the value of the new variable is copied back to the argument prior to exit from the function.
 
 \subsection{Enumerations}
 
-The {\normalfont \ttfamily enumeration} directive allows specification of an enumeration (a set of labels), and (optionally) functions to decode such a label from user input. The following example illustrates this usage:
+The \source{enumeration} directive allows specification of an enumeration (a set of labels), and (optionally) functions to decode such a label from user input. The following example illustrates this usage:
 
 \begin{lstlisting}
 module Cosmology_Parameters
@@ -297,11 +297,11 @@ subroutine Test_Enumeration()
 end module Cosmology_Parameters
 \end{lstlisting}
 
-Enumerations must be defined in the declaration section of a {\normalfont \ttfamily module}. The encoding and decoding functions will only be generated if the {\normalfont \ttfamily encode} element is present and has content {\normalfont \ttfamily yes}. The enumeration variables are given {\normalfont \ttfamily public} visibility by default---this can be overridden using the {\normalfont \ttfamily visibility} element. If the {\normalfont \ttfamily validator} element is present and set to {\normalfont \ttfamily yes} then a function is created which will return true if the given value is a valid one for the enumeration. Additionally, if the {\normalfont \ttfamily validator} element is present and set to {\normalfont \ttfamily yes} variables are created giving a count of the number of entries in the enumeration, along with the minimum and maximum values in the enumeration. Note that the {\normalfont \ttfamily description} element is used to generate an entry for the enumeration in the document, and so should be written in \LaTeX\ syntax.
+Enumerations must be defined in the declaration section of a \source{module}. The encoding and decoding functions will only be generated if the \source{encode} element is present and has content \source{yes}. The enumeration variables are given \source{public} visibility by default---this can be overridden using the \source{visibility} element. If the \source{validator} element is present and set to \source{yes} then a function is created which will return true if the given value is a valid one for the enumeration. Additionally, if the \source{validator} element is present and set to \source{yes} variables are created giving a count of the number of entries in the enumeration, along with the minimum and maximum values in the enumeration. Note that the \source{description} element is used to generate an entry for the enumeration in the document, and so should be written in \LaTeX\ syntax.
 
 \subsection{Input Parameters}
 
-The {\normalfont \ttfamily inputParameter} directive reads an input parameter and assigns the appropriate value to the given variable. {\normalfont \ttfamily inputParameter} directives must occur within the main body of a function, subroutine, or program. A default value can be specified if desired. The following example illustrates this usage:
+The \source{inputParameter} directive reads an input parameter and assigns the appropriate value to the given variable. \source{inputParameter} directives must occur within the main body of a function, subroutine, or program. A default value can be specified if desired. The following example illustrates this usage:
 
 \begin{lstlisting}
   subroutine simpleParametersRead()
@@ -322,9 +322,9 @@ The {\normalfont \ttfamily inputParameter} directive reads an input parameter an
   end subroutine simpleParametersRead
 \end{lstlisting}
 
-In this case, the value of the {\normalfont \ttfamily HubbleConstant} parameter is assigned to the {\normalfont \ttfamily hubbleConstant} variable, with a default of $69.7$ if no value was specified in the input parameter file. If the {\normalfont \ttfamily source} element is present, the parameter will be read from the named {\normalfont \ttfamily inputParameters} set, otherwise the parameter will be read from the top-level of the parameters file. The {\normalfont \ttfamily defaultSource}, {\normalfont \ttfamily <description>The}, {\normalfont \ttfamily type}, and {\normalfont \ttfamily cardinality} elements are used only for adding an entry for the input parameter to the documentation, and so should be written in \LaTeX\ syntax.
+In this case, the value of the \source{HubbleConstant} parameter is assigned to the \source{hubbleConstant} variable, with a default of $69.7$ if no value was specified in the input parameter file. If the \source{source} element is present, the parameter will be read from the named \source{inputParameters} set, otherwise the parameter will be read from the top-level of the parameters file. The \source{defaultSource}, \source{<description>The}, \source{type}, and \source{cardinality} elements are used only for adding an entry for the input parameter to the documentation, and so should be written in \LaTeX\ syntax.
 
-It is also possible to specify a set of parameter which iterate over names defined by other directives. The following example would read one parameter named ``{\normalfont \ttfamily fileNameForXXXXXXIMF}'' where ``{\normalfont \ttfamily XXXXXX}'' equals the {\normalfont \ttfamily name} element each {\normalfont \ttfamily imfRegisterName} directive:
+It is also possible to specify a set of parameter which iterate over names defined by other directives. The following example would read one parameter named ``\source{fileNameForXXXXXXIMF}'' where ``\source{XXXXXX}'' equals the \source{name} element each \source{imfRegisterName} directive:
 \begin{lstlisting}
     !# <inputParameter>
     !#   <iterator>fileNameFor(#imfRegisterName->name)IMF</iterator>
@@ -339,11 +339,11 @@ It is also possible to specify a set of parameter which iterate over names defin
 
 \subsection{Input Parameter Lists}
 
-The {\normalfont \ttfamily inputParameterList} directive will construct a {\normalfont \ttfamily varying\_string} array containing the names of all input parameters which are defined in the unit in which the directive appears. The name of the array is specified by the {\normalfont \ttfamily label} attribute of the {\normalfont \ttfamily inputParameterList} directive. If a {\normalfont \ttfamily source} attribute is specified in the directive then only parameters being read from the named variable will be included in the list, otherwise any parameters read will be included. Such a list can be used to validate the names of parameters passed to a function for example.
+The \source{inputParameterList} directive will construct a \source{varying\_string} array containing the names of all input parameters which are defined in the unit in which the directive appears. The name of the array is specified by the \source{label} attribute of the \source{inputParameterList} directive. If a \source{source} attribute is specified in the directive then only parameters being read from the named variable will be included in the list, otherwise any parameters read will be included. Such a list can be used to validate the names of parameters passed to a function for example.
 
 \subsection{Function Classes}
 
-Most\footnote{At this time the \protect\glc\ code base is being transitioned to use this approach.} of the internal functionality within \glc\ is provided by ``function classes''. These are classes (in the object oriented sense) which model some particular physical entity or concept (e.g. the underlying cosmological model) and provide one or more functions associated with that entity or concept. A default implementation of each function class can be selected at run-time, allowing for simple user-defined control of model behavior. A function class is specified by a {\normalfont \ttfamily functionClass} directive, together with one or more implementations of the function class specified by their own directives.
+Most\footnote{At this time the \protect\glc\ code base is being transitioned to use this approach.} of the internal functionality within \glc\ is provided by ``function classes''. These are classes (in the object oriented sense) which model some particular physical entity or concept (e.g. the underlying cosmological model) and provide one or more functions associated with that entity or concept. A default implementation of each function class can be selected at run-time, allowing for simple user-defined control of model behavior. A function class is specified by a \source{functionClass} directive, together with one or more implementations of the function class specified by their own directives.
 
 An example of a function class directive, which defines a class for cosmological parameters (which in this case, for simplicity, consists of just the Hubble constant) is given below:
 
@@ -357,7 +357,7 @@ An example of a function class directive, which defines a class for cosmological
   !#  <stateful>no</stateful>
   !#  <calculationReset>no</calculationReset>
   !#  <method name="HubbleConstant" >
-  !#   <description>Return the Hubble constant at the present day. The optional {\normalfont \ttfamily units} argument specifies if the return value should be in units of km/s/Mpc (hubbleUnitsStandard), Gyr$^{-1}$ (hubbleUnitsTime), or 100 km/s/Mpc (hubbleUnitsLittleH).</description>
+  !#   <description>Return the Hubble constant at the present day. The optional \source{units} argument specifies if the return value should be in units of km/s/Mpc (hubbleUnitsStandard), Gyr$^{-1}$ (hubbleUnitsTime), or 100 km/s/Mpc (hubbleUnitsLittleH).</description>
   !#   <type>double precision</type>
   !#   <pass>yes</pass>
   !#   <argument>integer, intent(in   ), optional :: units</argument>
@@ -367,12 +367,12 @@ An example of a function class directive, which defines a class for cosmological
 
 The directive should contain the following elements:
 \begin{description}
-\item[{\normalfont \ttfamily name}] The name of this function class.
-\item[{\normalfont \ttfamily descriptiveName}] A descriptive name for the function class, suitable for inclusion in the documentation.
-\item[{\normalfont \ttfamily description}] A description of the purpose of this function class. This description will be included into the documentation so should be written in \LaTeX\ syntax.
-\item[{\normalfont \ttfamily default}] The default implementation to use for this function class if no choice is made in the input parameter file.
-\item[{\normalfont \ttfamily defaultThreadPrivate}] \emph{(optional)} If present and set to {\normalfont \ttfamily yes} then the default implementation of this function class will be made OpenMP thread private. Otherwise, the default implementation is shared between threads. A thread private default implementation can be useful if the function class may need to generate look-up tables unique to each thread on the fly for example.
-\item[{\normalfont \ttfamily calculationReset}] \emph{(optional)} If present and set to {\normalfont \ttfamily yes} then the default implementation of the function class is assumed to possibly want to reset its calculations when the active \gls{node} changes (see \S\ref{sec:CalculationResetTask}). In this case, an additional method is generated for the function class: {\normalfont \ttfamily calculationReset} with interface:
+\item[\source{name}] The name of this function class.
+\item[\source{descriptiveName}] A descriptive name for the function class, suitable for inclusion in the documentation.
+\item[\source{description}] A description of the purpose of this function class. This description will be included into the documentation so should be written in \LaTeX\ syntax.
+\item[\source{default}] The default implementation to use for this function class if no choice is made in the input parameter file.
+\item[\source{defaultThreadPrivate}] \emph{(optional)} If present and set to \source{yes} then the default implementation of this function class will be made OpenMP thread private. Otherwise, the default implementation is shared between threads. A thread private default implementation can be useful if the function class may need to generate look-up tables unique to each thread on the fly for example.
+\item[\source{calculationReset}] \emph{(optional)} If present and set to \source{yes} then the default implementation of the function class is assumed to possibly want to reset its calculations when the active \gls{node} changes (see \S\ref{sec:CalculationResetTask}). In this case, an additional method is generated for the function class: \source{calculationReset} with interface:
   \begin{lstlisting}
     subroutine calculationReset(self,thisNode)
       class  (functionClassBaseName), intent(inout)          :: self
@@ -380,16 +380,16 @@ The directive should contain the following elements:
     end subroutine calculationReset
   \end{lstlisting}
   This method has a null implementation for the base class of the function class, but can be overridden to reset calculations of any given implementation.
-\item[{\normalfont \ttfamily method}] Each {\normalfont \ttfamily method} element defines a method which the function class will support, the name of which is given by a {\normalfont \ttfamily name} attribute. The method definition must contain the following elements:
+\item[\source{method}] Each \source{method} element defines a method which the function class will support, the name of which is given by a \source{name} attribute. The method definition must contain the following elements:
   \begin{description}
-  \item[{\normalfont \ttfamily description}] A description of this method (in \LaTeX\ syntax) suitable for inclusion into the documentation.
-  \item[{\normalfont \ttfamily type}] The type of the function (e.g. {\normalfont \ttfamily double precision}; use {\normalfont \ttfamily void} for a subroutine).
-  \item[{\normalfont \ttfamily pass}] If {\normalfont \ttfamily yes} pass the object that the method was called on as the first argument.
-  \item[{\normalfont \ttfamily argument}] \emph{(optional)} Zero or more declarations (in standard Fortran syntax) for the method arguments (there is no need to specify the declaration for the object upon which the method was called in the case where this object is passed to the method function).
+  \item[\source{description}] A description of this method (in \LaTeX\ syntax) suitable for inclusion into the documentation.
+  \item[\source{type}] The type of the function (e.g. \source{double precision}; use \source{void} for a subroutine).
+  \item[\source{pass}] If \source{yes} pass the object that the method was called on as the first argument.
+  \item[\source{argument}] \emph{(optional)} Zero or more declarations (in standard Fortran syntax) for the method arguments (there is no need to specify the declaration for the object upon which the method was called in the case where this object is passed to the method function).
   \end{description}
 \end{description}
 
-Implementations of this function class must be declared with a directive having the same name as the function class (i.e. {\normalfont \ttfamily cosmologyParameters} in the example above). The directive must give the name of the implementation as an attribute, and a description of the implementation suitable for inclusion into the documentation. Each implementation should be placed in a separate file---the preprocessor will find these files and merge the implementations and function class definition into a single file for compilation. Each implementation should declare a class which extends the basic function class, constructor interfaces, and any module-scope data required by the class. The implementation should also define all necessary functions required by the class (separated from the declarations by a {\normalfont \ttfamily contains} keyword). An example is given below:
+Implementations of this function class must be declared with a directive having the same name as the function class (i.e. \source{cosmologyParameters} in the example above). The directive must give the name of the implementation as an attribute, and a description of the implementation suitable for inclusion into the documentation. Each implementation should be placed in a separate file---the preprocessor will find these files and merge the implementations and function class definition into a single file for compilation. Each implementation should declare a class which extends the basic function class, constructor interfaces, and any module-scope data required by the class. The implementation should also define all necessary functions required by the class (separated from the declarations by a \source{contains} keyword). An example is given below:
 
 \begin{lstlisting}
   !# <cosmologyParameters name="cosmologyParametersSimple">
@@ -457,18 +457,18 @@ contains
 
 In the above example, we define a ``simple'' implementation of the {\normalfont cosmologyParameters} class. Key points are:
 \begin{description}
-\item[Name:] The name should always be prefixed with the function class name. In this case, we have a {\normalfont \ttfamily simple} implementation of the {\normalfont \ttfamily cosmologyParameters} function class, and so our name is {\normalfont \ttfamily cosmologyParametersSimple}.
-\item[Extends:] The base class for the function class is always the function class name suffixed with {\normalfont \ttfamily Class}, in this case {\normalfont \ttfamily cosmologyParametersClass}. Implementations must always be extensions of either this base class, or of another implementation.
-\item[Procedures:] The implementation must define procedures for all methods of the function class, \emph{except} for where a method specified a {\normalfont \ttfamily code} element in the function class directive (in which case a procedure for the method may still be optionally defined). Specification of a {\normalfont \ttfamily final} function is encouraged.
+\item[Name:] The name should always be prefixed with the function class name. In this case, we have a \source{simple} implementation of the \source{cosmologyParameters} function class, and so our name is \source{cosmologyParametersSimple}.
+\item[Extends:] The base class for the function class is always the function class name suffixed with \source{Class}, in this case \source{cosmologyParametersClass}. Implementations must always be extensions of either this base class, or of another implementation.
+\item[Procedures:] The implementation must define procedures for all methods of the function class, \emph{except} for where a method specified a \source{code} element in the function class directive (in which case a procedure for the method may still be optionally defined). Specification of a \source{final} function is encouraged.
 \item[Constructors:] The implementation must specify at least one constructor, which takes no arguments (usually known as the default constructor). This constructor must create an instance of the implementation, setting any parameters from the input parameter file as necessary. Additional constructors may be defined as required.
-\item[Procedures:] All required procedures (including constructors and destructors) should be given after a line containing the {\normalfont \ttfamily contains} keyword. \glc\ coding policy is that all procedures associated with an implementation should be prefixed with the implementation name, {\normalfont \ttfamily simple} in this case.
+\item[Procedures:] All required procedures (including constructors and destructors) should be given after a line containing the \source{contains} keyword. \glc\ coding policy is that all procedures associated with an implementation should be prefixed with the implementation name, \source{simple} in this case.
 \end{description}
 
-Functionality to store and restore the state (see \href{https://github.com/galacticusorg/galacticus/releases/download/bleeding-edge/Galacticus_Usage.pdf\#sec.Restarting}{here}) of classes built via a {\normalfont \ttfamily functionClass} directive are automatically built. If variables of a given implementation should be restored to a specific state, this can be specified by adding a {\normalfont \ttfamily restoreTo} element to the directive declaring the implementation. The {\normalfont \ttfamily restoreTo} element should specify a comma-separated list of one or more variables to set in its {\normalfont \ttfamily variables} attribute, and the state to which they should be restored in its {\normalfont \ttfamily state} attribute. Any variables which should be excluded from state store/restore (e.g. if their values are known to be determined statically at construction) can be specified via a {\normalfont \ttfamily exclude} element---a list of variables to exclude should be given as a comma-separated list in its {\normalfont \ttfamily variables} attribute.
+Functionality to store and restore the state (see \href{https://github.com/galacticusorg/galacticus/releases/download/bleeding-edge/Galacticus_Usage.pdf\#sec.Restarting}{here}) of classes built via a \source{functionClass} directive are automatically built. If variables of a given implementation should be restored to a specific state, this can be specified by adding a \source{restoreTo} element to the directive declaring the implementation. The \source{restoreTo} element should specify a comma-separated list of one or more variables to set in its \source{variables} attribute, and the state to which they should be restored in its \source{state} attribute. Any variables which should be excluded from state store/restore (e.g. if their values are known to be determined statically at construction) can be specified via a \source{exclude} element---a list of variables to exclude should be given as a comma-separated list in its \source{variables} attribute.
 
 \subsection{Generic Programming}
 
-The preprocessor supports generic programming by allowing generic types to be defined, which are automatically expanded to a set of specific types. Significant flexibility is provided to allow control over how each specific type is handled. A generic type is specific via a {\normalfont \ttfamily generic} directive such as:
+The preprocessor supports generic programming by allowing generic types to be defined, which are automatically expanded to a set of specific types. Significant flexibility is provided to allow control over how each specific type is handled. A generic type is specific via a \source{generic} directive such as:
 \lstset{escapechar=@}
 \begin{lstlisting}
   !# <generic identifier="Type">
@@ -480,9 +480,9 @@ The preprocessor supports generic programming by allowing generic types to be de
   !#  <instance label="DoubleRank1"    intrinsic="double precision , dimension(:)" outputConverter="regEx@\textbrokenbar@(.*)@\textbrokenbar@$1@\textbrokenbar@"      />
   !# </generic>
 \end{lstlisting}
-The above defines a generic type, which will be identified using the label ``{\normalfont \ttfamily Type}''. The directive contains several {\normalfont \ttfamily instance} elements, each of which specifies a specific type which should be implemented for the generic type. Each instance can contain an arbitrary number of attributes which specify strings or regular expressions which will be used to construct the specific implementation.
+The above defines a generic type, which will be identified using the label ``\source{Type}''. The directive contains several \source{instance} elements, each of which specifies a specific type which should be implemented for the generic type. Each instance can contain an arbitrary number of attributes which specify strings or regular expressions which will be used to construct the specific implementation.
 
-A generic directive applies to the entire unit within which it is scoped. The preprocessor will examine every element within that unit. If a generic tag (see below) is found in the opening of any subunit, that entire subunit is copied once for each instance, and any generic tags replaced with the appropriate content from the {\normalfont \ttfamily instance} element. Where a generic tag is found in a non-opening line (and that line is not contained within a subunit whose opener \emph{does} contain a generic tag), the line itself is replicated in the same way.
+A generic directive applies to the entire unit within which it is scoped. The preprocessor will examine every element within that unit. If a generic tag (see below) is found in the opening of any subunit, that entire subunit is copied once for each instance, and any generic tags replaced with the appropriate content from the \source{instance} element. Where a generic tag is found in a non-opening line (and that line is not contained within a subunit whose opener \emph{does} contain a generic tag), the line itself is replicated in the same way.
 
 An example of the usage of generic tags using the above generic directive is:
 \lstset{escapechar=@}
@@ -511,19 +511,19 @@ contains
   end subroutine exampleTypeSet{Type@\textbrokenbar@label}
 \end{lstlisting}
 
-In this example, the {\normalfont \ttfamily exampleType} class is defined to have a generic {\normalfont \ttfamily set} method. The presence of the {\normalfont \ttfamily \{Type@\textbrokenbar@label\}} generic tag will cause those lines to be replicated with the tag replaced by the content of the {\normalfont \ttfamily label} attribute of each instance of the generic type. In the contained subroutine, a generic tag appears in the opener. As such, the entire subroutine will be replicated once for each instance of the generic type, and the generic tags replaced as appropriate.
+In this example, the \source{exampleType} class is defined to have a generic \source{set} method. The presence of the \source{\{Type@\textbrokenbar@label\}} generic tag will cause those lines to be replicated with the tag replaced by the content of the \source{label} attribute of each instance of the generic type. In the contained subroutine, a generic tag appears in the opener. As such, the entire subroutine will be replicated once for each instance of the generic type, and the generic tags replaced as appropriate.
 
-When a generic instance attribute begins with {\normalfont \ttfamily regEx}, matching generic tags are handled differently. In particular, a match-and-replace regular expression is applied to the third element of the generic tag (elements are separated by broken vertical bar characters). The match and replace components of the regular expression are defined in the instance attribute, once again separated by broken vertical bars.
+When a generic instance attribute begins with \source{regEx}, matching generic tags are handled differently. In particular, a match-and-replace regular expression is applied to the third element of the generic tag (elements are separated by broken vertical bar characters). The match and replace components of the regular expression are defined in the instance attribute, once again separated by broken vertical bars.
 
-Finally, the special generic tag {\normalfont \ttfamily match} acts as a ternary operator. If the regular expression specified in the third element matches the {\normalfont \ttfamily label} attribute of a specific instance, the generic tag is replaced with its fourth element, otherwise it is replaced with its fifth element.
+Finally, the special generic tag \source{match} acts as a ternary operator. If the regular expression specified in the third element matches the \source{label} attribute of a specific instance, the generic tag is replaced with its fourth element, otherwise it is replaced with its fifth element.
 
 \section{Numerical Tools}
 
-\glc\ provides a variety of tools to solve basic numerical problems. These can be found in files {\normalfont \ttfamily source/numerical.*}. \glc\ makes use of the \href{http://www.gnu.org/software/gsl/}{GNU Scientific Library} for many of these tools, but typically provides a higher-level wrapper around those functions, providing a cleaner interface and, in some cases, additional functionality.
+\glc\ provides a variety of tools to solve basic numerical problems. These can be found in files \source{source/numerical.*}. \glc\ makes use of the \href{http://www.gnu.org/software/gsl/}{GNU Scientific Library} for many of these tools, but typically provides a higher-level wrapper around those functions, providing a cleaner interface and, in some cases, additional functionality.
 
 \subsection{Finding Roots of Equations}\index{root finding}\index{numerical algorithms!root finding}
 
-Tools for solving equations of the form $f(x)=0$ are provided by the {\normalfont \ttfamily rootFinder} object (available via the {\normalfont \ttfamily Root\_Finder} module). Typical use of this object is as follows:
+Tools for solving equations of the form $f(x)=0$ are provided by the \source{rootFinder} object (available via the \source{Root\_Finder} module). Typical use of this object is as follows:
 \begin{lstlisting}
 ! Import the module.
 use Root_Finder
@@ -568,19 +568,19 @@ double precision function myRootFunction(x)
   return
 end function myRootFunction
 \end{lstlisting}
-The above example begins by importing the {\normalfont \ttfamily Root\_Finder} module and then creating a {\normalfont \ttfamily rootFinder} object called {\normalfont \ttfamily finder}. This is made OpenMP {\normalfont \ttfamily threadprivate} so that it may be used simultaneously by all threads. The first step is to initialize {\normalfont \ttfamily finder}---the {\normalfont \ttfamily isInitialized} method tells us if this has already happened. The most important step is to specify the function that will evaluate $f(x)$. This is done via the {\normalfont \ttfamily rootFunction} method---once done, the {\normalfont \ttfamily rootFinder} object is marked as initialized (and the {\normalfont \ttfamily isInitialized} method will return {\normalfont \ttfamily true}). All other initialization steps are optional. In this example, we use the {\normalfont \ttfamily type} method to specify that the {\normalfont \ttfamily Brent} algorithm should be used for root finding. Any valid \href{http://www.gnu.org/software/gsl/manual/html_node/Root-Bracketing-Algorithms.html}{GSL-supported root finding algorithm} can be used. We then use the {\normalfont \ttfamily tolerance} method to specify both the absolute and relative tolerances in the $x$ variable that must be attained to declare the root to be found. Both arguments are optional---default values of $10^{-10}$ will be used if either tolerance is not specified. 
+The above example begins by importing the \source{Root\_Finder} module and then creating a \source{rootFinder} object called \source{finder}. This is made OpenMP \source{threadprivate} so that it may be used simultaneously by all threads. The first step is to initialize \source{finder}---the \source{isInitialized} method tells us if this has already happened. The most important step is to specify the function that will evaluate $f(x)$. This is done via the \source{rootFunction} method---once done, the \source{rootFinder} object is marked as initialized (and the \source{isInitialized} method will return \source{true}). All other initialization steps are optional. In this example, we use the \source{type} method to specify that the \source{Brent} algorithm should be used for root finding. Any valid \href{http://www.gnu.org/software/gsl/manual/html_node/Root-Bracketing-Algorithms.html}{GSL-supported root finding algorithm} can be used. We then use the \source{tolerance} method to specify both the absolute and relative tolerances in the $x$ variable that must be attained to declare the root to be found. Both arguments are optional---default values of $10^{-10}$ will be used if either tolerance is not specified. 
 
-The final step of initialization is to call the {\normalfont \ttfamily rangeExpand} method. This specifies how the initial guessed value or range for $x$ should be expanded to bracket the root. If you plan to always specify an initial range, and know that it will always bracket the root, you do not need to specify how the range should be expanded. In this case we've specified that range expansion is multiplicative---that is, the lower and upper values of $x$ defining the range will be multiplied by fixed factors until the root is bracketed---via the {\normalfont \ttfamily rangeExpandType=rangeExpandMultiplicative} option. Alternatively, additive expansion is possible using {\normalfont \ttfamily rangeExpandType=rangeExpandAdditive}. The factors by which to multiply the lower and upper bounds of the range (or the factor to add in the case of additive expansion) are specified by the {\normalfont \ttfamily rangeExpandDownward} and {\normalfont \ttfamily rangeExpandUpward} options. It is possible to specify absolute lower/upper limits to the range via the {\normalfont \ttfamily rangeDownwardLimit} and {\normalfont \ttfamily rangeUpwardLimit} options. The range will not be expanded beyond these limits---if the root cannot be bracketed without exceeding these limits an error condition will occur. Finally, it is possible to indicate the expected sign of $f(x)$ at the lower and/or upper limits via the {\normalfont \ttfamily rangeExpandDownwardSignExpect} and {\normalfont \ttfamily rangeExpandUpwardSignExpect} options. Valid settings are {\normalfont \ttfamily rangeExpandSignExpectNegative}, {\normalfont \ttfamily rangeExpandSignExpectPositive}, and {\normalfont \ttfamily rangeExpandSignExpectNone} (the default---implying that there is no expectation for the sign). If the sign of $f(x)$ is specified, then range expansion will stop once the expected sign is found. This can often improve efficiency, by allowing the range expander to expand the range in only one direction, resulting in a narrower range in which to search for the root.
+The final step of initialization is to call the \source{rangeExpand} method. This specifies how the initial guessed value or range for $x$ should be expanded to bracket the root. If you plan to always specify an initial range, and know that it will always bracket the root, you do not need to specify how the range should be expanded. In this case we've specified that range expansion is multiplicative---that is, the lower and upper values of $x$ defining the range will be multiplied by fixed factors until the root is bracketed---via the \source{rangeExpandType=rangeExpandMultiplicative} option. Alternatively, additive expansion is possible using \source{rangeExpandType=rangeExpandAdditive}. The factors by which to multiply the lower and upper bounds of the range (or the factor to add in the case of additive expansion) are specified by the \source{rangeExpandDownward} and \source{rangeExpandUpward} options. It is possible to specify absolute lower/upper limits to the range via the \source{rangeDownwardLimit} and \source{rangeUpwardLimit} options. The range will not be expanded beyond these limits---if the root cannot be bracketed without exceeding these limits an error condition will occur. Finally, it is possible to indicate the expected sign of $f(x)$ at the lower and/or upper limits via the \source{rangeExpandDownwardSignExpect} and \source{rangeExpandUpwardSignExpect} options. Valid settings are \source{rangeExpandSignExpectNegative}, \source{rangeExpandSignExpectPositive}, and \source{rangeExpandSignExpectNone} (the default---implying that there is no expectation for the sign). If the sign of $f(x)$ is specified, then range expansion will stop once the expected sign is found. This can often improve efficiency, by allowing the range expander to expand the range in only one direction, resulting in a narrower range in which to search for the root.
 
-Finally, we use the {\normalfont \ttfamily find} method to return the value of the root. The first argument to {\normalfont \ttfamily find} is the name of the function that evaluates $f(x)$. Additionally, we must supply either {\normalfont \ttfamily rootGuess} (a scalar value guess to use as the initial value for both the lower and upper values of the range---note that range expansion must be allowed in this case), or {\normalfont \ttfamily rootRange} (a two-element array to use as the initial lower and upper values of the range bracketing the root).
+Finally, we use the \source{find} method to return the value of the root. The first argument to \source{find} is the name of the function that evaluates $f(x)$. Additionally, we must supply either \source{rootGuess} (a scalar value guess to use as the initial value for both the lower and upper values of the range---note that range expansion must be allowed in this case), or \source{rootRange} (a two-element array to use as the initial lower and upper values of the range bracketing the root).
 
-The function evaluating $f(x)$ must have a form compatible with that shown for {\normalfont \ttfamily myRootFunction} in the above example.
+The function evaluating $f(x)$ must have a form compatible with that shown for \source{myRootFunction} in the above example.
 
 \section{Computation Dependencies and Data Files}\label{sec:codeUniqueLabels}\index{dependencies, computation}\index{labels, unique}\index{unique labels}
 
 In many situations, some module in \glc\ might want to perform a calculation and then store the results to a file so that they can be reused later. A good example is the \refPhysics{transferFunctionCAMB} transfer function model, which computes a transfer function using {\normalfont \scshape CAMB} and stores this function in a file so that it can be re-read next time, avoiding the need to recompute the transfer function. A problem arises in such cases as the calculation may depend on the values of parameters (in our example, the transfer function will depend on cosmological parameters for example). We would like to record which parameter values this calculation refers to, perhaps encoding these into the file name, so that we can reuse these data in a future run only if the parameter values are unchanged. Given the modular nature of \glc\ it is impossible to know in advance which parameters will be relevant (e.g. does the cosmological parameter implementation have a parameter that describes a time varying equation of state for dark energy?). 
 
-To address this problem, \glc\ provides a mechanism to generate a unique descriptor for a given object. This descriptor encodes the parameter used to construct the object, and recursively includes the parameters used to construct any other object which is composited. A long-form (human readable) descriptor is returned by the {\normalfont \ttfamily descriptor} method associated with all {\normalfont \ttfamily functionClass} objects. Additionally, the {\normalfont \ttfamily hashedDescriptor} method will return an MD5 hash of the descriptor, which will be unique (up to collisions) and can be used to identify the object both internally and, for example, when used as a suffix to file names. If the optional {\normalfont \ttfamily includeSourceDigest} argument is set to true in the {\normalfont \ttfamily hashedDescriptor} method then the hashed descriptor will include a hash of the source code of the object (and all composited objects) such that the descriptor will change should the source code be changed.
+To address this problem, \glc\ provides a mechanism to generate a unique descriptor for a given object. This descriptor encodes the parameter used to construct the object, and recursively includes the parameters used to construct any other object which is composited. A long-form (human readable) descriptor is returned by the \source{descriptor} method associated with all \source{functionClass} objects. Additionally, the \source{hashedDescriptor} method will return an MD5 hash of the descriptor, which will be unique (up to collisions) and can be used to identify the object both internally and, for example, when used as a suffix to file names. If the optional \source{includeSourceDigest} argument is set to true in the \source{hashedDescriptor} method then the hashed descriptor will include a hash of the source code of the object (and all composited objects) such that the descriptor will change should the source code be changed.
 
 \section{Optimization}\label{sec:Optimization}\index{optimization}
 
@@ -590,7 +590,7 @@ In designing \glc, we opted for simplicity and clarity over speed. However, ther
 
 Frequently, a given property of a node may be required in many different aspects of the calculation. For example, the dark matter halo virial radius is used extensively in several distinct calculations within \glc. Frequently such calculations are performed for the same node, with the same properties several times\footnote{For example, \glc's ODE solver will fix the properties of a node and then request that derivatives of all properties be computed. Some functions will then be called multiple times for the same node with unchanged properties.}. Obviously this is inefficient. It can be advantageous in such cases to store the result of a calculation and, if the function is called again with the same unchanged node to simply return the stored value. \glc\ facilitates this by two features.
 
-The first feature is the ``unique ID''---an integer number assigned to each node in \glc\ and which uniquely identifies a node (i.e. no two nodes processed in a \glc\ run will have the same unique ID). This number, which can be retrieved using the {\normalfont \ttfamily uniqueID} property of a tree node, can be recorded each time a function is called. If called again for a node with the same unique ID as the previous call, the function can simply return the same answer as on the previous call.
+The first feature is the ``unique ID''---an integer number assigned to each node in \glc\ and which uniquely identifies a node (i.e. no two nodes processed in a \glc\ run will have the same unique ID). This number, which can be retrieved using the \source{uniqueID} property of a tree node, can be recorded each time a function is called. If called again for a node with the same unique ID as the previous call, the function can simply return the same answer as on the previous call.
 
 The second feature accounts for the fact that the properties of a node will change, so even if a function is called on a node with the same unique ID it may occasionally need to recompute its result. \glc\ provides a calculation reset task\index{calculation reset task}\index{task, calculation reset} (see \S\ref{sec:CalculationResetTask}). All such tasks are performed just prior to the computation of derivatives for a node being evolved. A function can register a calculation reset task and use it to flag that it must update its calculations even if called again with the same node.
 
@@ -606,7 +606,7 @@ In very exceptional circumstances it is necessary to subvert the module hierarch
   !#  <arguments>double precision , intent(in   ) :: mass, time</arguments>
   !# </functionGlobal>
 \end{verbatim}
-Here, {\normalfont \ttfamily myFunction} is the name of the function to make global, while the {\normalfont \ttfamily type} and {\normalfont \ttfamily arguments} (of which there may be more than one) elements are used to generate a suitable interface for the function. At run-time, a pointer to this function is then available from the {\normalfont \ttfamily Functions\_Global} module, named {\normalfont \ttfamily myFunction\_}. Note that {\normalfont \ttfamily Functions\_Global\_Set} provided by the {\normalfont \ttfamily Functions\_Global\_Utilities} module must be called once to initialize these global function pointers prior to their use.
+Here, \source{myFunction} is the name of the function to make global, while the \source{type} and \source{arguments} (of which there may be more than one) elements are used to generate a suitable interface for the function. At run-time, a pointer to this function is then available from the \source{Functions\_Global} module, named \source{myFunction\_}. Note that \source{Functions\_Global\_Set} provided by the \source{Functions\_Global\_Utilities} module must be called once to initialize these global function pointers prior to their use.
 
 \section{\glc\ Metadata}
 
@@ -614,11 +614,11 @@ Here, {\normalfont \ttfamily myFunction} is the name of the function to make glo
 
 \subsection{OpenMP Critical Section Wait Times}
 
-\glc\ makes use of \gls{openmp} for parallel operation. \gls{openmp} {\normalfont \ttfamily critical} sections are used throughout to limit access to parts of the code which must be executed in serial. Threads will block at each {\normalfont \ttfamily critical} section if another thread is currently within it. \glc\ can profile the amount of time spent waiting at each named \gls{openmp} {\normalfont \ttfamily critical} section across all threads. To enable this profiling \glc\ should be compiled with {\normalfont \ttfamily -DOMPPROFILE} added to the compile options (in {\normalfont \ttfamily GALACTICUS\_FCFLAGS}). This will cause profiling instructions to be added to the source code prior to compilation. When this instrumented executable is run an {\normalfont \ttfamily metaData/openMP/} group will be added to the output file. This group contains two datasets, {\normalfont \ttfamily criticalSectionNames} and {\normalfont \ttfamily criticalSectionWaitTimes}. The first lists the names of all named \gls{openmp} {\normalfont \ttfamily critical} sections, while the second lists the total number of seconds (across all threads) spent waiting at each section. A script is provided to analyze this metadata:
+\glc\ makes use of \gls{openmp} for parallel operation. \gls{openmp} \source{critical} sections are used throughout to limit access to parts of the code which must be executed in serial. Threads will block at each \source{critical} section if another thread is currently within it. \glc\ can profile the amount of time spent waiting at each named \gls{openmp} \source{critical} section across all threads. To enable this profiling \glc\ should be compiled with \source{-DOMPPROFILE} added to the compile options (in \source{GALACTICUS\_FCFLAGS}). This will cause profiling instructions to be added to the source code prior to compilation. When this instrumented executable is run an \source{metaData/openMP/} group will be added to the output file. This group contains two datasets, \source{criticalSectionNames} and \source{criticalSectionWaitTimes}. The first lists the names of all named \gls{openmp} \source{critical} sections, while the second lists the total number of seconds (across all threads) spent waiting at each section. A script is provided to analyze this metadata:
 \begin{verbatim}
 ./scripts/aux/openMPCriticalWaitProfile.pl <modelFileName>
 \end{verbatim}
-This script will analyze the \gls{openmp} {\normalfont \ttfamily critical} section wait time metadata in the named file, reporting the total time spent waiting at critical sections followed by a rank ordered list of the top ten sections by wait time. This can be useful for assessing whether optimization might help to reduce \gls{openmp} {\normalfont \ttfamily critical} section wait times.
+This script will analyze the \gls{openmp} \source{critical} section wait time metadata in the named file, reporting the total time spent waiting at critical sections followed by a rank ordered list of the top ten sections by wait time. This can be useful for assessing whether optimization might help to reduce \gls{openmp} \source{critical} section wait times.
 
 \section{Enumerations}
 
@@ -630,7 +630,7 @@ Enumerations are used to communicate options to many functions in \glc. All avai
 
 \glc\ defines numerous constants, including mathematical constants (e.g. $\pi$), physical constants (e.g. the speed of light), unit conversions (e.g. Angstroms to meters), and prefixes (e.g. ``kilo'', ``mega'', etc.). These should be used whenever a constant is needed in the code---it is bad practice to use the numerical value of a constant directly in the code\footnote{Both because it is prone to mistakes (the more times a numerical value is used directly, the more chances there are for typos and other errors), and because using a named constant makes it much easier to understand \emph{what} the code is doing and \emph{why}.}.
 
-All defined constants are described below, along with references to their source, and the name of the module in which the constant is defined. To import a constant into a function, you would add a {\normalfont \ttfamily use} statement. For example, for the constant $\pi$, you would use:
+All defined constants are described below, along with references to their source, and the name of the module in which the constant is defined. To import a constant into a function, you would add a \source{use} statement. For example, for the constant $\pi$, you would use:
 \begin{verbatim}
    use :: Numerical_Constants_Math, only : Pi
 \end{verbatim}
@@ -641,14 +641,14 @@ after which you can use this constant, e.g.:
 
 \subsection{Indicating Units of Defined Constants}
 
-The unit system in which a constant is defined should be indicated by a suffix starting with an underscore. The default, which requires no suffix, is the SI system. So, for example, the defined constant {\normalfont \ttfamily massSolar} (which has no suffix) will be in SI units of kilograms. The defined constant {\normalfont \ttfamily lymanSeriesLimitWavelengthHydrogen\_atomic} is in the ``atomic'' unit system, so will be in units of Angstroms.
+The unit system in which a constant is defined should be indicated by a suffix starting with an underscore. The default, which requires no suffix, is the SI system. So, for example, the defined constant \source{massSolar} (which has no suffix) will be in SI units of kilograms. The defined constant \source{lymanSeriesLimitWavelengthHydrogen\_atomic} is in the ``atomic'' unit system, so will be in units of Angstroms.
 
 Currently defined unit systems are:
 \begin{description}
 \item[no suffix:] With no suffix, the defined constant is in the \href{https://en.wikipedia.org/wiki/International_System_of_Units}{SI} unit system.
-\item[{\normalfont \ttfamily \_internal}:] The ``internal'' suffix indicates a defined constant is in \glc's internal unit system of $\mathrm{M}_\odot$, Mpc, Gyr, and km/s.
-\item[{\normalfont \ttfamily \_atomic}:] The ``atomic'' suffix indicates atomic units (\AA).
-\item[{\normalfont \ttfamily \_cgs}:] The ``cgs'' suffix indicates a defined constant is in the \href{https://en.wikipedia.org/wiki/Centimetre%E2%80%93gram%E2%80%93second_system_of_units}{CGS} unit system.
+\item[\source{\_internal}:] The ``internal'' suffix indicates a defined constant is in \glc's internal unit system of $\mathrm{M}_\odot$, Mpc, Gyr, and km/s.
+\item[\source{\_atomic}:] The ``atomic'' suffix indicates atomic units (\AA).
+\item[\source{\_cgs}:] The ``cgs'' suffix indicates a defined constant is in the \href{https://en.wikipedia.org/wiki/Centimetre%E2%80%93gram%E2%80%93second_system_of_units}{CGS} unit system.
 \end{description}
 
 \subsection{Available Defined Constants}\label{sec:definedConstants}
@@ -657,71 +657,71 @@ Currently defined unit systems are:
 
 \section{Classes}
  
-The return type of each method, and the interfaces (i.e. the types and names of its arguments) are specified for each method of each object. A ``{\normalfont \ttfamily void}'' return type indicates a subroutine.
+The return type of each method, and the interfaces (i.e. the types and names of its arguments) are specified for each method of each object. A ``\source{void}'' return type indicates a subroutine.
 
-\subsection{Methods available to all {\normalfont \ttfamily functionClass}es}\label{sec:functionClassAll}
+\subsection{Methods available to all \source{functionClass}es}\label{sec:functionClassAll}
 
-Although not methods directly bound to the {\normalfont \ttfamily functionClass} class, the following methods will be automatically created for all child classes of {\normalfont \ttfamily functionClass} when they are built by \glc.
+Although not methods directly bound to the \source{functionClass} class, the following methods will be automatically created for all child classes of \source{functionClass} when they are built by \glc.
 
 
 \begin{description}
   
-\item[]{\normalfont \ttfamily autoHook} Insert any event hooks required by this object. 
+\item[]\source{autoHook} Insert any event hooks required by this object. 
 \begin{itemize}
-\item Return type: {\normalfont \ttfamily void}
-\item Interface: {\normalfont \ttfamily ()}\\
+\item Return type: \source{void}
+\item Interface: \source{()}\\
 \end{itemize}
 
-\item[]{\normalfont \ttfamily deepCopy}  Perform a deep copy of the object. Here, {\normalfont \ttfamily \textless functionClassBase \textgreater} refers to the base class of the created {\normalfont \ttfamily functionClass} child.
+\item[]\source{deepCopy}  Perform a deep copy of the object. Here, \source{\textless functionClassBase \textgreater} refers to the base class of the created \source{functionClass} child.
 \begin{itemize}
-\item Return type: {\normalfont \ttfamily void}
-\item Interface: {\normalfont \ttfamily (destination)}\\
-  {\normalfont \ttfamily class(\textless functionClassBase\textgreater), intent(inout) :: destination}\\
+\item Return type: \source{void}
+\item Interface: \source{(destination)}\\
+  \source{class(\textless functionClassBase\textgreater), intent(inout) :: destination}\\
 \end{itemize}
 
-\item[]{\normalfont \ttfamily deepCopyReset} Reset deep copy pointers in this object and any objects that it uses.
+\item[]\source{deepCopyReset} Reset deep copy pointers in this object and any objects that it uses.
 \begin{itemize}
-\item Return type: {\normalfont \ttfamily void}
-\item Interface: {\normalfont \ttfamily ()}\\
+\item Return type: \source{void}
+\item Interface: \source{()}\\
 \end{itemize}
 
-\item[]{\normalfont \ttfamily descriptor} Return an input parameter list descriptor which could be used to recreate this object.
+\item[]\source{descriptor} Return an input parameter list descriptor which could be used to recreate this object.
 \begin{itemize}
-\item Return type: {\normalfont \ttfamily void}
-\item Interface: {\normalfont \ttfamily (descriptor, includeClass)}\\
-  {\normalfont \ttfamily type(inputParameters), intent(inout) :: descriptor}\\
-  {\normalfont \ttfamily logical, intent(in   ), optional :: includeClass}\\
+\item Return type: \source{void}
+\item Interface: \source{(descriptor, includeClass)}\\
+  \source{type(inputParameters), intent(inout) :: descriptor}\\
+  \source{logical, intent(in   ), optional :: includeClass}\\
 \end{itemize}
 
-\item[]{\normalfont \ttfamily hashedDescriptor} Return a hash of the descriptor for this object, optionally include the source code digest in the hash.
+\item[]\source{hashedDescriptor} Return a hash of the descriptor for this object, optionally include the source code digest in the hash.
 \begin{itemize}
-\item Return type: {\normalfont \ttfamily type(varying\_string)}
-\item Interface: {\normalfont \ttfamily (descriptor, includeClass)}\\
-  {\normalfont \ttfamily logical, intent(in   ), optional :: includeSourceDigest}\\
+\item Return type: \source{type(varying\_string)}
+\item Interface: \source{(descriptor, includeClass)}\\
+  \source{logical, intent(in   ), optional :: includeSourceDigest}\\
 \end{itemize}
 
-\item[]{\normalfont \ttfamily objectType} Return the type of the object. 
+\item[]\source{objectType} Return the type of the object. 
 \begin{itemize}
-\item Return type: {\normalfont \ttfamily type(varying\_string)}
-\item Interface: {\normalfont \ttfamily ()}\\
+\item Return type: \source{type(varying\_string)}
+\item Interface: \source{()}\\
 \end{itemize}
 
-\item[]{\normalfont \ttfamily stateRestore} Restore the state of this object from file.
+\item[]\source{stateRestore} Restore the state of this object from file.
 \begin{itemize}
-\item Return type: {\normalfont \ttfamily void}
-\item Interface: {\normalfont \ttfamily (stateFile, gslFile, stateOperationID)}\\
-  {\normalfont \ttfamily integer, intent(in   ) :: stateFile}\\
-  {\normalfont \ttfamily type(c\_ptr), intent(in   ) :: gslStateFile}\\
-  {\normalfont \ttfamily integer(c\_size\_t), intent(in   ) :: stateOperationID}\\
+\item Return type: \source{void}
+\item Interface: \source{(stateFile, gslFile, stateOperationID)}\\
+  \source{integer, intent(in   ) :: stateFile}\\
+  \source{type(c\_ptr), intent(in   ) :: gslStateFile}\\
+  \source{integer(c\_size\_t), intent(in   ) :: stateOperationID}\\
 \end{itemize}
 
-\item[]{\normalfont \ttfamily stateStore} Store the state of this object to file.
+\item[]\source{stateStore} Store the state of this object to file.
 \begin{itemize}
-\item Return type: {\normalfont \ttfamily void}
-\item Interface: {\normalfont \ttfamily (stateFile, gslFile, stateOperationID)}\\
-  {\normalfont \ttfamily integer, intent(in   ) :: stateFile}\\
-  {\normalfont \ttfamily type(c\_ptr), intent(in   ) :: gslStateFile}\\
-  {\normalfont \ttfamily integer(c\_size\_t), intent(in   ) :: stateOperationID}\\
+\item Return type: \source{void}
+\item Interface: \source{(stateFile, gslFile, stateOperationID)}\\
+  \source{integer, intent(in   ) :: stateFile}\\
+  \source{type(c\_ptr), intent(in   ) :: gslStateFile}\\
+  \source{integer(c\_size\_t), intent(in   ) :: stateOperationID}\\
 \end{itemize}
 
 \end{description}

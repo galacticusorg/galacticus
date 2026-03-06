@@ -40,8 +40,8 @@ velocity.
      t_\mathrm{reincorporation} = \tau_\mathrm{reincorporation} \left( { V_\mathrm{max} \over 200 \hbox{km/s}}
      \right)^{\alpha_\mathrm{reincorporation}} (1+z)^{\beta_\mathrm{reincorporation}},
     \end{equation}
-    where $\tau_\mathrm{reincorporation}=${\normalfont \ttfamily [timeScale]}, $\alpha_\mathrm{reincorporation}=${\normalfont
-    \ttfamily [velocityExponent]}, and $\beta_\mathrm{reincorporation}=${\normalfont \ttfamily [redshiftExponent]}.
+    where $\tau_\mathrm{reincorporation}=$\source{[timeScale]}, $\alpha_\mathrm{reincorporation}=${\normalfont
+    \ttfamily [velocityExponent]}, and $\beta_\mathrm{reincorporation}=$\source{[redshiftExponent]}.
    </description>
   </hotHaloOutflowReincorporation>
   !!]
@@ -88,7 +88,7 @@ contains
 
   function velocityMaximumScalingConstructorParameters(parameters) result(self)
     !!{
-    Default constructor for the {\normalfont \ttfamily velocityMaximumScaling} hot halo outflow reincorporation class which
+    Default constructor for the \source{velocityMaximumScaling} hot halo outflow reincorporation class which
     takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters

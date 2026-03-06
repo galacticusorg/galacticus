@@ -197,7 +197,7 @@ contains
 
   double precision function shethTormenA(self,time,mass)
     !!{
-    Return the parameter $a$ in the {\normalfont \ttfamily shethTormen} halo mass function at the given time and mass.
+    Return the parameter $a$ in the \source{shethTormen} halo mass function at the given time and mass.
     !!}
     implicit none
     class           (haloMassFunctionShethTormen), intent(inout) :: self
@@ -210,7 +210,7 @@ contains
 
   double precision function shethTormenP(self,time,mass)
     !!{
-    Return the parameter $p$ in the {\normalfont \ttfamily shethTormen} halo mass function at the given time and mass.
+    Return the parameter $p$ in the \source{shethTormen} halo mass function at the given time and mass.
     !!}
     implicit none
     class           (haloMassFunctionShethTormen), intent(inout) :: self
@@ -223,7 +223,7 @@ contains
 
   double precision function shethTormenNormalization(self,time,mass)
     !!{
-    Return the normalization, $A$, in the {\normalfont \ttfamily shethTormen} halo mass function at the given time and mass.
+    Return the normalization, $A$, in the \source{shethTormen} halo mass function at the given time and mass.
     !!}
     implicit none
     class           (haloMassFunctionShethTormen), intent(inout) :: self

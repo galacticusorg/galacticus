@@ -25,7 +25,7 @@
   <mergerTreeOutputter name="mergerTreeOutputterFullState">
    <description>
     A merger tree outputter class that outputs the full state of merger trees to allow later postprocessing. Complete tree data in
-    output in raw binary format to the file specified as {\normalfont \ttfamily [fileName]}. This can be later re-read and
+    output in raw binary format to the file specified as \source{[fileName]}. This can be later re-read and
     post-processed using the \refClass{taskPostprocessForests} class.
    </description>
   </mergerTreeOutputter>
@@ -92,7 +92,7 @@ contains
   
   subroutine fullStateOutputTree(self,tree,indexOutput,time)
     !!{
-    Write properties of nodes in {\normalfont \ttfamily tree} to the \glc\ output file.
+    Write properties of nodes in \source{tree} to the \glc\ output file.
     !!}
     use :: File_Utilities          , only : File_Lock           , File_Unlock, lockDescriptor
     use :: Merger_Tree_Construction, only : mergerTreeStateStore

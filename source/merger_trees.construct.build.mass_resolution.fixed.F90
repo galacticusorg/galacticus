@@ -24,7 +24,7 @@
   !![
   <mergerTreeMassResolution name="mergerTreeMassResolutionFixed">
    <description>
-    A merger tree mass resolution class which assumes a fixed mass resolution of {\normalfont \ttfamily [massResolution]} for
+    A merger tree mass resolution class which assumes a fixed mass resolution of \source{[massResolution]} for
     all merger trees.
    </description>
   </mergerTreeMassResolution>

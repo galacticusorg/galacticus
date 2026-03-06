@@ -115,19 +115,19 @@
     }
     }
     \end{verbatim}
-    The {\normalfont \ttfamily temperature} dataset should specify temperature (in Kelvin), while the {\normalfont \ttfamily
+    The \source{temperature} dataset should specify temperature (in Kelvin), while the {\normalfont \ttfamily
     metallicity} dataset should give the logarithmic metallicity relative to Solar (a value of -999 or less is taken to imply
-    zero metallicity). The {\normalfont \ttfamily electronDensity} dataset should specify the number density of electrons
-    relative to hydrogen at each temperature/metallicity pair. Optionally {\normalfont \ttfamily hiDensity} and {\normalfont
+    zero metallicity). The \source{electronDensity} dataset should specify the number density of electrons
+    relative to hydrogen at each temperature/metallicity pair. Optionally \source{hiDensity} and {\normalfont
     \ttfamily hiiDensity} datasets may be added giving the number densities of H{\normalfont \scshape i} and H{\normalfont
-    \scshape ii} relative to hydrogen respectively The {\normalfont \ttfamily extrapolateLow} and {\normalfont \ttfamily
-    extrapolateHigh} attributes of the {\normalfont \ttfamily temperature} and {\normalfont \ttfamily metallicity} datasets
+    \scshape ii} relative to hydrogen respectively The \source{extrapolateLow} and {\normalfont \ttfamily
+    extrapolateHigh} attributes of the \source{temperature} and \source{metallicity} datasets
     specify how the cooling rate should be extrapolated in the low and high vale limits. Allowed options for these attributes
     are:
     \begin{description}
-     \item[{\normalfont \ttfamily zero}] The electron density is set to zero beyond the relevant limit.
-     \item[{\normalfont \ttfamily fixed}] The electron density is held fixed at the value at the relevant limit.
-     \item[{\normalfont \ttfamily power law}] The electron density is extrapolated assuming a
+     \item[\source{zero}] The electron density is set to zero beyond the relevant limit.
+     \item[\source{fixed}] The electron density is held fixed at the value at the relevant limit.
+     \item[\source{power law}] The electron density is extrapolated assuming a
      power-law dependence beyond the relevant limit. This option is only allowed if the
      electron density is everywhere positive.
     \end{description}

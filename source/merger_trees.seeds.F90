@@ -35,7 +35,7 @@ module Merger_Tree_Seeds
    <description>Class implementing setting of random number seeds in merger trees.</description>
    <default>incremental</default>
    <method name="set" >
-    <description>Set the random number seed in the given {\normalfont \ttfamily tree}.</description>
+    <description>Set the random number seed in the given \source{tree}.</description>
     <type>void</type>
     <pass>yes</pass>
     <argument>type(mergerTree), intent(inout) :: tree</argument>

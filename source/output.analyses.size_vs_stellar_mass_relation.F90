@@ -30,43 +30,43 @@
   <outputAnalysis name="outputAnalysisSizeVsStellarMassRelation">
     <description>
       A size vs. stellar mass relation output analysis class. Target data is read from an \gls{hdf5} file specified by the
-      {\normalfont \ttfamily [fileNameTarget]} parameter. This file must contain one or more groups named {\normalfont \ttfamily
-      sampleN} where {\normalfont \ttfamily N} is an integer. Each such group specifies the galaxy size---stellar mass relation
+      \source{[fileNameTarget]} parameter. This file must contain one or more groups named {\normalfont \ttfamily
+      sampleN} where \source{N} is an integer. Each such group specifies the galaxy size---stellar mass relation
       for one sample (a combination of redshift interval and any selection criteria), and must contain the following datasets and
       attributes:
       \begin{itemize}
-       \item dataset {\normalfont \ttfamily massStellar}: stellar mass in units of $\mathrm{M}_\odot$;
-       \item dataset {\normalfont \ttfamily radiusEffective}: effective radius in units of Mpc;
-       \item dataset {\normalfont \ttfamily radiusEffectiveError}: uncertainty in effective radius in units of Mpc;
-       \item dataset {\normalfont \ttfamily radiusEffectiveScatter}: scatter in effective radius in units of dex;
-       \item dataset {\normalfont \ttfamily radiusEffectiveScatterError}: uncertainty in scatter in effective radius in units of dex;
-       \item attribute {\normalfont \ttfamily redshiftMinimum}: the minimum redshift associated with this sample;
-       \item attribute {\normalfont \ttfamily redshiftMaximum}: the maximum redshift associated with this sample.
+       \item dataset \source{massStellar}: stellar mass in units of $\mathrm{M}_\odot$;
+       \item dataset \source{radiusEffective}: effective radius in units of Mpc;
+       \item dataset \source{radiusEffectiveError}: uncertainty in effective radius in units of Mpc;
+       \item dataset \source{radiusEffectiveScatter}: scatter in effective radius in units of dex;
+       \item dataset \source{radiusEffectiveScatterError}: uncertainty in scatter in effective radius in units of dex;
+       \item attribute \source{redshiftMinimum}: the minimum redshift associated with this sample;
+       \item attribute \source{redshiftMaximum}: the maximum redshift associated with this sample.
       \end{itemize}
-      While not required, it is recommended that each of these datasets has attributes {\normalfont \ttfamily description} and
-      {\normalfont \ttfamily unitsInSI} that provide a description of the dataset, and the multiplicative factor needed to convert
+      While not required, it is recommended that each of these datasets has attributes \source{description} and
+      \source{unitsInSI} that provide a description of the dataset, and the multiplicative factor needed to convert
       them to SI standard units, respectively.
 
-      Additionally, the file must contain a {\normalfont \ttfamily cosmology} group that specifies the cosmological model assumed
+      Additionally, the file must contain a \source{cosmology} group that specifies the cosmological model assumed
       in constructing the dataset, and which has attributes:
       \begin{itemize}
-       \item {\normalfont \ttfamily OmegaMatter}: the matter density in units of the critical density, $\Omega_\mathrm{M}$;
-       \item {\normalfont \ttfamily OmegaDarkEnergy}: the dark energy density in units of the critical density, $\Omega_\Lambda$;
-       \item {\normalfont \ttfamily OmegaBaryon}: the baryon density in units of the critical density, $\Omega_\mathrm{b}$;
-       \item {\normalfont \ttfamily HubbleConstant}: the Hubble constant in units of km/s/Mpc.
+       \item \source{OmegaMatter}: the matter density in units of the critical density, $\Omega_\mathrm{M}$;
+       \item \source{OmegaDarkEnergy}: the dark energy density in units of the critical density, $\Omega_\Lambda$;
+       \item \source{OmegaBaryon}: the baryon density in units of the critical density, $\Omega_\mathrm{b}$;
+       \item \source{HubbleConstant}: the Hubble constant in units of km/s/Mpc.
       \end{itemize}
 
-      Each {\normalfont \ttfamily sampleN} group must have an attribute {\normalfont \ttfamily selection} which specifies the
+      Each \source{sampleN} group must have an attribute \source{selection} which specifies the
       selection criterion used in constructing the dataset. Allowed values are:      
       \begin{itemize}
-       \item {\normalfont \ttfamily `none'}: no selection criterion will be applied;
-       \item {\normalfont \ttfamily `star forming'}: only galaxies on or above the star forming main sequence are included;
-       \item {\normalfont \ttfamily `quiescent}: only galaxies below the star forming main sequence are included.
+       \item \source{`none'}: no selection criterion will be applied;
+       \item \source{`star forming'}: only galaxies on or above the star forming main sequence are included;
+       \item \source{`quiescent}: only galaxies below the star forming main sequence are included.
       \end{itemize}
-      For the {\normalfont ``\ttfamily star forming}'' and ``{\normalfont \ttfamily quiescent}'' options, a dataset {\normalfont
-      \ttfamily mainSequenceSFR} must be specified in the {\normalfont \ttfamily sampleN} group which specifies the mean
+      For the {\normalfont ``\ttfamily star forming}'' and ``\source{quiescent}'' options, a dataset {\normalfont
+      \ttfamily mainSequenceSFR} must be specified in the \source{sampleN} group which specifies the mean
       (of the logarithm of star formation rate in units of $\mathrm{M}_\odot/\hbox{yr}^{-1}$) of the star forming main sequence at
-      the center of each bin, and an attribute {\normalfont \ttfamily offsetMainSequenceSFR} which specifies an offset below the
+      the center of each bin, and an attribute \source{offsetMainSequenceSFR} which specifies an offset below the
       mean of the star forming main sequence below which galaxies are considered to be quiescent. That is, a galaxy will be
       classified as quiescent if
       \begin{equation}
@@ -74,13 +74,13 @@
       \end{equation}
       where $\log_{10} ( \dot{\phi} / \mathrm{M}_\odot \hbox{yr}^{-1})$ is the star formation rate in the galaxy, $\log_{10} (
       \dot{M}_{\star,ms} / \mathrm{M}_\odot \hbox{yr}^{-1})$ is the mean of the star forming main sequence (as specified by
-      {\normalfont \ttfamily mainSequenceSFR} and interpolated to the stellar mass of the galaxy, and $\Delta_{\star}$ is
-      {\normalfont \ttfamily offsetMainSequenceSFR},
+      \source{mainSequenceSFR} and interpolated to the stellar mass of the galaxy, and $\Delta_{\star}$ is
+      \source{offsetMainSequenceSFR},
 								  
       Lastly, the file must have two attributes used to identify and level the dataset:
       \begin{itemize}
-       \item {\normalfont \ttfamily label}: a space-free label that will be appended to the analysis group in the output, e.g. {\normalfont \ttfamily vanDerWel2014};
-       \item {\normalfont \ttfamily reference}: a reference for the dataset suitable for inclusion in figures, e.g. {\normalfont \ttfamily van der Wel et al. (2014)}.
+       \item \source{label}: a space-free label that will be appended to the analysis group in the output, e.g. \source{vanDerWel2014};
+       \item \source{reference}: a reference for the dataset suitable for inclusion in figures, e.g. \source{van der Wel et al. (2014)}.
       \end{itemize}
     </description>
   </outputAnalysis>
@@ -173,7 +173,7 @@ contains
 	      \begin{itemize}
 	      \item \emph{not present}: all bins are included in the likelihood calculation;
 	      \item \emph{list of integers}: use only the mass bin(s) given in this list in the likelihood calculation;
-	      \item {\normalfont \ttfamily auto}: use only bins which have a non-zero number of halos contributing to them in the likelihood calculation.
+	      \item \source{auto}: use only bins which have a non-zero number of halos contributing to them in the likelihood calculation.
 	      \end{itemize}
 	    </description>
 	  </inputParameter>
@@ -770,7 +770,7 @@ contains
 
   subroutine sizeVsStellarMassRelationReduce(self,reduced)
     !!{
-    Implement reduction for the {\normalfont \ttfamily sizeVsStellarMassRelation} output analysis class.
+    Implement reduction for the \source{sizeVsStellarMassRelation} output analysis class.
     !!}
     use :: Error, only : Error_Report
     implicit none
@@ -788,7 +788,7 @@ contains
 
   subroutine sizeVsStellarMassRelationFinalize(self,groupName)
     !!{
-    Implement a {\normalfont \ttfamily sizeVsStellarMassRelation} output analysis finalization.
+    Implement a \source{sizeVsStellarMassRelation} output analysis finalization.
     !!}
     use :: Output_HDF5, only : outputFile
     use :: HDF5_Access, only : hdf5Access
@@ -822,7 +822,7 @@ contains
 
   double precision function sizeVsStellarMassRelationLogLikelihood(self) result(logLikelihood)
     !!{
-    Return the log-likelihood of a {\normalfont \ttfamily sizeVsStellarMassRelation} output analysis.
+    Return the log-likelihood of a \source{sizeVsStellarMassRelation} output analysis.
     !!}
     use :: Error                       , only : Error_Report
     use :: Linear_Algebra              , only : assignment(=), matrix, operator(*), vector

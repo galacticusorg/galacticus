@@ -27,7 +27,7 @@
   <satelliteMergingTimescales name="satelliteMergingTimescalesLaceyCole1993">
    <description>
     A satellite merging timescale class which computes merging timescales using the dynamical friction calculation of
-    \cite{lacey_merger_1993}. Timescales are multiplied by the value of the {\normalfont \ttfamily [timescaleMultiplier]} input
+    \cite{lacey_merger_1993}. Timescales are multiplied by the value of the \source{[timescaleMultiplier]} input
     parameter.
    </description>
   </satelliteMergingTimescales>

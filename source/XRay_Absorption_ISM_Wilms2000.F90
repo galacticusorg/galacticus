@@ -18,10 +18,10 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
 !!{
-Contains a program which wraps the {\normalfont \ttfamily dotbvabs} function (which implements the model of \citealt{wilms_absorption_2000}) from
+Contains a program which wraps the \source{dotbvabs} function (which implements the model of \citealt{wilms_absorption_2000}) from
 \href{https://heasarc.gsfc.nasa.gov/xanadu/xspec/}{\normalfont \scshape XSpec} to produce a table of X-ray absorption cross-sections in the
 \gls{ism}. This program assumes that various files from \href{https://heasarc.gsfc.nasa.gov/xanadu/xspec/}{\normalfont \scshape XSpec} have been
-downloaded into the {\normalfont \ttfamily aux/XSpec} folder---usually this program will be run automatically as needed by the {\normalfont \ttfamily
+downloaded into the \source{aux/XSpec} folder---usually this program will be run automatically as needed by the {\normalfont \ttfamily
 Galacticus::ISMCrossSections} module.
 !!}
 
@@ -31,7 +31,7 @@ Galacticus::ISMCrossSections} module.
 
 program XRay_Absorption_ISM_Wilms2000
   !!{
-  Wraps the {\normalfont \ttfamily dotbvabs} function (which implements the model of \citealt{wilms_absorption_2000}) from
+  Wraps the \source{dotbvabs} function (which implements the model of \citealt{wilms_absorption_2000}) from
   \href{https://heasarc.gsfc.nasa.gov/xanadu/xspec/}{\normalfont \scshape XSpec} to produce a table of X-ray absorption
   cross-sections in the \gls{ism}. This program assumes that various files from
   \href{https://heasarc.gsfc.nasa.gov/xanadu/xspec/}{\normalfont \scshape XSpec} have been downloaded into the {\normalfont
@@ -120,7 +120,7 @@ end program XRay_Absorption_ISM_Wilms2000
 
 subroutine xwrite(msg,i)
   !!{
-  Message display function required by {\normalfont \ttfamily dotbvabs}.
+  Message display function required by \source{dotbvabs}.
   !!}
   implicit none
   character(len=*), intent(in   ) :: msg
@@ -132,7 +132,7 @@ end subroutine xwrite
 
 subroutine xermsg(a,b,c,i,j)
   !!{
-  Error message function required by {\normalfont \ttfamily dotbvabs}.
+  Error message function required by \source{dotbvabs}.
   !!}
   use, intrinsic :: ISO_Fortran_Env, only : output_unit
   use :: Error, only : Error_Report
@@ -149,7 +149,7 @@ end subroutine xermsg
 
 real function fgabnd(c)
   !!{
-  Function to return the abundance (relative to hydrogen) of elements. Required by {\normalfont \ttfamily dotbvabs}.
+  Function to return the abundance (relative to hydrogen) of elements. Required by \source{dotbvabs}.
   !!}
   use :: Error, only : Error_Report
   implicit none

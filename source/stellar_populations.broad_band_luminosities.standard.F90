@@ -112,7 +112,7 @@ contains
     <inputParameter>
       <name>integrationToleranceDegrade</name>
       <defaultValue>.false.</defaultValue>
-      <description>If {\normalfont \ttfamily true}, automatically degrade the relative tolerance used when integrating the flux of stellar populations through filters to ensure convergence.</description>
+      <description>If \source{true}, automatically degrade the relative tolerance used when integrating the flux of stellar populations through filters to ensure convergence.</description>
       <source>parameters</source>
     </inputParameter>
     <inputParameter>
@@ -161,8 +161,8 @@ contains
 
   function standardLuminosities(self,luminosityIndex,filterIndex,stellarPopulationSpectraPostprocessor_,stellarPopulation_,abundancesStellar,age,redshift)
     !!{
-    Returns the luminosity for a $1 M_\odot$ simple {\normalfont \ttfamily stellarPopulation\_} of given {\normalfont \ttfamily
-    abundances} and {\normalfont \ttfamily age} and observed through the filter specified by {\normalfont \ttfamily
+    Returns the luminosity for a $1 M_\odot$ simple \source{stellarPopulation\_} of given {\normalfont \ttfamily
+    abundances} and \source{age} and observed through the filter specified by {\normalfont \ttfamily
     filterIndex}.
     !!}
     use            :: Abundances_Structure, only : Abundances_Get_Metallicity, logMetallicityZero, metallicityTypeLogarithmicByMassSolar
@@ -242,8 +242,8 @@ contains
 
   subroutine standardLuminosityTracks(self,luminosityIndex,filterIndex,stellarPopulationSpectraPostprocessor_,stellarPopulation_,abundancesStellar,redshift,ages,luminosities)
     !!{
-    Returns the luminosity for a $1 M_\odot$ simple stellar population of given {\normalfont \ttfamily abundances} drawn from
-    the given {\normalfont \ttfamily stellarPopulation} and observed through the filter specified by {\normalfont \ttfamily
+    Returns the luminosity for a $1 M_\odot$ simple stellar population of given \source{abundances} drawn from
+    the given \source{stellarPopulation} and observed through the filter specified by {\normalfont \ttfamily
     filterIndex}, for all available ages.
     !!}
     use            :: Abundances_Structure, only : Abundances_Get_Metallicity, logMetallicityZero, metallicityTypeLogarithmicByMassSolar

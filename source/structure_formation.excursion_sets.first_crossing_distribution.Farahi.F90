@@ -276,7 +276,7 @@ contains
       <name>fileName</name>
       <defaultValue>var_str('none')</defaultValue>
       <source>parameters</source>
-      <description>The name of the file to/from which tabulations of barrier first crossing probabilities should be written/read. If set to ``{\normalfont \ttfamily none}'' tables will not be stored.</description>
+      <description>The name of the file to/from which tabulations of barrier first crossing probabilities should be written/read. If set to ``\source{none}'' tables will not be stored.</description>
     </inputParameter>
     <inputParameter>
       <name>fractionalTimeStep</name>
@@ -1540,10 +1540,10 @@ contains
 
   function farahiVarianceRange(self,rangeMinimum,rangeMaximum,rangeNumber,exponent) result (rangeValues)
     !!{
-    Builds a numerical range between {\normalfont \ttfamily rangeMinimum} and {\normalfont \ttfamily rangeMaximum} using
-    {\normalfont \ttfamily rangeNumber} points with spacing that varies from logarithmic to linear spacing with the transition
-    point controlled by {\normalfont \ttfamily exponent}. Specifically, suppose we have $N=${\normalfont \ttfamily rangeNumber}
-    points in the range, from $S_\mathrm{min}=${\normalfont \ttfamily rangeMinimum} to $S_\mathrm{max}=${\normalfont \ttfamily
+    Builds a numerical range between \source{rangeMinimum} and \source{rangeMaximum} using
+    \source{rangeNumber} points with spacing that varies from logarithmic to linear spacing with the transition
+    point controlled by \source{exponent}. Specifically, suppose we have $N=$\source{rangeNumber}
+    points in the range, from $S_\mathrm{min}=$\source{rangeMinimum} to $S_\mathrm{max}=${\normalfont \ttfamily
     rangeMaximum}. We define $f_i=(i-1)/(N-1)$ where $i$ runs from $1$ to $N$. We then define:
     \begin{equation}
      f_i = { \int_{S_\mathrm{min}}^{S_i} x^{n_i} \mathrm{d} x \over \int_{S_\mathrm{min}}^{S_\mathrm{max}} x^{n_i} \mathrm{d} x},
@@ -1552,7 +1552,7 @@ contains
     $S_\mathrm{min}$ and $S_\mathrm{max}$, while if $n_i=-1$ this will give $S_i$ logarithmically spaced between
     $S_\mathrm{min}$ and $S_\mathrm{max}$. Therefore, if we make $n_i$ vary from $-1$ to $0$ at $i$ ranges from $1$ to $N$ we
     will get a smooth transition from logarithmic to linear spacing. We choose to use $n_i=-1+f_i^\alpha$ where
-    $\alpha=${\normalfont \ttfamily exponent} is a supplied argument.
+    $\alpha=$\source{exponent} is a supplied argument.
     !!}
     implicit none
     class           (excursionSetFirstCrossingFarahi), intent(inout)          :: self

@@ -32,14 +32,14 @@ Implements a merger tree branching probability class using the algorithm of \cit
      \frac{\mathrm{d}^2 N}{\mathrm{d} \xi \mathrm{d} z} = A \left(\frac{M}{10^{12}\hbox{M}_\odot}\right)^\alpha \xi^\beta \exp \left(\left[\frac{\xi}{\bar{\xi}}\right]^\gamma\right) (1+z)^\eta f_\mathrm{env}(\delta,M),
     \end{equation}
     where $M$ is the mass of the primary halo, $\xi$ is the mass ratio of the merging halos, and $A=${\normalfont \ttfamily
-    [A]}, $\alpha=${\normalfont \ttfamily [alpha]}, $\beta=${\normalfont \ttfamily [beta]}, $\gamma=${\normalfont \ttfamily
-    [gamma]}, and $\bar{\xi}=${\normalfont \ttfamily [xiBar]} are parameters. The function $f_\mathrm{env}(\delta,M)$ describes
+    [A]}, $\alpha=$\source{[alpha]}, $\beta=$\source{[beta]}, $\gamma=${\normalfont \ttfamily
+    [gamma]}, and $\bar{\xi}=$\source{[xiBar]} are parameters. The function $f_\mathrm{env}(\delta,M)$ describes
     environmental dependence in the merger rate. We use the model of \cite[][their eqn.~(11)]{fakhouri_environmental_2009}:
     \begin{equation}
      f_\mathrm{env}(\delta,M) = B (1+\delta)^\mu \left( \frac{M}{10^{12}\mathrm{M}_\odot} \right)^\nu,
     \end{equation}
-    where $\delta$ is the non-linear overdensity of the environment and $B=${\normalfont \ttfamily [B]}, $\mu=${\normalfont
-    \ttfamily [mu]}, and $\nu=${\normalfont \ttfamily [nu]} are parameters.
+    where $\delta$ is the non-linear overdensity of the environment and $B=$\source{[B]}, $\mu=${\normalfont
+    \ttfamily [mu]}, and $\nu=$\source{[nu]} are parameters.
    </description>
   </mergerTreeBranchingProbability>
   !!]
@@ -207,8 +207,8 @@ contains
 
   double precision function fakhouri2010Rate(self,mass,deltaCritical,time,massBranch,node)
     !!{
-    Return the rate per unit mass and per unit change in $\delta_\mathrm{crit}$ that a halo of mass {\normalfont \ttfamily haloMass} at time
-    {\normalfont \ttfamily deltaCritical} will undergo a branching to progenitors with mass {\normalfont \ttfamily massBranch}.
+    Return the rate per unit mass and per unit change in $\delta_\mathrm{crit}$ that a halo of mass \source{haloMass} at time
+    \source{deltaCritical} will undergo a branching to progenitors with mass \source{massBranch}.
     !!}
     implicit none
     class           (mergerTreeBranchingProbabilityFakhouri2010), intent(inout), target :: self

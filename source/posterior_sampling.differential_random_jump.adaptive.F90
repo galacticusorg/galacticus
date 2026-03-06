@@ -25,7 +25,7 @@
   !![
   <posteriorSampleDffrntlEvltnRandomJump name="posteriorSampleDffrntlEvltnRandomJumpAdaptive">
    <description>
-    The random jumps are drawn from the distributions specified in the {\normalfont \ttfamily random} element of each
+    The random jumps are drawn from the distributions specified in the \source{random} element of each
     \refClass{modelParameterClass} object and then multiplied by the currently occupied range of each parameter (i.e. the maximum
     value of the parameter over all current chain states minus the minimum value of each parameter over all current chain
     states).

@@ -98,8 +98,8 @@ contains
       <defaultValue>2.0d0</defaultValue>
       <description>
 	The time interval used to define ``recent'' mergers. This parameter is in units of Gyr if {\normalfont \ttfamily
-	[intervalType]}$=${\normalfont \ttfamily absolute}, or in units of the halo dynamical time if {\normalfont \ttfamily
-	[intervalType]}$=${\normalfont \ttfamily dynamical}.
+	[intervalType]}$=$\source{absolute}, or in units of the halo dynamical time if {\normalfont \ttfamily
+	[intervalType]}$=$\source{dynamical}.
       </description>
       <source>parameters</source>
     </inputParameter>
@@ -107,9 +107,9 @@ contains
       <name>intervalType</name>
       <defaultValue>var_str('dynamical')</defaultValue>
       <description>
-	Specifies the units for the {\normalfont \ttfamily [intervalRecent]} parameter. If set to {\normalfont \ttfamily absolute}
-	then {\normalfont \ttfamily [intervalRecent]} is given in Gyr, while if set to {\normalfont \ttfamily dynamical}
-	{\normalfont \ttfamily [intervalRecent]} is given in units of the halo dynamical time.
+	Specifies the units for the \source{[intervalRecent]} parameter. If set to \source{absolute}
+	then \source{[intervalRecent]} is given in Gyr, while if set to \source{dynamical}
+	\source{[intervalRecent]} is given in units of the halo dynamical time.
       </description>
       <source>parameters</source>
     </inputParameter>

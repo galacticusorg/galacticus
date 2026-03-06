@@ -136,7 +136,7 @@ contains
   double precision function nagashima2005Number(self,initialMassFunction_,initialMass,age,metallicity)
     !!{
     Compute the cumulative number of Type Ia supernovae originating per unit interval of secondary star mass with given
-    {\normalfont \ttfamily initialMass} and {\normalfont \ttfamily metallicity} after a time {\normalfont \ttfamily age}. The
+    \source{initialMass} and \source{metallicity} after a time \source{age}. The
     calculation is based on that of \cite{nagashima_metal_2005}. This function is expected to be integrated over the initial mass
     function of secondary stars.
     !!}

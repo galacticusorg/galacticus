@@ -57,7 +57,7 @@ module Nearest_Neighbors
   interface
      function nearestNeighborsConstructorC(n,d,pa) bind(c,name='nearestNeighborsConstructorC')
        !!{
-       Template for a C function that constructs an {\normalfont \ttfamily ANNkd\_tree}.
+       Template for a C function that constructs an \source{ANNkd\_tree}.
        !!}
        import
        type   (c_ptr   )                              :: nearestNeighborsConstructorC
@@ -101,7 +101,7 @@ module Nearest_Neighbors
   interface
      subroutine nearestNeighborsDestructorC(ANN) bind(c,name='nearestNeighborsDestructorC')
        !!{
-       Template for a C function that destroys an {\normalfont \ttfamily ANNkd\_tree}.
+       Template for a C function that destroys an \source{ANNkd\_tree}.
        !!}
        import
        type(c_ptr), intent(in   ), value :: ANN
@@ -210,7 +210,7 @@ contains
 
   subroutine nearestNeighborsSearchFixedRadius(self,point,radius,tolerance,neighborCount,neighborIndex,neighborDistance)
     !!{
-    Return indices and distances to all neighbors within a given {\normalfont \ttfamily radius}.
+    Return indices and distances to all neighbors within a given \source{radius}.
     !!}
 #ifndef ANNAVAIL
     use :: Error            , only : Error_Report

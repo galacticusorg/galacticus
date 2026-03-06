@@ -136,13 +136,13 @@ contains
          <name>massThreshold</name>
          <source>parameters</source>
          <defaultValue>0.0d0</defaultValue>
-         <description>The minimum satellite bound mass (or mass ratio---see the {\normalfont \ttfamily [thresholdIsRatio]} parameter) to include in the radial distribution function.</description>
+         <description>The minimum satellite bound mass (or mass ratio---see the \source{[thresholdIsRatio]} parameter) to include in the radial distribution function.</description>
        </inputParameter>
       <inputParameter>
          <name>thresholdIsRatio</name>
          <source>parameters</source>
          <defaultValue>.true.</defaultValue>
-         <description>If true, the {\normalfont \ttfamily [massThreshold]} parameter is interpreted as a ratio with the virial mass of the host halo.</description>
+         <description>If true, the \source{[massThreshold]} parameter is interpreted as a ratio with the virial mass of the host halo.</description>
        </inputParameter>
        !!]
     end if
@@ -523,7 +523,7 @@ contains
 
   subroutine subhaloRadialDistributionAnalyze(self,node,iOutput)
     !!{
-    Implement a {\normalfont \ttfamily subhaloRadialDistribution} output analysis.
+    Implement a \source{subhaloRadialDistribution} output analysis.
     !!}
     implicit none
     class  (outputAnalysisSubhaloRadialDistribution), intent(inout) :: self
@@ -538,7 +538,7 @@ contains
 
   subroutine subhaloRadialDistributionReduce(self,reduced)
     !!{
-    Implement a {\normalfont \ttfamily subhaloRadialDistribution} output analysis reduction.
+    Implement a \source{subhaloRadialDistribution} output analysis reduction.
     !!}
     use :: Error, only : Error_Report
     implicit none
@@ -557,7 +557,7 @@ contains
 
   subroutine subhaloRadialDistributionFinalizeAnalysis(self)
     !!{
-    Finalize analysis of a {\normalfont \ttfamily subhaloRadialDistribution} output analysis.
+    Finalize analysis of a \source{subhaloRadialDistribution} output analysis.
     !!}
     implicit none
     class           (outputAnalysisSubhaloRadialDistribution), intent(inout)               :: self
@@ -584,7 +584,7 @@ contains
 
   subroutine subhaloRadialDistributionFinalize(self,groupName)
     !!{
-    Implement a {\normalfont \ttfamily subhaloRadialDistribution} output analysis finalization.
+    Implement a \source{subhaloRadialDistribution} output analysis finalization.
     !!}
     use :: Output_HDF5                     , only : outputFile
     use :: HDF5_Access                     , only : hdf5Access
@@ -640,7 +640,7 @@ contains
 
   double precision function subhaloRadialDistributionLogLikelihood(self)
     !!{
-    Return the log-likelihood of a {\normalfont \ttfamily subhaloRadialDistribution} output analysis. The likelihood function
+    Return the log-likelihood of a \source{subhaloRadialDistribution} output analysis. The likelihood function
     assumes that the model prediction for the number of subhalos in any given mass bin follows a negative binomial
     distribution as was found for dark matter subhalos \citep[][see also
     \protect\citealt{lu_connection_2016}]{boylan-kolchin_theres_2010}. This has been confirmed by examining the results of many

@@ -47,7 +47,7 @@ Implements a merger tree branching probability class using a generalized Press-S
      M^\prime} \left| {\d t \over \d \omega}\right| G[\omega,\sigma(M),\sigma(M^\prime)] \d M^\prime.
     \end{equation}
     In the above, $G[\omega,\sigma(M),\sigma(M^\prime)]$ is a modification to the merger rate as computed by the selected
-    \refClass{mergerTreeBranchingProbabilityModifierClass}. If {\normalfont \ttfamily [smoothAccretion]}$=${\normalfont \ttfamily true}
+    \refClass{mergerTreeBranchingProbabilityModifierClass}. If \source{[smoothAccretion]}$=$\source{true}
     then smooth accretion (i.e. accretion of matter not in dark matter halos) is accounted for at the rate:
     \begin{equation}
      {\d R_\mathrm{s} \over \d t} = {\mathrm{d} t \over \mathrm{d}\omega} G[\omega,\sigma_\mathrm{max},\sigma(M^\prime)] {\d
@@ -185,7 +185,7 @@ contains
 	If using the full range ($M &lt; M_0$) of the branching rate distribution, if this parameter is {\normalfont \ttfamily
 	true} then divide the branching rate by 2. This is appropriate if two progenitors are to be sampled (i.e. a binary
 	split). If the branching rate applies to only a single branch is it more appropriate to set this parameter to be
-	{\normalfont \ttfamily true} in which case this normalization by a factor 2 is \emph{not} applied.
+	\source{true} in which case this normalization by a factor 2 is \emph{not} applied.
       </description>
       <source>parameters</source>
     </inputParameter>
@@ -290,7 +290,7 @@ contains
   double precision function generalizedPressSchechterMassBranch(self,haloMass,deltaCritical,time,massResolution,probabilityFraction,randomNumberGenerator_,node)
     !!{
     Determine the mass of one of the halos to which the given halo branches, given the branching probability, {\normalfont
-    \ttfamily probabilityFraction}. Typically, {\normalfont \ttfamily probabilityFraction} is found by multiplying {\normalfont \ttfamily
+    \ttfamily probabilityFraction}. Typically, \source{probabilityFraction} is found by multiplying {\normalfont \ttfamily
     Generalized\_Press\_Schechter\_Branching\_Probability()} by a random variable drawn in the interval 0--1 if a halo
     branches. This routine then finds the progenitor mass corresponding to this value.
     !!}
@@ -387,8 +387,8 @@ contains
 
   double precision function generalizedPressSchechterRate(self,mass,deltaCritical,time,massBranch,node)
     !!{
-    Return the rate per unit mass and per unit change in $\delta_\mathrm{crit}$ that a halo of mass {\normalfont \ttfamily haloMass} at time
-    {\normalfont \ttfamily deltaCritical} will undergo a branching to progenitors with mass {\normalfont \ttfamily massBranch}.
+    Return the rate per unit mass and per unit change in $\delta_\mathrm{crit}$ that a halo of mass \source{haloMass} at time
+    \source{deltaCritical} will undergo a branching to progenitors with mass \source{massBranch}.
     !!}
     implicit none
     class           (mergerTreeBranchingProbabilityGnrlzdPrssSchchtr), intent(inout), target :: self
@@ -417,7 +417,7 @@ contains
 
   double precision function generalizedPressSchechterStepMaximum(self,haloMass,deltaCritical,time,massResolution)
     !!{
-    Return the maximum allowed step in $\delta_\mathrm{crit}$ that a halo of mass {\normalfont \ttfamily haloMass} at time {\normalfont \ttfamily
+    Return the maximum allowed step in $\delta_\mathrm{crit}$ that a halo of mass \source{haloMass} at time {\normalfont \ttfamily
     deltaCritical} should be allowed to take.
     !!}
     implicit none
@@ -433,8 +433,8 @@ contains
   double precision function generalizedPressSchechterProbabilityBound(self,haloMass,deltaCritical,time,massResolution,bound,node)
     !!{
     Return bounds on the probability per unit change in $\delta_\mathrm{crit}$ that a halo of mass {\normalfont \ttfamily
-    haloMass} at time {\normalfont \ttfamily deltaCritical} will undergo a branching to progenitors with mass greater than
-    {\normalfont \ttfamily massResolution}.
+    haloMass} at time \source{deltaCritical} will undergo a branching to progenitors with mass greater than
+    \source{massResolution}.
     !!}
     implicit none
     class           (mergerTreeBranchingProbabilityGnrlzdPrssSchchtr), intent(inout)         :: self
@@ -450,8 +450,8 @@ contains
 
   double precision function generalizedPressSchechterProbability(self,haloMass,deltaCritical,time,massResolution,node)
     !!{
-    Return the probability per unit change in $\delta_\mathrm{crit}$ that a halo of mass {\normalfont \ttfamily haloMass} at
-    time {\normalfont \ttfamily deltaCritical} will undergo a branching to progenitors with mass greater than {\normalfont
+    Return the probability per unit change in $\delta_\mathrm{crit}$ that a halo of mass \source{haloMass} at
+    time \source{deltaCritical} will undergo a branching to progenitors with mass greater than {\normalfont
     \ttfamily massResolution}.
     !!}
     implicit none
@@ -489,8 +489,8 @@ contains
 
   double precision function generalizedPressSchechterFractionSubresolution(self,haloMass,deltaCritical,time,massResolution,node)
     !!{
-    Return the fraction of mass accreted in subresolution halos, i.e. those below {\normalfont \ttfamily massResolution}, per unit
-    change in $\delta_\mathrm{crit}$ for a halo of mass {\normalfont \ttfamily haloMass} at time {\normalfont \ttfamily
+    Return the fraction of mass accreted in subresolution halos, i.e. those below \source{massResolution}, per unit
+    change in $\delta_\mathrm{crit}$ for a halo of mass \source{haloMass} at time {\normalfont \ttfamily
     deltaCritical}. The integral is computed numerically.
     !!}
     use :: Display           , only : displayMagenta, displayReset

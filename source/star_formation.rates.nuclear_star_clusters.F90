@@ -37,7 +37,7 @@ module Star_Formation_Rates_Nuclear_Star_Clusters
    <description>Class providing models of rates of star formation in nuclear star clusters.</description>
    <default>krumholz2009</default>
    <method name="rate" >
-    <description>Returns the rate (in units of $\mathrm{M}_\odot$ Gyr$^{-1}$) for star formation in the nuclear star cluster component of {\normalfont \ttfamily node}.</description>
+    <description>Returns the rate (in units of $\mathrm{M}_\odot$ Gyr$^{-1}$) for star formation in the nuclear star cluster component of \source{node}.</description>
     <type>double precision</type>
     <pass>yes</pass>
     <selfTarget>yes</selfTarget>

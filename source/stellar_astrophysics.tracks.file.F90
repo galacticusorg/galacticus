@@ -50,11 +50,11 @@
       |
       x-> metallicityN
     \end{verbatim}
-    Each {\normalfont \ttfamily metallicityN} group tabulates tracks for a given metallicity (the value of which is stored in
-    the {\normalfont \ttfamily metallicity} dataset within each group), and may contain an arbitrary number of {\normalfont
-    \ttfamily massN} groups. Each {\normalfont \ttfamily massN} group should contain a track for a star of some mass (the value
-    of which is given in the {\normalfont \ttfamily mass} dataset). Within each track three datasets specify the {\normalfont
-    \ttfamily age} (in Gyr), {\normalfont \ttfamily luminosity} (in $L_\odot$) and {\normalfont \ttfamily effectiveTemperature}
+    Each \source{metallicityN} group tabulates tracks for a given metallicity (the value of which is stored in
+    the \source{metallicity} dataset within each group), and may contain an arbitrary number of {\normalfont
+    \ttfamily massN} groups. Each \source{massN} group should contain a track for a star of some mass (the value
+    of which is given in the \source{mass} dataset). Within each track three datasets specify the {\normalfont
+    \ttfamily age} (in Gyr), \source{luminosity} (in $L_\odot$) and \source{effectiveTemperature}
     (in Kelvin) along the track.
    </description>
    <runTimeFileDependencies paths="fileName"/>
@@ -148,7 +148,7 @@ contains
 
   subroutine fileInitialize(self)
     !!{
-    Read data for the {\normalfont \ttfamily file} stellar tracks class.
+    Read data for the \source{file} stellar tracks class.
     !!}
     use :: Error             , only : Error_Report
     use :: HDF5_Access       , only : hdf5Access
@@ -273,7 +273,7 @@ contains
 
   double precision function fileLuminosity(self,initialMass,metallicity,age)
     !!{
-    Return the bolometric luminosity (in $L_\odot$) for a star of given {\normalfont \ttfamily initialMass}, {\normalfont \ttfamily metallicity} and {\normalfont \ttfamily age}.
+    Return the bolometric luminosity (in $L_\odot$) for a star of given \source{initialMass}, \source{metallicity} and \source{age}.
     !!}
     use, intrinsic :: ISO_C_Binding, only : c_size_t
     implicit none
@@ -323,7 +323,7 @@ contains
 
   double precision function fileTemperatureEffective(self,initialMass,metallicity,age)
     !!{
-    Return the effective temperature (in Kelvin) for a star of given {\normalfont \ttfamily initialMass}, {\normalfont \ttfamily metallicity} and {\normalfont \ttfamily age}.
+    Return the effective temperature (in Kelvin) for a star of given \source{initialMass}, \source{metallicity} and \source{age}.
     !!}
     use, intrinsic :: ISO_C_Binding, only : c_size_t
     implicit none
@@ -373,7 +373,7 @@ contains
 
   double precision function fileInterpolate(self,interpolationIndicesMetallicity,interpolationIndicesMass,interpolationIndicesAge,interpolationFactorsMetallicity,interpolationFactorsMass,interpolationFactorsAge,stellarTracks)
     !!{
-    Using precomputed factors, interpolate in metallicity, mass and age in the given {\normalfont \ttfamily stellarTracks}.
+    Using precomputed factors, interpolate in metallicity, mass and age in the given \source{stellarTracks}.
     !!}
     use, intrinsic :: ISO_C_Binding, only : c_size_t
     use            :: Error        , only : Error_Report

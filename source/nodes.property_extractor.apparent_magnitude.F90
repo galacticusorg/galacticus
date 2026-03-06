@@ -116,7 +116,7 @@ contains
 
   integer function magnitudesApparentElementCount(self,time)
     !!{
-    Return the number of elements in the {\normalfont \ttfamily magnitudesApparent} property extractor class.
+    Return the number of elements in the \source{magnitudesApparent} property extractor class.
     !!}
     use :: Stellar_Luminosities_Structure, only : unitStellarLuminosities
     implicit none
@@ -130,7 +130,7 @@ contains
 
   function magnitudesApparentExtract(self,node,time,instance) result(magnitudes)
     !!{
-    Implement a {\normalfont \ttfamily magnitudesApparent} property extractor.
+    Implement a \source{magnitudesApparent} property extractor.
     !!}
     use :: Galacticus_Nodes              , only : nodeComponentDisk  , nodeComponentSpheroid
     use :: Galactic_Structure_Options    , only : componentTypeDisk  , componentTypeSpheroid
@@ -193,7 +193,7 @@ contains
 
   subroutine magnitudesApparentNames(self,time,names)
     !!{
-    Return the names of the {\normalfont \ttfamily magnitudesApparent} properties.
+    Return the names of the \source{magnitudesApparent} properties.
     !!}
     use :: Stellar_Luminosities_Structure, only : unitStellarLuminosities
     use :: Galactic_Structure_Options    , only : enumerationComponentTypeDecode
@@ -217,7 +217,7 @@ contains
 
   subroutine magnitudesApparentDescriptions(self,time,descriptions)
     !!{
-    Return descriptions of the {\normalfont \ttfamily magnitudesApparent} property extractor class.
+    Return descriptions of the \source{magnitudesApparent} property extractor class.
     !!}
     use :: Stellar_Luminosities_Structure, only : unitStellarLuminosities
     implicit none

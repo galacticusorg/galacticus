@@ -259,7 +259,7 @@ contains
   
   double precision function coredNFWDensity(self,coordinates) result(density)
     !!{
-    Return the density at the specified {\normalfont \ttfamily coordinates} in a cored NFW mass distribution.
+    Return the density at the specified \source{coordinates} in a cored NFW mass distribution.
     !!}
     implicit none
     class           (massDistributionCoredNFW), intent(inout) :: self
@@ -277,7 +277,7 @@ contains
   
   double precision function coredNFWDensityGradientRadial(self,coordinates,logarithmic) result(densityGradient)
     !!{
-    Return the radial density gradient at the specified {\normalfont \ttfamily coordinates} in a cored NFW mass distribution.
+    Return the radial density gradient at the specified \source{coordinates} in a cored NFW mass distribution.
     !!}
     implicit none
     class           (massDistributionCoredNFW), intent(inout), target   :: self

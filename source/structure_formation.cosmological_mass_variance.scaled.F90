@@ -24,7 +24,7 @@
   !![
   <cosmologicalMassVariance name="cosmologicalMassVarianceScaled">
    <description>
-    The mass variance of cosmological density fields is computed by scaling that from another class by a factor of {\normalfont \ttfamily [scale]}.
+    The mass variance of cosmological density fields is computed by scaling that from another class by a factor of \source{[scale]}.
    </description>
   </cosmologicalMassVariance>
   !!]
@@ -154,7 +154,7 @@ contains
   double precision function scaledRootVarianceLogarithmicGradient(self,mass,time)
     !!{
     Return the logarithmic gradient with respect to mass of the root-variance of the cosmological density field in a spherical
-    region containing the given {\normalfont \ttfamily mass} on average.
+    region containing the given \source{mass} on average.
     !!}
     implicit none
     class           (cosmologicalMassVarianceScaled), intent(inout) :: self
@@ -167,7 +167,7 @@ contains
   double precision function scaledRootVarianceLogarithmicGradientTime(self,mass,time)
     !!{
     Return the logarithmic gradient with respect to time of the root-variance of the cosmological density field in a spherical
-    region containing the given {\normalfont \ttfamily mass} on average.
+    region containing the given \source{mass} on average.
     !!}
     implicit none
     class           (cosmologicalMassVarianceScaled), intent(inout) :: self
@@ -180,7 +180,7 @@ contains
   subroutine scaledRootVarianceAndLogarithmicGradient(self,mass,time,rootVariance,rootVarianceLogarithmicGradient)
     !!{
     Return the value and logarithmic gradient with respect to mass of the root-variance of the cosmological density field in a
-    spherical region containing the given {\normalfont \ttfamily mass} on average.
+    spherical region containing the given \source{mass} on average.
     !!}
     implicit none
     class           (cosmologicalMassVarianceScaled), intent(inout) :: self
@@ -195,7 +195,7 @@ contains
 
   double precision function scaledMass(self,rootVariance,time)
     !!{
-    Return the mass corresponding to the given {\normalfont \ttfamily } root-variance of the cosmological density field.
+    Return the mass corresponding to the given \source{} root-variance of the cosmological density field.
     !!}
     implicit none
     class           (cosmologicalMassVarianceScaled), intent(inout) :: self

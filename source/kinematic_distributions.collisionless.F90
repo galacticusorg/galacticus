@@ -118,7 +118,7 @@ contains
 
   double precision function collisionlessVelocityDispersion1D(self,coordinates,massDistribution_,massDistributionEmbedding) result(velocityDispersion)
     !!{
-    Return the 1D velocity dispersion at the specified {\normalfont \ttfamily coordinates} in an collisionless kinematic distribution.
+    Return the 1D velocity dispersion at the specified \source{coordinates} in an collisionless kinematic distribution.
     !!}
     implicit none
     class(kinematicsDistributionCollisionless), intent(inout)          :: self

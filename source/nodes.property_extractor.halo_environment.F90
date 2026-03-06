@@ -103,7 +103,7 @@ contains
 
   integer function haloEnvironmentElementCount(self,time)
     !!{
-    Return the number of elements in the {\normalfont \ttfamily haloEnvironment} property extractor.
+    Return the number of elements in the \source{haloEnvironment} property extractor.
     !!}
     implicit none
     class           (nodePropertyExtractorHaloEnvironment), intent(inout) :: self
@@ -136,7 +136,7 @@ contains
 
   subroutine haloEnvironmentNames(self,time,names)
     !!{
-    Return the name of the {\normalfont \ttfamily haloEnvironment} property.
+    Return the name of the \source{haloEnvironment} property.
     !!}
     implicit none
     class           (nodePropertyExtractorHaloEnvironment), intent(inout)                             :: self
@@ -152,7 +152,7 @@ contains
 
   subroutine haloEnvironmentDescriptions(self,time,descriptions)
     !!{
-    Return a description of the {\normalfont \ttfamily haloEnvironment} property.
+    Return a description of the \source{haloEnvironment} property.
     !!}
     implicit none
     class           (nodePropertyExtractorHaloEnvironment), intent(inout)                             :: self
@@ -168,7 +168,7 @@ contains
 
   function haloEnvironmentUnitsInSI(self,time)
     !!{
-    Return the units of the {\normalfont \ttfamily haloEnvironment} property in the SI system.
+    Return the units of the \source{haloEnvironment} property in the SI system.
     !!}
     implicit none
     double precision                                      , allocatable  , dimension(:) :: haloEnvironmentUnitsInSI

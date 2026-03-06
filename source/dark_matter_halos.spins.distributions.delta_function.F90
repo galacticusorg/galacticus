@@ -26,7 +26,7 @@
   <haloSpinDistribution name="haloSpinDistributionDeltaFunction">
    <description>
     A halo spin distribution class in which the spin is drawn from a $\delta$-function distribution, $P(\lambda) =
-    \delta(\lambda-\lambda_0)$, where $\lambda_0=${\normalfont \ttfamily [spin]}, i.e. a fixed value of spin equal to
+    \delta(\lambda-\lambda_0)$, where $\lambda_0=$\source{[spin]}, i.e. a fixed value of spin equal to
     $\lambda_0$ is returned.
    </description>
   </haloSpinDistribution>
@@ -112,7 +112,7 @@ contains
 
   double precision function deltaFunctionDistribution(self,node)
     !!{
-    Return the spin parameter distribution for the given {\normalfont \ttfamily node}.
+    Return the spin parameter distribution for the given \source{node}.
     !!}
     use :: Error, only : Error_Report
     implicit none

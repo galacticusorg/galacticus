@@ -96,7 +96,7 @@ contains
 
   function ludlow2016ConstructorParameters(parameters) result(self)
     !!{
-    Default constructor for the {\normalfont \ttfamily ludlow2016} dark matter halo profile concentration class.
+    Default constructor for the \source{ludlow2016} dark matter halo profile concentration class.
     !!}
     use :: Error           , only : Error_Report
     use :: Input_Parameters, only : inputParameter, inputParameters
@@ -195,7 +195,7 @@ contains
 
   double precision function ludlow2016Radius(self,node)
     !!{
-    Return the scale radius of the dark matter halo profile of {\normalfont \ttfamily node} using the
+    Return the scale radius of the dark matter halo profile of \source{node} using the
     \cite{ludlow_mass-concentration-redshift_2016} algorithm.
     !!}
     use :: Dark_Matter_Profile_Mass_Definitions, only : Dark_Matter_Profile_Mass_Definition
@@ -465,7 +465,7 @@ contains
 
   double precision function ludlow2016FormationTimeRoot(timeFormation)
     !!{
-    Function used to find the formation time of a halo in the {\normalfont \ttfamily ludlow2016} concentration algorithm.
+    Function used to find the formation time of a halo in the \source{ludlow2016} concentration algorithm.
     !!}
     use :: Dark_Matter_Profile_Mass_Definitions, only : Dark_Matter_Profile_Mass_Definition
     use :: Galacticus_Nodes                    , only : nodeComponentBasic                 , treeNode

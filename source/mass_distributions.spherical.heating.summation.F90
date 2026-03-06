@@ -130,7 +130,7 @@ contains
 
   double precision function summationSpecificEnergy(self,radius,massDistribution_) result(energySpecific)
     !!{
-    Returns the specific energy of heating in the given {\normalfont \ttfamily node}.
+    Returns the specific energy of heating in the given \source{node}.
     !!}
     implicit none
     class           (massDistributionHeatingSummation), intent(inout) :: self

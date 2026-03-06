@@ -78,7 +78,7 @@ contains
 
   function wechsler2002ConstructorParameters(parameters) result(self)
     !!{
-    Default constructor for the {\normalfont \ttfamily wechsler2002} dark matter halo mass accretion history class.
+    Default constructor for the \source{wechsler2002} dark matter halo mass accretion history class.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -191,7 +191,7 @@ contains
 
   double precision function wechsler2002Time(self,node,mass)
     !!{
-    Compute the time corresponding to {\normalfont \ttfamily mass} in the mass accretion history of {\normalfont \ttfamily node} using the algorithm of
+    Compute the time corresponding to \source{mass} in the mass accretion history of \source{node} using the algorithm of
     \cite{wechsler_concentrations_2002}.
     !!}
     use :: Galacticus_Nodes, only : nodeComponentBasic, treeNode
@@ -230,7 +230,7 @@ contains
 
   double precision function wechsler2002MassAccretionRate(self,node,time)
     !!{
-    Compute the mass accretion rate at the given {\normalfont \ttfamily time} in the mass accretion history of {\normalfont
+    Compute the mass accretion rate at the given \source{time} in the mass accretion history of {\normalfont
     \ttfamily node} using the algorithm of \cite{wechsler_concentrations_2002}.
     !!}
     use :: Galacticus_Nodes, only : nodeComponentBasic, treeNode

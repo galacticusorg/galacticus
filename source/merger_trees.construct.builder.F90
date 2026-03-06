@@ -35,7 +35,7 @@ module Merger_Trees_Builders
    <description>Class providing merger tree builders.</description>
    <default>cole2000</default>
    <method name="build" >
-    <description>Builds and returns a merger tree given the root {\normalfont \ttfamily node}.</description>
+    <description>Builds and returns a merger tree given the root \source{node}.</description>
     <type>void</type>
     <pass>yes</pass>
     <selfTarget>yes</selfTarget>

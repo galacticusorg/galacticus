@@ -38,7 +38,7 @@ module Black_Hole_CGM_Heating
    </description>
    <default>jetPower</default>
    <method name="heatingRate" >
-    <description>Compute the heating rate of the CGM due to the given {\normalfont \ttfamily blackHole}.</description>
+    <description>Compute the heating rate of the CGM due to the given \source{blackHole}.</description>
     <type>double precision</type>
     <pass>yes</pass>
     <argument>class(nodeComponentBlackHole), intent(inout) :: blackHole</argument>

@@ -228,7 +228,7 @@ contains
 
   double precision function solitonNFWHeatedDensity(self,coordinates)
     !!{
-    Return the density at the specified {\normalfont \ttfamily coordinates} in a solitonNFWHeated mass distribution.
+    Return the density at the specified \source{coordinates} in a solitonNFWHeated mass distribution.
     !!}
     implicit none
     class(massDistributionSolitonNFWHeated), intent(inout) :: self
@@ -244,7 +244,7 @@ contains
 
   double precision function solitonNFWHeatedDensityGradientRadial(self,coordinates,logarithmic) result(densityGradientRadial)
     !!{
-    Return the density at the specified {\normalfont \ttfamily coordinates} in a soliton+heated NFW mass distribution.
+    Return the density at the specified \source{coordinates} in a soliton+heated NFW mass distribution.
     !!}
     implicit none
     class  (massDistributionSolitonNFWHeated), intent(inout), target   :: self
@@ -265,7 +265,7 @@ contains
 
   double precision function solitonNFWHeatedMassEnclosedBySphere(self,radius) result(mass)
     !!{
-    Computes the mass enclosed within a sphere of given {\normalfont \ttfamily radius} for soliton+heated NFW mass distributions.
+    Computes the mass enclosed within a sphere of given \source{radius} for soliton+heated NFW mass distributions.
     !!}
     implicit none
     class           (massDistributionSolitonNFWHeated), intent(inout), target :: self

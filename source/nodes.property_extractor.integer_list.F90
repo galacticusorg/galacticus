@@ -34,7 +34,7 @@
      !![
      <methods>
        <method method="elementCount" description="Return a count of the number of properties extracted."              />
-       <method method="extract"      description="Extract the properties from the given {\normalfont \ttfamily node}."/>
+       <method method="extract"      description="Extract the properties from the given \source{node}."/>
        <method method="names"        description="Return the name of the properties extracted."                       />
        <method method="descriptions" description="Return a description of the properties extracted."                  />
        <method method="unitsInSI"    description="Return the units of the properties extracted in the SI system."     />

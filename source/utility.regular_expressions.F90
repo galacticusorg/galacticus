@@ -41,7 +41,7 @@ module Regular_Expressions
    contains
      !![
      <methods>
-       <method description="Return true if a regular expression matches the supplied {\normalfont \ttfamily string}." method="matches" />
+       <method description="Return true if a regular expression matches the supplied \source{string}." method="matches" />
        <method description="Destroy the regex." method="destroy" />
      </methods>
      !!]
@@ -94,7 +94,7 @@ contains
 
   function Regular_Expression_Constructor(regularExpression) result(self)
     !!{
-    Constructor for {\normalfont \ttfamily regEx} objects.
+    Constructor for \source{regEx} objects.
     !!}
     implicit none
     type     (regEx)                :: self
@@ -106,7 +106,7 @@ contains
 
   subroutine Regular_Expression_Destructor(self)
     !!{
-    Destructor for {\normalfont \ttfamily regEx} objects.
+    Destructor for \source{regEx} objects.
     !!}
     use, intrinsic :: ISO_C_Binding, only : C_Associated
     implicit none
@@ -119,7 +119,7 @@ contains
 
   subroutine Regular_Expression_Destroy(self)
     !!{
-    Destroy a {\normalfont \ttfamily regEx} object.
+    Destroy a \source{regEx} object.
     !!}
     implicit none
     class(regEx), intent(inout) :: self
@@ -133,7 +133,7 @@ contains
 
   logical function Regular_Expression_Match(self,string)
     !!{
-    Returns true if a {\normalfont \ttfamily regEx} object matches the supplied {\normalfont \ttfamily string}.
+    Returns true if a \source{regEx} object matches the supplied \source{string}.
     !!}
     implicit none
     class    (regEx)                :: self

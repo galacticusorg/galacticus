@@ -29,7 +29,7 @@ Implements a sharp $k$-space power spectrum window function class.
     \begin{equation}
      W(k) = \left\{ \begin{array}{ll} 1 &amp; \hbox{if } k &lt; k_\mathrm{s} \\ 0 &amp; \hbox{if } k &gt; k_\mathrm{s}, \end{array} \right.
     \end{equation}
-    where if {\normalfont \ttfamily [normalization]}$=${\normalfont \ttfamily natural} then $k_\mathrm{s} = (6 \Pi^2 \bar{\rho}
+    where if \source{[normalization]}$=$\source{natural} then $k_\mathrm{s} = (6 \Pi^2 \bar{\rho}
     / M)^{1/3}$ for a smoothing scale $M$ and mean matter density $\bar{\rho}$. Otherwise, {\normalfont \ttfamily
     [normalization]} must be set to a numerical value, $\alpha$, in which case $k_\mathrm{s} = \alpha / R_\mathrm{th}$ with
     $R_\mathrm{th}=3M/4\pi\bar{\rho}$ for a smoothing scale $M$ and mean matter density $\bar{\rho}$.
@@ -84,7 +84,7 @@ contains
       <description>
         The parameter $a$ in the relation $k_\mathrm{s} = a/r_\mathrm{s}$, where $k_\mathrm{s}$ is the cut-off wavenumber for
         the sharp $k$-space window function and $r_\mathrm{s}$ is the radius of a sphere (in real-space) enclosing the
-        requested smoothing mass. Alternatively, a value of {\normalfont \ttfamily natural} will be supplied in which case the normalization
+        requested smoothing mass. Alternatively, a value of \source{natural} will be supplied in which case the normalization
         is chosen such that, in real-space, $W(r=0)=1$. This results in a contained mass of $M=6 \pi^2 \bar{\rho} k_\mathrm{s}^{-3}$.
       </description>
     </inputParameter>

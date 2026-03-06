@@ -278,7 +278,7 @@ contains
 
   subroutine Signal_Handler_SIGINT()
     !!{
-    Handle {\normalfont \ttfamily SIGINT} signals, by flushing all data and then aborting.
+    Handle \source{SIGINT} signals, by flushing all data and then aborting.
     !!}
     use   , intrinsic :: ISO_Fortran_Env   , only : error_unit        , output_unit
 #ifdef USEMPI
@@ -335,7 +335,7 @@ contains
 
   subroutine Signal_Handler_SIGSEGV()
     !!{
-    Handle {\normalfont \ttfamily SIGSEGV} signals, by flushing all data and then aborting.
+    Handle \source{SIGSEGV} signals, by flushing all data and then aborting.
     !!}
     use   , intrinsic :: ISO_Fortran_Env   , only : error_unit        , output_unit
 #ifdef USEMPI
@@ -393,7 +393,7 @@ contains
 
   subroutine Signal_Handler_SIGFPE()
     !!{
-    Handle {\normalfont \ttfamily SIGFPE} signals, by flushing all data and then aborting.
+    Handle \source{SIGFPE} signals, by flushing all data and then aborting.
     !!}
     use   , intrinsic :: ISO_Fortran_Env   , only : error_unit        , output_unit
 #ifdef USEMPI
@@ -451,7 +451,7 @@ contains
 
   subroutine Signal_Handler_SIGBUS()
     !!{
-    Handle {\normalfont \ttfamily SIGBUS} signals, by flushing all data and then aborting.
+    Handle \source{SIGBUS} signals, by flushing all data and then aborting.
     !!}
     use   , intrinsic :: ISO_Fortran_Env   , only : error_unit        , output_unit
 #ifdef USEMPI
@@ -509,7 +509,7 @@ contains
 
   subroutine Signal_Handler_SIGILL()
     !!{
-    Handle {\normalfont \ttfamily SIGILL} signals, by flushing all data and then aborting.
+    Handle \source{SIGILL} signals, by flushing all data and then aborting.
     !!}
     use   , intrinsic :: ISO_Fortran_Env   , only : error_unit        , output_unit
 #ifdef USEMPI
@@ -567,7 +567,7 @@ contains
 
   subroutine Signal_Handler_SIGXCPU()
     !!{
-    Handle {\normalfont \ttfamily SIGXCPU} signals, by flushing all data and then aborting.
+    Handle \source{SIGXCPU} signals, by flushing all data and then aborting.
     !!}
     use, intrinsic :: ISO_Fortran_Env, only : error_unit  , output_unit
     use            :: Display        , only : displayBold , displayRed , displayReset

@@ -146,7 +146,7 @@ contains
 
   subroutine collisionlessMatterRetabulate(self,time)
     !!{
-    Returns the linear growth factor $D(a)$ for expansion factor {\normalfont \ttfamily aExpansion}, normalized such that
+    Returns the linear growth factor $D(a)$ for expansion factor \source{aExpansion}, normalized such that
     $D(1)=1$ for a collisionless matter plus cosmological constant cosmology.
     !!}
     use :: Interface_GSL        , only : GSL_Success

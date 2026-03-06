@@ -194,7 +194,7 @@ contains
   !!]
   subroutine Node_Component_Black_Hole_Standard_Scale_Set(node)
     !!{
-    Set scales for properties of {\normalfont \ttfamily node}.
+    Set scales for properties of \source{node}.
     !!}
     use :: Galacticus_Nodes, only : defaultBlackHoleComponent, nodeComponentBlackHole, nodeComponentSpheroid, nodeComponentNSC, &
       &                             treeNode
@@ -258,7 +258,7 @@ contains
 
   subroutine satelliteMerger(self,node)
     !!{
-    Merge any black hole associated with {\normalfont \ttfamily node} before it merges with its host halo.
+    Merge any black hole associated with \source{node} before it merges with its host halo.
     !!}
     use :: Galacticus_Nodes        , only : nodeComponentBlackHole , treeNode
     use :: Events_Black_Hole_Merger, only : Event_Black_Hole_Merger

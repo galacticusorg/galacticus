@@ -48,7 +48,7 @@ contains
 
   function identityConstructorParameters(parameters) result(self)
     !!{
-    A constructor for the {\normalfont \ttfamily identity} merger tree branching probability rate class which builds the
+    A constructor for the \source{identity} merger tree branching probability rate class which builds the
     object from a parameter set.
     !!}
     use :: Input_Parameters, only : inputParameters

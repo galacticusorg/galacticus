@@ -203,7 +203,7 @@ contains
 
   double precision function sersicDensity(self,coordinates)
     !!{
-    Return the density at the specified {\normalfont \ttfamily coordinates} in a S\'ersic mass distribution.
+    Return the density at the specified \source{coordinates} in a S\'ersic mass distribution.
     !!}
     use :: Coordinates , only : assignment(=)               , coordinateSpherical
     implicit none
@@ -294,7 +294,7 @@ contains
   
   double precision function sersicMassEnclosedBySphere(self,radius)
     !!{
-    Computes the mass enclosed within a sphere of given {\normalfont \ttfamily radius} for S\'ersic mass distributions.
+    Computes the mass enclosed within a sphere of given \source{radius} for S\'ersic mass distributions.
     !!}
     implicit none
     class           (massDistributionSersic), intent(inout), target :: self
@@ -332,7 +332,7 @@ contains
 
   double precision function sersicPotential(self,coordinates,status)
     !!{
-    Return the potential at the specified {\normalfont \ttfamily coordinates} in a S\'ersic mass distribution.
+    Return the potential at the specified \source{coordinates} in a S\'ersic mass distribution.
     !!}
     use :: Coordinates                     , only : assignment(=)                 , coordinateSpherical
     use :: Error                           , only : Error_Report

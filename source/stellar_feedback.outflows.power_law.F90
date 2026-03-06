@@ -30,8 +30,8 @@
      \dot{M}_\mathrm{outflow} = \left({V_\mathrm{outflow} \over V}\right)^{\alpha_\mathrm{outflow}} {\dot{E} \over
      E_\mathrm{canonical}},
     \end{equation}
-    where $V_\mathrm{outflow}=${\normalfont \ttfamily [velocityCharacteristic]} (in km/s) and
-    $\alpha_\mathrm{outflow}=${\normalfont \ttfamily [exponent]} are input parameters, $V$ is the characteristic velocity of
+    where $V_\mathrm{outflow}=$\source{[velocityCharacteristic]} (in km/s) and
+    $\alpha_\mathrm{outflow}=$\source{[exponent]} are input parameters, $V$ is the characteristic velocity of
     the component, $\dot{E}$ is the rate of energy input from stellar populations and $E_\mathrm{canonical}$ is the total
     energy input by a canonical stellar population normalized to $1 M_\odot$ after infinite time.
    </description>
@@ -119,7 +119,7 @@ contains
     component}. The outflow rate is given by \begin{equation} \dot{M}_\mathrm{outflow} = \left({V_\mathrm{outflow} \over
     V}\right)^{\alpha_\mathrm{outflow}}, \end{equation} where $V_\mathrm{outflow}$(={\normalfont
     \ttfamily velocityCharacteristic}) is the velocity scale at which outflow rate equals star formation rate and $\alpha_{\mathrm
-    outflow}$(={\normalfont \ttfamily exponent}) controls the scaling with velocity. Note that the velocity
+    outflow}$(=\source{exponent}) controls the scaling with velocity. Note that the velocity
     $V$ is whatever characteristic value returned by the disk/spheroid component. This scaling is functionally similar to
     that adopted by \cite{cole_hierarchical_2000}, except that they specifically used the circular velocity at half-mass radius.
     !!}

@@ -197,7 +197,7 @@ contains
 
   subroutine percolationTabulate(self,mass,time)
     !!{
-    Tabulate virial density contrast as a function of mass and time for the {\normalfont \ttfamily percolation} density contrast class.
+    Tabulate virial density contrast as a function of mass and time for the \source{percolation} density contrast class.
     !!}
     use :: Display         , only : displayCounter                             , displayCounterClear, displayIndent, displayUnindent, &
           &                         verbosityLevelWorking
@@ -347,7 +347,7 @@ contains
 
   logical function percolationIsMassDepdendent(self)
     !!{
-    Specify that the {\normalfont \ttfamily percolation} virial density contrast class is mass-dependent.
+    Specify that the \source{percolation} virial density contrast class is mass-dependent.
     !!}
     implicit none
     class(virialDensityContrastPercolation), intent(inout) :: self

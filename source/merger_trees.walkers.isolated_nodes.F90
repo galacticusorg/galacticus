@@ -75,9 +75,9 @@ contains
 
   logical function isolatedNodesNext(self,node)
     !!{
-    This function will update to given {\normalfont \ttfamily node} to the next node which should be visited in a tree to
-    perform a depth-first walk. Once the entire tree has been walked, a {\normalfont \ttfamily null()} pointer will be set, and
-    a value of {\normalfont \ttfamily false} returned indicating that there are no more nodes to walk. Each node will be
+    This function will update to given \source{node} to the next node which should be visited in a tree to
+    perform a depth-first walk. Once the entire tree has been walked, a \source{null()} pointer will be set, and
+    a value of \source{false} returned indicating that there are no more nodes to walk. Each node will be
     visited once and once only if the tree is walked in this way.
     !!}
     implicit none

@@ -134,7 +134,7 @@ contains
 
   subroutine radiusBlackHolesNames(self,names)
     !!{
-    Return the names of the {\normalfont \ttfamily radiusBlackHoles} properties.
+    Return the names of the \source{radiusBlackHoles} properties.
     !!}
     implicit none
     class(nodePropertyExtractorRadiusBlackHoles), intent(inout)                             :: self
@@ -149,7 +149,7 @@ contains
 
   subroutine radiusBlackHolesDescriptions(self,descriptions)
     !!{
-    Return the descriptions of the {\normalfont \ttfamily radiusBlackHoles} properties.
+    Return the descriptions of the \source{radiusBlackHoles} properties.
     !!}
     implicit none
     class(nodePropertyExtractorRadiusBlackHoles), intent(inout)                             :: self
@@ -164,7 +164,7 @@ contains
 
   function radiusBlackHolesUnitsInSI(self) result(unitsInSI)
     !!{
-    Return the units of the {\normalfont \ttfamily radiusBlackHoles} properties in the SI system.
+    Return the units of the \source{radiusBlackHoles} properties in the SI system.
     !!}
     use :: Numerical_Constants_Astronomical, only : megaParsec, gigaYear
     implicit none

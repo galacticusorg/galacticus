@@ -25,7 +25,7 @@
   !![
   <posteriorSampleDffrntlEvltnPrpslSzTmpExp name="posteriorSampleDffrntlEvltnPrpslSzTmpExpFixed">
    <description>
-    This class uses a fixed $\alpha=${\normalfont \ttfamily [alpha]}.
+    This class uses a fixed $\alpha=$\source{[alpha]}.
    </description>
   </posteriorSampleDffrntlEvltnPrpslSzTmpExp>
   !!]

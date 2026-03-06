@@ -259,7 +259,7 @@ contains
 
   double precision function shethTormenPlusA(self,time,mass)
     !!{
-    Return the parameter $\bar{a}$ in the {\normalfont \ttfamily shethTormenPlus} halo mass function at the given time and mass.
+    Return the parameter $\bar{a}$ in the \source{shethTormenPlus} halo mass function at the given time and mass.
     !!}
     implicit none
     class           (haloMassFunctionShethTormenPlus), intent(inout) :: self
@@ -272,7 +272,7 @@ contains
 
   double precision function shethTormenPlusB(self,time,mass)
     !!{
-    Return the parameter $\bar{b}$ in the {\normalfont \ttfamily shethTormenPlus} halo mass function at the given time and mass.
+    Return the parameter $\bar{b}$ in the \source{shethTormenPlus} halo mass function at the given time and mass.
     !!}
     implicit none
     class           (haloMassFunctionShethTormenPlus), intent(inout) :: self
@@ -285,7 +285,7 @@ contains
 
   double precision function shethTormenPlusC(self,time,mass)
     !!{
-    Return the parameter $\bar{c}$ in the {\normalfont \ttfamily shethTormenPlus} halo mass function at the given time and mass.
+    Return the parameter $\bar{c}$ in the \source{shethTormenPlus} halo mass function at the given time and mass.
     !!}
     implicit none
     class           (haloMassFunctionShethTormenPlus), intent(inout) :: self
@@ -298,7 +298,7 @@ contains
 
   double precision function shethTormenPlusD(self,time,mass)
     !!{
-    Return the parameter $\bar{d}$ in the {\normalfont \ttfamily shethTormenPlus} halo mass function at the given time and mass.
+    Return the parameter $\bar{d}$ in the \source{shethTormenPlus} halo mass function at the given time and mass.
     !!}
     implicit none
     class           (haloMassFunctionShethTormenPlus), intent(inout) :: self
@@ -311,7 +311,7 @@ contains
 
   double precision function shethTormenPlusP(self,time,mass)
     !!{
-    Return the parameter $\bar{p}$ in the {\normalfont \ttfamily shethTormenPlus} halo mass function at the given time and mass.
+    Return the parameter $\bar{p}$ in the \source{shethTormenPlus} halo mass function at the given time and mass.
     !!}
     implicit none
     class           (haloMassFunctionShethTormenPlus), intent(inout) :: self
@@ -324,7 +324,7 @@ contains
 
   double precision function shethTormenPlusQ(self,time,mass)
     !!{
-    Return the parameter $\bar{q}$ in the {\normalfont \ttfamily shethTormenPlus} halo mass function at the given time and mass.
+    Return the parameter $\bar{q}$ in the \source{shethTormenPlus} halo mass function at the given time and mass.
     !!}
     implicit none
     class           (haloMassFunctionShethTormenPlus), intent(inout) :: self
@@ -337,7 +337,7 @@ contains
 
   double precision function shethTormenPlusNormalization(self,time,mass)
     !!{
-    Return the normalization, $\bar{A}$, in the {\normalfont \ttfamily shethTormenPlus} halo mass function at the given time and mass.
+    Return the normalization, $\bar{A}$, in the \source{shethTormenPlus} halo mass function at the given time and mass.
     !!}
     implicit none
     class           (haloMassFunctionShethTormenPlus), intent(inout) :: self

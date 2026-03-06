@@ -102,7 +102,7 @@ contains
 
   double precision function rateInfallColdModeExtract(self,node,instance)
     !!{
-    Implement a {\normalfont \ttfamily rateInfallColdMode} property extractor.
+    Implement a \source{rateInfallColdMode} property extractor.
     !!}
     use :: Galacticus_Nodes, only : nodeComponentBasic, treeNode
     implicit none
@@ -117,7 +117,7 @@ contains
 
   function rateInfallColdModeName(self)
     !!{
-    Return the name of the {\normalfont \ttfamily rateInfallColdMode} property.
+    Return the name of the \source{rateInfallColdMode} property.
     !!}
     implicit none
     type (varying_string                         )                :: rateInfallColdModeName
@@ -130,7 +130,7 @@ contains
 
   function rateInfallColdModeDescription(self)
     !!{
-    Return a description of the {\normalfont \ttfamily rateInfallColdMode} property.
+    Return a description of the \source{rateInfallColdMode} property.
     !!}
     implicit none
     type (varying_string                         )                :: rateInfallColdModeDescription
@@ -143,7 +143,7 @@ contains
 
   double precision function rateInfallColdModeUnitsInSI(self)
     !!{
-    Return the units of the {\normalfont \ttfamily rateInfallColdMode} property in the SI system.
+    Return the units of the \source{rateInfallColdMode} property in the SI system.
     !!}
     use :: Numerical_Constants_Astronomical, only : gigaYear, massSolar
     implicit none

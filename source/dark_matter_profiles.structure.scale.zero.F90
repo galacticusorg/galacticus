@@ -64,7 +64,7 @@ contains
 
   double precision function zeroRadius(self,node)
     !!{
-    Compute the scale radius of the dark matter profile of {\normalfont \ttfamily node}.
+    Compute the scale radius of the dark matter profile of \source{node}.
     !!}
     implicit none
     class(darkMatterProfileScaleRadiusZero), intent(inout), target :: self

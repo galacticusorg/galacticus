@@ -76,7 +76,7 @@
 
   interface darkMatterProfileDMOSolitonNFW
      !!{
-     Constructors for the {\normalfont \ttfamily solitonNFW} dark matter halo profile class.
+     Constructors for the \source{solitonNFW} dark matter halo profile class.
      !!}
      module procedure solitonNFWConstructorParameters
      module procedure solitonNFWConstructorInternal
@@ -205,7 +205,7 @@ contains
 
   subroutine solitonNFWDestructor(self)
     !!{
-    Destructor for the {\normalfont \ttfamily solitonNFW} dark matter halo profile class.
+    Destructor for the \source{solitonNFW} dark matter halo profile class.
     !!}
     use :: Events_Hooks, only : calculationResetEvent
     implicit none
@@ -246,7 +246,7 @@ contains
 
   function solitonNFWGet(self,node,weightBy,weightIndex) result(massDistribution_)
     !!{
-    Return the soliton plus NFW fuzzy dark matter mass distribution for the given {\normalfont \ttfamily node}.
+    Return the soliton plus NFW fuzzy dark matter mass distribution for the given \source{node}.
     !!}
     use :: Galacticus_Nodes          , only : nodeComponentBasic
     use :: Galactic_Structure_Options, only : componentTypeDarkHalo     , massTypeDark                    , weightByMass

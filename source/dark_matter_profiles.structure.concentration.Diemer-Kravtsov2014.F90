@@ -41,9 +41,9 @@
     where $c_\mathrm{min}=\phi_0+\phi_1 n$, $\nu_\mathrm{min}=\eta_0+\eta_1 n$, $n$ is the logarithmic slope of the linear
     power spectrum at wavenumber $k = \kappa 2 \pi / R$, $R$ is the comoving Lagrangian radius of the halo, $R=[3 M / 4 \pi
     \rho_\mathrm{M}(z=0)]^{1/3}$, and $\nu=\delta_\mathrm{crit}(t)/\sigma(M)$ is the peak height parameter. The numerical
-    parameters $(\kappa,\phi_0,\phi_1,\eta_0,\eta_1,\alpha,\beta)$ are set by the parameters {\normalfont \ttfamily [kappa]},
-    {\normalfont \ttfamily [phi0]}, {\normalfont \ttfamily [phi1]}, {\normalfont \ttfamily [eta0]}, {\normalfont \ttfamily
-    [eta1]}, {\normalfont \ttfamily [alpha]}, {\normalfont \ttfamily [beta]}, respectively, and default to the values given in
+    parameters $(\kappa,\phi_0,\phi_1,\eta_0,\eta_1,\alpha,\beta)$ are set by the parameters \source{[kappa]},
+    \source{[phi0]}, \source{[phi1]}, \source{[eta0]}, {\normalfont \ttfamily
+    [eta1]}, \source{[alpha]}, \source{[beta]}, respectively, and default to the values given in
     Table 3 of \cite{diemer_universal_2014} for the median relation, namely $(0.69,6.58,1.37,6.82,1.42,1.12,1.69)$.
    </description>
    <deepCopy>
@@ -93,7 +93,7 @@ contains
 
   function diemerKravtsov2014ConstructorParameters(parameters) result(self)
     !!{
-    Default constructor for the {\normalfont \ttfamily diemerKravtsov2014} dark matter halo
+    Default constructor for the \source{diemerKravtsov2014} dark matter halo
     profile concentration class.
     !!}
     implicit none
@@ -269,7 +269,7 @@ contains
 
   double precision function diemerKravtsov2014Concentration(self,node)
     !!{
-    Return the concentration of the dark matter halo profile of {\normalfont \ttfamily node}
+    Return the concentration of the dark matter halo profile of \source{node}
     using the \cite{diemer_universal_2014} algorithm.
     !!}
     implicit none
@@ -291,7 +291,7 @@ contains
 
   double precision function diemerKravtsov2014ConcentrationMean(self,node)
     !!{
-    Return the mean concentration of the dark matter halo profile of {\normalfont \ttfamily node}
+    Return the mean concentration of the dark matter halo profile of \source{node}
     using the \cite{diemer_universal_2014} algorithm.
     !!}
     use :: Galacticus_Nodes        , only : nodeComponentBasic, treeNode

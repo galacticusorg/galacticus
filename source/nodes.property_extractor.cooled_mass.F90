@@ -21,7 +21,7 @@
   <nodePropertyExtractor name="nodePropertyExtractorMassCooled">
    <description>
      A node property extractor which extracts the mass of gas cooled out of the \gls{cgm}. If the parameter {\normalfont \ttfamily
-     [resetAfterExtract]}$=${\normalfont \ttfamily true} then the cooled mass is reset to zero after extraction.
+     [resetAfterExtract]}$=$\source{true} then the cooled mass is reset to zero after extraction.
    </description>
   </nodePropertyExtractor>
   !!]
@@ -117,7 +117,7 @@ contains
 
   function massCooledName(self)
     !!{
-    Return the names of the {\normalfont \ttfamily massCooled} property.
+    Return the names of the \source{massCooled} property.
     !!}
     implicit none
     type (varying_string                 )                :: massCooledName
@@ -130,7 +130,7 @@ contains
 
   function massCooledDescription(self)
     !!{
-    Return the description of the {\normalfont \ttfamily massCooled} property.
+    Return the description of the \source{massCooled} property.
     !!}
     implicit none
     type (varying_string                 )                :: massCooledDescription
@@ -143,7 +143,7 @@ contains
 
   double precision function massCooledUnitsInSI(self)
     !!{
-    Return the units of the {\normalfont \ttfamily massCooled} property in the SI system.
+    Return the units of the \source{massCooled} property in the SI system.
     !!}
     use :: Numerical_Constants_Astronomical, only : massSolar
     implicit none

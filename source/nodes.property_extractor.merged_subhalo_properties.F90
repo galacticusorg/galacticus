@@ -141,7 +141,7 @@ contains
   
   subroutine mergedSubhaloPropertiesNames(self,names)
     !!{
-    Return the names of the {\normalfont \ttfamily mergedSubhaloProperties} properties.
+    Return the names of the \source{mergedSubhaloProperties} properties.
     !!}
     use :: Kepler_Orbits  , only : enumerationKeplerOrbitDecode, keplerOrbitTimeInitial, keplerOrbitMassSatellite, keplerOrbitMassHost, &
          &                         keplerOrbitRadiusPericenter ,  keplerOrbitRadius    , keplerOrbitTimeCurrent
@@ -175,7 +175,7 @@ contains
 
   subroutine mergedSubhaloPropertiesDescriptions(self,descriptions)
     !!{
-    Return the descriptions of the {\normalfont \ttfamily mergedSubhaloProperties} properties.
+    Return the descriptions of the \source{mergedSubhaloProperties} properties.
     !!}
     use :: Kepler_Orbits, only : enumerationKeplerOrbitDescription, keplerOrbitTimeInitial, keplerOrbitMassSatellite, keplerOrbitMassHost, &
          &                       keplerOrbitRadiusPericenter      , keplerOrbitRadius     , keplerOrbitTimeCurrent
@@ -208,7 +208,7 @@ contains
 
   function mergedSubhaloPropertiesUnitsInSI(self) result(unitsInSI)
     !!{
-    Return the units of the {\normalfont \ttfamily mergedSubhaloProperties} properties in the SI system.
+    Return the units of the \source{mergedSubhaloProperties} properties in the SI system.
     !!}
     use :: Numerical_Constants_Astronomical, only : gigaYear, massSolar, megaParsec
     implicit none

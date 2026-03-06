@@ -46,13 +46,13 @@ Implements a merger tree build controller class which performs subsampling of br
      \begin{equation}
        P(M) = \left\{ \begin{array}{ll} 1 &amp; \hbox{if } M \ge M_0 \\ P_0 (M/M_0)^\alpha &amp; \hbox{if } M &lt; M_0, \end{array} \right.
      \end{equation}
-     where $M_0=${\normalfont \ttfamily [massThreshold]}, $P_0=${\normalfont \ttfamily [subsamplingRateAtThreshold]} and
-     $\alpha=${\normalfont \ttfamily [exponent]}, otherwise being pruned. Node weights are adjusted to account for this pruning.
+     where $M_0=$\source{[massThreshold]}, $P_0=$\source{[subsamplingRateAtThreshold]} and
+     $\alpha=$\source{[exponent]}, otherwise being pruned. Node weights are adjusted to account for this pruning.
 
      If, after pruning, a section of tree is branchless, the nodes along that branch can be consolidated into fewer nodes with the
-     constraint that the mass of the node increases by a fractional amount {\normalfont \ttfamily [factorMassGrowthConsolidate]}
+     constraint that the mass of the node increases by a fractional amount \source{[factorMassGrowthConsolidate]}
      relative to its child node. This avoids having very long, non-branching runs of nodes with only tiny mass differences between
-     each parent and child. If {\normalfont \ttfamily [factorMassGrowthConsolidate]}$\le 0$ no consolidation will be performed.     
+     each parent and child. If \source{[factorMassGrowthConsolidate]}$\le 0$ no consolidation will be performed.     
      !!}
      private
      class           (mergerTreeBranchingProbabilityClass), pointer :: mergerTreeBranchingProbability_ => null()

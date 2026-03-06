@@ -25,9 +25,9 @@
   <intergalacticMediumState name="intergalacticMediumStateSimple">
    <description>
     An intergalactic medium state class which implements a simple model of reionization in which the universe is assumed to be
-    fully neutral prior to the redshift given by {\normalfont \ttfamily [reionizationRedshift]} and fully ionized
-    thereafter. The temperature is given by {\normalfont \ttfamily [preReionizationTemperature]} before reionization, and
-    {\normalfont \ttfamily [reionizationTemperature]} thereafter.
+    fully neutral prior to the redshift given by \source{[reionizationRedshift]} and fully ionized
+    thereafter. The temperature is given by \source{[preReionizationTemperature]} before reionization, and
+    \source{[reionizationTemperature]} thereafter.
    </description>
   </intergalacticMediumState>
   !!]

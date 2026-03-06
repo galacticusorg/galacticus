@@ -54,7 +54,7 @@ module Cooling_Functions
     <argument>class           (radiationFieldClass), intent(inout) :: radiation</argument>
    </method>
    <method name="coolingFunctionFractionInBand" >
-    <description>Return the fraction of the total cooling function due to emission in the the given energy range, specified by {\normalfont \ttfamily energyLow} and {\normalfont \ttfamily energyHigh} (in units of keV).</description>
+    <description>Return the fraction of the total cooling function due to emission in the the given energy range, specified by \source{energyLow} and \source{energyHigh} (in units of keV).</description>
     <type>double precision</type>
     <pass>yes</pass>
     <argument>type            (treeNode           ), intent(inout) :: node</argument>

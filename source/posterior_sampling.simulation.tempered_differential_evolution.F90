@@ -26,24 +26,24 @@
   !![
   <posteriorSampleSimulation name="posteriorSampleSimulationTemperedDffrntlEvltn">
    <description>
-    This class extends the {\normalfont \ttfamily differentialEvolution} option to include tempering during which the likelihood
+    This class extends the \source{differentialEvolution} option to include tempering during which the likelihood
     function is heated up and cooled down to allow chains to more easily walk through the likelihood landscape. In addition to the
-    options for the {\normalfont \ttfamily differentialEvolution} algorithm, the details of the algorithm are controlled by the
+    options for the \source{differentialEvolution} algorithm, the details of the algorithm are controlled by the
     following sub-parameters:
     \begin{description}
-    \item[{\normalfont \ttfamily [untemperedStepCount]}] The number of untempered (i.e. $T=1$) steps to take between tempering cycles.
-    \item[{\normalfont \ttfamily [temperatureMaximum]}] The maximum temperature to use when tempering.
-    \item[{\normalfont \ttfamily [temperedLevels]}] The number of tempered levels to use.
-    \item[{\normalfont \ttfamily [stepsPerLevel]}] The number of differential evolution steps to take at each tempering level.
-    \item[{\normalfont \ttfamily [logFlushCount]}] The number of steps after which the log file will be flushed to disk.
+    \item[\source{[untemperedStepCount]}] The number of untempered (i.e. $T=1$) steps to take between tempering cycles.
+    \item[\source{[temperatureMaximum]}] The maximum temperature to use when tempering.
+    \item[\source{[temperedLevels]}] The number of tempered levels to use.
+    \item[\source{[stepsPerLevel]}] The number of differential evolution steps to take at each tempering level.
+    \item[\source{[logFlushCount]}] The number of steps after which the log file will be flushed to disk.
     \end{description}
     
-    In each tempering cycle, the temperature is raised through levels $1$\ldots$N$ (where $N=${\normalfont \ttfamily temperedLevels}),
+    In each tempering cycle, the temperature is raised through levels $1$\ldots$N$ (where $N=$\source{temperedLevels}),
     and then back down through levels $N-1$\ldots$1$. The temperature at level $i$ is given by:
     \begin{equation}
     \log T_i = {i \over N} \log T_\mathrm{max},
     \end{equation}
-    where $T_\mathrm{max}=${\normalfont \ttfamily temperatureMaximum}. During tempered steps, the $\gamma$ parameter of the
+    where $T_\mathrm{max}=$\source{temperatureMaximum}. During tempered steps, the $\gamma$ parameter of the
     differential evolution algorithm is increased by a factor $T^\alpha$, where $\alpha$ is provided by the {\normalfont \ttfamily
     proposalSizeTemperatureExponent} class. A value of $\alpha=1/2$ is optimal for a Gaussian likelihood.
    </description>

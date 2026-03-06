@@ -28,47 +28,47 @@
   <outputAnalysis name="outputAnalysisStellarVsHaloMassRelation">
     <description>
       A stellar vs. halo mass relation output analysis class. Target data is read from an \gls{hdf5} file specified by the
-      {\normalfont \ttfamily [fileNameTarget]} parameter. This file must contain one or more groups named {\normalfont \ttfamily
-      redshiftIntervalN} where {\normalfont \ttfamily N} is an integer. Each such group specifies the stellar mass--halo mass
+      \source{[fileNameTarget]} parameter. This file must contain one or more groups named {\normalfont \ttfamily
+      redshiftIntervalN} where \source{N} is an integer. Each such group specifies the stellar mass--halo mass
       relation in one redshift interval, and must contain the following datasets and attributes:
       \begin{itemize}
-       \item dataset {\normalfont \ttfamily massHalo}: halo mass in units of $\mathrm{M}_\odot$;
-       \item dataset {\normalfont \ttfamily massStellar}: stellar mass in units of $\mathrm{M}_\odot$;
-       \item dataset {\normalfont \ttfamily massStellarError}: uncertainty in stellar mass in units of $\mathrm{M}_\odot$;
-       \item dataset {\normalfont \ttfamily massStellarScatter}: scatter in stellar mass in units of dex;
-       \item dataset {\normalfont \ttfamily massStellarScatterError}: uncertainty in scatter in stellar mass in units of dex;
-       \item attribute {\normalfont \ttfamily redshiftMinimum}: the minimum redshift associated with this redshift interval;
-       \item attribute {\normalfont \ttfamily redshiftMaximum}: the maximum redshift associated with this redshift interval.
+       \item dataset \source{massHalo}: halo mass in units of $\mathrm{M}_\odot$;
+       \item dataset \source{massStellar}: stellar mass in units of $\mathrm{M}_\odot$;
+       \item dataset \source{massStellarError}: uncertainty in stellar mass in units of $\mathrm{M}_\odot$;
+       \item dataset \source{massStellarScatter}: scatter in stellar mass in units of dex;
+       \item dataset \source{massStellarScatterError}: uncertainty in scatter in stellar mass in units of dex;
+       \item attribute \source{redshiftMinimum}: the minimum redshift associated with this redshift interval;
+       \item attribute \source{redshiftMaximum}: the maximum redshift associated with this redshift interval.
       \end{itemize}
-      While not required, it is recommended that each of these datasets has attributes {\normalfont \ttfamily description} and
-      {\normalfont \ttfamily unitsInSI} that provide a description of the dataset, and the multiplicative factor needed to convert
+      While not required, it is recommended that each of these datasets has attributes \source{description} and
+      \source{unitsInSI} that provide a description of the dataset, and the multiplicative factor needed to convert
       them to SI standard units, respectively.
 
-      Additionally, the file must contain a {\normalfont \ttfamily cosmology} group that specifies the cosmological model assumed
+      Additionally, the file must contain a \source{cosmology} group that specifies the cosmological model assumed
       in constructing the dataset, and which has attributes:
       \begin{itemize}
-       \item {\normalfont \ttfamily OmegaMatter}: the matter density in units of the critical density, $\Omega_\mathrm{M}$;
-       \item {\normalfont \ttfamily OmegaDarkEnergy}: the dark energy density in units of the critical density, $\Omega_\Lambda$;
-       \item {\normalfont \ttfamily OmegaBaryon}: the baryon density in units of the critical density, $\Omega_\mathrm{b}$;
-       \item {\normalfont \ttfamily HubbleConstant}: the Hubble constant in units of km/s/Mpc.
+       \item \source{OmegaMatter}: the matter density in units of the critical density, $\Omega_\mathrm{M}$;
+       \item \source{OmegaDarkEnergy}: the dark energy density in units of the critical density, $\Omega_\Lambda$;
+       \item \source{OmegaBaryon}: the baryon density in units of the critical density, $\Omega_\mathrm{b}$;
+       \item \source{HubbleConstant}: the Hubble constant in units of km/s/Mpc.
       \end{itemize}
 
-      The file must have an attribute {\normalfont \ttfamily haloMassDefinition} which specifies the halo mass definition assumed
+      The file must have an attribute \source{haloMassDefinition} which specifies the halo mass definition assumed
       in constructing the dataset. Allowed values are:
       \begin{itemize}
-       \item {\normalfont \ttfamily `spherical collapse'} or {\normalfont \ttfamily `virial'}: halos are defined as have mean
+       \item \source{`spherical collapse'} or \source{`virial'}: halos are defined as have mean
              density contrasts given by spherical collapse calculations, e.g. \cite{percival_cosmological_2005};
-       \item {\normalfont \ttfamily `Bryan \&amp; Norman (1998)'}: halos are defined as have mean density contrasts given by the
+       \item \source{`Bryan \&amp; Norman (1998)'}: halos are defined as have mean density contrasts given by the
              fitting formula of \cite{bryan_statistical_1998};
-       \item {\normalfont \ttfamily `X * mean density'}: halos are defined as having mean densities equal to ;{\normalfont
+       \item \source{`X * mean density'}: halos are defined as having mean densities equal to ;{\normalfont
              \ttfamily X} times the mean density of the universe;
-       \item {\normalfont \ttfamily `X * critical density'}: halos are defined as having mean densities equal to ;{\normalfont
+       \item \source{`X * critical density'}: halos are defined as having mean densities equal to ;{\normalfont
              \ttfamily X} times the critical density of the universe;
       \end{itemize}
       Lastly, the file must have two attributes used to identify and level the dataset:
       \begin{itemize}
-       \item {\normalfont \ttfamily label}: a space-free label that will be appended to the analysis group in the output, e.g. {\normalfont \ttfamily Leauthaud2012};
-       \item {\normalfont \ttfamily reference}: a reference for the dataset suitable for inclusion in figures, e.g. {\normalfont \ttfamily Leauthaud et al. (2012)}.
+       \item \source{label}: a space-free label that will be appended to the analysis group in the output, e.g. \source{Leauthaud2012};
+       \item \source{reference}: a reference for the dataset suitable for inclusion in figures, e.g. \source{Leauthaud et al. (2012)}.
       \end{itemize}
     </description>
   </outputAnalysis>
@@ -161,7 +161,7 @@ contains
 	      \begin{itemize}
 	      \item \emph{not present}: all bins are included in the likelihood calculation;
 	      \item \emph{list of integers}: use only the mass bin(s) given in this list in the likelihood calculation;
-	      \item {\normalfont \ttfamily auto}: use only bins which have a non-zero number of halos contributing to them in the likelihood calculation.
+	      \item \source{auto}: use only bins which have a non-zero number of halos contributing to them in the likelihood calculation.
 	      \end{itemize}
 	    </description>
 	  </inputParameter>
@@ -724,7 +724,7 @@ contains
 
   subroutine stellarVsHaloMassRelationReduce(self,reduced)
     !!{
-    Implement reduction for the {\normalfont \ttfamily stellarVsHaloMassRelation} output analysis class.
+    Implement reduction for the \source{stellarVsHaloMassRelation} output analysis class.
     !!}
     use :: Error, only : Error_Report
     implicit none
@@ -742,7 +742,7 @@ contains
 
   subroutine stellarVsHaloMassRelationFinalize(self,groupName)
     !!{
-    Implement a {\normalfont \ttfamily stellarVsHaloMassRelation} output analysis finalization.
+    Implement a \source{stellarVsHaloMassRelation} output analysis finalization.
     !!}
     use :: Output_HDF5, only : outputFile
     use :: HDF5_Access, only : hdf5Access
@@ -775,7 +775,7 @@ contains
 
   double precision function stellarVsHaloMassRelationLogLikelihood(self) result(logLikelihood)
     !!{
-    Return the log-likelihood of a {\normalfont \ttfamily stellarVsHaloMassRelation} output analysis.
+    Return the log-likelihood of a \source{stellarVsHaloMassRelation} output analysis.
     !!}
     use :: Error                       , only : Error_Report
     use :: Linear_Algebra              , only : assignment(=), matrix, operator(*), vector

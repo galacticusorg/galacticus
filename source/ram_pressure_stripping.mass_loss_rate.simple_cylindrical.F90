@@ -37,8 +37,8 @@
     selected hot halo ram pressure force method; see \refPhysics{hotHaloRamPressureForce}), $\Sigma_\mathrm{gas}(r)$ is the gas
     surface density in the disk, $\Sigma_\mathrm{total}(r)$ is the total surface density in the disk, $r_\mathrm{half}$ is the
     disk half-mass radius, $M_\mathrm{gas, disk}$ is the total gas mass in the disk, $\tau_\mathrm{dyn, disk} =
-    r_\mathrm{disk}/v_\mathrm{disk}$ is the dynamical time in the disk, $\beta=${\normalfont \ttfamily [beta]} scales the rate of
-    mass loss, and $R_\mathrm{maximum}=${\normalfont \ttfamily [rateFractionalMaximum]} controls the maximum allowed rate of mass
+    r_\mathrm{disk}/v_\mathrm{disk}$ is the dynamical time in the disk, $\beta=$\source{[beta]} scales the rate of
+    mass loss, and $R_\mathrm{maximum}=$\source{[rateFractionalMaximum]} controls the maximum allowed rate of mass
     loss.
    </description>
   </ramPressureStripping>

@@ -38,13 +38,13 @@ module Cooling_Times_Available
    </description>
    <default>whiteFrenk1991</default>
    <method name="timeAvailable" >
-    <description>Return the time available for cooling in {\normalfont \ttfamily node} in units of Gyr.</description>
+    <description>Return the time available for cooling in \source{node} in units of Gyr.</description>
     <type>double precision</type>
     <pass>yes</pass>
     <argument>type(treeNode), intent(inout) :: node</argument>
    </method>
    <method name="timeAvailableIncreaseRate" >
-    <description>Return the rate at which the time available for cooling increases in {\normalfont \ttfamily node} (dimensionless).</description>
+    <description>Return the rate at which the time available for cooling increases in \source{node} (dimensionless).</description>
     <type>double precision</type>
     <pass>yes</pass>
     <argument>type(treeNode), intent(inout) :: node</argument>

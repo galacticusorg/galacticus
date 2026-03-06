@@ -34,8 +34,8 @@
    <description>
      A node operator that inserts an empirical model of the formation history of a galaxy. Mass evolution is modeled using the
      \textsc{UniverseMachine} \citep{behroozi_universemachine_2019} correlation between galaxy growth and dark matter halo
-     assembly. The \textsc{UniverseMachine} fits are used only for redshifts less than {\normalfont \ttfamily [redshiftMaximum]},
-     and for halo masses above {\normalfont \ttfamily [massHaloMinimum]}. Outside of those ranges, no galaxy is inserted.
+     assembly. The \textsc{UniverseMachine} fits are used only for redshifts less than \source{[redshiftMaximum]},
+     and for halo masses above \source{[massHaloMinimum]}. Outside of those ranges, no galaxy is inserted.
    </description>
    <deepCopy>
     <functionClass variables="virialDensityContrastDefinition_"/>
@@ -47,7 +47,7 @@
   !!]
   type, extends(nodeOperatorClass) :: nodeOperatorEmpiricalGalaxyUniverseMachine
      !!{     
-     A {\normalfont \ttfamily nodeOperator} class that inserts an empirical model of the formation history of a galaxy.  At each
+     A \source{nodeOperator} class that inserts an empirical model of the formation history of a galaxy.  At each
      time step and during mergers, the mass of the central galaxy is computed using the stellar mass--halo mass relation using
      \textsc{UniverseMachine} \citep{behroozi_universemachine_2019} fits.
      !!}

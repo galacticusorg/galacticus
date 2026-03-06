@@ -33,7 +33,7 @@
        \item The stellar/gas mass of te host/satellite galaxy;
        \item The time at which the merger occurred.
       \end{description}
-      Two \refClass{galacticFilterClass}es are accepted, via parameters {\normalfont \ttfamily [galacticFilterSatellite]} and {\normalfont
+      Two \refClass{galacticFilterClass}es are accepted, via parameters \source{[galacticFilterSatellite]} and {\normalfont
       \ttfamily [galacticFilterCentral]} which can be used to control which galaxies are included in the output.
   </description>
   </nodeOperator>

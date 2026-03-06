@@ -143,7 +143,7 @@ contains
 
   subroutine outputSelectorInitialize(self)
     !!{
-    Initialize a {\normalfont \ttfamily outputSelector} object with the list of times to select.
+    Initialize a \source{outputSelector} object with the list of times to select.
     !!}
     use, intrinsic :: ISO_C_Binding, only : c_size_t
     implicit none
@@ -176,7 +176,7 @@ contains
 
   logical function outputSelectorTimeMatches(self,time) result(matches)
     !!{
-    Return true if the given {\normalfont \ttfamily time} matches a time for which we should extract properties.
+    Return true if the given \source{time} matches a time for which we should extract properties.
     !!}
     use :: Numerical_Comparison, only : Values_Agree
     implicit none

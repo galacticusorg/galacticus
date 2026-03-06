@@ -256,7 +256,7 @@ contains
 
   double precision function betaProfileDensity(self,coordinates)
     !!{
-    Return the density at the specified {\normalfont \ttfamily coordinates} in a $\beta$-profile mass distribution.
+    Return the density at the specified \source{coordinates} in a $\beta$-profile mass distribution.
     !!}
     implicit none
     class           (massDistributionBetaProfile ), intent(inout) :: self
@@ -275,7 +275,7 @@ contains
 
   double precision function betaProfileDensityGradientRadial(self,coordinates,logarithmic)
     !!{
-    Return the density at the specified {\normalfont \ttfamily coordinates} in a $\beta$-profile mass distribution.
+    Return the density at the specified \source{coordinates} in a $\beta$-profile mass distribution.
     !!}
     implicit none
     class           (massDistributionBetaProfile ), intent(inout), target   :: self
@@ -317,7 +317,7 @@ contains
 
   double precision function betaProfileMassEnclosedBySphere(self,radius)
     !!{
-    Computes the mass enclosed within a sphere of given {\normalfont \ttfamily radius} for $\beta$-profile mass distributions. Result computed
+    Computes the mass enclosed within a sphere of given \source{radius} for $\beta$-profile mass distributions. Result computed
     using \href{http://www.wolframalpha.com/input/?i=integrate+4*pi*r^2*rho\%2F\%281\%2Br^2\%29^\%283*beta\%2F2\%29}{Wolfram Alpha}.
     !!}
     use :: Hypergeometric_Functions, only : Hypergeometric_2F1
@@ -391,7 +391,7 @@ contains
 
   double precision function betaProfilePotential(self,coordinates,status)
     !!{
-    Return the potential at the specified {\normalfont \ttfamily coordinates} in a $\beta$-profile mass distribution. Calculated using
+    Return the potential at the specified \source{coordinates} in a $\beta$-profile mass distribution. Calculated using
     \href{http://www.wolframalpha.com/input/?i=integrate+4\%2F3+\%CF\%80+r+\%CF\%81+2F1\%283\%2F2\%2C+\%283+\%CE\%B2\%29\%2F2\%2C+5\%2F2\%2C+-r^2\%29}{Wolfram
     Alpha}.
     !!}

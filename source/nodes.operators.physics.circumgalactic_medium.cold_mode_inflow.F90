@@ -78,7 +78,7 @@ contains
     <inputParameter>
       <name>coolingFrom</name>
       <defaultValue>var_str('currentNode')</defaultValue>
-      <description>Specifies whether the angular momentum of cooling gas should be computed from the {\normalfont \ttfamily currentNode} or the {\normalfont \ttfamily formationNode}.</description>
+      <description>Specifies whether the angular momentum of cooling gas should be computed from the \source{currentNode} or the \source{formationNode}.</description>
       <source>parameters</source>
       <variable>coolingFrom</variable>
     </inputParameter>

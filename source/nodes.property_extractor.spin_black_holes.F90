@@ -98,7 +98,7 @@ contains
 
   subroutine spinBlackHolesNames(self,names)
     !!{
-    Return the names of the {\normalfont \ttfamily spinBlackHoles} properties.
+    Return the names of the \source{spinBlackHoles} properties.
     !!}
     implicit none
     class(nodePropertyExtractorSpinBlackHoles), intent(inout)                             :: self
@@ -112,7 +112,7 @@ contains
 
   subroutine spinBlackHolesDescriptions(self,descriptions)
     !!{
-    Return the descriptions of the {\normalfont \ttfamily spinBlackHoles} properties.
+    Return the descriptions of the \source{spinBlackHoles} properties.
     !!}
     implicit none
     class(nodePropertyExtractorSpinBlackHoles), intent(inout)                             :: self
@@ -126,7 +126,7 @@ contains
 
   function spinBlackHolesUnitsInSI(self) result(unitsInSI)
     !!{
-    Return the units of the {\normalfont \ttfamily spinBlackHoles} properties in the SI system.
+    Return the units of the \source{spinBlackHoles} properties in the SI system.
     !!}
     implicit none
     double precision                                     , dimension(:) , allocatable :: unitsInSI

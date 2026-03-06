@@ -32,7 +32,7 @@
      \begin{equation}
        x=\frac{r-r_\mathrm{min}}{r_\mathrm{max}-r_\mathrm{min}},
      \end{equation}
-     $\rho^\prime(r)$ is some other density profile, $r_\mathrm{min}=${\normalfont \ttfamily [radiusTruncateMinimum]}, and  $r_\mathrm{max}=${\normalfont \ttfamily [radiusTruncateMaximum]}.
+     $\rho^\prime(r)$ is some other density profile, $r_\mathrm{min}=$\source{[radiusTruncateMinimum]}, and  $r_\mathrm{max}=$\source{[radiusTruncateMaximum]}.
    </description>
   </massDistribution>
   !!]
@@ -198,7 +198,7 @@ contains
 
   double precision function sphericalTruncatedDensity(self,coordinates) result(density)
     !!{
-    Return the density at the specified {\normalfont \ttfamily coordinates} in a scaled spherical mass distribution.
+    Return the density at the specified \source{coordinates} in a scaled spherical mass distribution.
     !!}
     implicit none
     class           (massDistributionSphericalTruncated), intent(inout) :: self
@@ -213,7 +213,7 @@ contains
 
   double precision function sphericalTruncatedDensityGradientRadial(self,coordinates,logarithmic) result(densityGradient)
     !!{
-    Return the density at the specified {\normalfont \ttfamily coordinates} in a truncated spherical mass distribution.
+    Return the density at the specified \source{coordinates} in a truncated spherical mass distribution.
     !!}
     implicit none
     class           (massDistributionSphericalTruncated), intent(inout), target   :: self
@@ -252,7 +252,7 @@ contains
   
   double precision function sphericalTruncatedMassEnclosedBySphere(self,radius) result(mass)
     !!{
-    Computes the mass enclosed within a sphere of given {\normalfont \ttfamily radius} for truncated mass distributions.
+    Computes the mass enclosed within a sphere of given \source{radius} for truncated mass distributions.
     !!}
     implicit none
     class           (massDistributionSphericalTruncated), intent(inout), target :: self

@@ -110,7 +110,7 @@ contains
 
   double precision function standardPower(self,wavenumber,time)
     !!{
-    Return the cosmological power spectrum for $k=${\normalfont \ttfamily wavenumber} [Mpc$^{-1}$].
+    Return the cosmological power spectrum for $k=$\source{wavenumber} [Mpc$^{-1}$].
     !!}
     implicit none
     class           (powerSpectrumStandard), intent(inout) :: self
@@ -137,7 +137,7 @@ contains
 
   double precision function standardPowerDimensionless(self,wavenumber,time)
     !!{
-    Return the dimensionless power spectrum, $\Delta^2(k)$, for $k=${\normalfont \ttfamily wavenumber} [Mpc$^{-1}$].
+    Return the dimensionless power spectrum, $\Delta^2(k)$, for $k=$\source{wavenumber} [Mpc$^{-1}$].
     !!}
     use :: Numerical_Constants_Math, only : Pi
     implicit none

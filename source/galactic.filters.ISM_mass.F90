@@ -25,7 +25,7 @@ Implements a galactic high-pass filter for total ISM mass.
   <galacticFilter name="galacticFilterISMMass">
    <description>
    A galactic high-pass filter for ISM mass. Galaxies with a combined disk plus spheroid ISM mass greater than or equal
-   to a fixed threshold, $M_\mathrm{ISM,0}=${\normalfont \ttfamily [massThreshold]}.
+   to a fixed threshold, $M_\mathrm{ISM,0}=$\source{[massThreshold]}.
    </description>
   </galacticFilter>
   !!]

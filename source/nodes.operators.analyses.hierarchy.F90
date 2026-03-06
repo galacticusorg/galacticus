@@ -291,7 +291,7 @@ contains
 
   subroutine hierarchyNodePromote(self,node)
     !!{
-    Ensure that {\normalfont \ttfamily node} is ready for promotion to its parent.
+    Ensure that \source{node} is ready for promotion to its parent.
     !!}
     use :: Galacticus_Nodes, only : nodeComponentBasic
     implicit none

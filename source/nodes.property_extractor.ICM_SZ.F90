@@ -35,10 +35,10 @@ Implements an intracluster medium Sunyaev-Zeldovich Compton-y parameter property
     \end{equation}
     where $D_\mathrm{A}$ is the angular diameter distance to the halo, and the result is expressed in units of square
     arcminutes. The angular diameter distance is, by default, computed from the epoch of the halo. Alternatively, a fixed
-    angular diameter distance can be specified via the {\normalfont \ttfamily [distanceAngular]} parameter. The outer radius,
+    angular diameter distance can be specified via the \source{[distanceAngular]} parameter. The outer radius,
     $R_\mathrm{out}$, is either the halo virial radius (by default), or the radius enclosing the density contrast specified by
-    the optional {\normalfont \ttfamily [densityContrast]} parameter. This density contrast is relative to either {\normalfont
-    \ttfamily mean} or {\normalfont \ttfamily critical} density as specified by the {\normalfont \ttfamily
+    the optional \source{[densityContrast]} parameter. This density contrast is relative to either {\normalfont
+    \ttfamily mean} or \source{critical} density as specified by the {\normalfont \ttfamily
     densityContrastRelativeTo} parameter.
    </description>
    <deepCopy>
@@ -112,7 +112,7 @@ contains
        </inputParameter>
        <inputParameter>
          <name>densityContrastRelativeTo</name>
-         <description>The density ({\normalfont \ttfamily mean} or {\normalfont \ttfamily critical}) used in defining the density contrast.</description>
+         <description>The density (\source{mean} or \source{critical}) used in defining the density contrast.</description>
          <source>parameters</source>
          <defaultValue>var_str('mean')</defaultValue>
        </inputParameter>

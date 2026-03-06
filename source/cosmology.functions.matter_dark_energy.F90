@@ -41,7 +41,7 @@
    <description>
     Cosmological relations are computed assuming a universe that contains only collisionless matter and dark energy with an
     equation of state $w(a)=w_0+w_1a(1-a)$ \citep{jassal_wmap_2005}, with $w_0=${\normalfont \ttfamily
-    [darkEnergyEquationOfStateW0]}, and $w_1=${\normalfont \ttfamily [darkEnergyEquationOfStateW1]}.
+    [darkEnergyEquationOfStateW0]}, and $w_1=$\source{[darkEnergyEquationOfStateW1]}.
    </description>
   </cosmologyFunctions>
   !!]
@@ -55,7 +55,7 @@
    contains
      !![
      <methods>
-       <method description="Set a module-scope pointer to {\normalfont \ttfamily self}."                         method="targetSelf"                  />
+       <method description="Set a module-scope pointer to \source{self}."                         method="targetSelf"                  />
        <method description="Return the derivative of the dark energy exponent with respect to expansion factor." method="exponentDarkEnergyDerivative"/>
      </methods>
      !!]
@@ -237,7 +237,7 @@ contains
 
   double precision function matterDarkEnergyOmegaDarkEnergyEpochal(self,time,expansionFactor,collapsingPhase)
     !!{
-    Return the dark energy density parameter at expansion factor {\normalfont \ttfamily expansionFactor}.
+    Return the dark energy density parameter at expansion factor \source{expansionFactor}.
     !!}
     use :: Cosmology_Parameters, only : hubbleUnitsStandard
     use :: Error               , only : Error_Report
@@ -327,7 +327,7 @@ contains
 
   double precision function matterDarkEnergyHubbleParameterEpochal(self,time,expansionFactor,collapsingPhase)
     !!{
-    Returns the Hubble parameter at the request cosmological time, {\normalfont \ttfamily time}, or expansion factor, {\normalfont \ttfamily expansionFactor}.
+    Returns the Hubble parameter at the request cosmological time, \source{time}, or expansion factor, \source{expansionFactor}.
     !!}
     use :: Cosmology_Parameters, only : hubbleUnitsStandard
     use :: Error               , only : Error_Report
@@ -370,7 +370,7 @@ contains
 
   double precision function matterDarkEnergyHubbleParameterRateOfChange(self,time,expansionFactor,collapsingPhase)
     !!{
-    Returns the rate of change of the Hubble parameter at the requested cosmological time, {\normalfont \ttfamily time}, or expansion factor, {\normalfont \ttfamily expansionFactor}.
+    Returns the rate of change of the Hubble parameter at the requested cosmological time, \source{time}, or expansion factor, \source{expansionFactor}.
     !!}
     implicit none
     class           (cosmologyFunctionsMatterDarkEnergy), intent(inout)           :: self
@@ -624,8 +624,8 @@ contains
 
   double precision function matterDarkEnergyExpansionFactorChange(timeStart,timeEnd,expansionFactorStart)
     !!{
-    Compute the expansion factor at time {\normalfont \ttfamily timeEnd} given an initial value {\normalfont \ttfamily
-    expansionFactorStart} at time {\normalfont \ttfamily timeStart}.
+    Compute the expansion factor at time \source{timeEnd} given an initial value {\normalfont \ttfamily
+    expansionFactorStart} at time \source{timeStart}.
     !!}
     use :: Numerical_ODE_Solvers, only : odeSolver
     implicit none
@@ -665,7 +665,7 @@ contains
 
   double precision function matterDarkEnergyTimeAtDistanceComoving(self,comovingDistance)
     !!{
-    Returns the cosmological time corresponding to given {\normalfont \ttfamily comovingDistance}.
+    Returns the cosmological time corresponding to given \source{comovingDistance}.
     !!}
     use :: Error, only : Error_Report
     implicit none
@@ -680,7 +680,7 @@ contains
 
   double precision function matterDarkEnergyDistanceComoving(self,time)
     !!{
-    Returns the comoving distance to cosmological time {\normalfont \ttfamily time}.
+    Returns the comoving distance to cosmological time \source{time}.
     !!}
     use :: Error, only : Error_Report
     implicit none

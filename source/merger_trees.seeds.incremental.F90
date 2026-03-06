@@ -70,7 +70,7 @@ contains
 
   subroutine incrementalSet(self,tree)
     !!{
-    Set the random number seed in the given {\normalfont \ttfamily tree}.
+    Set the random number seed in the given \source{tree}.
     !!}
     implicit none
     class(mergerTreeSeedsIncremental), intent(inout) :: self

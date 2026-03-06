@@ -33,7 +33,7 @@ contains
 
   subroutine Event_Halo_Formation(node)
     !!{
-    Perform tasks associated with a ``halo formation'' event in {\normalfont \ttfamily node}.
+    Perform tasks associated with a ``halo formation'' event in \source{node}.
     !!}
     use :: Galacticus_Nodes, only : treeNode
     implicit none

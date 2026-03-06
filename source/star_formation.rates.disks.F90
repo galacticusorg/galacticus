@@ -35,7 +35,7 @@ module Star_Formation_Rates_Disks
    <description>Class providing models of rates of star formation in disks.</description>
    <default>intgrtdSurfaceDensity</default>
    <method name="rate" >
-    <description>Returns the rate (in units of $\mathrm{M}_\odot$ Gyr$^{-1}$) for star formation in the disk component of {\normalfont \ttfamily node}.</description>
+    <description>Returns the rate (in units of $\mathrm{M}_\odot$ Gyr$^{-1}$) for star formation in the disk component of \source{node}.</description>
     <type>double precision</type>
     <pass>yes</pass>
     <selfTarget>yes</selfTarget>

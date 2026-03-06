@@ -122,7 +122,7 @@ contains
 
   double precision function solitonKinematicsVelocityDispersion1D(self,coordinates,massDistribution_,massDistributionEmbedding) result(velocityDispersion)
     !!{
-    Return the 1D velocity dispersion at the specified {\normalfont \ttfamily coordinates} in a soliton kinematic distribution.
+    Return the 1D velocity dispersion at the specified \source{coordinates} in a soliton kinematic distribution.
     !!}
     use :: Error      , only : Error_Report
     use :: Coordinates, only : coordinateSpherical, assignment(=)

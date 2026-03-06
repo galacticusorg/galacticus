@@ -58,7 +58,7 @@ contains
 
   function heatedMonotonicConstructorParameters(parameters) result(self)
     !!{
-    Default constructor for the {\normalfont \ttfamily heatedMonotonic} dark matter halo profile class.
+    Default constructor for the \source{heatedMonotonic} dark matter halo profile class.
     !!}
     use :: Mass_Distributions, only : enumerationNonAnalyticSolversEncode
     use :: Input_Parameters  , only : inputParameter, inputParameters
@@ -76,7 +76,7 @@ contains
       <name>nonAnalyticSolver</name>
       <defaultValue>var_str('fallThrough')</defaultValue>
       <source>parameters</source>
-      <description>Selects how solutions are computed when no analytic solution is available. If set to ``{\normalfont \ttfamily fallThrough}'' then the solution ignoring heating is used, while if set to ``{\normalfont \ttfamily numerical}'' then numerical solvers are used to find solutions.</description>
+      <description>Selects how solutions are computed when no analytic solution is available. If set to ``\source{fallThrough}'' then the solution ignoring heating is used, while if set to ``\source{numerical}'' then numerical solvers are used to find solutions.</description>
     </inputParameter>
     <inputParameter>
       <name>toleranceRelativeVelocityDispersion</name>
@@ -143,7 +143,7 @@ contains
 
   function heatedMonotonicGet(self,node,weightBy,weightIndex) result(massDistribution_)
     !!{
-    Return the dark matter mass distribution for the given {\normalfont \ttfamily node}.
+    Return the dark matter mass distribution for the given \source{node}.
     !!}
     use :: Galactic_Structure_Options, only : componentTypeDarkHalo                   , massTypeDark                       , weightByMass
     use :: Mass_Distributions        , only : massDistributionSphericalHeatedMonotonic, kinematicsDistributionCollisionless, massDistributionSpherical, massDistributionHeatingClass

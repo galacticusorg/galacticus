@@ -65,7 +65,7 @@ contains
 
   double precision function darkMatterProfileShapeParameterExtract(self,node,instance)
     !!{
-    Implement a {\normalfont \ttfamily darkMatterProfileShapeParameter} output analysis.
+    Implement a \source{darkMatterProfileShapeParameter} output analysis.
     !!}
     use :: Galacticus_Nodes, only : nodeComponentDarkMatterProfile, treeNode
     implicit none
@@ -83,7 +83,7 @@ contains
 
   function darkMatterProfileShapeParameterName(self)
     !!{
-    Return the name of the {\normalfont \ttfamily darkMatterProfileShapeParameter} property.
+    Return the name of the \source{darkMatterProfileShapeParameter} property.
     !!}
     implicit none
     type (varying_string                                      )                :: darkMatterProfileShapeParameterName
@@ -96,7 +96,7 @@ contains
 
   function darkMatterProfileShapeParameterDescription(self)
     !!{
-    Return a description of the {\normalfont \ttfamily darkMatterProfileShapeParameter} property.
+    Return a description of the \source{darkMatterProfileShapeParameter} property.
     !!}
     implicit none
     type (varying_string                                      )                :: darkMatterProfileShapeParameterDescription

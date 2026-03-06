@@ -30,9 +30,9 @@
    <description>
     A merger tree operator which computes the cladistic information content
     \cite{thorley_information_1998} of merger trees. This is output to a group in the output
-    file with name specified by the {\normalfont \ttfamily [outputGroupName]} parameter. Two
-    datasets are written to this group: {\normalfont \ttfamily treeIndex} which gives the
-    index of each tree, and {\normalfont \ttfamily informationContent} which gives the
+    file with name specified by the \source{[outputGroupName]} parameter. Two
+    datasets are written to this group: \source{treeIndex} which gives the
+    index of each tree, and \source{informationContent} which gives the
     cladistic information content in units of bits.
   </description>
   </mergerTreeOperator>

@@ -289,7 +289,7 @@ contains
   
   recursive subroutine XML_Get_Elements_By_Tag_Name(xmlElement,tagName,elements)
     !!{
-    Return a list of pointers to all nodes matching a given {\normalfont \ttfamily tagName}.
+    Return a list of pointers to all nodes matching a given \source{tagName}.
     !!}
     use, intrinsic :: ISO_C_Binding, only : c_size_t
     use            :: FoX_DOM      , only : Element_Node, getFirstChild, getNextSibling, getNodeName , &
@@ -341,7 +341,7 @@ contains
   
   recursive function XML_Count_Elements_By_Tag_Name(xmlElement,tagName) result(countElements)
     !!{
-    Return a count of all nodes matching a given {\normalfont \ttfamily tagName}.
+    Return a count of all nodes matching a given \source{tagName}.
     !!}
     use, intrinsic :: ISO_C_Binding, only : c_size_t
     use            :: FoX_DOM      , only : Element_Node, getFirstChild, getNextSibling, getNodeName, &
@@ -381,7 +381,7 @@ contains
 
   function XML_Get_First_Element_By_Tag_Name(xmlElement,tagName,directChildrenOnly) result(element)
     !!{
-    Return a pointer to the first node in an XML node that matches the given {\normalfont \ttfamily tagName}.
+    Return a pointer to the first node in an XML node that matches the given \source{tagName}.
     !!}
     use :: FoX_dom, only : getParentNode, node
     use :: Error  , only : Error_Report
@@ -439,7 +439,7 @@ contains
 
   logical function XML_Path_Exists(xmlElement,path)
     !!{
-    Return true if the supplied {\normalfont \ttfamily path} exists in the supplied {\normalfont \ttfamily xmlElement}.
+    Return true if the supplied \source{path} exists in the supplied \source{xmlElement}.
     !!}
     use :: FoX_dom, only : ELEMENT_NODE , getElementsByTagName, getLength, getNodeType, &
           &                getParentNode, node
@@ -487,7 +487,7 @@ contains
 
   subroutine XML_Extrapolation_Element_Decode(extrapolationElement,limitType,extrapolationMethod,allowedMethods)
     !!{
-    Extracts information from a standard XML {\normalfont \ttfamily extrapolationElement}. Optionally a set of {\normalfont \ttfamily allowedMethods} can be
+    Extracts information from a standard XML \source{extrapolationElement}. Optionally a set of \source{allowedMethods} can be
     specified---if the extracted method does not match one of these an error is issued.
     !!}
     use :: FoX_dom     , only : extractDataContent                , node

@@ -75,7 +75,7 @@ contains
     <inputParameter>
       <name>factorBoost</name>
       <defaultValue>1.0d0</defaultValue>
-      <description>The factor by which to boost satellite tidal fields in the {\normalfont \ttfamily sphericalSymmetry} tidal field class.</description>
+      <description>The factor by which to boost satellite tidal fields in the \source{sphericalSymmetry} tidal field class.</description>
       <source>parameters</source>
     </inputParameter>
     <objectBuilder class="darkMatterHaloScale" name="darkMatterHaloScale_" source="parameters"/>

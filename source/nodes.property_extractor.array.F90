@@ -35,7 +35,7 @@
        <method method="columnDescriptions" description="Return a description of the columns."                               />
        <method method="size"               description="Return the number of elements in the array."                        />
        <method method="elementCount"       description="Return the number of properties in the array."                      />
-       <method method="extract"            description="Extract the properties from the given {\normalfont \ttfamily node}."/>
+       <method method="extract"            description="Extract the properties from the given \source{node}."/>
        <method method="names"              description="Return the name of the properties extracted."                       />
        <method method="descriptions"       description="Return a description of the properties extracted."                  />
        <method method="unitsInSI"          description="Return the units of the properties extracted in the SI system."     />

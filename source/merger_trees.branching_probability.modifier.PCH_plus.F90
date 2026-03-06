@@ -61,7 +61,7 @@ contains
 
   function pchPlusConstructorParameters(parameters) result(self)
     !!{
-    A constructor for the {\normalfont \ttfamily pchPlus} merger tree branching probability rate class which builds the
+    A constructor for the \source{pchPlus} merger tree branching probability rate class which builds the
     object from a parameter set.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
@@ -109,7 +109,7 @@ contains
 
   function pchPlusConstructorInternal(G0,gamma1,gamma2,gamma3,criticalOverdensity_) result(self)
     !!{
-    Default constructor for the {\normalfont \ttfamily pchPlus} merger tree branching probability rate class.
+    Default constructor for the \source{pchPlus} merger tree branching probability rate class.
     !!}
     implicit none
     type            (mergerTreeBranchingProbabilityModifierPCHPlus)                        :: self

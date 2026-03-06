@@ -98,7 +98,7 @@ contains
 
   integer function presetNamedRealsElementCount(self,time)
     !!{
-    Return the number of elements in the {\normalfont \ttfamily presetNamedReals} property extractors.
+    Return the number of elements in the \source{presetNamedReals} property extractors.
     !!}
     implicit none
     class           (nodePropertyExtractorPresetNamedReals), intent(inout) :: self
@@ -134,7 +134,7 @@ contains
 
   subroutine presetNamedRealsNames(self,time,names)
     !!{
-    Return the names of the {\normalfont \ttfamily presetNamedReals} properties.
+    Return the names of the \source{presetNamedReals} properties.
     !!}
     implicit none
     class           (nodePropertyExtractorPresetNamedReals), intent(inout)                             :: self
@@ -149,7 +149,7 @@ contains
 
   subroutine presetNamedRealsDescriptions(self,time,descriptions)
     !!{
-    Return the descriptions of the {\normalfont \ttfamily presetNamedReals} properties.
+    Return the descriptions of the \source{presetNamedReals} properties.
     !!}
     implicit none
     class           (nodePropertyExtractorPresetNamedReals), intent(inout)                             :: self
@@ -164,7 +164,7 @@ contains
 
   function presetNamedRealsUnitsInSI(self,time)
     !!{
-    Return the units of the {\normalfont \ttfamily presetNamedReals} properties in the SI system.
+    Return the units of the \source{presetNamedReals} properties in the SI system.
     !!}
     use :: Numerical_Constants_Astronomical, only : megaParsec
     use :: Numerical_Constants_Prefixes    , only : kilo

@@ -63,7 +63,7 @@ contains
 
   function zhao1996ConstructorParameters(parameters) result(self)
     !!{
-    Default constructor for the {\normalfont \ttfamily zhao1996} dark matter halo profile class.
+    Default constructor for the \source{zhao1996} dark matter halo profile class.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -117,7 +117,7 @@ contains
 
   function zhao1996Get(self,node,weightBy,weightIndex) result(massDistribution_)
     !!{
-    Return the dark matter mass distribution for the given {\normalfont \ttfamily node}.
+    Return the dark matter mass distribution for the given \source{node}.
     !!}
     use :: Galactic_Structure_Options, only : componentTypeDarkHalo   , massTypeDark                  , weightByMass
     use :: Mass_Distributions        , only : massDistributionZhao1996, kinematicsDistributionZhao1996
@@ -194,7 +194,7 @@ contains
 
   subroutine zhao1996Exponents(self,node,alpha,beta,gamma)
     !!{
-    Compute the exponents of the {\normalfont \ttfamily zhao1996} dark matter halo profile.
+    Compute the exponents of the \source{zhao1996} dark matter halo profile.
     !!}
     implicit none
     class           (darkMatterProfileDMOZhao1996  ), intent(inout) :: self
@@ -210,7 +210,7 @@ contains
   
   double precision function zhao1996ScaleRadius(self,node)
     !!{
-    Compute the scale radius of the {\normalfont \ttfamily zhao1996} dark matter halo profile.
+    Compute the scale radius of the \source{zhao1996} dark matter halo profile.
     !!}
     use :: Galacticus_Nodes, only : nodeComponentDarkMatterProfile
     implicit none
@@ -225,7 +225,7 @@ contains
 
   double precision function zhao1996Normalization(self,node)
     !!{
-    Compute the mass normalization of the {\normalfont \ttfamily zhao1996} dark matter halo profile.
+    Compute the mass normalization of the \source{zhao1996} dark matter halo profile.
     !!}
     use :: Galacticus_Nodes, only : nodeComponentBasic
     implicit none

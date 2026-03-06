@@ -36,18 +36,18 @@
     (the ratio of progenitor to parent halo mass), and at pairs of parent/progenitor
     redshifts. The following parameters control the operator:
     \begin{description}
-    \item[{\normalfont \ttfamily countMassParent}] The number of bins in parent halo mass to use;
-    \item[{\normalfont \ttfamily massParentMinimum}] The minimum parent halo mass to consider;
-    \item[{\normalfont \ttfamily massParentMaximum}] The maximum parent halo mass to consider;
-    \item[{\normalfont \ttfamily massRatioCount}] The number of bins in mass ratio to use;
-    \item[{\normalfont \ttfamily massRatioMinimum}] The minimum mass ratio to consider;
-    \item[{\normalfont \ttfamily massRatioMaximum}] The maximum mass ratio to consider;
-    \item[{\normalfont \ttfamily redshiftsParent}] A list of redshifts at which to identify parent halos;
-    \item[{\normalfont \ttfamily redshiftsProgenitor}] A corresponding list of redshifts at which to identify progenitor halos;
-    \item[{\normalfont \ttfamily depthProgenitorPrimary}] The number of $i^\mathrm{th}$ most-massive progenitor mass functions to compute (starting from the 1$^\mathrm{st}$ most-massive);
-    \item[{\normalfont \ttfamily depthHierarchySubhalo}] The maximum depth in the subhalo hierarchy for which to compute the unevolved subhalo mass function;
-    \item[{\normalfont \ttfamily fractionTimeFormationRate}] The fraction of the current time over which to estimate the formation rate of halos when computing merger tree statistics;
-    \item[{\normalfont \ttfamily nameGroupOutput}] The name of the \gls{hdf5} group to which mass functions will be written.
+    \item[\source{countMassParent}] The number of bins in parent halo mass to use;
+    \item[\source{massParentMinimum}] The minimum parent halo mass to consider;
+    \item[\source{massParentMaximum}] The maximum parent halo mass to consider;
+    \item[\source{massRatioCount}] The number of bins in mass ratio to use;
+    \item[\source{massRatioMinimum}] The minimum mass ratio to consider;
+    \item[\source{massRatioMaximum}] The maximum mass ratio to consider;
+    \item[\source{redshiftsParent}] A list of redshifts at which to identify parent halos;
+    \item[\source{redshiftsProgenitor}] A corresponding list of redshifts at which to identify progenitor halos;
+    \item[\source{depthProgenitorPrimary}] The number of $i^\mathrm{th}$ most-massive progenitor mass functions to compute (starting from the 1$^\mathrm{st}$ most-massive);
+    \item[\source{depthHierarchySubhalo}] The maximum depth in the subhalo hierarchy for which to compute the unevolved subhalo mass function;
+    \item[\source{fractionTimeFormationRate}] The fraction of the current time over which to estimate the formation rate of halos when computing merger tree statistics;
+    \item[\source{nameGroupOutput}] The name of the \gls{hdf5} group to which mass functions will be written.
     \end{description}
     If the operator finds the named \gls{hdf5} group already in existence, it will accumulate its
     mass functions to those already written to the group, weighting by the inverse of the variance
@@ -135,12 +135,12 @@
       }
     }
     \end{verbatim}
-    Where {\normalfont \ttfamily Nratio} is the number of bins in mass ratio, {\normalfont \ttfamily
-    Nparent} is the number of bins in mass ratio, {\normalfont \ttfamily Nz} is the number of
-    parent/progenitor redshift pairs, {\normalfont \ttfamily Ndepth} is the maximum depth in the
-    ranking of most-massive progenitor mass functions, {\normalfont \ttfamily Nhierarchy} is the
+    Where \source{Nratio} is the number of bins in mass ratio, {\normalfont \ttfamily
+    Nparent} is the number of bins in mass ratio, \source{Nz} is the number of
+    parent/progenitor redshift pairs, \source{Ndepth} is the maximum depth in the
+    ranking of most-massive progenitor mass functions, \source{Nhierarchy} is the
     maximum depth in the subhalo hierarchy for subhalo mass functions. The first dimension of the
-    {\normalfont \ttfamily formationRateFunction} dataset stores two different versions of the
+    \source{formationRateFunction} dataset stores two different versions of the
     formation rate function. The first uses the mass of the forming halo at the time of formation,
     the second uses the mass of the node immediately prior to it becoming a subhalo.
   
@@ -599,7 +599,7 @@ contains
 
   subroutine conditionalMFOperatePreEvolution(self,tree)
     !!{
-    Compute conditional mass function on {\normalfont \ttfamily tree}.
+    Compute conditional mass function on \source{tree}.
     !!}
     use    :: Error               , only : Error_Report
     use    :: Galacticus_Nodes    , only : mergerTree                   , nodeComponentBasic, treeNode

@@ -101,7 +101,7 @@ contains
 
   double precision function darkMatterProfileRadiusInteractionSIDMExtract(self,node,instance)
     !!{
-    Implement a {\normalfont \ttfamily darkMatterProfileRadiusInteractionSIDM} output analysis.
+    Implement a \source{darkMatterProfileRadiusInteractionSIDM} output analysis.
     !!}
     use :: Mass_Distributions, only : massDistributionSphericalSIDM, massDistributionClass
     implicit none
@@ -126,7 +126,7 @@ contains
 
   function darkMatterProfileRadiusInteractionSIDMName(self)
     !!{
-    Return the name of the {\normalfont \ttfamily darkMatterProfileRadiusInteractionSIDM} property.
+    Return the name of the \source{darkMatterProfileRadiusInteractionSIDM} property.
     !!}
     implicit none
     type (varying_string                                             )                :: darkMatterProfileRadiusInteractionSIDMName
@@ -139,7 +139,7 @@ contains
 
   function darkMatterProfileRadiusInteractionSIDMDescription(self)
     !!{
-    Return a description of the {\normalfont \ttfamily darkMatterProfileRadiusInteractionSIDM} property.
+    Return a description of the \source{darkMatterProfileRadiusInteractionSIDM} property.
     !!}
     implicit none
     type (varying_string                                             )                :: darkMatterProfileRadiusInteractionSIDMDescription
@@ -152,7 +152,7 @@ contains
 
   double precision function darkMatterProfileRadiusInteractionSIDMUnitsInSI(self)
     !!{
-    Return the units of the {\normalfont \ttfamily darkMatterProfileRadiusInteractionSIDM} property in the SI system.
+    Return the units of the \source{darkMatterProfileRadiusInteractionSIDM} property in the SI system.
     !!}
     use :: Numerical_Constants_Astronomical, only : megaParsec
     implicit none

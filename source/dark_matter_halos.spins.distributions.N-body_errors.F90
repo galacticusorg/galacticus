@@ -64,9 +64,9 @@
    contains
      !![
      <methods>
-       <method description="Return the spin distribution function averaged over all halos above the given {\normalfont \ttfamily massLimit}." method="distributionAveraged" />
+       <method description="Return the spin distribution function averaged over all halos above the given \source{massLimit}." method="distributionAveraged" />
        <method description="Return the spin distribution function at a fixed point in intrinsic mass and spin." method="distributionFixedPoint" />
-       <method description="Tabulate the spin distribution as a fuction of spin and halo mass. Ensure that the table spans the {\normalfont \ttfamily massRequired} and {\normalfont \ttfamily spinRequireed} if provided." method="tabulate" />
+       <method description="Tabulate the spin distribution as a fuction of spin and halo mass. Ensure that the table spans the \source{massRequired} and \source{spinRequireed} if provided." method="tabulate" />
      </methods>
      !!]
      final     ::                           nbodyErrorsDestructor
@@ -144,7 +144,7 @@ contains
       <source>parameters</source>
       <defaultValue>100.0d0</defaultValue>
       <defaultSource>A large range which will include (almost) the entirety of the distribution.</defaultSource>
-      <description>The multiplicative range of the log-normal distribution used to model the distribution of the mass and energy terms in the spin parameter. Specifically, the lognormal distribution is truncated outside the range $(\lambda_\mathrm{m}/R,\lambda_\mathrm{m} R$, where $\lambda_\mathrm{m}$ is the measured spin, and $R=${\normalfont \ttfamily [logNormalRange]}</description>
+      <description>The multiplicative range of the log-normal distribution used to model the distribution of the mass and energy terms in the spin parameter. Specifically, the lognormal distribution is truncated outside the range $(\lambda_\mathrm{m}/R,\lambda_\mathrm{m} R$, where $\lambda_\mathrm{m}$ is the measured spin, and $R=$\source{[logNormalRange]}</description>
     </inputParameter>
     <objectBuilder class="haloSpinDistribution"         name="distributionIntrinsic"         source="parameters"/>
     <objectBuilder class="nbodyHaloMassError"           name="nbodyHaloMassError_"           source="parameters"/>
@@ -897,7 +897,7 @@ contains
 
   double precision function nbodyErrorsDistributionAveraged(self,node,massLimit)
     !!{
-    Compute the spin distribution averaged over all halos more massive than the given {\normalfont \ttfamily massLimit}.
+    Compute the spin distribution averaged over all halos more massive than the given \source{massLimit}.
     !!}
     use :: Calculations_Resets, only : Calculations_Reset
     use :: Galacticus_Nodes   , only : nodeComponentBasic, treeNode

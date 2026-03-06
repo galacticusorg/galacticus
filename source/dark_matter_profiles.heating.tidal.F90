@@ -111,7 +111,7 @@ contains
 
   function tidalGet(self,node) result(massDistributionHeating_)
     !!{
-    Return the dark matter mass distribution heating for the given {\normalfont \ttfamily node}.
+    Return the dark matter mass distribution heating for the given \source{node}.
     !!}
     use :: Galacticus_Nodes  , only : nodeComponentSatellite
     use :: Mass_Distributions, only : massDistributionHeatingTidal

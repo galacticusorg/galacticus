@@ -83,7 +83,7 @@ contains
 
   function mostMassiveProgenitorExtract(self,node,time,instance)
     !!{
-    Implement a {\normalfont \ttfamily mostMassiveProgenitor} node property extractor.
+    Implement a \source{mostMassiveProgenitor} node property extractor.
     !!}
     use :: Galacticus_Nodes   , only : nodeComponentBasic           , treeNode
     use :: Merger_Tree_Walkers, only : mergerTreeWalkerIsolatedNodes

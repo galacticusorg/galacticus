@@ -76,7 +76,7 @@ contains
   double precision function massIndependentDTDNumber(self,initialMassFunction_,initialMass,age,metallicity) result(number)
     !!{
     Compute the cumulative number of Type Ia supernovae originating per unit interval of secondary star mass with given
-    {\normalfont \ttfamily initialMass} and {\normalfont \ttfamily metallicity} after a time {\normalfont \ttfamily age}. Here we
+    \source{initialMass} and \source{metallicity} after a time \source{age}. Here we
     assume that the total number of Type Ias is specified independent of secondary star mass.
     !!}
     implicit none

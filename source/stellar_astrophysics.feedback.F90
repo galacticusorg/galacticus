@@ -38,7 +38,7 @@ module Stellar_Feedback
    </description>
    <default>standard</default>
    <method name="energyInputCumulative" >
-    <description>Return the cumulative energy input from a stellar population of the given {\normalfont \ttfamily initialMass}, {\normalfont \ttfamily age}, and {\normalfont \ttfamily metallicity}.</description>
+    <description>Return the cumulative energy input from a stellar population of the given \source{initialMass}, \source{age}, and \source{metallicity}.</description>
     <type>double precision</type>
     <pass>yes</pass>
     <selfTarget>yes</selfTarget>

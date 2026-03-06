@@ -37,7 +37,7 @@ module Supernovae_Population_III
    </description>
    <default>hegerWoosley2002</default>
    <method name="energyCumulative" >
-    <description> Return the cumulative energy input from Population III supernovae from stars of given {\normalfont \ttfamily initialMass}, {\normalfont \ttfamily age} and {\normalfont \ttfamily metallicity}.</description>
+    <description> Return the cumulative energy input from Population III supernovae from stars of given \source{initialMass}, \source{age} and \source{metallicity}.</description>
     <type>double precision</type>
     <pass>yes</pass>
     <argument>double precision, intent(in   ) :: initialMass, age, metallicity</argument>

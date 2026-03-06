@@ -115,7 +115,7 @@ contains
       <name>whenCutOff</name>
       <defaultValue>var_str('after')</defaultValue>
       <source>parameters</source>
-      <description>Specifies whether cooling is cut off before or after {\normalfont \ttfamily [redshiftCutOff]}.</description>
+      <description>Specifies whether cooling is cut off before or after \source{[redshiftCutOff]}.</description>
     </inputParameter>
     <objectBuilder class="coolingFunction"     name="coolingFunction_"     source="parameters"/>
     <objectBuilder class="cosmologyFunctions"  name="cosmologyFunctions_"  source="parameters"/>

@@ -142,7 +142,7 @@ contains
 
   double precision function normalRootVariance(self,node,propertyValue,propertyValueIntrinsic,propertyType,propertyQuantity,outputIndex)
     !!{
-    Return the root variance for use in the {\normalfont \ttfamily normal} output analysis weight operator class.
+    Return the root variance for use in the \source{normal} output analysis weight operator class.
     !!}
     implicit none
     class           (outputAnalysisWeightOperatorNormal           ), intent(inout) :: self

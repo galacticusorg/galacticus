@@ -46,8 +46,8 @@ contains
 
   subroutine FFTLogSineTransform(r,k,f,ft,direction)
     !!{
-    Wrapper function for \hyperlink{numerical.FFTlog.F90:fftlogs:fftlog}{{\normalfont \ttfamily FFTLog()}} which performs a
-    Fourier sine transform. Since \hyperlink{numerical.FFTlog.F90:fftlogs:fftlog}{{\normalfont \ttfamily FFTLog()}} achieves
+    Wrapper function for \hyperlink{numerical.FFTlog.F90:fftlogs:fftlog}{\source{FFTLog()}} which performs a
+    Fourier sine transform. Since \hyperlink{numerical.FFTlog.F90:fftlogs:fftlog}{\source{FFTLog()}} achieves
     this by using the $J_{1/2}(x)=(2/\pi x)^{1/2} \sin(x)$ Bessel function we apply the inverse of these factors to get a sine
     transform.
     !!}
@@ -67,8 +67,8 @@ contains
   
   subroutine FFTLogCosineTransform(r,k,f,ft,direction)
     !!{
-    Wrapper function for \hyperlink{numerical.FFTlog.F90:fftlogs:fftlog}{{\normalfont \ttfamily FFTLog()}} which performs a
-    Fourier cosine transform. Since \hyperlink{numerical.FFTlog.F90:fftlogs:fftlog}{{\normalfont \ttfamily FFTLog()}} achieves
+    Wrapper function for \hyperlink{numerical.FFTlog.F90:fftlogs:fftlog}{\source{FFTLog()}} which performs a
+    Fourier cosine transform. Since \hyperlink{numerical.FFTlog.F90:fftlogs:fftlog}{\source{FFTLog()}} achieves
     this by using the $J_{1/2}(x)=(2/\pi x)^{1/2} \cos(x)$ Bessel function we apply the inverse of these factors to get a
     cosine transform.
     !!}

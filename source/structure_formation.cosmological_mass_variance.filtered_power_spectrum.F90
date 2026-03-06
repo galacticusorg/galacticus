@@ -34,7 +34,7 @@
     (see \refPhysics{transferFunction}), and $W(k)$ is the power spectrum variance window function (see
     \refPhysics{powerSpectrumWindowFunction}).
   
-    The normalization of the mass variance is specified via the {\normalfont \ttfamily [sigma\_8]} parameter, which defines the
+    The normalization of the mass variance is specified via the \source{[sigma\_8]} parameter, which defines the
     linear theory root-variance of the density field in spheres of radii $8h^{-1}$Mpc. Note that when computing the
     normalization of the power spectrum to match the specified value of $\sigma_8$ a top-hat real-space window function is
     used (as per the definition of $\sigma_8$), unless a different window function is explicitly defined via the {\normalfont
@@ -43,14 +43,14 @@
     The mass variance, $\sigma(M)$, is found by integration over the linear theory power spectrum, with the specified power
     spectrum window function. The fractional tolerance for this integration can be set via the {\normalfont \ttfamily
     [tolerance]} parameter. (The normalization of $\sigma(M)$ to give the desired $\sigma_8$ always uses a top-hat window
-    function. For this integration the tolerance can be set via the {\normalfont \ttfamily [toleranceTopHat]} parameter.) This
+    function. For this integration the tolerance can be set via the \source{[toleranceTopHat]} parameter.) This
     is tabulated across the required range.
   
     Cubic spline interpolation is then used to interpolate in this table to give $\sigma(M)$ at any required value of $M$. The
     tabulation is always forced to be monotonically decreasing with $M$. However, the interpolation is not necessarily
     monotonic---for example in cases where $\sigma(M)$ becomes constant or close to constant as a function of $M$ the
     interpolation can become non-monotonic over some ranges of $M$. If strict monotonicity is required set {\normalfont
-    \ttfamily [monotonicInterpolation]}={\normalfont \ttfamily true}. This causes a monotonic spline interpolator to be used
+    \ttfamily [monotonicInterpolation]}=\source{true}. This causes a monotonic spline interpolator to be used
     instead which guarantees monotonicity.
    </description>
   </cosmologicalMassVariance>
@@ -481,7 +481,7 @@ contains
   double precision function filteredPowerRootVarianceLogarithmicGradient(self,mass,time)
     !!{
     Return the logarithmic gradient with respect to mass of the root-variance of the cosmological density field in a spherical
-    region containing the given {\normalfont \ttfamily mass} on average.
+    region containing the given \source{mass} on average.
     !!}
     implicit none
     class           (cosmologicalMassVarianceFilteredPower), intent(inout) :: self
@@ -495,7 +495,7 @@ contains
   double precision function filteredPowerRootVarianceLogarithmicGradientTime(self,mass,time)
     !!{
     Return the logarithmic gradient with respect to time of the root-variance of the cosmological density field in a spherical
-    region containing the given {\normalfont \ttfamily mass} on average.
+    region containing the given \source{mass} on average.
     !!}
     implicit none
     class           (cosmologicalMassVarianceFilteredPower), intent(inout) :: self
@@ -528,7 +528,7 @@ contains
   subroutine filteredPowerRootVarianceAndLogarithmicGradient(self,mass,time,rootVariance,rootVarianceLogarithmicGradient)
     !!{
     Return the value and logarithmic gradient with respect to mass of the root-variance of the cosmological density field in a
-    spherical region containing the given {\normalfont \ttfamily mass} on average.
+    spherical region containing the given \source{mass} on average.
     !!}
     use :: Display                 , only : displayGreen, displayReset
     use :: Error                   , only : Error_Report
@@ -648,7 +648,7 @@ contains
 
   double precision function filteredPowerMass(self,rootVariance,time)
     !!{
-    Return the mass corresponding to the given {\normalfont \ttfamily } root-variance of the cosmological density field.
+    Return the mass corresponding to the given \source{} root-variance of the cosmological density field.
     !!}
     implicit none
     class           (cosmologicalMassVarianceFilteredPower), intent(inout) :: self
@@ -997,7 +997,7 @@ contains
 
     double precision function rootVariance(time_,useTopHat)
       !!{
-      Compute the root-variance of mass in spheres enclosing the given {\normalfont \ttfamily mass} from the power spectrum.
+      Compute the root-variance of mass in spheres enclosing the given \source{mass} from the power spectrum.
       !!}
       use, intrinsic :: ISO_C_Binding           , only : c_size_t
       use            :: Interface_GSL           , only : GSL_EBadTol      , GSL_ETol    , GSL_ERound , GSL_Success  , &

@@ -37,7 +37,7 @@
     \end{equation}
     where $M_\mathrm{sat}$ and $\mathbf{v}_\mathrm{sat}$ are the satellite's mass and velocity, respectively,
     $v_\mathrm{sat}=|\mathbf{v}_\mathrm{sat}|$, $\rho_\mathrm{host}(r)$ is the host's density profile,
-    $\ln\Lambda=${\normalfont \ttfamily [logarithmCoulomb]} is the Coulomb logarithm, and $x\equiv
+    $\ln\Lambda=$\source{[logarithmCoulomb]} is the Coulomb logarithm, and $x\equiv
     v_\mathrm{sat}/\sqrt{2}\sigma(r)$, where $\sigma(r)$ is the velocity dispersion of the host halo at radius $r$,
     approximated to be equal to the host virial velocity, $v_\mathrm{vir}$.
    </description>

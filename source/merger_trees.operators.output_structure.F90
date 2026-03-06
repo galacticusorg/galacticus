@@ -29,8 +29,8 @@
    <description>
     A merger tree operator class which dumps pre-evolution tree structure to the output file. The node properties to be
     included in the dump are controlled by a \refClass{nodePropertyExtractorClass} object provided to this class.  Structures are
-    written to a new group, {\normalfont \ttfamily mergerTreeStructures}, in the \glc\ output file. This group will contain
-    groups called {\normalfont \ttfamily mergerTreeN} where {\normalfont \ttfamily N} is the merger tree index. Each such group
+    written to a new group, \source{mergerTreeStructures}, in the \glc\ output file. This group will contain
+    groups called \source{mergerTreeN} where \source{N} is the merger tree index. Each such group
     will contain datasets corresponding to all extracted properties.
    </description>
   </mergerTreeOperator>
@@ -110,7 +110,7 @@ contains
   
   subroutine outputStructureOperatePreEvolution(self,tree)
     !!{
-    Output the structure of {\normalfont \ttfamily tree}.
+    Output the structure of \source{tree}.
     !!}
     use    :: Error                             , only : Error_Report
     use    :: Output_HDF5                       , only : outputFile

@@ -19,13 +19,13 @@
 
 !!{
 Contains a program which tests the \cite{navarro_structure_1996} halo concentration algorithm in a dark energy Universe.
-Comparisons are made to the {\normalfont \ttfamily charden} code written by Julio Navarro.
+Comparisons are made to the \source{charden} code written by Julio Navarro.
 !!}
 
 program Test_NFW96_Concentration_Dark_Energy
   !!{
   Tests the \cite{navarro_structure_1996} halo concentration algorithm in a dark energy Universe. Comparisons are made to the
-  {\normalfont \ttfamily charden} code written by Julio Navarro.
+  \source{charden} code written by Julio Navarro.
   !!}
   use :: Cosmological_Density_Field          , only : criticalOverdensitySphericalCollapseClsnlssMttrCsmlgclCnstnt, cosmologicalMassVarianceFilteredPower
   use :: Cosmology_Functions                 , only : cosmologyFunctionsMatterLambda

@@ -30,7 +30,7 @@ Implements a merger tree processing time estimator using a polynomial relation r
      \log_{10} [ \tau_\mathrm{tree}(M)] = \sum_{i=0}^2 C_i (\log_{10} M)^i,
     \end{equation}
     where $M$ is the root mass of the tree and the coefficients $C_i$ are read from a file, the name of which is specified via
-    the {\normalfont \ttfamily [fileName]} parameter. This file should be an XML document with the structure:
+    the \source{[fileName]} parameter. This file should be an XML document with the structure:
     \begin{verbatim}
     &lt;timing>
      &lt;fit>

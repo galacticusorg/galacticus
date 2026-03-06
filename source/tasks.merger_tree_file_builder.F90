@@ -52,19 +52,19 @@
     The builder is flexible, and therefore requires many parameters to control how it processes input files, all of which are
     described below.
     
-    The builder reads from an ASCII file containing one halo per line. The {\normalfont \ttfamily [property]} sub-parameters allow
+    The builder reads from an ASCII file containing one halo per line. The \source{[property]} sub-parameters allow
     specification of which properties are present in the file, and in which column. The builder can optionally also read a file of
     associated particle data---this can be used to assign positions to orphan halos if desired.
     
     The merger tree file builder can currently export in one of two formats:
     \begin{description}
-    \item [{\normalfont \ttfamily galacticus}] merger trees are exported in \glc's native format described in detail
+    \item [\source{galacticus}] merger trees are exported in \glc's native format described in detail
       \href{https://github.com/galacticusorg/galacticus/wiki/Merger-Tree-File-Format}{here};
-    \item [{\normalfont \ttfamily irate}] merger trees are exported in the \href{https://irate-format.readthedocs.io/en/stable/formatspec.html}{\normalfont
+    \item [\source{irate}] merger trees are exported in the \href{https://irate-format.readthedocs.io/en/stable/formatspec.html}{\normalfont
         \ttfamily IRATE} format.
     \end{description}
     
-    Properties to read from the file are specified through multiple {\normalfont \ttfamily property} sub-parameter sections, which take the form:
+    Properties to read from the file are specified through multiple \source{property} sub-parameter sections, which take the form:
     \begin{verbatim}
      &lt;property>
       &lt;name             value="propertyName"/>
@@ -72,8 +72,8 @@
       &lt;conversionFactor value="1.0e0"       />
      &lt;/property>
     \end{verbatim}
-    where {\normalfont \ttfamily [name]} is the property name (see below), {\normalfont \ttfamily [column]} is the column number
-    (starting from 1) from which to read the property, and the optional {\normalfont \ttfamily [conversionFactor]} specifies an
+    where \source{[name]} is the property name (see below), \source{[column]} is the column number
+    (starting from 1) from which to read the property, and the optional \source{[conversionFactor]} specifies an
     additional factor by which the property should be multiplied to place it into the correct internal units for \glc\footnote{The
       units for masses, lengths, and velocities in the input file are specified in their own parameter sub-sections. Conversion from
       these units to \glc's internal units is performed automatically. However, sometimes the input data may have inconsistent units
@@ -82,44 +82,44 @@
     
     Recognized property names are
     \begin{description}
-    \item [{\normalfont \ttfamily treeIndex}] A unique ID number for the tree to which this node belongs;
-    \item [{\normalfont \ttfamily nodeIndex}] An ID (unique within the tree) for this node;
-    \item [{\normalfont \ttfamily descendantIndex}] The ID of the node's descendant node;
-    \item [{\normalfont \ttfamily hostIndex}] The ID of the larger halo in which this node is hosted (equal to the node's own ID if
+    \item [\source{treeIndex}] A unique ID number for the tree to which this node belongs;
+    \item [\source{nodeIndex}] An ID (unique within the tree) for this node;
+    \item [\source{descendantIndex}] The ID of the node's descendant node;
+    \item [\source{hostIndex}] The ID of the larger halo in which this node is hosted (equal to the node's own ID if
     the node is self-hosting);
-    \item [{\normalfont \ttfamily redshift}] The redshift of the node;
-    \item [{\normalfont \ttfamily nodeMass}] The mass of the node;
-    \item [{\normalfont \ttfamily particleCount}] The number of particles in the node;
-    \item [{\normalfont \ttfamily positionX}] The $x$-position of the node (if present, both $y$ and $z$ components must also be
+    \item [\source{redshift}] The redshift of the node;
+    \item [\source{nodeMass}] The mass of the node;
+    \item [\source{particleCount}] The number of particles in the node;
+    \item [\source{positionX}] The $x$-position of the node (if present, both $y$ and $z$ components must also be
     present);
-    \item [{\normalfont \ttfamily positionY}] The $y$-position of the node (if present, both $x$ and $z$ components must also be
+    \item [\source{positionY}] The $y$-position of the node (if present, both $x$ and $z$ components must also be
     present);
-    \item [{\normalfont \ttfamily positionZ}] The $z$-position of the node (if present, both $x$ and $y$ components must also be
+    \item [\source{positionZ}] The $z$-position of the node (if present, both $x$ and $y$ components must also be
     present);
-    \item [{\normalfont \ttfamily velocityX}] The $x$-velocity of the node (if present, both $y$ and $z$ components must also be
+    \item [\source{velocityX}] The $x$-velocity of the node (if present, both $y$ and $z$ components must also be
     present);
-    \item [{\normalfont \ttfamily velocityY}] The $y$-velocity of the node (if present, both $x$ and $z$ components must also be
+    \item [\source{velocityY}] The $y$-velocity of the node (if present, both $x$ and $z$ components must also be
     present);
-    \item [{\normalfont \ttfamily velocityZ}] The $z$-velocity of the node (if present, both $x$ and $y$ components must also be
+    \item [\source{velocityZ}] The $z$-velocity of the node (if present, both $x$ and $y$ components must also be
     present);
-    \item [{\normalfont \ttfamily spinX}] The $x$ component of the node's spin parameter (if present, both $y$ and $z$ components must
+    \item [\source{spinX}] The $x$ component of the node's spin parameter (if present, both $y$ and $z$ components must
     also be present; cannot be present if spin magnitude is given);
-     \item [{\normalfont \ttfamily spinY}] The $y$ component of the node's spin parameter (if present, both $x$ and $z$ components
+     \item [\source{spinY}] The $y$ component of the node's spin parameter (if present, both $x$ and $z$ components
     must also be present; cannot be present if spin magnitude is given);
-     \item [{\normalfont \ttfamily spinZ}] The $z$ component of the node's spin parameter (if present, both $x$ and $y$ components
+     \item [\source{spinZ}] The $z$ component of the node's spin parameter (if present, both $x$ and $y$ components
     must also be present; cannot be present if spin magnitude is given);
-     \item [{\normalfont \ttfamily spin}] The magnitude of the node's spin parameter (cannot be present if spin vector components are
+     \item [\source{spin}] The magnitude of the node's spin parameter (cannot be present if spin vector components are
     given);
-     \item [{\normalfont \ttfamily angularMomentumX}] The $x$-component of the node's angular momentum (if present, both $y$ and $z$
+     \item [\source{angularMomentumX}] The $x$-component of the node's angular momentum (if present, both $y$ and $z$
     components must also be present; cannot be present if angular momentum magnitude is given);
-     \item [{\normalfont \ttfamily angularMomentumY}] The $y$-component of the node's angular momentum (if present, both $x$ and $z$
+     \item [\source{angularMomentumY}] The $y$-component of the node's angular momentum (if present, both $x$ and $z$
     components must also be present; cannot be present if angular momentum magnitude is given);
-     \item [{\normalfont \ttfamily angularMomentumZ}] The $z$-component of the node's angular momentum (if present, both $x$ and $y$
+     \item [\source{angularMomentumZ}] The $z$-component of the node's angular momentum (if present, both $x$ and $y$
     components must also be present; cannot be present if angular momentum magnitude is given);
-     \item [{\normalfont \ttfamily angularMomentum}] The magnitude of the node's angular momentum (cannot be present if angular
+     \item [\source{angularMomentum}] The magnitude of the node's angular momentum (cannot be present if angular
     momentum vector components are given);
-     \item [{\normalfont \ttfamily halfMassRadius}] The half-mass radius of the node;
-     \item [{\normalfont \ttfamily mostBoundParticleIndex}] The index of the most bound particle in this node.
+     \item [\source{halfMassRadius}] The half-mass radius of the node;
+     \item [\source{mostBoundParticleIndex}] The index of the most bound particle in this node.
     \end{description}
     Not all properties must be specified---any required properties that are not specified will result in an error. Likewise, some
     properties, if present, require that other properties also be present. For example, if any of the position properties is given
@@ -133,25 +133,25 @@
       &lt;column value="columnNumber"/>
      &lt;/particleProperty>
     \end{verbatim}
-    where {\normalfont \ttfamily [name]} is the particle property name (see below), {\normalfont \ttfamily [column]} is the column
+    where \source{[name]} is the particle property name (see below), \source{[column]} is the column
     number (starting from 1) from which to read the particle property.
     
     Recognized particle property names are
     \begin{description}
-     \item [{\normalfont \ttfamily particleIndex}] A unique ID for the particle;
-     \item [{\normalfont \ttfamily redshift}] The redshift of the particle;
-     \item [{\normalfont \ttfamily nodeMass}] The mass of the particle;
-     \item [{\normalfont \ttfamily particleCount}] The number of particles in the particle;
-     \item [{\normalfont \ttfamily positionX}] The $x$-position of the particle (if present, both $y$ and $z$ components must also be present);
-     \item [{\normalfont \ttfamily positionY}] The $y$-position of the particle (if present, both $x$ and $z$ components must also be present);
-     \item [{\normalfont \ttfamily positionZ}] The $z$-position of the particle (if present, both $x$ and $y$ components must also be present);
-     \item [{\normalfont \ttfamily velocityX}] The $x$-velocity of the particle (if present, both $y$ and $z$ components must also be present);
-     \item [{\normalfont \ttfamily velocityY}] The $y$-velocity of the particle (if present, both $x$ and $z$ components must also be present);
-     \item [{\normalfont \ttfamily velocityZ}] The $z$-velocity of the particle (if present, both $x$ and $y$ components must also be present).
+     \item [\source{particleIndex}] A unique ID for the particle;
+     \item [\source{redshift}] The redshift of the particle;
+     \item [\source{nodeMass}] The mass of the particle;
+     \item [\source{particleCount}] The number of particles in the particle;
+     \item [\source{positionX}] The $x$-position of the particle (if present, both $y$ and $z$ components must also be present);
+     \item [\source{positionY}] The $y$-position of the particle (if present, both $x$ and $z$ components must also be present);
+     \item [\source{positionZ}] The $z$-position of the particle (if present, both $x$ and $y$ components must also be present);
+     \item [\source{velocityX}] The $x$-velocity of the particle (if present, both $y$ and $z$ components must also be present);
+     \item [\source{velocityY}] The $y$-velocity of the particle (if present, both $x$ and $z$ components must also be present);
+     \item [\source{velocityZ}] The $z$-velocity of the particle (if present, both $x$ and $y$ components must also be present).
     \end{description}
     
-    The units used in the files are specified via the {\normalfont \ttfamily unitsMass}, {\normalfont \ttfamily unitsLength}, and
-    {\normalfont \ttfamily unitsVelocity} sub-parameter sections. These have the following form:
+    The units used in the files are specified via the \source{unitsMass}, \source{unitsLength}, and
+    \source{unitsVelocity} sub-parameter sections. These have the following form:
     \begin{verbatim}
      &lt;unitsMass>
       &lt;name                value="Solar masses/h"/>
@@ -160,13 +160,13 @@
       &lt;scaleFactorExponent value=" 0"            />
      &lt;/unitsMass>
     \end{verbatim}
-    where {\normalfont \ttfamily [name]} is a human-readable name for the units, {\normalfont \ttfamily [unitsInSI]} gives the units
-    in the SI system, {\normalfont \ttfamily [hubbleExponent]} specifies the power to which $h$ appears in the units and {\normalfont
+    where \source{[name]} is a human-readable name for the units, \source{[unitsInSI]} gives the units
+    in the SI system, \source{[hubbleExponent]} specifies the power to which $h$ appears in the units and {\normalfont
       \ttfamily [scaleFactorExponent]} specifies the number of powers of the expansion factor by which the quantity should be
     multiplied to place it into physical units.
     
     Finally, arbitrary metadata can be added to the file (which can be useful to record, for example, the origin of the data, or
-    details of the simulation, or halo finder used). Metadata is specified via {\normalfont \ttfamily metaData} sub-parameter
+    details of the simulation, or halo finder used). Metadata is specified via \source{metaData} sub-parameter
     sections. These have the following form:
     \begin{verbatim}
      &lt;metaData>
@@ -175,16 +175,16 @@
       &lt;type    value="simulation"    />
      &lt;/metaData>
     \end{verbatim}
-    where {\normalfont \ttfamily [name]} is a name for this metadatum, {\normalfont \ttfamily [content]} is the value for the
-    metadatum (integer, floating point, and text content is allowed), and {\normalfont \ttfamily [type]} specifies the type of
+    where \source{[name]} is a name for this metadatum, \source{[content]} is the value for the
+    metadatum (integer, floating point, and text content is allowed), and \source{[type]} specifies the type of
     metadatum, and must be one of:
     \begin{description}
-     \item [{\normalfont \ttfamily generic}] Add to the generic {\normalfont \ttfamily metaData} group;
-     \item [{\normalfont \ttfamily cosmology}] Add to the {\normalfont \ttfamily cosmology} group;
-     \item [{\normalfont \ttfamily simulation}] Add to the {\normalfont \ttfamily simulation} group;
-     \item [{\normalfont \ttfamily groupFinder}] Add to the {\normalfont \ttfamily groupFinder} group;
-     \item [{\normalfont \ttfamily treeBuilder}] Add to the {\normalfont \ttfamily treeBuilder} group;
-     \item [{\normalfont \ttfamily provenance}] Add to the {\normalfont \ttfamily provenance} group.
+     \item [\source{generic}] Add to the generic \source{metaData} group;
+     \item [\source{cosmology}] Add to the \source{cosmology} group;
+     \item [\source{simulation}] Add to the \source{simulation} group;
+     \item [\source{groupFinder}] Add to the \source{groupFinder} group;
+     \item [\source{treeBuilder}] Add to the \source{treeBuilder} group;
+     \item [\source{provenance}] Add to the \source{provenance} group.
     \end{description}
    </description>
     <descriptorSpecial>descriptorSpecial</descriptorSpecial>
@@ -337,7 +337,7 @@ contains
        !![
        <inputParameter>
          <name>dummyHostId</name>
-         <description>If present, specifies the dummy host ID for self-hosting halos. Otherwise, self-hosting halos have {\normalfont \ttfamily hostIndex == nodeIndex}.</description>
+         <description>If present, specifies the dummy host ID for self-hosting halos. Otherwise, self-hosting halos have \source{hostIndex == nodeIndex}.</description>
          <source>parameters</source>
          <variable>dummyHostId%value</variable>
        </inputParameter>

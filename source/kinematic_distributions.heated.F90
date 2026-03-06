@@ -72,9 +72,9 @@ contains
       <defaultValue>.true.</defaultValue>
       <source>parameters</source>
       <description>
-	If {\normalfont \ttfamily true}, radial velocity dispersion is computed using an approximate method in which we assume
+	If \source{true}, radial velocity dispersion is computed using an approximate method in which we assume
 	that $\sigma_\mathrm{r}^2(r) \rightarrow \sigma_\mathrm{r}^2(r) - (2/3) \epsilon(r)$, where $\epsilon(r)$ is the specific
-	heating energy. If {\normalfont \ttfamily false} then radial velocity dispersion is computed by numerically solving the
+	heating energy. If \source{false} then radial velocity dispersion is computed by numerically solving the
 	Jeans equation.
       </description>
     </inputParameter>
@@ -96,7 +96,7 @@ contains
       <source>parameters</source>
       <description>
 	Selects how solutions are computed when no analytic solution is available. If set to ``{\normalfont \ttfamily
-	fallThrough}'' then the solution ignoring heating is used, while if set to ``{\normalfont \ttfamily numerical}'' then
+	fallThrough}'' then the solution ignoring heating is used, while if set to ``\source{numerical}'' then
 	numerical solvers are used to find solutions.
       </description>
     </inputParameter>
@@ -137,7 +137,7 @@ contains
 
   double precision function heatedVelocityDispersion1D(self,coordinates,massDistribution_,massDistributionEmbedding) result(velocityDispersion)
     !!{
-    Return the 1D velocity dispersion at the specified {\normalfont \ttfamily coordinates} in an heated kinematic distribution.
+    Return the 1D velocity dispersion at the specified \source{coordinates} in an heated kinematic distribution.
     !!}
     use :: Coordinates, only : coordinateSpherical, assignment(=)
     implicit none

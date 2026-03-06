@@ -47,7 +47,7 @@ contains
 
   function zeroConstructorParameters(parameters) result(self)
     !!{
-    Default constructor for the {\normalfont \ttfamily zero} hot halo outflow stripping class which takes a parameter set
+    Default constructor for the \source{zero} hot halo outflow stripping class which takes a parameter set
     as input.
     !!}
     use :: Input_Parameters, only : inputParameters

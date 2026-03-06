@@ -36,9 +36,9 @@
     \begin{equation}
      \nu_\mathrm{SF}(R) = \nu_\mathrm{SF,0} \left[ 1 + \left({\Sigma_\mathrm{HI}\over \Sigma_0}\right)^q \right],
     \end{equation}
-    where $q=${\normalfont \ttfamily [surfaceDensityExponent]} and $\Sigma_0=${\normalfont \ttfamily [surfaceDensityCritical]}
+    where $q=$\source{[surfaceDensityExponent]} and $\Sigma_0=$\source{[surfaceDensityCritical]}
     are parameters, the surface density of molecular gas $\Sigma_\mathrm{H_2} = (P_\mathrm{ext}/P_0)^\alpha
-    \Sigma_\mathrm{HI}$, where $\alpha=${\normalfont \ttfamily [pressureExponent]} and $P_0=${\normalfont \ttfamily
+    \Sigma_\mathrm{HI}$, where $\alpha=$\source{[pressureExponent]} and $P_0=${\normalfont \ttfamily
     [pressureCharacteristic]} are parameters, and the hydrostatic pressure in the disk plane assuming locally isothermal gas
     and stellar components is given by
     \begin{equation}
@@ -51,7 +51,7 @@
     \begin{equation}
      \sigma_\star = \sqrt{\pi \G h_\star \Sigma_\star}
     \end{equation}
-    where we assume $h_\star/R_\mathrm{disk}=${\normalfont \ttfamily [heightToRadialScaleDiskBlitzRosolowsky]}.
+    where we assume $h_\star/R_\mathrm{disk}=$\source{[heightToRadialScaleDiskBlitzRosolowsky]}.
    </description>
   </starFormationRateSurfaceDensityDisks>
   !!]
@@ -322,7 +322,7 @@ contains
   double precision function blitz2006Rate(self,node,radius)
     !!{
     Returns the star formation rate surface density (in $M_\odot$ Gyr$^{-1}$ Mpc$^{-2}$) for star formation
-    in the galactic disk of {\normalfont \ttfamily node}. The disk is assumed to obey the
+    in the galactic disk of \source{node}. The disk is assumed to obey the
     \cite{blitz_role_2006} star formation rule.
     !!}
     implicit none
@@ -391,7 +391,7 @@ contains
   
   subroutine blitz2006ComputeFactors(self,node)
     !!{
-    Compute various factors for the {\normalfont \ttfamily blitz2006} star formation rate surface density calculation.
+    Compute various factors for the \source{blitz2006} star formation rate surface density calculation.
     !!}
     use :: Abundances_Structure            , only : abundances
     use :: Galacticus_Nodes                , only : nodeComponentDisk

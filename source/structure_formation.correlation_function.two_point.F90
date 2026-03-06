@@ -34,13 +34,13 @@ module Correlation_Functions_Two_Point
    <description>Class providing two-point correlation functions.</description>
    <default>powerSpectrumTransform</default>
    <method name="correlation" >
-    <description>Return the two-point correlation function for $r=${\normalfont \ttfamily separation} [Mpc].</description>
+    <description>Return the two-point correlation function for $r=$\source{separation} [Mpc].</description>
     <type>double precision</type>
     <pass>yes</pass>
     <argument>double precision, intent(in   ) :: separation, time</argument>
    </method>
    <method name="correlationVolumeAveraged" >
-    <description>Return the volume-averaged two-point correlation function for $r=${\normalfont \ttfamily separation} [Mpc].</description>
+    <description>Return the volume-averaged two-point correlation function for $r=$\source{separation} [Mpc].</description>
     <type>double precision</type>
     <pass>yes</pass>
     <argument>double precision, intent(in   ) :: separation, time</argument>

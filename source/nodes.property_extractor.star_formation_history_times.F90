@@ -122,7 +122,7 @@ contains
 
   integer function starFormationHistoryTimesElementCount(self)
     !!{
-    Return the number of elements in the {\normalfont \ttfamily starFormationHistoryTimes} property extractors.
+    Return the number of elements in the \source{starFormationHistoryTimes} property extractors.
     !!}
     implicit none
     class(nodePropertyExtractorStarFormationHistoryTimes), intent(inout) :: self
@@ -133,7 +133,7 @@ contains
 
   function starFormationHistoryTimesExtract(self,node,instance)
     !!{
-    Implement a {\normalfont \ttfamily starFormationHistoryTimes} property extractor.
+    Implement a \source{starFormationHistoryTimes} property extractor.
     !!}
     use :: Galacticus_Nodes          , only : nodeComponentDisk, nodeComponentSpheroid, nodeComponentNSC
     use :: Galactic_Structure_Options, only : componentTypeDisk, componentTypeSpheroid, componentTypeNuclearStarCluster
@@ -174,7 +174,7 @@ contains
 
   subroutine starFormationHistoryTimesNames(self,names)
     !!{
-    Return the names of the {\normalfont \ttfamily starFormationHistoryTimes} properties.
+    Return the names of the \source{starFormationHistoryTimes} properties.
     !!}
     use :: Galactic_Structure_Options, only : enumerationComponentTypeDecode
     implicit none
@@ -188,7 +188,7 @@ contains
 
   subroutine starFormationHistoryTimesDescriptions(self,descriptions)
     !!{
-    Return descriptions of the {\normalfont \ttfamily starFormationHistoryTimes} property.
+    Return descriptions of the \source{starFormationHistoryTimes} property.
     !!}
     use :: Galactic_Structure_Options, only : enumerationComponentTypeDecode
     implicit none
@@ -202,7 +202,7 @@ contains
 
   function starFormationHistoryTimesUnitsInSI(self)
     !!{
-    Return the units of the {\normalfont \ttfamily starFormationHistoryTimes} properties in the SI system.
+    Return the units of the \source{starFormationHistoryTimes} properties in the SI system.
     !!}
     use :: Numerical_Constants_Astronomical, only : gigaYear
     implicit none

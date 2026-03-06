@@ -23,7 +23,7 @@ Implements a galactic filter which passes nodes with host halo basic mass within
 
   !![
   <galacticFilter name="galacticFilterHostMassRange">
-   <description>Passes nodes with host halo basic mass, $M_\mathrm{host}$, in the range {\normalfont \ttfamily [massMinimum]}$\le M_\mathrm{host}&lt;${\normalfont \ttfamily [massMaximum]}.</description>
+   <description>Passes nodes with host halo basic mass, $M_\mathrm{host}$, in the range \source{[massMinimum]}$\le M_\mathrm{host}&lt;$\source{[massMaximum]}.</description>
   </galacticFilter>
   !!]
   type, extends(galacticFilterClass) :: galacticFilterHostMassRange

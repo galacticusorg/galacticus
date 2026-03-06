@@ -107,7 +107,7 @@ contains
 
   function nodeMajorMergerRecentCountExtract(self,node,time,instance)
     !!{
-    Implement a {\normalfont \ttfamily nodeMajorMergerRecentCount} node property extractor.
+    Implement a \source{nodeMajorMergerRecentCount} node property extractor.
     !!}
     use :: Galacticus_Nodes, only : nodeComponentBasic
     implicit none

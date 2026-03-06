@@ -163,7 +163,7 @@ contains
       <name>idMultiplier</name>
       <source>parameters</source>
       <defaultValue>0_kind_int8</defaultValue>
-      <description>If this parameter is greater than zero, particle IDs begin at {\normalfont \ttfamily nodeIndex\*[idMultiplier]} for each node. The multiplier should be chosen to be large enough that duplicate IDs can not occur.</description>
+      <description>If this parameter is greater than zero, particle IDs begin at \source{nodeIndex\*[idMultiplier]} for each node. The multiplier should be chosen to be large enough that duplicate IDs can not occur.</description>
     </inputParameter>
     <inputParameter>
       <name>massParticle</name>
@@ -226,7 +226,7 @@ contains
       <name>selection</name>
       <source>parameters</source>
       <defaultValue>var_str('all')</defaultValue>
-      <description>Selects the type of halo to output. Allowed options are ``{\normalfont \ttfamily all}'', ``{\normalfont \ttfamily hosts}'', and ``{\normalfont \ttfamily satellites}''.</description>
+      <description>Selects the type of halo to output. Allowed options are ``\source{all}'', ``\source{hosts}'', and ``\source{satellites}''.</description>
     </inputParameter>
     !!]
     selection_=enumerationSelectionEncode(char(selection),includesPrefix=.false.)
@@ -235,7 +235,7 @@ contains
       <name>kernelSoftening</name>
       <source>parameters</source>
       <defaultValue>var_str('plummer')</defaultValue>
-      <description>Selects the softening kernel to use. Allowed options are ``{\normalfont \ttfamily plummer}'', and ``{\normalfont \ttfamily gadget}''.</description>
+      <description>Selects the softening kernel to use. Allowed options are ``\source{plummer}'', and ``\source{gadget}''.</description>
     </inputParameter>
     !!]
     kernelSoftening_=enumerationParticulateKernelEncode(char(kernelSoftening),includesPrefix=.false.)

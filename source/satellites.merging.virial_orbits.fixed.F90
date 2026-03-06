@@ -31,7 +31,7 @@
   <virialOrbit name="virialOrbitFixed">
    <description>
     A virial orbit class which sets all orbital parameters to fixed values, with $v_\mathrm{r}=${\normalfont \ttfamily
-    [velocityRadial]}$V_\mathrm{virial}$ and $v_\phi=${\normalfont \ttfamily [velocityTangential]}$V_\mathrm{virial}$.
+    [velocityRadial]}$V_\mathrm{virial}$ and $v_\phi=$\source{[velocityTangential]}$V_\mathrm{virial}$.
    </description>
   </virialOrbit>
   !!]

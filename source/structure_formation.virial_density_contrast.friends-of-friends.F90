@@ -31,7 +31,7 @@
     \begin{equation}
     \Delta_\mathrm{iso} = {3 \over 2 \pi b^3},
     \end{equation}
-    where $b=${\normalfont \ttfamily [virialDensityContrastFoFLinkingLength]} is the dimensionless linking length of the
+    where $b=$\source{[virialDensityContrastFoFLinkingLength]} is the dimensionless linking length of the
     algorithm (i.e. the linking length in units of the mean interparticle spacing). The virial density contrast is then given
     by:
     \begin{equation}
@@ -68,7 +68,7 @@ contains
 
   function friendsOfFriendsConstructorParameters(parameters) result(self)
     !!{
-    Default constructor for the {\normalfont \ttfamily friendsOfFriends} dark matter halo virial density contrast class.
+    Default constructor for the \source{friendsOfFriends} dark matter halo virial density contrast class.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none

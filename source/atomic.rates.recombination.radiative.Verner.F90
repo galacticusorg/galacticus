@@ -563,8 +563,8 @@ contains
 
   double precision function verner1996Rate(self,atomicNumber,ionizationState,temperature,level)
     !!{
-    Computes the rate coefficient of radiative recombination (in units of cm$^3$ s$^{-1}$) at the specified {\normalfont \ttfamily temperature} for all ions
-    of all elements from H through Zn (selected by the {\normalfont \ttfamily atomicNumber} and the {\normalfont \ttfamily ionizationState} \emph{of the recombined
+    Computes the rate coefficient of radiative recombination (in units of cm$^3$ s$^{-1}$) at the specified \source{temperature} for all ions
+    of all elements from H through Zn (selected by the \source{atomicNumber} and the \source{ionizationState} \emph{of the recombined
     ion}) use of the following fits:
     \begin{itemize}
     \item H-like, He-like, Li-like, Na-like: \citep{verner_atomic_1996};

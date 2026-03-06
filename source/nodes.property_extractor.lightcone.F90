@@ -29,39 +29,39 @@
     A lightcone output extractor property extractor class. The position (and velocity and redshift) of a galaxy within a
     lightcone will be extracted. Specifically, these properties are extracted as:
     \begin{description}
-     \item [{\normalfont \ttfamily lightconePositionX}] Position of the galaxy (in comoving Mpc) along the radial direction of
+     \item [\source{lightconePositionX}] Position of the galaxy (in comoving Mpc) along the radial direction of
      the lightcone;
-     \item [{\normalfont \ttfamily lightconePositionY}] Position of the galaxy (in comoving Mpc) along the 1$^\mathrm{st}$
+     \item [\source{lightconePositionY}] Position of the galaxy (in comoving Mpc) along the 1$^\mathrm{st}$
      angular direction of the lightcone;
-     \item [{\normalfont \ttfamily lightconePositionZ}] Position of the galaxy (in comoving Mpc) along the 2$^\mathrm{nd}$
+     \item [\source{lightconePositionZ}] Position of the galaxy (in comoving Mpc) along the 2$^\mathrm{nd}$
      angular direction of the lightcone;
-     \item [{\normalfont \ttfamily lightconePositionObservedX}] Position of the galaxy (in comoving Mpc) along the radial
+     \item [\source{lightconePositionObservedX}] Position of the galaxy (in comoving Mpc) along the radial
      direction of the lightcone, accounting for the effects of line-of-sight peculiar velocity (included only if {\normalfont
-     \ttfamily [includeObservedPosition]}={\normalfont \ttfamily true});
-     \item [{\normalfont \ttfamily lightconePositionObservedY}] Position of the galaxy (in comoving Mpc) along the 1$^\mathrm{st}$
+     \ttfamily [includeObservedPosition]}=\source{true});
+     \item [\source{lightconePositionObservedY}] Position of the galaxy (in comoving Mpc) along the 1$^\mathrm{st}$
      angular direction of the lightcone, accounting for the effects of line-of-sight peculiar velocity (included only if
-     {\normalfont \ttfamily [includeObservedPosition]}={\normalfont \ttfamily true});
-     \item [{\normalfont \ttfamily lightconePositionObservedZ}] Position of the galaxy (in comoving Mpc) along the 2$^\mathrm{nd}$
+     \source{[includeObservedPosition]}=\source{true});
+     \item [\source{lightconePositionObservedZ}] Position of the galaxy (in comoving Mpc) along the 2$^\mathrm{nd}$
      angular direction of the lightcone, accounting for the effects of line-of-sight peculiar velocity (included only if
-     {\normalfont \ttfamily [includeObservedPosition]}={\normalfont \ttfamily true});
-     \item [{\normalfont \ttfamily lightconeVelocityX}] Velocity of the galaxy (in km/s) along the radial direction of the
+     \source{[includeObservedPosition]}=\source{true});
+     \item [\source{lightconeVelocityX}] Velocity of the galaxy (in km/s) along the radial direction of the
      lightcone;
-     \item [{\normalfont \ttfamily lightconeVelocityY}] Velocity of the galaxy (in km/s) along the 1$^\mathrm{st}$ angular
+     \item [\source{lightconeVelocityY}] Velocity of the galaxy (in km/s) along the 1$^\mathrm{st}$ angular
      direction of the lightcone;
-     \item [{\normalfont \ttfamily lightconeVelocityZ}] Velocity of the galaxy (in km/s) along the 2$^\mathrm{nd}$ angular
+     \item [\source{lightconeVelocityZ}] Velocity of the galaxy (in km/s) along the 2$^\mathrm{nd}$ angular
      direction of the lightcone;
-     \item [{\normalfont \ttfamily lightconeRedshiftCosmological}] Redshift of the galaxy in the lightcone\footnote{Note that this will
+     \item [\source{lightconeRedshiftCosmological}] Redshift of the galaxy in the lightcone\footnote{Note that this will
      not, in general, be precisely the same as the redshift corresponding to the output time.};
-     \item [{\normalfont \ttfamily lightconeRedshiftObserved}] Observed redshift of the galaxy, accounting for the effects of
-     line-of-sight peculiar velocity (included only if {\normalfont \ttfamily [includeObservedRedshift]}={\normalfont \ttfamily
+     \item [\source{lightconeRedshiftObserved}] Observed redshift of the galaxy, accounting for the effects of
+     line-of-sight peculiar velocity (included only if \source{[includeObservedRedshift]}={\normalfont \ttfamily
      true});
-     \item [{\normalfont \ttfamily lightconeAngularTheta}] Angular distance from pole of coordinate system (i.e. $\theta$ in a
-     spherical coordinate system; included only if {\normalfont \ttfamily [includeAngularCoordinates]}={\normalfont \ttfamily
+     \item [\source{lightconeAngularTheta}] Angular distance from pole of coordinate system (i.e. $\theta$ in a
+     spherical coordinate system; included only if \source{[includeAngularCoordinates]}={\normalfont \ttfamily
      true}) [radians]
-     \item [{\normalfont \ttfamily lightconeAngularPhi}] Angular distance around the pole of coordinate system system (i.e. $\phi$
-     in a spherical coordinate system; included only if {\normalfont \ttfamily [includeAngularCoordinates]}={\normalfont \ttfamily
+     \item [\source{lightconeAngularPhi}] Angular distance around the pole of coordinate system system (i.e. $\phi$
+     in a spherical coordinate system; included only if \source{[includeAngularCoordinates]}={\normalfont \ttfamily
      true}) [radians]
-     \item [{\normalfont \ttfamily angularWeight}] The mean number density of this galaxy per unit area on the sky (in
+     \item [\source{angularWeight}] The mean number density of this galaxy per unit area on the sky (in
      degrees$^{-2}$).
     \end{description}
     In order to allow this output a lightcone geometry (see \refPhysics{geometryLightcone}) must be specified.

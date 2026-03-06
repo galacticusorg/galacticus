@@ -32,7 +32,7 @@ contains
 
   double precision function Gaussian_Distribution(x,sigma)
     !!{
-    Computes the Gaussian distribution with dispersion {\normalfont \ttfamily sigma} at argument {\normalfont \ttfamily x}.
+    Computes the Gaussian distribution with dispersion \source{sigma} at argument \source{x}.
     !!}
     use :: Numerical_Constants_Math, only : Pi
     implicit none

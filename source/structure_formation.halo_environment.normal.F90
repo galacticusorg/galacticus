@@ -290,7 +290,7 @@ contains
 
   double precision function normalOverdensityLinear(self,node,presentDay)
     !!{
-    Return the environment of the given {\normalfont \ttfamily node}.
+    Return the environment of the given \source{node}.
     !!}
     use :: Galacticus_Nodes, only : nodeComponentBasic, treeNode
     implicit none
@@ -350,7 +350,7 @@ contains
 
   double precision function normalOverdensityLinearGradientTime(self,node)
     !!{
-    Return the time gradient of the environment of the given {\normalfont \ttfamily node}.
+    Return the time gradient of the environment of the given \source{node}.
     !!}
     use :: Galacticus_Nodes, only : nodeComponentBasic
     implicit none
@@ -369,7 +369,7 @@ contains
 
   double precision function normalOverdensityNonLinear(self,node)
     !!{
-    Return the environment of the given {\normalfont \ttfamily node}.
+    Return the environment of the given \source{node}.
     !!}
     use :: Galacticus_Nodes, only : nodeComponentBasic
     implicit none
@@ -447,7 +447,7 @@ contains
 
   subroutine normalOverdensityLinearSet(self,node,overdensity)
     !!{
-    Set the environmental linear overdensity in the given {\normalfont \ttfamily node}.
+    Set the environmental linear overdensity in the given \source{node}.
     !!}
     use :: Error, only : Error_Report
     implicit none

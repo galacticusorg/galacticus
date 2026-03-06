@@ -101,7 +101,7 @@ contains
 
   function convexHullConstructor(points) result(self)
     !!{
-    Constructor for {\normalfont \ttfamily convexHull} objects.
+    Constructor for \source{convexHull} objects.
     !!}
 #ifdef QHULLAVAIL
     use :: Error, only : Error_Report
@@ -124,7 +124,7 @@ contains
 
   subroutine convexHullDestructor(self)
     !!{
-    Destructor for {\normalfont \ttfamily convexHull} objects.
+    Destructor for \source{convexHull} objects.
     !!}
 #ifdef QHULLAVAIL
     use, intrinsic :: ISO_C_Binding, only : c_associated

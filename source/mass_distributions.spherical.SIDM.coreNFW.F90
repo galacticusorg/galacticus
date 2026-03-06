@@ -30,7 +30,7 @@
        M(r) = M_\mathrm{NFW}(r) \mathrm{tanh}\left(\frac{r}{r_\mathrm{c}}\right),
      \end{equation}
      where $r_\mathrm{c} = \alpha r_1$ is a characteristic core size related to the interaction radius $r_1$ by a constant factor
-     $\alpha = ${\normalfont \ttfamily [factorRadiusCore]}.
+     $\alpha = $\source{[factorRadiusCore]}.
    </description>
   </massDistribution>
   !!]
@@ -95,7 +95,7 @@ contains
       <name>nonAnalyticSolver</name>
       <defaultValue>var_str('fallThrough')</defaultValue>
       <source>parameters</source>
-      <description>Selects how solutions are computed when no analytic solution is available. If set to ``{\normalfont \ttfamily fallThrough}'' then the solution ignoring heating is used, while if set to ``{\normalfont \ttfamily numerical}'' then numerical solvers are used to find solutions.</description>
+      <description>Selects how solutions are computed when no analytic solution is available. If set to ``\source{fallThrough}'' then the solution ignoring heating is used, while if set to ``\source{numerical}'' then numerical solvers are used to find solutions.</description>
     </inputParameter>
     <inputParameter>
       <name>componentType</name>
@@ -183,7 +183,7 @@ contains
 
   double precision function sphericalSIDMCoreNFWDensity(self,coordinates) result(density)
     !!{
-    Compute the density at the specified {\normalfont \ttfamily coordinates} for the {\normalfont \ttfamily sidmCoreNFW}
+    Compute the density at the specified \source{coordinates} for the \source{sidmCoreNFW}
     mass distribution.
     !!}
     implicit none
@@ -231,7 +231,7 @@ contains
 
   double precision function sphericalSIDMCoreNFWDensityGradientRadial(self,coordinates,logarithmic) result(densityGradient)
     !!{
-    Return the density at the specified {\normalfont \ttfamily coordinates} in a truncated spherical mass distribution.
+    Return the density at the specified \source{coordinates} in a truncated spherical mass distribution.
     !!}
     implicit none
     class           (massDistributionSphericalSIDMCoreNFW), intent(inout), target   :: self
@@ -311,7 +311,7 @@ contains
   
   double precision function sphericalSIDMCoreNFWMassEnclosedBySphere(self,radius) result(mass)
     !!{   
-    Computes the mass enclosed within a sphere of given {\normalfont \ttfamily radius} for the {\normalfont \ttfamily sidmCoreNFW}
+    Computes the mass enclosed within a sphere of given \source{radius} for the \source{sidmCoreNFW}
     mass distribution.
     !!}
     implicit none
