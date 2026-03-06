@@ -17,7 +17,6 @@
     <baseParametersFileName    value="testSuite/parameters/mcmcBase.xml"   />
     <changeParametersFileNames value="testSuite/parameters/mcmcChanges.xml"/>
     <failedParametersFileName  value="./failedParameters.xml"              />
-    <randomize                 value="false"                               />
     <evolveForestsVerbosity    value="silent"                              />
   </posteriorSampleLikelihood>
 
