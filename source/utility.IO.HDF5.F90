@@ -647,7 +647,6 @@ contains
     Finalize an HDF5 object.
     !!}
     use :: File_Utilities    , only : File_Remove
-    use :: HDF5_Access       , only : hdf5Access
     use :: Display           , only : displayIndent     , displayMessage  , displayUnindent, verbosityLevelSilent
     use :: Error             , only : Error_Report
     use :: HDF5              , only : h5f_obj_all_f     , h5aclose_f      , h5dclose_f     , h5fclose_f          , &
