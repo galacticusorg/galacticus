@@ -34,6 +34,7 @@
    contains
      procedure :: operate   => logarithmOperate
      procedure :: unoperate => logarithmUnoperate
+     procedure :: jacobian  => logarithmJacobian
   end type operatorUnaryLogarithm
 
   interface operatorUnaryLogarithm
@@ -67,7 +68,7 @@ contains
 
   double precision function logarithmOperate(self,x)
     !!{
-    Apply an logarithm operation.
+    Apply a logarithm operation.
     !!}
     implicit none
     class           (operatorUnaryLogarithm), intent(inout) :: self
@@ -80,7 +81,7 @@ contains
 
   double precision function logarithmUnoperate(self,f)
     !!{
-    Unapply an logarithm operation.
+    Unapply a logarithm operation.
     !!}
     implicit none
     class           (operatorUnaryLogarithm), intent(inout) :: self
@@ -94,3 +95,16 @@ contains
     end if
     return
   end function logarithmUnoperate
+
+  double precision function logarithmJacobian(self,x)
+    !!{
+    Compute the Jacobian of a logarithm operation.
+    !!}
+    implicit none
+    class           (operatorUnaryLogarithm), intent(inout) :: self
+    double precision                        , intent(in   ) :: x
+    !$GLC attributes unused :: self
+
+    logarithmJacobian=1.0d0/x
+    return
+  end function logarithmJacobian

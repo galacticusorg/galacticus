@@ -126,7 +126,7 @@ program Test_Dark_Matter_Profiles
   call eventsHooksInitialize()
   call Functions_Global_Set ()
   ! Initialize node components.
-  parameters=inputParameters(var_str('testSuite/parameters/darkMatterProfiles.xml'))
+  parameters=inputParameters('testSuite/parameters/darkMatterProfiles.xml')
   call nodeClassHierarchyInitialize     (parameters)
   call Node_Components_Initialize       (parameters)
   call Node_Components_Thread_Initialize(parameters)
@@ -1726,6 +1726,10 @@ program Test_Dark_Matter_Profiles
   call Unit_Tests_End_Group()
   call Unit_Tests_Finish   ()
   ! Uninitialize node components.
+  call node      %destroy()
+  call nodePippin%destroy()
+  call nodeJiang %destroy()
+  deallocate(node,nodePippin,nodeJiang)
   call Node_Components_Thread_Uninitialize()
   call Node_Components_Uninitialize       ()
   call nodeClassHierarchyFinalize         ()
@@ -1750,5 +1754,6 @@ program Test_Dark_Matter_Profiles
   <objectDestructor name="cosmologyFunctionsPippin_"                        />
   <objectDestructor name="virialDensityContrastPippin_"                     />
   <objectDestructor name="darkMatterHaloScalePippin_"                       />
+  <objectDestructor name="darkMatterProfileAdiabaticPippin_"                />
   !!]
 end program Test_Dark_Matter_Profiles

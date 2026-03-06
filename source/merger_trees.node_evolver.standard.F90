@@ -503,6 +503,7 @@ contains
           allocate(self%odeTolerancesInactiveAbsolute(self%propertyCountAll))
           self%propertyCountMaximum  =self%propertyCountAll
           self%propertyValuesPrevious=0.0d0
+          self%isNonNegative         =.false.
        end if
        ! Iterate until the step has been solved numerically.
        solvedNumerically=.false.

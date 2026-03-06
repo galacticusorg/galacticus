@@ -26,7 +26,7 @@ mass function) output analysis class.
   use   , intrinsic :: ISO_C_Binding                           , only : c_size_t
   use               :: ISO_Varying_String                      , only : varying_string
   use               :: Node_Property_Extractors                , only : nodePropertyExtractorClass
-  !$ use            :: OMP_Lib                                 , only : omp_lock_kind
+  !$ use            :: Locks                                   , only : ompLock
   use               :: Output_Analysis_Distribution_Normalizers, only : outputAnalysisDistributionNormalizerClass
   use               :: Output_Analysis_Distribution_Operators  , only : outputAnalysisDistributionOperatorClass
   use               :: Output_Analysis_Property_Operators      , only : outputAnalysisPropertyOperatorClass
@@ -71,7 +71,7 @@ mass function) output analysis class.
           &                                                                                         covarianceModelHaloMassMinimumLogarithmic      , covarianceModelHaloMassIntervalLogarithmicInverse          , &
           &                                                                                         binWidth
      logical                                                                                     :: finalized
-     !$ integer      (omp_lock_kind                               )                              :: accumulateLock
+     !$ type         (ompLock                                     )                              :: accumulateLock
    contains
      !![
      <methods>
@@ -236,10 +236,9 @@ contains
     !!{
     Constructor for the \refClass{outputAnalysisCrossCorrelator1D} output analysis class for internal use.
     !!}
-    use    :: Error                   , only : Error_Report
-    use    :: Node_Property_Extractors, only : nodePropertyExtractorClass           , nodePropertyExtractorScalar
-    use    :: Output_Analyses_Options , only : outputAnalysisCovarianceModelBinomial
-    !$ use :: OMP_Lib                 , only : OMP_Init_Lock
+    use :: Error                   , only : Error_Report
+    use :: Node_Property_Extractors, only : nodePropertyExtractorClass           , nodePropertyExtractorScalar
+    use :: Output_Analyses_Options , only : outputAnalysisCovarianceModelBinomial
     implicit none
     type            (outputAnalysisCrossCorrelator1D             )                                          :: self
     double precision                                              , intent(in   )          , dimension(:  ) :: binCenter
@@ -319,7 +318,7 @@ contains
     ! Initialize finalization status.
     self%finalized=.false.
     ! Initialize OpenMP accumulation lock.
-    !$ call OMP_Init_Lock(self%accumulateLock)
+    !$ self%accumulateLock=ompLock()
    return
   end function crossCorrelator1DConstructorInternal
 
@@ -327,7 +326,6 @@ contains
     !!{
     Destructor for the \refClass{outputAnalysisCrossCorrelator1D} output analysis class.
     !!}
-    !$ use :: OMP_Lib, only : OMP_Destroy_Lock
     implicit none
     type(outputAnalysisCrossCorrelator1D), intent(inout) :: self
 
@@ -342,8 +340,6 @@ contains
     <objectDestructor name="self%galacticFilter_"                      />
     <objectDestructor name="self%outputTimes_"                         />
     !!]
-    ! Destroy OpenMP lock.
-    !$ call OMP_Destroy_Lock(self%accumulateLock)
     return
   end subroutine crossCorrelator1DDestructor
 
@@ -351,10 +347,9 @@ contains
     !!{
     Implement a crossCorrelator1D output analysis.
     !!}
-    use    :: Galacticus_Nodes        , only : nodeComponentBasic                   , treeNode
-    use    :: Node_Property_Extractors, only : nodePropertyExtractorScalar
-    use    :: Output_Analyses_Options , only : outputAnalysisCovarianceModelBinomial, enumerationOutputAnalysisPropertyTypeType, enumerationOutputAnalysisPropertyQuantityType
-    !$ use :: OMP_Lib                 , only : OMP_Set_Lock                         , OMP_Unset_Lock
+    use :: Galacticus_Nodes        , only : nodeComponentBasic                   , treeNode
+    use :: Node_Property_Extractors, only : nodePropertyExtractorScalar
+    use :: Output_Analyses_Options , only : outputAnalysisCovarianceModelBinomial, enumerationOutputAnalysisPropertyTypeType, enumerationOutputAnalysisPropertyQuantityType
     implicit none
     class           (outputAnalysisCrossCorrelator1D              ), intent(inout)                 :: self
     type            (treeNode                                     ), intent(inout)                 :: node
@@ -426,11 +421,9 @@ contains
           end forall
        end forall
        ! Accumulate covariance.
-       !$ call OMP_Set_Lock(self%accumulateLock)
        self        %functionCovariance= &
             & +self%functionCovariance  &
             & +             covariance
-       !$ call OMP_Unset_Lock(self%accumulateLock)
        deallocate(covariance)
     end if
     ! Deallocate workspace.
@@ -442,22 +435,21 @@ contains
     !!{
     Implement a crossCorrelator1D output analysis reduction.
     !!}
-    use    :: Error                  , only : Error_Report
-    use    :: Output_Analyses_Options, only : outputAnalysisCovarianceModelBinomial
-    !$ use :: OMP_Lib                , only : OMP_Set_Lock                         , OMP_Unset_Lock
+    use :: Error                  , only : Error_Report
+    use :: Output_Analyses_Options, only : outputAnalysisCovarianceModelBinomial
     implicit none
     class(outputAnalysisCrossCorrelator1D), intent(inout) :: self
     class(outputAnalysisClass            ), intent(inout) :: reduced
 
     select type (reduced)
     class is (outputAnalysisCrossCorrelator1D)
-       !$ call OMP_Set_Lock(reduced%accumulateLock)
+       !$ call reduced%accumulateLock%set()
        if (self%covarianceModel == outputAnalysisCovarianceModelBinomial) then
           reduced%weightMainBranch     =reduced%weightMainBranch     +self%weightMainBranch
           reduced%weightMainBranchCross=reduced%weightMainBranchCross+self%weightMainBranchCross
        end if
        reduced%functionCovariance      =reduced%functionCovariance   +self%functionCovariance
-       !$ call OMP_Unset_Lock(reduced%accumulateLock)
+       !$ call reduced%accumulateLock%unset()
     class default
        call Error_Report('incorrect class'//{introspection:location})
     end select

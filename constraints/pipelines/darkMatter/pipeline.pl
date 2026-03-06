@@ -10,6 +10,7 @@ use PDL::NiceSlice;
 use Data::Dumper;
 use DateTime;
 use Scalar::Util qw(reftype);
+use List::ExtraUtils;
 use Galacticus::Options;
 use Galacticus::Launch::Hooks;
 use Galacticus::Launch::PBS;
@@ -22,7 +23,14 @@ use Galacticus::Constraints::Parameters;
 
 # Get command line options.
 my %options;
-$options{'outputDirectory'} = getcwd()."/pipeline";
+$options{'outputDirectory'       } = getcwd()."/pipeline";
+$options{'updateResults'         } = "yes";
+$options{'maximum'               } = "posterior";
+$options{'writeParameters'       } = "yes";
+$options{'callgrind'             } = "no";
+$options{'generateContent'       } = "yes";
+$options{'haloMassFunction:nodes'} = 16;
+$options{'haloMassFunction:ppn'  } = 32;
 &Galacticus::Options::Parse_Options(\@ARGV,\%options);
 
 # Specify the pipeline path.
@@ -31,922 +39,22 @@ my $pipelinePath = $ENV{'GALACTICUS_EXEC_PATH'}."/constraints/pipelines/darkMatt
 # Make the output directory.
 mkdir($options{'outputDirectory'});
 
+# Write our own run command to file.
+open(my $command,">",$options{'outputDirectory'}."/command.txt");
+print $command join(" ",$0,@ARGV)."\n";
+close($command);
+
 # Get an XML parser.
-my $xml = new XML::Simple;
+my $xml = new XML::Simple();
 
 # Define tasks in the pipeline.
 my @tasks =
     (
      {
-	 label        => "haloMassFunction"                            ,
-	 config       => "haloMassFunctionConfig.xml"                  ,
-	 base         =>
-	     [
-	      "haloMassFunctionBase_VSMDPL_z0.000.xml"                  ,
-	      "haloMassFunctionBase_VSMDPL_z0.490.xml"                  ,
-	      "haloMassFunctionBase_VSMDPL_z0.990.xml"                  ,
-	      "haloMassFunctionBase_VSMDPL_z2.030.xml"                  ,
-	      "haloMassFunctionBase_VSMDPL_z3.040.xml"                  ,
-	      "haloMassFunctionBase_SMDPL_z0.000.xml"                   ,
-	      "haloMassFunctionBase_SMDPL_z0.505.xml"                   ,
-	      "haloMassFunctionBase_SMDPL_z1.000.xml"                   ,
-	      "haloMassFunctionBase_SMDPL_z2.021.xml"                   ,
-	      "haloMassFunctionBase_SMDPL_z3.032.xml"                   ,
-	      "haloMassFunctionBase_MDPL2_z0.000.xml"                   ,
-	      "haloMassFunctionBase_MDPL2_z0.490.xml"                   ,
-	      "haloMassFunctionBase_MDPL2_z0.987.xml"                   ,
-	      "haloMassFunctionBase_MDPL2_z2.028.xml"                   ,
-	      "haloMassFunctionBase_MDPL2_z3.127.xml"                   ,
-	      "haloMassFunctionBase_BigMDPL_z0.000.xml"                 ,
-	      "haloMassFunctionBase_BigMDPL_z0.492.xml"                 ,
-	      "haloMassFunctionBase_BigMDPL_z1.000.xml"                 ,
-	      "haloMassFunctionBase_BigMDPL_z2.145.xml"                 ,
-	      "haloMassFunctionBase_HugeMDPL_z0.000.xml"                ,
-	      "haloMassFunctionBase_HugeMDPL_z0.490.xml"                ,
-	      "haloMassFunctionBase_HugeMDPL_z0.987.xml"                ,
-	      "haloMassFunctionBase_HugeMDPL_z2.028.xml"                ,
-	      "haloMassFunctionBase_MilkyWay_Halo023_z0.000.xml"        ,
-	      "haloMassFunctionBase_MilkyWay_Halo023_z0.504.xml"        ,
-	      "haloMassFunctionBase_MilkyWay_Halo023_z0.990.xml"        ,
-	      "haloMassFunctionBase_MilkyWay_Halo023_z2.031.xml"        ,
-	      "haloMassFunctionBase_MilkyWay_Halo023_z3.984.xml"        ,
-	      "haloMassFunctionBase_MilkyWay_Halo088_z0.000.xml"        ,
-	      "haloMassFunctionBase_MilkyWay_Halo088_z0.504.xml"        ,
-	      "haloMassFunctionBase_MilkyWay_Halo088_z0.990.xml"        ,
-	      "haloMassFunctionBase_MilkyWay_Halo088_z2.031.xml"        ,
-	      "haloMassFunctionBase_MilkyWay_Halo088_z3.984.xml"        ,
-	      "haloMassFunctionBase_MilkyWay_Halo119_z0.000.xml"        ,
-	      "haloMassFunctionBase_MilkyWay_Halo119_z0.504.xml"        ,
-	      "haloMassFunctionBase_MilkyWay_Halo119_z0.990.xml"        ,
-	      "haloMassFunctionBase_MilkyWay_Halo119_z2.031.xml"        ,
-	      "haloMassFunctionBase_MilkyWay_Halo119_z3.984.xml"        ,
-	      "haloMassFunctionBase_MilkyWay_Halo188_z0.000.xml"        ,
-	      "haloMassFunctionBase_MilkyWay_Halo188_z0.504.xml"        ,
-	      "haloMassFunctionBase_MilkyWay_Halo188_z0.990.xml"        ,
-	      "haloMassFunctionBase_MilkyWay_Halo188_z2.031.xml"        ,
-	      "haloMassFunctionBase_MilkyWay_Halo188_z3.984.xml"        ,
-	      "haloMassFunctionBase_MilkyWay_Halo247_z0.000.xml"        ,
-	      "haloMassFunctionBase_MilkyWay_Halo247_z0.504.xml"        ,
-	      "haloMassFunctionBase_MilkyWay_Halo247_z0.990.xml"        ,
-	      "haloMassFunctionBase_MilkyWay_Halo247_z2.031.xml"        ,
-	      "haloMassFunctionBase_MilkyWay_Halo247_z3.984.xml"        ,
-	      "haloMassFunctionBase_MilkyWay_Halo268_z0.000.xml"        ,
-	      "haloMassFunctionBase_MilkyWay_Halo268_z0.504.xml"        ,
-	      "haloMassFunctionBase_MilkyWay_Halo268_z0.990.xml"        ,
-	      "haloMassFunctionBase_MilkyWay_Halo268_z2.031.xml"        ,
-	      "haloMassFunctionBase_MilkyWay_Halo268_z3.984.xml"        ,
-	      "haloMassFunctionBase_MilkyWay_Halo270_z0.000.xml"        ,
-	      "haloMassFunctionBase_MilkyWay_Halo270_z0.504.xml"        ,
-	      "haloMassFunctionBase_MilkyWay_Halo270_z0.990.xml"        ,
-	      "haloMassFunctionBase_MilkyWay_Halo270_z2.031.xml"        ,
-	      "haloMassFunctionBase_MilkyWay_Halo270_z3.984.xml"        ,
-	      "haloMassFunctionBase_MilkyWay_Halo288_z0.000.xml"        ,
-	      "haloMassFunctionBase_MilkyWay_Halo288_z0.504.xml"        ,
-	      "haloMassFunctionBase_MilkyWay_Halo288_z0.990.xml"        ,
-	      "haloMassFunctionBase_MilkyWay_Halo288_z2.031.xml"        ,
-	      "haloMassFunctionBase_MilkyWay_Halo288_z3.984.xml"        ,
-	      "haloMassFunctionBase_MilkyWay_Halo327_z0.000.xml"        ,
-	      "haloMassFunctionBase_MilkyWay_Halo327_z0.504.xml"        ,
-	      "haloMassFunctionBase_MilkyWay_Halo327_z0.990.xml"        ,
-	      "haloMassFunctionBase_MilkyWay_Halo327_z2.031.xml"        ,
-	      "haloMassFunctionBase_MilkyWay_Halo327_z3.984.xml"        ,
-	      "haloMassFunctionBase_MilkyWay_Halo349_z0.000.xml"        ,
-	      "haloMassFunctionBase_MilkyWay_Halo349_z0.504.xml"        ,
-	      "haloMassFunctionBase_MilkyWay_Halo349_z0.990.xml"        ,
-	      "haloMassFunctionBase_MilkyWay_Halo349_z2.031.xml"        ,
-	      "haloMassFunctionBase_MilkyWay_Halo349_z3.984.xml"        ,
-	      "haloMassFunctionBase_MilkyWay_Halo364_z0.000.xml"        ,
-	      "haloMassFunctionBase_MilkyWay_Halo364_z0.504.xml"        ,
-	      "haloMassFunctionBase_MilkyWay_Halo364_z0.990.xml"        ,
-	      "haloMassFunctionBase_MilkyWay_Halo364_z2.031.xml"        ,
-	      "haloMassFunctionBase_MilkyWay_Halo364_z3.984.xml"        ,
-	      "haloMassFunctionBase_MilkyWay_Halo374_z0.000.xml"        ,
-	      "haloMassFunctionBase_MilkyWay_Halo374_z0.504.xml"        ,
-	      "haloMassFunctionBase_MilkyWay_Halo374_z0.990.xml"        ,
-	      "haloMassFunctionBase_MilkyWay_Halo374_z2.031.xml"        ,
-	      "haloMassFunctionBase_MilkyWay_Halo374_z3.984.xml"        ,
-	      "haloMassFunctionBase_MilkyWay_Halo414_z0.000.xml"        ,
-	      "haloMassFunctionBase_MilkyWay_Halo414_z0.504.xml"        ,
-	      "haloMassFunctionBase_MilkyWay_Halo414_z0.990.xml"        ,
-	      "haloMassFunctionBase_MilkyWay_Halo414_z2.031.xml"        ,
-	      "haloMassFunctionBase_MilkyWay_Halo414_z3.984.xml"        ,
-	      "haloMassFunctionBase_MilkyWay_Halo415_z0.000.xml"        ,
-	      "haloMassFunctionBase_MilkyWay_Halo415_z0.504.xml"        ,
-	      "haloMassFunctionBase_MilkyWay_Halo415_z0.990.xml"        ,
-	      "haloMassFunctionBase_MilkyWay_Halo415_z2.031.xml"        ,
-	      "haloMassFunctionBase_MilkyWay_Halo415_z3.984.xml"        ,
-	      "haloMassFunctionBase_MilkyWay_Halo416_z0.000.xml"        ,
-	      "haloMassFunctionBase_MilkyWay_Halo416_z0.504.xml"        ,
-	      "haloMassFunctionBase_MilkyWay_Halo416_z0.990.xml"        ,
-	      "haloMassFunctionBase_MilkyWay_Halo416_z2.031.xml"        ,
-	      "haloMassFunctionBase_MilkyWay_Halo416_z3.984.xml"        ,
-	      "haloMassFunctionBase_MilkyWay_Halo440_z0.000.xml"        ,
-	      "haloMassFunctionBase_MilkyWay_Halo440_z0.504.xml"        ,
-	      "haloMassFunctionBase_MilkyWay_Halo440_z0.990.xml"        ,
-	      "haloMassFunctionBase_MilkyWay_Halo440_z2.031.xml"        ,
-	      "haloMassFunctionBase_MilkyWay_Halo440_z3.984.xml"        ,
-	      "haloMassFunctionBase_MilkyWay_Halo460_z0.000.xml"        ,
-	      "haloMassFunctionBase_MilkyWay_Halo460_z0.504.xml"        ,
-	      "haloMassFunctionBase_MilkyWay_Halo460_z0.990.xml"        ,
-	      "haloMassFunctionBase_MilkyWay_Halo460_z2.031.xml"        ,
-	      "haloMassFunctionBase_MilkyWay_Halo460_z3.984.xml"        ,
-	      "haloMassFunctionBase_MilkyWay_Halo469_z0.000.xml"        ,
-	      "haloMassFunctionBase_MilkyWay_Halo469_z0.504.xml"        ,
-	      "haloMassFunctionBase_MilkyWay_Halo469_z0.990.xml"        ,
-	      "haloMassFunctionBase_MilkyWay_Halo469_z2.031.xml"        ,
-	      "haloMassFunctionBase_MilkyWay_Halo469_z3.984.xml"        ,
-	      "haloMassFunctionBase_MilkyWay_Halo490_z0.000.xml"        ,
-	      "haloMassFunctionBase_MilkyWay_Halo490_z0.504.xml"        ,
-	      "haloMassFunctionBase_MilkyWay_Halo490_z0.990.xml"        ,
-	      "haloMassFunctionBase_MilkyWay_Halo490_z2.031.xml"        ,
-	      "haloMassFunctionBase_MilkyWay_Halo490_z3.984.xml"        ,
-	      "haloMassFunctionBase_MilkyWay_Halo530_z0.000.xml"        ,
-	      "haloMassFunctionBase_MilkyWay_Halo530_z0.504.xml"        ,
-	      "haloMassFunctionBase_MilkyWay_Halo530_z0.990.xml"        ,
-	      "haloMassFunctionBase_MilkyWay_Halo530_z2.031.xml"        ,
-	      "haloMassFunctionBase_MilkyWay_Halo530_z3.984.xml"        ,
-	      "haloMassFunctionBase_MilkyWay_Halo558_z0.000.xml"        ,
-	      "haloMassFunctionBase_MilkyWay_Halo558_z0.504.xml"        ,
-	      "haloMassFunctionBase_MilkyWay_Halo558_z0.990.xml"        ,
-	      "haloMassFunctionBase_MilkyWay_Halo558_z2.031.xml"        ,
-	      "haloMassFunctionBase_MilkyWay_Halo558_z3.984.xml"        ,
-	      "haloMassFunctionBase_MilkyWay_Halo567_z0.000.xml"        ,
-	      "haloMassFunctionBase_MilkyWay_Halo567_z0.504.xml"        ,
-	      "haloMassFunctionBase_MilkyWay_Halo567_z0.990.xml"        ,
-	      "haloMassFunctionBase_MilkyWay_Halo567_z2.031.xml"        ,
-	      "haloMassFunctionBase_MilkyWay_Halo567_z3.984.xml"        ,
-	      "haloMassFunctionBase_MilkyWay_Halo570_z0.000.xml"        ,
-	      "haloMassFunctionBase_MilkyWay_Halo570_z0.504.xml"        ,
-	      "haloMassFunctionBase_MilkyWay_Halo570_z0.990.xml"        ,
-	      "haloMassFunctionBase_MilkyWay_Halo570_z2.031.xml"        ,
-	      "haloMassFunctionBase_MilkyWay_Halo570_z3.984.xml"        ,
-	      "haloMassFunctionBase_MilkyWay_Halo606_z0.000.xml"        ,
-	      "haloMassFunctionBase_MilkyWay_Halo606_z0.504.xml"        ,
-	      "haloMassFunctionBase_MilkyWay_Halo606_z0.990.xml"        ,
-	      "haloMassFunctionBase_MilkyWay_Halo606_z2.031.xml"        ,
-	      "haloMassFunctionBase_MilkyWay_Halo606_z3.984.xml"        ,
-	      "haloMassFunctionBase_MilkyWay_Halo628_z0.000.xml"        ,
-	      "haloMassFunctionBase_MilkyWay_Halo628_z0.504.xml"        ,
-	      "haloMassFunctionBase_MilkyWay_Halo628_z0.990.xml"        ,
-	      "haloMassFunctionBase_MilkyWay_Halo628_z2.031.xml"        ,
-	      "haloMassFunctionBase_MilkyWay_Halo628_z3.984.xml"        ,
-	      "haloMassFunctionBase_MilkyWay_Halo641_z0.000.xml"        ,
-	      "haloMassFunctionBase_MilkyWay_Halo641_z0.504.xml"        ,
-	      "haloMassFunctionBase_MilkyWay_Halo641_z0.990.xml"        ,
-	      "haloMassFunctionBase_MilkyWay_Halo641_z2.031.xml"        ,
-	      "haloMassFunctionBase_MilkyWay_Halo641_z3.984.xml"        ,
-	      "haloMassFunctionBase_MilkyWay_Halo675_z0.000.xml"        ,
-	      "haloMassFunctionBase_MilkyWay_Halo675_z0.504.xml"        ,
-	      "haloMassFunctionBase_MilkyWay_Halo675_z0.990.xml"        ,
-	      "haloMassFunctionBase_MilkyWay_Halo675_z2.031.xml"        ,
-	      "haloMassFunctionBase_MilkyWay_Halo675_z3.984.xml"        ,
-	      "haloMassFunctionBase_MilkyWay_Halo718_z0.000.xml"        ,
-	      "haloMassFunctionBase_MilkyWay_Halo718_z0.504.xml"        ,
-	      "haloMassFunctionBase_MilkyWay_Halo718_z0.990.xml"        ,
-	      "haloMassFunctionBase_MilkyWay_Halo718_z2.031.xml"        ,
-	      "haloMassFunctionBase_MilkyWay_Halo718_z3.984.xml"        ,
-	      "haloMassFunctionBase_MilkyWay_Halo738_z0.000.xml"        ,
-	      "haloMassFunctionBase_MilkyWay_Halo738_z0.504.xml"        ,
-	      "haloMassFunctionBase_MilkyWay_Halo738_z0.990.xml"        ,
-	      "haloMassFunctionBase_MilkyWay_Halo738_z2.031.xml"        ,
-	      "haloMassFunctionBase_MilkyWay_Halo738_z3.984.xml"        ,
-	      "haloMassFunctionBase_MilkyWay_Halo749_z0.000.xml"        ,
-	      "haloMassFunctionBase_MilkyWay_Halo749_z0.504.xml"        ,
-	      "haloMassFunctionBase_MilkyWay_Halo749_z0.990.xml"        ,
-	      "haloMassFunctionBase_MilkyWay_Halo749_z2.031.xml"        ,
-	      "haloMassFunctionBase_MilkyWay_Halo749_z3.984.xml"        ,
-	      "haloMassFunctionBase_MilkyWay_Halo797_z0.000.xml"        ,
-	      "haloMassFunctionBase_MilkyWay_Halo797_z0.504.xml"        ,
-	      "haloMassFunctionBase_MilkyWay_Halo797_z0.990.xml"        ,
-	      "haloMassFunctionBase_MilkyWay_Halo797_z2.031.xml"        ,
-	      "haloMassFunctionBase_MilkyWay_Halo797_z3.984.xml"        ,
-	      "haloMassFunctionBase_MilkyWay_Halo800_z0.000.xml"        ,
-	      "haloMassFunctionBase_MilkyWay_Halo800_z0.504.xml"        ,
-	      "haloMassFunctionBase_MilkyWay_Halo800_z0.990.xml"        ,
-	      "haloMassFunctionBase_MilkyWay_Halo800_z2.031.xml"        ,
-	      "haloMassFunctionBase_MilkyWay_Halo800_z3.984.xml"        ,
-	      "haloMassFunctionBase_MilkyWay_Halo825_z0.000.xml"        ,
-	      "haloMassFunctionBase_MilkyWay_Halo825_z0.504.xml"        ,
-	      "haloMassFunctionBase_MilkyWay_Halo825_z0.990.xml"        ,
-	      "haloMassFunctionBase_MilkyWay_Halo825_z2.031.xml"        ,
-	      "haloMassFunctionBase_MilkyWay_Halo825_z3.984.xml"        ,
-	      "haloMassFunctionBase_MilkyWay_Halo829_z0.000.xml"        ,
-	      "haloMassFunctionBase_MilkyWay_Halo829_z0.504.xml"        ,
-	      "haloMassFunctionBase_MilkyWay_Halo829_z0.990.xml"        ,
-	      "haloMassFunctionBase_MilkyWay_Halo829_z2.031.xml"        ,
-	      "haloMassFunctionBase_MilkyWay_Halo829_z3.984.xml"        ,
-	      "haloMassFunctionBase_MilkyWay_Halo852_z0.000.xml"        ,
-	      "haloMassFunctionBase_MilkyWay_Halo852_z0.504.xml"        ,
-	      "haloMassFunctionBase_MilkyWay_Halo852_z0.990.xml"        ,
-	      "haloMassFunctionBase_MilkyWay_Halo852_z2.031.xml"        ,
-	      "haloMassFunctionBase_MilkyWay_Halo852_z3.984.xml"        ,
-	      "haloMassFunctionBase_MilkyWay_Halo878_z0.000.xml"        ,
-	      "haloMassFunctionBase_MilkyWay_Halo878_z0.504.xml"        ,
-	      "haloMassFunctionBase_MilkyWay_Halo878_z0.990.xml"        ,
-	      "haloMassFunctionBase_MilkyWay_Halo878_z2.031.xml"        ,
-	      "haloMassFunctionBase_MilkyWay_Halo878_z3.984.xml"        ,
-	      "haloMassFunctionBase_MilkyWay_Halo881_z0.000.xml"        ,
-	      "haloMassFunctionBase_MilkyWay_Halo881_z0.504.xml"        ,
-	      "haloMassFunctionBase_MilkyWay_Halo881_z0.990.xml"        ,
-	      "haloMassFunctionBase_MilkyWay_Halo881_z2.031.xml"        ,
-	      "haloMassFunctionBase_MilkyWay_Halo881_z3.984.xml"        ,
-	      "haloMassFunctionBase_MilkyWay_Halo925_z0.000.xml"        ,
-	      "haloMassFunctionBase_MilkyWay_Halo925_z0.504.xml"        ,
-	      "haloMassFunctionBase_MilkyWay_Halo925_z0.990.xml"        ,
-	      "haloMassFunctionBase_MilkyWay_Halo925_z2.031.xml"        ,
-	      "haloMassFunctionBase_MilkyWay_Halo925_z3.984.xml"        ,
-	      "haloMassFunctionBase_MilkyWay_Halo926_z0.000.xml"        ,
-	      "haloMassFunctionBase_MilkyWay_Halo926_z0.504.xml"        ,
-	      "haloMassFunctionBase_MilkyWay_Halo926_z0.990.xml"        ,
-	      "haloMassFunctionBase_MilkyWay_Halo926_z2.031.xml"        ,
-	      "haloMassFunctionBase_MilkyWay_Halo926_z3.984.xml"        ,
-	      "haloMassFunctionBase_MilkyWay_Halo937_z0.000.xml"        ,
-	      "haloMassFunctionBase_MilkyWay_Halo937_z0.504.xml"        ,
-	      "haloMassFunctionBase_MilkyWay_Halo937_z0.990.xml"        ,
-	      "haloMassFunctionBase_MilkyWay_Halo937_z2.031.xml"        ,
-	      "haloMassFunctionBase_MilkyWay_Halo937_z3.984.xml"        ,
-	      "haloMassFunctionBase_MilkyWay_Halo939_z0.000.xml"        ,
-	      "haloMassFunctionBase_MilkyWay_Halo939_z0.504.xml"        ,
-	      "haloMassFunctionBase_MilkyWay_Halo939_z0.990.xml"        ,
-	      "haloMassFunctionBase_MilkyWay_Halo939_z2.031.xml"        ,
-	      "haloMassFunctionBase_MilkyWay_Halo939_z3.984.xml"        ,
-	      "haloMassFunctionBase_MilkyWay_Halo967_z0.000.xml"        ,
-	      "haloMassFunctionBase_MilkyWay_Halo967_z0.504.xml"        ,
-	      "haloMassFunctionBase_MilkyWay_Halo967_z0.990.xml"        ,
-	      "haloMassFunctionBase_MilkyWay_Halo967_z2.031.xml"        ,
-	      "haloMassFunctionBase_MilkyWay_Halo967_z3.984.xml"        ,
-	      "haloMassFunctionBase_MilkyWay_Halo9749_z0.000.xml"       ,
-	      "haloMassFunctionBase_MilkyWay_Halo9749_z0.504.xml"       ,
-	      "haloMassFunctionBase_MilkyWay_Halo9749_z0.990.xml"       ,
-	      "haloMassFunctionBase_MilkyWay_Halo9749_z2.031.xml"       ,
-	      "haloMassFunctionBase_MilkyWay_Halo9749_z3.984.xml"       ,
-	      "haloMassFunctionBase_MilkyWay_Halo9829_z0.000.xml"       ,
-	      "haloMassFunctionBase_MilkyWay_Halo9829_z0.504.xml"       ,
-	      "haloMassFunctionBase_MilkyWay_Halo9829_z0.990.xml"       ,
-	      "haloMassFunctionBase_MilkyWay_Halo9829_z2.031.xml"       ,
-	      "haloMassFunctionBase_MilkyWay_Halo9829_z3.984.xml"       ,
-	      "haloMassFunctionBase_MilkyWay_Halo990_z0.000.xml"        ,
-	      "haloMassFunctionBase_MilkyWay_Halo990_z0.504.xml"        ,
-	      "haloMassFunctionBase_MilkyWay_Halo990_z0.990.xml"        ,
-	      "haloMassFunctionBase_MilkyWay_Halo990_z2.031.xml"        ,
-	      "haloMassFunctionBase_MilkyWay_Halo990_z3.984.xml"        ,
-              "haloMassFunctionBase_MilkyWay_Axion20_Halo416_z0.000.xml",
-              "haloMassFunctionBase_MilkyWay_Axion21_Halo416_z0.000.xml",
-              "haloMassFunctionBase_MilkyWay_Axion22_Halo416_z0.000.xml",
-              "haloMassFunctionBase_MilkyWay_WDM1_Halo416_z0.000.xml"   ,
-              "haloMassFunctionBase_MilkyWay_WDM5_Halo416_z0.000.xml"   ,
-              "haloMassFunctionBase_MilkyWay_WDM10_Halo416_z0.000.xml"  ,
-	      "haloMassFunctionBase_LMC_Halo032_z0.000.xml"             ,
-	      "haloMassFunctionBase_LMC_Halo032_z0.504.xml"             ,
-	      "haloMassFunctionBase_LMC_Halo032_z0.990.xml"             ,
-	      "haloMassFunctionBase_LMC_Halo032_z2.031.xml"             ,
-	      "haloMassFunctionBase_LMC_Halo032_z3.984.xml"             ,
-	      "haloMassFunctionBase_LMC_Halo059_z0.000.xml"             ,
-	      "haloMassFunctionBase_LMC_Halo059_z0.504.xml"             ,
-	      "haloMassFunctionBase_LMC_Halo059_z0.990.xml"             ,
-	      "haloMassFunctionBase_LMC_Halo059_z2.031.xml"             ,
-	      "haloMassFunctionBase_LMC_Halo059_z3.984.xml"             ,
-	      "haloMassFunctionBase_LMC_Halo0662_z0.000.xml"            ,
-	      "haloMassFunctionBase_LMC_Halo0662_z0.504.xml"            ,
-	      "haloMassFunctionBase_LMC_Halo0662_z0.990.xml"            ,
-	      "haloMassFunctionBase_LMC_Halo0662_z2.031.xml"            ,
-	      "haloMassFunctionBase_LMC_Halo0662_z3.984.xml"            ,
-	      "haloMassFunctionBase_LMC_Halo083_z0.000.xml"             ,
-	      "haloMassFunctionBase_LMC_Halo083_z0.504.xml"             ,
-	      "haloMassFunctionBase_LMC_Halo083_z0.990.xml"             ,
-	      "haloMassFunctionBase_LMC_Halo083_z2.031.xml"             ,
-	      "haloMassFunctionBase_LMC_Halo083_z3.984.xml"             ,
-	      "haloMassFunctionBase_LMC_Halo088_z0.000.xml"             ,
-	      "haloMassFunctionBase_LMC_Halo088_z0.504.xml"             ,
-	      "haloMassFunctionBase_LMC_Halo088_z0.990.xml"             ,
-	      "haloMassFunctionBase_LMC_Halo088_z2.031.xml"             ,
-	      "haloMassFunctionBase_LMC_Halo088_z3.984.xml"             ,
-	      "haloMassFunctionBase_LMC_Halo097_z0.000.xml"             ,
-	      "haloMassFunctionBase_LMC_Halo097_z0.504.xml"             ,
-	      "haloMassFunctionBase_LMC_Halo097_z0.990.xml"             ,
-	      "haloMassFunctionBase_LMC_Halo097_z2.031.xml"             ,
-	      "haloMassFunctionBase_LMC_Halo097_z3.984.xml"             ,
-	      "haloMassFunctionBase_LMC_Halo104_z0.000.xml"             ,
-	      "haloMassFunctionBase_LMC_Halo104_z0.504.xml"             ,
-	      "haloMassFunctionBase_LMC_Halo104_z0.990.xml"             ,
-	      "haloMassFunctionBase_LMC_Halo104_z2.031.xml"             ,
-	      "haloMassFunctionBase_LMC_Halo104_z3.984.xml"             ,
-	      "haloMassFunctionBase_LMC_Halo110_z0.000.xml"             ,
-	      "haloMassFunctionBase_LMC_Halo110_z0.504.xml"             ,
-	      "haloMassFunctionBase_LMC_Halo110_z0.990.xml"             ,
-	      "haloMassFunctionBase_LMC_Halo110_z2.031.xml"             ,
-	      "haloMassFunctionBase_LMC_Halo110_z3.984.xml"             ,
-	      "haloMassFunctionBase_LMC_Halo202_z0.000.xml"             ,
-	      "haloMassFunctionBase_LMC_Halo202_z0.504.xml"             ,
-	      "haloMassFunctionBase_LMC_Halo202_z0.990.xml"             ,
-	      "haloMassFunctionBase_LMC_Halo202_z2.031.xml"             ,
-	      "haloMassFunctionBase_LMC_Halo202_z3.984.xml"             ,
-	      "haloMassFunctionBase_LMC_Halo208_z0.000.xml"             ,
-	      "haloMassFunctionBase_LMC_Halo208_z0.504.xml"             ,
-	      "haloMassFunctionBase_LMC_Halo208_z0.990.xml"             ,
-	      "haloMassFunctionBase_LMC_Halo208_z2.031.xml"             ,
-	      "haloMassFunctionBase_LMC_Halo208_z3.984.xml"             ,
-	      "haloMassFunctionBase_LMC_Halo218_z0.000.xml"             ,
-	      "haloMassFunctionBase_LMC_Halo218_z0.504.xml"             ,
-	      "haloMassFunctionBase_LMC_Halo218_z0.990.xml"             ,
-	      "haloMassFunctionBase_LMC_Halo218_z2.031.xml"             ,
-	      "haloMassFunctionBase_LMC_Halo218_z3.984.xml"             ,
-	      "haloMassFunctionBase_LMC_Halo296_z0.000.xml"             ,
-	      "haloMassFunctionBase_LMC_Halo296_z0.504.xml"             ,
-	      "haloMassFunctionBase_LMC_Halo296_z0.990.xml"             ,
-	      "haloMassFunctionBase_LMC_Halo296_z2.031.xml"             ,
-	      "haloMassFunctionBase_LMC_Halo296_z3.984.xml"             ,
-	      "haloMassFunctionBase_LMC_Halo301_z0.000.xml"             ,
-	      "haloMassFunctionBase_LMC_Halo301_z0.504.xml"             ,
-	      "haloMassFunctionBase_LMC_Halo301_z0.990.xml"             ,
-	      "haloMassFunctionBase_LMC_Halo301_z2.031.xml"             ,
-	      "haloMassFunctionBase_LMC_Halo301_z3.984.xml"             ,
-	      "haloMassFunctionBase_LMC_Halo303_z0.000.xml"             ,
-	      "haloMassFunctionBase_LMC_Halo303_z0.504.xml"             ,
-	      "haloMassFunctionBase_LMC_Halo303_z0.990.xml"             ,
-	      "haloMassFunctionBase_LMC_Halo303_z2.031.xml"             ,
-	      "haloMassFunctionBase_LMC_Halo303_z3.984.xml"             ,
-	      "haloMassFunctionBase_LMC_Halo340_z0.000.xml"             ,
-	      "haloMassFunctionBase_LMC_Halo340_z0.504.xml"             ,
-	      "haloMassFunctionBase_LMC_Halo340_z0.990.xml"             ,
-	      "haloMassFunctionBase_LMC_Halo340_z2.031.xml"             ,
-	      "haloMassFunctionBase_LMC_Halo340_z3.984.xml"             ,
-	      "haloMassFunctionBase_LMC_Halo374_z0.000.xml"             ,
-	      "haloMassFunctionBase_LMC_Halo374_z0.504.xml"             ,
-	      "haloMassFunctionBase_LMC_Halo374_z0.990.xml"             ,
-	      "haloMassFunctionBase_LMC_Halo374_z2.031.xml"             ,
-	      "haloMassFunctionBase_LMC_Halo374_z3.984.xml"             ,
-	      "haloMassFunctionBase_LMC_Halo380_z0.000.xml"             ,
-	      "haloMassFunctionBase_LMC_Halo380_z0.504.xml"             ,
-	      "haloMassFunctionBase_LMC_Halo380_z0.990.xml"             ,
-	      "haloMassFunctionBase_LMC_Halo380_z2.031.xml"             ,
-	      "haloMassFunctionBase_LMC_Halo380_z3.984.xml"             ,
-	      "haloMassFunctionBase_LMC_Halo391_z0.000.xml"             ,
-	      "haloMassFunctionBase_LMC_Halo391_z0.504.xml"             ,
-	      "haloMassFunctionBase_LMC_Halo391_z0.990.xml"             ,
-	      "haloMassFunctionBase_LMC_Halo391_z2.031.xml"             ,
-	      "haloMassFunctionBase_LMC_Halo391_z3.984.xml"             ,
-	      "haloMassFunctionBase_LMC_Halo405_z0.000.xml"             ,
-	      "haloMassFunctionBase_LMC_Halo405_z0.504.xml"             ,
-	      "haloMassFunctionBase_LMC_Halo405_z0.990.xml"             ,
-	      "haloMassFunctionBase_LMC_Halo405_z2.031.xml"             ,
-	      "haloMassFunctionBase_LMC_Halo405_z3.984.xml"             ,
-	      "haloMassFunctionBase_LMC_Halo440_z0.000.xml"             ,
-	      "haloMassFunctionBase_LMC_Halo440_z0.504.xml"             ,
-	      "haloMassFunctionBase_LMC_Halo440_z0.990.xml"             ,
-	      "haloMassFunctionBase_LMC_Halo440_z2.031.xml"             ,
-	      "haloMassFunctionBase_LMC_Halo440_z3.984.xml"             ,
-	      "haloMassFunctionBase_LMC_Halo463_z0.000.xml"             ,
-	      "haloMassFunctionBase_LMC_Halo463_z0.504.xml"             ,
-	      "haloMassFunctionBase_LMC_Halo463_z0.990.xml"             ,
-	      "haloMassFunctionBase_LMC_Halo463_z2.031.xml"             ,
-	      "haloMassFunctionBase_LMC_Halo463_z3.984.xml"             ,
-	      "haloMassFunctionBase_LMC_Halo4662_z0.000.xml"            ,
-	      "haloMassFunctionBase_LMC_Halo4662_z0.504.xml"            ,
-	      "haloMassFunctionBase_LMC_Halo4662_z0.990.xml"            ,
-	      "haloMassFunctionBase_LMC_Halo4662_z2.031.xml"            ,
-	      "haloMassFunctionBase_LMC_Halo4662_z3.984.xml"            ,
-	      "haloMassFunctionBase_LMC_Halo511_z0.000.xml"             ,
-	      "haloMassFunctionBase_LMC_Halo511_z0.504.xml"             ,
-	      "haloMassFunctionBase_LMC_Halo511_z0.990.xml"             ,
-	      "haloMassFunctionBase_LMC_Halo511_z2.031.xml"             ,
-	      "haloMassFunctionBase_LMC_Halo511_z3.984.xml"             ,
-	      "haloMassFunctionBase_LMC_Halo524_z0.000.xml"             ,
-	      "haloMassFunctionBase_LMC_Halo524_z0.504.xml"             ,
-	      "haloMassFunctionBase_LMC_Halo524_z0.990.xml"             ,
-	      "haloMassFunctionBase_LMC_Halo524_z2.031.xml"             ,
-	      "haloMassFunctionBase_LMC_Halo524_z3.984.xml"             ,
-	      "haloMassFunctionBase_LMC_Halo539_z0.000.xml"             ,
-	      "haloMassFunctionBase_LMC_Halo539_z0.504.xml"             ,
-	      "haloMassFunctionBase_LMC_Halo539_z0.990.xml"             ,
-	      "haloMassFunctionBase_LMC_Halo539_z2.031.xml"             ,
-	      "haloMassFunctionBase_LMC_Halo539_z3.984.xml"             ,
-	      "haloMassFunctionBase_LMC_Halo567_z0.000.xml"             ,
-	      "haloMassFunctionBase_LMC_Halo567_z0.504.xml"             ,
-	      "haloMassFunctionBase_LMC_Halo567_z0.990.xml"             ,
-	      "haloMassFunctionBase_LMC_Halo567_z2.031.xml"             ,
-	      "haloMassFunctionBase_LMC_Halo567_z3.984.xml"             ,
-	      "haloMassFunctionBase_LMC_Halo575_z0.000.xml"             ,
-	      "haloMassFunctionBase_LMC_Halo575_z0.504.xml"             ,
-	      "haloMassFunctionBase_LMC_Halo575_z0.990.xml"             ,
-	      "haloMassFunctionBase_LMC_Halo575_z2.031.xml"             ,
-	      "haloMassFunctionBase_LMC_Halo575_z3.984.xml"             ,
-	      "haloMassFunctionBase_LMC_Halo602_z0.000.xml"             ,
-	      "haloMassFunctionBase_LMC_Halo602_z0.504.xml"             ,
-	      "haloMassFunctionBase_LMC_Halo602_z0.990.xml"             ,
-	      "haloMassFunctionBase_LMC_Halo602_z2.031.xml"             ,
-	      "haloMassFunctionBase_LMC_Halo602_z3.984.xml"             ,
-	      "haloMassFunctionBase_LMC_Halo697_z0.000.xml"             ,
-	      "haloMassFunctionBase_LMC_Halo697_z0.504.xml"             ,
-	      "haloMassFunctionBase_LMC_Halo697_z0.990.xml"             ,
-	      "haloMassFunctionBase_LMC_Halo697_z2.031.xml"             ,
-	      "haloMassFunctionBase_LMC_Halo697_z3.984.xml"             ,
-	      "haloMassFunctionBase_LMC_Halo711_z0.000.xml"             ,
-	      "haloMassFunctionBase_LMC_Halo711_z0.504.xml"             ,
-	      "haloMassFunctionBase_LMC_Halo711_z0.990.xml"             ,
-	      "haloMassFunctionBase_LMC_Halo711_z2.031.xml"             ,
-	      "haloMassFunctionBase_LMC_Halo711_z3.984.xml"             ,
-	      "haloMassFunctionBase_LMC_Halo721_z0.000.xml"             ,
-	      "haloMassFunctionBase_LMC_Halo721_z0.504.xml"             ,
-	      "haloMassFunctionBase_LMC_Halo721_z0.990.xml"             ,
-	      "haloMassFunctionBase_LMC_Halo721_z2.031.xml"             ,
-	      "haloMassFunctionBase_LMC_Halo721_z3.984.xml"             ,
-	      "haloMassFunctionBase_LMC_Halo767_z0.000.xml"             ,
-	      "haloMassFunctionBase_LMC_Halo767_z0.504.xml"             ,
-	      "haloMassFunctionBase_LMC_Halo767_z0.990.xml"             ,
-	      "haloMassFunctionBase_LMC_Halo767_z2.031.xml"             ,
-	      "haloMassFunctionBase_LMC_Halo767_z3.984.xml"             ,
-	      "haloMassFunctionBase_LMC_Halo802_z0.000.xml"             ,
-	      "haloMassFunctionBase_LMC_Halo802_z0.504.xml"             ,
-	      "haloMassFunctionBase_LMC_Halo802_z0.990.xml"             ,
-	      "haloMassFunctionBase_LMC_Halo802_z2.031.xml"             ,
-	      "haloMassFunctionBase_LMC_Halo802_z3.984.xml"             ,
-	      "haloMassFunctionBase_LMC_Halo824_z0.000.xml"             ,
-	      "haloMassFunctionBase_LMC_Halo824_z0.504.xml"             ,
-	      "haloMassFunctionBase_LMC_Halo824_z0.990.xml"             ,
-	      "haloMassFunctionBase_LMC_Halo824_z2.031.xml"             ,
-	      "haloMassFunctionBase_LMC_Halo824_z3.984.xml"             ,
-	      "haloMassFunctionBase_LMC_Halo850_z0.000.xml"             ,
-	      "haloMassFunctionBase_LMC_Halo850_z0.504.xml"             ,
-	      "haloMassFunctionBase_LMC_Halo850_z0.990.xml"             ,
-	      "haloMassFunctionBase_LMC_Halo850_z2.031.xml"             ,
-	      "haloMassFunctionBase_LMC_Halo850_z3.984.xml"             ,
-	      "haloMassFunctionBase_LMC_Halo853_z0.000.xml"             ,
-	      "haloMassFunctionBase_LMC_Halo853_z0.504.xml"             ,
-	      "haloMassFunctionBase_LMC_Halo853_z0.990.xml"             ,
-	      "haloMassFunctionBase_LMC_Halo853_z2.031.xml"             ,
-	      "haloMassFunctionBase_LMC_Halo853_z3.984.xml"             ,
-	      "haloMassFunctionBase_LMC_Halo914_z0.000.xml"             ,
-	      "haloMassFunctionBase_LMC_Halo914_z0.504.xml"             ,
-	      "haloMassFunctionBase_LMC_Halo914_z0.990.xml"             ,
-	      "haloMassFunctionBase_LMC_Halo914_z2.031.xml"             ,
-	      "haloMassFunctionBase_LMC_Halo914_z3.984.xml"             ,
-	      "haloMassFunctionBase_LMC_Halo932_z0.000.xml"             ,
-	      "haloMassFunctionBase_LMC_Halo932_z0.504.xml"             ,
-	      "haloMassFunctionBase_LMC_Halo932_z0.990.xml"             ,
-	      "haloMassFunctionBase_LMC_Halo932_z2.031.xml"             ,
-	      "haloMassFunctionBase_LMC_Halo932_z3.984.xml"             ,
-	      "haloMassFunctionBase_LMC_Halo933_z0.000.xml"             ,
-	      "haloMassFunctionBase_LMC_Halo933_z0.504.xml"             ,
-	      "haloMassFunctionBase_LMC_Halo933_z0.990.xml"             ,
-	      "haloMassFunctionBase_LMC_Halo933_z2.031.xml"             ,
-	      "haloMassFunctionBase_LMC_Halo933_z3.984.xml"             ,
-	     ]                                                          ,
-	 suffix       =>
-	     [
-	      "VSMDPL_z0.000"                                           ,
-	      "VSMDPL_z0.490"                                           ,
-	      "VSMDPL_z0.990"                                           ,
-	      "VSMDPL_z2.030"                                           ,
-	      "VSMDPL_z3.040"                                           ,
-	      "SMDPL_z0.000"                                            ,
-	      "SMDPL_z0.505"                                            ,
-	      "SMDPL_z1.000"                                            ,
-	      "SMDPL_z2.021"                                            ,
-	      "SMDPL_z3.032"                                            ,
-	      "MDPL2_z0.000"                                            ,
-	      "MDPL2_z0.490"                                            ,
-	      "MDPL2_z0.987"                                            ,
-	      "MDPL2_z2.028"                                            ,
-	      "MDPL2_z3.127"                                            ,
-	      "BigMDPL_z0.000"                                          ,
-	      "BigMDPL_z0.492"                                          ,
-	      "BigMDPL_z1.000"                                          ,
-	      "BigMDPL_z2.145"                                          ,
-	      "HugeMDPL_z0.000"                                         ,
-	      "HugeMDPL_z0.490"                                         ,
-	      "HugeMDPL_z0.987"                                         ,
-	      "HugeMDPL_z2.028"                                         ,
-	      "MilkyWay_Halo023_z0.000"                                 ,
-	      "MilkyWay_Halo023_z0.504"                                 ,
-	      "MilkyWay_Halo023_z0.990"                                 ,
-	      "MilkyWay_Halo023_z2.031"                                 ,
-	      "MilkyWay_Halo023_z3.984"                                 ,
-	      "MilkyWay_Halo088_z0.000"                                 ,
-	      "MilkyWay_Halo088_z0.504"                                 ,
-	      "MilkyWay_Halo088_z0.990"                                 ,
-	      "MilkyWay_Halo088_z2.031"                                 ,
-	      "MilkyWay_Halo088_z3.984"                                 ,
-	      "MilkyWay_Halo119_z0.000"                                 ,
-	      "MilkyWay_Halo119_z0.504"                                 ,
-	      "MilkyWay_Halo119_z0.990"                                 ,
-	      "MilkyWay_Halo119_z2.031"                                 ,
-	      "MilkyWay_Halo119_z3.984"                                 ,
-	      "MilkyWay_Halo188_z0.000"                                 ,
-	      "MilkyWay_Halo188_z0.504"                                 ,
-	      "MilkyWay_Halo188_z0.990"                                 ,
-	      "MilkyWay_Halo188_z2.031"                                 ,
-	      "MilkyWay_Halo188_z3.984"                                 ,
-	      "MilkyWay_Halo247_z0.000"                                 ,
-	      "MilkyWay_Halo247_z0.504"                                 ,
-	      "MilkyWay_Halo247_z0.990"                                 ,
-	      "MilkyWay_Halo247_z2.031"                                 ,
-	      "MilkyWay_Halo247_z3.984"                                 ,
-	      "MilkyWay_Halo268_z0.000"                                 ,
-	      "MilkyWay_Halo268_z0.504"                                 ,
-	      "MilkyWay_Halo268_z0.990"                                 ,
-	      "MilkyWay_Halo268_z2.031"                                 ,
-	      "MilkyWay_Halo268_z3.984"                                 ,
-	      "MilkyWay_Halo270_z0.000"                                 ,
-	      "MilkyWay_Halo270_z0.504"                                 ,
-	      "MilkyWay_Halo270_z0.990"                                 ,
-	      "MilkyWay_Halo270_z2.031"                                 ,
-	      "MilkyWay_Halo270_z3.984"                                 ,
-	      "MilkyWay_Halo288_z0.000"                                 ,
-	      "MilkyWay_Halo288_z0.504"                                 ,
-	      "MilkyWay_Halo288_z0.990"                                 ,
-	      "MilkyWay_Halo288_z2.031"                                 ,
-	      "MilkyWay_Halo288_z3.984"                                 ,
-	      "MilkyWay_Halo327_z0.000"                                 ,
-	      "MilkyWay_Halo327_z0.504"                                 ,
-	      "MilkyWay_Halo327_z0.990"                                 ,
-	      "MilkyWay_Halo327_z2.031"                                 ,
-	      "MilkyWay_Halo327_z3.984"                                 ,
-	      "MilkyWay_Halo349_z0.000"                                 ,
-	      "MilkyWay_Halo349_z0.504"                                 ,
-	      "MilkyWay_Halo349_z0.990"                                 ,
-	      "MilkyWay_Halo349_z2.031"                                 ,
-	      "MilkyWay_Halo349_z3.984"                                 ,
-	      "MilkyWay_Halo364_z0.000"                                 ,
-	      "MilkyWay_Halo364_z0.504"                                 ,
-	      "MilkyWay_Halo364_z0.990"                                 ,
-	      "MilkyWay_Halo364_z2.031"                                 ,
-	      "MilkyWay_Halo364_z3.984"                                 ,
-	      "MilkyWay_Halo374_z0.000"                                 ,
-	      "MilkyWay_Halo374_z0.504"                                 ,
-	      "MilkyWay_Halo374_z0.990"                                 ,
-	      "MilkyWay_Halo374_z2.031"                                 ,
-	      "MilkyWay_Halo374_z3.984"                                 ,
-	      "MilkyWay_Halo414_z0.000"                                 ,
-	      "MilkyWay_Halo414_z0.504"                                 ,
-	      "MilkyWay_Halo414_z0.990"                                 ,
-	      "MilkyWay_Halo414_z2.031"                                 ,
-	      "MilkyWay_Halo414_z3.984"                                 ,
-	      "MilkyWay_Halo415_z0.000"                                 ,
-	      "MilkyWay_Halo415_z0.504"                                 ,
-	      "MilkyWay_Halo415_z0.990"                                 ,
-	      "MilkyWay_Halo415_z2.031"                                 ,
-	      "MilkyWay_Halo415_z3.984"                                 ,
-	      "MilkyWay_Halo416_z0.000"                                 ,
-	      "MilkyWay_Halo416_z0.504"                                 ,
-	      "MilkyWay_Halo416_z0.990"                                 ,
-	      "MilkyWay_Halo416_z2.031"                                 ,
-	      "MilkyWay_Halo416_z3.984"                                 ,
-	      "MilkyWay_Halo440_z0.000"                                 ,
-	      "MilkyWay_Halo440_z0.504"                                 ,
-	      "MilkyWay_Halo440_z0.990"                                 ,
-	      "MilkyWay_Halo440_z2.031"                                 ,
-	      "MilkyWay_Halo440_z3.984"                                 ,
-	      "MilkyWay_Halo460_z0.000"                                 ,
-	      "MilkyWay_Halo460_z0.504"                                 ,
-	      "MilkyWay_Halo460_z0.990"                                 ,
-	      "MilkyWay_Halo460_z2.031"                                 ,
-	      "MilkyWay_Halo460_z3.984"                                 ,
-	      "MilkyWay_Halo469_z0.000"                                 ,
-	      "MilkyWay_Halo469_z0.504"                                 ,
-	      "MilkyWay_Halo469_z0.990"                                 ,
-	      "MilkyWay_Halo469_z2.031"                                 ,
-	      "MilkyWay_Halo469_z3.984"                                 ,
-	      "MilkyWay_Halo490_z0.000"                                 ,
-	      "MilkyWay_Halo490_z0.504"                                 ,
-	      "MilkyWay_Halo490_z0.990"                                 ,
-	      "MilkyWay_Halo490_z2.031"                                 ,
-	      "MilkyWay_Halo490_z3.984"                                 ,
-	      "MilkyWay_Halo530_z0.000"                                 ,
-	      "MilkyWay_Halo530_z0.504"                                 ,
-	      "MilkyWay_Halo530_z0.990"                                 ,
-	      "MilkyWay_Halo530_z2.031"                                 ,
-	      "MilkyWay_Halo530_z3.984"                                 ,
-	      "MilkyWay_Halo558_z0.000"                                 ,
-	      "MilkyWay_Halo558_z0.504"                                 ,
-	      "MilkyWay_Halo558_z0.990"                                 ,
-	      "MilkyWay_Halo558_z2.031"                                 ,
-	      "MilkyWay_Halo558_z3.984"                                 ,
-	      "MilkyWay_Halo567_z0.000"                                 ,
-	      "MilkyWay_Halo567_z0.504"                                 ,
-	      "MilkyWay_Halo567_z0.990"                                 ,
-	      "MilkyWay_Halo567_z2.031"                                 ,
-	      "MilkyWay_Halo567_z3.984"                                 ,
-	      "MilkyWay_Halo570_z0.000"                                 ,
-	      "MilkyWay_Halo570_z0.504"                                 ,
-	      "MilkyWay_Halo570_z0.990"                                 ,
-	      "MilkyWay_Halo570_z2.031"                                 ,
-	      "MilkyWay_Halo570_z3.984"                                 ,
-	      "MilkyWay_Halo606_z0.000"                                 ,
-	      "MilkyWay_Halo606_z0.504"                                 ,
-	      "MilkyWay_Halo606_z0.990"                                 ,
-	      "MilkyWay_Halo606_z2.031"                                 ,
-	      "MilkyWay_Halo606_z3.984"                                 ,
-	      "MilkyWay_Halo628_z0.000"                                 ,
-	      "MilkyWay_Halo628_z0.504"                                 ,
-	      "MilkyWay_Halo628_z0.990"                                 ,
-	      "MilkyWay_Halo628_z2.031"                                 ,
-	      "MilkyWay_Halo628_z3.984"                                 ,
-	      "MilkyWay_Halo641_z0.000"                                 ,
-	      "MilkyWay_Halo641_z0.504"                                 ,
-	      "MilkyWay_Halo641_z0.990"                                 ,
-	      "MilkyWay_Halo641_z2.031"                                 ,
-	      "MilkyWay_Halo641_z3.984"                                 ,
-	      "MilkyWay_Halo675_z0.000"                                 ,
-	      "MilkyWay_Halo675_z0.504"                                 ,
-	      "MilkyWay_Halo675_z0.990"                                 ,
-	      "MilkyWay_Halo675_z2.031"                                 ,
-	      "MilkyWay_Halo675_z3.984"                                 ,
-	      "MilkyWay_Halo718_z0.000"                                 ,
-	      "MilkyWay_Halo718_z0.504"                                 ,
-	      "MilkyWay_Halo718_z0.990"                                 ,
-	      "MilkyWay_Halo718_z2.031"                                 ,
-	      "MilkyWay_Halo718_z3.984"                                 ,
-	      "MilkyWay_Halo738_z0.000"                                 ,
-	      "MilkyWay_Halo738_z0.504"                                 ,
-	      "MilkyWay_Halo738_z0.990"                                 ,
-	      "MilkyWay_Halo738_z2.031"                                 ,
-	      "MilkyWay_Halo738_z3.984"                                 ,
-	      "MilkyWay_Halo749_z0.000"                                 ,
-	      "MilkyWay_Halo749_z0.504"                                 ,
-	      "MilkyWay_Halo749_z0.990"                                 ,
-	      "MilkyWay_Halo749_z2.031"                                 ,
-	      "MilkyWay_Halo749_z3.984"                                 ,
-	      "MilkyWay_Halo797_z0.000"                                 ,
-	      "MilkyWay_Halo797_z0.504"                                 ,
-	      "MilkyWay_Halo797_z0.990"                                 ,
-	      "MilkyWay_Halo797_z2.031"                                 ,
-	      "MilkyWay_Halo797_z3.984"                                 ,
-	      "MilkyWay_Halo800_z0.000"                                 ,
-	      "MilkyWay_Halo800_z0.504"                                 ,
-	      "MilkyWay_Halo800_z0.990"                                 ,
-	      "MilkyWay_Halo800_z2.031"                                 ,
-	      "MilkyWay_Halo800_z3.984"                                 ,
-	      "MilkyWay_Halo825_z0.000"                                 ,
-	      "MilkyWay_Halo825_z0.504"                                 ,
-	      "MilkyWay_Halo825_z0.990"                                 ,
-	      "MilkyWay_Halo825_z2.031"                                 ,
-	      "MilkyWay_Halo825_z3.984"                                 ,
-	      "MilkyWay_Halo829_z0.000"                                 ,
-	      "MilkyWay_Halo829_z0.504"                                 ,
-	      "MilkyWay_Halo829_z0.990"                                 ,
-	      "MilkyWay_Halo829_z2.031"                                 ,
-	      "MilkyWay_Halo829_z3.984"                                 ,
-	      "MilkyWay_Halo852_z0.000"                                 ,
-	      "MilkyWay_Halo852_z0.504"                                 ,
-	      "MilkyWay_Halo852_z0.990"                                 ,
-	      "MilkyWay_Halo852_z2.031"                                 ,
-	      "MilkyWay_Halo852_z3.984"                                 ,
-	      "MilkyWay_Halo878_z0.000"                                 ,
-	      "MilkyWay_Halo878_z0.504"                                 ,
-	      "MilkyWay_Halo878_z0.990"                                 ,
-	      "MilkyWay_Halo878_z2.031"                                 ,
-	      "MilkyWay_Halo878_z3.984"                                 ,
-	      "MilkyWay_Halo881_z0.000"                                 ,
-	      "MilkyWay_Halo881_z0.504"                                 ,
-	      "MilkyWay_Halo881_z0.990"                                 ,
-	      "MilkyWay_Halo881_z2.031"                                 ,
-	      "MilkyWay_Halo881_z3.984"                                 ,
-	      "MilkyWay_Halo925_z0.000"                                 ,
-	      "MilkyWay_Halo925_z0.504"                                 ,
-	      "MilkyWay_Halo925_z0.990"                                 ,
-	      "MilkyWay_Halo925_z2.031"                                 ,
-	      "MilkyWay_Halo925_z3.984"                                 ,
-	      "MilkyWay_Halo926_z0.000"                                 ,
-	      "MilkyWay_Halo926_z0.504"                                 ,
-	      "MilkyWay_Halo926_z0.990"                                 ,
-	      "MilkyWay_Halo926_z2.031"                                 ,
-	      "MilkyWay_Halo926_z3.984"                                 ,
-	      "MilkyWay_Halo937_z0.000"                                 ,
-	      "MilkyWay_Halo937_z0.504"                                 ,
-	      "MilkyWay_Halo937_z0.990"                                 ,
-	      "MilkyWay_Halo937_z2.031"                                 ,
-	      "MilkyWay_Halo937_z3.984"                                 ,
-	      "MilkyWay_Halo939_z0.000"                                 ,
-	      "MilkyWay_Halo939_z0.504"                                 ,
-	      "MilkyWay_Halo939_z0.990"                                 ,
-	      "MilkyWay_Halo939_z2.031"                                 ,
-	      "MilkyWay_Halo939_z3.984"                                 ,
-	      "MilkyWay_Halo967_z0.000"                                 ,
-	      "MilkyWay_Halo967_z0.504"                                 ,
-	      "MilkyWay_Halo967_z0.990"                                 ,
-	      "MilkyWay_Halo967_z2.031"                                 ,
-	      "MilkyWay_Halo967_z3.984"                                 ,
-	      "MilkyWay_Halo9749_z0.000"                                ,
-	      "MilkyWay_Halo9749_z0.504"                                ,
-	      "MilkyWay_Halo9749_z0.990"                                ,
-	      "MilkyWay_Halo9749_z2.031"                                ,
-	      "MilkyWay_Halo9749_z3.984"                                ,
-	      "MilkyWay_Halo9829_z0.000"                                ,
-	      "MilkyWay_Halo9829_z0.504"                                ,
-	      "MilkyWay_Halo9829_z0.990"                                ,
-	      "MilkyWay_Halo9829_z2.031"                                ,
-	      "MilkyWay_Halo9829_z3.984"                                ,
-	      "MilkyWay_Halo990_z0.000"                                 ,
-	      "MilkyWay_Halo990_z0.504"                                 ,
-	      "MilkyWay_Halo990_z0.990"                                 ,
-	      "MilkyWay_Halo990_z2.031"                                 ,
-	      "MilkyWay_Halo990_z3.984"                                 ,
-              "MilkyWay_Axion20_Halo416_z0.000"                         ,
-              "MilkyWay_Axion21_Halo416_z0.000"                         ,
-              "MilkyWay_Axion22_Halo416_z0.000"                         ,
-	      "MilkyWay_WDM1_Halo416_z0.000"                            ,
-              "MilkyWay_WDM5_Halo416_z0.000"                            ,
-              "MilkyWay_WDM10_Halo416_z0.000"                           ,
-	      "LMC_Halo032_z0.000"                                      ,
-	      "LMC_Halo032_z0.504"                                      ,
-	      "LMC_Halo032_z0.990"                                      ,
-	      "LMC_Halo032_z2.031"                                      ,
-	      "LMC_Halo032_z3.984"                                      ,
-	      "LMC_Halo059_z0.000"                                      ,
-	      "LMC_Halo059_z0.504"                                      ,
-	      "LMC_Halo059_z0.990"                                      ,
-	      "LMC_Halo059_z2.031"                                      ,
-	      "LMC_Halo059_z3.984"                                      ,
-	      "LMC_Halo0662_z0.000"                                     ,
-	      "LMC_Halo0662_z0.504"                                     ,
-	      "LMC_Halo0662_z0.990"                                     ,
-	      "LMC_Halo0662_z2.031"                                     ,
-	      "LMC_Halo0662_z3.984"                                     ,
-	      "LMC_Halo083_z0.000"                                      ,
-	      "LMC_Halo083_z0.504"                                      ,
-	      "LMC_Halo083_z0.990"                                      ,
-	      "LMC_Halo083_z2.031"                                      ,
-	      "LMC_Halo083_z3.984"                                      ,
-	      "LMC_Halo088_z0.000"                                      ,
-	      "LMC_Halo088_z0.504"                                      ,
-	      "LMC_Halo088_z0.990"                                      ,
-	      "LMC_Halo088_z2.031"                                      ,
-	      "LMC_Halo088_z3.984"                                      ,
-	      "LMC_Halo097_z0.000"                                      ,
-	      "LMC_Halo097_z0.504"                                      ,
-	      "LMC_Halo097_z0.990"                                      ,
-	      "LMC_Halo097_z2.031"                                      ,
-	      "LMC_Halo097_z3.984"                                      ,
-	      "LMC_Halo104_z0.000"                                      ,
-	      "LMC_Halo104_z0.504"                                      ,
-	      "LMC_Halo104_z0.990"                                      ,
-	      "LMC_Halo104_z2.031"                                      ,
-	      "LMC_Halo104_z3.984"                                      ,
-	      "LMC_Halo110_z0.000"                                      ,
-	      "LMC_Halo110_z0.504"                                      ,
-	      "LMC_Halo110_z0.990"                                      ,
-	      "LMC_Halo110_z2.031"                                      ,
-	      "LMC_Halo110_z3.984"                                      ,
-	      "LMC_Halo202_z0.000"                                      ,
-	      "LMC_Halo202_z0.504"                                      ,
-	      "LMC_Halo202_z0.990"                                      ,
-	      "LMC_Halo202_z2.031"                                      ,
-	      "LMC_Halo202_z3.984"                                      ,
-	      "LMC_Halo208_z0.000"                                      ,
-	      "LMC_Halo208_z0.504"                                      ,
-	      "LMC_Halo208_z0.990"                                      ,
-	      "LMC_Halo208_z2.031"                                      ,
-	      "LMC_Halo208_z3.984"                                      ,
-	      "LMC_Halo218_z0.000"                                      ,
-	      "LMC_Halo218_z0.504"                                      ,
-	      "LMC_Halo218_z0.990"                                      ,
-	      "LMC_Halo218_z2.031"                                      ,
-	      "LMC_Halo218_z3.984"                                      ,
-	      "LMC_Halo296_z0.000"                                      ,
-	      "LMC_Halo296_z0.504"                                      ,
-	      "LMC_Halo296_z0.990"                                      ,
-	      "LMC_Halo296_z2.031"                                      ,
-	      "LMC_Halo296_z3.984"                                      ,
-	      "LMC_Halo301_z0.000"                                      ,
-	      "LMC_Halo301_z0.504"                                      ,
-	      "LMC_Halo301_z0.990"                                      ,
-	      "LMC_Halo301_z2.031"                                      ,
-	      "LMC_Halo301_z3.984"                                      ,
-	      "LMC_Halo303_z0.000"                                      ,
-	      "LMC_Halo303_z0.504"                                      ,
-	      "LMC_Halo303_z0.990"                                      ,
-	      "LMC_Halo303_z2.031"                                      ,
-	      "LMC_Halo303_z3.984"                                      ,
-	      "LMC_Halo340_z0.000"                                      ,
-	      "LMC_Halo340_z0.504"                                      ,
-	      "LMC_Halo340_z0.990"                                      ,
-	      "LMC_Halo340_z2.031"                                      ,
-	      "LMC_Halo340_z3.984"                                      ,
-	      "LMC_Halo374_z0.000"                                      ,
-	      "LMC_Halo374_z0.504"                                      ,
-	      "LMC_Halo374_z0.990"                                      ,
-	      "LMC_Halo374_z2.031"                                      ,
-	      "LMC_Halo374_z3.984"                                      ,
-	      "LMC_Halo380_z0.000"                                      ,
-	      "LMC_Halo380_z0.504"                                      ,
-	      "LMC_Halo380_z0.990"                                      ,
-	      "LMC_Halo380_z2.031"                                      ,
-	      "LMC_Halo380_z3.984"                                      ,
-	      "LMC_Halo391_z0.000"                                      ,
-	      "LMC_Halo391_z0.504"                                      ,
-	      "LMC_Halo391_z0.990"                                      ,
-	      "LMC_Halo391_z2.031"                                      ,
-	      "LMC_Halo391_z3.984"                                      ,
-	      "LMC_Halo405_z0.000"                                      ,
-	      "LMC_Halo405_z0.504"                                      ,
-	      "LMC_Halo405_z0.990"                                      ,
-	      "LMC_Halo405_z2.031"                                      ,
-	      "LMC_Halo405_z3.984"                                      ,
-	      "LMC_Halo440_z0.000"                                      ,
-	      "LMC_Halo440_z0.504"                                      ,
-	      "LMC_Halo440_z0.990"                                      ,
-	      "LMC_Halo440_z2.031"                                      ,
-	      "LMC_Halo440_z3.984"                                      ,
-	      "LMC_Halo463_z0.000"                                      ,
-	      "LMC_Halo463_z0.504"                                      ,
-	      "LMC_Halo463_z0.990"                                      ,
-	      "LMC_Halo463_z2.031"                                      ,
-	      "LMC_Halo463_z3.984"                                      ,
-	      "LMC_Halo4662_z0.000"                                     ,
-	      "LMC_Halo4662_z0.504"                                     ,
-	      "LMC_Halo4662_z0.990"                                     ,
-	      "LMC_Halo4662_z2.031"                                     ,
-	      "LMC_Halo4662_z3.984"                                     ,
-	      "LMC_Halo511_z0.000"                                      ,
-	      "LMC_Halo511_z0.504"                                      ,
-	      "LMC_Halo511_z0.990"                                      ,
-	      "LMC_Halo511_z2.031"                                      ,
-	      "LMC_Halo511_z3.984"                                      ,
-	      "LMC_Halo524_z0.000"                                      ,
-	      "LMC_Halo524_z0.504"                                      ,
-	      "LMC_Halo524_z0.990"                                      ,
-	      "LMC_Halo524_z2.031"                                      ,
-	      "LMC_Halo524_z3.984"                                      ,
-	      "LMC_Halo539_z0.000"                                      ,
-	      "LMC_Halo539_z0.504"                                      ,
-	      "LMC_Halo539_z0.990"                                      ,
-	      "LMC_Halo539_z2.031"                                      ,
-	      "LMC_Halo539_z3.984"                                      ,
-	      "LMC_Halo567_z0.000"                                      ,
-	      "LMC_Halo567_z0.504"                                      ,
-	      "LMC_Halo567_z0.990"                                      ,
-	      "LMC_Halo567_z2.031"                                      ,
-	      "LMC_Halo567_z3.984"                                      ,
-	      "LMC_Halo575_z0.000"                                      ,
-	      "LMC_Halo575_z0.504"                                      ,
-	      "LMC_Halo575_z0.990"                                      ,
-	      "LMC_Halo575_z2.031"                                      ,
-	      "LMC_Halo575_z3.984"                                      ,
-	      "LMC_Halo602_z0.000"                                      ,
-	      "LMC_Halo602_z0.504"                                      ,
-	      "LMC_Halo602_z0.990"                                      ,
-	      "LMC_Halo602_z2.031"                                      ,
-	      "LMC_Halo602_z3.984"                                      ,
-	      "LMC_Halo697_z0.000"                                      ,
-	      "LMC_Halo697_z0.504"                                      ,
-	      "LMC_Halo697_z0.990"                                      ,
-	      "LMC_Halo697_z2.031"                                      ,
-	      "LMC_Halo697_z3.984"                                      ,
-	      "LMC_Halo711_z0.000"                                      ,
-	      "LMC_Halo711_z0.504"                                      ,
-	      "LMC_Halo711_z0.990"                                      ,
-	      "LMC_Halo711_z2.031"                                      ,
-	      "LMC_Halo711_z3.984"                                      ,
-	      "LMC_Halo721_z0.000"                                      ,
-	      "LMC_Halo721_z0.504"                                      ,
-	      "LMC_Halo721_z0.990"                                      ,
-	      "LMC_Halo721_z2.031"                                      ,
-	      "LMC_Halo721_z3.984"                                      ,
-	      "LMC_Halo767_z0.000"                                      ,
-	      "LMC_Halo767_z0.504"                                      ,
-	      "LMC_Halo767_z0.990"                                      ,
-	      "LMC_Halo767_z2.031"                                      ,
-	      "LMC_Halo767_z3.984"                                      ,
-	      "LMC_Halo802_z0.000"                                      ,
-	      "LMC_Halo802_z0.504"                                      ,
-	      "LMC_Halo802_z0.990"                                      ,
-	      "LMC_Halo802_z2.031"                                      ,
-	      "LMC_Halo802_z3.984"                                      ,
-	      "LMC_Halo824_z0.000"                                      ,
-	      "LMC_Halo824_z0.504"                                      ,
-	      "LMC_Halo824_z0.990"                                      ,
-	      "LMC_Halo824_z2.031"                                      ,
-	      "LMC_Halo824_z3.984"                                      ,
-	      "LMC_Halo850_z0.000"                                      ,
-	      "LMC_Halo850_z0.504"                                      ,
-	      "LMC_Halo850_z0.990"                                      ,
-	      "LMC_Halo850_z2.031"                                      ,
-	      "LMC_Halo850_z3.984"                                      ,
-	      "LMC_Halo853_z0.000"                                      ,
-	      "LMC_Halo853_z0.504"                                      ,
-	      "LMC_Halo853_z0.990"                                      ,
-	      "LMC_Halo853_z2.031"                                      ,
-	      "LMC_Halo853_z3.984"                                      ,
-	      "LMC_Halo914_z0.000"                                      ,
-	      "LMC_Halo914_z0.504"                                      ,
-	      "LMC_Halo914_z0.990"                                      ,
-	      "LMC_Halo914_z2.031"                                      ,
-	      "LMC_Halo914_z3.984"                                      ,
-	      "LMC_Halo932_z0.000"                                      ,
-	      "LMC_Halo932_z0.504"                                      ,
-	      "LMC_Halo932_z0.990"                                      ,
-	      "LMC_Halo932_z2.031"                                      ,
-	      "LMC_Halo932_z3.984"                                      ,
-	      "LMC_Halo933_z0.000"                                      ,
-	      "LMC_Halo933_z0.504"                                      ,
-	      "LMC_Halo933_z0.990"                                      ,
-	      "LMC_Halo933_z2.031"                                      ,
-	      "LMC_Halo933_z3.984"                                      ,
-	     ]                                                          ,
-	 ppn          => 16                                             ,
-	 nodes        =>  2                                             ,
-	 postProcess  => $pipelinePath."haloMassFunctionPostProcess.pl"
+	 label       => "haloMassFunction"                ,
+	 ppn         => $options{'haloMassFunction:ppn'  },
+	 nodes       => $options{'haloMassFunction:nodes'},
+	 postprocess => 1
      },
      # {
      # 	 label        => "progenitorMassFunction"                            ,
@@ -962,17 +70,6 @@ my @tasks =
      # 	      "progenitorMassFunctionBaseCaterpillar_LX13.xml",
      # 	      "progenitorMassFunctionBaseCaterpillar_LX14.xml"
      # 	     ],
-     # 	 suffix       =>
-     # 	     [
-     # 	      "HugeMDPL"        ,
-     # 	      "BigMDPL"         ,
-     # 	      "MDPL2"           ,
-     # 	      "SMDPL"           ,
-     # 	      "VSMDPL"          ,
-     # 	      "Caterpillar_LX12",
-     # 	      "Caterpillar_LX13",
-     # 	      "Caterpillar_LX14"
-     # 	     ],
      # 	 ppn          => 16                                                  ,
      # 	 nodes        =>  1                                                  ,
      # 	 postProcess  => $pipelinePath."progenitorMassFunctionPostProcess.pl"
@@ -987,14 +84,6 @@ my @tasks =
      # 	      "spinConcentrationBaseMDPL2.xml"   ,
      # 	      "spinConcentrationBaseSMDPL.xml"   ,
      # 	      "spinConcentrationBaseVSMDPL.xml"
-     # 	     ],
-     # 	 suffix       =>
-     # 	     [
-     # 	      "HugeMDPL",
-     # 	      "BigMDPL" ,
-     # 	      "MDPL2"   ,
-     # 	      "SMDPL"   ,
-     # 	      "VSMDPL"
      # 	     ],
      # 	 ppn          => 16                                             ,
      # 	 nodes        =>  1                                             ,
@@ -1015,150 +104,180 @@ my $queueConfig  = &Galacticus::Options::Config($queueManager->{'manager'     })
 
 # Iterate through tasks.
 foreach my $task ( @tasks ) {
-    # Parse the config and base parameter files for this task.
-    my $config =      $xml->XMLin($pipelinePath.$task->{'config'})
-	if ( exists($task->{'config'}) );
-    my $parser = XML::LibXML->new();
-    my @bases;
-    foreach my $baseFileName ( @{$task->{'base'}} ) {
-	my $dom = $parser->load_xml(location => $pipelinePath.$baseFileName);
-	$parser->process_xincludes($dom);
-	push(@bases,$xml->XMLin($dom->serialize()));
+    print "Begin task: ".$task->{'label'}."\n";
+    # Generate all required files for this task.
+    if ( $options{'generateContent'} eq "yes" ) {
+	print "  Generating content...\n";
+	system($pipelinePath.$task->{'label'}."GenerateContent.pl --pipelinePath ".$pipelinePath.&Galacticus::Options::Serialize_Options(\%options));
+	print "  ...done\n";
     }
-   
-    # Copy in current best parameters.
-    &applyParameters($_,$task,\%parametersDetermined)
-	foreach ( @bases );
 
-    # Change output paths.
-    my $i = -1;
-    foreach my $base ( @bases ) {
-	++$i;
-	my $suffix = exists($task->{'suffix'}) ? $task->{'suffix'}->[$i] : "";
-	$base->{'outputFileName'}->{'value'} = $options{'outputDirectory'}."/".$task->{'label'}.$suffix.".hdf5";
-    }
-    if ( defined($config) ) {
-	$config->{'outputFileName' }                 ->{'value'} = $options{'outputDirectory'}."/".$task->{'label'}.".hdf5" ;
-	$config->{'posteriorSampleSimulation'}->{'logFileRoot'}->{'value'} = $options{'outputDirectory'}."/".$task->{'label'}."Chains";
-	my $i = -1;
-	# Set base file names in the config file.
-	foreach my $base ( @bases ) {
-	    ++$i;
-	    my $baseFileName = $options{'outputDirectory'}."/".$task->{'base'}->[$i];
-	    if      ( exists($config->{'posteriorSampleLikelihood'}->{'baseParametersFileName'         }) ) {
-		die("config file has insufficient base parameter file names")
-		    if ( $i > 0 );
-		$config->{'posteriorSampleLikelihood'}->{'baseParametersFileName'}->{'value'} = $baseFileName;
-	    } elsif ( exists($config->{'posteriorSampleLikelihood'}->{'posteriorSampleLikelihood'}) ) {
-		if ( reftype($config->{'posteriorSampleLikelihood'}->{'posteriorSampleLikelihood'}) eq "ARRAY" ) {
-		    die("config file has insufficient base parameter file names")
-			if ( $i >= scalar(@{$config->{'posteriorSampleLikelihood'}->{'posteriorSampleLikelihood'}}) );
-		    $config->{'posteriorSampleLikelihood'}->{'posteriorSampleLikelihood'}->[$i]->{'baseParametersFileName'}->{'value'} = $baseFileName;
-		} else {
-		    die("config file has insufficient base parameter file names")
-			if ( $i > 0 );
-		    $config->{'posteriorSampleLikelihood'}->{'posteriorSampleLikelihood'}      ->{'baseParametersFileName'}->{'value'} = $baseFileName;
-		}
-	    }
+    # Construct the post-processing command and write to file.
+    my $postProcessCommand = $pipelinePath.$task->{'label'}."PostProcess.pl --pipelinePath ".$pipelinePath.&Galacticus::Options::Serialize_Options(\%options);
+    open(my $postProcessCommandFile,">",$options{'outputDirectory'}."/postProcessCommand.txt");
+    print $postProcessCommandFile $postProcessCommand."\n";
+    close($postProcessCommandFile);
+    
+    # Parse the config and base parameter files for this task.
+    print "  Processing base parameter files...\n";
+    my $configFileName = $options{'outputDirectory'}."/".$task->{'label'}."Config.xml";
+    my $config = $xml->XMLin($configFileName);
+    my $parser = XML::LibXML->new();
+    foreach my $likelihoodModel ( &List::ExtraUtils::as_array($config->{'posteriorSampleLikelihood'}->{'posteriorSampleLikelihood'}) ) {
+	my $likelihoodModel_ = $likelihoodModel;
+	while ( exists($likelihoodModel_->{'posteriorSampleLikelihood'}) ) {
+	    $likelihoodModel_ = $likelihoodModel_->{'posteriorSampleLikelihood'};
+	}
+	my @redshifts = split(" ",$likelihoodModel_->{'redshifts'}->{'value'});
+	foreach my $redshift ( @redshifts ) {
+	    (my $baseFileName = $likelihoodModel_->{'baseParametersFileName'}->{'value'}) =~ s/_z[\d\.]+\d/_z$redshift/;
+	    my $dom          = $parser->load_xml(location => $baseFileName);
+	    $parser->process_xincludes($dom);
+	    push(@{$likelihoodModel_->{'baseParameters'}},$xml->XMLin($dom->serialize()));
 	}
     }
     
+    # Copy in current best parameters.
+    &applyParameters($config,\%parametersDetermined);
+    print "  ...done\n";
+    
     # Write out modified config and base parameter files.
-    $i = -1;
-    foreach my $base ( @bases ) {
-	++$i;
-	my $baseFileName = $options{'outputDirectory'}."/".$task->{'base'}->[$i];
-	open(my $baseFile,">".$baseFileName);
-	print $baseFile $xml->XMLout($base,RootName => "parameters");
-	close($baseFile);
+    if ( $options{'writeParameters'} eq "yes" ) {
+	print "  Writing updated parameter files...\n";
+	&writeParameters($config);
+	print "  ...done\n";
     }
-    if ( defined($config) ) {
-	my $configFileName = $options{'outputDirectory'}."/".$task->{'config'};
-	open(my $configFile,">".$configFileName);
-	print $configFile $xml->XMLout($config,RootName => "parameters");
-	close($configFile);
 
-	# Generate the job.
-	if ( defined($config) ) {
-	    my $job;
-	    $job->{'command'   } = "Galacticus.exe ".$configFileName;
-	    $job->{'launchFile'} = $options{'outputDirectory'}."/".$task->{'label'}.".sh" ;
-	    $job->{'logFile'   } = $options{'outputDirectory'}."/".$task->{'label'}.".log";
-	    $job->{'label'     } = "darkMatterPipeline".ucfirst($task->{'label'});
-	    $job->{'ppn'       } = $task->{'ppn'  };
-	    $job->{'nodes'     } = $task->{'nodes'};
-	    $job->{'mpi'       } = "yes";
-	    my @jobs = ( $job );
-	    # Run the job.
-	    unless ( -e $options{'outputDirectory'}."/".$task->{'label'}."Chains_0000.log" ) {
-		my $timeBegin = DateTime->now();
-		print "Running constraint for '".$task->{'label'}."'\n";
-		print "\tbegin at ".$timeBegin->datetime()."\n";
-		&{$Galacticus::Launch::Hooks::moduleHooks{$queueManager->{'manager'}}->{'jobArrayLaunch'}}(\%options,@jobs);
-		my $timeEnd   = DateTime->now();
-		print "\t done at ".$timeEnd  ->datetime()."\n";
-	    }
-	    
-	    # Extract results.
-	    my %posteriorOptions =
-		(
-		);
-	    (my $parametersMaximumLikelihood) = &Galacticus::Constraints::Parameters::maximumPosteriorParameterVector($config,\%posteriorOptions);
-	    my @parameterNames                = &Galacticus::Constraints::Parameters::parameterNames                 ($config                   );
-	    for(my $i=0;$i<scalar(@parameterNames);++$i) {
-		$parametersDetermined{$parameterNames[$i]} = $parametersMaximumLikelihood->(($i));
-	    }
-	    
-	    # Output the determined parameters.
-	    open(my $resultsFile,">".$options{'outputDirectory'}."/results.txt");
-	    foreach my $parameterName ( sort(keys(%parametersDetermined)) ) {
-		print $resultsFile $parameterName."\t".$parametersDetermined{$parameterName}."\n";
-	    }
-	    close($resultsFile);
+    # Create the MCMC job.
+    my $job;
+    $job->{'command'   } = ($options{'callgrind'} eq "yes" ? "--output-filename ".$options{'outputDirectory'}."/".$task->{'label'}.".vlog valgrind --tool=callgrind " : "")."Galacticus.exe ".$configFileName;
+    $job->{'launchFile'} = $options{'outputDirectory'}."/".$task->{'label'}.".sh" ;
+    $job->{'logFile'   } = $options{'outputDirectory'}."/".$task->{'label'}.".log";
+    $job->{'label'     } = "darkMatterPipeline".ucfirst($task->{'label'});
+    $job->{'ppn'       } = $task->{'ppn'  };
+    $job->{'nodes'     } = $task->{'nodes'};
+    $job->{'mpi'       } = "yes";
+    my @jobs = ( $job );
+    # Run the job.
+    unless ( -e $config->{'posteriorSampleSimulation'}->{'logFileRoot'}->{'value'}."_0000.log" ) {
+	my $timeBegin = DateTime->now();
+	print "  Running MCMC for '".$task->{'label'}."'\n";
+	print "  \tbegin at ".$timeBegin->datetime()."\n";
+	&{$Galacticus::Launch::Hooks::moduleHooks{$queueManager->{'manager'}}->{'jobArrayLaunch'}}(\%options,@jobs);
+	my $timeEnd   = DateTime->now();
+	print "  \t done at ".$timeEnd  ->datetime()."\n";
+	print "  ...done\n";
+    }
 
-	    # Copy in new best parameters.
-	    $i = -1;
-	    foreach my $base ( @bases ) {
-		++$i;
-		my $baseFileName = $options{'outputDirectory'}."/".$task->{'base'}->[$i];
-		&applyParameters($base,$task,\%parametersDetermined);
-		open(my $baseFile,">".$baseFileName);
-		print $baseFile $xml->XMLout($base,RootName => "parameters");
-		close($baseFile);
-	    }
-	    # Postprocess the results.
-	    if ( exists($task->{'postProcess'}) ) {
-		system($task->{'postProcess'}." ".$options{'outputDirectory'});
-	    }
-	    
+    # Get results.
+    if ( $options{'updateResults'} eq "yes" ) {
+	# Extract results.
+	print "  Extracting maximum ".$options{'maximum'}." parameter vector...\n";
+	my %posteriorOptions =
+	    (
+	    );
+	my $parametersMaximumLikelihood;
+	if ( $options{'maximum'} eq "likelihood" ) {
+	    ($parametersMaximumLikelihood) = &Galacticus::Constraints::Parameters::maximumLikelihoodParameterVector($config,\%posteriorOptions);
+	} else {
+	    ($parametersMaximumLikelihood) = &Galacticus::Constraints::Parameters::maximumPosteriorParameterVector ($config,\%posteriorOptions);
 	}
-	
+	my @parameterNames                 = &Galacticus::Constraints::Parameters::parameterNames                  ($config                   );
+	for(my $i=0;$i<scalar(@parameterNames);++$i) {
+	    $parametersDetermined{$parameterNames[$i]} = $parametersMaximumLikelihood->(($i));
+	}
+	print "  ...done\n";
+
+	# Output the determined parameters.
+	print "  Outputing maximum likelihood parameters...\n";
+	open(my $resultsFile,">".$options{'outputDirectory'}."/results.txt");
+	foreach my $parameterName ( sort(keys(%parametersDetermined)) ) {
+	    print $resultsFile $parameterName."\t".$parametersDetermined{$parameterName}."\n";
+	}
+	close($resultsFile);
+	print "  ...done\n";
+    } else {
+	# Not updating results - attempt to read the prior results.
+	die("No results.txt file exists")
+	    unless ( -e $options{'outputDirectory'}."/results.txt" );
+	print "  Reading prior maximum likelihood parameters...\n";
+	open(my $resultsFile,"<".$options{'outputDirectory'}."/results.txt");
+	while ( my $line = <$resultsFile> ) {
+	    if ( $line =~ m/([a-zA-Z0-9:\/]+)\s+([\+\-\d\.e]+)/ ) {
+		$parametersDetermined{$1} = pdl $2;
+	    } else {
+		die("Can not parse results.txt file");
+	    }
+	}
+	close($resultsFile);
+	print "  ...done\n";
     }
 
+    # Copy in new best parameters.
+    if ( $options{'writeParameters'} eq "yes" ) {
+	print "  Updating parameter files...\n";
+	&applyParameters($config,\%parametersDetermined);
+	&writeParameters($config                       );
+	print "  ...done\n";
+    }
+
+    # Postprocess the results.
+    if ( $task->{'postprocess'} ) {
+	print "  Postprocessing...\n";
+	system($postProcessCommand);
+	print "  ...done\n";
+    }
 }
 
 exit 0;
 
 sub applyParameters {
     # Apply determined parameters to the base parameters.
-    my $base = shift();
-    my $task = shift();    
+    my $config               =   shift() ;    
     my %parametersDetermined = %{shift()};
-    if ( exists($task->{'parameterMap'}) ) {
-	# Apply parameters according to the task's map.
-	foreach my $parameterName ( keys(%{$task->{'parameterMap'}}) ) {
-	    next
-		unless ( exists($parametersDetermined{$task->{'parameterMap'}->{$parameterName}}) );
-	    (my $parameter, my $valueIndex) = &Galacticus::Constraints::Parameters::parameterFind($base,$parameterName);
-	    &Galacticus::Constraints::Parameters::parameterValueSet($parameter,$valueIndex,sclr($parametersDetermined{$task->{'parameterMap'}->{$parameterName}}))
-		if ( defined($parameter) );
+    my $i                    = -1;
+    foreach my $likelihoodModel ( &List::ExtraUtils::as_array($config->{'posteriorSampleLikelihood'}->{'posteriorSampleLikelihood'}) ) {
+	++$i;
+	my @parametersMapped;
+	if ( exists($config->{'posteriorSampleLikelihood'}->{'parameterMap'}) ) {
+	    my @parameterMap = &List::ExtraUtils::as_array($config->{'posteriorSampleLikelihood'}->{'parameterMap'});
+	    @parametersMapped = split(" ",$parameterMap[$i]->{'value'});
 	}
-    } else {
-	# Apply all parameters directly.
-	foreach my $parameterName ( keys(%parametersDetermined) ) {
-	    (my $parameter, my $valueIndex) = &Galacticus::Constraints::Parameters::parameterFind($base,$parameterName);
-	    &Galacticus::Constraints::Parameters::parameterValueSet($parameter,$valueIndex,sclr($parametersDetermined{$parameterName}))
-		if ( defined($parameter) );
+	my $likelihoodModel_ = $likelihoodModel;
+	while ( exists($likelihoodModel_->{'posteriorSampleLikelihood'}) ) {
+	    $likelihoodModel_ = $likelihoodModel_->{'posteriorSampleLikelihood'};
+	}
+	my @redshifts = split(" ",$likelihoodModel_->{'redshifts'}->{'value'});
+	my $j = -1;
+	foreach my $redshift ( @redshifts ) {
+	    ++$j;
+	    foreach my $parameterName ( keys(%parametersDetermined) ) {
+		next
+		    unless ( ! @parametersMapped || grep {$_ eq $parameterName} @parametersMapped );
+		(my $parameter, my $valueIndex) = &Galacticus::Constraints::Parameters::parameterFind($likelihoodModel_->{'baseParameters'}->[$j],$parameterName);
+		&Galacticus::Constraints::Parameters::parameterValueSet($parameter,$valueIndex,sclr($parametersDetermined{$parameterName}))
+		    if ( defined($parameter) );
+	    }
+	}
+    }
+}
+
+sub writeParameters {
+    # Write updated parameter sets back to file.
+    my $config = shift();
+    foreach my $likelihoodModel ( &List::ExtraUtils::as_array($config->{'posteriorSampleLikelihood'}->{'posteriorSampleLikelihood'}) ) {
+	my $likelihoodModel_ = $likelihoodModel;
+	while ( exists($likelihoodModel_->{'posteriorSampleLikelihood'}) ) {
+	    $likelihoodModel_ = $likelihoodModel_->{'posteriorSampleLikelihood'};
+	}
+	my @redshifts = split(" ",$likelihoodModel_->{'redshifts'}->{'value'});
+	my $j = -1;
+	foreach my $redshift ( @redshifts ) {
+	    ++$j;
+	    (my $baseFileName = $likelihoodModel_->{'baseParametersFileName'}->{'value'}) =~ s/_z[\d\.]+\d/_z$redshift/;
+	    open(my $baseFile,">".$baseFileName);
+	    print $baseFile $xml->XMLout($likelihoodModel_->{'baseParameters'}->[$j],RootName => "parameters");
+	    close($baseFile);
 	}
     }
 }

@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<parameters>
+  <formatVersion>2</formatVersion>
+  <version>0.9.4</version>
+
+  <!-- Controllable parameters of the progenitor mass function -->
+  <progenitorMassFunctionParameters value="" ignoreWarnings="true">
+    <rootVarianceTargetFractional value="+0.1000"/>
+  </progenitorMassFunctionParameters>
+
+</parameters>

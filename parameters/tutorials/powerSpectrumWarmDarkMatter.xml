@@ -6,7 +6,9 @@
 
 
   <!-- Specify tasks to perform -->
-  <task value="powerSpectra"/>
+  <task value="powerSpectra">
+    <pointsPerDecade value="10"/>
+  </task>
 
   <!-- Use a thermal WDM particle - mass is in keV -->
   <darkMatterParticle value="WDMThermal">

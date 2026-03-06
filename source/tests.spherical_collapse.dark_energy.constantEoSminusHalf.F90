@@ -142,18 +142,21 @@ program Tests_Spherical_Collapse_Dark_Energy_Omega_Half
   </referenceConstruct>
   <referenceConstruct object="cosmologicalMassVariance_"          >
    <constructor>
-    cosmologicalMassVarianceFilteredPower                  (                                                                             &amp;
-     &amp;                                                  sigma8                             =0.8d0                                  , &amp;
-     &amp;                                                  tolerance                          =1.0d-4                                 , &amp;
-     &amp;                                                  toleranceTopHat                    =1.0d-4                                 , &amp;
-     &amp;                                                  nonMonotonicIsFatal                =.true.                                 , &amp;
-     &amp;                                                  monotonicInterpolation             =.false.                                , &amp;
-     &amp;                                                  truncateAtParticleHorizon          =.false.                                , &amp;
-     &amp;                                                  cosmologyParameters_               =cosmologyParameters_                   , &amp;
-     &amp;                                                  cosmologyFunctions_                =cosmologyFunctions_                    , &amp;
-     &amp;                                                  linearGrowth_                      =linearGrowth_                          , &amp;
-     &amp;                                                  powerSpectrumPrimordialTransferred_=powerSpectrumPrimordialTransferred_    , &amp;
-     &amp;                                                  powerSpectrumWindowFunction_       =powerSpectrumWindowFunction_             &amp;
+    cosmologicalMassVarianceFilteredPower                  (                                                                              &amp;
+     &amp;                                                  sigma8                                  =0.8d0                              , &amp;
+     &amp;                                                  tolerance                               =1.0d-4                             , &amp;
+     &amp;                                                  toleranceTopHat                         =1.0d-4                             , &amp;
+     &amp;                                                  rootVarianceLogarithmicGradientTolerance=1.0d-9                             , &amp;
+     &amp;                                                  nonMonotonicIsFatal                     =.true.                             , &amp;
+     &amp;                                                  monotonicInterpolation                  =.false.                            , &amp;
+     &amp;                                                  integrationFailureIsFatal               =.true.                             , &amp;
+     &amp;                                                  truncateAtParticleHorizon               =.false.                            , &amp;
+     &amp;                                                  storeTabulations                        =.true.                             , &amp;
+     &amp;                                                  cosmologyParameters_                    =cosmologyParameters_               , &amp;
+     &amp;                                                  cosmologyFunctions_                     =cosmologyFunctions_                , &amp;
+     &amp;                                                  linearGrowth_                           =linearGrowth_                      , &amp;
+     &amp;                                                  powerSpectrumPrimordialTransferred_     =powerSpectrumPrimordialTransferred_, &amp;
+     &amp;                                                  powerSpectrumWindowFunction_            =powerSpectrumWindowFunction_         &amp;
      &amp;                                                 )
    </constructor>
   </referenceConstruct>

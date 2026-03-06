@@ -45,7 +45,7 @@ program Tests_Halo_Mass_Function_Environmental_Average
   use :: Power_Spectra_Primordial            , only : powerSpectrumPrimordialPowerLaw
   use :: Power_Spectra_Primordial_Transferred, only : powerSpectrumPrimordialTransferredSimple
   use :: Power_Spectrum_Window_Functions     , only : powerSpectrumWindowFunctionTopHat
-  use :: Transfer_Functions                  , only : transferFunctionCAMB
+  use :: Transfer_Functions                  , only : transferFunctionCAMB                                        , transferFunctionTypeDarkMatter
   use :: Unit_Tests                          , only : Assert                                                      , Unit_Tests_Begin_Group                 , Unit_Tests_End_Group, Unit_Tests_Finish
   implicit none
   integer                                                                                              :: i
@@ -54,23 +54,23 @@ program Tests_Halo_Mass_Function_Environmental_Average
   double precision                                                              , parameter            :: massMinimum                         =1.0d6, massMaximum                    =1.0d12
   double precision                                                              , dimension(massCount) :: mass                                      , massFunction                          , &
        &                                                                                                  massFunctionEnvironmentAveraged
-  type            (cosmologyParametersSimple                                   )                       :: cosmologyParameters_
-  type            (cosmologyFunctionsMatterLambda                              )                       :: cosmologyFunctions_
-  type            (cosmologicalMassVarianceFilteredPower                       )                       :: cosmologicalMassVariance_
-  type            (cosmologicalMassVariancePeakBackgroundSplit                 )                       :: cosmologicalMassVarianceConditioned_
-  type            (linearGrowthCollisionlessMatter                             )                       :: linearGrowth_
-  type            (powerSpectrumWindowFunctionTopHat                           )                       :: powerSpectrumWindowFunction_
-  type            (powerSpectrumPrimordialPowerLaw                             )                       :: powerSpectrumPrimordial_
-  type            (transferFunctionCAMB                                        )                       :: transferFunction_
-  type            (powerSpectrumPrimordialTransferredSimple                    )                       :: powerSpectrumPrimordialTransferred_
-  type            (darkMatterParticleCDM                                       )                       :: darkMatterParticle_
-  type            (criticalOverdensitySphericalCollapseClsnlssMttrCsmlgclCnstnt)                       :: criticalOverdensity_
-  type            (criticalOverdensityPeakBackgroundSplit                      )                       :: criticalOverdensityConditioned_
-  type            (haloMassFunctionPressSchechter                              )                       :: haloMassFunction_                   , haloMassFunctionConditioned_
-  type            (haloMassFunctionEnvironmentAveraged                         )                       :: haloMassFunctionEnvironmentAveraged_
-  type            (haloEnvironmentNormal                                       )                       :: haloEnvironment_
-  type            (excursionSetBarrierCriticalOverdensity                      )                       :: excursionSetBarrier_                , excursionSetBarrierConditioned_
-  type            (excursionSetFirstCrossingLinearBarrier                      )                       :: excursionSetFirstCrossing_          , excursionSetFirstCrossingConditioned_
+  type            (cosmologyParametersSimple                                   ), pointer              :: cosmologyParameters_
+  type            (cosmologyFunctionsMatterLambda                              ), pointer              :: cosmologyFunctions_
+  type            (cosmologicalMassVarianceFilteredPower                       ), pointer              :: cosmologicalMassVariance_
+  type            (cosmologicalMassVariancePeakBackgroundSplit                 ), pointer              :: cosmologicalMassVarianceConditioned_
+  type            (linearGrowthCollisionlessMatter                             ), pointer              :: linearGrowth_
+  type            (powerSpectrumWindowFunctionTopHat                           ), pointer              :: powerSpectrumWindowFunction_
+  type            (powerSpectrumPrimordialPowerLaw                             ), pointer              :: powerSpectrumPrimordial_
+  type            (transferFunctionCAMB                                        ), pointer              :: transferFunction_
+  type            (powerSpectrumPrimordialTransferredSimple                    ), pointer              :: powerSpectrumPrimordialTransferred_
+  type            (darkMatterParticleCDM                                       ), pointer              :: darkMatterParticle_
+  type            (criticalOverdensitySphericalCollapseClsnlssMttrCsmlgclCnstnt), pointer              :: criticalOverdensity_
+  type            (criticalOverdensityPeakBackgroundSplit                      ), pointer              :: criticalOverdensityConditioned_
+  type            (haloMassFunctionPressSchechter                              ), pointer              :: haloMassFunction_                   , haloMassFunctionConditioned_
+  type            (haloMassFunctionEnvironmentAveraged                         ), pointer              :: haloMassFunctionEnvironmentAveraged_
+  type            (haloEnvironmentNormal                                       ), pointer              :: haloEnvironment_
+  type            (excursionSetBarrierCriticalOverdensity                      ), pointer              :: excursionSetBarrier_                , excursionSetBarrierConditioned_
+  type            (excursionSetFirstCrossingLinearBarrier                      ), pointer              :: excursionSetFirstCrossing_          , excursionSetFirstCrossingConditioned_
   type            (treeNode                                                    ), pointer              :: node
   type            (mergerTree                                                  )                       :: tree
   class           (nodeComponentBasic                                          ), pointer              :: basic
@@ -88,28 +88,48 @@ program Tests_Halo_Mass_Function_Environmental_Average
   ! Begin unit tests.
   call Unit_Tests_Begin_Group("Halo mass function: environment-averaged")
   ! Construct required objects.
+  allocate(cosmologyParameters_                 )
+  allocate(cosmologyFunctions_                  )
+  allocate(cosmologicalMassVariance_            )
+  allocate(cosmologicalMassVarianceConditioned_ )
+  allocate(linearGrowth_                        )
+  allocate(powerSpectrumWindowFunction_         )
+  allocate(powerSpectrumPrimordial_             )
+  allocate(transferFunction_                    )
+  allocate(powerSpectrumPrimordialTransferred_  )
+  allocate(darkMatterParticle_                  )
+  allocate(criticalOverdensity_                 )
+  allocate(criticalOverdensityConditioned_      )
+  allocate(haloMassFunction_                    )
+  allocate(haloMassFunctionConditioned_         )
+  allocate(haloMassFunctionEnvironmentAveraged_ )
+  allocate(haloEnvironment_                     )
+  allocate(excursionSetBarrier_                 )
+  allocate(excursionSetBarrierConditioned_      )
+  allocate(excursionSetFirstCrossing_           )
+  allocate(excursionSetFirstCrossingConditioned_)
   !![
   <referenceConstruct object="darkMatterParticle_"                 >
    <constructor>
-    darkMatterParticleCDM                                       (                                                                           &amp;
+    darkMatterParticleCDM                                       (                                                                                &amp;
      &amp;                                                      )
    </constructor>
   </referenceConstruct>
   <referenceConstruct object="cosmologyParameters_"                >
    <constructor>
-    cosmologyParametersSimple                                   (                                                                           &amp;
-     &amp;                                                       OmegaMatter                        = 0.238d0                             , &amp;
-     &amp;                                                       OmegaBaryon                        = 0.045d0                             , &amp;
-     &amp;                                                       OmegaDarkEnergy                    = 0.762d0                             , &amp;
-     &amp;                                                       temperatureCMB                     = 2.700d0                             , &amp;
-     &amp;                                                       HubbleConstant                     =70.000d0                               &amp;
+    cosmologyParametersSimple                                   (                                                                                &amp;
+     &amp;                                                       OmegaMatter                             = 0.238d0                             , &amp;
+     &amp;                                                       OmegaBaryon                             = 0.045d0                             , &amp;
+     &amp;                                                       OmegaDarkEnergy                         = 0.762d0                             , &amp;
+     &amp;                                                       temperatureCMB                          = 2.700d0                             , &amp;
+     &amp;                                                       HubbleConstant                          =70.000d0                               &amp;
      &amp;                                                      )
    </constructor>
   </referenceConstruct>
   <referenceConstruct object="cosmologyFunctions_"                 >
    <constructor>
-    cosmologyFunctionsMatterLambda                              (                                                                           &amp;
-     &amp;                                                       cosmologyParameters_               =cosmologyParameters_                   &amp;
+    cosmologyFunctionsMatterLambda                              (                                                                                &amp;
+     &amp;                                                       cosmologyParameters_                    =cosmologyParameters_                   &amp;
      &amp;                                                      )
    </constructor>
   </referenceConstruct>
@@ -118,172 +138,177 @@ program Tests_Halo_Mass_Function_Environmental_Average
   !![  
   <referenceConstruct object="linearGrowth_"                       >
    <constructor>
-    linearGrowthCollisionlessMatter                             (                                                                           &amp;
-     &amp;                                                       cosmologyParameters_               =cosmologyParameters_                 , &amp;
-     &amp;                                                       cosmologyFunctions_                =cosmologyFunctions_                    &amp;
+    linearGrowthCollisionlessMatter                             (                                                                                &amp;
+     &amp;                                                       cosmologyParameters_                    =cosmologyParameters_                 , &amp;
+     &amp;                                                       cosmologyFunctions_                     =cosmologyFunctions_                    &amp;
      &amp;                                                      )
    </constructor>
   </referenceConstruct>
   <referenceConstruct object="powerSpectrumPrimordial_"            >
    <constructor>
-    powerSpectrumPrimordialPowerLaw                             (                                                                           &amp;
-     &amp;                                                       index_                             =+0.951d0                             , &amp;
-     &amp;                                                       running                            =+0.000d0                             , &amp;
-     &amp;                                                       runningRunning                     =+0.000d0                             , &amp;
-     &amp;                                                       wavenumberReference                =+1.000d0                             , &amp;
-     &amp;                                                       runningSmallScalesOnly             =.false.                                &amp;
+    powerSpectrumPrimordialPowerLaw                             (                                                                                &amp;
+     &amp;                                                       index_                                  =+0.951d0                             , &amp;
+     &amp;                                                       running                                 =+0.000d0                             , &amp;
+     &amp;                                                       runningRunning                          =+0.000d0                             , &amp;
+     &amp;                                                       wavenumberReference                     =+1.000d0                             , &amp;
+     &amp;                                                       runningSmallScalesOnly                  =.false.                                &amp;
      &amp;                                                      )
    </constructor>
   </referenceConstruct>
   <referenceConstruct object="transferFunction_"                   >
    <constructor>
-    transferFunctionCAMB                                        (                                                                           &amp;
-     &amp;                                                       redshift                           =0.000d0                              , &amp;
-     &amp;                                                       cambCountPerDecade                 =0                                    , &amp;
-     &amp;                                                       cosmologyParameters_               =cosmologyParameters_                 , &amp;
-     &amp;                                                       cosmologyFunctions_                =cosmologyFunctions_                  , &amp;
-     &amp;                                                       darkMatterParticle_                =darkMatterParticle_                    &amp;
+    transferFunctionCAMB                                        (                                                                                &amp;
+     &amp;                                                       redshift                                =0.000d0                              , &amp;
+     &amp;                                                       cambCountPerDecade                      =0                                    , &amp;
+     &amp;                                                       transferFunctionType                    =transferFunctionTypeDarkMatter       , &amp;
+     &amp;                                                       cosmologyParameters_                    =cosmologyParameters_                 , &amp;
+     &amp;                                                       cosmologyFunctions_                     =cosmologyFunctions_                  , &amp;
+     &amp;                                                       darkMatterParticle_                     =darkMatterParticle_                    &amp;
      &amp;                                                      )
    </constructor>
   </referenceConstruct>
   <referenceConstruct object="powerSpectrumPrimordialTransferred_" >
    <constructor>
-    powerSpectrumPrimordialTransferredSimple                    (                                                                           &amp;
-     &amp;                                                       powerSpectrumPrimordial_           =powerSpectrumPrimordial_             , &amp;
-     &amp;                                                       transferFunction_                  =transferFunction_                    , &amp;
-     &amp;                                                       linearGrowth_                      =linearGrowth_                          &amp;
+    powerSpectrumPrimordialTransferredSimple                    (                                                                                &amp;
+     &amp;                                                       powerSpectrumPrimordial_                =powerSpectrumPrimordial_             , &amp;
+     &amp;                                                       transferFunction_                       =transferFunction_                    , &amp;
+     &amp;                                                       linearGrowth_                           =linearGrowth_                          &amp;
      &amp;                                                      )
    </constructor>
   </referenceConstruct>
   <referenceConstruct object="powerSpectrumWindowFunction_"        >
    <constructor>
-    powerSpectrumWindowFunctionTopHat                           (                                                                           &amp;
-     &amp;                                                       cosmologyParameters_               =cosmologyParameters_                   &amp;
+    powerSpectrumWindowFunctionTopHat                           (                                                                                &amp;
+     &amp;                                                       cosmologyParameters_                    =cosmologyParameters_                   &amp;
      &amp;                                                      )
    </constructor>
   </referenceConstruct>
   <referenceConstruct object="cosmologicalMassVariance_"           >
    <constructor>
-    cosmologicalMassVarianceFilteredPower                       (                                                                           &amp;
-     &amp;                                                       sigma8                             =0.74d+0                              , &amp;
-     &amp;                                                       tolerance                          =1.00d-4                              , &amp;
-     &amp;                                                       toleranceTopHat                    =1.00d-4                              , &amp;
-     &amp;                                                       nonMonotonicIsFatal                =.true.                               , &amp;
-     &amp;                                                       monotonicInterpolation             =.false.                              , &amp;
-     &amp;                                                       truncateAtParticleHorizon          =.false.                              , &amp;
-     &amp;                                                       cosmologyParameters_               =cosmologyParameters_                 , &amp;
-     &amp;                                                       cosmologyFunctions_                =cosmologyFunctions_                  , &amp;
-     &amp;                                                       linearGrowth_                      =linearGrowth_                        , &amp;
-     &amp;                                                       powerSpectrumPrimordialTransferred_=powerSpectrumPrimordialTransferred_  , &amp;
-     &amp;                                                       powerSpectrumWindowFunction_       =powerSpectrumWindowFunction_           &amp;
+    cosmologicalMassVarianceFilteredPower                       (                                                                                &amp;
+     &amp;                                                       sigma8                                  =0.74d+0                              , &amp;
+     &amp;                                                       tolerance                               =1.00d-4                              , &amp;
+     &amp;                                                       toleranceTopHat                         =1.00d-4                              , &amp;
+     &amp;                                                       rootVarianceLogarithmicGradientTolerance=1.0d-9                               , &amp;
+     &amp;                                                       integrationFailureIsFatal               =.true.                               , &amp;
+     &amp;                                                       storeTabulations                        =.true.                               , &amp;
+     &amp;                                                       nonMonotonicIsFatal                     =.true.                               , &amp;
+     &amp;                                                       monotonicInterpolation                  =.false.                              , &amp;
+     &amp;                                                       truncateAtParticleHorizon               =.false.                              , &amp;
+     &amp;                                                       cosmologyParameters_                    =cosmologyParameters_                 , &amp;
+     &amp;                                                       cosmologyFunctions_                     =cosmologyFunctions_                  , &amp;
+     &amp;                                                       linearGrowth_                           =linearGrowth_                        , &amp;
+     &amp;                                                       powerSpectrumPrimordialTransferred_     =powerSpectrumPrimordialTransferred_  , &amp;
+     &amp;                                                       powerSpectrumWindowFunction_            =powerSpectrumWindowFunction_           &amp;
      &amp;                                                      )
    </constructor>
   </referenceConstruct>
   <referenceConstruct object="criticalOverdensity_"                 >
    <constructor>
-    criticalOverdensitySphericalCollapseClsnlssMttrCsmlgclCnstnt(                                                                           &amp;
-     &amp;                                                       linearGrowth_                      =linearGrowth_                        , &amp;
-     &amp;                                                       cosmologyFunctions_                =cosmologyFunctions_                  , &amp;
-     &amp;                                                       cosmologicalMassVariance_          =cosmologicalMassVariance_            , &amp;
-     &amp;                                                       darkMatterParticle_                =darkMatterParticle_                  , &amp;
-     &amp;                                                       tableStore                         =.true.                                 &amp;
+    criticalOverdensitySphericalCollapseClsnlssMttrCsmlgclCnstnt(                                                                                &amp;
+     &amp;                                                       linearGrowth_                           =linearGrowth_                        , &amp;
+     &amp;                                                       cosmologyFunctions_                     =cosmologyFunctions_                  , &amp;
+     &amp;                                                       cosmologicalMassVariance_               =cosmologicalMassVariance_            , &amp;
+     &amp;                                                       darkMatterParticle_                     =darkMatterParticle_                  , &amp;
+     &amp;                                                       tableStore                              =.true.                                 &amp;
      &amp;                                                      )
    </constructor>
   </referenceConstruct>
   <referenceConstruct object="haloEnvironment_"                     >
    <constructor>
-    haloEnvironmentNormal                                       (                                                                           &amp;
-     &amp;                                                       time                               =time                                 , &amp;
-     &amp;                                                       cosmologyParameters_               =cosmologyParameters_                 , &amp;
-     &amp;                                                       cosmologyFunctions_                =cosmologyFunctions_                  , &amp;
-     &amp;                                                       cosmologicalMassVariance_          =cosmologicalMassVariance_            , &amp;
-     &amp;                                                       linearGrowth_                      =linearGrowth_                        , &amp;
-     &amp;                                                       criticalOverdensity_               =criticalOverdensity_                 , &amp;
-     &amp;                                                       massEnvironment                    =1.0d13                                 &amp;
+    haloEnvironmentNormal                                       (                                                                                &amp;
+     &amp;                                                       time                                    =time                                 , &amp;
+     &amp;                                                       cosmologyParameters_                    =cosmologyParameters_                 , &amp;
+     &amp;                                                       cosmologyFunctions_                     =cosmologyFunctions_                  , &amp;
+     &amp;                                                       cosmologicalMassVariance_               =cosmologicalMassVariance_            , &amp;
+     &amp;                                                       linearGrowth_                           =linearGrowth_                        , &amp;
+     &amp;                                                       criticalOverdensity_                    =criticalOverdensity_                 , &amp;
+     &amp;                                                       massEnvironment                         =1.0d13                                 &amp;
      &amp;                                                      )
    </constructor>
   </referenceConstruct>
   <referenceConstruct object="cosmologicalMassVarianceConditioned_" >
    <constructor>
-    cosmologicalMassVariancePeakBackgroundSplit                 (                                                                           &amp;
-     &amp;                                                       haloEnvironment_                   =haloEnvironment_                     , &amp;
-     &amp;                                                       cosmologicalMassVariance_          =cosmologicalMassVariance_            , &amp;
-     &amp;                                                       cosmologyParameters_               =cosmologyParameters_                 , &amp;
-     &amp;                                                       cosmologyFunctions_                =cosmologyFunctions_                    &amp;
+    cosmologicalMassVariancePeakBackgroundSplit                 (                                                                                &amp;
+     &amp;                                                       factorMassEnvironment                   =1.0d0                                , &amp;
+     &amp;                                                       haloEnvironment_                        =haloEnvironment_                     , &amp;
+     &amp;                                                       cosmologicalMassVariance_               =cosmologicalMassVariance_            , &amp;
+     &amp;                                                       cosmologyParameters_                    =cosmologyParameters_                 , &amp;
+     &amp;                                                       cosmologyFunctions_                     =cosmologyFunctions_                    &amp;
      &amp;                                                      )
    </constructor>
   </referenceConstruct>
   <referenceConstruct object="criticalOverdensityConditioned_"      >
    <constructor>
-    criticalOverdensityPeakBackgroundSplit                      (                                                                           &amp;
-     &amp;                                                       criticalOverdensity_               =criticalOverdensity_                 , &amp;
-     &amp;                                                       haloEnvironment_                   =haloEnvironment_                     , &amp;
-     &amp;                                                       cosmologyFunctions_                =cosmologyFunctions_                  , &amp;
-     &amp;                                                       cosmologicalMassVariance_          =cosmologicalMassVariance_            , &amp;
-     &amp;                                                       linearGrowth_                      =linearGrowth_                          &amp;
+    criticalOverdensityPeakBackgroundSplit                      (                                                                                &amp;
+     &amp;                                                       criticalOverdensity_                    =criticalOverdensity_                 , &amp;
+     &amp;                                                       haloEnvironment_                        =haloEnvironment_                     , &amp;
+     &amp;                                                       cosmologyFunctions_                     =cosmologyFunctions_                  , &amp;
+     &amp;                                                       cosmologicalMassVariance_               =cosmologicalMassVariance_            , &amp;
+     &amp;                                                       linearGrowth_                           =linearGrowth_                          &amp;
      &amp;                                                      )
    </constructor>
   </referenceConstruct>
   <referenceConstruct object="excursionSetBarrier_"                 >
    <constructor>
-     excursionSetBarrierCriticalOverdensity                     (                                                                           &amp;
-      &amp;                                                      criticalOverdensity_               =criticalOverdensity_                 , &amp;
-      &amp;                                                      cosmologicalMassVariance_          =cosmologicalMassVariance_              &amp;
+     excursionSetBarrierCriticalOverdensity                     (                                                                                &amp;
+      &amp;                                                      criticalOverdensity_                    =criticalOverdensity_                 , &amp;
+      &amp;                                                      cosmologicalMassVariance_               =cosmologicalMassVariance_              &amp;
       &amp;                                                     )
    </constructor>
   </referenceConstruct>
   <referenceConstruct object="excursionSetBarrierConditioned_"      >
    <constructor>
-     excursionSetBarrierCriticalOverdensity                     (                                                                           &amp;
-      &amp;                                                      criticalOverdensity_               =criticalOverdensityConditioned_      , &amp;
-      &amp;                                                      cosmologicalMassVariance_          =cosmologicalMassVarianceConditioned_   &amp;
+     excursionSetBarrierCriticalOverdensity                     (                                                                                &amp;
+      &amp;                                                      criticalOverdensity_                    =criticalOverdensityConditioned_      , &amp;
+      &amp;                                                      cosmologicalMassVariance_               =cosmologicalMassVarianceConditioned_   &amp;
       &amp;                                                     )
    </constructor>
   </referenceConstruct>  
   <referenceConstruct object="excursionSetFirstCrossing_"           >
    <constructor>
-     excursionSetFirstCrossingLinearBarrier                     (                                                                           &amp;
-      &amp;                                                      fractionalTimeStep                 =0.01d0                               , &amp;
-      &amp;                                                      excursionSetBarrier_               =excursionSetBarrier_                 , &amp;
-      &amp;                                                      cosmologicalMassVariance_          =cosmologicalMassVariance_              &amp;
+     excursionSetFirstCrossingLinearBarrier                     (                                                                                &amp;
+      &amp;                                                      fractionalTimeStep                      =0.01d0                               , &amp;
+      &amp;                                                      excursionSetBarrier_                    =excursionSetBarrier_                 , &amp;
+      &amp;                                                      cosmologicalMassVariance_               =cosmologicalMassVariance_              &amp;
       &amp;                                                     )
    </constructor>
   </referenceConstruct>
   <referenceConstruct object="excursionSetFirstCrossingConditioned_">
    <constructor>
-     excursionSetFirstCrossingLinearBarrier                     (                                                                           &amp;
-      &amp;                                                      fractionalTimeStep                 =0.01d0                               , &amp;
-      &amp;                                                      excursionSetBarrier_               =excursionSetBarrierConditioned_      , &amp;
-      &amp;                                                      cosmologicalMassVariance_          =cosmologicalMassVarianceConditioned_   &amp;
+     excursionSetFirstCrossingLinearBarrier                     (                                                                                &amp;
+      &amp;                                                      fractionalTimeStep                      =0.01d0                               , &amp;
+      &amp;                                                      excursionSetBarrier_                    =excursionSetBarrierConditioned_      , &amp;
+      &amp;                                                      cosmologicalMassVariance_               =cosmologicalMassVarianceConditioned_   &amp;
       &amp;                                                     )
    </constructor>
   </referenceConstruct>
   <referenceConstruct object="haloMassFunction_"                    >
    <constructor>
-    haloMassFunctionPressSchechter                              (                                                                           &amp;
-     &amp;                                                       cosmologyParameters_               =cosmologyParameters_                 , &amp;
-     &amp;                                                       cosmologicalMassVariance_          =cosmologicalMassVariance_            , &amp;
-     &amp;                                                       excursionSetFirstCrossing_         =excursionSetFirstCrossing_             &amp;
+    haloMassFunctionPressSchechter                              (                                                                                &amp;
+     &amp;                                                       cosmologyParameters_                    =cosmologyParameters_                 , &amp;
+     &amp;                                                       cosmologicalMassVariance_               =cosmologicalMassVariance_            , &amp;
+     &amp;                                                       excursionSetFirstCrossing_              =excursionSetFirstCrossing_             &amp;
      &amp;                                                      )
    </constructor>
   </referenceConstruct>
   <referenceConstruct object="haloMassFunctionConditioned_"         >
    <constructor>
-    haloMassFunctionPressSchechter                              (                                                                           &amp;
-     &amp;                                                       cosmologyParameters_               =cosmologyParameters_                 , &amp;
-     &amp;                                                       cosmologicalMassVariance_          =cosmologicalMassVarianceConditioned_ , &amp;
-     &amp;                                                       excursionSetFirstCrossing_         =excursionSetFirstCrossingConditioned_  &amp;
+    haloMassFunctionPressSchechter                              (                                                                                &amp;
+     &amp;                                                       cosmologyParameters_                    =cosmologyParameters_                 , &amp;
+     &amp;                                                       cosmologicalMassVariance_               =cosmologicalMassVarianceConditioned_ , &amp;
+     &amp;                                                       excursionSetFirstCrossing_              =excursionSetFirstCrossingConditioned_  &amp;
      &amp;                                                      )
    </constructor>
   </referenceConstruct>
   <referenceConstruct object="haloMassFunctionEnvironmentAveraged_" >
    <constructor>
-    haloMassFunctionEnvironmentAveraged                         (                                                                           &amp;
-     &amp;                                                       includeUnoccupiedVolume            =.true.                               , &amp;
-     &amp;                                                       haloMassFunctionConditioned_       =haloMassFunctionConditioned_         , &amp;
-     &amp;                                                       haloMassFunctionUnconditioned_     =haloMassFunction_                    , &amp;
-     &amp;                                                       haloEnvironment_                   =haloEnvironment_                     , &amp;
-     &amp;                                                       cosmologyParameters_               =cosmologyParameters_                   &amp;
+    haloMassFunctionEnvironmentAveraged                         (                                                                                &amp;
+     &amp;                                                       includeUnoccupiedVolume                 =.true.                               , &amp;
+     &amp;                                                       haloMassFunctionConditioned_            =haloMassFunctionConditioned_         , &amp;
+     &amp;                                                       haloMassFunctionUnconditioned_          =haloMassFunction_                    , &amp;
+     &amp;                                                       haloEnvironment_                        =haloEnvironment_                     , &amp;
+     &amp;                                                       cosmologyParameters_                    =cosmologyParameters_                   &amp;
      &amp;                                                      )
    </constructor>
   </referenceConstruct>
@@ -301,6 +326,31 @@ program Tests_Halo_Mass_Function_Environmental_Average
      massFunctionEnvironmentAveraged(i)=haloMassFunctionEnvironmentAveraged_%differential(time,mass(i),node)
   end do
   call Assert('⟨n(M|δ)⟩ₑₙᵥ = n(M) for Press-Schechter mass function',massFunction,massFunctionEnvironmentAveraged,relTol=1.0d-4)
+  ! Clean up.
+  call node%destroy()
+  deallocate(node)
+  !![
+  <objectDestructor name="cosmologyParameters_"                 />
+  <objectDestructor name="cosmologyFunctions_"                  />
+  <objectDestructor name="cosmologicalMassVariance_"            />
+  <objectDestructor name="cosmologicalMassVarianceConditioned_" />
+  <objectDestructor name="linearGrowth_"                        />
+  <objectDestructor name="powerSpectrumWindowFunction_"         />
+  <objectDestructor name="powerSpectrumPrimordial_"             />
+  <objectDestructor name="transferFunction_"                    />
+  <objectDestructor name="powerSpectrumPrimordialTransferred_"  />
+  <objectDestructor name="darkMatterParticle_"                  />
+  <objectDestructor name="criticalOverdensity_"                 />
+  <objectDestructor name="criticalOverdensityConditioned_"      />
+  <objectDestructor name="haloMassFunction_"                    />
+  <objectDestructor name="haloMassFunctionConditioned_"         />
+  <objectDestructor name="haloMassFunctionEnvironmentAveraged_" />
+  <objectDestructor name="haloEnvironment_"                     />
+  <objectDestructor name="excursionSetBarrier_"                 />
+  <objectDestructor name="excursionSetBarrierConditioned_"      />
+  <objectDestructor name="excursionSetFirstCrossing_"           />
+  <objectDestructor name="excursionSetFirstCrossingConditioned_"/>
+  !!]
   ! End unit tests.
   call Unit_Tests_End_Group               ()
   call Unit_Tests_Finish                  ()

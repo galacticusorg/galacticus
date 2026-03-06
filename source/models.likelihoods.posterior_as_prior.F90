@@ -204,8 +204,10 @@ contains
           self%convergedStateCount=0
           open(newUnit=chainUnit,file=char(chainFileName),status='old',form='formatted',iostat=ioStatus)
           do while (ioStatus == 0)
-             read (chainUnit,*,iostat=ioStatus) j,j,time,converged
-             if (ioStatus /= 0) cycle
+             read (chainUnit,'(a)',iostat=ioStatus) line
+             if (ioStatus  /=  0 ) cycle
+             if (line(1:1) == "#") cycle
+             read (line,*) j,j,time,converged
              if (converged) self%convergedStateCount=self%convergedStateCount+1
           end do
           close(chainUnit)
@@ -216,8 +218,10 @@ contains
        end if
        open(newUnit=chainUnit,file=char(chainFileName),status='old',form='formatted',iostat=ioStatus)
        do while (ioStatus == 0)
-          read (chainUnit,*,iostat=ioStatus) j,j,time,converged,likelihood,state
-          if (ioStatus /= 0) cycle
+          read (chainUnit,'(a)',iostat=ioStatus) line
+          if (ioStatus  /=  0 ) cycle
+          if (line(1:1) == "#") cycle
+          read (line,*) j,j,time,converged,likelihood,state
           if (converged) then
              i=i+1
              self%states(i,:)=pack(state,self%included)

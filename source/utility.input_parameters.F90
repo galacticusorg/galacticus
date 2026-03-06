@@ -28,7 +28,7 @@ module Input_Parameters
   !!{
   Implements reading of parameters from an XML file.
   !!}
-  use, intrinsic :: ISO_C_Binding     , only : c_char        , c_int
+  use, intrinsic :: ISO_C_Binding     , only : c_char         , c_int
   use            :: FoX_dom           , only : node
   use            :: Function_Classes  , only : functionClass
   use            :: IO_HDF5           , only : hdf5Object
@@ -37,6 +37,7 @@ module Input_Parameters
   use            :: String_Handling   , only : char
   use            :: Hashes            , only : integerHash
   use            :: Locks             , only : ompLock
+  use            :: Resource_Manager  , only : resourceManager
   private
   public :: inputParameters, inputParameter, inputParameterList
   
@@ -120,17 +121,30 @@ module Input_Parameters
   </deepCopyActions>
   !!]
     
+  type :: documentWrapper
+     !!{
+     Wrapper class for managing XML documents.
+     !!}
+     private
+     type(node), pointer, public :: document => null()
+   contains
+     final :: documentWrapperDestructor
+  end type documentWrapper
+  
   type :: inputParameters
      private
-     type   (node           ), pointer, public :: document               => null()
+     type   (documentWrapper), pointer, public :: document               => null()
      type   (node           ), pointer         :: rootNode               => null()
-     type   (hdf5Object     )                  :: outputParameters                 , outputParametersContainer
+     type   (hdf5Object     ), pointer         :: outputParameters       => null() , outputParametersContainer        => null()
+     type   (resourceManager)                  :: outputParametersManager          , outputParametersContainerManager          , &
+          &                                       documentManager
      type   (inputParameter ), pointer, public :: parameters             => null()
-     type   (inputParameters), pointer, public :: parent                 => null() , original                  => null()
-     logical                                   :: outputParametersCopied =  .false., outputParametersTemporary = .false., &
-          &                                       isNull                 =  .false., strict                    = .false.
+     type   (inputParameters), pointer, public :: parent                 => null() , original                         => null()
+     logical                                   :: outputParametersCopied =  .false., outputParametersTemporary        = .false., &
+          &                                       isNull                 =  .false., strict                           = .false.
      type   (integerHash    ), allocatable     :: warnedDefaults
      type   (ompLock        ), pointer         :: lock                   => null()
+     type   (resourceManager)                  :: lockManager
    contains
      !![
      <methods>
@@ -139,7 +153,6 @@ module Input_Parameters
        <method description="Evaluate conditionals in the tree of {\normalfont \ttfamily inputParameter} objects." method="evaluateConditionals" />
        <method description="Return the HDF5 group to which this parameters content will be written." method="parametersGroup" />
        <method description="Open an output group for parameters in the given HDF5 object." method="parametersGroupOpen" />
-       <method description="Copy the HDF5 output group for parameters from another parameters object." method="parametersGroupCopy" />
        <method description="Check that a given parameter name is a valid name, aborting if not." method="validateName" />
        <method description="Check that parameters are valid and, optionally, check if they match expected names in the provided list." method="checkParameters" />
        <method description="Return the XML node containing the named parameter." method="node" />
@@ -156,16 +169,15 @@ module Input_Parameters
        <method description="Destroy the parameters document." method="destroy" />
        <method description="Return the path to this parameters object." method="path" />
        <method description="Reinitialize lock." method="lockReinitialize" />
+       <method description="Assign input parameter objects." method="assignment(=)"/>
      </methods>
      !!]
-     final     ::                         inputParametersFinalize
      procedure :: buildTree            => inputParametersBuildTree
      procedure :: resolveReferences    => inputParametersResolveReferences
      procedure :: evaluateConditionals => inputParametersEvaluateConditionals
      procedure :: destroy              => inputParametersDestroy
      procedure :: parametersGroup      => inputParametersParametersGroup
      procedure :: parametersGroupOpen  => inputParametersParametersGroupOpen
-     procedure :: parametersGroupCopy  => inputParametersParametersGroupCopy
      procedure :: validateName         => inputParametersValidateName
      procedure :: checkParameters      => inputParametersCheckParameters
      procedure :: node                 => inputParametersNode
@@ -184,6 +196,8 @@ module Input_Parameters
      procedure :: reset                => inputParametersReset
      procedure :: path                 => inputParametersPath
      procedure :: lockReinitialize     => inputParametersLockReinitialize
+     procedure ::                         inputParametersAssignment
+     generic   :: assignment(=)        => inputParametersAssignment
   end type inputParameters
 
   interface inputParameters
@@ -278,46 +292,66 @@ contains
     !!}
     use :: FoX_dom, only : createDocument, getDocumentElement, getImplementation, setLiveNodeLists
     implicit none
-    type(inputParameters) :: self
+    type (inputParameters)          :: self
+    class(*              ), pointer :: lock_, document_
 
     allocate(self%warnedDefaults)
     allocate(self%lock          )
+    allocate(self%document      )
     !$omp critical (FoX_DOM_Access)
-    self%document       => createDocument    (                                  &
-         &                                    getImplementation()             , &
-         &                                    qualifiedName      ="parameters", &
-         &                                    docType            =null()        &
-         &                                 )
-    self%rootNode       => getDocumentElement(self%document)
-    call setLiveNodeLists(self%document,.false.)
+    self%document%document => createDocument    (                                  &
+         &                                       getImplementation()             , &
+         &                                       qualifiedName      ="parameters", &
+         &                                       docType            =null()        &
+         &                                      )
+    self%rootNode          => getDocumentElement(self%document%document)
+    call setLiveNodeLists(self%document%document,.false.)
     !$omp end critical (FoX_DOM_Access)
+    !![
+    <workaround type="gfortran" PR="105807" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=105807">
+      <description>ICE when passing a derived type component to a class(*) function argument.</description>
+    !!]
+    document_ => self%document
+    self%documentManager=resourceManager(document_)
+    !![
+    </workaround>
+    !!]
     self%parameters     => null              (             )
     self%warnedDefaults =  integerHash       (             )
     self%lock           =  ompLock           (             )
+    !![
+    <workaround type="gfortran" PR="105807" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=105807">
+      <description>ICE when passing a derived type component to a class(*) function argument.</description>
+    !!]
+    lock_ => self%lock
+    self%lockManager    =  resourceManager   (     lock_   )
+    !![
+    </workaround>
+    !!]
     self%isNull         = .true.
    return
   end function inputParametersConstructorNull
 
-  function inputParametersConstructorVarStr(xmlString,allowedParameterNames,outputParametersGroup,noOutput,changeFiles) result(self)
+  function inputParametersConstructorVarStr(xmlString,allowedParameterNames,outputParametersGroup,noOutput,changeFiles,threadSafe) result(self)
     !!{
     Constructor for the {\normalfont \ttfamily inputParameters} class from an XML file
     specified as a variable length string.
     !!}
-    use :: FoX_dom           , only : node
-    use :: ISO_Varying_String, only : char                             , extract    , operator(==)
     use :: IO_XML            , only : XML_Get_First_Element_By_Tag_Name
-    use :: FoX_dom           , only : node                             , parseString
-    use :: ISO_Varying_String, only : char                             , extract    , operator(==)
+    use :: FoX_DOM           , only : node                             , parseString
+    use :: ISO_Varying_String, only : char                             , extract    , operator(==), assignment(=)
     implicit none
     type     (inputParameters)                                           :: self
     type     (varying_string    )              , intent(in   )           :: xmlString
     type     (varying_string    ), dimension(:), intent(in   ), optional :: allowedParameterNames, changeFiles
     type     (hdf5Object        ), target      , intent(in   ), optional :: outputParametersGroup
-    logical                                    , intent(in   ), optional :: noOutput
+    logical                                    , intent(in   ), optional :: noOutput             , threadSafe
     type     (node              ), pointer                               :: doc                  , parameterNode
+    character(len=1             )                                        :: xmlStringStart
 
     ! Check if we have been passed XML or a file name.
-    if (extract(xmlString,1,1) == "<") then
+    xmlStringStart=extract(xmlString,1,1)
+    if (xmlStringStart == "<") then
        ! Parse the string.
        !$omp critical (FoX_DOM_Access)
        doc           => parseString(char(xmlString))
@@ -326,47 +360,50 @@ contains
             &                                             'parameters'  &
             &                                            ) 
        !$omp end critical (FoX_DOM_Access)
-       self=inputParameters(                       &
-            &               parameterNode        , &
-            &               allowedParameterNames, &
-            &               outputParametersGroup, &
-            &               noOutput               &
+       self=inputParameters(                                  &
+            &                          parameterNode        , &
+            &                          allowedParameterNames, &
+            &                          outputParametersGroup, &
+            &                          noOutput             , &
+            &               threadSafe=threadSafe             &
             &              )
     else
-       self=inputParameters(                       &
-            &               char(xmlString)      , &
-            &               allowedParameterNames, &
-            &               outputParametersGroup, &
-            &               noOutput             , &
-            &               changeFiles            &
+       self=inputParameters(                                  &
+            &                          char(xmlString)      , &
+            &                          allowedParameterNames, &
+            &                          outputParametersGroup, &
+            &                          noOutput             , &
+            &                          changeFiles          , &
+            &               threadSafe=threadSafe             &
             &              )
     end if
     return
   end function inputParametersConstructorVarStr
 
-  function inputParametersConstructorFileChar(fileName,allowedParameterNames,outputParametersGroup,noOutput,changeFiles) result(self)
+  function inputParametersConstructorFileChar(fileName,allowedParameterNames,outputParametersGroup,noOutput,changeFiles,threadSafe) result(self)
     !!{
     Constructor for the {\normalfont \ttfamily inputParameters} class from an XML file
     specified as a character variable.
     !!}
     use :: Display           , only : displayGreen                     , displayReset
     use :: File_Utilities    , only : File_Exists
-    use :: FoX_dom           , only : node                             , getAttribute, setAttribute          , getParentNode, &
-         &                            removeChild                      , getNodeName , hasAttribute          , appendChild  , &
-         &                            importNode                       , insertBefore, getNextSibling        , destroy      , &
-         &                            getExceptionCode                 , inException , DOMException          , cloneNode    , &
+    use :: FoX_DOM           , only : node                             , getAttribute    , setAttribute          , getParentNode, &
+         &                            removeChild                      , getNodeName     , hasAttribute          , appendChild  , &
+         &                            importNode                       , insertBefore    , getNextSibling        , destroy      , &
+         &                            getExceptionCode                 , inException     , DOMException          , cloneNode    , &
          &                            getNodeType                      , ELEMENT_NODE
     use :: Error             , only : Error_Report
-    use :: IO_XML            , only : XML_Get_First_Element_By_Tag_Name, XML_Parse   , XML_Get_Child_Elements, xmlNodeList  , &
+    use :: IO_XML            , only : XML_Get_First_Element_By_Tag_Name, XML_Parse       , XML_Get_Child_Elements, xmlNodeList  , &
          &                            XML_Path_Exists
-    use :: ISO_Varying_String, only : trim                             , char        , assignment(=)         , operator(//) , &
-         &                            operator(==)                     , index       , extract
+    use :: ISO_Varying_String, only : trim                             , char            , assignment(=)         , operator(//) , &
+         &                            operator(==)                     , index           , extract
+    use :: String_Handling   , only : operator(//)
     implicit none
     type     (inputParameters)                                        :: self
     character(len=*          )              , intent(in   )           :: fileName
     type     (varying_string ), dimension(:), intent(in   ), optional :: allowedParameterNames, changeFiles
     type     (hdf5Object     ), target      , intent(in   ), optional :: outputParametersGroup
-    logical                                 , intent(in   ), optional :: noOutput
+    logical                                 , intent(in   ), optional :: noOutput             , threadSafe
     type     (xmlNodeList    ), dimension(:), allocatable             :: childNodes           , newNodes
     type     (node           ), pointer                               :: doc                  , parameterNode    , &
          &                                                               changesDoc           , childNode        , &
@@ -375,8 +412,12 @@ contains
          &                                                               newNode              , changeSiblingNode, &
          &                                                               targetNode           , clonedNode
     integer                                                           :: errorStatus          , i                , &
-         &                                                               j                    , k
-    logical                                                           :: append
+         &                                                               j                    , k                , &
+         &                                                               exceptionCode
+    type     (DOMException   )                                        :: exception
+    type     (varying_string )                                        :: errorMessage         , fileNameFailed
+    logical                                                           :: parseSuccess         , isException      , &
+         &                                                               append
     type     (varying_string )                                        :: changePath           , targetPath       , &
          &                                                               valueUpdated
     character(len=32         )                                        :: changeType
@@ -385,14 +426,20 @@ contains
     if (.not.File_Exists(fileName)) call Error_Report("parameter file '"//trim(fileName)//"' does not exist"//{introspection:location})
     ! Open and parse the data file.
     !$omp critical (FoX_DOM_Access)
-    doc => XML_Parse(fileName,iostat=errorStatus)
+    doc           => XML_Parse(fileName,iostat=errorStatus,ex=exception,fileNameCurrent=fileNameFailed)
+    isException   =  inException(exception)
+    exceptionCode =  getExceptionCode(exception)
+    !$omp end critical (FoX_DOM_Access)
+    parseSuccess  =  .true.
+    errorMessage  =  ''
+    if (isException) then
+       parseSuccess=.false.
+       errorMessage=errorMessage//char(10)//'exception raised [code='//exceptionCode//']'
+    end if
     if (errorStatus /= 0) then
        if (File_Exists(fileName)) then
-          call Error_Report(                                                                                                                                                                &
-               &            'Unable to parse parameter file: "'//trim(fileName)//'"'//char(10)//                                                                                            &
-               &            displayGreen()//"HELP:"//displayReset()//" check that the XML in this file is valid (e.g. `xmllint --noout "//trim(fileName)//"` will display any XML errors"// &
-               &            {introspection:location}                                                                                                                                        &
-               &           )
+          parseSuccess=.false.
+          errorMessage=errorMessage//char(10)//'I/O error [code='//errorStatus//']'
        else
           call Error_Report(                                                                                                                                                                &
                &            'Unable to find parameter file: "' //trim(fileName)//'"'//                                                                                                      &
@@ -400,6 +447,13 @@ contains
                &           )
        end if
     end if
+    if (.not.parseSuccess)                                                                                                                                                                   &
+         & call Error_Report(                                                                                                                                                                &
+         &                   'Unable to parse parameter file: "'//trim(fileName)//'" {"'//fileNameFailed//'"}: '//errorMessage//char(10)//                                                   &
+         &                   displayGreen()//"HELP:"//displayReset()//" check that the XML in this file is valid (e.g. `xmllint --noout "//trim(fileName)//"` will display any XML errors"// &
+         &                   {introspection:location}                                                                                                                                        &
+         &                  )
+    !$omp critical (FoX_DOM_Access)
     parameterNode => XML_Get_First_Element_By_Tag_Name(              &
          &                                             doc         , &
          &                                             'parameters'  &
@@ -409,7 +463,7 @@ contains
     if (present(changeFiles).and.size(changeFiles) > 0) then
        do i=1,size(changeFiles)
           !$omp critical (FoX_DOM_Access)
-          changesDoc =>  XML_Parse(char(changeFiles(i)),iostat=errorStatus)
+          changesDoc =>  XML_Parse(changeFiles(i),iostat=errorStatus)
           !$omp end critical (FoX_DOM_Access)
           if (errorStatus /= 0) then
              if (File_Exists(changeFiles(i))) then
@@ -544,12 +598,13 @@ contains
        end do
     end if
     ! Construct the parameter tree from the XML document.
-    self=inputParameters(                                &
-         &                        parameterNode        , &
-         &                        allowedParameterNames, &
-         &                        outputParametersGroup, &
-         &                        noOutput             , &
-         &               fileName=fileName               &
+    self=inputParameters(                                  &
+         &                          parameterNode        , &
+         &                          allowedParameterNames, &
+         &                          outputParametersGroup, &
+         &                          noOutput             , &
+         &               fileName  =fileName             , &
+         &               threadSafe=threadSafe             &
          &              )
     return
   end function inputParametersConstructorFileChar
@@ -559,10 +614,11 @@ contains
     Constructor for the {\normalfont \ttfamily inputParameters} class from an existing parameters object.
     !!}
     implicit none
-    type(inputParameters)                :: self
-    type(inputParameters), intent(in   ) :: parameters
+    type (inputParameters)                :: self
+    type (inputParameters), intent(in   ) :: parameters
+    class(*              ), pointer       :: lock_
 
-    self            =  inputParameters(parameters%rootNode  ,noOutput=.true.,noBuild=.true.)
+    self            =  inputParameters(parameters%rootNode  ,noOutput=.true.,noBuild=.true.,documentManager=parameters%documentManager,document=parameters%document)
     self%parameters =>                 parameters%parameters
     self%parent     =>                 parameters%parent
     self%original   =>                 parameters%original       
@@ -572,14 +628,23 @@ contains
        self%warnedDefaults=parameters%warnedDefaults
     end if
     if (associated(parameters%lock)) then
-       deallocate(self%lock)
+       call self%lockManager%release()
        allocate  (self%lock)
        self%lock=ompLock()
+       !![
+       <workaround type="gfortran" PR="105807" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=105807">
+	 <description>ICE when passing a derived type component to a class(*) function argument.</description>
+       !!]
+       lock_ => self%lock
+       self%lockManager    =  resourceManager   (     lock_   )
+       !![
+       </workaround>
+       !!]
     end if
     return
   end function inputParametersConstructorCopy
 
-  function inputParametersConstructorNode(parametersNode,allowedParameterNames,outputParametersGroup,noOutput,noBuild,fileName) result(self)
+  function inputParametersConstructorNode(parametersNode,allowedParameterNames,outputParametersGroup,noOutput,noBuild,fileName,documentManager,document,threadSafe) result(self)
     !!{
     Constructor for the {\normalfont \ttfamily inputParameters} class from a FoX node.
     !!}
@@ -609,8 +674,11 @@ contains
     type     (varying_string ), dimension(:), intent(in   ), optional :: allowedParameterNames
     character(len=*          )              , intent(in   ), optional :: fileName
     type     (hdf5Object     ), target      , intent(in   ), optional :: outputParametersGroup
-    logical                                 , intent(in   ), optional :: noOutput                   , noBuild
-    type     (varying_string )                                        :: message
+    logical                                 , intent(in   ), optional :: noOutput                   , noBuild            , &
+         &                                                               threadSafe
+    type     (resourceManager)              , intent(in   ), optional :: documentManager
+    type     (documentWrapper), pointer     , intent(in   ), optional :: document
+    type     (varying_string )                                        :: message                    , inputPathC
     type     (node           ), pointer                               :: lastModifiedNode           , revisionNode       , &
          &                                                               strictNode
     logical                                                           :: hasRevision                , hasStrict
@@ -624,6 +692,7 @@ contains
 #endif
     type     (varying_string ), dimension(:), allocatable  , save     :: allowedParameterNamesGlobal
     !$omp threadprivate(allowedParameterNamesGlobal)
+    class    (*              ), pointer                               :: dummyPointer_
     !![
     <optionalArgument name="noOutput" defaultsTo=".false." />
     <optionalArgument name="noBuild"  defaultsTo=".false." />
@@ -633,14 +702,39 @@ contains
     allocate(self%warnedDefaults)
     allocate(self%lock          )
     self%isNull         =  .false.
-    self%rootNode       =>             parametersNode
-    self%parent         => null       (              )
-    self%warnedDefaults =  integerHash(              )
-    self%lock           =  ompLock    (              )
-    !$omp critical (FoX_DOM_Access)
-    self%document         => getOwnerDocument(parametersNode)
-    call setLiveNodeLists(self%document,.false.)
-    !$omp end critical (FoX_DOM_Access)
+    self%rootNode       =>                  parametersNode
+    self%parent         => null            (              )
+    self%warnedDefaults =  integerHash     (              )
+    self%lock           =  ompLock         (              )
+    !![
+    <workaround type="gfortran" PR="105807" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=105807">
+      <description>ICE when passing a derived type component to a class(*) function argument.</description>
+    !!]
+    dummyPointer_       => self%lock
+    self%lockManager    =  resourceManager (dummyPointer_ )
+    !![
+    </workaround>
+    !!]
+    if (present(documentManager)) then
+       if (.not.present(document)) call Error_Report('If `documentManager` is provided, `document` must also be provided'//{introspection:location})
+       self%document        => document
+       self%documentManager =  documentManager
+    else
+       !$omp critical (FoX_DOM_Access)
+       allocate(self%document)
+       self%document%document => getOwnerDocument(parametersNode)
+       call setLiveNodeLists(self%document%document,.false.)
+       !$omp end critical (FoX_DOM_Access)
+       !![
+       <workaround type="gfortran" PR="105807" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=105807">
+	 <description>ICE when passing a derived type component to a class(*) function argument.</description>
+       !!]
+       dummyPointer_ => self%document
+       self%documentManager=resourceManager(dummyPointer_,threadSafe=threadSafe)
+       !![
+       </workaround>
+       !!]
+    end if
     if (.not.noBuild_) then
        allocate(self%parameters)
        self%parameters%content    => null()
@@ -656,31 +750,56 @@ contains
     end if
     ! Set a pointer to HDF5 object to which to write parameters.
     if (present(outputParametersGroup)) then
+       allocate(self%outputParameters)
        !$ call hdf5Access%  set()
+       self%outputParameters         =outputParametersGroup%openGroup('Parameters')
        self%outputParameters         =outputParametersGroup%openGroup('Parameters',attributesCompactMaxiumum=0)
        self%outputParametersCopied   =.false.
        self%outputParametersTemporary=.false.
        !$ call hdf5Access%unset()
+       !![
+       <workaround type="gfortran" PR="105807" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=105807">
+	 <description>ICE when passing a derived type component to a class(*) function argument.</description>
+       !!]
+       dummyPointer_ => self%outputParameters
+       self%outputParametersManager=resourceManager(dummyPointer_)
+       !![
+       </workaround>
+       !!]
     else if (.not.noOutput_) then
        ! The HDF5 access lock may not yet have been initialized. Ensure it is before using it.
        call ioHDF5AccessInitialize()
+       allocate(self%outputParameters         )
+       allocate(self%outputParametersContainer)
        !$ call hdf5Access%  set()
-       call self%outputParametersContainer%openFile(                                      &
-            &                                       char(                                 &
-            &                                            File_Name_Temporary(             &
-            &                                                                'glcTmpPar', &
+       self%outputParametersContainer=hdf5Object(                                      &
+            &                                    char(                                 &
+            &                                         File_Name_Temporary(             &
+            &                                                             'glcTmpPar', &
 #ifdef __APPLE__
-            &                                                                '/tmp'       &
+            &                                                             '/tmp'       &
 #else
-            &                                                                '/dev/shm'   &
+            &                                                             '/dev/shm'   &
 #endif
-            &                                                               )             &
-            &                                            )                                &
-            &                                      )
+            &                                                            )             &
+            &                                         )                              , &
+            &                                    isTemporary=.true.                    &
+            &                                   )
        self%outputParameters         =self%outputParametersContainer%openGroup('Parameters',attributesCompactMaxiumum=0)
        self%outputParametersCopied   =.false.
        self%outputParametersTemporary=.true.
        !$ call hdf5Access%unset()
+       !![
+       <workaround type="gfortran" PR="105807" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=105807">
+	 <description>ICE when passing a derived type component to a class(*) function argument.</description>
+       !!]
+       dummyPointer_ => self%outputParameters
+       self%outputParametersManager         =resourceManager(dummyPointer_)
+       dummyPointer_ => self%outputParametersContainer
+       self%outputParametersContainerManager=resourceManager(dummyPointer_)
+       !![
+       </workaround>
+       !!]
        call File_Remove(self%outputParametersContainer%name())
     end if
     ! Get allowed parameter names.
@@ -715,8 +834,9 @@ contains
              commitHashSelf=trim(commitHashSelf_)//c_null_char
              !! Iterate over known migration commit hashes and check if they are ancestors.
              allocate(isAncestorOfParameters(size(commitHash)))
+             inputPathC=inputPath(pathTypeExec)//c_null_char
              do i=1,size(commitHash)
-                isAncestorOfParameters(i)=gitDescendantOf(char(inputPath(pathTypeExec))//c_null_char,commitHashParameters,commitHash(i))
+                isAncestorOfParameters(i)=gitDescendantOf(char(inputPathC),commitHashParameters,commitHash(i))
              end do
              if (any(isAncestorOfParameters /= 0_c_int .and. isAncestorOfParameters /= 1_c_int)) then
                 message=var_str("parameter file revision check failed (#1; error code; ")//maxval(isAncestorOfParameters)//")"
@@ -734,7 +854,7 @@ contains
                    call displayMessage(displayMagenta()//"WARNING: "//displayReset()//message//char(10),verbosityLevelSilent)
                 end if
              end if
-             isAncestorOfSelf=gitDescendantOf(char(inputPath(pathTypeExec))//c_null_char,commitHashSelf,commitHashParameters)
+             isAncestorOfSelf=gitDescendantOf(char(inputPathC),commitHashSelf,commitHashParameters)
              if (isAncestorOfSelf /= 0_c_int .and. isAncestorOfSelf /= 1_c_int) then
                 message=var_str("parameter file revision check failed (#2; error code: ")//isAncestorOfSelf//")"
                 if (self%strict) then
@@ -893,6 +1013,8 @@ contains
     type     (DOMException              )                             :: exception
     character(len=parameterLengthMaximum)                             :: parameterName   , parameterLeafName, &
          &                                                               valueTest       , valueParameter
+    character(len=1                     )                             :: bracket_
+    character(len=2                     )                             :: operator_
     logical                                                           :: operatorEquals  , matches          , &
          &                                                               allEvaluated    , didEvaluate
     integer                                                           :: countNames      , i
@@ -917,16 +1039,18 @@ contains
              if (inException(exception)) call Error_Report('unable to parse conditional'//{introspection:location})
              ! Parse the condition.
              !! Extract the name of the parameter being conditioned upon.
-             if (extract(condition,1,1) == "[" .and. index(condition,"]") > 2) then
+             bracket_=extract(condition,1,1)
+             if (bracket_ == "[" .and. index(condition,"]") > 2) then
                 parameterName=extract(condition,2,index(condition,"]")-1)
                 condition    =adjustl(extract(condition,index(condition,"]")+1))
              else
                 call Error_Report("unable to parse parameter name in conditional"//{introspection:location})
              end if
              !! Extract the operator (currently only `==` and `!=` are supported).
-             if      (extract(condition,1,2) == "==") then
+             operator_=extract(condition,1,2)
+             if      (operator_ == "==") then
                 operatorEquals=.true.
-             else if (extract(condition,1,2) == "!=") then
+             else if (operator_ == "!=") then
                 operatorEquals=.false.
              else
                 operatorEquals=.true.
@@ -936,9 +1060,9 @@ contains
              !! Extract the string being compared to.
              valueTest=trim(condition)
              ! Get the value of the parameter.
-             countNames=String_Count_Words(parameterName,":")
+             countNames=String_Count_Words(parameterName,"/")
              allocate(parameterNames(countNames))
-             call String_Split_Words(parameterNames,parameterName,":")
+             call String_Split_Words(parameterNames,parameterName,"/")
              parameterLeafName=parameterNames(countNames)
              parameterTest => currentParameter
              if (trim(parameterNames(1)) /= "." .and. trim(parameterNames(1)) /= "..") then
@@ -1040,62 +1164,61 @@ contains
     implicit none    
     class(inputParameters), intent(inout) :: self
 
-    ! Destroy the parameters document. Note that we do not use a finalizer for input parameters. This could destroy part of a
-    ! document which was still pointed to from elsewhere, leaving a dangling pointer. Instead, destruction only occurs when
-    ! explicitly requested.
-    !$omp critical (FoX_DOM_Access)
-    call destroy(self%document)
-    !$omp end critical (FoX_DOM_Access)
-    nullify(self%document)
     if (associated(self%parameters)) then
        call self%parameters%destroy()
        deallocate(self%parameters)
     end if
-    call inputParametersFinalize(self)
     return
   end subroutine inputParametersDestroy
 
-  subroutine inputParametersFinalize(self)
+  subroutine documentWrapperDestructor(self)
     !!{
-    Finalizer for the {\normalfont \ttfamily inputParameters} class.
+    Destroy a {\normalfont \ttfamily documentWrapper} object.
     !!}
-    use :: FoX_dom           , only : destroy
-    use :: HDF5_Access       , only : hdf5Access
-    use :: ISO_Varying_String, only : char
+    use :: FoX_DOM, only : destroy
     implicit none
-    type(inputParameters), intent(inout) :: self
-    type(varying_string )                :: fileNameTemporary
-
-    if (self%isNull) then
+    type(documentWrapper), intent(inout) :: self
+    
+    if (associated(self%document)) then
        !$omp critical (FoX_DOM_Access)
        call destroy(self%document)
        !$omp end critical (FoX_DOM_Access)
     end if
-    nullify(self%document  )
-    nullify(self%rootNode  )
-    nullify(self%parameters)
-    nullify(self%parent    )
-    if (allocated (self%warnedDefaults)) deallocate(self%warnedDefaults)
-    if (associated(self%lock          )) deallocate(self%lock          )
-    !$ call hdf5Access%set()
-    if (self%outputParameters%isOpen().and..not.self%outputParametersCopied) then
-       if (self%outputParametersTemporary) then
-          ! Close and remove the temporary parameters file.
-          fileNameTemporary=self%outputParametersContainer%name()
-          call self%outputParameters         %close  ()
-          call self%outputParametersContainer%close  ()
-          call self%outputParameters         %destroy()
-          call self%outputParametersContainer%destroy()
-       else
-          ! Simply close our parameters group.
-          call self%outputParameters%close  ()
-          call self%outputParameters%destroy()
-       end if
-    end if
-    !$ call hdf5Access%unset()
     return
-  end subroutine inputParametersFinalize
+  end subroutine documentWrapperDestructor
 
+  subroutine inputParametersAssignment(self,from)
+    !!{
+    Assignment operator for {\normalfont \ttfamily inputParameters} class.
+    !!}
+    implicit none
+    class(inputParameters), intent(  out) :: self
+    class(inputParameters), intent(in   ) :: from
+    
+    self%document                         => from%document
+    self%rootNode                         => from%rootNode
+    self%outputParameters                 => from%outputParameters
+    self%outputParametersContainer        => from%outputParametersContainer
+    self%parameters                       => from%parameters
+    self%parent                           => from%parent
+    self%original                         => from%original
+    self%lock                             => from%lock
+    self%outputParametersCopied           =  from%outputParametersCopied
+    self%outputParametersTemporary        =  from%outputParametersTemporary
+    self%isNull                           =  from%isNull
+    self%strict                           =  from%strict
+    self%outputParametersManager          =  from%outputParametersManager
+    self%outputParametersContainerManager =  from%outputParametersContainerManager
+    self%documentManager                  =  from%documentManager
+    self%lockManager                      =  from%lockManager
+    if (allocated(self%warnedDefaults)) deallocate(self%warnedDefaults)
+    if (allocated(from%warnedDefaults)) then
+       allocate(self%warnedDefaults,mold=from%warnedDefaults)
+       self%warnedDefaults=from%warnedDefaults
+    end if
+    return
+  end subroutine inputParametersAssignment
+  
   recursive subroutine inputParameterDestroy(self)
     !!{
     Destructor for the {\normalfont \ttfamily inputParameter} class.
@@ -1326,8 +1449,8 @@ contains
     use :: FoX_DOM           , only : setAttribute
     use :: ISO_Varying_String, only : char
     implicit none
-    class    (inputParameter), intent(inout) :: self
-    type     (varying_string), intent(in   ) :: value
+    class(inputParameter), intent(inout) :: self
+    type (varying_string), intent(in   ) :: value
 
     !$omp critical (FoX_DOM_Access)
     call setAttribute(self%content,"value",char(value))
@@ -1454,7 +1577,6 @@ contains
                       !$omp critical (FoX_DOM_Access)
                       parameterMatched=regEx_%matches(getNodeName(node_))
                       !$omp end critical (FoX_DOM_Access)
-                      call regEx_%destroy()
                    else
                       !$omp critical (FoX_DOM_Access)
                       parameterMatched=(getNodeName(node_) == trim(allowedParameterName))
@@ -1576,41 +1698,35 @@ contains
     implicit none
     class(inputParameters), intent(inout) :: self
     type (hdf5Object     ), intent(inout) :: outputGroup
-    type (varying_string )                :: fileNameTemporary
+    class(*              ), pointer       :: dummyPointer_
 
     !$ call hdf5Access%set()
     if (self%outputParameters%isOpen().and.self%outputParametersTemporary) then
        ! Parameters have been written to a temporary file. Copy them to our new group.
-       call self%outputParametersContainer%copy('Parameters',outputGroup)
-       fileNameTemporary=self%outputParametersContainer%name()
-       call self%outputParameters         %close()
-       call self%outputParametersContainer%close()
+       call self%outputParametersContainer       %copy   ('Parameters',outputGroup)
+       !$ call hdf5Access%unset()
+       call self%outputParametersManager         %release(                        )
+       call self%outputParametersContainerManager%release(                        )
+       allocate(self%outputParameters)
+       !$ call hdf5Access%set()
        self%outputParameters=outputGroup%openGroup('Parameters',attributesCompactMaxiumum=0)
+       !![
+       <workaround type="gfortran" PR="105807" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=105807">
+	 <description>ICE when passing a derived type component to a class(*) function argument.</description>
+       !!]
+       dummyPointer_                => self%outputParameters
+       self%outputParametersManager =  resourceManager(dummyPointer_)
+       !![
+       </workaround>
+       !!]
        self%outputParametersTemporary=.false.
     else
-       if (self%outputParameters%isOpen()) call self%outputParameters%close()
+       if (self%outputParameters%isOpen()) call self%outputParametersManager%release()
        self%outputParameters      =outputGroup%openGroup('Parameters',attributesCompactMaxiumum=0)
     end if
     !$ call hdf5Access%unset()
-    self%outputParametersCopied=.false.
     return
   end subroutine inputParametersParametersGroupOpen
-
-  subroutine inputParametersParametersGroupCopy(self,inputParameters_)
-    !!{
-    Copy an output group for parameters in the given HDF5 object.
-    !!}
-    use :: HDF5_Access, only : hdf5Access
-    implicit none
-    class(inputParameters), intent(inout) :: self
-    class(inputParameters), intent(in   ) :: inputParameters_
-
-    !$ call hdf5Access%set()
-    self%outputParameters      =inputParameters_%outputParameters
-    self%outputParametersCopied=.true.
-    !$ call hdf5Access%unset()
-    return
-  end subroutine inputParametersParametersGroupCopy
 
   subroutine inputParametersValidateName(self,parameterName)
     !!{
@@ -1686,13 +1802,15 @@ contains
        attributeName  =  getNodeName     (inputParametersNode%content        )
        identifierNode => getAttributeNode(inputParametersNode%content,'idRef')
        !$omp end critical (FoX_DOM_Access)
-       !$ call hdf5Access%set()
-       if (self%outputParameters%isOpen()) then
-          if (.not.self%outputParameters%hasAttribute(char(attributeName))) then
-             call self%outputParameters%writeAttribute("{idRef:"//getTextContent(identifierNode)//"}",char(attributeName))
+       if (associated(self%outputParameters)) then
+          !$ call hdf5Access%set()
+          if (self%outputParameters%isOpen()) then
+             if (.not.self%outputParameters%hasAttribute(char(attributeName))) then
+                call self%outputParameters%writeAttribute("{idRef:"//getTextContent(identifierNode)//"}",char(attributeName))
+             end if
           end if
+          !$ call hdf5Access%unset()
        end if
-       !$ call hdf5Access%unset()
        ! Return the referenced parameter.
        inputParametersNode => inputParametersNode%referenced
     end if
@@ -1854,9 +1972,9 @@ contains
     character(len=parameterLengthMaximum), dimension(:) , allocatable :: parameterNames
     integer                                                           :: countNames       , i
     
-    countNames=String_Count_Words(parameterPath,":")
+    countNames=String_Count_Words(parameterPath,"/")
     allocate(parameterNames(countNames))
-    call String_Split_Words(parameterNames,parameterPath,":")
+    call String_Split_Words(parameterNames,parameterPath,"/")
     parameterName  =  parameterNames(countNames)
     subParameters  => null          (          )
     if (trim(parameterNames(1)) /= "." .and. trim(parameterNames(1)) /= "..") then
@@ -1930,6 +2048,7 @@ contains
     logical                   , intent(in   ), optional :: requireValue                , requirePresent
     integer                   , intent(in   ), optional :: copyInstance
     type     (inputParameter ), pointer                 :: parameterNode
+    class    (*              ), pointer                 :: dummyPointer_
     integer                                             :: copyCount                   , copyInstance_
     type     (varying_string )                          :: groupName
     !![
@@ -1946,10 +2065,10 @@ contains
        end if
        copyCount                                  =  1
     else
-       copyCount                                  =  self%copiesCount(parameterName        ,requireValue=requireValue                          )
-       parameterNode                              => self%node       (parameterName        ,requireValue=requireValue,copyInstance=copyInstance)
+       copyCount                                  =  self%copiesCount(parameterName        ,requireValue=requireValue                                                                                      )
+       parameterNode                              => self%node       (parameterName        ,requireValue=requireValue,copyInstance=copyInstance                                                            )
        if (associated(parameterNode%referenced)) parameterNode => parameterNode%referenced
-       inputParametersSubParameters               =  inputParameters (parameterNode%content,noOutput    =.true.      ,noBuild     =.true.      )
+       inputParametersSubParameters               =  inputParameters (parameterNode%content,noOutput    =.true.      ,noBuild     =.true.      ,documentManager=self%documentManager,document=self%document)
        inputParametersSubParameters%parameters    => parameterNode
     end if
     inputParametersSubParameters%parent           => self
@@ -1958,20 +2077,32 @@ contains
     else
        inputParametersSubParameters%original => self
     end if
-    !$ call hdf5Access%set()
-    if (self%outputParameters%isOpen()) then
-       groupName=parameterName
-       if (copyCount > 1) then
-          if (present(copyInstance)) then
-             copyInstance_=copyInstance
-          else
-             copyInstance_=1
+    if (associated(self%outputParameters)) then
+       !$ call hdf5Access%set()
+       if (self%outputParameters%isOpen()) then
+          groupName=parameterName
+          if (copyCount > 1) then
+             if (present(copyInstance)) then
+                copyInstance_=copyInstance
+             else
+                copyInstance_=1
+             end if
+             groupName=groupName//"["//copyInstance//"]"
           end if
-          groupName=groupName//"["//copyInstance//"]"
+          allocate(inputParametersSubParameters%outputParameters)
+          inputParametersSubParameters%outputParameters=self%outputParameters%openGroup(char(groupName))
+          !![
+	  <workaround type="gfortran" PR="105807" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=105807">
+	    <description>ICE when passing a derived type component to a class(*) function argument.</description>
+          !!]
+          dummyPointer_ => inputParametersSubParameters%outputParameters
+          inputParametersSubParameters%outputParametersManager=resourceManager(dummyPointer_)
+          !![
+	  </workaround>
+          !!]
        end if
-       inputParametersSubParameters%outputParameters=self%outputParameters%openGroup(char(groupName))
+       !$ call hdf5Access%unset()
     end if
-    !$ call hdf5Access%unset()
     return
   end function inputParametersSubParameters
 
@@ -2035,10 +2166,12 @@ contains
        call parametersRoot%lock%unset()
        parameterValue=defaultValue
        ! Write the parameter file to an HDF5 object.
-       if (self%outputParameters%isOpen().and.writeOutput_) then
-          !$ call hdf5Access%set()
-          if (.not.self%outputParameters%hasAttribute(parameterName)) call self%outputParameters%writeAttribute({Type¦outputConverter¦parameterValue},parameterName)
-          !$ call hdf5Access%unset()
+       if (associated(self%outputParameters)) then
+          if (self%outputParameters%isOpen().and.writeOutput_) then
+             !$ call hdf5Access%set()
+             if (.not.self%outputParameters%hasAttribute(parameterName)) call self%outputParameters%writeAttribute({Type¦outputConverter¦parameterValue},parameterName)
+             !$ call hdf5Access%unset()
+          end if
        end if
     else if (present(errorStatus )) then
        errorStatus   =inputParameterErrorStatusNotPresent
@@ -2083,7 +2216,7 @@ contains
     logical                                                                             :: hasValueAttribute  , hasValueElement , &
          &                                                                                 isException        , isPresent       , &
          &                                                                                 isDouble           , isText          , &
-         &                                                                                 haveDefault
+         &                                                                                 isInteger          , haveDefault
     character       (len=parameterLengthMaximum              )                          :: expression         , parameterName   , &
          &                                                                                 workText           , content         , &
          &                                                                                 workValueText      , formatSpecifier , &
@@ -2140,7 +2273,8 @@ contains
           expression=getTextContent(valueElement)
           !$omp end critical (FoX_DOM_Access)
           if (expression(1:1) == "=" .and. evaluate_) then
-             {Type¦match¦^(Double|Character|VarStr)$¦if (.true.) then¦if (.false.) then}
+             {Type¦match¦^(Integer|Long|Double|Character|VarStr)$¦if (.true.) then¦if (.false.) then}
+                {Type¦match¦^Integer|Long¦isInteger=.true.¦isInteger=.false.}
                 {Type¦match¦^Double$¦isDouble=.true.¦isDouble=.false.}
                 {Type¦match¦^(Character|VarStr)¦isText=.true.¦isText=.false.}
                 ! This is an expression, and we have a scalar, floating point or text type - it can be evaluated.             
@@ -2175,7 +2309,7 @@ contains
                       else
                          call Error_Report('inserted parameters must have a format specifier'//{introspection:location})
                       end if
-                   else if (isDouble) then
+                   else if (isDouble.or.isInteger) then
                       haveDefault=index(parameterName,"|") > 0
                       if (haveDefault) then
                          defaultValue =parameterName(  index(parameterName,"|")+1:len_trim(parameterName))
@@ -2194,6 +2328,10 @@ contains
                          call parentParameters%value(trim(parameterLeafName),workValueText   )
                       end if
                       deallocate(parentParameters)
+                   else if (isInteger .and. haveDefault) then
+                      ! The parameter does not exist, but a default value is available - use that default.
+                      read (defaultValue,*) workValueInteger
+                      deallocate(parentParameters)
                    else if (isDouble .and. haveDefault) then
                       ! The parameter does not exist, but a default value is available - use that default.
                       read (defaultValue,*) workValueDouble
@@ -2206,6 +2344,8 @@ contains
                    end if
                    if (isDouble) then
                       write (workText,'(e24.16)') workValueDouble
+                   else if (isInteger) then
+                      write (workText,'(i24)'   ) workValueInteger
                    else if (isText) then
                       if      (parameterType == inputParameterTypeDouble ) then
                          write (worktext,formatSpecifier) workValueDouble
@@ -2218,13 +2358,18 @@ contains
                    expression=expression(1:index(expression,"[")-1)//trim(adjustl(workText))//expression(index(expression,"]")+1:len_trim(expression))
                 end do
                 !! Evaluate the expression.
-                if (isDouble) then
+                if (isDouble .or. isInteger) then
 #ifdef MATHEVALAVAIL
                    evaluator=Evaluator_Create_(trim(expression))
                    if (evaluator == 0) call Error_Report("failed to parse expression '"//trim(expression)//"' - see https://galacticusorg.github.io/libmatheval/doc/evaluator_005fcreate.html for supported operators and functions"//{introspection:location})
                    workValueDouble=Evaluator_Evaluate_(evaluator,0,"",0.0d0)
                    call Evaluator_Destroy_(evaluator)
-                   call parameterNode%set(workValueDouble)
+                   if (isDouble) then
+                      call parameterNode%set(workValueDouble)
+                   else if (isInteger) then
+                      write (workValueText,'(i24)') int(workValueDouble,kind=c_size_t)
+                      call parameterNode%set(var_str(trim(workValueText)))
+                   end if
                    !$omp critical (FoX_DOM_Access)
                    valueElement => getAttributeNode(parameterNode%content,"value")
                    !$omp end critical (FoX_DOM_Access)
@@ -2268,29 +2413,35 @@ contains
              {Type¦match¦^Long.*¦read (parameterText,*) parameterValue¦}
              {Type¦match¦^(Character|VarStr)Rank1$¦call String_Split_Words(parameterValue,char(parameterText))¦}
              ! Write the parameter file to an HDF5 object.
-             if (self%outputParameters%isOpen().and.writeOutput_) then
-                !$omp critical (FoX_DOM_Access)
-                attributeName=getNodeName(parameterNode%content)
-                !$omp end critical (FoX_DOM_Access)
-                copyCount    =self%copiesCount(char(attributeName))
-                if (copyCount > 1) then
-                   copyInstance =  copyCount
-                   sibling      => parameterNode%sibling
-                   do while (associated(sibling))
-                      siblingName=getNodeName(sibling%content)
-                      if (siblingName == attributeName) &
-                           & copyInstance=copyInstance-1
-                      sibling      => sibling%sibling
-                   end do
-                   attributeName=attributeName//"["//copyInstance//"]"
+             if (associated(self%outputParameters)) then
+                if (self%outputParameters%isOpen().and.writeOutput_) then
+                   !$omp critical (FoX_DOM_Access)
+                   attributeName=getNodeName(parameterNode%content)
+                   !$omp end critical (FoX_DOM_Access)
+                   copyCount    =self%copiesCount(char(attributeName))
+                   if (copyCount > 1) then
+                      copyInstance =  copyCount
+                      sibling      => parameterNode%sibling
+                      !$omp critical (FoX_DOM_Access)
+                      do while (associated(sibling))
+                         siblingName=getNodeName(sibling%content)
+                         if (siblingName == attributeName) &
+                              & copyInstance=copyInstance-1
+                         sibling      => sibling%sibling
+                      end do
+                      !$omp end critical (FoX_DOM_Access)
+                      attributeName=attributeName//"["//copyInstance//"]"
+                   end if
+                   !$omp critical (FoX_DOM_Access)
+                   if (hasAttribute(parameterNode%content,'id')) then
+                      identifierNode => getAttributeNode(parameterNode%content,'id')
+                      attributeName  =  attributeName//"{id:"//getTextContent(identifierNode)//"}"
+                   end if
+                   !$omp end critical (FoX_DOM_Access)
+                   !$ call hdf5Access%set()
+                   if (.not.self%outputParameters%hasAttribute(char(attributeName))) call self%outputParameters%writeAttribute({Type¦outputConverter¦parameterValue},char(attributeName))
+                   !$ call hdf5Access%unset()
                 end if
-                if (hasAttribute(parameterNode%content,'id')) then
-                   identifierNode => getAttributeNode(parameterNode%content,'id')
-                   attributeName  =  attributeName//"{id:"//getTextContent(identifierNode)//"}"
-                end if
-                !$ call hdf5Access%set()
-                if (.not.self%outputParameters%hasAttribute(char(attributeName))) call self%outputParameters%writeAttribute({Type¦outputConverter¦parameterValue},char(attributeName))
-                !$ call hdf5Access%unset()
              end if
           end if
        end if
@@ -2437,7 +2588,7 @@ contains
     type (varying_string ), intent(in   ) :: parameterFile
 
     !$omp critical (FoX_DOM_Access)
-    call serialize(self%document,char(parameterFile))
+    call serialize(self%document%document,char(parameterFile))
     !$omp end critical (FoX_DOM_Access)
     return
   end subroutine inputParametersSerializeToXML
@@ -2484,15 +2635,17 @@ contains
        !$omp end critical(FoX_DOM_Access)
     else
        !$omp critical(FoX_DOM_Access)
-       parameterNode   => createElementNS(self%document,getNamespaceURI(self%document),parameterName)
+       parameterNode   => createElementNS(self%document%document,getNamespaceURI(self%document%document),parameterName)
        call setAttribute(parameterNode,"value",trim(parameterValue))
        dummy           => appendChild  (self%rootNode,parameterNode)
        !$omp end critical(FoX_DOM_Access)
        ! Write the parameter file to an HDF5 object.
-       if (self%outputParameters%isOpen().and.writeOutput_) then
-          !$ call hdf5Access%set()
-          if (.not.self%outputParameters%hasAttribute(parameterName)) call self%outputParameters%writeAttribute(parameterValue,parameterName)
-          !$ call hdf5Access%unset()
+       if (associated(self%outputParameters)) then
+          if (self%outputParameters%isOpen().and.writeOutput_) then
+             !$ call hdf5Access%set()
+             if (.not.self%outputParameters%hasAttribute(parameterName)) call self%outputParameters%writeAttribute(parameterValue,parameterName)
+             !$ call hdf5Access%unset()
+          end if
        end if
        if (associated(self%parameters)) then
           if (associated(self%parameters%firstChild)) then
@@ -2541,11 +2694,21 @@ contains
     !!}
     implicit none
     class(inputParameters), intent(inout) :: self
-
-   if (associated(self%lock)) then
-       nullify(self%lock)
+    class(*              ), pointer :: lock_
+    
+    if (associated(self%lock)) then
+       call self%lockManager%release()
        allocate(self%lock)
        self%lock=ompLock()
+       !![
+       <workaround type="gfortran" PR="105807" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=105807">
+	 <description>ICE when passing a derived type component to a class(*) function argument.</description>
+       !!]
+       lock_ => self%lock
+       self%lockManager    =  resourceManager   (     lock_   )
+       !![
+       </workaround>
+       !!]
     end if
     return
   end subroutine inputParametersLockReinitialize

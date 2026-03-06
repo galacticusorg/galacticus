@@ -144,7 +144,6 @@ contains
     <objectDestructor name="self%cosmologyParameters_"/>
     <objectDestructor name="self%cosmologyFunctions_" />
     !!]
-    if (self%file%isOpen()) call self%file%close()
     return
   end subroutine irateDestructor
 
@@ -152,13 +151,13 @@ contains
     !!{
     Import data from a IRATE file.
     !!}
-    use :: Display         , only : displayIndent     , displayUnindent         , verbosityLevelStandard
-    use :: Error, only : errorStatusSuccess
-    use :: Hashes          , only : doubleHash        , integerSizeTHash        , rank1DoublePtrHash    , rank1IntegerSizeTPtrHash, &
-          &                         rank2DoublePtrHash, rank2IntegerSizeTPtrHash, varyingStringHash     , genericHash
-    use :: HDF5_Access     , only : hdf5Access
-    use :: IO_HDF5         , only : H5T_NATIVE_DOUBLES, H5T_NATIVE_INTEGERS     , hdf5Object
-    use :: IO_IRATE        , only : irate
+    use :: Display    , only : displayIndent     , displayUnindent         , verbosityLevelStandard
+    use :: Error      , only : errorStatusSuccess
+    use :: Hashes     , only : doubleHash        , integerSizeTHash        , rank1DoublePtrHash    , rank1IntegerSizeTPtrHash, &
+          &                    rank2DoublePtrHash, rank2IntegerSizeTPtrHash, varyingStringHash     , genericHash
+    use :: HDF5_Access, only : hdf5Access
+    use :: IO_HDF5    , only : H5T_NATIVE_DOUBLES, H5T_NATIVE_INTEGERS     , hdf5Object
+    use :: IO_IRATE   , only : irate
     implicit none
     class           (nbodyImporterIRATE), intent(inout)                              :: self
     type            (nBodyData         ), intent(  out), dimension(:  ), allocatable :: simulations
@@ -199,7 +198,7 @@ contains
     if (.not.self%haveProperties .or. any(self%properties == 'velocity'  )) call simulations(1)%propertiesRealRank1%set('velocity'  ,velocity   )
     write (snapshotLabel,'(a,i5.5)') 'Snapshot',self%snapshot
     !$ call hdf5Access%set()
-    call self%file%openFile(char(self%fileName),readOnly=.false.,objectsOverwritable=.true.)
+    self%file=hdf5Object(self%fileName,readOnly=.true.,objectsOverwritable=.false.)
     snapshotGroup            =self%file         %openGroup(snapshotLabel)
     simulations  (1)%analysis=     snapshotGroup%openGroup('HaloCatalog')
     call simulations(1)%analysis%datasets(datasetNames)
@@ -227,10 +226,20 @@ contains
           call simulations(1)%propertiesReal   %set(datasetNames(i),             propertyReal   )
           nullify(propertyReal   )
        end if
-       call dataset%close()
     end do
-    call snapshotGroup%close()
     !$ call hdf5Access%unset()
+    ! Check for named datasets that were not found.
+    if (self%haveProperties) then
+       do i=1,size(self%properties)
+          if     (                                                                    &
+               &   .not.simulations(1)%propertiesReal     %exists(self%properties(i)) &
+               &  .and.                                                               &
+               &   .not.simulations(1)%propertiesRealRank1%exists(self%properties(i)) &
+               &  .and.                                                               &
+               &   .not.simulations(1)%propertiesInteger  %exists(self%properties(i)) &
+               & ) call Error_Report("property '"//self%properties(i)//"' was not found"//{introspection:location})
+       end do
+    end if
     call displayUnindent('done',verbosityLevelStandard)
     return
   end subroutine irateImport

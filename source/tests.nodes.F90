@@ -95,6 +95,7 @@ program Test_Nodes
      call component%velocitySet([1.0d0,3.0d0,-12.3d0])
      propertyArray=component%velocity()
      call Assert('1D array property get/set consistency',propertyArray,[1.0d0,3.0d0,-12.3d0])
+     deallocate(propertyArray)
   class default
      call Error_Report('component is of incorrect class'//{introspection:location})
   end select

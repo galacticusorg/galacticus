@@ -42,6 +42,7 @@
      procedure :: randomPerturbation => inactiveRandomPerturbation
      procedure :: map                => inactiveMap
      procedure :: unmap              => inactiveUnmap
+     procedure :: mapJacobian        => inactiveMapJacobian
   end type modelParameterInactive
 
   interface modelParameterInactive
@@ -73,10 +74,10 @@ contains
     </inputParameter>
     !!]
     self=modelParameterInactive(name)
-     !![
-     <inputParametersValidate source="parameters"/>
-     !!]
-   return
+    !![
+    <inputParametersValidate source="parameters"/>
+    !!]
+    return
   end function inactiveConstructorParameters
 
   function inactiveConstructorInternal(name_) result(self)
@@ -221,3 +222,17 @@ contains
     return
   end function inactiveUnmap
 
+  double precision function inactiveMapJacobian(self,x)
+    !!{
+    Compute the Jacobian of the map for this parameter.
+    !!}
+    use :: Error, only : Error_Report
+    implicit none
+    class           (modelParameterInactive), intent(inout) :: self
+    double precision                        , intent(in   ) :: x
+    !$GLC attributes unused :: self, x
+
+    inactiveMapJacobian=0.0d0
+    call Error_Report('parameter is inactive'//{introspection:location})
+    return
+  end function inactiveMapJacobian

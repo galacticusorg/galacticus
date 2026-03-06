@@ -9,6 +9,8 @@
     <powerSpectrumWindowFunction/>
     <transferFunction/>
     <powerSpectrumPrimordialTransferred/>
+    <powerSpectrum/>
+    <powerSpectrumNonlinear/>
     <linearGrowth/>
     <intergalacticMediumState/>
     <intergalacticMediumFilteringMass/>
@@ -42,5 +44,7 @@
       </darkMatterProfileHeatingImpulsiveOutflow>
     </darkMatterProfileHeating>
     <haloMassFunction/>
+    <darkMatterHaloBias/>
+    <correlationFunctionTwoPoint/>
   </classes>
 </library>

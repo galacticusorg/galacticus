@@ -30,7 +30,7 @@ Implements a generic two-point correlation function output analysis class.
   use               :: Halo_Model_Power_Spectrum_Modifiers   , only : haloModelPowerSpectrumModifierClass
   use   , intrinsic :: ISO_C_Binding                         , only : c_size_t
   use               :: Node_Property_Extractors              , only : nodePropertyExtractorClass
-  !$ use            :: OMP_Lib                               , only : omp_lock_kind
+  !$ use            :: Locks                                 , only : ompLock
   use               :: Output_Analysis_Distribution_Operators, only : outputAnalysisDistributionOperatorClass
   use               :: Output_Analysis_Property_Operators    , only : outputAnalysisPropertyOperatorClass
   use               :: Output_Times                          , only : outputTimesClass
@@ -102,7 +102,7 @@ Implements a generic two-point correlation function output analysis class.
      integer         (c_size_t                               )                                :: binCount                                             , massCount                                   , &
           &                                                                                      countBinsMassHalo                                    , wavenumberCount
      logical                                                                                  :: finalized                                            , halfIntegral
-     !$ integer      (omp_lock_kind                          )                                :: accumulateLock
+     !$ type         (ompLock                                )                                :: accumulateLock
      ! Workspace used while accumulating the correlation function.
      double precision                                         , allocatable, dimension(:    ) :: probabilityCentral
      double precision                                         , allocatable, dimension(:,:  ) :: probabilitySatellite
@@ -391,14 +391,13 @@ contains
          &                                                                                      omegaDarkEnergyData                       , depthLineOfSight
 
     !$ call hdf5Access%set()
-    call dataFile%openFile(fileName,readOnly=.true.)
+    dataFile=hdf5Object(fileName,readOnly=.true.)
     ! Extract parameters.
     parametersGroup=dataFile%openGroup('Parameters')
     call parametersGroup%readAttribute('H_0'                                         ,hubbleParameterData)
     call parametersGroup%readAttribute('Omega_Matter'                                ,omegaMatterData    )
     call parametersGroup%readAttribute('Omega_DE'                                    ,omegaDarkEnergyData)
     call parametersGroup%readAttribute('projectedCorrelationFunctionLineOfSightDepth',depthLineOfSight   )
-    call parametersGroup%close()
     ! Extract separations.
     call dataFile%readDataset('separationObserved',separations       )
     ! Extract observed datasets.
@@ -410,8 +409,6 @@ contains
     ! Read the minimum and maximum masses.
     call dataFile%readDataset("massMinimum"       ,massMinima        )
     call dataFile%readDataset("massMaximum"       ,massMaxima        )
-    ! Finish reading data file.
-    call dataFile%close      (                                       )
     !$ call hdf5Access%unset()
     self=outputAnalysisCorrelationFunction(label,comment,separations,massMinima,massMaxima,massHaloBinsPerDecade,massHaloMinimum,massHaloMaximum,integralConstraint,wavenumberCount,wavenumberMinimum,wavenumberMaximum,depthLineOfSight,halfIntegral,galacticFilter_,surveyGeometry_,cosmologyFunctions_,outputTimes_,darkMatterProfileDMO_,darkMatterHaloBias_,darkMatterHaloScale_,haloModelPowerSpectrumModifier_,powerSpectrum_,massDistributionOperator_,massPropertyOperator_,separationPropertyOperator_,massPropertyExtractor_,targetLabel,binnedProjectedCorrelationTarget,binnedProjectedCorrelationCovarianceTarget)
    return
@@ -500,8 +497,7 @@ contains
     self%probabilitySatellite =0.0d0
     self%countSatellites      =0
     self%finalized            =.false.
-    ! Initialize accumulation lock.
-    !$ call OMP_Init_Lock(self%accumulateLock)
+    !$ self%accumulateLock    =ompLock()
    return
   end function correlationFunctionConstructorInternal
 
@@ -527,7 +523,6 @@ contains
     <objectDestructor name="self%massPropertyExtractor_"         />
     <objectDestructor name="self%powerSpectrum_"                 />
     !!]
-    !$ call OMP_Destroy_Lock(self%accumulateLock)
     return
   end subroutine correlationFunctionDestructor
 
@@ -869,7 +864,7 @@ contains
 
     select type (reduced)
     class is (outputAnalysisCorrelationFunction)
-       !$ call OMP_Set_Lock(reduced%accumulateLock)
+       !$ call reduced%accumulateLock%set()
        reduced%meanDensity          =reduced%meanDensity          +self%meanDensity
        reduced%oneHaloTerm          =reduced%oneHaloTerm          +self%oneHaloTerm
        reduced%twoHaloTerm          =reduced%twoHaloTerm          +self%twoHaloTerm
@@ -878,7 +873,7 @@ contains
        reduced%oneHaloTermMainBranch=reduced%oneHaloTermMainBranch+self%oneHaloTermMainBranch
        reduced%twoHaloTermMainBranch=reduced%twoHaloTermMainBranch+self%twoHaloTermMainBranch
        reduced%termCovariance       =reduced%termCovariance       +self%termCovariance
-       !$ call OMP_Unset_Lock(reduced%accumulateLock)
+       !$ call reduced%accumulateLock%unset()
     class default
        call Error_Report('incorrect class'//{introspection:location})
     end select
@@ -927,15 +922,12 @@ contains
     call    analysisGroup%writeDataset  (self%separations                                    ,'separation'                         ,'Separation'                             ,datasetReturned=dataset)
     call    dataset      %writeAttribute('ᵪMpc'                                              ,'units'                                                                                                )
     call    dataset      %writeAttribute(megaParsec                                          ,'unitsInSI'                                                                                            )
-    call    dataset      %close         (                                                                                                                                                            )
     call    analysisGroup%writeDataset  (self%binnedProjectedCorrelation                     ,'correlationFunction'                ,'Projected correlation'                  ,datasetReturned=dataset)
     call    dataset      %writeAttribute('ᵪMpc'                                              ,'units'                                                                                                )
     call    dataset      %writeAttribute(megaParsec                                          ,'unitsInSI'                                                                                            )
-    call    dataset      %close         (                                                                                                                                                            )
     call    analysisGroup%writeDataset  (self%binnedProjectedCorrelationCovariance           ,'correlationFunctionCovariance'      ,'Projected correlation covariance'       ,datasetReturned=dataset)
     call    dataset      %writeAttribute('ᵪMpc²'                                             ,'units'                                                                                                )
     call    dataset      %writeAttribute(megaParsec**2                                       ,'unitsInSI'                                                                                            )
-    call    dataset      %close         (                                                                                                                                                            )
     ! If available, include the log-likelihood and target dataset.
     if (allocated(self%binnedProjectedCorrelationTarget)) then
        call analysisGroup%writeAttribute(     self%logLikelihood()                           ,'logLikelihood'                                                                                        )
@@ -943,16 +935,10 @@ contains
        call analysisGroup%writeDataset  (     self%binnedProjectedCorrelationTarget          ,"correlationFunctionTarget"          ,'Projected correlation target'           ,datasetReturned=dataset)
        call dataset      %writeAttribute(     "ᵪMpc"                                         ,'units'                                                                                                )
        call dataset      %writeAttribute(     megaParsec                                     ,'unitsInSI'                                                                                            )
-       call dataset      %close         (                                                                                                                                                            )
        call analysisGroup%writeDataset  (     self%binnedProjectedCorrelationCovarianceTarget,"correlationFunctionCovarianceTarget",'Projected correlation covariance target',datasetReturned=dataset)
        call dataset      %writeAttribute(     "ᵪMpc²"                                        ,'units'                                                                                                )
        call dataset      %writeAttribute(      megaParsec**2                                 ,'unitsInSI'                                                                                            )
-       call dataset      %close         (                                                                                                                                                            )
     end if
-    call    analysisGroup%close         (                                                                                                                                                            )
-    if (present(groupName)) &
-         & call subGroup %close         (                                                                                                                                                            )
-    call    analysesGroup%close         (                                                                                                                                                            )
     !$ call hdf5Access%unset()
     return
   end subroutine correlationFunctionFinalize

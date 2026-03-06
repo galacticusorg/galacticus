@@ -75,7 +75,8 @@
           &                                                                                  pointsPerDecade
      type            (varying_string                         )                            :: outputGroup
      logical                                                                              :: includeUnevolvedSubhaloMassFunction          , includeMassAccretionRate            , &
-          &                                                                                  massesRelativeToHalfModeMass                 , nodeComponentsInitialized =  .false.
+          &                                                                                  massesRelativeToHalfModeMass                 , nodeComponentsInitialized =  .false., &
+          &                                                                                  errorsAreFatal
      double precision                                         , allocatable, dimension(:) :: fractionModeMasses
      type            (virialDensityContrastList              ), allocatable, dimension(:) :: virialDensityContrasts
      ! Pointer to the parameters for this task.
@@ -138,7 +139,7 @@ contains
     double precision                                                                       :: haloMassMinimum                    , haloMassMaximum           , &
          &                                                                                    pointsPerDecade
     logical                                                                                :: includeUnevolvedSubhaloMassFunction, includeMassAccretionRate  , &
-          &                                                                                   massesRelativeToHalfModeMass
+          &                                                                                   massesRelativeToHalfModeMass       , errorsAreFatal
     integer                                                                                :: i
     
     ! Ensure the nodes objects are initialized.
@@ -196,6 +197,12 @@ contains
       <name>massesRelativeToHalfModeMass</name>
       <defaultValue>.false.</defaultValue>
       <description>If true then masses are interpreted (and output) relative to the half-mode mass. (If the half-mode mass is undefined an error will occur.) If false, masses are absolute.</description>
+      <source>parameters</source>
+    </inputParameter>
+    <inputParameter>
+      <name>errorsAreFatal</name>
+      <defaultValue>.true.</defaultValue>
+      <description>If true then errors in evaluating the halo mass function are considered to be fatal.</description>
       <source>parameters</source>
     </inputParameter>
     <objectBuilder    class="cosmologyParameters"                name="cosmologyParameters_"                source="parameters"                                          />
@@ -269,6 +276,7 @@ contains
          &amp;                    includeUnevolvedSubhaloMassFunction, &amp;
          &amp;                    includeMassAccretionRate           , &amp;
          &amp;                    massesRelativeToHalfModeMass       , &amp;
+	 &amp;                    errorsAreFatal                     , &amp;
 	 &amp;                    fractionModeMasses                 , &amp;
          &amp;                    cosmologyParameters_               , &amp;
          &amp;                    cosmologyFunctions_                , &amp;
@@ -342,6 +350,7 @@ contains
        &                                       includeUnevolvedSubhaloMassFunction, &
        &                                       includeMassAccretionRate           , &
        &                                       massesRelativeToHalfModeMass       , &
+       &                                       errorsAreFatal                     , &
        &                                       fractionModeMasses                 , &
        &                                       cosmologyParameters_               , &
        &                                       cosmologyFunctions_                , &
@@ -393,15 +402,15 @@ contains
     double precision                                         , intent(in   )                         :: haloMassMinimum                    , haloMassMaximum           , &
          &                                                                                              pointsPerDecade
     logical                                                  , intent(in   )                         :: includeUnevolvedSubhaloMassFunction, includeMassAccretionRate  , &
-         &                                                                                              massesRelativeToHalfModeMass
+         &                                                                                              massesRelativeToHalfModeMass       , errorsAreFatal
     double precision                                         , intent(in   ), dimension(:)           :: fractionModeMasses
     type            (inputParameters                        ), intent(in   ), target                 :: parameters
     integer                                                                                          :: i
     !![
-    <constructorAssign variables="haloMassMinimum, haloMassMaximum, pointsPerDecade, outputGroup, includeUnevolvedSubhaloMassFunction, includeMassAccretionRate, massesRelativeToHalfModeMass, fractionModeMasses, *cosmologyParameters_, *cosmologyFunctions_, *virialDensityContrast_, *criticalOverdensity_, *linearGrowth_, *haloMassFunction_, *haloEnvironment_, *unevolvedSubhaloMassFunction_, *darkMatterHaloScale_, *darkMatterProfileScaleRadius_, *darkMatterProfileShape_, *darkMatterHaloMassAccretionHistory_, *cosmologicalMassVariance_, *darkMatterHaloBias_, *transferFunction_, *transferFunctionReference, *transferFunctionRelative, *outputTimes_, *randomNumberGenerator_"/>
+    <constructorAssign variables="haloMassMinimum, haloMassMaximum, pointsPerDecade, outputGroup, includeUnevolvedSubhaloMassFunction, includeMassAccretionRate, massesRelativeToHalfModeMass, errorsAreFatal, fractionModeMasses, *cosmologyParameters_, *cosmologyFunctions_, *virialDensityContrast_, *criticalOverdensity_, *linearGrowth_, *haloMassFunction_, *haloEnvironment_, *unevolvedSubhaloMassFunction_, *darkMatterHaloScale_, *darkMatterProfileScaleRadius_, *darkMatterProfileShape_, *darkMatterHaloMassAccretionHistory_, *cosmologicalMassVariance_, *darkMatterHaloBias_, *transferFunction_, *transferFunctionReference, *transferFunctionRelative, *outputTimes_, *randomNumberGenerator_"/>
     !!]
 
-    self%parameters  => parameters
+    self%parameters => parameters
     allocate(self%virialDensityContrasts(size(virialDensityContrasts)))
     do i=1,size(virialDensityContrasts)
        self%virialDensityContrasts(i)%label=virialDensityContrasts(i)%label
@@ -468,8 +477,9 @@ contains
     use            :: Dark_Matter_Profile_Mass_Definitions, only : Dark_Matter_Profile_Mass_Definition
     use            :: Display                             , only : displayIndent                      , displayUnindent
     use            :: Calculations_Resets                 , only : Calculations_Reset
-    use            :: Error                               , only : errorStatusSuccess
+    use            :: Error                               , only : errorStatusSuccess                 , Error_Report                       , Warn
     use            :: Output_HDF5                         , only : outputFile
+    use            :: HDF5_Access                         , only : hdf5Access
     use            :: Galacticus_Nodes                    , only : mergerTree                         , nodeComponentBasic                 , nodeComponentDarkMatterProfile, treeNode
     use            :: Galactic_Structure_Options          , only : componentTypeDarkMatterOnly        , massTypeDark
     use            :: IO_HDF5                             , only : hdf5Object
@@ -546,10 +556,11 @@ contains
          &                                                                                              containerGroup                                         , powerSpectrumGroup           , &
          &                                                                                              cosmologyGroup                                         , dataset
     integer                                                                                          :: statusHalfModeMass                                     , statusQuarterModeMass        , &
-         &                                                                                              statusHalfModeMassReference
+         &                                                                                              statusHalfModeMassReference                            , statusIntegrated
     type            (varying_string                         )                                        :: groupName                                              , description
     character       (len=32                                 )                                        :: label
-    logical                                                                                          :: scaleIsSettable                                        , shapeIsSettable
+    logical                                                                                          :: scaleIsSettable                                        , shapeIsSettable              , &
+         &                                                                                              warnedIntegratedFailure
     
     call displayIndent('Begin task: halo mass function')
     ! Call routines to perform initialization which must occur for all threads if run in parallel.
@@ -655,6 +666,8 @@ contains
        statusHalfModeMassReference=statusHalfModeMass
        massHalfModeReference      =massHalfMode
     end if
+    ! Initialize warnings state.
+    warnedIntegratedFailure=.false.
     ! Build a range of halo masses.
     massHaloMinimum            =self%haloMassMinimum
     massHaloMaximum            =self%haloMassMaximum
@@ -712,7 +725,6 @@ contains
     ! Call routines to perform initialization which must occur for all threads if run in parallel.
     allocate(parameters)
     parameters=inputParameters(self%parameters)
-    call parameters%parametersGroupCopy(self%parameters)
     call Node_Components_Thread_Initialize(parameters)
     ! Build an integrator.
     allocate(integrator_)
@@ -764,40 +776,60 @@ contains
           massHaloBinMinimum=massHalo(iMass)*exp(-0.5*massHaloLogarithmicInterval)
           massHaloBinMaximum=massHalo(iMass)*exp(+0.5*massHaloLogarithmicInterval)
           ! Compute halo properties.
-          densityFieldRootVariance                      (iMass,iOutput)=+cosmologicalMassVariance_         %rootVariance                   (mass   =massHalo          (iMass)                                   ,time=outputTimes(iOutput)                   )
-          densityFieldRootVarianceGradientLogarithmic   (iMass,iOutput)=+cosmologicalMassVariance_         %rootVarianceLogarithmicGradient(mass   =massHalo          (iMass)                                   ,time=outputTimes(iOutput)                   )
+          densityFieldRootVariance                      (iMass,iOutput)=+cosmologicalMassVariance_         %rootVariance                   (mass   =massHalo          (iMass)                                   ,time=outputTimes(iOutput)                                           )
+          densityFieldRootVarianceGradientLogarithmic   (iMass,iOutput)=+cosmologicalMassVariance_         %rootVarianceLogarithmicGradient(mass   =massHalo          (iMass)                                   ,time=outputTimes(iOutput)                                           )
           if (densityFieldRootVariance(iMass,iOutput) > 0.0d0) then
-             peakHeight                                 (iMass,iOutput)=+criticalOverdensity_              %value                          (mass   =massHalo          (iMass)                                   ,time=outputTimes(iOutput)                   )    &
+             peakHeight                                 (iMass,iOutput)=+criticalOverdensity_              %value                          (mass   =massHalo          (iMass)                                   ,time=outputTimes(iOutput)                                           )    &
                   &                                                     /densityFieldRootVariance                                          (                           iMass                                    ,                 iOutput)
           else
              peakHeight                                 (iMass,iOutput)=+0.0d0
           end if
-          massFunctionDifferentialLogarithmicBinAveraged(iMass,iOutput)=+haloMassFunction_                 %integrated                     (massLow=massHaloBinMinimum       ,massHigh=massHaloBinMaximum       ,time=outputTimes(iOutput),node=tree%nodeBase)    &
+          massFunctionDifferentialLogarithmicBinAveraged(iMass,iOutput)=+haloMassFunction_                 %integrated                     (massLow=massHaloBinMinimum       ,massHigh=massHaloBinMaximum       ,time=outputTimes(iOutput),node=tree%nodeBase,status=statusIntegrated)    &
                &                                                        /massHaloLogarithmicInterval
-          massFunctionDifferential                      (iMass,iOutput)=+haloMassFunction_                 %differential                   (mass   =massHalo          (iMass)                                   ,time=outputTimes(iOutput),node=tree%nodeBase)
-          massFunctionCumulative                        (iMass,iOutput)=+haloMassFunction_                 %integrated                     (massLow=massHalo          (iMass),massHigh=haloMassEffectiveInfinity,time=outputTimes(iOutput),node=tree%nodeBase)
-          massFunctionMassFraction                      (iMass,iOutput)=+haloMassFunction_                 %massFraction                   (massLow=massHalo          (iMass),massHigh=haloMassEffectiveInfinity,time=outputTimes(iOutput),node=tree%nodeBase)
+          if (statusIntegrated /= errorStatusSuccess) then
+             if (self%errorsAreFatal) then
+                call    Error_Report('integrated halo mass function failed'//{introspection:location})
+             else
+                if (.not.warnedIntegratedFailure) then
+                   warnedIntegratedFailure=.true.
+                   call Warn        ('integrated halo mass function failed'                          )
+                end if
+             end if
+          end if
+          massFunctionDifferential                      (iMass,iOutput)=+haloMassFunction_                 %differential                   (mass   =massHalo          (iMass)                                   ,time=outputTimes(iOutput),node=tree%nodeBase                        )
+          massFunctionCumulative                        (iMass,iOutput)=+haloMassFunction_                 %integrated                     (massLow=massHalo          (iMass),massHigh=haloMassEffectiveInfinity,time=outputTimes(iOutput),node=tree%nodeBase,status=statusIntegrated)
+          if (statusIntegrated /= errorStatusSuccess) then
+             if (self%errorsAreFatal) then
+                call    Error_Report('integrated halo mass function failed'//{introspection:location})
+             else
+                if (.not.warnedIntegratedFailure) then
+                   warnedIntegratedFailure=.true.
+                   call Warn        ('integrated halo mass function failed'                          )
+                end if
+             end if
+          end if
+          massFunctionMassFraction                      (iMass,iOutput)=+haloMassFunction_                 %massFraction                   (massLow=massHalo          (iMass),massHigh=haloMassEffectiveInfinity,time=outputTimes(iOutput),node=tree%nodeBase                        )
           if     (                                                 &
                &   massFunctionDifferential(iMass,iOutput) > 0.0d0 &
                &  .and.                                            &
                &   densityFieldRootVariance(iMass,iOutput) > 0.0d0 &
                & ) then
-             peakHeightMassFunction                     (iMass,iOutput)=+massHalo                                                          (                           iMass                                                                                 )**2 &
-                  &                                                     *massFunctionDifferential                                          (                           iMass                                    ,                 iOutput                    )    &
-                  &                                                     /cosmologyParameters_              %densityCritical                (                                                                                                                 )    &
-                  &                                                     /cosmologyParameters_              %OmegaMatter                    (                                                                                                                 )    &
-                  &                                                     /abs(densityFieldRootVariance                                      (                           iMass                                    ,                 iOutput                    ))
+             peakHeightMassFunction                     (iMass,iOutput)=+massHalo                                                          (                           iMass                                                                                                         )**2 &
+                  &                                                     *massFunctionDifferential                                          (                           iMass                                    ,                 iOutput                                            )    &
+                  &                                                     /cosmologyParameters_              %densityCritical                (                                                                                                                                         )    &
+                  &                                                     /cosmologyParameters_              %OmegaMatter                    (                                                                                                                                         )    &
+                  &                                                     /abs(densityFieldRootVariance                                      (                           iMass                                    ,                 iOutput                                            ))
           else
              peakHeightMassFunction                     (iMass,iOutput)=+0.0d0
           end if
-          biasHalo                                      (iMass,iOutput)=darkMatterHaloBias_                %bias                           (                                                                                               node=tree%nodeBase)
-          velocityVirial                                (iMass,iOutput)=darkMatterHaloScale_               %velocityVirial                 (                                                                                               node=tree%nodeBase)
-          temperatureVirial                             (iMass,iOutput)=darkMatterHaloScale_               %temperatureVirial              (                                                                                               node=tree%nodeBase)
-          radiusVirial                                  (iMass,iOutput)=darkMatterHaloScale_               %radiusVirial                   (                                                                                               node=tree%nodeBase)
+          biasHalo                                      (iMass,iOutput)=darkMatterHaloBias_                %bias                           (                                                                                               node=tree%nodeBase                        )
+          velocityVirial                                (iMass,iOutput)=darkMatterHaloScale_               %velocityVirial                 (                                                                                               node=tree%nodeBase                        )
+          temperatureVirial                             (iMass,iOutput)=darkMatterHaloScale_               %temperatureVirial              (                                                                                               node=tree%nodeBase                        )
+          radiusVirial                                  (iMass,iOutput)=darkMatterHaloScale_               %radiusVirial                   (                                                                                               node=tree%nodeBase                        )
           velocityMaximum                               (iMass,iOutput)=massDistribution_                  %velocityRotationCurveMaximum   (                                                                                                                 )
-          darkMatterProfileRadiusScale                  (iMass,iOutput)=darkMatterProfileHalo              %scale                          (                                                                                                                 )
+          darkMatterProfileRadiusScale                  (iMass,iOutput)=darkMatterProfileHalo              %scale                          (                                                                                                                                         )
           if (self%includeMassAccretionRate) &
-               & massAccretionRate                      (iMass,iOutput)=darkMatterHaloMassAccretionHistory_%massAccretionRate              (                                                                     time=outputTimes(iOutput),node=tree%nodeBase)
+               & massAccretionRate                      (iMass,iOutput)=darkMatterHaloMassAccretionHistory_%massAccretionRate              (                                                                     time=outputTimes(iOutput),node=tree%nodeBase                        )
           ! Compute alternate mass definitions for halos.
           do iAlternate=1,size(self%virialDensityContrasts)
              massAlternate(iAlternate,iMass,iOutput)=Dark_Matter_Profile_Mass_Definition(tree%nodeBase,virialDensityContrasts(iAlternate)%virialDensityContrast_%densityContrast(mass=massHalo(iMass),time=outputTimes(iOutput)),radius=radiusAlternate(iAlternate,iMass,iOutput),cosmologyParameters_=cosmologyParameters_,cosmologyFunctions_=cosmologyFunctions_,virialDensityContrast_=virialDensityContrast_)
@@ -847,6 +879,7 @@ contains
     call Node_Components_Thread_Uninitialize()
     !$omp end parallel
     ! Open the group for output time information.
+    !$ call hdf5Access%set()
     if (self%outputGroup == ".") then
        outputsGroup  =outputFile    %openGroup(     'Outputs'        ,'Group containing datasets relating to output times.')
     else
@@ -884,7 +917,6 @@ contains
              end if
           end do
        end if
-       call                                                            powerSpectrumGroup%close         (                                   )
     end if
     ! Store σ₈.
     if (self%outputGroup == ".") then
@@ -893,7 +925,6 @@ contains
        powerSpectrumGroup=containerGroup      %openGroup('powerSpectrum','Group containing data relating to the power spectrum.')
     end if
     call powerSpectrumGroup%writeAttribute(self%cosmologicalMassVariance_%sigma8(),'sigma8')
-    call powerSpectrumGroup%close         (                                                )
     ! Store other usual information.
     if (self%outputGroup == ".") then
        cosmologyGroup=outputFile    %openGroup('cosmology','Group containing data relating to cosmology.')
@@ -901,7 +932,6 @@ contains
        cosmologyGroup=containerGroup%openGroup('cosmology','Group containing data relating to cosmology.')
     end if
     call cosmologyGroup%writeAttribute(self%cosmologyParameters_%densityCritical(),'densityCritical')
-    call cosmologyGroup%close()
     ! Iterate over output times and output data.
     do iOutput=1,outputCount
        groupName  ='Output'
@@ -923,44 +953,32 @@ contains
        else
           call outputGroup%writeDataset  (massHalo                                      (:        ),'haloMass'                      ,'The mass of the halo.'                                                      ,datasetReturned=dataset)
           call dataset    %writeAttribute(massSolar                                                ,'unitsInSI'                                                                                                                           )
-          call dataset    %close         (                                                                                                                                                                                                )
        end if
        call    outputGroup%writeDataset  (massFunctionDifferential                      (:,iOutput),'haloMassFunctionM'             ,'The halo mass function (per unit halo mass).'                               ,datasetReturned=dataset)
        call    dataset    %writeAttribute(1.0d0/megaParsec**3/massSolar                            ,'unitsInSI'                                                                                                                           )
-       call    dataset    %close         (                                                                                                                                                                                                )
        call    outputGroup%writeDataset  (massFunctionDifferentialLogarithmic           (:,iOutput),'haloMassFunctionLnM'           ,'The halo mass function (per logarithmic halo mass).'                        ,datasetReturned=dataset)
        call    dataset    %writeAttribute(1.0d0/megaParsec**3                                      ,'unitsInSI'                                                                                                                           )
-       call    dataset    %close         (                                                                                                                                                                                                )
        call    outputGroup%writeDataset  (massFunctionDifferentialLogarithmicBinAveraged(:,iOutput),'haloMassFunctionLnMBinAveraged','The halo mass function (per logarithmic halo mass averaged across the bin).',datasetReturned=dataset)
        call    dataset    %writeAttribute(1.0d0/megaParsec**3                                      ,'unitsInSI'                                                                                                                           )
-       call    dataset    %close         (                                                                                                                                                                                                )
        call    outputGroup%writeDataset  (massFunctionCumulative                        (:,iOutput),'haloMassFunctionCumulative'    ,'The halo cumulative mass function.'                                         ,datasetReturned=dataset)
        call    dataset    %writeAttribute(1.0d0/megaParsec**3                                      ,'unitsInSI'                                                                                                                           )
-       call    dataset    %close         (                                                                                                                                                                                                )
        if (self%includeUnevolvedSubhaloMassFunction) then
           call outputGroup%writeDataset  (massFunctionCumulativeSubhalo                 (:,iOutput),'subhaloMassFunctionCumulative' ,'The subhalo cumulative mass function.'                                      ,datasetReturned=dataset)
           call dataset    %writeAttribute(1.0d0/megaParsec**3                                      ,'unitsInSI'                                                                                                                           )
-          call dataset    %close         (                                                                                                                                                                                                )
        end if
        call    outputGroup%writeDataset  (velocityVirial                                (:,iOutput),'haloVirialVelocity'            ,'The virial velocity of halos.'                                              ,datasetReturned=dataset)
        call    dataset    %writeAttribute(kilo                                                     ,'unitsInSI'                                                                                                                           )
-       call    dataset    %close         (                                                                                                                                                                                                )
        call    outputGroup%writeDataset  (temperatureVirial                             (:,iOutput),'haloVirialTemperature'         ,'The virial temperature of halos.'                                           ,datasetReturned=dataset)
        call    dataset    %writeAttribute(1.0d0                                                    ,'unitsInSI'                                                                                                                           )
-       call    dataset    %close         (                                                                                                                                                                                                )
        call    outputGroup%writeDataset  (radiusVirial                                  (:,iOutput),'haloVirialRadius'              ,'The virial radius of halos.'                                                ,datasetReturned=dataset)
        call    dataset    %writeAttribute(megaParsec                                               ,'unitsInSI'                                                                                                                           )
-       call    dataset    %close         (                                                                                                                                                                                                )
        call    outputGroup%writeDataset  (darkMatterProfileRadiusScale                  (:,iOutput),'haloScaleRadius'               ,'The scale radius of halos.'                                                 ,datasetReturned=dataset)
        call    dataset    %writeAttribute(megaParsec                                               ,'unitsInSI'                                                                                                                           )
-       call    dataset    %close         (                                                                                                                                                                                                )
        call    outputGroup%writeDataset  (velocityMaximum                               (:,iOutput),'haloVelocityMaximum'           ,'The maximum circular velocity of halos.'                                    ,datasetReturned=dataset)
        call    dataset    %writeAttribute(kilo                                                     ,'unitsInSI'                                                                                                                           )
-       call    dataset    %close         (                                                                                                                                                                                                )
        if (self%includeMassAccretionRate) then
           call outputGroup%writeDataset  (massAccretionRate                             (:,iOutput),'haloMassAccretionRate'         ,'The mass accretion rate of halos.'                                          ,datasetReturned=dataset)
           call dataset    %writeAttribute(massSolar/gigaYear                                       ,'unitsInSI'                                                                                                                           )
-          call dataset    %close         (                                                                                                                                                                                                )
        end if
        call    outputGroup%writeDataset  (biasHalo                                      (:,iOutput),'haloBias'                      ,'The large scale linear bias of halos.'                                                              )
        call    outputGroup%writeDataset  (densityFieldRootVariance                      (:,iOutput),'haloSigma'                     ,'The mass fluctuation on the scale of the halo.'                                                     )
@@ -976,17 +994,13 @@ contains
            else
                 call outputGroup%writeDataset  (massAlternate  (iAlternate,:,iOutput),'haloMass'  //String_Upper_Case_First(char(self%virialDensityContrasts(iAlternate)%label)),'The mass of the halo under the "'  //char(self%virialDensityContrasts(iAlternate)%label)//'" definition.'                               ,datasetReturned=dataset)
                 call dataset    %writeAttribute(massSolar                            ,'unitsInSI'                                                                                                                                                                                                                                                 )
-                call dataset    %close         (                                                                                                                                                                                                                                                                                                  )
              end if
              call    outputGroup%writeDataset  (radiusAlternate(iAlternate,:,iOutput),'haloRadius'//String_Upper_Case_First(char(self%virialDensityContrasts(iAlternate)%label)),'The radius of the halo under the "'//char(self%virialDensityContrasts(iAlternate)%label)//'" definition.'                               ,datasetReturned=dataset)
              call    dataset    %writeAttribute(megaParsec                           ,'unitsInSI'                                                                                                                                                                                                                                                 )
-             call    dataset    %close         (                                                                                                                                                                                                                                                                                                  )
           end do
        end if
-       call outputGroup%close()
     end do
-    call outputsGroup%close()
-    if (containerGroup%isOpen()) call containerGroup%close()
+    !$ call hdf5Access%unset()
     if (present(status)) status=errorStatusSuccess
     call Node_Components_Thread_Uninitialize()
     call displayUnindent('Done task: halo mass function' )

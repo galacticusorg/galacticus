@@ -148,15 +148,18 @@ contains
     return
   end function binomialMassLogarithmic
 
-  double precision function binomialCumulative(self,x)
+  double precision function binomialCumulative(self,x,status)
     !!{
     Return the cumulative probability of a binomial discrete distribution.
     !!}
-    use :: Error, only : Error_Report
+    use :: Error        , only : Error_Report
+    use :: Interface_GSL, only : GSL_Success
     implicit none
-    class  (distributionFunctionDiscrete1DBinomial), intent(inout) :: self
-    integer                                        , intent(in   ) :: x
+    class  (distributionFunctionDiscrete1DBinomial), intent(inout)           :: self
+    integer                                        , intent(in   )           :: x
+    integer                                        , intent(  out), optional :: status
 
+    if (present(status)) status=GSL_Success
     if (x < 0 .or. x > self%countTrials) call Error_Report('k∈[0,n]'//{introspection:location})
     binomialCumulative=self%probabilityCumulative(x)
     return

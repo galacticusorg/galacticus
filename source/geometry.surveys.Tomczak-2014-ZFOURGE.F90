@@ -307,15 +307,12 @@ contains
     class(surveyGeometryTomczak2014ZFOURGE)                           , intent(inout) :: self
     type (varying_string                  ), allocatable, dimension(:), intent(inout) :: mangleFiles
 
-    allocate(mangleFiles(5))
-    mangleFiles=                                                       &
-         &      [                                                      &
-         &       "+"//self%mangleDirectory()//"/ZFOURGE-CDFS.ply:"  // &
-         &       "+"//self%mangleDirectory()//"/ZFOURGE-COSMOS.ply:"// &
-         &       "+"//self%mangleDirectory()//"/ZFOURGE-UDS.ply"    ,  &
-         &       "+"//self%mangleDirectory()//"/NMBS-COSMOS.ply:"   // &
-         &       "+"//self%mangleDirectory()//"/NMBS-AEGIS.ply"        &
-         &      ]
+    allocate(mangleFiles(2))
+    mangleFiles(1)="+"//self%mangleDirectory()//"/ZFOURGE-CDFS.ply:"  // &
+         &         "+"//self%mangleDirectory()//"/ZFOURGE-COSMOS.ply:"// &
+         &         "+"//self%mangleDirectory()//"/ZFOURGE-UDS.ply"
+    mangleFiles(2)="+"//self%mangleDirectory()//"/NMBS-COSMOS.ply:"   // &
+         &         "+"//self%mangleDirectory()//"/NMBS-AEGIS.ply"
     return
   end subroutine tomczak2014ZFOURGEMangleFiles
 

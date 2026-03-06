@@ -157,10 +157,10 @@
 	<!-- Nadler et al. (2023; https://ui.adsabs.harvard.edu/abs/2023ApJ...945..159N) use a Plummer-equivalent force softening of 170/h pc and a particle mass of 4.0*10^5Msun      -->
 	<!-- The coefficients of N=36 and epsilon=0.18 are taken from the study of Benson & Du (2022; https://ui.adsabs.harvard.edu/abs/2022MNRAS.517.1398B).                          -->
 	<!-- A factor of 3 is included in the length resolution as the Benson & Du calibration was for a grid-based force calculation while Mau et al. used a particle-based approach. -->
-        <massResolution       value="=36.0     *  4.00e+5"                                              />
-        <lengthResolution     value="= 3.0*0.18*170.00e-6/([cosmologyParameters::HubbleConstant]/100.0)"/>
-        <resolutionIsComoving value="true"                                                              />
-        <nonAnalyticSolver    value="fallThrough"                                                       />
+        <massResolution       value="=36.0     *  4.00e+5"                                             />
+        <lengthResolution     value="= 3.0*0.18*170.00e-6/([cosmologyParameters/HubbleConstant]/100.0)"/>
+        <resolutionIsComoving value="true"                                                             />
+        <nonAnalyticSolver    value="fallThrough"                                                      />
       </darkMatterProfileDMO>
     <nonAnalyticSolver          value="numerical"/>
   </darkMatterProfileDMO>
@@ -296,9 +296,9 @@
       <radiusVirialFraction      value="0.01"/>
     </nodeOperator>
     <nodeOperator value="satelliteDestructionMassThreshold" >
-      <massDestructionAbsolute           value="=[mergerTreeMassResolution::massResolution]"/>
-      <massDestructionMassInfallFraction value="0.0e0"                                      />
-      <massDestructionMassTreeFraction   value="0.0e0"                                      />
+      <massDestructionAbsolute           value="=[mergerTreeMassResolution/massResolution]"/>
+      <massDestructionMassInfallFraction value="0.0e0"                                     />
+      <massDestructionMassTreeFraction   value="0.0e0"                                     />
     </nodeOperator>
   </nodeOperator>
   

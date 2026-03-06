@@ -21,8 +21,7 @@
   Implementation of an exponential disk mass distribution class.
   !!}
   
-  !$ use :: OMP_Lib, only : omp_lock_kind
-  use    :: Tables , only : table1DLogarithmicLinear
+  use :: Tables, only : table1DLogarithmicLinear
 
   !![
   <massDistribution name="massDistributionExponentialDisk">
@@ -53,9 +52,6 @@
      double precision                                                        :: accelerationRadiusMinimumLog                  , accelerationRadiusMaximumLog                  , &
           &                                                                     accelerationHeightMinimumLog                  , accelerationHeightMaximumLog                  , &
           &                                                                     accelerationRadiusInverseInterval             , accelerationHeightInverseInterval
-     ! Locks.
-     !$ integer      (omp_lock_kind           )                              :: factorComputeLock                             , rotationCurveLock                             , &
-     !$   &                                                                     rotationCurveGradientLock                     , potentialLock
    contains
      !![
      <methods>
@@ -244,11 +240,6 @@ contains
     self%potentialInitialized                  =.false.
     self%accelerationInitialized               =.false.
     self%scaleLengthFactor                     =0.0d0
-    ! Initialize locks.
-    !$ call OMP_Init_Lock(self%factorComputeLock        )
-    !$ call OMP_Init_Lock(self%rotationCurveLock        )
-    !$ call OMP_Init_Lock(self%rotationCurveGradientLock)
-    !$ call OMP_Init_Lock(self%potentialLock            )
     return
   end function exponentialDiskConstructorInternal
 
@@ -262,10 +253,6 @@ contains
     if (self%rotationCurveInitialized        ) call self%rotationCurveTable        %destroy()
     if (self%rotationCurveGradientInitialized) call self%rotationCurveGradientTable%destroy()
     if (self%potentialInitialized            ) call self%potentialTable            %destroy()
-    !$ call OMP_Destroy_Lock(self%factorComputeLock        )
-    !$ call OMP_Destroy_Lock(self%rotationCurveLock        )
-    !$ call OMP_Destroy_Lock(self%rotationCurveGradientLock)
-    !$ call OMP_Destroy_Lock(self%potentialLock            )
     return
   end subroutine exponentialDiskDestructor
 
@@ -524,13 +511,9 @@ contains
        ! We are often called at precisely one scale length. Use pre-computed factors in that case.
        if (r == 1.0d0) then
           if (.not.self%scaleLengthFactorSet) then
-             !$ call OMP_Set_Lock(self%factorComputeLock)
-             !$ if (.not.self%scaleLengthFactorSet) then
-                halfRadius               =0.5d0
-                self%scaleLengthFactor   =self%besselFactorRotationCurve(halfRadius)
-                self%scaleLengthFactorSet=.true.
-             !$ end if
-             !$ call OMP_Unset_Lock(self%factorComputeLock)
+             halfRadius               =0.5d0
+             self%scaleLengthFactor   =self%besselFactorRotationCurve(halfRadius)
+             self%scaleLengthFactorSet=.true.
           end if
           radiusFactor=self%scaleLengthFactor
        else
@@ -658,10 +641,8 @@ contains
     else if (halfRadius < potentialRadiusMinimum) then
        exponentialDiskBesselFactorPotential=1.0d0+(eulersConstant-ln2+log(halfRadius))*halfRadius**2
     else
-       !$ call OMP_Set_Lock(self%potentialLock)
        call self%tabulate()
        exponentialDiskBesselFactorPotential=self%potentialTable%interpolate(halfRadius)
-       !$ call OMP_Unset_Lock(self%potentialLock)
     end if
     return
   end function exponentialDiskBesselFactorPotential
@@ -689,7 +670,6 @@ contains
        exponentialDiskBesselFactorRotationCurve=(ln2-eulersConstant-0.5d0-log(halfRadius))*halfRadius**2
        return
     end if
-    !$ call OMP_Set_Lock(self%rotationCurveLock)
     if (.not.self%rotationCurveInitialized) then
        makeTable=.true.
     else
@@ -723,7 +703,6 @@ contains
     end if
     ! Interpolate in the tabulated function.
     exponentialDiskBesselFactorRotationCurve=self%rotationCurveTable%interpolate(halfRadius)
-    !$ call OMP_Unset_Lock(self%rotationCurveLock)
     return
   end function exponentialDiskBesselFactorRotationCurve
 
@@ -754,7 +733,6 @@ contains
        exponentialDiskBesselFactorRotationCurveGradient=-0.125d0-27.0d0/64.0d0/halfRadius**2
        return
     end if
-    !$ call OMP_Set_Lock(self%rotationCurveGradientLock)
     if     (                                                    &
          &   .not.self%rotationCurveGradientInitialized         &
          &  .or.                                                &
@@ -796,7 +774,6 @@ contains
     end if
     ! Interpolate in the tabulated function.
     exponentialDiskBesselFactorRotationCurveGradient=self%rotationCurveGradientTable%interpolate(halfRadius)
-    !$ call OMP_Unset_Lock(self%rotationCurveGradientLock)
     return
   end function exponentialDiskBesselFactorRotationCurveGradient
 
@@ -1070,30 +1047,29 @@ contains
     use :: Numerical_Integration   , only : integrator
     use :: Numerical_Ranges        , only : Make_Range             , rangeTypeLogarithmic
     implicit none
-    class           (massDistributionExponentialDisk), intent(inout) :: self
-    double precision                                 , parameter     :: radiusMinimum                    = 1.0d-2, radiusMaximum    =5.0d1
-    double precision                                 , parameter     :: radiiPerDecade                   =30.0d+0
-    double precision                                 , parameter     :: wavenumberMaximumFactor          =10.0d+0
-    integer                                          , parameter     :: xi                               = 2
-    type            (integrator                     ), save          :: integratorAccelerationRadial             , integratorAccelerationVertical       , &
-         &                                                              integratorTidalTensorRadialRadial        , integratorTidalTensorVerticalVertical, &
-         &                                                              integratorTidalTensorCross
-    logical                                          , save          :: converged
-    integer                                          , save          :: iBesselZero                              , besselOrder
-    double precision                                 , save          :: height                                   , accelerationDelta                    , &
-         &                                                              wavenumberLow                            , wavenumberHigh                       , &
-         &                                                              tidalTensorDelta                         , tidalTensorRadialRadial
+    class           (massDistributionExponentialDisk), intent(inout)              :: self
+    double precision                                 , parameter                  :: radiusMinimum                    = 1.0d-2, radiusMaximum    =5.0d1
+    double precision                                 , parameter                  :: radiiPerDecade                   =30.0d+0
+    double precision                                 , parameter                  :: wavenumberMaximumFactor          =10.0d+0
+    integer                                          , parameter                  :: xi                               = 2
+    type            (integrator                     ), save         , allocatable :: integratorAccelerationRadial             , integratorAccelerationVertical       , &
+         &                                                                           integratorTidalTensorRadialRadial        , integratorTidalTensorVerticalVertical, &
+         &                                                                           integratorTidalTensorCross
+    logical                                          , save                       :: converged
+    integer                                          , save                       :: iBesselZero                              , besselOrder
+    double precision                                 , save                       :: height                                   , accelerationDelta                    , &
+         &                                                                           wavenumberLow                            , wavenumberHigh                       , &
+         &                                                                           tidalTensorDelta                         , tidalTensorRadialRadial
     !$omp threadprivate(height,accelerationDelta,tidalTensorDelta,tidalTensorRadialRadial,wavenumberLow,wavenumberHigh,iBesselZero,besselOrder,converged,integratorAccelerationRadial,integratorAccelerationVertical,integratorTidalTensorRadialRadial,integratorTidalTensorVerticalVertical,integratorTidalTensorCross)
-    integer                                                          :: countRadii                               , iRadius                              , &
-         &                                                              iHeight                                  , countWork
-    double precision                                                 :: radius                                   , beta
+    integer                                                                       :: countRadii                               , iRadius                              , &
+         &                                                                           iHeight                                  , countWork
+    double precision                                                              :: radius                                   , beta
 
     ! Return if acceleration is initialized.
     if (self%accelerationInitialized) return
-    block
+    accelerationTabulate: block
       type     (varying_string) :: fileName
       character(len=8         ) :: label
-      type     (hdf5Object    ) :: file
       type     (lockDescriptor) :: fileLock
       
       ! Construct a file name for the table.
@@ -1109,15 +1085,17 @@ contains
       call File_Lock(fileName,fileLock,lockIsShared=.true.)
       if (File_Exists(fileName)) then
          !$ call hdf5Access%set()
-         call file%openFile    (char(fileName                     ),readOnly=.true.                 )
-         call file%readDataset(      'radii'                       ,self%accelerationRadii          )
-         call file%readDataset(      'heights'                     ,self%accelerationHeights        )
-         call file%readDataset(      'accelerationRadial'          ,self%accelerationRadial         )
-         call file%readDataset(      'accelerationVertical'        ,self%accelerationVertical       )
-         call file%readDataset(      'tidalTensorRadialRadial'     ,self%tidalTensorRadialRadial    )
-         call file%readDataset(      'tidalTensorVerticalVertical' ,self%tidalTensorVerticalVertical)
-         call file%readDataset(      'tidalTensorCross'            ,self%tidalTensorCross           )
-         call file%close      (                                                                     )
+         hdf5ReadScope: block
+           type(hdf5Object) :: file
+           file=hdf5Object(fileName,readOnly=.true.)
+           call file%readDataset('radii'                      ,self%accelerationRadii          )
+           call file%readDataset('heights'                    ,self%accelerationHeights        )
+           call file%readDataset('accelerationRadial'         ,self%accelerationRadial         )
+           call file%readDataset('accelerationVertical'       ,self%accelerationVertical       )
+           call file%readDataset('tidalTensorRadialRadial'    ,self%tidalTensorRadialRadial    )
+           call file%readDataset('tidalTensorVerticalVertical',self%tidalTensorVerticalVertical)
+           call file%readDataset('tidalTensorCross'           ,self%tidalTensorCross           )
+         end block hdf5ReadScope
          !$ call hdf5Access%unset()
       else
          ! Generate grid in radius and height.
@@ -1154,6 +1132,11 @@ contains
          do iRadius=1,countRadii
             radius=self%accelerationRadii(iRadius)
             !$omp parallel
+            allocate(integratorAccelerationRadial         )
+            allocate(integratorAccelerationVertical       )
+            allocate(integratorTidalTensorRadialRadial    )
+            allocate(integratorTidalTensorVerticalVertical)
+            allocate(integratorTidalTensorCross           )
             integratorAccelerationRadial         =integrator(accelerationRadialIntegrand         ,toleranceAbsolute=1.0d-6,toleranceRelative=1.0d-3)
             integratorAccelerationVertical       =integrator(accelerationVerticalIntegrand       ,toleranceAbsolute=1.0d-6,toleranceRelative=1.0d-3)
             integratorTidalTensorRadialRadial    =integrator(tidalTensorRadialRadialIntegrand    ,toleranceAbsolute=1.0d-6,toleranceRelative=1.0d-3)
@@ -1260,20 +1243,27 @@ contains
                end do
             end do
             !$omp end do
+            deallocate(integratorAccelerationRadial         )
+            deallocate(integratorAccelerationVertical       )
+            deallocate(integratorTidalTensorRadialRadial    )
+            deallocate(integratorTidalTensorVerticalVertical)
+            deallocate(integratorTidalTensorCross           )
             !$omp end parallel
          end do
          call displayCounterClear(       verbosityLevelWorking)
          call displayUnindent     ("done",verbosityLevelWorking)
          !$ call hdf5Access%set()
-         call file%openFile    (char   (fileName                        )                              ,overWrite=.true.,readOnly=.false.)
-         call file%writeDataset(        self%accelerationRadii           ,'radii'                                                        )
-         call file%writeDataset(        self%accelerationHeights         ,'heights'                                                      )
-         call file%writeDataset(        self%accelerationRadial          ,'accelerationRadial'                                           )
-         call file%writeDataset(        self%accelerationVertical        ,'accelerationVertical'                                         )
-         call file%writeDataset(        self%tidalTensorRadialRadial     ,'tidalTensorRadialRadial'                                      )
-         call file%writeDataset(        self%tidalTensorVerticalVertical ,'tidalTensorVerticalVertical'                                  )
-         call file%writeDataset(        self%tidalTensorCross            ,'tidalTensorCross'                                             )
-         call file%close       (                                                                                                         )
+         hdf5WriteScope: block
+           type(hdf5Object) :: file
+           file=hdf5Object(fileName,overWrite=.true.,readOnly=.false.)
+           call file%writeDataset(self%accelerationRadii          ,'radii'                                                        )
+           call file%writeDataset(self%accelerationHeights        ,'heights'                                                      )
+           call file%writeDataset(self%accelerationRadial         ,'accelerationRadial'                                           )
+           call file%writeDataset(self%accelerationVertical       ,'accelerationVertical'                                         )
+           call file%writeDataset(self%tidalTensorRadialRadial    ,'tidalTensorRadialRadial'                                      )
+           call file%writeDataset(self%tidalTensorVerticalVertical,'tidalTensorVerticalVertical'                                  )
+           call file%writeDataset(self%tidalTensorCross           ,'tidalTensorCross'                                             )
+         end block hdf5WriteScope
          !$ call hdf5Access%unset()
       end if
       call File_Unlock(fileLock)
@@ -1286,7 +1276,7 @@ contains
       self%accelerationHeightInverseInterval=1.0d0/log(self%accelerationHeights(2)/self%accelerationHeights(1))
       ! Record that the acceleration table is initialized.
       self%accelerationInitialized=.true.
-    end block
+    end block accelerationTabulate
     return
 
   contains

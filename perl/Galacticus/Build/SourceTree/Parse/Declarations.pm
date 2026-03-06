@@ -171,9 +171,9 @@ sub AddDeclarations {
     my $usesNode;
     while ( $childNode ) {
 	$declarationsNode = $childNode
-	    if ( $childNode->{'type'} eq "declaration" );
+	    if ( $childNode->{'type'} eq "declaration" && ! defined($declarationsNode) );
 	$usesNode = $childNode
-	    if ( $childNode->{'type'} eq "moduleUse"   );
+	    if ( $childNode->{'type'} eq "moduleUse"   && ! defined($usesNode        ) );
 	$childNode = $childNode->{'sibling'};
     }
     unless ( $declarationsNode ) {

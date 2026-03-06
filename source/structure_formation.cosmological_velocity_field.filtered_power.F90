@@ -257,10 +257,10 @@ contains
       implicit none
       double precision, intent(in   ) :: wavenumber
 
-      powerIntegrand=+  self%powerSpectrum_              %power(wavenumber,time)        &
-           &         *(                                                                 &
-           &           +self%powerSpectrumWindowFunction_%value(wavenumber,mass)        &
-           &           *                                        wavenumber      **(1+j) &
+      powerIntegrand=+  self%powerSpectrum_              %power(wavenumber     ,time)        &
+           &         *(                                                                      &
+           &           +self%powerSpectrumWindowFunction_%value(wavenumber,mass,time)        &
+           &           *                                        wavenumber           **(1+j) &
            &          )**2    
       return
     end function powerIntegrand
@@ -331,17 +331,17 @@ contains
       implicit none
       double precision, intent(in   ) :: wavenumber
       
-      velocityDispersionIntegrand=+    self%powerSpectrum_              %power(wavenumber                   ,time)                        &
-           &                      *(                                                                                                      &
-           &                        +(                                                                                                    &
-           &                          +self%powerSpectrumWindowFunction_%value(wavenumber                   ,mass1)**2*peakCorrection1**2 &
-           &                          +self%powerSpectrumWindowFunction_%value(wavenumber                   ,mass2)**2*peakCorrection2**2 &
-           &                         )                                                                                                    &
-           &                        /3.0d0                                                                                                & ! Convert from 3D to 1D dispersion.
-           &                        -2.0d0                                                                                                &
-           &                        *  self%powerSpectrumWindowFunction_%value(wavenumber                   ,mass1)   *peakCorrection1    &
-           &                        *  self%powerSpectrumWindowFunction_%value(wavenumber                   ,mass2)   *peakCorrection2    &
-           &                        *  K                                      (wavenumber*separationComoving      )                       &
+      velocityDispersionIntegrand=+    self%powerSpectrum_              %power(wavenumber                        ,time)                        &
+           &                      *(                                                                                                           &
+           &                        +(                                                                                                         &
+           &                          +self%powerSpectrumWindowFunction_%value(wavenumber                   ,mass1,time)**2*peakCorrection1**2 &
+           &                          +self%powerSpectrumWindowFunction_%value(wavenumber                   ,mass2,time)**2*peakCorrection2**2 &
+           &                         )                                                                                                         &
+           &                        /3.0d0                                                                                                     & ! Convert from 3D to 1D dispersion.
+           &                        -2.0d0                                                                                                     &
+           &                        *  self%powerSpectrumWindowFunction_%value(wavenumber                   ,mass1,time)   *peakCorrection1    &
+           &                        *  self%powerSpectrumWindowFunction_%value(wavenumber                   ,mass2,time)   *peakCorrection2    &
+           &                        *  K                                      (wavenumber*separationComoving           )                       &
            &                       )
       return
     end function velocityDispersionIntegrand

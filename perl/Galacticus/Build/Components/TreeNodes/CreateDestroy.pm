@@ -347,11 +347,6 @@ sub Tree_Node_Class_Creation {
 		 variables  => [ "template" ]
 	     },
 	     {
-		 intrinsic  => "type",
-		 type       => "varying_string",
-		 variables  => [ "message" ]
-	     },
-	     {
 		 intrinsic  => "integer",
 		 variables  => [ "i" ]
 	     }
@@ -361,20 +356,26 @@ sub Tree_Node_Class_Creation {
     $code::nonNullComponents = "char(10)//".join("//char(10)//",map {"'   ".$_."'"} sort(@nonNullComponents));
     $function->{'content'}  = fill_in_string(<<'CODE', PACKAGE => 'code');
 if (displayVerbosity() >= verbosityLevelInfo) then
-  message='Creating {$class->{'name'}} in node '
-  message=message//self%index()
-  call displayMessage(message,verbosityLevelInfo)
+  block
+    type(varying_string) :: message
+    message='Creating {$class->{'name'}} in node '
+    message=message//self%index()
+    call displayMessage(message,verbosityLevelInfo)
+  end block
 end if
 if (present(template)) then
    allocate(self%component{ucfirst($class->{'name'})}(1),source=template)
 else
    select type (default{ucfirst($class->{'name'})}Component)
    type is (nodeComponent{ucfirst($class->{'name'})}Null)
-      message=         'creation of the {$class->{'name'}} component requested, but that component is null'//char(10)
-      message=message//'please select a non-null {$class->{'name'}} component - available options are:'
-      message=message//{$nonNullComponents}
-      call displayMessage(message,verbosityLevelSilent)
-      call Error_Report('refusing to create null instance'//\{introspection:location\})
+      block
+         type(varying_string) :: message
+         message=         'creation of the {$class->{'name'}} component requested, but that component is null'//char(10)
+         message=message//'please select a non-null {$class->{'name'}} component - available options are:'
+         message=message//{$nonNullComponents}
+         call displayMessage(message,verbosityLevelSilent)
+         call Error_Report('refusing to create null instance'//\{introspection:location\})
+      end block
    class default
       allocate(self%component{ucfirst($class->{'name'})}(1),source=default{ucfirst($class->{'name'})}Component)
    end select
@@ -403,8 +404,6 @@ sub Tree_Node_Class_Destruction {
     # Generate a function to destroy component classes.
     my $build    = shift();
     $code::class = shift();
-    return
-	unless ( grep {$code::class->{'name'} eq $_} @{$build->{'componentClassListActive'}} );
     my $function =
     {
 	type        => "void",
@@ -424,7 +423,8 @@ sub Tree_Node_Class_Destruction {
 	     }
 	    ]
     };
-    $function->{'content'}  = fill_in_string(<<'CODE', PACKAGE => 'code');
+    if ( grep {$code::class->{'name'} eq $_} @{$build->{'componentClassListActive'}} ) {
+	$function->{'content'} = fill_in_string(<<'CODE', PACKAGE => 'code');
 if (allocated(self%component{ucfirst($class->{'name'})})) then
   do i=1,size(self%component{ucfirst($class->{'name'})})
     call self%component{ucfirst($class->{'name'})}(i)%destroy()
@@ -432,7 +432,13 @@ if (allocated(self%component{ucfirst($class->{'name'})})) then
   deallocate (self%component{ucfirst($class->{'name'})})
 end if
 CODE
-     # Insert a type-binding for this function.
+    } else {
+	$function->{'modules'} = [ "Error" ];
+	$function->{'content'} = fill_in_string(<<'CODE', PACKAGE => 'code');
+call Error_Report("component '{$class->{'name'}}' is not active"//\{introspection:location\})
+CODE
+    }
+    # Insert a type-binding for this function.
     push(
 	@{$build->{'types'}->{'treeNode'}->{'boundFunctions'}},
 	{

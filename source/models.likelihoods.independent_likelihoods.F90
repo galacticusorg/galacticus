@@ -24,14 +24,29 @@
   use :: Posterior_Sampling_State, only : posteriorSampleStateSimple
 
   type, public :: posteriorSampleLikelihoodList
-     class  (posteriorSampleLikelihoodClass), pointer                   :: modelLikelihood_        => null()
-     integer                                , dimension(:), allocatable :: parameterMap                     , parameterMapInactive
-     type   (modelParameterList            ), dimension(:), allocatable :: modelParametersActive_           , modelParametersInactive_
-     type   (varying_string                ), dimension(:), allocatable :: parameterMapNames                , parameterMapNamesInactive
-     type   (posteriorSampleLikelihoodList ), pointer                   :: next                    => null()
-     type   (posteriorSampleStateSimple    )                            :: simulationState
-     logical                                                            :: parameterMapInitialized
+     class(posteriorSampleLikelihoodClass), pointer :: modelLikelihood_ => null()
+     type (posteriorSampleLikelihoodList ), pointer :: next             => null()
   end type posteriorSampleLikelihoodList
+
+  type, public :: parameterMaps
+     integer                            , dimension(:), allocatable :: parameterMap           , parameterMapInactive
+     type   (modelParameterList        ), dimension(:), allocatable :: modelParametersActive_ , modelParametersInactive_
+     type   (varying_string            ), dimension(:), allocatable :: parameterMapNames      , parameterMapNamesInactive
+     type   (posteriorSampleStateSimple)                            :: simulationState
+     logical                                                        :: parameterMapInitialized, report
+  end type parameterMaps
+
+  !![
+  <enumeration>
+   <name>orderRotation</name>
+   <description>Specifies how to rotate the order of likelihood evaluation by process number.</description>
+   <validator>yes</validator>
+   <encodeFunction>yes</encodeFunction>
+   <entry label="none"        />
+   <entry label="byRank"      />
+   <entry label="byRankOnNode"/>
+  </enumeration>
+  !!]
 
   !![
   <posteriorSampleLikelihood name="posteriorSampleLikelihoodIndependentLikelihoods">
@@ -65,9 +80,11 @@
      Implementation of a posterior sampling likelihood class which combines other likelihoods assumed to be independent.
      !!}
      private
-     type            (posteriorSampleLikelihoodList), pointer :: modelLikelihoods    => null()
-     double precision                                         :: logLikelihoodAccept
-     logical                                                  :: parameterMapIdentity
+     type            (enumerationOrderRotationType )                            :: orderRotation
+     type            (posteriorSampleLikelihoodList), pointer                   :: modelLikelihoods    => null()
+     type            (parameterMaps                ), allocatable, dimension(:) :: maps
+     double precision                                                           :: logLikelihoodAccept
+     logical                                                                    :: report                       , parameterMapIdentity
    contains
      final     ::                    independentLikelihoodsDestructor
      procedure :: evaluate        => independentLikelihoodsEvaluate
@@ -94,19 +111,34 @@ contains
          &                          enumerationInputParameterErrorStatusType
     use :: String_Handling , only : String_Count_Words                      , String_Split_Words                 , char
     implicit none
-    type   (posteriorSampleLikelihoodIndependentLikelihoods)                :: self
-    type   (inputParameters                                ), intent(inout) :: parameters
-    type   (posteriorSampleLikelihoodList                  ), pointer       :: modelLikelihood_
-    integer                                                                 :: i                 , parameterMapCount
-    type   (enumerationInputParameterErrorStatusType       )                :: errorStatus
-    type   (varying_string                                 )                :: parameterMapJoined
-    
+    type   (posteriorSampleLikelihoodIndependentLikelihoods)                              :: self
+    type   (inputParameters                                ), intent(inout)               :: parameters
+    type   (posteriorSampleLikelihoodList                  ), pointer                     :: modelLikelihood_  , modelLikelihoodLast
+    type   (parameterMaps                                  ), allocatable  , dimension(:) :: mapsTmp
+    integer                                                                               :: i                 , parameterMapCount  , &
+         &                                                                                   countRotation     , countLikelihoods
+    type   (enumerationInputParameterErrorStatusType       )                              :: errorStatus
+    type   (varying_string                                 )                              :: parameterMapJoined, orderRotation
+
     !![
+    <inputParameter>
+      <name>orderRotation</name>
+      <source>parameters</source>
+      <defaultValue>var_str('none')</defaultValue>
+      <description>The order in which evaluation of likelihoods should be rotated as a function of process number.</description>
+    </inputParameter>
     <inputParameter>
       <name>logLikelihoodAccept</name>
       <variable>self%logLikelihoodAccept</variable>
       <defaultValue>huge(0.0d0)</defaultValue>
       <description>The log-likelihood which should be ``accepted''---once the log-likelihood reaches this value (or larger) no further updates to the chain will be made.</description>
+      <source>parameters</source>
+    </inputParameter>
+    <inputParameter>
+      <name>report</name>
+      <variable>self%report</variable>
+      <defaultValue>.false.</defaultValue>
+      <description>If true, report on the log-likelihood obtained.</description>
       <source>parameters</source>
     </inputParameter>
     !!]
@@ -124,7 +156,9 @@ contains
     end if
     self            %modelLikelihoods => null()
     modelLikelihood_                  => null()
-    do i=1,parameters%copiesCount('posteriorSampleLikelihood',zeroIfNotPresent=.true.)
+    countLikelihoods                  =  parameters%copiesCount('posteriorSampleLikelihood',zeroIfNotPresent=.true.)
+    allocate(self%maps(countLikelihoods))
+    do i=1,countLikelihoods
        if (associated(modelLikelihood_)) then
           allocate(modelLikelihood_%next)
           modelLikelihood_ => modelLikelihood_%next
@@ -135,43 +169,72 @@ contains
        !![
        <objectBuilder class="posteriorSampleLikelihood" name="modelLikelihood_%modelLikelihood_" source="parameters" copy="i"/>
        !!]
-       modelLikelihood_%simulationState        =posteriorSampleStateSimple(1)
-       modelLikelihood_%parameterMapInitialized=.false.
+       self%maps(i)%simulationState        =posteriorSampleStateSimple(1)
+       self%maps(i)%parameterMapInitialized=.false.
        if (.not.self%parameterMapIdentity) then
           call parameters%value('parameterMap',parameterMapJoined,copyInstance=i)
           parameterMapCount=String_Count_Words(char(parameterMapJoined)," ")
-          allocate(modelLikelihood_%parameterMap          (parameterMapCount))
-          allocate(modelLikelihood_%parameterMapNames     (parameterMapCount))
-          allocate(modelLikelihood_%modelParametersActive_(parameterMapCount))
-          call String_Split_Words(modelLikelihood_%parameterMapNames,char(parameterMapJoined)," ")
-          call modelLikelihood_%simulationState%parameterCountSet(parameterMapCount)
+          allocate(self%maps(i)%parameterMap          (parameterMapCount))
+          allocate(self%maps(i)%parameterMapNames     (parameterMapCount))
+          allocate(self%maps(i)%modelParametersActive_(parameterMapCount))
+          call String_Split_Words(self%maps(i)%parameterMapNames,char(parameterMapJoined)," ")
+          call self%maps(i)%simulationState%parameterCountSet(parameterMapCount)
        end if
        if (parameters%copiesCount('parameterInactiveMap',zeroIfNotPresent=.true.) == 0) then
           ! No inactive parameter map is acceptable.
-          allocate   (modelLikelihood_%modelParametersInactive_ (                0))
+          allocate   (self%maps(i)%modelParametersInactive_ (                0))
        else
           call parameters%value('parameterInactiveMap',parameterMapJoined,copyInstance=i,errorStatus=errorStatus)
           if      (errorStatus == inputParameterErrorStatusSuccess   ) then
              parameterMapCount=String_Count_Words(char(parameterMapJoined)," ")
-             allocate(modelLikelihood_%parameterMapInactive     (parameterMapCount))
-             allocate(modelLikelihood_%parameterMapNamesInactive(parameterMapCount))
-             allocate(modelLikelihood_%modelParametersInactive_ (parameterMapCount))
-             call String_Split_Words(modelLikelihood_%parameterMapNamesInactive,char(parameterMapJoined)," ")
+             allocate(self%maps(i)%parameterMapInactive     (parameterMapCount))
+             allocate(self%maps(i)%parameterMapNamesInactive(parameterMapCount))
+             allocate(self%maps(i)%modelParametersInactive_ (parameterMapCount))
+             call String_Split_Words(self%maps(i)%parameterMapNamesInactive,char(parameterMapJoined)," ")
           else if (errorStatus == inputParameterErrorStatusEmptyValue) then
              ! Empty value is acceptable.
-             allocate(modelLikelihood_%modelParametersInactive_ (                0))
+             allocate(self%maps(i)%modelParametersInactive_ (                0))
           else
              call Error_Report('invalid parameter'//{introspection:location})
           end if
        end if
     end do
+    !! Perform rotation of likelihoods.
+    self%orderRotation=enumerationOrderRotationEncode(char(orderRotation),includesPrefix=.false.)
+    countRotation     =0
+    select case (self%orderRotation%ID)
+    case (orderRotationNone        %ID)
+       countRotation=0
+    case (orderRotationByRank      %ID)
+       countRotation=mpiSelf%rank      ()
+    case (orderRotationByRankOnNode%ID)
+       countRotation=mpiSelf%rankOnNode()
+    end select
+    if (countRotation > 0 .and. countLikelihoods > 1) then
+       do i=1,countRotation
+          ! Rotate likelihood models.
+          modelLikelihood_    => self%modelLikelihoods
+          modelLikelihoodLast => self%modelLikelihoods
+          do while (associated(modelLikelihoodLast%next))
+             modelLikelihoodLast => modelLikelihoodLast%next
+          end do
+          self               %modelLikelihoods => modelLikelihood_%next
+          modelLikelihoodLast%next             => modelLikelihood_
+          modelLikelihood_   %next             => null()
+          ! Rotate maps.
+          call move_alloc(self%maps,mapsTmp)
+          allocate(self%maps(size(mapsTmp)))
+          self%maps(1:size(mapsTmp)-1)=mapsTmp(2:size(mapsTmp))
+          self%maps(  size(mapsTmp)  )=mapsTmp(1              )
+       end do
+    end if
     !![
     <inputParametersValidate source="parameters" multiParameters="posteriorSampleLikelihood, parameterMap, parameterInactiveMap" extraAllowedNames="parameterMap parameterInactiveMap"/>
     !!]
     return
   end function independentLikelihoodsConstructorParameters
 
-  function independentLikelihoodsConstructorInternal(modelLikelihoods,logLikelihoodAccept) result(self)
+  function independentLikelihoodsConstructorInternal(modelLikelihoods,logLikelihoodAccept,report,orderRotation) result(self)
     !!{
     Constructor for the \refClass{posteriorSampleLikelihoodIndependentLikelihoods} posterior sampling likelihood class.
     !!}
@@ -179,8 +242,10 @@ contains
     type            (posteriorSampleLikelihoodIndependentLikelihoods)                        :: self
     type            (posteriorSampleLikelihoodList                  ), target, intent(in   ) :: modelLikelihoods
     double precision                                                         , intent(in   ) :: logLikelihoodAccept
+    logical                                                                  , intent(in   ) :: report
+    type            (enumerationOrderRotationType                   )        , intent(in   ) :: orderRotation
     !![
-    <constructorAssign variables="*modelLikelihoods, logLikelihoodAccept"/>
+    <constructorAssign variables="*modelLikelihoods, logLikelihoodAccept, report, orderRotation"/>
     !!]
 
     return
@@ -193,23 +258,25 @@ contains
     implicit none
     type   (posteriorSampleLikelihoodIndependentLikelihoods), intent(inout) :: self
     type   (posteriorSampleLikelihoodList                  ), pointer       :: modelLikelihood_, modelLikelihoodNext
-    integer                                                                 :: i
+    integer                                                                 :: i               , iMap
     
     if (associated(self%modelLikelihoods)) then
+       iMap             =  0
        modelLikelihood_ => self%modelLikelihoods
        do while (associated(modelLikelihood_))
+          iMap                =  iMap            +1
           modelLikelihoodNext => modelLikelihood_%next
           !![
           <objectDestructor name="modelLikelihood_%modelLikelihood_"/>
           !!]
-          do i=1,size(modelLikelihood_%modelParametersActive_  )
+          do i=1,size(self%maps(iMap)%modelParametersActive_  )
              !![
-             <objectDestructor name="modelLikelihood_%modelParametersActive_  (i)%modelParameter_"/>
+             <objectDestructor name="self%maps(iMap)%modelParametersActive_  (i)%modelParameter_"/>
              !!]
           end do
-          do i=1,size(modelLikelihood_%modelParametersInactive_)
+          do i=1,size(self%maps(iMap)%modelParametersInactive_)
              !![
-             <objectDestructor name="modelLikelihood_%modelParametersInactive_(i)%modelParameter_"/>
+             <objectDestructor name="self%maps(iMap)%modelParametersInactive_(i)%modelParameter_"/>
              !!]
           end do
           deallocate(modelLikelihood_)
@@ -223,6 +290,7 @@ contains
     !!{
     Return the log-likelihood for the halo mass function likelihood function.
     !!}
+    use :: Display                     , only : displayMessage
     use :: Error                       , only : Error_Report
     use :: Models_Likelihoods_Constants, only : logImpossible
     implicit none
@@ -239,7 +307,9 @@ contains
     double precision                                                 , allocatable  , dimension(:) :: stateVector           , stateVectorMapped
     real                                                                                           :: timeEvaluate_
     double precision                                                                               :: logLikelihoodVariance_, logPriorProposed_
-    integer                                                                                        :: i                     , j
+    integer                                                                                        :: i                     , j                     , &
+         &                                                                                            iMap
+    character       (len=16                                         )                              :: label
     !$GLC attributes unused :: forceAcceptance
 
     allocate(stateVector      (simulationState%dimension()))
@@ -248,66 +318,68 @@ contains
     independentLikelihoodsEvaluate                             =  0.0d0
     modelLikelihood_                                           => self%modelLikelihoods
     timeEvaluate                                               =  0.0
+    iMap                                                       =  0
     if (present(logLikelihoodVariance)) logLikelihoodVariance  =  0.0d0
     do while (associated(modelLikelihood_))
-       if (.not.modelLikelihood_%parameterMapInitialized) then
+       iMap=iMap+1
+       if (.not.self%maps(iMap)%parameterMapInitialized) then
           if (self%parameterMapIdentity) then
-             allocate(modelLikelihood_%parameterMap          (size(modelParametersActive_)))
-             allocate(modelLikelihood_%modelParametersActive_(size(modelParametersActive_)))
-             call modelLikelihood_%simulationState%parameterCountSet(size(modelParametersActive_))
+             allocate(self%maps(iMap)%parameterMap          (size(modelParametersActive_)))
+             allocate(self%maps(iMap)%modelParametersActive_(size(modelParametersActive_)))
+             call self%maps(iMap)%simulationState%parameterCountSet(size(modelParametersActive_))
           end if
-          do i=1,size(modelLikelihood_%parameterMap)
+          do i=1,size(self%maps(iMap)%parameterMap)
              ! Determine the mapping of the simulation state vector to this likelihood.
              if (self%parameterMapIdentity) then
-                modelLikelihood_%parameterMap(i)=i
+                self%maps(iMap)%parameterMap(i)=i
              else
-                modelLikelihood_%parameterMap(i)=-1
+                self%maps(iMap)%parameterMap(i)=-1
                 do j=1,size(modelParametersActive_)
-                   if (modelParametersActive_(j)%modelParameter_%name() == modelLikelihood_%parameterMapNames(i)) then
-                      modelLikelihood_%parameterMap(i)=j
+                   if (modelParametersActive_(j)%modelParameter_%name() == self%maps(iMap)%parameterMapNames(i)) then
+                      self%maps(iMap)%parameterMap(i)=j
                       exit
                    end if
                 end do
-                if (modelLikelihood_%parameterMap(i) == -1) call Error_Report('failed to find matching parameter ['//char(modelLikelihood_%parameterMapNames(i))//']'//{introspection:location})
+                if (self%maps(iMap)%parameterMap(i) == -1) call Error_Report('failed to find matching parameter ['//char(self%maps(iMap)%parameterMapNames(i))//']'//{introspection:location})
              end if
              ! Copy the model parameter definition.
-             allocate(modelLikelihood_%modelParametersActive_(i)%modelParameter_,mold=modelParametersActive_(modelLikelihood_%parameterMap(i))%modelParameter_)
+             allocate(self%maps(iMap)%modelParametersActive_(i)%modelParameter_,mold=modelParametersActive_(self%maps(iMap)%parameterMap(i))%modelParameter_)
              !![
-             <deepCopyReset variables="modelParametersActive_(modelLikelihood_%parameterMap(i))%modelParameter_"/>
-             <deepCopy source="modelParametersActive_(modelLikelihood_%parameterMap(i))%modelParameter_" destination="modelLikelihood_%modelParametersActive_(i)%modelParameter_"/>
-             <deepCopyFinalize variables="modelLikelihood_%modelParametersActive_(i)%modelParameter_"/>
+             <deepCopyReset variables="modelParametersActive_(self%maps(iMap)%parameterMap(i))%modelParameter_"/>
+             <deepCopy source="modelParametersActive_(self%maps(iMap)%parameterMap(i))%modelParameter_" destination="self%maps(iMap)%modelParametersActive_(i)%modelParameter_"/>
+             <deepCopyFinalize variables="self%maps(iMap)%modelParametersActive_(i)%modelParameter_"/>
              !!]
           end do
-          if (allocated(modelLikelihood_%parameterMapInactive)) then
-             do i=1,size(modelLikelihood_%parameterMapInactive)
+          if (allocated(self%maps(iMap)%parameterMapInactive)) then
+             do i=1,size(self%maps(iMap)%parameterMapInactive)
                 ! Determine the mapping of the inactive parameters to this likelihood.
-                modelLikelihood_%parameterMapInactive(i)=-1
+                self%maps(iMap)%parameterMapInactive(i)=-1
                 do j=1,size(modelParametersInActive_)
-                   if (modelParametersInactive_(j)%modelParameter_%name() == modelLikelihood_%parameterMapNamesInactive(i)) then
-                      modelLikelihood_%parameterMapInactive(i)=j
+                   if (modelParametersInactive_(j)%modelParameter_%name() == self%maps(iMap)%parameterMapNamesInactive(i)) then
+                      self%maps(iMap)%parameterMapInactive(i)=j
                       exit
                    end if
                 end do
-                if (modelLikelihood_%parameterMapInactive(i) == -1) call Error_Report('failed to find matching parameter ['//char(modelLikelihood_%parameterMapNamesInactive(i))//']'//{introspection:location})
+                if (self%maps(iMap)%parameterMapInactive(i) == -1) call Error_Report('failed to find matching parameter ['//char(self%maps(iMap)%parameterMapNamesInactive(i))//']'//{introspection:location})
                 ! Copy the model parameter definition.
-                allocate(modelLikelihood_%modelParametersInactive_(i)%modelParameter_,mold=modelParametersInactive_(modelLikelihood_%parameterMapInactive(i))%modelParameter_)
+                allocate(self%maps(iMap)%modelParametersInactive_(i)%modelParameter_,mold=modelParametersInactive_(self%maps(iMap)%parameterMapInactive(i))%modelParameter_)
                 !![
-                <deepCopyReset variables="modelParametersInactive_(modelLikelihood_%parameterMapInactive(i))%modelParameter_"/>
-                <deepCopy source="modelParametersInactive_(modelLikelihood_%parameterMapInactive(i))%modelParameter_" destination="modelLikelihood_%modelParametersInactive_(i)%modelParameter_"/>
-                <deepCopyFinalize variables="modelLikelihood_%modelParametersInactive_(i)%modelParameter_"/>
+                <deepCopyReset variables="modelParametersInactive_(self%maps(iMap)%parameterMapInactive(i))%modelParameter_"/>
+                <deepCopy source="modelParametersInactive_(self%maps(iMap)%parameterMapInactive(i))%modelParameter_" destination="self%maps(iMap)%modelParametersInactive_(i)%modelParameter_"/>
+                <deepCopyFinalize variables="self%maps(iMap)%modelParametersInactive_(i)%modelParameter_"/>
                 !!]
              end do
           end if
           ! Mark the likelihood as initialized.
-          modelLikelihood_%parameterMapInitialized=.true.
+          self%maps(iMap)%parameterMapInitialized=.true.
        end if
        ! Map the overall simulation state to the state for this likelihood.
-       forall(i=1:size(modelLikelihood_%parameterMap))
-          stateVectorMapped(i)=stateVector(modelLikelihood_%parameterMap(i))
+       forall(i=1:size(self%maps(iMap)%parameterMap))
+          stateVectorMapped(i)=stateVector(self%maps(iMap)%parameterMap(i))
        end forall
-       call modelLikelihood_%simulationState%update       (stateVectorMapped(1:size(modelLikelihood_%parameterMap)),logState=.false.,isConverged=.false.)
-       call modelLikelihood_%simulationState%chainIndexSet(simulationState%chainIndex())
-       call modelLikelihood_%simulationState%countSet     (simulationState%count     ())
+       call self%maps(iMap)%simulationState%update       (stateVectorMapped(1:size(self%maps(iMap)%parameterMap)),logState=.false.,isConverged=.false.)
+       call self%maps(iMap)%simulationState%chainIndexSet(simulationState%chainIndex())
+       call self%maps(iMap)%simulationState%countSet     (simulationState%count     ())
        ! Determine if the chain is already accepted - if it is we set the proposed prior to be impossible so that the model will not actually be evaluated.
        if (logLikelihoodCurrent > self%logLikelihoodAccept) then
           logPriorProposed_=logImpossible
@@ -315,26 +387,30 @@ contains
           logPriorProposed_=logPriorProposed
        end if
        ! Evaluate this likelihood
-       timeEvaluate_=-1.0
-       independentLikelihoodsEvaluate                             =  +independentLikelihoodsEvaluate                                                        &
-            &                                                        +modelLikelihood_%modelLikelihood_%evaluate(                                           &
-            &                                                                                                    modelLikelihood_%simulationState         , &
-            &                                                                                                    modelLikelihood_%modelParametersActive_  , &
-            &                                                                                                    modelLikelihood_%modelParametersInactive_, &
-            &                                                                                                                     simulationConvergence   , &
-            &                                                                                                                     temperature             , &
-            &                                                                                                                     logLikelihoodCurrent    , &
-            &                                                                                                                     logPriorCurrent         , &
-            &                                                                                                                     logPriorProposed_       , &
-            &                                                                                                                     timeEvaluate_           , &
-            &                                                                                                                     logLikelihoodVariance_    &
-            &                                                                                                                    )
+       timeEvaluate_                                              =  -1.0
+       independentLikelihoodsEvaluate                             =  +independentLikelihoodsEvaluate                                                       &
+            &                                                        +modelLikelihood_%modelLikelihood_%evaluate(                                          &
+            &                                                                                                    self%maps(iMap)%simulationState         , &
+            &                                                                                                    self%maps(iMap)%modelParametersActive_  , &
+            &                                                                                                    self%maps(iMap)%modelParametersInactive_, &
+            &                                                                                                                    simulationConvergence   , &
+            &                                                                                                                    temperature             , &
+            &                                                                                                                    logLikelihoodCurrent    , &
+            &                                                                                                                    logPriorCurrent         , &
+            &                                                                                                                    logPriorProposed_       , &
+            &                                                                                                                    timeEvaluate_           , &
+            &                                                                                                                    logLikelihoodVariance_    &
+            &                                                                                                                   )
        if (present(logLikelihoodVariance)) logLikelihoodVariance  =  +logLikelihoodVariance_ &
             &                                                        +logLikelihoodVariance
        if (timeEvaluate_ >= 0.0d0        ) timeEvaluate           =  +timeEvaluate_          &
             &                                                        +timeEvaluate
        modelLikelihood_                                           =>  modelLikelihood_%next
     end do
+    if (self%report) then
+       write (label,'(e16.10)') independentLikelihoodsEvaluate
+       call displayMessage("logℒ (total) = "//trim(label))
+    end if
     return
   end function independentLikelihoodsEvaluate
 

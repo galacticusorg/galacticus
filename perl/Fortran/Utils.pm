@@ -25,9 +25,9 @@ our %unitOpeners = (
     # Find program openings.
     program            => { unitName => 0                                           , regEx => qr/^\s*program\s+(${label})/ },
     # Find subroutine openings, allowing for pure, elemental and recursive subroutines.
-    subroutine         => { unitName => 1                           , arguments => 3, regEx => qr/^\s*(pure\s+|elemental\s+|recursive\s+|module\s+)*\s*subroutine\s+(${label})\s*(\(\s*(${argumentList})\))*/},
+    subroutine         => { unitName => 1                           , arguments => 3, regEx => qr/^\s*(impure\s+|pure\s+|elemental\s+|recursive\s+|module\s+)*\s*subroutine\s+(${label})\s*(\(\s*(${argumentList})\))*/},
     # Find function openings, allowing for pure, elemental, and recursive functions, and different function types.
-    function           => { unitName => 5, intrinsic => 1, kind => 2, arguments => 7, regEx => qr/^\s*(pure\s+|elemental\s+|recursive\s+|module\s+)*\s*(real|integer|double\s+precision|double\s+complex|character|logical)*\s*(\(((kind|len)=)??[\w\d]*\))*\s*function\s+(${label})\s*(\(\s*(${argumentList})\))*/},
+    function           => { unitName => 5, intrinsic => 1, kind => 2, arguments => 7, regEx => qr/^\s*(impure\s+|pure\s+|elemental\s+|recursive\s+|module\s+)*\s*(real|integer|double\s+precision|double\s+complex|character|logical)*\s*(\(((kind|len)=)??[\w\d]*\))*\s*function\s+(${label})\s*(\(\s*(${argumentList})\))*/},
      # Find submodule module procedure openings.
     moduleProcedure    => { unitName => 0                                           , regEx => qr/^\s*module\s+procedure\s+(${label})/},
     # Find interfaces.

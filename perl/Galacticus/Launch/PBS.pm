@@ -33,19 +33,19 @@ sub Validate {
     # Set defaults.
     my %defaults = 
 	(
-	 mpiLaunch               => "yes"                                                                     ,
-	 mpiRun                  => "mpirun --map-by node --mca mpi_preconnect_mpi 1 -hostfile \$PBS_NODEFILE",
-	 mpiProcesses            => 1                                                                         ,
-	 maxJobsInQueue          => -1                                                                        ,
-	 postSubmitSleepDuration => 10                                                                        ,
-	 jobWaitSleepDuration    => 60                                                                        ,
+	 mpiLaunch               => "yes"                                                                                     ,
+	 mpiRun                  => "mpirun --oversubscribe --map-by node --mca mpi_preconnect_mpi 1 -hostfile \$PBS_NODEFILE",
+	 mpiProcesses            => 1                                                                                         ,
+	 maxJobsInQueue          => -1                                                                                        ,
+	 postSubmitSleepDuration => 10                                                                                        ,
+	 jobWaitSleepDuration    => 60                                                                                        ,
 	 analyze                 => "yes"
 	);
     # Attempt to detect MPI implementation.
     my $mpiIs = &mpiDetect();
     if ( $mpiIs eq "OpenMPI" ) {
-	$defaults{'mpiLaunch'} = "yes"                                                                     ;
-	$defaults{'mpiRun'   } = "mpirun --map-by node --mca mpi_preconnect_mpi 1 -hostfile \$PBS_NODEFILE";
+	$defaults{'mpiLaunch'} = "yes"                                                                                     ;
+	$defaults{'mpiRun'   } = "mpirun --oversubscribe --map-by node --mca mpi_preconnect_mpi 1 -hostfile \$PBS_NODEFILE";
     }    
     # Apply defaults.
     foreach ( keys(%defaults) ) {
@@ -126,9 +126,9 @@ sub Launch {
 	print $pbsFile "#PBS -V\n";
 	# Find the working directory - we support either PBS or SLURM environment variables here.
 	print $pbsFile "if [ ! -z \${PBS_O_WORKDIR+x} ]; then\n";
-	print $pbsFile " cd \$PBS_O_WORKDIR\n";
+	print $pbsFile " cd \"\${PBS_O_WORKDIR}\"\n";
 	print $pbsFile "elif [ ! -z \${SLURM_SUBMIT_DIR+x} ]; then\n";
-	print $pbsFile " cd \$SLURM_SUBMIT_DIR\n";
+	print $pbsFile " cd \"\${SLURM_SUBMIT_DIR}\"\n";
 	print $pbsFile "fi\n";
 	print $pbsFile "export ".$_."\n"
 	    foreach ( &List::ExtraUtils::as_array($pbsConfig->{'environment'}) );
@@ -424,21 +424,34 @@ sub SubmitJobs {
 		    die("Galacticus::Launch::PBS::SubmitJobs: unknown resource model");
 		}
 		print $scriptFile "#PBS -j oe\n";
-		print $scriptFile "#PBS -o ".$newJob->{'logFile'}."\n";
+		(my $logFileName = $newJob->{'logFile'}) =~ s/:/_/g;
+		print $scriptFile "#PBS -o ".$logFileName."\n";
 		print $scriptFile "#PBS -V\n";
 		# Find the working directory - we support either PBS or SLURM environment variables here.
 		print $scriptFile "if [ ! -z \${PBS_O_WORKDIR+x} ]; then\n";
-		print $scriptFile " cd \$PBS_O_WORKDIR\n";
+		print $scriptFile " cd \"\${PBS_O_WORKDIR}\"\n";
 		print $scriptFile "elif [ ! -z \${SLURM_SUBMIT_DIR+x} ]; then\n";
-		print $scriptFile " cd \$SLURM_SUBMIT_DIR\n";
+		print $scriptFile " cd \"\${SLURM_SUBMIT_DIR}\"\n";
 		print $scriptFile "fi\n";
 		print $scriptFile "export ".$_."\n"
 		    foreach ( &List::ExtraUtils::as_array($pbsConfig->{'environment'}) );
-		print $scriptFile "ulimit -t unlimited\n";
 		print $scriptFile "ulimit -c unlimited\n";
+		my $coreDump = "no";
+		$coreDump = $arguments{'coreDump'}
+		    if ( exists($arguments{'coreDump'}) );
+		$coreDump = $newJob->{'coreDump'}
+		    if ( exists($newJob->{'coreDump'}) );
+		if ( $coreDump eq "yes" ) {
+		    print $scriptFile "ulimit -c unlimited\n";
+		    print $scriptFile "export GFORTRAN_ERROR_DUMPCORE=YES\n";
+		} else {
+		    print $scriptFile "ulimit -c 0\n";
+		    print $scriptFile "export GFORTRAN_ERROR_DUMPCORE=NO\n";
+		}
+		print $scriptFile "ulimit -t unlimited\n";
 		my $mpi = (exists($arguments{'mpi'}) && $arguments{'mpi'} eq "yes") || (exists($newJob->{'mpi'}) && $newJob->{'mpi'} eq "yes");
 		print $scriptFile "export OMP_NUM_THREADS=".($mpi ? 1 : $ppn)."\n";
-		print $scriptFile ($mpi ? "mpirun --map-by node -np ".$mpiProcs." " : "").$newJob->{'command'}."\n";
+		print $scriptFile ($mpi ? "mpirun --oversubscribe --map-by node --mca mpi_preconnect_mpi 1 --mca btl ^ib -np ".$mpiProcs." " : "").$newJob->{'command'}."\n";
 		print $scriptFile "exit\n";
 		close($scriptFile);
 	    } else {

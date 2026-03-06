@@ -88,7 +88,8 @@
   </powerSpectrumPrimordial>
   <powerSpectrumPrimordialTransferred value="simple" />
   <randomNumberGenerator value="GSL">
-    <seed value="220" />
+    <seed value="220"/>
+
   </randomNumberGenerator>
   <task value="evolveForests" >
     <evolveForestsInParallel value="true"/>

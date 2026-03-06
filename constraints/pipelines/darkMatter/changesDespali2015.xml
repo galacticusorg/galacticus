@@ -1,0 +1,9 @@
+<changes>
+  <change type="replace" path="haloMassFunction">
+    <haloMassFunction value="despali2015"/>
+  </change>
+  <change type="replace" path="powerSpectrumWindowFunction">
+    <powerSpectrumWindowFunction value="topHat"/>
+  </change>
+  <change type="update" path="outputFileName" append="true" value="_Despali2015"/>
+</changes>

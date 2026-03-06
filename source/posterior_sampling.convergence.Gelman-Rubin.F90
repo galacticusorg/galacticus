@@ -21,6 +21,7 @@
   Implementation of a posterior sampling convergence class which implements the Gelman-Rubin statistic.
   !!}
 
+  use :: File_Utilities    , only : file
   use :: ISO_Varying_String, only : varying_string
 
   !![
@@ -47,16 +48,17 @@
      Implementation of a posterior sampling convergence class which implements the Gelman-Rubin statistic.
      !!}
      private
-     double precision                                            :: thresholdHatR             , outlierSignificance         , &
-          &                                                         outlierLogLikelihoodOffset
-     integer                                                     :: burnCount                 , testCount                   , &
-          &                                                         stepCount                 , outlierCountMaximum         , &
-          &                                                         reportCount               , estimateCount               , &
-          &                                                         logFileUnit               , convergedAtStepCount
-     logical                                                     :: converged                 , logFileIsOpen       =.false.
-     type            (varying_string)                            :: logFileName
-     double precision                , allocatable, dimension(:) :: correctedHatR
-     logical                         , allocatable, dimension(:) :: chainMask
+     double precision                                             :: thresholdHatR             , outlierSignificance, &
+          &                                                          outlierLogLikelihoodOffset
+     integer                                                      :: burnCount                 , testCount          , &
+          &                                                          stepCount                 , outlierCountMaximum, &
+          &                                                          reportCount               , estimateCount      , &
+          &                                                          convergedAtStepCount
+     logical                                                      :: converged
+     type            (varying_string )                            :: logFileName
+     type            (file           )                            :: logFile
+     double precision                 , allocatable, dimension(:) :: correctedHatR
+     logical                          , allocatable, dimension(:) :: chainMask
    contains
      !![
      <methods>
@@ -64,7 +66,6 @@
        <method description="Return the target convergence measure, $\hat{R}$." method="convergenceMeasureTarget" />
      </methods>
      !!]
-     final     ::                             gelmanRubinDestructor
      procedure :: isConverged              => gelmanRubinIsConverged
      procedure :: convergedAtStep          => gelmanRubinConvergedAtStep
      procedure :: reset                    => gelmanRubinReset
@@ -160,8 +161,8 @@ contains
     !!{
     Constructor for the \refClass{posteriorSampleConvergenceGelmanRubin} convergence class.
     !!}
-    use :: Error            , only : Error_Report
-    use :: MPI_Utilities    , only : mpiSelf
+    use :: Error        , only : Error_Report
+    use :: MPI_Utilities, only : mpiSelf
     type            (posteriorSampleConvergenceGelmanRubin)                :: self
     double precision                                       , intent(in   ) :: thresholdHatR             , outlierSignificance, &
          &                                                                    outlierLogLikelihoodOffset
@@ -181,27 +182,10 @@ contains
     ! Validate.
     if (mpiSelf%count()-self%outlierCountMaximum < 3) call Error_Report('maximum number of outliers is too large'//{introspection:location})
     ! Open log file.
-    if (mpiSelf%isMaster()) then
-       open(newUnit=self%logFileUnit,file=char(logFileName),form='formatted',status='unknown')
-       self%logFileIsOpen=.true.
-    else
-       self%logFileIsOpen=.false.
-    end if
+    if (mpiSelf%isMaster()) &
+         & self%logFile=file(logFileName,form='formatted',status='unknown')
     return
   end function gelmanRubinConstructorInternal
-
-  subroutine gelmanRubinDestructor(self)
-    !!{
-    Destroy a Gelman-Rubin convergence object.
-    !!}
-    use :: MPI_Utilities, only : mpiSelf
-    implicit none
-    type(posteriorSampleConvergenceGelmanRubin), intent(inout) :: self
-
-    ! Close the log file.
-    if (mpiSelf%isMaster().and.self%logFileIsOpen) close(self%logFileUnit)
-    return
-  end subroutine gelmanRubinDestructor
 
   logical function gelmanRubinIsConverged(self,simulationState,logLikelihood)
     !!{
@@ -480,9 +464,9 @@ contains
              call displayMessage('no outlier chains')
           end if
        end if
-       write (self%logFileUnit,*) "outliers    ",simulationState%count(),self%chainMask
-       write (self%logFileUnit,*) "convergence ",simulationState%count(),minval(self%correctedHatR),maxval(self%correctedHatR),self%correctedHatR
-       call flush(self%logFileUnit)
+       write (self%logFile%unit,*) "outliers    ",simulationState%count(),self%chainMask
+       write (self%logFile%unit,*) "convergence ",simulationState%count(),minval(self%correctedHatR),maxval(self%correctedHatR),self%correctedHatR
+       call flush(self%logFile%unit)
     end if
     return
   end function gelmanRubinIsConverged

@@ -160,6 +160,7 @@ contains
     else
        call Error_Report('one of radiusEnvironment and massEnvironment must be specified'//{introspection:location})
     end if
+    self%linearToNonLinearInitialized=.false.
     return
   end function fixedHEConstructorInternal
 
@@ -196,7 +197,7 @@ contains
     if (.not.presentDay_) then
        basic                    =>  node                                 %basic(                 )
        fixedHEOverdensityLinear = +fixedHEOverdensityLinear                                        &
-            &                      *self                   %linearGrowth_%value(time=basic%time())
+            &                     *self                    %linearGrowth_%value(time=basic%time())
     end if
     return
   end function fixedHEOverdensityLinear
@@ -216,7 +217,7 @@ contains
          &                                  *self%linearGrowth_      %logarithmicDerivativeExpansionFactor( time=basic%time()) &
          &                                  *self%cosmologyFunctions_%expansionRate                       (                    &
          &                                   self%cosmologyFunctions_%expansionFactor                      (     basic%time()) &
-         &                                                                                              )
+         &                                                                                                )
     return
   end function fixedHEOverdensityLinearGradientTime
 

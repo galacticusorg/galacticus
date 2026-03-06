@@ -178,12 +178,11 @@ contains
     !!]
     
     !$ call hdf5Access%set()
-    call dataFile%openFile     (char(inputPath(pathTypeDataStatic)//'/observations/blackHoles/blackHoleMassVsVelocityDispersion_McConnellMa2013.hdf5'),readOnly=.true.             )
-    call dataFile%readDataset  ('velocityDispersionBinned'                                                                                           ,          velocities         )
-    call dataFile%readAttribute('label'                                                                                                              ,          targetLabel        )
-    call dataFile%readDataset  ('massBlackHoleMean'                                                                                                  ,          functionValueTarget)
-    call dataFile%readDataset  ('massBlackHoleMeanError'                                                                                             ,          functionErrorTarget)
-    call dataFile%close        (                                                                                                                                                   )
+    dataFile=hdf5Object(char(inputPath(pathTypeDataStatic)//'/observations/blackHoles/blackHoleMassVsVelocityDispersion_McConnellMa2013.hdf5'),readOnly=.true.)
+    call dataFile%readDataset  ('velocityDispersionBinned',velocities         )
+    call dataFile%readAttribute('label'                   ,targetLabel        )
+    call dataFile%readDataset  ('massBlackHoleMean'       ,functionValueTarget)
+    call dataFile%readDataset  ('massBlackHoleMeanError'  ,functionErrorTarget)
     !$ call hdf5Access%unset()
     allocate(functionCovarianceTarget(size(functionErrorTarget),size(functionErrorTarget)))
     functionCovarianceTarget=0.0d0

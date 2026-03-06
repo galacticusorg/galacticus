@@ -34,6 +34,7 @@
    contains
      procedure :: operate   => identityOperate
      procedure :: unoperate => identityUnoperate
+     procedure :: jacobian  => identityJacobian
   end type operatorUnaryIdentity
 
   interface operatorUnaryIdentity
@@ -87,3 +88,16 @@ contains
     identityUnoperate=f
     return
   end function identityUnoperate
+
+  double precision function identityJacobian(self,x)
+    !!{
+    Compute the Jacobian of an identity operation.
+    !!}
+    implicit none
+    class           (operatorUnaryIdentity), intent(inout) :: self
+    double precision                       , intent(in   ) :: x
+    !$GLC attributes unused :: self, x
+
+    identityJacobian=1.0d0
+    return
+  end function identityJacobian

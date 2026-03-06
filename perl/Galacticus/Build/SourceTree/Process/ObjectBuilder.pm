@@ -117,9 +117,13 @@ sub Process_ObjectBuilder {
 		    $defaultXML                 =~ s/\s*\n\s*//g;
 		    $defaultXML                 =~ s/\s{2,}/ /g;
 		    $builderCode               .=  "   if (.not.parametersCurrent%isPresent('".$parameterName."')) then\n";
-		    $builderCode               .= "     allowedNames_(1)='".$parameterName."'\n";
-		    $builderCode               .=  "    parametersDefault=inputParameters(var_str('".$defaultXML."'),allowedParameterNames=allowedNames_,noOutput=.true.)\n";
-		    $builderCode               .= "     call parametersDefault%parametersGroupCopy(parametersCurrent)\n";
+		    $builderCode               .=  "    block\n";
+		    $builderCode               .=  "     type(varying_string), dimension(1) :: allowedParameterName__\n";
+		    $builderCode               .=  "     type(varying_string)               :: defaultXML__\n";
+		    $builderCode               .=  "     defaultXML__=var_str('".$defaultXML."')\n";
+		    $builderCode               .=  "     allowedParameterName__(1)=var_str('".$parameterName."')\n";
+		    $builderCode               .=  "     parametersDefault=inputParameters(defaultXML__,allowedParameterNames=allowedParameterName__,noOutput=.true.)\n";
+		    $builderCode               .=  "    end block\n";
 		    $builderCode               .=  "    parametersCurrent => parametersDefault\n";
 		    $builderCode               .=  "    parametersDefaultCreated=.true.\n";
 		    $builderCode               .=  "  else\n";
@@ -185,6 +189,22 @@ sub Process_ObjectBuilder {
 	    $builderCode .= "      end if\n";
 	    $builderCode .= $copyLoopClose;
 	    if ( $defaultName ) {
+		my $i = 0;
+		my $warnStatus = "warnObjectBuilder".$i."__";
+		while ( &Galacticus::Build::SourceTree::Parse::Declarations::DeclarationExists($node->{'parent'},$warnStatus) ) {
+		    ++$i;
+		    $warnStatus = "warnObjectBuilder".$i."__";
+		}
+		my @warnDeclaration =
+		    (
+		     {
+			 intrinsic     => "logical"                 ,
+			 variables     => [ $warnStatus."=.false." ],
+			 attributes    => [ "save"                 ],
+			 threadprivate => 1
+		     }
+		    );
+		&Galacticus::Build::SourceTree::Parse::Declarations::AddDeclarations($node->{'parent'},\@warnDeclaration);
 		$builderCode .= "   else\n";
 		$builderCode .= "      ! Object is not explicitly defined. Cause a default object of the class to be added to the parameters. Increment the reference count here as this is a new object.\n";
 		$builderCode .= $copyLoopOpen;
@@ -193,7 +213,14 @@ sub Process_ObjectBuilder {
 		$builderCode .= "      call ".$node->{'directive'}->{'name'}."%autoHook()\n";
 		$builderCode .= $debugMessage;
 		$builderCode .= $copyLoopClose;
-		$builderCode .= "      if (mpiSelf%isMaster()) call Warn('Using default class for parameter ''['//char(parametersCurrent%path())//'".$parameterName."]''')\n";
+		$builderCode .= "      if (mpiSelf%isMaster() .and. .not.".$warnStatus.") then\n";
+		$builderCode .= "         block\n";
+		$builderCode .= "            type(varying_string) :: parametersPath\n";
+		$builderCode .= "            parametersPath=parametersCurrent%path()\n";
+		$builderCode .= "            call Warn('Using default class for parameter ''['//char(parametersPath)//'".$parameterName."]''')\n";
+		$builderCode .= "            ".$warnStatus."=.true.\n";
+		$builderCode .= "         end block\n";
+		$builderCode .= "      end if\n";
 		$builderCode .= "   end if\n";
 	    }
 	    if ( exists($node->{'directive'}->{'parameterName'}) ) {
@@ -223,6 +250,11 @@ sub Process_ObjectBuilder {
 			{
 			    intrinsic => 0,
 			    only      => {mpiSelf => 1}
+			},
+			"ISO_Varying_String"   =>
+			{
+			    intrinsic => 0,
+			    only      => {varying_string => 1}
 			}
 		    }
 		};
@@ -353,12 +385,6 @@ sub Process_ObjectBuilder {
 			 type       => "inputParameters"      ,
 			 variables  => [ "parametersDefault" ],
 			 attributes => [ "target"            ]
-		     },
-		     {
-			 intrinsic  => "type"                 ,
-			 type       => "varying_string"       ,
-			 variables  => [ "allowedNames_"     ],
-			 attributes => [ "dimension(1)"      ]
 		     },
 		     {
 			 intrinsic  => "logical"                     ,

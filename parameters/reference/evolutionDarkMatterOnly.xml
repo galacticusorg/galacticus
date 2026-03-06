@@ -58,9 +58,9 @@
       <radiusVirialFraction      value="0.01"/>
     </nodeOperator>
     <nodeOperator value="satelliteDestructionMassThreshold" >
-      <massDestructionAbsolute           value="=[mergerTreeMassResolution::massResolution]"/>
-      <massDestructionMassInfallFraction value="0.0e0"                                      />
-      <massDestructionMassTreeFraction   value="0.0e0"                                      />
+      <massDestructionAbsolute           value="=[mergerTreeMassResolution/massResolution]"/>
+      <massDestructionMassInfallFraction value="0.0e0"                                     />
+      <massDestructionMassTreeFraction   value="0.0e0"                                     />
     </nodeOperator>
   </nodeOperator>
   

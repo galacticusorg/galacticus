@@ -83,6 +83,12 @@ module Model_Parameters
      <argument>double precision, intent(in   ) :: x</argument>
      <description>Unmap the parameter value.</description>
    </method>
+   <method name="mapJacobian">
+     <type>double precision</type>
+     <pass>yes</pass>
+     <argument>double precision, intent(in   ) :: x</argument>
+     <description>Compute the Jacobian of the map at the given parameter value.</description>
+   </method>
   </functionClass>
   !!]
 
@@ -91,6 +97,15 @@ module Model_Parameters
      Class used to construct lists of model parameters.
      !!}
      class(modelParameterClass), public, pointer :: modelParameter_ => null()
+   contains
+     !![
+     <methods>
+       <method method="assignment(=)" description="Assign postprocessor list objects."/>
+     </methods>
+     !!]
+     final     ::                  modelParameterListDestructor
+     procedure ::                  modelParameterListAssign
+     generic   :: assignment(=) => modelParameterListAssign
   end type modelParameterList
 
 contains
@@ -106,24 +121,58 @@ contains
     class           (posteriorSampleStateClass), intent(inout)                                       :: posteriorSampleState_
     double precision                                          , dimension(size(modelParameterList_)) :: stateVector
     integer                                                                                          :: i
-    double precision                                                                                 :: logPrior
+    double precision                                                                                 :: logPrior             , valueUnmapped
 
     stateVector               =posteriorSampleState_%get()
     modelParameterListLogPrior=0.0d0
     do i=1,size(modelParameterList_)
-       logPrior=modelParameterList_(i)%modelParameter_%logPrior(                &
-            &   modelParameterList_(i)%modelParameter_%unmap    (               &
-            &                                                    stateVector(i) &
-            &                                                   )               &
-            &                                                  )
+       valueUnmapped=modelParameterList_(i)%modelParameter_%unmap(stateVector(i))
+       logPrior=modelParameterList_(i)%modelParameter_%logPrior   (valueUnmapped)
        if (logPrior <= logImpossible) then
-          modelParameterListLogPrior=logImpossible
+          modelParameterListLogPrior=+logImpossible
           exit
        else
-          modelParameterListLogPrior=modelParameterListLogPrior+logPrior
+          modelParameterListLogPrior=+modelParameterListLogPrior                                                &
+               &                     +logPrior                                                                  &
+               &                     -log(                                                                      &
+               &                          abs(                                                                  &
+               &                              modelParameterList_(i)%modelParameter_%mapJacobian(valueUnmapped) &
+               &                             )                                                                  &
+               &                         )
        end if
     end do
     return
   end function modelParameterListLogPrior
+
+  subroutine modelParameterListDestructor(self)
+    !!{
+    Destructor for elements of model parameter lists.
+    !!}
+    implicit none
+    type(modelParameterList), intent(inout) :: self
+
+    !![
+    <objectDestructor name="self%modelParameter_"/>
+    !!]
+    return
+  end subroutine modelParameterListDestructor
+
+  recursive subroutine modelParameterListAssign(self,from)
+    !!{
+    Perform assignment for the \refClass{modelParameterList} class.
+    !!}
+    implicit none
+    class(modelParameterList), intent(  out) :: self
+    class(modelParameterList), intent(in   ) :: from
+
+    nullify(self%modelParameter_)
+    if (associated(from%modelParameter_)) then
+       self%modelParameter_ => from%modelParameter_
+       !![
+       <referenceCountIncrement owner="self" object="modelParameter_"/>
+       !!]
+    end if
+    return
+  end subroutine modelParameterListAssign
 
 end module Model_Parameters

@@ -126,16 +126,16 @@ contains
     class           (darkMatterHaloBiasTinker2010), intent(inout)           :: self
     double precision                              , intent(in   )           :: mass                 , time
     double precision                              , intent(in   ), optional :: radius
-    double precision                              , parameter               :: lowerB       =1.500d0, lowerC=2.400d0, &
-         &                                                                     upperB       =0.183d0
-    double precision                                                        :: deltaCritical        , nu            , &
+    double precision                              , parameter               :: lowerB       =1.500d0, lowerC   =2.400d+00, &
+         &                                                                     upperB       =0.183d0, sigmaTiny=1.000d-10
+    double precision                                                        :: deltaCritical        , nu                 , &
          &                                                                     sigma                , y
     !$GLC attributes unused :: radius
 
     ! Get critical overdensity for collapse and root-variance, then compute peak height parameter, nu.
     deltaCritical=self%criticalOverdensity_     %value       (time=time,mass=mass)
     sigma        =self%cosmologicalMassVariance_%rootVariance(time=time,mass=mass)
-    if (sigma <= 0.0d0) then
+    if (sigma <= sigmaTiny) then
        tinker2010BiasByMass=+1.0d0
     else
        nu           =+deltaCritical                                                   &

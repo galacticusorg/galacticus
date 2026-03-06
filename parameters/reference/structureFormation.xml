@@ -25,7 +25,7 @@
   <haloEnvironment value="normal">
     <!-- Use environmental overdensities drawn from a normal distribution conditioned upon the fact that the region has not exceeded the threshold for collapse on any larger scale (Mo & White; 1996; MNRAS; 282; 347; eqn. 9; https://ui.adsabs.harvard.edu/abs/1996MNRAS.282..347M)-->
     <!-- Choose an environment radius of 5 Mpc/h as was used by Benson, Ludlow, & Cole (2019, MNRAS, 485, 5010; https://ui.adsabs.harvard.edu/abs/2019MNRAS.485.5010B). -->
-    <radiusEnvironment value="=5.0/([cosmologyParameters::HubbleConstant]/100.0)"/>
+    <radiusEnvironment value="=5.0/([cosmologyParameters/HubbleConstant]/100.0)"/>
     <redshift          value=" 0.0"                                              />
     <criticalOverdensity value="sphericalCollapseClsnlssMttrCsmlgclCnstnt" >
       <xi:include xmlns:xi="http://www.w3.org/2001/XInclude" href="darkMatterParticleCDM.xml" xpointer="xpointer(parameters/*)" />

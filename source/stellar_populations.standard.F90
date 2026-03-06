@@ -27,6 +27,7 @@
   use :: Stellar_Population_Spectra                , only : stellarPopulationSpectra, stellarPopulationSpectraClass
   use :: Stellar_Populations_Initial_Mass_Functions, only : initialMassFunction     , initialMassFunctionClass
   use :: Supernovae_Type_Ia                        , only : supernovaeTypeIa        , supernovaeTypeIaClass
+  use :: ISO_Varying_String                        , only : varying_string
 
   abstract interface
      !!{
@@ -48,6 +49,14 @@
      double precision                                                 :: toleranceAbsolute, toleranceRelative
      type            (interpolator     )                              :: interpolatorAge  , interpolatorMetallicity
      logical                                                          :: computed         , instantaneousApproximation
+   contains
+     !![
+     <methods>
+       <method method="assignment(=)" description="Assign postprocessor list objects."/>       
+     </methods>
+     !!]
+     procedure ::                  populationTableAssign
+     generic   :: assignment(=) => populationTableAssign
   end type populationTable
 
   interface populationTable
@@ -320,6 +329,7 @@ contains
     class           (supernovaeTypeIaClass        ), intent(in   ), target   :: supernovaeTypeIa_
     class           (stellarPopulationSpectraClass), intent(in   ), target   :: stellarPopulationSpectra_
     integer                                                                  :: i                                    , countElements
+    type       (varying_string                        )             :: abundancesName
     !![
     <constructorAssign variables="instantaneousRecyclingApproximation, instantaneousYieldApproximation, instantaneousEnergyInputApproximation, massLongLived, ageEffective, *initialMassFunction_, *stellarAstrophysics_, *stellarFeedback_, *supernovaeTypeIa_, *stellarPopulationSpectra_"/>
     !!]
@@ -341,11 +351,12 @@ contains
        self%metalYield       = huge(0.0d0)
     end if
     countElements=Abundances_Property_Count()
-    self   %recycleFraction   =populationTable('recycledFraction'                ,standardIntegrandRecycledFraction,toleranceAbsolute=1.0d-3,toleranceRelative=1.0d-4,instantaneousApproximation=instantaneousRecyclingApproximation  )
-    self   %energyOutput      =populationTable('energyOutput'                    ,standardIntegrandEnergyOutput    ,toleranceAbsolute=0.0d+0,toleranceRelative=1.0d-3,instantaneousApproximation=instantaneousEnergyInputApproximation)
+    self   %recycleFraction   =populationTable('recycledFraction'  ,standardIntegrandRecycledFraction,toleranceAbsolute=1.0d-3,toleranceRelative=1.0d-4,instantaneousApproximation=instantaneousRecyclingApproximation  )
+    self   %energyOutput      =populationTable('energyOutput'      ,standardIntegrandEnergyOutput    ,toleranceAbsolute=0.0d+0,toleranceRelative=1.0d-3,instantaneousApproximation=instantaneousEnergyInputApproximation)
     allocate(self%yield(countElements))
     do i=1,countElements
-       self%yield          (i)=populationTable('yield'//char(Abundances_Names(i)),standardIntegrandYield           ,toleranceAbsolute=1.0d-4,toleranceRelative=1.0d-5,instantaneousApproximation=instantaneousYieldApproximation      )
+       abundancesName         ='yield'//Abundances_Names(i)
+       self%yield          (i)=populationTable(char(abundancesName),standardIntegrandYield           ,toleranceAbsolute=1.0d-4,toleranceRelative=1.0d-5,instantaneousApproximation=instantaneousYieldApproximation      )
     end do
     return
   end function standardConstructorInternal
@@ -367,6 +378,40 @@ contains
     return
   end subroutine standardDestructor
 
+  subroutine populationTableAssign(to,from)
+    !!{
+    Assignment operator for \refClass{populationTable} objects.
+    !!}
+    implicit none
+    class(populationTable), intent(  out) :: to
+    class(populationTable), intent(in   ) :: from
+
+    if (allocated(to%age)) deallocate(to%age)
+    if (allocated(to%metallicity)) deallocate(to%metallicity)
+    if (allocated(to%property)) deallocate(to%property)
+    if (allocated(from%age)) then
+       allocate(to%age,mold=from%age)
+       to%age=from%age
+    end if
+    if (allocated(from%metallicity)) then
+       allocate(to%metallicity,mold=from%metallicity)
+       to%metallicity=from%metallicity
+    end if
+    if (allocated(from%property)) then
+       allocate(to%property,mold=from%property)
+       to%property=from%property
+    end if
+    to%integrand                  => from%integrand
+    to%label                      =  from%label
+    to%toleranceAbsolute          =  from%toleranceAbsolute
+    to%toleranceRelative          =  from%toleranceRelative
+    to%interpolatorAge            =  from%interpolatorAge
+    to%interpolatorMetallicity    =  from%interpolatorMetallicity
+    to%computed                   =  from%computed
+    to%instantaneousApproximation =  from%instantaneousApproximation
+    return
+  end subroutine populationTableAssign
+  
   double precision function standardRateRecycling(self,abundances_,ageMinimum,ageMaximum)
     !!{
     Return the rate at which mass is being recycled from this stellar population. The mean recycling rate (i.e. the fraction of
@@ -456,7 +501,6 @@ contains
          &                                                                        loopCountTotal    , i
     double precision                                                           :: maximumMass       , minimumMass     , &
          &                                                                        metallicity
-    type            (hdf5Object                       )                        :: file              , dataset
     character       (len=20                           )                        :: progressMessage
     type            (varying_string                   )                        :: fileName          , descriptorString
     logical                                                                    :: makeFile
@@ -466,33 +510,38 @@ contains
     if (.not.property%computed) then
        ! Check for previously computed data.
        makeFile=.false.
-       fileName=char(inputPath(pathTypeDataDynamic))//'stellarPopulations/'//property%label//'_'//self%hashedDescriptor(includeSourceDigest=.true.,includeFileModificationTimes=.true.)//'.hdf5'
+       fileName=inputPath(pathTypeDataDynamic)//'stellarPopulations/'//property%label//'_'//self%hashedDescriptor(includeSourceDigest=.true.,includeFileModificationTimes=.true.)//'.hdf5'
        call Directory_Make(File_Path(fileName))
        ! Always obtain the file lock before the hdf5Access lock to avoid deadlocks between OpenMP threads.
-       call File_Lock(char(fileName),lock,lockIsShared=.false.)
+       call File_Lock(fileName,lock,lockIsShared=.false.)
        if (File_Exists(fileName)) then
           ! Open the file containing cumulative property data.
           call displayIndent('Reading file: '//fileName,verbosityLevelWorking)
-          !$ call hdf5Access%set          (                         )
-          call    file      %openFile     (char(fileName)           )
-          call    file      %readAttribute('fileFormat'  ,fileFormat)
+          !$ call hdf5Access%set()
+          hdf5FormatScope: block
+            type(hdf5Object) :: file
+            file=hdf5Object(fileName,readOnly=.true.)
+            call file%readAttribute('fileFormat',fileFormat)
+          end block hdf5FormatScope
+          !$ call hdf5Access%unset()
           if (fileFormat /= fileFormatCurrent) then
              makeFile=.true.
-             call file%close()
              call displayUnindent('done',verbosityLevelWorking)
           end if
-          !$ call hdf5Access%unset()
        else
           makeFile=.true.
        end if
        if (.not.makeFile) then
           ! Read the cumulative property data from file.
-          !$ call hdf5Access%set        (                                         )
-          call    file      %readDataset("age"               ,property%age        )
-          call    file      %readDataset("metallicity"       ,property%metallicity)
-          call    file      %readDataset(char(property%label),property%property   )
-          call    file      %close      (                                         )
-          !$ call hdf5Access%unset      (                                         )
+          !$ call hdf5Access%set()
+          hdf5ReadScope: block
+            type(hdf5Object) :: file
+            file=hdf5Object(fileName,readOnly=.true.)
+            call file%readDataset("age"               ,property%age        )
+            call file%readDataset("metallicity"       ,property%metallicity)
+            call file%readDataset(char(property%label),property%property   )
+          end block hdf5ReadScope
+          !$ call hdf5Access%unset()
           call displayUnindent('done',verbosityLevelWorking)
        else
           allocate(property%age        (tableAgeCount                      ))
@@ -506,20 +555,21 @@ contains
           call self%descriptor(descriptor,includeClass=.true.)
           descriptorString=descriptor%serializeToString()
           call descriptor%destroy()
-          !$ call hdf5Access%set           (                                                                                                               )
-          call    file      %openFile      (char(fileName                 )                                                                                )
-          call    file      %writeAttribute(fileFormatCurrent                                                        ,'fileFormat'                         )
-          call    file      %writeAttribute(char(property%label           )                                          ,'description'                        )
-          call    file      %writeAttribute('Computed by Galacticus'                                                 ,'source'                             )
-          call    file      %writeAttribute(char(Formatted_Date_and_Time())                                          ,'date'                               )
-          call    file      %writeAttribute(char(descriptorString         )                                          ,'parameters'                         )
-          call    file      %writeDataset  (property%age                                                             ,'age'        ,datasetReturned=dataset)
-          call    dataset   %writeAttribute('Age of the stellar population in Gyr'                                   ,'description'                        )
-          call    dataset   %close         (                                                                                                               )
-          call    file      %writeDataset  (property%metallicity                                                     ,'metallicity',datasetReturned=dataset)
-          call    dataset   %writeAttribute('Metallicity (fractional mass of total metals) of the stellar population','description'                        )
-          call    dataset   %close         (                                                                                                               )
-          !$ call hdf5Access%unset         (                                                                                                               )
+          !$ call hdf5Access%set()
+          hdfWriteScope: block
+            type(hdf5Object) :: file, dataset
+            file=hdf5Object(fileName)
+            call file   %writeAttribute(fileFormatCurrent                                                        ,'fileFormat'                         )
+            call file   %writeAttribute(char(property%label           )                                          ,'description'                        )
+            call file   %writeAttribute('Computed by Galacticus'                                                 ,'source'                             )
+            call file   %writeAttribute(char(Formatted_Date_and_Time())                                          ,'date'                               )
+            call file   %writeAttribute(char(descriptorString         )                                          ,'parameters'                         )
+            call file   %writeDataset  (property%age                                                             ,'age'        ,datasetReturned=dataset)
+            call dataset%writeAttribute('Age of the stellar population in Gyr'                                   ,'description'                        )
+            call file   %writeDataset  (property%metallicity                                                     ,'metallicity',datasetReturned=dataset)
+            call dataset%writeAttribute('Metallicity (fractional mass of total metals) of the stellar population','description'                        )
+          end block hdfWriteScope
+          !$ call hdf5Access%unset()
           ! Loop over ages and metallicities and compute the property.
           call displayIndent('Tabulating property: '//char(property%label),verbosityLevelWorking)
           call displayCounter(0,.true.,verbosityLevelWorking)
@@ -576,13 +626,13 @@ contains
           <objectDestructor name="stellarAstrophysics_"/>
           <objectDestructor name="initialMassFunction_"/>
           <objectDestructor name="stellarFeedback_"    />
-	  <objectDestructor name="supernovaeTypeIa_"   />
-	  !!]
+          <objectDestructor name="supernovaeTypeIa_"   />
+          !!]
           !$omp end parallel
           do iAge=1,tableAgeCount
              do iMetallicity=1,tableMetallicityCount
-                ! Enforce monotonicity in the cumulative property. Non-monotonicity can arise due to the vagaries of interpolating
-                ! stellar lifetimes in an irregular grid of stellar models.
+                ! Enforce monotonicity in the cumulative property. Non-monotonicity can arise due to the vagaries of
+                ! interpolating stellar lifetimes in an irregular grid of stellar models.
                 if (iAge > 1 )                                        &
                      & property%property       (iAge  ,iMetallicity)  &
                      &   =max(                                        &
@@ -592,11 +642,14 @@ contains
              end do
           end do
           call displayCounterClear(           verbosityLevelWorking)
-          call displayUnindent     ('finished',verbosityLevelWorking)
-          !$ call hdf5Access%set         (                                      )
-          call    file      %writeDataset(property%property,char(property%label))
-          call    file      %close       (                                      )
-          !$ call hdf5Access%unset       (                                      )
+          call displayUnindent    ('finished',verbosityLevelWorking)
+          !$ call hdf5Access%set()
+          hdf5PropertyScope: block
+            type(hdf5Object) :: file
+            file=hdf5Object(fileName)
+            call file%writeDataset(property%property,char(property%label))
+          end block hdf5PropertyScope
+          !$ call hdf5Access%unset()
           call displayIndent('Storing to file: '//fileName,verbosityLevelWorking)
        end if
        call File_Unlock(lock)

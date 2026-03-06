@@ -296,6 +296,17 @@ module Cosmological_Density_Field
     A class providing the mass variance, $\sigma(M)$, of the cosmological density field.
    </description>
    <default>filteredPower</default>
+   <method name="descriptorNormalizationOnly" >
+    <description>Return a descriptor for this object suitable for normalization-only usage.</description>
+    <type>void</type>
+    <pass>yes</pass>
+    <modules>Input_Parameters</modules>
+    <argument>type   (inputParameters), intent(inout)           :: descriptor                                </argument>
+    <argument>logical                 , intent(in   ), optional :: includeClass, includeFileModificationTimes</argument>
+    <code>
+      call self%descriptor(descriptor,includeClass,includeFileModificationTimes)
+    </code>
+   </method>
    <method name="powerNormalization" >
     <description>Return the normalization of the power spectrum.</description>
     <type>double precision</type>

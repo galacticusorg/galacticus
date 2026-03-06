@@ -20,7 +20,7 @@
   !+ Contributions to this file made by: Ivan Esteban
 
   !!{
-  Implements a top-hat power spectrum window function class, convoluted with a Gaussian.
+  Implements a top-hat power spectrum window function class, convolved with a Gaussian.
   !!}
 
   use :: Cosmology_Parameters, only : cosmologyParametersClass
@@ -117,7 +117,7 @@ contains
     return
   end subroutine topHatSmoothedDestructor
 
-  double precision function topHatSmoothedValue(self,wavenumber,smoothingMass)
+  double precision function topHatSmoothedValue(self,wavenumber,smoothingMass,time)
     !!{
     Top hat in real space window function Fourier transformed into $k$-space used in computing the variance of the power
     spectrum. Everything is convolved with a Gaussian of real-space width $\sigma$.
@@ -125,10 +125,12 @@ contains
     use :: Numerical_Constants_Math, only : Pi
     implicit none
     class           (powerSpectrumWindowFunctionTopHatSmoothed), intent(inout) :: self
-    double precision                                           , intent(in   ) :: smoothingMass        , wavenumber
+    double precision                                           , intent(in   ) :: smoothingMass        , wavenumber, &
+         &                                                                        time
     double precision                                           , parameter     :: xSeriesMaximum=1.0d-3
     double precision                                                           :: topHatRadius         , x         , &
          &                                                                        xSquared
+    !$GLC attributes unused :: time
 
     topHatRadius=+(                                             &
          &         +3.0d0                                       &

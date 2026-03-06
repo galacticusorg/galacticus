@@ -174,10 +174,17 @@ contains
     class           (cosmologyParametersClass           ), pointer       :: cosmologyParameters_
     class           (cosmologyFunctionsClass            ), pointer       :: cosmologyFunctions_
     class           (darkMatterParticleClass            ), pointer       :: darkMatterParticle_
-    type            (varying_string                     )                :: fileName
-    double precision                                                     :: redshift
+    type            (varying_string                     )                :: fileName            , transferFunctionType
+    double precision                                                     :: redshift            , factorWavenumberSmoothExtrapolation
+    logical                                                              :: acceptNegativeValues
 
     !![
+    <inputParameter>
+      <name>transferFunctionType</name>
+      <source>parameters</source>
+      <defaultValue>var_str('darkMatter')</defaultValue>
+      <description>Specifies whether to use the {\normalfont \ttfamily darkMatter} or {\normalfont \ttfamily total} transfer function.</description>
+    </inputParameter>
     <inputParameter>
       <name>fileName</name>
       <source>parameters</source>
@@ -189,11 +196,23 @@ contains
       <defaultValue>0.0d0</defaultValue>
       <description>The redshift of the transfer function to read.</description>
     </inputParameter>
+    <inputParameter>
+      <name>factorWavenumberSmoothExtrapolation</name>
+      <source>parameters</source>
+      <defaultValue>2.0d0</defaultValue>
+      <description>If positive, and extrapolation is used at high wavenumbers, the slope for extrapolation will be set by averaging over wavenumbers from $k_\mathrm{max}/f$ to $k_\mathrm{max}$, where $f=${\normalfont \ttfamily [factorWavenumberSmoothExtrapolation]} and $k_\mathrm{max}$ is the highest wavenumber tabulated. This avoids spurious extrapolation for highly oscillatory transfer functions.</description>
+    </inputParameter>
+    <inputParameter>
+      <name>acceptNegativeValues</name>
+      <source>parameters</source>
+      <defaultValue>.false.</defaultValue>
+      <description>If true, negative values in the transfer function are allowed (and the absolute value is taken prior to interpolation). Otherwise, negative values result in an error.</description>
+    </inputParameter>
     <objectBuilder class="cosmologyParameters" name="cosmologyParameters_" source="parameters"/>
     <objectBuilder class="cosmologyFunctions"  name="cosmologyFunctions_"  source="parameters"/>
     <objectBuilder class="darkMatterParticle"  name="darkMatterParticle_"  source="parameters"/>
     !!]
-    self=transferFunctionFileFuzzyDarkMatter(char(fileName),redshift,cosmologyParameters_,cosmologyFunctions_,darkMatterParticle_)
+    self=transferFunctionFileFuzzyDarkMatter(char(fileName),enumerationTransferFunctionTypeEncode(char(transferFunctionType),includesPrefix=.false.),redshift,acceptNegativeValues,factorWavenumberSmoothExtrapolation,cosmologyParameters_,cosmologyFunctions_,darkMatterParticle_)
     !![
     <inputParametersValidate source="parameters"/>
     <objectDestructor name="cosmologyParameters_"/>
@@ -203,61 +222,70 @@ contains
     return
   end function fileFuzzyDarkMatterConstructorParameters
 
-  function fileFuzzyDarkMatterConstructorInternal(fileName,redshift,cosmologyParameters_,cosmologyFunctions_,darkMatterParticle_) result(self)
+  function fileFuzzyDarkMatterConstructorInternal(fileName,transferFunctionType,redshift,acceptNegativeValues,factorWavenumberSmoothExtrapolation,cosmologyParameters_,cosmologyFunctions_,darkMatterParticle_) result(self)
     !!{
     Internal constructor for the fileFuzzyDarkMatter transfer function class.
     !!}
     implicit none
     type            (transferFunctionFileFuzzyDarkMatter)                        :: self
     character       (len=*                              ), intent(in   )         :: fileName
-    double precision                                     , intent(in   )         :: redshift
+    type            (enumerationTransferFunctionTypeType), intent(in   )         :: transferFunctionType
+    double precision                                     , intent(in   )         :: redshift            , factorWavenumberSmoothExtrapolation
+    logical                                              , intent(in   )         :: acceptNegativeValues
     class           (cosmologyParametersClass           ), intent(in   ), target :: cosmologyParameters_
     class           (cosmologyFunctionsClass            ), intent(in   ), target :: cosmologyFunctions_
     class           (darkMatterParticleClass            ), intent(in   ), target :: darkMatterParticle_
     !![
-    <constructorAssign variables="fileName, redshift, *cosmologyParameters_, *cosmologyFunctions_, *darkMatterParticle_"/>
+    <constructorAssign variables="fileName, transferFunctionType, redshift, acceptNegativeValues, factorWavenumberSmoothExtrapolation, *cosmologyParameters_, *cosmologyFunctions_, *darkMatterParticle_"/>
     !!]
 
-    self%time=self%cosmologyFunctions_%cosmicTime(self%cosmologyFunctions_%expansionFactorFromRedshift(redshift))
+    ! Transfer functions are created on the fly, so locking must be used.
+    self%useLock=.true.
+    self%time   =self%cosmologyFunctions_%cosmicTime(self%cosmologyFunctions_%expansionFactorFromRedshift(redshift))
     call self%readFile(fileName)
     return
   end function fileFuzzyDarkMatterConstructorInternal
 
-  subroutine fileFuzzyDarkMatterReadFile(self,fileName)
+  subroutine fileFuzzyDarkMatterReadFile(self,fileName,invalidateCache,lockCache)
     !!{
     Read in the transfer function data from a file.
     !!}
     use :: Display             , only : displayMessage
     use :: Error               , only : Error_Report
+    use :: File_Utilities      , only : File_Lock     , File_Unlock
     use :: HDF5_Access         , only : hdf5Access
     use :: IO_HDF5             , only : hdf5Object
     use :: Numerical_Comparison, only : Values_Differ
     implicit none
-    class           (transferFunctionFileFuzzyDarkMatter), intent(inout) :: self
-    character       (len=*                              ), intent(in   ) :: fileName
-    double precision                                                     :: fuzzyDMMass, fuzzyDMDensityFraction
-    type            (hdf5Object                         )                :: fileObject , parametersObject
-
+    class           (transferFunctionFileFuzzyDarkMatter), intent(inout)           :: self
+    character       (len=*                              ), intent(in   )           :: fileName
+    logical                                              , intent(in   ), optional :: invalidateCache, lockCache
+    double precision                                                               :: fuzzyDMMass    , fuzzyDMDensityFraction
+    type            (lockDescriptor                     )                          :: fileLock
+    !$GLC attributes unused :: invalidateCache, lockCache
+    
     ! Open and read the HDF5 data file.
-    call hdf5Access%set()
-    call fileObject%openFile(fileName,readOnly=.true.)
-    ! Check that the fuzzy dark matter parameters match.
-    parametersObject=fileObject%openGroup('parameters')
-    call parametersObject%readAttribute('fuzzyDMMass'           ,fuzzyDMMass           )
-    call parametersObject%readAttribute('fuzzyDMDensityFraction',fuzzyDMDensityFraction)
-    select type (darkMatterParticle_ => self%darkMatterParticle_)
-    class is (darkMatterParticleFuzzyDarkMatter)
-       if (Values_Differ(fuzzyDMMass           ,darkMatterParticle_%mass           (),relTol=1.0d-3)) &
-            & call displayMessage('fuzzyDMMass from transfer function file does not match internal value'           )
-       if (Values_Differ(fuzzyDMDensityFraction,darkMatterParticle_%densityFraction(),absTol=1.0d-3)) &
-            & call displayMessage('fuzzyDMDensityFraction from transfer function file does not match internal value')
-    class default
-       call Error_Report('transfer function expects a fuzzy dark matter particle'//{introspection:location})
-    end select
-    call parametersObject%close()
-    ! Close the file.
-    call fileObject%close()
-    call hdf5Access%unset()
+    call File_Lock(self%fileName,fileLock)
+    !$ call hdf5Access%set()
+    hdf5ReadScope: block
+      type(hdf5Object) :: fileObject, parametersObject
+      fileObject=hdf5Object(fileName,readOnly=.true.)
+      ! Check that the fuzzy dark matter parameters match.
+      parametersObject=fileObject%openGroup('parameters')
+      call parametersObject%readAttribute('fuzzyDMMass'           ,fuzzyDMMass           )
+      call parametersObject%readAttribute('fuzzyDMDensityFraction',fuzzyDMDensityFraction)
+      select type (darkMatterParticle_ => self%darkMatterParticle_)
+      class is (darkMatterParticleFuzzyDarkMatter)
+         if (Values_Differ(fuzzyDMMass           ,darkMatterParticle_%mass           (),relTol=1.0d-3)) &
+              & call displayMessage('fuzzyDMMass from transfer function file does not match internal value'           )
+         if (Values_Differ(fuzzyDMDensityFraction,darkMatterParticle_%densityFraction(),absTol=1.0d-3)) &
+              & call displayMessage('fuzzyDMDensityFraction from transfer function file does not match internal value')
+      class default
+         call Error_Report('transfer function expects a fuzzy dark matter particle'//{introspection:location})
+      end select
+    end block hdf5ReadScope
+    !$ call hdf5Access%unset()
+    call File_Unlock(fileLock)
     ! Read the data file.
     call self%transferFunctionFile%readFile(fileName)
     return

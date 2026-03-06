@@ -150,7 +150,9 @@ contains
          &                                                                            cdfTarget                         , massBackground             , &
          &                                                                            massFunctionUnconditioned         , massFunctionConditioned
     type            (integrator                         )                          :: integrator_
-    type            (rootFinder                         )                          :: finder
+    type            (rootFinder                         ), save                    :: finder
+    logical                                              , save                    :: finderConstructed          =.false.
+    !$omp threadprivate(finder,finderConstructed)
 
     massBackground=self%haloEnvironment_%environmentMass()
     if (mass >= massBackground) then
@@ -185,16 +187,19 @@ contains
        call basic%massSet(mass)
        call basic%timeSet(time)
        ! Find the range of overdensities over which to integrate.
-       finder=rootFinder(                                                                                     &
-            &            rootFunction                 =environmentAveragedRoot                              , &
-            &            toleranceRelative            = 1.0d-6                                              , &
-            &            rangeExpandUpward            =+rangeExpandStep                                     , &
-            &            rangeExpandDownward          =-rangeExpandStep                                     , &
-            &            rangeExpandUpwardSignExpect  =                      rangeExpandSignExpectPositive  , &
-            &            rangeExpandDownwardSignExpect=                      rangeExpandSignExpectNegative  , &
-            &            rangeUpwardLimit             =self%haloEnvironment_%overdensityLinearMaximum     (), &
-            &            rangeExpandType              =                      rangeExpandAdditive              &
-            &           )
+       if (.not.finderConstructed) then
+          finder           =rootFinder(                                                                                     &
+               &                       rootFunction                 =environmentAveragedRoot                              , &
+               &                       toleranceRelative            = 1.0d-6                                              , &
+               &                       rangeExpandUpward            =+rangeExpandStep                                     , &
+               &                       rangeExpandDownward          =-rangeExpandStep                                     , &
+               &                       rangeExpandUpwardSignExpect  =                      rangeExpandSignExpectPositive  , &
+               &                       rangeExpandDownwardSignExpect=                      rangeExpandSignExpectNegative  , &
+               &                       rangeUpwardLimit             =self%haloEnvironment_%overdensityLinearMaximum     (), &
+               &                       rangeExpandType              =                      rangeExpandAdditive              &
+               &                      )
+          finderConstructed=.true.
+       end if
        cdfTarget                  =+0.0+overdensityCDFFraction
        environmentOverdensityLower=finder%find(rootGuess=0.0d0)
        cdfTarget                  =+1.0-overdensityCDFFraction

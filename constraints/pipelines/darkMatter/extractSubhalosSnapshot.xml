@@ -1,0 +1,33 @@
+<parameters formatVersion="2">
+  <cosmologyParameters value="simple">
+    <HubbleConstant value="67.770000" />
+    <OmegaBaryon value=" 0.048206" />
+    <OmegaDarkEnergy value=" 0.692885" />
+    <OmegaMatter value=" 0.307115" />
+    <temperatureCMB value=" 2.725480" />
+  </cosmologyParameters>
+  <errorWaitTime value="0" />
+  <lastModified revision="d4bf2d8db876eb8e44d94e1672bc36a6ea8135cc" time="2025-09-03T18:23:58" />
+  <nbodyImporter value="IRATE">
+    <fileName value=""/>
+    <properties value="particleID isFlyby expansionFactor massVirial position" />
+    <snapshot value="1" />
+  </nbodyImporter>
+  <nbodyOperator value="sequence">
+    <nbodyOperator value="filterProperties">
+      <propertyNames value="isFlyby expansionFactor" />
+      <rangeHigh value="1 1.0005" />
+      <rangeLow value="1 0.9995" />
+    </nbodyOperator>
+    <nbodyOperator value="deleteProperties">
+      <propertyNames value="isFlyby expansionFactor" />
+    </nbodyOperator>
+    <nbodyOperator value="exportIRATE">
+      <fileName value="" />
+      <redshift value="0" />
+      <snapshot value="1" />
+    </nbodyOperator>
+  </nbodyOperator>
+  <outputFileName value=""/>
+  <task value="NBodyAnalyze" />
+</parameters>

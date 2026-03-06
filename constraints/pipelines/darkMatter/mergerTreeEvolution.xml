@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<parameters>
+  <formatVersion>2</formatVersion>
+  <version>0.9.4</version>
+
+  <!-- Merger tree building options -->
+  <mergerTreeConstructor value="build"/>
+  <mergerTreeBuilder value="cole2000">
+    <accretionLimit        value="0.01"  />
+    <mergeProbability      value="0.10"  />
+    <branchIntervalStep    value="true"  />
+    <redshiftMaximum       value="10.0"  />
+    <toleranceTimeEarliest value="1.0e-5"/>
+  </mergerTreeBuilder>
+  <mergerTreeBranchingProbability value="PCHPlus">
+    <!-- Best fit values from PCH -->
+    <G0                 value="+0.3632"/>
+    <gamma1             value="+0.2080"/>
+    <gamma2             value="+0.3013"/>
+    <gamma3             value="+0.2487"/>
+    <accuracyFirstOrder value="+0.1000"/>
+    <cdmAssumptions     value="true"   />
+  </mergerTreeBranchingProbability>
+
+  <!-- Subsampling merger of merger tree branches -->
+  <mergerTreeBuildController value="subsample">
+    <fractionMassThreshold      value="0.1"/>
+    <subsamplingRateAtThreshold value="1.0"/>
+    <exponent                   value="1.0"/>
+  </mergerTreeBuildController>
+
+  <!-- Merger tree evolution -->
+  <mergerTreeEvolver value="standard">
+    <timestepHostAbsolute value="1.0"/>
+    <timestepHostRelative value="0.1"/>
+  </mergerTreeEvolver>
+  <mergerTreeNodeEvolver value="standard">
+    <odeToleranceAbsolute value="0.01"/>
+    <odeToleranceRelative value="0.01"/>
+  </mergerTreeNodeEvolver>
+  <nodeOperator value="multi">
+    <!-- Cosmological epoch -->
+    <nodeOperator value="cosmicTime"/>
+    <!-- DMO evolution -->
+    <nodeOperator value="DMOInterpolate"/>
+    <!-- Subhalo hierarchy -->
+    <nodeOperator value="hierarchy"/>
+  </nodeOperator>
+
+  <!-- Component selection -->
+  <componentBasic              value="standard"/>
+  <componentBlackHole          value="null"    />
+  <componentDarkMatterProfile  value="scale"   />
+  <componentDisk               value="null"    />
+  <componentHotHalo            value="null"    />
+  <componentSatellite          value="null"    />
+  <componentSpheroid           value="null"    />
+  <componentSpin               value="null"    />
+
+  <!-- Nullify irrelevant classes -->
+  <hotHaloMassDistribution value="null"/>
+
+  <!-- Substructure hierarchy options -->
+  <mergerTreeNodeMerger value="singleLevelHierarchy"/>
+
+  <!-- Dark matter halo structure options -->
+  <darkMatterProfileDMO            value="isothermal"/>
+
+</parameters>

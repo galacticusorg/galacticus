@@ -46,9 +46,10 @@
      class           (powerSpectrumWindowFunctionClass ), pointer :: powerSpectrumWindowFunction_ => null()
      class           (cosmologicalMassVarianceClass    ), pointer :: cosmologicalMassVariance_    => null()
      class           (outputTimesClass                 ), pointer :: outputTimes_                 => null()
-     double precision                                             :: wavenumberMinimum                     , wavenumberMaximum, &
-          &                                                          pointsPerDecade
-     logical                                                      :: includeNonLinear
+     double precision                                             :: wavenumberMinimum                     , wavenumberMaximum   , &
+          &                                                          pointsPerDecade                       , pointsPerUnit       , &
+          &                                                          massSmoothingWindowFunction
+     logical                                                      :: includeNonLinear                      , spacingIsLogarithmic
      type            (varying_string                   )          :: outputGroup
    contains
      final     ::            powerSpectraDestructor
@@ -70,6 +71,7 @@ contains
     Constructor for the \refClass{taskPowerSpectra} task class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
+    use :: Error           , only : Error_Report
     implicit none
     type            (taskPowerSpectra                )                :: self
     type            (inputParameters                 ), intent(inout) :: parameters
@@ -83,10 +85,30 @@ contains
     class           (cosmologicalMassVarianceClass   ), pointer       :: cosmologicalMassVariance_
     class           (outputTimesClass                ), pointer       :: outputTimes_
     double precision                                                  :: wavenumberMinimum           , wavenumberMaximum, &
-         &                                                               pointsPerDecade
+         &                                                               pointsPerDecade             , pointsPerUnit    , &
+         &                                                               massSmoothingWindowFunction
     logical                                                           :: includeNonLinear
     type            (varying_string                  )                :: outputGroup
 
+    if (parameters%isPresent('pointsPerUnit')) then
+       if (parameters%isPresent('pointsPerDecade')) call Error_Report('can not specify both `pointsPerUnit` and `pointsPerDecade` '//{introspection:location})
+       !![
+       <inputParameter>
+	 <name>pointsPerUnit</name>
+	 <description>The number of points per unit wavenumber at which to tabulate power spectra.</description>
+	 <source>parameters</source>
+       </inputParameter>
+       !!]
+    else
+       !![
+       <inputParameter>
+	 <name>pointsPerDecade</name>
+	 <defaultValue>10.0d0</defaultValue>
+	 <description>The number of points per decade of wavenumber at which to tabulate power spectra.</description>
+	 <source>parameters</source>
+       </inputParameter>
+       !!]
+    end if
     !![
     <inputParameter>
       <name>wavenumberMinimum</name>
@@ -101,15 +123,15 @@ contains
       <source>parameters</source>
     </inputParameter>
     <inputParameter>
-      <name>pointsPerDecade</name>
-      <defaultValue>10.0d0</defaultValue>
-      <description>The number of points per decade of wavenumber at which to tabulate power spectra.</description>
-      <source>parameters</source>
-    </inputParameter>
-    <inputParameter>
       <name>includeNonLinear</name>
       <defaultValue>.false.</defaultValue>
       <description>If true the nonlinear power spectrum is also computed and output.</description>
+      <source>parameters</source>
+    </inputParameter>
+    <inputParameter>
+      <name>massSmoothingWindowFunction</name>
+      <defaultValue>-1.0d0</defaultValue>
+      <description>If positive, the window function evaluated at this smoothing mass will be output.</description>
       <source>parameters</source>
     </inputParameter>
     <inputParameter>
@@ -134,23 +156,30 @@ contains
     else
        powerSpectrumNonlinear_ => null()
     end if
-    self=taskPowerSpectra(                               &
-         &                 wavenumberMinimum           , &
-         &                 wavenumberMaximum           , &
-         &                 pointsPerDecade             , &
-         &                 includeNonLinear            , &
-         &                 outputGroup                 , &
-         &                 cosmologyParameters_        , &
-         &                 cosmologyFunctions_         , &
-         &                 linearGrowth_               , &
-         &                 transferFunction_           , &
-         &                 powerSpectrum_              , &
-         &                 powerSpectrumNonlinear_     , &
-         &                 powerSpectrumWindowFunction_, &
-         &                 cosmologicalMassVariance_   , &
-         &                 outputTimes_                  &
-         &                )
     !![
+    <conditionalCall>
+      <call>
+        self=taskPowerSpectra(                              &amp;
+         &amp;                wavenumberMinimum           , &amp;
+         &amp;                wavenumberMaximum           , &amp;
+         &amp;                includeNonLinear            , &amp;
+         &amp;                massSmoothingWindowFunction , &amp;
+         &amp;                outputGroup                 , &amp;
+         &amp;                cosmologyParameters_        , &amp;
+         &amp;                cosmologyFunctions_         , &amp;
+         &amp;                linearGrowth_               , &amp;
+         &amp;                transferFunction_           , &amp;
+         &amp;                powerSpectrum_              , &amp;
+         &amp;                powerSpectrumNonlinear_     , &amp;
+         &amp;                powerSpectrumWindowFunction_, &amp;
+         &amp;                cosmologicalMassVariance_   , &amp;
+         &amp;                outputTimes_                  &amp;
+	 &amp;                {conditions}                  &amp;
+         &amp;               )
+      </call>
+     <argument name="pointsPerUnit"   value="pointsPerUnit"   condition="parameters%isPresent('pointsPerUnit'  )"/>
+     <argument name="pointsPerDecade" value="pointsPerDecade" condition="parameters%isPresent('pointsPerDecade')"/>
+    </conditionalCall>
     <inputParametersValidate source="parameters"/>
     <objectDestructor name="cosmologyParameters_"        />
     <objectDestructor name="cosmologyFunctions_"         />
@@ -168,8 +197,8 @@ contains
   function powerSpectraConstructorInternal(                               &
        &                                    wavenumberMinimum           , &
        &                                    wavenumberMaximum           , &
-       &                                    pointsPerDecade             , &
        &                                    includeNonLinear            , &
+       &                                    massSmoothingWindowFunction , &
        &                                    outputGroup                 , &
        &                                    cosmologyParameters_        , &
        &                                    cosmologyFunctions_         , &
@@ -179,30 +208,37 @@ contains
        &                                    powerSpectrumNonlinear_     , &
        &                                    powerSpectrumWindowFunction_, &
        &                                    cosmologicalMassVariance_   , &
-       &                                    outputTimes_                  &
+       &                                    outputTimes_                , &
+       &                                    pointsPerDecade             , &
+       &                                    pointsPerUnit                 &
        &                                   ) result(self)
     !!{
     Internal constructor for the \refClass{taskPowerSpectra} task class.
     !!}
+    use :: Error, only : Error_Report
     implicit none
-    type            (taskPowerSpectra                )                        :: self
-    class           (cosmologyParametersClass        ), intent(in   ), target :: cosmologyParameters_
-    class           (cosmologyFunctionsClass         ), intent(in   ), target :: cosmologyFunctions_
-    class           (linearGrowthClass               ), intent(in   ), target :: linearGrowth_
-    class           (transferFunctionClass           ), intent(in   ), target :: transferFunction_
-    class           (powerSpectrumClass              ), intent(in   ), target :: powerSpectrum_
-    class           (powerSpectrumNonlinearClass     ), intent(in   ), target :: powerSpectrumNonlinear_
-    class           (powerSpectrumWindowFunctionClass), intent(in   ), target :: powerSpectrumWindowFunction_
-    class           (cosmologicalMassVarianceClass   ), intent(in   ), target :: cosmologicalMassVariance_
-    class           (outputTimesClass                ), intent(in   ), target :: outputTimes_
-    double precision                                  , intent(in   )         :: wavenumberMinimum           , wavenumberMaximum, &
-         &                                                                       pointsPerDecade
-    logical                                           , intent(in   )         :: includeNonLinear
-    type            (varying_string                  ), intent(in   )         :: outputGroup
+    type            (taskPowerSpectra                )                          :: self
+    class           (cosmologyParametersClass        ), intent(in   ), target   :: cosmologyParameters_
+    class           (cosmologyFunctionsClass         ), intent(in   ), target   :: cosmologyFunctions_
+    class           (linearGrowthClass               ), intent(in   ), target   :: linearGrowth_
+    class           (transferFunctionClass           ), intent(in   ), target   :: transferFunction_
+    class           (powerSpectrumClass              ), intent(in   ), target   :: powerSpectrum_
+    class           (powerSpectrumNonlinearClass     ), intent(in   ), target   :: powerSpectrumNonlinear_
+    class           (powerSpectrumWindowFunctionClass), intent(in   ), target   :: powerSpectrumWindowFunction_
+    class           (cosmologicalMassVarianceClass   ), intent(in   ), target   :: cosmologicalMassVariance_
+    class           (outputTimesClass                ), intent(in   ), target   :: outputTimes_
+    double precision                                  , intent(in   )           :: wavenumberMinimum           , wavenumberMaximum, &
+         &                                                                         massSmoothingWindowFunction
+    double precision                                  , intent(in   ), optional :: pointsPerDecade             , pointsPerUnit
+    logical                                           , intent(in   )           :: includeNonLinear
+    type            (varying_string                  ), intent(in   )           :: outputGroup
     !![
-    <constructorAssign variables="wavenumberMinimum, wavenumberMaximum, pointsPerDecade, includeNonLinear, outputGroup,*cosmologyParameters_,*cosmologyFunctions_,*linearGrowth_,*transferFunction_,*powerSpectrum_,*powerSpectrumNonlinear_,*powerSpectrumWindowFunction_,*cosmologicalMassVariance_, *outputTimes_"/>
+    <constructorAssign variables="wavenumberMinimum, wavenumberMaximum, pointsPerDecade, includeNonLinear, massSmoothingWindowFunction, outputGroup,*cosmologyParameters_,*cosmologyFunctions_,*linearGrowth_,*transferFunction_,*powerSpectrum_,*powerSpectrumNonlinear_,*powerSpectrumWindowFunction_,*cosmologicalMassVariance_, *outputTimes_"/>
     !!]
 
+    if (      present(pointsPerDecade).and.present(pointsPerUnit) ) call Error_Report('can not specify both `pointsPerDecade` and `pointsPerUnit`'   //{introspection:location})
+    if (.not.(present(pointsPerDecade).or. present(pointsPerUnit))) call Error_Report('must specify either both `pointsPerDecade` or `pointsPerUnit`'//{introspection:location})
+    self%spacingIsLogarithmic=present(pointsPerDecade)
     return
   end function powerSpectraConstructorInternal
 
@@ -235,11 +271,12 @@ contains
     use            :: Error                           , only : errorStatusSuccess
     use            :: Output_HDF5                     , only : outputFile
     use            :: IO_HDF5                         , only : hdf5Object
+    use            :: HDF5_Access                     , only : hdf5Access
     use, intrinsic :: ISO_C_Binding                   , only : c_size_t
     use            :: Numerical_Constants_Astronomical, only : massSolar         , megaParsec
     use            :: Numerical_Constants_Math        , only : Pi
     use            :: Numerical_Integration           , only : GSL_Integ_Gauss15 , integrator
-    use            :: Numerical_Ranges                , only : Make_Range        , rangeTypeLogarithmic
+    use            :: Numerical_Ranges                , only : Make_Range        , rangeTypeLogarithmic, rangeTypeLinear
     use            :: String_Handling                 , only : operator(//)
     implicit none
     class           (taskPowerSpectra          ), intent(inout), target         :: self
@@ -251,7 +288,8 @@ contains
     double precision                            , allocatable  , dimension(:,:) :: powerSpectrumNonLinear   , sigmaNonLinear     , &
          &                                                                         sigma                    , sigmaGradient      , &
          &                                                                         powerSpectrumLinear      , growthFactor       , &
-         &                                                                         growthFactorLogDerivative, transferFunction
+         &                                                                         growthFactorLogDerivative, transferFunction   , &
+         &                                                                         windowFunction
     double precision                                                            :: wavenumberMinimum        , wavenumberMaximum
     type            (integrator                )                                :: integrator_
     type            (hdf5Object                )                                :: outputsGroup             , outputGroup        , &
@@ -262,7 +300,11 @@ contains
     ! Get the requested output redshifts.
     outputCount      =self%outputTimes_%count()
     ! Compute number of tabulation points.
-    wavenumberCount=int(log10(self%wavenumberMaximum/self%wavenumberMinimum)*self%pointsPerDecade)+1
+    if (self%spacingIsLogarithmic) then
+       wavenumberCount=int(log10(self%wavenumberMaximum/self%wavenumberMinimum)*self%pointsPerDecade)+1
+    else
+       wavenumberCount=int(     (self%wavenumberMaximum-self%wavenumberMinimum)*self%pointsPerUnit  )+1
+    end if
     ! Allocate arrays for power spectra.
     allocate(wavenumber               (wavenumberCount            ))
     allocate(powerSpectrumLinear      (wavenumberCount,outputCount))
@@ -281,8 +323,17 @@ contains
        allocate(powerSpectrumNonLinear   (              0,          0))
        allocate(sigmaNonLinear           (              0,          0))
     end if
+    if (self%massSmoothingWindowFunction > 0.0d0) then
+       allocate(windowFunction(wavenumberCount,outputCount))
+    else
+       allocate(windowFunction(              0,          0))
+    end if
     ! Build a range of wavenumbers.
-    wavenumber(:)=Make_Range(self%wavenumberMinimum,self%wavenumberMaximum,int(wavenumberCount),rangeTypeLogarithmic)
+    if (self%spacingIsLogarithmic) then
+       wavenumber=Make_Range(self%wavenumberMinimum,self%wavenumberMaximum,int(wavenumberCount),rangeTypeLogarithmic)
+    else
+       wavenumber=Make_Range(self%wavenumberMinimum,self%wavenumberMaximum,int(wavenumberCount),rangeTypeLinear     )
+    end if
     ! Iterate over outputs.
     integrator_=integrator(varianceIntegrand,toleranceRelative=1.0d-2,integrationRule=GSL_Integ_Gauss15)
     do iOutput=1,outputCount
@@ -328,9 +379,14 @@ contains
                   &                                    /Pi**2                                                      &
                   &                                   )
           end if
+          ! Include window function if requested.
+          if (self%massSmoothingWindowFunction > 0.0d0) then
+             windowFunction(iWavenumber,iOutput)=self%powerSpectrumWindowFunction_%value(wavenumber(iWavenumber),self%massSmoothingWindowFunction,self%outputTimes_%time(iOutput))
+          end if
        end do
     end do
     ! Open the group for output time information.
+    !$ call hdf5Access%set()
     if (self%outputGroup == ".") then
        outputsGroup  =outputFile    %openGroup(     'Outputs'        ,'Group containing datasets relating to output times.')
     else
@@ -348,28 +404,26 @@ contains
        call outputGroup   %writeAttribute(epochTime                (  iOutput),'outputTime'                                                                                                                                )
        call outputGroup   %writeDataset  (wavenumber                          ,'wavenumber'               ,'The wavenumber.'                                                                       ,datasetReturned=dataset)
        call dataset       %writeAttribute(1.0d0/megaParsec                    ,'unitsInSI'                                                                                                                                 )
-       call dataset       %close         (                                                                                                                                                                                 )
        call outputGroup   %writeDataset  (massScale                           ,'mass'                     ,'The corresponding mass scale.'                                                         ,datasetReturned=dataset)
        call dataset       %writeAttribute(massSolar                           ,'unitsInSI'                                                                                                                                 )
-       call dataset       %close         (                                                                                                                                                                                 )
        call outputGroup   %writeDataset  (growthFactor             (:,iOutput),'growthFactor'             ,'Linear theory growth factor, D(t).'                                                                            )
        call outputGroup   %writeDataset  (growthFactorLogDerivative(:,iOutput),'growthFactorLogDerivative','Logarithmic derivative of growth factor with respect to expansion factor, dlogD/dloga.'                        )
        call outputGroup   %writeDataset  (powerSpectrumLinear      (:,iOutput),'powerSpectrum'            ,'The power spectrum.'                                                                   ,datasetReturned=dataset)
        call dataset       %writeAttribute(megaParsec**3                       ,'unitsInSI'                                                                                                                                 )
-       call dataset       %close         (                                                                                                                                                                                 )
        call outputGroup   %writeDataset  (transferFunction         (:,iOutput),'transferFunction'         ,'The transfer function.'                                                                                        )
        call outputGroup   %writeDataset  (sigma                    (:,iOutput),'sigma'                    ,'The mass fluctuation on this scale.'                                                                           )
        call outputGroup   %writeDataset  (sigmaGradient            (:,iOutput),'alpha'                    ,'Logarithmic deriative of the mass flucation with respect to mass.'                                             )
        if (self%includeNonLinear) then
           call outputGroup%writeDataset  (powerSpectrumNonLinear   (:,iOutput),'powerSpectrumNonlinear'   ,'The non-linear power spectrum.'                                                        ,datasetReturned=dataset)
           call dataset    %writeAttribute(megaParsec**3                       ,'unitsInSI'                                                                                                                                 )
-          call dataset    %close         (                                                                                                                                                                                 )
           call outputGroup%writeDataset  (sigmaNonLinear           (:,iOutput),'sigmaNonlinear'           ,'The non-linear mass fluctuation on this scale.'                                                                )
        end if
-       call outputGroup%close()
+       if (self%massSmoothingWindowFunction > 0.0d0) then
+          call outputGroup%writeDataset  (windowFunction           (:,iOutput),'windowFunction'           ,'The window function used to compute σ(M).'                                             ,datasetReturned=dataset)
+          call dataset    %writeAttribute(self%massSmoothingWindowFunction    ,'massSmoothing'                                                                                                                             )
+       end if
     end do
-    call outputsGroup%close()
-    if (self%outputGroup /= ".") call containerGroup%close()
+    !$ call hdf5Access%unset()
     if (present(status)) status=errorStatusSuccess
     call displayUnindent('Done task: power spectrum' )
     return
@@ -385,10 +439,10 @@ contains
 
       ! Return power spectrum multiplied by window function and volume element in k-space. Factors of 2 and Pi are included
       ! elsewhere.
-      varianceIntegrand=+  self%powerSpectrumNonlinear_     %value(wavenumber,epochTime(iOutput    )) &
-           &            *(                                                                            &
-           &              +self%powerSpectrumWindowFunction_%value(wavenumber,massScale(iWavenumber)) &
-           &              *                                        wavenumber                         &
+      varianceIntegrand=+  self%powerSpectrumNonlinear_     %value(wavenumber                       ,epochTime(iOutput)) &
+           &            *(                                                                                               &
+           &              +self%powerSpectrumWindowFunction_%value(wavenumber,massScale(iWavenumber),epochTime(iOutput)) &
+           &              *                                        wavenumber                                            &
            &             )**2
       return
     end function varianceIntegrand

@@ -311,21 +311,16 @@ contains
           if (.not.self%oneTimeDatasetsWritten) then
              call outputGroup%writeDataset  (self%time           ,"time"           ,"The time of the main progenitor."            ,datasetReturned=dataset)
              call dataset    %writeAttribute(gigaYear            ,"unitsInSI"                                                                             )
-             call dataset    %close         (                                                                                                             )
              call outputGroup%writeDataset  (self%expansionFactor,"expansionFactor","The expansion factor of the main progenitor."                        )
              self%oneTimeDatasetsWritten=.true.
           end if
           datasetName=var_str("stellarMass")//treeIndex
           call outputGroup%writeDataset  (self%massStellar,char(datasetName),"The stellar mass of the main progenitor."           ,datasetReturned=dataset)
           call dataset    %writeAttribute(massSolar       ,"unitsInSI"                                                                                    )
-          call dataset    %close         (                                                                                                                )
           datasetName=var_str("totalMass"  )//treeIndex
           call outputGroup%writeDataset  (self%massTotal  ,char(datasetName),"The total baryonic mass of the main progenitor."    ,datasetReturned=dataset)
           call dataset    %writeAttribute(massSolar       ,"unitsInSI"                                                                                    )
-          call dataset    %close         (                                                                                                                )
-          call outputGroup%close         (                                                                                                                )
-          !$ call hdf5Access%unset()
-          call    self      %reset()
+          call    self    %reset         (                                                                                                                )
        end if
     class default
        call Error_Report('incorrect class'//{introspection:location})

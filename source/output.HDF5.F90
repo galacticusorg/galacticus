@@ -31,24 +31,24 @@ module Output_HDF5
   public
 
   ! Flag indicating if output file has been opened.
-  logical               :: outputFileIsOpen      =.false.
+  logical                            :: outputFileIsOpen      =.false.
 
   ! Galacticus output file object.
-  type   (hdf5Object  ) :: outputFile                   , outputGroup
+  type   (hdf5Object  ), allocatable :: outputFile                   , outputGroup
 
   ! Chunk size.
-  integer(kind=HSIZE_T) :: hdf5ChunkSize         =+1
+  integer(kind=HSIZE_T)              :: hdf5ChunkSize         =+1
 
   ! Compression level (-1 means no compression, 0-9 means GNU gzip compression with higher numbers giving more compression).
-  integer               :: hdf5CompressionLevel  =-1
+  integer                            :: hdf5CompressionLevel  =-1
 
   ! Sieve buffer size.
-  integer(kind=HSIZE_T) :: hdf5SieveBufferSize
+  integer(kind=HSIZE_T)              :: hdf5SieveBufferSize
 
   ! File format to use.
-  logical               :: hdf5UseLatestFormat
+  logical                            :: hdf5UseLatestFormat
 
   ! Cache size.
-  integer(kind=size_t ) :: hdf5CacheElementsCount       , hdf5CacheSizeBytes
+  integer(kind=size_t )              :: hdf5CacheElementsCount       , hdf5CacheSizeBytes
 
 end module Output_HDF5

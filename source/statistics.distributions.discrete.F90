@@ -53,8 +53,19 @@ module Statistics_Distributions_Discrete
    <method name="cumulative" >
      <type>double precision</type>
      <pass>yes</pass>
-     <argument>integer, intent(in   ) :: x</argument>
+     <argument>integer, intent(in   )           :: x     </argument>
+     <argument>integer, intent(  out), optional :: status</argument>
      <description>Return the cumulative probability at {\normalfont \ttfamily x}.</description>
+   </method>
+   <method name="cumulativeComplementary" >
+     <type>double precision</type>
+     <pass>yes</pass>
+     <argument>integer, intent(in   )           :: x     </argument>
+     <argument>integer, intent(  out), optional :: status</argument>
+     <description>Return the complementary cumulative probability at {\normalfont \ttfamily x}.</description>
+     <code>
+       distributionFunctionDiscrete1DCumulativeComplementary=1.0d0-self%cumulative(x)
+     </code>
    </method>
    <method name="inverse" >
      <type>integer</type>

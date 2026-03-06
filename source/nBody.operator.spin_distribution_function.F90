@@ -238,7 +238,7 @@ contains
                &   mass(i) > self%massMaximum &
                & ) cycle
           ! Accumulate particles into bins.
-          j=int(log10(spin(i)/self%spinMinimum)*binWidthInverse)+1
+          j=floor(log10(spin(i)/self%spinMinimum)*binWidthInverse)+1
           if (j >= 1 .and. j <= spinCount)  &
                & countBin(j)=+countBin  (j) &
                &             +1_c_size_t
@@ -286,7 +286,6 @@ contains
           call cosmologyGroup%writeAttribute(self%cosmologyParameters_%OmegaMatter    (),'OmegaMatter'    )
           call cosmologyGroup%writeAttribute(self%cosmologyParameters_%OmegaDarkEnergy(),'OmegaDarkEnergy')
           call cosmologyGroup%writeAttribute(self%cosmologyParameters_%HubbleConstant (),'HubbleConstant' )
-          call cosmologyGroup%close         (                                                             )
           simulationGroup=simulations(iSimulation)%analysis%openGroup('simulation')
           call simulationGroup%writeAttribute(self%simulationReference,'reference')
           call simulationGroup%writeAttribute(self%simulationURL      ,'URL'      )
@@ -299,7 +298,6 @@ contains
           do k=1,simulations(iSimulation)%attributesText   %size()
              call simulationGroup%writeAttribute(simulations(iSimulation)%attributesText   %value(k),char(simulations(iSimulation)%attributesText   %key(k)))
           end do
-          call simulationGroup%close         (                                    )
           !$ call hdf5Access%unset()
 #ifdef USEMPI
        end if

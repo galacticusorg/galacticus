@@ -26,24 +26,24 @@ program Galacticus
   !!{
   The main {\normalfont \scshape Galacticus} program.
   !!}
-  use    :: Display                   , only : displayMessage                   , displayMagenta       , displayGreen                 , displayReset
+  use    :: Display                   , only : displayMessage                   , displayMagenta           , displayGreen                 , displayReset
   use    :: Display_Verbosity         , only : displayVerbositySetFromParameters
   use    :: Events_Hooks              , only : eventsHooksInitialize
   use    :: Functions_Global_Utilities, only : Functions_Global_Set
   use    :: Display_Banner            , only : Display_Banner_Show
-  use    :: Error                     , only : Error_Handler_Register           , Error_Report         , errorStatusSuccess
+  use    :: Error                     , only : Error_Handler_Register           , Error_Report             , errorStatusSuccess
   use    :: Error_Utilities           , only : Error_Wait_Set_From_Parameters
-  use    :: Output_HDF5_Open          , only : Output_HDF5_Close_File           , Output_HDF5_Open_File, Output_HDF5_Completion_Status
-  use    :: ISO_Varying_String        , only : assignment(=)                    , varying_string       , var_str                      , operator(//)
+  use    :: Output_HDF5_Open          , only : Output_HDF5_Close_File           , Output_HDF5_Open_File    , Output_HDF5_Completion_Status
+  use    :: ISO_Varying_String        , only : assignment(=)                    , varying_string           , var_str                        , operator(//)
   use    :: Input_Parameters          , only : inputParameter                   , inputParameters
   use    :: Input_Paths               , only : inputPath                        , pathTypeDataStatic
 #ifdef USEMPI
-  use    :: MPI_F08                   , only : MPI_Comm_World                   , MPI_Thread_Multiple  , MPI_Thread_Single
+  use    :: MPI_F08                   , only : MPI_Comm_World                   , MPI_Thread_Multiple      , MPI_Thread_Single
 #endif
 #ifdef USEMPI
   use    :: MPI_Utilities             , only : mpiFinalize                      , mpiInitialize
 #endif
-  !$ use :: OMP_Lib                   , only : OMP_Get_Max_Threads              , OMP_Set_Nested
+  !$ use :: OMP_Lib                   , only : OMP_Get_Max_Threads              , OMP_Set_Max_Active_Levels, OMP_Get_Supported_Active_Levels
   use    :: System_Limits             , only : System_Limits_Set
   use    :: Tasks                     , only : task                             , taskClass
   implicit none
@@ -117,11 +117,11 @@ program Galacticus
   ! Report on datasets location.
   call displayMessage(displayGreen()//"NOTE: "//displayReset()//"datasets are being read from "//inputPath(pathTypeDataStatic))
   ! Open the parameter file.
-  parameters=inputParameters(parameterFile,changeFiles=changeFiles)
+  parameters=inputParameters(parameterFile,changeFiles=changeFiles,threadSafe=.true.)
   ! Output the processed parameter file.
   if (outputParameters) call parameters%serializeToXML(var_str(trim(parameterFileCharacter)))
   ! Tell OpenMP that nested parallelism is allowed.
-  !$ call OMP_Set_Nested(.true.)
+  !$ call OMP_Set_Max_Active_Levels(OMP_Get_Supported_Active_Levels())
   ! Initialize event hooks.
   call eventsHooksInitialize()
   ! Establish global functions.

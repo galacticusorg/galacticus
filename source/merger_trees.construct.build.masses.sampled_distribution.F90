@@ -28,7 +28,7 @@
    <description>A merger tree masses class which samples masses from a distribution.</description>
   </mergerTreeBuildMasses>
   !!]
-  type, extends(mergerTreeBuildMassesClass) :: mergerTreeBuildMassesSampledDistribution
+  type, abstract, extends(mergerTreeBuildMassesClass) :: mergerTreeBuildMassesSampledDistribution
      !!{
      Implementation of a merger tree masses class which samples masses from a distribution.
      !!}
@@ -43,101 +43,22 @@
        <method description="Return a set of values {\normalfont \ttfamily sampleCount} in the interval 0--1, corresponding to values of the cumulative mass distribution." method="sampleCMF" />
      </methods>
      !!]
-     final     ::              sampledDistributionDestructor
-     procedure :: construct => sampledDistributionConstruct
-     procedure :: sampleCMF => sampledDistributionCMF
+     procedure                                   :: construct => sampledDistributionConstruct
+     procedure(sampledDistributionCMF), deferred :: sampleCMF
   end type mergerTreeBuildMassesSampledDistribution
 
-  interface mergerTreeBuildMassesSampledDistribution
-     module procedure sampledDistributionConstructorParameters
-     module procedure sampledDistributionConstructorInternal
-  end interface mergerTreeBuildMassesSampledDistribution
-
+  abstract interface
+     !!{
+     Abstract interface for the mass distribution sampling function.
+     !!}
+     subroutine sampledDistributionCMF(self,x)
+       import mergerTreeBuildMassesSampledDistribution
+       class           (mergerTreeBuildMassesSampledDistribution), intent(inout)               :: self
+       double precision                                          , intent(  out), dimension(:) :: x
+     end subroutine sampledDistributionCMF
+  end interface
+  
 contains
-
-  function sampledDistributionConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{mergerTreeBuildMassesSampledDistribution} merger tree masses class which takes a parameter set as
-    input.
-    !!}
-    use :: Input_Parameters, only : inputParameter, inputParameters
-    implicit none
-    type            (mergerTreeBuildMassesSampledDistribution)                :: self
-    type            (inputParameters                         ), intent(inout) :: parameters
-    class           (mergerTreeBuildMassDistributionClass    ), pointer       :: mergerTreeBuildMassDistribution_
-    double precision                                                          :: massTreeMinimum                 , massTreeMaximum, &
-         &                                                                       treesPerDecade
-    
-    !![
-    <inputParameter>
-      <name>massTreeMinimum</name>
-      <defaultValue>1.0d10</defaultValue>
-      <description>The minimum mass of merger tree base halos to consider when sampled masses from a distribution, in units of $M_\odot$.</description>
-      <source>parameters</source>
-    </inputParameter>
-    <inputParameter>
-      <name>massTreeMaximum</name>
-      <defaultValue>1.0d15</defaultValue>
-      <description>The maximum mass of merger tree base halos to consider when sampled masses from a distribution, in units of $M_\odot$.</description>
-      <source>parameters</source>
-    </inputParameter>
-    <inputParameter>
-      <name>treesPerDecade</name>
-      <defaultValue>10.0d0</defaultValue>
-      <description>The number of merger trees masses to sample per decade of base halo mass.</description>
-      <source>parameters</source>
-    </inputParameter>
-    <objectBuilder class="mergerTreeBuildMassDistribution" name="mergerTreeBuildMassDistribution_" source="parameters"/>
-    !!]
-    self=mergerTreeBuildMassesSampledDistribution(massTreeMinimum,massTreeMaximum,treesPerDecade,mergerTreeBuildMassDistribution_)
-    !![
-    <inputParametersValidate source="parameters"/>
-    <objectDestructor name="mergerTreeBuildMassDistribution_"/>
-    !!]
-    return
-  end function sampledDistributionConstructorParameters
-
-  function sampledDistributionConstructorInternal(massTreeMinimum,massTreeMaximum,treesPerDecade,mergerTreeBuildMassDistribution_) result(self)
-    !!{
-    Internal constructor for the \refClass{mergerTreeBuildMassesSampledDistribution} merger tree masses class.
-    !!}
-    use :: Display, only : displayMessage, verbosityLevelWarn
-    use :: Error  , only : Error_Report
-    implicit none
-    type            (mergerTreeBuildMassesSampledDistribution)                        :: self
-    class           (mergerTreeBuildMassDistributionClass    ), intent(in   ), target :: mergerTreeBuildMassDistribution_
-    double precision                                          , intent(in   )         :: massTreeMinimum                 , massTreeMaximum, &
-         &                                                                               treesPerDecade
-    !![
-    <constructorAssign variables="massTreeMinimum, massTreeMaximum, treesPerDecade, *mergerTreeBuildMassDistribution_"/>
-    !!]
-    
-    if (self%massTreeMaximum >= 1.0d16              )                                               &
-         & call displayMessage(                                                                     &
-         &                     '[massHaloMaximum] > 10¹⁶ - this seems very large and may lead '//   &
-         &                     'to failures in merger tree construction'                         ,  &
-         &                     verbosityLevelWarn                                                   &
-         &                    )
-    if (self%massTreeMaximum <= self%massTreeMinimum)                                               &
-         & call Error_Report  (                                                                     &
-         &                     '[massHaloMaximum] > [massHaloMinimum] is required'             //   &
-         &                     {introspection:location}                                             &
-         &                    )
-    return
-  end function sampledDistributionConstructorInternal
-
-  subroutine sampledDistributionDestructor(self)
-    !!{
-    Destructor for the \refClass{mergerTreeBuildMassesSampledDistribution} merger tree masses class.
-    !!}
-    implicit none
-    type(mergerTreeBuildMassesSampledDistribution), intent(inout) :: self
-
-    !![
-    <objectDestructor name="self%mergerTreeBuildMassDistribution_"/>
-    !!]
-    return
-  end subroutine sampledDistributionDestructor
 
   subroutine sampledDistributionConstruct(self,time,mass,massMinimum,massMaximum,weight)
     !!{
@@ -263,18 +184,3 @@ contains
     end function distributionIntegrand
 
   end subroutine sampledDistributionConstruct
-
-  subroutine sampledDistributionCMF(self,x)
-    !!{
-    Stub function for cumulative mass function.
-    !!}
-    use :: Error, only : Error_Report
-    implicit none
-    class           (mergerTreeBuildMassesSampledDistribution), intent(inout)               :: self
-    double precision                                          , intent(  out), dimension(:) :: x
-    !$GLC attributes unused :: self, x
-
-    call Error_Report('attempt to call function in abstract type'//{introspection:location})
-    return
-  end subroutine sampledDistributionCMF
-

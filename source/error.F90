@@ -267,6 +267,7 @@ contains
     call Signal( 4,Signal_Handler_SIGILL )
     call Signal( 7,Signal_Handler_SIGBUS )
     call Signal( 8,Signal_Handler_SIGFPE )
+    call Signal(10,Signal_Handler_SIGUSR1)
     call Signal(11,Signal_Handler_SIGSEGV)
     call Signal(15,Signal_Handler_SIGINT )
     call Signal(24,Signal_Handler_SIGXCPU)
@@ -589,6 +590,47 @@ contains
     return
   end subroutine Signal_Handler_SIGXCPU
 
+  subroutine Signal_Handler_SIGUSR1()
+    !!{
+    Handle {\normalfont \ttfamily SIGUSR1} signals, by outputting a backtrace.
+    !!}
+    use, intrinsic :: ISO_Fortran_Env, only : error_unit
+    use            :: Display        , only : displayBold  , displayMagenta, displayReset
+    use            :: System_Output  , only : stdOutIsATTY
+#ifdef USEMPI
+    use            :: MPI_F08        , only : MPI_Comm_Rank, MPI_Comm_World
+    implicit none
+    integer            :: mpiRank , error
+    character(len=128) :: hostName
+#endif
+
+    if (stdOutIsATTY()) then
+#ifdef USEMPI
+       call MPI_Comm_Rank(MPI_Comm_World,mpiRank,error)
+       call hostnm(hostName)
+       write (error_unit,*) displayMagenta()//displayBold()//'backtrace requested (rank ',mpiRank,'; PID ',getPID(),'; host ',trim(hostName),'...'//displayReset()
+#else
+       write (error_unit,*) displayMagenta()//displayBold()//'backtrace requested (PID ',getPID(),')...'//displayReset()
+#endif
+    else
+#ifdef USEMPI
+       call MPI_Comm_Rank(MPI_Comm_World,mpiRank,error)
+       call hostnm(hostName)
+       write (error_unit,*)                                  'backtrace requested (rank ',mpiRank,'; PID ',getPID(),'; host ',trim(hostName),'...'
+#else
+       write (error_unit,*)                                  'backtrace requested (PID ',getPID(),')...'
+#endif
+    end if
+    call backtrace()
+    if (stdOutIsATTY()) then
+       write (error_unit,*) displayMagenta()//displayBold()//'...continuing'//displayReset()
+    else
+       write (error_unit,*)                                  '...continuing'
+    end if
+    call flush(error_unit)
+    return
+  end subroutine Signal_Handler_SIGUSR1
+
   subroutine errorHandlerGSL(reason,file,line,errorNumber) bind(c)
     !!{
     Handle errors from the GSL library, by flushing all data and then aborting.
@@ -710,11 +752,11 @@ contains
     use :: ISO_Varying_String, only : assignment(=), operator(//)
     use :: String_Handling   , only : String_Join
     implicit none
-    type     (varying_string)                                           :: Component_List
-    character(len=*         ), intent(in   )                            :: className
-    type     (varying_string), intent(in   ), dimension(:), allocatable :: componentList
+    type     (varying_string)                              :: Component_List
+    character(len=*         ), intent(in   )               :: className
+    type     (varying_string), intent(in   ), dimension(:) :: componentList
 
-    if (allocated(componentList)) then
+    if (size(componentList) > 0) then
        Component_List=char(10)//'Implementations of the "'   //className//'" class that provide this functionality are:'// &
             & char(10)//'   '//String_Join(componentList,char(10)//'   ')
     else
@@ -745,12 +787,10 @@ contains
     integer :: error
     
     !$ if (hdf5AccessInitialized) then
-    !$    if (.not.hdf5Access%ownedByThread()) &
-    !$      & call hdf5Access%set  (     )
-    call           H5Close_F       (error)
-    call           H5Close_C       (     )
-    !$    if (hdf5AccessInitialized      ) &
-    !$      & call hdf5Access%unset(     )
+    !$    call hdf5Access%set  (     )
+    call       H5Close_F       (error)
+    call       H5Close_C       (     )
+    !$    call hdf5Access%unset(     )
     !$ end if
     return
   end subroutine closeHDF5

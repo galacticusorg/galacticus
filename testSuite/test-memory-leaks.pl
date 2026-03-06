@@ -31,8 +31,17 @@ my @models =
 	 parameters => "testSuite/parameters/memoryLeakFormationHalos.xml"
      },
      {
-	 label      => "MCMC",
-	 parameters => "testSuite/parameters/mcmcConfig.xml",
+     	 label      => "MCMC",
+     	 parameters => "testSuite/parameters/mcmcConfig.xml",
+     	 mpi        =>
+     	 {
+     	     processes => 4,
+     	     threads   => 1
+     	 }
+     },
+     {
+	 label      => "MCMCHMF",
+	 parameters => "testSuite/parameters/memoryLeakMCMCHMFConfig.xml",
 	 mpi        =>
 	 {
 	     processes => 4,
@@ -55,7 +64,7 @@ foreach my $model ( @models ) {
     
     # Run the model.
     print "Running model '".$model->{'label'}."'...\n";
-    system("mkdir -p outputs/memoryLeaks/".$model->{'label'}."; cd ..; ".($model->{'mpi'} ? "export OMP_NUM_THREADS=".$model->{'mpi'}->{'threads'}."; mpirun --allow-run-as-root --n ".$model->{'mpi'}->{'processes'}." " : "")."valgrind --leak-check=full --xml=yes --xml-file=testSuite/outputs/memoryLeaks/".$model->{'label'}."/memory-leaks-%p.xml ./Galacticus.exe ".$model->{'parameters'});
+    system("mkdir -p outputs/memoryLeaks/".$model->{'label'}."; cd ..; ".($model->{'mpi'} ? "export OMP_NUM_THREADS=".$model->{'mpi'}->{'threads'}."; mpirun --oversubscribe --allow-run-as-root --n ".$model->{'mpi'}->{'processes'}." " : "")."valgrind --leak-check=full --xml=yes --xml-file=testSuite/outputs/memoryLeaks/".$model->{'label'}."/memory-leaks-%p.xml ./Galacticus.exe ".$model->{'parameters'});
     unless ( $? == 0 ) {
     	print "\tFAILED:  model run:\n";
     } else {
@@ -101,6 +110,7 @@ foreach my $model ( @models ) {
 	    next
 		if ( $ignore || ! defined($frameFinal) );
 	    print "\t\tMemory leak (".$error->{'kind'}.") for model '".$model->{'label'}."' in: '".(exists($frameFinal->{'file'}) ? $frameFinal->{'file'} : "(UNKNOWN)")."' line ".(exists($frameFinal->{'line'}) ? $frameFinal->{'line'} : "(UNKNOWN)")."\n";
+	    print Dumper($error);
 	    $status = "FAILED";
 	}
 

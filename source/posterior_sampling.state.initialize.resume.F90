@@ -119,10 +119,11 @@ contains
     type            (varying_string                      )                              :: logFileName         , message
     integer                                                                             :: stateCount          , mpiRank          , &
          &                                                                                 logFileUnit         , ioStatus         , &
-         &                                                                                 i
+         &                                                                                 i                   , lineNumber
     double precision                                                                    :: logPosterior_       , logLikelihood_
     logical                                                                             :: converged           , first
-    character       (len=12                )                                            :: labelValue          , labelMinimum     , &
+    character       (len=4096                            )                              :: line
+    character       (len=  12                            )                              :: labelValue          , labelMinimum     , &
          &                                                                                 labelMaximum
 
     ! Assume we have no information about the likelihood of the state by default.
@@ -134,30 +135,38 @@ contains
     ! Read state from the log file.
     logFileName=self%logFileRoot//'_'//mpiSelf%rankLabel()//'.log'
     open(newunit=logFileUnit,file=char(logFileName),status='unknown',form='formatted')
-    ioStatus=0
-    first   =.true.
+    ioStatus  =0
+    first     =.true.
+    lineNumber=0
     do while (ioStatus == 0)
-       read (logFileUnit,*,iostat=ioStatus) stateCount          , &
-            &                               mpiRank             , &
-            &                               timeEvaluatePrevious, &
-            &                               converged           , &
-            &                               logPosterior_       , &
-            &                               logLikelihood_      , &
-            &                               stateVector
-       if (ioStatus == 0) then
-          ! Map the state.
-          do i=1,size(stateVector)
-             stateVectorMapped(i)=modelParameters_(i)%modelParameter_%map(stateVector(i))
-          end do
-          ! Restore the state object.
-          if (self%restoreState) then
-             call simulationState%restore(stateVectorMapped,first         )
-             call modelLikelihood%restore(stateVectorMapped,logLikelihood_)
-             logLikelihood=logLikelihood_
-             logPosterior =logPosterior_
-          end if
-          first=.false.
+       read (logFileUnit,'(a)',iostat=ioStatus) line
+       lineNumber=lineNumber+1
+       if (ioStatus  /=  0 ) cycle
+       if (line(1:1) == "#") cycle
+       read (line,*,iostat=ioStatus) &
+            & stateCount          ,  &
+            & mpiRank             ,  &
+            & timeEvaluatePrevious,  &
+            & converged           ,  &
+            & logPosterior_       ,  &
+            & logLikelihood_      ,  &
+            & stateVector
+       if (ioStatus /= 0) then
+          write (labelValue,*) lineNumber
+          call Error_Report("failed to read chain file '"//char(logFileName)//"' [line: "//trim(adjustl(labelValue))//"]"//{introspection:location})
        end if
+       ! Map the state.
+       do i=1,size(stateVector)
+          stateVectorMapped(i)=modelParameters_(i)%modelParameter_%map(stateVector(i))
+       end do
+       ! Restore the state object.
+       if (self%restoreState) then
+          call simulationState%restore(stateVectorMapped,first         )
+          call modelLikelihood%restore(stateVectorMapped,logLikelihood_)
+          logLikelihood=logLikelihood_
+          logPosterior =logPosterior_
+       end if
+       first=.false.
     end do
     close(logFileUnit)
     ! Set the simulation state.

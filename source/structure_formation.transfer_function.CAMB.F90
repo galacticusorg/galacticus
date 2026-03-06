@@ -83,8 +83,15 @@ contains
     class           (darkMatterParticleClass ), pointer       :: darkMatterParticle_
     double precision                                          :: redshift
     integer                                                   :: cambCountPerDecade
+    type            (varying_string          )                :: transferFunctionType
 
     !![
+    <inputParameter>
+      <name>transferFunctionType</name>
+      <source>parameters</source>
+      <defaultValue>var_str('darkMatter')</defaultValue>
+      <description>Specifies whether to use the {\normalfont \ttfamily darkMatter} or {\normalfont \ttfamily total} transfer function.</description>
+    </inputParameter>
     <inputParameter>
       <name>redshift</name>
       <source>parameters</source>
@@ -101,7 +108,7 @@ contains
     <objectBuilder class="cosmologyFunctions"  name="cosmologyFunctions_"  source="parameters"/>
     <objectBuilder class="darkMatterParticle"  name="darkMatterParticle_"  source="parameters"/>
     !!]
-    self=transferFunctionCAMB(darkMatterParticle_,cosmologyParameters_,cosmologyFunctions_,redshift,cambCountPerDecade)
+    self=transferFunctionCAMB(darkMatterParticle_,cosmologyParameters_,cosmologyFunctions_,enumerationTransferFunctionTypeEncode(char(transferFunctionType),includesPrefix=.false.),redshift,cambCountPerDecade)
     !![
     <inputParametersValidate source="parameters"/>
     <objectDestructor name="cosmologyParameters_"/>
@@ -111,7 +118,7 @@ contains
     return
   end function cambConstructorParameters
 
-  function cambConstructorInternal(darkMatterParticle_,cosmologyParameters_,cosmologyFunctions_,redshift,cambCountPerDecade) result(self)
+  function cambConstructorInternal(darkMatterParticle_,cosmologyParameters_,cosmologyFunctions_,transferFunctionType,redshift,cambCountPerDecade) result(self)
     !!{
     Internal constructor for the \refClass{transferFunctionCAMB} transfer function class.
     !!}
@@ -119,14 +126,15 @@ contains
     use :: Dark_Matter_Particles, only : darkMatterParticleCDM
     use :: Error                , only : Error_Report
     implicit none
-    type            (transferFunctionCAMB    )                          :: self
-    class           (darkMatterParticleClass ), intent(in   ), target   :: darkMatterParticle_
-    class           (cosmologyParametersClass), intent(in   ), target   :: cosmologyParameters_
-    class           (cosmologyFunctionsClass ), intent(in   ), target   :: cosmologyFunctions_
-    double precision                          , intent(in   )           :: redshift
-    integer                                   , intent(in   )           :: cambCountPerDecade
+    type            (transferFunctionCAMB               )                          :: self
+    class           (darkMatterParticleClass            ), intent(in   ), target   :: darkMatterParticle_
+    class           (cosmologyParametersClass           ), intent(in   ), target   :: cosmologyParameters_
+    class           (cosmologyFunctionsClass            ), intent(in   ), target   :: cosmologyFunctions_
+    type            (enumerationTransferFunctionTypeType), intent(in   )           :: transferFunctionType
+    double precision                                     , intent(in   )           :: redshift
+    integer                                              , intent(in   )           :: cambCountPerDecade
     !![
-    <constructorAssign variables="cambCountPerDecade, redshift, *darkMatterParticle_, *cosmologyParameters_, *cosmologyFunctions_"/>
+    <constructorAssign variables="cambCountPerDecade, transferFunctionType, redshift, *darkMatterParticle_, *cosmologyParameters_, *cosmologyFunctions_"/>
     !!]
 
     ! Require that the dark matter be cold dark matter.
@@ -136,6 +144,8 @@ contains
     class default
        call Error_Report('transfer function expects a cold dark matter particle'//{introspection:location})
     end select
+    ! Transfer functions are created on the fly, so locking must be used.
+    self%useLock                            =  .true.
     ! Set initialization state.
     self%initialized                        =  .false.
     self%massHalfModeAvailable              =  .false.
@@ -148,9 +158,11 @@ contains
     ! Set the epoch time for this transfer function.
     self%time                               =   self%cosmologyFunctions_%cosmicTime(self%cosmologyFunctions_%expansionFactorFromRedshift(redshift))
     ! Set maximum wavenumber.
-    self%wavenumberMaximum                  =  +wavenumberMaximumLimit                                             &
-         &                                     *self%cosmologyParameters_%hubbleConstant(units=hubbleUnitsLittleH)
-    self%wavenumberMaximumReached           =  .false.
+    self%wavenumberMaximum=+wavenumberMaximumLimit                                             &
+         &                 *self%cosmologyParameters_%hubbleConstant(units=hubbleUnitsLittleH)
+    self%wavenumberMaximumReached=.false.
+    ! Set smooth extrapolation beyond the maximum wavenumber.
+    self%factorWavenumberSmoothExtrapolation=2.0d0
     ! Set an empty file name - this will be generated when we run CAMB,
     self%fileName                           =  ""
     return
@@ -181,29 +193,55 @@ contains
     implicit none
     class           (transferFunctionCAMB), intent(inout) :: self
     double precision                      , intent(in   ) :: wavenumber
-    logical                                               :: makeTransferFunction
-    type            (lockDescriptor      )                :: fileLock
+    logical                                               :: makeTransferFunction, cacheUsed
+    integer                                               :: useCache            , i
 
-    ! If the file has been read and the wavenumber is within range, simply return.
-    makeTransferFunction=.false.
-    if (self%initialized) then
-       if     (                                       &
-            &   wavenumber > exp(self%transfer%x(-1)) &
-            &  .and.                                  &
-            &   .not.self%wavenumberMaximumReached    &
-            & ) makeTransferFunction=.true.
-    else
-       makeTransferFunction=.true.
+    ! Check for a cached transfer function that we can reuse.
+    cacheUsed=.false.
+    if (.not.self%initialized) then
+       !$omp critical(transferFunctionFileCache)
+       useCache=0
+       if (countCache > 0) then
+          do i=1,countCache
+             if (cachedTransferFunctions(i)%hashedDescriptor == self%hashedDescriptor()) then
+                useCache=i
+                exit
+             end if
+          end do
+       end if
+       if (useCache /= 0 .and. wavenumber <= cachedTransferFunctions(useCache)%wavenumber(size(cachedTransferFunctions(useCache)%wavenumber))) then
+          ! We have a cached entry with sufficient extent, so "read" it. No need to lock the file here as we know that it will be
+          ! restored from cache.
+          call self%readFile(char(self%fileName),invalidateCache=.false.,lockCache=.false.)
+          cacheUsed=.true.
+       end if
+       !$omp end critical(transferFunctionFileCache)
     end if
-    if (.not.makeTransferFunction) return
-    ! Retrieve the transfer function.
-    call Interface_CAMB_Transfer_Function(self%cosmologyParameters_,[self%redshift],wavenumber,self%wavenumberMaximum,self%cambCountPerDecade,self%fileName,self%wavenumberMaximumReached)
-    ! Get a lock on the relevant lock file.
-    call File_Lock(char(self%fileName),fileLock)
-    ! Read the newly created file.
-    call self%readFile(char(self%fileName))
-    ! Unlock the lock file.
-    call File_Unlock(fileLock)
+    if (.not.cacheUsed) then
+       ! If the file has been read and the wavenumber is within range, simply return.
+       makeTransferFunction=.false.
+       if (self%initialized) then
+          if     (                                       &
+               &   wavenumber > exp(self%transfer%x(-1)) &
+               &  .and.                                  &
+               &   .not.self%wavenumberMaximumReached    &
+               & ) makeTransferFunction=.true.
+       else
+          makeTransferFunction=.true.
+       end if
+       if (.not.makeTransferFunction) return
+       ! Retrieve the transfer function.
+       call Interface_CAMB_Transfer_Function(self%cosmologyParameters_,[self%redshift],wavenumber,self%wavenumberMaximum,self%cambCountPerDecade,self%fileName,self%wavenumberMaximumReached)
+       block
+         type(lockDescriptor) :: fileLock
+         ! Get a lock on the relevant lock file.
+         call File_Lock(char(self%fileName),fileLock,lockIsShared=.true.)
+         ! Read the newly created file.
+         call self%readFile(char(self%fileName),invalidateCache=.true.)
+         ! Unlock the lock file.
+         call File_Unlock(fileLock)
+       end block
+    end if
     ! Check the maximum wavenumber.
     if (self%transfer%x(-1) > log(self%wavenumberMaximum)-0.01d0) self%wavenumberMaximumReached=.true.
     ! Record that the transfer function has now been initialized.

@@ -46,6 +46,8 @@ sub stepCount {
     # Return a count of the number of steps taken.
     my $config  =   shift() ;
     my %options = %{shift()};
+    # Determine if unconverged chains are to be used.
+    my $useUnconverged = exists($options{'useUnconverged'}) ? $options{'useUnconverged'} eq "yes" : 0;
     # Read the first chain.
     my $logFileRoot   = &logFileRoot($config,\%options);
     my $chainFileName = sprintf("%s_%4.4i.log",$logFileRoot,0);
@@ -54,7 +56,8 @@ sub stepCount {
     while ( my $line = <$chainFile> ) {
 	unless ( $line =~ m/^\"/ ) {
 	    my @columns = split(" ",$line);
-	    $stepCount = $columns[0];
+	    $stepCount = $columns[0]
+		if ( $useUnconverged || $columns[3] eq "T" );
 	}
     }
     die("Galacticus::Constraints::Parameters::parametersCount(): could not determine number of steps")
@@ -88,7 +91,7 @@ sub parameterCount {
     my $parameterCount;
     open(my $chainFile,$chainFileName);
     while ( my $line = <$chainFile> ) {
-	unless ( $line =~ m/^\"/ ) {
+	unless ( $line =~ m/^#/ ) {
 	    my @columns = split(" ",$line);
 	    $parameterCount = scalar(@columns)-6;
 	}
@@ -103,12 +106,25 @@ sub parameterCount {
 sub maximumPosteriorParameterVector {
     my $config  =   shift() ;
     my %options = %{shift()};
+    return &maximumParameterVector($config,4,\%options);
+}
+    
+sub maximumLikelihoodParameterVector {
+    my $config  =   shift() ;
+    my %options = %{shift()};
+    return &maximumParameterVector($config,5,\%options);
+}
+    
+sub maximumParameterVector {
+    my $config       =   shift() ;
+    my $selectColumn = shift();
+    my %options      = %{shift()};
     # Determine the MCMC directory.
     my $logFileRoot = &logFileRoot($config,\%options);
     (my $mcmcDirectory  = $logFileRoot) =~ s/\/[^\/]+$//;    
     # Determine number of chains.
     my $chainCount = &chainCount($config,\%options);
-    # Parse the chains to find the maximum likelihood model.
+    # Parse the chains to find the maximum likelihood/posterior model.
     my $maximumLikelihood;
     my @maximumLikelihoodParameters;
     my @chainFiles;
@@ -132,6 +148,8 @@ sub maximumPosteriorParameterVector {
 	my $step = 0;
 	open(iHndl,$chainFile);
 	while ( my $line = <iHndl> ) {
+	    next
+		if ( $line =~ m/^#/ );
 	    ++$step;
 	    $line =~ s/^\s*//;
 	    $line =~ s/\s*$//;
@@ -140,8 +158,8 @@ sub maximumPosteriorParameterVector {
 	    my $accept = 1;
 	    $accept = 0
 		if ( exists($options{'burnCount'}) && $step <= $options{'burnCount'} );
-	    if ( $accept == 1 && (! defined($maximumLikelihood) || $columns[4] > $maximumLikelihood ) ) {
-		$maximumLikelihood           = $columns[4];
+	    if ( $accept == 1 && (! defined($maximumLikelihood) || $columns[$selectColumn] > $maximumLikelihood ) ) {
+		$maximumLikelihood           = $columns[$selectColumn];
 		@maximumLikelihoodParameters = @columns[6..$#columns];
 	    }
 	}
@@ -190,6 +208,8 @@ sub parameterVector {
     my @state;
     open(my $chainFile,$chainFileName);
     while ( my $line = <$chainFile> ) {
+	next
+	    if ( $line =~ m/^#/ );
 	++$stateCount;
 	$line =~ s/^\s*//;
 	$line =~ s/\s*$//;
@@ -210,10 +230,44 @@ sub parameterVector {
     return $parameterVector;
 }
 
+sub correlationLengths {
+    my $config  =   shift() ;
+    my %options = %{shift()}
+        if ( scalar(@_) > 0 );
+    # Determine number of chains.
+    my $chainCount     = &chainCount    ($config,\%options);
+    # Determine number of parameters.
+    my $parameterCount = &parameterCount($config,\%options);
+    # Initialize correlation lengths.
+    my $correlationLengths = pdl -ones($chainCount,$parameterCount);
+    # Iterate over chains.
+    for(my $chain=0;$chain<$chainCount;++$chain) {
+	# Get states for this chain.
+	my $states = &parameterMatrix($config,$chain,\%options);
+	# Find number of available states.
+	my $stateCount = $states->dim(1);
+	# Iterate over parameters.
+	for(my $i=0;$i<$parameterCount;++$i) {
+	    # Increment offset until correlation length is found.
+	    my $offsetMaximum = 100;
+	    for(my $offset=0;$offset<$offsetMaximum;++$offset) {
+		my $stateMean   = $states->(($i),$stateCount-$offsetMaximum-$offset:$stateCount-1)->average();
+		my $correlation = sum(($states->(($i),$stateCount-$offsetMaximum:$stateCount-1)-$stateMean)*($states->(($i),$stateCount-$offsetMaximum-$offset:$stateCount-1-$offset)-$stateMean));
+		if ( $correlation < 0.0 ) {
+		    $correlationLengths->(($chain),($i)) .= $offset;
+		    last;
+		}
+	    }
+	}
+    }
+    return $correlationLengths;
+}
+
 sub parameterMatrix {
     my $config  =   shift() ;
     my $chain   =   shift() ;
-    my %options = %{shift()};
+    my %options = %{shift()}
+        if ( scalar(@_) > 0 );
     # Determine the MCMC directory.
     my $logFileRoot    = &logFileRoot($config,\%options);
     (my $mcmcDirectory = $logFileRoot) =~ s/\/[^\/]+$//;    
@@ -232,19 +286,28 @@ sub parameterMatrix {
 	$chainMaximum = $chain;
     }
     my $countChainsActive = $chainMaximum-$chainMinimum+1;
-    my $parameterMatrix = pdl zeros(&parameterCount($config,\%options),&stepCount($config,\%options)*$countChainsActive);
-    my $logLikelihood   = pdl zeros(                                   &stepCount($config,\%options)*$countChainsActive);
+    # Determine if unconverged chains are to be used.
+    my $useUnconverged = exists($options{'useUnconverged'}) ? $options{'useUnconverged'} eq "yes" : 0;
+    # Determine the number of states.
+    my $stepCountTotal  = &stepCount($config,\%options);
+    my $stepCountActual = exists($options{'stepsMaximum'}) && $options{'stepsMaximum'} < $stepCountTotal ? $options{'stepsMaximum'} : $stepCountTotal;
+    my $stepFirst       = $stepCountTotal-$stepCountActual+1;
+    # Initialize the parameter matrix.
+    my $parameterMatrix = pdl zeros(&parameterCount($config,\%options),$stepCountActual*$countChainsActive);
+    my $logLikelihood   = pdl zeros(                                   $stepCountActual*$countChainsActive);
     my $stateCount      = -1;
     for(my $chainIndex=$chainMinimum;$chainIndex <= $chainMaximum;++$chainIndex) {
 	my $chainFileName = sprintf("%s_%4.4i.log",$logFileRoot,$chainIndex);
 	open(my $chainFile,$chainFileName);
 	while ( my $line = <$chainFile> ) {
+	    next
+		if ( $line =~ m/^#/ );
+	    my @columns = split(" ",$line);
+	    next
+		unless ( ( $useUnconverged || $columns[3] eq "T" ) && $columns[0] >= $stepFirst );
 	    ++$stateCount;
-	    $line =~ s/^\s*//;
-	    $line =~ s/\s*$//;
-	    my @columns = split(/\s+/,$line);
+	    my @state   = @columns[6..$#columns];
 	    $logLikelihood->(($stateCount)) .= $columns[4];
-	    my @state = @columns[6..$#columns];
 	    for(my $i=0;$i<scalar(@state);++$i) {
 		$parameterMatrix->(($i),($stateCount)) .= $state[$i];
 	    }
@@ -268,7 +331,7 @@ sub parameterFind {
 	$valueIndex    = $2;
     }
     my $parameter = $parameters;
-    foreach ( split(/::/,$parameterName) ) {
+    foreach ( split(/\//,$parameterName) ) {
 	# Check if the parameter name contains an array reference.
 	if ( $_ =~ m/^(.*)\[(\d+)\]$/ ) {
 	    # Parameter name contains array reference. Step through to the relevant parameter in the list. If the parameter is
@@ -382,6 +445,9 @@ sub parameterVectorUpdate {
 	} else {
 	    die('Galacticus::Constraints::Parameters::parameterVectorUpdate(): unknown parameter type');
 	}
+	# Skip parameters that are not mapped for this model.
+	next
+	    if ( exists($options{'parameterMap'}) && ! grep {$_ eq $modelParameter->{'name'}->{'value'}} @{$options{'parameterMap'}} );
 	# Find the parameter and set its value.
 	(my $node, my $valueIndex) = &parameterFindInDOMs($modelParameter->{'name'}->{'value'},\%doms);
 	&parameterValueSetInDOM($node,$valueIndex,$parameterValue);
@@ -475,7 +541,6 @@ sub parameterFindInDOMs {
 	$index = $1;
 	$xPath =~ s/\{\d+\}//;
     }
-    $xPath =~ s/::/\//g;
     $xPath =~ s/\[(\d+)\]/"[".($1+1)."]"/ge;
     my $node;
     foreach my $fileName ( sort(keys(%doms)) ) {
@@ -756,83 +821,26 @@ sub parameterMappings {
     return @mappings;
 }
 
+sub parameterPriorRanges {
+    # Return a list of active parameter prior ranges.
+    my $config = shift();
+    my @priorRanges;
+    # Extract parameters from config file.
+    my @parameters = &List::ExtraUtils::as_array($config->{'posteriorSampleSimulation'}->{'modelParameter'});
+    # Extract prior ranges.
+    foreach my $parameter ( @parameters ) {
+	if ( $parameter->{'value'} eq "active" ) {
+	    my @priorRange = ($parameter->{'distributionFunction1DPrior'}->{'limitLower'}->{'value'}, $parameter->{'distributionFunction1DPrior'}->{'limitUpper'}->{'value'});
+	    push(@priorRanges,\@priorRange);
+	}
+    }
+    return @priorRanges;
+}
+
 sub step {
     # Heaviside step function, required for some derived parameter evaluations.
     my $x = shift();
     return $x >= 0.0 ? 1.0 : 0.0;
 }
-
-# sub Sample_Models {
-#     # Generate a sample of models from the posterior distribution.
-#     my $config  =   shift() ;
-#     my %options = %{shift()};
-#     # Find the work directory.
-#     my $workDirectory = $config->{'likelihood'}->{'workDirectory'};
-#     # Get a hash of the parameter values.
-#     my $xml        = new XML::Simple();
-#     my $parameters = $xml->XMLin($config->{'posteriorSampleLikelihood'}->{'baseParameters'}->{'value'});
-#     # Get a matrix of sampled states.
-#     my $sampleMatrix = &Sample_Matrix($config,\%options);
-#     # Run model for each sample.
-#     my $sampleDirectory = exists($options{'sampleDirectory'}) ? $options{'sampleDirectory'}."/" : $workDirectory."/posteriorSample/";
-#     my @pbsStack;
-#     for (my $i=0;$i<$sampleMatrix->dim(1);++$i) {
-# 	# Create an output directory.
-# 	my $modelDirectory = $sampleDirectory.$i."/";
-# 	system("mkdir -p ".$modelDirectory);
-# 	my $galacticusFileName = $modelDirectory."/galacticus.hdf5";
-# 	# Check if the model has already been run.
-# 	unless ( -e $galacticusFileName ) {
-# 	    # Convert these values into a parameter array.
-# 	    my $currentConfig = clone($config);
-# 	    my $newParameters = &Convert_Parameters_To_Galacticus($currentConfig, $sampleMatrix->(:,($i))->list());
-# 	    # Increment the random number seed.
-# 	    $parameters->{'randomSeed'}->{'value'} += $config->{'likelihood'}->{'threads'};
-# 	    # Clone parameters.
-# 	    my $currentParameters = clone($parameters);
-# 	    # Apply to parameters.
-# 	    &Apply_Parameters($currentParameters,$newParameters);
-# 	    # Apply any parameters from command line.
-# 	    &applyCommandLineParameters($currentParameters,\%options);
-# 	    # Apply any other parameter modifications requested by the caller.
-# 	    &{$options{'parametersModifier'}}($currentParameters)
-# 		if ( exists($options{'parametersModifier'}) );
-# 	    # Specify the output file name.
-# 	    $currentParameters->{'outputFileName'}->{'value'} = $galacticusFileName;
-# 	    # Write the modified parameters to file.
-# 	    &Output($currentParameters,$modelDirectory."parameters.xml");
-# 	    # Construct the tasks to perform.
-# 	    my $command;
-# 	    if ( exists($config->{'likelihood'}->{'environment'}) ) {
-# 		foreach ( &List::ExtraUtils::as_array($config->{'likelihood'}->{'environment'}) ) {
-# 		    $command .= "export ".$_."\n";
-# 		}
-# 	    }
-# 	    $command .= "ulimit -t unlimited\n";
-# 	    $command .= "ulimit -c unlimited\n";
-# 	    $command .= "export OMP_NUM_THREADS=".$config->{'likelihood'}->{'threads'}."\n";
-# 	    $command .= "mpirun --bynode -np 1 ".(exists($config->{'likelihood'}->{'executable'}) ? $config->{'likelihood'}->{'executable'} : "Galacticus.exe")." ".$modelDirectory."parameters.xml\n";	    
-# 	    # Create a PBS job.
-# 	    my %job =
-# 		(
-# 		 launchFile => $modelDirectory."/launch.pbs",
-# 		 label      => $config->{'likelihood'}->{'name'}."_ppc".$i,
-# 		 logFile    => $modelDirectory."/launch.log",
-# 		 command    => $command
-# 		);
-# 	    foreach ( 'ppn', 'walltime', 'memory' ) {
-# 		$job{$_} = $options{$_}
-# 		if ( exists($options{$_}) );
-# 	    }
-# 	    # Queue the calculation.
-# 	    push(@pbsStack,\%job);
-# 	}
-#     }
-#     # Send jobs to PBS.
-#     &Galacticus::Launch::PBS::SubmitJobs(\%options,@pbsStack)
-#      	if ( scalar(@pbsStack) > 0 );
-#     # Return the number of models sampled.
-#     return ($sampleMatrix->dim(1), $sampleDirectory);
-# }
 
 1;

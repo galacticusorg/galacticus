@@ -320,7 +320,6 @@ contains
     implicit none
     class(kinematicsDistributionFiniteResolutionNFW), intent(inout) :: self
     type (lockDescriptor                           )                :: fileLock
-    type (hdf5Object                               )                :: file
     type (varying_string                           )                :: fileName
 
     fileName=inputPath(pathTypeDataDynamic)                   // &
@@ -333,11 +332,13 @@ contains
     ! Always obtain the file lock before the hdf5Access lock to avoid deadlocks between OpenMP threads.
     call File_Lock(fileName,fileLock,lockIsShared=.false.)
     !$ call hdf5Access%set()
-    call file%openFile(char(fileName),overWrite=.true.,objectsOverwritable=.true.,readOnly=.false.)
-    call file%writeDataset(velocityDispersion1DTableLengthResolution,'radiusCore'        )
-    call file%writeDataset(velocityDispersion1DTableRadius          ,'radius'            )
-    call file%writeDataset(velocityDispersion1DTable                ,'velocityDispersion')
-    call file%close()
+    hdf5FileScope: block
+      type (hdf5Object) :: file
+      file=hdf5Object(char(fileName),overWrite=.true.,objectsOverwritable=.true.,readOnly=.false.)
+      call file%writeDataset(velocityDispersion1DTableLengthResolution,'radiusCore'        )
+      call file%writeDataset(velocityDispersion1DTableRadius          ,'radius'            )
+      call file%writeDataset(velocityDispersion1DTable                ,'velocityDispersion')
+    end block hdf5FileScope
     !$ call hdf5Access%unset()
     call File_Unlock(fileLock)
     return
@@ -355,7 +356,6 @@ contains
     implicit none
     class(kinematicsDistributionFiniteResolutionNFW), intent(inout) :: self
     type (lockDescriptor                           )                :: fileLock
-    type (hdf5Object                               )                :: file
     type (varying_string                           )                :: fileName
 
     fileName=inputPath(pathTypeDataDynamic)                   // &
@@ -373,11 +373,13 @@ contains
        ! Always obtain the file lock before the hdf5Access lock to avoid deadlocks between OpenMP threads.
        call File_Lock(char(fileName),fileLock,lockIsShared=.true.)
        !$ call hdf5Access%set()
-       call file%openFile(char(fileName))
-       call file%readDataset('radiusCore'        ,velocityDispersion1DTableLengthResolution)
-       call file%readDataset('radius'            ,velocityDispersion1DTableRadius          )
-       call file%readDataset('velocityDispersion',velocityDispersion1DTable                )
-       call file%close()
+       hdf5FileScope: block
+         type (hdf5Object) :: file
+         file=hdf5Object(char(fileName))
+         call file%readDataset('radiusCore'        ,velocityDispersion1DTableLengthResolution)
+         call file%readDataset('radius'            ,velocityDispersion1DTableRadius          )
+         call file%readDataset('velocityDispersion',velocityDispersion1DTable                )
+       end block hdf5FileScope
        !$ call hdf5Access%unset()
        call File_Unlock(fileLock)
        velocityDispersion1DTableRadiusCount          =size(velocityDispersion1DTableRadius          )

@@ -44,13 +44,13 @@
 
 extern "C" 
 {
-  orgQhull::Qhull * convexHullConstructorC(long n, double *points[], int *status);
+  orgQhull::Qhull * convexHullConstructorC(int n, double *points[], int *status);
   void convexHullDestructorC(orgQhull::Qhull *qhull);
   double convexHullVolumeC(orgQhull::Qhull *qhull);
   bool convexHullPointIsInHullC(orgQhull::Qhull *qhull, double point[]);
 }
 
-orgQhull::Qhull * convexHullConstructorC(long n, double *points[], int *status)
+orgQhull::Qhull * convexHullConstructorC(int n, double *points[], int *status)
 {
   //% Constructor for convex hull objects.
    

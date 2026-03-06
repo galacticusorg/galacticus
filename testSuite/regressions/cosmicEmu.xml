@@ -8,6 +8,7 @@
   <!-- Specify tasks to perform -->
   <task value="powerSpectra">
     <includeNonLinear value="true"/>
+    <pointsPerDecade value="10"/>
   </task>
 
   <!-- Cosmological parameters -->

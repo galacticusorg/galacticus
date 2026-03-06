@@ -21,7 +21,8 @@
 
   <nbodyOperator value="sequence">
     <nbodyOperator value="filterID" >
-      <idSelectionFileName value=""/>
+      <idSelectionFileName    value=""/>
+      <idSelectionDatasetName value="Snapshot00001/HaloCatalog/HaloID"/>
     </nbodyOperator>
     <nbodyOperator value="exportIRATE">
       <fileName value="" />
@@ -37,5 +38,7 @@
     <OmegaBaryon     value=" 0.047000"/>
     <temperatureCMB  value=" 2.725480"/>
   </cosmologyParameters>
+
+  <outputFileName value="galacticus.hdf5"/>
 
 </parameters>

@@ -68,7 +68,7 @@ contains
     return
   end function Factorial
 
-  double precision function Logarithmic_Factorial(argument)
+  impure elemental double precision function Logarithmic_Factorial(argument)
     !!{
     Computes the logarithmic of the factorial of {\normalfont \ttfamily argument}.
     !!}

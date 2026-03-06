@@ -49,6 +49,8 @@ sub Parse_Options {
     my %argumentsSeen;
     while ( $iArg < scalar(@arguments)-1 ) {
 	++$iArg;
+	die("unexpected dash in argument '".$arguments[$iArg]."'? can happen as a result of copy-and-paste - try changing to regular dashes")
+	    if ( $arguments[$iArg] =~ m/^\-?[––—‒‑‐]/ );
 	if ( $arguments[$iArg] =~ m/^\-\-(.*)/ ) {
 	    my $argument = $1;
 	    die("Galacticus::Options::Parse_Options: missing final value after option '--".$argument."'")
@@ -77,6 +79,16 @@ sub Parse_Options {
 	}
     }
     return %argumentsSeen;
+}
+
+sub Serialize_Options {
+    # Serialize options back to command line arguments.
+    my %options = %{shift()};
+    my $commandLine;
+    foreach my $name ( sort(keys(%options)) ) {
+	$commandLine .= " ".join(" ",map {"--".$name." ".$_} &List::ExtraUtils::as_array($options{$name}));
+    }
+    return $commandLine;
 }
 
 1;

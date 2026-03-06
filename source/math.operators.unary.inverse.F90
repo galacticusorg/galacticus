@@ -34,6 +34,7 @@
    contains
      procedure :: operate   => inverseOperate
      procedure :: unoperate => inverseUnoperate
+     procedure :: jacobian  => inverseJacobian
   end type operatorUnaryInverse
 
   interface operatorUnaryInverse
@@ -87,3 +88,16 @@ contains
     inverseUnoperate=1.0d0/f
     return
   end function inverseUnoperate
+
+  double precision function inverseJacobian(self,x)
+    !!{
+    Comput the Jacobian of the inverse operation.
+    !!}
+    implicit none
+    class           (operatorUnaryInverse), intent(inout) :: self
+    double precision                      , intent(in   ) :: x
+    !$GLC attributes unused :: self
+
+    inverseJacobian=-1.0d0/x**2
+    return
+  end function inverseJacobian

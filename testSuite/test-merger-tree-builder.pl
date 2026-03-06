@@ -102,7 +102,13 @@ OPENER
 my $i = -1;
 foreach my $model ( @models ) {
     if ( exists($model->{'parameterFile'}) ) {
-	$document .= slurp($model->{'parameterFile'});
+	open(my $parameterFile,$model->{'parameterFile'});
+	while ( my $line = <$parameterFile> ) {
+	    next
+		if ( $line =~ m/^<\?xml/ );
+	    $document .= $line;
+	}
+	close($parameterFile);
 	++$i;
 	$model->{'tmpName'} = "outputs/test-merger-tree-builder/galacticus_".$i.":1/galacticus.hdf5";
     }

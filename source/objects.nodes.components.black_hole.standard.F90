@@ -414,7 +414,6 @@ contains
     call    mergersGroup%writeDataset([massBlackHole2            ],"massBlackHole2","Mass of the second merging black hole.",appendTo=.true.)
     call    mergersGroup%writeDataset([basic%time()              ],"timeOfMerger"  ,"The time of the black hole merger."    ,appendTo=.true.)
     call    mergersGroup%writeDataset([node%hostTree%volumeWeight],"volumeWeight"  ,"The weight for the black hole merger." ,appendTo=.true.)
-    call    mergersGroup%close       (                                                                                                      )
     !$ call hdf5Access  %unset       (                                                                                                      )
     return
   end subroutine Node_Component_Black_Hole_Standard_Output_Merger

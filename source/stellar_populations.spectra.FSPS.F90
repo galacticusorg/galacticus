@@ -114,6 +114,9 @@ contains
     !![
     <objectDestructor name="self%initialMassFunction_"/>
     !!]
+    if (allocated(self%spectra%interpolatorAge        )) deallocate(self%spectra%interpolatorAge        )
+    if (allocated(self%spectra%interpolatorWavelength )) deallocate(self%spectra%interpolatorWavelength )
+    if (allocated(self%spectra%interpolatorMetallicity)) deallocate(self%spectra%interpolatorMetallicity)
     return
   end subroutine fspsDestructor
 
@@ -132,7 +135,6 @@ contains
     class  (table1D                     ), allocatable   :: imf
     logical                                              :: remakeFile
     integer                                              :: fileFormatVersion
-    type   (hdf5Object                  )                :: spectraFile
     type   (lockDescriptor              )                :: fileLock
     integer                                              :: i
 
@@ -146,9 +148,12 @@ contains
           call File_Lock(self%fileName,fileLock,lockIsShared=i == 1)
           if (File_Exists(self%fileName)) then
              !$ call hdf5Access%set()
-             call spectraFile%openFile     (self%fileName,readOnly         =.true.)
-             call spectraFile%readAttribute('fileFormat' ,fileFormatVersion       )
-             if (fileFormatVersion /= fileFormatVersionCurrent) remakeFile=.true.
+             block
+               type(hdf5Object) :: spectraFile
+               spectraFile=hdf5Object(self%fileName,readOnly=.true.)
+               call spectraFile%readAttribute('fileFormat',fileFormatVersion)
+               if (fileFormatVersion /= fileFormatVersionCurrent) remakeFile=.true.
+             end block
              !$ call hdf5Access%unset()
           else
              remakeFile=.true.

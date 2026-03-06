@@ -18,7 +18,7 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
 !!{
-Contains a module which provieds tools for working with convex hulls of sets of points.
+Contains a module which provides tools for working with convex hulls of sets of points.
 !!}
 
 ! Specify an explicit dependence on the qhull.o object file.
@@ -28,27 +28,42 @@ module Points_Convex_Hull
   !!{
   Provide tools for working with convex hulls of sets of points.
   !!}
-  use, intrinsic :: ISO_C_Binding, only : c_ptr , c_null_ptr, c_double, c_int, &
-       &                                  c_long, c_bool
+  use, intrinsic :: ISO_C_Binding   , only : c_ptr          , c_null_ptr, c_double, c_int, &
+       &                                     c_long         , c_bool
+  use            :: Resource_Manager, only : resourceManager
   implicit none
   private
   public :: convexHull
 
+  type :: qhull
+     !!{
+     Wrapper class used to manage {\normalfont \ttfamily qhull} objects.
+     !!}
+     private
+     type(c_ptr) :: qhull_=c_null_ptr
+   contains
+     final :: qhullDestructor
+  end type qhull
+  
   type :: convexHull
      !!{
      Type used to wrap \href{http://www.qhull.org}{qhull} convex hull objects.
      !!}
-     type(c_ptr) :: qhull=c_null_ptr
+     type            (qhull          ), pointer                       :: qhull_          => null()
+     type            (resourceManager)                                :: qhullManager
+     double precision                   , dimension(:,:), allocatable :: pointsSubsample
    contains
      !![
      <methods>
+       <method method="assignment(=)" description="Assign convex hull objects."                              />
        <method method="volume"        description="Return the volume of the convex hull."                    />
        <method method="pointIsInHull" description="Return true if the given point is inside the convex hull."/>
      </methods>
      !!]
-     final     ::                  convexHullDestructor
-     procedure :: volume        => convexHullVolume
-     procedure :: pointIsInHull => convexHullPointIsInHull
+     procedure :: volume           => convexHullVolume
+     procedure :: pointIsInHull    => convexHullPointIsInHull
+     procedure :: convexHullAssign
+     generic   :: assignment(=)    => convexHullAssign
   end type convexHull
 
   interface convexHull
@@ -64,7 +79,7 @@ module Points_Convex_Hull
        !!{
        Interface to the C++ convex hull constructor.
        !!}
-       import c_ptr, c_double, c_long, c_int
+       import c_ptr, c_double, c_int, c_long
        type   (c_ptr   )                 :: convexHullConstructorC
        integer(c_long  ), value          :: n
        real   (c_double), dimension(:,:) :: points
@@ -99,46 +114,96 @@ module Points_Convex_Hull
   
 contains
 
-  function convexHullConstructor(points) result(self)
+  function convexHullConstructor(points,allowSubsampling,randomNumberGenerator_) result(self)
     !!{
     Constructor for {\normalfont \ttfamily convexHull} objects.
     !!}
 #ifdef QHULLAVAIL
-    use :: Error, only : Error_Report
+    use, intrinsic :: ISO_C_Binding           , only : c_size_t                  , c_long
+    use            :: Error                   , only : Error_Report
+    use            :: Sorting                 , only : sortIndex
 #endif
+    use            :: Numerical_Random_Numbers, only : randomNumberGeneratorClass
     implicit none
-    type            (convexHull)                                :: self
-    double precision            , dimension(:,:), intent(in   ) :: points    
+    type            (convexHull                )                                :: self
+    double precision                            , dimension(:,:), intent(in   ) :: points
+    logical                                     , optional      , intent(in   ) :: allowSubsampling
+    class           (randomNumberGeneratorClass), optional      , intent(inout) :: randomNumberGenerator_
 #ifdef QHULLAVAIL
-    integer                                                     :: status
+    double precision                            , dimension(  :), allocatable   :: rankRandom
+    integer         (c_size_t                  ), dimension(  :), allocatable   :: order
+    integer         (c_long                    ), parameter                     :: countMaximum          =250000000_c_long
+    class           (*                         ), pointer                       :: dummyPointer_
+    integer                                                                     :: status
+    integer         (c_size_t                  )                                :: countPoints                     , i
+    !![
+    <optionalArgument name="allowSubsampling" defaultsTo=".false."/>
+    !!]
 
     if (size(points,dim=1) /= 3) call Error_Report('3D points are required'//{introspection:location})
-    self%qhull=convexHullConstructorC(size(points,dim=2,kind=c_long),points,status)
-    if (status /= 0) call Error_Report('convex hull construction failed'//{introspection:location})
+    allocate(self%qhull_)
+    !![
+    <workaround type="gfortran" PR="105807" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=105807">
+      <description>ICE when passing a derived type component to a class(*) function argument.</description>
+    !!]
+    !$ dummyPointer_     => self%qhull_
+    !$ self%qhullManager =  resourceManager(dummyPointer_)
+    !![
+    </workaround>
+    !!]
+    countPoints=size(points,dim=2,kind=c_size_t)
+    if (countPoints > countMaximum) then
+       ! QHull uses a standard `c_int` for the number of points and other internal values. If we have more points than that, our
+       ! only option is to subsample - if that is permitted. We limit the size of the subsample to 250,000,000 - this seems to
+       ! allow QHull to work without overflows. Note that we retain the subsample of points in `self` - the QHull library retains
+       ! only a pointer to the points and so we must maintain this subsample for as long as the convex hull is needed.
+       if (allowSubsampling_) then          
+          ! Generate a random ordering of points.
+          if (.not.present(randomNumberGenerator_)) call Error_Report('subsampling requires a random number generator'//{introspection:location})
+          allocate(rankRandom(countPoints))
+          do i=1_c_size_t,countPoints
+             rankRandom(i)=randomNumberGenerator_%uniformSample()
+          end do
+          allocate(order(countPoints))
+          order=sortIndex(rankRandom)
+          deallocate(rankRandom)
+          allocate(self%pointsSubsample(3,countMaximum))
+          do i=1,countMaximum
+             self%pointsSubsample(:,i)=points(:,order(i))
+          end do
+          deallocate(order)
+          self%qhull_%qhull_=convexHullConstructorC(countMaximum,self%pointsSubsample,status)
+       else
+          call Error_Report('too many points for convex hull construction - you could set `allowSubsampling=.true.` to construct a convex hull from a subsample of points (consisting of a random sample of points with size equal to the maximum allowed)'//{introspection:location})
+       end if
+    else
+       self%qhull_%qhull_=convexHullConstructorC(size(points,dim=2,kind=c_long),points,status)
+    end if
+    if (status /= 0) call Error_Report('convex hull construction failed'//{introspection:location}) 
 #else
     !$GLC attributes unused :: points
-    self%qhull=c_null_ptr
+    self%qhull_ => null()
 #endif
     return
   end function convexHullConstructor
 
-  subroutine convexHullDestructor(self)
+  subroutine qhullDestructor(self)
     !!{
-    Destructor for {\normalfont \ttfamily convexHull} objects.
+    Destructor for {\normalfont \ttfamily qhull} objects.
     !!}
 #ifdef QHULLAVAIL
     use, intrinsic :: ISO_C_Binding, only : c_associated
 #endif
     implicit none
-    type(convexHull), intent(inout) :: self
+    type(qhull), intent(inout) :: self
     
 #ifdef QHULLAVAIL
-    if (c_associated(self%qhull)) call convexHullDestructorC(self%qhull)
+    if (c_associated(self%qhull_)) call convexHullDestructorC(self%qhull_)
 #else
     !$GLC attributes unused :: self
 #endif
     return
-  end subroutine convexHullDestructor
+  end subroutine qhullDestructor
 
   double precision function convexHullVolume(self)
     !!{
@@ -151,7 +216,7 @@ contains
     class(convexHull), intent(inout) :: self
 
 #ifdef QHULLAVAIL
-    convexHullVolume=convexHullVolumeC(self%qhull)
+    convexHullVolume=convexHullVolumeC(self%qhull_%qhull_)
 #else
     !$GLC attributes unused :: self
     convexHullVolume=0.0d0
@@ -172,7 +237,7 @@ contains
     real (c_double  ), dimension(3)  :: point
 
 #ifdef QHULLAVAIL
-    convexHullPointIsInHull=convexHullPointIsInHullC(self%qhull,point)
+    convexHullPointIsInHull=convexHullPointIsInHullC(self%qhull_%qhull_,point)
 #else
     !$GLC attributes unused :: self, point
     convexHullPointIsInHull=.false.
@@ -180,5 +245,18 @@ contains
 #endif
     return
   end function convexHullPointIsInHull
-  
+
+  subroutine convexHullAssign(to,from)
+    !!{
+    Assignment operator for \refClass{convexHull} objects.
+    !!}
+    implicit none
+    class(convexHull), intent(  out) :: to
+    class(convexHull), intent(in   ) :: from
+
+    to%qhull_       => from%qhull_
+    to%qhullManager =  from%qhullManager
+    return
+  end subroutine convexHullAssign
+
 end module Points_Convex_Hull

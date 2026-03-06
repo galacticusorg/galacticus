@@ -17,7 +17,6 @@
     <baseParametersFileName    value="testSuite/parameters/mcmcBase.xml"   />
     <changeParametersFileNames value="testSuite/parameters/mcmcChanges.xml"/>
     <failedParametersFileName  value="./failedParameters.xml"              />
-    <randomize                 value="false"                               />
     <evolveForestsVerbosity    value="silent"                              />
   </posteriorSampleLikelihood>
 
@@ -57,6 +56,7 @@
     <posteriorSampleDffrntlEvltnRandomJump   value="adaptive"/>
 
     <posteriorSampleDffrntlEvltnProposalSize value="adaptive" >
+      <logFileName           value="mcmcProposalSize.log"/>
       <gammaInitial          value="0.500e+0"/>
       <gammaAdjustFactor     value="1.100e+0"/>
       <gammaMinimum          value="1.000e-4"/>

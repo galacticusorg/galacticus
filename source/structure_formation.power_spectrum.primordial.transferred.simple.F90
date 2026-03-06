@@ -35,10 +35,12 @@
      A simple transferred primordial power spectrum class.
      !!}
      private
-     class           (transferFunctionClass       ), pointer :: transferFunction_        => null()
-     class           (linearGrowthClass           ), pointer :: linearGrowth_            => null()
-     class           (powerSpectrumPrimordialClass), pointer :: powerSpectrumPrimordial_ => null()
-     double precision                                        :: timeTransferFunction
+     class           (transferFunctionClass       ), pointer :: transferFunction_                => null()
+     class           (linearGrowthClass           ), pointer :: linearGrowth_                    => null()
+     class           (powerSpectrumPrimordialClass), pointer :: powerSpectrumPrimordial_         => null()
+     double precision                                        :: timeTransferFunction                      , linearGrowthTransferFunction, &
+          &                                                     timePrevious                              , linearGrowthPrevious
+     logical                                                 :: linearGrothIsWavenumberDependent
    contains
      final     ::                                simpleDestructor
      procedure :: power                       => simplePower
@@ -97,7 +99,12 @@ contains
     <constructorAssign variables="*powerSpectrumPrimordial_, *transferFunction_, *linearGrowth_"/>
     !!]
 
-    self%timeTransferFunction=self%transferFunction_%epochTime()
+    self       %timeTransferFunction            =self%transferFunction_%epochTime            (                              )
+    self       %linearGrothIsWavenumberDependent=self%linearGrowth_    %isWaveNumberDependent(                              )
+    if (.not.self%linearGrothIsWavenumberDependent) &
+         & self%linearGrowthTransferFunction    =self%linearGrowth_    %value                (time=self%timeTransferFunction)
+    self       %timePrevious                    =-huge(0.0d0)
+    self       %linearGrowthPrevious            =-huge(0.0d0)
     return
   end function simpleConstructorInternal
 
@@ -123,14 +130,25 @@ contains
     !!}
     implicit none
     class           (powerSpectrumPrimordialTransferredSimple), intent(inout) :: self
-    double precision                                          , intent(in   ) :: wavenumber, time
+    double precision                                          , intent(in   ) :: wavenumber  , time
+    double precision                                                          :: linearGrowth
 
-    simplePower=+(                                                                                           &
-         &        +self%transferFunction_       %value(wavenumber=wavenumber)                                &
-         &        *self%linearGrowth_           %value(wavenumber=wavenumber,time=     time                ) &
-         &        /self%linearGrowth_           %value(wavenumber=wavenumber,time=self%timeTransferFunction) &
-         &       )**2                                                                                        &
-         &      *  self%powerSpectrumPrimordial_%power(wavenumber=wavenumber)
+    if (self%linearGrothIsWavenumberDependent) then
+       linearGrowth=+self%linearGrowth_%value(wavenumber=wavenumber,time=     time                ) &
+            &       /self%linearGrowth_%value(wavenumber=wavenumber,time=self%timeTransferFunction)
+    else
+       if (time /= self%timePrevious) then
+          self%timePrevious        =                                                      time
+          self%linearGrowthPrevious=+self%linearGrowth_%value                       (time=time) &
+               &                    /self              %linearGrowthTransferFunction
+       end if
+       linearGrowth=self%linearGrowthPrevious
+    end if
+    simplePower=+(                                                                   &
+         &        +self%transferFunction_       %value       (wavenumber=wavenumber) &
+         &        *                              linearGrowth                        &
+         &       )**2                                                                &
+         &      *  self%powerSpectrumPrimordial_%power       (wavenumber=wavenumber)
     return
   end function simplePower
 

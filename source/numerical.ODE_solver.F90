@@ -37,9 +37,10 @@ module Numerical_ODE_Solvers
   !!{
   Implements an ODE solver class.
   !!}
-  use, intrinsic :: ISO_C_Binding         , only : c_double                   , c_funptr, c_int, c_ptr, &
-          &                                        c_size_t
+  use, intrinsic :: ISO_C_Binding         , only : c_double                   , c_funptr  , c_int, c_ptr, &
+          &                                        c_size_t                   , c_null_ptr
   use            :: Numerical_Integration2, only : integratorMultiVectorized1D
+  use            :: Resource_Manager      , only : resourceManager
   implicit none
   private
   public :: odeSolver
@@ -188,34 +189,57 @@ module Numerical_ODE_Solvers
      end subroutine gsl_odeiv2_driver_init_errors
   end interface
   
+  type :: gslODEDriverWrapper
+     !!{
+     Wrapper class for managing GSL ODE drivers.
+     !!}
+     type(c_ptr) :: gsl=c_null_ptr
+   contains
+     final :: gslODEDriverWrapperDestructor
+  end type gslODEDriverWrapper
+  
+  type :: gslODESystemWrapper
+     !!{
+     Wrapper class for managing GSL ODE drivers.
+     !!}
+     type(c_ptr) :: gsl=c_null_ptr
+   contains
+     final :: gslODESystemWrapperDestructor
+  end type gslODESystemWrapper
+  
   type :: odeSolver
      !!{
      Type providing ODE solving.
      !!}
      private
-     procedure(derivativesTemplate        ), pointer    , nopass :: derivatives
-     procedure(jacobianTemplate           ), pointer    , nopass :: jacobian
+     procedure(derivativesTemplate        ), pointer    , nopass :: derivatives             => null()
+     procedure(jacobianTemplate           ), pointer    , nopass :: jacobian                => null()
      procedure(integrandTemplate          ), pointer    , nopass :: integrands              => null()
      procedure(finalStateTemplate         ), pointer    , nopass :: finalState              => null()
      procedure(postStepTemplate           ), pointer    , nopass :: postStep                => null()
      procedure(errorAnalyzerTemplate      ), pointer    , nopass :: errorAnalyzer           => null()
      procedure(errorHandlerTemplate       ), pointer    , nopass :: errorHandler            => null()
      class    (integratorMultiVectorized1D), pointer             :: integrator              => null()
-     type     (c_ptr                      ), allocatable         :: gsl_odeiv2_driver                , gsl_odeiv2_system, &
-          &                                                         gsl_odeiv2_step_type
+     type     (gslODEDriverWrapper        ), pointer             :: driver                  => null()
+     type     (gslODESystemWrapper        ), pointer             :: system                  => null()
+     type     (c_ptr                      ), allocatable         :: gsl_odeiv2_step_type
+     type     (resourceManager            )                      :: driverManager                    , systemManager
      integer                                                     :: stepperType
      integer  (c_size_t                   )                      :: dim
      logical                                                     :: integratorErrorTolerant
    contains
      !![
      <methods>
-       <method description="Solve the ODE system." method="solve" />
-       <method description="Return estimates of the errors in ODE variables." method="errors" />
+       <method description="Solve the ODE system."                            method="solve"        />
+       <method description="Return estimates of the errors in ODE variables." method="errors"       />
+       <method description="Assign ODE solver objects."                       method="assignment(=)"/>
      </methods>
      !!]
-     final     ::           odeSolverDestructor
-     procedure :: solve  => odeSolverSolve
-     procedure :: errors => odeSolverErrors
+     final     ::                  odeSolverDestructor
+     procedure :: solve         => odeSolverSolve
+     procedure :: errors        => odeSolverErrors
+     procedure ::                  odeSolverAssign
+     generic   :: assignment(=) => odeSolverAssign
   end type odeSolver
   
   interface odeSolver
@@ -331,6 +355,7 @@ contains
          &                                                                                  yScale                 , dydtScale        , &
          &                                                                                  hStart
     double precision                             , intent(in   ), optional, dimension(:) :: scale
+    class           (*                          )                         , pointer      :: dummyPointer_
     logical                                      , intent(in   ), optional, dimension(:) :: isNonNegative
     integer         (c_int                      ), allocatable            , dimension(:) :: is_non_negative
     !![
@@ -352,14 +377,23 @@ contains
     allocate(self%gsl_odeiv2_step_type)
     self   %gsl_odeiv2_step_type=gsl_odeiv2_step_type_get         (stepperType_)
     ! Allocate and initialize the system object.
-    allocate(self%gsl_odeiv2_system )
+    allocate(self%system)
     if (present(jacobian)) then
-       self%gsl_odeiv2_system   =gsl_odeiv2_system_init           (self%dim,c_funloc(derivativesWrapper),c_funloc     (jacobianWrapper))
+       self%system%gsl=gsl_odeiv2_system_init(self%dim,c_funloc(derivativesWrapper),c_funloc     (jacobianWrapper))
     else    
-       self%gsl_odeiv2_system   =gsl_odeiv2_system_init           (self%dim,c_funloc(derivativesWrapper),c_null_funptr                 )
+       self%system%gsl=gsl_odeiv2_system_init(self%dim,c_funloc(derivativesWrapper),c_null_funptr                 )
     end if
+    !![
+    <workaround type="gfortran" PR="105807" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=105807">
+      <description>ICE when passing a derived type component to a class(*) function argument.</description>
+    !!]
+    dummyPointer_      => self%system
+    self%systemManager =  resourceManager(dummyPointer_)
+    !![
+    </workaround>
+    !!]
     ! Allocate and initialize the driver object.
-    allocate(self%gsl_odeiv2_driver)
+    allocate(self%driver)
     if (present(scale)) then
        allocate(is_non_negative(size(scale)))
        is_non_negative=0
@@ -368,15 +402,46 @@ contains
              is_non_negative=1
           end where
        end if
-       self%gsl_odeiv2_driver   =gsl_odeiv2_driver_alloc_scaled2_new(self%gsl_odeiv2_system,self%gsl_odeiv2_step_type,hStart_,toleranceAbsolute_,toleranceRelative_,yScale_,dydtScale_,scale,is_non_negative)
-       call gsl_odeiv2_driver_init_errors(self%gsl_odeiv2_driver)
+       self%driver%gsl=gsl_odeiv2_driver_alloc_scaled2_new(self%system%gsl,self%gsl_odeiv2_step_type,hStart_,toleranceAbsolute_,toleranceRelative_,yScale_,dydtScale_,scale,is_non_negative)
+       call gsl_odeiv2_driver_init_errors(self%driver%gsl)
     else
-       self%gsl_odeiv2_driver   =gsl_odeiv2_driver_alloc_y_new      (self%gsl_odeiv2_system,self%gsl_odeiv2_step_type,hStart_,toleranceAbsolute_,toleranceRelative_                                    )
+       self%driver%gsl=gsl_odeiv2_driver_alloc_y_new      (self%system%gsl,self%gsl_odeiv2_step_type,hStart_,toleranceAbsolute_,toleranceRelative_                                         )
     end if
+    !![
+    <workaround type="gfortran" PR="105807" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=105807">
+      <description>ICE when passing a derived type component to a class(*) function argument.</description>
+    !!]
+    dummyPointer_      => self%driver
+    self%driverManager =  resourceManager(dummyPointer_)
+    !![
+    </workaround>
+    !!]
     ! Set integrator error tolerance behavior.
     self%integratorErrorTolerant=integratorErrorTolerant_
     return
   end function odeSolverConstructor
+
+  subroutine gslODEDriverWrapperDestructor(self)
+    !!{
+    Destroy a {\normalfont \ttfamily gslODEDriverWrapper} object.
+    !!}
+    implicit none
+    type(gslODEDriverWrapper), intent(inout) :: self
+
+    call gsl_odeiv2_driver_free(self%gsl)
+    return
+  end subroutine gslODEDriverWrapperDestructor
+
+  subroutine gslODESystemWrapperDestructor(self)
+    !!{
+    Destroy a {\normalfont \ttfamily gslODESystemWrapper} object.
+    !!}
+    implicit none
+    type(gslODESystemWrapper), intent(inout) :: self
+
+    call gsl_odeiv2_system_free(self%gsl)
+    return
+  end subroutine gslODESystemWrapperDestructor
 
   subroutine odeSolverDestructor(self)
     !!{
@@ -386,16 +451,39 @@ contains
     type(odeSolver), intent(inout) :: self
 
     nullify(self%integrator)
-    if (allocated (self%gsl_odeiv2_system)) then
-       call gsl_odeiv2_system_free(self%gsl_odeiv2_system)
-       deallocate(self%gsl_odeiv2_system)
-    end if
-    if (allocated (self%gsl_odeiv2_driver)) then
-       call gsl_odeiv2_driver_free(self%gsl_odeiv2_driver)
-       deallocate(self%gsl_odeiv2_driver)
-    end if
     return
   end subroutine odeSolverDestructor
+
+  subroutine odeSolverAssign(to,from)
+    !!{
+    Assignment operator for \refClass{odeSolver} objects.
+    !!}
+    implicit none
+    class(odeSolver), intent(  out) :: to
+    class(odeSolver), intent(in   ) :: from
+
+    to%derivatives             => from%derivatives
+    to%jacobian                => from%jacobian
+    to%integrands              => from%integrands
+    to%finalState              => from%finalState
+    to%postStep                => from%postStep
+    to%errorAnalyzer           => from%errorAnalyzer
+    to%errorHandler            => from%errorHandler
+    to%integrator              => from%integrator
+    to%driver                  => from%driver
+    to%system                  => from%system
+    to%driverManager           =  from%driverManager          
+    to%systemManager           =  from%systemManager          
+    to%stepperType             =  from%stepperType            
+    to%dim                     =  from%dim                    
+    to%integratorErrorTolerant =  from%integratorErrorTolerant
+    if (allocated(to%gsl_odeiv2_step_type)) deallocate(to%gsl_odeiv2_step_type)
+    if (allocated(from%gsl_odeiv2_step_type)) then
+       allocate(to%gsl_odeiv2_step_type)
+       to%gsl_odeiv2_step_type=from%gsl_odeiv2_step_type
+    end if
+    return
+  end subroutine odeSolverAssign
 
   subroutine odeSolverSolve(self,x0,x1,y,z,xStep,status)
     !!{
@@ -455,10 +543,10 @@ contains
     ! Determine if we want forward or backward evolution.
     evolveForward=x1 > x0
     ! Reset the driver.
-    status_   =GSL_ODEIV2_Driver_Reset       (self%gsl_odeiv2_driver       )
-    if    (status_ /= GSL_Success) call Error_Report('failed to reset ODE driver'   //{introspection:location})
+    status_   =GSL_ODEIV2_Driver_Reset       (self%driver%gsl       )
+    if    (status_ /= GSL_Success) call Error_Report('failed to reset ODE driver'    //{introspection:location})
     if (xStep_ /= 0.0d0) then
-       status_=GSL_ODEIV2_Driver_Reset_hStart(self%gsl_odeiv2_driver,xStep_)
+       status_=GSL_ODEIV2_Driver_Reset_hStart(self%driver%gsl,xStep_)
        if (status_ /= GSL_Success) call Error_Report('failed to reset ODE step size'//{introspection:location})
     end if
     ! Initialize integrator.
@@ -493,15 +581,15 @@ contains
        ! Store current time.
        x0Step=x
        ! Apply the ODE solver.
-       status_=GSL_ODEIV2_Driver2_Apply(self%gsl_odeiv2_driver,x,x1_,y,postStep_,latentIntegrator_,errorAnalyzer_)
+       status_=GSL_ODEIV2_Driver2_Apply(self%driver%gsl,x,x1_,y,postStep_,latentIntegrator_,errorAnalyzer_)
        select case (status_)
        case (GSL_Success)
           ! Successful completion of the step - do nothing except store the step-size used.
-          if (present(xStep)) xStep=GSL_ODEIV2_Driver_h(self%gsl_odeiv2_driver)
+          if (present(xStep)) xStep=GSL_ODEIV2_Driver_h(self%driver%gsl)
        case (GSL_Failure)
           ! Generic failure - most likely a stepsize underflow.
           if (associated(self%errorHandler)) then
-             xStep_=GSL_ODEIV2_Driver_h(self%gsl_odeiv2_driver)
+             xStep_=GSL_ODEIV2_Driver_h(self%driver%gsl)
              call self%errorHandler(status_,x,xStep_,y)
           end if
           ! If ODE status was requested, then return it instead of aborting.
@@ -521,7 +609,7 @@ contains
              y=y0
              x=x0
              if (present(z)) z=z0
-             status_=GSL_ODEIV2_Driver_Reset(self%gsl_odeiv2_driver)
+             status_=GSL_ODEIV2_Driver_Reset(self%driver%gsl)
              if (status_ /= GSL_Success) call Error_Report('failed to reset ODE driver'//{introspection:location})
           end if
        case default
@@ -558,7 +646,7 @@ contains
       
       ! Call with the final state.
       if (associated(solvers(active)%solver%finalState)) then
-         call MSBDFActive_State(self%gsl_odeiv2_driver,solvers(active)%solver%dim,y)
+         call MSBDFActive_State(self%driver%gsl,solvers(active)%solver%dim,y)
          call solvers(active)%solver%finalState(x,y)
       end if
       ! Evaluate the integrals, and update the stored time ready for the next step.
@@ -589,7 +677,7 @@ contains
 
       ! Evaluate the active parameters.
       do i=1,size(x)
-         call msbdfactive_context(self%gsl_odeiv2_driver,self%dim,x(i),y(:,i),dydx(:,i))
+         call msbdfactive_context(self%driver%gsl,self%dim,x(i),y(:,i),dydx(:,i))
       end do
       ! Call the integrand function.
       call self%integrands(x,y,dydx,z,e,dzdx)
@@ -649,7 +737,7 @@ contains
     class           (odeSolver), intent(inout)               :: self
     double precision           , intent(  out), dimension(:) :: yError
 
-    call gsl_odeiv2_driver_errors(self%gsl_odeiv2_driver,yError)
+    call gsl_odeiv2_driver_errors(self%driver%gsl,yError)
     return
   end subroutine odeSolverErrors
   

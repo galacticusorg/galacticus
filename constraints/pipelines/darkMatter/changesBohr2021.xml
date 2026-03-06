@@ -1,0 +1,16 @@
+<changes>
+  <change type="replace" path="haloMassFunction">
+    <haloMassFunction value="shethTormen">
+      <a             value="0.7070"/> <!-- Sheth & Tormen (2002; http://adsabs.harvard.edu/abs/2002MNRAS.329...61S)  -->
+      <p             value="0.3000"/> <!-- Sheth & Tormen (2002; http://adsabs.harvard.edu/abs/2002MNRAS.329...61S)  -->
+      <normalization value="0.3658"/> <!-- Bohr et al. (2021; https://ui.adsabs.harvard.edu/abs/2021MNRAS.506..128B) -->
+    </haloMassFunction>
+  </change>
+  <change type="replace" path="powerSpectrumWindowFunction">
+    <powerSpectrumWindowFunction value="ETHOS">
+      <cW   value="3.79"/> <!-- Bohr et al. (2021; https://ui.adsabs.harvard.edu/abs/2021MNRAS.506..128B) -->
+      <beta value="3.46"/> <!-- Bohr et al. (2021; https://ui.adsabs.harvard.edu/abs/2021MNRAS.506..128B) -->
+    </powerSpectrumWindowFunction>
+  </change>
+  <change type="update" path="outputFileName" append="true" value="_Bohr2021"/>
+</changes>

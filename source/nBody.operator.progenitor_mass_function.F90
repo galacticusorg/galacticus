@@ -308,7 +308,7 @@ contains
                   &       +1_c_size_t
              treeIDParents(countParents)=treeID(i)
              indexParents (countParents)=       i
-             j=int(log10(mass(i)/self%massParentMinimum)*binParentWidthInverse)+1
+             j=floor(log10(mass(i)/self%massParentMinimum)*binParentWidthInverse)+1
              if (j >= 1 .and. j <= massParentCount) countParentBin(j)=countParentBin(j)+1_c_size_t
           end if
        end do
@@ -342,9 +342,9 @@ contains
           if (m                <  1_c_size_t .or. m > countParents) cycle
           if (treeIDParents(m) /= treeID(i)                       ) cycle
           ! Accumulate particles into bins.
-          j=int(log10(        mass(indexParents(m))/self%massParentMinimum         )*binParentWidthInverse)+1
+          j=floor(log10(        mass(indexParents(m))/self%massParentMinimum         )*binParentWidthInverse)+1
           if (j < 1 .or. j > massParentCount         ) cycle
-          k=int(log10(mass(i)/mass(indexParents(m))/self%massRatioProgenitorMinimum)*binRatioWidthInverse )+1
+          k=floor(log10(mass(i)/mass(indexParents(m))/self%massRatioProgenitorMinimum)*binRatioWidthInverse )+1
           if (k < 1 .or. k > massRatioProgenitorCount) cycle
           countBin(j,k,l)=+countBin  (j,k,l) &
                &          +1_c_size_t
@@ -409,7 +409,6 @@ contains
           call cosmologyGroup%writeAttribute(self%cosmologyParameters_%OmegaMatter    (),'OmegaMatter'    )
           call cosmologyGroup%writeAttribute(self%cosmologyParameters_%OmegaDarkEnergy(),'OmegaDarkEnergy')
           call cosmologyGroup%writeAttribute(self%cosmologyParameters_%HubbleConstant (),'HubbleConstant' )
-          call cosmologyGroup%close         (                                                             )
           simulationGroup=simulations(iSimulation)%analysis%openGroup('simulation')
           call simulationGroup%writeAttribute(self%simulationReference,'reference')
           call simulationGroup%writeAttribute(self%simulationURL      ,'URL'      )
@@ -417,7 +416,6 @@ contains
                & call simulationGroup%writeAttribute(simulations(iSimulation)%attributesReal%value('massParticle'),'massParticle')
           if (simulations(iSimulation)%attributesReal%exists('boxSize'     )) &
                & call simulationGroup%writeAttribute(simulations(iSimulation)%attributesReal%value('boxSize'     ),'boxSize'     )
-          call simulationGroup%close         (                                    )
           !$ call hdf5Access%unset()
 #ifdef USEMPI
        end if

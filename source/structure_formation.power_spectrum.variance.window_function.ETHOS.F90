@@ -29,7 +29,7 @@
     ETHOS window function for filtering of power spectra from \cite{bohr_halo_2021}. This window function was chosen to give good
     matches to N-body halo mass functions derived from the ETHOS transfer functions. Specifically the window function is given by:
     \begin{equation}
-     W(kR) = (\frac{1}{1+\left(\frac{kR}{c_\mathrm{W}}\right)^\beta})
+     W(kR) = \frac{1}{1+\left(\frac{kR}{c_\mathrm{W}}\right)^\beta}
     \end{equation}
     with defaults of $c_\mathrm{W} = 3.78062835$, $\beta = 3.4638743$, where $R$ is related to $M$ via the standard relation $M =
     \frac{4\pi}{3}\bar\rho_m R^3$.
@@ -42,11 +42,21 @@
      !!}
      private
      class           (cosmologyParametersClass), pointer :: cosmologyParameters_ => null()
-     double precision                                    :: cW                            , beta
+     double precision                                    :: cW_                           , beta_
    contains
-     final     ::                      ETHOSDestructor
-     procedure :: value             => ETHOSValue
-     procedure :: wavenumberMaximum => ETHOSWavenumberMaximum
+     !![
+     <methods>
+       <method method="cW"                      description="Compute the parameter $c_\mathrm{W}$ in the ETHOS window function."  />
+       <method method="beta"                    description="Compute the parameter $\beta$ in the ETHOS window function."         />
+       <method method="wavenumberScaledMinimum" description="Compute the parameter $x_\mathrm{min}$ in the ETHOS window function."/>
+     </methods>
+     !!]
+     final     ::                            ETHOSDestructor
+     procedure :: value                   => ETHOSValue
+     procedure :: wavenumberMaximum       => ETHOSWavenumberMaximum
+     procedure :: cW                      => ETHOSCW
+     procedure :: beta                    => ETHOSBeta
+     procedure :: wavenumberScaledMinimum => ETHOSWavenumberScaledMinimum
   end type powerSpectrumWindowFunctionETHOS
 
   interface powerSpectrumWindowFunctionETHOS
@@ -93,17 +103,17 @@ contains
     return
   end function ETHOSConstructorParameters
 
-  function ETHOSConstructorInternal(cW,beta,cosmologyParameters_) result(self)
+  function ETHOSConstructorInternal(cW_,beta_,cosmologyParameters_) result(self)
     !!{
     Internal constructor for the ETHOS power spectrum window function class.
     !!}
     use :: Numerical_Constants_Math, only : Pi
     implicit none
     type            (powerSpectrumWindowFunctionETHOS)                        :: self
-    double precision                                          , intent(in   ) :: cW                  , beta
+    double precision                                          , intent(in   ) :: cW_                 , beta_
     class           (cosmologyParametersClass        ), target, intent(in   ) :: cosmologyParameters_
     !![
-    <constructorAssign variables="cW, beta, *cosmologyParameters_"/>
+    <constructorAssign variables="cW_, beta_, *cosmologyParameters_"/>
     !!]
 
     return
@@ -122,15 +132,18 @@ contains
     return
   end subroutine ETHOSDestructor
 
-  double precision function ETHOSValue(self,wavenumber,smoothingMass)
+  double precision function ETHOSValue(self,wavenumber,smoothingMass,time)
     !!{
     ETHOS window function used in computing the variance of the power spectrum. Best fit values for parameters are from \cite[][\S3.2]{bohr_halo_2021}.
     !!}
     use :: Numerical_Constants_Math, only : Pi
     implicit none
     class           (powerSpectrumWindowFunctionETHOS), intent(inout) :: self
-    double precision                                  , intent(in   ) :: smoothingMass       , wavenumber
-    double precision                                                  :: radius
+    double precision                                  , intent(in   ) :: smoothingMass          , wavenumber      , &
+         &                                                               time
+    double precision                                                  :: radius                 , wavenumberScaled, &
+         &                                                               cW                     , beta            , &
+         &                                                               wavenumberScaledMinimum
     
     radius =+(                                             &
          &    +3.0d0                                       &
@@ -143,22 +156,36 @@ contains
     if (wavenumber <= 0.0d0) then
        ETHOSValue=+0.0d0
     else
-       ETHOSValue=+1.0d0          &
-            &     /(              &
-            &       +1.0d0        &
-            &       +(            &
-            &         +wavenumber &
-            &         *radius     &
-            &         /self %cW   &
-            &        )**self%beta &
-            &      )
+       cW  =self%cW  (wavenumber,time)
+       beta=self%beta(wavenumber,time)
+       if (cW > 0.0d0 .and. exponent(wavenumber)+exponent(radius)-exponent(cw) < maxExponent(0.0d0)) then
+          wavenumberScaled       =+wavenumber &
+               &                  *radius     &
+               &                  /cW
+          wavenumberScaledMinimum=+self%wavenumberScaledMinimum(wavenumber,time)
+          if (wavenumberScaled <= wavenumberScaledMinimum) then
+             ETHOSValue=1.0d0
+          else
+             if (beta*exponent(wavenumberScaled) < maxExponent(0.0d0)) then
+                ETHOSValue=+1.0d0                                              &
+                     &     /(                                                  &
+                     &       +1.0d0                                            &
+                     &       +(wavenumberScaled-wavenumberScaledMinimum)**beta &
+                     &      )
+             else
+                ETHOSvalue=0.0d0
+             end if
+          end if
+       else
+          ETHOSvalue=0.0d0
+       end if
     end if
     return
   end function ETHOSValue
 
   double precision function ETHOSWavenumberMaximum(self,smoothingMass)
     !!{
-    Sets maximum wavenumber to effectively infinity (really large number)
+    Sets maximum wavenumber to effectively infinity (really large number).
     !!}
     implicit none
     class           (powerSpectrumWindowFunctionETHOS), intent(inout) :: self
@@ -170,4 +197,43 @@ contains
     return
   end function ETHOSWavenumberMaximum
 
+  double precision function ETHOSCW(self,wavenumber,time) result(cW)
+    !!{
+    Compute the $c_\mathrm{W}$ parameter for the ETHOS window function.
+    !!}
+    implicit none
+    class           (powerSpectrumWindowFunctionETHOS), intent(inout) :: self
+    double precision                                  , intent(in   ) :: wavenumber, time
+    !$GLC attributes unused :: wavenumber, time
+
+    cW=self%cW_
+    return
+  end function ETHOSCW
+  
+  double precision function ETHOSBeta(self,wavenumber,time) result(beta)
+    !!{
+    Compute the $\beta$ parameter for the ETHOS window function.
+    !!}
+    implicit none
+    class           (powerSpectrumWindowFunctionETHOS), intent(inout) :: self
+    double precision                                  , intent(in   ) :: wavenumber, time
+    !$GLC attributes unused :: wavenumber, time
+
+    beta=self%beta_
+    return
+  end function ETHOSBeta
+  
+  double precision function ETHOSWavenumberScaledMinimum(self,wavenumber,time) result(wavenumberScaledMinimum)
+    !!{
+    Compute the $\beta$ parameter for the ETHOS window function.
+    !!}
+    implicit none
+    class           (powerSpectrumWindowFunctionETHOS), intent(inout) :: self
+    double precision                                  , intent(in   ) :: wavenumber, time
+    !$GLC attributes unused :: self, wavenumber, time
+
+    wavenumberScaledMinimum=0.0d0
+    return
+  end function ETHOSWavenumberScaledMinimum
+  
 
