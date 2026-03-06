@@ -110,6 +110,7 @@ foreach my $model ( @models ) {
 	    next
 		if ( $ignore || ! defined($frameFinal) );
 	    print "\t\tMemory leak (".$error->{'kind'}.") for model '".$model->{'label'}."' in: '".(exists($frameFinal->{'file'}) ? $frameFinal->{'file'} : "(UNKNOWN)")."' line ".(exists($frameFinal->{'line'}) ? $frameFinal->{'line'} : "(UNKNOWN)")."\n";
+	    print Dumper($error);
 	    $status = "FAILED";
 	}
 
