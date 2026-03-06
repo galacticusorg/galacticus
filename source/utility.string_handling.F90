@@ -659,13 +659,15 @@ contains
     implicit none
     type     (varying_string)                :: stringSubstitute
     type     (varying_string), intent(in   ) :: string
-    character(len=1         )                :: find
-    character(len=*         )                :: replace
+    character(len=1         ), intent(in   ) :: find
+    character(len=*         ), intent(in   ) :: replace
+    character(len=1         )                :: extracted
     integer                                  :: i
 
     stringSubstitute=""
     do i=1,len(string)
-       if (extract(string,i,i) == find) then
+       extracted=extract(string,i,i)
+       if (extracted == find) then
           stringSubstitute=stringSubstitute//replace
        else
           stringSubstitute=stringSubstitute//extract(string,i,i)
