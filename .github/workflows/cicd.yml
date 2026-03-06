@@ -555,13 +555,6 @@ jobs:
           make -j`sysctl -n hw.activecpu` USEGIT2=no Galacticus.exe
       - name: Build tools
         run: |
-          export GALACTICUS_EXEC_PATH=`pwd`
-          export FCCOMPILER=gfortran-12
-          export CCOMPILER=gcc-15
-          export CPPCOMPILER=g++-15
-          export GALACTICUS_FCFLAGS="-fintrinsic-modules-path /usr/local/include -L/usr/local/lib -L/opt/local/lib"
-          export GALACTICUS_CFLAGS="-I/usr/local/include -I/opt/local/include"
-          export GALACTICUS_CPPFLAGS="-I/usr/local/include -I/opt/local/include"
           classVersion=`awk '{if ($1 == "class:") print $2}' ${GALACTICUS_EXEC_PATH}/aux/dependencies.yml`
           cambVersion=`awk '{if ($1 == "camb:") print $2}' ${GALACTICUS_EXEC_PATH}/aux/dependencies.yml`
           forutilsVersion=`awk '{if ($1 == "forutils:") print $2}' ${GALACTICUS_EXEC_PATH}/aux/dependencies.yml`
@@ -586,6 +579,7 @@ jobs:
           cd $GALACTICUS_DATA_PATH/dynamic/fsps-${fspsVersion}/src
           $GALACTICUS_EXEC_PATH/scripts/build/staticRelinker.pl `grep -E '\-o autosps.exe' $GALACTICUS_EXEC_PATH/build.log`
           cd $GALACTICUS_DATA_PATH/dynamic/mangle-${mangleVersion}/src/
+          cp ../bin/harmonize .
           $GALACTICUS_EXEC_PATH/scripts/build/staticRelinker.pl `grep -E '\-o harmonize' $GALACTICUS_EXEC_PATH/build.log`
           cd $GALACTICUS_DATA_PATH
           zip -r toolsMacOS.zip \
@@ -632,13 +626,6 @@ jobs:
           ./scripts/build/staticRelinker.pl `grep '\-o Galacticus.exe' build.log`
       - name: Build tools
         run: |
-          export GALACTICUS_EXEC_PATH=`pwd`
-          export FCCOMPILER=gfortran-12
-          export CCOMPILER=gcc-15
-          export CPPCOMPILER=g++-15
-          export GALACTICUS_FCFLAGS="-fintrinsic-modules-path /usr/local/include -L/usr/local/lib -L/opt/local/lib"
-          export GALACTICUS_CFLAGS="-I/usr/local/include -I/opt/local/include"
-          export GALACTICUS_CPPFLAGS="-I/usr/local/include -I/opt/local/include"
           classVersion=`awk '{if ($1 == "class:") print $2}' ${GALACTICUS_EXEC_PATH}/aux/dependencies.yml`
           cambVersion=`awk '{if ($1 == "camb:") print $2}' ${GALACTICUS_EXEC_PATH}/aux/dependencies.yml`
           forutilsVersion=`awk '{if ($1 == "forutils:") print $2}' ${GALACTICUS_EXEC_PATH}/aux/dependencies.yml`
@@ -662,7 +649,8 @@ jobs:
           $GALACTICUS_EXEC_PATH/scripts/build/staticRelinker.pl `grep -E '\-o cloudy.exe' $GALACTICUS_EXEC_PATH/build.log`
           cd $GALACTICUS_DATA_PATH/dynamic/fsps-${fspsVersion}/src
           $GALACTICUS_EXEC_PATH/scripts/build/staticRelinker.pl `grep -E '\-o autosps.exe' $GALACTICUS_EXEC_PATH/build.log`
-          cd $GALACTICUS_DATA_PATH/dynamic/mangle-${mangleVersion}/bin/
+          cd $GALACTICUS_DATA_PATH/dynamic/mangle-${mangleVersion}/src
+          cp ../bin/harmonize .
           $GALACTICUS_EXEC_PATH/scripts/build/staticRelinker.pl `grep -E '\-o harmonize' $GALACTICUS_EXEC_PATH/build.log`
           cd $GALACTICUS_DATA_PATH
           zip -r toolsMacOSM1.zip \
