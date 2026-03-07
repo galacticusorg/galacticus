@@ -1850,7 +1850,7 @@ CODE
 	    # Create XML constructor.
 	    $modulePostContains->{'content'} .= "   ".($allowRecursion ? "recursive " : "")."function ".$directive->{'name'}."CnstrctrPrmtrs(parameters,copyInstance,parameterName) result(self)\n";
 	    $modulePostContains->{'content'} .= "      !!{\n";
-	    $modulePostContains->{'content'} .= "      Return a pointer to a newly created \mono{".$directive->{'name'}."} object as specified by the provided parameters.\n";
+	    $modulePostContains->{'content'} .= "      Return a pointer to a newly created \\mono{".$directive->{'name'}."} object as specified by the provided parameters.\n";
 	    $modulePostContains->{'content'} .= "      !!}\n";
 	    $modulePostContains->{'content'} .= "      use :: Input_Parameters  , only : inputParameter         , inputParameters\n";
 	    $modulePostContains->{'content'} .= "      use :: Locks  , only : ompLock\n";
@@ -2473,7 +2473,7 @@ CODE
 		    unless ( $argumentList eq "" );
 		$modulePostContains->{'content'} .= ")\n";
                 $modulePostContains->{'content'} .= "      !!{\n";
-                $modulePostContains->{'content'} .= "      Default implementation of the \mono{".$methodName."} method for the \mono{".$directive->{'name'}."} class.\n";
+                $modulePostContains->{'content'} .= "      Default implementation of the \\mono{".$methodName."} method for the \\mono{".$directive->{'name'}."} class.\n";
                 $modulePostContains->{'content'} .= "      !!}\n";
 		if ( exists($method->{'code'}) ) {
 		    if ( exists($method->{'modules'}) ) {
@@ -2547,7 +2547,7 @@ CODE
                 (my $suffix = $class->{'name'}) =~ s/^$directive->{'name'}//;
                 $suffix = lcfirst($suffix)
                     unless ( $suffix =~ m/^[A-Z]{2}/ );
-                $documentationPhysics .= "\\subsection\mono{".$suffix."}\\label{phys:".$class->{'name'}."}\\hyperdef{physics}{".$class->{'name'}."}{}\n\n";
+                $documentationPhysics .= "\\subsection{\\mono{".$suffix."}}\\label{phys:".$class->{'name'}."}\\hyperdef{physics}{".$class->{'name'}."}{}\n\n";
                 $documentationPhysics .= $class->{'description'}."\n\n";
 		$documentationPhysics .= "\\noindent \\textbf{(Default)}\n\n"
 		    if ( exists($directive->{'default'}) && $directive->{'name'}.ucfirst($directive->{'default'}) eq $class->{'name'} );
@@ -2700,7 +2700,7 @@ CODE
 					}
 				    }
 				}
-				my $description =  "\\item[\mono{[".latex_encode($constructorNode->{'directive'}->{'name'})."]}] ";
+				my $description =  "\\item[\\mono{[".latex_encode($constructorNode->{'directive'}->{'name'})."]}] ";
 				$description .= "(".$type."; ".$cardinality.") ";
 				if ( exists($constructorNode->{'directive'}->{'defaultValue'}) ) {
 				    my $value = latex_encode($constructorNode->{'directive'}->{'defaultValue'});
@@ -2717,7 +2717,7 @@ CODE
 				    if ( $type eq "string" ) {
 					$value =~ s/^var\\_str\(['"](.*)['"]\)/$1/;
 				    }
-				    $description .= " \\{\mono{".$value."}".(exists($constructorNode->{'directive'}->{'defaultSource'}) ? "; ".$constructorNode->{'directive'}->{'defaultSource'} : "")."\\} ";
+				    $description .= " \\{\\mono{".$value."}".(exists($constructorNode->{'directive'}->{'defaultSource'}) ? "; ".$constructorNode->{'directive'}->{'defaultSource'} : "")."\\} ";
 				}
 				$description .= $constructorNode->{'directive'}->{'description'};
 				push(

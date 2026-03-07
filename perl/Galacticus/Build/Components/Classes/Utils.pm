@@ -38,7 +38,7 @@ sub Class_Move {
 	{
 	    type        => "void",
 	    name        => $classTypeName."Move",
-	    description => "Move instances of the \mono{".$code::class->{'name'}."} component, from one node to another.",
+	    description => "Move instances of the \\mono{".$code::class->{'name'}."} component, from one node to another.",
 	    modules     =>
 		[
 		 "Error"
@@ -162,7 +162,7 @@ sub Class_Remove {
 	{
 	    type        => "void",
 	    name        => $classTypeName."Remove",
-	    description => "Remove an instance of the \mono{".$code::class->{'name'}."} component from a node.",
+	    description => "Remove an instance of the \\mono{".$code::class->{'name'}."} component from a node.",
 	    modules     =>
 		[
 		 "Error"

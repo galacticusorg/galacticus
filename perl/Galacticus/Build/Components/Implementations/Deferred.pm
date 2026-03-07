@@ -80,7 +80,7 @@ sub Implementation_Deferred_Binding_Attachers {
 	{
 	    type        => "void",
 	    name        => $code::memberFunctionName."DfrrdFnctnSet",
-	    description => "Set the function to be used for the \mono{".$binding->{'method'}."} method of the \mono{".$member->{'name'}."} implementation of the \mono{".$class->{'name'}."} component class.",
+	    description => "Set the function to be used for the \\mono{".$binding->{'method'}."} method of the \\mono{".$member->{'name'}."} implementation of the \\mono{".$class->{'name'}."} component class.",
 	    variables   =>
 		[
 		 {
@@ -122,7 +122,7 @@ sub Implementation_Deferred_Binding_Attach_Status {
 	{
 	    type        => "logical",
 	    name        => $code::memberFunctionName."DfrrdFnctnIsSet",
-	    description => "Return true if the deferred function for the \mono{".$binding->{'method'}."} method of the \mono{".$member->{'name'}."} implementation of the \mono{".$class->{'name'}."} component class has been set."
+	    description => "Return true if the deferred function for the \\mono{".$binding->{'method'}."} method of the \\mono{".$member->{'name'}."} implementation of the \\mono{".$class->{'name'}."} component class has been set."
 	};
 	$function->{'content'}  = fill_in_string(<<'CODE', PACKAGE => 'code');
 {$memberFunctionName}DfrrdFnctnIsSet={$memberFunctionName}IsSetValue
@@ -159,7 +159,7 @@ sub Implementation_Deferred_Binding_Wrappers {
 	{
 	    type        => $code::binding->{'interface'}->{'type'} eq "void" ? "void" : ($specificType ? $code::binding->{'interface'}->{'type'}." => ".$code::returnName : $intrinsicTypes{$code::binding->{'interface'}->{'type'}}),
 	    name        => $code::memberFunctionName,
-	    description => "Call the deferred function for the \mono{".$code::binding->{'method'}."} method of the \mono{".$code::class->{'name'}."} component class if it has been set.",
+	    description => "Call the deferred function for the \\mono{".$code::binding->{'method'}."} method of the \\mono{".$code::class->{'name'}."} component class if it has been set.",
 	    modules     =>
 		[
 		 "Error"

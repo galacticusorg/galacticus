@@ -47,7 +47,7 @@ sub Implementation_ODE_Name_From_Index {
     {
 	type        => "type(varying_string) => name",
 	name        => $implementationTypeName."NameFromIndex",
-	description => "Return the name of the property of given index for a \mono{".$code::member->{'name'}."} implementation of the \mono{".$code::class->{'name'}."} component class.",
+	description => "Return the name of the property of given index for a \\mono{".$code::member->{'name'}."} implementation of the \\mono{".$code::class->{'name'}."} component class.",
 	modules     =>
 	    [
 	     "ISO_Varying_String"
@@ -353,7 +353,7 @@ sub Implementation_ODE_Serialize_Values {
     {
 	type        => "void",
 	name        => $implementationTypeName."SerializeValues",
-	description => "Serialize evolvable properties of a \mono{".$code::member->{'name'}."} implementation of the \mono{".$code::class->{'name'}."} component to array.",
+	description => "Serialize evolvable properties of a \\mono{".$code::member->{'name'}."} implementation of the \\mono{".$code::class->{'name'}."} component to array.",
 	variables   =>
 	    [
 	     {
@@ -636,7 +636,7 @@ sub Implementation_ODE_Serialize_NonNegative {
     {
 	type        => "void",
 	name        => $implementationTypeName."SerializeNonNegative",
-	description => "Serialize non-negative status of evolvable properties of a \mono{".$code::member->{'name'}."} implementation of the \mono{".$code::class->{'name'}."} component to array.",
+	description => "Serialize non-negative status of evolvable properties of a \\mono{".$code::member->{'name'}."} implementation of the \\mono{".$code::class->{'name'}."} component to array.",
 	variables   =>
 	    [
 	     {
@@ -771,7 +771,7 @@ sub Implementation_ODE_Offsets {
     {
 	type        => "void",
 	name        => $implementationTypeName."SerializeOffsets",
-	description => "Compute offsets into serialization arrays for a \mono{".$code::member->{'name'}."} implementation of the \mono{".$code::class->{'name'}."} component.",
+	description => "Compute offsets into serialization arrays for a \\mono{".$code::member->{'name'}."} implementation of the \\mono{".$code::class->{'name'}."} component.",
 	variables   =>
 	    [
 	     {

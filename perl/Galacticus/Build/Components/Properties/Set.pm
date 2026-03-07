@@ -48,7 +48,7 @@ sub Build_Class_Setters {
 	    		function    => "Boolean_False",
 	    		returnType  => "\\logicalzero",
 	    		arguments   => ""             ,
-	    		description => "Specify whether the \mono{".$property->{'name'}."} property of the \mono{".$component->{'class'}."} component is settable."
+	    		description => "Specify whether the \\mono{".$property->{'name'}."} property of the \\mono{".$component->{'class'}."} component is settable."
 	    	    }
 	    	    );
 	    }
@@ -104,7 +104,7 @@ sub Build_Set_Functions {
     {
 	type        => "void",
 	name        => $class->{'name'}.ucfirst($member->{'name'}).ucfirst($code::property->{'name'})."Set".$suffix,
-	description => "Set the \mono{".$code::property->{'name'}."} property of an \mono{".$member->{'name'}."} implementation of the \mono{".$class->{'name'}."} component class.",
+	description => "Set the \\mono{".$code::property->{'name'}."} property of an \\mono{".$member->{'name'}."} implementation of the \\mono{".$class->{'name'}."} component class.",
 	variables   =>
 	    [
 	     {

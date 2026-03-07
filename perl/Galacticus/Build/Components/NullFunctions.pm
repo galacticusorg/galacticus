@@ -123,7 +123,7 @@ sub createNullFunction {
     {
 	type        => $returnType,
 	name        => $functionName,
-	description => "A null ".$descriptor->{'attribute'}." rate function for a rank ".$descriptor->{'property'}->{'rank'}." \mono{".lc($selfType)."} class.\n",
+	description => "A null ".$descriptor->{'attribute'}." rate function for a rank ".$descriptor->{'property'}->{'rank'}." \\mono{".lc($selfType)."} class.\n",
 	variables   => \@variables,
 	content     => "!\$GLC attributes unused :: ".join(", ",map {@{$_->{'variables'}}} @variables)."\n"
     };

@@ -37,7 +37,7 @@ sub Class_Property_Is_Gettable {
 	{
 	    type        => "logical",
 	    name        => $code::class->{'name'}.ucfirst($code::property->{'name'})."IsGettable",
-	    description => "Returns true if the \mono{".$code::property->{'name'}."} property is gettable for the \mono{".$code::class->{'name'}."} component class."
+	    description => "Returns true if the \\mono{".$code::property->{'name'}."} property is gettable for the \\mono{".$code::class->{'name'}."} component class."
 	};
 	$function->{'content'} .= fill_in_string(<<'CODE', PACKAGE => 'code');
 {$class->{'name'}.ucfirst($property->{'name'})}IsGettable=.false.
@@ -89,7 +89,7 @@ sub Class_Property_Default {
 		).
 		" => classDefault",
 	    name        => $code::class->{'name'}.ucfirst($code::property->{'name'}),
-	    description => "Returns the default value for the \mono{".$code::property->{'name'}."} property for the \mono{".$code::class->{'name'}."} component class.",
+	    description => "Returns the default value for the \\mono{".$code::property->{'name'}."} property for the \\mono{".$code::class->{'name'}."} component class.",
 	    variables =>
 		[
 		 {
@@ -231,7 +231,7 @@ sub Class_Property_Rate_Default {
 		).
 		" => classDefault",
 	    name        => $code::class->{'name'}.ucfirst($code::property->{'name'})."RateGet",
-	    description => "Returns a zero rate for the \mono{".$code::property->{'name'}."} property for the \mono{".$code::class->{'name'}."} component class.",
+	    description => "Returns a zero rate for the \\mono{".$code::property->{'name'}."} property for the \\mono{".$code::class->{'name'}."} component class.",
 	    variables =>
 		[
 		 {

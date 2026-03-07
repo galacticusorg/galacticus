@@ -81,7 +81,7 @@ sub Process_Enumerations {
 	    $equalityFunction .= "  ! Auto-generated enumeration function\n";
 	    $equalityFunction .= "  pure elemental logical function ".$functionName."(enumerationA,enumerationB) result(isEqual)\n";
 	    $equalityFunction .= "    !!{\n";
-	    $equalityFunction .= "    Validate a \mono{".$node->{'directive'}->{'name'}."} enumeration value.\n";
+	    $equalityFunction .= "    Validate a \\mono{".$node->{'directive'}->{'name'}."} enumeration value.\n";
 	    $equalityFunction .= "    !!}\n";
 	    $equalityFunction .= "    implicit none\n\n";
 	    $equalityFunction .= "    class(enumeration".$node->{'directive'}->{'name'}."Type), intent(in   ) :: enumerationA, enumerationB\n";
@@ -102,7 +102,7 @@ sub Process_Enumerations {
 		$validatorFunction .= "  ! Auto-generated enumeration function\n";
 		$validatorFunction .= "  logical function ".$functionName."(enumerationValue)\n";
 		$validatorFunction .= "    !!{\n";
-		$validatorFunction .= "    Validate a \mono{".$node->{'directive'}->{'name'}."} enumeration value.\n";
+		$validatorFunction .= "    Validate a \\mono{".$node->{'directive'}->{'name'}."} enumeration value.\n";
 		$validatorFunction .= "    !!}\n";
 		$validatorFunction .= "    implicit none\n\n";
 		$validatorFunction .= "    type(enumeration".$node->{'directive'}->{'name'}."Type), intent(in   ) :: enumerationValue\n";
@@ -138,7 +138,7 @@ sub Process_Enumerations {
 		$function .= "  ! Auto-generated enumeration functions\n";
 		$function .= "  integer function ".$encodeFunctionName."IDVarStr(name,includesPrefix)\n";
 		$function .= "    !!{\n";
-		$function .= "    Encode a \mono{".$node->{'directive'}->{'name'}."} enumeration from a string, returning the appropriate identifier ID.\n";
+		$function .= "    Encode a \\mono{".$node->{'directive'}->{'name'}."} enumeration from a string, returning the appropriate identifier ID.\n";
 		$function .= "    !!}\n";
 		$function .= "    use :: ISO_Varying_String\n";
 		$function .= "    implicit none\n\n";
@@ -149,7 +149,7 @@ sub Process_Enumerations {
 		$function .= "  end function ".$encodeFunctionName."IDVarStr\n\n";
 		$function .= "  integer function ".$encodeFunctionName."IDChar(name,includesPrefix)\n";
 		$function .= "    !!{\n";
-		$function .= "    Encode a \mono{".$node->{'directive'}->{'name'}."} enumeration from a string, returning the appropriate identifier ID.\n";
+		$function .= "    Encode a \\mono{".$node->{'directive'}->{'name'}."} enumeration from a string, returning the appropriate identifier ID.\n";
 		$function .= "    !!}\n";
 		$function .= "    use :: ISO_Varying_String\n";
 		$function .= "    implicit none\n\n";
@@ -162,7 +162,7 @@ sub Process_Enumerations {
 		$function .= "  end function ".$encodeFunctionName."IDChar\n\n";
 		$function .= "  function ".$encodeFunctionName."VarStr(name,includesPrefix".($onError ? "" : ",status").")\n";
 		$function .= "    !!{\n";
-		$function .= "    Encode a \mono{".$node->{'directive'}->{'name'}."} enumeration from a string, returning the appropriate identifier.\n";
+		$function .= "    Encode a \\mono{".$node->{'directive'}->{'name'}."} enumeration from a string, returning the appropriate identifier.\n";
 		$function .= "    !!}\n";
 		$function .= "    use :: ISO_Varying_String\n";
 		$function .= "    implicit none\n\n";
@@ -176,7 +176,7 @@ sub Process_Enumerations {
 		$function .= "  end function ".$encodeFunctionName."VarStr\n\n";
 		$function .= "  function ".$encodeFunctionName."Char(name,includesPrefix".($onError ? "" : ",status").")\n";
 		$function .= "    !!{\n";
-		$function .= "    Encode a \mono{".$node->{'directive'}->{'name'}."} enumeration from a string, returning the appropriate identifier.\n";
+		$function .= "    Encode a \\mono{".$node->{'directive'}->{'name'}."} enumeration from a string, returning the appropriate identifier.\n";
 		$function .= "    !!}\n";
 		$function .= "    use :: Error             , only : Error_Report, errorStatusSuccess, errorStatusFail\n"
 		    unless ( $onError );
@@ -251,7 +251,7 @@ sub Process_Enumerations {
 		$function .= "  ! Auto-generated enumeration function\n";
 		$function .= "  function ".$decodeFunctionName."Enumerator(enumerationValue,includePrefix)\n";
 		$function .= "    !!{\n";
-		$function .= "    Decode a \mono{".$node->{'directive'}->{'name'}."} enumeration to a string.\n";
+		$function .= "    Decode a \\mono{".$node->{'directive'}->{'name'}."} enumeration to a string.\n";
 		$function .= "    !!}\n";
 		$function .= "    use ISO_Varying_String\n";
 		$function .= "    implicit none\n\n";
@@ -263,7 +263,7 @@ sub Process_Enumerations {
 		$function .= "  end function ".$decodeFunctionName."Enumerator\n";
 		$function .= "  function ".$decodeFunctionName."ID(enumerationValue,includePrefix)\n";
 		$function .= "    !!{\n";
-		$function .= "    Decode a \mono{".$node->{'directive'}->{'name'}."} enumeration to a string.\n";
+		$function .= "    Decode a \\mono{".$node->{'directive'}->{'name'}."} enumeration to a string.\n";
 		$function .= "    !!}\n";
 		$function .= "    use ISO_Varying_String\n";
 		$function .= "    use Error\n"
@@ -327,7 +327,7 @@ sub Process_Enumerations {
 		$descriptorFunctionWrapper .= "  ! Auto-generated enumeration function\n";
 		$descriptorFunctionWrapper .= "  function ".$functionName."Enumerator(enumerationValue)\n";
 		$descriptorFunctionWrapper .= "    !!{\n";
-		$descriptorFunctionWrapper .= "    Return a description of a \mono{".$node->{'directive'}->{'name'}."} enumeration member.\n";
+		$descriptorFunctionWrapper .= "    Return a description of a \\mono{".$node->{'directive'}->{'name'}."} enumeration member.\n";
 		$descriptorFunctionWrapper .= "    !!}\n";
 		$descriptorFunctionWrapper .= "    use ISO_Varying_String\n";
 		$descriptorFunctionWrapper .= "    implicit none\n\n";
@@ -339,7 +339,7 @@ sub Process_Enumerations {
 		my $descriptorFunction;
 		$descriptorFunction .= "  function ".$functionName."ID(enumerationValue) result(description)\n";
 		$descriptorFunction .= "    !!{\n";
-		$descriptorFunction .= "    Return a description of a \mono{".$node->{'directive'}->{'name'}."} enumeration value.\n";
+		$descriptorFunction .= "    Return a description of a \\mono{".$node->{'directive'}->{'name'}."} enumeration value.\n";
 		$descriptorFunction .= "    !!}\n";
 		$descriptorFunction .= "    use :: ISO_Varying_String, only : varying_string, assignment(=)\n";
 		$descriptorFunction .= "    implicit none\n";
@@ -391,7 +391,7 @@ sub Process_Enumerations {
 		$descriptorFunction .= "  ! Auto-generated enumeration function\n";
 		$descriptorFunction .= "  function ".$functionName."() result(description)\n";
 		$descriptorFunction .= "    !!{\n";
-		$descriptorFunction .= "    Return a description of the \mono{".$node->{'directive'}->{'name'}."} enumeration.\n";
+		$descriptorFunction .= "    Return a description of the \\mono{".$node->{'directive'}->{'name'}."} enumeration.\n";
 		$descriptorFunction .= "    !!}\n";
 		$descriptorFunction .= "    use :: ISO_Varying_String, only : varying_string, var_str, operator(//)\n";
 		$descriptorFunction .= "    implicit none\n";
@@ -432,7 +432,7 @@ sub Process_Enumerations {
 	    # Create documentation.
 	    system("mkdir -p doc/enumerations/definitions");
 	    open(my $defHndl,">doc/enumerations/definitions/".$node->{'directive'}->{'name'}.".tex");
-	    print $defHndl "\\subsection{\\large \mono{".$node->{'directive'}->{'name'}."}}\\hypertarget{ht:AutoEnumerations".ucfirst($node->{'directive'}->{'name'})."}{}\\label{sec:AutoEnumerations".ucfirst($node->{'directive'}->{'name'})."}\\index{enumerations!".$node->{'directive'}->{'name'}."\@\mono{".$node->{'directive'}->{'name'}."}}\n\n";
+	    print $defHndl "\\subsection{\\large \\mono{".$node->{'directive'}->{'name'}."}}\\hypertarget{ht:AutoEnumerations".ucfirst($node->{'directive'}->{'name'})."}{}\\label{sec:AutoEnumerations".ucfirst($node->{'directive'}->{'name'})."}\\index{enumerations!".$node->{'directive'}->{'name'}."\@\\mono{".$node->{'directive'}->{'name'}."}}\n\n";
 	    print $defHndl "\\begin{tabular}{rp{130mm}}\n";
 	    print $defHndl "Description: & ".$node->{'directive'}->{'description'}." \\\\\n";
 	    my $moduleNode = $node;
@@ -441,13 +441,13 @@ sub Process_Enumerations {
 	    } until ( ! $moduleNode ||  $moduleNode->{'type'} eq "module" );
 	    if ( $moduleNode ) {
 		(my $fileName = $moduleNode->{'parent'}->{'name'}) =~ s/\./_/g;
-		print $defHndl "Provided by: & \mono{module} \\href{https://github.com/galacticusorg/galacticus/releases/download/masterRelease/Galacticus_Source.pdf\\#source.".$fileName.":".lc($moduleNode->{'name'})."}\mono{".latex_encode($moduleNode->{'name'})."} \\\\\n";
+		print $defHndl "Provided by: & \\mono{module} \\href{https://github.com/galacticusorg/galacticus/releases/download/masterRelease/Galacticus_Source.pdf\\#source.".$fileName.":".lc($moduleNode->{'name'})."}\\mono{".latex_encode($moduleNode->{'name'})."} \\\\\n";
 	    }
 	    my $first = 1;
 	    foreach ( &List::ExtraUtils::as_array($node->{'directive'}->{'entry'}) ) {
 		print $defHndl "Members:"
 		    if ( $first == 1 );
-		print $defHndl " & \mono{".$node->{'directive'}->{'name'}.latex_encode(ucfirst($_->{'label'}))."}\\\\\n";
+		print $defHndl " & \\mono{".$node->{'directive'}->{'name'}.latex_encode(ucfirst($_->{'label'}))."}\\\\\n";
 		$first = 0;
 	    }
 	    print $defHndl "\\end{tabular}\n";

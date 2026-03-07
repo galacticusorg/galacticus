@@ -32,7 +32,7 @@ sub Class_Serialize_ASCII {
     {
 	type        => "void",
 	name        => "nodeComponent".ucfirst($code::class->{'name'})."SerializeASCII",
-	description => "Serialize the content of a \mono{".$code::class->{'name'}."} component to ASCII.",
+	description => "Serialize the content of a \\mono{".$code::class->{'name'}."} component to ASCII.",
 	modules     =>
 	    [
 	     "Display",

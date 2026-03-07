@@ -39,7 +39,7 @@ sub Tree_Node_Creation {
     {
 	type        => "void",
 	name        => "treeNodeInitialize",
-	description => "Initialize a \mono{treeNode} object.",
+	description => "Initialize a \\mono{treeNode} object.",
 	modules     =>
 	    [
 	     "Error"
@@ -117,7 +117,7 @@ sub Tree_Node_Builder {
     {
 	type        => "void",
 	name        => "treeNodeComponentBuilder",
-	description => "Build components in a \mono{treeNode} object given an XML definition.",
+	description => "Build components in a \\mono{treeNode} object given an XML definition.",
 	modules     =>
 	    [
 	     "FoX_DOM, only : node, nodeList, getChildNodes, getLength, getNodeName, item",
@@ -234,7 +234,7 @@ sub Tree_Node_Finalization {
     {
 	type        => "void",
 	name        => "treeNodeDestroy",
-	description => "Destroy a \mono{treeNode} object.",
+	description => "Destroy a \\mono{treeNode} object.",
 	modules     =>
 	    [
 	     "Error"
@@ -324,7 +324,7 @@ sub Tree_Node_Class_Creation {
     {
 	type        => "void",
 	name        => "nodeComponent".ucfirst($code::class->{'name'})."Create",
-	description => "Create the \mono{".$code::class->{'name'}."} component of \mono{self}.",
+	description => "Create the \\mono{".$code::class->{'name'}."} component of \\mono{self}.",
 	modules     =>
 	    [
 	     "ISO_Varying_String",
@@ -409,7 +409,7 @@ sub Tree_Node_Class_Destruction {
     {
 	type        => "void",
 	name        => "nodeComponent".ucfirst($code::class->{'name'})."Destroy",
-	description => "Destroy the \mono{".$code::class->{'name'}."} component of \mono{self}",
+	description => "Destroy the \\mono{".$code::class->{'name'}."} component of \\mono{self}",
 	variables   =>
 	    [
 	     {

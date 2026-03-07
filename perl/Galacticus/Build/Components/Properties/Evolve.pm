@@ -50,7 +50,7 @@ sub Build_Count_Functions {
     {
 	type        => "integer",
 	name        => $class->{'name'}.ucfirst($member->{'name'}).ucfirst($code::property->{'name'})."Count",
-	description => "Return a count of the number of scalar properties in the \mono{".$code::property->{'name'}."} property of an \mono{".$member->{'name'}."} implementation of the \mono{".$class->{'name'}."} component class.",
+	description => "Return a count of the number of scalar properties in the \\mono{".$code::property->{'name'}."} property of an \\mono{".$member->{'name'}."} implementation of the \\mono{".$class->{'name'}."} component class.",
 	variables   =>
 	    [
 	     {
@@ -114,7 +114,7 @@ sub Build_Rate_Get_Functions {
     {
 	type        => $functionType." => propertyRate",
 	name        => $class->{'name'}.ucfirst($member->{'name'}).ucfirst($code::property->{'name'})."RateGet",
-	description => "Get the rate of change of the \mono{".$code::property->{'name'}."} property of an \mono{".$member->{'name'}."} implementation of the \mono{".$class->{'name'}."} component class.",
+	description => "Get the rate of change of the \\mono{".$code::property->{'name'}."} property of an \\mono{".$member->{'name'}."} implementation of the \\mono{".$class->{'name'}."} component class.",
 	modules     =>
 	    [
 	     "Error"
@@ -236,7 +236,7 @@ sub Build_Rate_Functions {
     {
 	type        => "void",
 	name        => $class->{'name'}.ucfirst($member->{'name'}).ucfirst($code::property->{'name'})."Rate".$suffix,
-	description => "Accumulate".($intrinsicRate ? " directly (i.e. circumventing any deferred function binding)" : "")." to the rate of change of the \mono{".$code::property->{'name'}."} property of an \mono{".$member->{'name'}."} implementation of the \mono{".$class->{'name'}."} component class.",
+	description => "Accumulate".($intrinsicRate ? " directly (i.e. circumventing any deferred function binding)" : "")." to the rate of change of the \\mono{".$code::property->{'name'}."} property of an \\mono{".$member->{'name'}."} implementation of the \\mono{".$class->{'name'}."} component class.",
 	modules     =>
 	    [
 	     "Error"
@@ -429,7 +429,7 @@ sub Build_Auto_Create_Rate_Functions {
     {
 	type        => "void",
 	name        => $code::class->{'name'}.ucfirst($code::property->{'name'})."Rate",
-	description => "Accept a rate set for the \mono{".$code::property->{'name'}."} property of the \mono{".$code::class->{'name'}."} component class. Trigger an interrupt to create the component.",
+	description => "Accept a rate set for the \\mono{".$code::property->{'name'}."} property of the \\mono{".$code::class->{'name'}."} component class. Trigger an interrupt to create the component.",
 	modules     =>
 	    [
 	     "Error"
@@ -518,7 +518,7 @@ sub Build_Scale_Functions {
     {
 	type        => "void",
 	name        => $class->{'name'}.ucfirst($member->{'name'}).ucfirst($code::property->{'name'})."Scale",
-	description => "Set the absolute scale of the \mono{".$code::property->{'name'}."} property of an \mono{".$member->{'name'}."} implementation of the \mono{".$class->{'name'}."} component class.",
+	description => "Set the absolute scale of the \\mono{".$code::property->{'name'}."} property of an \\mono{".$member->{'name'}."} implementation of the \\mono{".$class->{'name'}."} component class.",
 	variables   =>
 	    [
 	     {
@@ -591,7 +591,7 @@ sub Build_Inactive_Functions {
     {
 	type        => "void",
 	name        => $class->{'name'}.ucfirst($member->{'name'}).ucfirst($code::property->{'name'})."JcbnZr",
-	description => "Indicate that the \mono{".$code::property->{'name'}."} property of an \mono{".$member->{'name'}."} implementation of the \mono{".$class->{'name'}."} component class is inactive for differential equation solving.",
+	description => "Indicate that the \\mono{".$code::property->{'name'}."} property of an \\mono{".$member->{'name'}."} implementation of the \\mono{".$class->{'name'}."} component class is inactive for differential equation solving.",
 	variables   =>
 	    [
 	     {
@@ -663,7 +663,7 @@ sub Build_Analytic_Functions {
     {
 	type        => "void",
 	name        => $class->{'name'}.ucfirst($member->{'name'}).ucfirst($code::property->{'name'})."Alytc",
-	description => "Indicate that the \mono{".$code::property->{'name'}."} property of an \mono{".$member->{'name'}."} implementation of the \mono{".$class->{'name'}."} component class is to be solved analytically during differential evolution.",
+	description => "Indicate that the \\mono{".$code::property->{'name'}."} property of an \\mono{".$member->{'name'}."} implementation of the \\mono{".$class->{'name'}."} component class is to be solved analytically during differential evolution.",
 	modules     =>
 	    [
 	     "Error"
