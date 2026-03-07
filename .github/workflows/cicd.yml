@@ -564,20 +564,6 @@ jobs:
           cd $GALACTICUS_EXEC_PATH
           git config --global --add safe.directory $GALACTICUS_EXEC_PATH
           mkdir -p $GALACTICUS_DATA_PATH/dynamic
-          echo REPORT BEGINS
-          echo Applying file
-          file Galacticus.exe
-          echo LD_LIBRARY_PATH
-          echo $LD_LIBRARY_PATH
-          echo DYLD_LIBRARY_PATH
-          echo $DYLD_LIBRARY_PATH
-          echo Searching opt
-          find /opt -name "libqhull*" || true
-          echo Searching usr
-          find /usr -name "libqhull*" || true
-          echo otool
-          otool -L ./Galacticus.exe
-          echo REPORT ENDS
           set -o pipefail
           ./Galacticus.exe parameters/buildTools.xml 2>&1 | tee build.log
           cd $GALACTICUS_DATA_PATH/dynamic/CAMB-${cambVersion}/fortran/
@@ -649,20 +635,6 @@ jobs:
           cd $GALACTICUS_EXEC_PATH
           git config --global --add safe.directory $GALACTICUS_EXEC_PATH
           mkdir -p $GALACTICUS_DATA_PATH/dynamic
-          echo REPORT BEGINS
-          echo Applying file
-          file Galacticus.exe
-          echo LD_LIBRARY_PATH
-          echo $LD_LIBRARY_PATH
-          echo DYLD_LIBRARY_PATH
-          echo $DYLD_LIBRARY_PATH
-          echo Searching opt
-          find /opt -name "libqhull*" || true
-          echo Searching usr
-          find /usr -name "libqhull*" || true
-          echo otool
-          otool -L ./Galacticus.exe
-          echo REPORT ENDS
           set -o pipefail
           ./Galacticus.exe parameters/buildTools.xml 2>&1 | tee build.log
           cd $GALACTICUS_DATA_PATH/dynamic/CAMB-${cambVersion}/fortran/
