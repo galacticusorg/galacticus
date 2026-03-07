@@ -564,7 +564,6 @@ jobs:
           cd $GALACTICUS_EXEC_PATH
           git config --global --add safe.directory $GALACTICUS_EXEC_PATH
           mkdir -p $GALACTICUS_DATA_PATH/dynamic
-          set -o pipefail
           echo REPORT BEGINS
           echo Applying file
           file Galacticus.exe
@@ -579,6 +578,7 @@ jobs:
           echo otool
           otool -L ./Galacticus.exe
           echo REPORT ENDS
+          set -o pipefail
           ./Galacticus.exe parameters/buildTools.xml 2>&1 | tee build.log
           cd $GALACTICUS_DATA_PATH/dynamic/CAMB-${cambVersion}/fortran/
           $GALACTICUS_EXEC_PATH/scripts/build/staticRelinker.pl gfortran-12 -cpp -Ofast -fopenmp -fintrinsic-modules-path /usr/local/include -L/usr/local/lib -L/opt/local/lib -JRelease -IRelease/ -I"/Users/runner/work/galacticus/galacticus/datasets/dynamic/CAMB-${cambVersion}/fortran/../forutils/Release/" Release/inidriver.o Release/libcamb.a  -L"/Users/runner/work/galacticus/galacticus/datasets/dynamic/CAMB-${cambVersion}/fortran/../forutils/Release/" -lforutils -o camb
@@ -649,7 +649,6 @@ jobs:
           cd $GALACTICUS_EXEC_PATH
           git config --global --add safe.directory $GALACTICUS_EXEC_PATH
           mkdir -p $GALACTICUS_DATA_PATH/dynamic
-          set -o pipefail
           echo REPORT BEGINS
           echo Applying file
           file Galacticus.exe
@@ -664,6 +663,7 @@ jobs:
           echo otool
           otool -L ./Galacticus.exe
           echo REPORT ENDS
+          set -o pipefail
           ./Galacticus.exe parameters/buildTools.xml 2>&1 | tee build.log
           cd $GALACTICUS_DATA_PATH/dynamic/CAMB-${cambVersion}/fortran/
           $GALACTICUS_EXEC_PATH/scripts/build/staticRelinker.pl gfortran-12 -cpp -Ofast -fopenmp -fintrinsic-modules-path /usr/local/include -L/usr/local/lib -L/opt/local/lib -JRelease -IRelease/ -I"/Users/runner/work/galacticus/galacticus/datasets/dynamic/CAMB-${cambVersion}/fortran/../forutils/Release/" Release/inidriver.o Release/libcamb.a  -L"/Users/runner/work/galacticus/galacticus/datasets/dynamic/CAMB-${cambVersion}/fortran/../forutils/Release/" -lforutils -o camb
