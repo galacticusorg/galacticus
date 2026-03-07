@@ -25,20 +25,32 @@ module Linear_Algebra
   !!{
   Implements linear algebra calculations.
   !!}
-  use, intrinsic :: ISO_C_Binding, only : c_ptr, c_double, c_size_t, c_int
+  use, intrinsic :: ISO_C_Binding   , only : c_ptr          , c_double, c_size_t, c_int, &
+       &                                     c_null_ptr
+  use            :: Resource_Manager, only : resourceManager
   implicit none
   private
   public :: vector        , matrix         , matrixRotation      , matrixRotationPlusTranslation, &
        &    matrixLU      , assignment(=)  , operator(*)         , gsl_vector_get               , &
        &    gsl_vector_set, gsl_vector_free, matrixRotationRandom
 
+  type :: vectorWrapper
+     !!{
+     Wrapper class for managing GSL vectors.
+     !!}
+     type(c_ptr) :: gsl=c_null_ptr
+   contains
+     final :: vectorWrapperDestructor
+  end type vectorWrapper
+  
   type, public :: vector
      !!{
      Vector class.
      !!}
      private
-     type   (c_ptr   ), allocatable :: vector_
-     integer(c_size_t)              :: size_
+     type   (resourceManager)          :: vectorManager
+     type   (vectorWrapper  ), pointer :: vector_       => null()
+     integer(c_size_t       )          :: size_
    contains
      !![
      <methods>
@@ -48,9 +60,11 @@ module Linear_Algebra
        <method description="Compute {\normalfont \ttfamily vector1}+{\normalfont \ttfamily vector2}."          method="operator(+)"      />
        <method description="Compute {\normalfont \ttfamily vector1} $\times$ {\normalfont \ttfamily vector2}." method="operator(.cross.)"/>
        <method description="Return a C pointer to the GSL vector object."                                      method="gslObject"        />
+       <method description="Assign vector objects."                                                            method="assignment(=)"    />
      </methods>
      !!]
-     final     ::                        vectorDestructorRank0, vectorDestructorRank1
+     procedure ::                        vectorAssign
+     generic   :: assignment(=)       => vectorAssign
      procedure :: magnitude           => vectorMagnitude
      procedure ::                        vectorDotProduct
      generic   :: operator  (.dot.  ) => vectorDotProduct
@@ -72,14 +86,24 @@ module Linear_Algebra
      module procedure vectorCopyConstructor
   end interface vector
   
+  type :: matrixWrapper
+     !!{
+     Wrapper class for managing GSL matrices.
+     !!}
+     type(c_ptr) :: gsl=c_null_ptr
+   contains
+     final :: matrixWrapperDestructor
+  end type matrixWrapper
+  
   type, public :: matrix
      !!{
      Matrix class.
      !!}
      private
-     type   (c_ptr   ), allocatable  :: matrix_
-     integer(c_size_t), dimension(2) :: size_
-     logical                         :: isSquare
+     type   (resourceManager)               :: matrixManager
+     type   (matrixWrapper  ), pointer      :: matrix_       => null()
+     integer(c_size_t       ), dimension(2) :: size_
+     logical                                :: isSquare
    contains
      !![
      <methods>
@@ -94,9 +118,11 @@ module Linear_Algebra
        <method description="Solve the linear system $y = A \cdot x$ where $A$ is ourself and $y$ is the specified vector."     method="linearSystemSolve"     />
        <method description="Compute eigenvectors and eigenvalues of the matrix."                                               method="eigenSystem"           />
        <method description="Compute the Cholesky decomposition of the matrix in place."                                        method="choleskyDecomposition" />
+       <method description="Assign matrix objects."                                                                            method="assignment(=)"         />
      </methods>
      !!]
-     final     ::                           matrixDestructorRank0       , matrixDestructorRank1
+     procedure ::                           matrixAssign
+     generic   :: assignment(=)          => matrixAssign
      procedure ::                           matrixMatrixProduct
      procedure ::                           matrixMatrixAdd
      generic   :: operator(*)            => matrixMatrixProduct
@@ -121,20 +147,29 @@ module Linear_Algebra
      module procedure matrixCopyConstructor
   end interface matrix
   
+  type :: permutationWrapper
+     !!{
+     Wrapper class for managing GSL permutations.
+     !!}
+     type(c_ptr) :: gsl=c_null_ptr
+   contains
+     final :: permutationWrapperDestructor
+  end type permutationWrapper
+  
   type, public, extends(matrix) :: matrixLU
      !!{
      Matrix class for LU matrices.
      !!}
      private
-     type   (c_ptr), allocatable :: permutation
-     integer(c_int)              :: decompositionSign
+     type   (resourceManager   )          :: permutationManager
+     type   (permutationWrapper), pointer :: permutation_       => null()
+     integer(c_int             )          :: decompositionSign
    contains
      !![
      <methods>
        <method description="Solve the linear system $y = A \cdot x$ where $A$ is ourself and $y$ is the specified vector." method="squareSystemSolve" />
      </methods>
      !!]
-     final     ::                      matrixLUDestructorRank0  , matrixLUDestructorRank1
      procedure :: squareSystemSolve => matrixLUSquareSystemSolve
   end type matrixLU
 
@@ -483,12 +518,22 @@ contains
     type            (vector  )                              :: self
     double precision          , intent(in   ), dimension(:) :: array
     integer         (c_size_t)                              :: i
-
+    class           (*       ), pointer                     :: dummyPointer_
+    
     allocate(self%vector_)
-    self%size_  =size(array,kind=c_size_t)
-    self%vector_=gsl_vector_alloc(self%size_)
+    self%size_      =size(array,kind=c_size_t)
+    self%vector_%gsl=gsl_vector_alloc(self%size_)
+    !![
+    <workaround type="gfortran" PR="105807" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=105807">
+      <description>ICE when passing a derived type component to a class(*) function argument.</description>
+    !!]
+    dummyPointer_      => self%vector_
+    self%vectorManager =  resourceManager(dummyPointer_)
+    !![
+    </workaround>
+    !!]
     do i=1,size(array,dim=1,kind=c_size_t)
-       call gsl_vector_set(self%vector_,i-1_c_size_t,array(i))
+       call gsl_vector_set(self%vector_%gsl,i-1_c_size_t,array(i))
     end do
     return
   end function vectorConstructor
@@ -500,11 +545,21 @@ contains
     implicit none
     type   (vector  )                :: self
     integer(c_size_t), intent(in   ) :: n
-    
+    class  (*       ), pointer       :: dummyPointer_
+
     allocate(self%vector_)
-    self%size_  =n
-    self%vector_=gsl_vector_alloc(self%size_)
-    call gsl_vector_set_zero(self%vector_)
+    self%size_      =n
+    self%vector_%gsl=gsl_vector_alloc(self%size_)
+    !![
+    <workaround type="gfortran" PR="105807" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=105807">
+      <description>ICE when passing a derived type component to a class(*) function argument.</description>
+    !!]
+    dummyPointer_      => self%vector_
+    self%vectorManager =  resourceManager(dummyPointer_)
+    !![
+    </workaround>
+    !!]
+    call gsl_vector_set_zero(self%vector_%gsl)
     return
   end function vectorZeroConstructor
 
@@ -518,12 +573,22 @@ contains
     type   (vector)             :: self
     type   (vector), intent(in) :: source
     integer(c_int )             :: status
+    class  (*     ), pointer    :: dummyPointer_
 
     allocate(self%vector_)
-    self%size_  =source%size_
-    self%vector_=gsl_vector_alloc(self%size_)
-    status      =gsl_vector_memcpy(self%vector_,source%vector_)
+    self%size_      =source%size_
+    self%vector_%gsl=gsl_vector_alloc(self%size_)
+    status          =gsl_vector_memcpy(self%vector_%gsl,source%vector_%gsl)
     if (status /= GSL_Success) call Error_Report('vector copy failed'//{introspection:location})
+    !![
+    <workaround type="gfortran" PR="105807" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=105807">
+      <description>ICE when passing a derived type component to a class(*) function argument.</description>
+    !!]
+    dummyPointer_      => self%vector_
+    self%vectorManager =  resourceManager(dummyPointer_)
+    !![
+    </workaround>
+    !!]
     return
   end function vectorCopyConstructor
   
@@ -549,41 +614,24 @@ contains
     integer         (c_size_t)                              :: i
 
     do i=1_c_size_t,self%size_
-       array(i)=gsl_vector_get(self%vector_,i-1_c_size_t)
+       array(i)=gsl_vector_get(self%vector_%gsl,i-1_c_size_t)
     end do
     return
   end subroutine vectorUnassignment
-  
-  subroutine vectorDestructorRank0(self)
-    !!{
-    Rank-0 destructor for the {\normalfont \ttfamily vector} class.
-    !!}
-    implicit none
-    type(vector), intent(inout) :: self
-    
-    if (allocated(self%vector_)) then
-       call gsl_vector_free(self%vector_)
-       deallocate(self%vector_)
-    end if
-    return
-  end subroutine vectorDestructorRank0
 
-  subroutine vectorDestructorRank1(self)
+  subroutine vectorAssign(self,from)
     !!{
-    Rank-1 destructor for the {\normalfont \ttfamily vector} class.
+    Perform assignment of vectors.
     !!}
     implicit none
-    type   (vector), intent(inout), dimension(:) :: self
-    integer                                      :: i
-    
-    do i=1,size(self)
-       if (allocated(self(i)%vector_)) then
-          call gsl_vector_free(self(i)%vector_)
-          deallocate(self(i)%vector_)
-       end if
-    end do
+    class(vector), intent(inout) :: self
+    class(vector), intent(in   ) :: from
+
+    self%vectorManager =  from%vectorManager
+    self%vector_       => from%vector_
+    self%size_         =  from%size_
     return
-  end subroutine vectorDestructorRank1
+  end subroutine vectorAssign
 
   function vectorAdd(vector1,vector2)
     !!{
@@ -597,7 +645,7 @@ contains
     integer(c_int )                :: status
 
     vectorAdd=vector(vector1)
-    status   =gsl_vector_add(vectorAdd%vector_,vector2%vector_)
+    status   =gsl_vector_add(vectorAdd%vector_%gsl,vector2%vector_%gsl)
     if (status /= GSL_Success) call Error_Report('vector addition failed'//{introspection:location})
     return
   end function vectorAdd
@@ -614,7 +662,7 @@ contains
     integer(c_int )                :: status
 
     vectorSubtract=vector(vector1)
-    status        =gsl_vector_sub(vectorSubtract%vector_,vector2%vector_)
+    status        =gsl_vector_sub(vectorSubtract%vector_%gsl,vector2%vector_%gsl)
     if (status /= GSL_Success) call Error_Report('vector subtract failed'//{introspection:location})
     return
   end function vectorSubtract
@@ -640,7 +688,7 @@ contains
     class  (vector), intent(in   ) :: vector1, vector2
     integer(c_int )                :: status
 
-    status=gsl_blas_ddot(vector1%vector_,vector2%vector_,vectorDotProduct)
+    status=gsl_blas_ddot(vector1%vector_%gsl,vector2%vector_%gsl,vectorDotProduct)
     if (status /= GSL_Success) call Error_Report('vector dot product failed'//{introspection:location})
     return
   end function vectorDotProduct
@@ -656,15 +704,15 @@ contains
 
     if (vector1%size_ /= 3_c_size_t .or. vector2%size_ /= 3_c_size_t) &
          & call Error_Report('vector cross product only defined for 3D vectors'//{introspection:location})
-    vectorCrossProduct=vector(                                                                                         &
-         &                    [                                                                                        &
-         &                     +gsl_vector_get(vector1%vector_,1_c_size_t)*gsl_vector_get(vector2%vector_,2_c_size_t)  &
-         &                     -gsl_vector_get(vector1%vector_,2_c_size_t)*gsl_vector_get(vector2%vector_,1_c_size_t), &
-         &                     +gsl_vector_get(vector1%vector_,2_c_size_t)*gsl_vector_get(vector2%vector_,0_c_size_t)  &
-         &                     -gsl_vector_get(vector1%vector_,0_c_size_t)*gsl_vector_get(vector2%vector_,2_c_size_t), &
-         &                     +gsl_vector_get(vector1%vector_,0_c_size_t)*gsl_vector_get(vector2%vector_,1_c_size_t)  &
-         &                     -gsl_vector_get(vector1%vector_,1_c_size_t)*gsl_vector_get(vector2%vector_,0_c_size_t)  &
-         &                    ]                                                                                        &
+    vectorCrossProduct=vector(                                                                                                 &
+         &                    [                                                                                                &
+         &                     +gsl_vector_get(vector1%vector_%gsl,1_c_size_t)*gsl_vector_get(vector2%vector_%gsl,2_c_size_t)  &
+         &                     -gsl_vector_get(vector1%vector_%gsl,2_c_size_t)*gsl_vector_get(vector2%vector_%gsl,1_c_size_t), &
+         &                     +gsl_vector_get(vector1%vector_%gsl,2_c_size_t)*gsl_vector_get(vector2%vector_%gsl,0_c_size_t)  &
+         &                     -gsl_vector_get(vector1%vector_%gsl,0_c_size_t)*gsl_vector_get(vector2%vector_%gsl,2_c_size_t), &
+         &                     +gsl_vector_get(vector1%vector_%gsl,0_c_size_t)*gsl_vector_get(vector2%vector_%gsl,1_c_size_t)  &
+         &                     -gsl_vector_get(vector1%vector_%gsl,1_c_size_t)*gsl_vector_get(vector2%vector_%gsl,0_c_size_t)  &
+         &                    ]                                                                                                &
          &                   )
     return
   end function vectorCrossProduct
@@ -677,7 +725,7 @@ contains
     type (c_ptr )                :: vectorGSLObject
     class(vector), intent(in   ) :: self
 
-    vectorGSLObject=self%vector_
+    vectorGSLObject=self%vector_%gsl
     return
   end function vectorGSLObject
   
@@ -690,15 +738,25 @@ contains
     implicit none
     type            (matrix  )                                :: self
     double precision          , intent(in   ), dimension(:,:) :: array
-    integer         (c_size_t)                                :: i    , j
+    integer         (c_size_t)                                :: i            , j
+    class           (*       ), pointer                       :: dummyPointer_
 
     allocate(self%matrix_)
-    self%size_   =shape(array,kind=c_size_t)
-    self%isSquare=self%size_(1) == self%size_(2)
-    self%matrix_ =gsl_matrix_alloc(self%size_(1),self%size_(2))
+    self%size_       =shape(array,kind=c_size_t)
+    self%isSquare    =self%size_(1) == self%size_(2)
+    self%matrix_ %gsl=gsl_matrix_alloc(self%size_(1),self%size_(2))
+    !![
+    <workaround type="gfortran" PR="105807" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=105807">
+      <description>ICE when passing a derived type component to a class(*) function argument.</description>
+    !!]
+    dummyPointer_      => self%matrix_
+    self%matrixManager =  resourceManager(dummyPointer_)
+    !![
+    </workaround>
+    !!]
     do i=1,size(array,dim=1,kind=c_size_t)
        do j=1,size(array,dim=2,kind=c_size_t)
-          call gsl_matrix_set(self%matrix_,i-1_c_size_t,j-1_c_size_t,array(i,j))
+          call gsl_matrix_set(self%matrix_%gsl,i-1_c_size_t,j-1_c_size_t,array(i,j))
        end do
     end do
     return
@@ -710,13 +768,23 @@ contains
     !!}
     implicit none
     type   (matrix  )                :: self
-    integer(c_size_t), intent(in   ) :: n1  , n2
+    integer(c_size_t), intent(in   ) :: n1           , n2
+    class  (*       ), pointer       :: dummyPointer_
 
     allocate(self%matrix_)
-    self%isSquare=n1 == n2
-    self%size_   =[n1,n2]
-    self%matrix_ =gsl_matrix_alloc(self%size_(1),self%size_(2))
-    call gsl_matrix_set_zero(self%matrix_)
+    self%isSquare    =n1 == n2
+    self%size_       =[n1,n2]
+    self%matrix_ %gsl=gsl_matrix_alloc(self%size_(1),self%size_(2))
+    !![
+    <workaround type="gfortran" PR="105807" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=105807">
+      <description>ICE when passing a derived type component to a class(*) function argument.</description>
+    !!]
+    dummyPointer_      => self%matrix_
+    self%matrixManager =  resourceManager(dummyPointer_)
+    !![
+    </workaround>
+    !!]
+    call gsl_matrix_set_zero(self%matrix_%gsl)
     return
   end function matrixZeroConstructor
 
@@ -730,13 +798,23 @@ contains
     type   (matrix)             :: self
     type   (matrix), intent(in) :: source
     integer(c_int )             :: status
+    class  (*     ), pointer    :: dummyPointer_
 
     allocate(self%matrix_)
-    self%size_   =source%size_
-    self%isSquare=source%isSquare
-    self%matrix_ =gsl_matrix_alloc(self%size_(1),self%size_(2))
-    status       =gsl_matrix_memcpy(self%matrix_,source%matrix_)
+    self%size_       =source%size_
+    self%isSquare    =source%isSquare
+    self%matrix_ %gsl=gsl_matrix_alloc (self%size_      (1),self  %size_      (2))
+    status           =gsl_matrix_memcpy(self%matrix_%gsl   ,source%matrix_%gsl   )
     if (status /= GSL_Success) call Error_Report('matrix copy failed'//{introspection:location})
+    !![
+    <workaround type="gfortran" PR="105807" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=105807">
+      <description>ICE when passing a derived type component to a class(*) function argument.</description>
+    !!]
+    dummyPointer_      => self%matrix_
+    self%matrixManager =  resourceManager(dummyPointer_)
+    !![
+    </workaround>
+    !!]
     return
   end function matrixCopyConstructor
 
@@ -763,42 +841,35 @@ contains
 
     do i=1_c_size_t,self%size_(1)
        do j=1_c_size_t,self%size_(2)
-          array(i,j)=gsl_matrix_get(self%matrix_,i-1_c_size_t,j-1_c_size_t)
+          array(i,j)=gsl_matrix_get(self%matrix_%gsl,i-1_c_size_t,j-1_c_size_t)
        end do
     end do
     return
   end subroutine matrixUnassignment
-  
-  subroutine matrixDestructorRank0(self)
+
+  subroutine matrixAssign(self,from)
     !!{
-    Destructor for the {\normalfont \ttfamily matrix} class
+    Perform assignment of matrices.
     !!}
     implicit none
-    type(matrix), intent(inout) :: self
+    class(matrix), intent(inout) :: self
+    class(matrix), intent(in   ) :: from
 
-    if (allocated(self%matrix_)) then
-       call gsl_matrix_free(self%matrix_)
-       deallocate(self%matrix_)
-    end if
+    self%matrixManager =  from%matrixManager
+    self%matrix_       => from%matrix_
+    self%size_         =  from%size_
+    self%isSquare      =  from%isSquare
+    select type (self)
+    class is (matrixLU)
+       select type (from)
+       class is (matrixLU)
+          self%decompositionSign  =  from%decompositionSign
+          self%permutationManager =  from%permutationManager
+          self%permutation_       => from%permutation_
+       end select
+    end select
     return
-  end subroutine matrixDestructorRank0
-
-  subroutine matrixDestructorRank1(self)
-    !!{
-    Destructor for the {\normalfont \ttfamily matrix} class
-    !!}
-    implicit none
-    type   (matrix), intent(inout), dimension(:) :: self
-    integer                                      :: i
-
-    do i=1,size(self)
-       if (allocated(self(i)%matrix_)) then
-          call gsl_matrix_free(self(i)%matrix_)
-          deallocate(self(i)%matrix_)
-       end if
-    end do
-    return
-  end subroutine matrixDestructorRank1
+  end subroutine matrixAssign
 
   function matrixMatrixProduct(matrix1,matrix2)
     !!{
@@ -813,7 +884,7 @@ contains
 
     if (matrix1%size_(2) /= matrix2%size_(1)) call Error_Report('matrices can not be multiplied'//{introspection:location})
     matrixMatrixProduct=matrix(matrix1%size_(1),matrix2%size_(2))
-    status             =gsl_blas_dgemm(CblasNoTrans,CblasNoTrans,1.0d0,matrix1%matrix_,matrix2%matrix_,0.0d0,matrixMatrixProduct%matrix_)
+    status             =gsl_blas_dgemm(CblasNoTrans,CblasNoTrans,1.0d0,matrix1%matrix_%gsl,matrix2%matrix_%gsl,0.0d0,matrixMatrixProduct%matrix_%gsl)
     if (status /= GSL_Success) call Error_Report('matrix-matrix multiply failed'//{introspection:location})
     return
   end function matrixMatrixProduct
@@ -831,7 +902,7 @@ contains
 
     if (any(matrix1%size_ /= matrix2%size_)) call Error_Report('matrices can not be summed'//{introspection:location})
     matrixMatrixAdd=matrix(matrix1)
-    status         =gsl_matrix_add(matrixMatrixAdd%matrix_,matrix2%matrix_)
+    status         =gsl_matrix_add(matrixMatrixAdd%matrix_%gsl,matrix2%matrix_%gsl)
     if (status /= GSL_Success) call Error_Report('matrix-matrix summation failed'//{introspection:location})
     return
   end function matrixMatrixAdd
@@ -850,10 +921,10 @@ contains
 
     if (.not.self%isSquare) call Error_Report('LU decomposition can only be performed on square matrices'//{introspection:location})
     LU         =matrix(self)
-    permutation=GSL_Permutation_Alloc(self%size_  (1)                              )
-    status     =GSL_LinAlg_LU_Decomp (LU  %matrix_   ,permutation,decompositionSign)
+    permutation=GSL_Permutation_Alloc(self%size_      (1)                              )
+    status     =GSL_LinAlg_LU_Decomp (LU  %matrix_%gsl   ,permutation,decompositionSign)
     if (status /= GSL_Success) call Error_Report('LU decomposition failed'//{introspection:location})
-    matrixDeterminant=GSL_LinAlg_LU_Det(LU%matrix_,decompositionSign)
+    matrixDeterminant=GSL_LinAlg_LU_Det(LU%matrix_%gsl,decompositionSign)
     call gsl_permutation_free(permutation)
     return
   end function matrixDeterminant
@@ -872,10 +943,10 @@ contains
 
     if (.not.self%isSquare) call Error_Report('LU decomposition can only be performed on square matrices'//{introspection:location})
     LU         =matrix(self)
-    permutation=GSL_Permutation_Alloc(self%size_  (1)                              )
-    status     =GSL_LinAlg_LU_Decomp (LU  %matrix_   ,permutation,decompositionSign)
+    permutation=GSL_Permutation_Alloc(self%size_      (1)                              )
+    status     =GSL_LinAlg_LU_Decomp (LU  %matrix_%gsl   ,permutation,decompositionSign)
     if (status /= GSL_Success) call Error_Report('LU decomposition failed'//{introspection:location})
-    matrixLogarithmicDeterminant=GSL_LinAlg_LU_lnDet(LU%matrix_)
+    matrixLogarithmicDeterminant=GSL_LinAlg_LU_lnDet(LU%matrix_%gsl)
     call gsl_permutation_free(permutation)
     return
   end function matrixLogarithmicDeterminant
@@ -894,10 +965,10 @@ contains
 
     if (.not.self%isSquare) call Error_Report('LU decomposition can only be performed on square matrices'//{introspection:location})
     LU         =matrix(self)
-    permutation=GSL_Permutation_Alloc(self%size_  (1)                              )
-    status     =GSL_LinAlg_LU_Decomp (LU  %matrix_   ,permutation,decompositionSign)
+    permutation=GSL_Permutation_Alloc(self%size_      (1)                              )
+    status     =GSL_LinAlg_LU_Decomp (LU  %matrix_%gsl   ,permutation,decompositionSign)
     if (status /= GSL_Success) call Error_Report('LU decomposition failed'//{introspection:location})
-    matrixSignDeterminant=GSL_LinAlg_LU_sgnDet(LU%matrix_,decompositionSign)
+    matrixSignDeterminant=GSL_LinAlg_LU_sgnDet(LU%matrix_%gsl,decompositionSign)
     call gsl_permutation_free(permutation)
     return
   end function matrixSignDeterminant
@@ -914,7 +985,7 @@ contains
     integer(c_int )                :: status
 
     matrixTranspose=matrix(self%size_(2),self%size_(1))
-    status=gsl_matrix_transpose_memcpy(matrixTranspose%matrix_,self%matrix_)
+    status=gsl_matrix_transpose_memcpy(matrixTranspose%matrix_%gsl,self%matrix_%gsl)
     if (status /= GSL_Success) call Error_Report('matrix transpose failed'//{introspection:location})
     return
   end function matrixTranspose
@@ -935,10 +1006,10 @@ contains
     if (.not.self%isSquare) call Error_Report('LU decomposition can only be performed on square matrices'//{introspection:location})
     LU           =matrix(self                       )
     matrixInverse=matrix(self%size_(1),self%size_(2))
-    permutation  =GSL_Permutation_Alloc(self%size_  (1)                                      )
-    status       =GSL_LinAlg_LU_Decomp (LU  %matrix_   ,permutation,decompositionSign        )
+    permutation  =GSL_Permutation_Alloc(self%size_      (1)                                      )
+    status       =GSL_LinAlg_LU_Decomp (LU  %matrix_%gsl   ,permutation,decompositionSign        )
     if (status /= GSL_Success) call Error_Report('LU decomposition failed'//{introspection:location})
-    status       =GSL_LinAlg_LU_Invert (LU  %matrix_   ,permutation,matrixInverse    %matrix_)
+    status       =GSL_LinAlg_LU_Invert (LU  %matrix_%gsl   ,permutation,matrixInverse    %matrix_%gsl)
     if (status /= GSL_Success) call Error_Report('LU invert failed'       //{introspection:location})
     call gsl_permutation_free(permutation)
     return
@@ -959,7 +1030,7 @@ contains
     integer         (c_int )                :: status
 
     matrixScalarMultiply=matrix(matrix_)
-    status              =gsl_matrix_scale(matrixScalarMultiply%matrix_,scalar_)
+    status              =gsl_matrix_scale(matrixScalarMultiply%matrix_%gsl,scalar_)
     if (status /= GSL_Success) call Error_Report('matrix-scalar multiply failed'//{introspection:location})
     return
   end function matrixScalarMultiply
@@ -981,7 +1052,7 @@ contains
 
     vectorX             =vector(vector_      )
     matrixVectorMultiply=vector(vector_%size_)
-    status              =gsl_blas_dgemv(CblasNoTrans,1.0d0,matrix_%matrix_,vectorX%vector_,0.0d0,matrixVectorMultiply%vector_)
+    status              =gsl_blas_dgemv(CblasNoTrans,1.0d0,matrix_%matrix_%gsl,vectorX%vector_%gsl,0.0d0,matrixVectorMultiply%vector_%gsl)
     if (status /= GSL_Success) call Error_Report('matrix-vector multiply failed'//{introspection:location})
     return
   end function matrixVectorMultiply
@@ -1002,10 +1073,10 @@ contains
 
     matrixLinearSystemSolve=vector(y   %size_)
     LU                     =matrix(self      )
-    permutation            =GSL_Permutation_Alloc(self%size_  (1)                                                              )
-    status                 =GSL_LinAlg_LU_Decomp (LU  %matrix_   ,permutation,decompositionSign                                )
+    permutation            =GSL_Permutation_Alloc(self%size_      (1)                                                                      )
+    status                 =GSL_LinAlg_LU_Decomp (LU  %matrix_%gsl   ,permutation,decompositionSign                                        )
     if (status /= GSL_Success) call Error_Report('LU decomposition failed'//{introspection:location})
-    status                 =GSL_LinAlg_LU_Solve  (LU%matrix_     ,permutation,y%vector_        ,matrixLinearSystemSolve%vector_)
+    status                 =GSL_LinAlg_LU_Solve  (LU%matrix_%gsl     ,permutation,y%vector_%gsl        ,matrixLinearSystemSolve%vector_%gsl)
     if (status /= GSL_Success) call Error_Report('LU solve failed'        //{introspection:location})
     call gsl_permutation_free(permutation)
     return
@@ -1033,7 +1104,7 @@ contains
        do i=1_c_size_t,self%size_(1)
           allZero=.true.
           do j=1_c_size_t,self%size_(2)
-             if (gsl_matrix_get(self%matrix_,i-1_c_size_t,j-1_c_size_t) /= 0.0d0) then
+             if (gsl_matrix_get(self%matrix_%gsl,i-1_c_size_t,j-1_c_size_t) /= 0.0d0) then
                 allZero=.false.
                 exit
              endif
@@ -1047,7 +1118,7 @@ contains
        do j=1_c_size_t,self%size_(2)
           allZero=.true.
           do i=1_c_size_t,self%size_(1)
-             if (gsl_matrix_get(self%matrix_,i-1_c_size_t,j-1_c_size_t) /= 0.0d0) then
+             if (gsl_matrix_get(self%matrix_%gsl,i-1_c_size_t,j-1_c_size_t) /= 0.0d0) then
                 allZero=.false.
                 exit
              endif
@@ -1085,11 +1156,11 @@ contains
     integer(c_int )                :: status
     type   (matrix)                :: matrix_
 
-    matrix_     =matrix               (self                                                                    )
-    eigenValues =vector               (self   %size_  (1)                                                      )
-    eigenVectors=matrix               (self   %size_  (1),self       %size_  (1)                               )
-    workspace   =GSL_Eigen_SymmV_Alloc(self   %size_  (1)                                                      )
-    status      =GSL_Eigen_SymmV      (matrix_%matrix_   ,eigenValues%vector_   ,eigenVectors%matrix_,workspace)
+    matrix_     =matrix               (self                                                                                )
+    eigenValues =vector               (self   %size_      (1)                                                              )
+    eigenVectors=matrix               (self   %size_      (1),self       %size_      (1)                                   )
+    workspace   =GSL_Eigen_SymmV_Alloc(self   %size_      (1)                                                              )
+    status      =GSL_Eigen_SymmV      (matrix_%matrix_%gsl   ,eigenValues%vector_%gsl   ,eigenVectors%matrix_%gsl,workspace)
     if (status /= GSL_Success) call Error_Report('eigensystem evaluation failed'//{introspection:location})
     call GSL_Eigen_Symmv_Free(workspace)
     return
@@ -1105,7 +1176,7 @@ contains
     class  (matrix     ), intent(inout) :: self
     integer(c_int      )                :: status
 
-    status=GSL_LinAlg_Cholesky_Decomp(self%matrix_)
+    status=GSL_LinAlg_Cholesky_Decomp(self%matrix_%gsl)
     if (status /= GSL_Success) call Error_Report('Cholesky decomposition failed'//{introspection:location})
     return
   end subroutine matrixCholeskyDecomposition
@@ -1124,53 +1195,25 @@ contains
     type   (matrixLU)                :: self
     type   (matrix  ), intent(in   ) :: matrix_
     integer(c_int   )                :: status
-
+    class  (*       ), pointer       :: dummyPointer_
+    
     if (.not.matrix_%isSquare) call Error_Report('can not find LU decomposition of a non-square matrix'//{introspection:location})
-    self%matrix     =matrix(matrix_)
-    self%permutation=GSL_Permutation_Alloc(self%size_  (1)                                        )
-    status          =GSL_LinAlg_LU_Decomp (self%matrix_   ,self%permutation,self%decompositionSign)
+    allocate(self%permutation_)
+    self%matrix          =matrix(matrix_)
+    self%permutation_%gsl=GSL_Permutation_Alloc(self%size_      (1)                                             )
+    status               =GSL_LinAlg_LU_Decomp (self%matrix_%gsl   ,self%permutation_%gsl,self%decompositionSign)
     if (status /= GSL_Success) call Error_Report('LU decomposition failed'//{introspection:location})
+    !![
+    <workaround type="gfortran" PR="105807" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=105807">
+      <description>ICE when passing a derived type component to a class(*) function argument.</description>
+    !!]
+    dummyPointer_           => self%permutation_
+    self%permutationManager =  resourceManager(dummyPointer_)
+    !![
+    </workaround>
+    !!]
     return
   end function matrixLUConstructor
-
-  subroutine matrixLUDestructorRank0(self)
-    !!{
-    Destructor for the {\normalfont \ttfamily matrixLU} class
-    !!}
-    implicit none
-    type(matrixLU), intent(inout) :: self
-    
-    if (allocated(self%matrix_)) then
-       call gsl_matrix_free(self%matrix_)
-       deallocate(self%matrix_)
-    end if
-    if (allocated(self%permutation)) then
-       call gsl_permutation_free(self%permutation)
-       deallocate(self%permutation)
-    end if
-    return
-  end subroutine matrixLUDestructorRank0
-
-  subroutine matrixLUDestructorRank1(self)
-    !!{
-    Destructor for the {\normalfont \ttfamily matrixLU} class
-    !!}
-    implicit none
-    type   (matrixLU), intent(inout), dimension(:) :: self
-    integer                                      :: i
-
-    do i=1,size(self)
-       if (allocated(self(i)%matrix_)) then
-          call gsl_matrix_free(self(i)%matrix_)
-          deallocate(self(i)%matrix_)
-       end if
-       if (allocated(self(i)%permutation)) then
-          call gsl_permutation_free(self(i)%permutation)
-          deallocate(self(i)%permutation)
-       end if
-    end do
-    return
-  end subroutine matrixLUDestructorRank1
 
   function matrixLUSquareSystemSolve(self,y)
     !!{
@@ -1185,7 +1228,7 @@ contains
     integer(c_int   )                :: status
 
     matrixLUSquareSystemSolve=vector(y%size_)
-    status=GSL_LinAlg_LU_Solve(self%matrix_,self%permutation,y%vector_,matrixLUSquareSystemSolve%vector_)
+    status=GSL_LinAlg_LU_Solve(self%matrix_%gsl,self%permutation_%gsl,y%vector_%gsl,matrixLUSquareSystemSolve%vector_%gsl)
     if (status /= GSL_Success) call Error_Report('LU solve failed'//{introspection:location})
     return
   end function matrixLUSquareSystemSolve
@@ -1201,7 +1244,7 @@ contains
 
     do i=1_c_size_t,self%size_(1)
        do j=1_c_size_t,self%size_(2)
-          array(i,j)=gsl_matrix_get(self%matrix_,i-1_c_size_t,j-1_c_size_t)
+          array(i,j)=gsl_matrix_get(self%matrix_%gsl,i-1_c_size_t,j-1_c_size_t)
        end do
     end do
     return
@@ -1314,4 +1357,37 @@ contains
     return
   end function matrixRotationPlusTranslation
 
+  subroutine vectorWrapperDestructor(self)
+    !!{
+    Destructor for {\normalfont \ttfamily vectorWrapper} class.
+    !!}
+    implicit none
+    type(vectorWrapper), intent(inout) :: self
+
+    call gsl_vector_free(self%gsl)
+    return
+  end subroutine vectorWrapperDestructor
+  
+  subroutine matrixWrapperDestructor(self)
+    !!{
+    Destructor for {\normalfont \ttfamily matrixWrapper} class.
+    !!}
+    implicit none
+    type(matrixWrapper), intent(inout) :: self
+
+    call gsl_matrix_free(self%gsl)
+    return
+  end subroutine matrixWrapperDestructor
+  
+  subroutine permutationWrapperDestructor(self)
+    !!{
+    Destructor for {\normalfont \ttfamily permutationWrapper} class.
+    !!}
+    implicit none
+    type(permutationWrapper), intent(inout) :: self
+
+    call gsl_permutation_free(self%gsl)
+    return
+  end subroutine permutationWrapperDestructor
+  
 end module Linear_Algebra

@@ -306,9 +306,6 @@ contains
     ! Close analysis groups in merged importers and deallocate their simulation data.
     importer_ => self%importers
     do while (associated(importer_))
-       do j=1,size(importer_%simulations)
-          if (importer_%simulations(j)%analysis%isOpen()) call importer_%simulations(j)%analysis%close()
-       end do
        deallocate(importer_%simulations)
        importer_ => importer_%next
     end do

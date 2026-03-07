@@ -376,7 +376,7 @@ contains
     logical                                                                                              :: haveBoundaries
     
     !$ call hdf5Access%set  ()
-    call dataFile%openFile(fileName,readOnly=.true.)
+    dataFile=hdf5Object(fileName,readOnly=.true.)
     simulationGroup=dataFile       %openGroup ('simulation0001'   )
     haveBoundaries =simulationGroup%hasDataset('massParentMinimum')
     call    simulationGroup%readDataset('massRatioProgenitor'   ,massRatio           )
@@ -388,8 +388,6 @@ contains
        call simulationGroup%readDataset('massParentMinimum'     ,massParentsMinimum  )
        call simulationGroup%readDataset('massParentMaximum'     ,massParentsMaximum  )
     end if
-    call    simulationGroup%close      (                                             )
-    call    dataFile       %close      (                                             )
     !$ call hdf5Access%unset()
     ! Extract parent mass range and progenitor redshift.
     if (haveBoundaries) then
@@ -759,18 +757,17 @@ contains
     !!{
     Implement reduction over progenitor mass functions.
     !!}
-    use    :: Error  , only : Error_Report
-    !$ use :: OMP_Lib, only : OMP_Set_Lock, OMP_Unset_Lock
+    use :: Error, only : Error_Report
     implicit none
     class(outputAnalysisProgenitorMassFunction), intent(inout) :: self
     class(outputAnalysisClass                 ), intent(inout) :: reduced
     
     select type (reduced)
     class is (outputAnalysisProgenitorMassFunction)
-       !$ call OMP_Set_Lock(reduced%accumulateLock)
+       !$ call reduced%accumulateLock%set()
        reduced%weightParents=+reduced%weightParents &
             &                +self   %weightParents
-       !$ call OMP_Unset_Lock(reduced%accumulateLock)
+       !$ call reduced%accumulateLock%unset()
     class default
        call Error_Report('incorrect class'//{introspection:location})
     end select
@@ -834,10 +831,6 @@ contains
     call analysisGroup%writeAttribute(self%logLikelihood             (),'logLikelihood'             )
     call analysisGroup%writeAttribute(self%massRatioLikelihoodMinimum  ,'massRatioLikelihoodMinimum')
     call analysisGroup%writeAttribute(self%massRatioLikelihoodMaximum  ,'massRatioLikelihoodMaximum')
-    call analysisGroup%close         (                                                              )
-    if (present(groupName)) &
-         & call subGroup%close       (                                                              )
-    call analysesGroup%close         (                                                              )
     !$ call hdf5Access%unset()
     return
   end subroutine progenitorMassFunctionFinalize

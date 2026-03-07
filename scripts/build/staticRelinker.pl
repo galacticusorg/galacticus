@@ -137,10 +137,11 @@ $compileCommand .= " ".$postProcessCommand
 # Compile the static binary.
 print "Relinking with: ".$compileCommand."\n";
 system($compileCommand);
+my $status = $? == 0 ? 0 : 1;
 # Restore dylibs.
 if ( scalar(@mvLibs) > 0 ) {
     my $mvCommand = "sudo -- sh -c '".join("; ",map {"mv ".$mvDirName."/".$_."~ ".$mvDirName."/".$_} @mvLibs)."'";
     print "Must restore temporarily moved dylibs (requires sudo):\n";
     system($mvCommand);
 }
-exit;
+exit $status;

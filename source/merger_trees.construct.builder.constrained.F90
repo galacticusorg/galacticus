@@ -43,8 +43,8 @@
      A merger tree builder class that enforces constraints on the merger tree built by some other builder.
      !!}
      private
-     type  (constrainedBuilderList), pointer :: mergerTreeBuilders => null()
-     integer(c_size_t             )          :: trialCountMaximum
+     type   (constrainedBuilderList), pointer :: mergerTreeBuilders => null()
+     integer(c_size_t              )          :: trialCountMaximum
    contains
      final     ::          constrainedDestructor
      procedure :: build => constrainedBuild

@@ -218,10 +218,9 @@ contains
     
     ! Construct the target distribution.
     !$ call hdf5Access%set  ()
-    call fileData%openFile(char(inputPath(pathTypeDataStatic))//"observations/stellarHaloMassRelation/fractionOccupation_Local_Group_Nadler2020.hdf5",readOnly=.true.)
+    fileData=hdf5Object(char(inputPath(pathTypeDataStatic))//"observations/stellarHaloMassRelation/fractionOccupation_Local_Group_Nadler2020.hdf5",readOnly=.true.)
     call fileData%readDataset('massHalo'          ,massHaloData          )
     call fileData%readDataset('fractionOccupation',fractionOccupationData)
-    call fileData%close      (                                           )
     !$ call hdf5Access%unset()
     ! Construct mass bins.
     allocate(masses                  (size(massHaloData)                   ))
@@ -503,10 +502,6 @@ contains
     end if
     analysisGroup=inGroup%openGroup('localGroupOccupationFraction','Subhalo occupation fraction of Local Group satellites')
     call analysisGroup%writeAttribute(self%logLikelihood(),'logLikelihood')
-    call analysisGroup%close         (                                    )
-    if (present(groupName)) &
-         & call subGroup%close       (                                    )
-    call analysesGroup%close         (                                    )
     !$ call hdf5Access%unset()
     return
   end subroutine localGroupOccupationFractionFinalize

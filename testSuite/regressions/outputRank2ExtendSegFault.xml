@@ -304,9 +304,6 @@
   <blackHoleCGMHeating value="jetPower">
     <efficiencyRadioMode value="0.00140338137883176"/>
   </blackHoleCGMHeating>
-   <blackHoleCGMHeating value="jetPower">
-    <efficiencyRadioMode value="1.0"/>
-  </blackHoleCGMHeating>
 
   <stellarWinds value="leitherer1992"/>
   <supernovaeTypeIa value="nagashima2005"/>

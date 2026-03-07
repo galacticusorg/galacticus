@@ -31,7 +31,8 @@ module Numerical_Quasi_Random_Sequences
   !!{
   Implements quasi-random sequences.
   !!}
-  use, intrinsic :: ISO_C_Binding, only : c_ptr, c_int, c_double
+  use, intrinsic :: ISO_C_Binding   , only : c_ptr          , c_int, c_double, c_null_ptr
+  use            :: Resource_Manager, only : resourceManager
   implicit none
   private
   public :: quasiRandomNumberGenerator
@@ -78,20 +79,30 @@ module Numerical_Quasi_Random_Sequences
      end function gsl_qrng_type_get
   end interface
 
+  type :: gslQRNGWrapper
+     !!{
+     Wrapper class for managing GSL quasi-random number generators.
+     !!}
+     type(c_ptr) :: gsl=c_null_ptr
+   contains
+     final :: gslQRNGWrapperDestructor
+  end type gslQRNGWrapper
+  
   type :: quasiRandomNumberGenerator
      !!{
      Type providing quasi-random number generators.
      !!}
      private
-     type   (c_ptr), allocatable :: gsl_qrng , gsl_qrng_type
-     integer                     :: qrngType
+     type   (resourceManager)              :: qrngManager
+     type   (gslQRNGWrapper ), pointer     :: gsl_qrng      => null()
+     type   (c_ptr          ), allocatable :: gsl_qrng_type
+     integer                               :: qrngType
    contains
      !![
      <methods>
        <method description="Get numbers from the sequence." method="get" />
      </methods>
      !!]
-     final     ::        quasiRandomNumberGeneratorDestructor
      procedure :: get => quasiRandomNumberGeneratorGet
   end type quasiRandomNumberGenerator
   
@@ -110,8 +121,9 @@ contains
     !!}
     use :: Error, only : Error_Report
     implicit none
-    type  (quasiRandomNumberGenerator)                          :: self
-    integer                           , intent(in   ), optional :: qrngType
+    type   (quasiRandomNumberGenerator)                          :: self
+    integer                            , intent(in   ), optional :: qrngType
+    class  (*                         ), pointer                 :: dummyPointer_
     !![
     <optionalArgument name="qrngType" defaultsTo="gsl_qrng_sobol"/>
     !!]
@@ -122,24 +134,30 @@ contains
     self%gsl_qrng_type=gsl_qrng_type_get(qrngType_)
     ! Allocate the sequence.
     allocate(self%gsl_qrng)
-    self%gsl_qrng=gsl_qrng_alloc(self%gsl_qrng_type,1)
+    self%gsl_qrng%gsl=gsl_qrng_alloc (self%gsl_qrng_type,1)
+    !![
+    <workaround type="gfortran" PR="105807" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=105807">
+      <description>ICE when passing a derived type component to a class(*) function argument.</description>
+    !!]
+    dummyPointer_    => self%gsl_qrng
+    self%qrngManager =  resourceManager(dummyPointer_)
+    !![
+    </workaround>
+    !!]
     return
   end function quasiRandomNumberGeneratorConstructor
 
-  subroutine quasiRandomNumberGeneratorDestructor(self)
+  subroutine gslQRNGWrapperDestructor(self)
     !!{
-    Destructor for {\normalfont \ttfamily quasiRandomNumberGenerator} objects.
+    Destroy a {\normalfont \ttfamily gslQRNGWrapper} object.
     !!}
     implicit none
-    type(quasiRandomNumberGenerator), intent(inout) :: self
+    type(gslQRNGWrapper), intent(inout) :: self
 
-    if (allocated (self%gsl_qrng)) then
-       call gsl_qrng_free(self%gsl_qrng)
-       deallocate(self%gsl_qrng)
-    end if
+    call gsl_qrng_free(self%gsl)
     return
-  end subroutine quasiRandomNumberGeneratorDestructor
-  
+  end subroutine gslQRNGWrapperDestructor
+
   double precision function quasiRandomNumberGeneratorGet(self)
     !!{
     Return the next entry in the quasi-random sequence.
@@ -151,7 +169,7 @@ contains
     double precision                            , dimension(1)  :: sequenceNext
     integer         (c_int                     )                :: status
 
-    status=GSL_qRng_Get(self%gsl_qrng,sequenceNext)
+    status=GSL_qRng_Get(self%gsl_qrng%gsl,sequenceNext)
     if (status /= GSL_Success) call Error_Report('failed to get next entry in quasi-random sequence'//{introspection:location})
     quasiRandomNumberGeneratorGet=sequenceNext(1)
     return

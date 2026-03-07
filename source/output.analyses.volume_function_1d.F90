@@ -26,7 +26,7 @@ mass function) output analysis class.
   use   , intrinsic :: ISO_C_Binding                           , only : c_size_t
   use               :: ISO_Varying_String                      , only : varying_string
   use               :: Node_Property_Extractors                , only : nodePropertyExtractorClass
-  !$ use            :: OMP_Lib                                 , only : omp_lock_kind
+  !$ use            :: Locks                                   , only : ompLock
   use               :: Output_Analysis_Distribution_Normalizers, only : outputAnalysisDistributionNormalizerClass
   use               :: Output_Analysis_Distribution_Operators  , only : outputAnalysisDistributionOperatorClass
   use               :: Output_Analysis_Property_Operators      , only : outputAnalysisPropertyOperatorClass
@@ -120,7 +120,7 @@ mass function) output analysis class.
           &                                                                                         binWidth
      logical                                                                                     :: finalized                                      , xAxisIsLog                                       , &
           &                                                                                         yAxisIsLog                                     , likelihoodNormalize
-     !$ integer      (omp_lock_kind                               )                              :: accumulateLock
+     !$ type         (ompLock                                     )                              :: accumulateLock
    contains
      !![
      <methods>
@@ -435,10 +435,9 @@ contains
     !!{
     Constructor for the \refClass{outputAnalysisVolumeFunction1D} output analysis class for internal use.
     !!}
-    use    :: Error                   , only : Error_Report
-    use    :: Node_Property_Extractors, only : nodePropertyExtractorClass           , nodePropertyExtractorScalar
-    use    :: Output_Analyses_Options , only : outputAnalysisCovarianceModelBinomial
-    !$ use :: OMP_Lib                 , only : OMP_Init_Lock
+    use :: Error                   , only : Error_Report
+    use :: Node_Property_Extractors, only : nodePropertyExtractorClass           , nodePropertyExtractorScalar
+    use :: Output_Analyses_Options , only : outputAnalysisCovarianceModelBinomial
     implicit none
     type            (outputAnalysisVolumeFunction1D              )                                          :: self
     type            (varying_string                              ), intent(in   )                           :: label                                , comment                          , &
@@ -536,7 +535,7 @@ contains
     ! Initialize finalization status.
     self%finalized=.false.
     ! Initialize OpenMP accumulation lock.
-    !$ call OMP_Init_Lock(self%accumulateLock)
+    !$ self%accumulateLock=ompLock()
    return
   end function volumeFunction1DConstructorInternal
 
@@ -544,7 +543,6 @@ contains
     !!{
     Destructor for the \refClass{outputAnalysisVolumeFunction1D} output analysis class.
     !!}
-    !$ use :: OMP_Lib, only : OMP_Destroy_Lock
     implicit none
     type(outputAnalysisVolumeFunction1D), intent(inout) :: self
 
@@ -558,8 +556,6 @@ contains
     <objectDestructor name="self%galacticFilter_"                      />
     <objectDestructor name="self%outputTimes_"                         />
     !!]
-    ! Destroy OpenMP lock.
-    !$ call OMP_Destroy_Lock(self%accumulateLock)
     return
   end subroutine volumeFunction1DDestructor
 
@@ -567,10 +563,9 @@ contains
     !!{
     Implement a volumeFunction1D output analysis.
     !!}
-    use    :: Galacticus_Nodes        , only : nodeComponentBasic                   , treeNode
-    use    :: Node_Property_Extractors, only : nodePropertyExtractorScalar
-    use    :: Output_Analyses_Options , only : outputAnalysisCovarianceModelBinomial, enumerationOutputAnalysisPropertyTypeType, enumerationOutputAnalysisPropertyQuantityType
-    !$ use :: OMP_Lib                 , only : OMP_Set_Lock                         , OMP_Unset_Lock
+    use :: Galacticus_Nodes        , only : nodeComponentBasic                   , treeNode
+    use :: Node_Property_Extractors, only : nodePropertyExtractorScalar
+    use :: Output_Analyses_Options , only : outputAnalysisCovarianceModelBinomial, enumerationOutputAnalysisPropertyTypeType, enumerationOutputAnalysisPropertyQuantityType
     implicit none
     class           (outputAnalysisVolumeFunction1D               ), intent(inout)                 :: self
     type            (treeNode                                     ), intent(inout)                 :: node
@@ -615,9 +610,7 @@ contains
          &                        *weightValue
     ! Accumulate the property, including weights from both the host tree and the output. Note that we accumulate only the
     ! non-buffer bins of the distribution.
-    !$ call OMP_Set_Lock(self%accumulateLock)
     self%functionValue=+self%functionValue+distribution(1:self%binCount)
-    !$ call OMP_Unset_Lock(self%accumulateLock)
     ! Accumulate covariance. If using the binomial model for main branch galaxies, handle them separately.
     if (node%isOnMainBranch() .and. self%covarianceModel == outputAnalysisCovarianceModelBinomial) then
        ! Find the bin to which this halo mass belongs.
@@ -643,11 +636,9 @@ contains
           end forall
        end forall
        ! Accumulate covariance.
-       !$ call OMP_Set_Lock(self%accumulateLock)
        self        %functionCovariance= &
             & +self%functionCovariance  &
             & +             covariance
-       !$ call OMP_Unset_Lock(self%accumulateLock)
        deallocate(covariance)
     end if
     ! Deallocate workspace.
@@ -659,23 +650,22 @@ contains
     !!{
     Implement a volumeFunction1D output analysis reduction.
     !!}
-    use    :: Error                  , only : Error_Report
-    use    :: Output_Analyses_Options, only : outputAnalysisCovarianceModelBinomial
-    !$ use :: OMP_Lib                , only : OMP_Set_Lock                         , OMP_Unset_Lock
+    use :: Error                  , only : Error_Report
+    use :: Output_Analyses_Options, only : outputAnalysisCovarianceModelBinomial
     implicit none
     class(outputAnalysisVolumeFunction1D), intent(inout) :: self
     class(outputAnalysisClass           ), intent(inout) :: reduced
 
     select type (reduced)
     class is (outputAnalysisVolumeFunction1D)
-       !$ call OMP_Set_Lock(reduced%accumulateLock)
+       !$ call reduced%accumulateLock%set()
        if (self%covarianceModel == outputAnalysisCovarianceModelBinomial) then
           reduced%weightMainBranch       =reduced%weightMainBranch       +self%weightMainBranch
           reduced%weightMainBranchSquared=reduced%weightMainBranchSquared+self%weightMainBranchSquared
        end if
        reduced%functionCovariance        =reduced%functionCovariance     +self%functionCovariance
        reduced%functionValue             =reduced%functionValue          +self%functionValue
-       !$ call OMP_Unset_Lock(reduced%accumulateLock)
+       !$ call reduced%accumulateLock%unset()
     class default
        call Error_Report('incorrect class'//{introspection:location})
     end select
@@ -725,15 +715,12 @@ contains
     call    analysisGroup%writeDataset  (self%binCenter    (1:self%binCount                     ),char(self%    propertyLabel)                   ,char(self%   propertyComment)                  ,datasetReturned=dataset)
     call    dataset      %writeAttribute(     char(self%    propertyUnits    )                   ,'units'                                                                                                                )
     call    dataset      %writeAttribute(          self%    propertyUnitsInSI                    ,'unitsInSI'                                                                                                            )
-    call    dataset      %close         (                                                                                                                                                                                )
     call    analysisGroup%writeDataset  (self%functionValue(1:self%binCount                     ),char(self%distributionLabel)                   ,char(self%distributionComment)                 ,datasetReturned=dataset)
     call    dataset      %writeAttribute(     char(self%distributionUnits    )                   ,'units'                                                                                                                )
     call    dataset      %writeAttribute(          self%distributionUnitsInSI                    ,'unitsInSI'                                                                                                            )
-    call    dataset      %close         (                                                                                                                                                                                )
     call    analysisGroup%writeDataset  (self%functionCovariance(1:self%binCount,1:self%binCount),char(self%distributionLabel)//"Covariance"     ,char(self%distributionComment)//" [covariance]",datasetReturned=dataset)
     call    dataset      %writeAttribute("["//char(self%distributionUnits    )//"]²"             ,'units'                                                                                                                )
     call    dataset      %writeAttribute(          self%distributionUnitsInSI   **2              ,'unitsInSI'                                                                                                            )
-    call    dataset      %close         (                                                                                                                                                                                )
     ! If available, include the log-likelihood and target dataset.
     if (allocated(self%functionValueTarget)) then
        call analysisGroup%writeAttribute(          self%logLikelihood()                         ,'logLikelihood'                                                                                                         )
@@ -741,16 +728,10 @@ contains
        call analysisGroup%writeDataset  (          self%functionValueTarget                     ,char(self%distributionLabel)//"Target"          ,char(self%distributionComment)                 ,datasetReturned=dataset)
        call dataset      %writeAttribute(     char(self%distributionUnits    )                  ,'units'                                                                                                                 )
        call dataset      %writeAttribute(          self%distributionUnitsInSI                   ,'unitsInSI'                                                                                                             )
-       call dataset      %close         (                                                                                                                                                                                )
        call analysisGroup%writeDataset  (          self%functionCovarianceTarget                ,char(self%distributionLabel)//"CovarianceTarget",char(self%distributionComment)//" [covariance]",datasetReturned=dataset)
        call dataset      %writeAttribute("["//char(self%distributionUnits    )//"]²"            ,'units'                                                                                                                 )
        call dataset      %writeAttribute(          self%distributionUnitsInSI   **2             ,'unitsInSI'                                                                                                             )
-       call dataset      %close         (                                                                                                                                                                                )
     end if
-    call    analysisGroup%close         (                                                                                                                                                                                )
-    if (present(groupName)) &
-         & call subGroup %close         (                                                                                                                                                                                )
-    call    analysesGroup%close         (                                                                                                                                                                                )
     !$ call hdf5Access%unset()
     return
   end subroutine volumeFunction1DFinalize

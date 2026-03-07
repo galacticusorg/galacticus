@@ -641,7 +641,7 @@ contains
     use :: Cosmology_Parameters      , only : hubbleUnitsLittleH
     use :: Dates_and_Times           , only : Formatted_Date_and_Time
     use :: Display                   , only : displayIndent          , displayUnindent
-    use :: Error          , only : errorStatusSuccess
+    use :: Error                     , only : errorStatusSuccess
     use :: HDF5                      , only : hsize_t
     use :: Input_Parameters          , only : inputParameters
     use :: Merger_Tree_Data_Structure, only : mergerTreeData         , metaDataTypeCosmology, metaDataTypeProvenance, metaDataTypeSimulation, &

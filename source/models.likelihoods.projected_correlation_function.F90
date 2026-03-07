@@ -201,7 +201,7 @@ contains
 
     ! Read the projected correlation function file.
     !$ call hdf5Access%set()
-    call file%openFile(char(inputPath(pathTypeDataStatic))//fileName,readOnly=.true.)
+    file=hdf5Object(char(inputPath(pathTypeDataStatic))//fileName,readOnly=.true.)
     call file%readDataset("separation"                          ,self%separation                          )
     call file%readDataset("projectedCorrelationFunctionObserved",self%projectedCorrelationFunctionObserved)
     call file%readDataset("covariance"                          ,self%covarianceMatrix                    )
@@ -213,7 +213,6 @@ contains
        allocate(self%integralConstraint,mold=self%projectedCorrelationFunctionObserved)
        self%integralConstraint=1.0d0
     end if
-    call file%close()
     !$ call hdf5Access%unset()
     ! Allocate storage for the model projected correlation function.
     allocate(self%projectedCorrelationFunction(size(self%separation),size(self%massMinimum)))

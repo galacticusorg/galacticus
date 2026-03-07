@@ -745,15 +745,12 @@ contains
     call    analysisGroup%writeDataset  (          self%binCenter                         ,char(self%propertyLabel)                    ,char(self%propertyComment)                 ,datasetReturned=dataset)
     call    dataset      %writeAttribute(     char(self%propertyUnits    )                ,'units'                                                                                                         )
     call    dataset      %writeAttribute(          self%propertyUnitsInSI                 ,'unitsInSI'                                                                                                     )
-    call    dataset      %close         (                                                                                                                                                                  )
     call    analysisGroup%writeDataset  (          self%meanValue                         ,char(self%    meanLabel)                    ,char(self%    meanComment)                 ,datasetReturned=dataset)
     call    dataset      %writeAttribute(     char(self%    meanUnits    )                ,'units'                                                                                                         )
     call    dataset      %writeAttribute(          self%meanUnitsInSI                     ,'unitsInSI'                                                                                                     )
-    call    dataset      %close         (                                                                                                                                                                  )
     call    analysisGroup%writeDataset  (          self%meanCovariance                    ,char(self%    meanLabel)//"Covariance"      ,char(self%    meanComment)//" [covariance]",datasetReturned=dataset)
     call    dataset      %writeAttribute("["//char(self%    meanUnits    )//"]²"          ,'units'                                                                                                         )
     call    dataset      %writeAttribute(          self%    meanUnitsInSI   **2           ,'unitsInSI'                                                                                                     )
-    call    dataset      %close         (                                                                                                                                                                  )
     ! If available, include the log-likelihood and target dataset.
     if (allocated(self%meanValueTarget)) then
        call analysisGroup%writeAttribute(          self%logLikelihood()                   ,'logLikelihood'                                                                                                 )
@@ -761,16 +758,10 @@ contains
        call analysisGroup%writeDataset  (          self%meanValueTarget                   ,char(self%    meanLabel)//"Target"          ,char(self%    meanComment)                 ,datasetReturned=dataset)
        call dataset      %writeAttribute(     char(self%    meanUnits    )                ,'units'                                                                                                         )
        call dataset      %writeAttribute(          self%meanUnitsInSI                     ,'unitsInSI'                                                                                                     )
-       call dataset      %close         (                                                                                                                                                                  )
        call analysisGroup%writeDataset  (          self%meanCovarianceTarget              ,char(self%    meanLabel)//"CovarianceTarget",char(self%    meanComment)//" [covariance]",datasetReturned=dataset)
        call dataset      %writeAttribute("["//char(self%    meanUnits    )//"]²"          ,'units'                                                                                                         )
        call dataset      %writeAttribute(          self%    meanUnitsInSI   **2           ,'unitsInSI'                                                                                                     )
-       call dataset      %close         (                                                                                                                                                                  )
     end if
-    call    analysisGroup%close         (                                                                                                                                                                  )
-    if (present(groupName)) &
-         & call subGroup %close         (                                                                                                                                                                  )
-    call    analysesGroup%close         (                                                                                                                                                                  )
     !$ call hdf5Access%unset()
     return
   end subroutine meanFunction1DFinalize

@@ -906,11 +906,10 @@ contains
       character       (len=12        )                :: rangeLower                                  , rangeUpper
       type            (integrator    ), allocatable   :: integrator_
       type            (varying_string), save          :: message
-      type            (hdf5Object    ), save          :: file
       type            (lockDescriptor), save          :: fileLock
       logical                                         :: haveLock
-      !$omp threadprivate(message,file,fileLock)
-      
+      !$omp threadprivate(message,fileLock)
+
       ! If our table is insufficient (or does not yet exist), attempt to read the table from file.
       haveLock=.false.
       if (tableIsInsufficient()) then
@@ -922,21 +921,23 @@ contains
             call displayMessage(message,verbosityLevelWorking)
             ! Always obtain the file lock before the hdf5Access lock to avoid deadlocks between OpenMP threads.
             !$ call hdf5Access%set()
-            call file%openFile     (                                                      char(self%filenameTable                                      ),readOnly=.true.)
-            call file%readAttribute('coefficientFactorBoostMinimum'                      ,     self%coefficientFactorBoostMinimum                                       )
-            call file%readAttribute('coefficientFactorBoostMaximum'                      ,     self%coefficientFactorBoostMaximum                                       )
-            call file%readAttribute('coefficientFactorBoostStellarMinimum'               ,     self%coefficientFactorBoostStellarMinimum                                )
-            call file%readAttribute('coefficientFactorBoostStellarMaximum'               ,     self%coefficientFactorBoostStellarMaximum                                )
-            call file%readAttribute('radiusScaleFreeMinimum'                             ,     self%radiusScaleFreeMinimum                                              )
-            call file%readAttribute('radiusScaleFreeMaximum'                             ,     self%radiusScaleFreeMaximum                                              )
-            call file%readAttribute('coefficientFactorBoostLogarithmicOffset'            ,     self%coefficientFactorBoostLogarithmicOffset                             )
-            call file%readAttribute('coefficientFactorBoostStellarLogarithmicOffset'     ,     self%coefficientFactorBoostStellarLogarithmicOffset                      )
-            call file%readAttribute('radiusScaleFreeLogarithmicOffset'                   ,     self%radiusScaleFreeLogarithmicOffset                                    )
-            call file%readAttribute('coefficientFactorBoostLogarithmicStepInverse'       ,     self%coefficientFactorBoostLogarithmicStepInverse                        )
-            call file%readAttribute('coefficientFactorBoostStellarLogarithmicStepInverse',     self%coefficientFactorBoostStellarLogarithmicStepInverse                 )
-            call file%readAttribute('radiusScaleFreeLogarithmicStepInverse'              ,     self%radiusScaleFreeLogarithmicStepInverse                               )
-            call file%readDataset  ('integral'                                           ,     self%integralPartiallyMolecularTable                                     )
-            call file%close        (                                                                                                                                    )
+            hdf5FileScopeRead: block
+              type(hdf5Object) :: file
+              file=hdf5Object(char(self%filenameTable),readOnly=.true.)
+              call file%readAttribute('coefficientFactorBoostMinimum'                      ,self%coefficientFactorBoostMinimum                      )
+              call file%readAttribute('coefficientFactorBoostMaximum'                      ,self%coefficientFactorBoostMaximum                      )
+              call file%readAttribute('coefficientFactorBoostStellarMinimum'               ,self%coefficientFactorBoostStellarMinimum               )
+              call file%readAttribute('coefficientFactorBoostStellarMaximum'               ,self%coefficientFactorBoostStellarMaximum               )
+              call file%readAttribute('radiusScaleFreeMinimum'                             ,self%radiusScaleFreeMinimum                             )
+              call file%readAttribute('radiusScaleFreeMaximum'                             ,self%radiusScaleFreeMaximum                             )
+              call file%readAttribute('coefficientFactorBoostLogarithmicOffset'            ,self%coefficientFactorBoostLogarithmicOffset            )
+              call file%readAttribute('coefficientFactorBoostStellarLogarithmicOffset'     ,self%coefficientFactorBoostStellarLogarithmicOffset     )
+              call file%readAttribute('radiusScaleFreeLogarithmicOffset'                   ,self%radiusScaleFreeLogarithmicOffset                   )
+              call file%readAttribute('coefficientFactorBoostLogarithmicStepInverse'       ,self%coefficientFactorBoostLogarithmicStepInverse       )
+              call file%readAttribute('coefficientFactorBoostStellarLogarithmicStepInverse',self%coefficientFactorBoostStellarLogarithmicStepInverse)
+              call file%readAttribute('radiusScaleFreeLogarithmicStepInverse'              ,self%radiusScaleFreeLogarithmicStepInverse              )
+              call file%readDataset  ('integral'                                           ,self%integralPartiallyMolecularTable                    )
+            end block hdf5FileScopeRead
             !$ call hdf5Access%unset()
             self%tableInitialized=.true.
          end if
@@ -945,7 +946,7 @@ contains
       if (tableIsInsufficient()) then
          ! Obtain a file lock if we don't already have one.
          if (.not.haveLock) then
-            call File_Lock(char(self%filenameTable),fileLock,lockIsShared=.false.)
+            call File_Lock(self%filenameTable,fileLock,lockIsShared=.false.)
             haveLock=.true.
          end if
          ! Find range encompassing the existing table and the new point (with some buffer).
@@ -1032,25 +1033,27 @@ contains
          call displayMessage(message,verbosityLevelWorking)
          call Directory_Make(File_Path(self%filenameTable))
          !$ call hdf5Access%set()
-         call file%openFile      (char(self%filenameTable                                      )                                                     ,overWrite=.true.,readOnly=.false.)
-         call file%writeAttribute(     self%coefficientFactorBoostMinimum                       ,'coefficientFactorBoostMinimum'                                                       )
-         call file%writeAttribute(     self%coefficientFactorBoostMaximum                       ,'coefficientFactorBoostMaximum'                                                       )
-         call file%writeAttribute(     self%coefficientFactorBoostStellarMinimum                ,'coefficientFactorBoostStellarMinimum'                                                )
-         call file%writeAttribute(     self%coefficientFactorBoostStellarMaximum                ,'coefficientFactorBoostStellarMaximum'                                                )
-         call file%writeAttribute(     self%radiusScaleFreeMinimum                              ,'radiusScaleFreeMinimum'                                                              )
-         call file%writeAttribute(     self%radiusScaleFreeMaximum                              ,'radiusScaleFreeMaximum'                                                              )
-         call file%writeAttribute(     self%coefficientFactorBoostLogarithmicOffset             ,'coefficientFactorBoostLogarithmicOffset'                                             )
-         call file%writeAttribute(     self%coefficientFactorBoostStellarLogarithmicOffset      ,'coefficientFactorBoostStellarLogarithmicOffset'                                      )
-         call file%writeAttribute(     self%radiusScaleFreeLogarithmicOffset                    ,'radiusScaleFreeLogarithmicOffset'                                                    )
-         call file%writeAttribute(     self%coefficientFactorBoostLogarithmicStepInverse        ,'coefficientFactorBoostLogarithmicStepInverse'                                        )
-         call file%writeAttribute(     self%coefficientFactorBoostStellarLogarithmicStepInverse ,'coefficientFactorBoostStellarLogarithmicStepInverse'                                 )
-         call file%writeAttribute(     self%radiusScaleFreeLogarithmicStepInverse               ,'radiusScaleFreeLogarithmicStepInverse'                                               )
-         call file%writeDataset  (     self%integralPartiallyMolecularTable                     ,'integral'                                                                            )
-         call file%close         (                                                                                                                                                     )
+         hdf5FileScopeWrite: block
+           type(hdf5Object) :: file
+           file=hdf5Object(self%filenameTable,overWrite=.true.,readOnly=.false.)
+           call file%writeAttribute(self%coefficientFactorBoostMinimum                       ,'coefficientFactorBoostMinimum'                      )
+           call file%writeAttribute(self%coefficientFactorBoostMaximum                       ,'coefficientFactorBoostMaximum'                      )
+           call file%writeAttribute(self%coefficientFactorBoostStellarMinimum                ,'coefficientFactorBoostStellarMinimum'               )
+           call file%writeAttribute(self%coefficientFactorBoostStellarMaximum                ,'coefficientFactorBoostStellarMaximum'               )
+           call file%writeAttribute(self%radiusScaleFreeMinimum                              ,'radiusScaleFreeMinimum'                             )
+           call file%writeAttribute(self%radiusScaleFreeMaximum                              ,'radiusScaleFreeMaximum'                             )
+           call file%writeAttribute(self%coefficientFactorBoostLogarithmicOffset             ,'coefficientFactorBoostLogarithmicOffset'            )
+           call file%writeAttribute(self%coefficientFactorBoostStellarLogarithmicOffset      ,'coefficientFactorBoostStellarLogarithmicOffset'     )
+           call file%writeAttribute(self%radiusScaleFreeLogarithmicOffset                    ,'radiusScaleFreeLogarithmicOffset'                   )
+           call file%writeAttribute(self%coefficientFactorBoostLogarithmicStepInverse        ,'coefficientFactorBoostLogarithmicStepInverse'       )
+           call file%writeAttribute(self%coefficientFactorBoostStellarLogarithmicStepInverse ,'coefficientFactorBoostStellarLogarithmicStepInverse')
+           call file%writeAttribute(self%radiusScaleFreeLogarithmicStepInverse               ,'radiusScaleFreeLogarithmicStepInverse'              )
+           call file%writeDataset  (self%integralPartiallyMolecularTable                     ,'integral'                                           )
+         end block hdf5FileScopeWrite
          !$ call hdf5Access%unset()
       end if
       if (haveLock) then
-         call File_Unlock(fileLock)            
+         call File_Unlock(fileLock)
          haveLock=.false.
       end if
       ! Interpolate in table.

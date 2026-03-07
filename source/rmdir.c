@@ -40,17 +40,43 @@
 
 #include <unistd.h>
 #include <errno.h>
+#include <stdio.h>
 
-int rmdir_C(const char *name) {
+int rmdir_C(const char *path) {
   //% Fortran-callable wrapper around the rmdir() function to remove a directory.
   int status;
-  status = rmdir(name);
+  status = rmdir(path);
   if ( status == -1 ) {
     int err = errno;
     if ( err == ENOENT ) {
       /* Directory does not exist - this is acceptable */
       return 0;
     } else {
+      if        ( err == EACCES       ) {
+	printf("rmdir failed: write access to the directory containing path was not allowed\n");
+      } else if ( err == EBUSY        ) {
+	printf("rmdir failed: path is currently in use by the system or some process that prevents its removal\n");
+      } else if ( err == EFAULT       ) {
+	printf("rmdir failed: path points outside your accessible address space\n");
+      } else if ( err == EINVAL       ) {
+	printf("rmdir failed: path has .  as last component\n");
+      } else if ( err == ELOOP        ) {
+	printf("rmdir failed: too many symbolic links were encountered in resolving path\n");
+      } else if ( err == ENAMETOOLONG ) {
+	printf("rmdir failed: path was too long\n");
+      } else if ( err == ENOENT       ) {
+	printf("rmdir failed: a directory component in path does not exist or is adangling symbolic link\n");
+      } else if ( err == ENOMEM       ) {
+	printf("rmdir failed: insufficient kernel memory was available\n");
+      } else if ( err == ENOTDIR      ) {
+	printf("rmdir failed: path, or a component used as a directory in path, is not, in fact, a directory\n");
+      } else if ( err == ENOTEMPTY    ) {
+	printf("rmdir failed: path contains entries other than .  and ..; or, path has .. as its final component\n");
+      } else if ( err == EPERM        ) {
+	printf("rmdir failed: permissions issue\n");
+      } else if ( err == EROFS        ) {
+	printf("rmdir failed: path refers to a directory on a read-only filesystem\n");
+      }
       return err;
     }
   } else {

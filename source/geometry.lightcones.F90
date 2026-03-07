@@ -82,7 +82,8 @@ module Geometry_Lightcones
     <description>Returns the next time in the interval from the current node time to {\normalfont \ttfamily timeEnd} at which any replicant of this node will cross the lightcone. If no crossing occurs during this interval a very large value is returned instead.</description>
     <type>double precision</type>
     <pass>yes</pass>
-    <argument>type            (treeNode), intent(inout)                                      :: node                  </argument>
+    <selfTarget>yes</selfTarget>
+    <argument>type            (treeNode), intent(inout), target                              :: node                  </argument>
     <argument>double precision          , intent(in   )                                      :: timeStart    , timeEnd</argument>
     <argument>double precision          , intent(inout), dimension(:), allocatable, optional :: timesCrossing         </argument>
    </method>

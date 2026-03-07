@@ -151,7 +151,6 @@ contains
     implicit none
     type(nbodyImporterGadgetHDF5), intent(inout) :: self
 
-    if (self%file%isOpen()) call self%file%close()
     !![
     <objectDestructor name="self%cosmologyParameters_"/>
     !!]
@@ -192,7 +191,7 @@ contains
        hubbleConstantLittleH=1.0d0
     end if
     ! Open the data file of the current snapshot.
-    call self%file%openFile(char(self%fileName),objectsOverwritable=.true.)
+    self%file=hdf5Object(char(self%fileName),objectsOverwritable=.true.)
     ! Construct the particle type group to read and verify that it exists.
     write (particleGroupName,'(a8,i1)') "PartType",self%particleType
     if (.not.self%file%hasGroup(particleGroupName)) call Error_Report('particle group does not exist'//{introspection:location})
@@ -200,7 +199,6 @@ contains
     header=self%file%openGroup('Header')
     call header%readAttribute      ('Redshift' ,redshift        )
     call header%readAttributeStatic('MassTable',massParticleType)
-    call header%close()
     ! Compute softening length and particle mass.
     lengthSoftening=+self%lengthSoftening                  &
          &          *self%unitLengthInSI                   &
@@ -216,7 +214,6 @@ contains
     ! the bound status of particles.
     dataset=simulations(1)%analysis%openDataset('ParticleIDs')
     countParticles=dataset%size(1)
-    call dataset%close()
     allocate(particleID(  countParticles))
     allocate(position  (3,countParticles))
     allocate(velocity  (3,countParticles))
@@ -234,7 +231,6 @@ contains
     if (simulations(1)%analysis%hasDataset('selfBoundStatus')) then
        dataset=simulations(1)%analysis%openDataset('selfBoundStatus')
        countBootstrapSample=dataset%size(2)
-       call dataset%close()
        allocate(boundStatus (countParticles,countBootstrapSample))
        allocate(sampleWeight(countParticles,countBootstrapSample))
        allocate(weight      (countParticles,countBootstrapSample))

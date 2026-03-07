@@ -720,7 +720,8 @@ contains
          &                                                startTagName          , inAttribute  , &
          &                                                startValue            , inValue      , &
          &                                                useColor
-    character(len=1         )                          :: c
+    character(len=1         )                          :: c                     , f1
+    character(len=2         )                          :: f2
     character(len=8         )                          :: reset
     !![
     <optionalArgument name="indentStep"    defaultsTo="2"      />
@@ -768,14 +769,15 @@ contains
        if (c == char(10)) cycle
        ! Detect formatting.
        if (c == "*") then
-          if (extract(stringIn,i+1,i+2) == "*B") then
+          f2=extract(stringIn,i+1,i+2)
+          if (f2 == "*B") then
              ! Switch on bold formatting.
              if (useColor) stringOut=stringOut//ESC//"[1m"
              reset=ESC//"[0m"//ESC//"[1m"
              i=i+2
              cycle
           end if
-          if (extract(stringIn,i+1,i+2) == "*C") then
+          if (f2 == "*C") then
              ! Add a continuation line.
              stringOut=stringOut//repeat(" ",indent)//"......"//char(10)
              i=i+2
@@ -787,7 +789,8 @@ contains
           inElement   =.true.
           inTagName   =.true.
           startTagName=.true.
-          if (extract(stringIn,i+1,i+1) == "/") then
+          f1          =extract(stringIn,i+1,i+1)
+          if (f1 == "/") then
              ! Closing element.
              indent   =indent-indentStep_
              stringOut=stringOut//repeat(" ",indent)
@@ -802,7 +805,8 @@ contains
        end if
        ! Detect element closing.
        if (c == "/") then
-          if (extract(stringIn,i+1,i+1) == ">") indent=indent-indentStep_
+          f1=extract(stringIn,i+1,i+1)
+          if (f1 == ">") indent=indent-indentStep_
        end if
        if (c == ">") inElement=.false.
        ! Detect attribute name.

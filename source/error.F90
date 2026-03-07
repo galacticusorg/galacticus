@@ -710,11 +710,11 @@ contains
     use :: ISO_Varying_String, only : assignment(=), operator(//)
     use :: String_Handling   , only : String_Join
     implicit none
-    type     (varying_string)                                           :: Component_List
-    character(len=*         ), intent(in   )                            :: className
-    type     (varying_string), intent(in   ), dimension(:), allocatable :: componentList
+    type     (varying_string)                              :: Component_List
+    character(len=*         ), intent(in   )               :: className
+    type     (varying_string), intent(in   ), dimension(:) :: componentList
 
-    if (allocated(componentList)) then
+    if (size(componentList) > 0) then
        Component_List=char(10)//'Implementations of the "'   //className//'" class that provide this functionality are:'// &
             & char(10)//'   '//String_Join(componentList,char(10)//'   ')
     else
@@ -745,12 +745,10 @@ contains
     integer :: error
     
     !$ if (hdf5AccessInitialized) then
-    !$    if (.not.hdf5Access%ownedByThread()) &
-    !$      & call hdf5Access%set  (     )
-    call           H5Close_F       (error)
-    call           H5Close_C       (     )
-    !$    if (hdf5AccessInitialized      ) &
-    !$      & call hdf5Access%unset(     )
+    !$    call hdf5Access%set  (     )
+    call       H5Close_F       (error)
+    call       H5Close_C       (     )
+    !$    call hdf5Access%unset(     )
     !$ end if
     return
   end subroutine closeHDF5

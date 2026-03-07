@@ -345,6 +345,11 @@ vpath %.cpp source
 $(BUILDPATH)/%.o : %.cpp $(BUILDPATH)/%.d $(BUILDPATH)/%.fl Makefile
 	$(CPPCOMPILER) -c $< -o $(BUILDPATH)/$*.o $(CPPFLAGS)
 
+# Rules for the QHull library. Use the C++17 standard for these files since they are not compatible with later C++ standards
+# (triggering 'template-id not allowed for constructor' errors)
+$(BUILDPATH)/qhull.o : source/qhull.cpp
+	$(CPPCOMPILER) -c source/qhull.cpp -o $(BUILDPATH)/qhull.o $(CPPFLAGS) -std=gnu++17
+
 # Rules for FFTLog library.
 source/FFTlog/cdgamma.f source/FFTlog/drfftb.f source/FFTlog/drffti.f source/FFTlog/drfftf.f: source/FFTlog/fftlog.f
 source/FFTlog/fftlog.f:

@@ -49,7 +49,7 @@ sub Validate {
     }
     if ( $mpiIs eq "OpenMPI" ) {
 	    $defaults{'mpiRun'         } = "mpirun";
-	    $defaults{'mpiOptions'     } = "--bynode";
+	    $defaults{'mpiOptions'     } = "--oversubscribe --bynode";
 	    $defaults{'resourceRequest'} = "#PBS -l nodes=%%NODES%%:ppn=%%THREADS%%";
     } elsif ( $mpiIs eq "SGI MPT" ) {
 	    $defaults{'mpiRun'         } = "mpiexec";

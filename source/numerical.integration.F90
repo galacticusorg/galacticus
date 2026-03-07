@@ -28,8 +28,10 @@ module Numerical_Integration
   !!{
   Implements numerical integration.
   !!}
-  use, intrinsic :: ISO_C_Binding, only : c_ptr      , c_size_t, c_int, c_double
-  use            :: Interface_GSL, only : gslFunction
+  use, intrinsic :: ISO_C_Binding   , only : c_ptr             , c_size_t, c_int, c_double, &
+       &                                     c_null_ptr
+  use            :: Interface_GSL   , only : gslFunctionWrapper
+  use            :: Resource_Manager, only : resourceManager
   implicit none
   private
   public :: integrator
@@ -47,7 +49,7 @@ module Numerical_Integration
   !![
   <stateStorable class="integrator">
    <integrator>
-    <methodCall method="GSLReallocate" arguments="gslFree=.true." />
+    <methodCall method="GSLReallocate"  />
    </integrator>
   </stateStorable>
   !!]
@@ -55,22 +57,33 @@ module Numerical_Integration
   !![
   <deepCopyActions class="integrator">
     <integrator>
-      <methodCall method="GSLReallocate" arguments="gslFree=.false."/>
+      <methodCall method="GSLReallocate"/>
     </integrator>
   </deepCopyActions>
   !!]
+  
+  type :: gslIntegrationWorkspaceWrapper
+     !!{
+     Wrapper class for managing GSL functions.
+     !!}
+     type(c_ptr) :: workspace=c_null_ptr
+   contains
+     final :: gslIntegrationWorkspaceWrapperDestructor
+  end type gslIntegrationWorkspaceWrapper
   
   type :: integrator
      !!{
      Class for performing numerical integrations.
      !!}
      private
-     type            (c_ptr            )        , allocatable :: integrandFunction, integrationWorkspace
-     procedure       (integrandTemplate), nopass, pointer     :: integrand
-     integer                                                  :: integrationRule
-     integer         (c_size_t         )                      :: intervalsMaximum
-     double precision                                         :: toleranceAbsolute, toleranceRelative
-     logical                                                  :: hasSingularities
+     type            (resourceManager               )                  :: workspaceManager              , functionManager
+     type            (gslIntegrationWorkspaceWrapper)        , pointer :: integrationWorkspace => null()
+     type            (gslFunctionWrapper            )        , pointer :: integrandFunction    => null()
+     procedure       (integrandTemplate             ), nopass, pointer :: integrand
+     integer                                                           :: integrationRule
+     integer         (c_size_t                      )                  :: intervalsMaximum
+     double precision                                                  :: toleranceAbsolute             , toleranceRelative
+     logical                                                           :: hasSingularities
    contains
      !![
      <methods>
@@ -78,9 +91,11 @@ module Numerical_Integration
        <method description="Set tolerances to use in this integrator." method="toleranceSet" />
        <method description="Allocate GSL objects."                     method="gslAllocate"  />
        <method description="Reallocate GSL objects."                   method="gslReallocate"/>
+       <method description="Assign integrator objects."                method="assignment(=)"/>
      </methods>
      !!]
-     final     ::                  integratorDestructor
+     procedure ::                  integratorAssign
+     generic   :: assignment(=) => integratorAssign
      procedure :: integrate     => integratorIntegrate
      procedure :: toleranceSet  => integratorToleranceSet
      procedure :: gslAllocate   => integratorGSLAllocate
@@ -193,69 +208,82 @@ contains
     call self%gslAllocate()
     return
   end function integratorConstructor
-  
-  subroutine integratorDestructor(self)
-    !!{
-    Destructor for {\normalfont \ttfamily integrator} objects.
-    !!}
-    use :: Interface_GSL, only : gslFunctionDestroy
-    implicit none
-    type(integrator), intent(inout) :: self
 
-    if (allocated(self%integrandFunction   )) then
-       call gslFunctionDestroy            (self%integrandFunction   )
-       deallocate(self%integrandFunction   )
-    end if
-    if (allocated(self%integrationWorkspace)) then
-       call gsl_integration_workspace_free(self%integrationWorkspace)
-       deallocate(self%integrationWorkspace)
-    end if
+  subroutine integratorAssign(to,from)
+    !!{
+    Assignment operator for \refClass{integrator} objects.
+    !!}
+    implicit none
+    class(integrator), intent(  out) :: to
+    class(integrator), intent(in   ) :: from
+
+    to%integrationWorkspace => from%integrationWorkspace
+    to%integrandFunction    => from%integrandFunction
+    to%integrand            => from%integrand
+    to%workspaceManager     =  from%workspaceManager
+    to%functionManager      =  from%functionManager
+    to%integrationRule      =  from%integrationRule
+    to%intervalsMaximum     =  from%intervalsMaximum
+    to%toleranceAbsolute    =  from%toleranceAbsolute
+    to%toleranceRelative    =  from%toleranceRelative
+    to%hasSingularities     =  from%hasSingularities
     return
-  end subroutine integratorDestructor
+  end subroutine integratorAssign
   
   subroutine integratorGSLAllocate(self)
     !!{
     Allocate GSL objects.
     !!}
+    use :: Interface_GSL, only : gslFunction
     implicit none
     class(integrator), intent(inout) :: self
+    class(*         ), pointer       :: dummyPointer_
 
-    if (.not.allocated(self%integrationWorkspace)) then
+    if (.not.associated(self%integrationWorkspace)) then
        allocate(self%integrationWorkspace)
-       self%integrationWorkspace=gsl_integration_workspace_alloc(self%intervalsMaximum)
+       self%integrationWorkspace%workspace=gsl_integration_workspace_alloc(self%intervalsMaximum)
+       !![
+       <workaround type="gfortran" PR="105807" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=105807">
+	 <description>ICE when passing a derived type component to a class(*) function argument.</description>
+       !!]
+       dummyPointer_         => self%integrationWorkspace
+       self%workspaceManager =  resourceManager(dummyPointer_)
+       !![
+       </workaround>
+       !!]
     end if
-    if (.not.allocated(self%integrandFunction)) then
+    if (.not.associated(self%integrandFunction)) then
        allocate(self%integrandFunction)
-       self%integrandFunction   =gslFunction                    (     integrandWrapper)
+       self%integrandFunction   %f        =gslFunction                    (     integrandWrapper)
+       !![
+       <workaround type="gfortran" PR="105807" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=105807">
+	 <description>ICE when passing a derived type component to a class(*) function argument.</description>
+       !!]
+       dummyPointer_         => self%integrandFunction
+       self%functionManager  =  resourceManager(dummyPointer_)
+       !![
+       </workaround>
+       !!]
     end if
     return
   end subroutine integratorGSLAllocate
 
-  subroutine integratorGSLReallocate(self,gslFree)
+  subroutine integratorGSLReallocate(self)
     !!{
     Reallocate GSL objects.
     !!}
     use, intrinsic :: ISO_C_Binding, only : c_null_ptr
     use            :: Interface_GSL, only : gslFunctionDestroy
     implicit none
-    class  (integrator), intent(inout) :: self
-    logical            , intent(in   ) :: gslFree
+    class(integrator), intent(inout) :: self
     
-    if (allocated(self%integrationWorkspace)) then
-       if (gslFree) then
-          call gsl_integration_workspace_free(self%integrationWorkspace)
-       else
-          self%integrationWorkspace=c_null_ptr
-       end if
-       deallocate(self%integrationWorkspace)
+    if (associated(self%integrationWorkspace)) then
+       call self%workspaceManager%release()
+       nullify(self%integrationWorkspace)
     end if
-    if (allocated(self%integrandFunction   )) then
-       if (gslFree) then
-          call gslFunctionDestroy            (self%integrandFunction   )
-       else
-          self%integrandFunction   =c_null_ptr
-       end if
-       deallocate(self%integrandFunction   )
+    if (associated(self%integrandFunction   )) then
+       call self%functionManager %release()
+       nullify(self%integrandFunction   )
     end if
     call self%GSLAllocate()
     return
@@ -309,29 +337,29 @@ contains
     end if
     ! Do the integration
     if (self%hasSingularities) then
-       status_=gsl_integration_qags(                           &
-            &                       self%integrandFunction   , &
-            &                            limitLower          , &
-            &                            limitUpper          , &
-            &                       self%toleranceAbsolute   , &
-            &                       self%toleranceRelative   , &
-            &                       self%intervalsMaximum    , &
-            &                       self%integrationWorkspace, &
-            &                            integratorIntegrate , &
-            &                            errorAbsolute         &
+       status_=gsl_integration_qags(                                     &
+            &                       self%integrandFunction   %f        , &
+            &                            limitLower                    , &
+            &                            limitUpper                    , &
+            &                       self%toleranceAbsolute             , &
+            &                       self%toleranceRelative             , &
+            &                       self%intervalsMaximum              , &
+            &                       self%integrationWorkspace%workspace, &
+            &                            integratorIntegrate           , &
+            &                            errorAbsolute                   &
             &                      )
     else
-       status_=gsl_integration_qag (                           &
-            &                       self%integrandFunction   , &
-            &                            limitLower          , &
-            &                            limitUpper          , &
-            &                       self%toleranceAbsolute   , &
-            &                       self%toleranceRelative   , &
-            &                       self%intervalsMaximum    , &
-            &                       self%integrationRule     , &
-            &                       self%integrationWorkspace, &
-            &                            integratorIntegrate , &
-            &                            errorAbsolute         &
+       status_=gsl_integration_qag (                                     &
+            &                       self%integrandFunction   %f        , &
+            &                            limitLower                    , &
+            &                            limitUpper                    , &
+            &                       self%toleranceAbsolute             , &
+            &                       self%toleranceRelative             , &
+            &                       self%intervalsMaximum              , &
+            &                       self%integrationRule               , &
+            &                       self%integrationWorkspace%workspace, &
+            &                            integratorIntegrate           , &
+            &                            errorAbsolute                   &
             &                      )
     end if
     ! Reset error handler.
@@ -355,5 +383,16 @@ contains
     integrandWrapper=currentIntegrand(x)
     return
   end function integrandWrapper
+
+  subroutine gslIntegrationWorkspaceWrapperDestructor(self)
+    !!{
+    Destroy a {\normalfont \ttfamily gslIntegrationWorkspaceWrapper} object.
+    !!}
+    implicit none
+    type(gslIntegrationWorkspaceWrapper), intent(inout) :: self
+
+    call gsl_integration_workspace_free(self%workspace)
+    return
+  end subroutine gslIntegrationWorkspaceWrapperDestructor
 
 end module Numerical_Integration

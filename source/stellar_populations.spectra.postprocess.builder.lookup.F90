@@ -25,6 +25,7 @@
   <stellarPopulationSpectraPostprocessorBuilder name="stellarPopulationSpectraPostprocessorBuilderLookup">
    <description>A stellar population spectra postprocessor builder which simply looks up postprocessors by name.</description>
    <descriptorSpecial>descriptorSpecial</descriptorSpecial>
+   <assignment forceArrayAssign="names"/>
   </stellarPopulationSpectraPostprocessorBuilder>
   !!]
   type, extends(stellarPopulationSpectraPostprocessorBuilderClass) :: stellarPopulationSpectraPostprocessorBuilderLookup
@@ -32,7 +33,16 @@
      A stellar population spectra postprocessor builder which simply looks up postprocessors by name.
      !!}
      private
-     type(varying_string                           ), allocatable, dimension(:) :: names
+     !![
+     <workaround type="gfortran">
+       <description>
+	 Having `names` be `allocatable` in the following (which would be preferable) results in a memory leak on assignment. I
+	 have not been able to figure out why this happens. So, we make it a `pointer` array, and handle deallocation manually
+	 (and set `forceArrayAssign` above so that assignment is done, rather than just pointer assignment).
+       </description>
+     </workaround>
+     !!]
+     type(varying_string                           ), pointer    , dimension(:) :: names          => null()
      type(stellarPopulationSpectraPostprocessorList), allocatable, dimension(:) :: postprocessors
    contains
      !![
@@ -81,7 +91,7 @@ contains
       <description>Missing finalization of array constructors after their use.</description>
     </workaround>
     !!]   
-    namesDefault=var_str('default')
+    namesDefault(1)=var_str('default')
     !![
     <inputParameter>
       <name>names</name>
@@ -114,11 +124,13 @@ contains
     type   (stellarPopulationSpectraPostprocessorList         ), intent(in   ), dimension(:) :: postprocessors
     integer                                                                                  :: i
     !![
-    <constructorAssign variables="names, postprocessors"/>
+    <constructorAssign variables="postprocessors"/>
     !!]
 
     if (size(names) /= size(postprocessors)) call Error_Report('number of names must match number of postprocessors'//{introspection:location})
+    allocate(self%names(size(names)))
     do i=1,size(postprocessors)
+       self%names(i)=names(i)
        !![
        <referenceCountIncrement owner="self%postprocessors(i)" object="stellarPopulationSpectraPostprocessor_"/>
        !!]
@@ -134,12 +146,14 @@ contains
     type   (stellarPopulationSpectraPostprocessorBuilderLookup), intent(inout) :: self
     integer                                                                    :: i
 
-    if (.not.allocated(self%postprocessors)) return
-    do i=1,size(self%postprocessors)
-       !![
-       <objectDestructor name="self%postprocessors(i)%stellarPopulationSpectraPostprocessor_"/>
-       !!]
-    end do
+    if (associated(self%names)) deallocate(self%names)
+    if (allocated(self%postprocessors)) then
+       do i=1,size(self%postprocessors)
+          !![
+	  <objectDestructor name="self%postprocessors(i)%stellarPopulationSpectraPostprocessor_"/>
+          !!]
+       end do
+    end if
     return
   end subroutine lookupDestructor
 

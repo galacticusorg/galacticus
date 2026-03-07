@@ -29,43 +29,48 @@ program Test_Decaying_Dark_Matter
   use :: Unit_Tests          , only : Assert                            , Unit_Tests_Begin_Group          , Unit_Tests_End_Group                         , Unit_Tests_Finish                          , &
        &                              compareLessThanOrEqual
   use :: HDF5_Access         , only : hdf5Access
-  use :: IO_HDF5             , only : hdf5Object
+  use :: IO_HDF5             , only : hdf5Object                        , ioHDF5AccessInitialize
   use :: Input_Paths         , only : inputPath                         , pathTypeExec
-  use :: ISO_Varying_String  , only : char                              , operator(//)
+  use :: ISO_Varying_String  , only : char                              , operator(//)                    , varying_string
   use :: Events_Hooks        , only : eventsHooksInitialize
   use :: Decaying_Dark_Matter, only : decayingDarkMatterFractionRetained, decayingDarkMatterEnergyRetained, decayingDarkMatterFractionRetainedDerivatives, decayingDarkMatterEnergyRetainedDerivatives
   implicit none
-  type            (hdf5Object)                              :: file
-  double precision            , dimension(:  ), allocatable :: velocityKicks                                 , velocityEscapes
-  double precision            , dimension(:,:), allocatable :: fractionRetainedTarget                        , fractionRetainedTargetUncertainty               , &
-       &                                                       energyRetainedTarget                          , energyRetainedTargetUncertainty                 , &
-       &                                                       fractionRetained                              , energyRetained                                  , &
-       &                                                       energyDerivativeVelocityKick                  , fractionDerivativeVelocityKick                  , &
-       &                                                       energyDerivativeVelocityEscape                , fractionDerivativeVelocityEscape                , &
-       &                                                       energyDerivativeVelocityKickFiniteDifference  , fractionDerivativeVelocityKickFiniteDifference  , &
-       &                                                       energyDerivativeVelocityEscapeFiniteDifference, fractionDerivativeVelocityEscapeFiniteDifference
-  double precision                                          :: velocityDispersion
-  integer                                                   :: i                                             , j
+  double precision               , dimension(:  ), allocatable :: velocityKicks                                 , velocityEscapes
+  double precision               , dimension(:,:), allocatable :: fractionRetainedTarget                        , fractionRetainedTargetUncertainty               , &
+       &                                                          energyRetainedTarget                          , energyRetainedTargetUncertainty                 , &
+       &                                                          fractionRetained                              , energyRetained                                  , &
+       &                                                          energyDerivativeVelocityKick                  , fractionDerivativeVelocityKick                  , &
+       &                                                          energyDerivativeVelocityEscape                , fractionDerivativeVelocityEscape                , &
+       &                                                          energyDerivativeVelocityKickFiniteDifference  , fractionDerivativeVelocityKickFiniteDifference  , &
+       &                                                          energyDerivativeVelocityEscapeFiniteDifference, fractionDerivativeVelocityEscapeFiniteDifference
+  double precision                                             :: velocityDispersion
+  integer                                                      :: i                                             , j
+  type            (varying_string)                             :: fileName
   
   ! Set verbosity level.
   call displayVerbositySet(verbosityLevelStandard)
   ! Initialize.
   call eventsHooksInitialize()
+  ! Initialize HDF5 lock.
+  call ioHDF5AccessInitialize()
   ! Begin unit tests.
   call Unit_Tests_Begin_Group("Decaying dark matter")
   ! Retention fractions.
   call Unit_Tests_Begin_Group("Retention")
-  !$ call hdf5Access%set()
-  call file%openFile(char(inputPath(pathTypeExec)//"testSuite/data/decayingDarkMatterRetention.hdf5"),readOnly=.true.)
-  call file%readDataset  ('velocityKick'               ,velocityKicks                    )
-  call file%readDataset  ('velocityEscape'             ,velocityEscapes                  )
-  call file%readDataset  ('fractionRetained'           ,fractionRetainedTarget           )
-  call file%readDataset  ('fractionRetainedUncertainty',fractionRetainedTargetUncertainty)
-  call file%readDataset  ('energyRetained'             ,energyRetainedTarget             )
-  call file%readDataset  ('energyRetainedUncertainty'  ,energyRetainedTargetUncertainty  )
-  call file%readAttribute('velocityDispersion'         ,velocityDispersion               )
-  call file%close        (                                                               )
-  !$ call hdf5Access%unset()
+  block
+    type(hdf5Object) :: file
+    !$ call hdf5Access%set()
+    fileName=inputPath(pathTypeExec)//"testSuite/data/decayingDarkMatterRetention.hdf5"
+    file    =hdf5Object(fileName,readOnly=.true.)
+    call file%readDataset  ('velocityKick'               ,velocityKicks                    )
+    call file%readDataset  ('velocityEscape'             ,velocityEscapes                  )
+    call file%readDataset  ('fractionRetained'           ,fractionRetainedTarget           )
+    call file%readDataset  ('fractionRetainedUncertainty',fractionRetainedTargetUncertainty)
+    call file%readDataset  ('energyRetained'             ,energyRetainedTarget             )
+    call file%readDataset  ('energyRetainedUncertainty'  ,energyRetainedTargetUncertainty  )
+    call file%readAttribute('velocityDispersion'         ,velocityDispersion               )
+    !$ call hdf5Access%unset()
+  end block
   allocate(energyRetained                                  (size(velocityKicks),size(velocityEscapes)))
   allocate(fractionRetained                                (size(velocityKicks),size(velocityEscapes)))
   allocate(energyDerivativeVelocityKick                    (size(velocityKicks),size(velocityEscapes)))

@@ -254,11 +254,11 @@ contains
     class           (distributionFunction1DPeakBackground), intent(inout), target :: self
     double precision                                      , intent(in   )         :: p
 
-    if (p < 0.0d0 .or. p > 1.0d0)                                    &
+    if (p < 0.0d0 .or. p > 1.0d0)                         &
          & call Error_Report(                             &
-         &                              'probability out of range'// &
-         &                              {introspection:location}     &
-         &                             )
+         &                   'probability out of range'// &
+         &                   {introspection:location}     &
+         &                  )
     peakBackgroundInverse=self%cdfInverse%interpolate(p)
     return
   end function peakBackgroundInverse

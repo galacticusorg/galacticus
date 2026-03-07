@@ -218,12 +218,11 @@ contains
     
     ! Read masses at which fraction was measured.
     !$ call hdf5Access%set()
-    call dataFile%openFile   (char(inputPath(pathTypeDataStatic))//"observations/abundances/massMetallicityRelationBlanc2019.hdf5",readOnly=.true.             )
-    call dataFile%readDataset("massStellar"                                                                                       ,         masses             )
-    call dataFile%readDataset("abundanceOxygenMean"                                                                               ,         functionValueTarget)
-    call dataFile%readDataset("abundanceOxygen16PercentCI"                                                                        ,         function16Target   )
-    call dataFile%readDataset("abundanceOxygen84PercentCI"                                                                        ,         function84Target   )
-    call dataFile%close      (                                                                                                                                 )
+    dataFile=hdf5Object(char(inputPath(pathTypeDataStatic))//"observations/abundances/massMetallicityRelationBlanc2019.hdf5",readOnly=.true.)
+    call dataFile%readDataset("massStellar"               ,masses             )
+    call dataFile%readDataset("abundanceOxygenMean"       ,functionValueTarget)
+    call dataFile%readDataset("abundanceOxygen16PercentCI",function16Target   )
+    call dataFile%readDataset("abundanceOxygen84PercentCI",function84Target   )
     !$ call hdf5Access%unset()
     ! Construct survey geometry. Use a lower redshift limit than actually used by Blanc et al. to ensure that low mass bins have non-zero weight.
     allocate(surveyGeometry_)

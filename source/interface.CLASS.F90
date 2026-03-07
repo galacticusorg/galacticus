@@ -224,8 +224,8 @@ contains
     if (File_Exists(fileName_)) then
        allEpochsFound=.true.
        !$ call hdf5Access%set()
-       call    classOutput%openFile(char(fileName_))
-       call    classOutput%readDataset           ('wavenumber',wavenumbers                                    )
+       classOutput=hdf5Object(char(fileName_))
+       call classOutput%readDataset('wavenumber',wavenumbers)
        allocate(transferFunctions(size(wavenumbers),3,size(redshifts)))
        speciesGroup=classOutput%openGroup('darkMatter')
        do i=1,size(redshifts)
@@ -236,7 +236,6 @@ contains
              allEpochsFound=.false.
           end if
        end do
-       call speciesGroup%close()
        speciesGroup=classOutput%openGroup('baryons')
        do i=1,size(redshifts)
           datasetName='transferFunctionZ'//trim(adjustl(redshiftLabels(redshiftRanks(i))))
@@ -246,21 +245,17 @@ contains
              allEpochsFound=.false.
           end if
        end do
-       call   speciesGroup%close()
-       call   classOutput %close()
-       !$ call hdf5Access %unset()
+       !$ call hdf5Access%unset()
     end if
     if (.not.allocated(wavenumbers) .or. wavenumberRequired > wavenumbers(size(wavenumbers)) .or. .not.allEpochsFound) then
        ! If the wavenumber is out of range, or if not all requested epochs exist within the file, recompute the CLASS transfer function.
        ! Find all existing epochs in the file, create a union of these and the requested epochs.
        if (File_Exists(fileName_)) then
-          !$ call hdf5Access%set       (               )
-          call    classOutput%openFile  (char(fileName_))
+          !$ call hdf5Access%set()
+          classOutput=hdf5Object(char(fileName_))
           speciesGroup=classOutput%openGroup('darkMatter')
-          call    speciesGroup%datasets(datasetNames   )
-          call    speciesGroup%close   (               )
-          call    classOutput  %close   (               )
-          !$ call hdf5Access  %unset   (               )
+          call speciesGroup%datasets(datasetNames)
+          !$ call hdf5Access%unset()
        else
           allocate(datasetNames(0))
        end if
@@ -296,43 +291,37 @@ contains
        ! Run CLASS to get transfer functions.
        call Interface_CLASS_Run(cosmologyParameters_,redshiftsCombined,wavenumberRequired,wavenumberMaximum,countPerDecade,wavenumberMaximumReached,wavenumbers,transferFunctions)
        ! Construct the output HDF5 file.
-       !$ call hdf5Access  %set     (                                          )
-       call    classOutput %openFile(char(fileName_),objectsOverwritable=.true.)
-       call    classOutput %writeAttribute('Transfer functions created by CLASS.','description')
-       call    classOutput %writeAttribute(classFormatVersionCurrent,'fileFormat')
-       call    classOutput %writeDataset(wavenumbers ,'wavenumber'                               ,chunkSize=chunkSize,appendTo=.not. classOutput%hasDataset('wavenumber'))
+       !$ call hdf5Access%set()
+       classOutput=hdf5Object(char(fileName_),objectsOverwritable=.true.)
+       call classOutput %writeAttribute('Transfer functions created by CLASS.','description')
+       call classOutput %writeAttribute(classFormatVersionCurrent,'fileFormat')
+       call classOutput %writeDataset(wavenumbers ,'wavenumber'                               ,chunkSize=chunkSize,appendTo=.not. classOutput%hasDataset('wavenumber'))
        speciesGroup=classOutput%openGroup('darkMatter','Group containing transfer functions for dark matter.')
        do i=1,countRedshiftsUnique
           datasetName='transferFunctionZ'//trim(adjustl(redshiftLabelsCombined(i)))
           call speciesGroup%writeDataset(transferFunctions(:,classSpeciesDarkMatter%ID,i),datasetName,chunkSize=chunkSize,appendTo=.not.speciesGroup%hasDataset(datasetName ))
        end do
-       call speciesGroup%close()
        speciesGroup=classOutput%openGroup('baryons'   ,'Group containing transfer functions for baryons.'    )
        do i=1,countRedshiftsUnique
           datasetName='transferFunctionZ'//trim(adjustl(redshiftLabelsCombined(i)))
           call speciesGroup%writeDataset(transferFunctions(:,classSpeciesBaryons   %ID,i),datasetName,chunkSize=chunkSize,appendTo=.not.speciesGroup%hasDataset(datasetName ))
        end do
-       call speciesGroup%close()
        parametersGroup=classOutput%openGroup('parameters')
        call parametersGroup%writeAttribute(cosmologyParameters_%HubbleConstant (),'HubbleConstant' )
        call parametersGroup%writeAttribute(cosmologyParameters_%OmegaBaryon    (),'OmegaBaryon'    )
        call parametersGroup%writeAttribute(cosmologyParameters_%OmegaDarkEnergy(),'OmegaDarkEnergy')
        call parametersGroup%writeAttribute(cosmologyParameters_%OmegaMatter    (),'OmegaMatter'    )
        call parametersGroup%writeAttribute(cosmologyParameters_%temperatureCMB (),'temperatureCMB' )
-       call parametersGroup%close()
        extrapolationGroup          =classOutput       %openGroup('extrapolation')
        extrapolationWavenumberGroup=extrapolationGroup%openGroup('wavenumber'   )
-       call    extrapolationWavenumberGroup%writeAttribute('extrapolate','low' )
-       call    extrapolationWavenumberGroup%writeAttribute('extrapolate','high')
-       call    extrapolationWavenumberGroup%close()
-       call    extrapolationGroup          %close()
-       call    classOutput                 %close()
-       !$ call hdf5Access                  %unset()
+       call extrapolationWavenumberGroup%writeAttribute('extrapolate','low' )
+       call extrapolationWavenumberGroup%writeAttribute('extrapolate','high')
+       !$ call hdf5Access%unset()
     end if
     ! If necessary, construct tables of transfer functions.
     if (present(transferFunctionDarkMatter)) then
        !$ call hdf5Access%set()
-       call classOutput%openFile(char(fileName_))
+       classOutput=hdf5Object(char(fileName_))
        call classOutput%readDataset('wavenumber',wavenumbersLogarithmic)
        wavenumbersLogarithmic=log(wavenumbersLogarithmic)
        call transferFunctionDarkMatter%create(                                                 &
@@ -353,14 +342,12 @@ contains
           call transferFunctionDarkMatter%populate(transferFunctionLogarithmic,table=int(redshiftRanks(i)))
           deallocate(transferFunctionLogarithmic)
        end do
-       call    speciesGroup%close()
-       call    classOutput  %close()
-       !$ call hdf5Access  %unset()
+       !$ call hdf5Access%unset()
     end if
     if (present(transferFunctionBaryons)) then
        !$ call hdf5Access%set()
-       call    classOutput%openFile(char(fileName_))
-       call    classOutput%readDataset('wavenumber',wavenumbersLogarithmic)
+       classOutput=hdf5Object(char(fileName_))
+       call classOutput%readDataset('wavenumber',wavenumbersLogarithmic)
        wavenumbersLogarithmic=log(wavenumbersLogarithmic)
        call transferFunctionBaryons   %create(                                                 &
             &                                                   wavenumbersLogarithmic       , &
@@ -380,9 +367,7 @@ contains
           call transferFunctionBaryons   %populate(transferFunctionLogarithmic,table=int(redshiftRanks(i)))
           deallocate(transferFunctionLogarithmic)
        end do
-       call    speciesGroup%close()
-       call    classOutput  %close()
-       !$ call hdf5Access  %unset()
+       !$ call hdf5Access%unset()
     end if
     ! Unlock the file.
     call File_Unlock(fileLock)
@@ -436,20 +421,18 @@ contains
     ! Always obtain the file lock before the hdf5Access lock to avoid deadlocks between OpenMP threads.
     call File_Lock(char(fileName),fileLock)
     if (File_Exists(fileName)) then
-       !$ call hdf5Access %set          (                                 )
-       call    classOutput%openFile     (char(fileName     )              )
-       call    classOutput%readAttribute(    'normalization',normalization)      
-       call    classOutput%close        (                                 )
-       !$ call hdf5Access %unset        (                                 )
+       !$ call hdf5Access %set          (                             )
+       classOutput=hdf5Object(char(fileName))
+       call    classOutput%readAttribute('normalization',normalization)      
+       !$ call hdf5Access %unset        (                             )
     else
        ! Run CLASS to compute the normalization.
        call Interface_CLASS_Run(cosmologyParameters_,ratioSigma8SquaredAs=normalization)
        ! Construct the output HDF5 file.
-       !$ call hdf5Access %set           (                                              )
-       call    classOutput%openFile      (char(fileName     ),objectsOverwritable=.true.)
-       call    classOutput%writeAttribute(     normalization ,'normalization'           )
-       call    classOutput%close         (                                              )
-       !$ call hdf5Access %unset         (                                              )
+       !$ call hdf5Access %set           (                              )
+       classOutput=hdf5Object(char(fileName),objectsOverwritable=.true.)
+       call    classOutput%writeAttribute(normalization ,'normalization')
+       !$ call hdf5Access %unset         (                              )
     end if
     ! Unlock the file.
     call File_Unlock(fileLock)

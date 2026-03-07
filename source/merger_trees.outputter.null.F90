@@ -34,7 +34,6 @@
    contains
      procedure :: outputTree => nullOutputTree
      procedure :: outputNode => nullOutputNode
-     procedure :: finalize   => nullFinalize
   end type mergerTreeOutputterNull
 
   interface mergerTreeOutputterNull
@@ -88,14 +87,3 @@ contains
 
     return
   end subroutine nullOutputNode
-
-  subroutine nullFinalize(self)
-    !!{
-    Finalize merger tree output.
-    !!}
-    implicit none
-    class(mergerTreeOutputterNull), intent(inout) :: self
-    !$GLC attributes unused :: self
-
-    return
-  end subroutine nullFinalize

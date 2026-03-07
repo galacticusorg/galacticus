@@ -263,14 +263,13 @@ contains
     if (File_Exists(fileName)) then
        call File_Lock(char(fileName),fileLock,lockIsShared=.true.)
        !$ call hdf5Access%set()
-       call file%openFile(char(fileName))
+       file=hdf5Object(char(fileName))
        do iOutput=1,self%outputTimes_%count()
           write (name,'(a,i4.4)') 'times'   ,iOutput
           call file%readDataset(name,self%intervals(iOutput)%time    )
           write (name,'(a,i4.4)') 'indexMap',iOutput
           call file%readDataset(name,self%intervals(iOutput)%indexMap)       
        end do
-       call file%close()
        !$ call hdf5Access%unset()
        call File_Unlock(fileLock)
     else
@@ -370,14 +369,13 @@ contains
           call move_alloc(indexMap,self%intervals(iOutput)%indexMap)
        end do
        !$ call hdf5Access%set()
-       call file%openFile(char(fileName),overWrite=.false.,readOnly=.false.)
+       file=hdf5Object(char(fileName),overWrite=.false.,readOnly=.false.)
        do iOutput=1,self%outputTimes_%count()
           write (name,'(a,i4.4)') 'times'   ,iOutput
           call file%writeDataset(self%intervals(iOutput)%time    ,name)
           write (name,'(a,i4.4)') 'indexMap',iOutput
           call file%writeDataset(self%intervals(iOutput)%indexMap,name)       
        end do
-       call file%close()
        !$ call hdf5Access%unset()
        call File_Unlock(fileLock)
     end if

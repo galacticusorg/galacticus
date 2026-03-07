@@ -218,7 +218,7 @@ program Test_Zhao2009_Dark_Energy
   ! Loop over halo masses to test.
   do iMass=1,size(logarithmicHaloMasses)
      ! Count lines in the "mandc" comparison file.
-     fileName=char(inputPath(pathTypeExec))//'testSuite/data/zhao2009MassAccretionHistories/mandcoutputDarkEnergylgM'
+     fileName=inputPath(pathTypeExec)//'testSuite/data/zhao2009MassAccretionHistories/mandcoutputDarkEnergylgM'
      fileName=fileName//logarithmicHaloMasses(iMass)//'.data'
      totalLinesInFile=Count_Lines_in_File(fileName    )
      dataLinesInFile =Count_Lines_in_File(fileName,'#')-1
@@ -264,6 +264,8 @@ program Test_Zhao2009_Dark_Energy
      call Assert(char(message),concentrationDifferenceMaximum,0.0d0,absTol=concentrationDifferenceTolerance(iMass))
   end do
   ! End unit tests.
+  call node%destroy()
+  deallocate(node)
   call Unit_Tests_End_Group               ()
   call Unit_Tests_Finish                  ()
   call Node_Components_Thread_Uninitialize()

@@ -24,7 +24,7 @@
   !!}
 
   use    :: Dark_Matter_Profiles_DMO, only : darkMatterProfileDMOClass
-  !$ use :: OMP_Lib                 , only : omp_lock_kind
+  !$ use :: Locks                   , only : ompLock
 
   !![
   <outputAnalysis name="outputAnalysisTidalTracksVelocityMaximum">
@@ -37,7 +37,7 @@
      !!}
      private
      class           (darkMatterProfileDMOClass), pointer                   :: darkMatterProfileDMO_         => null(), darkMatterProfileDMOUnheated => null()
-     !$ integer      (omp_lock_kind            )                            :: accumulateLock
+     !$ type         (ompLock                  )                            :: accumulateLock
      integer                                                                :: countPointsOnTrack
      double precision                                                       :: mu                                     , eta
      double precision                                                       :: logLikelihood_
@@ -109,7 +109,7 @@ contains
     <constructorAssign variables="mu, eta, *darkMatterProfileDMO_, *darkMatterProfileDMOUnheated"/>
     !!]
 
-    !$ call OMP_Init_Lock(self%accumulateLock)
+    !$ self%accumulateLock =ompLock()
     self%countPointsOnTrack=0
     self%logLikelihood_    =0.0d0
     return
@@ -119,7 +119,6 @@ contains
     !!{
     Destructor for the \refClass{outputAnalysisTidalTracksVelocityMaximum} output analysis class.
     !!}
-    !$ use :: OMP_Lib, only : OMP_Destroy_Lock
     implicit none
     type(outputAnalysisTidalTracksVelocityMaximum), intent(inout) :: self
 
@@ -127,7 +126,6 @@ contains
     <objectDestructor name="self%darkMatterProfileDMO_"       />
     <objectDestructor name="self%darkMatterProfileDMOUnheated"/>
     !!]
-    !$ call OMP_Destroy_Lock(self%accumulateLock)
     return
   end subroutine tidalTracksVelocityMaximumDestructor
 
@@ -135,9 +133,8 @@ contains
     !!{
     Analyze the maximum velocity tidal track.
     !!}
-    use    :: Galacticus_Nodes  , only : nodeComponentBasic   , nodeComponentSatellite
-    use    :: Mass_Distributions, only : massDistributionClass
-    !$ use :: OMP_Lib           , only : OMP_Set_Lock         , OMP_Unset_Lock
+    use :: Galacticus_Nodes  , only : nodeComponentBasic   , nodeComponentSatellite
+    use :: Mass_Distributions, only : massDistributionClass
     implicit none
     class           (outputAnalysisTidalTracksVelocityMaximum), intent(inout)             :: self
     type            (treeNode                                ), intent(inout)             :: node
@@ -168,7 +165,6 @@ contains
          &                                *       fractionMassBound **self%eta &
          &                                /(1.0d0+fractionMassBound)**self%mu
     varianceFractionVelocityMaximumTarget=(0.1d0*fractionVelocityMaximumTarget)**2
-    !$ call OMP_Set_Lock(self%accumulateLock)
     self%countPointsOnTrack=self%countPointsOnTrack+1
     if (allocated(self%fractionMassBound) .and. size(self%fractionMassBound) < self%countPointsOnTrack) then
        call move_alloc(self%fractionMassBound,            fractionMassBound_            )
@@ -198,7 +194,6 @@ contains
          &                                                        -fractionVelocityMaximumTarget       &
          &                                                       )**2                                  &
          &                                                      /varianceFractionVelocityMaximumTarget
-    !$ call OMP_Unset_Lock(self%accumulateLock)
     return
   end subroutine tidalTracksVelocityMaximumAnalyze
 
@@ -206,8 +201,7 @@ contains
     !!{
     Reduce over the maximum velocity tidal track output analysis.
     !!}
-    use    :: Error  , only : Error_Report
-    !$ use :: OMP_Lib, only : OMP_Set_Lock, OMP_Unset_Lock
+    use :: Error, only : Error_Report
     implicit none
     class           (outputAnalysisTidalTracksVelocityMaximum), intent(inout)              :: self
     class           (outputAnalysisClass                     ), intent(inout)              :: reduced
@@ -216,7 +210,7 @@ contains
 
     select type (reduced)
     class is (outputAnalysisTidalTracksVelocityMaximum)
-       !$ call OMP_Set_Lock(reduced%accumulateLock)       
+       !$ call reduced%accumulateLock%set() 
        allocate(fractionMassBound_            (self%countPointsOnTrack+reduced%countPointsOnTrack))
        allocate(fractionVelocityMaximum_      (self%countPointsOnTrack+reduced%countPointsOnTrack))
        allocate(fractionVelocityMaximumTarget_(self%countPointsOnTrack+reduced%countPointsOnTrack))
@@ -238,7 +232,7 @@ contains
        call move_alloc(fractionVelocityMaximumTarget_,reduced%fractionVelocityMaximumTarget)
        reduced%logLikelihood_    =reduced%logLikelihood_    +self%logLikelihood_
        reduced%countPointsOnTrack=reduced%countPointsOnTrack+self%countPointsOnTrack
-       !$ call OMP_Unset_Lock(reduced%accumulateLock)
+       !$ call reduced%accumulateLock%unset()
     class default
        call Error_Report('incorrect class'//{introspection:location})
     end select
@@ -327,19 +321,12 @@ contains
     call analysisGroup%writeDataset  (self%fractionMassBound            ,'fractionMassBound'            ,'Fraction of bound mass remaining'           ,datasetReturned=dataset)
     call dataset      %writeAttribute(' '                               ,'units'                                                                                              )
     call dataset      %writeAttribute(1.0d0                             ,'unitsInSI'                                                                                          )
-    call dataset      %close         (                                                                                                                                        )
     call analysisGroup%writeDataset  (self%fractionVelocityMaximum      ,'fractionVelocityMaximum'      ,'Fraction of peak rotation velocity'         ,datasetReturned=dataset)
     call dataset      %writeAttribute(' '                               ,'units'                                                                                              )
     call dataset      %writeAttribute(1.0d0                             ,'unitsInSI'                                                                                          )
-    call dataset      %close         (                                                                                                                                        )
     call analysisGroup%writeDataset  (self%fractionVelocityMaximumTarget,'fractionVelocityMaximumTarget','Fraction of peak rotation velocity [target]',datasetReturned=dataset)
     call dataset      %writeAttribute(' '                               ,'units'                                                                                              )
     call dataset      %writeAttribute(1.0d0                             ,'unitsInSI'                                                                                          )
-    call dataset      %close         (                                                                                                                                        )
-    call analysisGroup%close         (                                                                                                                                        )
-    if (present(groupName)) &
-         & call subGroup%close       (                                                                                                                                        )
-    call analysesGroup%close         (                                                                                                                                        )
     !$ call hdf5Access%unset()
     return
   end subroutine tidalTracksVelocityMaximumFinalize

@@ -32,8 +32,27 @@ module Node_Components
   integer :: initializationCount=0, initializationThreadCount=0
   !$omp threadprivate(initializationThreadCount)
 
+  type, public :: nodeComponentsWrapper
+     !!{
+     Wrapper class for managing the node components.
+     !!}
+   contains
+     final :: nodeComponentsWrapperDestructor
+  end type nodeComponentsWrapper
+  
 contains
 
+  subroutine nodeComponentsWrapperDestructor(self)
+    !!{
+    Destructor for the node components wrapper class that handles finalization of the node class hierarchy.
+    !!}
+    implicit none
+    type(nodeComponentsWrapper), intent(inout) :: self
+
+    call Node_Components_Uninitialize()
+    return
+  end subroutine nodeComponentsWrapperDestructor
+  
   subroutine Node_Components_Initialize(parameters)
     !!{
     Perform initialization tasks for node components.

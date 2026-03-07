@@ -33,7 +33,7 @@ program Test_Hearin2021_MAH
   use :: Input_Paths                              , only : inputPath                                   , pathTypeExec
   use :: Galacticus_Nodes                         , only : nodeClassHierarchyInitialize                , nodeComponentBasic               , treeNode
   use :: Input_Parameters                         , only : inputParameters
-  use :: ISO_Varying_String                       , only : char
+  use :: ISO_Varying_String                       , only : char                                        , varying_string                   , operator(//)
   use :: Node_Components                          , only : Node_Components_Initialize                  , Node_Components_Thread_Initialize, Node_Components_Thread_Uninitialize, Node_Components_Uninitialize
   use :: Unit_Tests                               , only : Assert                                      , Unit_Tests_Begin_Group           , Unit_Tests_End_Group               , Unit_Tests_Finish
   implicit none  
@@ -49,6 +49,7 @@ program Test_Hearin2021_MAH
        &                                                                                       countTimes
   type            (inputParameters                             )                            :: parameters
   character       (len=1024                                    )                            :: line
+  type            (varying_string                              )                            :: referenceFileName
   
   ! Set verbosity level.
   call displayVerbositySet(verbosityLevelStandard)
@@ -66,8 +67,9 @@ program Test_Hearin2021_MAH
   ! Get the basic component.
   basic => node    %basic(autoCreate=.true.)
   ! Open the reference file produced by Andrew Hearin's "diffmah" code and read the parameter values used.
-  countTimes=Count_Lines_In_File(char(inputPath(pathTypeExec))//'testSuite/data/diffmah_massAccretionHistory.txt',comment_char='#')
-  open(newUnit=referenceFile,file=char(inputPath(pathTypeExec))//'testSuite/data/diffmah_massAccretionHistory.txt',status='old',form='formatted')
+  referenceFilename=inputPath(pathTypeExec)//'testSuite/data/diffmah_massAccretionHistory.txt'
+  countTimes=Count_Lines_In_File(referenceFilename,comment_char='#')
+  open(newUnit=referenceFile,file=char(referenceFilename),status='old',form='formatted')
   read (referenceFile,'(a)') line
   read (line(index(line,"=")+1:len(line)),*) powerLawIndexEarly
   read (referenceFile,'(a)') line
@@ -98,7 +100,7 @@ program Test_Hearin2021_MAH
   ! Set node properties.
   call basic%massSet(massMaximum)
   call basic%timeSet(timeMaximum)
-  allocate(massTarget(countTimes))
+  allocate(massTarget   (countTimes))
   allocate(massRecovered(countTimes))
   do i=1,countTimes
      read (referenceFile,*) time,massTarget(i)
@@ -107,6 +109,8 @@ program Test_Hearin2021_MAH
   call Assert('mass accretion history',massTarget,massRecovered,relTol=1.0d-3)
   ! End unit tests.
   close(referenceFile)
+  call node%destroy()
+  deallocate(node,massTarget,massRecovered)
   call Unit_Tests_End_Group               ()
   call Unit_Tests_Finish                  ()
   call Node_Components_Thread_Uninitialize()

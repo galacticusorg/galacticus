@@ -33,8 +33,10 @@ module Numerical_Interpolation
   A simple interface to the \href{http://www.gnu.org/software/gsl/}{GNU Scientific Library}
   \href{http://www.gnu.org/software/gsl/manual/html_node/Interpolation.html}{interpolation routines}.
   !!}
-  use, intrinsic :: ISO_C_Binding, only : c_ptr                           , c_size_t, c_int, c_double
-  use            :: Table_Labels , only : enumerationExtrapolationTypeType
+  use, intrinsic :: ISO_C_Binding,    only : c_ptr                           , c_size_t, c_int, c_double, &
+       &                                     c_null_ptr
+  use            :: Table_Labels    , only : enumerationExtrapolationTypeType
+  use            :: Resource_Manager, only : resourceManager
   implicit none
   private
   public :: interpolator, interpolator2D
@@ -144,29 +146,49 @@ module Numerical_Interpolation
   !![
   <stateStorable class="interpolator">
    <interpolator>
-    <restoreTo  variables="initialized" state=".false."/>
-    <methodCall method="GSLReallocate" arguments="gslFree=.true." />
+     <restoreTo  variables="initialized" state=".false."/>
+     <methodCall method="GSLReallocate"/>
    </interpolator>
   </stateStorable>
   <deepCopyActions class="interpolator">
    <interpolator>
-    <methodCall method="GSLReallocate" arguments="gslFree=.false."/>
+    <methodCall method="GSLReallocate"/>
    </interpolator>
   </deepCopyActions>
   !!]
 
+  type :: gslInterpWrapper
+     !!{
+     Wrapper class for managing GSL interpolators.
+     !!}
+     type(c_ptr) :: gsl=c_null_ptr
+   contains
+     final :: gslInterpWrapperDestructor
+  end type gslInterpWrapper
+  
+  type :: gslInterpAccelWrapper
+     !!{
+     Wrapper class for managing GSL interpolation accelerators.
+     !!}
+     type(c_ptr) :: gsl=c_null_ptr
+   contains
+     final :: gslInterpAccelWrapperDestructor
+  end type gslInterpAccelWrapper
+  
   type :: interpolator
      !!{
      Type providing interpolation in 1-D arrays.
      !!}
      private
-     type            (c_ptr                           ), allocatable               :: gsl_interp       , gsl_interp_accel , &
-          &                                                                           gsl_interp_type
+     type            (resourceManager                 )                            :: interpManager              , interpAccelManager
+     type            (gslInterpWrapper                ), pointer                   :: interp_           => null()
+     type            (gslInterpAccelWrapper           ), pointer                   :: interpAccel_      => null()
+     type            (c_ptr                           ), allocatable               :: gsl_interp_type
      integer                                                                       :: interpolationType
      type            (enumerationExtrapolationTypeType)             , dimension(2) :: extrapolationType
      integer         (c_size_t                        )                            :: countArray
-     logical                                                                       :: initialized      , interpolatable
-     double precision                                  , allocatable, dimension(:) :: x                , y 
+     logical                                                                       :: initialized                , interpolatable
+     double precision                                  , allocatable, dimension(:) :: x                          , y 
    contains
      !![
      <methods>
@@ -179,11 +201,11 @@ module Numerical_Interpolation
        <method description="Reallocate GSL objects."                                                                method="gslReallocate"       />
        <method description="Initialize GSL interpolator."                                                           method="gslInitialize"       />
        <method description="Assert that the data is interpolatable."                                                method="assertInterpolatable"/>
+       <method description="Assign interpolator objects."                                                           method="assignment(=)"       />
      </methods>
      !!]
-     final     ::                         interpolatorDestructorRank0       , &
-          &                               interpolatorDestructorRank1       , &
-          &                               interpolatorDestructorRank2
+     procedure ::                         interpolatorAssign
+     generic   :: assignment(=)        => interpolatorAssign
      procedure ::                         interpolatorInterpolate
      procedure ::                         interpolatorInterpolateNoYa
      generic   :: interpolate          => interpolatorInterpolate           , &
@@ -211,12 +233,12 @@ module Numerical_Interpolation
   !![
   <stateStorable class="interpolator2D">
    <interpolator2D>
-    <methodCall method="GSLReallocate" arguments="gslFree=.true." />
+    <methodCall method="GSLReallocate"/>
    </interpolator2D>
   </stateStorable>
   <deepCopyActions class="interpolator2D">
    <interpolator2D>
-    <methodCall method="GSLReallocate" arguments="gslFree=.false."/>
+    <methodCall method="GSLReallocate"/>
    </interpolator2D>
   </deepCopyActions>
   !!]
@@ -226,21 +248,25 @@ module Numerical_Interpolation
      Type providing interpolation in 2-D arrays.
      !!}
      private
-     type            (c_ptr   ), allocatable                 :: gsl_interp_X   , gsl_interp_accel_X, &
-          &                                                     gsl_interp_Y   , gsl_interp_accel_Y, &
-          &                                                     gsl_interp_type
-     integer         (c_size_t)                              :: countArrayX    , countArrayY
-     double precision          , allocatable, dimension(:  ) :: x              , y 
-     double precision          , allocatable, dimension(:,:) :: z
+     type            (resourceManager      )                              :: interpXManager           , interpAccelXManager          , &
+          &                                                                  interpYManager           , interpAccelYManager
+     type            (gslInterpWrapper     ), pointer                     :: interpX         => null(), interpY             => null()
+     type            (gslInterpAccelWrapper), pointer                     :: interpAccelX    => null(), interpAccelY        => null()
+     type            (c_ptr                ), allocatable                 :: gsl_interp_type
+     integer         (c_size_t             )                              :: countArrayX              , countArrayY
+     double precision                       , allocatable, dimension(:  ) :: x                        , y 
+     double precision                       , allocatable, dimension(:,:) :: z
    contains
      !![
      <methods>
        <method description="Interpolate in the tabulated function." method="interpolate"  />
        <method description="Allocate GSL objects."                  method="gslAllocate"  />
        <method description="Reallocate GSL objects."                method="gslReallocate"/>
+       <method description="Assign 2D interpolator objects."        method="assignment(=)"/>
      </methods>
      !!]
-     final     ::                  interpolator2DDestructorRank0
+     procedure ::                  interpolator2DAssign
+     generic   :: assignment(=) => interpolator2DAssign
      procedure :: interpolate   => interpolator2DInterpolate
      procedure :: gslAllocate   => interpolator2DGSLAllocate
      procedure :: gslReallocate => interpolator2DGSLReallocate
@@ -308,54 +334,6 @@ contains
     return
   end function interpolatorConstructor
 
-  subroutine interpolatorDestructorRank0(self)
-    !!{
-    Destructor for rank-0 {\normalfont \ttfamily interpolator} objects.
-    !!}
-    implicit none
-    type(interpolator), intent(inout) :: self
-
-    if (allocated (self%gsl_interp      )) then
-       call gsl_interp_free      (self%gsl_interp      )
-       deallocate(self%gsl_interp      )
-    end if
-    if (allocated (self%gsl_interp_accel)) then
-       call gsl_interp_accel_free(self%gsl_interp_accel)
-       deallocate(self%gsl_interp_accel)
-    end if
-    return
-  end subroutine interpolatorDestructorRank0
-  
-  subroutine interpolatorDestructorRank1(self)
-    !!{
-    Destructor for rank-1 {\normalfont \ttfamily interpolator} objects.
-    !!}
-    implicit none
-    type   (interpolator), intent(inout), dimension(:) :: self
-    integer                                            :: i1
-    
-    do i1=1,size(self,dim=1)
-       call interpolatorDestructorRank0(self(i1))
-    end do
-    return
-  end subroutine interpolatorDestructorRank1
-  
-  subroutine interpolatorDestructorRank2(self)
-    !!{
-    Destructor for rank-2 {\normalfont \ttfamily interpolator} objects.
-    !!}
-    implicit none
-    type   (interpolator), intent(inout), dimension(:,:) :: self
-    integer                                              :: i1  , i2
-    
-    do i1=1,size(self,dim=1)
-       do i2=1,size(self,dim=2)
-          call interpolatorDestructorRank0(self(i1,i2))
-       end do
-    end do
-    return
-  end subroutine interpolatorDestructorRank2
-  
   subroutine interpolatorGSLAllocate(self)
     !!{
     Allocate GSL objects.
@@ -364,14 +342,33 @@ contains
     use :: Interface_GSL, only : GSL_Success
     implicit none
     class(interpolator), intent(inout) :: self
+    class(*           ), pointer       :: dummyPointer_
 
-    if (.not.allocated(self%gsl_interp      ) .and. self%interpolatable) then
-       allocate(self%gsl_interp      )
-       self%gsl_interp=gsl_interp_alloc            (self%gsl_interp_type,self%countArray)
+    if (.not.associated(self%interp_     ) .and. self%interpolatable) then
+       allocate(self%interp_     )
+       self%interp_     %gsl=gsl_interp_alloc      (self%gsl_interp_type,self%countArray)
+       !![
+       <workaround type="gfortran" PR="105807" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=105807">
+	 <description>ICE when passing a derived type component to a class(*) function argument.</description>
+       !!]
+       dummyPointer_           => self%interp_
+       self%interpManager      =  resourceManager(dummyPointer_)
+       !![
+       </workaround>
+       !!]
     end if
-    if (.not.allocated(self%gsl_interp_accel)                          ) then
-       allocate(self%gsl_interp_accel)
-       self%gsl_interp_accel=gsl_interp_accel_alloc(                                    )
+    if (.not.associated(self%interpAccel_)                          ) then
+       allocate(self%interpAccel_)
+       self%interpAccel_%gsl=gsl_interp_accel_alloc(                                    )
+       !![
+       <workaround type="gfortran" PR="105807" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=105807">
+	 <description>ICE when passing a derived type component to a class(*) function argument.</description>
+       !!]
+       dummyPointer_           => self%interpAccel_
+       self%interpAccelManager =  resourceManager(dummyPointer_)
+       !![
+       </workaround>
+       !!]
     end if
     ! Initialize.
     self%initialized=.false.
@@ -386,30 +383,20 @@ contains
     return
   end subroutine interpolatorGSLAllocate
 
-  subroutine interpolatorGSLReallocate(self,gslFree)
+  subroutine interpolatorGSLReallocate(self)
     !!{
     Reallocate GSL objects.
     !!}
-    use, intrinsic :: ISO_C_Binding, only : c_null_ptr
     implicit none
-    class  (interpolator), intent(inout) :: self
-    logical              , intent(in   ) :: gslFree
+    class(interpolator), intent(inout) :: self
     
-    if (allocated(self%gsl_interp      )) then
-       if (gslFree) then
-          call gsl_interp_free      (self%gsl_interp      )
-       else
-          self%gsl_interp=c_null_ptr
-       end if
-       deallocate(self%gsl_interp      )
+    if (associated(self%interp_     )) then
+       call self%interpManager     %release()
+       nullify(self%interp_     )
     end if
-    if (allocated(self%gsl_interp_accel)) then
-       if (gslFree) then
-          call gsl_interp_accel_free(self%gsl_interp_accel)
-       else
-          self%gsl_interp_accel=c_null_ptr
-       end if
-       deallocate(self%gsl_interp_accel)
+    if (associated(self%interpAccel_)) then
+       call self%interpAccelManager%release()
+       nullify(self%interpAccel_)
     end if
     ! If x() is not allocated, then this interpolator was never initialized - so do not attempt to allocate any GSL objects.
     if (.not.allocated(self%x)) return
@@ -422,6 +409,54 @@ contains
     return
   end subroutine interpolatorGSLReallocate
 
+  subroutine gslInterpWrapperDestructor(self)
+    !!{
+    Destroy a {\normalfont \ttfamily gslInterpWrapper} object.
+    !!}
+    implicit none
+    type(gslInterpWrapper), intent(inout) :: self
+
+    call gsl_interp_free(self%gsl)
+    return
+  end subroutine gslInterpWrapperDestructor
+
+  subroutine gslInterpAccelWrapperDestructor(self)
+    !!{
+    Destroy a {\normalfont \ttfamily gslInterpWrapper} object.
+    !!}
+    implicit none
+    type(gslInterpAccelWrapper), intent(inout) :: self
+
+    call gsl_interp_accel_free(self%gsl)
+    return
+  end subroutine gslInterpAccelWrapperDestructor
+
+  subroutine interpolatorAssign(self,from)
+    !!{
+    Perform assignment of interpolators.
+    !!}
+    implicit none
+    class(interpolator), intent(inout) :: self
+    class(interpolator), intent(in   ) :: from
+    
+    self%interpManager      =  from%interpManager
+    self%interpAccelManager =  from%interpAccelManager
+    self%interp_            => from%interp_
+    self%interpAccel_       => from%interpAccel_
+    self%interpolationType  =  from%interpolationType
+    self%extrapolationType  =  from%extrapolationType
+    self%countArray         =  from%countArray
+    self%initialized        =  from%initialized
+    self%interpolatable     =  from%interpolatable
+    if (allocated(self%gsl_interp_type)) deallocate(self%gsl_interp_type                            )
+    if (allocated(from%gsl_interp_type))   allocate(self%gsl_interp_type,source=from%gsl_interp_type)
+    if (allocated(self%x              )) deallocate(self%x                                          )
+    if (allocated(from%x              ))   allocate(self%x              ,source=from%x              )
+    if (allocated(self%y              )) deallocate(self%y                                          )
+    if (allocated(from%y              ))   allocate(self%y              ,source=from%y              )    
+    return
+  end subroutine interpolatorAssign
+  
   subroutine interpolatorGSLInitialize(self,ya)
     !!{
     Initialize GSL interpolator.
@@ -433,7 +468,7 @@ contains
     double precision              , intent(in   ), dimension(:) :: ya
     integer         (c_int       )                              :: status
 
-    status=gsl_interp_init(self%gsl_interp,self%x,ya,self%countArray)
+    status=gsl_interp_init(self%interp_%gsl,self%x,ya,self%countArray)
     if (status /= GSL_Success) call Error_Report('failed to initialize interpolator'//{introspection:location})
     self%initialized=.true.
     return
@@ -603,7 +638,7 @@ contains
        else
           basePoint=self%countArray
        end if
-       statusGSL=gsl_interp_eval_deriv_e(self%gsl_interp,self%x,ya,self%x(basePoint),self%gsl_interp_accel,gradient)
+       statusGSL=gsl_interp_eval_deriv_e(self%interp_%gsl,self%x,ya,self%x(basePoint),self%interpAccel_%gsl,gradient)
        if (statusGSL /= 0) then
           select case (statusGSL)
           case (GSL_EDom)
@@ -626,7 +661,7 @@ contains
           if (x > self%x(self%countArray) .and. x < self%x(self%countArray)+rangeTolerance*abs(self%x(self%countArray))) x_=self%x(self%countArray)
        end select
        ! Do the interpolation.
-       statusGSL=gsl_interp_eval_e(self%gsl_interp,self%x,ya,x_,self%gsl_interp_accel,interpolatorInterpolate)
+       statusGSL=gsl_interp_eval_e(self%interp_%gsl,self%x,ya,x_,self%interpAccel_%gsl,interpolatorInterpolate)
        if (statusGSL /= GSL_Success) then
           select case (statusGSL)
           case (GSL_EDom)
@@ -701,7 +736,7 @@ contains
        if (x > self%x(self%countArray)) x_=self%x(self%countArray)
     end select
     ! Do the interpolation.
-    statusGSL=gsl_interp_eval_deriv_e(self%gsl_interp,self%x,ya,x_,self%gsl_interp_accel,interpolatorDerivative)
+    statusGSL=gsl_interp_eval_deriv_e(self%interp_%gsl,self%x,ya,x_,self%interpAccel_%gsl,interpolatorDerivative)
     if (statusGSL /= 0) then
        select case (statusGSL)
        case (GSL_EDom)
@@ -738,7 +773,7 @@ contains
        return
     end if
     ! Do the interpolation.
-    i=gsl_interp_accel_find(self%gsl_interp_accel,self%x,self%countArray,x)+1_c_size_t
+    i=gsl_interp_accel_find(self%interpAccel_%gsl,self%x,self%countArray,x)+1_c_size_t
     i=max(min(i,self%countArray-1_c_size_t),1_c_size_t)
     ! If we want the closest point, find it.
     if (closest_ .and. abs(x-self%x(i+1)) < abs(x-self%x(i))) i=i+1_c_size_t
@@ -783,98 +818,120 @@ contains
     return
   end function interpolator2DConstructor
 
-  subroutine interpolator2DDestructorRank0(self)
+  subroutine interpolator2DAssign(self,from)
     !!{
-    Destructor for rank-0 {\normalfont \ttfamily interpolator2D} objects.
+    Perform assignment of 2D interpolators.
     !!}
     implicit none
-    type(interpolator2D), intent(inout) :: self
-
-    if (allocated (self%gsl_interp_X      )) then
-       call gsl_interp_free      (self%gsl_interp_X      )
-       deallocate(self%gsl_interp_X      )
-    end if
-    if (allocated (self%gsl_interp_Y      )) then
-       call gsl_interp_free      (self%gsl_interp_Y      )
-       deallocate(self%gsl_interp_Y      )
-    end if
-    if (allocated (self%gsl_interp_accel_X)) then
-       call gsl_interp_accel_free(self%gsl_interp_accel_X)
-       deallocate(self%gsl_interp_accel_X)
-    end if
-    if (allocated (self%gsl_interp_accel_Y)) then
-       call gsl_interp_accel_free(self%gsl_interp_accel_Y)
-       deallocate(self%gsl_interp_accel_Y)
-    end if
+    class(interpolator2D), intent(inout) :: self
+    class(interpolator2D), intent(in   ) :: from
+    
+    self%interpXManager      =  from%interpXManager
+    self%interpYManager      =  from%interpYManager
+    self%interpAccelXManager =  from%interpAccelXManager
+    self%interpAccelYManager =  from%interpAccelYManager
+    self%interpX             => from%interpX
+    self%interpY             => from%interpY
+    self%interpAccelX        => from%interpAccelX
+    self%interpAccelY        => from%interpAccelY
+    self%countArrayX         =  from%countArrayX
+    self%countArrayY         =  from%countArrayY
+    if (allocated(self%gsl_interp_type)) deallocate(self%gsl_interp_type                            )
+    if (allocated(from%gsl_interp_type))   allocate(self%gsl_interp_type,source=from%gsl_interp_type)
+    if (allocated(self%x              )) deallocate(self%x                                          )
+    if (allocated(from%x              ))   allocate(self%x              ,source=from%x              )
+    if (allocated(self%y              )) deallocate(self%y                                          )
+    if (allocated(from%y              ))   allocate(self%y              ,source=from%y              )    
+    if (allocated(self%z              )) deallocate(self%z                                          )
+    if (allocated(from%z              ))   allocate(self%z              ,source=from%z              )    
     return
-  end subroutine interpolator2DDestructorRank0
-
+  end subroutine interpolator2DAssign
+  
   subroutine interpolator2DGSLAllocate(self)
     !!{
     Allocate GSL objects.
     !!}
     implicit none
     class(interpolator2D), intent(inout) :: self
+    class(*             ), pointer       :: dummyPointer_
 
-    if (.not.allocated(self%gsl_interp_X      )) then
-       allocate(self%gsl_interp_X      )
-       self%gsl_interp_X=gsl_interp_alloc            (self%gsl_interp_type,self%countArrayX)
+    if (.not.associated(self%interpX     )) then
+       allocate(self%interpX     )
+       self%interpX     %gsl=gsl_interp_alloc           (self%gsl_interp_type,self%countArrayX)
+       !![
+       <workaround type="gfortran" PR="105807" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=105807">
+	 <description>ICE when passing a derived type component to a class(*) function argument.</description>
+       !!]
+       dummyPointer_            => self%interpX
+       self%interpXManager      =  resourceManager(dummyPointer_)
+       !![
+       </workaround>
+       !!]
     end if
-    if (.not.allocated(self%gsl_interp_Y      )) then
-       allocate(self%gsl_interp_Y      )
-       self%gsl_interp_Y=gsl_interp_alloc            (self%gsl_interp_type,self%countArrayY)
+    if (.not.associated(self%interpY     )) then
+       allocate(self%interpY     )
+       self%interpY     %gsl=gsl_interp_alloc           (self%gsl_interp_type,self%countArrayY)
+       !![
+       <workaround type="gfortran" PR="105807" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=105807">
+	 <description>ICE when passing a derived type component to a class(*) function argument.</description>
+       !!]
+       dummyPointer_            => self%interpY
+       self%interpYManager      =  resourceManager(dummyPointer_)
+       !![
+       </workaround>
+       !!]
     end if
-    if (.not.allocated(self%gsl_interp_accel_X)) then
-       allocate(self%gsl_interp_accel_X)
-       self%gsl_interp_accel_X=gsl_interp_accel_alloc(                                     )
+    if (.not.associated(self%interpAccelX)) then
+       allocate(self%interpAccelX)
+       self%interpAccelX%gsl=gsl_interp_accel_alloc(                                     )
+       !![
+       <workaround type="gfortran" PR="105807" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=105807">
+	 <description>ICE when passing a derived type component to a class(*) function argument.</description>
+       !!]
+       dummyPointer_            => self%interpAccelX
+       self%interpAccelXManager =  resourceManager(dummyPointer_)
+       !![
+       </workaround>
+       !!]
     end if
-    if (.not.allocated(self%gsl_interp_accel_Y)) then
-       allocate(self%gsl_interp_accel_Y)
-       self%gsl_interp_accel_Y=gsl_interp_accel_alloc(                                     )
+    if (.not.associated(self%interpAccelY)) then
+       allocate(self%interpAccelY)
+       self%interpAccelY%gsl=gsl_interp_accel_alloc(                                     )
+       !![
+       <workaround type="gfortran" PR="105807" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=105807">
+	 <description>ICE when passing a derived type component to a class(*) function argument.</description>
+       !!]
+       dummyPointer_            => self%interpAccelY
+       self%interpAccelYManager =  resourceManager(dummyPointer_)
+       !![
+       </workaround>
+       !!]
     end if   
     return
   end subroutine interpolator2DGSLAllocate
 
-  subroutine interpolator2DGSLReallocate(self,gslFree)
+  subroutine interpolator2DGSLReallocate(self)
     !!{
     Reallocate GSL objects.
     !!}
-    use, intrinsic :: ISO_C_Binding, only : c_null_ptr
     implicit none
     class  (interpolator2D), intent(inout) :: self
-    logical                , intent(in   ) :: gslFree
     
-    if (allocated(self%gsl_interp_X      )) then
-       if (gslFree) then
-          call gsl_interp_free      (self%gsl_interp_X      )
-       else
-          self%gsl_interp_X=c_null_ptr
-       end if
-       deallocate(self%gsl_interp_X      )
+    if (associated(self%interpX      )) then
+       call self%interpXManager     %release()
+       nullify(self%interpX     )
     end if
-    if (allocated(self%gsl_interp_Y      )) then
-       if (gslFree) then
-          call gsl_interp_free      (self%gsl_interp_Y      )
-       else
-          self%gsl_interp_Y=c_null_ptr
-       end if
-       deallocate(self%gsl_interp_Y      )
+    if (associated(self%interpY      )) then
+       call self%interpYManager     %release()
+       nullify(self%interpY     )
     end if
-    if (allocated(self%gsl_interp_accel_X)) then
-       if (gslFree) then
-          call gsl_interp_accel_free(self%gsl_interp_accel_X)
-       else
-          self%gsl_interp_accel_X=c_null_ptr
-       end if
-       deallocate(self%gsl_interp_accel_X)
+    if (associated(self%interpAccelX)) then
+       call self%interpAccelXManager%release()
+       nullify(self%interpAccelX)
     end if
-    if (allocated(self%gsl_interp_accel_Y)) then
-       if (gslFree) then
-          call gsl_interp_accel_free(self%gsl_interp_accel_Y)
-       else
-          self%gsl_interp_accel_Y=c_null_ptr
-       end if
-       deallocate(self%gsl_interp_accel_Y)
+    if (associated(self%interpAccelY)) then
+       call self%interpAccelYManager%release()
+       nullify(self%interpAccelY)
     end if
     ! Re-establish the interpolation type if necessary.
     if (.not.allocated(self%gsl_interp_type)) then
@@ -907,8 +964,8 @@ contains
          &   y > self%y(self%countArrayY)                                &
          & ) call Error_Report('out of range'//{introspection:location})
     ! Find the interpolating factors.
-    ix=gsl_interp_accel_find(self%gsl_interp_accel_X,self%x,self%countArrayX,x)+1_c_size_t
-    iy=gsl_interp_accel_find(self%gsl_interp_accel_Y,self%y,self%countArrayY,y)+1_c_size_t
+    ix=gsl_interp_accel_find(self%interpAccelX%gsl,self%x,self%countArrayX,x)+1_c_size_t
+    iy=gsl_interp_accel_find(self%interpAccelY%gsl,self%y,self%countArrayY,y)+1_c_size_t
     hx(0)  =+(self%x(ix+1)-     x   )   &
          &   /(self%x(ix+1)-self%x(ix))
     hy(0)  =+(self%y(iy+1)-     y   )   &

@@ -279,6 +279,15 @@ sub Node_Event_Deserialize_Raw {
 		intrinsic  => "type",
 		type       => "c_funptr",
 		variables  => [ "functionLocation" ]
+	    },
+	    {
+		intrinsic  => "integer",
+		variables  => [ "functionLocation_" ],
+		attributes => [ "allocatable", "dimension(:)" ]
+	    },
+	    {
+		intrinsic  => "integer",
+		variables  => [ "functionLocationSize" ]
 	    }
 	    )
 	    if ( $code::class->{'name'} eq "nodeEvent" );
@@ -298,9 +307,11 @@ CODE
 	# The task function pointer is handled by transfering the memory address to an integer array.
 	if ( $code::class->{'name'} eq "nodeEvent" ) {
 	    $function->{'content'} .= fill_in_string(<<'CODE', PACKAGE => 'code');
-read (fileUnit) pointerAssociated
+read (fileUnit) pointerAssociated,functionLocationSize
 if (pointerAssociated == 1) then
-   read (fileUnit) functionLocation
+   allocate(functionLocation_(functionLocationSize))
+   read (fileUnit) functionLocation_
+   functionLocation=transfer(functionLocation_,functionLocation)
    call c_f_ProcPointer(functionLocation,self%task)
 else
    self%task => null()
@@ -361,6 +372,11 @@ sub Node_Event_Serialize_Raw {
 		intrinsic  => "type",
 		type       => "c_funptr",
 		variables  => [ "functionLocation" ]
+	    },
+	    {
+		intrinsic  => "integer",
+		variables  => [ "functionLocation_" ],
+		attributes => [ "allocatable", "dimension(:)" ]
 	    }
 	    )
 	    if ( $code::class->{'name'} eq "nodeEvent" );
@@ -386,11 +402,12 @@ CODE
 	if ( $code::class->{'name'} eq "nodeEvent" ) {
 	    $function->{'content'} .= fill_in_string(<<'CODE', PACKAGE => 'code');
 if (associated(self%task)) then
-   functionLocation=c_FunLoc(self%task)
-   write (fileUnit) 1
-   write (fileUnit) functionLocation
+   functionLocation =c_FunLoc(self%task)
+   functionLocation_=transfer(functionLocation,functionLocation_)
+   write (fileUnit) 1,size(functionLocation_)
+   write (fileUnit) functionLocation_
 else
-   write (fileUnit) 0
+   write (fileUnit) 0,0
 end if
 CODE
 	}

@@ -134,6 +134,7 @@ contains
        self%mass         =mass
        self%dimensionless=.false.
     else
+       self%mass         =0.0d0
        call Error_Report('either specify a mass, or declare the distribution to be dimensionless'//{introspection:location})
     end if
     ! Compute the gravitational radius for the black hole.

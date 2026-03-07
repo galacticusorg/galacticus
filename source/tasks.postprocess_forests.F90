@@ -17,6 +17,8 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
+  use :: Galacticus_Nodes          , only : nodeHierarchyWrapper
+  use :: Node_Components           , only : nodeComponentsWrapper
   use :: Input_Parameters          , only : inputParameters
   use :: Merger_Tree_Outputters    , only : mergerTreeOutputterClass
   use :: Merger_Tree_Seeds         , only : mergerTreeSeedsClass
@@ -61,7 +63,10 @@
      class  (randomNumberGeneratorClass ), pointer :: randomNumberGenerator_    => null()
      class  (mergerTreeSeedsClass       ), pointer :: mergerTreeSeeds_          => null()
      type   (varying_string             )          :: fileName
-     logical                                       :: nodeComponentsInitialized =  .false.
+     ! Manager for node class hierarchy and component initialization.
+     type   (nodeComponentsWrapper      ), pointer :: nodeComponents_           => null()
+     type   (nodeHierarchyWrapper       ), pointer :: nodeHierarchy_            => null()
+     type   (resourceManager            )          :: nodeComponentsManager               , nodeHierarchyManager
  contains
      final     ::            postprocessForestsDestructor
      procedure :: perform => postprocessForestsPerform
@@ -101,6 +106,7 @@ contains
     class(mergerTreeInitializorClass ), pointer               :: mergerTreeInitializor_
     class(randomNumberGeneratorClass ), pointer               :: randomNumberGenerator_
     class(mergerTreeSeedsClass       ), pointer               :: mergerTreeSeeds_
+    class(*                          ), pointer               :: dummyPointer_
     type (inputParameters            ), pointer               :: parametersRoot
     type (varying_string             )                        :: fileName
 
@@ -143,9 +149,23 @@ contains
     else
        self=taskPostprocessForests(fileName,mergerTreeConstructor_,mergerTreeOperator_,nodeOperator_,evolveForestsWorkShare_,outputTimes_,universeOperator_,mergerTreeEvolver_,mergerTreeOutputter_,mergerTreeInitializor_,randomNumberGenerator_,mergerTreeSeeds_,parameters    )
     end if
-    self%nodeComponentsInitialized=.true.
     !![
     <inputParametersValidate source="parameters"/>
+    !!]
+    allocate(self%nodeComponents_)
+    allocate(self%nodeHierarchy_ )
+    !![
+    <workaround type="gfortran" PR="105807" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=105807">
+      <description>ICE when passing a derived type component to a class(*) function argument.</description>
+    !!]
+    dummyPointer_              => self%nodeComponents_
+    self%nodeComponentsManager =  resourceManager(dummyPointer_)
+    dummyPointer_              => self%nodeHierarchy_
+    self%nodeHierarchyManager  =  resourceManager(dummyPointer_)
+    !![
+    </workaround>
+    !!]
+    !![
     <objectDestructor name="mergerTreeConstructor_" />
     <objectDestructor name="mergerTreeOperator_"    />
     <objectDestructor name="nodeOperator_"          />
@@ -211,10 +231,6 @@ contains
     <objectDestructor name="self%randomNumberGenerator_" />
     <objectDestructor name="self%mergerTreeSeeds_"       />
     !!]
-    if (self%nodeComponentsInitialized) then
-       call Node_Components_Uninitialize()
-       call nodeClassHierarchyFinalize  ()
-    end if
     return
   end subroutine postprocessForestsDestructor
 
@@ -264,7 +280,6 @@ contains
     ! Call routines to perform initialization which must occur for all threads if run in parallel.
     allocate(parameters)
     parameters=inputParameters(self%parameters)
-    call parameters%parametersGroupCopy(self%parameters)
     call Node_Components_Thread_Initialize(parameters)
     !$omp barrier
     ! Begin loop to read and post-process trees.
