@@ -83,7 +83,7 @@ contains
 
   integer function starFormationRateInterOutputElementCount(self,time)
     !!{
-    Return the number of elements in the {\normalfont \ttfamily starFormationRateInterOutput} property extractors.
+    Return the number of elements in the \mono{starFormationRateInterOutput} property extractors.
     !!}
     implicit none
     class           (nodePropertyExtractorStarFormationRateInterOutput), intent(inout) :: self
@@ -148,7 +148,7 @@ contains
 
   subroutine starFormationRateInterOutputNames(self,time,names)
     !!{
-    Return the names of the {\normalfont \ttfamily starFormationRateInterOutput} properties.
+    Return the names of the \mono{starFormationRateInterOutput} properties.
     !!}
     implicit none
     class           (nodePropertyExtractorStarFormationRateInterOutput), intent(inout)                            :: self
@@ -165,7 +165,7 @@ contains
 
   subroutine starFormationRateInterOutputDescriptions(self,time,descriptions)
     !!{
-    Return the descriptions of the {\normalfont \ttfamily starFormationRateInterOutput} properties.
+    Return the descriptions of the \mono{starFormationRateInterOutput} properties.
     !!}
     implicit none
     class           (nodePropertyExtractorStarFormationRateInterOutput), intent(inout)                             :: self
@@ -182,7 +182,7 @@ contains
 
   function starFormationRateInterOutputUnitsInSI(self,time)
     !!{
-    Return the units of the {\normalfont \ttfamily starFormationRateInterOutput} properties in the SI system.
+    Return the units of the \mono{starFormationRateInterOutput} properties in the SI system.
     !!}
     use :: Numerical_Constants_Astronomical, only : gigaYear, massSolar
     implicit none

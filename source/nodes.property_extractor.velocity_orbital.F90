@@ -75,7 +75,7 @@ contains
 
   integer function velocityOrbitalElementCount(self,time)
     !!{
-    Return the number of elements in the {\normalfont \ttfamily velocityOrbital} property extractors.
+    Return the number of elements in the \mono{velocityOrbital} property extractors.
     !!}
     implicit none
     class           (nodePropertyExtractorVelocityOrbital), intent(inout) :: self

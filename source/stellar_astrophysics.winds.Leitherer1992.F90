@@ -107,8 +107,8 @@ contains
 
   double precision function leitherer1992RateMassLoss(self,initialMass,age,metallicity)
     !!{
-    Compute the mass loss rate (in $M_\odot$/Gyr) from a star of given {\normalfont \ttfamily initialMass}, {\normalfont
-    \ttfamily age} and {\normalfont \ttfamily metallicity} using the fitting formula of \cite{leitherer_deposition_1992}.
+    Compute the mass loss rate (in $M_\odot$/Gyr) from a star of given \mono{initialMass}, {\normalfont
+    \ttfamily age} and \mono{metallicity} using the fitting formula of \cite{leitherer_deposition_1992}.
     !!}
     implicit none
     class           (stellarWindsLeitherer1992), intent(inout) :: self
@@ -142,7 +142,7 @@ contains
 
   double precision function leitherer1992VelocityTerminal(self,initialMass,age,metallicity)
     !!{
-    Compute the terminal velocity (in km/s) from a star of given {\normalfont \ttfamily initialMass}, {\normalfont \ttfamily age} and {\normalfont \ttfamily metallicity} using
+    Compute the terminal velocity (in km/s) from a star of given \mono{initialMass}, \mono{age} and \mono{metallicity} using
     the fitting formula of \cite{leitherer_deposition_1992}.
     !!}
     implicit none

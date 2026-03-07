@@ -446,7 +446,7 @@ contains
 
   subroutine localGroupStellarMassHaloMassRelationAnalyze(self,node,iOutput)
     !!{
-    Implement a {\normalfont \ttfamily localGroupStellarMassHaloMassRelation} output analysis.
+    Implement a \mono{localGroupStellarMassHaloMassRelation} output analysis.
     !!}
     implicit none
     class  (outputAnalysisLocalGroupStellarMassHaloMassRelation), intent(inout) :: self
@@ -459,7 +459,7 @@ contains
 
   subroutine localGroupStellarMassHaloMassRelationReduce(self,reduced)
     !!{
-    Implement a {\normalfont \ttfamily localGroupStellarMassHaloMassRelation} output analysis reduction.
+    Implement a \mono{localGroupStellarMassHaloMassRelation} output analysis reduction.
     !!}
     use :: Error, only : Error_Report
     implicit none
@@ -477,7 +477,7 @@ contains
 
   subroutine localGroupStellarMassHaloMassRelationFinalize(self,groupName)
     !!{
-    Implement a {\normalfont \ttfamily localGroupStellarMassHaloMassRelation} output analysis finalization.
+    Implement a \mono{localGroupStellarMassHaloMassRelation} output analysis finalization.
     !!}
     implicit none
     class(outputAnalysisLocalGroupStellarMassHaloMassRelation), intent(inout)           :: self
@@ -489,7 +489,7 @@ contains
 
   double precision function localGroupStellarMassHaloMassRelationLogLikelihood(self)
     !!{
-    Return the log-likelihood of a {\normalfont \ttfamily localGroupStellarMassHaloMassRelation} output analysis.
+    Return the log-likelihood of a \mono{localGroupStellarMassHaloMassRelation} output analysis.
     !!}
     implicit none
     class(outputAnalysisLocalGroupStellarMassHaloMassRelation), intent(inout) :: self

@@ -39,7 +39,7 @@ sub Implementation_Output_Count {
     {
 	type        => "void",
 	name        => $code::class->{'name'}.ucfirst($code::member->{'name'})."OutputCount",
-	description => "Increment the count of properties to output for a {\\normalfont \\ttfamily ".$code::member->{'name'}."} implementation of the {\\normalfont \\ttfamily ".$code::class->{'name'}."} component.",
+	description => "Increment the count of properties to output for a \\mono{".$code::member->{'name'}."} implementation of the \\mono{".$code::class->{'name'}."} component.",
 	content     => "",
 	variables   =>
 	    [
@@ -140,7 +140,7 @@ sub Implementation_Output_Names {
     {
 	type        => "void",
 	name        => $code::class->{'name'}.ucfirst($code::member->{'name'})."OutputNames",
-	description => "Return the names of properties to output for a {\\normalfont \\ttfamily ".$code::member->{'name'}."} implementation of the {\\normalfont \\ttfamily ".$code::class->{'name'}."} component.",
+	description => "Return the names of properties to output for a \\mono{".$code::member->{'name'}."} implementation of the \\mono{".$code::class->{'name'}."} component.",
 	content     => "",
 	modules     =>
 	    [
@@ -269,7 +269,7 @@ sub Implementation_Post_Output {
     {
 	type        => "void",
 	name        => $code::class->{'name'}.ucfirst($code::member->{'name'})."PostOutput",
-	description => "Perform post-output processing for a {\\normalfont \\ttfamily ".$code::member->{'name'}."} implementation of the {\\normalfont \\ttfamily ".$code::class->{'name'}."} component.",
+	description => "Perform post-output processing for a \\mono{".$code::member->{'name'}."} implementation of the \\mono{".$code::class->{'name'}."} component.",
 	content     => "",
 	variables   =>
 	    [

@@ -78,7 +78,7 @@ contains
     <inputParameter>
       <name>sampleRate</name>
       <source>parameters</source>
-      <description>One in {\normalfont \ttfamily [sampleRate]} particles will be sampled when computed environmental overdensities.</description>
+      <description>One in \mono{[sampleRate]} particles will be sampled when computed environmental overdensities.</description>
       <defaultValue>1_c_size_t</defaultValue>
     </inputParameter>
     <inputParameter>

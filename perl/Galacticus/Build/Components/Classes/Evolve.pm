@@ -39,7 +39,7 @@ sub Build_Meta_Rate_Functions {
     {
 	type        => "void",
 	name        => $class->{'name'}."FloatRank0MetaPropertyRate",
-	description => "Accumulate to the rate of change of the indexed rank-0 float meta-property of the {\\normalfont \\ttfamily ".$class->{'name'}."} component class.",
+	description => "Accumulate to the rate of change of the indexed rank-0 float meta-property of the \\mono{".$class->{'name'}."} component class.",
 	modules     =>
 	    [
 	     "ISO_Varying_String"
@@ -142,7 +142,7 @@ sub Build_Meta_Scale_Functions {
     {
 	type        => "void",
 	name        => $class->{'name'}."FloatRank0MetaPropertyScale",
-	description => "Set the absolute scale of the rank-0 float indexed meta-property of the {\\normalfont \\ttfamily ".$class->{'name'}."} component class.",
+	description => "Set the absolute scale of the rank-0 float indexed meta-property of the \\mono{".$class->{'name'}."} component class.",
 	modules     =>
 	    [
 	     "ISO_Varying_String"
@@ -198,7 +198,7 @@ sub Build_Meta_Inactive_Functions {
     {
 	type        => "void",
 	name        => $class->{'name'}."FloatRank0MetaPropertyJcbnZr",
-	description => "Indicate that the indexed rank-0 float meta-property of the {\\normalfont \\ttfamily ".$class->{'name'}."} component class is inactive for differential equation solving.",
+	description => "Indicate that the indexed rank-0 float meta-property of the \\mono{".$class->{'name'}."} component class is inactive for differential equation solving.",
 	variables   =>
 	    [
 	     {
@@ -243,7 +243,7 @@ sub Build_Meta_Analytic_Functions {
     {
 	type        => "void",
 	name        => $class->{'name'}."FloatRank0MetaPropertyAlytc",
-	description => "Indicate that the indexed rank-0 float meta-property of the {\\normalfont \\ttfamily ".$class->{'name'}."} component class is to be solved analytically for differential evolution.",
+	description => "Indicate that the indexed rank-0 float meta-property of the \\mono{".$class->{'name'}."} component class is to be solved analytically for differential evolution.",
 	variables   =>
 	    [
 	     {

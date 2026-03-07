@@ -797,7 +797,7 @@ contains
   !!]
   subroutine Node_Component_Spheroid_Standard_Scale_Set(node)
     !!{
-    Set scales for properties of {\normalfont \ttfamily node}. Note that gas masses get an additional scaling down since they can approach
+    Set scales for properties of \mono{node}. Note that gas masses get an additional scaling down since they can approach
     zero and we'd like to prevent them from becoming negative.
     !!}
     use :: Abundances_Structure          , only : abs                     , max              , operator(*)          , unitAbundances               , &
@@ -898,7 +898,7 @@ contains
   !!]
   subroutine Node_Component_Spheroid_Standard_Inactive(node)
     !!{
-    Set Jacobian zero status for properties of {\normalfont \ttfamily node}.
+    Set Jacobian zero status for properties of \mono{node}.
     !!}
     use :: Galacticus_Nodes, only : nodeComponentSpheroid, nodeComponentSpheroidStandard, treeNode
     implicit none
@@ -917,7 +917,7 @@ contains
 
   subroutine satelliteMerger(self,node)
     !!{
-    Transfer any standard spheroid associated with {\normalfont \ttfamily node} to its host halo.
+    Transfer any standard spheroid associated with \mono{node} to its host halo.
     !!}
     use :: Abundances_Structure            , only : zeroAbundances
     use :: Error                           , only : Error_Report
@@ -1461,7 +1461,7 @@ contains
 
   subroutine Node_Component_Spheroid_Standard_Star_Formation_History_Extend(node,timeEnd)
     !!{
-    Extend the range of a star formation history in a standard spheroid component for {\normalfont \ttfamily node}.
+    Extend the range of a star formation history in a standard spheroid component for \mono{node}.
     !!}
     use :: Galacticus_Nodes, only : nodeComponentSpheroid, treeNode
     implicit none
@@ -1482,7 +1482,7 @@ contains
 
   subroutine Node_Component_Spheroid_Standard_Stellar_Prprts_History_Extend(node,timeEnd)
     !!{
-    Extend the range of a stellar properties history in a standard spheroid component for {\normalfont \ttfamily node}.
+    Extend the range of a stellar properties history in a standard spheroid component for \mono{node}.
     !!}
     use :: Galacticus_Nodes, only : nodeComponentSpheroid, treeNode
     implicit none

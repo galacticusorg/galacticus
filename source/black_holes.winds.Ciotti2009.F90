@@ -31,9 +31,9 @@
      \begin{equation}
      L_\mathrm{w} = \epsilon_\mathrm{w} \epsilon_\mathrm{r} f_\mathrm{w} \dot{M}_\bullet \mathrm{c}^2,
      \end{equation}
-     where $\dot{M}_\bullet$ is the black hole accretion rate, $\epsilon_\mathrm{w}=${\normalfont \ttfamily [efficiencyWind]} is
+     where $\dot{M}_\bullet$ is the black hole accretion rate, $\epsilon_\mathrm{w}=$\mono{[efficiencyWind]} is
      an overall efficiency parameter, $\epsilon_\mathrm{r}$ is the radiative efficiency of the accretion flow \emph{if}
-     {\normalfont \ttfamily [efficiencyWindScalesWithEfficiencyRadiative]=true}, and $1$ otherwise, and $f_\mathrm{w}$ represents
+     \mono{[efficiencyWindScalesWithEfficiencyRadiative]=true}, and $1$ otherwise, and $f_\mathrm{w}$ represents
      the fraction of the wind power that is coupled to the surrounding galaxy.
 
      The model for $f_\mathrm{w}$ is inspired by \cite{ciotti_feedbackcentral_2009} who state:

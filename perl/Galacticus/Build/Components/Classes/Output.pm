@@ -39,7 +39,7 @@ sub Class_Dump_ASCII {
     {
 	type        => "void",
 	name        => "nodeComponent".ucfirst($code::class->{'name'})."DumpASCII",
-	description => "Dump the content of a {\\normalfont \\ttfamily ".$code::class->{'name'}."} component.",
+	description => "Dump the content of a \\mono{".$code::class->{'name'}."} component.",
 	modules     =>
 	    [
 	     "Display",
@@ -82,7 +82,7 @@ sub Class_Output_Count {
     {
 	type        => "void",
 	name        => $code::class->{'name'}."OutputCount",
-	description => "Increment the count of properties to output for a generic {\\normalfont \\ttfamily ".$code::class->{'name'}."} component.",
+	description => "Increment the count of properties to output for a generic \\mono{".$code::class->{'name'}."} component.",
 	variables   =>
 	    [
 	     {
@@ -140,7 +140,7 @@ sub Class_Output_Names {
     {
 	type        => "void",
 	name        => $code::class->{'name'}."OutputNames",
-	description => "Establish the names of properties to output for a generic {\\normalfont \\ttfamily ".$code::class->{'name'}."} component.",
+	description => "Establish the names of properties to output for a generic \\mono{".$code::class->{'name'}."} component.",
 	modules     =>
 	    [
 	     "Merger_Tree_Outputter_Buffer_Types"
@@ -219,7 +219,7 @@ sub Class_Output {
     {
 	type        => "void",
 	name        => $code::class->{'name'}."Output",
-	description => "Populate output buffers with properties to output for a {\\normalfont \\ttfamily ".$code::class->{'name'}."} component.",
+	description => "Populate output buffers with properties to output for a \\mono{".$code::class->{'name'}."} component.",
 	content     => "",
 	modules     =>
 	    [
@@ -463,7 +463,7 @@ sub Class_Post_Output {
     {
 	type        => "void",
 	name        => $code::class->{'name'}."PostOutput",
-	description => "Perform post-output processing of a {\\normalfont \\ttfamily ".$code::class->{'name'}."} component.",
+	description => "Perform post-output processing of a \\mono{".$code::class->{'name'}."} component.",
 	content     => "!\$GLC attributes unused :: self, time\n",
 	variables   =>
 	    [

@@ -29,8 +29,7 @@
       \begin{equation}
       \rho(\mathbf{x}) = \frac{f_\mathrm{M}}{f_\mathrm{r}^3} \rho^\prime(\mathbf{x}/f_\mathrm{r}),
       \end{equation}      
-      where $\rho^\prime(\mathbf{x})$ is the original mass distribution, and $f_\mathrm{r}=${\normalfont \ttfamily
-      [factorScalingLength]}, and $f_\mathrm{M}=${\normalfont \ttfamily [factorScalingMass]}.
+      where $\rho^\prime(\mathbf{x})$ is the original mass distribution, and $f_\mathrm{r}=$\mono{[factorScalingLength]}, and $f_\mathrm{M}=$\mono{[factorScalingMass]}.
     </description>
   </massDistribution>
   !!]
@@ -168,7 +167,7 @@ contains
 
   double precision function sphericalScalerDensity(self,coordinates)
     !!{
-    Return the density at the specified {\normalfont \ttfamily coordinates} in a scaled spherical mass distribution.
+    Return the density at the specified \mono{coordinates} in a scaled spherical mass distribution.
     !!}
     implicit none
     class(massDistributionSphericalScaler), intent(inout) :: self
@@ -213,7 +212,7 @@ contains
 
   double precision function sphericalScalerMassEnclosedBySphere(self,radius)
     !!{
-    Computes the mass enclosed within a sphere of given {\normalfont \ttfamily radius} for a scaled spherical mass distribution.
+    Computes the mass enclosed within a sphere of given \mono{radius} for a scaled spherical mass distribution.
     !!}
     implicit none
     class           (massDistributionSphericalScaler), intent(inout), target :: self
@@ -229,7 +228,7 @@ contains
 
   double precision function sphericalScalerMassEnclosedByCylinder(self,radius) result(mass)
     !!{
-    Computes the mass enclosed within a sphere of given {\normalfont \ttfamily radius} for a scaled spherical mass distribution.
+    Computes the mass enclosed within a sphere of given \mono{radius} for a scaled spherical mass distribution.
     !!}
     implicit none
     class           (massDistributionSphericalScaler), intent(inout), target :: self
@@ -256,7 +255,7 @@ contains
 
   double precision function sphericalScalerPotential(self,coordinates,status)
     !!{
-    Return the potential at the specified {\normalfont \ttfamily coordinates} in a scaled spherical mass distribution.
+    Return the potential at the specified \mono{coordinates} in a scaled spherical mass distribution.
     !!}
     use :: Numerical_Constants_Astronomical, only : gravitationalConstant_internal
     implicit none
@@ -316,7 +315,7 @@ contains
 
   function sphericalScalerAcceleration(self,coordinates)
     !!{
-    Computes the gravitational acceleration at {\normalfont \ttfamily coordinates} for spherically-symmetric mass
+    Computes the gravitational acceleration at \mono{coordinates} for spherically-symmetric mass
     distributions.
     !!}
     use :: Numerical_Constants_Astronomical, only : gigaYear, gravitationalConstant_internal, megaParsec
@@ -344,7 +343,7 @@ contains
 
   double precision function sphericalScalerDensitySphericalAverage(self,radius)
     !!{
-    Return the spherically-averaged density at the specified {\normalfont \ttfamily coordinates} in a scaled spherical mass
+    Return the spherically-averaged density at the specified \mono{coordinates} in a scaled spherical mass
     distribution.
     !!}
     implicit none
@@ -406,7 +405,7 @@ contains
 
   function sphericalScalerTidalTensor(self,coordinates) result(tidalTensor)
     !!{
-    Computes the gravitational tidal tensor at {\normalfont \ttfamily coordinates} in a scaled spherical mass distribution.
+    Computes the gravitational tidal tensor at \mono{coordinates} in a scaled spherical mass distribution.
     !!}
     use :: Numerical_Constants_Astronomical, only : gravitationalConstant_internal
     use :: Coordinates                     , only : coordinateCartesian           , assignment(=)
@@ -450,7 +449,7 @@ contains
 
   double precision function sphericalScalerFourierTransform(self,radiusOuter,wavenumber) result(fourierTransform)
     !!{
-    Compute the Fourier transform of the density profile at the given {\normalfont \ttfamily wavenumber} in a spherical, scaled mass distribution.
+    Compute the Fourier transform of the density profile at the given \mono{wavenumber} in a spherical, scaled mass distribution.
     !!}
     implicit none
     class           (massDistributionSphericalScaler), intent(inout) :: self
@@ -462,7 +461,7 @@ contains
 
   double precision function sphericalScalerRadiusFreefall(self,time) result(radius)
     !!{
-    Compute the freefall radius at the given {\normalfont \ttfamily time} in a spherical mass distribution.
+    Compute the freefall radius at the given \mono{time} in a spherical mass distribution.
     !!}
     implicit none
     class           (massDistributionSphericalScaler), intent(inout) :: self
@@ -481,7 +480,7 @@ contains
   
   double precision function sphericalScalerRadiusFreefallIncreaseRate(self,time) result(radiusIncreaseRate)
     !!{
-    Compute the rate of increase of the freefall radius at the given {\normalfont \ttfamily time} in an spherical mass
+    Compute the rate of increase of the freefall radius at the given \mono{time} in an spherical mass
     distribution.
     !!}
     implicit none
@@ -504,7 +503,7 @@ contains
 
   double precision function sphericalScalerEnergyPotential(self,radiusOuter) result(energy)
     !!{
-    Compute the potential energy within a given {\normalfont \ttfamily radius} in a spherical mass distribution.
+    Compute the potential energy within a given \mono{radius} in a spherical mass distribution.
     !!}
     implicit none
     class           (massDistributionSphericalScaler), intent(inout) :: self

@@ -27,14 +27,14 @@
   <hiiRegionMassFunction name="hiiRegionMassFunctionRosolowsky2021">
    <description>
      An HII region stellar mass function class in which giant molecular clouds are assumed to turn a fixed fraction
-     $\epsilon=${\normalfont \ttfamily [epsilon]} of their mass into stars, and the giant molecular cloud mass function is given
+     $\epsilon=$\mono{[epsilon]} of their mass into stars, and the giant molecular cloud mass function is given
      by \cite{rosolowsky_giant_2021}:
      \begin{equation}
      \phi(M) \propto \left(\frac{m}{M}\right)^{\alpha} \exp\!\left(-\frac{m}{M}\right),
      \end{equation}
-     where $M$ is the mass of giant molecular cloud, $M_\mathrm{min}=${\normalfont \ttfamily [massMinimum]} and
-     $M_\mathrm{max}=${\normalfont \ttfamily [massMaximum]} and the minimum and maximum giant molecular cloud masses respectively,
-     and $\alpha=${\normalfont \ttfamily [exponent]}.
+     where $M$ is the mass of giant molecular cloud, $M_\mathrm{min}=$\mono{[massMinimum]} and
+     $M_\mathrm{max}=$\mono{[massMaximum]} and the minimum and maximum giant molecular cloud masses respectively,
+     and $\alpha=$\mono{[exponent]}.
    </description>
   </hiiRegionMassFunction>
   !!]

@@ -114,7 +114,7 @@ contains
 
   double precision function fixedConcentration(self,node)
     !!{
-    Return the concentration of the dark matter halo profile of {\normalfont \ttfamily node}.
+    Return the concentration of the dark matter halo profile of \mono{node}.
     !!}
     use :: Galacticus_Nodes, only : nodeComponentBasic, treeNode
     implicit none

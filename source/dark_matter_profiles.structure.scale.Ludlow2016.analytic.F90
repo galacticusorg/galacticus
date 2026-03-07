@@ -61,7 +61,7 @@ contains
 
   function ludlow2016AnalyticConstructorParameters(parameters) result(self)
     !!{
-    Default constructor for the {\normalfont \ttfamily ludlow2016Analytic} dark matter halo profile scale radius class.
+    Default constructor for the \mono{ludlow2016Analytic} dark matter halo profile scale radius class.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -181,7 +181,7 @@ contains
 
   double precision function ludlow2016AnalyticFormationTimeRoot(timeFormation) result(formationTimeRoot)
     !!{
-    Function used to find the formation time of a halo in the {\normalfont \ttfamily ludlow2016Analytic} scale radius algorithm.
+    Function used to find the formation time of a halo in the \mono{ludlow2016Analytic} scale radius algorithm.
     !!}
     use :: Dark_Matter_Profile_Mass_Definitions, only : Dark_Matter_Profile_Mass_Definition
     use :: Galacticus_Nodes                    , only : nodeComponentBasic

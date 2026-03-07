@@ -123,9 +123,9 @@
   }
   \end{verbatim}
 
-  If an optional \refClass{transferFunctionClass} object named {\normalfont \ttfamily transferFunctionReference} is supplied then
+  If an optional \refClass{transferFunctionClass} object named \mono{transferFunctionReference} is supplied then
   that transfer function is multiplied by the tabulated transfer function. In this case half and quarter-mode masses relative to
-  {\normalfont \ttfamily transferFunctionReference} are also computed.
+  \mono{transferFunctionReference} are also computed.
    </description>
    <runTimeFileDependencies paths="fileName"/>
   </transferFunction>
@@ -550,7 +550,7 @@ contains
   double precision function fileFractionModeMass(self,fraction,status)
     !!{
     Compute the mass corresponding to the wavenumber at which the transfer function is
-    reduced by {\normalfont \ttfamily fraction} relative to a \gls{cdm} transfer function.
+    reduced by \mono{fraction} relative to a \gls{cdm} transfer function.
     !!}
     use :: Numerical_Constants_Math, only : Pi
     use :: Error                   , only : Error_Report, errorStatusFail

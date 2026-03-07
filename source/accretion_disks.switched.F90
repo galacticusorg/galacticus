@@ -48,12 +48,11 @@
     \begin{equation}
     x = \dot{M} / \dot{M}_\mathrm{Eddington}.
     \end{equation}
-    Here, $x_\mathrm{min}=${\normalfont \ttfamily [accretionRateThinDiskMinimum]}, $x_\mathrm{max}=${\normalfont \ttfamily
-    [accretionRateThinDiskMaximum]}, and $\Delta_{x}$={\normalfont \ttfamily [accretionRateTransitionWidth]}. If either
-    {\normalfont \ttfamily [accretionRateThinDiskMinimum]} or {\normalfont \ttfamily [accretionRateThinDiskMaximum]} is set to
-    ``{\normalfont \ttfamily none}'' then the corresponding term in eqn.~(\ref{eq:SwitchedDiskADAFFraction}) is excluded.
+    Here, $x_\mathrm{min}=$\mono{[accretionRateThinDiskMinimum]}, $x_\mathrm{max}=$\mono{[accretionRateThinDiskMaximum]}, and $\Delta_{x}$=\mono{[accretionRateTransitionWidth]}. If either
+    \mono{[accretionRateThinDiskMinimum]} or \mono{[accretionRateThinDiskMaximum]} is set to
+    ``\mono{none}'' then the corresponding term in eqn.~(\ref{eq:SwitchedDiskADAFFraction}) is excluded.
   
-    Additionally, if {\normalfont \ttfamily [scaleADAFRadiativeEfficiency]} is set to {\normalfont \ttfamily true} then the
+    Additionally, if \mono{[scaleADAFRadiativeEfficiency]} is set to \mono{true} then the
     radiative efficiency of the \gls{adaf} component is reduced by a factor $x/x_\mathrm{min}$ when $x&lt;x_\mathrm{min}$.
    </description>
   </accretionDisks>
@@ -236,7 +235,7 @@ contains
 
   double precision function switchedRateSpinUp(self,blackHole,accretionRateMass)
     !!{
-    Computes the spin up rate of the given {\normalfont \ttfamily blackHole} due to accretion from a switched
+    Computes the spin up rate of the given \mono{blackHole} due to accretion from a switched
     (ADAF/thin) accretion disk.
     !!}
     implicit none

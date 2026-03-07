@@ -100,7 +100,7 @@ contains
 
   logical function filteredIsActive(self,node) result(isActive)
     !!{
-    Return true if the operators are active for the given {\normalfont \ttfamily node}.
+    Return true if the operators are active for the given \mono{node}.
     !!}
     implicit none
     class(nodeOperatorFiltered), intent(inout) :: self

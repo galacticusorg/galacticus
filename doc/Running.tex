@@ -4,7 +4,7 @@ If you have not yet installed \glc\ you should follow the instructions \href{htt
 
 \section{Setting the Environment}
 
-Before running \glc\ you will need to set two environment variables which specify where the \glc\ source code and datasets can be found. First, the environment variable {\normalfont \ttfamily GALACTICUS\_EXEC\_PATH} should be set to the full path to the build directory\index{path!galacticus root@{\glc\ root}}. Second, the environment variable {\normalfont \ttfamily GALACTICUS\_DATA\_PATH} should be set to the full path to the {\normalfont \ttfamily datasets} directory which was created when you installed \glc.
+Before running \glc\ you will need to set two environment variables which specify where the \glc\ source code and datasets can be found. First, the environment variable \mono{GALACTICUS\_EXEC\_PATH} should be set to the full path to the build directory\index{path!galacticus root@{\glc\ root}}. Second, the environment variable \mono{GALACTICUS\_DATA\_PATH} should be set to the full path to the \mono{datasets} directory which was created when you installed \glc.
 
 \section{Running Galacticus}
 
@@ -12,7 +12,7 @@ Before running \glc\ you will need to set two environment variables which specif
 \begin{verbatim}
  Galacticus.exe <parameterFile>
 \end{verbatim}
-where {\normalfont \ttfamily parameterFile} is the name of the file containing parameter settings for \glc. \glc\ will display messages indicating its progress as it runs.
+where \mono{parameterFile} is the name of the file containing parameter settings for \glc. \glc\ will display messages indicating its progress as it runs.
 
 A simple example, useful to check that everything is working as expected for you, is to do:
 \begin{verbatim}
@@ -54,11 +54,11 @@ MM: -> Begin task: merger tree evolution
 11:     <- Finished tree
 MM: <- Done task: merger tree evolution
 \end{verbatim}
-In this simple model, \glc\ is told to build six merger trees, and form galaxies within them, outputting the results at $z=0$. After the initial ``\glc'' banner is displayed there are several messages shown. Each line begins with either ``{\normalfont \ttfamily MM:}'', or a number. \glc\ runs in parallel using the available cores on your computer---these prefixes on each line tell you which parallel thread is sending the message. ``{\normalfont \ttfamily MM:}'' means that the message is from the main thread (and that \glc\ is currently running in a serial part of the code), while a numerical prefixes gives the number of that parallel thread reporting the message (starting from 0).
+In this simple model, \glc\ is told to build six merger trees, and form galaxies within them, outputting the results at $z=0$. After the initial ``\glc'' banner is displayed there are several messages shown. Each line begins with either ``\mono{MM:}'', or a number. \glc\ runs in parallel using the available cores on your computer---these prefixes on each line tell you which parallel thread is sending the message. ``\mono{MM:}'' means that the message is from the main thread (and that \glc\ is currently running in a serial part of the code), while a numerical prefixes gives the number of that parallel thread reporting the message (starting from 0).
 
 The first message, from the main thread, tells you that the ``merger tree evolution'' task has begun---in this task, \glc\ forms galaxies within a set of merger trees. After that initial message you'll see that \glc\ enters parallel calculation and messages start being reported from each parallel thread. The threads report when they begin evolving a merger tree (in this case merger trees are numbered consecutively, starting from 1), when they are outputting the data from that tree (at a time of $13.79$~Gyr, which corresponds to $z=0$ in this model), and when they have finished the tree. Once all trees are finished there is a final message from the main thread (parallel calculation is over at this point) indicating that the merger tree evolution task is finished. \glc\ then exits, since it has finished all of the work we asked it to do.
 
-The results will have been written to an output file named {\normalfont \ttfamily galacticus.hdf5}, which you can see by doing:
+The results will have been written to an output file named \mono{galacticus.hdf5}, which you can see by doing:
 \begin{verbatim}
 ls -l galacticus.hdf5
 \end{verbatim}
@@ -68,7 +68,7 @@ which will show something similar to:
 \end{verbatim}
 \glc\ outputs use the \href{https://www.hdfgroup.org/solutions/hdf5/}{HDF5} format---libraries for accessing HDF5 files exist in all major languages, including Python\footnote{\href{https://www.h5py.org/}{{\normalfont \scshape h5py}}}. We will explore the structure of the output file in more detail in \S\ref{sec:outputFile}, but for now we'll simply explore some of the key features using the command line.
 
-The content of the output file can be explored using the ``{\normalfont \ttfamily h5ls}'' tool, for example:
+The content of the output file can be explored using the ``\mono{h5ls}'' tool, for example:
 \begin{verbatim}
 $ h5ls galacticus.hdf5
 Build                    Group
@@ -76,7 +76,7 @@ Outputs                  Group
 Parameters               Group
 Version                  Group
 \end{verbatim}
-The file contains several groups---the data corresponding to the galaxies that were formed can be found in the {\normalfont \ttfamily Outputs} group:
+The file contains several groups---the data corresponding to the galaxies that were formed can be found in the \mono{Outputs} group:
 \begin{verbatim}
 $ h5ls galacticus.hdf5/Outputs
 Output1                  Group
@@ -91,7 +91,7 @@ mergerTreeStartIndex     Dataset {6/Inf}
 mergerTreeWeight         Dataset {6/Inf}
 nodeData                 Group
 \end{verbatim}
-In this output group we find some datasets which give information on the merger trees that were used, plus another group, ``{\normalfont \ttfamily nodeData}'', inside of which the galaxy data is stored:
+In this output group we find some datasets which give information on the merger trees that were used, plus another group, ``\mono{nodeData}'', inside of which the galaxy data is stored:
 \begin{verbatim}
 $ h5ls galacticus.hdf5/Outputs/Output1/nodeData
 basicMass                Dataset {7/Inf}
@@ -144,7 +144,7 @@ These data can be extracted and analyzed using any software or language that sup
 
 \subsection{Dry Runs}
 
-You can tell Galacticus to parse your parameter file, report any warnings, and write the parameters to the output HDF5 file, but then no nothing else (i.e. don't actually run the model) by adding the {\normalfont \ttfamily --dry-run} option, for example:
+You can tell Galacticus to parse your parameter file, report any warnings, and write the parameters to the output HDF5 file, but then no nothing else (i.e. don't actually run the model) by adding the \mono{--dry-run} option, for example:
 \begin{verbatim}
  Galacticus.exe parameters.xml --dry-run
 \end{verbatim}

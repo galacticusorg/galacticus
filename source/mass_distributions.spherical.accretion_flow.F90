@@ -93,7 +93,7 @@ contains
       <name>nonAnalyticSolver</name>
       <defaultValue>var_str('fallThrough')</defaultValue>
       <source>parameters</source>
-      <description>Selects how solutions are computed when no analytic solution is available. If set to ``{\normalfont \ttfamily fallThrough}'' then the solution ignoring heating is used, while if set to ``{\normalfont \ttfamily numerical}'' then numerical solvers are used to find solutions.</description>
+      <description>Selects how solutions are computed when no analytic solution is available. If set to ``\mono{fallThrough}'' then the solution ignoring heating is used, while if set to ``\mono{numerical}'' then numerical solvers are used to find solutions.</description>
     </inputParameter>
     <inputParameter>
       <name>componentType</name>
@@ -194,7 +194,7 @@ contains
 
   double precision function sphericalAccretionFlowDensity(self,coordinates) result(density)
     !!{
-    Return the density at the specified {\normalfont \ttfamily coordinates} in a scaled spherical mass distribution.
+    Return the density at the specified \mono{coordinates} in a scaled spherical mass distribution.
     !!}
     implicit none
     class           (massDistributionSphericalAccretionFlow), intent(inout) :: self
@@ -211,7 +211,7 @@ contains
 
   double precision function sphericalAccretionFlowDensityGradientRadial(self,coordinates,logarithmic) result(densityGradient)
     !!{
-    Return the density at the specified {\normalfont \ttfamily coordinates} in a accretionFlow spherical mass distribution.
+    Return the density at the specified \mono{coordinates} in a accretionFlow spherical mass distribution.
     !!}
     implicit none
     class           (massDistributionSphericalAccretionFlow), intent(inout), target   :: self
@@ -240,7 +240,7 @@ contains
 
   double precision function sphericalAccretionFlowEnergyPotential(self,radiusOuter) result(energy)
     !!{
-    Compute the potential energy within a given {\normalfont \ttfamily radius} in a spherical accretion flow mass
+    Compute the potential energy within a given \mono{radius} in a spherical accretion flow mass
     distribution. Note that this is defined to be the potential energy of the \emph{virialized} component of the mass
     distribution---the accretion flow itself is excluded.
     !!}
@@ -254,7 +254,7 @@ contains
 
   double precision function sphericalAccretionFlowEnergyKinetic(self,radiusOuter,massDistributionEmbedding) result(energy)
     !!{
-    Compute the kinetic energy within a given {\normalfont \ttfamily radius} in a spherical accretion flow mass distribution. Note
+    Compute the kinetic energy within a given \mono{radius} in a spherical accretion flow mass distribution. Note
     that this is defined to be the potential energy of the \emph{virialized} component of the mass distribution---the accretion
     flow itself is excluded.
     !!}

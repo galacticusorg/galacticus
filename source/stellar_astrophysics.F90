@@ -37,26 +37,26 @@ module Stellar_Astrophysics
    </description>
    <default>file</default>
    <method name="massInitial" >
-    <description>Returns the initial mass of a star of given {\normalfont \ttfamily lifetime} and {\normalfont \ttfamily metallicity}.</description>
+    <description>Returns the initial mass of a star of given \mono{lifetime} and \mono{metallicity}.</description>
     <type>double precision</type>
     <pass>yes</pass>
     <argument>double precision, intent(in   ) :: lifetime, metallicity</argument>
    </method>
    <method name="massEjected" >
-    <description>Returns the mass ejected by a star of given {\normalfont \ttfamily massInitial} and {\normalfont \ttfamily metallicity}.</description>
+    <description>Returns the mass ejected by a star of given \mono{massInitial} and \mono{metallicity}.</description>
     <type>double precision</type>
     <pass>yes</pass>
     <argument>double precision, intent(in   ) :: massInitial,metallicity</argument>
    </method>
    <method name="massYield" >
-    <description>Returns the metal mass yielded by a star of given {\normalfont \ttfamily massInitial} and {\normalfont \ttfamily metallicity}.</description>
+    <description>Returns the metal mass yielded by a star of given \mono{massInitial} and \mono{metallicity}.</description>
     <type>double precision</type>
     <pass>yes</pass>
     <argument>double precision, intent(in   )           :: massInitial, metallicity</argument>
     <argument>integer         , intent(in   ), optional :: atomIndex</argument>
    </method>
    <method name="lifetime" >
-    <description>Returns the lifetime of a star of given {\normalfont \ttfamily massInitial} and {\normalfont \ttfamily metallicity}.</description>
+    <description>Returns the lifetime of a star of given \mono{massInitial} and \mono{metallicity}.</description>
     <type>double precision</type>
     <pass>yes</pass>
     <argument>double precision, intent(in   ) :: massInitial, metallicity</argument>

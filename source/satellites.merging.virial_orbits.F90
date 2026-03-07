@@ -63,7 +63,7 @@ module Virial_Orbits
    </code>
    </method>
    <method name="densityContrastDefinition" >
-    <description>Returns a {\normalfont \ttfamily virialDensityContrast} object describing the virial density contrast used to define this orbit class.</description>
+    <description>Returns a \mono{virialDensityContrast} object describing the virial density contrast used to define this orbit class.</description>
     <type>class(virialDensityContrastClass)</type>
     <pass>yes</pass>
    </method>

@@ -36,13 +36,13 @@ module Transfer_Functions
    <default>eisensteinHu1999</default>
    <data>class(cosmologyParametersClass), pointer :: cosmologyParameters_ => null()</data>
    <method name="value" >
-    <description>Return the transfer function for $k=${\normalfont \ttfamily wavenumber} [Mpc$^{-1}$].</description>
+    <description>Return the transfer function for $k=$\mono{wavenumber} [Mpc$^{-1}$].</description>
     <type>double precision</type>
     <pass>yes</pass>
     <argument>double precision, intent(in   ) :: wavenumber</argument>
    </method>
    <method name="logarithmicDerivative" >
-    <description>Return the logarithmic derivative of the transfer function for $k=${\normalfont \ttfamily wavenumber} [Mpc$^{-1}$].</description>
+    <description>Return the logarithmic derivative of the transfer function for $k=$\mono{wavenumber} [Mpc$^{-1}$].</description>
     <type>double precision</type>
     <pass>yes</pass>
     <argument>double precision, intent(in   ) :: wavenumber</argument>
@@ -76,7 +76,7 @@ module Transfer_Functions
     <argument>integer, intent(  out), optional :: status</argument>
    </method>
    <method name="fractionModeMass" >
-    <description>Return the mass (in $M_\odot$) corresponding to the wavenumber at which the transfer function is suppressed is reduced by {\normalfont \ttfamily fraction} due to small-scale dark matter particle physics.</description>
+    <description>Return the mass (in $M_\odot$) corresponding to the wavenumber at which the transfer function is suppressed is reduced by \mono{fraction} due to small-scale dark matter particle physics.</description>
     <type>double precision</type>
     <pass>yes</pass>
     <selfTarget>yes</selfTarget>

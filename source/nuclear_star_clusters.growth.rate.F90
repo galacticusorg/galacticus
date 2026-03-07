@@ -37,7 +37,7 @@ module Nuclear_Star_Cluster_Growth_Rates
    <description>Class providing models of rates of gas inflow onto nuclear star clusters.</description>
    <default>antonini2015</default>
    <method name="rate" >
-    <description>Returns the rate (in units of $\mathrm{M}_\odot$ Gyr$^{-1}$) of gas inflow onto the nuclear star cluster component of {\normalfont \ttfamily node}.</description>
+    <description>Returns the rate (in units of $\mathrm{M}_\odot$ Gyr$^{-1}$) of gas inflow onto the nuclear star cluster component of \mono{node}.</description>
     <type>double precision</type>
     <pass>yes</pass>
     <selfTarget>yes</selfTarget>

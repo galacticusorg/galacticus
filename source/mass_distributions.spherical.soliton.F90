@@ -50,7 +50,7 @@
   
    interface massDistributionSoliton
      !!{
-     Constructors for the {\normalfont \ttfamily soliton} mass distribution class.
+     Constructors for the \mono{soliton} mass distribution class.
      !!}
      module procedure solitonConstructorParameters
      module procedure solitonConstructorInternal
@@ -188,7 +188,7 @@
    
    double precision function solitonMassEnclosedBySphere(self,radius) result(mass)
      !!{
-     Return the mass at the specified {\normalfont \ttfamily coordinates} in a soliton mass distribution.
+     Return the mass at the specified \mono{coordinates} in a soliton mass distribution.
      !!}
      use :: Mass_Distribution_Soliton_Schive2014, only : coefficientCore
      use :: Numerical_Constants_Math            , only : Pi
@@ -241,7 +241,7 @@
    
    double precision function solitonDensity(self,coordinates) result(density)
      !!{
-     Return the density at the specified {\normalfont \ttfamily coordinates} in a soliton mass distribution.
+     Return the density at the specified \mono{coordinates} in a soliton mass distribution.
      !!}
      use :: Mass_Distribution_Soliton_Schive2014, only : coefficientCore
      implicit none
@@ -261,7 +261,7 @@
    
    double precision function solitonDensityGradientRadial(self,coordinates,logarithmic) result(densityGradient)
      !!{
-     Return the radial density gradient at the specified {\normalfont \ttfamily coordinates} in a soliton mass distribution.
+     Return the radial density gradient at the specified \mono{coordinates} in a soliton mass distribution.
      !!}
      use :: Mass_Distribution_Soliton_Schive2014, only : coefficientCore
      implicit none

@@ -39,16 +39,15 @@
     \protect\refPhysics{conditionalMassFunctionBehroozi2010}]{behroozi_comprehensive_2010}.  The details of the mass function calculation are specified by
     the following subparameters:
     \begin{description}
-    \item[{\normalfont \ttfamily haloMass(Min|Max)imum}] The minimum/maximum halo mass over which to integrate in the halo model;
-    \item[{\normalfont \ttfamily redshift(Min|Max)imum}] The minimum/maximum redshift over which to integrate in the halo model;
-    \item[{\normalfont \ttfamily massFunctionFileName}] The name of an HDF5 file containing the observed mass function and its
+    \item[\mono{haloMass(Min|Max)imum}] The minimum/maximum halo mass over which to integrate in the halo model;
+    \item[\mono{redshift(Min|Max)imum}] The minimum/maximum redshift over which to integrate in the halo model;
+    \item[\mono{massFunctionFileName}] The name of an HDF5 file containing the observed mass function and its
       covariance matrix.
     \end{description}
     
-    The HDF5 file specified by the {\normalfont \ttfamily massFunctionFileName} element should contain a {\normalfont \ttfamily mass}
-    dataset, giving the masses at which the mass function is measured (in units of $M_\odot$), a {\normalfont \ttfamily
-    massFunctionObserved} dataset giving the observed values of the mass function at those masses (in units of Mpc$^{-3}$ per
-    $\log M$), and a {\normalfont \ttfamily covariance} dataset, giving the covariance of the mass function (in units of Mpc$^{-6}$).
+    The HDF5 file specified by the \mono{massFunctionFileName} element should contain a \mono{mass}
+    dataset, giving the masses at which the mass function is measured (in units of $M_\odot$), a \mono{massFunctionObserved} dataset giving the observed values of the mass function at those masses (in units of Mpc$^{-3}$ per
+    $\log M$), and a \mono{covariance} dataset, giving the covariance of the mass function (in units of Mpc$^{-6}$).
    </description>
   </posteriorSampleLikelihood>
   !!]

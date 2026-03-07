@@ -26,7 +26,7 @@ Implements a pruning-by-mass operator on merger trees.
    <description>
     A merger tree operator class which allows for branches of merger trees to be pruned---i.e. nodes below a specified mass
     limit are removed from the tree prior to any evolution. This can be useful for convergence studies for example. Set
-    {\normalfont \ttfamily [massThreshold]} to the desired mass threshold below which nodes will be pruned.
+    \mono{[massThreshold]} to the desired mass threshold below which nodes will be pruned.
    </description>
   </mergerTreeOperator>
   !!]

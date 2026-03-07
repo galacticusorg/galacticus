@@ -89,7 +89,7 @@ contains
 
   function diemerJoyce2019ConstructorParameters(parameters) result(self)
     !!{
-    Default constructor for the {\normalfont \ttfamily diemerJoyce2019} dark matter halo
+    Default constructor for the \mono{diemerJoyce2019} dark matter halo
     profile concentration class.
     !!}
     implicit none
@@ -286,7 +286,7 @@ contains
 
   double precision function diemerJoyce2019Concentration(self,node)
     !!{
-    Return the concentration of the dark matter halo profile of {\normalfont \ttfamily node}
+    Return the concentration of the dark matter halo profile of \mono{node}
     using the \cite{diemer_accurate_2019} algorithm.
     !!}
     implicit none
@@ -308,7 +308,7 @@ contains
 
   double precision function diemerJoyce2019ConcentrationMean(self,node)
     !!{
-    Return the mean concentration of the dark matter halo profile of {\normalfont \ttfamily node}
+    Return the mean concentration of the dark matter halo profile of \mono{node}
     using the \cite{diemer_accurate_2019} algorithm.
     !!}
     use :: Galacticus_Nodes        , only : nodeComponentBasic, treeNode

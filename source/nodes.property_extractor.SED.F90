@@ -130,7 +130,7 @@ contains
       <name>frame</name>
       <source>parameters</source>
       <defaultValue>var_str('rest')</defaultValue>
-      <description>The frame ({\normalfont \ttfamily rest} or {\normalfont \ttfamily observed}) for which to compute the SED.</description>
+      <description>The frame (\mono{rest} or \mono{observed}) for which to compute the SED.</description>
     </inputParameter>
     <inputParameter>
       <name>wavelengthMinimum</name>
@@ -241,7 +241,7 @@ contains
 
   integer function sedElementCount(self,time)
     !!{
-    Return the number of elements in the {\normalfont \ttfamily sed} property extractors.
+    Return the number of elements in the \mono{sed} property extractors.
     !!}
     implicit none
     class           (nodePropertyExtractorSED), intent(inout) :: self
@@ -254,7 +254,7 @@ contains
 
   function sedSize(self,time)
     !!{
-    Return the number of array elements in the {\normalfont \ttfamily sed} property extractors.
+    Return the number of array elements in the \mono{sed} property extractors.
     !!}
     use :: Error                         , only : Error_Report
     use :: Stellar_Luminosities_Structure, only : frameRest   , frameObserved 
@@ -331,7 +331,7 @@ contains
 
   function sedExtract(self,node,time,instance)
     !!{
-    Implement a {\normalfont \ttfamily sed} property extractor.
+    Implement a \mono{sed} property extractor.
     !!}
     use :: Galacticus_Nodes          , only : nodeComponentDisk, nodeComponentSpheroid, nodeComponentNSC
     use :: Galactic_Structure_Options, only : componentTypeDisk, componentTypeSpheroid, componentTypeNuclearStarCluster
@@ -387,7 +387,7 @@ contains
 
   subroutine sedNames(self,names,time)
     !!{
-    Return the names of the {\normalfont \ttfamily sed} properties.
+    Return the names of the \mono{sed} properties.
     !!}
     use :: Galactic_Structure_Options, only : enumerationComponentTypeDecode
     implicit none
@@ -403,7 +403,7 @@ contains
 
   subroutine sedDescriptions(self,descriptions,time)
     !!{
-    Return descriptions of the {\normalfont \ttfamily sed} property.
+    Return descriptions of the \mono{sed} property.
     !!}
     use :: Galactic_Structure_Options, only : enumerationComponentTypeDecode
     implicit none
@@ -471,7 +471,7 @@ contains
 
   subroutine sedColumnDescriptions(self,descriptions,values,valuesDescription,valuesUnitsInSI,time)
     !!{
-    Return column descriptions of the {\normalfont \ttfamily sed} property.
+    Return column descriptions of the \mono{sed} property.
     !!}
     use :: Numerical_Constants_Units, only : metersToAngstroms
     implicit none
@@ -498,7 +498,7 @@ contains
 
   function sedUnitsInSI(self,time)
     !!{
-    Return the units of the {\normalfont \ttfamily sed} properties in the SI system.
+    Return the units of the \mono{sed} properties in the SI system.
     !!}
     use :: Numerical_Constants_Astronomical, only : luminositySolar
     implicit none

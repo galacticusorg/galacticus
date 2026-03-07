@@ -26,7 +26,7 @@
   !![
   <enumeration>
    <name>klypin2015Sample</name>
-   <description>Enumeration of sample types for the {\normalfont \ttfamily klypin2015} dark matter profile shape parameter class.</description>
+   <description>Enumeration of sample types for the \mono{klypin2015} dark matter profile shape parameter class.</description>
    <encodeFunction>yes</encodeFunction>
    <validator>yes</validator>
    <entry label="all"    />
@@ -64,7 +64,7 @@ contains
 
   function klypin2015ConstructorParameters(parameters) result(self)
     !!{
-    Default constructor for the {\normalfont \ttfamily klypin2015} dark matter halo profile
+    Default constructor for the \mono{klypin2015} dark matter halo profile
     shape class.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
@@ -129,7 +129,7 @@ contains
 
   double precision function klypin2015Shape(self,node)
     !!{
-    Return the Einasto profile shape parameter of the dark matter halo profile of {\normalfont \ttfamily node} using the
+    Return the Einasto profile shape parameter of the dark matter halo profile of \mono{node} using the
     \cite{klypin_multidark_2014} algorithm.
     !!}
     use :: Error           , only : Error_Report

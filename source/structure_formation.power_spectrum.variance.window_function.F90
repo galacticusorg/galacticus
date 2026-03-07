@@ -37,13 +37,13 @@ module Power_Spectrum_Window_Functions
    <default>topHat</default>
    <defaultThreadprivate>no</defaultThreadprivate>
    <method name="value" >
-    <description> Returns the window function for power spectrum variance computation at the specified {\normalfont \ttfamily wavenumber} (in Mpc$^{-1}$) for a given {\normalfont \ttfamily smoothingMass} (in $M_\odot$).</description>
+    <description> Returns the window function for power spectrum variance computation at the specified \mono{wavenumber} (in Mpc$^{-1}$) for a given \mono{smoothingMass} (in $M_\odot$).</description>
     <type>double precision</type>
     <pass>yes</pass>
     <argument>double precision, intent(in   ) :: wavenumber, smoothingMass</argument>
    </method>
    <method name="wavenumberMaximum" >
-    <description>Returns the maximum wavenumber for which the window function for power spectrum variance computation is non-zero for a given {\normalfont \ttfamily smoothingMass} (in $M_\odot$).</description>
+    <description>Returns the maximum wavenumber for which the window function for power spectrum variance computation is non-zero for a given \mono{smoothingMass} (in $M_\odot$).</description>
     <type>double precision</type>
     <pass>yes</pass>
     <argument>double precision, intent(in   ) :: smoothingMass</argument>

@@ -39,8 +39,8 @@
     }
     }
     \end{verbatim}
-    where the {\normalfont \ttfamily treeRootMass} dataset contains the mass (in Solar masses) of the root halo of a tree to
-    generate, and the (optional) {\normalfont \ttfamily treeWeight} dataset contains the weight (in units of Mpc$^{-3}$) to
+    where the \mono{treeRootMass} dataset contains the mass (in Solar masses) of the root halo of a tree to
+    generate, and the (optional) \mono{treeWeight} dataset contains the weight (in units of Mpc$^{-3}$) to
     assign to each tree.
    </description>
   </mergerTreeBuildMasses>

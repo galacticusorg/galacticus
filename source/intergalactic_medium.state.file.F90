@@ -130,9 +130,8 @@
     }
     }
     \end{verbatim}
-     The {\normalfont \ttfamily electronFraction}, {\normalfont \ttfamily hIonizedFraction}, {\normalfont \ttfamily
-    heIonizedFraction}, and {\normalfont \ttfamily matterTemperature} datasets contain the relevant quantity for each redshift
-    in the {\normalfont \ttfamily redshift} dataset.
+     The \mono{electronFraction}, \mono{hIonizedFraction}, \mono{heIonizedFraction}, and \mono{matterTemperature} datasets contain the relevant quantity for each redshift
+    in the \mono{redshift} dataset.
    </description>
    <runTimeFileDependencies paths="fileName"/>
   </intergalacticMediumState>
@@ -295,7 +294,7 @@ contains
 
   double precision function fileTemperature(self,time)
     !!{
-    Return the temperature of the intergalactic medium at the specified {\normalfont \ttfamily time} by interpolating in tabulated data.
+    Return the temperature of the intergalactic medium at the specified \mono{time} by interpolating in tabulated data.
     !!}
     implicit none
     class           (intergalacticMediumStateFile), intent(inout) :: self
@@ -310,7 +309,7 @@ contains
 
   double precision function fileElectronFraction(self,time)
     !!{
-    Return the electron fraction in the intergalactic medium at the specified {\normalfont \ttfamily time} by interpolating in tabulated data,
+    Return the electron fraction in the intergalactic medium at the specified \mono{time} by interpolating in tabulated data,
     !!}
     implicit none
     class           (intergalacticMediumStateFile), intent(inout) :: self
@@ -325,7 +324,7 @@ contains
 
   double precision function fileNeutralHydrogenFraction(self,time)
     !!{
-    Return the neutral hydrogen fraction in the intergalactic medium at the specified {\normalfont \ttfamily time} by interpolating in tabulated data,
+    Return the neutral hydrogen fraction in the intergalactic medium at the specified \mono{time} by interpolating in tabulated data,
     !!}
     implicit none
     class           (intergalacticMediumStateFile), intent(inout) :: self
@@ -341,7 +340,7 @@ contains
 
   double precision function fileNeutralHeliumFraction(self,time)
     !!{
-    Return the neutral helium fraction in the intergalactic medium at the specified {\normalfont \ttfamily time} by interpolating in tabulated data,
+    Return the neutral helium fraction in the intergalactic medium at the specified \mono{time} by interpolating in tabulated data,
     !!}
     implicit none
     class           (intergalacticMediumStateFile), intent(inout) :: self
@@ -357,7 +356,7 @@ contains
 
   double precision function fileSinglyIonizedHeliumFraction(self,time)
     !!{
-    Return the neutral helium fraction in the intergalactic medium at the specified {\normalfont \ttfamily time} by interpolating in tabulated data,
+    Return the neutral helium fraction in the intergalactic medium at the specified \mono{time} by interpolating in tabulated data,
     !!}
     implicit none
     class           (intergalacticMediumStateFile), intent(inout) :: self

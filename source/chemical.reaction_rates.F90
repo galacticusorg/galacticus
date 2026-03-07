@@ -39,7 +39,7 @@ module Chemical_Reaction_Rates
    </description>
    <default>zero</default>
    <method name="rates" >
-    <description>Return the collisional excitation cooling rate , in units of J/m$^3$/s, for ion of given {\normalfont \ttfamily atomicNumber} and {\normalfont \ttfamily electronNumber} at temperature {\normalfont \ttfamily T} (in Kelvin).</description>
+    <description>Return the collisional excitation cooling rate , in units of J/m$^3$/s, for ion of given \mono{atomicNumber} and \mono{electronNumber} at temperature \mono{T} (in Kelvin).</description>
     <type>void</type>
     <pass>yes</pass>
     <selfTarget>yes</selfTarget>

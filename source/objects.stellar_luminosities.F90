@@ -100,12 +100,12 @@ module Stellar_Luminosities_Structure
        <method description="Return the number of luminosities to be output at the given time." method="luminosityOutputCount" />
        <method description="Specify the count of a stellar luminosities object for output." method="outputCount" />
        <method description="Specify the names of stellar luminosities object properties for output." method="outputNames" />
-       <method description="Return the total number of luminosities tracked. If {\normalfont \ttfamily unmapped} is true, then the number of luminosities prior to mapping is returned." method="luminosityCount" />
+       <method description="Return the total number of luminosities tracked. If \mono{unmapped} is true, then the number of luminosities prior to mapping is returned." method="luminosityCount" />
        <method description="Set the luminosities using a single stellar population." method="setLuminosities" />
        <method description="Return true if the indexed luminosity is to be output at the given time." method="isOutput" />
        <method description="Return the index to a luminosity specified by name or properties." method="index" />
        <method description="Return the name of a luminosity specified by index." method="name" />
-       <method description="Truncate the number of stellar luminosities stored to match that in the given {\normalfont \ttfamily templateLuminosities}." method="truncate" />
+       <method description="Truncate the number of stellar luminosities stored to match that in the given \mono{templateLuminosities}." method="truncate" />
        <method description="Returns the size of any non-static components of the type." method="nonStaticSizeOf" />
      </methods>
      !!]
@@ -180,7 +180,7 @@ contains
   !!]
   subroutine Stellar_Luminosities_Initializor(parameters)
     !!{
-    Initialize the {\normalfont \ttfamily stellarLuminositiesStructure} object module. Determines which stellar luminosities are to be tracked.
+    Initialize the \mono{stellarLuminositiesStructure} object module. Determines which stellar luminosities are to be tracked.
     !!}
     use            :: Array_Utilities    , only : Array_Reverse
     use            :: Cosmology_Functions, only : cosmologyFunctions, cosmologyFunctionsClass
@@ -287,7 +287,7 @@ contains
           !![
           <inputParameter>
             <name>luminosityBandRedshift</name>
-	    <description>If present, force filters to be shifted to this redshift rather than that specified by {\normalfont \ttfamily [luminosityRedshift]}. Allows sampling of the SED at wavelengths corresponding to other redshifts.</description>
+	    <description>If present, force filters to be shifted to this redshift rather than that specified by \mono{[luminosityRedshift]}. Allows sampling of the SED at wavelengths corresponding to other redshifts.</description>
 	    <source>parameters</source>
             <variable>luminosityBandRedshiftText</variable>
           </inputParameter>
@@ -476,7 +476,7 @@ contains
 
   subroutine Stellar_Luminosities_Builder(self,stellarLuminositiesDefinition)
     !!{
-    Build a {\normalfont \ttfamily stellarLuminosities} object from the given XML {\normalfont \ttfamily stellarLuminositiesDefinition}.
+    Build a \mono{stellarLuminosities} object from the given XML \mono{stellarLuminositiesDefinition}.
     !!}
     use :: FoX_DOM, only : node                        , extractDataContent
     use :: Error  , only : Error_Report
@@ -612,7 +612,7 @@ contains
 
   double precision function Stellar_Luminosities_Luminosity(self,index)
     !!{
-    Return the requested luminosity from a {\normalfont \ttfamily stellarLuminosities} object.
+    Return the requested luminosity from a \mono{stellarLuminosities} object.
     !!}
     use :: Error, only : Error_Report
     implicit none
@@ -649,7 +649,7 @@ contains
 
   function stellarLuminositiesMax(luminosities1,luminosities2)
     !!{
-    Return an element-by-element {\normalfont \ttfamily max()} on two stellar luminosity objects.
+    Return an element-by-element \mono{max()} on two stellar luminosity objects.
     !!}
     implicit none
     type   (stellarLuminosities)                :: stellarLuminositiesMax
@@ -677,7 +677,7 @@ contains
 
   function stellarLuminositiesAbs(luminosities)
     !!{
-    Return an element-by-element {\normalfont \ttfamily abs()} on a stellar luminosity object.
+    Return an element-by-element \mono{abs()} on a stellar luminosity object.
     !!}
     implicit none
     type(stellarLuminosities)                :: stellarLuminositiesAbs
@@ -856,7 +856,7 @@ contains
 
   subroutine Stellar_Luminosities_Create(self)
     !!{
-    Ensure that the {\normalfont \ttfamily luminosity} array in a {\normalfont \ttfamily stellarLuminosities} is allocated.
+    Ensure that the \mono{luminosity} array in a \mono{stellarLuminosities} is allocated.
     !!}
     implicit none
     type(stellarLuminosities), intent(inout) :: self
@@ -867,7 +867,7 @@ contains
 
   subroutine Stellar_Luminosities_Deserialize(self,stellarLuminositiesArray)
     !!{
-    Pack stellar luminosities from an array into a {\normalfont \ttfamily stellarLuminosities} structure.
+    Pack stellar luminosities from an array into a \mono{stellarLuminosities} structure.
     !!}
     implicit none
     class           (stellarLuminosities)              , intent(inout) :: self
@@ -885,7 +885,7 @@ contains
 
   subroutine Stellar_Luminosities_Serialize(self,stellarLuminositiesArray)
     !!{
-    Unpack stellar luminosities from a {\normalfont \ttfamily stellarLuminosities} structure into an array.
+    Unpack stellar luminosities from a \mono{stellarLuminosities} structure into an array.
     !!}
     implicit none
     double precision                     , dimension(:), intent(  out) :: stellarLuminositiesArray(:)
@@ -902,7 +902,7 @@ contains
 
   subroutine Stellar_Luminosities_Output(self,integerProperty,integerBufferCount,integerProperties,doubleProperty,doubleBufferCount,doubleProperties,time,outputInstance)
     !!{
-    Store a {\normalfont \ttfamily stellarLuminosities} object in the output buffers.
+    Store a \mono{stellarLuminosities} object in the output buffers.
     !!}
     use :: Kind_Numbers                      , only : kind_int8
     use :: Multi_Counters                    , only : multiCounter
@@ -931,7 +931,7 @@ contains
 
   subroutine Stellar_Luminosities_Post_Output(self,time)
     !!{
-    Clean up a {\normalfont \ttfamily stellarLuminosities} object after output.
+    Clean up a \mono{stellarLuminosities} object after output.
     !!}
     implicit none
     class           (stellarLuminosities)                , intent(inout) :: self
@@ -959,7 +959,7 @@ contains
 
   subroutine Stellar_Luminosities_Output_Count(self,integerPropertyCount,doublePropertyCount,time)
     !!{
-    Increment the output count to account for a {\normalfont \ttfamily stellarLuminosities} object.
+    Increment the output count to account for a \mono{stellarLuminosities} object.
     !!}
     implicit none
     class           (stellarLuminosities), intent(in   ) :: self
@@ -988,7 +988,7 @@ contains
 
   subroutine Stellar_Luminosities_Output_Names(self,integerProperty,integerProperties,doubleProperty,doubleProperties,time,prefix,comment,unitsInSI)
     !!{
-    Assign names to output buffers for a {\normalfont \ttfamily stellarLuminosities} object.
+    Assign names to output buffers for a \mono{stellarLuminosities} object.
     !!}
     use :: ISO_Varying_String                , only : assignment(=)        , operator(//)        , trim
     use :: Merger_Tree_Outputter_Buffer_Types, only : outputPropertyInteger, outputPropertyDouble
@@ -1020,7 +1020,7 @@ contains
 
   logical function Stellar_Luminosities_Is_Output(luminosityIndex,time,outputOption)
     !!{
-    Return true or false depending on whether {\normalfont \ttfamily luminosityIndex} should be output at {\normalfont \ttfamily time}.
+    Return true or false depending on whether \mono{luminosityIndex} should be output at \mono{time}.
     !!}
     use :: Error, only : Error_Report
     implicit none
@@ -1052,9 +1052,7 @@ contains
 
   subroutine Stellar_Luminosities_Set(self,mass,stellarPopulation_,stellarPopulationBroadBandLuminosities_,time,abundancesStellar)
     !!{
-    Set the luminosity in each band for a single {\normalfont \ttfamily stellarPopulation\_} of given {\normalfont \ttfamily
-    mass} with the specified {\normalfont \ttfamily abundancesStellar} and which formed at cosmological {\normalfont \ttfamily
-    time}.
+    Set the luminosity in each band for a single \mono{stellarPopulation\_} of given \mono{mass} with the specified \mono{abundancesStellar} and which formed at cosmological \mono{time}.
     !!}
     use :: Abundances_Structure                      , only : abundances
     use :: Stellar_Population_Broad_Band_Luminosities, only : stellarPopulationBroadBandLuminositiesClass
@@ -1738,7 +1736,7 @@ contains
        & luminosityBandRedshiftTmp                   &
        &                                           )
     !!{
-    Expand the filter set by removing the filter at index {\normalfont \ttfamily expandFrom} by adding {\normalfont \ttfamily expandCount} replicas of the filter at that point.
+    Expand the filter set by removing the filter at index \mono{expandFrom} by adding \mono{expandCount} replicas of the filter at that point.
     !!}
     use, intrinsic :: ISO_C_Binding    , only : c_size_t
     implicit none
@@ -1784,7 +1782,7 @@ contains
 
   subroutine Stellar_Luminosities_Truncate(self,templateLuminosities)
     !!{
-    Truncate (or pad) the stellar luminosities to match the number in the given {\normalfont \ttfamily templateLuminosities}.
+    Truncate (or pad) the stellar luminosities to match the number in the given \mono{templateLuminosities}.
     !!}
     implicit none
     class           (stellarLuminosities), intent(inout)               :: self
@@ -1943,7 +1941,7 @@ contains
 
   subroutine sortByIndexPostprocessor(array,index)
     !!{
-    Given an {\normalfont \ttfamily array}, sort it in place using the supplied index.
+    Given an \mono{array}, sort it in place using the supplied index.
     !!}
     use, intrinsic :: ISO_C_Binding, only : c_size_t
     implicit none

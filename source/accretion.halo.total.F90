@@ -38,13 +38,13 @@ module Accretion_Halo_Totals
    </description>
    <default>simple</default>
    <method name="accretionRate" >
-    <description>Return the total accretion rate onto the given {\normalfont \ttfamily node}.</description>
+    <description>Return the total accretion rate onto the given \mono{node}.</description>
     <type>double precision</type>
     <pass>yes</pass>
     <argument>type(treeNode), intent(inout) :: node</argument>
    </method>
    <method name="accretedMass" >
-    <description>Return the total accreted mass in the given {\normalfont \ttfamily node}.</description>
+    <description>Return the total accreted mass in the given \mono{node}.</description>
     <type>double precision</type>
     <pass>yes</pass>
     <argument>type(treeNode), intent(inout) :: node</argument>

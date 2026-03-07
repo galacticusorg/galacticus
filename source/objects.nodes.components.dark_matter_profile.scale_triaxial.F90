@@ -60,7 +60,7 @@ contains
   !!]
   subroutine Node_Component_Dark_Matter_Profile_Scale_Triaxial_Scale_Set(node)
     !!{
-    Set scales for properties of {\normalfont \ttfamily node}.
+    Set scales for properties of \mono{node}.
     !!}
     use :: Galacticus_Nodes, only : nodeComponentDarkMatterProfile, nodeComponentDarkMatterProfileScaleTriaxial, treeNode
     implicit none

@@ -24,8 +24,7 @@ Implements an excursion set barrier class which remaps another class by multiply
   !![
   <excursionSetBarrier name="excursionSetBarrierRemapScale">
    <description>
-    An excursion set barrier class which remaps another class by multiplying by a constant given by {\normalfont \ttfamily
-    [factor]}.
+    An excursion set barrier class which remaps another class by multiplying by a constant given by \mono{[factor]}.
    </description>
   </excursionSetBarrier>
   !!]

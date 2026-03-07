@@ -242,8 +242,8 @@ contains
     !!{
     Calculates rates of dielectric recombination for all ionization stages of all elements from H to Ni ($Z=28$) by use of the
     fits from \cite{aldrovandi_radiative_1973}, \cite{shull_ionization_1982} and \cite{arnaud_updated_1985}.  Input parameters:
-    {\normalfont \ttfamily atomicNumber}: atomic number; {\normalfont \ttfamily electronNumber}: number of electrons;
-    {\normalfont \ttfamily temperature}: temperature [K].  Output parameter: rate coefficient [cm$^3$ s$^{-1}$].
+    \mono{atomicNumber}: atomic number; \mono{electronNumber}: number of electrons;
+    \mono{temperature}: temperature [K].  Output parameter: rate coefficient [cm$^3$ s$^{-1}$].
     !!}
     use :: Error, only : Error_Report
     implicit none

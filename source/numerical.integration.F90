@@ -160,7 +160,7 @@ contains
 
   function integratorConstructor(integrand,toleranceAbsolute,toleranceRelative,intervalsMaximum,hasSingularities,integrationRule) result(self)
     !!{
-    Constructor for {\normalfont \ttfamily integrator} objects.
+    Constructor for \mono{integrator} objects.
     !!}
     use :: Error, only : Error_Report
     implicit none
@@ -196,7 +196,7 @@ contains
   
   subroutine integratorDestructor(self)
     !!{
-    Destructor for {\normalfont \ttfamily integrator} objects.
+    Destructor for \mono{integrator} objects.
     !!}
     use :: Interface_GSL, only : gslFunctionDestroy
     implicit none
@@ -263,7 +263,7 @@ contains
   
   subroutine integratorToleranceSet(self,toleranceAbsolute,toleranceRelative)
     !!{
-    Reset tolerance for {\normalfont \ttfamily integrator} objects.
+    Reset tolerance for \mono{integrator} objects.
     !!}
     use :: Error, only : Error_Report
     implicit none

@@ -193,7 +193,7 @@ contains
 
   double precision function velocityMaxScalingTimescale(self,component)
     !!{
-    Returns the timescale (in Gyr) for star formation in the {\normalfont \ttfamily component} in the velocity maximum scaling timescale model.
+    Returns the timescale (in Gyr) for star formation in the \mono{component} in the velocity maximum scaling timescale model.
     !!}
     use :: Galacticus_Nodes  , only : nodeComponentBasic
     use :: Mass_Distributions, only : massDistributionClass

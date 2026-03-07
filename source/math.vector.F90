@@ -42,7 +42,7 @@ contains
 
   pure double precision function Vector_Magnitude(vector1)
     !!{
-    Computes the magnitude of {\normalfont \ttfamily vector1}.
+    Computes the magnitude of \mono{vector1}.
     !!}
     implicit none
     double precision, dimension(3), intent(in   ) :: vector1
@@ -53,7 +53,7 @@ contains
 
   pure function Vector_Product(vector1,vector2) result(vector3)
     !!{
-    Computes the vector product of {\normalfont \ttfamily vector1} and {\normalfont \ttfamily vector2}.
+    Computes the vector product of \mono{vector1} and \mono{vector2}.
     !!}
     implicit none
     double precision, dimension(3)                :: vector3

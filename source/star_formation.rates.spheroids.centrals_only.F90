@@ -99,8 +99,7 @@ contains
 
   double precision function centralsOnlyRate(self,node)
     !!{
-    Returns the star formation rate (in $\mathrm{M}_\odot$ Gyr$^{-1}$) in the galactic spheroid of {\normalfont \ttfamily
-    node}. Assumes zero rate for satellites, falling through to another class for centrals.
+    Returns the star formation rate (in $\mathrm{M}_\odot$ Gyr$^{-1}$) in the galactic spheroid of \mono{node}. Assumes zero rate for satellites, falling through to another class for centrals.
     !!}
     implicit none
     class(starFormationRateSpheroidsCentralsOnly), intent(inout), target :: self

@@ -109,7 +109,7 @@ contains
 
   function enzoHydrostaticGet(self,node) result(kinematicsDistribution_)
     !!{
-    Return the virial hot halo temperature distribution for the given {\normalfont \ttfamily node}.
+    Return the virial hot halo temperature distribution for the given \mono{node}.
     !!}
     use :: Mass_Distributions, only : massDistributionClass, kinematicsDistributionEnzoHydrostatic
     implicit none

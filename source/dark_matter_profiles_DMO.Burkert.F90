@@ -54,7 +54,7 @@ contains
 
   function burkertConstructorParameters(parameters) result(self)
     !!{
-    Default constructor for the {\normalfont \ttfamily burkert} dark matter halo profile class.
+    Default constructor for the \mono{burkert} dark matter halo profile class.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -115,7 +115,7 @@ contains
 
   function burkertGet(self,node,weightBy,weightIndex) result(massDistribution_)
     !!{
-    Return the dark matter mass distribution for the given {\normalfont \ttfamily node}.
+    Return the dark matter mass distribution for the given \mono{node}.
     !!}
     use :: Galacticus_Nodes          , only : nodeComponentBasic     , nodeComponentDarkMatterProfile
     use :: Galactic_Structure_Options, only : componentTypeDarkHalo  , massTypeDark                  , weightByMass

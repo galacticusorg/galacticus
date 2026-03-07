@@ -70,7 +70,7 @@ contains
 
   function correa2015ConstructorParameters(parameters) result(self)
     !!{
-    Default constructor for the {\normalfont \ttfamily correa2015} dark matter halo profile concentration class.
+    Default constructor for the \mono{correa2015} dark matter halo profile concentration class.
     !!}
     implicit none
     type            (darkMatterProfileConcentrationCorrea2015)                :: self
@@ -181,7 +181,7 @@ contains
 
   double precision function correa2015Concentration(self,node)
     !!{
-    Return the concentration of the dark matter halo profile of {\normalfont \ttfamily node} using the
+    Return the concentration of the dark matter halo profile of \mono{node} using the
     \cite{correa_accretion_2015} algorithm.
     !!}
     use :: Dark_Matter_Halos_Correa2015, only : Dark_Matter_Halo_Correa2015_Fit_Parameters

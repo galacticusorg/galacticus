@@ -105,7 +105,7 @@ contains
 
   double precision function traceDarkMatterExtent(self,node)
     !!{
-    Return the maximum extent of the orphan satellite population for the {\normalfont \ttfamily traceDarkMatter} orphan
+    Return the maximum extent of the orphan satellite population for the \mono{traceDarkMatter} orphan
     satellite distribution class.
     !!}
     implicit none
@@ -119,7 +119,7 @@ contains
 
   double precision function traceDarkMatterInverseCMFRadial(self,node,fraction)
     !!{
-    Return the radial coordinate within which the given {\normalfont \ttfamily fraction} of orphan satellites are found.
+    Return the radial coordinate within which the given \mono{fraction} of orphan satellites are found.
     !!}
     use :: Galactic_Structure_Options, only : componentTypeAll     , massTypeDark
     use :: Mass_Distributions        , only : massDistributionClass

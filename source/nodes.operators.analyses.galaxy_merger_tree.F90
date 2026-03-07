@@ -344,7 +344,7 @@ contains
 
   subroutine galaxyMergerTreeDeepCopy(self,destination)
     !!{
-    Deep copy a {\normalfont \ttfamily nodeOperatorGalaxyMergerTree} object.
+    Deep copy a \mono{nodeOperatorGalaxyMergerTree} object.
     !!}
     use :: Node_Property_Extractor_Galaxy_Merger_Trees, only : nodePropertyExtractorGalaxyMergerTreeCount, nodePropertyExtractorGalaxyMergerTree_
     implicit none

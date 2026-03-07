@@ -402,7 +402,7 @@ contains
 
   double precision function subhaloVMaxVsMassLogLikelihood(self) result(logLikelihood)
     !!{
-    Return the log-likelihood of a {\normalfont \ttfamily outputAnalysisSubhaloVMaxVsMass} output analysis.
+    Return the log-likelihood of a \mono{outputAnalysisSubhaloVMaxVsMass} output analysis.
     !!}
     use :: Linear_Algebra              , only : assignment(=), matrix, operator(*), vector
     use :: Interface_GSL               , only : GSL_Success

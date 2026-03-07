@@ -81,7 +81,7 @@ contains
 
   function blackHoleFormationChannelExtract(self,node,time,instance)
     !!{
-    Implement a {\normalfont \ttfamily blackHoleFormationChannel} node property extractor.
+    Implement a \mono{blackHoleFormationChannel} node property extractor.
     !!}
     use :: Galacticus_Nodes, only : nodeComponentBlackHole               , nodeComponentBlackHoleStandard
     use :: Black_Hole_Seeds, only : blackHoleFormationChannelUndetermined

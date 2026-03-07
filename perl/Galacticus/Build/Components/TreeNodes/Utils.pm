@@ -33,7 +33,7 @@ sub Tree_Node_Copy {
     {
 	type        => "void",
 	name        => "treeNodeCopyNodeTo",
-	description => "Make a copy of {\\normalfont \\ttfamily self} in {\\normalfont \\ttfamily targetNode}.",
+	description => "Make a copy of \\mono{self} in \\mono{targetNode}.",
 	variables   =>
 	    [
 	     {
@@ -113,7 +113,7 @@ sub Tree_Node_Move {
     {
 	type        => "void",
 	name        => "treeNodeComponentsMove",
-	description => "Move components from {\\normalfont \\ttfamily self} to {\\normalfont \\ttfamily targetNode}.",
+	description => "Move components from \\mono{self} to \\mono{targetNode}.",
 	variables   =>
 	    [
 	     {
@@ -171,7 +171,7 @@ sub Tree_Node_Mass_Distribution {
     {
 	type        => "class(massDistributionClass), pointer => massDistribution_",
 	name        => "treeNodeMassDistribution",
-	description => "Construct and return the mass distribution associated with {\\normalfont \\ttfamily self}.",
+	description => "Construct and return the mass distribution associated with \\mono{self}.",
 	modules     =>
 	    [
 	     "Mass_Distributions        , only : massDistributionClass       , massDistributionComposite, massDistributionList   , massDistributionZero, kinematicsDistributionClass, kinematicsDistributionIsothermal"                             ,
@@ -502,7 +502,7 @@ sub Tree_Node_Mass_Baryonic {
     {
 	type        => "double precision",
 	name        => "treeNodeMassBaryonic",
-	description => "Return the total baryonic mass associated with {\\normalfont \\ttfamily self}.",
+	description => "Return the total baryonic mass associated with \\mono{self}.",
 	variables   =>
 	    [
 	     {

@@ -33,7 +33,7 @@ sub Component_ODE_Name_From_Index {
     {
 	type        => "type(varying_string) => name",
 	name        => "nodeComponentNameFromIndex",
-	description => "Return the name of the property of given index for a {\\normalfont \\ttfamily nodeComponent} object.",
+	description => "Return the name of the property of given index for a \\mono{nodeComponent} object.",
 	modules     => 
 	    [ 
 	      "ISO_Varying_String"

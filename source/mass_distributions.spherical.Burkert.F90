@@ -252,7 +252,7 @@ contains
 
   double precision function burkertDensity(self,coordinates)
     !!{
-    Return the density at the specified {\normalfont \ttfamily coordinates} in an Burkert mass distribution.
+    Return the density at the specified \mono{coordinates} in an Burkert mass distribution.
     !!}
     implicit none
     class           (massDistributionBurkert), intent(inout) :: self
@@ -270,7 +270,7 @@ contains
 
   double precision function burkertDensityGradientRadial(self,coordinates,logarithmic) result(densityGradientRadial)
     !!{
-    Return the density at the specified {\normalfont \ttfamily coordinates} in an Burkert \citep{burkert_structure_1995} mass distribution.
+    Return the density at the specified \mono{coordinates} in an Burkert \citep{burkert_structure_1995} mass distribution.
     !!}
     implicit none
     class           (massDistributionBurkert), intent(inout), target   :: self
@@ -377,7 +377,7 @@ contains
 
   double precision function burkertMassEnclosedBySphere(self,radius) result(mass)
     !!{
-    Computes the mass enclosed within a sphere of given {\normalfont \ttfamily radius} for burkert mass distributions.
+    Computes the mass enclosed within a sphere of given \mono{radius} for burkert mass distributions.
     !!}
     implicit none
     class           (massDistributionBurkert), intent(inout), target :: self
@@ -645,7 +645,7 @@ contains
 
   double precision function burkertPotential(self,coordinates,status) result(potential)
     !!{
-    Return the potential at the specified {\normalfont \ttfamily coordinates} in an burkert mass distribution.
+    Return the potential at the specified \mono{coordinates} in an burkert mass distribution.
     !!}
     use :: Coordinates                     , only : assignment(=)
     use :: Galactic_Structure_Options      , only : structureErrorCodeSuccess     , structureErrorCodeInfinite
@@ -742,7 +742,7 @@ contains
   
   double precision function burkertFourierTransform(self,radiusOuter,wavenumber) result(fourierTransform)
     !!{
-    Compute the Fourier transform of the density profile at the given {\normalfont \ttfamily wavenumber} in an Burkert mass
+    Compute the Fourier transform of the density profile at the given \mono{wavenumber} in an Burkert mass
     distribution.
     !!}
     use :: Exponential_Integrals   , only : Exponential_Integral
@@ -770,7 +770,7 @@ contains
   
   double precision function burkertRadiusFreefall(self,time) result(radius)
     !!{
-    Compute the freefall radius at the given {\normalfont \ttfamily time} in an Burkert mass distribution.
+    Compute the freefall radius at the given \mono{time} in an Burkert mass distribution.
     !!}
     use :: Numerical_Constants_Astronomical, only : MpcPerKmPerSToGyr, gravitationalConstant_internal
     implicit none
@@ -797,7 +797,7 @@ contains
   
   double precision function burkertRadiusFreefallIncreaseRate(self,time) result(radiusIncreaseRate)
     !!{
-    Compute the rate of increase of the freefall radius at the given {\normalfont \ttfamily time} in an burkert mass
+    Compute the rate of increase of the freefall radius at the given \mono{time} in an burkert mass
     distribution.
     !!}
     use :: Numerical_Constants_Astronomical, only : MpcPerKmPerSToGyr, gravitationalConstant_internal
@@ -826,7 +826,7 @@ contains
   
   subroutine burkertTimeFreefallTabulate(self,timeScaleFree)
     !!{
-    Tabulate the freefall radius at the given {\normalfont \ttfamily time} in an Burkert mass distribution.
+    Tabulate the freefall radius at the given \mono{time} in an Burkert mass distribution.
     !!}
     use :: Numerical_Integration, only : integrator
     use :: Numerical_Ranges     , only : Make_Range, rangeTypeLogarithmic
@@ -909,7 +909,7 @@ contains
 
   double precision function burkertEnergyPotential(self,radiusOuter) result(energy)
     !!{
-    Compute the potential energy within a given {\normalfont \ttfamily radius} in a Burkert mass distribution. This is
+    Compute the potential energy within a given \mono{radius} in a Burkert mass distribution. This is
     \begin{eqnarray}
       W &=& \frac{1}{24} \pi ^2 \left(48 \mathrm{G}G + 48 i \text{Li}_2\left(\left(\frac{1}{2}+\frac{i}{2}\right) (x+1)\right)-48 i \text{Li}_2\left(\left(\frac{1}{2}-\frac{i}{2}\right) (x+1)\right)+48 i \text{Li}_2\left(\frac{i+x}{-i+x}\right)-96 \text{Li}_2\left(\left(-\frac{1}{2}+\frac{i}{2}\right) (-i+x)\right)-96 \text{Li}_2\left(\left(-\frac{1}{2}-\frac{i}{2}\right) (i+x)\right)-48 i \text{Li}_2\left(i \exp(2 i \tan ^{-1}(x))\right)+12 \left(\log ^2\left(x^2+1\right)+4 \log (x) \log \left(x^2+1\right)-4 \log (x+1) \log \left(x^2+1\right)+(2+4 i) \pi  \log \left(x^2+1\right)+\tan ^{-1}(x) \left(4 \log \left(x^2+1\right)+8 \log \left(-\frac{2 i}{x-i}\right)+8 \log \left(1-i \exp(2 i \tan ^{-1}(x))\right)+2 i \pi \right)-4 \log ^2(x+1)-4 \log (x-i) \log ((1-i) (x+1))-4 \log (x+i) \log ((1+i) (x+1))+\log (64) \log (x-i)-4 \log (x) \log (x-i)+4 \log (x+1) \log (x-i)-3 i \pi  \log (x-i)+\log (64) \log (x+i)-4 \log (x) \log (x+i)+4 \log (x+1) \log (x+i)-5 i \pi  \log (x+i)+4 i \log (x+1) \log ((-1-i) (x+i))-4 \tan ^{-1}(x)^2+4 \pi  \log \left(1+\exp(-2 i \tan ^{-1}(x))\right)+2 \pi  \log \left(1-i \exp(2 i \tan ^{-1}(x))\right)-2 \pi  \log \left(\sin \left(\tan ^{-1}(x)+\frac{\pi }{4}\right)\right)-\log (2) (7 \pi +\log (4))\right)-48 i \log ((1+i)-(1-i) x) \log (x+1)-\pi ^2 (14-9 i)\right)
     \end{eqnarray}

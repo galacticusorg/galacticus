@@ -118,7 +118,7 @@ contains
 
   double precision function cuspNFWKinematicsVelocityDispersion1D(self,coordinates,massDistribution_,massDistributionEmbedding) result(velocityDispersion)
     !!{
-    Return the 1D velocity dispersion at the specified {\normalfont \ttfamily coordinates} in a cusp-NFW kinematic distribution.
+    Return the 1D velocity dispersion at the specified \mono{coordinates} in a cusp-NFW kinematic distribution.
     !!}
     use :: Error      , only : Error_Report
     use :: Coordinates, only : coordinateSpherical, assignment(=)

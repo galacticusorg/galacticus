@@ -446,7 +446,7 @@ contains
   
   integer function emissionLineLuminosityElementCount(self,time)
     !!{
-    Return the number of elements in the {\normalfont \ttfamily emissionLineLuminosity} property extractors.
+    Return the number of elements in the \mono{emissionLineLuminosity} property extractors.
     !!}
     implicit none
     class     (nodePropertyExtractorLuminosityEmissionLine), intent(inout) :: self
@@ -459,7 +459,7 @@ contains
 
   function emissionLineLuminosityExtract(self,node,time,instance) result(luminosity)
     !!{
-    Implement a {\normalfont \ttfamily luminosityEmissionLine} property extractor.
+    Implement a \mono{luminosityEmissionLine} property extractor.
     !!}
     use :: Galacticus_Nodes          , only : nodeComponentDisk, nodeComponentSpheroid
     use :: Galactic_Structure_Options, only : componentTypeDisk, componentTypeSpheroid, componentTypeAll
@@ -516,7 +516,7 @@ contains
 
   subroutine emissionLineLuminosityNames(self,time,names)
     !!{
-    Return the names of the {\normalfont \ttfamily emissionLines}.
+    Return the names of the \mono{emissionLines}.
     !!}
     use :: Galactic_Structure_Options, only : enumerationComponentTypeDecode
     implicit none
@@ -532,7 +532,7 @@ contains
   
   subroutine emissionLineLuminosityDescriptions(self,time,descriptions)
     !!{
-    Return descriptions of the {\normalfont \ttfamily emission line luminosity} property.
+    Return descriptions of the \mono{emission line luminosity} property.
     !!}
     implicit none
     class           (nodePropertyExtractorLuminosityEmissionLine), intent(inout)                            :: self
@@ -547,7 +547,7 @@ contains
   
   function emissionLineLuminosityUnitsInSI(self,time) result(unitsInSI)
   !!{
-    Return the units of the {\normalfont \ttfamily emissionLineLuminosity} properties in the SI system.
+    Return the units of the \mono{emissionLineLuminosity} properties in the SI system.
     !!}
     use :: Numerical_Constants_Units, only : ergs
     implicit none

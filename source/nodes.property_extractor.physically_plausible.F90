@@ -64,7 +64,7 @@ contains
 
   function isPhysicallyPlausibleExtract(self,node,time,instance)
     !!{
-    Implement a {\normalfont \ttfamily isPhysicallyPlausible} node property extractor.
+    Implement a \mono{isPhysicallyPlausible} node property extractor.
     !!}
     implicit none
     integer         (kind_int8                                 )                          :: isPhysicallyPlausibleExtract

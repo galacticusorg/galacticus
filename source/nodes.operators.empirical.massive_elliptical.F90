@@ -33,8 +33,8 @@
      \begin{equation}
        M_\star(t) = M_{\star,0} \exp(-\phi_\star [t-t_0]),
      \end{equation}
-     where $M_{\star,0}=${\normalfont \ttfamily [massStellarFinal]} is the stellar mass in the root node of the tree,
-     $\phi_\star=${\normalfont \ttfamily [rateStarFormationSpecific]}, and $t_0$ is the cosmic time at the root node of the tree.
+     where $M_{\star,0}=$\mono{[massStellarFinal]} is the stellar mass in the root node of the tree,
+     $\phi_\star=$\mono{[rateStarFormationSpecific]}, and $t_0$ is the cosmic time at the root node of the tree.
      !!}
      private
      double precision :: massStellarFinal                  , rateStarFormationSpecific                , &

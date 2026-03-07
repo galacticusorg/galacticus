@@ -30,7 +30,7 @@ Implements the geometry of the SDSS survey used by \cite{bernardi_massive_2013}.
     For the angular mask, we make use of the \gls{mangle} polygon file provided by the \gls{mangle}
     project\footnote{Specifically,
     \href{https://zenodo.org/records/10998446/files/sdss_dr72safe0_res6d.pol.gz}{https://zenodo.org/records/10998446/files/sdss\_dr72safe0\_res6d.pol.gz}.}
-    The solid angle of this mask, computed using the \gls{mangle} {\normalfont \ttfamily harmonize} command is
+    The solid angle of this mask, computed using the \gls{mangle} \mono{harmonize} command is
     2.232262776405~sr.
     
     To determine the depth as a function of stellar mass, we make use of results provided by M. Bernardi (private

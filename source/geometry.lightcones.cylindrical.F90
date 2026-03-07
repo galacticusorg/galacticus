@@ -475,7 +475,7 @@ contains
 
   function cylindricalReplicationCount(self,node)
     !!{
-    Determine the number of times {\normalfont \ttfamily node} appears in the lightcone.
+    Determine the number of times \mono{node} appears in the lightcone.
     !!}
     use, intrinsic :: ISO_C_Binding, only : c_size_t
     implicit none
@@ -512,7 +512,7 @@ contains
 
   logical function cylindricalIsInLightcone(self,node,atPresentEpoch,radiusBuffer)
     !!{
-    Determine if the given {\normalfont \ttfamily node} lies within the lightcone.
+    Determine if the given \mono{node} lies within the lightcone.
     !!}
     use :: Galacticus_Nodes    , only : nodeComponentBasic 
     use :: Numerical_Comparison, only : Values_Agree

@@ -44,12 +44,8 @@
     \mathcal{C}(\sigma^\prime) &amp;=&amp; A [(\sigma^\prime)/b)^c+1] \exp(d/\sigma^{\prime 2}), \\
     x &amp;=&amp; (\Omega_\Lambda/\Omega_\mathrm{M})^{1/3} a(t),
     \end{eqnarray}
-    with the following parameters (default values taken from \cite{prada_halo_2011} given in []): $A=${\normalfont \ttfamily
-    [A]}$=2.881$, $b=${\normalfont \ttfamily [B]}$=1.257$, $c=${\normalfont \ttfamily [C]}$=1.022$, $d=${\normalfont \ttfamily
-    [D]}$=0.060$, $c_0=${\normalfont \ttfamily [C0]}$=3.681$, $c_1=${\normalfont \ttfamily [C1]}$=5.033$, $x_0=${\normalfont
-    \ttfamily [X0]}$=0.424$, $x_1=${\normalfont \ttfamily [X1]}$=0.526$, $\sigma^{-1}_0=${\normalfont \ttfamily
-    [sigma0]}$=1.047$, $\sigma^{-1}_1=${\normalfont \ttfamily [sigma1]}$=1.646$, $\alpha=${\normalfont \ttfamily
-    [alpha]}$=6.948$, and $\beta=${\normalfont \ttfamily [beta]}$=7.386$.
+    with the following parameters (default values taken from \cite{prada_halo_2011} given in []): $A=$\mono{[A]}$=2.881$, $b=$\mono{[B]}$=1.257$, $c=$\mono{[C]}$=1.022$, $d=$\mono{[D]}$=0.060$, $c_0=$\mono{[C0]}$=3.681$, $c_1=$\mono{[C1]}$=5.033$, $x_0=${\normalfont
+    \ttfamily [X0]}$=0.424$, $x_1=$\mono{[X1]}$=0.526$, $\sigma^{-1}_0=$\mono{[sigma0]}$=1.047$, $\sigma^{-1}_1=$\mono{[sigma1]}$=1.646$, $\alpha=$\mono{[alpha]}$=6.948$, and $\beta=$\mono{[beta]}$=7.386$.
    </description>
    <deepCopy>
     <functionClass variables="virialDensityContrastDefinition_, darkMatterProfileDMODefinition_"/>
@@ -94,7 +90,7 @@ contains
 
   function prada2011ConstructorParameters(parameters) result(self)
     !!{
-    Default constructor for the {\normalfont \ttfamily prada2011} dark matter halo profile concentration class.
+    Default constructor for the \mono{prada2011} dark matter halo profile concentration class.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -300,7 +296,7 @@ contains
 
   double precision function prada2011Concentration(self,node)
     !!{
-    Return the concentration of the dark matter halo profile of {\normalfont \ttfamily node} using the \cite{prada_halo_2011} algorithm.
+    Return the concentration of the dark matter halo profile of \mono{node} using the \cite{prada_halo_2011} algorithm.
     !!}
     use :: Galacticus_Nodes, only : nodeComponentBasic, treeNode
     implicit none

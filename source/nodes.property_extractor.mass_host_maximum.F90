@@ -97,7 +97,7 @@ contains
 
   function massHostMaximumName(self)
     !!{
-    Return the names of the {\normalfont \ttfamily massHostMaximum} properties.
+    Return the names of the \mono{massHostMaximum} properties.
     !!}
     implicit none
     type (varying_string                      )                :: massHostMaximumName
@@ -110,7 +110,7 @@ contains
 
   function massHostMaximumDescription(self)
     !!{
-    Return the descriptions of the {\normalfont \ttfamily massHostMaximum} properties.
+    Return the descriptions of the \mono{massHostMaximum} properties.
     !!}
     implicit none
     type (varying_string                      )                :: massHostMaximumDescription
@@ -123,7 +123,7 @@ contains
 
   double precision function massHostMaximumUnitsInSI(self)
     !!{
-    Return the units of the {\normalfont \ttfamily massHostMaximum} properties in the SI system.
+    Return the units of the \mono{massHostMaximum} properties in the SI system.
     !!}
     use :: Numerical_Constants_Astronomical, only : massSolar
     implicit none

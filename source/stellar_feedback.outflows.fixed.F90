@@ -31,7 +31,7 @@
     \begin{equation}
      \dot{M}_\mathrm{outflow} = f_\mathrm{outflow} {\dot{E} \over E_\mathrm{canonical}},
     \end{equation}
-    where $f_\mathrm{outflow}=${\normalfont \ttfamily [fraction]} is the fraction of the star formation rate that goes into
+    where $f_\mathrm{outflow}=$\mono{[fraction]} is the fraction of the star formation rate that goes into
     outflow, $\dot{E}$ is the rate of energy input from stellar populations and $E_\mathrm{canonical}$ is the total energy
     input by a canonical stellar population normalized to $1 M_\odot$ after infinite time.
    </description>
@@ -99,8 +99,7 @@ contains
 
   subroutine fixedOutflowRate(self,component,rateStarFormation,rateEnergyInput,rateOutflowEjective,rateOutflowExpulsive)
     !!{
-    Returns the outflow rate (in $M_\odot$ Gyr$^{-1}$) due to stellar feedback in the given {\normalfont \ttfamily
-   component}. Assumes a fixed ratio of outflow rate to star formation rate.
+    Returns the outflow rate (in $M_\odot$ Gyr$^{-1}$) due to stellar feedback in the given \mono{component}. Assumes a fixed ratio of outflow rate to star formation rate.
    !!}
     use :: Stellar_Feedback, only : feedbackEnergyInputAtInfinityCanonical
     implicit none

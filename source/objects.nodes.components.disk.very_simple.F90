@@ -700,7 +700,7 @@ contains
   !!]
   subroutine Node_Component_Disk_Very_Simple_Scale_Set(node)
     !!{
-    Set scales for properties of {\normalfont \ttfamily node}.
+    Set scales for properties of \mono{node}.
     !!}
     use :: Abundances_Structure          , only : abs                 , abundances       , max                        , unitAbundances         , &
           &                                       zeroAbundances
@@ -750,7 +750,7 @@ contains
 
   subroutine satelliteMerger(self,node)
     !!{
-    Transfer any very simple disk associated with {\normalfont \ttfamily node} to its host halo.
+    Transfer any very simple disk associated with \mono{node} to its host halo.
     !!}
     use :: Abundances_Structure            , only : zeroAbundances
     use :: Error                           , only : Error_Report

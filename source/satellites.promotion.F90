@@ -33,7 +33,7 @@ contains
 
   subroutine Satellite_Move_To_New_Host(satelliteNode,newHostNode)
     !!{
-    Move {\normalfont \ttfamily satelliteNode} to be a satellite of {\normalfont \ttfamily newHostNode}.
+    Move \mono{satelliteNode} to be a satellite of \mono{newHostNode}.
     !!}
     use :: Display           , only : displayMessage    , displayVerbosity, verbosityLevelInfo
     use :: Galacticus_Nodes  , only : nodeComponentBasic, treeNode

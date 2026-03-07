@@ -174,7 +174,7 @@ contains
 
   subroutine haloAxisRatiosInterpolateNodePromote(self,node)
     !!{
-    Ensure that {\normalfont \ttfamily node} is ready for promotion to its parent. In this case, we simply update the axis ratios of {\normalfont \ttfamily node}
+    Ensure that \mono{node} is ready for promotion to its parent. In this case, we simply update the axis ratios of \mono{node}
     to be that of its parent.
     !!}
     use :: Galacticus_Nodes, only : nodeComponentDarkMatterProfile, treeNode

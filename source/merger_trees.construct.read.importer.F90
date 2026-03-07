@@ -49,7 +49,7 @@ module Merger_Tree_Read_Importers
    contains
      !![
      <methods>
-       <method description="Multiply by another {\normalfont \ttfamily importerUnits} object." method="operator(*)" />
+       <method description="Multiply by another \mono{importerUnits} object." method="operator(*)" />
        <method description="Raise to the given integer power."                                 method="operator(**)"/>
        <method description="Return true if the provided units are equal."                      method="operator(==)"/>
        <method description="Return true if the provided units are not equal."                  method="operator(/=)"/>
@@ -267,7 +267,7 @@ contains
 
   function importerUnitsMultiply(units1,units2)
     !!{
-    Multiply to {\normalfont \ttfamily importerUnits} objects.
+    Multiply to \mono{importerUnits} objects.
     !!}
     implicit none
     type (importerUnits)                :: importerUnitsMultiply
@@ -283,7 +283,7 @@ contains
 
   function importerUnitsExponentiate(units1,exponent)
     !!{
-    Exponentiate {\normalfont \ttfamily importerUnits} objects.
+    Exponentiate \mono{importerUnits} objects.
     !!}
     implicit none
     type   (importerUnits)                :: importerUnitsExponentiate
@@ -299,7 +299,7 @@ contains
 
   logical function importerUnitsAreEqual(units1,units2)
     !!{
-    Test whether two {\normalfont \ttfamily importerUnits} objects are equal.
+    Test whether two \mono{importerUnits} objects are equal.
     !!}
     use :: Error, only : Error_Report
     implicit none
@@ -317,7 +317,7 @@ contains
 
   logical function importerUnitsAreNotEqual(units1,units2)
     !!{
-    Test whether two {\normalfont \ttfamily importerUnits} objects are not equal.
+    Test whether two \mono{importerUnits} objects are not equal.
     !!}
     implicit none
     class(importerUnits), intent(in   ) :: units1

@@ -122,7 +122,7 @@ contains
   
   subroutine galaxyMergerTreePhysicalNames(self,names)
     !!{
-    Return the names of the {\normalfont \ttfamily galaxyMergerTreePhysical} properties.
+    Return the names of the \mono{galaxyMergerTreePhysical} properties.
     !!}
     use :: Error                                      , only : Error_Report
     use :: Node_Property_Extractor_Galaxy_Merger_Trees, only : nodePropertyExtractorGalaxyMergerTreeCount, nodePropertyExtractorGalaxyMergerTree_
@@ -151,7 +151,7 @@ contains
 
   subroutine galaxyMergerTreePhysicalDescriptions(self,descriptions)
     !!{
-    Return the descriptions of the {\normalfont \ttfamily galaxyMergerTreePhysical} properties.
+    Return the descriptions of the \mono{galaxyMergerTreePhysical} properties.
     !!}
     use :: Error                                      , only : Error_Report
     use :: Node_Property_Extractor_Galaxy_Merger_Trees, only : nodePropertyExtractorGalaxyMergerTreeCount, nodePropertyExtractorGalaxyMergerTree_
@@ -179,7 +179,7 @@ contains
 
   function galaxyMergerTreePhysicalUnitsInSI(self) result(unitsInSI)
     !!{
-    Return the units of the {\normalfont \ttfamily galaxyMergerTreePhysical} properties in the SI system.
+    Return the units of the \mono{galaxyMergerTreePhysical} properties in the SI system.
     !!}
     use :: Error                                      , only : Error_Report
     use :: Numerical_Constants_Astronomical           , only : gigaYear

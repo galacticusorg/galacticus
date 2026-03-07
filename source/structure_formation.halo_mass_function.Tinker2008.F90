@@ -26,7 +26,7 @@
   !![
   <enumeration>
    <name>tinker2008Parameter</name>
-   <description>Enumeration of parameters for the {\normalfont \ttfamily tinker2008} halo mass function class.</description>
+   <description>Enumeration of parameters for the \mono{tinker2008} halo mass function class.</description>
    <encodeFunction>yes</encodeFunction>
    <decodeFunction>yes</decodeFunction>
    <validator>yes</validator>
@@ -195,7 +195,7 @@ contains
 
   subroutine tinker2008ParametersEvaluate(self,time,mass)
     !!{
-    Evaluate interpolating parameters for the {\normalfont \ttfamily tinker2008} halo mass function class.
+    Evaluate interpolating parameters for the \mono{tinker2008} halo mass function class.
     !!}
     implicit none
     class           (haloMassFunctionTinker2008), intent(inout) :: self
@@ -231,7 +231,7 @@ contains
 
   double precision function tinker2008Normalization(self,time,mass)
     !!{
-    Return the normalization for the {\normalfont \ttfamily tinker2008} halo mass function class.
+    Return the normalization for the \mono{tinker2008} halo mass function class.
     !!}
     implicit none
     class           (haloMassFunctionTinker2008), intent(inout) :: self
@@ -246,7 +246,7 @@ contains
 
   double precision function tinker2008A(self,time,mass)
     !!{
-    Return the normalization for the {\normalfont \ttfamily tinker2008} halo mass function class.
+    Return the normalization for the \mono{tinker2008} halo mass function class.
     !!}
     implicit none
     class           (haloMassFunctionTinker2008), intent(inout) :: self
@@ -261,7 +261,7 @@ contains
 
   double precision function tinker2008B(self,time,mass)
     !!{
-    Return the normalization for the {\normalfont \ttfamily tinker2008} halo mass function class.
+    Return the normalization for the \mono{tinker2008} halo mass function class.
     !!}
     implicit none
     class           (haloMassFunctionTinker2008), intent(inout) :: self
@@ -276,7 +276,7 @@ contains
 
   double precision function tinker2008C(self,time,mass)
     !!{
-    Return the normalization for the {\normalfont \ttfamily tinker2008} halo mass function class.
+    Return the normalization for the \mono{tinker2008} halo mass function class.
     !!}
     implicit none
     class           (haloMassFunctionTinker2008), intent(inout) :: self

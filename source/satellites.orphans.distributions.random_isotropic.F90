@@ -52,8 +52,7 @@
 
   abstract interface
      !!{
-     Abstract interface for the inverse cumulative mass function for the radial coordinate in the {\normalfont \ttfamily
-     randomIsotropic} orphan satellite distribution class.
+     Abstract interface for the inverse cumulative mass function for the radial coordinate in the \mono{randomIsotropic} orphan satellite distribution class.
      !!}
      double precision function randomIsotropicInverseCMFRadial(self,node,fraction)
        import satelliteOrphanDistributionRandomIsotropic, treeNode
@@ -65,7 +64,7 @@
 
   abstract interface
      !!{
-     Abstract interface for the velocity dispersion in the {\normalfont \ttfamily randomIsotropic} orphan satellite
+     Abstract interface for the velocity dispersion in the \mono{randomIsotropic} orphan satellite
      distribution class.
      !!}
      double precision function randomIsotropicVelocityDispersion(self,node)
@@ -79,7 +78,7 @@ contains
 
   subroutine randomIsotropicInitialize(self)
     !!{
-    Perform initialization for the {\normalfont \ttfamily randomIsotropic} orphan satellite distribution class.
+    Perform initialization for the \mono{randomIsotropic} orphan satellite distribution class.
     !!}
     implicit none
     class           (satelliteOrphanDistributionRandomIsotropic), intent(inout) :: self

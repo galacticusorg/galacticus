@@ -40,8 +40,7 @@ mass function) output analysis class.
      A generic 1D cross-correlator (i.e. the cross-correlation of two weights binned by some property, e.g. a mass function)
      output analysis class.
   
-     The assumptions used when constructing the covariance matrix are controlled by the parameter {\normalfont \ttfamily
-     [covarianceModel]}, and follow the method described for the \refClass{outputAnalysisVolumeFunction1D} class.
+     The assumptions used when constructing the covariance matrix are controlled by the parameter \mono{[covarianceModel]}, and follow the method described for the \refClass{outputAnalysisVolumeFunction1D} class.
    </description>
   </outputAnalysis>
   !!]

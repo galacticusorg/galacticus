@@ -47,7 +47,7 @@ contains
   !!]
   subroutine accretionDiskSpectraConstruct(parameters,accretionDiskSpectra_)
     !!{
-    Build a {\normalfont \ttfamily accretionDiskSpectra} object from a given parameter set. This is a globally-callable function
+    Build a \mono{accretionDiskSpectra} object from a given parameter set. This is a globally-callable function
     to allow us to subvert the class/module hierarchy.
     !!}
     use :: Error                  , only : Error_Report
@@ -89,7 +89,7 @@ contains
   !!]
   double precision function accretionDiskSpectraSpectrumNode(accretionDiskSpectra_,node,wavelength) result(spectrum)
     !!{
-    Evaluate AGN spectra using a {\normalfont \ttfamily accretionDiskSpectra} object passed to us as an unlimited polymorphic object.
+    Evaluate AGN spectra using a \mono{accretionDiskSpectra} object passed to us as an unlimited polymorphic object.
     !!}
     use :: Error                 , only : Error_Report
     use :: Accretion_Disk_Spectra, only : accretionDiskSpectraClass
@@ -118,7 +118,7 @@ contains
   !!]
   subroutine accretionDiskSpectraDestruct(accretionDiskSpectra_)
     !!{
-    Destruct a {\normalfont \ttfamily accretionDiskSpectra} object passed to us as an unlimited polymorphic object.
+    Destruct a \mono{accretionDiskSpectra} object passed to us as an unlimited polymorphic object.
     !!}
     use :: Error                 , only : Error_Report
     use :: Accretion_Disk_Spectra, only : accretionDiskSpectraClass

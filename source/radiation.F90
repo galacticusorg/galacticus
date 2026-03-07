@@ -72,7 +72,7 @@ module Radiation_Fields
     <argument>type            (treeNode), intent(inout) :: node</argument>
    </method>
    <method name="integrateOverCrossSection">
-    <description>Integrates the flux (in units of ergs cm$^{-2}$ s$^{-1}$ Hz$^{-1}$ ster$^{-1}$) of the given radiation structure between the wavelengths given in {\normalfont \ttfamily wavelengthRange} over a cross section specified by the function {\normalfont \ttfamily crossSectionFunction}.</description>
+    <description>Integrates the flux (in units of ergs cm$^{-2}$ s$^{-1}$ Hz$^{-1}$ ster$^{-1}$) of the given radiation structure between the wavelengths given in \mono{wavelengthRange} over a cross section specified by the function \mono{crossSectionFunction}.</description>
     <type>double precision</type>
     <pass>yes</pass>
     <argument>double precision                  , dimension(2), intent(in   ) :: wavelengthRange</argument>

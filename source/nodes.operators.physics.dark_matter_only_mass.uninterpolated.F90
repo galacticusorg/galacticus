@@ -64,7 +64,7 @@ contains
 
   subroutine dmoUninterpolatedNodePromote(self,node)
     !!{
-    Ensure that {\normalfont \ttfamily node} is ready for promotion to its parent.
+    Ensure that \mono{node} is ready for promotion to its parent.
     !!}
     use :: Error           , only : Error_Report
     use :: Galacticus_Nodes, only : nodeComponentBasic

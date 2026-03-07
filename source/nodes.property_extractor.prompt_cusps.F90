@@ -135,7 +135,7 @@ contains
 
   integer function promptCuspsElementCount(self,time)
     !!{
-    Return the number of elements in the {\normalfont \ttfamily promptCusps} property extractors.
+    Return the number of elements in the \mono{promptCusps} property extractors.
     !!}
     implicit none
     class           (nodePropertyExtractorPromptCusps), intent(inout) :: self
@@ -148,7 +148,7 @@ contains
 
   function promptCuspsExtract(self,node,time,instance)
     !!{
-    Implement a {\normalfont \ttfamily promptCusps} property extractor.
+    Implement a \mono{promptCusps} property extractor.
     !!}
     use :: Galacticus_Nodes, only : nodeComponentDarkMatterProfile
     implicit none
@@ -209,7 +209,7 @@ contains
 
   subroutine promptCuspsNames(self,time,names)
     !!{
-    Return the names of the {\normalfont \ttfamily promptCusps} properties.
+    Return the names of the \mono{promptCusps} properties.
     !!}
     implicit none
     class           (nodePropertyExtractorPromptCusps), intent(inout)                             :: self
@@ -229,7 +229,7 @@ contains
 
   subroutine promptCuspsDescriptions(self,time,descriptions)
     !!{
-    Return descriptions of the {\normalfont \ttfamily promptCusps} property.
+    Return descriptions of the \mono{promptCusps} property.
     !!}
     implicit none
     class           (nodePropertyExtractorPromptCusps), intent(inout)                             :: self
@@ -249,7 +249,7 @@ contains
 
   function promptCuspsUnitsInSI(self,time)
     !!{
-    Return the units of the {\normalfont \ttfamily PromptCusps} properties in the SI system.
+    Return the units of the \mono{PromptCusps} properties in the SI system.
     !!}
     use :: Numerical_Constants_Astronomical, only : massSolar, megaParsec
     implicit none

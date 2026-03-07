@@ -68,7 +68,7 @@ contains
 
   double precision function Satellite_Orbit_Equivalent_Circular_Orbit_Radius(nodeHost,orbit,darkMatterHaloScale_,errorCode)
     !!{
-    Solves for the equivalent circular orbit radius for {\normalfont \ttfamily orbit} in {\normalfont \ttfamily nodeHost}.
+    Solves for the equivalent circular orbit radius for \mono{orbit} in \mono{nodeHost}.
     !!}
     use :: Galacticus_Nodes       , only : nodeComponentBasic
     use :: Dark_Matter_Halo_Scales, only : darkMatterHaloScaleClass
@@ -159,7 +159,7 @@ contains
 
   subroutine Satellite_Orbit_Extremum_Phase_Space_Coordinates(nodeHost,orbit,extremumType,radius,velocity,darkMatterHaloScale_)
     !!{
-    Solves for the pericentric radius and velocity of {\normalfont \ttfamily orbit} in {\normalfont \ttfamily nodeHost}.
+    Solves for the pericentric radius and velocity of \mono{orbit} in \mono{nodeHost}.
     !!}
     use :: Galactic_Structure_Options  , only : structureErrorCodeInfinite, structureErrorCodeSuccess    ,enumerationStructureErrorCodeType, radiusLarge
     use :: Dark_Matter_Halo_Scales     , only : darkMatterHaloScaleClass
@@ -357,7 +357,7 @@ contains
   double precision function Satellite_Orbit_Potential(radius,radiusVirial,massVirial,status) result(potential)
     !!{
     Evaluate the gravitational potential under the convention that the potential at the virial radius is always
-    $\Phi(r_\mathrm{vir}) = - V_\mathrm{vir}^2$, as is assumed for {\normalfont \ttfamily keplerOrbit} objects.
+    $\Phi(r_\mathrm{vir}) = - V_\mathrm{vir}^2$, as is assumed for \mono{keplerOrbit} objects.
     !!}
     use :: Galactic_Structure_Options      , only : enumerationStructureErrorCodeType
     use :: Coordinates                     , only : coordinateCartesian              , assignment(=)

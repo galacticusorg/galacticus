@@ -27,8 +27,7 @@
   !![
   <haloSpinDistribution name="haloSpinDistributionLogNormal">
    <description>
-    A halo spin distribution class in which the spin is drawn from a lognormal distribution with median $\bar{\lambda}=${\normalfont \ttfamily
-    [median]} and width $\sigma=${\normalfont \ttfamily [sigma]}. Specifically, the distribution function for spin, $\lambda$, is
+    A halo spin distribution class in which the spin is drawn from a lognormal distribution with median $\bar{\lambda}=$\mono{[median]} and width $\sigma=$\mono{[sigma]}. Specifically, the distribution function for spin, $\lambda$, is
     \begin{equation}
     p(\lambda) = \frac{1}{\sqrt{2 \pi} \sigma \lambda} \exp\left[ - \frac{1}{2} \left(\frac{\log\lambda-\log\bar{\lambda}}{\sigma}\right)^2\right].
     \end{equation}
@@ -149,7 +148,7 @@ contains
 
   double precision function logNormalDistribution(self,node)
     !!{
-    Return the spin parameter distribution for the given {\normalfont \ttfamily node}
+    Return the spin parameter distribution for the given \mono{node}
     assuming a log-normal distribution.
     !!}
     use :: Dark_Matter_Halo_Spins  , only : Dark_Matter_Halo_Angular_Momentum_Scale

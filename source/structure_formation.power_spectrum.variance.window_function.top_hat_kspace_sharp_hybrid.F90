@@ -39,16 +39,15 @@
     \begin{equation}
      W_\mathrm{s}(k) = \left\{ \begin{array}{ll} 1 &amp; \hbox{if } k &lt; k_\mathrm{s} \\ 0 &amp; \hbox{if } k &gt; k_\mathrm{s}, \end{array} \right.
     \end{equation}
-    where $k\mathrm{s} = \alpha / R_\mathrm{s}$ if {\normalfont \ttfamily
-    [normalization]} is assigned a numerical value. Alternatively, if {\normalfont
-    \ttfamily [normalization]}$=${\normalfont \ttfamily natural} then the value of
+    where $k\mathrm{s} = \alpha / R_\mathrm{s}$ if \mono{[normalization]} is assigned a numerical value. Alternatively, if {\normalfont
+    \ttfamily [normalization]}$=$\mono{natural} then the value of
     $\alpha$ is chosen such that $k_\mathrm{s} = (6 \Pi^2 \bar{\rho}/M)^{1/3}$ if $R_\mathrm{s}=3M/4\pi\bar{\rho}$.
     The radii, $R_\mathrm{th}$ and $R_\mathrm{s}$, are chosen such that:
     \begin{eqnarray}
     R_\mathrm{th}^2 + R_\mathrm{s}^2 &amp;=&amp; (3M/4\pi\bar{\rho})^{2/3} \\
     R_\mathrm{s} &amp;=&amp; \beta R_\mathrm{th},
     \end{eqnarray}
-    where $\beta=${\normalfont \ttfamily [radiiRatio]}.
+    where $\beta=$\mono{[radiiRatio]}.
    </description>
   </powerSpectrumWindowFunction>
   !!]
@@ -105,7 +104,7 @@ contains
       <description>
         The parameter $a$ in the relation $k_\mathrm{s} = a/r_\mathrm{s}$, where $k_\mathrm{s}$ is the cut-off wavenumber for
         the sharp $k$-space window function and $r_\mathrm{s}$ is the radius of a sphere (in real-space) enclosing the
-        requested smoothing mass. Alternatively, a value of {\normalfont \ttfamily natural} will be supplied in which case the normalization
+        requested smoothing mass. Alternatively, a value of \mono{natural} will be supplied in which case the normalization
         is chosen such that, in real-space, $W(r=0)=1$. This results in a contained mass of $M=6 \pi^2 \bar{\rho} k_\mathrm{s}^{-3}$.
       </description>
     </inputParameter>
@@ -183,9 +182,9 @@ contains
     !!{
     Computes a window function for calculations of the variance in the power spectrum. Specifically, uses a convolution of
     top-hat real-space and sharp $k$-space window functions. The top-hat radius is $r_\mathrm{th}$, while the $k$-space
-    cut-off wavenumber is $k_\mathrm{s}=a/r_\mathrm{s}$, where $a=${\normalfont \ttfamily [normalization]}. The two radii are
+    cut-off wavenumber is $k_\mathrm{s}=a/r_\mathrm{s}$, where $a=$\mono{[normalization]}. The two radii are
     chosen such that $r_\mathrm{th}^2 + r_\mathrm{s}^2 = (3 M / 4 \pi \bar{rho})^{1/3}$ and $r_\mathrm{s}=\beta r_{\mathrm
-    th}$ where $\beta=${\normalfont \ttfamily [radiiRatio]}.
+    th}$ where $\beta=$\mono{[radiiRatio]}.
     !!}
     implicit none
     class           (powerSpectrumWindowFunctionTopHatSharpKHybrid), intent(inout) :: self
@@ -236,9 +235,8 @@ contains
     !!{
     Computes the maximum wavenumber at which the window function for calculations of the variance in the power spectrum is
     non-zero. Specifically, uses a convolution of top-hat real-space and sharp $k$-space window functions. The top-hat radius
-    is $r_\mathrm{th}$, while the $k$-space cut-off wavenumber is $k_\mathrm{s}=a/r_\mathrm{s}$, where $a=${\normalfont \ttfamily
-    [normalization]}. The two radii are chosen such that $r_\mathrm{th}^2 + r_\mathrm{s}^2 = (3 M / 4 \pi \bar{rho})^{1/3}$
-    and $r_\mathrm{s}=\beta r_\mathrm{th}$ where $\beta=${\normalfont \ttfamily [radiiRatio]}.
+    is $r_\mathrm{th}$, while the $k$-space cut-off wavenumber is $k_\mathrm{s}=a/r_\mathrm{s}$, where $a=$\mono{[normalization]}. The two radii are chosen such that $r_\mathrm{th}^2 + r_\mathrm{s}^2 = (3 M / 4 \pi \bar{rho})^{1/3}$
+    and $r_\mathrm{s}=\beta r_\mathrm{th}$ where $\beta=$\mono{[radiiRatio]}.
     !!}
     implicit none
     class           (powerSpectrumWindowFunctionTopHatSharpKHybrid), intent(inout) :: self
@@ -255,8 +253,8 @@ contains
     !!{
     Computes the radii of the top-hat and sharp $k$-space filters. Specifically, uses a convolution of top-hat real-space and
     sharp $k$-space window functions. The top-hat radius is $r_\mathrm{th}$, while the $k$-space cut-off wavenumber is
-    $k_\mathrm{s}=a/r_\mathrm{s}$, where $a=${\normalfont \ttfamily [normalization]}. The two radii are chosen such that $r_\mathrm{th}^2 +
-    r_\mathrm{s}^2 = (3 M / 4 \pi \bar{rho})^{1/3}$ and $r_\mathrm{s}=\beta r_\mathrm{th}$ where $\beta=${\normalfont \ttfamily [radiiRatio]}.
+    $k_\mathrm{s}=a/r_\mathrm{s}$, where $a=$\mono{[normalization]}. The two radii are chosen such that $r_\mathrm{th}^2 +
+    r_\mathrm{s}^2 = (3 M / 4 \pi \bar{rho})^{1/3}$ and $r_\mathrm{s}=\beta r_\mathrm{th}$ where $\beta=$\mono{[radiiRatio]}.
     !!}
     use :: Numerical_Constants_Math, only : Pi
     implicit none

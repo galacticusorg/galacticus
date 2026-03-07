@@ -324,8 +324,7 @@ contains
   
   double precision function filePower(self,wavenumber,time)
     !!{
-    Return the transferred primordial power spectrum at the given {\normalfont \ttfamily
-    wavenumber}.
+    Return the transferred primordial power spectrum at the given \mono{wavenumber}.
     !!}
     implicit none
     class           (powerSpectrumPrimordialTransferredFile), intent(inout)  :: self
@@ -352,7 +351,7 @@ contains
   double precision function fileLogarithmicDerivative(self,wavenumber,time)
     !!{
     Return the logarithmic derivative of the transferred primordial power spectrum at the
-    given {\normalfont \ttfamily wavenumber}.
+    given \mono{wavenumber}.
     !!}
     implicit none
     class           (powerSpectrumPrimordialTransferredFile), intent(inout)  :: self

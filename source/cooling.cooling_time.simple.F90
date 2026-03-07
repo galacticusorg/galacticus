@@ -34,7 +34,7 @@
     \begin{equation}
      t_\mathrm{cool} = {N \over 2} {\mathrm{k}_\mathrm{B} T n_\mathrm{tot} \over \Lambda},
     \end{equation}
-    where $N=${\normalfont \ttfamily [degreesOfFreedom]} is the number of degrees of freedom in the cooling gas which has
+    where $N=$\mono{[degreesOfFreedom]} is the number of degrees of freedom in the cooling gas which has
     temperature $T$ and total particle number density (including electrons) $n_\mathrm{tot}$ and $\Lambda$ is the cooling
     function.
    </description>
@@ -128,8 +128,8 @@ contains
 
   double precision function simpleTime(self,node,temperature,density,gasAbundances,chemicalDensities,radiation)
     !!{
-    Compute the cooling time (in Gyr) for gas at the given {\normalfont \ttfamily temperature} (in Kelvin), {\normalfont \ttfamily density} (in $M_\odot$
-    Mpc$^{-3}$), composition specified by {\normalfont \ttfamily gasAbundances} and experiencing a radiation field as described by {\normalfont \ttfamily radiation}.
+    Compute the cooling time (in Gyr) for gas at the given \mono{temperature} (in Kelvin), \mono{density} (in $M_\odot$
+    Mpc$^{-3}$), composition specified by \mono{gasAbundances} and experiencing a radiation field as described by \mono{radiation}.
     !!}
     use :: Numerical_Constants_Astronomical, only : gigaYear          , massSolar, megaParsec
     use :: Numerical_Constants_Atomic      , only : massHydrogenAtom
@@ -182,8 +182,8 @@ contains
 
   double precision function simpleGradientDensityLogarithmic(self,node,temperature,density,gasAbundances,chemicalDensities,radiation)
     !!{
-    Return $\d\ln t_\mathrm{cool}/\d\ln \rho$ for gas at the given {\normalfont \ttfamily temperature} (in Kelvin), {\normalfont \ttfamily density} (in $M_\odot$
-    Mpc$^{-3}$), composition specified by {\normalfont \ttfamily gasAbundances} and experiencing a radiation field as described by {\normalfont \ttfamily radiation}.
+    Return $\d\ln t_\mathrm{cool}/\d\ln \rho$ for gas at the given \mono{temperature} (in Kelvin), \mono{density} (in $M_\odot$
+    Mpc$^{-3}$), composition specified by \mono{gasAbundances} and experiencing a radiation field as described by \mono{radiation}.
     !!}
    implicit none
     class           (coolingTimeSimple   ), intent(inout) :: self
@@ -201,8 +201,8 @@ contains
 
   double precision function simpleGradientTemperatureLogarithmic(self,node,temperature,density,gasAbundances,chemicalDensities,radiation)
     !!{
-    Return $\d\ln t_\mathrm{cool}/\d\ln T$ for gas at the given {\normalfont \ttfamily temperature} (in Kelvin), {\normalfont \ttfamily density} (in $M_\odot$
-    Mpc$^{-3}$), composition specified by {\normalfont \ttfamily gasAbundances} and experiencing a radiation field as described by {\normalfont \ttfamily radiation}.
+    Return $\d\ln t_\mathrm{cool}/\d\ln T$ for gas at the given \mono{temperature} (in Kelvin), \mono{density} (in $M_\odot$
+    Mpc$^{-3}$), composition specified by \mono{gasAbundances} and experiencing a radiation field as described by \mono{radiation}.
     !!}
     implicit none
     class           (coolingTimeSimple   ), intent(inout) :: self

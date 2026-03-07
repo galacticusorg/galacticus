@@ -145,7 +145,7 @@ contains
 
   subroutine nodePromotion(self,node)
     !!{
-    Ensure that {\normalfont \ttfamily node} is ready for promotion to its parent. In this case, we simply copy any preexisting satellite orbit
+    Ensure that \mono{node} is ready for promotion to its parent. In this case, we simply copy any preexisting satellite orbit
     from the parent.
     !!}
     use :: Error           , only : Error_Report
@@ -192,7 +192,7 @@ contains
   !!]
   subroutine Node_Component_Satellite_Standard_Inactive(node)
     !!{
-    Set Jacobian zero status for properties of {\normalfont \ttfamily node}.
+    Set Jacobian zero status for properties of \mono{node}.
     !!}
     use :: Galacticus_Nodes, only : nodeComponentSatellite, nodeComponentSatelliteStandard, treeNode
     implicit none
@@ -216,7 +216,7 @@ contains
   !!]
   subroutine Node_Component_Satellite_Standard_Scale_Set(node)
     !!{
-    Set scales for properties of {\normalfont \ttfamily node}.
+    Set scales for properties of \mono{node}.
     !!}
     use :: Galacticus_Nodes, only : nodeComponentBasic, nodeComponentSatellite, nodeComponentSatelliteStandard, treeNode
     implicit none

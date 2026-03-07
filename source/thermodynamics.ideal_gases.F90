@@ -45,7 +45,7 @@ contains
 
   double precision function Ideal_Gas_Sound_Speed(temperature,meanAtomicMass)
     !!{
-    Return the sound speed (in km/s) for an ideal gas of given {\normalfont \ttfamily temperature} and (optionally) {\normalfont \ttfamily meanAtomicMass}.
+    Return the sound speed (in km/s) for an ideal gas of given \mono{temperature} and (optionally) \mono{meanAtomicMass}.
     !!}
     use :: Numerical_Constants_Astronomical, only : meanAtomicMassPrimordial
     use :: Numerical_Constants_Atomic      , only : atomicMassUnit

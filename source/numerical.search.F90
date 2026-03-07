@@ -72,7 +72,7 @@ contains
 
   function searchArrayDouble(arrayToSearch,valueToFind)
     !!{
-    Searches an array, $x=(${\normalfont \ttfamily arrayToSearch}$)$, for value, $v(=${\normalfont \ttfamily valueToFind}$)$,
+    Searches an array, $x=($\mono{arrayToSearch}$)$, for value, $v(=$\mono{valueToFind}$)$,
     to find the index $i$ such that $x(i) \le v < x(i+1)$.
     !!}
     implicit none
@@ -93,7 +93,7 @@ contains
 
   function searchArray{Type¦label}(arrayToSearch,valueToFind)
     !!{
-    Searches an array, $x=(${\normalfont \ttfamily arrayToSearch}$)$, for value, $v(=${\normalfont \ttfamily valueToFind}$)$,
+    Searches an array, $x=($\mono{arrayToSearch}$)$, for value, $v(=$\mono{valueToFind}$)$,
     to find the index $i$ such that $x(i) \le v < x(i+1)$.
     !!}
     {Type¦match¦^(varstr)$¦  use :: ISO_Varying_String, only : varying_string, operator(<), operator(>), operator(<=), operator(>=)¦}
@@ -144,7 +144,7 @@ contains
 
   function searchArrayClosest(arrayToSearch,valueToFind,tolerance,status)
     !!{
-    Searches an array, $x=(${\normalfont \ttfamily arrayToSearch}$)$, for the entry closest to value, $v(=${\normalfont
+    Searches an array, $x=($\mono{arrayToSearch}$)$, for the entry closest to value, $v(=${\normalfont
     \ttfamily valueToFind}$)$ and returns the index of that element in the array. Optionally, a tolerance may be specified
     within which the two values must match.
     !!}
@@ -198,8 +198,8 @@ contains
 
   function searchIndexedInteger8(arrayToSearch,arrayIndex,valueToFind)
     !!{
-    Searches a long integer array, $x=(${\normalfont \ttfamily arrayToSearch}$)$, which is rank ordered when indexed by
-    {\normalfont \ttfamily arrayIndex}, for value, $v(=${\normalfont \ttfamily valueToFind}$)$, to find the index $i$ such that
+    Searches a long integer array, $x=($\mono{arrayToSearch}$)$, which is rank ordered when indexed by
+    \mono{arrayIndex}, for value, $v(=$\mono{valueToFind}$)$, to find the index $i$ such that
     $x(i) \le v < x(i+1)$.
     !!}
     use :: Kind_Numbers , only : kind_int8

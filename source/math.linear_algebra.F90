@@ -43,10 +43,10 @@ module Linear_Algebra
      !![
      <methods>
        <method description="Compute the magnitude of a vector."                                                method="magnitude"        />
-       <method description="Compute {\normalfont \ttfamily vector1} $\cdot$ {\normalfont \ttfamily vector2}."  method="operator(.dot.)"  />
-       <method description="Compute {\normalfont \ttfamily vector1}-{\normalfont \ttfamily vector2}."          method="operator(-)"      />
-       <method description="Compute {\normalfont \ttfamily vector1}+{\normalfont \ttfamily vector2}."          method="operator(+)"      />
-       <method description="Compute {\normalfont \ttfamily vector1} $\times$ {\normalfont \ttfamily vector2}." method="operator(.cross.)"/>
+       <method description="Compute \mono{vector1} $\cdot$ \mono{vector2}."  method="operator(.dot.)"  />
+       <method description="Compute \mono{vector1}-\mono{vector2}."          method="operator(-)"      />
+       <method description="Compute \mono{vector1}+\mono{vector2}."          method="operator(+)"      />
+       <method description="Compute \mono{vector1} $\times$ \mono{vector2}." method="operator(.cross.)"/>
        <method description="Return a C pointer to the GSL vector object."                                      method="gslObject"        />
      </methods>
      !!]
@@ -477,7 +477,7 @@ contains
 
   function vectorConstructor(array) result(self)
     !!{
-    Constructor for {\normalfont \ttfamily vector} class which builds the vector from an array.
+    Constructor for \mono{vector} class which builds the vector from an array.
     !!}
     implicit none
     type            (vector  )                              :: self
@@ -495,7 +495,7 @@ contains
 
   function vectorZeroConstructor(n) result(self)
     !!{
-    Constructor for {\normalfont \ttfamily vector} class which builds the vector and initializes all elements to zero.
+    Constructor for \mono{vector} class which builds the vector and initializes all elements to zero.
     !!}
     implicit none
     type   (vector  )                :: self
@@ -510,7 +510,7 @@ contains
 
   function vectorCopyConstructor(source) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily vector} class which builds the vector by copying a {\normalfont \ttfamily source} vector.
+    Constructor for the \mono{vector} class which builds the vector by copying a \mono{source} vector.
     !!}
     use :: Error        , only : Error_Report
     use :: Interface_GSL, only : GSL_Success
@@ -529,7 +529,7 @@ contains
   
   subroutine vectorAssignmentConstructor(self,array)
     !!{
-    Constructor for {\normalfont \ttfamily vector} class which overloads the assignment operator.
+    Constructor for \mono{vector} class which overloads the assignment operator.
     !!}
     implicit none
     type            (vector), intent(  out)               :: self
@@ -541,7 +541,7 @@ contains
   
   subroutine vectorUnassignment(array,self)
     !!{
-    Assign elements of a {\normalfont \ttfamily vector} class to an array
+    Assign elements of a \mono{vector} class to an array
     !!}
     implicit none
     double precision          , intent(  out), dimension(:) :: array
@@ -556,7 +556,7 @@ contains
   
   subroutine vectorDestructorRank0(self)
     !!{
-    Rank-0 destructor for the {\normalfont \ttfamily vector} class.
+    Rank-0 destructor for the \mono{vector} class.
     !!}
     implicit none
     type(vector), intent(inout) :: self
@@ -570,7 +570,7 @@ contains
 
   subroutine vectorDestructorRank1(self)
     !!{
-    Rank-1 destructor for the {\normalfont \ttfamily vector} class.
+    Rank-1 destructor for the \mono{vector} class.
     !!}
     implicit none
     type   (vector), intent(inout), dimension(:) :: self
@@ -685,7 +685,7 @@ contains
 
   function matrixConstructor(array) result(self)
     !!{
-    Constructor for {\normalfont \ttfamily matrix} class which builds the matrix from an array.
+    Constructor for \mono{matrix} class which builds the matrix from an array.
     !!}
     implicit none
     type            (matrix  )                                :: self
@@ -706,7 +706,7 @@ contains
 
   function matrixZeroConstructor(n1,n2) result(self)
     !!{
-    Constructor for {\normalfont \ttfamily matrix} class which builds the matrix and initializes all elements to zero.
+    Constructor for \mono{matrix} class which builds the matrix and initializes all elements to zero.
     !!}
     implicit none
     type   (matrix  )                :: self
@@ -722,7 +722,7 @@ contains
 
   function matrixCopyConstructor(source) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily matrix} class which builds the matrix by copying a {\normalfont \ttfamily source} matrix.
+    Constructor for the \mono{matrix} class which builds the matrix by copying a \mono{source} matrix.
     !!}
     use :: Error        , only : Error_Report
     use :: Interface_GSL, only : GSL_Success
@@ -742,7 +742,7 @@ contains
 
   subroutine matrixAssignmentConstructor(self,array)
     !!{
-    Constructor for {\normalfont \ttfamily matrix} class which overloads the assignment operator.
+    Constructor for \mono{matrix} class which overloads the assignment operator.
     !!}
     implicit none
     type            (matrix), intent(  out)                 :: self
@@ -754,7 +754,7 @@ contains
   
   subroutine matrixUnassignment(array,self)
     !!{
-    Assign elements of a {\normalfont \ttfamily matrix} class to an array
+    Assign elements of a \mono{matrix} class to an array
     !!}
     implicit none
     double precision          , intent(  out), dimension(:,:) :: array
@@ -771,7 +771,7 @@ contains
   
   subroutine matrixDestructorRank0(self)
     !!{
-    Destructor for the {\normalfont \ttfamily matrix} class
+    Destructor for the \mono{matrix} class
     !!}
     implicit none
     type(matrix), intent(inout) :: self
@@ -785,7 +785,7 @@ contains
 
   subroutine matrixDestructorRank1(self)
     !!{
-    Destructor for the {\normalfont \ttfamily matrix} class
+    Destructor for the \mono{matrix} class
     !!}
     implicit none
     type   (matrix), intent(inout), dimension(:) :: self
@@ -1116,7 +1116,7 @@ contains
   
   function matrixLUConstructor(matrix_) result(self)
     !!{
-    Constructor for {\normalfont \ttfamily matrixLU} class which builds the matrix from an array.
+    Constructor for \mono{matrixLU} class which builds the matrix from an array.
     !!}
     use :: Error        , only : Error_Report
     use :: Interface_GSL, only : GSL_Success
@@ -1135,7 +1135,7 @@ contains
 
   subroutine matrixLUDestructorRank0(self)
     !!{
-    Destructor for the {\normalfont \ttfamily matrixLU} class
+    Destructor for the \mono{matrixLU} class
     !!}
     implicit none
     type(matrixLU), intent(inout) :: self
@@ -1153,7 +1153,7 @@ contains
 
   subroutine matrixLUDestructorRank1(self)
     !!{
-    Destructor for the {\normalfont \ttfamily matrixLU} class
+    Destructor for the \mono{matrixLU} class
     !!}
     implicit none
     type   (matrixLU), intent(inout), dimension(:) :: self
@@ -1192,7 +1192,7 @@ contains
 
   subroutine matrixLUUnassignment(array,self)
     !!{
-    Assign elements of a {\normalfont \ttfamily matrixLU} class to an array
+    Assign elements of a \mono{matrixLU} class to an array
     !!}
     implicit none
     double precision          , intent(  out), dimension(:,:) :: array

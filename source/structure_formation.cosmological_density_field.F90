@@ -71,7 +71,7 @@ module Cosmological_Density_Field
     <argument>type            (treeNode), intent(inout), optional :: node                       </argument>
    </method>
    <method name="timeOfCollapse" >
-    <description>Returns the time of collapse for a perturbation of linear theory overdensity {\normalfont \ttfamily criticalOverdensity}.</description>
+    <description>Returns the time of collapse for a perturbation of linear theory overdensity \mono{criticalOverdensity}.</description>
     <type>double precision</type>
     <pass>yes</pass>
     <selfTarget>yes</selfTarget>
@@ -145,12 +145,12 @@ module Cosmological_Density_Field
     <pass>yes</pass>
    </method>
    <method name="isNodeDependent" >
-    <description>Return true if the critical overdensity is dependent on the {\normalfont \ttfamily node} object (not just the {\normalfont \ttfamily node\%hostTree} object).</description>
+    <description>Return true if the critical overdensity is dependent on the \mono{node} object (not just the \mono{node\%hostTree} object).</description>
     <type>logical</type>
     <pass>yes</pass>
    </method>
    <method name="isTreeDependent" >
-    <description>Return true if the critical overdensity is dependent on the {\normalfont \ttfamily node\%hostTree} object.</description>
+    <description>Return true if the critical overdensity is dependent on the \mono{node\%hostTree} object.</description>
     <type>logical</type>
     <pass>yes</pass>
    </method>
@@ -184,20 +184,20 @@ module Cosmological_Density_Field
    <description>Class providing halo environment.</description>
    <default>uniform</default>
    <method name="overdensityLinear" >
-    <description>Return the environmental linear overdensity for the given {\normalfont \ttfamily node}.</description>
+    <description>Return the environmental linear overdensity for the given \mono{node}.</description>
     <type>double precision</type>
     <pass>yes</pass>
     <argument>type   (treeNode), intent(inout)           :: node</argument>
     <argument>logical          , intent(in   ), optional :: presentDay</argument>
    </method>
    <method name="overdensityLinearGradientTime" >
-    <description>Return the gradient with time of the environmental linear overdensity for the given {\normalfont \ttfamily node}.</description>
+    <description>Return the gradient with time of the environmental linear overdensity for the given \mono{node}.</description>
     <type>double precision</type>
     <pass>yes</pass>
     <argument>type   (treeNode), intent(inout)           :: node</argument>
    </method>
    <method name="overdensityNonLinear" >
-    <description>Return the environmental non-linear overdensity for the given {\normalfont \ttfamily node}.</description>
+    <description>Return the environmental non-linear overdensity for the given \mono{node}.</description>
     <type>double precision</type>
     <pass>yes</pass>
     <argument>type(treeNode), intent(inout) :: node</argument>
@@ -332,7 +332,7 @@ module Cosmological_Density_Field
     <argument>double precision, intent(  out) :: rootVariance, rootVarianceLogarithmicGradient</argument>
    </method>
    <method name="mass" >
-    <description>Return the mass corresponding to the given {\normalfont \ttfamily rootVariance} of the cosmological density field.</description>
+    <description>Return the mass corresponding to the given \mono{rootVariance} of the cosmological density field.</description>
     <type>double precision</type>
     <pass>yes</pass>
     <argument>double precision, intent(in   ) :: rootVariance, time</argument>
@@ -349,7 +349,7 @@ contains
 
   double precision function criticalOverdensityTimeOfCollapse(self,criticalOverdensity,mass,node,status)
     !!{
-    Returns the time of collapse for a perturbation of linear theory overdensity {\normalfont \ttfamily criticalOverdensity}.
+    Returns the time of collapse for a perturbation of linear theory overdensity \mono{criticalOverdensity}.
     !!}
     use :: Cosmology_Functions, only : timeToleranceRelativeBigCrunch
     use :: Root_Finder        , only : rangeExpandMultiplicative     , rangeExpandSignExpectNegative, rangeExpandSignExpectPositive

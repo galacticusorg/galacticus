@@ -98,7 +98,7 @@ contains
 
   integer function presetNamedIntegersElementCount(self,time)
     !!{
-    Return the number of elements in the {\normalfont \ttfamily presetNamedIntegers} property extractors.
+    Return the number of elements in the \mono{presetNamedIntegers} property extractors.
     !!}
     implicit none
     class           (nodePropertyExtractorPresetNamedIntegers), intent(inout) :: self
@@ -134,7 +134,7 @@ contains
 
   subroutine presetNamedIntegersNames(self,time,names)
     !!{
-    Return the names of the {\normalfont \ttfamily presetNamedIntegers} properties.
+    Return the names of the \mono{presetNamedIntegers} properties.
     !!}
     implicit none
     class           (nodePropertyExtractorPresetNamedIntegers), intent(inout)                             :: self
@@ -149,7 +149,7 @@ contains
 
   subroutine presetNamedIntegersDescriptions(self,time,descriptions)
     !!{
-    Return the descriptions of the {\normalfont \ttfamily presetNamedIntegers} properties.
+    Return the descriptions of the \mono{presetNamedIntegers} properties.
     !!}
     implicit none
     class           (nodePropertyExtractorPresetNamedIntegers), intent(inout)                             :: self
@@ -164,7 +164,7 @@ contains
 
   function presetNamedIntegersUnitsInSI(self,time)
     !!{
-    Return the units of the {\normalfont \ttfamily presetNamedIntegers} properties in the SI system.
+    Return the units of the \mono{presetNamedIntegers} properties in the SI system.
     !!}
     implicit none
     double precision                                          , dimension(:) , allocatable :: presetNamedIntegersUnitsInSI

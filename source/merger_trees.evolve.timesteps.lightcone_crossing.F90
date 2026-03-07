@@ -129,7 +129,7 @@ contains
 
   double precision function lightconeCrossingTimeEvolveTo(self,timeEnd,node,task,taskSelf,report,lockNode,lockType)
     !!{
-    Determine a suitable timestep for {\normalfont \ttfamily node} such that it does not exceed the time of the next lightconeCrossing merger.
+    Determine a suitable timestep for \mono{node} such that it does not exceed the time of the next lightconeCrossing merger.
     !!}
     use :: Display               , only : displayMessage
     use :: Evolve_To_Time_Reports, only : Evolve_To_Time_Report

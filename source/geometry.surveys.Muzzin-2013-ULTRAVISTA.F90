@@ -35,7 +35,7 @@ Implements the geometry of the ULTRAVISTA survey used by \cite{muzzin_evolution_
     (i.e. those bright than $13^\mathrm{th}$ and $10.5^\mathrm{th}$ magnitudes in the USNO and 2MASS star lists
     respectively). Finally, we mask regions of one detector for which 75\% of pixels are dead by clipping pixels with weights
     below $0.02$ in the K$_\mathrm{s}$-band weight map. These choices match those made in the ULTRAVISTA survey (A.~Muzzin,
-    private communication). The solid angle of each mask is computed using the \gls{mangle} {\normalfont \ttfamily harmonize}
+    private communication). The solid angle of each mask is computed using the \gls{mangle} \mono{harmonize}
     command.
     
     To determine the depth as a function of stellar mass, we simply fit the

@@ -33,8 +33,7 @@ Implements the survey geometry used by \cite{caputi_stellar_2011}.
     
     To estimate the depth of the \cite{caputi_stellar_2011} sample as a function of galaxy stellar mass we make use of semi-analytic
     models in the Millennium Database. Specifically, we use the \glspl{sam} of \cite{guo_dwarf_2011} and
-    \cite{henriques_confronting_2012} specifically the {\normalfont \ttfamily Guo2010a..MR} and {\normalfont \ttfamily
-      Henriques2012a.wmap1.BC03\_001} tables in the Millennium Database. For each snapshot in the database, we extract the stellar
+    \cite{henriques_confronting_2012} specifically the \mono{Guo2010a..MR} and \mono{Henriques2012a.wmap1.BC03\_001} tables in the Millennium Database. For each snapshot in the database, we extract the stellar
     masses and observed-frame IRAC 4.5$\mu$m apparent magnitudes (including dust extinction), and determine the median apparent
     magnitude as a function of stellar mass. Using the limiting apparent magnitude of the \cite{caputi_stellar_2011} sample,
     $i_{4.5}=24$, we infer the corresponding absolute magnitude at each redshift and, using our derived apparent magnitude--stellar
@@ -256,8 +255,7 @@ contains
 
   double precision function caputi2011UKIDSSUDSSolidAngle(self,field)
     !!{
-    Return the solid angle of the \cite{caputi_stellar_2011} sample. Computed from survey mask (see {\normalfont \ttfamily
-    constraints/dataAnalysis/stellarMassFunctions\_UKIDSS\_UDS\_z3\_5/surveyGeometryRandoms.pl}).
+    Return the solid angle of the \cite{caputi_stellar_2011} sample. Computed from survey mask (see \mono{constraints/dataAnalysis/stellarMassFunctions\_UKIDSS\_UDS\_z3\_5/surveyGeometryRandoms.pl}).
     !!}
     use :: Error, only : Error_Report
     implicit none

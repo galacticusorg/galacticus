@@ -36,7 +36,7 @@ module System_Limits
   interface
      function setResourceLimit(resource,limit) bind(c,name='setResourceLimit_C')
        !!{
-       Template for a C function that calls {\normalfont \ttfamily setrlimit()} to set a resource limit.
+       Template for a C function that calls \mono{setrlimit()} to set a resource limit.
        !!}
        import
        integer(c_int )        :: setResourceLimit

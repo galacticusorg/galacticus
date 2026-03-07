@@ -566,7 +566,7 @@ contains
 
   subroutine scatterFunction1DFinalizeAnalysis(self)
     !!{
-    Finalize analysis of a {\normalfont \ttfamily scatterFunction1D} output analysis.
+    Finalize analysis of a \mono{scatterFunction1D} output analysis.
     !!}
     implicit none
     class           (outputAnalysisScatterFunction1D), intent(inout)                 :: self
@@ -604,7 +604,7 @@ contains
 
   subroutine scatterFunction1DFinalize(self,groupName)
     !!{
-    Implement a {\normalfont \ttfamily scatterFunction1D} output analysis finalization.
+    Implement a \mono{scatterFunction1D} output analysis finalization.
     !!}
     use :: Output_HDF5, only : outputFile
     use :: HDF5_Access, only : hdf5Access

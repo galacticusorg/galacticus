@@ -46,21 +46,19 @@
      j_\mathrm{cool} = \langle j \rangle r_\mathrm{cool} A,
     \end{equation}
     where $r_\mathrm{cool}$ is the cooling radius, $A$ is the rotation normalization and $\langle j \rangle$ is the mean
-    specific angular momentum of the cooling gas, if {\normalfont \ttfamily [useInteriorMean]}$=${\normalfont \ttfamily false},
+    specific angular momentum of the cooling gas, if \mono{[useInteriorMean]}$=$\mono{false},
     or by
     \begin{equation}
      j_\mathrm{cool} = \langle j \rangle {I_3(r_\mathrm{cool})/I_2(r_\mathrm{cool})} A,
     \end{equation}
     where $I_n(r)$ is the $n^\mathrm{th}$ radial moment of the hot gas density profile from $0$ to $r$ (this therefore gives
-    the mean specific angular momentum interior to radius $r$), if {\normalfont \ttfamily [useInteriorMean]}$=${\normalfont
+    the mean specific angular momentum interior to radius $r$), if \mono{[useInteriorMean]}$=${\normalfont
     \ttfamily true}.
   
-    If {\normalfont \ttfamily [sourceAngularMomentumSpecificMean]}$=${\normalfont \ttfamily darkMatter} then $\langle j \rangle$
-    is the mean specific angular momentum of the dark matter halo, while if {\normalfont \ttfamily
-    [sourceAngularMomentumSpecificMean]}$=${\normalfont \ttfamily hotGas} then $\langle j \rangle$ is equal to the mean specific
-    angular momentum of gas currently in the hot gas reservoir. If {\normalfont \ttfamily
-    [sourceNormalizationRotation]}$=${\normalfont \ttfamily darkMatter} then the rotation normalization $A$ is computed using the
-    dark matter density profile, while if {\normalfont \ttfamily [sourceNormalizationRotation]}$=${\normalfont \ttfamily hotGas}
+    If \mono{[sourceAngularMomentumSpecificMean]}$=$\mono{darkMatter} then $\langle j \rangle$
+    is the mean specific angular momentum of the dark matter halo, while if \mono{[sourceAngularMomentumSpecificMean]}$=$\mono{hotGas} then $\langle j \rangle$ is equal to the mean specific
+    angular momentum of gas currently in the hot gas reservoir. If \mono{[sourceNormalizationRotation]}$=$\mono{darkMatter} then the rotation normalization $A$ is computed using the
+    dark matter density profile, while if \mono{[sourceNormalizationRotation]}$=$\mono{hotGas}
     it is computed using the density profile of the hot gas reservoir.
    </description>
   </coolingSpecificAngularMomentum>
@@ -117,7 +115,7 @@ contains
       <name>sourceAngularMomentumSpecificMean</name>
       <defaultValue>var_str('hotGas')</defaultValue>
       <description>
-       The component (``{\normalfont \ttfamily hotGas}'' or ``{\normalfont \ttfamily darkMatter}'') from which the mean specific angular momentum should be computed for
+       The component (``\mono{hotGas}'' or ``\mono{darkMatter}'') from which the mean specific angular momentum should be computed for
        calculations of cooling gas specific angular momentum.
       </description>
       <source>parameters</source>
@@ -126,7 +124,7 @@ contains
       <name>sourceNormalizationRotation</name>
       <defaultValue>var_str('hotGas')</defaultValue>
       <description>
-       The component (``{\normalfont \ttfamily hotGas}'' or ``{\normalfont \ttfamily darkMatter}'') from which the constant rotation speed should be computed for
+       The component (``\mono{hotGas}'' or ``\mono{darkMatter}'') from which the constant rotation speed should be computed for
        calculations of cooling gas specific angular momentum.
       </description>
       <source>parameters</source>

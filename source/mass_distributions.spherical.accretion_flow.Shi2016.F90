@@ -203,7 +203,7 @@ contains
 
   double precision function shi2016Density(self,coordinates) result(density)
     !!{
-    Return the density at the specified {\normalfont \ttfamily coordinates} in a accretion flow modeled on the 2-halo correlation function.
+    Return the density at the specified \mono{coordinates} in a accretion flow modeled on the 2-halo correlation function.
     !!}
     implicit none
     class(massDistributionShi2016), intent(inout) :: self
@@ -223,7 +223,7 @@ contains
 
   double precision function shi2016DensityGradientRadial(self,coordinates,logarithmic) result(densityGradientRadial)
     !!{
-    Return the radial density gradient at the specified {\normalfont \ttfamily coordinates} in a accretion flow modeled on the 2-halo correlation function.
+    Return the radial density gradient at the specified \mono{coordinates} in a accretion flow modeled on the 2-halo correlation function.
     !!}
     implicit none
     class  (massDistributionShi2016), intent(inout), target   :: self

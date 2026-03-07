@@ -25,7 +25,7 @@ Implements a property extractor class that extracts the redshift at which a \gls
 
   !![
   <nodePropertyExtractor name="nodePropertyExtractorRedshiftLastIsolated">
-   <description>A node property extractor class which extracts the redshift at which a \gls{node} was last isolated---named ``{\normalfont \ttfamily redshiftLastIsolated}''.</description>
+   <description>A node property extractor class which extracts the redshift at which a \gls{node} was last isolated---named ``\mono{redshiftLastIsolated}''.</description>
   </nodePropertyExtractor>
   !!]
   type, extends(nodePropertyExtractorScalar) :: nodePropertyExtractorRedshiftLastIsolated

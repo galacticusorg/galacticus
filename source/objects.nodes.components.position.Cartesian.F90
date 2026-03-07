@@ -108,8 +108,7 @@ contains
 
   subroutine nodePromotion(self,node)
     !!{
-    Ensure that {\normalfont \ttfamily node} is ready for promotion to its parent. In this case, update the position of {\normalfont \ttfamily
-    node} to that of the parent.
+    Ensure that \mono{node} is ready for promotion to its parent. In this case, update the position of \mono{node} to that of the parent.
     !!}
     use :: Galacticus_Nodes, only : nodeComponentPosition, nodeComponentPositionCartesian, treeNode
     implicit none
@@ -137,7 +136,7 @@ contains
   subroutine Node_Component_Position_Cartesian_Inter_Tree_Insert(node,replaceNode)
     !!{
     A satellite node is being moved between trees, and being added as a new satellite. Its (future-)histories will have been
-    assigned to the {\normalfont \ttfamily replaceNode} so must be transferred.
+    assigned to the \mono{replaceNode} so must be transferred.
     !!}
     use :: Galacticus_Nodes, only : defaultPositionComponent, nodeComponentBasic, nodeComponentPosition, treeNode
     use :: Histories       , only : history

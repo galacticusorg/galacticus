@@ -105,7 +105,7 @@ contains
 
   double precision function haloBiasExtract(self,node,instance)
     !!{
-    Implement a {\normalfont \ttfamily haloBias} node property extractor.
+    Implement a \mono{haloBias} node property extractor.
     !!}
     implicit none
     class           (nodePropertyExtractorHaloBias), intent(inout), target   :: self
@@ -151,7 +151,7 @@ contains
 
   double precision function haloBiasUnitsInSI(self)
     !!{
-    Return the units of the {\normalfont \ttfamily haloBias} property in the SI system.
+    Return the units of the \mono{haloBias} property in the SI system.
     !!}
     implicit none
     class(nodePropertyExtractorHaloBias), intent(inout) :: self

@@ -23,13 +23,13 @@ Implements a merger tree filter class which is the ``all'' combination of a set 
 
   !![
   <mergerTreeFilter name="mergerTreeFilterAll">
-   <description>A merger tree filter class which is the {\normalfont \ttfamily all} combination of a set of other filters.</description>
+   <description>A merger tree filter class which is the \mono{all} combination of a set of other filters.</description>
    <linkedList type="filterList" variable="filters" next="next" object="filter_" objectType="mergerTreeFilterClass"/>
   </mergerTreeFilter>
   !!]
   type, extends(mergerTreeFilterClass) :: mergerTreeFilterAll
      !!{
-     A merger tree filter class which is the {\normalfont \ttfamily all} combination of a set of other filters.
+     A merger tree filter class which is the \mono{all} combination of a set of other filters.
      !!}
      private
      type(filterList), pointer :: filters => null()
@@ -123,7 +123,7 @@ contains
 
   logical function allPasses(self,tree)
     !!{
-    Apply a set of filters to a {\normalfont \ttfamily tree} combined with ``all'' operations.
+    Apply a set of filters to a \mono{tree} combined with ``all'' operations.
     !!}
     implicit none
     class(mergerTreeFilterAll), intent(inout) :: self

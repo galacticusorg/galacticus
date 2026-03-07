@@ -35,13 +35,13 @@ contains
     !!{
     Topological sorting function. Based on the example from \href{https://www.rosettacode.org/wiki/Topological_sort\#Modern_Fortran}{Rosetta Code}. Arguments are:
     \begin{description}
-     \item[{\normalfont \ttfamily countObjects}\argin] the number of objects to be sorted;
-     \item[{\normalfont \ttfamily countDependencies}\argin] the number of dependencies;
-     \item[{\normalfont \ttfamily dependencies}\argin] an array of dependencies, such that {\normalfont \ttfamily dependencies(:,1)} depends on {\normalfont \ttfamily dependencies(:,2)};
-     \item[{\normalfont \ttfamily order}\argout] an array giving the order of the objects after sorting;
-     \item[{\normalfont \ttfamily countOrdered}\argout] a count of the objects which were ordered by the sort, such that {\normalfont \ttfamily order(1:countOrdered)} contains the ordered objects, while the remainder of {\normalfont \ttfamily order()} contains objects that were unordered (i.e. had no dependencies).
+     \item[\mono{countObjects}\argin] the number of objects to be sorted;
+     \item[\mono{countDependencies}\argin] the number of dependencies;
+     \item[\mono{dependencies}\argin] an array of dependencies, such that \mono{dependencies(:,1)} depends on \mono{dependencies(:,2)};
+     \item[\mono{order}\argout] an array giving the order of the objects after sorting;
+     \item[\mono{countOrdered}\argout] a count of the objects which were ordered by the sort, such that \mono{order(1:countOrdered)} contains the ordered objects, while the remainder of \mono{order()} contains objects that were unordered (i.e. had no dependencies).
     \end{description}
-    The unordered objects are those for which no solution is available---i.e. the graph is not acyclic. So, if {\normalfont \ttfamily order}$<${\normalfont \ttfamily countObjects} then one or more circular dependencies existed in the graph.
+    The unordered objects are those for which no solution is available---i.e. the graph is not acyclic. So, if \mono{order}$<$\mono{countObjects} then one or more circular dependencies existed in the graph.
     !!}
     use :: Error, only : Error_Report, errorStatusFail, errorStatusSuccess
     implicit none

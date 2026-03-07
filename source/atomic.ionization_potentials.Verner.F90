@@ -542,8 +542,8 @@ contains
 
   double precision function vernerPotential(self,atomicNumber,electronNumber)
     !!{
-    Return the ionization potential (in units of electron volts) for the ion with given {\normalfont \ttfamily atomicNumber} and
-    {\normalfont \ttfamily electronNumber} using data taken from Dima Verner's
+    Return the ionization potential (in units of electron volts) for the ion with given \mono{atomicNumber} and
+    \mono{electronNumber} using data taken from Dima Verner's
     \href{https://web.archive.org/web/20220313133801/https://www.pa.uky.edu/~verner/dima/col/cfit.f}{code}.
     !!}
     implicit none

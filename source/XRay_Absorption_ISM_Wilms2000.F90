@@ -18,11 +18,10 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
 !!{
-Contains a program which wraps the {\normalfont \ttfamily dotbvabs} function (which implements the model of \citealt{wilms_absorption_2000}) from
+Contains a program which wraps the \mono{dotbvabs} function (which implements the model of \citealt{wilms_absorption_2000}) from
 \href{https://heasarc.gsfc.nasa.gov/xanadu/xspec/}{\normalfont \scshape XSpec} to produce a table of X-ray absorption cross-sections in the
 \gls{ism}. This program assumes that various files from \href{https://heasarc.gsfc.nasa.gov/xanadu/xspec/}{\normalfont \scshape XSpec} have been
-downloaded into the {\normalfont \ttfamily aux/XSpec} folder---usually this program will be run automatically as needed by the {\normalfont \ttfamily
-Galacticus::ISMCrossSections} module.
+downloaded into the \mono{aux/XSpec} folder---usually this program will be run automatically as needed by the \mono{Galacticus::ISMCrossSections} module.
 !!}
 
 ! Add explicit dependencies on the XSpec files.
@@ -31,12 +30,11 @@ Galacticus::ISMCrossSections} module.
 
 program XRay_Absorption_ISM_Wilms2000
   !!{
-  Wraps the {\normalfont \ttfamily dotbvabs} function (which implements the model of \citealt{wilms_absorption_2000}) from
+  Wraps the \mono{dotbvabs} function (which implements the model of \citealt{wilms_absorption_2000}) from
   \href{https://heasarc.gsfc.nasa.gov/xanadu/xspec/}{\normalfont \scshape XSpec} to produce a table of X-ray absorption
   cross-sections in the \gls{ism}. This program assumes that various files from
   \href{https://heasarc.gsfc.nasa.gov/xanadu/xspec/}{\normalfont \scshape XSpec} have been downloaded into the {\normalfont
-  \ttfamily aux/XSpec} folder---usually this program will be run automatically as needed by the {\normalfont \ttfamily
-  Galacticus::ISMColumnDensity} module.
+  \ttfamily aux/XSpec} folder---usually this program will be run automatically as needed by the \mono{Galacticus::ISMColumnDensity} module.
   !!}
   use :: Atomic_Cross_Sections_Compton, only : Atomic_Cross_Section_Compton
   use :: Dates_and_Times              , only : Formatted_Date_and_Time
@@ -120,7 +118,7 @@ end program XRay_Absorption_ISM_Wilms2000
 
 subroutine xwrite(msg,i)
   !!{
-  Message display function required by {\normalfont \ttfamily dotbvabs}.
+  Message display function required by \mono{dotbvabs}.
   !!}
   implicit none
   character(len=*), intent(in   ) :: msg
@@ -132,7 +130,7 @@ end subroutine xwrite
 
 subroutine xermsg(a,b,c,i,j)
   !!{
-  Error message function required by {\normalfont \ttfamily dotbvabs}.
+  Error message function required by \mono{dotbvabs}.
   !!}
   use, intrinsic :: ISO_Fortran_Env, only : output_unit
   use :: Error, only : Error_Report
@@ -149,7 +147,7 @@ end subroutine xermsg
 
 real function fgabnd(c)
   !!{
-  Function to return the abundance (relative to hydrogen) of elements. Required by {\normalfont \ttfamily dotbvabs}.
+  Function to return the abundance (relative to hydrogen) of elements. Required by \mono{dotbvabs}.
   !!}
   use :: Error, only : Error_Report
   implicit none

@@ -53,8 +53,7 @@ Implements a class for the conditional mass functions using the \cite{behroozi_c
      {M_\mathrm{cut} \over 10^{12} M_\odot} = B_\mathrm{cut} \left({f^{-1}_\mathrm{SHMR}(M_\star) \over 10^{12}
      M_\odot}\right)^{\beta_\mathrm{cut}}.
     \end{equation}
-    By default, parameter values are taken from the fit of \cite{leauthaud_new_2011}, specifically their {\normalfont \ttfamily
-    SIG\_MOD1} method for their $z_1$ sample. These default values, and the \glc\ input parameters which can be used to adjust
+    By default, parameter values are taken from the fit of \cite{leauthaud_new_2011}, specifically their \mono{SIG\_MOD1} method for their $z_1$ sample. These default values, and the \glc\ input parameters which can be used to adjust
     them are shown in Table~\ref{table:Behroozi2010FitParameters}. This method assumes that $P_\mathrm{s}(N|M_\star,M;\delta
     \ln M_\star)$ is a Poisson distribution while $P_\mathrm{c}(N|M_\star,M;\delta \ln M_\star)$ has a Bernoulli distribution,
     with each distribution's free parameter fixed by requiring
@@ -70,17 +69,17 @@ Implements a class for the conditional mass functions using the \cite{behroozi_c
     \hline
     {\normalfont \bfseries Parameter} &amp; \multicolumn{2}{c}{{\normalfont \bfseries Default}} &amp; {\normalfont \bfseries \glc\ name} \\
     \hline
-    $\alpha_\mathrm{sat}$&amp; 1&amp;0&amp; {\normalfont \ttfamily [conditionalStellarMassFunctionBehrooziAlphaSatellite]} \\
-    $\log_{10} M_1$&amp; 12&amp;520&amp; {\normalfont \ttfamily [conditionalStellarMassFunctionBehrooziLog10M1]} \\
-    $\log_{10} M_{\star,0}$&amp; 10&amp;916&amp; {\normalfont \ttfamily [conditionalStellarMassFunctionBehrooziLog10Mstar0]} \\
-    $\beta$&amp; 0&amp;457&amp; {\normalfont \ttfamily [conditionalStellarMassFunctionBehrooziBeta]} \\
-    $\delta$&amp; 0&amp;5666&amp; {\normalfont \ttfamily [conditionalStellarMassFunctionBehrooziDelta]} \\
-    $\gamma$&amp; 1&amp;53&amp; {\normalfont \ttfamily [conditionalStellarMassFunctionBehrooziGamma]} \\
-    $\sigma_{\log M_\star}$&amp; 0&amp;206&amp; {\normalfont \ttfamily [conditionalStellarMassFunctionBehrooziSigmaLogMstar]} \\
-    $B_\mathrm{cut}$&amp; 1&amp;47&amp; {\normalfont \ttfamily [conditionalStellarMassFunctionBehrooziBCut]} \\
-    $B_\mathrm{sat}$&amp; 10&amp;62&amp; {\normalfont \ttfamily [conditionalStellarMassFunctionBehrooziBSatellite]} \\
-    $\beta_\mathrm{cut}$&amp; $-$0&amp;13&amp; {\normalfont \ttfamily [conditionalStellarMassFunctionBehrooziBetaCut]} \\
-    $\beta_\mathrm{sat}$&amp; 0&amp;859&amp; {\normalfont \ttfamily [conditionalStellarMassFunctionBehrooziBetaCut]} \\
+    $\alpha_\mathrm{sat}$&amp; 1&amp;0&amp; \mono{[conditionalStellarMassFunctionBehrooziAlphaSatellite]} \\
+    $\log_{10} M_1$&amp; 12&amp;520&amp; \mono{[conditionalStellarMassFunctionBehrooziLog10M1]} \\
+    $\log_{10} M_{\star,0}$&amp; 10&amp;916&amp; \mono{[conditionalStellarMassFunctionBehrooziLog10Mstar0]} \\
+    $\beta$&amp; 0&amp;457&amp; \mono{[conditionalStellarMassFunctionBehrooziBeta]} \\
+    $\delta$&amp; 0&amp;5666&amp; \mono{[conditionalStellarMassFunctionBehrooziDelta]} \\
+    $\gamma$&amp; 1&amp;53&amp; \mono{[conditionalStellarMassFunctionBehrooziGamma]} \\
+    $\sigma_{\log M_\star}$&amp; 0&amp;206&amp; \mono{[conditionalStellarMassFunctionBehrooziSigmaLogMstar]} \\
+    $B_\mathrm{cut}$&amp; 1&amp;47&amp; \mono{[conditionalStellarMassFunctionBehrooziBCut]} \\
+    $B_\mathrm{sat}$&amp; 10&amp;62&amp; \mono{[conditionalStellarMassFunctionBehrooziBSatellite]} \\
+    $\beta_\mathrm{cut}$&amp; $-$0&amp;13&amp; \mono{[conditionalStellarMassFunctionBehrooziBetaCut]} \\
+    $\beta_\mathrm{sat}$&amp; 0&amp;859&amp; \mono{[conditionalStellarMassFunctionBehrooziBetaCut]} \\
     \hline
     \end{tabular}
     \end{center}
@@ -164,77 +163,77 @@ contains
     !![
     <inputParameter>
       <name>alphaSatellite</name>
-      <defaultSource>(\citealt{leauthaud_new_2011}; $z_1$ sample using their {\normalfont \ttfamily SIG\_MOD1} method)</defaultSource>
+      <defaultSource>(\citealt{leauthaud_new_2011}; $z_1$ sample using their \mono{SIG\_MOD1} method)</defaultSource>
       <defaultValue>1.0d0</defaultValue>
       <description>The parameter $\alpha_\mathrm{sat}$ from the fitting functions of \cite{behroozi_comprehensive_2010}.</description>
       <source>parameters</source>
     </inputParameter>
     <inputParameter>
       <name>log10M1</name>
-      <defaultSource>(\citealt{leauthaud_new_2011}; $z_1$ sample using their {\normalfont \ttfamily SIG\_MOD1} method)</defaultSource>
+      <defaultSource>(\citealt{leauthaud_new_2011}; $z_1$ sample using their \mono{SIG\_MOD1} method)</defaultSource>
       <defaultValue>12.520d0</defaultValue>
       <description>The parameter $\log_{10}M_1$ from the fitting functions of \cite{behroozi_comprehensive_2010}.</description>
       <source>parameters</source>
     </inputParameter>
     <inputParameter>
       <name>log10Mstar0</name>
-      <defaultSource>(\citealt{leauthaud_new_2011}; $z_1$ sample using their {\normalfont \ttfamily SIG\_MOD1} method)</defaultSource>
+      <defaultSource>(\citealt{leauthaud_new_2011}; $z_1$ sample using their \mono{SIG\_MOD1} method)</defaultSource>
       <defaultValue>10.916d0</defaultValue>
       <description>The parameter $\log_{10}M_{\star,0}$ from the fitting functions of \cite{behroozi_comprehensive_2010}.</description>
       <source>parameters</source>
     </inputParameter>
     <inputParameter>
       <name>beta</name>
-      <defaultSource>(\citealt{leauthaud_new_2011}; $z_1$ sample using their {\normalfont \ttfamily SIG\_MOD1} method)</defaultSource>
+      <defaultSource>(\citealt{leauthaud_new_2011}; $z_1$ sample using their \mono{SIG\_MOD1} method)</defaultSource>
       <defaultValue>0.457d0</defaultValue>
       <description>The parameter $\beta$ from the fitting functions of \cite{behroozi_comprehensive_2010}.</description>
       <source>parameters</source>
     </inputParameter>
     <inputParameter>
       <name>delta</name>
-      <defaultSource>(\citealt{leauthaud_new_2011}; $z_1$ sample using their {\normalfont \ttfamily SIG\_MOD1} method)</defaultSource>
+      <defaultSource>(\citealt{leauthaud_new_2011}; $z_1$ sample using their \mono{SIG\_MOD1} method)</defaultSource>
       <defaultValue>0.5666d0</defaultValue>
       <description>The parameter $\delta$ from the fitting functions of \cite{behroozi_comprehensive_2010}.</description>
       <source>parameters</source>
     </inputParameter>
     <inputParameter>
       <name>gamma</name>
-      <defaultSource>(\citealt{leauthaud_new_2011}; $z_1$ sample using their {\normalfont \ttfamily SIG\_MOD1} method)</defaultSource>
+      <defaultSource>(\citealt{leauthaud_new_2011}; $z_1$ sample using their \mono{SIG\_MOD1} method)</defaultSource>
       <defaultValue>1.53d0</defaultValue>
       <description>The parameter $\gamma$ from the fitting functions of \cite{behroozi_comprehensive_2010}.</description>
       <source>parameters</source>
     </inputParameter>
     <inputParameter>
       <name>sigmaLogMstar</name>
-      <defaultSource>(\citealt{leauthaud_new_2011}; $z_1$ sample using their {\normalfont \ttfamily SIG\_MOD1} method)</defaultSource>
+      <defaultSource>(\citealt{leauthaud_new_2011}; $z_1$ sample using their \mono{SIG\_MOD1} method)</defaultSource>
       <defaultValue>0.206d0</defaultValue>
       <description>The parameter $\sigma_{\log M_\star}$ from the fitting functions of \cite{behroozi_comprehensive_2010}.</description>
       <source>parameters</source>
     </inputParameter>
     <inputParameter>
       <name>BCut</name>
-      <defaultSource>(\citealt{leauthaud_new_2011}; $z_1$ sample using their {\normalfont \ttfamily SIG\_MOD1} method)</defaultSource>
+      <defaultSource>(\citealt{leauthaud_new_2011}; $z_1$ sample using their \mono{SIG\_MOD1} method)</defaultSource>
       <defaultValue>1.47d0</defaultValue>
       <description>The parameter $B_\mathrm{cut}$ from the fitting functions of \cite{behroozi_comprehensive_2010}.</description>
       <source>parameters</source>
     </inputParameter>
     <inputParameter>
       <name>BSatellite</name>
-      <defaultSource>(\citealt{leauthaud_new_2011}; $z_1$ sample using their {\normalfont \ttfamily SIG\_MOD1} method)</defaultSource>
+      <defaultSource>(\citealt{leauthaud_new_2011}; $z_1$ sample using their \mono{SIG\_MOD1} method)</defaultSource>
       <defaultValue>10.62d0</defaultValue>
       <description>The parameter $B_\mathrm{sat}$ from the fitting functions of \cite{behroozi_comprehensive_2010}.</description>
       <source>parameters</source>
     </inputParameter>
     <inputParameter>
       <name>betaCut</name>
-      <defaultSource>(\citealt{leauthaud_new_2011}; $z_1$ sample using their {\normalfont \ttfamily SIG\_MOD1} method)</defaultSource>
+      <defaultSource>(\citealt{leauthaud_new_2011}; $z_1$ sample using their \mono{SIG\_MOD1} method)</defaultSource>
       <defaultValue>-0.13d0</defaultValue>
       <description>The parameter $\beta_\mathrm{cut}$ from the fitting functions of \cite{behroozi_comprehensive_2010}.</description>
       <source>parameters</source>
     </inputParameter>
     <inputParameter>
       <name>betaSatellite</name>
-      <defaultSource>(\citealt{leauthaud_new_2011}; $z_1$ sample using their {\normalfont \ttfamily SIG\_MOD1} method)</defaultSource>
+      <defaultSource>(\citealt{leauthaud_new_2011}; $z_1$ sample using their \mono{SIG\_MOD1} method)</defaultSource>
       <defaultValue>0.859d0</defaultValue>
       <description>The parameter $\beta_\mathrm{sat}$ from the fitting functions of \cite{behroozi_comprehensive_2010}.</description>
       <source>parameters</source>

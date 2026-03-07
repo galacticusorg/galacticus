@@ -123,7 +123,7 @@ contains
 
   double precision function rodriguezPuebla2016Normalization(self,time,mass)
     !!{
-    Return the normalization for the {\normalfont \ttfamily rodriguezPuebla2016} halo mass function class.
+    Return the normalization for the \mono{rodriguezPuebla2016} halo mass function class.
     !!}
     implicit none
     class           (haloMassFunctionRodriguezPuebla2016), intent(inout) :: self
@@ -147,7 +147,7 @@ contains
 
   double precision function rodriguezPuebla2016A(self,time,mass)
     !!{
-    Return the normalization for the {\normalfont \ttfamily rodriguezPuebla2016} halo mass function class.
+    Return the normalization for the \mono{rodriguezPuebla2016} halo mass function class.
     !!}
     implicit none
     class           (haloMassFunctionRodriguezPuebla2016), intent(inout) :: self
@@ -172,7 +172,7 @@ contains
 
   double precision function rodriguezPuebla2016B(self,time,mass)
     !!{
-    Return the normalization for the {\normalfont \ttfamily rodriguezPuebla2016} halo mass function class.
+    Return the normalization for the \mono{rodriguezPuebla2016} halo mass function class.
     !!}
     implicit none
     class           (haloMassFunctionRodriguezPuebla2016), intent(inout) :: self
@@ -197,7 +197,7 @@ contains
 
   double precision function rodriguezPuebla2016C(self,time,mass)
     !!{
-    Return the normalization for the {\normalfont \ttfamily rodriguezPuebla2016} halo mass function class.
+    Return the normalization for the \mono{rodriguezPuebla2016} halo mass function class.
     !!}
     implicit none
     class           (haloMassFunctionRodriguezPuebla2016), intent(inout) :: self

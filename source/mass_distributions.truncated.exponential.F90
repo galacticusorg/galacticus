@@ -31,8 +31,7 @@
        \rho(r) = \rho^\prime(r_\mathrm{min}) \left\{ \begin{array}{ll} 1 &amp; \hbox{ if } r &lt; r_\mathrm{min}, \\ \rho^\prime(r_\mathrm{min} x^\kappa \exp\left(-\frac{x-1}{x_\mathrm{max}}\right) &amp; \hbox{otherwise,} \end{array} \right.
      \end{equation}
      where $x = r/r_\mathrm{min}$, $x_\mathrm{decay} = r_\mathrm{decay}/r_\mathrm{min}$, $\rho^\prime(r)$ is some other density
-     profile, $r_\mathrm{min}=${\normalfont \ttfamily [radiusTruncateMinimum]}, $r_\mathrm{decay}=${\normalfont \ttfamily
-     [radiusTruncateDecay]}, and
+     profile, $r_\mathrm{min}=$\mono{[radiusTruncateMinimum]}, $r_\mathrm{decay}=$\mono{[radiusTruncateDecay]}, and
      \begin{equation}
      \kappa = \frac{r_\mathrm{min}}{r_\mathrm{decay}} + \frac{\mathrm{d}\log \rho^\prime}{\mathrm{d}\log r}(r_\mathrm{min})
      \end{equation}
@@ -189,7 +188,7 @@ contains
 
   double precision function sphericalTruncatedExponentialDensity(self,coordinates) result(density)
     !!{
-    Return the density at the specified {\normalfont \ttfamily coordinates} in an exponentially-truncated spherical mass distribution.
+    Return the density at the specified \mono{coordinates} in an exponentially-truncated spherical mass distribution.
     !!}
     implicit none
     class(massDistributionSphericalTruncatedExponential), intent(inout) :: self
@@ -216,7 +215,7 @@ contains
 
   double precision function sphericalTruncatedExponentialDensityGradientRadial(self,coordinates,logarithmic) result(densityGradient)
     !!{
-    Return the density gradient at the specified {\normalfont \ttfamily coordinates} in an exponentially-truncated spherical mass distribution.
+    Return the density gradient at the specified \mono{coordinates} in an exponentially-truncated spherical mass distribution.
     !!}
     use :: Error, only : Error_Report
     implicit none
@@ -276,7 +275,7 @@ contains
   
   double precision function sphericalTruncatedExponentialMassEnclosedBySphere(self,radius) result(mass)
     !!{
-    Computes the mass enclosed within a sphere of given {\normalfont \ttfamily radius} for truncatedExponential mass distributions.
+    Computes the mass enclosed within a sphere of given \mono{radius} for truncatedExponential mass distributions.
     !!}
     use :: Gamma_Functions, only : Gamma_Function_Incomplete_Unnormalized
     implicit none

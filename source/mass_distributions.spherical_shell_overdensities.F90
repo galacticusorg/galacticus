@@ -41,7 +41,7 @@
     \begin{equation}
      n_\mathrm{c} = {f_\mathrm{v} \over (4 \pi / 3 ) r_\mathrm{c}^3}.
     \end{equation}
-    Along a sightline of length $l$ (specified by the {\normalfont \ttfamily [radiusBoundary]} parameter) the number of clouds
+    Along a sightline of length $l$ (specified by the \mono{[radiusBoundary]} parameter) the number of clouds
     intersected is
     \begin{equation}
      N_\mathrm{c} = n_\mathrm{c} l 4 \pi r_\mathrm{c}^2 = 3 f_\mathrm{v} {l \over r_\mathrm{c}}.
@@ -240,7 +240,7 @@ contains
 
   double precision function sphericalShellOverdensitiesDensity(self,coordinates)
     !!{
-    Return the density at the specified {\normalfont \ttfamily coordinates} in a cloud overdensities mass distribution.
+    Return the density at the specified \mono{coordinates} in a cloud overdensities mass distribution.
     !!}
     use :: Arrays_Search, only : searchArrayClosest
     use :: Coordinates  , only : assignment(=)     , coordinateSpherical

@@ -40,7 +40,7 @@ module File_Utilities
 
   interface Count_Lines_in_File
      !!{
-     Generic interface for {\normalfont \ttfamily Count\_Lines\_in\_File} function.
+     Generic interface for \mono{Count\_Lines\_in\_File} function.
      !!}
      module procedure Count_Lines_in_File_Char
      module procedure Count_Lines_in_File_VarStr
@@ -121,7 +121,7 @@ module File_Utilities
   interface
      function mkdir_C(name) bind(c,name='mkdir_C')
        !!{
-       Template for a C function that calls {\normalfont \ttfamily mkdir()} to make a directory.
+       Template for a C function that calls \mono{mkdir()} to make a directory.
        !!}
        import
        integer  (c_int ) :: mkdir_C
@@ -132,7 +132,7 @@ module File_Utilities
   interface
      function rmdir_C(name) bind(c,name='rmdir_C')
        !!{
-       Template for a C function that calls {\normalfont \ttfamily rmdir()} to remove a directory.
+       Template for a C function that calls \mono{rmdir()} to remove a directory.
        !!}
        import
        integer  (c_int ) :: rmdir_C
@@ -143,7 +143,7 @@ module File_Utilities
   interface
      function unlink_C(name) bind(c,name='unlink_C')
        !!{
-       Template for a C function that calls {\normalfont \ttfamily unlink()} to remove a file.
+       Template for a C function that calls \mono{unlink()} to remove a file.
        !!}
        import
        integer  (c_int ) :: unlink_C
@@ -154,7 +154,7 @@ module File_Utilities
   interface
      function rename_C(nameOld,nameNew) bind(c,name='rename_C')
        !!{
-       Template for a C function that calls {\normalfont \ttfamily rename()} to rename a file.
+       Template for a C function that calls \mono{rename()} to rename a file.
        !!}
        import
        integer  (c_int ) :: rename_C
@@ -165,7 +165,7 @@ module File_Utilities
   interface
      function flock_C(name,ld,lockIsShared,timeSleep,countAttempts) bind(c,name='flock_C')
        !!{
-       Template for a C function that calls {\normalfont \ttfamily flock()} to lock a file.
+       Template for a C function that calls \mono{flock()} to lock a file.
        !!}
        import
        integer  (c_int )        :: flock_C
@@ -179,7 +179,7 @@ module File_Utilities
   interface
      subroutine funlock_C(ld) bind(c,name='funlock_C')
        !!{
-       Template for a C function that calls {\normalfont \ttfamily flock()} to unlock a file.
+       Template for a C function that calls \mono{flock()} to unlock a file.
        !!}
        import
        type(c_ptr) :: ld
@@ -199,7 +199,7 @@ module File_Utilities
   interface
      function access_C(name) bind(c,name='access_C')
        !!{
-       Template for a C function that calls {\normalfont \ttfamily access()} to check for file existence.
+       Template for a C function that calls \mono{access()} to check for file existence.
        !!}
        import
        integer  (c_int ) :: access_C
@@ -236,7 +236,7 @@ contains
 
   logical function File_Exists_VarStr(fileName)
     !!{
-    Checks for existence of file {\normalfont \ttfamily fileName} (version for varying string argument).
+    Checks for existence of file \mono{fileName} (version for varying string argument).
     !!}
     use :: ISO_Varying_String, only : char
     implicit none
@@ -248,7 +248,7 @@ contains
 
   logical function File_Exists_Char(fileName)
     !!{
-    Checks for existence of file {\normalfont \ttfamily fileName} (version for character argument).
+    Checks for existence of file \mono{fileName} (version for character argument).
     !!}
     use :: ISO_Varying_String, only : char, extract, operator(==), len
     implicit none
@@ -285,7 +285,7 @@ contains
 
   integer function Count_Lines_in_File_VarStr(in_file,comment_char)
     !!{
-    Returns the number of lines in the file {\normalfont \ttfamily in\_file} (version for varying string argument).
+    Returns the number of lines in the file \mono{in\_file} (version for varying string argument).
     !!}
     use :: ISO_Varying_String, only : char
     implicit none
@@ -302,7 +302,7 @@ contains
 
   integer function Count_Lines_in_File_Char(in_file,comment_char)
     !!{
-    Returns the number of lines in the file {\normalfont \ttfamily in\_file} (version for character argument).
+    Returns the number of lines in the file \mono{in\_file} (version for character argument).
     !!}
     use :: Error, only : Error_Report
     implicit none
@@ -482,7 +482,7 @@ contains
 
     subroutine Get_Paths(pathsLength)
       !!{
-      Retrieve the {\normalfont \ttfamily PATH} environment variable.
+      Retrieve the \mono{PATH} environment variable.
       !!}
       use :: ISO_Varying_String, only : assignment(=)
       implicit none

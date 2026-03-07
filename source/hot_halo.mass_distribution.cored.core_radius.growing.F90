@@ -28,11 +28,9 @@
   !![
   <hotHaloMassDistributionCoreRadius name="hotHaloMassDistributionCoreRadiusGrowing">
    <description>
-    A hot halo mass distribution core radius class which implements a core radius equal to a fraction {\normalfont \ttfamily
-    [coreRadiusOverScaleRadius]} of the node's dark matter profile scale radius for nodes containing a mass of hot gas equal to
+    A hot halo mass distribution core radius class which implements a core radius equal to a fraction \mono{[coreRadiusOverScaleRadius]} of the node's dark matter profile scale radius for nodes containing a mass of hot gas equal to
     the universal baryon fraction times their total mass. For nodes containing less hot gas mass, the core radius is expanded
-    to maintain the same gas density at the virial radius, with a maximum core radius of {\normalfont \ttfamily
-    [coreRadiusOverVirialRadiusMaximum]} times the node's virial radius.
+    to maintain the same gas density at the virial radius, with a maximum core radius of \mono{[coreRadiusOverVirialRadiusMaximum]} times the node's virial radius.
    </description>
   </hotHaloMassDistributionCoreRadius>
   !!]
@@ -108,7 +106,7 @@ contains
 
   function growingConstructorInternal(coreRadiusOverScaleRadius,coreRadiusOverVirialRadiusMaximum,darkMatterHaloScale_,cosmologyParameters_) result(self)
     !!{
-    Default constructor for the {\normalfont \ttfamily growing} hot halo mass distribution core radius class.
+    Default constructor for the \mono{growing} hot halo mass distribution core radius class.
     !!}
     use :: Error           , only : Component_List                   , Error_Report
     use :: Galacticus_Nodes, only : defaultDarkMatterProfileComponent

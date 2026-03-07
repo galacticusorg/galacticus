@@ -18,12 +18,12 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
 !!{
-Contains a module of utilities needed by the {\normalfont \ttfamily percolation} virial density contrast class.
+Contains a module of utilities needed by the \mono{percolation} virial density contrast class.
 !!}
 
 module Virial_Density_Contrast_Percolation_Utilities
   !!{
-  Provides utilities needed by the {\normalfont \ttfamily percolation} virial density contrast class.
+  Provides utilities needed by the \mono{percolation} virial density contrast class.
   !!}
   use :: Cosmology_Functions               , only : cosmologyFunctions            , cosmologyFunctionsClass
   use :: Cosmology_Parameters              , only : cosmologyParameters           , cosmologyParametersClass

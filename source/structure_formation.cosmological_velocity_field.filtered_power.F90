@@ -55,7 +55,7 @@
      !![
      <methods>
       <method description="Compute the function $\sigma_j^2(m) = {1 \over 2 \pi^2} \int_0^\infty \mathrm{d}k k^{2+2j} P(k) W^2[kR(m)]$, e.g. \cite[][unnumbered equation following eqn.~8]{sheth_peculiar_2001}."                    method="sigmaJ"        />
-      <method description="Compute the peak correction term for the velocity dispersion of halos of given {\normalfont \ttfamily mass}, e.g. \cite[][eqn.~8]{sheth_peculiar_2001}, and \cite[][eqn. 4.26]{bardeen_statistics_1986}." method="peakCorrection"/>
+      <method description="Compute the peak correction term for the velocity dispersion of halos of given \mono{mass}, e.g. \cite[][eqn.~8]{sheth_peculiar_2001}, and \cite[][eqn. 4.26]{bardeen_statistics_1986}." method="peakCorrection"/>
      </methods>
      !!]
      final     ::                                     filteredPowerDestructor
@@ -159,8 +159,8 @@ contains
 
   double precision function filteredPowerVelocityRadialMeanPairwise(self,separation,time,includeHubbleFlow)
     !!{
-    Return the mean radial velocity (averaged over all positions) at a given {\normalfont \ttfamily separation} and
-    {\normalfont \ttfamily time}. If {\normalfont \ttfamily includeHubbleFlow} is {\normalfont \ttfamily true} then the Hubble
+    Return the mean radial velocity (averaged over all positions) at a given \mono{separation} and
+    \mono{time}. If \mono{includeHubbleFlow} is \mono{true} then the Hubble
     flow is included, otherwise only the peculiar component of the mean radial velocity is computed.
     !!}
     implicit none
@@ -370,7 +370,7 @@ contains
 
   double precision function filteredPowerPeakCorrection(self,mass,time)
     !!{
-    Compute the peak correction term for the velocity dispersion of halos of given {\normalfont \ttfamily mass},
+    Compute the peak correction term for the velocity dispersion of halos of given \mono{mass},
     e.g. \cite[][eqn.~8]{sheth_peculiar_2001}, and \cite[][eqn. 4.26]{bardeen_statistics_1986}.
     !!}
     implicit none

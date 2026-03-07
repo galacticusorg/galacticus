@@ -41,8 +41,8 @@
       .
      &lt;/mergerTrees>
     \end{verbatim}
-    where each {\normalfont \ttfamily treeRootMass} element gives the mass (in Solar masses) of the root halo of a tree to
-    generate, and the (optional) {\normalfont \ttfamily treeWeight} elements give the corresponding weight (in units of
+    where each \mono{treeRootMass} element gives the mass (in Solar masses) of the root halo of a tree to
+    generate, and the (optional) \mono{treeWeight} elements give the corresponding weight (in units of
     Mpc$^{-3}$) to assign to each tree.
    </description>
   </mergerTreeBuildMasses>

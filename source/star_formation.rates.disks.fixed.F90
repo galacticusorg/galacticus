@@ -88,7 +88,7 @@ contains
 
   double precision function fixedRate(self,node)
     !!{
-    Returns the star formation rate (in $\mathrm{M}_\odot$ Gyr$^{-1}$) in the galactic disk of {\normalfont \ttfamily node}.
+    Returns the star formation rate (in $\mathrm{M}_\odot$ Gyr$^{-1}$) in the galactic disk of \mono{node}.
     !!}
     use :: Galacticus_Nodes, only : nodeComponentDisk
     implicit none

@@ -25,13 +25,11 @@ Implements the gravitational lensing distribution by modifying another distribut
   <gravitationalLensing name="gravitationalLensingBaryonicModifier">
    <description>
     A gravitational lensing distribution class which (approximately) modifies another distribution for the effects of
-    baryons. The distribution to modify is specified via the {\normalfont \ttfamily
-    [gravitationalLensingBaryonicModifierOriginalDistribution]} parameter. The modification takes the form:
+    baryons. The distribution to modify is specified via the \mono{[gravitationalLensingBaryonicModifierOriginalDistribution]} parameter. The modification takes the form:
     \begin{equation}
     P(\mu) \rightarrow P(\mu) + \hbox{min}[\alpha,\beta P(\mu)]
     \end{equation}
-    where $\alpha=${\normalfont \ttfamily [gravitationalLensingBaryonicModifierAlpha]} and $\beta=${\normalfont \ttfamily
-    [gravitationalLensingBaryonicModifierBeta]}. The distribution is then renormalized to ensure that the cumulative
+    where $\alpha=$\mono{[gravitationalLensingBaryonicModifierAlpha]} and $\beta=$\mono{[gravitationalLensingBaryonicModifierBeta]}. The distribution is then renormalized to ensure that the cumulative
     probability reaches unity for infinite magnification. As an example, values of $\alpha=2.05\times 10^{-3}$ and $\beta=0.62$
     approximately reproduce the results of \cite[][their Fig.~1]{hilbert_strong-lensing_2008}.
    </description>
@@ -66,7 +64,7 @@ contains
 
   function baryonicModifierConstructorParameters(parameters) result(self)
     !!{
-    Default constructor for the {\normalfont \ttfamily baryonicModifier} gravitational lensing class.
+    Default constructor for the \mono{baryonicModifier} gravitational lensing class.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -209,7 +207,7 @@ contains
 
   double precision function baryonicModifierMagnificationPDF(self,magnification,redshift,scaleSource)
     !!{
-    Compute the magnification probability density function at the given {\normalfont \ttfamily magnification} and {\normalfont \ttfamily redshift} by modifying
+    Compute the magnification probability density function at the given \mono{magnification} and \mono{redshift} by modifying
     another distribution for the effects of baryons.
     !!}
     implicit none
@@ -230,7 +228,7 @@ contains
 
   double precision function baryonicModifierMagnificationCDF(self,magnification,redshift,scaleSource)
     !!{
-    Compute the magnification probability density function at the given {\normalfont \ttfamily magnification} and {\normalfont \ttfamily redshift} by modifying
+    Compute the magnification probability density function at the given \mono{magnification} and \mono{redshift} by modifying
     another distribution for the effects of baryons.
     !!}
     implicit none

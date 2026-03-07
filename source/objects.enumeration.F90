@@ -18,12 +18,12 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
 !!{
-Contains a module which defines the base class for all {\normalfont \ttfamily enumeration} classes.
+Contains a module which defines the base class for all \mono{enumeration} classes.
 !!}
 
 module Enumerations
   !!{
-  Defines the base class for all {\normalfont \ttfamily enumeration} classes.
+  Defines the base class for all \mono{enumeration} classes.
   !!}
   implicit none
   private
@@ -31,7 +31,7 @@ module Enumerations
 
   type, abstract :: enumerationType
      !!{
-     The base class for all {\normalfont \ttfamily enumeration} classes.
+     The base class for all \mono{enumeration} classes.
      !!}
      integer :: ID
    contains
@@ -63,7 +63,7 @@ contains
 
   elemental logical function enumerationIsNotEqual(enumerationA,enumerationB)
     !!{
-    Return true if {\normalfont \ttfamily enumerationA} is not equal to {\normalfont \ttfamily enumerationB}.
+    Return true if \mono{enumerationA} is not equal to \mono{enumerationB}.
     !!}
     implicit none
     class(enumerationType), intent(in   ) :: enumerationA, enumerationB
@@ -78,7 +78,7 @@ contains
 
   elemental logical function enumerationLessThan(enumerationA,enumerationB)
     !!{
-    Return true if {\normalfont \ttfamily enumerationA} is less than {\normalfont \ttfamily enumerationB}.
+    Return true if \mono{enumerationA} is less than \mono{enumerationB}.
     !!}
     implicit none
     class(enumerationType), intent(in   ) :: enumerationA, enumerationB
@@ -93,7 +93,7 @@ contains
 
   elemental logical function enumerationLessThanOrEqual(enumerationA,enumerationB)
     !!{
-    Return true if {\normalfont \ttfamily enumerationA} is less than or equal to {\normalfont \ttfamily enumerationB}.
+    Return true if \mono{enumerationA} is less than or equal to \mono{enumerationB}.
     !!}
     implicit none
     class(enumerationType), intent(in   ) :: enumerationA, enumerationB
@@ -108,7 +108,7 @@ contains
 
   elemental logical function enumerationGreaterThan(enumerationA,enumerationB)
     !!{
-    Return true if {\normalfont \ttfamily enumerationA} is greater than {\normalfont \ttfamily enumerationB}.
+    Return true if \mono{enumerationA} is greater than \mono{enumerationB}.
     !!}
     implicit none
     class(enumerationType), intent(in   ) :: enumerationA, enumerationB
@@ -123,7 +123,7 @@ contains
 
   elemental logical function enumerationGreaterThanOrEqual(enumerationA,enumerationB)
     !!{
-    Return true if {\normalfont \ttfamily enumerationA} is greater than or equal to {\normalfont \ttfamily enumerationB}.
+    Return true if \mono{enumerationA} is greater than or equal to \mono{enumerationB}.
     !!}
     implicit none
     class(enumerationType), intent(in   ) :: enumerationA, enumerationB
@@ -138,7 +138,7 @@ contains
 
   elemental subroutine enumerationSubtractionInteger(enumerationA,enumerationBID)
     !!{
-    Subtract an integer ID from {\normalfont \ttfamily enumerationA}.
+    Subtract an integer ID from \mono{enumerationA}.
     !!}
     implicit none
     class  (enumerationType), intent(inout) :: enumerationA

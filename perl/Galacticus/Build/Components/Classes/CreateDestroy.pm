@@ -39,7 +39,7 @@ sub Class_Initialization {
     {
 	type        => "void",
 	name        => "nodeComponent".ucfirst($code::class->{'name'})."Initialize",
-	description => "Initialize a generic {\\normalfont \\ttfamily ".$code::class->{'name'}."} component.",
+	description => "Initialize a generic \\mono{".$code::class->{'name'}."} component.",
 	modules     =>
 	    [
 	     "Error"
@@ -78,7 +78,7 @@ sub Class_Finalization {
     {
 	type        => "void",
 	name        => "nodeComponent".ucfirst($code::class->{'name'})."Finalize",
-	description => "Finalize a generic {\\normalfont \\ttfamily ".$code::class->{'name'}."} component.",
+	description => "Finalize a generic \\mono{".$code::class->{'name'}."} component.",
 	variables   =>
 	    [
 	     {
@@ -113,7 +113,7 @@ sub Class_Builder {
     {
 	type        => "void",
 	name        => "nodeComponent".ucfirst($code::class->{'name'})."Builder",
-	description => "Build a generic {\\normalfont \\ttfamily ".$code::class->{'name'}."} component from a supplied XML definition.",
+	description => "Build a generic \\mono{".$code::class->{'name'}."} component from a supplied XML definition.",
 	modules     =>
 	    [
 	     "Error",
@@ -168,7 +168,7 @@ sub Class_Create_By_Interrupt {
     {
 	type        => "void",
 	name        => $code::class->{'name'}."CreateByInterrupt",
-	description => "Create the {\\normalfont \\ttfamily ".$code::class->{'name'}."} component of {\\normalfont \\ttfamily self} via an interrupt.",
+	description => "Create the \\mono{".$code::class->{'name'}."} component of \\mono{self} via an interrupt.",
 	variables   =>
 	    [
 	     {
@@ -243,7 +243,7 @@ sub Class_Add_Meta_Property {
 	{
 	    type        => "integer",
 	    name        => "nodeComponent".ucfirst($code::class->{'name'})."Add".ucfirst($metaPropertyType->{'label'})."Rank".$metaPropertyType->{'rank'}."MetaProperty",
-	    description => "Add a rank-".$metaPropertyType->{'rank'}." ".$metaPropertyType->{'label'}."meta-property to the generic {\\normalfont \\ttfamily ".$code::class->{'name'}."} component.",
+	    description => "Add a rank-".$metaPropertyType->{'rank'}." ".$metaPropertyType->{'label'}."meta-property to the generic \\mono{".$code::class->{'name'}."} component.",
 	    modules     =>
 		[
 		 "ISO_Varying_String",
@@ -414,7 +414,7 @@ sub Class_Count_Meta_Property {
 	{
 	    type        => "integer => countMetaProperties",
 	    name        => "component".ucfirst($code::class->{'name'})."Count".ucfirst($metaPropertyType->{'label'})."Rank".$metaPropertyType->{'rank'}."MetaProperties",
-	    description => "Return the number of rank-".$metaPropertyType->{'rank'}." ".$metaPropertyType->{'label'}."meta-properties associated with the generic {\\normalfont \\ttfamily ".$code::class->{'name'}."} component.",
+	    description => "Return the number of rank-".$metaPropertyType->{'rank'}." ".$metaPropertyType->{'label'}."meta-properties associated with the generic \\mono{".$code::class->{'name'}."} component.",
 	    variables   =>
 		[
 		 {
@@ -462,7 +462,7 @@ sub Class_Name_Meta_Property {
 	{
 	    type        => "type(varying_string) => nameMetaProperty",
 	    name        => "component".ucfirst($code::class->{'name'})."Name".ucfirst($metaPropertyType->{'label'})."Rank".$metaPropertyType->{'rank'}."MetaProperty",
-	    description => "Return the name of the indexed of rank-".$metaPropertyType->{'rank'}." ".$metaPropertyType->{'label'}." meta-property associated with the generic {\\normalfont \\ttfamily ".$code::class->{'name'}."} component.",
+	    description => "Return the name of the indexed of rank-".$metaPropertyType->{'rank'}." ".$metaPropertyType->{'label'}." meta-property associated with the generic \\mono{".$code::class->{'name'}."} component.",
 	    modules     => [ "ISO_Varying_String" ],
 	    variables   =>
 		[

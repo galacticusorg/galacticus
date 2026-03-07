@@ -33,8 +33,8 @@
     \begin{equation}
      n_\mathrm{eff}(k) = n_\mathrm{s} + {1\over 2}{\d n \over \d \ln k} \ln \left( {k \over k_\mathrm{ref}} \right) + {1\over 6}{\d^2 n \over \d \ln k^2} \left[ \ln \left( {k \over k_\mathrm{ref}} \right) \right]^2,
     \end{equation}
-    where $n_\mathrm{s}=${\normalfont \ttfamily [index]} is the power spectrum index at wavenumber
-    $k_\mathrm{ref}=${\normalfont \ttfamily [wavenumberReference]}, $\d n / \d \ln k=${\normalfont \ttfamily [running]}, and $\d^2 n / \d \ln k^2=${\normalfont \ttfamily [runningRunning]}
+    where $n_\mathrm{s}=$\mono{[index]} is the power spectrum index at wavenumber
+    $k_\mathrm{ref}=$\mono{[wavenumberReference]}, $\d n / \d \ln k=$\mono{[running]}, and $\d^2 n / \d \ln k^2=$\mono{[runningRunning]}
     describes the running of this index with wavenumber.
    </description>
   </powerSpectrumPrimordial>
@@ -99,13 +99,13 @@ contains
       <name>wavenumberReference</name>
       <source>parameters</source>
       <defaultValue>1.0d0</defaultValue>
-      <description>When a running power spectrum index is used, this is the wavenumber, $k_\mathrm{ref}$, at which the index is equal to {\normalfont \ttfamily [index]}.</description>
+      <description>When a running power spectrum index is used, this is the wavenumber, $k_\mathrm{ref}$, at which the index is equal to \mono{[index]}.</description>
     </inputParameter>
     <inputParameter>
       <name>runningSmallScalesOnly</name>
       <source>parameters</source>
       <defaultValue>.false.</defaultValue>
-      <description>If {\normalfont \ttfamily true} then the index runs only for $k > k_\mathrm{ref}$, for smaller $k$ the index is constant.</description>
+      <description>If \mono{true} then the index runs only for $k > k_\mathrm{ref}$, for smaller $k$ the index is constant.</description>
     </inputParameter>
     !!]
     self=powerSpectrumPrimordialPowerLaw(index_,running,runningRunning,wavenumberReference,runningSmallScalesOnly)
@@ -150,7 +150,7 @@ contains
 
   double precision function powerLawPower(self,wavenumber)
     !!{
-    Return the primordial power spectrum at the given {\normalfont \ttfamily wavenumber}.
+    Return the primordial power spectrum at the given \mono{wavenumber}.
     !!}
     implicit none
     class           (powerSpectrumPrimordialPowerLaw), intent(inout) :: self
@@ -183,7 +183,7 @@ contains
 
   double precision function powerLawLogarithmicDerivative(self,wavenumber)
     !!{
-    Return the logarithmic derivative of the primordial power spectrum at the given {\normalfont \ttfamily wavenumber}.
+    Return the logarithmic derivative of the primordial power spectrum at the given \mono{wavenumber}.
     !!}
     implicit none
     class           (powerSpectrumPrimordialPowerLaw), intent(inout) :: self

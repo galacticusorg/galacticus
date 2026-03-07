@@ -51,7 +51,7 @@ module Merger_Tree_Data_Structure
   !![
   <enumeration>
    <name>propertyType</name>
-   <description>Used to specify properties in a {\normalfont \ttfamily mergerTreeData} structure.</description>
+   <description>Used to specify properties in a \mono{mergerTreeData} structure.</description>
    <visibility>public</visibility>
    <validator>yes</validator>
    <encodeFunction>yes</encodeFunction>
@@ -109,7 +109,7 @@ module Merger_Tree_Data_Structure
   !![
   <enumeration>
    <name>units</name>
-   <description>Used to specify the type of units being stored in a {\normalfont \ttfamily mergerTreeData} structure.</description>
+   <description>Used to specify the type of units being stored in a \mono{mergerTreeData} structure.</description>
    <visibility>public</visibility>
    <validator>yes</validator>
    <entry label="mass"     />
@@ -132,7 +132,7 @@ module Merger_Tree_Data_Structure
   !![
   <enumeration>
    <name>metaDataType</name>
-   <description>Used to specify the type of metadata being stored in a {\normalfont \ttfamily mergerTreeData} structure.</description>
+   <description>Used to specify the type of metadata being stored in a \mono{mergerTreeData} structure.</description>
    <visibility>public</visibility>
    <validator>yes</validator>
    <encodeFunction>yes</encodeFunction>
@@ -150,7 +150,7 @@ module Merger_Tree_Data_Structure
   !![
   <enumeration>
    <name>dataType</name>
-   <description>Used to specify the type of data being stored in a {\normalfont \ttfamily mergerTreeData} structure metadata entry.</description>
+   <description>Used to specify the type of data being stored in a \mono{mergerTreeData} structure metadata entry.</description>
    <visibility>public</visibility>
    <entry label="null"    />
    <entry label="integer" />

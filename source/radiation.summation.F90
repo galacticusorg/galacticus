@@ -216,7 +216,7 @@ contains
 
   function summationList(self)
     !!{
-    Return a list of all components for the {\normalfont \ttfamily summation} radiation field class.
+    Return a list of all components for the \mono{summation} radiation field class.
     !!}
     implicit none
     class(radiationFieldSummation), intent(inout) :: self

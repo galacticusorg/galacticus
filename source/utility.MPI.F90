@@ -59,18 +59,18 @@ module MPI_Utilities
        <method description="Return the number of nodes on which this MPI job is running." method="nodeCount" />
        <method description="Return the index of the node on which the MPI process of the given rank (or this process if no rank is given) is running." method="nodeAffinity" />
        <method description="Return the name of the host on which this MPI process is running." method="hostAffinity" />
-       <method description="Request the content of {\normalfont \ttfamily array} from each processes listed in {\normalfont \ttfamily requestFrom}." method="requestData" />
-       <method description="Broadcast the content of {\normalfont \ttfamily array} from the {\normalfont \ttfamily sendFrom} processes to all other processes." method="broadcastData" />
+       <method description="Request the content of \mono{array} from each processes listed in \mono{requestFrom}." method="requestData" />
+       <method description="Broadcast the content of \mono{array} from the \mono{sendFrom} processes to all other processes." method="broadcastData" />
        <method description="Return true if a message is waiting, optionally from the specified process and with the specified tag." method="messageWaiting" />
-       <method description="Return the average of {\normalfont \ttfamily array} over all processes." method="average" />
-       <method description="Return the median of {\normalfont \ttfamily array} over all processes." method="median" />
-       <method description="Return the sum of {\normalfont \ttfamily array} over all processes." method="sum" />
-       <method description="Return the maximum value of {\normalfont \ttfamily array} over all processes." method="maxval" />
-       <method description="Return the rank of the process with the maximum value of {\normalfont \ttfamily array} over all processes." method="maxloc" />
-       <method description="Return the minimum value of {\normalfont \ttfamily array} over all processes." method="minval" />
-       <method description="Return true if any of {\normalfont \ttfamily scalar} is true over all processes." method="any" />
-       <method description="Return true if every {\normalfont \ttfamily scalar} is true over all processes." method="all" />
-       <method description="Return the rank of the process with the minimum value of {\normalfont \ttfamily array} over all processes." method="minloc" />
+       <method description="Return the average of \mono{array} over all processes." method="average" />
+       <method description="Return the median of \mono{array} over all processes." method="median" />
+       <method description="Return the sum of \mono{array} over all processes." method="sum" />
+       <method description="Return the maximum value of \mono{array} over all processes." method="maxval" />
+       <method description="Return the rank of the process with the maximum value of \mono{array} over all processes." method="maxloc" />
+       <method description="Return the minimum value of \mono{array} over all processes." method="minval" />
+       <method description="Return true if any of \mono{scalar} is true over all processes." method="any" />
+       <method description="Return true if every \mono{scalar} is true over all processes." method="all" />
+       <method description="Return the rank of the process with the minimum value of \mono{array} over all processes." method="minloc" />
        <method description="Gather arrays from all processes into an array of rank one higher." method="gather" />
        <method description="Create a new communicator and push onto the stack." method="communicatorPush" />
        <method description="Pop a communicator off of the stack, restoring the previous communicator." method="communicatorPop" />
@@ -466,7 +466,7 @@ contains
 
   logical function mpiMessageWaiting(self,from,tag)
     !!{
-    Return true if an MPI message (matching the optional {\normalfont \ttfamily from} and {\normalfont \ttfamily tag} if given) is waiting for receipt.
+    Return true if an MPI message (matching the optional \mono{from} and \mono{tag} if given) is waiting for receipt.
     !!}
 #ifdef USEMPI
     use :: MPI_F08, only : MPI_Status  , MPI_Any_Source, MPI_Any_Tag, MPI_IProbe
@@ -1144,7 +1144,7 @@ contains
 
   function mpiSumScalarSizeT(self,scalar,mask)
     !!{
-    Sum a {\normalfont \ttfamily size\_t} scalar over all processes, returning it to all processes.
+    Sum a \mono{size\_t} scalar over all processes, returning it to all processes.
     !!}
 #ifndef USEMPI
     use :: Error, only : Error_Report
@@ -1555,7 +1555,7 @@ contains
 
   function mpiMaxvalScalarSizeT(self,scalar,mask)
     !!{
-    Find the maximum values of a {\normalfont \ttfamily size\_t} scalar over all processes, returning it to all processes.
+    Find the maximum values of a \mono{size\_t} scalar over all processes, returning it to all processes.
     !!}
 #ifndef USEMPI
     use :: Error, only : Error_Report

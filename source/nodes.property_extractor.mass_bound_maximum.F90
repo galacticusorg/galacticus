@@ -104,7 +104,7 @@ contains
    
   function massBoundMaximumName(self)
     !!{
-    Return the names of the {\normalfont \ttfamily massBoundMaximum} properties.
+    Return the names of the \mono{massBoundMaximum} properties.
     !!}
     implicit none
     type (varying_string                       )                :: massBoundMaximumName
@@ -117,7 +117,7 @@ contains
 
   function massBoundMaximumDescription(self)
     !!{
-    Return the descriptions of the {\normalfont \ttfamily massBoundMaximum} properties.
+    Return the descriptions of the \mono{massBoundMaximum} properties.
     !!}
     implicit none
     type (varying_string                       )                :: massBoundMaximumDescription
@@ -130,7 +130,7 @@ contains
 
   double precision function massBoundMaximumUnitsInSI(self)
     !!{
-    Return the units of the {\normalfont \ttfamily massBoundMaximum} properties in the SI system.
+    Return the units of the \mono{massBoundMaximum} properties in the SI system.
     !!}
     use :: Numerical_Constants_Astronomical, only : massSolar
     implicit none

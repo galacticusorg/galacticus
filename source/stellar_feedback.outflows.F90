@@ -37,7 +37,7 @@ module Stellar_Feedback_Outflows
    </description>
    <default>powerLaw</default>
    <method name="outflowRate" >
-    <description>Returns the outflow rates (both ejective and expulsive) due to stellar feedback in the given {\normalfont \ttfamily component} in units of $M_\odot/$Gyr.</description>
+    <description>Returns the outflow rates (both ejective and expulsive) due to stellar feedback in the given \mono{component} in units of $M_\odot/$Gyr.</description>
     <type>void</type>
     <pass>yes</pass>
     <argument>class           (nodeComponent), intent(inout) :: component</argument>

@@ -105,8 +105,7 @@
 	  <defaultValue>5.0d+0</defaultValue>
 	  <description>
 	    Controls the size of the steps in variance when simulating trajectories from the excursion set. Specifically, the step
-	    is never smaller than $\Delta S = [ ( \delta_\mathrm{i} - \delta ) / N ]^2$, where $N=${\normalfont \ttfamily
-	    [varianceStepSigmaMaximum]} is the number of standard deviations (in a standard normal distribution) that would be
+	    is never smaller than $\Delta S = [ ( \delta_\mathrm{i} - \delta ) / N ]^2$, where $N=$\mono{[varianceStepSigmaMaximum]} is the number of standard deviations (in a standard normal distribution) that would be
 	    required in a positive fluctuation to make the excursion exceed the initial excursion in this step. In this way, the
 	    probability of ``missing'' a first crossing at some earlier step should be kept small (of order the fraction of a
 	    standard normal distribution which lies more than $N$ standard deviations above zero).

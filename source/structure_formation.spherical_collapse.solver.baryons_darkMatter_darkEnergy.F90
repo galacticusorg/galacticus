@@ -482,7 +482,7 @@ contains
   double precision function baryonsDarkMatterDarkEnergyRadiusPerturbation(epsilonPerturbation)
     !!{
     Return the radius of a spherical top-hat perturbation in a dark energy universe given an initial perturbation
-    amplitude {\normalfont \ttfamily epsilonPerturbation}.
+    amplitude \mono{epsilonPerturbation}.
     !!}
     implicit none
     double precision, intent(in   ) :: epsilonPerturbation
@@ -494,7 +494,7 @@ contains
   double precision function baryonsDarkMatterDarkEnergyExpansionRatePerturbation(time)
     !!{
     Return the expansion rate of a spherical top-hat perturbation in a dark energy universe given an initial perturbation
-    amplitude {\normalfont \ttfamily epsilonPerturbation}.
+    amplitude \mono{epsilonPerturbation}.
     !!}
     implicit none
     double precision, intent(in   ) :: time
@@ -506,7 +506,7 @@ contains
   subroutine baryonsDarkMatterDarkEnergyPerturbationDynamicsSolver(perturbationOverdensityInitial,time,radiusPerturbation,expansionRatePerturbation)
     !!{
     Integrate the dynamics of a spherical top-hat perturbation in a dark energy universe given an initial perturbation
-    amplitude {\normalfont \ttfamily epsilonPerturbation}.
+    amplitude \mono{epsilonPerturbation}.
     !!}
     use :: Error                , only : Error_Report
     use :: Interface_GSL        , only : GSL_Success

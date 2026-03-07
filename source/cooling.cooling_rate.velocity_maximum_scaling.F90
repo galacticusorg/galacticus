@@ -40,12 +40,10 @@
     {\log_{10}(V_\mathrm{max}/(1+z)^{\delta_\mathrm{infall}}\mathcal{V}_\mathrm{infall})] \over \Delta \log_{10}
     \mathcal{V}_\mathrm{infall}}\right]\right)^{\beta_\mathrm{infall}}, \tau_\mathrm{infall,min} \right],
     \end{equation}
-    with $\tau_\mathrm{infall}=${\normalfont \ttfamily [timescale]}, $\tau_\mathrm{infall,min}=${\normalfont \ttfamily
-    [timescaleMinimum]}, $\alpha_\mathrm{infall}=${\normalfont \ttfamily [exponentRedshift]},
-    $\beta_\mathrm{infall}=${\normalfont \ttfamily [exponentCutOff]}, $\gamma_\mathrm{infall}=${\normalfont \ttfamily
-    [exponentVelocity]}, $\delta_\mathrm{infall}=${\normalfont \ttfamily [velocityCutOffExponentRedshift},
-    $\mathcal{V}_\mathrm{infall}=${\normalfont \ttfamily [velocityCutOff]}, and $\Delta \log_{10}
-    \mathcal{V}_\mathrm{infall}=${\normalfont \ttfamily [widthCutOff]}.
+    with $\tau_\mathrm{infall}=$\mono{[timescale]}, $\tau_\mathrm{infall,min}=$\mono{[timescaleMinimum]}, $\alpha_\mathrm{infall}=$\mono{[exponentRedshift]},
+    $\beta_\mathrm{infall}=$\mono{[exponentCutOff]}, $\gamma_\mathrm{infall}=$\mono{[exponentVelocity]}, $\delta_\mathrm{infall}=$\mono{[velocityCutOffExponentRedshift},
+    $\mathcal{V}_\mathrm{infall}=$\mono{[velocityCutOff]}, and $\Delta \log_{10}
+    \mathcal{V}_\mathrm{infall}=$\mono{[widthCutOff]}.
    </description>
   </coolingRate>
   !!]

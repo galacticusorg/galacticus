@@ -46,16 +46,16 @@
     \protect\refPhysics{conditionalMassFunctionBehroozi2010}]{behroozi_comprehensive_2010}.  The details of the projected
     correlation function calculation are specified by the following subparameters:
     \begin{description}
-    \item[{\normalfont \ttfamily haloMass(Min|Max)imum}] The minimum/maximum halo mass over which to integrate in the halo model;
-    \item[{\normalfont \ttfamily redshift(Min|Max)imum}] The minimum/maximum redshift over which to integrate in the halo model;
-    \item[{\normalfont \ttfamily projectedCorrelationFunctionFileName}] The name of an HDF5 file containing the observed projected
+    \item[\mono{haloMass(Min|Max)imum}] The minimum/maximum halo mass over which to integrate in the halo model;
+    \item[\mono{redshift(Min|Max)imum}] The minimum/maximum redshift over which to integrate in the halo model;
+    \item[\mono{projectedCorrelationFunctionFileName}] The name of an HDF5 file containing the observed projected
       correlation function and its covariance matrix.
     \end{description}
     
-    The HDF5 file specified by the {\normalfont \ttfamily projectedCorrelationFunctionFileName} element should contain a {\normalfont
+    The HDF5 file specified by the \mono{projectedCorrelationFunctionFileName} element should contain a {\normalfont
     \ttfamily separation} dataset, giving the separations at which the projected correlation function is measured (in units of Mpc),
-    a {\normalfont \ttfamily projectedCorrelationFunctionObserved} dataset giving the observed values of the projected correlation
-    function at those separations (in units of Mpc), and a {\normalfont \ttfamily covariance} dataset, giving the covariance of the
+    a \mono{projectedCorrelationFunctionObserved} dataset giving the observed values of the projected correlation
+    function at those separations (in units of Mpc), and a \mono{covariance} dataset, giving the covariance of the
     projected correlation function (in units of Mpc$^2$).
    </description>
    <runTimeFileDependencies paths="fileName"/>

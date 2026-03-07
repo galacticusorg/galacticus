@@ -97,7 +97,7 @@ contains
 
   function massProgenitorMaximumName(self)
     !!{
-    Return the names of the {\normalfont \ttfamily massProgenitorMaximum} properties.
+    Return the names of the \mono{massProgenitorMaximum} properties.
     !!}
     implicit none
     type (varying_string                            )                :: massProgenitorMaximumName
@@ -110,7 +110,7 @@ contains
 
   function massProgenitorMaximumDescription(self)
     !!{
-    Return the descriptions of the {\normalfont \ttfamily massProgenitorMaximum} properties.
+    Return the descriptions of the \mono{massProgenitorMaximum} properties.
     !!}
     implicit none
     type (varying_string                            )                :: massProgenitorMaximumDescription
@@ -123,7 +123,7 @@ contains
 
   double precision function massProgenitorMaximumUnitsInSI(self)
     !!{
-    Return the units of the {\normalfont \ttfamily massProgenitorMaximum} properties in the SI system.
+    Return the units of the \mono{massProgenitorMaximum} properties in the SI system.
     !!}
     use :: Numerical_Constants_Astronomical, only : massSolar
     implicit none
