@@ -58,8 +58,7 @@
     X_i = V_\mathrm{c} / \sqrt{2} \sigma.
     \end{equation}
     In all of the above equations, the velocity dispersion $\sigma_i$ is computed from the spherical Jeans equation assuming an
-    isotropic velocity dispersion if \mono{[computeVelocityDispersion]}$=${\normalfont \ttfamily
-    true}. Otherwise, $\sigma_i$ is set to the halo virial velocity for dark matter and to the spheroid characteristic velocity
+    isotropic velocity dispersion if \mono{[computeVelocityDispersion]}$=$\mono{true}. Otherwise, $\sigma_i$ is set to the halo virial velocity for dark matter and to the spheroid characteristic velocity
     for the spheroid.
     
     In calculating the rate of hardening due to scattering of stars, the stellar density is reduced by a factor

@@ -83,9 +83,7 @@
    <description>
     A circumnuclear accretion disk class, in which accretion is via an \gls{adaf} \citep{narayan_advection-dominated_1994}
     which is radiatively inefficient and geometrically thick. The radiative efficiency of the flow, which will be zero for a
-    pure \gls{adaf}, is controlled by \mono{[efficiencyRadiationType]}. If set to {\normalfont \ttfamily
-    fixed}, then the radiative efficiency is set to the value of the input parameter {\normalfont \ttfamily
-    [efficiencyRadiation]}. Alternatively, if set to \mono{thinDisk} the radiative efficiency will be set to
+    pure \gls{adaf}, is controlled by \mono{[efficiencyRadiationType]}. If set to \mono{fixed}, then the radiative efficiency is set to the value of the input parameter \mono{[efficiencyRadiation]}. Alternatively, if set to \mono{thinDisk} the radiative efficiency will be set to
     that of a Shakura-Sunyaev thin disk. The spin up rate of the black hole and the jet power produced as material accretes
     into the black hole are computed using the method of \cite{benson_maximum_2009}. The maximum efficiency of the jet (in
     units of the accretion power $\dot{M} \mathrm{c}^2$) is set by \mono{[efficiencyJetMaximum]}---in the
@@ -93,8 +91,7 @@
     avoid numerical instabilities. The energy of the accreted material can be set equal to the energy at infinity (as expected
     for a pure \gls{adaf}) or the energy at the \gls{isco} by use of the \mono{[energyOption]} parameter (set
     to \mono{pureADAF} or \mono{ISCO} respectively). The \gls{adaf} structure is controlled
-    by the adiabatic index, $\gamma$, and viscosity parameter, $\alpha$, which are specified via the {\normalfont \ttfamily
-    [adiabaticIndex]} and \mono{[viscosityOption]} input parameters respectively. The field-enhancing shear,
+    by the adiabatic index, $\gamma$, and viscosity parameter, $\alpha$, which are specified via the \mono{[adiabaticIndex]} and \mono{[viscosityOption]} input parameters respectively. The field-enhancing shear,
     $g$, is computed using $g=\exp(\omega \tau)$ if \mono{[fieldEnhancementOption]} is set to ``exponential''
     where $\omega$ is the frame-dragging frequency and $\tau$ is the smaller of the radial inflow and azimuthal velocity
     timescales. If \mono{[fieldEnhancementOption]} is set to ``linear'' then the alternative version,

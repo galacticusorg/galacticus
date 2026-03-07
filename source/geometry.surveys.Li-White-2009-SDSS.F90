@@ -39,8 +39,7 @@ Implements the survey geometry of the SDSS sample used by \cite{li_distribution_
     
     To estimate the depth of the \cite{li_distribution_2009} sample as a function of galaxy stellar mass we make use of
     semi-analytic models in the Millennium Database. Specifically, we use the \gls{sam} of
-    \citeauthor{de_lucia_hierarchical_2007}~(\citeyear{de_lucia_hierarchical_2007}; specifically the {\normalfont \ttfamily
-    millimil..DeLucia2006a} and \mono{millimil..DeLucia2006a\_sdss2mass} tables in the Millennium
+    \citeauthor{de_lucia_hierarchical_2007}~(\citeyear{de_lucia_hierarchical_2007}; specifically the \mono{millimil..DeLucia2006a} and \mono{millimil..DeLucia2006a\_sdss2mass} tables in the Millennium
     Database). For each snapshot in the database, we extract the stellar masses and observed-frame SDSS r-band absolute
     magnitudes (including dust extinction), and determine the median absolute magnitude as a function of stellar mass. Using
     the limiting apparent magnitude of the \cite{li_distribution_2009} sample, $r=17.6$, we infer the corresponding absolute

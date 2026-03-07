@@ -120,7 +120,7 @@ sub Build_Component_Classes {
 				    function    => $boundTo     ,
 				    returnType  => "\\void"     ,
 				    arguments   => &Galacticus::Build::Components::DataTypes::dataObjectDocName($property)."\\ value",
-				    description => "Set the {\\normalfont \\ttfamily ".$property->{'name'}."} property of the {\\normalfont \\ttfamily ".$className."} component."
+				    description => "Set the \mono{".$property->{'name'}."} property of the \mono{".$className."} component."
 				}
 				);
 			    $propertiesCreated{$functionName} = 1;
@@ -139,7 +139,7 @@ sub Build_Component_Classes {
 				    function    => &createNullFunction($build,{selfType => $className, attribute => "get", property => {type => "integer", rank => 0}, intent => "in"}),
 				    returnType  => "\\intzero"                       ,
 				    arguments   => ""                                ,
-				    description => "Compute the count of evolvable quantities in the {\\normalfont \\ttfamily ".$property->{'name'}."} property of the {\\normalfont \\ttfamily ".$implementationIdentifier."} component."
+				    description => "Compute the count of evolvable quantities in the \mono{".$property->{'name'}."} property of the \mono{".$implementationIdentifier."} component."
 				}
 				);
 			    $propertiesCreated{$functionName} = 1;
@@ -156,7 +156,7 @@ sub Build_Component_Classes {
 				    function    => &createNullFunction($build,{selfType => $className, attribute => "rate", property => $property, intent => "inout"}),
 				    returnType  => "\\void"     ,
 				    arguments   => &Galacticus::Build::Components::DataTypes::dataObjectDocName($property)."\\ value",
-				    description => "Cumulate to the rate of the {\\normalfont \\ttfamily ".$property->{'name'}."} property of the {\\normalfont \\ttfamily ".$implementationIdentifier."} component."
+				    description => "Cumulate to the rate of the \mono{".$property->{'name'}."} property of the \mono{".$implementationIdentifier."} component."
 				}
 				)
 				unless ( $property->{'attributes'}->{'createIfNeeded'} );
@@ -169,7 +169,7 @@ sub Build_Component_Classes {
 				    function    => &createNullFunction($build,{selfType => $className, attribute => "analytic", property => $property, intent => "inout"}),
 				    returnType  => "\\void"     ,
 				    arguments   => "",
-				    description => "Mark the {\\normalfont \\ttfamily ".$property->{'name'}."} property of the {\\normalfont \\ttfamily ".$implementationIdentifier."} component as analtyically-solvable."
+				    description => "Mark the \mono{".$property->{'name'}."} property of the \mono{".$implementationIdentifier."} component as analtyically-solvable."
 				}
 				)
 				unless ( $property->{'attributes'}->{'isVirtual'} );
@@ -182,7 +182,7 @@ sub Build_Component_Classes {
 				    function    => &createNullFunction($build,{selfType => $className, attribute => "inactive", property => $property, intent => "inout"}),
 				    returnType  => "\\void"     ,
 				    arguments   => "",
-				    description => "Mark the {\\normalfont \\ttfamily ".$property->{'name'}."} property of the {\\normalfont \\ttfamily ".$implementationIdentifier."} component as inactive."
+				    description => "Mark the \mono{".$property->{'name'}."} property of the \mono{".$implementationIdentifier."} component as inactive."
 				}
 				)
 				unless ( $property->{'attributes'}->{'isVirtual'} );
@@ -195,7 +195,7 @@ sub Build_Component_Classes {
 				    function    => &createNullFunction($build,{selfType => $className, attribute => "scale", property => $property, intent => "inout"}),
 				    returnType  => "\\void"                         ,
 				    arguments   => &Galacticus::Build::Components::DataTypes::dataObjectDocName($property)."\\ value",
-				    description => "Set the scale of the {\\normalfont \\ttfamily ".$property->{'name'}."} property of the {\\normalfont \\ttfamily ".$implementationIdentifier."} component."
+				    description => "Set the scale of the \mono{".$property->{'name'}."} property of the \mono{".$implementationIdentifier."} component."
 				}
 				)
 				unless ( $property->{'attributes'}->{'isVirtual'} );
@@ -209,7 +209,7 @@ sub Build_Component_Classes {
 	$build->{'types'}->{'nodeComponent'.ucfirst($className)} = 
 	{
 	    name           => "nodeComponent".ucfirst($className),
-	    comment        => "Type for the {\\normalfont \\ttfamily ".$className."} component class.",
+	    comment        => "Type for the \mono{".$className."} component class.",
 	    isPublic       => 1,
 	    extends        => "nodeComponent",
 	    boundFunctions => \@typeBoundFunctions,

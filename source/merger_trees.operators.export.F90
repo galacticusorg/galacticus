@@ -42,8 +42,7 @@
     
     If \mono{[skipSingleNodeTrees]} is true then trees consisting of a single node (which are typically left over
     from pruning operators, and which are effectively inert) are not output. If \mono{[includeScaleRadii]} is
-    true then scale radii will be included in the output (if they are available and have been set).  If {\normalfont \ttfamily
-    [includeAngularMomenta]} is true then halo angular momenta will be included in the output (if they are available and have been
+    true then scale radii will be included in the output (if they are available and have been set).  If \mono{[includeAngularMomenta]} is true then halo angular momenta will be included in the output (if they are available and have been
     set).
 
     If \mono{[includeSubhalos]} is true then subhalos are included in the exported data. Note that if particle

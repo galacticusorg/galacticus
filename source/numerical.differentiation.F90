@@ -96,8 +96,7 @@ contains
 
   double precision function differentiatorDerivative(self,x,h,errorAbsolute)
     !!{
-    Compute a numerical derivative of the function at \mono{x}. The initial stepsize is {\normalfont \ttfamily
-    h}. If present, the absolute error estimate is returned in \mono{errorAbsolute}.
+    Compute a numerical derivative of the function at \mono{x}. The initial stepsize is \mono{h}. If present, the absolute error estimate is returned in \mono{errorAbsolute}.
     !!}
     use :: Error, only : Error_Report, errorStatusSuccess
     implicit none

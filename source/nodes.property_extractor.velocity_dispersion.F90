@@ -36,11 +36,9 @@
     dispersion should be computed. This direction should be one of \mono{radial} (computes the radial
     component of velocity dispersion), \mono{lineOfSight\{\textless luminosity\textgreater\}} (computes the
     line-of-sight velocity dispersion), \mono{lineOfSightInteriorAverage\{\textless luminosity\textgreater\}}
-    (computes the line-of-sight velocity dispersion averaged interior to the given radius), or {\normalfont \ttfamily
-    lambdaR\{\textless luminosity\textgreater\}} (computes the $\lambda_\mathrm{R}$ statistic of
+    (computes the line-of-sight velocity dispersion averaged interior to the given radius), or \mono{lambdaR\{\textless luminosity\textgreater\}} (computes the $\lambda_\mathrm{R}$ statistic of
     \citealt{cappellari_sauron_2007})---in the latter three cases \mono{\{\textless luminosity\textgreater\}}
-    specifies which band should be used to weight the velocity dispersion, alternatively setting {\normalfont \ttfamily
-    \{\textless luminosity\textgreater\}}$=$\mono{mass} (or just leaving off this specifier entirely) will use
+    specifies which band should be used to weight the velocity dispersion, alternatively setting \mono{\{\textless luminosity\textgreater\}}$=$\mono{mass} (or just leaving off this specifier entirely) will use
     mass weighting instead.
    </description>
   </nodePropertyExtractor>
@@ -662,8 +660,7 @@ contains
 
   double precision function velocityDispersionSolidAngleInCylinder(radius)
     !!{
-    Computes the solid angle of a spherical shell of given \mono{radius} that lies within a cylinder of radius {\normalfont \ttfamily
-    radiusImpact}.
+    Computes the solid angle of a spherical shell of given \mono{radius} that lies within a cylinder of radius \mono{radiusImpact}.
     !!}
     use :: Numerical_Constants_Math, only : Pi
     implicit none

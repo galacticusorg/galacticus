@@ -32,8 +32,7 @@ Implements a galaxy size output analysis class for SDSS data.
     sizes and masses are then used to construct a mass-dependent radius function by binning into a 2-D histogram using the size and
     mass bins reported by \cite{shen_size_2003} (modified as described above) as the centers of the bins (with bin boundaries placed
     at the geometric means of consecutive bin centers). Distributions are computed for both late-type and early-type galaxies,
-    classified on the basis of the stellar mass spheroid-to-total ratio, with the division at a ratio given by {\normalfont \ttfamily
-    [massStellarRatio]}.
+    classified on the basis of the stellar mass spheroid-to-total ratio, with the division at a ratio given by \mono{[massStellarRatio]}.
    </description>
   </outputAnalysis>
   !!]

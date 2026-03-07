@@ -28,9 +28,7 @@ Implements a merger tree operator which dumps tree data to a file suitable for 3
   <mergerTreeOperator name="mergerTreeOperatorRender">
    <description>
     A merger tree operator which outputs data on the structure of a merger tree and its halos useful for rendering the tree as
-    a 3-D structure to a file named {\normalfont \ttfamily
-    render\_$\langle$treeIndex$\rangle$\_$\langle$outputIndex$\rangle$.hdf5} where $\langle${\normalfont \ttfamily
-    treeIndex}$\rangle$ is the index of the tree and $\langle$\mono{outputIndex}$\rangle$ is an incremental
+    a 3-D structure to a file named \mono{render\_$\langle$treeIndex$\rangle$\_$\langle$outputIndex$\rangle$.hdf5} where $\langle$\mono{treeIndex}$\rangle$ is the index of the tree and $\langle$\mono{outputIndex}$\rangle$ is an incremental
     counter that tracks the number of outputs for this tree. The output is a simple HDF5 file containing the following
     datasets:
     \begin{description}

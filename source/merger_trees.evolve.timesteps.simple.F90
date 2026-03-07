@@ -27,8 +27,7 @@
     \Delta t &amp;\le&amp; t_\mathrm{simple}, \\
     \Delta t &amp;\le&amp; \epsilon_\mathrm{simple} (a/\dot{a}),
     \end{eqnarray}
-    where $t_\mathrm{simple}=$\mono{[timestepSimpleAbsolute]}, $\epsilon_\mathrm{simple}=${\normalfont \ttfamily
-    [timestepSimpleRelative]}, and $a$ is expansion factor. These criteria are intended to prevent any one node evolving over an
+    where $t_\mathrm{simple}=$\mono{[timestepSimpleAbsolute]}, $\epsilon_\mathrm{simple}=$\mono{[timestepSimpleRelative]}, and $a$ is expansion factor. These criteria are intended to prevent any one node evolving over an
     excessively large time in one step. In general, these criteria are not necessary, as nodes should be free to evolve as far as
     possible unless prevented by some physical requirement. These criteria are therefore present to provide a simple example of how
     timestep criteria work.
@@ -121,8 +120,7 @@ contains
 
   double precision function simpleTimeEvolveTo(self,timeEnd,node,task,taskSelf,report,lockNode,lockType)
     !!{
-    Determine a suitable timestep for \mono{node} using the simple method. This simply selects the smaller of {\normalfont \ttfamily
-    timeStepAbsolute} and \mono{timeStepRelative}$H^{-1}(t)$.
+    Determine a suitable timestep for \mono{node} using the simple method. This simply selects the smaller of \mono{timeStepAbsolute} and \mono{timeStepRelative}$H^{-1}(t)$.
     !!}
     use :: Evolve_To_Time_Reports, only : Evolve_To_Time_Report
     use :: Galacticus_Nodes      , only : nodeComponentBasic   , treeNode

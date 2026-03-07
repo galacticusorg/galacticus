@@ -37,9 +37,7 @@
   <starFormationHistory name="starFormationHistoryAdaptive">
    <description>
     A star formation histories class which records star formation split by metallicity. The star formation history is tabulated
-    on a grid of time and metallicity. A minimum size for the time bins is specified via $\Delta t=${\normalfont \ttfamily
-    [timeStepMinimum]}, and a maximum number of time bins allowed is specified via {\normalfont \ttfamily
-    [countTimeStepsMaximum]}. For the first output time, a set of timesteps starting from $t=0$ to the output time is generated
+    on a grid of time and metallicity. A minimum size for the time bins is specified via $\Delta t=$\mono{[timeStepMinimum]}, and a maximum number of time bins allowed is specified via \mono{[countTimeStepsMaximum]}. For the first output time, a set of timesteps starting from $t=0$ to the output time is generated
     with size $\Delta t$. If the number of steps exceeds \mono{[countTimeStepsMaximum]} then one pair of
     consecutive steps are merged. The pair merged is chosen to minimize the global increase in the metric
     $(t_{i+1}-t_i)/(t\mathrm{out}-t_i)$ where $t_i$ are the current timesteps and $t_\mathrm{out}$ is the output time. This
@@ -63,8 +61,7 @@
     between \mono{[metallicityMinimum]} and \mono{[metallicityMaximum]} (specified in Solar
     units). Note that the metallicity associated with each bin is the maximum metallicity for that bin, with the minimum
     metallicity corresponding to the value associated with the previous bin (or zero metallicity for the first bin). Note that a
-    final bin, extending to infinite metallicity, is always added automatically. If {\normalfont \ttfamily
-    [countMetallicities]}$=0$ is set, then the star formation history is not split by metallicity (i.e. a single metallicity bin
+    final bin, extending to infinite metallicity, is always added automatically. If \mono{[countMetallicities]}$=0$ is set, then the star formation history is not split by metallicity (i.e. a single metallicity bin
     encompassing all metallicities from zero to infinity is used). Alternatively, specific metallicity bin boundaries can be set
     via the \mono{[metallicityBoundaries]} parameter---a final boundary corresponding to infinity is always added
     automatically.

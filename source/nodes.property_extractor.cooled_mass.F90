@@ -20,8 +20,7 @@
   !![
   <nodePropertyExtractor name="nodePropertyExtractorMassCooled">
    <description>
-     A node property extractor which extracts the mass of gas cooled out of the \gls{cgm}. If the parameter {\normalfont \ttfamily
-     [resetAfterExtract]}$=$\mono{true} then the cooled mass is reset to zero after extraction.
+     A node property extractor which extracts the mass of gas cooled out of the \gls{cgm}. If the parameter \mono{[resetAfterExtract]}$=$\mono{true} then the cooled mass is reset to zero after extraction.
    </description>
   </nodePropertyExtractor>
   !!]

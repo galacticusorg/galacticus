@@ -46,8 +46,7 @@
     \end{description}
     
     The HDF5 file specified by the \mono{massFunctionFileName} element should contain a \mono{mass}
-    dataset, giving the masses at which the mass function is measured (in units of $M_\odot$), a {\normalfont \ttfamily
-    massFunctionObserved} dataset giving the observed values of the mass function at those masses (in units of Mpc$^{-3}$ per
+    dataset, giving the masses at which the mass function is measured (in units of $M_\odot$), a \mono{massFunctionObserved} dataset giving the observed values of the mass function at those masses (in units of Mpc$^{-3}$ per
     $\log M$), and a \mono{covariance} dataset, giving the covariance of the mass function (in units of Mpc$^{-6}$).
    </description>
   </posteriorSampleLikelihood>

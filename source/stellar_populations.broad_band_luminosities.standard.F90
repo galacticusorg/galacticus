@@ -161,9 +161,7 @@ contains
 
   function standardLuminosities(self,luminosityIndex,filterIndex,stellarPopulationSpectraPostprocessor_,stellarPopulation_,abundancesStellar,age,redshift)
     !!{
-    Returns the luminosity for a $1 M_\odot$ simple \mono{stellarPopulation\_} of given {\normalfont \ttfamily
-    abundances} and \mono{age} and observed through the filter specified by {\normalfont \ttfamily
-    filterIndex}.
+    Returns the luminosity for a $1 M_\odot$ simple \mono{stellarPopulation\_} of given \mono{abundances} and \mono{age} and observed through the filter specified by \mono{filterIndex}.
     !!}
     use            :: Abundances_Structure, only : Abundances_Get_Metallicity, logMetallicityZero, metallicityTypeLogarithmicByMassSolar
     use            :: Error               , only : Error_Report
@@ -243,8 +241,7 @@ contains
   subroutine standardLuminosityTracks(self,luminosityIndex,filterIndex,stellarPopulationSpectraPostprocessor_,stellarPopulation_,abundancesStellar,redshift,ages,luminosities)
     !!{
     Returns the luminosity for a $1 M_\odot$ simple stellar population of given \mono{abundances} drawn from
-    the given \mono{stellarPopulation} and observed through the filter specified by {\normalfont \ttfamily
-    filterIndex}, for all available ages.
+    the given \mono{stellarPopulation} and observed through the filter specified by \mono{filterIndex}, for all available ages.
     !!}
     use            :: Abundances_Structure, only : Abundances_Get_Metallicity, logMetallicityZero, metallicityTypeLogarithmicByMassSolar
     use, intrinsic :: ISO_C_Binding       , only : c_size_t

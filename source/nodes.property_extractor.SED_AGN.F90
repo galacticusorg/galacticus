@@ -27,12 +27,10 @@
   <nodePropertyExtractor name="nodePropertyExtractorSEDAGN">
     <description>
       A property extractor class for the SED of the AGN. The spectrum is computed using the provided
-      \refClass{accretionDiskSpectraClass} object, and will be output between wavelengths {\normalfont \ttfamily
-      [wavelengthMinimum]} and \mono{[wavelengthMaximum]}. If \mono{[resolution]} is set to a
+      \refClass{accretionDiskSpectraClass} object, and will be output between wavelengths \mono{[wavelengthMinimum]} and \mono{[wavelengthMaximum]}. If \mono{[resolution]} is set to a
       positive value then this specifies the resolution, $\lambda/\Delta\lambda$, at which to compute the SED. If {\normalfont
       \ttfamily [resolution]} is non-positive then the SED will be output at the full native resolution provided by the
-      \refClass{accretionDiskSpectraClass} object. The frame for the SED, \mono{rest} or {\normalfont \ttfamily
-      observed}, is specified by \mono{[frame]}. Note that using \mono{observed} merely means
+      \refClass{accretionDiskSpectraClass} object. The frame for the SED, \mono{rest} or \mono{observed}, is specified by \mono{[frame]}. Note that using \mono{observed} merely means
       that the extracted spectrum is evaluated at wavelength $\lambda_\mathrm{r} = \lambda_\mathrm{o} / (1+z)$ where
       $\lambda_\mathrm{o}$ is the observed wavelength (and is the wavelength returned by the `columnDescriptions` method),
       $\lambda_\mathrm{r}$ is the rest-frame wavelength, and $z$ is redshift---\emph{no adjustment} is made for the boost in observed

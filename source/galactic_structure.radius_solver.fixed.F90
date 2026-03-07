@@ -45,8 +45,7 @@
     \ttfamily [radiusFixed]}$=$\mono{virialRadius} or \mono{turnaround} respectively, $\lambda$
     is its spin parameter and $f_\mathrm{r}=$\mono{[factor]} is a parameter. Optionally, different values of
     $f_\mathrm{r}$ can be specified for disks and spheroids using the \mono{[factorDisk]} and {\normalfont
-    \ttfamily [factorSpheroid]} parameters respectively---if either or both are not provided the value of {\normalfont \ttfamily
-    [factor]} will be used for the corresponding component.
+    \ttfamily [factorSpheroid]} parameters respectively---if either or both are not provided the value of \mono{[factor]} will be used for the corresponding component.
    </description>
   </galacticStructureSolver>
   !!]

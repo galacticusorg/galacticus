@@ -99,8 +99,7 @@ contains
 
   subroutine fixedOutflowRate(self,component,rateStarFormation,rateEnergyInput,rateOutflowEjective,rateOutflowExpulsive)
     !!{
-    Returns the outflow rate (in $M_\odot$ Gyr$^{-1}$) due to stellar feedback in the given {\normalfont \ttfamily
-   component}. Assumes a fixed ratio of outflow rate to star formation rate.
+    Returns the outflow rate (in $M_\odot$ Gyr$^{-1}$) due to stellar feedback in the given \mono{component}. Assumes a fixed ratio of outflow rate to star formation rate.
    !!}
     use :: Stellar_Feedback, only : feedbackEnergyInputAtInfinityCanonical
     implicit none

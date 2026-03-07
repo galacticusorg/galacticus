@@ -24,8 +24,7 @@ Implements an fixed critical overdensity class.
   !![
   <criticalOverdensity name="criticalOverdensityFixed">
    <description>
-    A critical overdensity class in which the critical overdensity is set to a fixed number given by {\normalfont \ttfamily
-    [criticalOverdensity]}.
+    A critical overdensity class in which the critical overdensity is set to a fixed number given by \mono{[criticalOverdensity]}.
    </description>
   </criticalOverdensity>
   !!]

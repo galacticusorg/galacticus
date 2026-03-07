@@ -90,7 +90,7 @@ open(my $methodsFile    ,">".$outputRoot."Methods.tex");
 # Write method descriptions.
 my @functionClassExcludes = ( "allowedParameters", "autoHook", "deepCopy", "deepCopyReset", "descriptor", "hashedDescriptor", "objectType", "stateRestore", "stateStore" );
 foreach my $className ( sort(keys(%{$classes})) ) {    
-    print $methodsFile "\\subsection{\\large {\\normalfont \\ttfamily ".latex_encode($classes->{$className}->{'name'})."}}\\label{class:".$classes->{$className}->{'name'}."}\\hyperdef{class}{".$classes->{$className}->{'name'}."}{}\n\n";
+    print $methodsFile "\\subsection{\\large \mono{".latex_encode($classes->{$className}->{'name'})."}}\\label{class:".$classes->{$className}->{'name'}."}\\hyperdef{class}{".$classes->{$className}->{'name'}."}{}\n\n";
     print $methodsFile "\\emph{Physics model:} \\refPhysics{".$classes->{$className}->{'name'}."}\n\n"
 	if ( $classes->{$className}->{'isFunctionClass'} );
     print $methodsFile "\\noindent\\emph{Parent class:} \\refClass{".$classes->{$className}->{'extends'}."}\n\n"
@@ -118,30 +118,7 @@ foreach my $className ( sort(keys(%{$classes})) ) {
 		    unless ( $classes->{$className}->{'isFunctionClass'} && grep {$_ eq $method->{'method'}} @functionClassExcludes );
 	    }
 	    foreach my $method ( @methods ) {
-		print $methodsFile "\\item[]{\\normalfont \\ttfamily ";
-		if ( exists($method->{'type'}) ) {
-		    (my $methodLabel = $method->{'method'}) =~ s/([^\\])_/$1\\_/g;
-		    my $description = $method->{'description'};
-		    chomp($description);
-		    print $methodsFile $methodLabel."} ".$description."\n";
-		    print $methodsFile "\\begin{itemize}\n";
-		    print $methodsFile "\\item Return type: ".&declarationBuilder($method->{'type'}, variables => 0)."\n";
-		    my @argumentList = &List::ExtraUtils::as_array($method->{'argumentList'});
-		    my @arguments    = &List::ExtraUtils::as_array($method->{'arguments'   });
-		    for(my $i=0;$i<scalar(@argumentList);++$i) {
-			print $methodsFile "\\item Interface: ";
-			if ( reftype($argumentList[$i]) ) {
-			    print $methodsFile "{\\normalfont \\ttfamily ()}\\\\\n";
-			} else {
-			    my $argumentListEscaped = latex_encode($argumentList[$i]);
-			    print $methodsFile "{\\normalfont \\ttfamily (".$argumentListEscaped.")}\\\\\n";
-			    foreach my $argument ( &List::ExtraUtils::as_array($arguments[$i]->{'argument'}) ) {
-				print $methodsFile &declarationBuilder($argument)."\\\\\n";
-			    }
-			}
-		    }
-		    print $methodsFile "\\end{itemize}\n";
-		} else {
+		print $methodsFile "\\item[]\mono{"; if ( exists($method->{'type'}) ) { (my $methodLabel = $method->{'method'}) =~ s/([^\\])_/$1\\_/g; my $description = $method->{'description'}; chomp($description); print $methodsFile $methodLabel."} ".$description."\n"; print $methodsFile "\\begin{itemize}\n"; print $methodsFile "\\item Return type: ".&declarationBuilder($method->{'type'}, variables => 0)."\n"; my @argumentList = &List::ExtraUtils::as_array($method->{'argumentList'}); my @arguments    = &List::ExtraUtils::as_array($method->{'arguments'   }); for(my $i=0;$i<scalar(@argumentList);++$i) { print $methodsFile "\\item Interface: "; if ( reftype($argumentList[$i]) ) { print $methodsFile "{\\normalfont \\ttfamily ()}\\\\\n"; } else { my $argumentListEscaped = latex_encode($argumentList[$i]); print $methodsFile "{\\normalfont \\ttfamily (".$argumentListEscaped.")}\\\\\n"; foreach my $argument ( &List::ExtraUtils::as_array($arguments[$i]->{'argument'}) ) { print $methodsFile &declarationBuilder($argument)."\\\\\n"; } } } print $methodsFile "\\end{itemize}\n";} else {
 		    print "Warning: missing function type for method '".$method->{'method'}."' of class '".$className."'\n"; 
 		}
 	    }
@@ -158,18 +135,6 @@ sub declarationBuilder {
     my %options = @_;
     my $variables = delete $options{'variables'} // 1;
     my $declaration;
-    $declaration .= "{\\normalfont \\ttfamily ";
-    if ( reftype($type) ) {
-	$declaration .=
-	    $type->{'intrinsic'}.
-	    (exists($type->{'type'      }) && ! reftype($type->{'type'      })               ? "("   .               latex_encode                                 ($type->{'type'      } ).")" : "").
-	    (exists($type->{'attributes'}) &&   defined($type->{'attributes'})               ? ", "  .join(", ",map {latex_encode($_)} &List::ExtraUtils::as_array($type->{'attributes'}))     : "").
-	    (exists($type->{'variables' }) &&   defined($type->{'variables' }) && $variables ? " :: ".join(", ",map {latex_encode($_)} &List::ExtraUtils::as_array($type->{'variables' }))     : "");
-    } elsif ( $type eq "subroutine" ) {
-	$declaration .= "void";
-    } else {
-	die("unknown type");
-    }
-    $declaration .= "}";
+    $declaration .= "\mono{"; if ( reftype($type) ) { $declaration .= $type->{'intrinsic'}. (exists($type->{'type'      }) && ! reftype($type->{'type'      })               ? "("   .               latex_encode                                 ($type->{'type'      } ).")" : ""). (exists($type->{'attributes'}) &&   defined($type->{'attributes'})               ? ", "  .join(", ",map {latex_encode($_)} &List::ExtraUtils::as_array($type->{'attributes'}))     : ""). (exists($type->{'variables' }) &&   defined($type->{'variables' }) && $variables ? " :: ".join(", ",map {latex_encode($_)} &List::ExtraUtils::as_array($type->{'variables' }))     : ""); } elsif ( $type eq "subroutine" ) { $declaration .= "void"; } else { die("unknown type"); } $declaration .= "}";
     return $declaration;
 }

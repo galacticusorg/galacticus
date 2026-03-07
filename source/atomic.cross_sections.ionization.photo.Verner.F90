@@ -1963,8 +1963,7 @@ contains
 
   double precision function vernerCrossSection(self,atomicNumber,ionizationState,shellNumber,wavelength)
     !!{
-    Computes the cross section for photo-ionization (in units of cm$^2$) at the specified {\normalfont \ttfamily
-    wavelength} for all ionization stages of all atoms from H to Zn
+    Computes the cross section for photo-ionization (in units of cm$^2$) at the specified \mono{wavelength} for all ionization stages of all atoms from H to Zn
     ($Z=30$) by use of the following fit parameters:
     \begin{itemize}
     \item Outer shells of the Opacity Project (OP) elements: \cite{verner_atomic_1996_1}

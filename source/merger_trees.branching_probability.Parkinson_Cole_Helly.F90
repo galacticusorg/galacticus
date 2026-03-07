@@ -44,8 +44,7 @@ Implements a merger tree branching probability class using the algorithm of \cit
     on the branching probability, while if we fix it to $M/2$ a lower limit is obtained.
   
     Calculation of branching probabilities involves computation of several hypergeometric functions which are numerically
-    slow. Two parameters control the accuracy and application of these functions. First, {\normalfont \ttfamily
-    [precisionHypergeometric]}($=10^{-6}$) specifies the fractional tolerance to which these functions should be
+    slow. Two parameters control the accuracy and application of these functions. First, \mono{[precisionHypergeometric]}($=10^{-6}$) specifies the fractional tolerance to which these functions should be
     computed. Second, if \mono{[hypergeometricTabulate]}$=$\mono{true} then these functions
     will be tabulated for rapid lookup (at some loss of precision).
    </description>
@@ -501,8 +500,7 @@ contains
 
   double precision function parkinsonColeHellyStepMaximum(self,haloMass,deltaCritical,time,massResolution)
     !!{
-    Return the maximum allowed step in $\delta_\mathrm{crit}$ that a halo of mass \mono{haloMass} at time {\normalfont \ttfamily
-    deltaCritical} should be allowed to take.
+    Return the maximum allowed step in $\delta_\mathrm{crit}$ that a halo of mass \mono{haloMass} at time \mono{deltaCritical} should be allowed to take.
     !!}
     implicit none
     class           (mergerTreeBranchingProbabilityParkinsonColeHelly), intent(inout) :: self
@@ -704,8 +702,7 @@ contains
   
   double precision function parkinsonColeHellyProbabilityBound(self,haloMass,deltaCritical,time,massResolution,bound,node)
     !!{
-    Return a bound on the probability per unit change in $\delta_\mathrm{crit}$ that a halo of mass {\normalfont \ttfamily
-    haloMass} at time \mono{deltaCritical} will undergo a branching to progenitors with mass greater than
+    Return a bound on the probability per unit change in $\delta_\mathrm{crit}$ that a halo of mass \mono{haloMass} at time \mono{deltaCritical} will undergo a branching to progenitors with mass greater than
     \mono{massResolution}.
     !!}
     use            :: Display                 , only : displayMessage    , verbosityLevelWarn, displayMagenta, displayReset

@@ -248,7 +248,7 @@ sub Node_Event_Deserialize_Raw {
 	{
 	    type        => "void",
 	    name        => $code::class->{'name'}."DeserializeRaw",
-	    description => "Deserialize a {\\normalfont \\ttfamily ".$code::class->{'name'}."} object from raw file.",
+	    description => "Deserialize a \mono{".$code::class->{'name'}."} object from raw file.",
 	    content     => "",
 	    modules     =>
 		[
@@ -330,7 +330,7 @@ sub Node_Event_Serialize_Raw {
 	{
 	    type        => "void",
 	    name        => $code::class->{'name'}."SerializeRaw",
-	    description => "Serialize a {\\normalfont \\ttfamily ".$code::class->{'name'}."} object to raw file.",
+	    description => "Serialize a \mono{".$code::class->{'name'}."} object to raw file.",
 	    modules     =>
 		[
 		 "ISO_C_Binding"
@@ -414,7 +414,7 @@ sub Node_Event_Deserialize_Raw_Polymorphic {
     {
 	type        => "class(nodeEvent), pointer => event",
 	name        => "nodeEventBuildFromRaw",
-	description => "Build a {\\normalfont \\ttfamily nodeEvent} class object from a raw dump file.",
+	description => "Build a \mono{nodeEvent} class object from a raw dump file.",
 	modules     =>
 	    [
 	     "Error"
@@ -465,7 +465,7 @@ sub Node_Event_Non_Static_Size_Of {
     {
 	type        => "integer(c_size_t)",
 	name        => "nodeEventSizeOf",
-	description => "Compute the size of the non-static parts of a {\\normalfont \\ttfamily ".$code::class->{'name'}."} object.",
+	description => "Compute the size of the non-static parts of a \mono{".$code::class->{'name'}."} object.",
 	variables   =>
 	    [
 	     {

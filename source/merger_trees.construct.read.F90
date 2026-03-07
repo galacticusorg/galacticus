@@ -124,8 +124,7 @@
       slightly earlier time to act as the primary progenitor. This is necessary to allow the tree to be processed correctly, but does
       not affect the evolution of the tree.
     \item \hyperdef{physics}{mergerTreeConstructRead.missingHosts}{} Normally, cases where a node's host node cannot be found in
-      the \gls{forest} will cause \glc\ to exit with an error. Setting {\normalfont \ttfamily
-      [missingHostsAreFatal]}$=$\mono{false} will instead circumvent this issue by making any such
+      the \gls{forest} will cause \glc\ to exit with an error. Setting \mono{[missingHostsAreFatal]}$=$\mono{false} will instead circumvent this issue by making any such
       nodes self-hosting (i.e. they become isolated nodes rather than subhalos). Note that this behavior is not a physically
       correct way to treat such cases---it is intended only to allow trees to be processed in cases where the full \gls{forest}
       is not available.
@@ -137,8 +136,7 @@
       \citealt{sales_cosmic_2007}). If \mono{[allowSubhaloPromotions]}$=$\mono{true} then such
       cases will be handled correctly (i.e. the subhalo will be promoted back to being an isolated halo). If the parameter
       \mono{[alwaysPromoteMostMassive]}$=$\mono{true} then the most massive progenitor is treated
-      as the primary progenitor, even if that progenitor is a subhalo. Alternatively, if {\normalfont \ttfamily
-      [alwaysPromoteMostMassive]}$=$\mono{false} then a most massive progenitor that is a subhalo is only treated
+      as the primary progenitor, even if that progenitor is a subhalo. Alternatively, if \mono{[alwaysPromoteMostMassive]}$=$\mono{false} then a most massive progenitor that is a subhalo is only treated
       as the primary progenitor \emph{if} no isolated progenitors exist (otherwise, the most massive of the isolated progenitors
       is treated as the primary progenitor). If \mono{[allowSubhaloPromotions]}$=$\mono{false}
       then subhalos are not permitted to become isolated halos. In this case, the following logic will be applied to remove all
@@ -182,8 +180,7 @@
     using merger trees read from file:
     \begin{itemize}
     \item The cosmological parameters ($\Omega_\mathrm{M}$, $\Omega_\Lambda$, $\Omega_\mathrm{b}$, $H_0$, $\sigma_8$), if defined in
-      the file, must be set identically in the \glc\ input file unless you set {\normalfont \ttfamily
-        [mismatchIsFatal]}$=$\mono{false} in which case you'll just be warned about any mismatch;
+      the file, must be set identically in the \glc\ input file unless you set \mono{[mismatchIsFatal]}$=$\mono{false} in which case you'll just be warned about any mismatch;
     \item \glc\ assumes by default that all merger trees exist at the final output time---if this is not the case set {\normalfont
         \ttfamily [allTreesExistAtFinalTime]}$=$\mono{false}.
     \end{itemize}
@@ -198,14 +195,12 @@
     requires a dark matter profile scale component which supports setting of the scale length (see
     \href{https://github.com/galacticusorg/galacticus/releases/download/bleeding-edge/Galacticus_Physics.pdf\#sec.DarkMatterProfileScale}{here}).
     
-    \textbf{Satellite Merger Times:}\index{merger times}\index{satellite!merger times} If {\normalfont \ttfamily
-      [presetMergerTimes]}$=$\mono{true} then merger times for satellites will be computed directly
+    \textbf{Satellite Merger Times:}\index{merger times}\index{satellite!merger times} If \mono{[presetMergerTimes]}$=$\mono{true} then merger times for satellites will be computed directly
     from the merger tree data read from file. When a subhalo has an isolated halo as a descendant it is assumed to undergo a merger
     with that isolated halo at that time. Note that this requires a satellite orbit component method which supports setting of merger
     times (e.g. \mono{[componentSatellite]}$=$\mono{preset}).
     
-    \textbf{Dark Matter Halo Angular Momenta:}\index{dark matter halo!angular momentum} If {\normalfont \ttfamily
-      [presetAngularMomenta]}$=$\mono{true} and the \mono{angularMomentum} dataset is available
+    \textbf{Dark Matter Halo Angular Momenta:}\index{dark matter halo!angular momentum} If \mono{[presetAngularMomenta]}$=$\mono{true} and the \mono{angularMomentum} dataset is available
     within the \mono{haloTrees} group (see
     \href{https://github.com/galacticusorg/galacticus/wiki/Merger-Tree-File-Format#forest-halos-group}{here}) then the angular momenta
     of nodes will be computed and set. This requires a dark matter halo spin component which supports setting of the angular momentum (see

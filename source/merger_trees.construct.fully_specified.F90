@@ -103,8 +103,7 @@
     \end{verbatim}
     The document consists of a set of \mono{node} elements, each of which defines a single node in the merger
     tree. Each \mono{node} element must specify the \mono{index} of the node, along with the
-    index of the node's \mono{parent}, \mono{firstChild}, and {\normalfont \ttfamily
-    sibling}.
+    index of the node's \mono{parent}, \mono{firstChild}, and \mono{sibling}.
     
     Each \mono{node} element may contain elements which specify the properties of a component in the node. For
     example, a \mono{basic} element will specify properties of the ``basic'' component. If multiple elements

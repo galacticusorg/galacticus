@@ -180,8 +180,7 @@ contains
   
   double precision function hearin2021Mass(self,node,time)
     !!{
-    Compute the mass corresponding to \mono{time} in the mass accretion history of {\normalfont \ttfamily
-    node}.
+    Compute the mass corresponding to \mono{time} in the mass accretion history of \mono{node}.
     !!}
     use :: Galacticus_Nodes, only : nodeComponentBasic
     implicit none

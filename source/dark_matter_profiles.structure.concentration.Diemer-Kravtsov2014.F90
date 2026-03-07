@@ -42,8 +42,7 @@
     power spectrum at wavenumber $k = \kappa 2 \pi / R$, $R$ is the comoving Lagrangian radius of the halo, $R=[3 M / 4 \pi
     \rho_\mathrm{M}(z=0)]^{1/3}$, and $\nu=\delta_\mathrm{crit}(t)/\sigma(M)$ is the peak height parameter. The numerical
     parameters $(\kappa,\phi_0,\phi_1,\eta_0,\eta_1,\alpha,\beta)$ are set by the parameters \mono{[kappa]},
-    \mono{[phi0]}, \mono{[phi1]}, \mono{[eta0]}, {\normalfont \ttfamily
-    [eta1]}, \mono{[alpha]}, \mono{[beta]}, respectively, and default to the values given in
+    \mono{[phi0]}, \mono{[phi1]}, \mono{[eta0]}, \mono{[eta1]}, \mono{[alpha]}, \mono{[beta]}, respectively, and default to the values given in
     Table 3 of \cite{diemer_universal_2014} for the median relation, namely $(0.69,6.58,1.37,6.82,1.42,1.12,1.69)$.
    </description>
    <deepCopy>

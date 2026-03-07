@@ -56,10 +56,8 @@
     \ttfamily true}.
   
     If \mono{[sourceAngularMomentumSpecificMean]}$=$\mono{darkMatter} then $\langle j \rangle$
-    is the mean specific angular momentum of the dark matter halo, while if {\normalfont \ttfamily
-    [sourceAngularMomentumSpecificMean]}$=$\mono{hotGas} then $\langle j \rangle$ is equal to the mean specific
-    angular momentum of gas currently in the hot gas reservoir. If {\normalfont \ttfamily
-    [sourceNormalizationRotation]}$=$\mono{darkMatter} then the rotation normalization $A$ is computed using the
+    is the mean specific angular momentum of the dark matter halo, while if \mono{[sourceAngularMomentumSpecificMean]}$=$\mono{hotGas} then $\langle j \rangle$ is equal to the mean specific
+    angular momentum of gas currently in the hot gas reservoir. If \mono{[sourceNormalizationRotation]}$=$\mono{darkMatter} then the rotation normalization $A$ is computed using the
     dark matter density profile, while if \mono{[sourceNormalizationRotation]}$=$\mono{hotGas}
     it is computed using the density profile of the hot gas reservoir.
    </description>

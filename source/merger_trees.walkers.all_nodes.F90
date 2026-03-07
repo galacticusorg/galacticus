@@ -99,8 +99,7 @@ contains
   logical function allNodesNext(self,node)
     !!{
     This function will update to given \mono{node} to the next node which should be visited in a tree to
-    perform a depth-first walk, including satellite nodes. Once the entire tree has been walked, a {\normalfont \ttfamily
-    null()} pointer will be set, and a value of \mono{false} returned indicating that there are no more nodes
+    perform a depth-first walk, including satellite nodes. Once the entire tree has been walked, a \mono{null()} pointer will be set, and a value of \mono{false} returned indicating that there are no more nodes
     to walk. Each node will be visited once and once only if the tree is walked in this way. Note that it is important that the
     walk descends to satellites before descending to children: the routines that destroy merger tree branches rely on this
     since child nodes are used in testing whether a node is a satellite---if they are destroyed prior to the test being made

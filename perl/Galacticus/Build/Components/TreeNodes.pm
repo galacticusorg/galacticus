@@ -236,7 +236,7 @@ sub Build_Tree_Node_Class {
 	     type        => "procedure"                                                                                                       ,
 	     name        => "attachEvent"                                                                                                     ,
 	     function    => "Tree_Node_Attach_Event"                                                                                          ,
-	     description => "Attach a {\\normalfont \\ttfamily nodeEvent} object to this node."                                               ,
+	     description => "Attach a \mono{nodeEvent} object to this node."                                               ,
 	     returnType  => "\\void"                                                                                                          ,
 	     arguments   => "\\textcolor{red}{\\textless *class(nodeEvent)\\textgreater} newEvent\\arginout"
 	 },
@@ -244,7 +244,7 @@ sub Build_Tree_Node_Class {
 	     type        => "procedure"                                                                                                       ,
 	     name        => "removePairedEvent"                                                                                               ,
 	     function    => "Tree_Node_Remove_Paired_Event"                                                                                   ,
-	     description => "Remove a paired {\\normalfont \\ttfamily nodeEvent} from this node."                                             ,
+	     description => "Remove a paired \mono{nodeEvent} from this node."                                             ,
 	     returnType  => "\\void"                                                                                                          ,
 	     arguments   => "\\textcolor{red}{\\textless class(nodeEvent)\\textgreater} event\\argin"
 	 }

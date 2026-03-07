@@ -48,8 +48,7 @@
     \begin{equation}
     x = \dot{M} / \dot{M}_\mathrm{Eddington}.
     \end{equation}
-    Here, $x_\mathrm{min}=$\mono{[accretionRateThinDiskMinimum]}, $x_\mathrm{max}=${\normalfont \ttfamily
-    [accretionRateThinDiskMaximum]}, and $\Delta_{x}$=\mono{[accretionRateTransitionWidth]}. If either
+    Here, $x_\mathrm{min}=$\mono{[accretionRateThinDiskMinimum]}, $x_\mathrm{max}=$\mono{[accretionRateThinDiskMaximum]}, and $\Delta_{x}$=\mono{[accretionRateTransitionWidth]}. If either
     \mono{[accretionRateThinDiskMinimum]} or \mono{[accretionRateThinDiskMaximum]} is set to
     ``\mono{none}'' then the corresponding term in eqn.~(\ref{eq:SwitchedDiskADAFFraction}) is excluded.
   

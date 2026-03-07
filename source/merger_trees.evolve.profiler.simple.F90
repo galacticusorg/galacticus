@@ -32,8 +32,7 @@
     (i.e. that which has the largest error over the step as judged using the same heuristics as the ODE solver uses to
     determine step size) is determined and a record of this is kept.
   
-    At the end of a run the accumulated data is written to the \glc\ output file, into a group named {\normalfont \ttfamily
-    metaData/evolverProfiler}. A histogram of time step sizes is written to \mono{timeStepCount} with bins
+    At the end of a run the accumulated data is written to the \glc\ output file, into a group named \mono{metaData/evolverProfiler}. A histogram of time step sizes is written to \mono{timeStepCount} with bins
     specified in \mono{timeStep}---these bins can be adjusted using \mono{[timeStepMinimum]},
     \mono{[timeStepMaximum]} and \mono{[timeStepPointsPerDecade]}. A histogram of which
     properties limited step size is written to \mono{propertyHitCount} with the associated property names

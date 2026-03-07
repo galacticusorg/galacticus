@@ -1543,8 +1543,7 @@ contains
     Builds a numerical range between \mono{rangeMinimum} and \mono{rangeMaximum} using
     \mono{rangeNumber} points with spacing that varies from logarithmic to linear spacing with the transition
     point controlled by \mono{exponent}. Specifically, suppose we have $N=$\mono{rangeNumber}
-    points in the range, from $S_\mathrm{min}=$\mono{rangeMinimum} to $S_\mathrm{max}=${\normalfont \ttfamily
-    rangeMaximum}. We define $f_i=(i-1)/(N-1)$ where $i$ runs from $1$ to $N$. We then define:
+    points in the range, from $S_\mathrm{min}=$\mono{rangeMinimum} to $S_\mathrm{max}=$\mono{rangeMaximum}. We define $f_i=(i-1)/(N-1)$ where $i$ runs from $1$ to $N$. We then define:
     \begin{equation}
      f_i = { \int_{S_\mathrm{min}}^{S_i} x^{n_i} \mathrm{d} x \over \int_{S_\mathrm{min}}^{S_\mathrm{max}} x^{n_i} \mathrm{d} x},
     \end{equation}

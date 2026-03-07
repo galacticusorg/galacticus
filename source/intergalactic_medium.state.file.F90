@@ -130,8 +130,7 @@
     }
     }
     \end{verbatim}
-     The \mono{electronFraction}, \mono{hIonizedFraction}, {\normalfont \ttfamily
-    heIonizedFraction}, and \mono{matterTemperature} datasets contain the relevant quantity for each redshift
+     The \mono{electronFraction}, \mono{hIonizedFraction}, \mono{heIonizedFraction}, and \mono{matterTemperature} datasets contain the relevant quantity for each redshift
     in the \mono{redshift} dataset.
    </description>
    <runTimeFileDependencies paths="fileName"/>

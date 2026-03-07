@@ -182,8 +182,7 @@ contains
       <name>distributionFunctionNormalize</name>
       <defaultValue>.true.</defaultValue>
       <description>
-	If using the full range ($M &lt; M_0$) of the branching rate distribution, if this parameter is {\normalfont \ttfamily
-	true} then divide the branching rate by 2. This is appropriate if two progenitors are to be sampled (i.e. a binary
+	If using the full range ($M &lt; M_0$) of the branching rate distribution, if this parameter is \mono{true} then divide the branching rate by 2. This is appropriate if two progenitors are to be sampled (i.e. a binary
 	split). If the branching rate applies to only a single branch is it more appropriate to set this parameter to be
 	\mono{true} in which case this normalization by a factor 2 is \emph{not} applied.
       </description>
@@ -290,8 +289,7 @@ contains
   double precision function generalizedPressSchechterMassBranch(self,haloMass,deltaCritical,time,massResolution,probabilityFraction,randomNumberGenerator_,node)
     !!{
     Determine the mass of one of the halos to which the given halo branches, given the branching probability, {\normalfont
-    \ttfamily probabilityFraction}. Typically, \mono{probabilityFraction} is found by multiplying {\normalfont \ttfamily
-    Generalized\_Press\_Schechter\_Branching\_Probability()} by a random variable drawn in the interval 0--1 if a halo
+    \ttfamily probabilityFraction}. Typically, \mono{probabilityFraction} is found by multiplying \mono{Generalized\_Press\_Schechter\_Branching\_Probability()} by a random variable drawn in the interval 0--1 if a halo
     branches. This routine then finds the progenitor mass corresponding to this value.
     !!}
     use :: Display           , only : displayMessage, displayVerbosity, verbosityLevelWarn
@@ -417,8 +415,7 @@ contains
 
   double precision function generalizedPressSchechterStepMaximum(self,haloMass,deltaCritical,time,massResolution)
     !!{
-    Return the maximum allowed step in $\delta_\mathrm{crit}$ that a halo of mass \mono{haloMass} at time {\normalfont \ttfamily
-    deltaCritical} should be allowed to take.
+    Return the maximum allowed step in $\delta_\mathrm{crit}$ that a halo of mass \mono{haloMass} at time \mono{deltaCritical} should be allowed to take.
     !!}
     implicit none
     class           (mergerTreeBranchingProbabilityGnrlzdPrssSchchtr), intent(inout) :: self
@@ -432,8 +429,7 @@ contains
 
   double precision function generalizedPressSchechterProbabilityBound(self,haloMass,deltaCritical,time,massResolution,bound,node)
     !!{
-    Return bounds on the probability per unit change in $\delta_\mathrm{crit}$ that a halo of mass {\normalfont \ttfamily
-    haloMass} at time \mono{deltaCritical} will undergo a branching to progenitors with mass greater than
+    Return bounds on the probability per unit change in $\delta_\mathrm{crit}$ that a halo of mass \mono{haloMass} at time \mono{deltaCritical} will undergo a branching to progenitors with mass greater than
     \mono{massResolution}.
     !!}
     implicit none
@@ -490,8 +486,7 @@ contains
   double precision function generalizedPressSchechterFractionSubresolution(self,haloMass,deltaCritical,time,massResolution,node)
     !!{
     Return the fraction of mass accreted in subresolution halos, i.e. those below \mono{massResolution}, per unit
-    change in $\delta_\mathrm{crit}$ for a halo of mass \mono{haloMass} at time {\normalfont \ttfamily
-    deltaCritical}. The integral is computed numerically.
+    change in $\delta_\mathrm{crit}$ for a halo of mass \mono{haloMass} at time \mono{deltaCritical}. The integral is computed numerically.
     !!}
     use :: Display           , only : displayMagenta, displayReset
     use :: Error             , only : Warn          , errorStatusSuccess

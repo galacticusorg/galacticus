@@ -53,8 +53,7 @@
     per unit increase in $J_\mathrm{v}^2$, and $N(0,1)$ is a random variable distributed as a standard normal. The parameter
     $\sigma=$\mono{[angularMomentumVarianceSpecific]}.
 
-    The factor $f_\mathrm{u}$ can take on one of two forms. If {\normalfont \ttfamily
-    [useOriginalSubresolutionMethod]}=\mono{false} (which should be preferred) then:
+    The factor $f_\mathrm{u}$ can take on one of two forms. If \mono{[useOriginalSubresolutionMethod]}=\mono{false} (which should be preferred) then:
     \begin{equation}
     f_\mathrm{u} = \frac{M_\mathrm{u}}{M(t_2)},
     \end{equation}

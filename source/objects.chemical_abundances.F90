@@ -197,8 +197,7 @@ contains
 
   integer function Chemicals_Property_Count()
     !!{
-    Return the number of properties required to track chemicals. This is equal to the number of chemicals tracked, {\normalfont \ttfamily
-    chemicalsCount}.
+    Return the number of properties required to track chemicals. This is equal to the number of chemicals tracked, \mono{chemicalsCount}.
     !!}
     implicit none
 

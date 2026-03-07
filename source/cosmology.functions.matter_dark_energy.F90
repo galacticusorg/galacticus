@@ -40,8 +40,7 @@
   <cosmologyFunctions name="cosmologyFunctionsMatterDarkEnergy">
    <description>
     Cosmological relations are computed assuming a universe that contains only collisionless matter and dark energy with an
-    equation of state $w(a)=w_0+w_1a(1-a)$ \citep{jassal_wmap_2005}, with $w_0=${\normalfont \ttfamily
-    [darkEnergyEquationOfStateW0]}, and $w_1=$\mono{[darkEnergyEquationOfStateW1]}.
+    equation of state $w(a)=w_0+w_1a(1-a)$ \citep{jassal_wmap_2005}, with $w_0=$\mono{[darkEnergyEquationOfStateW0]}, and $w_1=$\mono{[darkEnergyEquationOfStateW1]}.
    </description>
   </cosmologyFunctions>
   !!]
@@ -624,8 +623,7 @@ contains
 
   double precision function matterDarkEnergyExpansionFactorChange(timeStart,timeEnd,expansionFactorStart)
     !!{
-    Compute the expansion factor at time \mono{timeEnd} given an initial value {\normalfont \ttfamily
-    expansionFactorStart} at time \mono{timeStart}.
+    Compute the expansion factor at time \mono{timeEnd} given an initial value \mono{expansionFactorStart} at time \mono{timeStart}.
     !!}
     use :: Numerical_ODE_Solvers, only : odeSolver
     implicit none

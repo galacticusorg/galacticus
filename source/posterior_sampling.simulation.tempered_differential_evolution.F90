@@ -44,8 +44,7 @@
     \log T_i = {i \over N} \log T_\mathrm{max},
     \end{equation}
     where $T_\mathrm{max}=$\mono{temperatureMaximum}. During tempered steps, the $\gamma$ parameter of the
-    differential evolution algorithm is increased by a factor $T^\alpha$, where $\alpha$ is provided by the {\normalfont \ttfamily
-    proposalSizeTemperatureExponent} class. A value of $\alpha=1/2$ is optimal for a Gaussian likelihood.
+    differential evolution algorithm is increased by a factor $T^\alpha$, where $\alpha$ is provided by the \mono{proposalSizeTemperatureExponent} class. A value of $\alpha=1/2$ is optimal for a Gaussian likelihood.
    </description>
   </posteriorSampleSimulation>
   !!]

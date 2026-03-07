@@ -95,8 +95,7 @@ contains
       <defaultValue>var_str('fallThrough')</defaultValue>
       <source>parameters</source>
       <description>
-	Selects how solutions are computed when no analytic solution is available. If set to ``{\normalfont \ttfamily
-	fallThrough}'' then the solution ignoring heating is used, while if set to ``\mono{numerical}'' then
+	Selects how solutions are computed when no analytic solution is available. If set to ``\mono{fallThrough}'' then the solution ignoring heating is used, while if set to ``\mono{numerical}'' then
 	numerical solvers are used to find solutions.
       </description>
     </inputParameter>

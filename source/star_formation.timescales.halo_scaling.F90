@@ -31,8 +31,7 @@
     \begin{equation}
      \tau_\star = \tau_\mathrm{\star,0} \left( {V_\mathrm{vir} \over 200\hbox{km/s}} \right)^{\alpha_\star} (1+z)^{\beta_\star},
     \end{equation}
-    where $\tau_\mathrm{\star,0}=$\mono{[timescale]}, $\alpha_\star=${\normalfont \ttfamily
-    [exponentVelocityVirial]}, and $\beta_\star=$\mono{[exponentRedshift]}.
+    where $\tau_\mathrm{\star,0}=$\mono{[timescale]}, $\alpha_\star=$\mono{[exponentVelocityVirial]}, and $\beta_\star=$\mono{[exponentRedshift]}.
    </description>
   </starFormationTimescale>
   !!]

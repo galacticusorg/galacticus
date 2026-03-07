@@ -42,8 +42,7 @@
     \epsilon = r_\mathrm{s} \Lambda / \rho_\mathrm{s} v_\mathrm{s}^3,
     \end{equation}
     where $r_\mathrm{s}$ is the accretion shock radius, $\Lambda$ is the post-shock cooling function, $\rho_\mathrm{s}$ is the
-    pre-shock density, $v_\mathrm{s}$ is the pre-shock velocity, and $\epsilon_\mathrm{crit}=${\normalfont \ttfamily
-    [accretionColdModeShockStabilityThreshold]}. The pre-shock radius is set equal to the halo virial radius, the pre-shock
+    pre-shock density, $v_\mathrm{s}$ is the pre-shock velocity, and $\epsilon_\mathrm{crit}=$\mono{[accretionColdModeShockStabilityThreshold]}. The pre-shock radius is set equal to the halo virial radius, the pre-shock
     velocity is set equal to the halo virial velocity, while the pre-shock density is given by
     \begin{equation}
     \rho_\mathrm{s} = {\gamma - 1 \over \gamma + 1} { 3 \over 4 \pi } { \Omega_\mathrm{b} \over \Omega_\mathrm{m} } {M \over

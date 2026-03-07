@@ -862,9 +862,7 @@ module Galacticus_Nodes
     !!{
     This function provides a mechanism for walking through the branches of the merger
     tree. Given a pointer \mono{self} to a branch of the tree, it will
-    return the next node that should be visited in the tree. Thus, if {\normalfont \ttfamily
-    self} is initially set to the base of the merger tree and {\normalfont \ttfamily
-    Merger\_Tree\_Walk\_Branch()} is called repeatedly it will walk through every node of the
+    return the next node that should be visited in the tree. Thus, if \mono{self} is initially set to the base of the merger tree and \mono{Merger\_Tree\_Walk\_Branch()} is called repeatedly it will walk through every node of the
     branch. Once the entire branch has been walked, a \mono{null()} pointer
     will be returned, indicating that there are no more nodes to walk. Each node will be
     visited once and once only if the branch is walked in this way. Note that it is important

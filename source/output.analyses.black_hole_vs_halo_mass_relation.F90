@@ -28,8 +28,7 @@
   <outputAnalysis name="outputAnalysisBlackHoleVsHaloMassRelation">
     <description>
       A black hole vs. halo mass relation output analysis class. Target data is read from an \gls{hdf5} file specified by the
-      \mono{[fileNameTarget]} parameter. This file must contain one or more groups named {\normalfont \ttfamily
-      redshiftIntervalN} where \mono{N} is an integer. Each such group specifies the black hole mass--halo mass
+      \mono{[fileNameTarget]} parameter. This file must contain one or more groups named \mono{redshiftIntervalN} where \mono{N} is an integer. Each such group specifies the black hole mass--halo mass
       relation in one redshift interval, and must contain the following datasets and attributes:
       \begin{itemize}
        \item dataset \mono{massHalo}: halo mass in units of $\mathrm{M}_\odot$;

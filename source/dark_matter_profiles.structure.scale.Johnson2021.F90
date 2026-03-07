@@ -60,8 +60,7 @@
       $i^\mathrm{th}$ non-primary progenitor halo about the primary progenitor halo, $\mu = M_i/M_0$ is the mass ratio of the
       $i^\mathrm{th}$ non-primary progenitor and the primary progenitor ratio, $\nu$ is the peak height parameter for the primary
       progenitor halo, $w_i$ is the subsampling weight of the $i^\mathrm{th}$ non-primary progenitor, $\mathcal{N}(0,1)$ is a
-      standard normal deviate, $\alpha=$\mono{[massExponent]}, $\beta=${\normalfont \ttfamily
-      [peakHeightExponent]}, $b=$\mono{[energyBoost]}, and $\sigma=$\mono{[scatterExcess]}.
+      standard normal deviate, $\alpha=$\mono{[massExponent]}, $\beta=$\mono{[peakHeightExponent]}, $b=$\mono{[energyBoost]}, and $\sigma=$\mono{[scatterExcess]}.
 
       To account for the contribution to the energy from unresolved accretion, we proceed as follows. First, the unresolved mass
       is determined by subtracting the mass of all progenitors from the halo mass:
@@ -106,8 +105,7 @@
       \end{equation}
 
       We next estimate the mean and root-variance, $\bar{E}_\mathrm{unres}$ and $\sigma_\mathrm{unres}$, respectively, of the
-      energy of a halo of mass $M_\mathrm{unres}$ via a Monte Carlo approach. We generate $N_\mathrm{MC}=${\normalfont \ttfamily
-      [countSampleEnergyUnresolved]} such halos, each with scale radii set using the fall-back \refClass{darkMatterHaloScaleClass}
+      energy of a halo of mass $M_\mathrm{unres}$ via a Monte Carlo approach. We generate $N_\mathrm{MC}=$\mono{[countSampleEnergyUnresolved]} such halos, each with scale radii set using the fall-back \refClass{darkMatterHaloScaleClass}
       object with an added scatter of $\sigma^\prime=$\mono{[scatter]} dex, and a randomly selected orbit. For
       each such halo, the energy is computed as
       \begin{equation}
@@ -139,8 +137,7 @@
 
       The scale radius which corresponds to this energy is then solved for.
 
-      For halos with mass less than $f_\mathrm{res} M_\mathrm{res}$, where $f_\mathrm{res}=${\normalfont \ttfamily
-      [factorMassResolution]} and $M_\mathrm{res}$ is the mass resolution of the merger tree, and for any halo which has no
+      For halos with mass less than $f_\mathrm{res} M_\mathrm{res}$, where $f_\mathrm{res}=$\mono{[factorMassResolution]} and $M_\mathrm{res}$ is the mass resolution of the merger tree, and for any halo which has no
       progenitors (a leaf node), the scale radius is instead computed using an alternative method\footnote{For leaf nodes, there
       are no progenitors for which to apply the above energy calculation, and for halos sufficiently close to the mass resolution
       the energy calculation may not be reliable due to the poorly-resolved formation history of the node.}. In these cases, the
@@ -149,14 +146,12 @@
       \emph{scatter-free} scale radius for halos of given mass and redshift\footnote{As scatter will be added directly by the
       present class.} Then, a correlated set of random, log-normal deviates are applied to the scale radii of these nodes. That
       is, the scale radius of the $i^\mathrm{th}$ node in such a sub-branch will be $r_\mathrm{s} = \bar{r}_{\mathrm{s}, i} 10^{x_i}$
-      where $x_i$ is a normally-distributed random variate with mean zero and dispersion $\sigma^\prime=${\normalfont \ttfamily
-      [scatter]}. The deviates $x_i$ are assumed to be correlated with correlation matrix:
+      where $x_i$ is a normally-distributed random variate with mean zero and dispersion $\sigma^\prime=$\mono{[scatter]}. The deviates $x_i$ are assumed to be correlated with correlation matrix:
       \begin{equation}
        C_{i,j} = \exp\left( -\gamma \left| \log_{10} \frac{M_i}{M_j} \right|^\mu \right),
       \end{equation}
 
-      where\footnote{These values were found by fitting to results from this class.} $\gamma = ${\normalfont \ttfamily
-      [correlationRateDecay]}, $\mu =$\mono{[correlationExponent]} and $M_i$ is the mass of the $i^\mathrm{th}$
+      where\footnote{These values were found by fitting to results from this class.} $\gamma = $\mono{[correlationRateDecay]}, $\mu =$\mono{[correlationExponent]} and $M_i$ is the mass of the $i^\mathrm{th}$
       halo in the sub-branch. This results in a scale radius along the sub-branch with the correct mean and scatter, but
       correlated over mass increment scales in a way that matches the predictions of this algorithm.
     </description>

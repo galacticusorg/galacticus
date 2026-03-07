@@ -29,8 +29,7 @@
   <radiationField name="radiationFieldIntergalacticBackgroundFile">
    <description>
     A radiation field class for intergalactic background light with properties read from file. The flux is determined by
-    linearly interpolating to the required time and wavelength. The XML or HDF5 file to read is specified by {\normalfont \ttfamily
-    [fileName]}. An example of the required file structure for XML files is:
+    linearly interpolating to the required time and wavelength. The XML or HDF5 file to read is specified by \mono{[fileName]}. An example of the required file structure for XML files is:
     \begin{verbatim}
     &lt;spectrum>
       &lt;URL>http://adsabs.harvard.edu/abs/1996ApJ...461...20H&lt;/URL>
@@ -59,11 +58,9 @@
     &lt;/spectrum>
     \end{verbatim}
     The optional \mono{URL}, \mono{description}, \mono{reference} and
-    \mono{source} elements can be used to give the provenance of the data. The {\normalfont \ttfamily
-    wavelengths} element should contain a set of \mono{datum} elements each containing a wavelength (in
+    \mono{source} elements can be used to give the provenance of the data. The \mono{wavelengths} element should contain a set of \mono{datum} elements each containing a wavelength (in
     increasing order) at which the spectrum will be tabulated. Wavelengths must be given in Angstroms. Multiple {\normalfont
-    \ttfamily spectra} elements can be given, each specifying the spectrum at a redshift as given in the {\normalfont \ttfamily
-    redshift} element. Each \mono{spectra} element must contain an array of \mono{datum}
+    \ttfamily spectra} elements can be given, each specifying the spectrum at a redshift as given in the \mono{redshift} element. Each \mono{spectra} element must contain an array of \mono{datum}
     elements that gives the spectrum at each wavelength listed in the \mono{wavelength} element. Spectra must
     be in units of erg cm$^{-2}$ s$^{-1}$ Hz$^{-1}$ sr$^{-1}$.
    </description>

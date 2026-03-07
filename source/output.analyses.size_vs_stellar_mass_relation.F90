@@ -30,8 +30,7 @@
   <outputAnalysis name="outputAnalysisSizeVsStellarMassRelation">
     <description>
       A size vs. stellar mass relation output analysis class. Target data is read from an \gls{hdf5} file specified by the
-      \mono{[fileNameTarget]} parameter. This file must contain one or more groups named {\normalfont \ttfamily
-      sampleN} where \mono{N} is an integer. Each such group specifies the galaxy size---stellar mass relation
+      \mono{[fileNameTarget]} parameter. This file must contain one or more groups named \mono{sampleN} where \mono{N} is an integer. Each such group specifies the galaxy size---stellar mass relation
       for one sample (a combination of redshift interval and any selection criteria), and must contain the following datasets and
       attributes:
       \begin{itemize}

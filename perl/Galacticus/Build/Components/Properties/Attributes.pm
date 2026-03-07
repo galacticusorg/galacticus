@@ -52,7 +52,7 @@ sub Attributes_Match {
 	{
 	    type        => "type(varying_string), allocatable, dimension(:) => matches",
 	    name        => $code::class->{'name'}.ucfirst($code::property->{'name'})."AttributeMatch",
-	    description => "Return a text list of component implementations in the {\\normalfont \\ttfamily ".$code::class->{'name'}."} class that have the desired attributes for the {\\normalfont \\ttfamily ".$code::property->{'name'}."} property",
+	    description => "Return a text list of component implementations in the \mono{".$code::class->{'name'}."} class that have the desired attributes for the \mono{".$code::property->{'name'}."} property",
 	    modules =>
 		[
 		 "ISO_Varying_String"

@@ -179,8 +179,7 @@ contains
     \dot{\Sigma}_\star = A \left(x_\mathrm{H} {\Sigma_\mathrm{gas}\over M_\odot \hbox{pc}^{-2}}\right)
     ^{N_1} \left({\Sigma_{\star}\over M_\odot \hbox{pc}^{-2}}\right)^{N_2},
     \end{equation}
-    where $A=$\mono{[normalization]}, $N_1=${\normalfont \ttfamily
-    [exponentGas]}, and $N_2=$\mono{[exponentStars]}.
+    where $A=$\mono{[normalization]}, $N_1=$\mono{[exponentGas]}, and $N_2=$\mono{[exponentStars]}.
     !!}
     use :: Abundances_Structure      , only : abundances
     use :: Coordinates               , only : coordinateCylindrical, assignment(=)

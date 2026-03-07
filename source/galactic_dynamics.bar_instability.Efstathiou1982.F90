@@ -33,8 +33,7 @@
     evaluated at the disk scale radius and multiplied by the factor $1.1800237580$ which relates this velocity to the peak
     rotation velocity for an isolated, thin exponential disk.}, $M_\mathrm{disk}$ is the mass of the disk and $r_\mathrm{disk}$ is
     its scale length (assuming an exponential disk). The value of $\epsilon_\mathrm{c}$ is linearly interpolated in the disk gas
-    fraction between values for purely gaseous and stellar disks as specified by {\normalfont \ttfamily
-    [stabilityThresholdStellar]} and \mono{[stabilityThresholdGaseous]} respectively. For disks which are judged
+    fraction between values for purely gaseous and stellar disks as specified by \mono{[stabilityThresholdStellar]} and \mono{[stabilityThresholdGaseous]} respectively. For disks which are judged
     to be unstable, the timescale for bar formation is estimated to be
     \begin{equation}
      t_\mathrm{bar} = t_\mathrm{disk} \left( {\epsilon_\mathrm{c} - \epsilon_\mathrm{iso} \over \epsilon_\mathrm{c} - \epsilon}

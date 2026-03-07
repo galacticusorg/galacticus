@@ -115,13 +115,11 @@
     }
     }
     \end{verbatim}
-    The \mono{temperature} dataset should specify temperature (in Kelvin), while the {\normalfont \ttfamily
-    metallicity} dataset should give the logarithmic metallicity relative to Solar (a value of -999 or less is taken to imply
+    The \mono{temperature} dataset should specify temperature (in Kelvin), while the \mono{metallicity} dataset should give the logarithmic metallicity relative to Solar (a value of -999 or less is taken to imply
     zero metallicity). The \mono{electronDensity} dataset should specify the number density of electrons
     relative to hydrogen at each temperature/metallicity pair. Optionally \mono{hiDensity} and {\normalfont
     \ttfamily hiiDensity} datasets may be added giving the number densities of H{\normalfont \scshape i} and H{\normalfont
-    \scshape ii} relative to hydrogen respectively The \mono{extrapolateLow} and {\normalfont \ttfamily
-    extrapolateHigh} attributes of the \mono{temperature} and \mono{metallicity} datasets
+    \scshape ii} relative to hydrogen respectively The \mono{extrapolateLow} and \mono{extrapolateHigh} attributes of the \mono{temperature} and \mono{metallicity} datasets
     specify how the cooling rate should be extrapolated in the low and high vale limits. Allowed options for these attributes
     are:
     \begin{description}

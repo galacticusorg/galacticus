@@ -39,8 +39,7 @@
       F_\mathrm{gravity} = {4\over 3} \rho_\mathrm{gas}(r_{1/2}) {\mathrm{G} M_\mathrm{total}(r_{1/2})\over r_{1/2}}
       \end{equation}
       is the gravitational restoring force in the spheroid at the half-mass radius, $r_\mathrm{1/2}$ \citep{takeda_ram_1984},
-      $\beta=$\mono{[beta]} scales the rate of mass loss, and $R_\mathrm{maximum}=${\normalfont \ttfamily
-      [rateFractionalMaximum]} controls the maximum allowed rate of mass loss.
+      $\beta=$\mono{[beta]} scales the rate of mass loss, and $R_\mathrm{maximum}=$\mono{[rateFractionalMaximum]} controls the maximum allowed rate of mass loss.
     </description>
   </ramPressureStripping>
   !!]

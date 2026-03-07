@@ -30,8 +30,7 @@
     \begin{equation}
      \phi(Q_H) \propto \left\{ \begin{array}{ll}  Q_\mathrm{H}^{-\alpha} &amp; \hbox{ if } Q_\mathrm{H,min} &lt; Q_\mathrm{H} &lt; Q_\mathrm{H,max} \\ 0 &amp; \hbox{ otherwise} \end{array} \right. ,
     \end{equation}
-    Where $Q_H$ is the rate of photon production rate, $Q_\mathrm{H,min}=${\normalfont \ttfamily
-    [rateHydrogenIonizingPhotonsMinimum]} and $Q_\mathrm{H,max}=$\mono{[rateHydrogenIonizingPhotonsMaximum]} and
+    Where $Q_H$ is the rate of photon production rate, $Q_\mathrm{H,min}=$\mono{[rateHydrogenIonizingPhotonsMinimum]} and $Q_\mathrm{H,max}=$\mono{[rateHydrogenIonizingPhotonsMaximum]} and
     the minimum and maximum HII region luminosities respectively, and $\alpha=$\mono{[exponent]}.
    </description>
   </hiiRegionLuminosityFunction>

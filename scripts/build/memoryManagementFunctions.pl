@@ -35,9 +35,9 @@ open($includeFiles->{$_} ,">".$ENV{'BUILDPATH'}."/utility.memory_management.".$_
 # Write some header information to these files.
 print {$includeFiles->{'preContain' }} "!!{\n";
 print {$includeFiles->{'preContain' }} "! Contains interface and type definitions for memory management functions along with storage space for pointers and sizes.\n";
-print {$includeFiles->{'preContain' }} "! This file was created automatically by {\\normalfont \\ttfamily memoryUseageFunctions.pl}\n\n";
+print {$includeFiles->{'preContain' }} "! This file was created automatically by \mono{memoryUseageFunctions.pl}\n\n";
 print {$includeFiles->{'postContain'}} "! Contains memory management functions.\n";
-print {$includeFiles->{'postContain'}} "! This file was created automatically by {\\normalfont \\ttfamily memoryUseageFunctions.pl}\n\n";
+print {$includeFiles->{'postContain'}} "! This file was created automatically by \mono{memoryUseageFunctions.pl}\n\n";
 print {$includeFiles->{'preContain' }} "!!}\n";
 # Begin construction of interfaces to allocate and deallocate functions.
 $codeFragments->{'preContain'}->{"allocInterfaceCode"  } = "interface allocateArray\n  !!{\n  ! Generic interface to routines which allocate arrays.\n  !!}\n";
@@ -60,7 +60,7 @@ foreach my $allocatable ( @{$allocatables->{'allocatable'}}  ) {
     $codeFragments->{'postContain'}->{"dealloc".$code::functionLabel} = fill_in_string(<<'CODE', PACKAGE => 'code');
 subroutine deallocateArray_{$functionLabel}(thisArray,memoryType,file,line)
   !!\{
-  ! Deallocate a {$rank}D \{\normalfont \ttfamily {&LaTeX::Encode::latex_encode($typeName)}\} array.
+  ! Deallocate a {$rank}D \{\mono{{&LaTeX::Encode::latex_encode($typeName)}}\} array.
   !!\}
   use Display
   use ISO_Varying_String
@@ -100,7 +100,7 @@ CODE
 	$codeFragments->{'postContain'}->{"alloc".$code::functionLabel.$code::suffix} = fill_in_string(<<'CODE', PACKAGE => 'code');
 subroutine allocateArray_{$functionLabel.$suffix}(thisArray,dimensions,lowerBounds,memoryType,file,line)
   !!\{
-  ! Allocate a {$rank}D \{\normalfont \ttfamily {&LaTeX::Encode::latex_encode($typeName)}\} array.
+  ! Allocate a {$rank}D \{\mono{{&LaTeX::Encode::latex_encode($typeName)}}\} array.
   !!\}
   use Display
   use ISO_Varying_String

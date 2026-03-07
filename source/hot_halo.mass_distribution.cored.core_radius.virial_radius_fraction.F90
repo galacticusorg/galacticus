@@ -26,8 +26,7 @@ Implements a hot halo mass distribution core radius class which sets the core ra
   !![
   <hotHaloMassDistributionCoreRadius name="hotHaloMassDistributionCoreRadiusVirialFraction">
    <description>
-    A hot halo mass distribution core radius class which sets the core radius equal to a fraction {\normalfont \ttfamily
-    [coreRadiusOverVirialRadius]} of the node's virial radius.
+    A hot halo mass distribution core radius class which sets the core radius equal to a fraction \mono{[coreRadiusOverVirialRadius]} of the node's virial radius.
    </description>
   </hotHaloMassDistributionCoreRadius>
   !!]

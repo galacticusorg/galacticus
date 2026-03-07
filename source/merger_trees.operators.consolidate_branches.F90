@@ -25,8 +25,7 @@
   <mergerTreeOperator name="mergerTreeOperatorConsolidateBranches">
    <description>
     A merger tree operator class that consolidates branches spanning a given amount of time or mass growth. Starting from the tip
-    of each branch, the branch is broken into segments for which the mass growth is less than $1+${\normalfont \ttfamily
-    [fractionGrowthMass]} and the time growth is less than $1+$\mono{[fractionGrowthTime]}. Any intermediate
+    of each branch, the branch is broken into segments for which the mass growth is less than $1+$\mono{[fractionGrowthMass]} and the time growth is less than $1+$\mono{[fractionGrowthTime]}. Any intermediate
     nodes in each segment are removed, with their siblings (if any) being made siblings of the node at the end of the
     segment. This reduces the time resolution along branches which can make evolution more efficient (at the cost of some loss of
     precision.

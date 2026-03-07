@@ -52,8 +52,7 @@
 
   abstract interface
      !!{
-     Abstract interface for the inverse cumulative mass function for the radial coordinate in the {\normalfont \ttfamily
-     randomIsotropic} orphan satellite distribution class.
+     Abstract interface for the inverse cumulative mass function for the radial coordinate in the \mono{randomIsotropic} orphan satellite distribution class.
      !!}
      double precision function randomIsotropicInverseCMFRadial(self,node,fraction)
        import satelliteOrphanDistributionRandomIsotropic, treeNode

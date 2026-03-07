@@ -135,8 +135,7 @@
       }
     }
     \end{verbatim}
-    Where \mono{Nratio} is the number of bins in mass ratio, {\normalfont \ttfamily
-    Nparent} is the number of bins in mass ratio, \mono{Nz} is the number of
+    Where \mono{Nratio} is the number of bins in mass ratio, \mono{Nparent} is the number of bins in mass ratio, \mono{Nz} is the number of
     parent/progenitor redshift pairs, \mono{Ndepth} is the maximum depth in the
     ranking of most-massive progenitor mass functions, \mono{Nhierarchy} is the
     maximum depth in the subhalo hierarchy for subhalo mass functions. The first dimension of the

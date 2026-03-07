@@ -43,8 +43,7 @@ main branch galaxy.
   
     This recorded evolution will be written to the group \mono{mainProgenitorEvolution} in the \glc\ output
     file. Within that group two datasets, \mono{time} and \mono{expansionFactor}, give the
-    times and expansion factors at which evolution was recorded. Then for each merger tree two datasets, {\normalfont \ttfamily
-    stellarMass&lt;N&gt;} and \mono{totalMass&lt;N&gt;} (where \mono{&lt;N&gt;} is the merger tree index), give
+    times and expansion factors at which evolution was recorded. Then for each merger tree two datasets, \mono{stellarMass&lt;N&gt;} and \mono{totalMass&lt;N&gt;} (where \mono{&lt;N&gt;} is the merger tree index), give
     the stellar and total baryonic mass of the main branch progenitor at each timestep.
    </description>
   </mergerTreeEvolveTimestep>

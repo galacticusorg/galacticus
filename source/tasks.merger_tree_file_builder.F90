@@ -125,8 +125,7 @@
     properties, if present, require that other properties also be present. For example, if any of the position properties is given
     then all three positions are required.
     
-    Properties of particles to read from the (optional) particle data file are specified through multiple {\normalfont \ttfamily
-      particleProperty} sub-parameter sections, which take the form:
+    Properties of particles to read from the (optional) particle data file are specified through multiple \mono{particleProperty} sub-parameter sections, which take the form:
     \begin{verbatim}
      &lt;particleProperty>
       &lt;name   value="propertyName"/>

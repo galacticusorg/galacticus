@@ -216,8 +216,7 @@ contains
     \begin{equation}
     \Sigma_\star = A \left(x_\mathrm{H} {\Sigma_\mathrm{gas}\over M_\odot \hbox{pc}^{-2}}\right)^N,
     \end{equation}
-    where $A=$\mono{[normalization]} and $N=${\normalfont \ttfamily
-    [exponent]}. Optionally, star formation is truncated for gas surface densities below a critical density of:
+    where $A=$\mono{[normalization]} and $N=$\mono{[exponent]}. Optionally, star formation is truncated for gas surface densities below a critical density of:
     \begin{equation}
     \Sigma_\mathrm{crit} = {q_\mathrm{crit} \kappa \sigma_\mathrm{gas} \over \pi \G},
     \end{equation}

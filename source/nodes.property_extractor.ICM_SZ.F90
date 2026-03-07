@@ -38,8 +38,7 @@ Implements an intracluster medium Sunyaev-Zeldovich Compton-y parameter property
     angular diameter distance can be specified via the \mono{[distanceAngular]} parameter. The outer radius,
     $R_\mathrm{out}$, is either the halo virial radius (by default), or the radius enclosing the density contrast specified by
     the optional \mono{[densityContrast]} parameter. This density contrast is relative to either {\normalfont
-    \ttfamily mean} or \mono{critical} density as specified by the {\normalfont \ttfamily
-    densityContrastRelativeTo} parameter.
+    \ttfamily mean} or \mono{critical} density as specified by the \mono{densityContrastRelativeTo} parameter.
    </description>
    <deepCopy>
     <functionClass variables="densityContrastExtractor_"/>

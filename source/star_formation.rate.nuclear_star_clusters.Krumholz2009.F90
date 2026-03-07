@@ -119,8 +119,7 @@ contains
 
   double precision function krumholz2009Rate(self,node)
     !!{
-    Returns the star formation rate (in $M_\odot$ Gyr$^{-1}$) for star formation in the galactic \gls{nsc} of {\normalfont \ttfamily
-    node}. The \gls{nsc} is assumed to obey the \cite{krumholz_star_2009} star formation rule.
+    Returns the star formation rate (in $M_\odot$ Gyr$^{-1}$) for star formation in the galactic \gls{nsc} of \mono{node}. The \gls{nsc} is assumed to obey the \cite{krumholz_star_2009} star formation rule.
     !!}
     use :: Galacticus_Nodes                          , only : nodeComponentNSC
     use :: Abundances_Structure                      , only : metallicityTypeLinearByMassSolar

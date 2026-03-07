@@ -484,8 +484,7 @@ contains
 
   integer function String_Levenshtein_Distance(s,t)
     !!{
-    Compute the \href{http://en.wikipedia.org/wiki/Levenshtein_distance}{Levenshtein distance} between strings \mono{a} and {\normalfont \ttfamily
-    b}.
+    Compute the \href{http://en.wikipedia.org/wiki/Levenshtein_distance}{Levenshtein distance} between strings \mono{a} and \mono{b}.
     !!}
     implicit none
     character(len=*), intent(in   )                :: s, t

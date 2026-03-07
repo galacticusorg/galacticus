@@ -31,9 +31,7 @@ Implements a merger tree branching probability class using the algorithm of \cit
     \begin{equation}
      \frac{\mathrm{d}^2 N}{\mathrm{d} \xi \mathrm{d} z} = A \left(\frac{M}{10^{12}\hbox{M}_\odot}\right)^\alpha \xi^\beta \exp \left(\left[\frac{\xi}{\bar{\xi}}\right]^\gamma\right) (1+z)^\eta f_\mathrm{env}(\delta,M),
     \end{equation}
-    where $M$ is the mass of the primary halo, $\xi$ is the mass ratio of the merging halos, and $A=${\normalfont \ttfamily
-    [A]}, $\alpha=$\mono{[alpha]}, $\beta=$\mono{[beta]}, $\gamma=${\normalfont \ttfamily
-    [gamma]}, and $\bar{\xi}=$\mono{[xiBar]} are parameters. The function $f_\mathrm{env}(\delta,M)$ describes
+    where $M$ is the mass of the primary halo, $\xi$ is the mass ratio of the merging halos, and $A=$\mono{[A]}, $\alpha=$\mono{[alpha]}, $\beta=$\mono{[beta]}, $\gamma=$\mono{[gamma]}, and $\bar{\xi}=$\mono{[xiBar]} are parameters. The function $f_\mathrm{env}(\delta,M)$ describes
     environmental dependence in the merger rate. We use the model of \cite[][their eqn.~(11)]{fakhouri_environmental_2009}:
     \begin{equation}
      f_\mathrm{env}(\delta,M) = B (1+\delta)^\mu \left( \frac{M}{10^{12}\mathrm{M}_\odot} \right)^\nu,

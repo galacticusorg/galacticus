@@ -53,8 +53,7 @@ Implements a class for the conditional mass functions using the \cite{behroozi_c
      {M_\mathrm{cut} \over 10^{12} M_\odot} = B_\mathrm{cut} \left({f^{-1}_\mathrm{SHMR}(M_\star) \over 10^{12}
      M_\odot}\right)^{\beta_\mathrm{cut}}.
     \end{equation}
-    By default, parameter values are taken from the fit of \cite{leauthaud_new_2011}, specifically their {\normalfont \ttfamily
-    SIG\_MOD1} method for their $z_1$ sample. These default values, and the \glc\ input parameters which can be used to adjust
+    By default, parameter values are taken from the fit of \cite{leauthaud_new_2011}, specifically their \mono{SIG\_MOD1} method for their $z_1$ sample. These default values, and the \glc\ input parameters which can be used to adjust
     them are shown in Table~\ref{table:Behroozi2010FitParameters}. This method assumes that $P_\mathrm{s}(N|M_\star,M;\delta
     \ln M_\star)$ is a Poisson distribution while $P_\mathrm{c}(N|M_\star,M;\delta \ln M_\star)$ has a Bernoulli distribution,
     with each distribution's free parameter fixed by requiring

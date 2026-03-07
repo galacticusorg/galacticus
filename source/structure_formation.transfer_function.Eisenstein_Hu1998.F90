@@ -29,8 +29,7 @@
   <transferFunction name="transferFunctionEisensteinHu1998">
    <description>
     Provides the \cite{eisenstein_baryonic_1998} fitting function to the transfer function. The effective number of neutrino
-    species and the summed mass (in electron volts) of all neutrino species are specified via the {\normalfont \ttfamily
-   neutrinoNumberEffective} and \mono{neutrinoMassSummed} parameters respectively.
+    species and the summed mass (in electron volts) of all neutrino species are specified via the \mono{neutrinoNumberEffective} and \mono{neutrinoMassSummed} parameters respectively.
    </description>
   </transferFunction>
   !!]

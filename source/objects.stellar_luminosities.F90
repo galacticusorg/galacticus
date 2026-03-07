@@ -1052,9 +1052,7 @@ contains
 
   subroutine Stellar_Luminosities_Set(self,mass,stellarPopulation_,stellarPopulationBroadBandLuminosities_,time,abundancesStellar)
     !!{
-    Set the luminosity in each band for a single \mono{stellarPopulation\_} of given {\normalfont \ttfamily
-    mass} with the specified \mono{abundancesStellar} and which formed at cosmological {\normalfont \ttfamily
-    time}.
+    Set the luminosity in each band for a single \mono{stellarPopulation\_} of given \mono{mass} with the specified \mono{abundancesStellar} and which formed at cosmological \mono{time}.
     !!}
     use :: Abundances_Structure                      , only : abundances
     use :: Stellar_Population_Broad_Band_Luminosities, only : stellarPopulationBroadBandLuminositiesClass

@@ -26,8 +26,7 @@
    <description>
     A mass function incompleteness class which models the surface brightness distribution of galaxies as a normal distribution
     with mean $\langle \mu \rangle (M) = \alpha \log_{10}(M/M_0)+\beta$, with root-variance $\sigma$, where
-    $\alpha=$\mono{[slope]}, $\beta=$\mono{[zeroPoint]}, and $\sigma=${\normalfont \ttfamily
-    [scatter]}. The completeness is the fraction of this distribution above the surface brightness limit given by {\normalfont
+    $\alpha=$\mono{[slope]}, $\beta=$\mono{[zeroPoint]}, and $\sigma=$\mono{[scatter]}. The completeness is the fraction of this distribution above the surface brightness limit given by {\normalfont
     \ttfamily [limit]}.
    </description>
   </massFunctionIncompleteness>

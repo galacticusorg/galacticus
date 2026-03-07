@@ -34,8 +34,7 @@
   <nodeOperator name="nodeOperatorDarkMatterProfilePromptCusps">
    <description>
     A node operator class that evaluates the properties of prompt cusps following the model of \cite{delos_cusp-halo_2025}, with a
-    log-normal scatter of $\mu \exp(-1/\sigma_0)$~dex added to the cusp amplitude, where $\mu=${\normalfont \ttfamily
-    [coefficientScatter]}.
+    log-normal scatter of $\mu \exp(-1/\sigma_0)$~dex added to the cusp amplitude, where $\mu=$\mono{[coefficientScatter]}.
    </description>
   </nodeOperator>
   !!]

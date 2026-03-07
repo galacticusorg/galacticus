@@ -108,8 +108,7 @@ contains
 
   subroutine nodePromotion(self,node)
     !!{
-    Ensure that \mono{node} is ready for promotion to its parent. In this case, update the position of {\normalfont \ttfamily
-    node} to that of the parent.
+    Ensure that \mono{node} is ready for promotion to its parent. In this case, update the position of \mono{node} to that of the parent.
     !!}
     use :: Galacticus_Nodes, only : nodeComponentPosition, nodeComponentPositionCartesian, treeNode
     implicit none

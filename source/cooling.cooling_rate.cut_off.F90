@@ -39,9 +39,7 @@
   !![
   <coolingRate name="coolingRateCutOff">
    <description>
-    A cooling rate class which sets the cooling rate to zero in halos with virial velocities below {\normalfont \ttfamily
-    [velocityCutOff]} at redshifts below/above \mono{[redshiftCutOff]} for {\normalfont \ttfamily
-    [whenCutOff]}$=$\mono{after/before}. In other halos the cooling rate is not modified.
+    A cooling rate class which sets the cooling rate to zero in halos with virial velocities below \mono{[velocityCutOff]} at redshifts below/above \mono{[redshiftCutOff]} for \mono{[whenCutOff]}$=$\mono{after/before}. In other halos the cooling rate is not modified.
    </description>
   </coolingRate>
   !!]

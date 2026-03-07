@@ -61,7 +61,7 @@ sub Tree_Node_ODE_Step_Initialize {
 	{
 	    type        => "void",
 	    name        => "treeNodeODEStep".ucfirst($code::quantity->{'name'})."sInitialize",
-	    description => "Initialize the ".$code::quantity->{'name'}."s in components of tree node {\\normalfont \\ttfamily self} in preparation for an ODE solver step.",
+	    description => "Initialize the ".$code::quantity->{'name'}."s in components of tree node \mono{self} in preparation for an ODE solver step.",
 	    variables   =>
 		[
 		 {
@@ -581,7 +581,7 @@ sub Tree_Node_ODE_Offsets {
     {
 	type        => "void",
 	name        => "treeNodeSerializeOffsets",
-	description => "Compute offsets into serialization arrays for {\\normalfont \\ttfamily treeNode} object.",
+	description => "Compute offsets into serialization arrays for \mono{treeNode} object.",
 	variables   =>
 	    [
 	     {

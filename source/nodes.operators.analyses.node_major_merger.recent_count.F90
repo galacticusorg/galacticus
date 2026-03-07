@@ -97,9 +97,7 @@ contains
       <name>intervalRecent</name>
       <defaultValue>2.0d0</defaultValue>
       <description>
-	The time interval used to define ``recent'' mergers. This parameter is in units of Gyr if {\normalfont \ttfamily
-	[intervalType]}$=$\mono{absolute}, or in units of the halo dynamical time if {\normalfont \ttfamily
-	[intervalType]}$=$\mono{dynamical}.
+	The time interval used to define ``recent'' mergers. This parameter is in units of Gyr if \mono{[intervalType]}$=$\mono{absolute}, or in units of the halo dynamical time if \mono{[intervalType]}$=$\mono{dynamical}.
       </description>
       <source>parameters</source>
     </inputParameter>

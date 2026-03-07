@@ -35,8 +35,7 @@ Implements a merger tree branching probability rate modifier which uses the mode
     \end{equation}
     where $\delta_\mathrm{p}$ is the current critical overdensity for collapse for the parent halo, and $\sigma_\mathrm{c}$ and
     $\sigma_\mathrm{p}$ are the root-variance of the smooth mass-density field on scales corresponding to the masses of child
-    and parent halos respectively. The parameters of the fit can be adjusted via input parameters: $G_0=${\normalfont \ttfamily
-    [G0]}, $\gamma_1=$\mono{[gamma1]}, and $\gamma_2=$\mono{[gamma2]}.
+    and parent halos respectively. The parameters of the fit can be adjusted via input parameters: $G_0=$\mono{[G0]}, $\gamma_1=$\mono{[gamma1]}, and $\gamma_2=$\mono{[gamma2]}.
    </description>
   </mergerTreeBranchingProbabilityModifier>
   !!]

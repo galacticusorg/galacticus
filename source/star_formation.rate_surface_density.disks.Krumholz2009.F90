@@ -53,8 +53,7 @@
     \begin{equation}
      \chi = 0.77 \left[ 1 + 3.1 Z^{\prime 0.365} \right],
     \end{equation}
-    and $\Sigma_\mathrm{comp,0}=c \Sigma_\mathrm{HI}/M_\odot \hbox{pc}^{-2}$ where $c=${\normalfont \ttfamily
-    [clumpingFactorMolecularComplex]} is a density enhancement factor relating the surface density of molecular complexes to
+    and $\Sigma_\mathrm{comp,0}=c \Sigma_\mathrm{HI}/M_\odot \hbox{pc}^{-2}$ where $c=$\mono{[clumpingFactorMolecularComplex]} is a density enhancement factor relating the surface density of molecular complexes to
     the gas density on larger scales. Alternatively, if \mono{[molecularFractionFast]} is set to true, the
     molecular fraction will be computed using the faster (but less accurate at low molecular fraction) formula
     \begin{equation}

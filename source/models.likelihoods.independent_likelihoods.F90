@@ -40,18 +40,14 @@
       classes that are assumed to be independent (i.e. the $\log \mathcal{L}$ of the models are simply summed to find the final
       likelihood).
       
-      Since each \refClass{posteriorSampleLikelihoodClass} class may require a different set of parameters a {\normalfont \ttfamily
-      [parameterMap]} parameter may be specified. If present, the number of \mono{[parameterMap]} parameters must
+      Since each \refClass{posteriorSampleLikelihoodClass} class may require a different set of parameters a \mono{[parameterMap]} parameter may be specified. If present, the number of \mono{[parameterMap]} parameters must
       equal the number of \mono{[posteriorSampleLikelihood]} parameters. Each such parameter should give a
       (space-separated) list of the names of parameters (as defined in the \refClass{modelParameterActive} class) which should be
-      passed to the corresponding \mono{[posteriorSampleLikelihood]}. If no {\normalfont \ttfamily
-      [parameterMap]} parameters are given then all parameters are passed to each \refClass{posteriorSampleLikelihoodClass} class.
+      passed to the corresponding \mono{[posteriorSampleLikelihood]}. If no \mono{[parameterMap]} parameters are given then all parameters are passed to each \refClass{posteriorSampleLikelihoodClass} class.
       
       Similarly, a set of \mono{parameterInactiveMap} parameters may be given, to specify which (if any, an empty
       \mono{value} is permissible) of the inactive parameters specified by \refClass{modelParameterInactive}
-      should be passed to the corresponding \mono{[posteriorSampleLikelihood]}. If no {\normalfont \ttfamily
-      [parameterInactiveMap]} then no inactive parameters are passed to any of the {\normalfont \ttfamily
-      [posteriorSampleLikelihood]} classes.
+      should be passed to the corresponding \mono{[posteriorSampleLikelihood]}. If no \mono{[parameterInactiveMap]} then no inactive parameters are passed to any of the \mono{[posteriorSampleLikelihood]} classes.
 
       Optionally, a parameter \mono{[logLikelihoodAccept]} may be specified. Once the likelihood of a chain
       reaches this value, no further evaluations of the likelihood will be made - the chain is assumed to be sufficiently likely

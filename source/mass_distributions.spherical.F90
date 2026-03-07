@@ -1081,8 +1081,7 @@ contains
   
   double precision function sphericalRadiusFreefallNumerical(self,time) result(radius)
     !!{
-    Compute the freefall radius at the given {\normalfont \ttfamily
-    time} in a spherical mass distribution using a numerical
+    Compute the freefall radius at the given \mono{time} in a spherical mass distribution using a numerical
     calculation.
     !!}
     use :: Root_Finder                     , only : rangeExpandMultiplicative     , rangeExpandSignExpectNegative, rangeExpandSignExpectPositive, rootFinder

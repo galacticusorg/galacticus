@@ -44,8 +44,7 @@ Implements a stellar mass function output analysis class for the ZFOURGE survey 
     \begin{equation}
      \sigma(M) = \hbox{min}\left[\sigma_\mathrm{max},\hbox{max}\left[\sigma_\mathrm{min},\sum_{i=0}^N r_i \log_\mathrm{10}^i \left({M_\star \over 10^{11.3}M_\odot}\right)\right]\right],
     \end{equation}
-    where $r=$\mono{[randomErrorPolynomialCoefficient]}, $\sigma_\mathrm{min}$={\normalfont \ttfamily
-      [randomErrorMinimum]}, and $\sigma_\mathrm{max}$=\mono{[randomErrorMaximum]}.
+    where $r=$\mono{[randomErrorPolynomialCoefficient]}, $\sigma_\mathrm{min}$=\mono{[randomErrorMinimum]}, and $\sigma_\mathrm{max}$=\mono{[randomErrorMaximum]}.
    </description>
   </outputAnalysis>
   !!]

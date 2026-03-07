@@ -132,8 +132,7 @@ contains
 
   double precision function zhao2009Time(self,node,mass)
     !!{
-    Compute the time corresponding to \mono{mass} in the mass accretion history of {\normalfont \ttfamily
-    node} using the algorithm of \cite{zhao_accurate_2009}.
+    Compute the time corresponding to \mono{mass} in the mass accretion history of \mono{node} using the algorithm of \cite{zhao_accurate_2009}.
     !!}
     use :: Error                , only : Error_Report
     use :: Galacticus_Nodes     , only : nodeComponentBasic, treeNode

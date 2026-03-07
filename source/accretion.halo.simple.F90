@@ -42,8 +42,7 @@
     \label{eq:accretionHalo:truncation}
     \end{equation}
     where $z_\mathrm{reionization}=$\mono{[redshiftReionization]} is the redshift at which the Universe is
-    reionized (alternatively, the optical depth to reionization can be specified via {\normalfont \ttfamily
-    [opticalDepthReionization]} and the corresponding redshift will be computed) and $V_\mathrm{reionization}=${\normalfont
+    reionized (alternatively, the optical depth to reionization can be specified via \mono{[opticalDepthReionization]} and the corresponding redshift will be computed) and $V_\mathrm{reionization}=${\normalfont
     \ttfamily [velocitySuppressionReionization]} is the virial velocity below which accretion is suppressed after
     reionization. Setting $V_\mathrm{reionization}$ to zero will effectively switch off the effects of reionization on the
     accretion of baryons. This algorithm attempts to offer a simple prescription for the effects of reionization and has been
@@ -58,8 +57,7 @@
     Note that, if $\dot{M}_\mathrm{halo} &lt; 0$ then negative accretion rates of gas into the node can result. This can be
     prevented by setting \mono{[accretionNegativeAllowed]}$=$\mono{false}.
   
-    By default, gas is accreted whenever the halo is growing in total mass. However, setting {\normalfont \ttfamily
-    [accretionNewGrowthOnly]}$=$\mono{true} causes accretion to occur only if the node mass is growing and
+    By default, gas is accreted whenever the halo is growing in total mass. However, setting \mono{[accretionNewGrowthOnly]}$=$\mono{true} causes accretion to occur only if the node mass is growing and
     exceeds the previous maximum node mass achieved along this branch of the merger tree. This requires use of a basic
     component which tracks the maximum mass along the branch (i.e. the \mono{massMaximum} property).
    </description>

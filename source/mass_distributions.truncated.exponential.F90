@@ -31,8 +31,7 @@
        \rho(r) = \rho^\prime(r_\mathrm{min}) \left\{ \begin{array}{ll} 1 &amp; \hbox{ if } r &lt; r_\mathrm{min}, \\ \rho^\prime(r_\mathrm{min} x^\kappa \exp\left(-\frac{x-1}{x_\mathrm{max}}\right) &amp; \hbox{otherwise,} \end{array} \right.
      \end{equation}
      where $x = r/r_\mathrm{min}$, $x_\mathrm{decay} = r_\mathrm{decay}/r_\mathrm{min}$, $\rho^\prime(r)$ is some other density
-     profile, $r_\mathrm{min}=$\mono{[radiusTruncateMinimum]}, $r_\mathrm{decay}=${\normalfont \ttfamily
-     [radiusTruncateDecay]}, and
+     profile, $r_\mathrm{min}=$\mono{[radiusTruncateMinimum]}, $r_\mathrm{decay}=$\mono{[radiusTruncateDecay]}, and
      \begin{equation}
      \kappa = \frac{r_\mathrm{min}}{r_\mathrm{decay}} + \frac{\mathrm{d}\log \rho^\prime}{\mathrm{d}\log r}(r_\mathrm{min})
      \end{equation}

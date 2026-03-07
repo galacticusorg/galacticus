@@ -54,8 +54,7 @@
   
     Various sub-parameters specify the details of the lightcone geometry. The \mono{lengthReplication} parameter
     should give the length of the simulation box (the box will be replicated to span the volume covered by the lightcone),
-    with the \mono{lengthUnitsInSI} parameter giving the length unit in SI units and {\normalfont \ttfamily
-    lengthHubbleExponent} giving the exponent of $h$ that appears in the length unit. The \mono{angularSize}
+    with the \mono{lengthUnitsInSI} parameter giving the length unit in SI units and \mono{lengthHubbleExponent} giving the exponent of $h$ that appears in the length unit. The \mono{angularSize}
     parameter of \mono{fieldOfView} should gives the length of the side of the square field of view in
     degrees. The \mono{origin} element must contain the $x$, $y$, $z$ coordinates of the origin of the
     lightcone within the simulation box, while the \mono{unitVectorX} parameters must give unit vectors which

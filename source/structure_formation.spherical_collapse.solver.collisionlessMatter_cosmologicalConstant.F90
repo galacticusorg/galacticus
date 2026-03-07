@@ -413,8 +413,7 @@ contains
 
   double precision function cllsnlssMttCsmlgclCnstntPerturbationCollapseRoot(epsilonPerturbation)
     !!{
-    Root function used to determine when the collapse time for a perturbation of amplitude {\normalfont \ttfamily
-    epsilonPerturbation} collapses at the current time.
+    Root function used to determine when the collapse time for a perturbation of amplitude \mono{epsilonPerturbation} collapses at the current time.
     !!}
     implicit none
     double precision, intent(in   ) :: epsilonPerturbation

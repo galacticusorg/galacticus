@@ -115,8 +115,7 @@ contains
 
   subroutine powerLawOutflowRate(self,component,rateStarFormation,rateEnergyInput,rateOutflowEjective,rateOutflowExpulsive)
     !!{
-    Returns the outflow rate (in $M_\odot$ Gyr$^{-1}$) for star formation in the given {\normalfont \ttfamily
-    component}. The outflow rate is given by \begin{equation} \dot{M}_\mathrm{outflow} = \left({V_\mathrm{outflow} \over
+    Returns the outflow rate (in $M_\odot$ Gyr$^{-1}$) for star formation in the given \mono{component}. The outflow rate is given by \begin{equation} \dot{M}_\mathrm{outflow} = \left({V_\mathrm{outflow} \over
     V}\right)^{\alpha_\mathrm{outflow}}, \end{equation} where $V_\mathrm{outflow}$(={\normalfont
     \ttfamily velocityCharacteristic}) is the velocity scale at which outflow rate equals star formation rate and $\alpha_{\mathrm
     outflow}$(=\mono{exponent}) controls the scaling with velocity. Note that the velocity

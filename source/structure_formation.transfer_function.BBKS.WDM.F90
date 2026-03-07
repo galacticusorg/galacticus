@@ -28,8 +28,7 @@ Implements a transfer function class based on the \gls{wdm} modifier of \cite{ba
   <transferFunction name="transferFunctionBBKSWDM">
    <description>
     A transfer function class providing the \gls{wdm} transfer function fitting function of \cite{bardeen_statistics_1986}. The
-    free-streaming length is computed from the dark matter particle (which must be of the {\normalfont \ttfamily
-    darkMatterParticleWDMThermal} class) properties, and the resulting modifier of \cite{bardeen_statistics_1986} is applied to
+    free-streaming length is computed from the dark matter particle (which must be of the \mono{darkMatterParticleWDMThermal} class) properties, and the resulting modifier of \cite{bardeen_statistics_1986} is applied to
     the provided \gls{cdm} transfer function.
    </description>
   </transferFunction>

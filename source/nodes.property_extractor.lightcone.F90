@@ -53,14 +53,11 @@
      \item [\mono{lightconeRedshiftCosmological}] Redshift of the galaxy in the lightcone\footnote{Note that this will
      not, in general, be precisely the same as the redshift corresponding to the output time.};
      \item [\mono{lightconeRedshiftObserved}] Observed redshift of the galaxy, accounting for the effects of
-     line-of-sight peculiar velocity (included only if \mono{[includeObservedRedshift]}={\normalfont \ttfamily
-     true});
+     line-of-sight peculiar velocity (included only if \mono{[includeObservedRedshift]}=\mono{true});
      \item [\mono{lightconeAngularTheta}] Angular distance from pole of coordinate system (i.e. $\theta$ in a
-     spherical coordinate system; included only if \mono{[includeAngularCoordinates]}={\normalfont \ttfamily
-     true}) [radians]
+     spherical coordinate system; included only if \mono{[includeAngularCoordinates]}=\mono{true}) [radians]
      \item [\mono{lightconeAngularPhi}] Angular distance around the pole of coordinate system system (i.e. $\phi$
-     in a spherical coordinate system; included only if \mono{[includeAngularCoordinates]}={\normalfont \ttfamily
-     true}) [radians]
+     in a spherical coordinate system; included only if \mono{[includeAngularCoordinates]}=\mono{true}) [radians]
      \item [\mono{angularWeight}] The mean number density of this galaxy per unit area on the sky (in
      degrees$^{-2}$).
     \end{description}

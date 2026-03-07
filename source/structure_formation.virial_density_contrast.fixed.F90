@@ -40,8 +40,7 @@
   !![
   <virialDensityContrast name="virialDensityContrastFixed">
    <description>
-    A dark matter halo virial density contrast class which uses a fixed virial density contrast of {\normalfont \ttfamily
-    [densityContrastValue]}, defined relative to \mono{critical} or \mono{mean} density as
+    A dark matter halo virial density contrast class which uses a fixed virial density contrast of \mono{[densityContrastValue]}, defined relative to \mono{critical} or \mono{mean} density as
     specified by \mono{[densityType]}.
    </description>
   </virialDensityContrast>

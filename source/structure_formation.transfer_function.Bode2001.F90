@@ -47,9 +47,7 @@ Implements a transfer function class based on the thermal \gls{wdm} modifier of 
     \begin{equation}
     T(k) \rightarrow T(k) (1+[\epsilon k R_\mathrm{c}^0]^{2\nu})^{-\eta/\nu},
     \end{equation}
-    where $\epsilon=$\mono{[epsilon]}, $\eta=$\mono{[eta]}, $\nu=${\normalfont \ttfamily
-    [nu]}. The cut-off scale is computed from the dark matter particle (which must be of the {\normalfont \ttfamily
-    darkMatterParticleWDMThermal} class) properties.
+    where $\epsilon=$\mono{[epsilon]}, $\eta=$\mono{[eta]}, $\nu=$\mono{[nu]}. The cut-off scale is computed from the dark matter particle (which must be of the \mono{darkMatterParticleWDMThermal} class) properties.
    </description>
   </transferFunction>
   !!]

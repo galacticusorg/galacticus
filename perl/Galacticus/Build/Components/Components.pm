@@ -40,7 +40,7 @@ sub Build_Node_Component_Class {
 	     type        => "procedure"                                                                                            ,
 	     name        => "host"                                                                                                 ,
 	     function    => "Node_Component_Host_Node"                                                                             ,
-	     description => "Return a pointer to the host {\\normalfont \\ttfamily treeNode} object."                              ,
+	     description => "Return a pointer to the host \mono{treeNode} object."                              ,
 	     returnType  => "\\textcolor{red}{\\textless *type(treeNode)\\textgreater}"                                            ,
 	     arguments   => ""
 	 },

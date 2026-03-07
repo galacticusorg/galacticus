@@ -29,8 +29,7 @@
       \begin{equation}
       \rho(\mathbf{x}) = \frac{f_\mathrm{M}}{f_\mathrm{r}^3} \rho^\prime(\mathbf{x}/f_\mathrm{r}),
       \end{equation}      
-      where $\rho^\prime(\mathbf{x})$ is the original mass distribution, and $f_\mathrm{r}=${\normalfont \ttfamily
-      [factorScalingLength]}, and $f_\mathrm{M}=$\mono{[factorScalingMass]}.
+      where $\rho^\prime(\mathbf{x})$ is the original mass distribution, and $f_\mathrm{r}=$\mono{[factorScalingLength]}, and $f_\mathrm{M}=$\mono{[factorScalingMass]}.
     </description>
   </massDistribution>
   !!]

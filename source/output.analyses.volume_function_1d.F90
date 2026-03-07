@@ -68,8 +68,7 @@ mass function) output analysis class.
      $p_{ik}$ does not vary significantly across the mass range of each bin. Using all realizations of trees that fall within a
      given bin, $k$, we can directly estimate $p_{ik}$. Similarly, $N_k w_k^2$ is found by accumulating squared weights in bins of
      root mass. In computing $p_{ik}$ and $N_k$, the range of halo masses considered and the fineness of binning in halo mass are
-     determined by the parameters \mono{[covarianceBinomialMassHaloMinimum]}, {\normalfont \ttfamily
-     [covarianceBinomialMassHaloMaximum]}, and \mono{[covarianceBinomialBinsPerDecade]}.
+     determined by the parameters \mono{[covarianceBinomialMassHaloMinimum]}, \mono{[covarianceBinomialMassHaloMaximum]}, and \mono{[covarianceBinomialBinsPerDecade]}.
   
      If instead, \mono{[covarianceModel]}$=$\mono{Poisson}, the main branch galaxies are
      modeled as being sampled from a Poisson distribution (and so off-diagonal terms in the covariance matrix will be zero).

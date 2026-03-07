@@ -35,13 +35,11 @@
       \begin{equation}
        y(x) = y_0+(y_1-y_0)/(1+\exp[-(x-x_\nu)/\Delta x]),
       \end{equation}
-      where $r_0=$\mono{[radiusLow]}, $r_1=$\mono{[radiusHigh]}, $r_\nu=${\normalfont \ttfamily
-      [radiusTransition]}, $\Delta r=$\mono{[radiusWidth]}, $\alpha_0=$\mono{[massLow]},
+      where $r_0=$\mono{[radiusLow]}, $r_1=$\mono{[radiusHigh]}, $r_\nu=$\mono{[radiusTransition]}, $\Delta r=$\mono{[radiusWidth]}, $\alpha_0=$\mono{[massLow]},
       $\alpha_1=$\mono{[massHigh]}, $\alpha_\nu=$\mono{[massTransition]}, $\Delta
       \alpha=$\mono{[massWidth]}, $\beta_0=$\mono{[expansionFactorLow]}, $\beta_1=${\normalfont
       \ttfamily [expansionFactorHigh]}, $\beta_\nu=$\mono{[expansionFactorTransition]}, and $\Delta
-      \beta=$\mono{[expansionFactorWidth]} , plus a random log-normal scatter of {\normalfont \ttfamily
-      [scatter]}~dex.
+      \beta=$\mono{[expansionFactorWidth]} , plus a random log-normal scatter of \mono{[scatter]}~dex.
     </description>
   </darkMatterProfileScaleRadius>
   !!]

@@ -44,8 +44,7 @@ Implements a molecular ratio class that assumes the model of \cite{obreschkow_si
      M_\mathrm{HI} = X_\mathrm{H} M_\mathrm{gas} / ( 1 + R_\mathrm{mol} ),
     \end{equation}
     where $X_\mathrm{H}=0.778$ is the primordial hydrogen fraction by mass. In the above $K=$\mono{[K]},
-    $\langle f_\sigma \rangle=$\mono{[fSigma]}, $A_1=$\mono{[A1]}, $A_2=${\normalfont \ttfamily
-    [A2]}, $\alpha_1=$\mono{[alpha1]}, $\alpha_2=$\mono{[alpha2]}, and $\beta=${\normalfont
+    $\langle f_\sigma \rangle=$\mono{[fSigma]}, $A_1=$\mono{[A1]}, $A_2=$\mono{[A2]}, $\alpha_1=$\mono{[alpha1]}, $\alpha_2=$\mono{[alpha2]}, and $\beta=${\normalfont
     \ttfamily [beta]}. Default values for these parameters are taken from \cite{obreschkow_simulation_2009}. According to
     Obreschkow (private communication), there remains significant scatter of $\sigma_{R_\mathrm{mol}}=0.4$~dex between the
     predicted $R_\mathrm{mol}$ from this model and that observed. This is accounted for in when constructing the mass function

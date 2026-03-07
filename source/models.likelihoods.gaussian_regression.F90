@@ -69,8 +69,7 @@
     accounting for the emulation error, transition to the new state is highly unlikely, or if the error on the likelihood emulation is
     sufficiently small that it will not have a significant effect on the transition probability to the proposed state.
     
-    If verbosity is set to \mono{info} or greater than a report will be issued every {\normalfont \ttfamily
-    reportCount} evaluations. The report will give the proportions of simulated vs. emulated evaluations. Additionally, during the
+    If verbosity is set to \mono{info} or greater than a report will be issued every \mono{reportCount} evaluations. The report will give the proportions of simulated vs. emulated evaluations. Additionally, during the
     evaluation where the report is issued, both the emulated and simulated log-likelihoods are evaluated and are tested to see if
     they lie within $3 \sigma_{\log\mathcal{L}_\mathrm{e}}$ of each other. The rate of failures (i.e. where the two differ by more
     than this amount) is then reported.
