@@ -573,9 +573,9 @@ jobs:
           echo DYLD_LIBRARY_PATH
           echo $DYLD_LIBRARY_PATH
           echo Searching opt
-          find /opt -name "libqhull*"
+          find /opt -name "libqhull*" || true
           echo Searching usr
-          find /usr -name "libqhull*"
+          find /usr -name "libqhull*" || true
           echo otool
           otool -L ./Galacticus.exe
           echo REPORT ENDS
@@ -658,9 +658,9 @@ jobs:
           echo DYLD_LIBRARY_PATH
           echo $DYLD_LIBRARY_PATH
           echo Searching opt
-          find /opt -name "libqhull*"
+          find /opt -name "libqhull*" || true
           echo Searching usr
-          find /usr -name "libqhull*"
+          find /usr -name "libqhull*" || true
           echo otool
           otool -L ./Galacticus.exe
           echo REPORT ENDS
