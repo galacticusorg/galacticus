@@ -90,7 +90,7 @@
   abstract interface
      function integerTupleUnitsInSI(self,time)
        !!{
-       Interface for \mono{integerTuple property units.
+       Interface for \mono{integerTuple} property units.
        !!}
        import nodePropertyExtractorIntegerTuple
        double precision                                   , dimension(:) , allocatable :: integerTupleUnitsInSI
