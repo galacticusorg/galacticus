@@ -26,8 +26,7 @@
    <description>
      A primordial power spectrum class which truncates a primordial power spectrum into a cosmological simulation
      cube. Specifically, it assumes that wave-vectors with all components ($k_x,k_y,k_z$) smaller than $\Delta k = 2 \pi f / L$,
-     where $L=${\normalfont \ttfamily [lengthCube]} is the simulation cube length, and $f=${\normalfont \ttfamily
-     wavenumberMinimumFactor} specifies the minimum wavenumber (in units of $2 \pi / L$) to which the power spectrum is
+     where $L=$\mono{[lengthCube]} is the simulation cube length, and $f=$\mono{wavenumberMinimumFactor} specifies the minimum wavenumber (in units of $2 \pi / L$) to which the power spectrum is
      integrated, are missing from the power spectrum. For wavenumbers of magnitude $k$ the fraction of power missed due to these
      missing wavenumbers is computed. The total power at that wavenumber is then reduced by that amount.
 
@@ -134,7 +133,7 @@ contains
 
   double precision function cosmologicalCubePower(self,wavenumber)
     !!{
-    Return the primordial power spectrum at the given {\normalfont \ttfamily wavenumber}.
+    Return the primordial power spectrum at the given \mono{wavenumber}.
     !!}
     use :: Numerical_Constants_Math, only : Pi
     implicit none
@@ -173,7 +172,7 @@ contains
 
   double precision function cosmologicalCubeLogarithmicDerivative(self,wavenumber)
     !!{
-    Return the logarithmic derivative of the primordial power spectrum at the given {\normalfont \ttfamily wavenumber}.
+    Return the logarithmic derivative of the primordial power spectrum at the given \mono{wavenumber}.
     !!}
     use :: Numerical_Constants_Math, only : Pi
     implicit none

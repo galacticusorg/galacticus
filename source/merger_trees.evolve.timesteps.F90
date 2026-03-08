@@ -39,11 +39,11 @@ module Merger_Tree_Timesteps
    <default>standard</default>
    <method name="timeEvolveTo">
     <description>
-     Return the time to which the {\normalfont \ttfamily node} can be evolved. The current limiting time is provided as
-     {\normalfont \ttfamily timeEnd}. Optionally, the procedure pointer {\normalfont \ttfamily task} can be set to point to a
+     Return the time to which the \mono{node} can be evolved. The current limiting time is provided as
+     \mono{timeEnd}. Optionally, the procedure pointer \mono{task} can be set to point to a
      subroutine which will be called after the node is evolved to the end of the timestep. It is acceptable for this pointer to be
-     null. The {\normalfont \ttfamily taskSelf} pointer may be set to point to the timestep object and will be made available to
-     the timestep task subroutine. Note that the {\normalfont \ttfamily task} will only be called for the task which provided the
+     null. The \mono{taskSelf} pointer may be set to point to the timestep object and will be made available to
+     the timestep task subroutine. Note that the \mono{task} will only be called for the task which provided the
      shortest timestep---other tasks can always request to be called again when the next timestep is determined. The subroutine to
      be called at the end of the timestep must have the form:
      \begin{verbatim}
@@ -60,22 +60,22 @@ module Merger_Tree_Timesteps
        end subroutine timestepTask
      \end{verbatim}
   
-     The {\normalfont \ttfamily deadlockStatus} argument should be set to {\normalfont \ttfamily isNotDeadlocked} (provided by
+     The \mono{deadlockStatus} argument should be set to \mono{isNotDeadlocked} (provided by
      the
      \href{https://github.com/galacticusorg/galacticus/releases/download/bleeding-edge/Galacticus_Source.pdf#source.merger_trees_evolve_deadlock_options_F90:merger_trees_evolve_deadlock_status}{\normalfont
      \ttfamily Merger\_Trees\_Evolve\_Deadlock\_Status} module) if, and only if, the end of timestep task makes some change to
      the state of the tree (e.g. merging a node), to indicate that the tree was not deadlocked in this pass (i.e. something
      actually changed in the tree).
   
-     If the {\normalfont \ttfamily report} argument is {\normalfont \ttfamily true} then the function should report the value of
-     {\normalfont \ttfamily timestep} prior to exiting. (This is used in reporting on timestepping criteri in deadlocked trees.)
+     If the \mono{report} argument is \mono{true} then the function should report the value of
+     \mono{timestep} prior to exiting. (This is used in reporting on timestepping criteri in deadlocked trees.)
      It is recommended that the report be made using the
      \href{https://github.com/galacticusorg/galacticus/releases/download/bleeding-edge/Galacticus_Source.pdf#source.merger_trees_evolve_timesteps_report_F90:evolve_to_time_reports:evolve_to_time_report}{\normalfont
-     \ttfamily Evolve\_To\_Time\_Report()} function. Additionally, if the optional {\normalfont \ttfamily lockNode} and
-     {\normalfont \ttfamily lockType} arguments are present then additional information can be supplied to aid in diagnosing
-     deadlock conditions. If the current task is limiting the timestep then the {\normalfont \ttfamily lockNode} pointer should
-     be set to point to whichever node is causing the limit (which may be {\normalfont \ttfamily node} or some other node,
-     e.g. a satellite of {\normalfont \ttfamily node}, etc.), and {\normalfont \ttfamily lockType} should be set to a short
+     \ttfamily Evolve\_To\_Time\_Report()} function. Additionally, if the optional \mono{lockNode} and
+     \mono{lockType} arguments are present then additional information can be supplied to aid in diagnosing
+     deadlock conditions. If the current task is limiting the timestep then the \mono{lockNode} pointer should
+     be set to point to whichever node is causing the limit (which may be \mono{node} or some other node,
+     e.g. a satellite of \mono{node}, etc.), and \mono{lockType} should be set to a short
      description label identifying the type of limit.
     </description>
     <type>double precision</type>

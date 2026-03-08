@@ -268,7 +268,7 @@ contains
   
   double precision function gaussianEllipsoidDensity(self,coordinates)
     !!{
-    Return the density at the specified {\normalfont \ttfamily coordinates} in a Gaussian ellipsoid mass distribution.
+    Return the density at the specified \mono{coordinates} in a Gaussian ellipsoid mass distribution.
     !!}
     use :: Coordinates   , only : assignment(=), coordinateCartesian
     use :: Linear_Algebra, only : assignment(=), operator(*)        , vector
@@ -315,7 +315,7 @@ contains
 
   function gaussianEllipsoidAcceleration(self,coordinates)
     !!{
-    Computes the gravitational acceleration at {\normalfont \ttfamily coordinates} for Gaussian ellipsoid mass distributions.
+    Computes the gravitational acceleration at \mono{coordinates} for Gaussian ellipsoid mass distributions.
     !!}
     use :: Coordinates                     , only : assignment(=)                 , coordinateCartesian
     use :: Linear_Algebra                  , only : assignment(=)                 , operator(*)        , vector

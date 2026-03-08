@@ -39,7 +39,7 @@ module Stellar_Population_Spectra
    </description>
    <default>FSPS</default>
    <method name="luminosity" >
-    <description>Return the luminosity (in units of $L_\odot$ Hz$^{-1}$) for a stellar population, composition {\normalfont \ttfamily abundances}, of the given {\normalfont \ttfamily age} (in Gyr), at the specified {\normalfont \ttfamily wavelength} (in Angstroms).</description>
+    <description>Return the luminosity (in units of $L_\odot$ Hz$^{-1}$) for a stellar population, composition \mono{abundances}, of the given \mono{age} (in Gyr), at the specified \mono{wavelength} (in Angstroms).</description>
     <type>double precision</type>
     <pass>yes</pass>
     <argument>type            (abundances), intent(in   )           :: abundancesStellar</argument>

@@ -38,14 +38,14 @@ module Galactic_Structure_Solvers
    </description>
    <default>equilibrium</default>
    <method name="solve" >
-    <description>Solves for the structure of components in the given {\normalfont \ttfamily node}.</description>
+    <description>Solves for the structure of components in the given \mono{node}.</description>
     <type>void</type>
     <pass>yes</pass>
     <argument>type   (treeNode), intent(inout), target   :: node            </argument>
     <argument>logical          , intent(in   ), optional :: plausibilityOnly</argument>
    </method>
    <method name="revert" >
-    <description>Revert the structure of components in the given {\normalfont \ttfamily node} (if necessary to ensure that the structure solver will give the same result when called consecutively).</description>
+    <description>Revert the structure of components in the given \mono{node} (if necessary to ensure that the structure solver will give the same result when called consecutively).</description>
     <type>void</type>
     <pass>yes</pass>
     <argument>type(treeNode), intent(inout) :: node</argument>

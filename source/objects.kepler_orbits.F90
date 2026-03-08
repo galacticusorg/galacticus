@@ -107,7 +107,7 @@ module Kepler_Orbits
        <method description="Dump an orbit." method="dump" />
        <method description="Dump an orbit in binary." method="dumpRaw" />
        <method description="Read an orbit in binary." method="readRaw" />
-       <method description="Resets orbit properties. If the optional {\normalfont \ttfamily keep} argument is provided and listed properties will \emph{not} be reset." method="reset" />
+       <method description="Resets orbit properties. If the optional \mono{keep} argument is provided and listed properties will \emph{not} be reset." method="reset" />
        <method description="Destroys an orbit." method="destroy" />
        <method description="Returns true if an orbit is fully defined." method="isDefined" />
        <method description="Asserts that an orbit is fully defined." method="assertIsDefined" />
@@ -230,7 +230,7 @@ contains
 
   subroutine Kepler_Orbits_Builder(self,keplerOrbitDefinition)
     !!{
-    Build a {\normalfont \ttfamily keplerOrbit} object from the given XML {\normalfont \ttfamily keplerOrbitDefinition}.
+    Build a \mono{keplerOrbit} object from the given XML \mono{keplerOrbitDefinition}.
     !!}
     use :: FoX_DOM, only : getNodeName                 , node       , extractDataContent
     use :: Error  , only : Error_Report
@@ -360,7 +360,7 @@ contains
 
   subroutine Kepler_Orbits_Dump_Raw(self,fileHandle)
     !!{
-    Dump a {\normalfont \ttfamily keplerOrbit} object in binary.
+    Dump a \mono{keplerOrbit} object in binary.
     !!}
     implicit none
     class  (keplerOrbit), intent(in   ) :: self
@@ -384,7 +384,7 @@ contains
 
   subroutine Kepler_Orbits_Read_Raw(self,fileHandle)
     !!{
-    Read a {\normalfont \ttfamily keplerOrbit} object in binary.
+    Read a \mono{keplerOrbit} object in binary.
     !!}
     implicit none
     class  (keplerOrbit), intent(inout) :: self
@@ -439,7 +439,7 @@ contains
 
   subroutine Kepler_Orbits_Masses_Set(orbit,massSatellite,massHost)
     !!{
-    Sets the masses of the two orbiting objects in a {\normalfont \ttfamily keplerOrbit} object.
+    Sets the masses of the two orbiting objects in a \mono{keplerOrbit} object.
     !!}
     implicit none
     class           (keplerOrbit), intent(inout) :: orbit
@@ -1129,7 +1129,7 @@ contains
 
   logical function Kepler_Orbits_Equivalent(orbit1,orbit2) result(equivalent)
     !!{
-    Test whether two {\normalfont \ttfamily keplerOrbit} objects are equal.
+    Test whether two \mono{keplerOrbit} objects are equal.
     !!}
     implicit none
     class(keplerOrbit), intent(in   ) :: orbit1, orbit2

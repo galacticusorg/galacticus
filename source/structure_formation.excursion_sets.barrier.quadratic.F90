@@ -31,8 +31,7 @@ Implements a quadratic excursion set barrier class.
     \begin{equation}
     B(S) = B_0 + B_1 S + B_2 S^2,
     \end{equation}
-    where $B_0=${\normalfont \ttfamily [coefficientConstant]}, $B_0=${\normalfont \ttfamily
-    [coefficientLinear]}, and $B_2=${\normalfont \ttfamily [coefficientQuadratic]}.
+    where $B_0=$\mono{[coefficientConstant]}, $B_0=$\mono{[coefficientLinear]}, and $B_2=$\mono{[coefficientQuadratic]}.
    </description>
   </excursionSetBarrier>
   !!]

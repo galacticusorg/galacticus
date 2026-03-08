@@ -59,7 +59,7 @@
   
    interface massDistributionSolitonNFW
      !!{
-     Constructors for the {\normalfont \ttfamily solitonNFW} mass distribution class.
+     Constructors for the \mono{solitonNFW} mass distribution class.
      !!}
      module procedure solitonNFWConstructorParameters
      module procedure solitonNFWConstructorInternal
@@ -278,7 +278,7 @@
    
    double precision function solitonNFWMassEnclosedBySphere(self,radius) result(mass)
      !!{
-     Return the mass at the specified {\normalfont \ttfamily coordinates} in a soliton and NFW mass distribution.
+     Return the mass at the specified \mono{coordinates} in a soliton and NFW mass distribution.
      !!}
      use :: Numerical_Constants_Math, only : Pi
      implicit none
@@ -317,7 +317,7 @@
      
      double precision function massSoliton(radius_) result(mass)
        !!{
-       Return the mass at the specified {\normalfont \ttfamily coordinates} in the soliton region.
+       Return the mass at the specified \mono{coordinates} in the soliton region.
        !!}
        use :: Mass_Distribution_Soliton_Schive2014, only : coefficientCore
        implicit none
@@ -367,7 +367,7 @@
    
    double precision function solitonNFWDensity(self,coordinates) result(density)
      !!{
-     Return the density at the specified {\normalfont \ttfamily coordinates} in a soliton and NFW mass distribution.
+     Return the density at the specified \mono{coordinates} in a soliton and NFW mass distribution.
      !!}
      use :: Mass_Distribution_Soliton_Schive2014, only : coefficientCore
      implicit none
@@ -393,7 +393,7 @@
    
    double precision function solitonNFWDensityGradientRadial(self,coordinates,logarithmic) result(densityGradient)
      !!{
-     Return the radial density gradient at the specified {\normalfont \ttfamily coordinates} in a soliton and NFW mass distribution.
+     Return the radial density gradient at the specified \mono{coordinates} in a soliton and NFW mass distribution.
      !!}
      use :: Mass_Distribution_Soliton_Schive2014, only : coefficientCore
      implicit none

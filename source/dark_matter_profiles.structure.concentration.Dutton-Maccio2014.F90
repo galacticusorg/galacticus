@@ -28,7 +28,7 @@
   !![
   <enumeration>
    <name>duttonMaccio2014FitType</name>
-   <description>Enumeration of fit types in the {\normalfont \ttfamily duttonMaccio2014} dark matter halo profile concentration class.</description>
+   <description>Enumeration of fit types in the \mono{duttonMaccio2014} dark matter halo profile concentration class.</description>
    <visibility>public</visibility>
    <encodeFunction>yes</encodeFunction>
    <entry label="nfwVirial"         />
@@ -42,7 +42,7 @@
   !![
   <enumeration>
    <name>duttonMaccio2014DensityContrastMethod</name>
-   <description>Enumeration of density contrast methods available in the {\normalfont \ttfamily duttonMaccio2014} dark matter halo profile concentration class.</description>
+   <description>Enumeration of density contrast methods available in the \mono{duttonMaccio2014} dark matter halo profile concentration class.</description>
    <visibility>private</visibility>
    <entry label="virial"     />
    <entry label="critical200"/>
@@ -53,7 +53,7 @@
   !![
   <enumeration>
    <name>duttonMaccio2014DensityProfileMethod</name>
-   <description>Enumeration of density profile methods available in the {\normalfont \ttfamily duttonMaccio2014} dark matter halo profile concentration class.</description>
+   <description>Enumeration of density profile methods available in the \mono{duttonMaccio2014} dark matter halo profile concentration class.</description>
    <visibility>private</visibility>
    <entry label="NFW"    />
    <entry label="einasto"/>
@@ -84,14 +84,14 @@
     {\boldmath $A_1$} &amp; {\boldmath $A_2$} &amp; {\boldmath $A_3$} &amp; {\boldmath $A_4$} &amp; {\boldmath $B_1$} &amp;
     {\boldmath $B_2$} \\
     \hline
-    {\normalfont \ttfamily nfwVirial}  &amp; \gls{nfw} &amp; Top-hat &amp; $+0.537$ &amp; $+1.025$ &amp; $-0.718$ &amp; $+1.080$ &amp; $-0.097$ &amp; $+0.024$ \\
-    {\normalfont \ttfamily nfw200}     &amp; \gls{nfw} &amp; 200     &amp; $+0.520$ &amp; $+0.905$ &amp; $-0.617$ &amp; $+1.210$ &amp; $-0.101$ &amp; $+0.026$ \\
-    {\normalfont \ttfamily einasto200} &amp; Einasto   &amp; 200     &amp; $+0.459$ &amp; $+0.977$ &amp; $-0.490$ &amp; $+1.303$ &amp; $-0.130$ &amp; $+0.029$ \\
+    \mono{nfwVirial}  &amp; \gls{nfw} &amp; Top-hat &amp; $+0.537$ &amp; $+1.025$ &amp; $-0.718$ &amp; $+1.080$ &amp; $-0.097$ &amp; $+0.024$ \\
+    \mono{nfw200}     &amp; \gls{nfw} &amp; 200     &amp; $+0.520$ &amp; $+0.905$ &amp; $-0.617$ &amp; $+1.210$ &amp; $-0.101$ &amp; $+0.026$ \\
+    \mono{einasto200} &amp; Einasto   &amp; 200     &amp; $+0.459$ &amp; $+0.977$ &amp; $-0.490$ &amp; $+1.303$ &amp; $-0.130$ &amp; $+0.029$ \\
     \hline
     \end{tabular}
     \end{center}
     \caption{Coefficients appearing in the dark matter halo profile concentration fitting functions of
-    \protect\cite{dutton_cold_2014}. The ``fit type'' is specified by the {\normalfont \ttfamily [duttonMaccio2014FitType]}
+    \protect\cite{dutton_cold_2014}. The ``fit type'' is specified by the \mono{[duttonMaccio2014FitType]}
     parameter.}
     \label{tb:DuttonMaccioConcentrationCoefficients}
     \end{table}
@@ -139,7 +139,7 @@ contains
 
   function duttonMaccio2014ConstructorParameters(parameters) result(self)
     !!{
-    Default constructor for the {\normalfont \ttfamily duttonMaccio2014} dark matter halo profile concentration class.
+    Default constructor for the \mono{duttonMaccio2014} dark matter halo profile concentration class.
     !!}
     implicit none
     type            (darkMatterProfileConcentrationDuttonMaccio2014)                :: self
@@ -159,7 +159,7 @@ contains
       <name>fitType</name>
       <source>parameters</source>
       <defaultValue>var_str('nfwVirial')</defaultValue>
-      <description>The type of halo definition for which the concentration-mass relation should be computed. Allowed values are {\normalfont \ttfamily nfwVirial}, {\normalfont \ttfamily nfwCritical200}, {\normalfont \ttfamily einastoCritical200}, and {\normalfont \ttfamily userDefined}.</description>
+      <description>The type of halo definition for which the concentration-mass relation should be computed. Allowed values are \mono{nfwVirial}, \mono{nfwCritical200}, \mono{einastoCritical200}, and \mono{userDefined}.</description>
     </inputParameter>
     !!]
     if (enumerationDuttonMaccio2014FitTypeEncode(char(fitType),includesPrefix=.false.) == duttonMaccio2014FitTypeUserDefined) then
@@ -390,7 +390,7 @@ contains
 
   double precision function duttonMaccio2014Concentration(self,node)
     !!{
-    Return the concentration of the dark matter halo profile of {\normalfont \ttfamily node} using the \cite{dutton_cold_2014}
+    Return the concentration of the dark matter halo profile of \mono{node} using the \cite{dutton_cold_2014}
     algorithm.
     !!}
     use :: Galacticus_Nodes, only : nodeComponentBasic, treeNode

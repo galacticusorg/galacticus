@@ -45,7 +45,7 @@ sub Tree_Node_Output_Count {
     {
 	type        => "void",
 	name        => "treeNodeOutputCount",
-	description => "Increment the count of properties to output for a {\\normalfont \\ttfamily treeNode}.",
+	description => "Increment the count of properties to output for a \\mono{treeNode}.",
 	content     => "",
 	variables   =>
 	    [
@@ -116,7 +116,7 @@ sub Tree_Node_Output_Names {
     {
 	type        => "void",
 	name        => "treeNodeOutputNames",
-	description => "Establish the names of properties to output for a {\\normalfont \\ttfamily treeNode}.",
+	description => "Establish the names of properties to output for a \\mono{treeNode}.",
 	content     => "",
 	modules     =>
 	    [
@@ -214,7 +214,7 @@ sub Tree_Node_Output {
     {
 	type        => "void",
 	name        => "treeNodeOutput",
-	description => "Populate output buffers with properties to output for a {\\normalfont \\ttfamily treeNode}.",
+	description => "Populate output buffers with properties to output for a \\mono{treeNode}.",
 	content     => "",
 	modules     =>
 	    [
@@ -315,7 +315,7 @@ sub Tree_Node_Post_Output {
     {
 	type        => "void",
 	name        => "treeNodePostOutput",
-	description => "Perform post-output processing of a {\\normalfont \\ttfamily treeNode}.",
+	description => "Perform post-output processing of a \\mono{treeNode}.",
 	content     => "",
 	variables   =>
 	    [

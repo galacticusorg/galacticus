@@ -476,8 +476,7 @@ contains
 
   double precision function verner1996Rate(self,atomicNumber,ionizationState,temperature)
     !!{
-    Computes the rate coefficient of direct collisional ionization (in units of cm$^3$ s$^{-1}$) at the specified {\normalfont \ttfamily
-    temperature} for all ions of atoms with $Z<28$ by use of the fits from
+    Computes the rate coefficient of direct collisional ionization (in units of cm$^3$ s$^{-1}$) at the specified \mono{temperature} for all ions of atoms with $Z<28$ by use of the fits from
     \citeauthor{voronov_practical_1997}~(\citeyear{voronov_practical_1997}; Version 2, March 24, 1997). Based on the
     \href{https://web.archive.org/web/20220313133801/https://www.pa.uky.edu/~verner/dima/col/cfit.f}{code} originally written by Dima Verner. The ionization state passed to
     this function should be that of the atom/ion prior to ionization.

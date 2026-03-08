@@ -329,7 +329,7 @@ contains
 
   double precision function exponentialDiskDensity(self,coordinates)
     !!{
-    Return the density at the specified {\normalfont \ttfamily coordinates} in an exponential disk mass distribution.
+    Return the density at the specified \mono{coordinates} in an exponential disk mass distribution.
     !!}
     use :: Coordinates, only : assignment(=), coordinateCylindrical
     use :: Error      , only : Error_Report
@@ -397,7 +397,7 @@ contains
   
   double precision function exponentialDiskDensitySphericalAverage(self,radius)
     !!{
-    Return the spherically-averaged density at the specified {\normalfont \ttfamily coordinates} in an exponential disk mass
+    Return the spherically-averaged density at the specified \mono{coordinates} in an exponential disk mass
     distribution. Note that this assumes the thin-disk approximation.
     !!}
     implicit none
@@ -416,7 +416,7 @@ contains
 
   double precision function exponentialDiskMassEnclosedBySphere(self,radius) result(mass)
     !!{
-    Computes the mass enclosed within a sphere of given {\normalfont \ttfamily radius} for exponential disk mass
+    Computes the mass enclosed within a sphere of given \mono{radius} for exponential disk mass
     distributions. Note that this assumes the thin-disk approximation.
     !!}
     implicit none
@@ -429,7 +429,7 @@ contains
 
   double precision function exponentialDiskMassEnclosedByCylinder(self,radius) result(mass)
     !!{
-    Computes the mass enclosed within a cylinder of given {\normalfont \ttfamily radius} for exponential disk mass
+    Computes the mass enclosed within a cylinder of given \mono{radius} for exponential disk mass
     distributions.
     !!}
     use :: Numerical_Constants_Math, only : Pi
@@ -457,7 +457,7 @@ contains
 
   double precision function exponentialDiskSurfaceDensity(self,coordinates)
     !!{
-    Return the surface density at the specified {\normalfont \ttfamily coordinates} in an exponential disk mass distribution.
+    Return the surface density at the specified \mono{coordinates} in an exponential disk mass distribution.
     !!}
     use :: Coordinates, only : coordinate
     implicit none
@@ -814,7 +814,7 @@ contains
 
   function exponentialDiskAcceleration(self,coordinates)
     !!{
-    Computes the gravitational acceleration at {\normalfont \ttfamily coordinates} for exponential disk mass distributions.
+    Computes the gravitational acceleration at \mono{coordinates} for exponential disk mass distributions.
     !!}
     use :: Coordinates                     , only : assignment(=), coordinateCartesian           , coordinateCylindrical
     use :: Numerical_Constants_Astronomical, only : gigaYear     , gravitationalConstant_internal, megaParsec
@@ -860,7 +860,7 @@ contains
 
   function exponentialDiskTidalTensor(self,coordinates)
     !!{
-    Computes the gravitational tidal tensor at {\normalfont \ttfamily coordinates} for exponential disk mass distributions.
+    Computes the gravitational tidal tensor at \mono{coordinates} for exponential disk mass distributions.
     !!}
     use :: Coordinates                     , only : assignment(=)                 , coordinateCartesian, coordinateCylindrical
     use :: Numerical_Constants_Astronomical, only : gravitationalConstant_internal

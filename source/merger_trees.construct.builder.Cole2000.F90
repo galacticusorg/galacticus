@@ -47,16 +47,16 @@
     A merger tree builder class which uses the algorithm described by \cite{cole_hierarchical_2000} (with minor modifications
     described below). This action of this algorithm is controlled by the following parameters:
     \begin{description}
-     \item [{\normalfont \ttfamily [mergeProbability]}] The maximum probability for a binary merger allowed in a single
+     \item [\mono{[mergeProbability]}] The maximum probability for a binary merger allowed in a single
      timestep. This allows the probability to be kept small, such the the probability for multiple mergers within a single
      timestep is small.
-     \item [{\normalfont \ttfamily [accretionLimit]}] The maximum fractional change in mass due to sub-resolution accretion
+     \item [\mono{[accretionLimit]}] The maximum fractional change in mass due to sub-resolution accretion
      allowed in any given timestep when building the tree.
-     \item [{\normalfont \ttfamily [redshiftMaximum]}] The highest redshift to which the tree should be built. Any branch
+     \item [\mono{[redshiftMaximum]}] The highest redshift to which the tree should be built. Any branch
      reaching this redshift will be terminated. Typically this should be set to a high value such that branches terminate when
      the resolution limit it reached, but specifying a maximum redshift can be useful in some situations.
-     \item [{\normalfont \ttfamily [branchIntervalStep]}] If {\normalfont \ttfamily true}, instead of limiting each time step
-     such that the probability of branching is less than {\normalfont \ttfamily mergerTreeBuildCole2000MergeProbability}, the
+     \item [\mono{[branchIntervalStep]}] If \mono{true}, instead of limiting each time step
+     such that the probability of branching is less than \mono{mergerTreeBuildCole2000MergeProbability}, the
      interval to the next branching event will be drawn from a negative exponential with the appropriate rate. If this exceeds
      the maximum allowed timestep based on other considerations (e.g. the accretion limit), no branching occurs, and the
      timestep proceeds\footnote{Note that we do not have to concern ourselves in the subsequent timestep with the fact that no
@@ -225,7 +225,7 @@ contains
       <name>branchIntervalStep</name>
       <source>parameters</source>
       <defaultValue>.true.</defaultValue>
-      <description>If {\normalfont \ttfamily false} use the original \cite{cole_hierarchical_2000} method to determine whether branching occurs in a timestep. If {\normalfont \ttfamily true} draw branching intervals from a negative exponential distribution.</description>
+      <description>If \mono{false} use the original \cite{cole_hierarchical_2000} method to determine whether branching occurs in a timestep. If \mono{true} draw branching intervals from a negative exponential distribution.</description>
     </inputParameter>
     <inputParameter>
       <name>toleranceResolutionSelf</name>

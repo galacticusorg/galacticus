@@ -25,7 +25,7 @@ Implements a galactic high-pass filter for spheroid stellar mass.
   <galacticFilter name="galacticFilterSpheroidStellarMass">
    <description>
    A galactic high-pass filter for stellar mass. Galaxies with a spheroid stellar mass greater than or equal
-   to a fixed threshold, $M_{\star,0}=${\normalfont \ttfamily [massThreshold]}.
+   to a fixed threshold, $M_{\star,0}=$\mono{[massThreshold]}.
    </description>
   </galacticFilter>
   !!]

@@ -35,7 +35,7 @@ module Star_Formation_Rates_Spheroids
    <description>Class providing models of rates of star formation in spheroids.</description>
    <default>timescale</default>
    <method name="rate" >
-    <description>Returns the rate (in units of $\mathrm{M}_\odot$ Gyr$^{-1}$) for star formation in the spheroid component of {\normalfont \ttfamily node}.</description>
+    <description>Returns the rate (in units of $\mathrm{M}_\odot$ Gyr$^{-1}$) for star formation in the spheroid component of \mono{node}.</description>
     <type>double precision</type>
     <pass>yes</pass>
     <selfTarget>yes</selfTarget>

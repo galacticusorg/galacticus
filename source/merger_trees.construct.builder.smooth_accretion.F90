@@ -29,9 +29,9 @@
   <mergerTreeBuilder name="mergerTreeBuilderSmoothAccretion">
    <description>
     A merger tree builder class which builds a branchless merger tree with a smooth accretion history using the selected
-    \refPhysics{darkMatterHaloMassAccretionHistory} class. The tree has a final mass of {\normalfont \ttfamily massHalo} (in
-    units of $M_\odot$) at redshift {\normalfont \ttfamily redshiftBase} and is continued back in time by decreasing the halo
-    mass by a factor {\normalfont \ttfamily massHaloDeclineFactor} at each new \gls{node} until a specified {\normalfont
+    \refPhysics{darkMatterHaloMassAccretionHistory} class. The tree has a final mass of \mono{massHalo} (in
+    units of $M_\odot$) at redshift \mono{redshiftBase} and is continued back in time by decreasing the halo
+    mass by a factor \mono{massHaloDeclineFactor} at each new \gls{node} until a specified {\normalfont
     \ttfamily massHaloResolution} (in units of $M_\odot$) is reached.
    </description>
   </mergerTreeBuilder>

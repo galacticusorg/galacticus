@@ -59,7 +59,7 @@ contains
 
   double precision function Factorial(argument)
     !!{
-    Computes the factorial of {\normalfont \ttfamily argument}.
+    Computes the factorial of \mono{argument}.
     !!}
     implicit none
     integer, intent(in   ) :: argument
@@ -70,7 +70,7 @@ contains
 
   double precision function Logarithmic_Factorial(argument)
     !!{
-    Computes the logarithmic of the factorial of {\normalfont \ttfamily argument}.
+    Computes the logarithmic of the factorial of \mono{argument}.
     !!}
     implicit none
     integer, intent(in   ) :: argument

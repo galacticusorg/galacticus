@@ -75,7 +75,7 @@ contains
 
   double precision function nullMagnificationCDF(self,magnification,redshift,scaleSource)
     !!{
-    Compute the magnification probability density function at the given {\normalfont \ttfamily magnification} and {\normalfont
+    Compute the magnification probability density function at the given \mono{magnification} and {\normalfont
     \ttfamily redshift} for a null lensing case.
     !!}
     implicit none

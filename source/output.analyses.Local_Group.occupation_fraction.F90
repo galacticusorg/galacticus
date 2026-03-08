@@ -448,7 +448,7 @@ contains
 
   subroutine localGroupOccupationFractionAnalyze(self,node,iOutput)
     !!{
-    Implement a {\normalfont \ttfamily localGroupOccupationFraction} output analysis.
+    Implement a \mono{localGroupOccupationFraction} output analysis.
     !!}
     implicit none
     class  (outputAnalysisLocalGroupOccupationFraction), intent(inout) :: self
@@ -461,7 +461,7 @@ contains
 
   subroutine localGroupOccupationFractionReduce(self,reduced)
     !!{
-    Implement a {\normalfont \ttfamily localGroupOccupationFraction} output analysis reduction.
+    Implement a \mono{localGroupOccupationFraction} output analysis reduction.
     !!}
     use :: Error, only : Error_Report
     implicit none
@@ -479,7 +479,7 @@ contains
 
   subroutine localGroupOccupationFractionFinalize(self,groupName)
     !!{
-    Implement a {\normalfont \ttfamily localGroupOccupationFraction} output analysis finalization.
+    Implement a \mono{localGroupOccupationFraction} output analysis finalization.
     !!}
     use :: Output_HDF5, only : outputFile
     use :: HDF5_Access, only : hdf5Access
@@ -508,7 +508,7 @@ contains
 
   double precision function localGroupOccupationFractionLogLikelihood(self)
     !!{
-    Return the log-likelihood of a {\normalfont \ttfamily localGroupOccupationFraction} output analysis.
+    Return the log-likelihood of a \mono{localGroupOccupationFraction} output analysis.
     !!}
     use :: Models_Likelihoods_Constants, only : logImprobable
     implicit none

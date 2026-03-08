@@ -108,7 +108,7 @@ module Numerical_Quasi_Random_Sequences
   
   interface quasiRandomNumberGenerator
      !!{
-     Constructor for the {\normalfont \ttfamily quasiRandomNumberGenerator} class.
+     Constructor for the \mono{quasiRandomNumberGenerator} class.
      !!}
      module procedure quasiRandomNumberGeneratorConstructor
   end interface quasiRandomNumberGenerator
@@ -117,7 +117,7 @@ contains
 
   function quasiRandomNumberGeneratorConstructor(qrngType) result(self)
     !!{
-    Constructor for {\normalfont \ttfamily quasiRandomNumberGenerator} objects.
+    Constructor for \mono{quasiRandomNumberGenerator} objects.
     !!}
     use :: Error, only : Error_Report
     implicit none
@@ -149,7 +149,7 @@ contains
 
   subroutine gslQRNGWrapperDestructor(self)
     !!{
-    Destroy a {\normalfont \ttfamily gslQRNGWrapper} object.
+    Destroy a \mono{gslQRNGWrapper} object.
     !!}
     implicit none
     type(gslQRNGWrapper), intent(inout) :: self

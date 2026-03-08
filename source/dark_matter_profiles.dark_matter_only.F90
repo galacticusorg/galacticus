@@ -124,7 +124,7 @@ contains
 
   function darkMatterOnlyGet(self,node,weightBy,weightIndex) result(massDistribution_)
     !!{
-    Return the dark matter mass distribution for the given {\normalfont \ttfamily node}.
+    Return the dark matter mass distribution for the given \mono{node}.
     !!}
     use :: Galactic_Structure_Options, only : weightByMass
     use :: Mass_Distributions        , only : massDistributionSpherical, massDistributionSphericalScaler, kinematicsDistributionSphericalScaler, kinematicsDistributionClass

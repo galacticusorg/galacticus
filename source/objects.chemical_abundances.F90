@@ -140,7 +140,7 @@ contains
   !!]
    subroutine Chemical_Abundances_Initialize(parameters_)
     !!{
-    Initialize the {\normalfont \ttfamily chemicalAbundanceStructure} object module. Determines which chemicals are to be tracked.
+    Initialize the \mono{chemicalAbundanceStructure} object module. Determines which chemicals are to be tracked.
     !!}
     use :: Chemical_Structures, only : Chemical_Database_Get_Index, chemicalStructure
     use :: ISO_Varying_String , only : char                       , len
@@ -197,8 +197,7 @@ contains
 
   integer function Chemicals_Property_Count()
     !!{
-    Return the number of properties required to track chemicals. This is equal to the number of chemicals tracked, {\normalfont \ttfamily
-    chemicalsCount}.
+    Return the number of properties required to track chemicals. This is equal to the number of chemicals tracked, \mono{chemicalsCount}.
     !!}
     implicit none
 
@@ -226,7 +225,7 @@ contains
 
   integer function Chemicals_Index(chemicalName,status)
     !!{
-    Returns the index of a chemical in the chemical abundances structure given the {\normalfont \ttfamily chemicalName}.
+    Returns the index of a chemical in the chemical abundances structure given the \mono{chemicalName}.
     !!}
     use :: Error             , only : Error_Report, errorStatusFail, errorStatusSuccess
     use :: ISO_Varying_String, only : operator(==)
@@ -399,7 +398,7 @@ contains
 
   double precision function Chemicals_Abundances(chemicals,moleculeIndex)
     !!{
-    Returns the abundance of a molecule in the chemical abundances structure given the {\normalfont \ttfamily moleculeIndex}.
+    Returns the abundance of a molecule in the chemical abundances structure given the \mono{moleculeIndex}.
     !!}
     implicit none
     class  (chemicalAbundances), intent(in   ) :: chemicals
@@ -485,7 +484,7 @@ contains
 
   subroutine Chemicals_Builder(self,chemicalsDefinition)
     !!{
-    Build a {\normalfont \ttfamily chemicalAbundances} object from the given XML {\normalfont \ttfamily chemicalsDefinition}.
+    Build a \mono{chemicalAbundances} object from the given XML \mono{chemicalsDefinition}.
     !!}
     use :: FoX_DOM           , only : node                        , extractDataContent
     use :: Error             , only : Error_Report
@@ -570,7 +569,7 @@ contains
 
   subroutine Chemicals_Abundances_Set(chemicals,moleculeIndex,abundance)
     !!{
-    Sets the abundance of a molecule in the chemical abundances structure given the {\normalfont \ttfamily moleculeIndex}.
+    Sets the abundance of a molecule in the chemical abundances structure given the \mono{moleculeIndex}.
     !!}
     implicit none
     class           (chemicalAbundances), intent(inout) :: chemicals
@@ -636,7 +635,7 @@ contains
 
   subroutine Chemical_Abundances_Allocate_Values(chemicals)
     !!{
-    Ensure that the {\normalfont \ttfamily chemicalValue} array in an {\normalfont \ttfamily chemicalsStructure} is allocated.
+    Ensure that the \mono{chemicalValue} array in an \mono{chemicalsStructure} is allocated.
     !!}
     implicit none
     class(chemicalAbundances), intent(inout) :: chemicals

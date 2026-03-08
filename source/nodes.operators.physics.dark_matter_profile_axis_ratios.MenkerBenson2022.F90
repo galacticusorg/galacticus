@@ -163,7 +163,7 @@ contains
 
   subroutine haloAxisRatiosMenkerBenson2022NodeTreeInitialize(self,node)
     !!{
-    Initialize the spin of {\normalfont \ttfamily node}.
+    Initialize the spin of \mono{node}.
     !!}
     use :: Galacticus_Nodes          , only : nodeComponentDarkMatterProfile, nodeComponentBasic
     use :: Linear_Algebra            , only : matrix                        , vector            , matrixRotationRandom, assignment(=), &

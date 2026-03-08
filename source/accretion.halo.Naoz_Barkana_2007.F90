@@ -57,7 +57,7 @@
     \dot{M}_\mathrm{hot} = - {\alpha_\mathrm{adjust} \over \tau_\mathrm{dyn}} [M_\mathrm{hot}+M_\mathrm{unaccreted}]
     [f_\mathrm{accreted}-f(M_\mathrm{200b}/M_\mathrm{F})],
     \end{equation}
-    where $\alpha_\mathrm{adjust} = $[{\normalfont \ttfamily rateAdjust}].
+    where $\alpha_\mathrm{adjust} = $[\mono{rateAdjust}].
    </description>
   </accretionHalo>
   !!]
@@ -416,7 +416,7 @@ contains
   
   double precision function naozBarkana2007AccretionRate(self,node,accretionMode)
     !!{
-    Computes the baryonic accretion rate onto {\normalfont \ttfamily node}.
+    Computes the baryonic accretion rate onto \mono{node}.
     !!}
     use :: Galacticus_Nodes, only : nodeComponentBasic, nodeComponentHotHalo, treeNode
     implicit none
@@ -461,7 +461,7 @@ contains
 
   double precision function naozBarkana2007AccretedMass(self,node,accretionMode)
     !!{
-    Computes the mass of baryons accreted into {\normalfont \ttfamily node}.
+    Computes the mass of baryons accreted into \mono{node}.
     !!}
     use :: Galacticus_Nodes, only : nodeComponentBasic, treeNode
     implicit none
@@ -488,7 +488,7 @@ contains
 
   double precision function naozBarkana2007FailedAccretionRate(self,node,accretionMode)
     !!{
-    Computes the baryonic accretion rate onto {\normalfont \ttfamily node}.
+    Computes the baryonic accretion rate onto \mono{node}.
     !!}
     use :: Galacticus_Nodes, only : nodeComponentBasic, nodeComponentHotHalo, treeNode
     implicit none
@@ -537,7 +537,7 @@ contains
 
   double precision function naozBarkana2007FailedAccretedMass(self,node,accretionMode)
     !!{
-    Computes the mass of baryons accreted into {\normalfont \ttfamily node}.
+    Computes the mass of baryons accreted into \mono{node}.
     !!}
     use :: Galacticus_Nodes, only : nodeComponentBasic, treeNode
     implicit none
@@ -567,7 +567,7 @@ contains
 
   function naozBarkana2007AccretionRateMetals(self,node,accretionMode)
     !!{
-    Computes the rate of mass of abundance accretion (in $M_\odot/$Gyr) onto {\normalfont \ttfamily node} from the intergalactic medium.
+    Computes the rate of mass of abundance accretion (in $M_\odot/$Gyr) onto \mono{node} from the intergalactic medium.
     !!}
     use :: Abundances_Structure, only : abundances        , zeroAbundances      , metallicityTypeLinearByMass, adjustElementsReset
     use :: Galacticus_Nodes    , only : nodeComponentBasic, nodeComponentHotHalo
@@ -633,7 +633,7 @@ contains
 
   function naozBarkana2007FailedAccretionRateMetals(self,node,accretionMode)
     !!{
-    Computes the rate of failed mass of abundance accretion (in $M_\odot/$Gyr) onto {\normalfont \ttfamily node} from the intergalactic medium.
+    Computes the rate of failed mass of abundance accretion (in $M_\odot/$Gyr) onto \mono{node} from the intergalactic medium.
     !!}
     use :: Abundances_Structure, only : abundances        , zeroAbundances      , metallicityTypeLinearByMass, adjustElementsReset
     use :: Galacticus_Nodes    , only : nodeComponentBasic, nodeComponentHotHalo
@@ -699,7 +699,7 @@ contains
 
   function naozBarkana2007AccretionRateChemicals(self,node,accretionMode)
     !!{
-    Computes the rate of mass of chemicals accretion (in $M_\odot/$Gyr) onto {\normalfont \ttfamily node} from the intergalactic medium. Assumes a
+    Computes the rate of mass of chemicals accretion (in $M_\odot/$Gyr) onto \mono{node} from the intergalactic medium. Assumes a
     primordial mixture of hydrogen and helium and that accreted material is in collisional ionization equilibrium at the virial
     temperature.
     !!}

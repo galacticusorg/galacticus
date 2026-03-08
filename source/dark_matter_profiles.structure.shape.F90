@@ -37,7 +37,7 @@ module Dark_Matter_Profiles_Shape
    </description>
    <default>gao2008</default>
    <method name="shape" >
-    <description>Returns the shape parameter for the given {\normalfont \ttfamily node}.</description>
+    <description>Returns the shape parameter for the given \mono{node}.</description>
     <type>double precision</type>
     <pass>yes</pass>
     <argument>type(treeNode), intent(inout) :: node</argument>

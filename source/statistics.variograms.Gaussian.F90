@@ -132,7 +132,7 @@ contains
 
   double precision function gaussianVariogram(self,separation)
     !!{
-    Compute the variogram at the given {\normalfont \ttfamily separation}. Here we use the ``gaussian model'':
+    Compute the variogram at the given \mono{separation}. Here we use the ``gaussian model'':
     \begin{equation}
       \gamma(h) =C_0 + C_1 [ 1 - \exp\left(-\frac{h^2}{a^2}\right)]
     \end{equation}

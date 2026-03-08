@@ -267,7 +267,7 @@ contains
 
   subroutine History_Builder(self,historyDefinition)
     !!{
-    Build a {\normalfont \ttfamily history} object from the given XML {\normalfont \ttfamily historyDefinition}.
+    Build a \mono{history} object from the given XML \mono{historyDefinition}.
     !!}
     use :: FoX_DOM, only : node
     use :: Error  , only : Error_Report
@@ -282,7 +282,7 @@ contains
 
   subroutine History_Long_Integer_Builder(self,historyDefinition)
     !!{
-    Build a {\normalfont \ttfamily longIntegerHistory} object from the given XML {\normalfont \ttfamily historyDefinition}.
+    Build a \mono{longIntegerHistory} object from the given XML \mono{historyDefinition}.
     !!}
     use :: FoX_DOM, only : node
     use :: Error  , only : Error_Report
@@ -649,8 +649,8 @@ contains
   subroutine History_Trim(history_,currentTime,minimumPointsToRemove)
     !!{
     Removes outdated information from ``future histories'' (i.e. histories that store data for future reference). Removes all
-    but one entry prior to the given {\normalfont \ttfamily currentTime} (this allows for interpolation of the history to the current
-    time). Optionally, the remove is done only if it will remove more than {\normalfont \ttfamily minimumPointsToRemove} entries (since the
+    but one entry prior to the given \mono{currentTime} (this allows for interpolation of the history to the current
+    time). Optionally, the remove is done only if it will remove more than \mono{minimumPointsToRemove} entries (since the
     removal can be slow this allows for some optimization).
     !!}
     use            :: Error            , only : Error_Report
@@ -712,8 +712,8 @@ contains
 
   subroutine History_Trim_Forward(self,time,removedHistory)
     !!{
-    Removes all points in a history after the given {\normalfont \ttfamily time}. Optionally, the removed history can be
-    returned as {\normalfont \ttfamily removedHistory}.
+    Removes all points in a history after the given \mono{time}. Optionally, the removed history can be
+    returned as \mono{removedHistory}.
     !!}
     use            :: Arrays_Search    , only : searchArray
     use, intrinsic :: ISO_C_Binding    , only : c_size_t
@@ -760,8 +760,8 @@ contains
   subroutine History_Long_Integer_Trim(history_,currentTime,minimumPointsToRemove)
     !!{
     Removes outdated information from ``future histories'' (i.e. histories that store data for future reference). Removes all
-    but one entry prior to the given {\normalfont \ttfamily currentTime} (this allows for interpolation of the history to the current
-    time). Optionally, the remove is done only if it will remove more than {\normalfont \ttfamily minimumPointsToRemove} entries (since the
+    but one entry prior to the given \mono{currentTime} (this allows for interpolation of the history to the current
+    time). Optionally, the remove is done only if it will remove more than \mono{minimumPointsToRemove} entries (since the
     removal can be slow this allows for some optimization).
     !!}
     use            :: Error            , only : Error_Report
@@ -823,8 +823,8 @@ contains
 
   subroutine History_Long_Integer_Trim_Forward(self,time,removedHistory)
     !!{
-    Removes all points in a history after the given {\normalfont \ttfamily time}. Optionally, the removed history can be
-    returned as {\normalfont \ttfamily removedHistory}.
+    Removes all points in a history after the given \mono{time}. Optionally, the removed history can be
+    returned as \mono{removedHistory}.
     !!}
     use            :: Arrays_Search    , only : searchArray
     use, intrinsic :: ISO_C_Binding    , only : c_size_t
@@ -1012,9 +1012,9 @@ contains
 
    subroutine History_Interpolated_Increment(history_,addHistory)
      !!{
-     Adds the data in {\normalfont \ttfamily addHistory} to that in {\normalfont \ttfamily history\_}. This function is
-     designed for histories that track instantaneous rates. The rates in {\normalfont \ttfamily addHistory} are interpolated to
-     the times in {\normalfont \ttfamily history\_} and added to the rates in {\normalfont \ttfamily history\_}.
+     Adds the data in \mono{addHistory} to that in \mono{history\_}. This function is
+     designed for histories that track instantaneous rates. The rates in \mono{addHistory} are interpolated to
+     the times in \mono{history\_} and added to the rates in \mono{history\_}.
      !!}
      use            :: Error                  , only : Error_Report
      use, intrinsic :: ISO_C_Binding          , only : c_size_t
@@ -1078,11 +1078,11 @@ contains
 
    subroutine History_Increment(history_,addHistory,autoExtend)
      !!{
-     Combines the data in {\normalfont \ttfamily addHistory} with that in {\normalfont \ttfamily history\_}. This function is designed for histories that
-     track integrated quantities (such as total mass of stars formed in a time interval for example). {\normalfont \ttfamily history\_} will be
-     extended if necessary to span the range of {\normalfont \ttfamily addHistory}. Then, the data from {\normalfont \ttfamily addHistory} will be added to
-     that in {\normalfont \ttfamily history\_} by finding the fraction of each timestep in {\normalfont \ttfamily addHistory} that overlaps with each timestep
-     in {\normalfont \ttfamily history\_} and assuming that the corresponding fraction of the data value should be added to {\normalfont \ttfamily history\_}.
+     Combines the data in \mono{addHistory} with that in \mono{history\_}. This function is designed for histories that
+     track integrated quantities (such as total mass of stars formed in a time interval for example). \mono{history\_} will be
+     extended if necessary to span the range of \mono{addHistory}. Then, the data from \mono{addHistory} will be added to
+     that in \mono{history\_} by finding the fraction of each timestep in \mono{addHistory} that overlaps with each timestep
+     in \mono{history\_} and assuming that the corresponding fraction of the data value should be added to \mono{history\_}.
      !!}
      use            :: Arrays_Search   , only : searchArray
      use            :: Error           , only : Error_Report
@@ -1177,7 +1177,7 @@ contains
 
    function History_Divide(self,divisor)
      !!{
-     Divides history data by a double precision {\normalfont \ttfamily divisor}.
+     Divides history data by a double precision \mono{divisor}.
      !!}
      implicit none
      type            (history)                :: History_Divide
@@ -1194,7 +1194,7 @@ contains
 
    function History_Multiply(self,multiplier)
      !!{
-     Multiplies history data by a double precision {\normalfont \ttfamily multiplier}.
+     Multiplies history data by a double precision \mono{multiplier}.
      !!}
      implicit none
      type            (history)                :: History_Multiply
@@ -1354,7 +1354,7 @@ contains
 
   subroutine History_Timesteps(history_,timeSteps)
     !!{
-    Return an array of time intervals in {\normalfont \ttfamily history\_}.
+    Return an array of time intervals in \mono{history\_}.
     !!}
     use :: Numerical_Ranges , only : rangeTypeLinear, rangeTypeLogarithmic
     implicit none

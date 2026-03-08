@@ -92,8 +92,8 @@ module Galacticus_Nodes
      <methods>
        <method description="Destroys the merger tree, including all nodes and their components." method="destroy" />
        <method description="Returns a pointer to the node with given index in the merger tree, or a null pointer if no such node exists." method="getNode" />
-       <method description="Create a {\normalfont \ttfamily treeEvent} object in this tree." method="createEvent" />
-       <method description="Remove a {\normalfont \ttfamily treeEvent} from this tree." method="removeEvent" />
+       <method description="Create a \mono{treeEvent} object in this tree." method="createEvent" />
+       <method description="Remove a \mono{treeEvent} from this tree." method="removeEvent" />
        <method description="Return the earliest time in a merger tree." method="earliestTime" />
        <method description="Return the earliest time in an evolving merger tree." method="earliestTimeEvolving" />
        <method description="Return the latest time in a merger tree." method="latestTime" />
@@ -153,10 +153,10 @@ module Galacticus_Nodes
    contains
      !![
      <methods>
-       <method description="Create a {\normalfont \ttfamily treeEvent} object in this universe." method="createEvent"  />
-       <method description="Remove a {\normalfont \ttfamily treeEvent} from this universe."      method="removeEvent"  />
-       <method description="Pop a {\normalfont \ttfamily mergerTree} from this universe."        method="popTree"      />
-       <method description="Pop a {\normalfont \ttfamily mergerTree} from this universe."        method="pushTree"     />
+       <method description="Create a \mono{treeEvent} object in this universe." method="createEvent"  />
+       <method description="Remove a \mono{treeEvent} from this universe."      method="removeEvent"  />
+       <method description="Pop a \mono{mergerTree} from this universe."        method="popTree"      />
+       <method description="Pop a \mono{mergerTree} from this universe."        method="pushTree"     />
        <method description="Assign universe objects."                                            method="assignment(=)"/>
      </methods>
      !!]
@@ -296,7 +296,7 @@ module Galacticus_Nodes
   ! Functions for treeNode class.
   function Tree_Node_Constructor(index,hostTree) result(self)
     !!{
-    Return a pointer to a newly created and initialized {\normalfont \ttfamily treeNode}.
+    Return a pointer to a newly created and initialized \mono{treeNode}.
     !!}
     use :: Error, only : Error_Report
     implicit none
@@ -315,7 +315,7 @@ module Galacticus_Nodes
 
   function Tree_Node_Type(self)
     !!{
-    Returns the name of a {\normalfont \ttfamily treeNode} object.
+    Returns the name of a \mono{treeNode} object.
     !!}
     use :: ISO_Varying_String, only : assignment(=)
     implicit none
@@ -329,7 +329,7 @@ module Galacticus_Nodes
 
   function Tree_Node_Index(self)
     !!{
-    Returns the index of a {\normalfont \ttfamily treeNode}.
+    Returns the index of a \mono{treeNode}.
     !!}
     implicit none
     class  (treeNode      ), intent(in   ), target :: self
@@ -347,7 +347,7 @@ module Galacticus_Nodes
 
   subroutine Tree_Node_Index_Set(self,index)
     !!{
-    Sets the index of a {\normalfont \ttfamily treeNode}.
+    Sets the index of a \mono{treeNode}.
     !!}
     implicit none
     class  (treeNode      ), intent(inout) :: self
@@ -359,7 +359,7 @@ module Galacticus_Nodes
 
   function Tree_Node_Unique_ID(self) result(uniqueID)
     !!{
-    Returns the unique ID of a {\normalfont \ttfamily treeNode}.
+    Returns the unique ID of a \mono{treeNode}.
     !!}
     implicit none
     class  (treeNode      ), intent(in   ) :: self
@@ -371,7 +371,7 @@ module Galacticus_Nodes
 
   subroutine Tree_Node_Unique_ID_Set(self,uniqueID)
     !!{
-    Sets the index of a {\normalfont \ttfamily treeNode}.
+    Sets the index of a \mono{treeNode}.
     !!}
     use :: Error, only : Error_Report
     implicit none
@@ -392,7 +392,7 @@ module Galacticus_Nodes
 
   double precision function Tree_Node_Time_Step(self)
     !!{
-    Returns the time-step last used by a {\normalfont \ttfamily treeNode}.
+    Returns the time-step last used by a \mono{treeNode}.
     !!}
     implicit none
     class(treeNode), intent(in   ) :: self
@@ -403,7 +403,7 @@ module Galacticus_Nodes
 
   subroutine Tree_Node_Time_Step_Set(self,timeStep)
     !!{
-    Sets the time-step used by a {\normalfont \ttfamily treeNode}.
+    Sets the time-step used by a \mono{treeNode}.
     !!}
     implicit none
     class           (treeNode      ), intent(inout) :: self
@@ -415,7 +415,7 @@ module Galacticus_Nodes
 
   double precision function Tree_Node_Subsampling_Weight(self)
     !!{
-    Returns the subsampling weight of a {\normalfont \ttfamily treeNode}.
+    Returns the subsampling weight of a \mono{treeNode}.
     !!}
     implicit none
     class(treeNode), intent(in   ) :: self
@@ -426,7 +426,7 @@ module Galacticus_Nodes
 
   subroutine Tree_Node_Subsampling_Weight_Set(self,subsamplingWeight)
     !!{
-    Sets the time-step used by a {\normalfont \ttfamily treeNode}.
+    Sets the time-step used by a \mono{treeNode}.
     !!}
     implicit none
     class           (treeNode      ), intent(inout) :: self
@@ -464,7 +464,7 @@ module Galacticus_Nodes
 
   subroutine Tree_Node_Remove_Paired_Event(self,event)
     !!{
-    Removed a paired event from {\normalfont \ttfamily self}. Matching is done on the basis of event ID.
+    Removed a paired event from \mono{self}. Matching is done on the basis of event ID.
     !!}
     use :: Error, only : Error_Report
     implicit none
@@ -502,7 +502,7 @@ module Galacticus_Nodes
 
   logical function treeNodeIsPrimaryProgenitor(self) result(isPrimaryProgenitor)
     !!{
-    Returns true if {\normalfont \ttfamily self} is the primary progenitor of its parent node.
+    Returns true if \mono{self} is the primary progenitor of its parent node.
     !!}
     implicit none
     class(treeNode), intent(inout), target:: self
@@ -517,7 +517,7 @@ module Galacticus_Nodes
 
   logical function Tree_Node_Is_Primary_Progenitor_Of_Index(self,targetNodeIndex)
     !!{
-    Return true if {\normalfont \ttfamily self} is a progenitor of the node with index {\normalfont \ttfamily targetNodeIndex}.
+    Return true if \mono{self} is a progenitor of the node with index \mono{targetNodeIndex}.
     !!}
     implicit none
     class  (treeNode      ), intent(in   ), target :: self
@@ -539,7 +539,7 @@ module Galacticus_Nodes
 
   logical function Tree_Node_Is_Primary_Progenitor_Of_Node(self,targetNode)
     !!{
-    Return true if {\normalfont \ttfamily self} is a progenitor of {\normalfont \ttfamily targetNode}.
+    Return true if \mono{self} is a progenitor of \mono{targetNode}.
     !!}
     implicit none
     class(treeNode), intent(in   ), target  :: self
@@ -561,7 +561,7 @@ module Galacticus_Nodes
 
   logical function Tree_Node_Is_Progenitor_Of_Index(self,targetNodeIndex)
     !!{
-    Return true if {\normalfont \ttfamily self} is a progenitor of the node with index {\normalfont \ttfamily targetNodeIndex}.
+    Return true if \mono{self} is a progenitor of the node with index \mono{targetNodeIndex}.
     !!}
     implicit none
     class  (treeNode      ), intent(in   ), target :: self
@@ -582,7 +582,7 @@ module Galacticus_Nodes
 
   logical function Tree_Node_Is_Progenitor_Of_Node(self,targetNode)
     !!{
-    Return true if {\normalfont \ttfamily self} is a progenitor of {\normalfont \ttfamily targetNode}.
+    Return true if \mono{self} is a progenitor of \mono{targetNode}.
     !!}
     implicit none
     class(treeNode), intent(in   ), target  :: self
@@ -603,7 +603,7 @@ module Galacticus_Nodes
 
   logical function Tree_Node_Is_On_Main_Branch(self)
     !!{
-    Returns true if {\normalfont \ttfamily self} is on the main branch.
+    Returns true if \mono{self} is on the main branch.
     !!}
     implicit none
     class(treeNode), intent(inout), target :: self
@@ -621,7 +621,7 @@ module Galacticus_Nodes
 
   logical function Tree_Node_Is_Satellite(self)
     !!{
-    Returns true if {\normalfont \ttfamily self} is a satellite.
+    Returns true if \mono{self} is a satellite.
     !!}
     use :: Error, only : Error_Report
     implicit none
@@ -656,7 +656,7 @@ module Galacticus_Nodes
 
   function Tree_Node_Get_Isolated_Parent(self) result (isolatedNode)
     !!{
-    Returns a pointer to the isolated parent node of {\normalfont \ttfamily self}.
+    Returns a pointer to the isolated parent node of \mono{self}.
     !!}
     implicit none
     class(treeNode), intent(in   ), target  :: self
@@ -671,7 +671,7 @@ module Galacticus_Nodes
 
   function Tree_Node_Get_Last_Satellite(self) result (satelliteNode)
     !!{
-    Returns a pointer to the final satellite node associated with {\normalfont \ttfamily self}.
+    Returns a pointer to the final satellite node associated with \mono{self}.
     !!}
     implicit none
     class(treeNode), intent(in   ) :: self
@@ -686,7 +686,7 @@ module Galacticus_Nodes
 
   function Tree_Node_Get_Earliest_Progenitor(self) result (progenitorNode)
     !!{
-    Returns a pointer to the earliest progenitor of {\normalfont \ttfamily self}.
+    Returns a pointer to the earliest progenitor of \mono{self}.
     !!}
     use :: Error, only : Error_Report
     implicit none
@@ -708,7 +708,7 @@ module Galacticus_Nodes
 
   function Tree_Node_Merges_With_Node(node)
     !!{
-    Returns a pointer to the node with which {\normalfont \ttfamily node} will merge.
+    Returns a pointer to the node with which \mono{node} will merge.
     !!}
     implicit none
     class(treeNode), intent(in   ) :: node
@@ -727,7 +727,7 @@ module Galacticus_Nodes
 
   subroutine Tree_Node_Remove_From_Host(self)
     !!{
-    Remove {\normalfont \ttfamily self} from the linked list of its host node's satellites.
+    Remove \mono{self} from the linked list of its host node's satellites.
     !!}
     use :: Display           , only : displayMessage, displayVerbosity, verbosityLevelInfo
     use :: Error             , only : Error_Report
@@ -774,7 +774,7 @@ module Galacticus_Nodes
 
   subroutine Tree_Node_Remove_from_Mergee(self)
     !!{
-    Remove {\normalfont \ttfamily self} from the linked list of its host node's satellites.
+    Remove \mono{self} from the linked list of its host node's satellites.
     !!}
     use :: Display           , only : displayMessage, verbosityLevelInfo
     use :: Error             , only : Error_Report
@@ -872,11 +872,9 @@ module Galacticus_Nodes
   function treeNodeWalkBranchWithSatellites(self,startNode)
     !!{
     This function provides a mechanism for walking through the branches of the merger
-    tree. Given a pointer {\normalfont \ttfamily self} to a branch of the tree, it will
-    return the next node that should be visited in the tree. Thus, if {\normalfont \ttfamily
-    self} is initially set to the base of the merger tree and {\normalfont \ttfamily
-    Merger\_Tree\_Walk\_Branch()} is called repeatedly it will walk through every node of the
-    branch. Once the entire branch has been walked, a {\normalfont \ttfamily null()} pointer
+    tree. Given a pointer \mono{self} to a branch of the tree, it will
+    return the next node that should be visited in the tree. Thus, if \mono{self} is initially set to the base of the merger tree and \mono{Merger\_Tree\_Walk\_Branch()} is called repeatedly it will walk through every node of the
+    branch. Once the entire branch has been walked, a \mono{null()} pointer
     will be returned, indicating that there are no more nodes to walk. Each node will be
     visited once and once only if the branch is walked in this way. Note that it is important
     that the walk descends to satellites before descending to children: the routines that
@@ -930,7 +928,7 @@ module Galacticus_Nodes
 
   function Merger_Tree_Walk_Descend_to_Progenitors(self) result (progenitorNode)
     !!{
-    Descend to the deepest progenitor (satellites and children) of {\normalfont \ttfamily self}.
+    Descend to the deepest progenitor (satellites and children) of \mono{self}.
     !!}
     implicit none
     type(treeNode), intent(in   ), target  :: self
@@ -1308,7 +1306,7 @@ module Galacticus_Nodes
 
   subroutine Node_Component_Null_Void0_InOut(self)
     !!{
-    A null {\normalfont \ttfamily void} function for rank 0 {\normalfont \ttfamily nodeComponent} arrays.
+    A null \mono{void} function for rank 0 \mono{nodeComponent} arrays.
     !!}
     implicit none
     class(nodeComponent), intent(inout) :: self
@@ -1319,7 +1317,7 @@ module Galacticus_Nodes
 
   double precision function Node_Component_Null_Double0_InOut(self)
     !!{
-    A null {\normalfont \ttfamily double} function for rank 0 {\normalfont \ttfamily nodeComponent} arrays.
+    A null \mono{double} function for rank 0 \mono{nodeComponent} arrays.
     !!}
     implicit none
     class(nodeComponent), intent(inout) :: self
@@ -1331,7 +1329,7 @@ module Galacticus_Nodes
 
   function Node_Component_Null_Double1_InOut(self,resultSize)
     !!{
-    A null {\normalfont \ttfamily double} function for rank 1 {\normalfont \ttfamily nodeComponent} arrays.
+    A null \mono{double} function for rank 1 \mono{nodeComponent} arrays.
     !!}
     implicit none
     class           (nodeComponent), intent(inout)         :: self
@@ -1345,7 +1343,7 @@ module Galacticus_Nodes
 
   function Node_Component_Null_TensorR2D3_InOut(self)
     !!{
-    A null {\normalfont \ttfamily tensorRank2Dimension3Symmetric} function for {\normalfont \ttfamily nodeComponent}s.
+    A null \mono{tensorRank2Dimension3Symmetric} function for \mono{nodeComponent}s.
     !!}
     implicit none
     type (tensorRank2Dimension3Symmetric)                :: Node_Component_Null_TensorR2D3_InOut
@@ -1535,7 +1533,7 @@ module Galacticus_Nodes
 
   function Merger_Tree_Node_Get(tree,nodeIndex)
     !!{
-    Return a pointer to a node in {\normalfont \ttfamily tree} given the index of the node.
+    Return a pointer to a node in \mono{tree} given the index of the node.
     !!}
     implicit none
     class  (mergerTree    ), intent(in   ), target :: tree
@@ -1587,7 +1585,7 @@ module Galacticus_Nodes
 
   subroutine Merger_Tree_Remove_Event(self,event)
     !!{
-    Removed an event from {\normalfont \ttfamily self}.
+    Removed an event from \mono{self}.
     !!}
     implicit none
     class  (mergerTree), intent(inout) :: self
@@ -1753,7 +1751,7 @@ module Galacticus_Nodes
 
   subroutine universeRemoveEvent(self,event)
     !!{
-    Remove an event from {\normalfont \ttfamily self}.
+    Remove an event from \mono{self}.
     !!}
     implicit none
     class  (universe     ), intent(inout) :: self
@@ -1892,7 +1890,7 @@ module Galacticus_Nodes
 
   subroutine massDistributionCalculationReset(massDistributionsLast,node,uniqueID)
     !!{
-    Reset the memoized {\normalfont \ttfamily massDistribution} due to a {\normalfont \ttfamily calculationReset} event.
+    Reset the memoized \mono{massDistribution} due to a \mono{calculationReset} event.
     !!}
     implicit none
     integer           , intent(inout) :: massDistributionsLast
@@ -1912,7 +1910,7 @@ module Galacticus_Nodes
   
   subroutine massDistributionsDestroy()
     !!{
-    Destroy memoized {\normalfont \ttfamily massDistributions}.
+    Destroy memoized \mono{massDistributions}.
     !!}
     implicit none    
     integer :: i

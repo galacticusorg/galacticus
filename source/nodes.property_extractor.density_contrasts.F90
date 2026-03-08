@@ -32,12 +32,11 @@ Implements a property extractor class for the mass and radii of spheres are spec
   <nodePropertyExtractor name="nodePropertyExtractorDensityContrasts">
    <description>
     A property extractor class for the mass and radii of spheres of specified density contrast. A list of density contrasts,
-    $\Delta$ (defined in units of the mean density of the Universe), is specified via the {\normalfont \ttfamily
-    [densityContrasts]} parameter. For each specified density contrast, two properties are output for each node: {\normalfont
-    \ttfamily nodeRadius}$\Delta$ and {\normalfont \ttfamily nodeMass}$\Delta$ which give the radius enclosing a mean density
-    contrast of $\Delta$ and the mass enclosed within that radius. The parameter {\normalfont \ttfamily [darkMatterOnly]}
-    controls whether density contrasts are measured for total mass ({\normalfont \ttfamily false}) or dark matter mass only
-    ({\normalfont \ttfamily true}). In the latter case, density contrasts are defined relative to the mean dark matter density
+    $\Delta$ (defined in units of the mean density of the Universe), is specified via the \mono{[densityContrasts]} parameter. For each specified density contrast, two properties are output for each node: {\normalfont
+    \ttfamily nodeRadius}$\Delta$ and \mono{nodeMass}$\Delta$ which give the radius enclosing a mean density
+    contrast of $\Delta$ and the mass enclosed within that radius. The parameter \mono{[darkMatterOnly]}
+    controls whether density contrasts are measured for total mass (\mono{false}) or dark matter mass only
+    (\mono{true}). In the latter case, density contrasts are defined relative to the mean dark matter density
     of the Universe.
    </description>
   </nodePropertyExtractor>
@@ -107,7 +106,7 @@ contains
     </inputParameter>
     <inputParameter>
       <name>densityContrastRelativeTo</name>
-      <description>The density ({\normalfont \ttfamily mean} or {\normalfont \ttfamily critical}) used in defining the density contrast.</description>
+      <description>The density (\mono{mean} or \mono{critical}) used in defining the density contrast.</description>
       <source>parameters</source>
       <defaultValue>var_str('mean')</defaultValue>
     </inputParameter>
@@ -188,7 +187,7 @@ contains
 
   integer function densityContrastsElementCount(self,time)
     !!{
-    Return the number of elements in the {\normalfont \ttfamily densityContrasts} property extractors.
+    Return the number of elements in the \mono{densityContrasts} property extractors.
     !!}
     implicit none
     class           (nodePropertyExtractorDensityContrasts), intent(inout) :: self
@@ -201,7 +200,7 @@ contains
 
   function densityContrastsSize(self,time)
     !!{
-    Return the number of array elements in the {\normalfont \ttfamily densityContrasts} property extractors.
+    Return the number of array elements in the \mono{densityContrasts} property extractors.
     !!}
     implicit none
     integer         (c_size_t                             )                :: densityContrastsSize
@@ -276,7 +275,7 @@ contains
 
   subroutine densityContrastsNames(self,names,time)
     !!{
-    Return the names of the {\normalfont \ttfamily densityContrasts} properties.
+    Return the names of the \mono{densityContrasts} properties.
     !!}
     implicit none
     class           (nodePropertyExtractorDensityContrasts), intent(inout)                             :: self
@@ -292,7 +291,7 @@ contains
 
   subroutine densityContrastsDescriptions(self,descriptions,time)
     !!{
-    Return descriptions of the {\normalfont \ttfamily densityContrasts} property.
+    Return descriptions of the \mono{densityContrasts} property.
     !!}
     implicit none
     class           (nodePropertyExtractorDensityContrasts), intent(inout)                             :: self
@@ -308,7 +307,7 @@ contains
 
   subroutine densityContrastsColumnDescriptions(self,descriptions,values,valuesDescription,valuesUnitsInSI,time)
     !!{
-    Return column descriptions of the {\normalfont \ttfamily densityContrasts} property.
+    Return column descriptions of the \mono{densityContrasts} property.
     !!}
     implicit none
     class           (nodePropertyExtractorDensityContrasts), intent(inout)                            :: self
@@ -334,7 +333,7 @@ contains
 
   function densityContrastsUnitsInSI(self,time)
     !!{
-    Return the units of the {\normalfont \ttfamily densityContrasts} properties in the SI system.
+    Return the units of the \mono{densityContrasts} properties in the SI system.
     !!}
     use :: Numerical_Constants_Astronomical, only : massSolar, megaParsec
     implicit none

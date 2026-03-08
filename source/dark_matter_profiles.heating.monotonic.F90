@@ -102,7 +102,7 @@ contains
 
   function monotonicGet(self,node) result(massDistributionHeating_)
     !!{
-    Return the dark matter mass distribution heating for the given {\normalfont \ttfamily node}.
+    Return the dark matter mass distribution heating for the given \mono{node}.
     !!}
     use :: Mass_Distributions, only : massDistributionHeatingMonotonic
     implicit none

@@ -33,8 +33,8 @@ Implements an ISM mass output analysis property extractor class.
   
     Note that, to operate correctly, information about which node a given node may merge with (and when this merger will
     happen) must be available. This is typically available in merger trees read from file (i.e. using the ``{\normalfont
-    \ttfamily read}'' \refClass{mergerTreeConstructorClass}) providing {\normalfont \ttfamily [presetMergerNodes]} and {\normalfont
-    \ttfamily [presetMergerTimes]} are both set to {\normalfont \ttfamily true}. When using randomly assigned satellite orbits
+    \ttfamily read}'' \refClass{mergerTreeConstructorClass}) providing \mono{[presetMergerNodes]} and {\normalfont
+    \ttfamily [presetMergerTimes]} are both set to \mono{true}. When using randomly assigned satellite orbits
     and merger times, information on when merging occurs does not exist until a node becomes a satellite. Thus, if the node
     becomes a satellite after the current output, but before the next output, there is no way to know which node it will belong
     to at the next output (in such cases, the fallback assumption is no merging).
@@ -114,7 +114,7 @@ contains
 
   function descendantsExtract(self,node,time,instance)
     !!{
-    Implement a {\normalfont \ttfamily descendants} node property extractor.
+    Implement a \mono{descendants} node property extractor.
     !!}
     use :: Galacticus_Nodes, only : nodeComponentBasic, nodeComponentSatellite, treeNode
     implicit none

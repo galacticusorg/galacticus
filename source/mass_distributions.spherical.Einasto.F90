@@ -270,7 +270,7 @@ contains
 
   double precision function einastoDensity(self,coordinates) result(density)
     !!{
-    Return the density at the specified {\normalfont \ttfamily coordinates} in an Einasto mass distribution.
+    Return the density at the specified \mono{coordinates} in an Einasto mass distribution.
     !!}
     implicit none
     class           (massDistributionEinasto     ), intent(inout) :: self
@@ -293,7 +293,7 @@ contains
 
   double precision function einastoDensityGradientRadial(self,coordinates,logarithmic) result(densityGradientRadial)
     !!{
-    Return the density at the specified {\normalfont \ttfamily coordinates} in an Einasto \citep{navarro_structure_1996} mass distribution.
+    Return the density at the specified \mono{coordinates} in an Einasto \citep{navarro_structure_1996} mass distribution.
     !!}
     implicit none
     class           (massDistributionEinasto), intent(inout), target   :: self
@@ -379,7 +379,7 @@ contains
 
   double precision function einastoMassEnclosedBySphere(self,radius) result(mass)
     !!{
-    Computes the mass enclosed within a sphere of given {\normalfont \ttfamily radius} for einasto mass distributions.
+    Computes the mass enclosed within a sphere of given \mono{radius} for einasto mass distributions.
     !!}
     implicit none
     class           (massDistributionEinasto), intent(inout), target :: self
@@ -613,7 +613,7 @@ contains
 
   double precision function einastoPotential(self,coordinates,status) result(potential)
     !!{
-    Return the potential at the specified {\normalfont \ttfamily coordinates} in an einasto mass distribution.
+    Return the potential at the specified \mono{coordinates} in an einasto mass distribution.
     !!}
     use :: Coordinates                     , only : assignment(=)
     use :: Galactic_Structure_Options      , only : structureErrorCodeSuccess     , structureErrorCodeInfinite
@@ -687,7 +687,7 @@ contains
   
   double precision function einastoRadiusFreefall(self,time) result(radius)
     !!{
-    Compute the freefall radius at the given {\normalfont \ttfamily time} in an Einasto mass distribution.
+    Compute the freefall radius at the given \mono{time} in an Einasto mass distribution.
     !!}
     use :: Numerical_Constants_Astronomical, only : MpcPerKmPerSToGyr, gravitationalConstant_internal
     implicit none
@@ -715,7 +715,7 @@ contains
   
   double precision function einastoRadiusFreefallIncreaseRate(self,time) result(radiusIncreaseRate)
     !!{
-    Compute the rate of increase of the freefall radius at the given {\normalfont \ttfamily time} in an einasto mass
+    Compute the rate of increase of the freefall radius at the given \mono{time} in an einasto mass
     distribution.
     !!}
     use :: Numerical_Constants_Astronomical, only : MpcPerKmPerSToGyr, gravitationalConstant_internal
@@ -765,7 +765,7 @@ contains
   
   subroutine einastoTimeFreefallTabulate(self,timeScaleFree)
     !!{
-    Tabulate the freefall radius at the given {\normalfont \ttfamily time} in an Einasto mass distribution.
+    Tabulate the freefall radius at the given \mono{time} in an Einasto mass distribution.
     !!}
     use :: Numerical_Integration, only : integrator
     use :: Numerical_Ranges     , only : Make_Range, rangeTypeLogarithmic

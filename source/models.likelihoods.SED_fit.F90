@@ -147,7 +147,7 @@ contains
     </inputParameter>
     <inputParameter>
       <name>startTime</name>
-      <description>The definition of start time (absolute {\normalfont \ttfamily time} or {\normalfont \ttfamily age}).</description>
+      <description>The definition of start time (absolute \mono{time} or \mono{age}).</description>
       <source>parameters</source>
     </inputParameter>
     <objectBuilder class="cosmologyFunctions"                           name="cosmologyFunctions_"                           source="parameters"/>

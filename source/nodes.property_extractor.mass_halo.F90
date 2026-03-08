@@ -34,7 +34,7 @@ Implements a halo mass output analysis property extractor class.
   type, extends(nodePropertyExtractorScalar) :: nodePropertyExtractorMassHalo
      !!{
      A halo mass property extractor output analysis class. The property extracted is the ''\gls{dmou}'' mass of the halo within
-     a radius enclosing a density contrast as defined by the supplied {\normalfont \ttfamily virialDensityContrast} class
+     a radius enclosing a density contrast as defined by the supplied \mono{virialDensityContrast} class
      object. Note that the density contrast is defined here at the time at which the halo presently exists, \emph{not} at the
      time at which is was last isolated (as is used for standard definition of halo mass).
      !!}

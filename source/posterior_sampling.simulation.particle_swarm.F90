@@ -59,7 +59,7 @@
    contains
      !![
      <methods>
-       <method method="posterior"         description="Return the log of posterior probability for the given {\normalfont \ttfamily simulationState}."/>
+       <method method="posterior"         description="Return the log of posterior probability for the given \mono{simulationState}."/>
        <method method="descriptorSpecial" description="Handle adding special parameters to the descriptor."                                           />
      </methods>
      !!]
@@ -134,7 +134,7 @@ contains
     <inputParameter>
       <name>interactionRoot</name>
       <defaultValue>var_str('none')</defaultValue>
-      <description>Root file name for interaction files, or `{\normalfont \ttfamily none}' if interaction is not required.</description>
+      <description>Root file name for interaction files, or `\mono{none}' if interaction is not required.</description>
       <source>parameters</source>
     </inputParameter>
     <inputParameter>

@@ -179,7 +179,7 @@ contains
 
   double precision function gao2008Concentration(self,node) result(concentration)
     !!{
-    Return the concentration of the dark matter halo profile of {\normalfont \ttfamily node} using the
+    Return the concentration of the dark matter halo profile of \mono{node} using the
     \cite{gao_redshift_2008} algorithm.
     !!}
     implicit none
@@ -200,7 +200,7 @@ contains
 
   double precision function gao2008ConcentrationMean(self,node) result(concentration)
     !!{
-    Return the mean concentration of the dark matter halo profile of {\normalfont \ttfamily node} using the
+    Return the mean concentration of the dark matter halo profile of \mono{node} using the
     \cite{gao_redshift_2008} algorithm.
     !!}
     use :: Galacticus_Nodes, only : nodeComponentBasic, treeNode

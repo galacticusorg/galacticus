@@ -38,13 +38,13 @@ module Cooling_Freefall_Times_Available
    </description>
    <default>haloFormation</default>
    <method name="timeAvailable" >
-    <description>Returns the time available for freefall in cooling calculations in {\normalfont \ttfamily node}.</description>
+    <description>Returns the time available for freefall in cooling calculations in \mono{node}.</description>
     <type>double precision</type>
     <pass>yes</pass>
     <argument>type(treeNode), intent(inout) :: node</argument>
    </method>
    <method name="timeAvailableIncreaseRate" >
-    <description>Returns the rate at which the time available for freefall in cooling calculations increases in {\normalfont \ttfamily node}.</description>
+    <description>Returns the rate at which the time available for freefall in cooling calculations increases in \mono{node}.</description>
     <type>double precision</type>
     <pass>yes</pass>
     <argument>type(treeNode), intent(inout) :: node</argument>

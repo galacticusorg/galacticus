@@ -37,7 +37,7 @@ module Stellar_Population_Broad_Band_Luminosities
    <description>Class providing broad band luminosities of stellar populations.</description>
    <default>standard</default>
    <method name="luminosities" >
-    <description>Returns the luminosity for a $1 M_\odot$ simple {\normalfont \ttfamily stellarPopulation\_} of given {\normalfont \ttfamily abundances} and {\normalfont \ttfamily age} and observed through the filter specified by {\normalfont \ttfamily filterIndex}.</description>
+    <description>Returns the luminosity for a $1 M_\odot$ simple \mono{stellarPopulation\_} of given \mono{abundances} and \mono{age} and observed through the filter specified by \mono{filterIndex}.</description>
     <type>double precision, dimension(size(luminosityIndex))</type>
     <pass>yes</pass>
     <argument>integer                                                    , intent(in   ), dimension(:  )              :: luminosityIndex                       , filterIndex </argument>
@@ -47,7 +47,7 @@ module Stellar_Population_Broad_Band_Luminosities
     <argument>double precision                                           , intent(in   ), dimension(:  )              :: age                                   , redshift    </argument>
    </method>
    <method name="luminosityTracks" >
-    <description>Returns the luminosity for a $1 M_\odot$ simple stellar population of given {\normalfont \ttfamily abundances} drawn from the given {\normalfont \ttfamily stellarPopulation} and observed through the filter specified by {\normalfont \ttfamily filterIndex}, for all available ages.</description>
+    <description>Returns the luminosity for a $1 M_\odot$ simple stellar population of given \mono{abundances} drawn from the given \mono{stellarPopulation} and observed through the filter specified by \mono{filterIndex}, for all available ages.</description>
     <type>void</type>
     <pass>yes</pass>
     <argument>integer                                                    , intent(in   ), dimension(:  )              :: luminosityIndex                       , filterIndex</argument>

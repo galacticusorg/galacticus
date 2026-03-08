@@ -27,7 +27,7 @@
   <posteriorSampleStateInitialize name="posteriorSampleStateInitializeResume">
    <description>
     This class resumes from a previous simulation by setting the chain states to the states at the end of that simulation. The
-    {\normalfont \ttfamily [logFileRoot]} parameter is used to specify the log-file root name used in the previous simulation.
+    \mono{[logFileRoot]} parameter is used to specify the log-file root name used in the previous simulation.
   </description>
   </posteriorSampleStateInitialize>
   !!]

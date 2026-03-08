@@ -102,7 +102,7 @@ sub Properties_Deferred_Get_Functions {
     {
 	type        => $functionType." => propertyValue",
 	name        => $code::class->{'name'}.ucfirst($code::member->{'name'}).ucfirst($code::property->{'name'})."Get",
-	description => "Get the value of the {\\normalfont \\ttfamily ".$code::property->{'name'}."} property of the {\\normalfont \\ttfamily ".$code::member->{'name'}."} implementation of the {\\normalfont \\ttfamily ".$code::class->{'name'}."} component using a deferred function.",
+	description => "Get the value of the \\mono{".$code::property->{'name'}."} property of the \\mono{".$code::member->{'name'}."} implementation of the \\mono{".$code::class->{'name'}."} component using a deferred function.",
 	variables   =>
 	    [
 	     {
@@ -153,7 +153,7 @@ sub Properties_Deferred_Set_Functions {
     {
 	type        => "void",
 	name        => $code::class->{'name'}.ucfirst($code::member->{'name'}).ucfirst($code::property->{'name'})."Set",
-	description => "Set the value of the {\\normalfont \\ttfamily ".$code::property->{'name'}."} property of the {\\normalfont \\ttfamily ".$code::member->{'name'}."} implementation of the {\\normalfont \\ttfamily ".$code::class->{'name'}."} component using a deferred function.",
+	description => "Set the value of the \\mono{".$code::property->{'name'}."} property of the \\mono{".$code::member->{'name'}."} implementation of the \\mono{".$code::class->{'name'}."} component using a deferred function.",
 	variables   =>
 	    [
 	     {
@@ -209,7 +209,7 @@ sub Properties_Deferred_Rate_Functions {
     {
 	type        => "void",
 	name        => $code::class->{'name'}.ucfirst($code::member->{'name'}).ucfirst($code::property->{'name'})."Rate",
-	description => "Accumulate the rate of change of the {\\normalfont \\ttfamily ".$code::property->{'name'}."} property of the {\\normalfont \\ttfamily ".$code::member->{'name'}."} implementation of the {\\normalfont \\ttfamily ".$code::class->{'name'}."} component using a deferred function.",
+	description => "Accumulate the rate of change of the \\mono{".$code::property->{'name'}."} property of the \\mono{".$code::member->{'name'}."} implementation of the \\mono{".$code::class->{'name'}."} component using a deferred function.",
 	variables   =>
 	    [
 	     {
@@ -271,7 +271,7 @@ sub Generate_Deferred_Function_Attacher {
     {
 	type        => "void",
 	name        => $functionName,
-	description => "Set the function to be used for the {\\normalfont \\ttfamily ".$method."} method of the {\\normalfont \\ttfamily ".$property->{'name'}."} property of the {\\normalfont \\ttfamily ".$componentName."} component.",
+	description => "Set the function to be used for the \\mono{".$method."} method of the \\mono{".$property->{'name'}."} property of the \\mono{".$componentName."} component.",
 	variables   =>
 	    [
 	     {
@@ -295,7 +295,7 @@ CODE
     {
 	type        => "logical",
 	name        => $code::functionLabel."IsAttached",
-	description => "Return true if the deferred function used to ".$method." the {\\normalfont \\ttfamily ".$property->{'name'}."} property of the {\\normalfont \\ttfamily ".$componentName."} component class has been attached.",
+	description => "Return true if the deferred function used to ".$method." the \\mono{".$property->{'name'}."} property of the \\mono{".$componentName."} component class has been attached.",
     };
     $attachStatusFunction->{'content'} = fill_in_string(<<'CODE', PACKAGE => 'code');
 {$functionLabel}IsAttached={$functionLabel}IsAttchdVl

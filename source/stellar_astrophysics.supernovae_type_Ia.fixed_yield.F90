@@ -50,7 +50,7 @@ contains
 
   subroutine fixedYieldInitialize(self)
     !!{
-    Read data for the {\normalfont \ttfamily fixedYield} supernovae type Ia class.
+    Read data for the \mono{fixedYield} supernovae type Ia class.
     !!}
     use :: Atomic_Data       , only : Atom_Lookup                   , Atomic_Data_Atoms_Count
     use :: FoX_dom           , only : destroy                       , node                             , extractDataContent
@@ -103,7 +103,7 @@ contains
   double precision function fixedYieldYield(self,initialMassFunction_,initialMass,age,metallicity,atomIndex) result(yield)
     !!{
     Compute the cumulative yield from Type Ia supernovae originating per unit interval of secondary star mass with given
-    {\normalfont \ttfamily initialMass} and {\normalfont \ttfamily metallicity} after a time {\normalfont \ttfamily age}. The
+    \mono{initialMass} and \mono{metallicity} after a time \mono{age}. The
     calculation is based on that of \cite{nagashima_metal_2005} with Type Ia yields from \cite{nomoto_nucleosynthesis_1997}. The
     number returned here assumes a distribution of binary mass ratios and so only makes sense once it is integrated over an
     initial mass function.

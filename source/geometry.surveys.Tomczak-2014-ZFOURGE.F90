@@ -28,10 +28,9 @@ Implements the geometry of the ZFOURGE survey used by \cite{tomczak_galaxy_2014}
    <description>
     A survey geometry class that describes the survey geometry of \cite{tomczak_galaxy_2014}. 
     
-    For the angular mask, we make use of {\normalfont \ttfamily mangle} polygon files constructed by hand using vertices
+    For the angular mask, we make use of \mono{mangle} polygon files constructed by hand using vertices
     matched approximately to the distribution of galaxies in the survey (positions of which were provided by R.~Quadri; private
-    communication). The solid angle of each mask is computed using the {\normalfont \ttfamily mangle} {\normalfont \ttfamily
-    harmonize} command.
+    communication). The solid angle of each mask is computed using the \mono{mangle} \mono{harmonize} command.
     
     To determine the depth as a function of stellar mass, we make use of the tabulated mass completeness limits as a function
     of redshift for ZFOURGE and NMBS fields provided by R.~Quadri (private communication). These are fit with fourth-order

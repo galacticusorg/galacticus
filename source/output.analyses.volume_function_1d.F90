@@ -40,7 +40,7 @@ mass function) output analysis class.
   
      In addition to the volume function itself, the covariance matrix, $\mathbf{C}_\mathrm{model}$, of the mass function is also
      computed. The assumptions used when constructing the covariance matrix are controlled by the parameter {\normalfont
-     \ttfamily [covarianceModel]}. If set to {\normalfont \ttfamily binomial}, then to construct $\mathbf{C}_\mathrm{model}$ we
+     \ttfamily [covarianceModel]}. If set to \mono{binomial}, then to construct $\mathbf{C}_\mathrm{model}$ we
      make use of the fact that \glc\ works by sampling a set of tree ``root masses'' from the $z=0$ dark matter halo mass
      function. From each root, a tree is grown, within which the physics of galaxy formation is then solved. Root masses are
      sampled uniformly from the halo mass function. That is, the cumulative halo mass function, $N(M)$, is constructed between
@@ -68,10 +68,9 @@ mass function) output analysis class.
      $p_{ik}$ does not vary significantly across the mass range of each bin. Using all realizations of trees that fall within a
      given bin, $k$, we can directly estimate $p_{ik}$. Similarly, $N_k w_k^2$ is found by accumulating squared weights in bins of
      root mass. In computing $p_{ik}$ and $N_k$, the range of halo masses considered and the fineness of binning in halo mass are
-     determined by the parameters {\normalfont \ttfamily [covarianceBinomialMassHaloMinimum]}, {\normalfont \ttfamily
-     [covarianceBinomialMassHaloMaximum]}, and {\normalfont \ttfamily [covarianceBinomialBinsPerDecade]}.
+     determined by the parameters \mono{[covarianceBinomialMassHaloMinimum]}, \mono{[covarianceBinomialMassHaloMaximum]}, and \mono{[covarianceBinomialBinsPerDecade]}.
   
-     If instead, {\normalfont \ttfamily [covarianceModel]}$=${\normalfont \ttfamily Poisson}, the main branch galaxies are
+     If instead, \mono{[covarianceModel]}$=$\mono{Poisson}, the main branch galaxies are
      modeled as being sampled from a Poisson distribution (and so off-diagonal terms in the covariance matrix will be zero).
   
      In addition to the main branch galaxies, each tree will contain a number of other galaxies (these will be ``satellite''

@@ -25,8 +25,7 @@
   <accretionDisks name="accretionDisksEddingtonLimited">
    <description>
     A circumnuclear accretion disk class in which accretion is always Eddington-limited. This class does not assume any
-    physical model for the accretion disk, but merely assumes that jets are powered at a fixed fraction {\normalfont \ttfamily
-    [efficiencyJet]} of the Eddington luminosity. The radiative efficiency is similarly set at a fixed value of {\normalfont
+    physical model for the accretion disk, but merely assumes that jets are powered at a fixed fraction \mono{[efficiencyJet]} of the Eddington luminosity. The radiative efficiency is similarly set at a fixed value of {\normalfont
     \ttfamily [efficiencyRadiation]}. Since no physical model for the disk is assumed, the black hole spin up rate is always
     set to zero.
    </description>
@@ -158,7 +157,7 @@ contains
 
   double precision function eddingtonLimitedRateSpinUp(self,blackHole,accretionRateMass)
     !!{
-    Computes the spin up rate of the given {\normalfont \ttfamily blackHole} due to accretion from an Eddington-limited
+    Computes the spin up rate of the given \mono{blackHole} due to accretion from an Eddington-limited
     accretion disk. This is always zero, as no physical model is specified for this accretion disk method.
     !!}
     implicit none

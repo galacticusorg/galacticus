@@ -29,7 +29,7 @@ Implements a galactic high-pass filter for halo mass under a given definition.
   <galacticFilter name="galacticFilterHaloMass">
    <description>
    A high-pass filter for basic mass. Halos with a halo mass greater than or equal to a fixed threshold,
-   $M_0=${\normalfont \ttfamily [massThreshold]}.
+   $M_0=$\mono{[massThreshold]}.
    </description>
   </galacticFilter>
   !!]

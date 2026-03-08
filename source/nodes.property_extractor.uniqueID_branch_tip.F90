@@ -79,7 +79,7 @@ contains
 
   function uniqueIDBranchTipExtract(self,node,time,instance)
     !!{
-    Implement a {\normalfont \ttfamily uniqueIDBranchTip} node property extractor.
+    Implement a \mono{uniqueIDBranchTip} node property extractor.
     !!}
     use :: Galacticus_Nodes, only : nodeComponentBasic
     implicit none

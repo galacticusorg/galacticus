@@ -74,7 +74,7 @@ sub Build_Get_Functions {
     {
 	type        => $functionType." => propertyValue",
 	name        => $class->{'name'}.ucfirst($member->{'name'}).ucfirst($code::property->{'name'})."Get".$suffix,
-	description => "Get the {\\normalfont \\ttfamily ".$code::property->{'name'}."} property of an {\\normalfont \\ttfamily ".$member->{'name'}."} implementation of the {\\normalfont \\ttfamily ".$class->{'name'}."} component class.",
+	description => "Get the \\mono{".$code::property->{'name'}."} property of an \\mono{".$member->{'name'}."} implementation of the \\mono{".$class->{'name'}."} component class.",
 	variables   =>
 	[
 	 {

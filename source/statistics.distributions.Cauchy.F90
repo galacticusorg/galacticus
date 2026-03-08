@@ -30,8 +30,8 @@
     \end{equation}
     Specified using:
     \begin{description}
-    \item[{\normalfont \ttfamily [median]}] The median, $x_0$;
-    \item[{\normalfont \ttfamily [scale]}] The scale, $\gamma$;
+    \item[\mono{[median]}] The median, $x_0$;
+    \item[\mono{[scale]}] The scale, $\gamma$;
     \end{description}
    </description>
   </distributionFunction1D>

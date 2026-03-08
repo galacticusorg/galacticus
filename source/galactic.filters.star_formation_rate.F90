@@ -33,9 +33,8 @@ Implements a galactic high-pass filter for total star formation rate.
    \begin{equation}
    \log_{10} \left( { \dot{\phi}_\mathrm{t} \over M_\odot\,\hbox{Gyr}^{-1}} \right) = \alpha_0 + \alpha_1  \left( \log_{10} M_\star - \log_{10} M_0 \right),
    \end{equation}
-   where $M_0=${\normalfont \ttfamily [starFormationRateThresholdLogM0]}, $\alpha_0=${\normalfont
-   \ttfamily [starFormationRateThresholdLogSFR0]}, and $\alpha_1=${\normalfont \ttfamily
-   [starFormationRateThresholdLogSFR1]}.
+   where $M_0=$\mono{[starFormationRateThresholdLogM0]}, $\alpha_0=${\normalfont
+   \ttfamily [starFormationRateThresholdLogSFR0]}, and $\alpha_1=$\mono{[starFormationRateThresholdLogSFR1]}.
    </description>
   </galacticFilter>
   !!]

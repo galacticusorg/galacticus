@@ -61,7 +61,7 @@ contains
       <name>missingHalosAreFatal</name>
       <source>parameters</source>
       <defaultValue>.true.</defaultValue>
-      <description>If true, if a halo is not found during the search through hosts and descendants then a fatal error occurs. Otherwise, such missing halos are ignored, and a {\normalfont \ttfamily hostedRootID} value of $-1$ is assigned to the particle.</description>
+      <description>If true, if a halo is not found during the search through hosts and descendants then a fatal error occurs. Otherwise, such missing halos are ignored, and a \mono{hostedRootID} value of $-1$ is assigned to the particle.</description>
     </inputParameter>
     !!]
     self=nbodyOperatorHostedRootID(missingHalosAreFatal)

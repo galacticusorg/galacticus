@@ -39,7 +39,7 @@ module Merger_Tree_Construction
    </description>
    <default>build</default>
    <method name="construct" >
-    <description>Construct the merger tree corresponding to the given {\normalfont \ttfamily treeNumber}.</description>
+    <description>Construct the merger tree corresponding to the given \mono{treeNumber}.</description>
     <type>type(mergerTree), pointer</type>
     <pass>yes</pass>
     <argument>integer(c_size_t), intent(in   ) :: treeNumber</argument>

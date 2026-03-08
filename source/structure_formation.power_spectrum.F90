@@ -34,19 +34,19 @@ module Power_Spectra
    <description>Class providing linear theory power spectra.</description>
    <default>standard</default>
    <method name="power" >
-    <description>Return the linear power spectrum for $k=${\normalfont \ttfamily wavenumber} [Mpc$^{-1}$].</description>
+    <description>Return the linear power spectrum for $k=$\mono{wavenumber} [Mpc$^{-1}$].</description>
     <type>double precision</type>
     <pass>yes</pass>
     <argument>double precision, intent(in   ) :: wavenumber, time</argument>
    </method>
    <method name="powerDimensionless" >
-    <description>Return the dimensionless linear power spectrum for $k=${\normalfont \ttfamily wavenumber} [Mpc$^{-1}$].</description>
+    <description>Return the dimensionless linear power spectrum for $k=$\mono{wavenumber} [Mpc$^{-1}$].</description>
     <type>double precision</type>
     <pass>yes</pass>
     <argument>double precision, intent(in   ) :: wavenumber, time</argument>
    </method>
    <method name="powerLogarithmicDerivative" >
-    <description>Return the logarithmic derivative of the power spectrum, $\mathrm{d}\ln P(k)/\mathrm{d}\ln k$, for $k=${\normalfont \ttfamily wavenumber} [Mpc$^{-1}$].</description>
+    <description>Return the logarithmic derivative of the power spectrum, $\mathrm{d}\ln P(k)/\mathrm{d}\ln k$, for $k=$\mono{wavenumber} [Mpc$^{-1}$].</description>
     <type>double precision</type>
     <pass>yes</pass>
     <argument>double precision, intent(in   ) :: wavenumber, time</argument>

@@ -18,12 +18,12 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
 !!{
-Contains a module which defines a labels for the {\normalfont \ttfamily table} class.
+Contains a module which defines a labels for the \mono{table} class.
 !!}
 
 module Table_Labels
   !!{
-  Defines labels for the {\normalfont \ttfamily table} class.
+  Defines labels for the \mono{table} class.
   !!}
   private
 

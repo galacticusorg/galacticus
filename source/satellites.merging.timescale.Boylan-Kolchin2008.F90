@@ -57,7 +57,7 @@ contains
 
   function boylanKolchin2008ConstructorParameters(parameters) result(self)
     !!{
-    A constructor for the {\normalfont \ttfamily boylanKolchin2008} satellite merging timescale class which builds the object from a
+    A constructor for the \mono{boylanKolchin2008} satellite merging timescale class which builds the object from a
     parameter set.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
@@ -89,7 +89,7 @@ contains
 
   function boylanKolchin2008ConstructorInternal(timescaleMultiplier,darkMatterHaloScale_,darkMatterProfileDMO_) result(self)
     !!{
-    Default constructor for the {\normalfont \ttfamily boylanKolchin2008} satellite merging timescale class.
+    Default constructor for the \mono{boylanKolchin2008} satellite merging timescale class.
     !!}
     implicit none
     type            (satelliteMergingTimescalesBoylanKolchin2008)                        :: self

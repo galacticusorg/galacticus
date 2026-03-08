@@ -33,7 +33,7 @@ contains
 
   subroutine Event_Black_Hole_Merger(blackHole1,blackHole2,blackHoleMerged)
     !!{
-    Perform tasks associated with a merger beween {\normalfont \ttfamily blackHole1} and {\normalfont \ttfamily blackHole2}.
+    Perform tasks associated with a merger beween \mono{blackHole1} and \mono{blackHole2}.
     !!}
     use :: Galacticus_Nodes, only : nodeComponentBlackHole
     implicit none

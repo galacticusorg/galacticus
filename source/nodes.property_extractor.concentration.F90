@@ -34,8 +34,7 @@ Implements a concentration output analysis property extractor class.
   type, extends(nodePropertyExtractorScalar) :: nodePropertyExtractorConcentration
      !!{
      A concentration property extractor output analysis class. The property extracted is the ''\gls{dmou}'' concentration of
-     the halo with a radius defined by a density contrast as given by the supplied {\normalfont \ttfamily
-     virialDensityContrast} class object. Note that the density contrast is defined here at the time at which the halo
+     the halo with a radius defined by a density contrast as given by the supplied \mono{virialDensityContrast} class object. Note that the density contrast is defined here at the time at which the halo
      presently exists, \emph{not} at the time at which is was last isolated (as is used for standard definition of
      concentration).
      !!}

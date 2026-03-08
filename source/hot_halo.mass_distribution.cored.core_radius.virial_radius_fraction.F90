@@ -26,8 +26,7 @@ Implements a hot halo mass distribution core radius class which sets the core ra
   !![
   <hotHaloMassDistributionCoreRadius name="hotHaloMassDistributionCoreRadiusVirialFraction">
    <description>
-    A hot halo mass distribution core radius class which sets the core radius equal to a fraction {\normalfont \ttfamily
-    [coreRadiusOverVirialRadius]} of the node's virial radius.
+    A hot halo mass distribution core radius class which sets the core radius equal to a fraction \mono{[coreRadiusOverVirialRadius]} of the node's virial radius.
    </description>
   </hotHaloMassDistributionCoreRadius>
   !!]
@@ -55,7 +54,7 @@ contains
 
   function virialFractionConstructorParameters(parameters) result(self)
     !!{
-    A constructor for the {\normalfont \ttfamily virialFraction} hot halo mass distribution core radius class which builds the
+    A constructor for the \mono{virialFraction} hot halo mass distribution core radius class which builds the
     object from a parameter set.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
@@ -84,7 +83,7 @@ contains
 
   function virialFractionConstructorInternal(coreRadiusOverVirialRadius,darkMatterHaloScale_) result(self)
     !!{
-    Default constructor for the {\normalfont \ttfamily virialFraction} hot halo mass distribution core radius class.
+    Default constructor for the \mono{virialFraction} hot halo mass distribution core radius class.
     !!}
     implicit none
     type            (hotHaloMassDistributionCoreRadiusVirialFraction)                        :: self

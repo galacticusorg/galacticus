@@ -21,12 +21,12 @@
 
   !![
   <nodePropertyExtractor name="nodePropertyExtractorKeplerOrbit" abstract="yes">
-   <description>A property extractor class for {\normalfont \ttfamily keplerOrbit} objects.</description>
+   <description>A property extractor class for \mono{keplerOrbit} objects.</description>
   </nodePropertyExtractor>
   !!]
   type, extends(nodePropertyExtractorTuple), abstract :: nodePropertyExtractorKeplerOrbit
      !!{
-     A property extractor for {\normalfont \ttfamily keplerOrbit} objects.
+     A property extractor for \mono{keplerOrbit} objects.
      !!}
      private
      type            (varying_string            ), allocatable, dimension(:) :: properties   , names_, &
@@ -39,7 +39,7 @@
      !![
      <methods>
        <method description="Initialize the properties to be extracted." method="initialize" />
-       <method description="Extract properties from a {\normalfont \ttfamily keplerOrbit} object." method="extractFromOrbit" />
+       <method description="Extract properties from a \mono{keplerOrbit} object." method="extractFromOrbit" />
      </methods>
      !!]
      procedure :: initialize       => keplerOrbitInitialize
@@ -54,7 +54,7 @@ contains
 
   subroutine keplerOrbitInitialize(self,properties,prefix)
     !!{
-    Initializer for the {\normalfont \ttfamily keplerOrbit} output extractor property extractor class.
+    Initializer for the \mono{keplerOrbit} output extractor property extractor class.
     !!}
     use :: Error                           , only : Error_Report
     use :: ISO_Varying_String              , only : trim
@@ -153,7 +153,7 @@ contains
 
   integer function keplerOrbitElementCount(self,time)
     !!{
-    Return the number of elements in the {\normalfont \ttfamily keplerOrbit} property extractors.
+    Return the number of elements in the \mono{keplerOrbit} property extractors.
     !!}
     implicit none
     class           (nodePropertyExtractorKeplerOrbit), intent(inout) :: self
@@ -166,7 +166,7 @@ contains
 
   function keplerOrbitExtractFromOrbit(self,orbit)
     !!{
-    Extract properties from a {\normalfont \ttfamily keplerOrbit} object.
+    Extract properties from a \mono{keplerOrbit} object.
     !!}
     use :: Kepler_Orbits, only : keplerOrbitMassHost      , keplerOrbitSpecificReducedMass, keplerOrbitRadius          , keplerOrbitTheta          , &
          &                       keplerOrbitPhi           , keplerOrbitEpsilon            , keplerOrbitRadiusPericenter, keplerOrbitRadiusApocenter, &
@@ -224,7 +224,7 @@ contains
 
   subroutine keplerOrbitNames(self,time,names)
     !!{
-    Return the names of the {\normalfont \ttfamily keplerOrbit} properties.
+    Return the names of the \mono{keplerOrbit} properties.
     !!}
     implicit none
     class           (nodePropertyExtractorKeplerOrbit), intent(inout)                             :: self
@@ -239,7 +239,7 @@ contains
 
   subroutine keplerOrbitDescriptions(self,time,descriptions)
     !!{
-    Return the descriptions of the {\normalfont \ttfamily virialProperies} properties.
+    Return the descriptions of the \mono{virialProperies} properties.
     !!}
     implicit none
     class           (nodePropertyExtractorKeplerOrbit), intent(inout)                             :: self
@@ -254,7 +254,7 @@ contains
 
   function keplerOrbitUnitsInSI(self,time)
     !!{
-    Return the units of the {\normalfont \ttfamily virialProperies} properties in the SI system.
+    Return the units of the \mono{virialProperies} properties in the SI system.
     !!}
     implicit none
     double precision                                  , dimension(:) , allocatable :: keplerOrbitUnitsInSI

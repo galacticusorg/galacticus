@@ -86,7 +86,7 @@ contains
       <name>velocityDispersionUseSeriesExpansion</name>
       <defaultValue>.true.</defaultValue>
       <source>parameters</source>
-      <description>If {\normalfont \ttfamily true}, radial velocity dispersion is computed using series expansion (but only for the case of $y=0$, i.e. an NFW profile).</description>
+      <description>If \mono{true}, radial velocity dispersion is computed using series expansion (but only for the case of $y=0$, i.e. an NFW profile).</description>
     </inputParameter>
     <objectBuilder class="darkMatterHaloScale" name="darkMatterHaloScale_" source="parameters"/>
     !!]
@@ -147,7 +147,7 @@ contains
 
   function cuspNFWGet(self,node,weightBy,weightIndex) result(massDistribution_)
     !!{
-    Return the dark matter mass distribution for the given {\normalfont \ttfamily node}.
+    Return the dark matter mass distribution for the given \mono{node}.
     !!}
     use :: Galacticus_Nodes          , only : nodeComponentBasic         , nodeComponentDarkMatterProfile
     use :: Galactic_Structure_Options, only : componentTypeDarkHalo      , massTypeDark                  , weightByMass

@@ -147,12 +147,12 @@ contains
     <inputParameter>
       <name>redshiftRange</name>
       <source>parameters</source>
-      <description>The redshift range (``{\normalfont \ttfamily low}'' or ``{\normalfont \ttfamily high}'') for this analysis.</description>
+      <description>The redshift range (``\mono{low}'' or ``\mono{high}'') for this analysis.</description>
     </inputParameter>
     <inputParameter>
       <name>galaxyType</name>
       <source>parameters</source>
-      <description>The galaxy type (``{\normalfont \ttfamily quiescent}'' or ``{\normalfont \ttfamily starForming}'') for this analysis.</description>
+      <description>The galaxy type (``\mono{quiescent}'' or ``\mono{starForming}'') for this analysis.</description>
     </inputParameter>
     <objectBuilder class="cosmologyParameters"                  name="cosmologyParameters_"                  source="parameters"/>
     <objectBuilder class="cosmologyFunctions"                   name="cosmologyFunctions_"                   source="parameters"/>
