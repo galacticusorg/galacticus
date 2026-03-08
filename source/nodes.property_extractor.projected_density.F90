@@ -27,7 +27,7 @@
   <nodePropertyExtractor name="nodePropertyExtractorProjectedDensity">
    <description>
     A property extractor class for the projected density at a set of radii. The radii and types of projected density to output
-    is specified by the {\normalfont \ttfamily radiusSpecifiers} parameter. This parameter's value can contain multiple
+    is specified by the \mono{radiusSpecifiers} parameter. This parameter's value can contain multiple
     entries, each of which should be a valid
     \href{https://github.com/galacticusorg/galacticus/releases/download/bleeding-edge/Galacticus_Physics.pdf\#sec.radiusSpecifiers}{radius
     specifier}.
@@ -163,7 +163,7 @@ contains
 
   integer function projectedDensityElementCount(self,time)
     !!{
-    Return the number of elements in the {\normalfont \ttfamily projectedDensity} property extractors.
+    Return the number of elements in the \mono{projectedDensity} property extractors.
     !!}
     implicit none
     class           (nodePropertyExtractorProjectedDensity), intent(inout) :: self
@@ -176,7 +176,7 @@ contains
 
   function projectedDensitySize(self,time)
     !!{
-    Return the number of array elements in the {\normalfont \ttfamily projectedDensity} property extractors.
+    Return the number of array elements in the \mono{projectedDensity} property extractors.
     !!}
     implicit none
     integer         (c_size_t                             )                :: projectedDensitySize
@@ -190,7 +190,7 @@ contains
 
   function projectedDensityExtract(self,node,time,instance) result(densityProjected)
     !!{
-    Implement a {\normalfont \ttfamily projectedDensity} property extractor.
+    Implement a \mono{projectedDensity} property extractor.
     !!}
     use :: Galactic_Structure_Options          , only : componentTypeAll               , massTypeGalactic            , massTypeStellar
     use :: Galactic_Structure_Radii_Definitions, only : radiusTypeDarkMatterScaleRadius, radiusTypeDiskHalfMassRadius, radiusTypeDiskRadius                      , radiusTypeGalacticLightFraction   , &
@@ -360,7 +360,7 @@ contains
 
   subroutine projectedDensityNames(self,names,time)
     !!{
-    Return the names of the {\normalfont \ttfamily projectedDensity} properties.
+    Return the names of the \mono{projectedDensity} properties.
     !!}
     implicit none
     class           (nodePropertyExtractorProjectedDensity), intent(inout)                             :: self
@@ -377,7 +377,7 @@ contains
 
   subroutine projectedDensityDescriptions(self,descriptions,time)
     !!{
-    Return descriptions of the {\normalfont \ttfamily projectedDensity} property.
+    Return descriptions of the \mono{projectedDensity} property.
     !!}
     implicit none
     class           (nodePropertyExtractorProjectedDensity), intent(inout)                             :: self
@@ -394,7 +394,7 @@ contains
 
   subroutine projectedDensityColumnDescriptions(self,descriptions,values,valuesDescription,valuesUnitsInSI,time)
     !!{
-    Return column descriptions of the {\normalfont \ttfamily projectedDensity} property.
+    Return column descriptions of the \mono{projectedDensity} property.
     !!}
     implicit none
     class           (nodePropertyExtractorProjectedDensity), intent(inout)                            :: self
@@ -415,7 +415,7 @@ contains
 
   function projectedDensityUnitsInSI(self,time)
     !!{
-    Return the units of the {\normalfont \ttfamily projectedDensity} properties in the SI system.
+    Return the units of the \mono{projectedDensity} properties in the SI system.
     !!}
     use :: Numerical_Constants_Astronomical, only : massSolar, megaParsec
     implicit none

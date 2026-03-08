@@ -37,7 +37,7 @@ module Hot_Halo_Ram_Pressure_Stripping_Timescales
    </description>
    <default>ramPressureAcceleration</default>
    <method name="timescale" >
-    <description>Return the ram pressure stripping timescale for {\normalfont \ttfamily node} (in units of Gyr).</description>
+    <description>Return the ram pressure stripping timescale for \mono{node} (in units of Gyr).</description>
     <type>double precision</type>
     <pass>yes</pass>
     <argument>type(treeNode), intent(inout) :: node</argument>

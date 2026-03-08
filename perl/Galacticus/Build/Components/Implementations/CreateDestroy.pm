@@ -39,7 +39,7 @@ sub Implementation_Creation {
     {
 	type        => "void",
 	name        => $code::implementationTypeName."Initialize",
-	description => "Initialize a {\\normalfont \\ttfamily ".$code::member->{'name'}."} member of the {\\normalfont \\ttfamily ".$code::class->{'name'}."} component.",
+	description => "Initialize a \\mono{".$code::member->{'name'}."} member of the \\mono{".$code::class->{'name'}."} component.",
 	variables   =>
 	    [
 	     {
@@ -216,7 +216,7 @@ sub Implementation_Finalization {
     {
 	type        => "void",
 	name        => $code::implementationTypeName."Finalize",
-	description => "Finalize a {\\normalfont \\ttfamily ".$code::member->{'name'}."} implementation of the {\\normalfont \\ttfamily ".$code::class->{'name'}."} component.",
+	description => "Finalize a \\mono{".$code::member->{'name'}."} implementation of the \\mono{".$code::class->{'name'}."} component.",
 	content     => "",
 	variables   =>
 	    [
@@ -290,7 +290,7 @@ sub Implementation_Builder {
     {
 	type        => "void",
 	name        => $code::implementationTypeName."Builder",
-	description => "Build a {\\normalfont \\ttfamily ".$code::member->{'name'}."} implementation of the {\\normalfont \\ttfamily ".$code::class->{'name'}."} component from a supplied XML definition.",
+	description => "Build a \\mono{".$code::member->{'name'}."} implementation of the \\mono{".$code::class->{'name'}."} component from a supplied XML definition.",
 	modules     =>
 	    [
 	     "Error, only : Error_Report",
@@ -523,7 +523,7 @@ sub Implementation_Deferred_Create_Set {
     {
 	type        => "void",
 	name        => $code::class->{'name'}.ucfirst($code::member->{'name'})."CreateFunctionSet",
-	description => "Set the create function for the {\\normalfont \\ttfamily ".$code::member->{'name'}."} implementation of the {\\normalfont \\ttfamily ".$code::class->{'name'}."} component class.",
+	description => "Set the create function for the \\mono{".$code::member->{'name'}."} implementation of the \\mono{".$code::class->{'name'}."} component class.",
 	variables   =>
 	    [
 	     {

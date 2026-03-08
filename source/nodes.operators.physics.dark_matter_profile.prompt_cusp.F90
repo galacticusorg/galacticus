@@ -34,8 +34,7 @@
   <nodeOperator name="nodeOperatorDarkMatterProfilePromptCusps">
    <description>
     A node operator class that evaluates the properties of prompt cusps following the model of \cite{delos_cusp-halo_2025}, with a
-    log-normal scatter of $\mu \exp(-1/\sigma_0)$~dex added to the cusp amplitude, where $\mu=${\normalfont \ttfamily
-    [coefficientScatter]}.
+    log-normal scatter of $\mu \exp(-1/\sigma_0)$~dex added to the cusp amplitude, where $\mu=$\mono{[coefficientScatter]}.
    </description>
   </nodeOperator>
   !!]
@@ -720,8 +719,8 @@ contains
 
   subroutine darkMatterProfilePromptCuspsNodePromote(self,node)
     !!{
-    Ensure that {\normalfont \ttfamily node} is ready for promotion to its parent. In this case, we simply update the scale radius
-    growth rate of {\normalfont \ttfamily node} to be that of its parent.
+    Ensure that \mono{node} is ready for promotion to its parent. In this case, we simply update the scale radius
+    growth rate of \mono{node} to be that of its parent.
     !!}
     use :: Galacticus_Nodes, only : nodeComponentDarkMatterProfile
     implicit none

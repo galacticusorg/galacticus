@@ -25,8 +25,7 @@ Implements a galactic high-pass filter for stellar mass-weighted morphology (i.e
   <galacticFilter name="galacticFilterStellarMassMorphology">
    <description>
    A galactic high-pass filter for stellar mass-weighted morphology (i.e. spheroid-to-total ratio). Galaxies with a
-   spheroid-to-total ratio (by stellar mass) greater than or equal to a fixed threshold, $R_{\star,0}=${\normalfont \ttfamily
-   [spheroidToTotalThreshold]}.
+   spheroid-to-total ratio (by stellar mass) greater than or equal to a fixed threshold, $R_{\star,0}=$\mono{[spheroidToTotalThreshold]}.
    </description>
   </galacticFilter>
   !!]

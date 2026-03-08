@@ -111,7 +111,7 @@ contains
 
   double precision function standardPower(self,wavenumber,time)
     !!{
-    Return the cosmological power spectrum for $k=${\normalfont \ttfamily wavenumber} [Mpc$^{-1}$].
+    Return the cosmological power spectrum for $k=$\mono{wavenumber} [Mpc$^{-1}$].
     !!}
     implicit none
     class           (powerSpectrumStandard), intent(inout) :: self
@@ -125,8 +125,7 @@ contains
 
   double precision function standardPowerLogarithmicDerivative(self,wavenumber,time)
     !!{
-    Return the logarithmic derivative of the power spectrum, $\mathrm{d}\ln P(k)/\mathrm{d}\ln k$, for $k=${\normalfont
-    \ttfamily wavenumber} [Mpc$^{-1}$].
+    Return the logarithmic derivative of the power spectrum, $\mathrm{d}\ln P(k)/\mathrm{d}\ln k$, for $k=$\mono{wavenumber} [Mpc$^{-1}$].
     !!}
     implicit none
     class           (powerSpectrumStandard), intent(inout) :: self
@@ -138,7 +137,7 @@ contains
 
   double precision function standardPowerDimensionless(self,wavenumber,time)
     !!{
-    Return the dimensionless power spectrum, $\Delta^2(k)$, for $k=${\normalfont \ttfamily wavenumber} [Mpc$^{-1}$].
+    Return the dimensionless power spectrum, $\Delta^2(k)$, for $k=$\mono{wavenumber} [Mpc$^{-1}$].
     !!}
     use :: Numerical_Constants_Math, only : Pi
     implicit none

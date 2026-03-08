@@ -26,9 +26,9 @@
   !![
   <posteriorSampleLikelihood name="posteriorSampleLikelihoodMltiVrtNormalStochastic">
    <description>
-    The likelihood is identical to that of the {\normalfont \ttfamily multivariateNormal} class, except that the likelihood function
-    is evaluated stochastically. In addition to the parameter of the {\normalfont \ttfamily multivariateNormal} class, two additional
-    parameters are required and are specified within the {\normalfont \ttfamily likelihood} element using:
+    The likelihood is identical to that of the \mono{multivariateNormal} class, except that the likelihood function
+    is evaluated stochastically. In addition to the parameter of the \mono{multivariateNormal} class, two additional
+    parameters are required and are specified within the \mono{likelihood} element using:
     \begin{verbatim}
       &lt;realizationCount>4000&lt;/realizationCount>
       &lt;realizationCountMinimum>10&lt;/realizationCountMinimum>
@@ -37,11 +37,11 @@
     \begin{equation}
      S^\prime_i = \sum_{j=1}^N {2 U(S_i) \over N},
     \end{equation}
-    where $N=${\normalfont \ttfamily realizationCount} and $U(x)$ is a uniform random deviate in the range $0$ to $x$. This results in
+    where $N=$\mono{realizationCount} and $U(x)$ is a uniform random deviate in the range $0$ to $x$. This results in
     a variance in $S^\prime_i$ of $S_i^2/3N$. This variance is added to the covariance used in evaluating the likelihood. When
     evaluating the likelihood at a higher temperature the number of realizations is reduced (which increases the covariance, which has
     the same effect as increasing the temperature) to speed computation, and the likelihood corrected for this fact. The number of
-    realizations is reduced to $N/T$, but never allowed to fall below {\normalfont \ttfamily realizationCountMinimum}.
+    realizations is reduced to $N/T$, but never allowed to fall below \mono{realizationCountMinimum}.
    </description>
   </posteriorSampleLikelihood>
   !!]

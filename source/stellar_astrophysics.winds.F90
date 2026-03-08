@@ -37,13 +37,13 @@ module Stellar_Astrophysics_Winds
    </description>
    <default>leitherer1992</default>
    <method name="rateMassLoss" >
-    <description>Return the mass loss rate (in $M_\odot$/Gyr) from stars of given {\normalfont \ttfamily initialMass}, {\normalfont \ttfamily age} and {\normalfont \ttfamily metallicity}.</description>
+    <description>Return the mass loss rate (in $M_\odot$/Gyr) from stars of given \mono{initialMass}, \mono{age} and \mono{metallicity}.</description>
     <type>double precision</type>
     <pass>yes</pass>
     <argument>double precision, intent(in   ) :: initialMass, age, metallicity</argument>
    </method>
    <method name="velocityTerminal" >
-    <description>Return the terminal velocity (in km/s) of winds from stars of given {\normalfont \ttfamily initialMass}, {\normalfont \ttfamily age} and {\normalfont \ttfamily metallicity}.</description>
+    <description>Return the terminal velocity (in km/s) of winds from stars of given \mono{initialMass}, \mono{age} and \mono{metallicity}.</description>
     <type>double precision</type>
     <pass>yes</pass>
     <argument>double precision, intent(in   ) :: initialMass, age, metallicity</argument>

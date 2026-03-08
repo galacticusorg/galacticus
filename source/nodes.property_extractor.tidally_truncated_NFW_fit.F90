@@ -131,7 +131,7 @@ contains
 
   integer function tidallyTruncatedNFWFitElementCount(self,time)
     !!{
-    Return the number of elements in the {\normalfont \ttfamily tidallyTruncatedNFWFit} property extractors.
+    Return the number of elements in the \mono{tidallyTruncatedNFWFit} property extractors.
     !!}
     implicit none
     class           (nodePropertyExtractorTidallyTruncatedNFWFit), intent(inout) :: self

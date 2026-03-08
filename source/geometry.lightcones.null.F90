@@ -75,7 +75,7 @@ contains
 
   function nullReplicationCount(self,node)
     !!{
-    Determine the number of times {\normalfont \ttfamily node} appears in the lightcone.
+    Determine the number of times \mono{node} appears in the lightcone.
     !!}
     implicit none
     integer(c_size_t             )                :: nullReplicationCount
@@ -113,7 +113,7 @@ contains
 
   logical function nullIsInLightcone(self,node,atPresentEpoch,radiusBuffer)
     !!{
-    Determine if the given {\normalfont \ttfamily node} lies within the lightcone
+    Determine if the given \mono{node} lies within the lightcone
     !!}
     implicit none
     class           (geometryLightconeNull), intent(inout)            :: self

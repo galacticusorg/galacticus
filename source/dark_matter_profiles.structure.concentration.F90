@@ -40,26 +40,26 @@ module Dark_Matter_Profiles_Concentration
    </description>
    <default>gao2008</default>
    <method name="concentration" >
-    <description>Returns the concentration parameter for the given {\normalfont \ttfamily node}.</description>
+    <description>Returns the concentration parameter for the given \mono{node}.</description>
     <type>double precision</type>
     <pass>yes</pass>
     <selfTarget>yes</selfTarget>
     <argument>type(treeNode), intent(inout), target :: node</argument>
    </method>
    <method name="concentrationMean" >
-    <description>Returns the mean concentration parameter for a {\normalfont \ttfamily node} of the given mass.</description>
+    <description>Returns the mean concentration parameter for a \mono{node} of the given mass.</description>
     <type>double precision</type>
     <pass>yes</pass>
     <argument>type(treeNode), intent(inout), target :: node</argument>
     <code>darkMatterProfileConcentrationConcentrationMean=self%concentration(node)</code>
    </method>
    <method name="densityContrastDefinition" >
-    <description>Returns a {\normalfont \ttfamily virialDensityContrast} object describing the virial density contrast used to define this concentration.</description>
+    <description>Returns a \mono{virialDensityContrast} object describing the virial density contrast used to define this concentration.</description>
     <type>class(virialDensityContrastClass)</type>
     <pass>yes</pass>
    </method>
    <method name="darkMatterProfileDMODefinition" >
-    <description>Returns a {\normalfont \ttfamily darkMatterProfileDMO} object describing the dark matter density profile used to define this concentration.</description>
+    <description>Returns a \mono{darkMatterProfileDMO} object describing the dark matter density profile used to define this concentration.</description>
     <type>class(darkMatterProfileDMOClass)</type>
     <pass>yes</pass>
    </method>

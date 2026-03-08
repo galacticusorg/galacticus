@@ -120,9 +120,9 @@ delete($libraries{'git2'})
 # Perform a topological sort on libraries to ensure they are in the correct order for static linking.
 my @libraryNames = sort(keys(%libraries));
 my @sortedLibraries = &Sort::Topo::sort(\@libraryNames,\%staticLinkDependencies);
-# For static linking qhull libraries must be renamed.
+# For static linking (or on MacOS) qhull libraries must be renamed.
 @sortedLibraries = map {$_ eq "qhull_r" ? "qhullstatic_r" : $_} @sortedLibraries
-    if ( $isStatic );
+    if ( $isStatic || $isMacOS );
 # Add static link options.
 my $staticOptions = ( $isStatic && ! $pthreadIncluded ) ? " -Wl,--whole-archive -lpthread -Wl,--no-whole-archive" : "";
 # Add OS specific options.

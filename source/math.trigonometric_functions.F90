@@ -56,7 +56,7 @@ contains
   
   double precision function cotDouble(x)
     !!{
-    Implements cotangent for double precision {\normalfont \ttfamily x}.
+    Implements cotangent for double precision \mono{x}.
     !!}
     implicit none
     double precision, intent(in   ) :: x
@@ -67,7 +67,7 @@ contains
 
   double complex function cotDoubleComplex(x)
     !!{
-    Implements cotangent for double precision complex {\normalfont \ttfamily x}.
+    Implements cotangent for double precision complex \mono{x}.
     !!}
     implicit none
     double complex, intent(in   ) :: x
@@ -78,7 +78,7 @@ contains
 
   double precision function cosecDouble(x)
     !!{
-    Implements cosecant for double precision {\normalfont \ttfamily x}.
+    Implements cosecant for double precision \mono{x}.
     !!}
     implicit none
     double precision, intent(in   ) :: x
@@ -89,7 +89,7 @@ contains
 
   double complex function cosecDoubleComplex(x)
     !!{
-    Implements cosecant for double precision complex {\normalfont \ttfamily x}.
+    Implements cosecant for double precision complex \mono{x}.
     !!}
     implicit none
     double complex, intent(in   ) :: x

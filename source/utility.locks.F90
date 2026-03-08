@@ -105,8 +105,8 @@ module Locks
      <methods>
        <method description="Obtain a read (non-blocking) lock on the object." method="setRead" />
        <method description="Release a read (non-blocking) lock on the object." method="unsetRead" />
-       <method description="Obtain a write (blocking) lock on the object. The lock will block until all other read/write locks on the object are released and while held will prevent any read locks from being obtained. If the thread requesting the write lock already has a read lock it should set {\normalfont \ttfamily haveReadLock=.true.} when calling this function." method="setWrite" />
-       <method description="Release a write (blocking) lock on the object. If the thread releasing the write lock already had a read lock it should set {\normalfont \ttfamily haveReadLock=.true.} when calling this function to ensure that read locked is retained." method="unsetWrite" />
+       <method description="Obtain a write (blocking) lock on the object. The lock will block until all other read/write locks on the object are released and while held will prevent any read locks from being obtained. If the thread requesting the write lock already has a read lock it should set \mono{haveReadLock=.true.} when calling this function." method="setWrite" />
+       <method description="Release a write (blocking) lock on the object. If the thread releasing the write lock already had a read lock it should set \mono{haveReadLock=.true.} when calling this function to ensure that read locked is retained." method="unsetWrite" />
        <method description="(Re)initialize an OpenMP read/write lock object" method="initialize" />
        <method description="Return true if the current thread owns this lock." method="owned" />
        <method description="Assign the lock." method="assignment(=)"/>
@@ -166,7 +166,7 @@ module Locks
   interface
      function mutex_init(mutex,recursive) bind(c,name='mutex_init')
        !!{
-       Interface to the {\normalfont \ttfamily mutex\_init} function.
+       Interface to the \mono{mutex\_init} function.
        !!}
        import c_int, c_ptr
        integer(c_int)        :: mutex_init
@@ -176,7 +176,7 @@ module Locks
      
      function mutex_destroy(mutex) bind(c,name='mutex_destroy')
        !!{
-       Interface to the {\normalfont \ttfamily mutex\_destroy} function.
+       Interface to the \mono{mutex\_destroy} function.
        !!}
        import c_int, c_ptr
        integer(c_int)        :: mutex_destroy
@@ -185,7 +185,7 @@ module Locks
     
      function mutex_loc(mutex) bind(c,name='mutex_loc')
        !!{
-       Interface to the {\normalfont \ttfamily mutex\_loc} function.
+       Interface to the \mono{mutex\_loc} function.
        !!}
        import c_int, c_ptr
        integer(c_int)        :: mutex_loc
@@ -194,7 +194,7 @@ module Locks
     
      function pthread_mutex_lock(mutex) bind(c,name='pthread_mutex_lock')
        !!{
-       Interface to the {\normalfont \ttfamily pthread\_mutex\_lock} function.
+       Interface to the \mono{pthread\_mutex\_lock} function.
        !!}
        import c_int, c_ptr
        integer(c_int)        :: pthread_mutex_lock
@@ -203,7 +203,7 @@ module Locks
 
      function pthread_mutex_unlock(mutex) bind(c,name='pthread_mutex_unlock')
        !!{
-       Interface to the {\normalfont \ttfamily pthread\_mutex\_unlock} function.
+       Interface to the \mono{pthread\_mutex\_unlock} function.
        !!}
        import c_int, c_ptr
        integer(c_int)        :: pthread_mutex_unlock
@@ -213,7 +213,7 @@ module Locks
 
   type :: mutex
      !!{
-     Type implementing {\normalfont \ttfamily pthread} mutexes.
+     Type implementing \mono{pthread} mutexes.
      !!}
      type   (c_ptr), pointer :: mutex          => null()
      integer       , pointer :: referenceCount => null()
@@ -395,7 +395,7 @@ contains
 
   subroutine ompLockAssign(to,from)
     !!{
-    Assignment operator for the {\normalfont \ttfamily ompLock} class.
+    Assignment operator for the \mono{ompLock} class.
     !!}
     implicit none
     class(ompLock), intent(  out) :: to
@@ -458,7 +458,7 @@ contains
 
   subroutine ompReadWriteLockAssign(to,from)
     !!{
-    Assignment operator for the {\normalfont \ttfamily ompReadWriteLock} class.
+    Assignment operator for the \mono{ompReadWriteLock} class.
     !!}
     implicit none
     class(ompReadWriteLock), intent(  out) :: to
@@ -616,7 +616,7 @@ contains
 
   subroutine ompIncrementalLockAssign(to,from)
     !!{
-    Assignment operator for the {\normalfont \ttfamily ompIncrementalLock} class.
+    Assignment operator for the \mono{ompIncrementalLock} class.
     !!}
     implicit none
     class(ompIncrementalLock), intent(  out) :: to

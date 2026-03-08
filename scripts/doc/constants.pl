@@ -78,9 +78,9 @@ foreach my $groupName ( sort(keys(%{$groups})) ) {
 	(my $module   = $constant->{'module'}) =~ s/_/\\_/g;
 	(my $fileName = $constant->{'fileName'}) =~ s/\./_/g;
 	my $moduleURL = "https://github.com/galacticusorg/galacticus/releases/download/masterRelease/Galacticus_Source.pdf\\#source.".$fileName.":".lc($constant->{'module'});
-	print $output "\\noindent {\\normalfont \\ttfamily ".$variable." = ".$value."}".$units."\\\\\n";
+	print $output "\\noindent \\mono{".$variable." = ".$value."}".$units."\\\\\n";
 	print $output "\\indent ".$symbol.$constant->{'description'}.$external."\\\\\n";
-	print $output "\\indent Module: \\href{".$moduleURL."}{\\normalfont \\ttfamily ".$module."}\\\\\n";
+	print $output "\\indent Module: \\href{".$moduleURL."}\\mono{".$module."}\\\\\n";
 	print $output "\\indent Reference: ".$reference."\n\n\\medskip\n";
     }
 }

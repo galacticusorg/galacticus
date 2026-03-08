@@ -191,7 +191,7 @@ contains
 
   double precision function hernquistDensity(self,coordinates)
     !!{
-    Return the density at the specified {\normalfont \ttfamily coordinates} in a Hernquist mass distribution.
+    Return the density at the specified \mono{coordinates} in a Hernquist mass distribution.
     !!}
     implicit none
     class           (massDistributionHernquist), intent(inout) :: self
@@ -281,7 +281,7 @@ contains
 
   double precision function hernquistMassEnclosedBySphere(self,radius)
     !!{
-    Computes the mass enclosed within a sphere of given {\normalfont \ttfamily radius} for Hernquist mass distributions.
+    Computes the mass enclosed within a sphere of given \mono{radius} for Hernquist mass distributions.
     !!}
     use :: Numerical_Constants_Math, only : Pi
     implicit none
@@ -302,7 +302,7 @@ contains
 
   double precision function hernquistMassEnclosedByCylinder(self,radius) result(mass)
     !!{
-    Computes the mass enclosed within a cylinder of given {\normalfont \ttfamily radius} for Hernquist mass distributions.
+    Computes the mass enclosed within a cylinder of given \mono{radius} for Hernquist mass distributions.
     !!}
     implicit none
     class           (massDistributionHernquist), intent(inout), target :: self
@@ -361,7 +361,7 @@ contains
 
   double precision function hernquistPotential(self,coordinates,status)
     !!{
-    Return the potential at the specified {\normalfont \ttfamily coordinates} in a Hernquist mass distribution.
+    Return the potential at the specified \mono{coordinates} in a Hernquist mass distribution.
     !!}
     use :: Coordinates                     , only : assignment(=)                 , coordinateSpherical
     use :: Galactic_Structure_Options      , only : structureErrorCodeSuccess

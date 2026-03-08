@@ -493,8 +493,7 @@ contains
 
   double precision function cllsnlssMttCsmlgclCnstntPerturbationCollapseRoot(epsilonPerturbation)
     !!{
-    Root function used to determine when the collapse time for a perturbation of amplitude {\normalfont \ttfamily
-    epsilonPerturbation} collapses at the current time.
+    Root function used to determine when the collapse time for a perturbation of amplitude \mono{epsilonPerturbation} collapses at the current time.
     !!}
     implicit none
     double precision, intent(in   ) :: epsilonPerturbation
@@ -506,7 +505,7 @@ contains
 
   double precision function cllsnlssMttCsmlgclCnstntRadiusPerturbationMaximum(epsilonPerturbation)
     !!{
-    Find the maximum radius of a perturbation with initial curvature {\normalfont \ttfamily epsilonPerturbation}.
+    Find the maximum radius of a perturbation with initial curvature \mono{epsilonPerturbation}.
     !!}
     use :: Root_Finder, only : rootFinder
     implicit none

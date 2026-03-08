@@ -48,7 +48,7 @@ contains
 
   function zeroConstructorParameters(parameters) result(self)
     !!{
-    A constructor for the {\normalfont \ttfamily zero} satellite merging timescale class which builds the object from a
+    A constructor for the \mono{zero} satellite merging timescale class which builds the object from a
     parameter set.
     !!}
     use :: Input_Parameters, only : inputParameters

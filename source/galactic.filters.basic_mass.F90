@@ -25,7 +25,7 @@ Implements a galactic high-pass filter for the default ``basic'' halo mass.
   <galacticFilter name="galacticFilterBasicMass">
    <description>
    A high-pass filter for basic mass. Halos with a basic mass mass greater than or equal to a fixed threshold,
-   $M_0=${\normalfont \ttfamily [massThreshold]}.
+   $M_0=$\mono{[massThreshold]}.
    </description>
   </galacticFilter>
   !!]

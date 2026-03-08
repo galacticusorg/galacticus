@@ -39,7 +39,7 @@ module Satellite_Tidal_Stripping
    </description>
    <default>zentner2005</default>
    <method name="massLossRate" >
-    <description>Returns the rate of tidal mass loss for {\normalfont \ttfamily node} (in units of $M_\odot$/Gyr).</description>
+    <description>Returns the rate of tidal mass loss for \mono{node} (in units of $M_\odot$/Gyr).</description>
     <type>double precision</type>
     <pass>yes</pass>
     <argument>type(treeNode), intent(inout) :: node</argument>

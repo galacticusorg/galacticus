@@ -40,7 +40,7 @@ module Root_Finder
   !![
   <enumeration>
    <name>rangeExpand</name>
-   <description>Used to specify the way in which the bracketing range should be expanded when searching for roots using a {\normalfont \ttfamily rootFinder} object.</description>
+   <description>Used to specify the way in which the bracketing range should be expanded when searching for roots using a \mono{rootFinder} object.</description>
    <visibility>public</visibility>
    <entry label="null"           />
    <entry label="additive"       />
@@ -52,7 +52,7 @@ module Root_Finder
   !![
   <enumeration>
    <name>rangeExpandSignExpect</name>
-   <description>Used to specify the expected sign of the root function when searching for roots using a {\normalfont \ttfamily rootFinder} object.</description>
+   <description>Used to specify the expected sign of the root function when searching for roots using a \mono{rootFinder} object.</description>
    <entry label="negative" />
    <entry label="none"     />
    <entry label="positive" />
@@ -63,7 +63,7 @@ module Root_Finder
   !![
   <enumeration>
    <name>stoppingCriterion</name>
-   <description>Used to specify the stopping criterion to use when searching for roots using a {\normalfont \ttfamily rootFinder} object.</description>
+   <description>Used to specify the stopping criterion to use when searching for roots using a \mono{rootFinder} object.</description>
    <visibility>public</visibility>
    <entry label="delta"    />
    <entry label="interval" />
@@ -138,16 +138,16 @@ module Root_Finder
    contains
      !![
      <methods>
-       <method description="Set the function that evaluates $f(x)$ to use in a {\normalfont \ttfamily rootFinder} object."                                          method="rootFunction"          />
-       <method description="Set the functions that evaluate $f(x)$ and derivatives to use in a {\normalfont \ttfamily rootFinder} object."                          method="rootFunctionDerivative"/>
-       <method description="Set the type of algorithm to use in a {\normalfont \ttfamily rootFinder} object."                                                       method="type"                  />
-       <method description="Set the tolerance to use in a {\normalfont \ttfamily rootFinder} object."                                                               method="tolerance"             />
-       <method description="Specify how the initial range will be expanded in a {\normalfont \ttfamily rootFinder} object to bracket the root."                     method="rangeExpand"           />
+       <method description="Set the function that evaluates $f(x)$ to use in a \mono{rootFinder} object."                                          method="rootFunction"          />
+       <method description="Set the functions that evaluate $f(x)$ and derivatives to use in a \mono{rootFinder} object."                          method="rootFunctionDerivative"/>
+       <method description="Set the type of algorithm to use in a \mono{rootFinder} object."                                                       method="type"                  />
+       <method description="Set the tolerance to use in a \mono{rootFinder} object."                                                               method="tolerance"             />
+       <method description="Specify how the initial range will be expanded in a \mono{rootFinder} object to bracket the root."                     method="rangeExpand"           />
        <method description="Wrapper function to find the root of the function given an initial guess or range."                                                     method="find"                  />
        <method description="Wrapper function to find the root of the function given an initial guess or range plus the function value at the low end of the range." method="findWithFLower"        />
        <method description="Wrapper function to find the root of the function given an initial guess or range plus the function value at the low end of the range." method="findWithFUpper"        />
        <method description="Find the root of the function given an initial guess or range."                                                                         method="find_"                 />
-       <method description="Return the initialization state of a {\normalfont \ttfamily rootFinder} object."                                                        method="isInitialized"         />
+       <method description="Return the initialization state of a \mono{rootFinder} object."                                                        method="isInitialized"         />
        <method description="Return true if the solver type is valid."                                                                                               method="solverTypeIsValid"     />
      </methods>
      !!]
@@ -330,7 +330,7 @@ module Root_Finder
 
      function gsl_fsolver_type_get(i) bind(c,name='gsl_fsolver_type_get')
        !!{
-       Template for GSL interface {\normalfont \ttfamily fsolver} type function.
+       Template for GSL interface \mono{fsolver} type function.
        !!}
        import c_ptr, c_int
        type   (c_ptr)                       :: gsl_fsolver_type_get
@@ -339,7 +339,7 @@ module Root_Finder
 
      function gsl_fdfsolver_type_get(i) bind(c,name='gsl_fdfsolver_type_get')
        !!{
-       Template for GSL interface {\normalfont \ttfamily fdfsolver} type function.
+       Template for GSL interface \mono{fdfsolver} type function.
        !!}
        import c_ptr, c_int
        type   (c_ptr)                       :: gsl_fdfsolver_type_get
@@ -424,7 +424,7 @@ contains
 
   subroutine gslFunctionWrapperDestructor(self)
     !!{
-    Destroy a {\normalfont \ttfamily gslFunctionWrapper} object.
+    Destroy a \mono{gslFunctionWrapper} object.
     !!}
     use :: Interface_GSL, only : gslFunctionDestroy
     implicit none
@@ -436,7 +436,7 @@ contains
 
   subroutine gslSolverWrapperDestructor(self)
     !!{
-    Destroy a {\normalfont \ttfamily gslSolverWrapper} object.
+    Destroy a \mono{gslSolverWrapper} object.
     !!}
     implicit none
     type(gslSolverWrapper), intent(inout) :: self
@@ -451,7 +451,7 @@ contains
 
   logical function rootFinderIsInitialized(self)
     !!{
-    Return whether a {\normalfont \ttfamily rootFinder} object is initialized.
+    Return whether a \mono{rootFinder} object is initialized.
     !!}
     implicit none
     class(rootFinder), intent(in   ) :: self
@@ -570,7 +570,7 @@ contains
 
   recursive double precision function rootFinderFind(self,rootRange,rootRangeValues,report,status)
     !!{
-    Finds the root of the supplied {\normalfont \ttfamily root} function.
+    Finds the root of the supplied \mono{root} function.
     !!}
     use, intrinsic :: ISO_C_Binding     , only : c_funptr
     use            :: Display           , only : displayMessage            , verbosityLevelWarn   , displayIndent     , displayUnindent
@@ -1093,7 +1093,7 @@ contains
 
   subroutine rootFinderRootFunction(self,rootFunction)
     !!{
-    Sets the function to use in a {\normalfont \ttfamily rootFinder} object.
+    Sets the function to use in a \mono{rootFinder} object.
     !!}
     implicit none
     class    (rootFinder          ), intent(inout) :: self
@@ -1110,7 +1110,7 @@ contains
 
   subroutine rootFinderRootFunctionDerivative(self,rootFunction,rootFunctionDerivative,rootFunctionBoth)
     !!{
-    Sets the function to use in a {\normalfont \ttfamily rootFinder} object.
+    Sets the function to use in a \mono{rootFinder} object.
     !!}
     implicit none
     class    (rootFinder                    ), intent(inout) :: self
@@ -1131,7 +1131,7 @@ contains
 
   subroutine rootFinderType(self,solverType)
     !!{
-    Sets the type to use in a {\normalfont \ttfamily rootFinder} object.
+    Sets the type to use in a \mono{rootFinder} object.
     !!}
     use :: Error, only : Error_Report
     implicit none
@@ -1155,7 +1155,7 @@ contains
 
   subroutine rootFinderTolerance(self,toleranceAbsolute,toleranceRelative)
     !!{
-    Sets the tolerances to use in a {\normalfont \ttfamily rootFinder} object.
+    Sets the tolerances to use in a \mono{rootFinder} object.
     !!}
     implicit none
     class           (rootFinder), intent(inout)           :: self
@@ -1168,7 +1168,7 @@ contains
 
   subroutine rootFinderRangeExpand(self,rangeExpandUpward,rangeExpandDownward,rangeExpandType,rangeUpwardLimit,rangeDownwardLimit,rangeExpandDownwardSignExpect,rangeExpandUpwardSignExpect,testLimits)
     !!{
-    Sets the rules for range expansion to use in a {\normalfont \ttfamily rootFinder} object.
+    Sets the rules for range expansion to use in a \mono{rootFinder} object.
     !!}
     implicit none
     class           (rootFinder                          ), intent(inout)           :: self
@@ -1227,7 +1227,7 @@ contains
   
   logical function rootFinderSolverTypeIsValid(self)
     !!{
-    Sets the tolerances to use in a {\normalfont \ttfamily rootFinder} object.
+    Sets the tolerances to use in a \mono{rootFinder} object.
     !!}
     implicit none
     class(rootFinder), intent(inout) :: self
@@ -1252,7 +1252,7 @@ contains
 
   recursive function rootFunctionWrapper(x) bind(c)
     !!{
-    Wrapper function callable by {\normalfont \ttfamily GSL} used in root finding.
+    Wrapper function callable by \mono{GSL} used in root finding.
     !!}
     implicit none
     real(c_double), intent(in   ), value :: x
@@ -1274,7 +1274,7 @@ contains
 
   recursive function rootFunctionDerivativeWrapper(x) bind(c)
     !!{
-    Wrapper function callable by {\normalfont \ttfamily GSL} used in root finding.
+    Wrapper function callable by \mono{GSL} used in root finding.
     !!}
     implicit none
     real(c_double)                       :: rootFunctionDerivativeWrapper
@@ -1286,7 +1286,7 @@ contains
 
   recursive subroutine rootFunctionBothWrapper(x,parameters,f,df) bind(c)
     !!{
-    Wrapper function callable by {\normalfont \ttfamily GSL} used in root finding.
+    Wrapper function callable by \mono{GSL} used in root finding.
     !!}
     implicit none
     real(c_double), intent(in   ), value :: x

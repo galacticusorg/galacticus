@@ -52,7 +52,7 @@ module Regular_Expressions
    contains
      !![
      <methods>
-       <method method="matches" description="Return true if a regular expression matches the supplied {\normalfont \ttfamily string}."/>
+       <method method="matches" description="Return true if a regular expression matches the supplied \mono{string}."/>
      </methods>
      !!]
      procedure :: matches => Regular_Expression_Match
@@ -102,7 +102,7 @@ contains
 
   function Regular_Expression_Constructor(regularExpression) result(self)
     !!{
-    Constructor for {\normalfont \ttfamily regEx} objects.
+    Constructor for \mono{regEx} objects.
     !!}
     implicit none
     type     (regEx)                :: self
@@ -125,7 +125,7 @@ contains
 
   subroutine regExWrapperDestructor(self)
     !!{
-    Destroy a {\normalfont \ttfamily regExWrapper} object.
+    Destroy a \mono{regExWrapper} object.
     !!}
     implicit none
     type(regExWrapper), intent(inout) :: self
@@ -136,7 +136,7 @@ contains
 
   logical function Regular_Expression_Match(self,string)
     !!{
-    Returns true if a {\normalfont \ttfamily regEx} object matches the supplied {\normalfont \ttfamily string}.
+    Returns true if a \mono{regEx} object matches the supplied \mono{string}.
     !!}
     implicit none
     class    (regEx)                :: self

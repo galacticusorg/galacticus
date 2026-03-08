@@ -39,7 +39,7 @@
    <description>
     A dark matter profile class which applies adiabatic contraction to the halo as it responds to the presence of
     baryons. Adiabatic contraction follows the algorithm of \cite{gnedin_response_2004}. The parameters $A$ and $\omega$ of
-    that model are specified via input parameters {\normalfont \ttfamily A} and {\normalfont \ttfamily omega} respectively.
+    that model are specified via input parameters \mono{A} and \mono{omega} respectively.
   
     Given the final radius, $r_\mathrm{f}$, the corresponding initial radius, $r_\mathrm{i}$, is found by solving:
     \begin{equation}
@@ -57,7 +57,7 @@
     {\bar{r} \over r_0} = A \left({r \over r_0}\right)^\omega,
     \label{eq:adiabaticContractionGnedinPowerLaw}
     \end{equation}    
-    where the pivot radius $r_0$ is set to $f_0 r_\mathrm{vir}$ where $f_0=${\normalfont \ttfamily [radiusFractionalPivot]}, and
+    where the pivot radius $r_0$ is set to $f_0 r_\mathrm{vir}$ where $f_0=$\mono{[radiusFractionalPivot]}, and
     $r_\mathrm{vir}$ is the virial radius. The original \cite{gnedin_response_2004} assumed $f_0=1$, but the revised model of
     \cite{gnedin_halo_2011} found that $f_0=0.03$ lead to an improved model (less scatter in the best fit values of $(A,\omega)$
     when comparing to N-body simulations).
@@ -235,7 +235,7 @@ contains
       <name>nonAnalyticSolver</name>
       <defaultValue>var_str('fallThrough')</defaultValue>
       <source>parameters</source>
-      <description>Selects how solutions are computed when no analytic solution is available. If set to ``{\normalfont \ttfamily fallThrough}'' then the solution ignoring heating is used, while if set to ``{\normalfont \ttfamily numerical}'' then numerical solvers are used to find solutions.</description>
+      <description>Selects how solutions are computed when no analytic solution is available. If set to ``\mono{fallThrough}'' then the solution ignoring heating is used, while if set to ``\mono{numerical}'' then numerical solvers are used to find solutions.</description>
     </inputParameter>
     <inputParameter>
       <name>componentType</name>
@@ -344,7 +344,7 @@ contains
   
   double precision function sphericalAdiabaticGnedin2004Density(self,coordinates) result(density)
     !!{
-    Return the density at the specified {\normalfont \ttfamily coordinates} in an adiabatically-contracted spherical mass distribution.
+    Return the density at the specified \mono{coordinates} in an adiabatically-contracted spherical mass distribution.
     !!}
     use :: Coordinates, only : coordinateSpherical, assignment(=)
     implicit none
@@ -375,7 +375,7 @@ contains
 
   double precision function sphericalAdiabaticGnedin2004MassEnclosedBySphere(self,radius) result(mass)
     !!{
-    Computes the mass enclosed within a sphere of given {\normalfont \ttfamily radius} for adiabatically-contracted mass distributions.
+    Computes the mass enclosed within a sphere of given \mono{radius} for adiabatically-contracted mass distributions.
     !!}
     implicit none
     class           (massDistributionSphericalAdiabaticGnedin2004), intent(inout), target :: self
@@ -632,7 +632,7 @@ contains
 
   double precision function sphericalAdiabaticGnedin2004RadiusOrbitalMean(self,radius)
     !!{
-    Returns the orbit averaged radius for dark matter corresponding the given {\normalfont \ttfamily radius} using the model of
+    Returns the orbit averaged radius for dark matter corresponding the given \mono{radius} using the model of
     \cite{gnedin_response_2004}.
     !!}
     implicit none
@@ -658,7 +658,7 @@ contains
 
   double precision function sphericalAdiabaticGnedin2004RadiusOrbitalMeanDerivative(self,radius)
     !!{
-    Returns the derivative of the orbit averaged radius for dark matter corresponding the given {\normalfont \ttfamily radius} using the model of
+    Returns the derivative of the orbit averaged radius for dark matter corresponding the given \mono{radius} using the model of
     \cite{gnedin_response_2004}.
     !!}
     implicit none

@@ -50,9 +50,8 @@ Implements an emission line luminosity node property extractor class.
   !![
   <nodePropertyExtractor name="nodePropertyExtractorLmnstyEmssnLinePanuzzo2003">
     <description>
-      An emission line luminosity property extractor class. The luminosity of the named emission line (given by the {\normalfont
-      \ttfamily lineNames} parameter: if multiple lines are named, the sum of their luminosities) is computed. Additional dust
-      attenuation for emission line luminosities can be specified via the {\normalfont \ttfamily depthOpticalISMCoefficient}
+      An emission line luminosity property extractor class. The luminosity of the named emission line (given by the \mono{lineNames} parameter: if multiple lines are named, the sum of their luminosities) is computed. Additional dust
+      attenuation for emission line luminosities can be specified via the \mono{depthOpticalISMCoefficient}
       parameter.
     </description>
   </nodePropertyExtractor>

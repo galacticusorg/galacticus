@@ -31,15 +31,14 @@
     \begin{equation}
     \Delta_\mathrm{iso} = {3 \over 2 \pi b^3},
     \end{equation}
-    where $b=${\normalfont \ttfamily [virialDensityContrastFoFLinkingLength]} is the dimensionless linking length of the
+    where $b=$\mono{[virialDensityContrastFoFLinkingLength]} is the dimensionless linking length of the
     algorithm (i.e. the linking length in units of the mean interparticle spacing). The virial density contrast is then given
     by:
     \begin{equation}
     \Delta_\mathrm{vir} = {\bar{\rho}_\mathrm{vir} \over \rho(r_\mathrm{vir})} \Delta_\mathrm{iso},
     \end{equation}
     where $\bar{\rho}_\mathrm{vir}$ is the mean density inside the virial radius and $\rho(r_\mathrm{vir})$ is the density at
-    the virial radius. The ratio $\bar{\rho}_\mathrm{vir} / \rho(r_\mathrm{vir})$ is specified via the parameter {\normalfont
-    \ttfamily [virialDensityContrastFoFDensityRatio]}. Its default value of $4.688$ is appropriate for an \gls{nfw} halo of
+    the virial radius. The ratio $\bar{\rho}_\mathrm{vir} / \rho(r_\mathrm{vir})$ is specified via the parameter \mono{[virialDensityContrastFoFDensityRatio]}. Its default value of $4.688$ is appropriate for an \gls{nfw} halo of
     concentration $c=6.88$ which is the concentration found by \cite{prada_halo_2011} for halos with $\sigma=1.686$ which is
     the approximate critical overdensity for collapse).
    </description>
@@ -68,7 +67,7 @@ contains
 
   function friendsOfFriendsConstructorParameters(parameters) result(self)
     !!{
-    Default constructor for the {\normalfont \ttfamily friendsOfFriends} dark matter halo virial density contrast class.
+    Default constructor for the \mono{friendsOfFriends} dark matter halo virial density contrast class.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none

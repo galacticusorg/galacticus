@@ -47,9 +47,7 @@ Implements a transfer function class based on the thermal \gls{wdm} modifier of 
     \begin{equation}
     T(k) \rightarrow T(k) (1+[\epsilon k R_\mathrm{c}^0]^{2\nu})^{-\eta/\nu},
     \end{equation}
-    where $\epsilon=${\normalfont \ttfamily [epsilon]}, $\eta=${\normalfont \ttfamily [eta]}, $\nu=${\normalfont \ttfamily
-    [nu]}. The cut-off scale is computed from the dark matter particle (which must be of the {\normalfont \ttfamily
-    darkMatterParticleWDMThermal} class) properties.
+    where $\epsilon=$\mono{[epsilon]}, $\eta=$\mono{[eta]}, $\nu=$\mono{[nu]}. The cut-off scale is computed from the dark matter particle (which must be of the \mono{darkMatterParticleWDMThermal} class) properties.
    </description>
   </transferFunction>
   !!]
@@ -118,7 +116,7 @@ contains
       <name>scaleCutOffModel</name>
       <source>parameters</source>
       <defaultValue>var_str('barkana2001')</defaultValue>
-      <description>The model to use to compute the cut-off scale, either ``{\normalfont \ttfamily bode2001}'' to use the fitting function given by equation~A9 of \cite{bode_halo_2001}, ``{\normalfont \ttfamily barkana2001}'' to use the fitting function given by equation~(4) of \cite{barkana_constraints_2001}, ``{\normalfont \ttfamily viel05}'' to use the fitting function given by equation~(7) of \cite{viel_constraining_2005}, or ``{\normalfont \ttfamily vogel23spinHalf}'' or ``{\normalfont \ttfamily vogel23spinThreeHalves}'' to use the fitting function given by equation~(9) of \cite{vogel_entering_2023} for spin-1/2 or spin-3/2 particles respectively.</description>
+      <description>The model to use to compute the cut-off scale, either ``\mono{bode2001}'' to use the fitting function given by equation~A9 of \cite{bode_halo_2001}, ``\mono{barkana2001}'' to use the fitting function given by equation~(4) of \cite{barkana_constraints_2001}, ``\mono{viel05}'' to use the fitting function given by equation~(7) of \cite{viel_constraining_2005}, or ``\mono{vogel23spinHalf}'' or ``\mono{vogel23spinThreeHalves}'' to use the fitting function given by equation~(9) of \cite{vogel_entering_2023} for spin-1/2 or spin-3/2 particles respectively.</description>
     </inputParameter>
     <inputParameter>
       <name>epsilon</name>
@@ -433,7 +431,7 @@ contains
 
   double precision function bode2001FractionModeMass(self,fraction,status)
     !!{
-    Compute the mass corresponding to the wavenumber at which the transfer function is reduced by {\normalfont \ttfamily fraction} relative
+    Compute the mass corresponding to the wavenumber at which the transfer function is reduced by \mono{fraction} relative
     to a \gls{cdm} transfer function.
     !!}
     use :: Error                   , only : errorStatusSuccess

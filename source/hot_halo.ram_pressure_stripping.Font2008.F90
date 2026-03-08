@@ -38,8 +38,7 @@
     \end{equation}
     where $M_\mathrm{satellite}(r)$ is the total mass of the satellite within radius $r$, $\mathcal{F}_\mathrm{ram, hot, host}$
     is the ram pressure force due to the hot halo (computed using the selected hot halo ram pressure force method; see
-    \refPhysics{hotHaloRamPressureForce}). The parameter $\alpha_\mathrm{rp}=${\normalfont \ttfamily
-    [formFactor]} is a geometric factor of order unity.
+    \refPhysics{hotHaloRamPressureForce}). The parameter $\alpha_\mathrm{rp}=$\mono{[formFactor]} is a geometric factor of order unity.
    </description>
   </hotHaloRamPressureStripping>
   !!]

@@ -45,13 +45,11 @@
          stop 'tree internal state was stored'
       end if
      \end{verbatim}
-     \item Run the model ensuring that {\normalfont \ttfamily [stateFileRoot]} is set to a suitable file root name to allow the
+     \item Run the model ensuring that \mono{[stateFileRoot]} is set to a suitable file root name to allow the
      internal state of \glc\ to be stored;
      \item Remove the code inserted above and recompile;
-     \item Run \glc\ with an input parameter file identical to the one used previously except with {\normalfont \ttfamily
-     [mergerTreeConstruct]}$=${\normalfont \ttfamily stateRestore}, {\normalfont \ttfamily [stateFileRoot]} removed,
-     {\normalfont \ttfamily [stateRetrieveFileRoot]} set to the value previously used for {\normalfont \ttfamily
-     [stateFileRoot]} and {\normalfont \ttfamily [fileName]}$=${\normalfont \ttfamily storedTree.dat}.
+     \item Run \glc\ with an input parameter file identical to the one used previously except with \mono{[mergerTreeConstruct]}$=$\mono{stateRestore}, \mono{[stateFileRoot]} removed,
+     \mono{[stateRetrieveFileRoot]} set to the value previously used for \mono{[stateFileRoot]} and \mono{[fileName]}$=$\mono{storedTree.dat}.
     \end{enumerate}
     This should restore the tree and the internal state of \glc\ precisely from the point where they were saved and produce the
     same subsequent evolution.

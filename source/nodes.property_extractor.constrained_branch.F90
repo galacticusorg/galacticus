@@ -25,7 +25,7 @@
   <nodePropertyExtractor name="nodePropertyExtractorConstrainedStatus">
    <description>
     A node property extractor class which extracts the constrained excursion set solution status of each node. The status will be
-    extracted as {\normalfont \ttfamily nodeIsConstrained}, with a value of 1 indicating that the node follows the constrained
+    extracted as \mono{nodeIsConstrained}, with a value of 1 indicating that the node follows the constrained
     branching rate solution and a value of 0 indicating that it does not.
    </description>
   </nodePropertyExtractor>
@@ -33,7 +33,7 @@
   type, extends(nodePropertyExtractorIntegerScalar) :: nodePropertyExtractorConstrainedStatus
      !!{
      A node property extractor class which extracts the constrained excursion set solution status of each node. The status will be
-     extracted as {\normalfont \ttfamily nodeIsConstrained}, with a value of 1 indicating that the node follows the constrained
+     extracted as \mono{nodeIsConstrained}, with a value of 1 indicating that the node follows the constrained
      branching rate solution and a value of 0 indicating that it does not.
      !!}
      private
@@ -87,7 +87,7 @@ contains
 
   function constrainedStatusExtract(self,node,time,instance)
     !!{
-    Implement a {\normalfont \ttfamily constrainedStatus} node property extractor.
+    Implement a \mono{constrainedStatus} node property extractor.
     !!}
     use :: Galacticus_Nodes, only : nodeComponentBasic
     implicit none

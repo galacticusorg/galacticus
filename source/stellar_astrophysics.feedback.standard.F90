@@ -30,10 +30,9 @@
   <stellarFeedback name="stellarFeedbackStandard">
    <description>
     A stellar feedback class which assumes that the cumulative energy input from a stellar population is equal to the total
-    number of (Type II and Type Ia) supernovae multiplied by {\normalfont \ttfamily [supernovaEnergy]} (specified in ergs) plus
+    number of (Type II and Type Ia) supernovae multiplied by \mono{[supernovaEnergy]} (specified in ergs) plus
     any Population III-specific supernovae energy plus the integrated energy input from stellar winds. The minimum mass of a
-    star required to form a Type II supernova is specified (in $M_\odot$) via the {\normalfont \ttfamily
-    [initialMassForSupernovaeTypeII]} parameter.
+    star required to form a Type II supernova is specified (in $M_\odot$) via the \mono{[initialMassForSupernovaeTypeII]} parameter.
    </description>
   </stellarFeedback>
   !!]
@@ -153,7 +152,7 @@ contains
 
   double precision function standardEnergyInputCumulative(self,initialMassFunction_,initialMass,age,metallicity)
     !!{
-    Compute the cumulative energy input from a star of given {\normalfont \ttfamily initialMass}, {\normalfont \ttfamily age} and {\normalfont \ttfamily metallicity}.
+    Compute the cumulative energy input from a star of given \mono{initialMass}, \mono{age} and \mono{metallicity}.
     !!}
     use :: Numerical_Constants_Astronomical, only : metallicitySolar
     use :: Numerical_Integration           , only : integrator

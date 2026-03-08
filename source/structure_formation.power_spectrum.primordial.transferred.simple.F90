@@ -125,8 +125,7 @@ contains
 
   double precision function simplePower(self,wavenumber,time)
     !!{
-    Return the transferred primordial power spectrum at the given {\normalfont \ttfamily
-    wavenumber}.
+    Return the transferred primordial power spectrum at the given \mono{wavenumber}.
     !!}
     implicit none
     class           (powerSpectrumPrimordialTransferredSimple), intent(inout) :: self
@@ -155,7 +154,7 @@ contains
   double precision function simpleLogarithmicDerivative(self,wavenumber,time)
     !!{
     Return the logarithmic derivative of the transferred primordial power spectrum at the
-    given {\normalfont \ttfamily wavenumber}.
+    given \mono{wavenumber}.
     !!}
     implicit none
     class           (powerSpectrumPrimordialTransferredSimple), intent(inout) :: self

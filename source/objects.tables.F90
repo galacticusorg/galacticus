@@ -18,12 +18,12 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
 !!{
-Contains a module which defines a {\normalfont \ttfamily table} class with optimized interpolation operators.
+Contains a module which defines a \mono{table} class with optimized interpolation operators.
 !!}
 
 module Tables
   !!{
-  Defines a {\normalfont \ttfamily table} class with optimized interpolation operators.
+  Defines a \mono{table} class with optimized interpolation operators.
   !!}
   use :: Numerical_Interpolation, only : interpolator
   use :: Table_Labels           , only : enumerationExtrapolationTypeType
@@ -85,7 +85,7 @@ module Tables
   interface
      subroutine Table_Destroy(self)
        !!{
-       Interface to {\normalfont \ttfamily table} destructor.
+       Interface to \mono{table} destructor.
        !!}
        import table
        implicit none
@@ -104,17 +104,17 @@ module Tables
    contains
      !![
      <methods>
-       <method description="Interpolate to {\normalfont \ttfamily x} in the {\normalfont \ttfamily table}$^\mathrm{th}$ table." method="interpolate" />
-       <method description="Interpolate the gradient to {\normalfont \ttfamily x} in the {\normalfont \ttfamily table}$^\mathrm{th}$ table." method="interpolateGradient" />
-       <method description="Reverse the table (i.e. swap $x$ and $y$ components) and return in {\normalfont \ttfamily reversedSelf}. If {\normalfont \ttfamily table} is specified then the {\normalfont \ttfamily table}$^\mathrm{th}$ table is used for the $y$-values, otherwise the first table is used. If the optional {\normalfont \ttfamily precise} argument is set to {\normalfont \ttfamily true} then the reversal must be precisely invertible---if this is not possible the method will abort." method="reverse" />
-       <method description="Return true if the table $y$-values are monotonic. Optionally, the direction of monotonicity can be specified via the {\normalfont \ttfamily direction} argument---by default either direction is allowed. By default consecutive equal values are considered non-monotonic. This behavior can be changed via the optional {\normalfont \ttfamily allowEqual} argument. If {\normalfont \ttfamily table} is specified then the {\normalfont \ttfamily table}$^\mathrm{th}$ table is used for the $y$-values, otherwise the first table is used." method="isMonotonic" />
+       <method description="Interpolate to \mono{x} in the \mono{table}$^\mathrm{th}$ table." method="interpolate" />
+       <method description="Interpolate the gradient to \mono{x} in the \mono{table}$^\mathrm{th}$ table." method="interpolateGradient" />
+       <method description="Reverse the table (i.e. swap $x$ and $y$ components) and return in \mono{reversedSelf}. If \mono{table} is specified then the \mono{table}$^\mathrm{th}$ table is used for the $y$-values, otherwise the first table is used. If the optional \mono{precise} argument is set to \mono{true} then the reversal must be precisely invertible---if this is not possible the method will abort." method="reverse" />
+       <method description="Return true if the table $y$-values are monotonic. Optionally, the direction of monotonicity can be specified via the \mono{direction} argument---by default either direction is allowed. By default consecutive equal values are considered non-monotonic. This behavior can be changed via the optional \mono{allowEqual} argument. If \mono{table} is specified then the \mono{table}$^\mathrm{th}$ table is used for the $y$-values, otherwise the first table is used." method="isMonotonic" />
        <method description="Return the size (i.e. number of $x$-values) in the table." method="size" />
-       <method description="Return the {\normalfont \ttfamily i}$^\mathrm{th}$ $x$-value." method="x" />
-       <method description="Return the {\normalfont \ttfamily i}$^\mathrm{th}$ $y$-value. If {\normalfont \ttfamily table} is specified then the {\normalfont \ttfamily table}$^\mathrm{th}$ table is used for the $y$-values, otherwise the first table is used." method="y" />
+       <method description="Return the \mono{i}$^\mathrm{th}$ $x$-value." method="x" />
+       <method description="Return the \mono{i}$^\mathrm{th}$ $y$-value. If \mono{table} is specified then the \mono{table}$^\mathrm{th}$ table is used for the $y$-values, otherwise the first table is used." method="y" />
        <method description="Return an array of all $x$-values." method="xs" />
-       <method description="Return an array of all $y$-values. If {\normalfont \ttfamily table} is specified then the {\normalfont \ttfamily table}$^\mathrm{th}$ table is used for the $y$-values, otherwise the first table is used." method="ys" />
+       <method description="Return an array of all $y$-values. If \mono{table} is specified then the \mono{table}$^\mathrm{th}$ table is used for the $y$-values, otherwise the first table is used." method="ys" />
        <method description="Return the effective value of $x$ to use in table interpolations." method="xEffective"/>
-       <method description="Return the weights to be applied to the table to integrate (using the trapezium rule) between {\normalfont \ttfamily x0} and {\normalfont \ttfamily x1}." method="integrationWeights" />
+       <method description="Return the weights to be applied to the table to integrate (using the trapezium rule) between \mono{x0} and \mono{x1}." method="integrationWeights" />
      </methods>
      !!]
      procedure(Table1D_Interpolate ), deferred :: interpolate
@@ -136,7 +136,7 @@ module Tables
   interface
      double precision function Table1D_Interpolate(self,x,table,status)
        !!{
-       Interface to {\normalfont \ttfamily table} interpolator.
+       Interface to \mono{table} interpolator.
        !!}
        import table1D
        implicit none
@@ -182,8 +182,8 @@ module Tables
    contains
      !![
      <methods>
-       <method description="Create the object with the specified {\normalfont \ttfamily x} values, and with {\normalfont \ttfamily tableCount} tables." method="create" />
-       <method description="Populate the {\normalfont \ttfamily table}$^\mathrm{th}$ table with elements {\normalfont \ttfamily y}. If {\normalfont \ttfamily y} is a scalar, then the index, {\normalfont \ttfamily i}, of the element to set must also be specified." method="populate" />
+       <method description="Create the object with the specified \mono{x} values, and with \mono{tableCount} tables." method="create" />
+       <method description="Populate the \mono{table}$^\mathrm{th}$ table with elements \mono{y}. If \mono{y} is a scalar, then the index, \mono{i}, of the element to set must also be specified." method="populate" />
        <method description="Reinitialize the interpolator." method="interpolatorReinitialize" />
        <method description="Deep copy the interpolators." method="interpolatorDeepCopy" />
        <method description="Initialize the interpolator." method="interpolatorInitialize" />
@@ -215,8 +215,8 @@ module Tables
    contains
      !![
      <methods>
-       <method description="Create the object with $x$-values spanning the range {\normalfont \ttfamily xMinimum} to {\normalfont \ttfamily xMaximum} in {\normalfont \ttfamily xCount} steps, and with {\normalfont \ttfamily tableCount} tables." method="create" />
-       <method description="Populate the {\normalfont \ttfamily table}$^\mathrm{th}$ table with elements {\normalfont \ttfamily y}. If {\normalfont \ttfamily y} is a scalar, then the index, {\normalfont \ttfamily i}, of the element to set must also be specified." method="populate" />
+       <method description="Create the object with $x$-values spanning the range \mono{xMinimum} to \mono{xMaximum} in \mono{xCount} steps, and with \mono{tableCount} tables." method="create" />
+       <method description="Populate the \mono{table}$^\mathrm{th}$ table with elements \mono{y}. If \mono{y} is a scalar, then the index, \mono{i}, of the element to set must also be specified." method="populate" />
      </methods>
      !!]
      procedure :: create              => Table_Linear_1D_Create
@@ -270,8 +270,8 @@ module Tables
    contains
      !![
      <methods>
-       <method description="Create the object with $x$-values spanning the range {\normalfont \ttfamily xMinimum} to {\normalfont \ttfamily xMaximum} in {\normalfont \ttfamily xCount} steps, and with {\normalfont \ttfamily tableCount} tables." method="create" />
-       <method description="Populate the {\normalfont \ttfamily table}$^\mathrm{th}$ table with elements {\normalfont \ttfamily y}. If {\normalfont \ttfamily y} is a scalar, then the index, {\normalfont \ttfamily i}, of the element to set must also be specified." method="populate" />
+       <method description="Create the object with $x$-values spanning the range \mono{xMinimum} to \mono{xMaximum} in \mono{xCount} steps, and with \mono{tableCount} tables." method="create" />
+       <method description="Populate the \mono{table}$^\mathrm{th}$ table with elements \mono{y}. If \mono{y} is a scalar, then the index, \mono{i}, of the element to set must also be specified." method="populate" />
      </methods>
      !!]
      procedure :: create              => Table_Linear_CSpline_1D_Create
@@ -339,8 +339,8 @@ module Tables
    contains
      !![
      <methods>
-       <method description="Create the object with {\normalfont \ttfamily xCount} points, and with {\normalfont \ttfamily tableCount} tables." method="create" />
-       <method description="Populate the {\normalfont \ttfamily table}$^\mathrm{th}$ table with elements {\normalfont \ttfamily y}. If {\normalfont \ttfamily y} is a scalar, then the index, {\normalfont \ttfamily i}, of the element to set must also be specified." method="populate" />
+       <method description="Create the object with \mono{xCount} points, and with \mono{tableCount} tables." method="create" />
+       <method description="Populate the \mono{table}$^\mathrm{th}$ table with elements \mono{y}. If \mono{y} is a scalar, then the index, \mono{i}, of the element to set must also be specified." method="populate" />
      </methods>
      !!]
      procedure :: create              => Table_Monotone_CSpline_1D_Create
@@ -370,12 +370,12 @@ module Tables
    contains
      !![
      <methods>
-       <method description="Create the object with the specified {\normalfont \ttfamily x} and {\normalfont \ttfamily y} values, and with {\normalfont \ttfamily tableCount} tables." method="create" />
-       <method description="Populate the {\normalfont \ttfamily table}$^\mathrm{th}$ table with elements {\normalfont \ttfamily y}. If {\normalfont \ttfamily y} is a scalar, then the indices, {\normalfont \ttfamily i}, {\normalfont \ttfamily j}, of the element to set must also be specified." method="populate" />
-       <method description="Interpolate to {\normalfont \ttfamily x}, {\normalfont \ttfamily y} in the {\normalfont \ttfamily table}$^\mathrm{th}$ table." method="interpolate" />
-       <method description="Return an array of all {\normalfont \ttfamily x} values." method="xs" />
-       <method description="Return an array of all {\normalfont \ttfamily y} values." method="ys" />
-       <method description="Return an array of all {\normalfont \ttfamily z} values." method="zs" />
+       <method description="Create the object with the specified \mono{x} and \mono{y} values, and with \mono{tableCount} tables." method="create" />
+       <method description="Populate the \mono{table}$^\mathrm{th}$ table with elements \mono{y}. If \mono{y} is a scalar, then the indices, \mono{i}, \mono{j}, of the element to set must also be specified." method="populate" />
+       <method description="Interpolate to \mono{x}, \mono{y} in the \mono{table}$^\mathrm{th}$ table." method="interpolate" />
+       <method description="Return an array of all \mono{x} values." method="xs" />
+       <method description="Return an array of all \mono{y} values." method="ys" />
+       <method description="Return an array of all \mono{z} values." method="zs" />
        <method description="Reinitialize the interpolator." method="interpolatorReinitialize" />
      </methods>
      !!]
@@ -411,19 +411,19 @@ module Tables
    contains
      !![
      <methods>
-       <method description="Compute and store interpolation factors to {\normalfont \ttfamily (x,y)}." method="interpolationFactors" />
-       <method description="Interpolate to {\normalfont \ttfamily x} in the {\normalfont \ttfamily table}$^\mathrm{th}$ table." method="interpolate" />
-       <method description="Interpolate the gradient to {\normalfont \ttfamily x} in the {\normalfont \ttfamily table}$^\mathrm{th}$ table." method="interpolateGradient" />
+       <method description="Compute and store interpolation factors to \mono{(x,y)}." method="interpolationFactors" />
+       <method description="Interpolate to \mono{x} in the \mono{table}$^\mathrm{th}$ table." method="interpolate" />
+       <method description="Interpolate the gradient to \mono{x} in the \mono{table}$^\mathrm{th}$ table." method="interpolateGradient" />
        <method description="Return the size (i.e. number of $x$ or $y$-values) in the table of the given dimension." method="size" />
-       <method description="Return the {\normalfont \ttfamily i}$^\mathrm{th}$ $x$-value." method="x" />
-       <method description="Return the {\normalfont \ttfamily i}$^\mathrm{th}$ $y$-value. If {\normalfont \ttfamily table} is specified then the {\normalfont \ttfamily table}$^\mathrm{th}$ table is used for the $y$-values, otherwise the first table is used." method="y" />
-       <method description="Return the {\normalfont \ttfamily (i,j)}$^\mathrm{th}$ $z$-value. If {\normalfont \ttfamily table} is specified then the {\normalfont \ttfamily table}$^\mathrm{th}$ table is used for the $z$-values, otherwise the first table is used." method="z" />
+       <method description="Return the \mono{i}$^\mathrm{th}$ $x$-value." method="x" />
+       <method description="Return the \mono{i}$^\mathrm{th}$ $y$-value. If \mono{table} is specified then the \mono{table}$^\mathrm{th}$ table is used for the $y$-values, otherwise the first table is used." method="y" />
+       <method description="Return the \mono{(i,j)}$^\mathrm{th}$ $z$-value. If \mono{table} is specified then the \mono{table}$^\mathrm{th}$ table is used for the $z$-values, otherwise the first table is used." method="z" />
        <method description="Return an array of all $x$-values." method="xs" />
-       <method description="Return an array of all $y$-values. If {\normalfont \ttfamily table} is specified then the {\normalfont \ttfamily table}$^\mathrm{th}$ table is used for the $y$-values, otherwise the first table is used." method="ys" />
-       <method description="Return an array of all $z$-values. If {\normalfont \ttfamily table} is specified then the {\normalfont \ttfamily table}$^\mathrm{th}$ table is used for the $z$-values, otherwise the first table is used." method="zs" />
+       <method description="Return an array of all $y$-values. If \mono{table} is specified then the \mono{table}$^\mathrm{th}$ table is used for the $y$-values, otherwise the first table is used." method="ys" />
+       <method description="Return an array of all $z$-values. If \mono{table} is specified then the \mono{table}$^\mathrm{th}$ table is used for the $z$-values, otherwise the first table is used." method="zs" />
        <method description="Return true if the table is initialized (this means the table is created, it may not yet have been populated)." method="isInitialized" />
-       <method description="Populate the {\normalfont \ttfamily table}$^\mathrm{th}$ table with elements {\normalfont \ttfamily y}. If {\normalfont \ttfamily y} is a scalar, then the index, {\normalfont \ttfamily i}, of the element to set must also be specified." method="populate" />
-       <method description="Create the object with $x$-values spanning the range {\normalfont \ttfamily xMinimum} to {\normalfont \ttfamily xMaximum} in {\normalfont \ttfamily xCount} steps, and with {\normalfont \ttfamily tableCount} tables." method="create" />
+       <method description="Populate the \mono{table}$^\mathrm{th}$ table with elements \mono{y}. If \mono{y} is a scalar, then the index, \mono{i}, of the element to set must also be specified." method="populate" />
+       <method description="Create the object with $x$-values spanning the range \mono{xMinimum} to \mono{xMaximum} in \mono{xCount} steps, and with \mono{tableCount} tables." method="create" />
      </methods>
      !!]
      procedure :: create                            => Table_2DLogLogLin_Create
@@ -461,7 +461,7 @@ contains
 
   double precision function Table1D_X(self,i)
     !!{
-    Return the {\normalfont \ttfamily i}$^\mathrm{th}$ $x$-value for a 1D table.
+    Return the \mono{i}$^\mathrm{th}$ $x$-value for a 1D table.
     !!}
     implicit none
     class  (table1D), intent(inout) :: self
@@ -488,7 +488,7 @@ contains
 
   double precision function Table1D_Y(self,i,table)
     !!{
-    Return the {\normalfont \ttfamily i}$^\mathrm{th}$ $y$-value for a 1D table.
+    Return the \mono{i}$^\mathrm{th}$ $y$-value for a 1D table.
     !!}
     implicit none
     class  (table1D), intent(in   )           :: self
@@ -597,7 +597,7 @@ contains
 
   function Table1D_Integration_Weights(self,x0,x1,integrand)
     !!{
-    Returns a set of weights for trapezoidal integration on the table between limits {\normalfont \ttfamily x0} and {\normalfont \ttfamily x1}.
+    Returns a set of weights for trapezoidal integration on the table between limits \mono{x0} and \mono{x1}.
     !!}
     use :: Error, only : Error_Report
     implicit none
@@ -633,7 +633,7 @@ contains
   !!]
   subroutine Table1D_Assignment(to,from)
     !!{
-    Assignment operator for the {\normalfont \ttfamily table1D} class.
+    Assignment operator for the \mono{table1D} class.
     !!}
     use :: Error, only : Error_Report
     implicit none
@@ -1323,7 +1323,7 @@ contains
 
   double precision function Table_Logarithmic_1D_X(self,i)
     !!{
-    Return the {\normalfont \ttfamily i}$^\mathrm{th}$ $x$-value for a logarithmic 1D table.
+    Return the \mono{i}$^\mathrm{th}$ $x$-value for a logarithmic 1D table.
     !!}
     implicit none
     class  (table1DLogarithmicLinear), intent(inout) :: self
@@ -1385,7 +1385,7 @@ contains
 
   function Table_Logarithmic_Integration_Weights(self,x0,x1,integrand)
     !!{
-    Returns a set of weights for trapezoidal integration on the table between limits {\normalfont \ttfamily x0} and {\normalfont \ttfamily x1}.
+    Returns a set of weights for trapezoidal integration on the table between limits \mono{x0} and \mono{x1}.
     !!}
     use :: Error     , only : Error_Report
     use :: Numerical_Integration, only : integrator
@@ -1790,7 +1790,7 @@ contains
 
   double precision function Table_Logarithmic_CSpline_1D_X(self,i)
     !!{
-    Return the {\normalfont \ttfamily i}$^\mathrm{th}$ $x$-value for a logarithmic 1D table.
+    Return the \mono{i}$^\mathrm{th}$ $x$-value for a logarithmic 1D table.
     !!}
     implicit none
     class  (table1DLogarithmicCSpline), intent(inout) :: self
@@ -1860,7 +1860,7 @@ contains
 
   function Table_Linear_CSpline_Integration_Weights(self,x0,x1,integrand)
     !!{
-    Returns a set of weights for trapezoidal integration on the table between limits {\normalfont \ttfamily x0} and {\normalfont \ttfamily x1}.
+    Returns a set of weights for trapezoidal integration on the table between limits \mono{x0} and \mono{x1}.
     !!}
     use :: Error, only : Error_Report
     implicit none
@@ -2122,7 +2122,7 @@ contains
 
   function Table_Monotone_CSpline_Integration_Weights(self,x0,x1,integrand)
     !!{
-    Returns a set of weights for trapezoidal integration on the table between limits {\normalfont \ttfamily x0} and {\normalfont \ttfamily x1}.
+    Returns a set of weights for trapezoidal integration on the table between limits \mono{x0} and \mono{x1}.
     !!}
     use :: Error, only : Error_Report
     implicit none
@@ -2246,7 +2246,7 @@ contains
 
   function Table_NonUniform_Linear_Logarithmic_Integration_Weights(self,x0,x1,integrand)
     !!{
-    Returns a set of weights for integration on a linear-logarithmic table between limits {\normalfont \ttfamily x0} and {\normalfont \ttfamily x1}.
+    Returns a set of weights for integration on a linear-logarithmic table between limits \mono{x0} and \mono{x1}.
     !!}
     use :: Error, only : Error_Report
     implicit none
@@ -2263,7 +2263,7 @@ contains
 
   double precision function Table_NonUniform_Linear_Logarithmic_1D_Y(self,i,table)
     !!{
-    Return the {\normalfont \ttfamily i}$^\mathrm{th}$ $y$-value for a 1D table.
+    Return the \mono{i}$^\mathrm{th}$ $y$-value for a 1D table.
     !!}
     implicit none
     class  (table1DNonUniformLinearLogarithmic), intent(in   )           :: self
@@ -2349,7 +2349,7 @@ contains
 
   double precision function Table_2DLogLogLin_X(self,i)
     !!{
-    Return the {\normalfont \ttfamily i}$^\mathrm{th}$ $x$-value for a 2D log-log table.
+    Return the \mono{i}$^\mathrm{th}$ $x$-value for a 2D log-log table.
     !!}
     implicit none
     class  (table2DLogLogLin), intent(inout) :: self
@@ -2361,7 +2361,7 @@ contains
 
   double precision function Table_2DLogLogLin_Y(self,i)
     !!{
-    Return the {\normalfont \ttfamily i}$^\mathrm{th}$ $y$-value for a 2D log-log table.
+    Return the \mono{i}$^\mathrm{th}$ $y$-value for a 2D log-log table.
     !!}
     implicit none
     class  (table2DLogLogLin), intent(inout) :: self
@@ -2373,7 +2373,7 @@ contains
 
   double precision function Table_2DLogLogLin_Z(self,i,j,table)
     !!{
-    Return the {\normalfont \ttfamily (i,j)}$^\mathrm{th}$ $x$-value for a 2D log-log table.
+    Return the \mono{(i,j)}$^\mathrm{th}$ $x$-value for a 2D log-log table.
     !!}
     implicit none
     class  (table2DLogLogLin), intent(inout)           :: self
@@ -2885,7 +2885,7 @@ contains
 
   function Table_Linear_Monotone_CSpline_Integration_Weights(self,x0,x1,integrand)
     !!{
-    Returns a set of weights for trapezoidal integration on the table between limits {\normalfont \ttfamily x0} and {\normalfont \ttfamily x1}.
+    Returns a set of weights for trapezoidal integration on the table between limits \mono{x0} and \mono{x1}.
     !!}
     use :: Error, only : Error_Report
     implicit none
@@ -2924,7 +2924,7 @@ contains
 
   double precision function Table_Logarithmic_Monotone_CSpline_1D_X(self,i)
     !!{
-    Return the {\normalfont \ttfamily i}$^\mathrm{th}$ $x$-value for a logarithmic 1D table.
+    Return the \mono{i}$^\mathrm{th}$ $x$-value for a logarithmic 1D table.
     !!}
     implicit none
     class  (table1DLogarithmicMonotoneCSpline), intent(inout) :: self

@@ -39,7 +39,7 @@ module Satellite_Tidal_Stripping_Radii
    </description>
    <default>king1962</default>
    <method name="radius" >
-    <description>Returns the tidal radius for {\normalfont \ttfamily node} (in units of Mpc).</description>
+    <description>Returns the tidal radius for \mono{node} (in units of Mpc).</description>
     <type>double precision</type>
     <pass>yes</pass>
     <selfTarget>yes</selfTarget>

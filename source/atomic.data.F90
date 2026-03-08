@@ -317,7 +317,7 @@ contains
 
   integer function Atom_Lookup(atomicNumber,shortLabel,name)
     !!{
-    Returns the position in the {\normalfont \ttfamily atoms()} array of an element specified by atomic number, name or short label.
+    Returns the position in the \mono{atoms()} array of an element specified by atomic number, name or short label.
     !!}
     use :: Error          , only : Error_Report
     use :: String_Handling, only : String_Lower_Case
@@ -365,7 +365,7 @@ contains
 
   integer function Abundance_Pattern_Lookup(abundanceIndex,abundanceName)
     !!{
-    Returns the position in the {\normalfont \ttfamily atoms()} array of an element specified by atomic number, name or short label.
+    Returns the position in the \mono{atoms()} array of an element specified by atomic number, name or short label.
     !!}
     use :: Error          , only : Error_Report
     use :: String_Handling, only : String_Lower_Case

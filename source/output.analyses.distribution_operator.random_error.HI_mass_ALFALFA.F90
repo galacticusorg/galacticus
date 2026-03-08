@@ -38,8 +38,8 @@
      where $\sigma_\mathrm{obs}$ is the error on $\log_{10}(M_\mathrm{HI}/M_\odot)$. We find a reasonable fit using
      values\footnote{This should not be regarded as a formal good fit. Error estimates are approximate---we have simply found a
      functional form that roughly describes them, along with conservative errors on the parameters of this function which are
-     included in the priors.} of $a=${\normalfont \ttfamily a}$=0.100 \pm 0.010$, $b=${\normalfont \ttfamily b}$=5.885 \pm
-     0.100$, and $c=${\normalfont \ttfamily c}$=0.505 \pm 0.020$ as shown in Fig.~\ref{fig:ALFALFAErrorModel}. The total random
+     included in the priors.} of $a=$\mono{a}$=0.100 \pm 0.010$, $b=$\mono{b}$=5.885 \pm
+     0.100$, and $c=$\mono{c}$=0.505 \pm 0.020$ as shown in Fig.~\ref{fig:ALFALFAErrorModel}. The total random
      error on the logarithm of each galaxy mass is given by $\sigma^2 = \sigma_{R_\mathrm{mol}}^2+\sigma_\mathrm{obs}^2$, and is
      used as the width of the Gaussian kernel when applying each galaxy to the mass function histogram (as described above).
   
@@ -154,7 +154,7 @@ contains
   double precision function randomErrorHIALFALFARootVariance(self,propertyValue,node)
     !!{
     Computes errors on $\log_{10}($HI masses$)$ for the ALFALFA survey analysis. Uses a simple fitting function. See
-    {\normalfont \ttfamily constraints/dataAnalysis/hiMassFunction\_ALFALFA\_z0.00/alfalfaHIMassErrorModel.pl} for details.
+    \mono{constraints/dataAnalysis/hiMassFunction\_ALFALFA\_z0.00/alfalfaHIMassErrorModel.pl} for details.
     !!}
     implicit none
     class           (outputAnalysisDistributionOperatorRandomErrorALFLF), intent(inout) :: self

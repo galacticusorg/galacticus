@@ -37,7 +37,7 @@ module Hot_Halo_Ram_Pressure_Forces
    </description>
    <default>font2008</default>
    <method name="force" >
-    <description>Return the ram pressure force acting on {\normalfont \ttfamily node} (in units of (km/s)$^2M_\odot$/Mpc$^3$).</description>
+    <description>Return the ram pressure force acting on \mono{node} (in units of (km/s)$^2M_\odot$/Mpc$^3$).</description>
     <type>double precision</type>
     <pass>yes</pass>
     <argument>type(treeNode), intent(inout) :: node</argument>

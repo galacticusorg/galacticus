@@ -106,7 +106,7 @@ contains
 
   subroutine neverLogReport(self,fileUnit)
     !!{
-    Write a convergence report to the given {\normalfont \ttfamily fileUnit}.
+    Write a convergence report to the given \mono{fileUnit}.
     !!}
     implicit none
     class  (posteriorSampleConvergenceNever), intent(inout) :: self

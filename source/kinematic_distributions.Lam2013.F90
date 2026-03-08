@@ -157,7 +157,7 @@ contains
   
   double precision function lam2013VelocityRadial(self,coordinates,massDistributionEmbedding) result(velocityRadial)
     !!{
-     Return the radial velocity at the specified {\normalfont \ttfamily coordinates} in the \cite{lam_modeling_2013} model for the accretion flow around a halo.
+     Return the radial velocity at the specified \mono{coordinates} in the \cite{lam_modeling_2013} model for the accretion flow around a halo.
      !!}
      implicit none
     class           (kinematicsDistributionLam2013), intent(inout) :: self

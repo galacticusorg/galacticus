@@ -27,25 +27,22 @@ Implements a star formation histories class which records star formation split b
   <starFormationHistory name="starFormationHistoryMetallicitySplit">
    <description>
     A star formation histories class which records star formation split by metallicity. The star formation history is tabulated
-    on a grid of time and metallicity. The binning in time is chosen such that bins are at most of size {\normalfont \ttfamily
-    [timeStep]} between the time at which each galaxy formed and the final output time, and at most of size
-    {\normalfont \ttfamily [timeStepFine]} in the period {\normalfont \ttfamily
-    [timeFine]} prior to each output time (all times specified in Gyr). The allows fine binning of recent
+    on a grid of time and metallicity. The binning in time is chosen such that bins are at most of size \mono{[timeStep]} between the time at which each galaxy formed and the final output time, and at most of size
+    \mono{[timeStepFine]} in the period \mono{[timeFine]} prior to each output time (all times specified in Gyr). The allows fine binning of recent
     star formation just prior to each output.
 
     The time associated with each bin is the maximum time for which star formation will be accumulated to the bin, with the
     minimum time corresponding to the value associated with the previous bin (or $t=0$ for the first bin).
 
-    The metallicity binning is arranged logarithmically in metallicity with {\normalfont \ttfamily [countMetallicities]} bins
-    between {\normalfont \ttfamily [metallicityMinimum]} and {\normalfont \ttfamily [metallicityMaximum]} (specified in Solar
-    units). The metallicity bins are arranged logarithmically in metallicity with {\normalfont \ttfamily [countMetallicities]}
-    bins between {\normalfont \ttfamily [metallicityMinimum]} and {\normalfont \ttfamily [metallicityMaximum]} (specified in Solar
+    The metallicity binning is arranged logarithmically in metallicity with \mono{[countMetallicities]} bins
+    between \mono{[metallicityMinimum]} and \mono{[metallicityMaximum]} (specified in Solar
+    units). The metallicity bins are arranged logarithmically in metallicity with \mono{[countMetallicities]}
+    bins between \mono{[metallicityMinimum]} and \mono{[metallicityMaximum]} (specified in Solar
     units). Note that the metallicity associated with each bin is the maximum metallicity for that bin, with the minimum
     metallicity corresponding to the value associated with the previous bin (or zero metallicity for the first bin). Note that a
-    final bin, extending to infinite metallicity, is always added automatically. If {\normalfont \ttfamily
-    [countMetallicities]}$=0$ is set, then the star formation history is not split by metallicity (i.e. a single metallicity bin
+    final bin, extending to infinite metallicity, is always added automatically. If \mono{[countMetallicities]}$=0$ is set, then the star formation history is not split by metallicity (i.e. a single metallicity bin
     encompassing all metallicities from zero to infinity is used). Alternatively, specific metallicity bin boundaries can be set
-    via the {\normalfont \ttfamily [metallicityBoundaries]} parameter---a final boundary corresponding to infinity is always added
+    via the \mono{[metallicityBoundaries]} parameter---a final boundary corresponding to infinity is always added
     automatically.
    </description>
   </starFormationHistory>
@@ -280,7 +277,7 @@ contains
 
   subroutine metallicitySplitRate(self,node,historyStarFormation,abundancesFuel,rateStarFormation)
     !!{
-    Set the rate the star formation history for {\normalfont \ttfamily node}.
+    Set the rate the star formation history for \mono{node}.
     !!}
     use :: Abundances_Structure, only : abundances        , metallicityTypeLinearByMassSolar
     use :: Arrays_Search       , only : searchArray
@@ -322,7 +319,7 @@ contains
 
   subroutine metallicitySplitUpdate(self,node,indexOutput,historyStarFormation)
     !!{
-    Output the star formation history for {\normalfont \ttfamily node}.
+    Output the star formation history for \mono{node}.
     !!}
     use :: Galacticus_Nodes, only : nodeComponentBasic
     implicit none

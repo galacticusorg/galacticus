@@ -35,7 +35,7 @@
     g_{ij} G^{ij}
     \end{equation}
     where $T_\mathrm{orb}$ and $T_\mathrm{shock}$ are the orbital period and shock duration, respectively, of the satellite,
-    $\epsilon=${\normalfont \ttfamily [epsilon]} and $\gamma=${\normalfont \ttfamily [gamma]} are model parameters, $g_{ij}$ is
+    $\epsilon=$\mono{[epsilon]} and $\gamma=$\mono{[gamma]} are model parameters, $g_{ij}$ is
     the tidal tensor, and $G_{ij}$ is the integral with respect to time of $g_{ij}$ along the orbit of the satellite.  Upon
     tidal heating, a mass element at radius $r_\mathrm{i}$ expands to radius $r_\mathrm{f}$, according to the equation
     \begin{equation}
@@ -83,13 +83,13 @@ contains
     <inputParameter>
       <name>epsilon</name>
       <defaultValue>3.0d0</defaultValue>
-      <description>Parameter, $\epsilon$, controlling the tidal heating rate of satellites in the {\normalfont \ttfamily Gnedin1999} method.</description>
+      <description>Parameter, $\epsilon$, controlling the tidal heating rate of satellites in the \mono{Gnedin1999} method.</description>
       <source>parameters</source>
     </inputParameter>
     <inputParameter>
       <name>gamma</name>
       <defaultValue>2.5d0</defaultValue>
-      <description>Parameter, $\gamma$, controlling the tidal heating rate of satellites in the {\normalfont \ttfamily Gnedin1999} method.</description>
+      <description>Parameter, $\gamma$, controlling the tidal heating rate of satellites in the \mono{Gnedin1999} method.</description>
       <source>parameters</source>
     </inputParameter>
     <objectBuilder class="cosmologyParameters" name="cosmologyParameters_" source="parameters"/>
@@ -122,7 +122,7 @@ contains
 
   subroutine gnedin1999Destructor(self)
     !!{
-    Default constructor for the {\normalfont \ttfamily gnedin1999} satellite tidal heating rate class.
+    Default constructor for the \mono{gnedin1999} satellite tidal heating rate class.
     !!}
     implicit none
     type(satelliteTidalHeatingRateGnedin1999), intent(inout) :: self

@@ -24,7 +24,7 @@
   !![
   <posteriorSampleState name="posteriorSampleStateCorrelation">
    <description>
-    An extension of the {\normalfont \ttfamily history} state, this class also computes and stores the correlation length in each
+    An extension of the \mono{history} state, this class also computes and stores the correlation length in each
     parameter (which is taken to be the median correlation length over all non-outlier chains).
    </description>
   </posteriorSampleState>

@@ -46,8 +46,8 @@
      <methods>
        <method description="Return a description of the columns."                                        method="columnDescriptions"/>
        <method description="Return the number of properties in the tuple."                               method="elementCount"      />
-       <method description="Extract the double properties from the given {\normalfont \ttfamily node}."  method="extractDouble"     />
-       <method description="Extract the integer properties from the given {\normalfont \ttfamily node}." method="extractInteger"    />
+       <method description="Extract the double properties from the given \mono{node}."  method="extractDouble"     />
+       <method description="Extract the integer properties from the given \mono{node}." method="extractInteger"    />
        <method description="Return the names of the properties extracted."                               method="names"             />
        <method description="Return descriptions of the properties extracted."                            method="descriptions"      />
        <method description="Return the units of the properties extracted in the SI system."              method="unitsInSI"         />

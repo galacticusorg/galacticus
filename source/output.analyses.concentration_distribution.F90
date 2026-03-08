@@ -169,7 +169,7 @@ contains
        <inputParameter>
          <name>timeRecent</name>
          <source>parameters</source>
-         <description>Halos which experienced a major node merger within a time $\Delta t=${\normalfont \ttfamily [timeRecent]} of the analysis time will be excluded from the analysis.</description>
+         <description>Halos which experienced a major node merger within a time $\Delta t=$\mono{[timeRecent]} of the analysis time will be excluded from the analysis.</description>
        </inputParameter>
        <inputParameter>
          <name>massParticle</name>

@@ -87,7 +87,7 @@ contains
       <name>nonAnalyticSolver</name>
       <defaultValue>var_str('fallThrough')</defaultValue>
       <source>parameters</source>
-      <description>Selects how solutions are computed when no analytic solution is available. If set to ``{\normalfont \ttfamily fallThrough}'' then the solution ignoring heating is used, while if set to ``{\normalfont \ttfamily numerical}'' then numerical solvers are used to find solutions.</description>
+      <description>Selects how solutions are computed when no analytic solution is available. If set to ``\mono{fallThrough}'' then the solution ignoring heating is used, while if set to ``\mono{numerical}'' then numerical solvers are used to find solutions.</description>
     </inputParameter>
     <inputParameter>
       <name>componentType</name>
@@ -162,7 +162,7 @@ contains
 
   double precision function sphericalAcceleratorDensity(self,coordinates) result(density)
     !!{
-    Return the density at the specified {\normalfont \ttfamily coordinates} in an accelerated mass distribution.
+    Return the density at the specified \mono{coordinates} in an accelerated mass distribution.
     !!}
     implicit none
     class(massDistributionSphericalAccelerator), intent(inout) :: self
@@ -174,7 +174,7 @@ contains
 
   double precision function sphericalAcceleratorMassEnclosedBySphere(self,radius) result(mass)
     !!{
-    Computes the mass enclosed within a sphere of given {\normalfont \ttfamily radius} for accelerated mass distributions.
+    Computes the mass enclosed within a sphere of given \mono{radius} for accelerated mass distributions.
     !!}
     use :: Binary_Search_Trees , only : binaryTreeNode
     use :: Numerical_Comparison, only : Values_Agree

@@ -40,9 +40,8 @@
   !![
   <virialDensityContrast name="virialDensityContrastFixed">
    <description>
-    A dark matter halo virial density contrast class which uses a fixed virial density contrast of {\normalfont \ttfamily
-    [densityContrastValue]}, defined relative to {\normalfont \ttfamily critical} or {\normalfont \ttfamily mean} density as
-    specified by {\normalfont \ttfamily [densityType]}.
+    A dark matter halo virial density contrast class which uses a fixed virial density contrast of \mono{[densityContrastValue]}, defined relative to \mono{critical} or \mono{mean} density as
+    specified by \mono{[densityType]}.
    </description>
   </virialDensityContrast>
   !!]
@@ -97,7 +96,7 @@ contains
      <name>densityType</name>
      <source>parameters</source>
      <defaultValue>var_str('critical')</defaultValue>
-     <description>The reference density to use in the fixed value virial density contrast model. Either of {\normalfont \ttfamily critical} and {\normalfont \ttfamily mean} are allowed.</description>
+     <description>The reference density to use in the fixed value virial density contrast model. Either of \mono{critical} and \mono{mean} are allowed.</description>
     </inputParameter>
     <inputParameter>
      <name>turnAroundOverVirialRadius</name>

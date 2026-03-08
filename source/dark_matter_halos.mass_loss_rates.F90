@@ -38,7 +38,7 @@ module Dark_Matter_Halos_Mass_Loss_Rates
    </description>
    <default>zero</default>
    <method name="rate" >
-    <description>Returns the rate of mass loss (in $M_\odot$/Gyr) from {\normalfont \ttfamily node}.</description>
+    <description>Returns the rate of mass loss (in $M_\odot$/Gyr) from \mono{node}.</description>
     <type>double precision</type>
     <pass>yes</pass>
     <argument>type(treeNode), intent(inout) :: node</argument>

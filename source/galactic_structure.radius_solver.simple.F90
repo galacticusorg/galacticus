@@ -33,8 +33,7 @@
      j = \sqrt{\G M_\mathrm{DM}(r) r},
     \end{equation}
     where $j$ is the specific angular momentum of the \gls{component} (at whatever point in the profile is to be solved for),
-    $r$ is radius and $M(r)$ is the mass of dark matter within radius $r$. The parameter {\normalfont \ttfamily
-    [useFormationHalo]} controls whether the structure of the galaxy will be solved for using the properties of its present
+    $r$ is radius and $M(r)$ is the mass of dark matter within radius $r$. The parameter \mono{[useFormationHalo]} controls whether the structure of the galaxy will be solved for using the properties of its present
     \gls{node} or those of its \gls{node} at the time of \gls{node} formation (which requires that ``node formation'' has been
     suitably defined and implemented by a component).
    </description>

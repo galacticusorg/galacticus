@@ -509,7 +509,7 @@ contains
 
   subroutine localGroupMassMetallicityRelationAnalyze(self,node,iOutput)
     !!{
-    Implement a {\normalfont \ttfamily localGroupMassMetallicityRelation} output analysis.
+    Implement a \mono{localGroupMassMetallicityRelation} output analysis.
     !!}
     implicit none
     class  (outputAnalysisLocalGroupMassMetallicityRelation), intent(inout) :: self
@@ -522,7 +522,7 @@ contains
 
   subroutine localGroupMassMetallicityRelationReduce(self,reduced)
     !!{
-    Implement a {\normalfont \ttfamily localGroupMassMetallicityRelation} output analysis reduction.
+    Implement a \mono{localGroupMassMetallicityRelation} output analysis reduction.
     !!}
     use :: Error, only : Error_Report
     implicit none
@@ -540,7 +540,7 @@ contains
 
   subroutine localGroupMassMetallicityRelationFinalize(self,groupName)
     !!{
-    Implement a {\normalfont \ttfamily localGroupMassMetallicityRelation} output analysis finalization.
+    Implement a \mono{localGroupMassMetallicityRelation} output analysis finalization.
     !!}
     implicit none
     class(outputAnalysisLocalGroupMassMetallicityRelation), intent(inout)           :: self
@@ -552,7 +552,7 @@ contains
 
   double precision function localGroupMassMetallicityRelationLogLikelihood(self)
     !!{
-    Return the log-likelihood of a {\normalfont \ttfamily localGroupMassMetallicityRelation} output analysis.
+    Return the log-likelihood of a \mono{localGroupMassMetallicityRelation} output analysis.
     !!}
     implicit none
     class(outputAnalysisLocalGroupMassMetallicityRelation), intent(inout) :: self

@@ -39,8 +39,8 @@
    <description>
     A dark matter halo virial density contrast class using the fitting functions given by \cite{bryan_statistical_1998}. As such,
     it is valid only for $\Omega_\Lambda=0$ or $\Omega_\mathrm{M}+\Omega_\Lambda=1$ cosmologies and will either abort on other
-    cosmologies (if {\normalfont \ttfamily [allowUnsupportedCosmology]=false}), or revert to a numerical solution from top-hat
-    collapse (if {\normalfont \ttfamily [allowUnsupportedCosmology]=true}).
+    cosmologies (if \mono{[allowUnsupportedCosmology]=false}), or revert to a numerical solution from top-hat
+    collapse (if \mono{[allowUnsupportedCosmology]=true}).
    </description>
    <deepCopy>
      <functionClass variables="virialDensityContrastTopHat_"/>

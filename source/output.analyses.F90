@@ -36,7 +36,7 @@ module Output_Analyses
    <description>Class providing on-the-fly analysis of outputs.</description>
    <default>null</default>
    <method name="analyze" >
-    <description>Analyze the given {\normalfont \ttfamily node}.</description>
+    <description>Analyze the given \mono{node}.</description>
     <type>void</type>
     <pass>yes</pass>
     <argument>type   (treeNode), intent(inout) :: node</argument>

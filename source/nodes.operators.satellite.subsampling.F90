@@ -94,7 +94,7 @@ contains
     <inputParameter>
       <name>samplingPericenterThreshold</name>
       <defaultValue>0.0d0</defaultValue>
-      <description>Pericenter distance threshold above which satellites are subsampled in units of the distance to the host halo at infall. This criterion will be ignored if the {\normalfont \ttfamily virialOrbit} of satellite is not gettable.</description>
+      <description>Pericenter distance threshold above which satellites are subsampled in units of the distance to the host halo at infall. This criterion will be ignored if the \mono{virialOrbit} of satellite is not gettable.</description>
       <source>parameters</source>
     </inputParameter>
     <inputParameter>

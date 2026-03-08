@@ -37,7 +37,7 @@ module Points_Convex_Hull
 
   type :: qhull
      !!{
-     Wrapper class used to manage {\normalfont \ttfamily qhull} objects.
+     Wrapper class used to manage \mono{qhull} objects.
      !!}
      private
      type(c_ptr) :: qhull_=c_null_ptr
@@ -116,7 +116,7 @@ contains
 
   function convexHullConstructor(points,allowSubsampling,randomNumberGenerator_) result(self)
     !!{
-    Constructor for {\normalfont \ttfamily convexHull} objects.
+    Constructor for \mono{convexHull} objects.
     !!}
 #ifdef QHULLAVAIL
     use, intrinsic :: ISO_C_Binding           , only : c_size_t                  , c_long
@@ -189,7 +189,7 @@ contains
 
   subroutine qhullDestructor(self)
     !!{
-    Destructor for {\normalfont \ttfamily qhull} objects.
+    Destructor for \mono{qhull} objects.
     !!}
 #ifdef QHULLAVAIL
     use, intrinsic :: ISO_C_Binding, only : c_associated

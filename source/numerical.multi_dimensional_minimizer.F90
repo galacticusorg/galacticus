@@ -114,7 +114,7 @@ module Multidimensional_Minimizer
   abstract interface
      function gslMultiminFunctionFTemplate(x)
        !!{
-       Interface for {\normalfont \ttfamily gslMultiminFunctionF} type.
+       Interface for \mono{gslMultiminFunctionF} type.
        !!}
        double precision                              :: gslMultiminFunctionFTemplate
        double precision, intent(in   ), dimension(:) :: x
@@ -122,7 +122,7 @@ module Multidimensional_Minimizer
 
      function gslMultiminFunctionDFTemplate(x)
        !!{
-       Interface for {\normalfont \ttfamily gslMultiminFunctionDF} type.
+       Interface for \mono{gslMultiminFunctionDF} type.
        !!}
        double precision, intent(in   ), dimension(     : ) :: x
        double precision               , dimension(size(x)) :: gslMultiminFunctionDFTemplate
@@ -130,7 +130,7 @@ module Multidimensional_Minimizer
 
      subroutine gslMultiminFunctionFDFTemplate(x,f,g)
        !!{
-       Interface for {\normalfont \ttfamily gslMultiminFunctionFDF} type.
+       Interface for \mono{gslMultiminFunctionFDF} type.
        !!}
        double precision, intent(in   ), dimension(     : ) :: x
        double precision, intent(  out)                     :: f
@@ -141,7 +141,7 @@ module Multidimensional_Minimizer
   interface
      subroutine gslMultiminFunctionFdFDestructor(f) bind(c,name="gslMultiminFunctionFdFDestructor")
        !!{
-       Interface to a C function which destroys a {\normalfont \ttfamily gslFunction} type.
+       Interface to a C function which destroys a \mono{gslFunction} type.
        !!}
        import c_funptr
        type(c_funptr), value :: f
@@ -149,7 +149,7 @@ module Multidimensional_Minimizer
 
      subroutine gslMultiminFunctionFDestructor(f) bind(c,name="gslMultiminFunctionFDestructor")
        !!{
-       Interface to a C function which destroys a {\normalfont \ttfamily gslFunction} type.
+       Interface to a C function which destroys a \mono{gslFunction} type.
        !!}
        import c_funptr
        type(c_funptr), value :: f
@@ -157,7 +157,7 @@ module Multidimensional_Minimizer
 
      function gslMultiminFunctionFdFConstructor(n,f,df,fdf) bind(c,name="gslMultiminFunctionFdFConstructor")
        !!{
-       Interface to a C function which establishes a {\normalfont \ttfamily gslMultiminFunctionFdF} type.
+       Interface to a C function which establishes a \mono{gslMultiminFunctionFdF} type.
        !!}
        import c_ptr, c_funptr, c_size_t
        type   (c_ptr   )        :: gslMultiminFunctionFdFConstructor
@@ -270,7 +270,7 @@ module Multidimensional_Minimizer
 
      function gslMultiminFunctionFConstructor(n,f) bind(c,name="gslMultiminFunctionFConstructor")
        !!{
-       Interface to a C function which establishes a {\normalfont \ttfamily gslMultiminFunctionF} type.
+       Interface to a C function which establishes a \mono{gslMultiminFunctionF} type.
        !!}
        import c_ptr, c_funptr, c_size_t
        type   (c_ptr   )        :: gslMultiminFunctionFConstructor
@@ -370,7 +370,7 @@ contains
 
   function multiDMinimizerConstructor(countDimensions,minimizeFunction,minimizeFunctionDerivative,minimizeFunctionBoth,minimizerType) result(self)
     !!{
-    Constructor for {\normalfont \ttfamily multiDMinimizer} class.
+    Constructor for \mono{multiDMinimizer} class.
     !!}
     use, intrinsic :: ISO_C_Binding, only : c_funloc, c_loc
     use            :: Error        , only : Error_Report
@@ -458,7 +458,7 @@ contains
 
   subroutine gslMinimizerWrapperDestructor(self)
     !!{
-    Destroy a {\normalfont \ttfamily gslMinimizerWrapper} object.
+    Destroy a \mono{gslMinimizerWrapper} object.
     !!}
     implicit none
     type(gslMinimizerWrapper), intent(inout) :: self
@@ -473,7 +473,7 @@ contains
 
   subroutine gslMinimizerFWrapperDestructor(self)
     !!{
-    Destroy a {\normalfont \ttfamily gslMinimizerFWrapper} object.
+    Destroy a \mono{gslMinimizerFWrapper} object.
     !!}
     implicit none
     type(gslMinimizerFWrapper), intent(inout) :: self
@@ -484,7 +484,7 @@ contains
 
   subroutine gslMinimizerFDFWrapperDestructor(self)
     !!{
-    Destroy a {\normalfont \ttfamily gslMinimizerFDFWrapper} object.
+    Destroy a \mono{gslMinimizerFDFWrapper} object.
     !!}
     implicit none
     type(gslMinimizerFDFWrapper), intent(inout) :: self
@@ -518,7 +518,7 @@ contains
   
   subroutine multiDMinimizerSet(self,x,stepSize,tolerance)
     !!{
-    Set the initial state for a {\normalfont \ttfamily multiDMinimizer} object.
+    Set the initial state for a \mono{multiDMinimizer} object.
     !!}
     use :: Linear_Algebra, only : vector
     use :: Error         , only : Error_Report

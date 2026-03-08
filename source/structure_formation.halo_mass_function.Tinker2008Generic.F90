@@ -163,7 +163,7 @@ contains
 
   double precision function tinker2008GenericNormalization(self,time,mass)
     !!{
-    Return the normalization for the {\normalfont \ttfamily tinker2008Generic} halo mass function class.
+    Return the normalization for the \mono{tinker2008Generic} halo mass function class.
     !!}
     implicit none
     class           (haloMassFunctionTinker2008Generic), intent(inout) :: self
@@ -176,7 +176,7 @@ contains
 
   double precision function tinker2008GenericA(self,time,mass)
     !!{
-    Return the $a$ parameter for the {\normalfont \ttfamily tinker2008Generic} halo mass function class.
+    Return the $a$ parameter for the \mono{tinker2008Generic} halo mass function class.
     !!}
     implicit none
     class           (haloMassFunctionTinker2008Generic), intent(inout) :: self
@@ -189,7 +189,7 @@ contains
 
   double precision function tinker2008GenericB(self,time,mass)
     !!{
-    Return the $b$ parameter for the {\normalfont \ttfamily tinker2008Generic} halo mass function class.
+    Return the $b$ parameter for the \mono{tinker2008Generic} halo mass function class.
     !!}
     implicit none
     class           (haloMassFunctionTinker2008Generic), intent(inout) :: self
@@ -202,7 +202,7 @@ contains
 
   double precision function tinker2008GenericC(self,time,mass)
     !!{
-    Return the $c$ parameter for the {\normalfont \ttfamily tinker2008Generic} halo mass function class.
+    Return the $c$ parameter for the \mono{tinker2008Generic} halo mass function class.
     !!}
     implicit none
     class           (haloMassFunctionTinker2008Generic), intent(inout) :: self

@@ -208,7 +208,7 @@ module Numerical_Interpolation
        <method description="Interpolate in the tabulated function."                                                 method="interpolate"         />
        <method description="Interpolate the derivative in the tabulated function."                                  method="derivative"          />
        <method description="Interpolate the second derivative in the tabulated function."                           method="secondDerivative"    />
-       <method description="Locate the position in the array corresponding to the given {\normalfont \ttfamily x}." method="locate"              />
+       <method description="Locate the position in the array corresponding to the given \mono{x}."                  method="locate"              />
        <method description="Return factors required to perform a linear interpolation."                             method="linearFactors"       />
        <method description="Return weights required to perform a linear interpolation."                             method="linearWeights"       />
        <method description="Allocate GSL objects."                                                                  method="gslAllocate"         />
@@ -243,7 +243,7 @@ module Numerical_Interpolation
 
   interface interpolator
      !!{
-     Constructor for the {\normalfont \ttfamily interpolator} class.
+     Constructor for the \mono{interpolator} class.
      !!}
      module procedure interpolatorConstructor
   end interface interpolator
@@ -292,7 +292,7 @@ module Numerical_Interpolation
 
   interface interpolator2D
      !!{
-     Constructor for the {\normalfont \ttfamily interpolator2D} class.
+     Constructor for the \mono{interpolator2D} class.
      !!}
      module procedure interpolator2DConstructor
   end interface interpolator2D
@@ -301,7 +301,7 @@ contains
 
   function interpolatorConstructor(x,y,interpolationType,extrapolationType) result(self)
     !!{
-    Constructor for {\normalfont \ttfamily interpolator} objects.
+    Constructor for \mono{interpolator} objects.
     !!}
     use :: Error       , only : Error_Report
     use :: Table_Labels, only : extrapolationTypeAbort
@@ -429,7 +429,7 @@ contains
 
   subroutine gslInterpWrapperDestructor(self)
     !!{
-    Destroy a {\normalfont \ttfamily gslInterpWrapper} object.
+    Destroy a \mono{gslInterpWrapper} object.
     !!}
     implicit none
     type(gslInterpWrapper), intent(inout) :: self
@@ -440,7 +440,7 @@ contains
 
   subroutine gslInterpAccelWrapperDestructor(self)
     !!{
-    Destroy a {\normalfont \ttfamily gslInterpWrapper} object.
+    Destroy a \mono{gslInterpWrapper} object.
     !!}
     implicit none
     type(gslInterpAccelWrapper), intent(inout) :: self
@@ -506,7 +506,7 @@ contains
   
   subroutine interpolatorLinearFactors(self,x,i,h)
     !!{
-    Return interpolating factors for linear interpolation in the array {\normalfont \ttfamily xArray()} given {\normalfont \ttfamily x}.
+    Return interpolating factors for linear interpolation in the array \mono{xArray()} given \mono{x}.
     !!}
     use :: Error       , only : Error_Report
     use :: Table_Labels, only : extrapolationTypeAbort, extrapolationTypeExtrapolate, extrapolationTypeFix, extrapolationTypeZero
@@ -579,7 +579,7 @@ contains
 
   subroutine interpolatorLinearWeights(self,x,i,h)
     !!{
-    Return interpolation weights factors for linear interpolation in the array {\normalfont \ttfamily xArray()} given {\normalfont \ttfamily x} and {\normalfont \ttfamily i}.
+    Return interpolation weights factors for linear interpolation in the array \mono{xArray()} given \mono{x} and \mono{i}.
     !!}
     implicit none
     class           (interpolator)                , intent(inout) :: self
@@ -596,7 +596,7 @@ contains
 
   double precision function interpolatorInterpolateNoYa(self,x)
     !!{
-    Interpolate a function to {\normalfont \ttfamily x}.
+    Interpolate a function to \mono{x}.
     !!}
     use :: Error, only : Error_Report
     implicit none
@@ -614,7 +614,7 @@ contains
   
   double precision function interpolatorInterpolate(self,x,ya)
     !!{
-    Interpolate a function to {\normalfont \ttfamily x}.
+    Interpolate a function to \mono{x}.
     !!}
     use :: Error             , only : Error_Report
     use :: Interface_GSL     , only : GSL_Success           , GSL_EDom
@@ -704,7 +704,7 @@ contains
   
   double precision function interpolatorDerivativeNoYa(self,x)
     !!{
-    Interpolate the derivative of the function to {\normalfont \ttfamily x}.
+    Interpolate the derivative of the function to \mono{x}.
     !!}
     use :: Error, only : Error_Report
     implicit none
@@ -722,7 +722,7 @@ contains
   
   double precision function interpolatorDerivative(self,x,ya)
     !!{
-    Interpolate the derivative of the function to {\normalfont \ttfamily x}.
+    Interpolate the derivative of the function to \mono{x}.
     !!}
     use            :: Error             , only : Error_Report
     use, intrinsic :: ISO_C_Binding     , only : c_size_t
@@ -774,7 +774,7 @@ contains
 
   double precision function interpolatorSecondDerivativeNoYa(self,x)
     !!{
-    Interpolate the second derivative of the function to {\normalfont \ttfamily x}.
+    Interpolate the second derivative of the function to \mono{x}.
     !!}
     use :: Error, only : Error_Report
     implicit none
@@ -792,7 +792,7 @@ contains
   
   double precision function interpolatorSecondDerivative(self,x,ya)
     !!{
-    Interpolate the second derivative of the function to {\normalfont \ttfamily x}.
+    Interpolate the second derivative of the function to \mono{x}.
     !!}
     use            :: Error             , only : Error_Report
     use, intrinsic :: ISO_C_Binding     , only : c_size_t
@@ -843,7 +843,7 @@ contains
     
   function interpolatorLocate(self,x,closest) result(i)
     !!{
-    Locate the element in the table for interpolation of {\normalfont \ttfamily x}.
+    Locate the element in the table for interpolation of \mono{x}.
     !!}
     implicit none
     integer         (c_size_t    )                          :: i
@@ -869,7 +869,7 @@ contains
 
   function interpolator2DConstructor(x,y,z) result(self)
     !!{
-    Constructor for {\normalfont \ttfamily interpolator2D} objects.
+    Constructor for \mono{interpolator2D} objects.
     !!}
     use :: Error, only : Error_Report
     implicit none
@@ -1031,7 +1031,7 @@ contains
 
   double precision function interpolator2DInterpolate(self,x,y)
     !!{
-    Interpolate a function to {\normalfont \ttfamily (x,y)}.
+    Interpolate a function to \mono{(x,y)}.
     !!}
     use :: Error, only : Error_Report
     implicit none

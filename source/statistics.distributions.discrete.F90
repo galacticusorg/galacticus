@@ -42,27 +42,27 @@ module Statistics_Distributions_Discrete
      <type>double precision</type>
      <pass>yes</pass>
      <argument>integer, intent(in   ) :: x</argument>
-     <description>Return the probability mass at {\normalfont \ttfamily x}.</description>
+     <description>Return the probability mass at \mono{x}.</description>
    </method>
    <method name="massLogarithmic" >
      <type>double precision</type>
      <pass>yes</pass>
      <argument>integer, intent(in   ) :: x</argument>
-     <description>Return the logarithm of the probability mass at {\normalfont \ttfamily x}.</description>
+     <description>Return the logarithm of the probability mass at \mono{x}.</description>
    </method>
    <method name="cumulative" >
      <type>double precision</type>
      <pass>yes</pass>
      <argument>integer, intent(in   )           :: x     </argument>
      <argument>integer, intent(  out), optional :: status</argument>
-     <description>Return the cumulative probability at {\normalfont \ttfamily x}.</description>
+     <description>Return the cumulative probability at \mono{x}.</description>
    </method>
    <method name="cumulativeComplementary" >
      <type>double precision</type>
      <pass>yes</pass>
      <argument>integer, intent(in   )           :: x     </argument>
      <argument>integer, intent(  out), optional :: status</argument>
-     <description>Return the complementary cumulative probability at {\normalfont \ttfamily x}.</description>
+     <description>Return the complementary cumulative probability at \mono{x}.</description>
      <code>
        distributionFunctionDiscrete1DCumulativeComplementary=1.0d0-self%cumulative(x)
      </code>
@@ -71,7 +71,7 @@ module Statistics_Distributions_Discrete
      <type>integer</type>
      <pass>yes</pass>
      <argument>double precision, intent(in   ) :: p</argument>
-     <description>Return the value of the independent variable corresponding to cumulative probability {\normalfont \ttfamily p}.</description>
+     <description>Return the value of the independent variable corresponding to cumulative probability \mono{p}.</description>
    </method>
    <method name="sample" >
      <type>integer</type>
@@ -110,7 +110,7 @@ contains
   
   subroutine distributionFunctionDiscrete1DFinalize(self)
     !!{
-    Finalizer for {\normalfont \ttfamily distributionFunctionDiscrete1D} objects.
+    Finalizer for \mono{distributionFunctionDiscrete1D} objects.
     !!}
     type(distributionFunctionDiscrete1DClass), intent(inout) :: self
 

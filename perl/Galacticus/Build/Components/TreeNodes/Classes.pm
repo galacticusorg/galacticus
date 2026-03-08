@@ -33,7 +33,7 @@ sub Tree_Node_Class_Count {
     {
 	type        => "integer",
 	name        => "treeNode".ucfirst($code::class->{'name'})."Count",
-	description => "Returns the number of {\\normalfont \\ttfamily ".$code::class->{'name'}."} components in the node.",
+	description => "Returns the number of \\mono{".$code::class->{'name'}."} components in the node.",
 	modules     =>
 	    [
 	     "Error"
@@ -93,7 +93,7 @@ sub Tree_Node_Class_Get {
     {
 	type        => "class(nodeComponent".ucfirst($code::class->{'name'})."), pointer => component",
 	name        => "treeNode".ucfirst($code::class->{'name'})."Get",
-	description => "Return a {\\normalfont \\ttfamily ".$code::class->{'name'}."} component member of the node. If no {\\normalfont \\ttfamily instance} is specified, return the first instance. If {\\normalfont \\ttfamily autoCreate} is {\\normalfont \\ttfamily true} then create a single instance of the component if none exists in the node.",
+	description => "Return a \\mono{".$code::class->{'name'}."} component member of the node. If no \\mono{instance} is specified, return the first instance. If \\mono{autoCreate} is \\mono{true} then create a single instance of the component if none exists in the node.",
 	recursive   => 1,
 	modules     =>
 	    [

@@ -38,7 +38,7 @@
     matter power spectrum, because of its simplicity and speed. We have checked that using a more accurate non-linear matter
     power spectrum (e.g. \citealt{lawrence_coyote_2010}) makes negligible difference to our results. If the angular power
     spectrum of the survey mask is available\footnote{Typically if the survey geometry is defined by \protect\gls{mangle}
-    polygons, allowing the angular power spectrum to be found using the \protect\gls{mangle} {\normalfont \ttfamily harmonize}
+    polygons, allowing the angular power spectrum to be found using the \protect\gls{mangle} \mono{harmonize}
     utility.}, this is used to compute the relation
     \begin{equation}
      \sigma^2(M_\mu,M_\nu) = {2 \over \pi V_\mu V_\nu}\int_0^\infty \mathrm{d} k\, k^{-4} P(k) \sum_i \sum_j \sum_{\ell=0}^\infty (2\ell+1) C^{ij}_\ell R^i_{\ell}(kr_{\mu 0},kr_{\mu 1}) R^j_{\ell}(kr_{\nu 0},kr_{\nu 1}),

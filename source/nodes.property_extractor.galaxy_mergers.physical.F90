@@ -128,7 +128,7 @@ contains
   
   subroutine galaxyMergersPhysicalNames(self,names)
     !!{
-    Return the names of the {\normalfont \ttfamily galaxyMergersPhysical} properties.
+    Return the names of the \mono{galaxyMergersPhysical} properties.
     !!}
     implicit none
     class(nodePropertyExtractorGalaxyMergersPhysical), intent(inout)                             :: self
@@ -146,7 +146,7 @@ contains
 
   subroutine galaxyMergersPhysicalDescriptions(self,descriptions)
     !!{
-    Return the descriptions of the {\normalfont \ttfamily galaxyMergersPhysical} properties.
+    Return the descriptions of the \mono{galaxyMergersPhysical} properties.
     !!}
     implicit none
     class(nodePropertyExtractorGalaxyMergersPhysical), intent(inout)                             :: self
@@ -164,7 +164,7 @@ contains
 
   function galaxyMergersPhysicalUnitsInSI(self) result(unitsInSI)
     !!{
-    Return the units of the {\normalfont \ttfamily galaxyMergersPhysical} properties in the SI system.
+    Return the units of the \mono{galaxyMergersPhysical} properties in the SI system.
     !!}
     use :: Numerical_Constants_Astronomical, only : gigaYear, massSolar
     implicit none

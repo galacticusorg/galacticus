@@ -385,14 +385,14 @@ module IO_HDF5
   interface
      function H5T_C_S1_Get() bind(c,name='H5T_C_S1_Get')
        !!{
-       Template for a C function that returns the {\normalfont \ttfamily H5T\_C\_S1} datatype ID.
+       Template for a C function that returns the \mono{H5T\_C\_S1} datatype ID.
        !!}
        import
        integer(kind=hid_t) :: H5T_C_S1_Get
      end function H5T_C_S1_Get
      function H5T_Variable_Get() bind(c,name='H5T_Variable_Get')
        !!{
-       Template for a C function that returns the {\normalfont \ttfamily H5T\_C\_S1} datatype ID.
+       Template for a C function that returns the \mono{H5T\_C\_S1} datatype ID.
        !!}
        import
        integer(kind=size_t) :: H5T_Variable_Get
@@ -578,7 +578,7 @@ contains
 #ifdef DEBUGHDF5
   subroutine IO_HDF5_Assert_In_Locked()
     !!{
-    Assert that we are holding the hdf5Access lock.
+    Assert that we are holding the \mono{hdf5Access} lock.
     !!}
     use :: Error, only : Error_Report
     implicit none
@@ -755,7 +755,7 @@ contains
   
   logical function IO_HDF5_Is_Open(self)
     !!{
-    Returns true if {\normalfont \ttfamily self} is open.
+    Returns true if \mono{self} is open.
     !!}
     implicit none
     class(hdf5Object), intent(in   ) :: self
@@ -766,7 +766,7 @@ contains
 
   integer function IO_HDF5_Object_Type(self)
     !!{
-    Returns the object type for {\normalfont \ttfamily self}.
+    Returns the object type for \mono{self}.
     !!}
     implicit none
     class(hdf5Object), intent(in   ) :: self
@@ -777,7 +777,7 @@ contains
 
   subroutine IO_HDF5_Assign(to,from)
     !!{
-    Assignment operator for the {\normalfont \ttfamily hdf5Object} class.
+    Assignment operator for the \mono{hdf5Object} class.
     !!}
     implicit none
     class(hdf5Object), intent(  out) :: to
@@ -805,7 +805,7 @@ contains
   
   function IO_HDF5_Name(self) result (nameOfObject)
     !!{
-    Returns the path to {\normalfont \ttfamily self}.
+    Returns the path to \mono{self}.
     !!}
     implicit none
     class(hdf5Object    ), intent(in   ) :: self
@@ -817,7 +817,7 @@ contains
 
   function IO_HDF5_Path_To(self,includeFileName) result (pathToObject)
     !!{
-    Returns the path to {\normalfont \ttfamily self}.
+    Returns the path to \mono{self}.
     !!}
     use :: ISO_Varying_String, only : operator(//), assignment(=), operator(/=)
     implicit none
@@ -846,7 +846,7 @@ contains
 
   function IO_HDF5_File_Name(self) result (fileName)
     !!{
-    Returns the name of the file containing {\normalfont \ttfamily self}.
+    Returns the name of the file containing \mono{self}.
     !!}
     use :: ISO_Varying_String, only : operator(//)
     implicit none
@@ -864,7 +864,7 @@ contains
 
   function IO_HDF5_Location_Report(self) result (report)
     !!{
-    Returns a report on the location of {\normalfont \ttfamily self} suitable for inclusion in an error message.
+    Returns a report on the location of \mono{self} suitable for inclusion in an error message.
     !!}
     use :: ISO_Varying_String, only : operator(//)
     implicit none
@@ -1311,8 +1311,8 @@ contains
   function IO_HDF5_Open_Group(inObject,groupName,comment,objectsOverwritable,overwriteOverride,chunkSize,compressionLevel,attributesCompactMaxiumum) result (self)
     !!{
     Open an HDF5 group and return an appropriate HDF5 object. The group name can be provided as an input parameter or, if
-    not provided, will be taken from the stored object name in {\normalfont \ttfamily self}. The location at which to open the group is
-    taken from either {\normalfont \ttfamily inObject} or {\normalfont \ttfamily inPath}.
+    not provided, will be taken from the stored object name in \mono{self}. The location at which to open the group is
+    taken from either \mono{inObject} or \mono{inPath}.
     !!}
     use :: Error             , only : Error_Report
     use :: HDF5              , only : HID_T        , h5gcreate_f               , h5gopen_f , hsize_t            , &
@@ -1463,7 +1463,7 @@ contains
 
   logical function IO_HDF5_Has_Group(self,groupName)
     !!{
-    Check if {\normalfont \ttfamily self} has a group with the given {\normalfont \ttfamily groupName}.
+    Check if \mono{self} has a group with the given \mono{groupName}.
     !!}
     use :: Error             , only : Error_Report
     use :: HDF5              , only : h5eset_auto_f, h5gget_info_by_name_f
@@ -1504,7 +1504,7 @@ contains
 
   function IO_HDF5_Open_Attribute(inObject,attributeName,attributeDataType,attributeDimensions,isOverwritable,useDataType) result(self)
     !!{
-    Open an attribute in {\normalfont \ttfamily inObject}.
+    Open an attribute in \mono{inObject}.
     !!}
     use :: Error             , only : Error_Report
     use :: HDF5              , only : H5T_NATIVE_CHARACTER, H5T_NATIVE_DOUBLE , H5T_NATIVE_INTEGER, h5screate_simple_f, &
@@ -1653,7 +1653,7 @@ contains
 
   subroutine IO_HDF5_Write_Attribute_Logical_Scalar(self,attributeValue,attributeName)
     !!{
-    Open and write a logical scalar attribute in {\normalfont \ttfamily self}.
+    Open and write a logical scalar attribute in \mono{self}.
     !!}
     implicit none
     class    (hdf5Object    ), intent(inout)           :: self
@@ -1670,7 +1670,7 @@ contains
 
   subroutine IO_HDF5_Write_Attribute_Integer_Scalar(self,attributeValue,attributeName)
     !!{
-    Open and write an integer scalar attribute in {\normalfont \ttfamily self}.
+    Open and write an integer scalar attribute in \mono{self}.
     !!}
     use :: Error             , only : Error_Report
     use :: HDF5              , only : H5T_NATIVE_INTEGER, HSIZE_T     , h5awrite_f
@@ -1745,7 +1745,7 @@ contains
 
   subroutine IO_HDF5_Write_Attribute_Integer_1D(self,attributeValue,attributeName)
     !!{
-    Open and write an integer 1-D array attribute in {\normalfont \ttfamily self}.
+    Open and write an integer 1-D array attribute in \mono{self}.
     !!}
     use :: Error             , only : Error_Report
     use :: HDF5              , only : H5T_NATIVE_INTEGER, HSIZE_T     , h5awrite_f
@@ -1824,7 +1824,7 @@ contains
 
   subroutine IO_HDF5_Write_Attribute_Integer8_Scalar(self,attributeValue,attributeName)
     !!{
-    Open and write a long integer scalar attribute in {\normalfont \ttfamily self}.
+    Open and write a long integer scalar attribute in \mono{self}.
     !!}
     use            :: Error             , only : Error_Report
     use, intrinsic :: ISO_C_Binding     , only : c_loc
@@ -1903,7 +1903,7 @@ contains
 
   subroutine IO_HDF5_Write_Attribute_Integer8_1D(self,attributeValue,attributeName)
     !!{
-    Open and write an integer 1-D array attribute in {\normalfont \ttfamily self}.
+    Open and write an integer 1-D array attribute in \mono{self}.
     !!}
     use            :: Error             , only : Error_Report
     use            :: HDF5              , only : HSIZE_T
@@ -1991,7 +1991,7 @@ contains
 
   subroutine IO_HDF5_Write_Attribute_Double_Scalar(self,attributeValue,attributeName)
     !!{
-    Open and write an double scalar attribute in {\normalfont \ttfamily self}.
+    Open and write an double scalar attribute in \mono{self}.
     !!}
     use :: Error             , only : Error_Report
     use :: HDF5              , only : H5T_NATIVE_DOUBLE, HSIZE_T     , h5awrite_f
@@ -2069,7 +2069,7 @@ contains
 
   subroutine IO_HDF5_Write_Attribute_Double_1D(self,attributeValue,attributeName)
     !!{
-    Open and write an double 1-D array attribute in {\normalfont \ttfamily self}.
+    Open and write an double 1-D array attribute in \mono{self}.
     !!}
     use :: Error             , only : Error_Report
     use :: HDF5              , only : H5T_NATIVE_DOUBLE, HSIZE_T     , h5awrite_f
@@ -2148,7 +2148,7 @@ contains
 
   subroutine IO_HDF5_Write_Attribute_Double_2D(self,attributeValue,attributeName)
     !!{
-    Open and write an double 2-D array attribute in {\normalfont \ttfamily self}.
+    Open and write an double 2-D array attribute in \mono{self}.
     !!}
     use :: Error             , only : Error_Report
     use :: HDF5              , only : H5T_NATIVE_DOUBLE, HSIZE_T     , h5awrite_f
@@ -2227,7 +2227,7 @@ contains
 
   subroutine IO_HDF5_Write_Attribute_Character_Scalar(self,attributeValue,attributeName)
     !!{
-    Open and write an character scalar attribute in {\normalfont \ttfamily self}.
+    Open and write an character scalar attribute in \mono{self}.
     !!}
     use :: Error             , only : Error_Report
     use :: HDF5              , only : H5T_NATIVE_CHARACTER, HID_T       , HSIZE_T      , h5awrite_f, &
@@ -2326,7 +2326,7 @@ contains
 
   subroutine IO_HDF5_Write_Attribute_Character_1D(self,attributeValue,attributeName)
     !!{
-    Open and write an character 1-D array attribute in {\normalfont \ttfamily self}.
+    Open and write an character 1-D array attribute in \mono{self}.
     !!}
     use :: Error             , only : Error_Report
     use :: HDF5              , only : H5T_NATIVE_CHARACTER, HID_T        , HSIZE_T, h5awrite_f, &
@@ -2419,7 +2419,7 @@ contains
 
   subroutine IO_HDF5_Write_Attribute_VarString_Scalar(self,attributeValue,attributeName)
     !!{
-    Open and write a varying string scalar attribute in {\normalfont \ttfamily self}.
+    Open and write a varying string scalar attribute in \mono{self}.
     !!}
     use :: ISO_Varying_String, only : char
     implicit none
@@ -2434,7 +2434,7 @@ contains
 
   subroutine IO_HDF5_Write_Attribute_VarString_1D(self,attributeValue,attributeName)
     !!{
-    Open and write a varying string 1-D array attribute in {\normalfont \ttfamily self}.
+    Open and write a varying string 1-D array attribute in \mono{self}.
     !!}
     use :: String_Handling, only : Convert_VarString_To_Char
     implicit none
@@ -2450,7 +2450,7 @@ contains
 
   subroutine IO_HDF5_Read_Attribute_Integer_Scalar(self,attributeName,attributeValue,allowPseudoScalar)
     !!{
-    Open and read an integer scalar attribute in {\normalfont \ttfamily self}.
+    Open and read an integer scalar attribute in \mono{self}.
     !!}
     use :: Error             , only : Error_Report
     use :: HDF5              , only : H5T_NATIVE_INTEGER, HID_T       , HSIZE_T                    , h5aget_space_f, &
@@ -2564,7 +2564,7 @@ contains
 
   subroutine IO_HDF5_Read_Attribute_Integer_1D_Array_Allocatable(self,attributeName,attributeValue)
     !!{
-    Open and read an integer scalar attribute in {\normalfont \ttfamily self}.
+    Open and read an integer scalar attribute in \mono{self}.
     !!}
     use :: Error             , only : Error_Report
     use :: HDF5              , only : H5T_NATIVE_INTEGER, HID_T       , HSIZE_T                    , h5aget_space_f, &
@@ -2661,7 +2661,7 @@ contains
 
   subroutine IO_HDF5_Read_Attribute_Integer_1D_Array_Static(self,attributeName,attributeValue)
     !!{
-    Open and read an integer scalar attribute in {\normalfont \ttfamily self}.
+    Open and read an integer scalar attribute in \mono{self}.
     !!}
     use :: Error             , only : Error_Report
     use :: HDF5              , only : H5T_NATIVE_INTEGER, HID_T       , HSIZE_T                    , h5aget_space_f, &
@@ -2757,7 +2757,7 @@ contains
 
   subroutine IO_HDF5_Read_Attribute_Integer8_Scalar(self,attributeName,attributeValue,allowPseudoScalar)
     !!{
-    Open and read a long integer scalar attribute in {\normalfont \ttfamily self}.
+    Open and read a long integer scalar attribute in \mono{self}.
     !!}
     use            :: Error             , only : Error_Report
     use            :: HDF5              , only : h5sget_simple_extent_dims_f, HID_T       , HSIZE_T, h5aget_space_f, &
@@ -2873,7 +2873,7 @@ contains
 
   subroutine IO_HDF5_Read_Attribute_Integer8_1D_Array_Allocatable(self,attributeName,attributeValue)
     !!{
-    Open and read an integer scalar attribute in {\normalfont \ttfamily self}.
+    Open and read an integer scalar attribute in \mono{self}.
     !!}
     use            :: Error             , only : Error_Report
     use            :: HDF5              , only : h5sget_simple_extent_dims_f, HID_T      , HSIZE_T, h5aget_space_f, &
@@ -2972,7 +2972,7 @@ contains
 
   subroutine IO_HDF5_Read_Attribute_Integer8_1D_Array_Static(self,attributeName,attributeValue)
     !!{
-    Open and read an integer scalar attribute in {\normalfont \ttfamily self}.
+    Open and read an integer scalar attribute in \mono{self}.
     !!}
     use            :: Error             , only : Error_Report
     use            :: HDF5              , only : h5sget_simple_extent_dims_f, HID_T       , HSIZE_T, h5aget_space_f, &
@@ -3076,7 +3076,7 @@ contains
 
   subroutine IO_HDF5_Read_Attribute_Double_Scalar(self,attributeName,attributeValue,allowPseudoScalar)
     !!{
-    Open and read an double scalar attribute in {\normalfont \ttfamily self}.
+    Open and read an double scalar attribute in \mono{self}.
     !!}
     use :: Error             , only : Error_Report
     use :: HDF5              , only : H5T_NATIVE_DOUBLE, HID_T       , HSIZE_T                    , h5aget_space_f, &
@@ -3192,7 +3192,7 @@ contains
 
   subroutine IO_HDF5_Read_Attribute_Double_1D_Array_Allocatable(self,attributeName,attributeValue)
     !!{
-    Open and read an double scalar attribute in {\normalfont \ttfamily self}.
+    Open and read an double scalar attribute in \mono{self}.
     !!}
     use :: Error             , only : Error_Report
     use :: HDF5              , only : H5T_NATIVE_DOUBLE, HID_T       , HSIZE_T                    , h5aget_space_f, &
@@ -3289,7 +3289,7 @@ contains
 
   subroutine IO_HDF5_Read_Attribute_Double_1D_Array_Static(self,attributeName,attributeValue)
     !!{
-    Open and read an double scalar attribute in {\normalfont \ttfamily self}.
+    Open and read an double scalar attribute in \mono{self}.
     !!}
     use :: Error             , only : Error_Report
     use :: HDF5              , only : H5T_NATIVE_DOUBLE, HID_T       , HSIZE_T                    , h5aget_space_f, &
@@ -3387,7 +3387,7 @@ contains
 
   subroutine IO_HDF5_Read_Attribute_Character_Scalar(self,attributeName,attributeValue,allowPseudoScalar)
     !!{
-    Open and read an character scalar attribute in {\normalfont \ttfamily self}.
+    Open and read an character scalar attribute in \mono{self}.
     !!}
     use, intrinsic :: ISO_C_Binding     , only : c_loc              , c_ptr                      , c_null_char    , c_f_pointer
     use            :: Error             , only : Error_Report
@@ -3548,7 +3548,7 @@ contains
 
   subroutine IO_HDF5_Read_Attribute_Character_1D_Array_Allocatable(self,attributeName,attributeValue)
     !!{
-    Open and read an character scalar attribute in {\normalfont \ttfamily self}.
+    Open and read an character scalar attribute in \mono{self}.
     !!}
     use :: Error             , only : Error_Report
     use :: HDF5              , only : HID_T        , HSIZE_T                    , h5aget_space_f, h5aread_f, &
@@ -3660,7 +3660,7 @@ contains
 
   subroutine IO_HDF5_Read_Attribute_Character_1D_Array_Static(self,attributeName,attributeValue)
     !!{
-    Open and read an character scalar attribute in {\normalfont \ttfamily self}.
+    Open and read an character scalar attribute in \mono{self}.
     !!}
     use :: Error             , only : Error_Report
     use :: HDF5              , only : HID_T        , HSIZE_T                    , h5aget_space_f, h5aread_f, &
@@ -3772,7 +3772,7 @@ contains
 
   subroutine IO_HDF5_Read_Attribute_VarString_Scalar(self,attributeName,attributeValue,allowPseudoScalar)
     !!{
-    Open and read an varying string scalar attribute in {\normalfont \ttfamily self}.
+    Open and read an varying string scalar attribute in \mono{self}.
     !!}
     use :: Error             , only : Error_Report
     use :: HDF5              , only : HID_T        , h5aget_type_f, h5tclose_f, h5tget_size_f, &
@@ -3882,7 +3882,7 @@ attributeValue=trim(attributeValue)
 
   subroutine IO_HDF5_Read_Attribute_VarString_Scalar_Do_Read(self,attributeName,attributeValue,dataTypeSize,allowPseudoScalar)
     !!{
-    Open and read an varying string scalar attribute in {\normalfont \ttfamily self} by creating a suitably-sized character variable into
+    Open and read an varying string scalar attribute in \mono{self} by creating a suitably-sized character variable into
     which it can be read.
     !!}
     use :: ISO_Varying_String, only : assignment(=)
@@ -3905,7 +3905,7 @@ attributeValue=trim(attributeValue)
 
   subroutine IO_HDF5_Read_Attribute_VarString_1D_Array_Allocatable(self,attributeName,attributeValue)
     !!{
-    Open and read an varying string 1-D array attribute in {\normalfont \ttfamily self}.
+    Open and read an varying string 1-D array attribute in \mono{self}.
     !!}
     use :: Error             , only : Error_Report
     use :: HDF5              , only : HID_T        , h5aget_type_f, h5tclose_f, h5tget_size_f
@@ -3991,7 +3991,7 @@ attributeValue=trim(attributeValue)
 
   subroutine IO_HDF5_Read_Attribute_VarString_1D_Array_Allocatable_Do_Read(self,attributeName,attributeValue,dataTypeSize)
     !!{
-    Open and read an varying string 1-D array attribute in {\normalfont \ttfamily self} by creating a suitably-sized character variable into
+    Open and read an varying string 1-D array attribute in \mono{self} by creating a suitably-sized character variable into
     which it can be read.
     !!}
     use :: ISO_Varying_String, only : assignment(=)
@@ -4015,7 +4015,7 @@ attributeValue=trim(attributeValue)
 
   subroutine IO_HDF5_Read_Attribute_VarString_1D_Array_Static(self,attributeName,attributeValue)
     !!{
-    Open and read an varying string 1-D array attribute in {\normalfont \ttfamily self}.
+    Open and read an varying string 1-D array attribute in \mono{self}.
     !!}
     use :: Error             , only : Error_Report
     use :: HDF5              , only : HID_T        , h5aget_type_f, h5tclose_f, h5tget_size_f
@@ -4101,7 +4101,7 @@ attributeValue=trim(attributeValue)
 
   subroutine IO_HDF5_Read_Attribute_VarString_1D_Array_Static_Do_Read(self,attributeName,attributeValue,dataTypeSize)
     !!{
-    Open and read an varying string 1-D array attribute in {\normalfont \ttfamily self} by creating a suitably-sized character variable into
+    Open and read an varying string 1-D array attribute in \mono{self} by creating a suitably-sized character variable into
     which it can be read.
     !!}
     use :: ISO_Varying_String, only : assignment(=)
@@ -4123,7 +4123,7 @@ attributeValue=trim(attributeValue)
 
   logical function IO_HDF5_Has_Attribute(self,attributeName)
     !!{
-    Check if {\normalfont \ttfamily self} has an attribute with the given {\normalfont \ttfamily attributeName}.
+    Check if \mono{self} has an attribute with the given \mono{attributeName}.
     !!}
     use :: Error             , only : Error_Report
     use :: HDF5              , only : h5aexists_f
@@ -4238,7 +4238,7 @@ attributeValue=trim(attributeValue)
 
   function IO_HDF5_Dataset_Size(datasetObject,dim)
     !!{
-    Return the size of the {\normalfont \ttfamily dim}$^\mathrm{th}$ dimension of dataset {\normalfont \ttfamily datasetObject}.
+    Return the size of the \mono{dim}$^\mathrm{th}$ dimension of dataset \mono{datasetObject}.
     !!}
     use :: Error             , only : Error_Report
     use :: HDF5              , only : HID_T                      , HSIZE_T                     , h5dget_space_f, h5sclose_f, &
@@ -4308,7 +4308,7 @@ attributeValue=trim(attributeValue)
 
   integer function IO_HDF5_Dataset_Rank(datasetObject)
     !!{
-    Return the rank of dataset {\normalfont \ttfamily datasetObject}.
+    Return the rank of dataset \mono{datasetObject}.
     !!}
     use :: Error             , only : Error_Report
     use :: HDF5              , only : HID_T        , h5dget_space_f, h5sget_simple_extent_ndims_f
@@ -4353,7 +4353,7 @@ attributeValue=trim(attributeValue)
 
   function IO_HDF5_Open_Dataset(inObject,datasetName,comment,datasetDataType,datasetDimensions,isOverwritable,appendTo,appendDimension,useDataType,chunkSize,compressionLevel) result(self)
     !!{
-    Open an dataset in {\normalfont \ttfamily inObject}.
+    Open an dataset in \mono{inObject}.
     !!}
     use :: Error             , only : Error_Report
     use :: HDF5              , only : H5P_DATASET_CREATE_F, H5S_UNLIMITED_F      , H5T_NATIVE_CHARACTER, H5T_NATIVE_DOUBLE , &
@@ -4647,7 +4647,7 @@ attributeValue=trim(attributeValue)
 
   logical function IO_HDF5_Has_Dataset(self,datasetName)
     !!{
-    Check if {\normalfont \ttfamily self} has a dataset with the given {\normalfont \ttfamily datasetName}.
+    Check if \mono{self} has a dataset with the given \mono{datasetName}.
     !!}
     use :: Error             , only : Error_Report
     use :: HDF5              , only : HID_T        , h5dclose_f  , h5dopen_f, h5eset_auto_f
@@ -4693,7 +4693,7 @@ attributeValue=trim(attributeValue)
 
   subroutine IO_HDF5_Datasets(self,datasetNames)
     !!{
-    Return a list of all datasets present within {\normalfont \ttfamily self}.
+    Return a list of all datasets present within \mono{self}.
     !!}
     use :: Error             , only : Error_Report
     use :: HDF5              , only : h5g_dataset_f, h5gget_obj_info_idx_f, h5gn_members_f, hid_t
@@ -4849,7 +4849,7 @@ attributeValue=trim(attributeValue)
 
   subroutine IO_HDF5_Write_Dataset_Integer_1D(self,datasetValue,datasetName,comment,appendTo,chunkSize,compressionLevel,datasetReturned)
     !!{
-    Open and write an integer 1-D array dataset in {\normalfont \ttfamily self}.
+    Open and write an integer 1-D array dataset in \mono{self}.
     !!}
     use :: Error             , only : Error_Report
     use :: HDF5              , only : H5S_SELECT_SET_F  , H5T_NATIVE_INTEGER         , HID_T                , HSIZE_T   , &
@@ -5014,7 +5014,7 @@ attributeValue=trim(attributeValue)
 
   subroutine IO_HDF5_Write_Dataset_Integer_2D(self,datasetValue,datasetName,comment,appendTo,chunkSize,compressionLevel,datasetReturned)
     !!{
-    Open and write an integer 2-D array dataset in {\normalfont \ttfamily self}.
+    Open and write an integer 2-D array dataset in \mono{self}.
     !!}
     use :: Error             , only : Error_Report
     use :: HDF5              , only : H5S_SELECT_SET_F  , H5T_NATIVE_INTEGER         , HID_T                , HSIZE_T   , &
@@ -5179,7 +5179,7 @@ attributeValue=trim(attributeValue)
 
   subroutine IO_HDF5_Write_Dataset_Integer_3D(self,datasetValue,datasetName,comment,appendTo,chunkSize,compressionLevel,datasetReturned)
     !!{
-    Open and write an integer 3-D array dataset in {\normalfont \ttfamily self}.
+    Open and write an integer 3-D array dataset in \mono{self}.
     !!}
     use :: Error             , only : Error_Report
     use :: HDF5              , only : H5S_SELECT_SET_F  , H5T_NATIVE_INTEGER         , HID_T                , HSIZE_T   , &
@@ -5344,7 +5344,7 @@ attributeValue=trim(attributeValue)
 
   subroutine IO_HDF5_Read_Dataset_Integer_1D_Array_Static(self,datasetName,datasetValue,readBegin,readCount)
     !!{
-    Open and read an integer scalar dataset in {\normalfont \ttfamily self}.
+    Open and read an integer scalar dataset in \mono{self}.
     !!}
     use            :: Error             , only : Error_Report
     use            :: HDF5              , only : H5P_DEFAULT_F        , H5S_ALL_F         , H5S_SELECT_SET_F      , H5T_NATIVE_INTEGER         , &
@@ -5634,7 +5634,7 @@ attributeValue=trim(attributeValue)
 
   subroutine IO_HDF5_Read_Dataset_Integer_1D_Array_Allocatable(self,datasetName,datasetValue,readBegin,readCount)
     !!{
-    Open and read an integer scalar dataset in {\normalfont \ttfamily self}.
+    Open and read an integer scalar dataset in \mono{self}.
     !!}
     use            :: Error             , only : Error_Report
     use            :: HDF5              , only : H5P_DEFAULT_F        , H5S_ALL_F         , H5S_SELECT_SET_F      , H5T_NATIVE_INTEGER         , &
@@ -5923,7 +5923,7 @@ attributeValue=trim(attributeValue)
 
   subroutine IO_HDF5_Read_Dataset_Integer_2D_Array_Static(self,datasetName,datasetValue,readBegin,readCount)
     !!{
-    Open and read an integer scalar dataset in {\normalfont \ttfamily self}.
+    Open and read an integer scalar dataset in \mono{self}.
     !!}
     use            :: Error             , only : Error_Report
     use            :: HDF5              , only : H5P_DEFAULT_F        , H5S_ALL_F         , H5S_SELECT_SET_F      , H5T_NATIVE_INTEGER         , &
@@ -6213,7 +6213,7 @@ attributeValue=trim(attributeValue)
 
   subroutine IO_HDF5_Read_Dataset_Integer_2D_Array_Allocatable(self,datasetName,datasetValue,readBegin,readCount)
     !!{
-    Open and read an integer scalar dataset in {\normalfont \ttfamily self}.
+    Open and read an integer scalar dataset in \mono{self}.
     !!}
     use            :: Error             , only : Error_Report
     use            :: HDF5              , only : H5P_DEFAULT_F        , H5S_ALL_F         , H5S_SELECT_SET_F      , H5T_NATIVE_INTEGER         , &
@@ -6502,7 +6502,7 @@ attributeValue=trim(attributeValue)
 
   subroutine IO_HDF5_Write_Dataset_Integer8_1D(self,datasetValue,datasetName,comment,appendTo,chunkSize,compressionLevel,datasetReturned)
     !!{
-    Open and write a long integer 1-D array dataset in {\normalfont \ttfamily self}.
+    Open and write a long integer 1-D array dataset in \mono{self}.
     !!}
     use            :: Error             , only : Error_Report
     use            :: HDF5              , only : H5P_DEFAULT_F     , H5S_SELECT_SET_F           , h5sselect_hyperslab_f, HID_T     , &
@@ -6674,7 +6674,7 @@ attributeValue=trim(attributeValue)
 
   subroutine IO_HDF5_Write_Dataset_Integer8_2D(self,datasetValue,datasetName,comment,appendTo,appendDimension,chunkSize,compressionLevel,datasetReturned)
     !!{
-    Open and write a long integer 2-D array dataset in {\normalfont \ttfamily self}.
+    Open and write a long integer 2-D array dataset in \mono{self}.
     !!}
     use            :: Error             , only : Error_Report
     use            :: HDF5              , only : H5P_DEFAULT_F     , H5S_SELECT_SET_F           , h5sselect_hyperslab_f, HID_T     , &
@@ -6859,7 +6859,7 @@ attributeValue=trim(attributeValue)
 
   subroutine IO_HDF5_Write_Dataset_Integer8_3D(self,datasetValue,datasetName,comment,appendTo,chunkSize,compressionLevel,datasetReturned)
     !!{
-    Open and write a long integer 3-D array dataset in {\normalfont \ttfamily self}.
+    Open and write a long integer 3-D array dataset in \mono{self}.
     !!}
     use            :: Error             , only : Error_Report
     use            :: HDF5              , only : H5P_DEFAULT_F     , H5S_SELECT_SET_F           , h5sselect_hyperslab_f, HID_T     , &
@@ -7203,7 +7203,7 @@ attributeValue=trim(attributeValue)
   
   subroutine IO_HDF5_Read_Dataset_Integer8_1D_Array_Static(self,datasetName,datasetValue,readBegin,readCount,readSelection)
     !!{
-    Open and read a long integer scalar dataset in {\normalfont \ttfamily self}.
+    Open and read a long integer scalar dataset in \mono{self}.
     !!}
     use            :: Error             , only : Error_Report
     use            :: HDF5              , only : H5P_DEFAULT_F        , H5S_ALL_F             , H5S_SELECT_SET_F           , h5sselect_elements_f, &
@@ -7572,7 +7572,7 @@ attributeValue=trim(attributeValue)
 
   subroutine IO_HDF5_Read_Dataset_Integer8_1D_Array_Allocatable(self,datasetName,datasetValue,readBegin,readCount,readSelection)
     !!{
-    Open and read a long integer scalar dataset in {\normalfont \ttfamily self}.
+    Open and read a long integer scalar dataset in \mono{self}.
     !!}
     use            :: Error             , only : Error_Report
     use            :: HDF5              , only : H5P_DEFAULT_F        , H5S_ALL_F             , H5S_SELECT_SET_F           , hdset_reg_ref_t_f   , &
@@ -7937,7 +7937,7 @@ attributeValue=trim(attributeValue)
 
   subroutine IO_HDF5_Read_Dataset_Integer8_2D_Array_Static(self,datasetName,datasetValue,readBegin,readCount,readSelection)
     !!{
-    Open and read a double scalar dataset in {\normalfont \ttfamily self}.
+    Open and read a double scalar dataset in \mono{self}.
     !!}
     use            :: Error             , only : Error_Report
     use            :: HDF5              , only : H5P_DEFAULT_F        , H5S_ALL_F             , H5S_SELECT_SET_F           , hdset_reg_ref_t_f   , &
@@ -8311,7 +8311,7 @@ attributeValue=trim(attributeValue)
 
   subroutine IO_HDF5_Read_Dataset_Integer8_2D_Array_Allocatable(self,datasetName,datasetValue,readBegin,readCount,readSelection)
     !!{
-    Open and read a double 2-D array dataset in {\normalfont \ttfamily self}.
+    Open and read a double 2-D array dataset in \mono{self}.
     !!}
     use            :: Error             , only : Error_Report
     use            :: HDF5              , only : H5P_DEFAULT_F        , H5S_ALL_F             , H5S_SELECT_SET_F           , hdset_reg_ref_t_f   , &
@@ -8681,7 +8681,7 @@ attributeValue=trim(attributeValue)
   
   subroutine IO_HDF5_Read_Dataset_Integer8_3D_Array_Allocatable(self,datasetName,datasetValue,readBegin,readCount,readSelection)
     !!{
-    Open and read a double 3-D array dataset in {\normalfont \ttfamily self}.
+    Open and read a double 3-D array dataset in \mono{self}.
     !!}
     use            :: Error             , only : Error_Report
     use            :: HDF5              , only : H5P_DEFAULT_F        , H5S_ALL_F             , H5S_SELECT_SET_F           , hdset_reg_ref_t_f   , &
@@ -9056,7 +9056,7 @@ attributeValue=trim(attributeValue)
   
   subroutine IO_HDF5_Write_Dataset_Double_1D(self,datasetValue,datasetName,comment,appendTo,chunkSize,compressionLevel,datasetReturned)
     !!{
-    Open and write a double 1-D array dataset in {\normalfont \ttfamily self}.
+    Open and write a double 1-D array dataset in \mono{self}.
     !!}
     use :: Error             , only : Error_Report
     use :: HDF5              , only : H5S_SELECT_SET_F  , H5T_NATIVE_DOUBLE          , HID_T                , HSIZE_T   , &
@@ -9221,7 +9221,7 @@ attributeValue=trim(attributeValue)
 
   subroutine IO_HDF5_Read_Dataset_Double_1D_Array_Static(self,datasetName,datasetValue,readBegin,readCount,readSelection)
     !!{
-    Open and read a double scalar dataset in {\normalfont \ttfamily self}.
+    Open and read a double scalar dataset in \mono{self}.
     !!}
     use            :: Error             , only : Error_Report
     use            :: HDF5              , only : H5P_DEFAULT_F       , H5S_ALL_F            , H5S_SELECT_SET_F      , H5T_NATIVE_DOUBLE          , &
@@ -9586,7 +9586,7 @@ attributeValue=trim(attributeValue)
 
   subroutine IO_HDF5_Read_Dataset_Double_1D_Array_Allocatable(self,datasetName,datasetValue,readBegin,readCount,readSelection)
     !!{
-    Open and read a double scalar dataset in {\normalfont \ttfamily self}.
+    Open and read a double scalar dataset in \mono{self}.
     !!}
     use            :: Error             , only : Error_Report
     use            :: HDF5              , only : H5P_DEFAULT_F       , H5S_ALL_F            , H5S_SELECT_SET_F      , H5T_NATIVE_DOUBLE          , &
@@ -9958,7 +9958,7 @@ attributeValue=trim(attributeValue)
 
   subroutine IO_HDF5_Write_Dataset_Double_2D(self,datasetValue,datasetName,comment,appendTo,appendDimension,chunkSize,compressionLevel,datasetReturned)
     !!{
-    Open and write a double 2-D array dataset in {\normalfont \ttfamily self}.
+    Open and write a double 2-D array dataset in \mono{self}.
     !!}
     use :: Error             , only : Error_Report
     use :: HDF5              , only : H5S_SELECT_SET_F  , H5T_NATIVE_DOUBLE          , HID_T                , HSIZE_T   , &
@@ -10136,7 +10136,7 @@ attributeValue=trim(attributeValue)
 
   subroutine IO_HDF5_Read_Dataset_Double_2D_Array_Static(self,datasetName,datasetValue,readBegin,readCount,readSelection)
     !!{
-    Open and read a double scalar dataset in {\normalfont \ttfamily self}.
+    Open and read a double scalar dataset in \mono{self}.
     !!}
     use            :: Error             , only : Error_Report
     use            :: HDF5              , only : H5P_DEFAULT_F       , H5S_ALL_F            , H5S_SELECT_SET_F      , H5T_NATIVE_DOUBLE          , &
@@ -10507,7 +10507,7 @@ attributeValue=trim(attributeValue)
 
   subroutine IO_HDF5_Read_Dataset_Double_2D_Array_Allocatable(self,datasetName,datasetValue,readBegin,readCount,readSelection)
     !!{
-    Open and read a double 2-D array dataset in {\normalfont \ttfamily self}.
+    Open and read a double 2-D array dataset in \mono{self}.
     !!}
     use            :: Error             , only : Error_Report
     use            :: HDF5              , only : H5P_DEFAULT_F       , H5S_ALL_F            , H5S_SELECT_SET_F      , H5T_NATIVE_DOUBLE          , &
@@ -10878,7 +10878,7 @@ attributeValue=trim(attributeValue)
 
   subroutine IO_HDF5_Write_Dataset_Double_3D(self,datasetValue,datasetName,comment,appendTo,appendDimension,chunkSize,compressionLevel,datasetReturned)
     !!{
-    Open and write a double 3-D array dataset in {\normalfont \ttfamily self}.
+    Open and write a double 3-D array dataset in \mono{self}.
     !!}
     use :: Error             , only : Error_Report
     use :: HDF5              , only : H5S_SELECT_SET_F  , H5T_NATIVE_DOUBLE          , HID_T                , HSIZE_T   , &
@@ -11056,7 +11056,7 @@ attributeValue=trim(attributeValue)
 
   subroutine IO_HDF5_Read_Dataset_Double_3D_Array_Static(self,datasetName,datasetValue,readBegin,readCount)
     !!{
-    Open and read a double scalar dataset in {\normalfont \ttfamily self}.
+    Open and read a double scalar dataset in \mono{self}.
     !!}
     use            :: Error             , only : Error_Report
     use            :: HDF5              , only : H5P_DEFAULT_F        , H5S_ALL_F         , H5S_SELECT_SET_F      , H5T_NATIVE_DOUBLE          , &
@@ -11346,7 +11346,7 @@ attributeValue=trim(attributeValue)
 
   subroutine IO_HDF5_Read_Dataset_Double_3D_Array_Allocatable(self,datasetName,datasetValue,readBegin,readCount)
     !!{
-    Open and read a double 3-D array dataset in {\normalfont \ttfamily self}.
+    Open and read a double 3-D array dataset in \mono{self}.
     !!}
     use            :: Error             , only : Error_Report
     use            :: HDF5              , only : H5P_DEFAULT_F        , H5S_ALL_F         , H5S_SELECT_SET_F      , H5T_NATIVE_DOUBLE          , &
@@ -11636,7 +11636,7 @@ attributeValue=trim(attributeValue)
 
   subroutine IO_HDF5_Write_Dataset_Double_4D(self,datasetValue,datasetName,comment,appendTo,appendDimension,chunkSize,compressionLevel,datasetReturned)
     !!{
-    Open and write a double 4-D array dataset in {\normalfont \ttfamily self}.
+    Open and write a double 4-D array dataset in \mono{self}.
     !!}
     use :: Error             , only : Error_Report
     use :: HDF5              , only : H5S_SELECT_SET_F  , H5T_NATIVE_DOUBLE          , HID_T                , HSIZE_T   , &
@@ -11814,7 +11814,7 @@ attributeValue=trim(attributeValue)
 
   subroutine IO_HDF5_Read_Dataset_Double_4D_Array_Static(self,datasetName,datasetValue,readBegin,readCount)
     !!{
-    Open and read a double scalar dataset in {\normalfont \ttfamily self}.
+    Open and read a double scalar dataset in \mono{self}.
     !!}
     use            :: Error             , only : Error_Report
     use            :: HDF5              , only : H5P_DEFAULT_F        , H5S_ALL_F         , H5S_SELECT_SET_F      , H5T_NATIVE_DOUBLE          , &
@@ -12104,7 +12104,7 @@ attributeValue=trim(attributeValue)
 
   subroutine IO_HDF5_Read_Dataset_Double_4D_Array_Allocatable(self,datasetName,datasetValue,readBegin,readCount)
     !!{
-    Open and read a double 4-D array dataset in {\normalfont \ttfamily self}.
+    Open and read a double 4-D array dataset in \mono{self}.
     !!}
     use            :: Error             , only : Error_Report
     use            :: HDF5              , only : H5P_DEFAULT_F        , H5S_ALL_F         , H5S_SELECT_SET_F      , H5T_NATIVE_DOUBLE          , &
@@ -12394,7 +12394,7 @@ attributeValue=trim(attributeValue)
 
   subroutine IO_HDF5_Write_Dataset_Double_5D(self,datasetValue,datasetName,comment,appendTo,appendDimension,chunkSize,compressionLevel,datasetReturned)
     !!{
-    Open and write a double 5-D array dataset in {\normalfont \ttfamily self}.
+    Open and write a double 5-D array dataset in \mono{self}.
     !!}
     use :: Error             , only : Error_Report
     use :: HDF5              , only : H5S_SELECT_SET_F  , H5T_NATIVE_DOUBLE          , HID_T                , HSIZE_T   , &
@@ -12572,7 +12572,7 @@ attributeValue=trim(attributeValue)
 
   subroutine IO_HDF5_Read_Dataset_Double_5D_Array_Static(self,datasetName,datasetValue,readBegin,readCount)
     !!{
-    Open and read a double scalar dataset in {\normalfont \ttfamily self}.
+    Open and read a double scalar dataset in \mono{self}.
     !!}
     use            :: Error             , only : Error_Report
     use            :: HDF5              , only : H5P_DEFAULT_F        , H5S_ALL_F         , H5S_SELECT_SET_F      , H5T_NATIVE_DOUBLE          , &
@@ -12862,7 +12862,7 @@ attributeValue=trim(attributeValue)
 
   subroutine IO_HDF5_Read_Dataset_Double_5D_Array_Allocatable(self,datasetName,datasetValue,readBegin,readCount)
     !!{
-    Open and read a double 5-D array dataset in {\normalfont \ttfamily self}.
+    Open and read a double 5-D array dataset in \mono{self}.
     !!}
     use            :: Error             , only : Error_Report
     use            :: HDF5              , only : H5P_DEFAULT_F        , H5S_ALL_F         , H5S_SELECT_SET_F      , H5T_NATIVE_DOUBLE          , &
@@ -13151,7 +13151,7 @@ attributeValue=trim(attributeValue)
 
   subroutine IO_HDF5_Write_Dataset_Double_6D(self,datasetValue,datasetName,comment,appendTo,appendDimension,chunkSize,compressionLevel,datasetReturned)
     !!{
-    Open and write a double 6-D array dataset in {\normalfont \ttfamily self}.
+    Open and write a double 6-D array dataset in \mono{self}.
     !!}
     use :: Error             , only : Error_Report
     use :: HDF5              , only : H5S_SELECT_SET_F  , H5T_NATIVE_DOUBLE          , HID_T                , HSIZE_T   , &
@@ -13329,7 +13329,7 @@ attributeValue=trim(attributeValue)
 
   subroutine IO_HDF5_Read_Dataset_Double_6D_Array_Static(self,datasetName,datasetValue,readBegin,readCount)
     !!{
-    Open and read a double scalar dataset in {\normalfont \ttfamily self}.
+    Open and read a double scalar dataset in \mono{self}.
     !!}
     use            :: Error             , only : Error_Report
     use            :: HDF5              , only : H5P_DEFAULT_F        , H5S_ALL_F         , H5S_SELECT_SET_F      , H5T_NATIVE_DOUBLE          , &
@@ -13619,7 +13619,7 @@ attributeValue=trim(attributeValue)
 
   subroutine IO_HDF5_Read_Dataset_Double_6D_Array_Allocatable(self,datasetName,datasetValue,readBegin,readCount)
     !!{
-    Open and read a double 6-D array dataset in {\normalfont \ttfamily self}.
+    Open and read a double 6-D array dataset in \mono{self}.
     !!}
     use            :: Error             , only : Error_Report
     use            :: HDF5              , only : H5P_DEFAULT_F        , H5S_ALL_F         , H5S_SELECT_SET_F      , H5T_NATIVE_DOUBLE          , &
@@ -13908,7 +13908,7 @@ attributeValue=trim(attributeValue)
 
   subroutine IO_HDF5_Write_Dataset_Character_1D(self,datasetValue,datasetName,comment,appendTo,chunkSize,compressionLevel,datasetReturned)
     !!{
-    Open and write a character 1-D array dataset in {\normalfont \ttfamily self}.
+    Open and write a character 1-D array dataset in \mono{self}.
     !!}
     use :: Error             , only : Error_Report
     use :: HDF5              , only : H5S_SELECT_SET_F  , H5T_NATIVE_CHARACTER       , HID_T                , HSIZE_T   , &
@@ -14094,7 +14094,7 @@ attributeValue=trim(attributeValue)
 
   subroutine IO_HDF5_Write_Dataset_VarString_1D(self,datasetValue,datasetName,comment,appendTo,chunkSize,compressionLevel,datasetReturned)
     !!{
-    Open and write a varying string 1-D array dataset in {\normalfont \ttfamily self}.
+    Open and write a varying string 1-D array dataset in \mono{self}.
     !!}
     use :: HDF5           , only : hsize_t
     use :: String_Handling, only : Convert_VarString_To_Char
@@ -14116,7 +14116,7 @@ attributeValue=trim(attributeValue)
 
   subroutine IO_HDF5_Read_Dataset_Character_1D_Array_Static(self,datasetName,datasetValue,readBegin,readCount)
     !!{
-    Open and read a character scalar dataset in {\normalfont \ttfamily self}.
+    Open and read a character scalar dataset in \mono{self}.
     !!}
     use            :: Error             , only : Error_Report
     use            :: HDF5              , only : H5P_DEFAULT_F     , H5S_ALL_F             , H5S_SELECT_SET_F           , H5T_STD_REF_DSETREG  , &
@@ -14421,7 +14421,7 @@ attributeValue=trim(attributeValue)
 
   subroutine IO_HDF5_Read_Dataset_Character_1D_Array_Allocatable(self,datasetName,datasetValue,readBegin,readCount)
     !!{
-    Open and read an integer scalar dataset in {\normalfont \ttfamily self}.
+    Open and read an integer scalar dataset in \mono{self}.
     !!}
     use            :: Error             , only : Error_Report
     use            :: HDF5              , only : H5P_DEFAULT_F     , H5S_ALL_F             , H5S_SELECT_SET_F           , H5T_STD_REF_DSETREG  , &
@@ -14725,7 +14725,7 @@ attributeValue=trim(attributeValue)
 
   subroutine IO_HDF5_Read_Dataset_VarString_1D_Array_Allocatable(self,datasetName,datasetValue)
     !!{
-    Open and read an varying string 1-D array dataset in {\normalfont \ttfamily self}.
+    Open and read an varying string 1-D array dataset in \mono{self}.
     !!}
     use :: Error             , only : Error_Report
     use :: HDF5              , only : HID_T        , h5dget_type_f, h5tclose_f, h5tget_size_f
@@ -14811,7 +14811,7 @@ attributeValue=trim(attributeValue)
 
   subroutine IO_HDF5_Read_Dataset_VarString_1D_Array_Allocatable_Do_Read(self,datasetName,datasetValue,dataTypeSize)
     !!{
-    Open and read an varying string 1-D array dataset in {\normalfont \ttfamily self} by creating a suitably-sized character variable into
+    Open and read an varying string 1-D array dataset in \mono{self} by creating a suitably-sized character variable into
     which it can be read.
     !!}
     use :: ISO_Varying_String, only : assignment(=)
@@ -14835,7 +14835,7 @@ attributeValue=trim(attributeValue)
 
   subroutine IO_HDF5_Read_Dataset_VarString_1D_Array_Static(self,datasetName,datasetValue)
     !!{
-    Open and read an varying string 1-D array dataset in {\normalfont \ttfamily self}.
+    Open and read an varying string 1-D array dataset in \mono{self}.
     !!}
     use :: Error             , only : Error_Report
     use :: HDF5              , only : HID_T        , h5dget_type_f, h5tclose_f, h5tget_size_f
@@ -14921,7 +14921,7 @@ attributeValue=trim(attributeValue)
 
   subroutine IO_HDF5_Read_Dataset_VarString_1D_Array_Static_Do_Read(self,datasetName,datasetValue,dataTypeSize)
     !!{
-    Open and read an varying string 1-D array dataset in {\normalfont \ttfamily self} by creating a suitably-sized character variable into
+    Open and read an varying string 1-D array dataset in \mono{self} by creating a suitably-sized character variable into
     which it can be read.
     !!}
     use :: ISO_Varying_String, only : assignment(=)
@@ -14943,7 +14943,7 @@ attributeValue=trim(attributeValue)
 
   subroutine IO_HDF5_Read_Dataset_VarDouble_1D_Array_Allocatable(self,datasetName,datasetValue,readBegin,readCount,readSelection)
     !!{
-    Open and read a varying-length 1D double dataset in {\normalfont \ttfamily self}.
+    Open and read a varying-length 1D double dataset in \mono{self}.
     !!}
     use            :: Error             , only : Error_Report
     use            :: HDF5              , only : H5P_DEFAULT_F       , H5S_ALL_F            , H5S_SELECT_SET_F      , size_t                     , &
@@ -15321,7 +15321,7 @@ attributeValue=trim(attributeValue)
 
   subroutine IO_HDF5_Read_Dataset_VarVarDouble_1D_Array_Allocatable(self,datasetName,datasetValue,readBegin,readCount,readSelection)
     !!{
-    Open and read a varying-length $\times$ varying-length 1D double dataset in {\normalfont \ttfamily self}.
+    Open and read a varying-length $\times$ varying-length 1D double dataset in \mono{self}.
     !!}
     use            :: Error             , only : Error_Report
     use            :: HDF5              , only : H5P_DEFAULT_F       , H5S_ALL_F            , H5S_SELECT_SET_F      , size_t                     , &
@@ -15708,7 +15708,7 @@ attributeValue=trim(attributeValue)
 
   subroutine IO_HDF5_Read_Dataset_VarDouble_2D_Array_Allocatable(self,datasetName,datasetValue,readBegin,readCount,readSelection)
     !!{
-    Open and read a varying-length 2D double dataset in {\normalfont \ttfamily self}.
+    Open and read a varying-length 2D double dataset in \mono{self}.
     !!}
     use            :: Error             , only : Error_Report
     use            :: HDF5              , only : H5P_DEFAULT_F       , H5S_ALL_F            , H5S_SELECT_SET_F      , size_t                     , &
@@ -16085,7 +16085,7 @@ attributeValue=trim(attributeValue)
 
   subroutine IO_HDF5_Write_Dataset_VarDouble_1D(self,datasetValue,datasetName,comment,appendTo,chunkSize,compressionLevel,datasetReturned)
     !!{
-    Open and write a varying-length double 1-D array dataset in {\normalfont \ttfamily self}.
+    Open and write a varying-length double 1-D array dataset in \mono{self}.
     !!}
     use, intrinsic :: ISO_C_Binding     , only : c_loc
     use            :: Error             , only : Error_Report
@@ -16261,7 +16261,7 @@ attributeValue=trim(attributeValue)
   
   subroutine IO_HDF5_Write_Dataset_VarVarDouble_1D(self,datasetValue,datasetName,comment,appendTo,chunkSize,compressionLevel,datasetReturned)
     !!{
-    Open and write a varying-length $\times$ varying-length 1D double array dataset in {\normalfont \ttfamily self}.
+    Open and write a varying-length $\times$ varying-length 1D double array dataset in \mono{self}.
     !!}
     use, intrinsic :: ISO_C_Binding     , only : c_loc
     use            :: Error             , only : Error_Report
@@ -16445,7 +16445,7 @@ attributeValue=trim(attributeValue)
 
   subroutine IO_HDF5_Write_Dataset_VarDouble_2D(self,datasetValue,datasetName,comment,appendTo,chunkSize,compressionLevel,datasetReturned)
     !!{
-    Open and write a varying-length double 2-D array dataset in {\normalfont \ttfamily self}.
+    Open and write a varying-length double 2-D array dataset in \mono{self}.
     !!}
     use, intrinsic :: ISO_C_Binding     , only : c_loc
     use            :: Error             , only : Error_Report
@@ -16623,7 +16623,7 @@ attributeValue=trim(attributeValue)
   
   subroutine IO_HDF5_Read_Dataset_VarInteger8_2D_Array_Allocatable(self,datasetName,datasetValue,readBegin,readCount,readSelection)
     !!{
-    Open and read a variable-length integer-8 2D array dataset in {\normalfont \ttfamily self}.
+    Open and read a variable-length integer-8 2D array dataset in \mono{self}.
     !!}
     use            :: Error             , only : Error_Report
     use            :: HDF5              , only : H5P_DEFAULT_F       , H5S_ALL_F            , H5S_SELECT_SET_F      , hdset_reg_ref_t_f          , &
@@ -16998,7 +16998,7 @@ attributeValue=trim(attributeValue)
   
   subroutine IO_HDF5_Write_Dataset_VarInteger8_2D(self,datasetValue,datasetName,comment,appendTo,chunkSize,compressionLevel,datasetReturned)
     !!{
-    Open and write a variable-length integer-8 2-D array dataset in {\normalfont \ttfamily self}.
+    Open and write a variable-length integer-8 2-D array dataset in \mono{self}.
     !!}
     use, intrinsic :: ISO_C_Binding     , only : c_loc
     use            :: Error             , only : Error_Report
@@ -17176,7 +17176,7 @@ attributeValue=trim(attributeValue)
 
   subroutine IO_HDF5_Read_Table_Real_1D_Array_Allocatable(self,tableName,columnName,datasetValue,readBegin,readCount)
     !!{
-    Open and read a real 1D array from a table {\normalfont \ttfamily self}.
+    Open and read a real 1D array from a table \mono{self}.
     !!}
     use :: Error             , only : Error_Report
     use :: H5TB              , only : h5tbget_table_info_f, h5tbread_field_name_f
@@ -17261,7 +17261,7 @@ attributeValue=trim(attributeValue)
 
   subroutine IO_HDF5_Read_Table_Integer_1D_Array_Allocatable(self,tableName,columnName,datasetValue,readBegin,readCount)
     !!{
-    Open and read an integer 1D array from a table {\normalfont \ttfamily self}.
+    Open and read an integer 1D array from a table \mono{self}.
     !!}
     use :: Error             , only : Error_Report
     use :: H5TB              , only : h5tbget_table_info_f, h5tbread_field_name_f
@@ -17344,7 +17344,7 @@ attributeValue=trim(attributeValue)
 
   subroutine IO_HDF5_Read_Table_Integer8_1D_Array_Allocatable(self,tableName,columnName,datasetValue,readBegin,readCount)
     !!{
-    Open and read a real scalar from a table {\normalfont \ttfamily self}.
+    Open and read a real scalar from a table \mono{self}.
     !!}
     use            :: Error             , only : Error_Report
     use            :: H5TB              , only : h5tbget_table_info_f
@@ -17430,7 +17430,7 @@ attributeValue=trim(attributeValue)
 
   subroutine IO_HDF5_Read_Table_Character_1D_Array_Allocatable(self,tableName,columnName,datasetValue,readBegin,readCount)
     !!{
-    Open and read a real 1D array from a table {\normalfont \ttfamily self}.
+    Open and read a real 1D array from a table \mono{self}.
     !!}
     use :: Error             , only : Error_Report
     use :: H5TB              , only : h5tbget_table_info_f, h5tbread_field_name_f
@@ -17520,7 +17520,7 @@ attributeValue=trim(attributeValue)
 
   subroutine IO_HDF5_Create_Reference_Scalar_To_1D(fromGroup,toDataset,referenceName,referenceStart,referenceCount)
     !!{
-    Create a scalar reference to the 1-D {\normalfont \ttfamily toDataset} in the HDF5 group {\normalfont \ttfamily fromGroup}.
+    Create a scalar reference to the 1-D \mono{toDataset} in the HDF5 group \mono{fromGroup}.
     !!}
     use            :: Error             , only : Error_Report
     use            :: HDF5              , only : H5P_DEFAULT_F        , H5S_ALL_F        , H5S_SELECT_SET_F, H5T_STD_REF_DSETREG, &
@@ -17641,7 +17641,7 @@ attributeValue=trim(attributeValue)
 
   subroutine IO_HDF5_Create_Reference_Scalar_To_2D(fromGroup,toDataset,referenceName,referenceStart,referenceCount)
     !!{
-    Create a scalar reference to the 2-D {\normalfont \ttfamily toDataset} in the HDF5 group {\normalfont \ttfamily fromGroup}.
+    Create a scalar reference to the 2-D \mono{toDataset} in the HDF5 group \mono{fromGroup}.
     !!}
     use            :: Error             , only : Error_Report
     use            :: HDF5              , only : H5P_DEFAULT_F        , H5S_ALL_F        , H5S_SELECT_SET_F, H5T_STD_REF_DSETREG, &
@@ -17762,7 +17762,7 @@ attributeValue=trim(attributeValue)
 
   subroutine IO_HDF5_Create_Reference_Scalar_To_3D(fromGroup,toDataset,referenceName,referenceStart,referenceCount)
     !!{
-    Create a scalar reference to the 3-D {\normalfont \ttfamily toDataset} in the HDF5 group {\normalfont \ttfamily fromGroup}.
+    Create a scalar reference to the 3-D \mono{toDataset} in the HDF5 group \mono{fromGroup}.
     !!}
     use            :: Error             , only : Error_Report
     use            :: HDF5              , only : H5P_DEFAULT_F        , H5S_ALL_F        , H5S_SELECT_SET_F, H5T_STD_REF_DSETREG, &
@@ -17883,7 +17883,7 @@ attributeValue=trim(attributeValue)
 
   subroutine IO_HDF5_Create_Reference_Scalar_To_4D(fromGroup,toDataset,referenceName,referenceStart,referenceCount)
     !!{
-    Create a scalar reference to the 4-D {\normalfont \ttfamily toDataset} in the HDF5 group {\normalfont \ttfamily fromGroup}.
+    Create a scalar reference to the 4-D \mono{toDataset} in the HDF5 group \mono{fromGroup}.
     !!}
     use            :: Error             , only : Error_Report
     use            :: HDF5              , only : H5P_DEFAULT_F        , H5S_ALL_F        , H5S_SELECT_SET_F, H5T_STD_REF_DSETREG, &
@@ -18004,7 +18004,7 @@ attributeValue=trim(attributeValue)
 
   subroutine IO_HDF5_Create_Reference_Scalar_To_5D(fromGroup,toDataset,referenceName,referenceStart,referenceCount)
     !!{
-    Create a scalar reference to the 5-D {\normalfont \ttfamily toDataset} in the HDF5 group {\normalfont \ttfamily fromGroup}.
+    Create a scalar reference to the 5-D \mono{toDataset} in the HDF5 group \mono{fromGroup}.
     !!}
     use            :: Error             , only : Error_Report
     use            :: HDF5              , only : H5P_DEFAULT_F        , H5S_ALL_F        , H5S_SELECT_SET_F, H5T_STD_REF_DSETREG, &

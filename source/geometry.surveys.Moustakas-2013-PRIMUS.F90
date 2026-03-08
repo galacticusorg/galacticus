@@ -29,8 +29,7 @@ Implements the geometry of the PRIMUS survey used by \cite{moustakas_primus:_201
     A survey geometry class that describes the survey geometry of \cite{moustakas_primus:_2013}. 
     
     For the angular mask, we make use of \gls{mangle} polygon files provided by J.~Moustakas (private communication)
-    corresponding to the give PRIMUS fields. The solid angle of each mask is computed using the \gls{mangle} {\normalfont
-    \ttfamily harmonize} command.
+    corresponding to the give PRIMUS fields. The solid angle of each mask is computed using the \gls{mangle} \mono{harmonize} command.
     
     To determine the depth as a function of stellar mass, we make use of completeness limits for ``All'' galaxies given in
     Table~2 of \cite{moustakas_primus:_2013}. These are fit, for each field with a second order polynomial to give the limiting

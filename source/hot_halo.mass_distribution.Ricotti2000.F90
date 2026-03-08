@@ -64,7 +64,7 @@ contains
 
   function ricotti2000ConstructorParameters(parameters) result(self)
     !!{
-    Default constructor for the {\normalfont \ttfamily ricotti2000} hot halo mass distribution class.
+    Default constructor for the \mono{ricotti2000} hot halo mass distribution class.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -163,7 +163,7 @@ contains
 
   function ricotti2000Get(self,node,weightBy,weightIndex) result(massDistribution_)
     !!{
-    Return the {\normalfont \ttfamily ricotti2000} hot halo mass distribution for the given {\normalfont \ttfamily node}.
+    Return the \mono{ricotti2000} hot halo mass distribution for the given \mono{node}.
     !!}
     use :: Galacticus_Nodes          , only : nodeComponentHotHalo, nodeComponentDarkMatterProfile
     use :: Galactic_Structure_Options, only : componentTypeHotHalo, massTypeGaseous               , weightByMass

@@ -170,7 +170,7 @@ contains
 
   subroutine documentWrapperDestructor(self)
     !!{
-    Destroy a {\normalfont \ttfamily documentWrapper} object.
+    Destroy a \mono{documentWrapper} object.
     !!}
     use :: FoX_DOM, only : destroy
     implicit none

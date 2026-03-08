@@ -129,7 +129,7 @@ CODE
       <source>parameters_</source>
       <defaultValue>.false.</defaultValue>
       <attachedTo>module</attachedTo>
-      <description>Specifies whether the \{\\normalfont \\ttfamily {$property->{'name'}}\} method of the \{\\normalfont \\ttfamily {$component->{'name'}}\} implemention of the \{\\normalfont \\ttfamily {$componentClass}\} component class should be output.</description>
+      <description>Specifies whether the \\mono{{$property->{'name'}}\} method of the \\mono{{$component->{'name'}}\} implemention of the \\mono{{$componentClass}\} component class should be output.</description>
       <type>string</type>
       <cardinality>1</cardinality>
      </inputParameter>

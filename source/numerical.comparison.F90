@@ -49,7 +49,7 @@ contains
 
   elemental logical function Values_Differ_Real(value1,value2,absTol,relTol)
     !!{
-    Returns true if {\normalfont \ttfamily value1} and {\normalfont \ttfamily value2} differ by more than {\normalfont \ttfamily absTol} in absolute terms, or {\normalfont \ttfamily relTol} in
+    Returns true if \mono{value1} and \mono{value2} differ by more than \mono{absTol} in absolute terms, or \mono{relTol} in
     relative terms.
     !!}
     implicit none
@@ -65,7 +65,7 @@ contains
 
   elemental logical function Values_Differ_Double(value1,value2,absTol,relTol)
     !!{
-    Returns true if {\normalfont \ttfamily value1} and {\normalfont \ttfamily value2} differ by more than {\normalfont \ttfamily absTol} in absolute terms, or {\normalfont \ttfamily relTol} in
+    Returns true if \mono{value1} and \mono{value2} differ by more than \mono{absTol} in absolute terms, or \mono{relTol} in
     relative terms.
     !!}
     implicit none
@@ -81,7 +81,7 @@ contains
 
   elemental logical function Values_Differ_Double_Complex(value1,value2,absTol,relTol)
     !!{
-    Returns true if {\normalfont \ttfamily value1} and {\normalfont \ttfamily value2} differ by more than {\normalfont \ttfamily absTol} in absolute terms, or {\normalfont \ttfamily relTol} in
+    Returns true if \mono{value1} and \mono{value2} differ by more than \mono{absTol} in absolute terms, or \mono{relTol} in
     relative terms.
     !!}
     implicit none
@@ -103,7 +103,7 @@ contains
 
   elemental logical function Values_Agree_Real(value1,value2,absTol,relTol)
     !!{
-    Returns true if {\normalfont \ttfamily value1} and {\normalfont \ttfamily value2} agree to within {\normalfont \ttfamily absTol} in absolute terms, or {\normalfont \ttfamily relTol} in
+    Returns true if \mono{value1} and \mono{value2} agree to within \mono{absTol} in absolute terms, or \mono{relTol} in
     relative terms.
     !!}
     implicit none
@@ -132,7 +132,7 @@ contains
 
   elemental logical function Values_Agree_Double(value1,value2,absTol,relTol)
     !!{
-    Returns true if {\normalfont \ttfamily value1} and {\normalfont \ttfamily value2} agree to within {\normalfont \ttfamily absTol} in absolute terms, or {\normalfont \ttfamily relTol} in
+    Returns true if \mono{value1} and \mono{value2} agree to within \mono{absTol} in absolute terms, or \mono{relTol} in
     relative terms.
     !!}
     implicit none
@@ -161,7 +161,7 @@ contains
 
   elemental logical function Values_Agree_Double_Complex(value1,value2,absTol,relTol)
     !!{
-    Returns true if {\normalfont \ttfamily value1} and {\normalfont \ttfamily value2} agree to within {\normalfont \ttfamily absTol} in absolute terms, or {\normalfont \ttfamily relTol} in
+    Returns true if \mono{value1} and \mono{value2} agree to within \mono{absTol} in absolute terms, or \mono{relTol} in
     relative terms.
     !!}
     implicit none
@@ -194,8 +194,8 @@ contains
 
   logical function Values_Less_Than_Double(value1,value2,absTol,relTol)
     !!{
-    Returns true if {\normalfont \ttfamily value1} is significantly less than {\normalfont \ttfamily value2}, with tolerance
-    {\normalfont \ttfamily absTol} in absolute terms, or {\normalfont \ttfamily relTol} in relative terms.
+    Returns true if \mono{value1} is significantly less than \mono{value2}, with tolerance
+    \mono{absTol} in absolute terms, or \mono{relTol} in relative terms.
     !!}
     implicit none
     double precision, intent(in   )           :: value1         , value2

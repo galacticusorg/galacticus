@@ -66,8 +66,8 @@ module Abundances_Structure
        <method description="Add two abundances." method="operator(+)" />
        <method description="Subtract one abundance from another." method="operator(-)" />
        <method description="Returns the metallicity." method="metallicity" />
-       <method description="Sets the metallicity to {\normalfont \ttfamily metallicity}." method="metallicitySet" />
-       <method description="Converts abundance masses to mass fractions by dividing by the given {\normalfont \ttfamily mass} while ensuring that fractions are in the range 0--1." method="massToMassFraction" />
+       <method description="Sets the metallicity to \mono{metallicity}." method="metallicitySet" />
+       <method description="Converts abundance masses to mass fractions by dividing by the given \mono{mass} while ensuring that fractions are in the range 0--1." method="massToMassFraction" />
        <method description="Increment an abundances object." method="increment" />
        <method description="Return a count of the number of properties in a serialized abundances object." method="serializeCount" />
        <method description="Serialize an abundances object to an array." method="serialize" />
@@ -127,7 +127,7 @@ module Abundances_Structure
 
   interface abundances
      !!{
-     Constructors for the {\normalfont \ttfamily abundances} class.
+     Constructors for the \mono{abundances} class.
      !!}
      module procedure abundancesConstructorZero
   end interface abundances
@@ -152,7 +152,7 @@ module Abundances_Structure
   !![
   <enumeration>
    <name>metallicityType</name>
-   <description>Used to specify the metallicity scale when working with {\normalfont \ttfamily abundances} objects.</description>
+   <description>Used to specify the metallicity scale when working with \mono{abundances} objects.</description>
    <visibility>public</visibility>
    <encodeFunction>yes</encodeFunction>
    <validator>yes</validator>
@@ -170,7 +170,7 @@ module Abundances_Structure
   !![
   <enumeration>
    <name>adjustElements</name>
-   <description>Used to specify how elements should be adjusted when the metallicity of an {\normalfont \ttfamily abundances} object is changed.</description>
+   <description>Used to specify how elements should be adjusted when the metallicity of an \mono{abundances} object is changed.</description>
    <visibility>public</visibility>
    <entry label="none"   />
    <entry label="reset"  />
@@ -187,7 +187,7 @@ contains
   !!]
   subroutine Abundances_Initialize(parameters_)
     !!{
-    Initialize the {\normalfont \ttfamily abundanceStructure} object module. Determines which abundances are to be tracked.
+    Initialize the \mono{abundanceStructure} object module. Determines which abundances are to be tracked.
     !!}
     use :: Atomic_Data      , only : Atom_Lookup
     use :: Input_Parameters , only : inputParameters
@@ -231,7 +231,7 @@ contains
 
   function abundancesConstructorZero() result(self)
     !!{
-    A constructor for {\normalfont \ttfamily abundances} objects which sets all content to zero.
+    A constructor for \mono{abundances} objects which sets all content to zero.
     !!}
     implicit none
     type(abundances) :: self
@@ -253,7 +253,7 @@ contains
 
   subroutine Abundances_Builder(self,abundancesDefinition)
     !!{
-    Build a {\normalfont \ttfamily abundances} object from the given XML {\normalfont \ttfamily abundancesDefinition}.
+    Build a \mono{abundances} object from the given XML \mono{abundancesDefinition}.
     !!}
     use :: FoX_DOM, only : node                        , extractDataContent
     use :: Error  , only : Error_Report
@@ -484,7 +484,7 @@ contains
 
   function Abundances_Max(abundances1,abundances2)
     !!{
-    Return an element-by-element {\normalfont \ttfamily max()} on two abundances objects.
+    Return an element-by-element \mono{max()} on two abundances objects.
     !!}
     implicit none
     type(abundances)                :: Abundances_Max
@@ -497,7 +497,7 @@ contains
 
   function Abundances_Abs(abundances1)
     !!{
-    Return an element-by-element {\normalfont \ttfamily abs()} on an abundances objects.
+    Return an element-by-element \mono{abs()} on an abundances objects.
     !!}
     implicit none
     type(abundances)                :: Abundances_Abs
@@ -524,8 +524,7 @@ contains
 
   integer function Abundances_Property_Count()
     !!{
-    Return the number of properties required to track abundances. This is equal to the number of elements tracked, {\normalfont \ttfamily
-    elementsCount}, plus one since we always track a total metallicity.
+    Return the number of properties required to track abundances. This is equal to the number of elements tracked, \mono{elementsCount}, plus one since we always track a total metallicity.
     !!}
     implicit none
 
@@ -604,7 +603,7 @@ contains
 
   subroutine Abundances_Allocate_Elemental_Values(self)
     !!{
-    Ensure that the {\normalfont \ttfamily elementalValue} array in an {\normalfont \ttfamily abundances} is allocated.
+    Ensure that the \mono{elementalValue} array in an \mono{abundances} is allocated.
     !!}
     implicit none
     type(abundances), intent(inout) :: self
@@ -655,7 +654,7 @@ contains
 
   double precision function Abundances_Get_Metallicity(self,metallicityType)
     !!{
-    Return the metallicity of the {\normalfont \ttfamily self} structure.
+    Return the metallicity of the \mono{self} structure.
     !!}
     use :: Error                           , only : Error_Report
     use :: Numerical_Constants_Astronomical, only : metallicitySolar
@@ -688,7 +687,7 @@ contains
 
   subroutine Abundances_Set_Metallicity(self,metallicity,metallicityType,adjustElements,abundanceIndex)
     !!{
-    Set the metallicity of the {\normalfont \ttfamily self} structure to {\normalfont \ttfamily metallicity}.
+    Set the metallicity of the \mono{self} structure to \mono{metallicity}.
     !!}
     use :: Atomic_Data                     , only : Atomic_Abundance, normalizationMetals
     use :: Error                           , only : Error_Report
@@ -762,7 +761,7 @@ contains
 
   subroutine Abundances_Mass_To_Mass_Fraction_Packed(self,mass)
     !!{
-    Convert abundance masses to mass fractions by dividing by {\normalfont \ttfamily mass} while ensuring that the fractions remain within the range 0--1.
+    Convert abundance masses to mass fractions by dividing by \mono{mass} while ensuring that the fractions remain within the range 0--1.
     !!}
     implicit none
     class           (abundances), intent(inout) :: self
@@ -792,7 +791,7 @@ contains
 
   subroutine Abundances_Mass_To_Mass_Fraction(self,mass)
     !!{
-    Convert abundance masses to mass fractions by dividing by {\normalfont \ttfamily mass} while ensuring that the fractions remain within the range 0--1.
+    Convert abundance masses to mass fractions by dividing by \mono{mass} while ensuring that the fractions remain within the range 0--1.
     !!}
     implicit none
     double precision, dimension(:), intent(inout) :: self

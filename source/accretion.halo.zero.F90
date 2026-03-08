@@ -85,7 +85,7 @@ contains
 
   double precision function zeroAccretionRate(self,node,accretionMode)
     !!{
-    Computes the baryonic accretion rate onto {\normalfont \ttfamily node}.
+    Computes the baryonic accretion rate onto \mono{node}.
     !!}
     implicit none
     class(accretionHaloZero           ), intent(inout) :: self
@@ -99,7 +99,7 @@ contains
 
   double precision function zeroAccretedMass(self,node,accretionMode)
     !!{
-    Computes the mass of baryons accreted into {\normalfont \ttfamily node}.
+    Computes the mass of baryons accreted into \mono{node}.
     !!}
     implicit none
     class(accretionHaloZero           ), intent(inout) :: self
@@ -113,7 +113,7 @@ contains
 
   double precision function zeroFailedAccretionRate(self,node,accretionMode)
     !!{
-    Computes the baryonic accretion rate onto {\normalfont \ttfamily node}.
+    Computes the baryonic accretion rate onto \mono{node}.
     !!}
     implicit none
     class(accretionHaloZero           ), intent(inout) :: self
@@ -127,7 +127,7 @@ contains
 
   double precision function zeroFailedAccretedMass(self,node,accretionMode)
     !!{
-    Computes the mass of baryons accreted into {\normalfont \ttfamily node}.
+    Computes the mass of baryons accreted into \mono{node}.
     !!}
     implicit none
     class(accretionHaloZero           ), intent(inout) :: self
@@ -141,7 +141,7 @@ contains
 
   function zeroAccretionRateMetals(self,node,accretionMode)
     !!{
-    Computes the rate of mass of abundance accretion (in $M_\odot/$Gyr) onto {\normalfont \ttfamily node} from the intergalactic medium.
+    Computes the rate of mass of abundance accretion (in $M_\odot/$Gyr) onto \mono{node} from the intergalactic medium.
     !!}
     use :: Abundances_Structure, only : abundances, zeroAbundances
     implicit none
@@ -157,7 +157,7 @@ contains
 
   function zeroAccretedMassMetals(self,node,accretionMode)
     !!{
-    Computes the mass of abundances accreted (in $M_\odot$) onto {\normalfont \ttfamily node} from the intergalactic medium.
+    Computes the mass of abundances accreted (in $M_\odot$) onto \mono{node} from the intergalactic medium.
     !!}
     use :: Abundances_Structure, only : abundances, zeroAbundances
     implicit none
@@ -173,7 +173,7 @@ contains
 
   function zeroFailedAccretionRateMetals(self,node,accretionMode)
     !!{
-    Computes the rate of failed mass of abundance accretion (in $M_\odot/$Gyr) onto {\normalfont \ttfamily node} from the intergalactic medium.
+    Computes the rate of failed mass of abundance accretion (in $M_\odot/$Gyr) onto \mono{node} from the intergalactic medium.
     !!}
     use :: Abundances_Structure, only : abundances, zeroAbundances
     implicit none
@@ -189,7 +189,7 @@ contains
 
   function zeroFailedAccretedMassMetals(self,node,accretionMode)
     !!{
-    Computes the mass of abundances that failed to accrete (in $M_\odot$) onto {\normalfont \ttfamily node} from the intergalactic medium.
+    Computes the mass of abundances that failed to accrete (in $M_\odot$) onto \mono{node} from the intergalactic medium.
     !!}
     use :: Abundances_Structure, only : abundances, zeroAbundances
     implicit none
@@ -205,7 +205,7 @@ contains
 
   function zeroAccretionRateChemicals(self,node,accretionMode)
     !!{
-    Computes the rate of mass of chemicals accretion (in $M_\odot/$Gyr) onto {\normalfont \ttfamily node} from the intergalactic medium.
+    Computes the rate of mass of chemicals accretion (in $M_\odot/$Gyr) onto \mono{node} from the intergalactic medium.
     !!}
     use :: Chemical_Abundances_Structure, only : chemicalAbundances, zeroChemicalAbundances
     implicit none
@@ -221,7 +221,7 @@ contains
 
   function zeroAccretedMassChemicals(self,node,accretionMode)
     !!{
-    Computes the mass of chemicals accreted (in $M_\odot$) onto {\normalfont \ttfamily node} from the intergalactic medium.
+    Computes the mass of chemicals accreted (in $M_\odot$) onto \mono{node} from the intergalactic medium.
     !!}
     use :: Chemical_Abundances_Structure, only : chemicalAbundances, zeroChemicalAbundances
     implicit none

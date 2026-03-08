@@ -428,7 +428,7 @@ contains
   !!]
   subroutine Node_Component_Hot_Halo_Cold_Mode_Scale_Set(node)
     !!{
-    Set scales for properties of {\normalfont \ttfamily node}.
+    Set scales for properties of \mono{node}.
     !!}
     use :: Abundances_Structure, only : unitAbundances
     use :: Galacticus_Nodes    , only : nodeComponentBasic     , nodeComponentHotHalo, nodeComponentHotHaloColdMode, treeNode, &
@@ -529,7 +529,7 @@ contains
   !!]
   subroutine Node_Component_Hot_Halo_Cold_Mode_Node_Merger(node)
     !!{
-    Starve {\normalfont \ttfamily node} by transferring its hot halo to its parent.
+    Starve \mono{node} by transferring its hot halo to its parent.
     !!}
     use :: Abundances_Structure                 , only : abundances                     , operator(*)            , zeroAbundances
     use :: Accretion_Halos                      , only : accretionModeCold              , accretionModeTotal
@@ -664,7 +664,7 @@ contains
 
   subroutine satelliteMerger(self,node)
     !!{
-    Remove any cold mode gas associated with {\normalfont \ttfamily node} before it merges with its host halo.
+    Remove any cold mode gas associated with \mono{node} before it merges with its host halo.
     !!}
     use :: Abundances_Structure                 , only : abundances          , zeroAbundances
     use :: Galacticus_Nodes                     , only : nodeComponentHotHalo, nodeComponentHotHaloColdMode, nodeComponentSpin, nodeComponentBasic, &
@@ -721,8 +721,8 @@ contains
 
   subroutine nodePromotion(self,node)
     !!{
-    Ensure that {\normalfont \ttfamily node} is ready for promotion to its parent. In this case, we simply
-    update the cold mode mass of {\normalfont \ttfamily node} to account for any cold mode gas already in the
+    Ensure that \mono{node} is ready for promotion to its parent. In this case, we simply
+    update the cold mode mass of \mono{node} to account for any cold mode gas already in the
     parent.
     !!}
     use :: Galacticus_Nodes, only : nodeComponentHotHalo, nodeComponentHotHaloColdMode, treeNode

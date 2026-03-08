@@ -18,12 +18,12 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
 !!{
-Contains a module that provides a wrapper class for testing the {\normalfont \ttfamily resourceManager} class.
+Contains a module that provides a wrapper class for testing the \mono{resourceManager} class.
 !!}
 
 module Test_Resource_Manager_Wrapper
   !!{
-  Provides a wrapper class for testing the {\normalfont \ttfamily resourceManager} class.
+  Provides a wrapper class for testing the \mono{resourceManager} class.
   !!}
   use :: Resource_Manager, only : resourceManager
   private

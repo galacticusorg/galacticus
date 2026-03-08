@@ -74,7 +74,7 @@ contains
 
   subroutine inputParametersWrapperDestructor(self)
     !!{
-    Destroy a {\normalfont \ttfamily inputParametersWrapper} object.
+    Destroy a \mono{inputParametersWrapper} object.
     !!}
     implicit none
     type(inputParametersWrapper), intent(inout) :: self

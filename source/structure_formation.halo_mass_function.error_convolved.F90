@@ -28,8 +28,7 @@ with a mass-dependent error.
   <haloMassFunction name="haloMassFunctionErrorConvolved">
    <description>
     The halo mass function is computed by convolving another halo mass function with a mass dependent error. Specifically, the
-    mass function is convolved with a Gaussian random error distribution with width computed using the given {\normalfont
-    \ttfamily nbodyHaloMassError} object.
+    mass function is convolved with a Gaussian random error distribution with width computed using the given \mono{nbodyHaloMassError} object.
    </description>
   </haloMassFunction>
   !!]

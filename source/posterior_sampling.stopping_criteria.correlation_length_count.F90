@@ -26,8 +26,7 @@
   !![
   <posteriorSampleStoppingCriterion name="posteriorSampleStoppingCriterionCorrelationLength">
    <description>
-    This type will cause the simulation to stop when at least a number of correlation lengths (as specified in the {\normalfont
-    \ttfamily [stopAfterCount]} parameter) have accrued post-convergence.
+    This type will cause the simulation to stop when at least a number of correlation lengths (as specified in the \mono{[stopAfterCount]} parameter) have accrued post-convergence.
    </description>
   </posteriorSampleStoppingCriterion>
   !!]

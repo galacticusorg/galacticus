@@ -175,7 +175,7 @@ contains
 
   function integratorConstructor(integrand,toleranceAbsolute,toleranceRelative,intervalsMaximum,hasSingularities,integrationRule) result(self)
     !!{
-    Constructor for {\normalfont \ttfamily integrator} objects.
+    Constructor for \mono{integrator} objects.
     !!}
     use :: Error, only : Error_Report
     implicit none
@@ -291,7 +291,7 @@ contains
   
   subroutine integratorToleranceSet(self,toleranceAbsolute,toleranceRelative)
     !!{
-    Reset tolerance for {\normalfont \ttfamily integrator} objects.
+    Reset tolerance for \mono{integrator} objects.
     !!}
     use :: Error, only : Error_Report
     implicit none
@@ -386,7 +386,7 @@ contains
 
   subroutine gslIntegrationWorkspaceWrapperDestructor(self)
     !!{
-    Destroy a {\normalfont \ttfamily gslIntegrationWorkspaceWrapper} object.
+    Destroy a \mono{gslIntegrationWorkspaceWrapper} object.
     !!}
     implicit none
     type(gslIntegrationWorkspaceWrapper), intent(inout) :: self

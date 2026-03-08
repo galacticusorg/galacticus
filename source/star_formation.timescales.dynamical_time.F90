@@ -29,10 +29,10 @@
     \begin{equation}
      \tau_\star = \epsilon_\star^{-1} \tau_\mathrm{dynamical} \left( {V \over 200\hbox{km/s}} \right)^{\alpha_\star},
     \end{equation}
-    where $\epsilon_\star=${\normalfont \ttfamily [efficiency]} and $\alpha_\star=${\normalfont \ttfamily [exponentVelocity]}
+    where $\epsilon_\star=$\mono{[efficiency]} and $\alpha_\star=$\mono{[exponentVelocity]}
     are input parameters, $\tau_\mathrm{dynamical}\equiv r/V$ is the dynamical timescale of the \gls{component} and $r$ and $V$
     are the characteristic radius and velocity respectively of the component. The timescale is not allowed to fall below a
-    minimum value specified by {\normalfont \ttfamily [timescaleMinimum]} (in Gyr).
+    minimum value specified by \mono{[timescaleMinimum]} (in Gyr).
    </description>
   </starFormationTimescale>
   !!]
@@ -125,12 +125,11 @@ contains
 
   double precision function dynamicalTimeTimescale(self,component)
     !!{
-    Returns the timescale (in Gyr) for star formation in the given {\normalfont \ttfamily component}. The timescale is given by
+    Returns the timescale (in Gyr) for star formation in the given \mono{component}. The timescale is given by
     \begin{equation}
     \tau_\star = \epsilon_\star^{-1} \tau_\mathrm{dynamical} \left( {V \over 200\hbox{km/s}} \right)^{\alpha_\star},
     \end{equation}
-    where $\epsilon_\star$(={\normalfont \ttfamily efficiency}) is a star formation efficiency and $\alpha_\star$(={\normalfont \ttfamily
-    exponentVelocity}) controls the scaling with velocity. Note that $\tau_\mathrm{dynamical}=R/V$ where the radius and
+    where $\epsilon_\star$(=\mono{efficiency}) is a star formation efficiency and $\alpha_\star$(=\mono{exponentVelocity}) controls the scaling with velocity. Note that $\tau_\mathrm{dynamical}=R/V$ where the radius and
     velocity are whatever characteristic values returned by the component. This scaling is functionally similar to that adopted
     by \cite{cole_hierarchical_2000}, but they specifically used the half-mass radius and circular velocity at that
     radius.
