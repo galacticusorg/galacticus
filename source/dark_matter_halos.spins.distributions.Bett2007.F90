@@ -29,8 +29,7 @@
   <haloSpinDistribution name="haloSpinDistributionBett2007">
    <description>
     A halo spin distribution in which the spin is drawn from the distribution found by \cite{bett_spin_2007}. The $\lambda_0$
-    and $\alpha$ parameter of Bett et al.'s distribution are set by the \mono{[lambda0]} and {\normalfont
-    \ttfamily [alpha]} input parameters.
+    and $\alpha$ parameter of Bett et al.'s distribution are set by the \mono{[lambda0]} and \mono{[alpha]} input parameters.
    </description>
   </haloSpinDistribution>
   !!]
@@ -191,8 +190,7 @@ contains
 
   double precision function bett2007Sample(self,node)
     !!{
-    Sample from a \cite{bett_spin_2007} spin parameter distribution for the given {\normalfont
-    \ttfamily node}.
+    Sample from a \cite{bett_spin_2007} spin parameter distribution for the given \mono{node}.
     !!}
     implicit none
     class(haloSpinDistributionBett2007), intent(inout) :: self

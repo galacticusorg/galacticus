@@ -36,8 +36,7 @@ contains
 
   recursive function Make_Range(rangeMinimum,rangeMaximum,rangeNumber,rangeType,rangeBinned) result (rangeValues)
     !!{
-    Builds a numerical range between \mono{rangeMinimum} and {\normalfont
-    \ttfamily rangeMaximum} using \mono{rangeNumber} points and spacing as
+    Builds a numerical range between \mono{rangeMinimum} and \mono{rangeMaximum} using \mono{rangeNumber} points and spacing as
     specified by \mono{rangeType} (defaulting to linear spacing if no
     \mono{rangeType} is given).
     !!}

@@ -36,8 +36,7 @@ Implements a merger tree branching probability class using the algorithm of \cit
     \begin{equation}
      f_\mathrm{env}(\delta,M) = B (1+\delta)^\mu \left( \frac{M}{10^{12}\mathrm{M}_\odot} \right)^\nu,
     \end{equation}
-    where $\delta$ is the non-linear overdensity of the environment and $B=$\mono{[B]}, $\mu=${\normalfont
-    \ttfamily [mu]}, and $\nu=$\mono{[nu]} are parameters.
+    where $\delta$ is the non-linear overdensity of the environment and $B=$\mono{[B]}, $\mu=$\mono{[mu]}, and $\nu=$\mono{[nu]} are parameters.
    </description>
   </mergerTreeBranchingProbability>
   !!]

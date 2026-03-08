@@ -41,11 +41,9 @@
   <galacticStructureSolver name="galacticStructureSolverFixed">
    <description>
     A galactic structure solver that determines the sizes of galactic components by assuming that radius equals \begin{equation} r
-    = f_\mathrm{r} \lambda r_0 \end{equation} where $r_0$ is the virial or turnaround radius of the \gls{node} if {\normalfont
-    \ttfamily [radiusFixed]}$=$\mono{virialRadius} or \mono{turnaround} respectively, $\lambda$
+    = f_\mathrm{r} \lambda r_0 \end{equation} where $r_0$ is the virial or turnaround radius of the \gls{node} if \mono{[radiusFixed]}$=$\mono{virialRadius} or \mono{turnaround} respectively, $\lambda$
     is its spin parameter and $f_\mathrm{r}=$\mono{[factor]} is a parameter. Optionally, different values of
-    $f_\mathrm{r}$ can be specified for disks and spheroids using the \mono{[factorDisk]} and {\normalfont
-    \ttfamily [factorSpheroid]} parameters respectively---if either or both are not provided the value of \mono{[factor]} will be used for the corresponding component.
+    $f_\mathrm{r}$ can be specified for disks and spheroids using the \mono{[factorDisk]} and \mono{[factorSpheroid]} parameters respectively---if either or both are not provided the value of \mono{[factor]} will be used for the corresponding component.
    </description>
   </galacticStructureSolver>
   !!]

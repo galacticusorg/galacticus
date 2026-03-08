@@ -124,8 +124,7 @@ contains
 
   double precision function standardPowerLogarithmicDerivative(self,wavenumber,time)
     !!{
-    Return the logarithmic derivative of the power spectrum, $\mathrm{d}\ln P(k)/\mathrm{d}\ln k$, for $k=${\normalfont
-    \ttfamily wavenumber} [Mpc$^{-1}$].
+    Return the logarithmic derivative of the power spectrum, $\mathrm{d}\ln P(k)/\mathrm{d}\ln k$, for $k=$\mono{wavenumber} [Mpc$^{-1}$].
     !!}
     implicit none
     class           (powerSpectrumStandard), intent(inout) :: self

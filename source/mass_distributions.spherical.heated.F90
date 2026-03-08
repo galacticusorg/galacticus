@@ -26,8 +26,7 @@
   !![
   <massDistribution name="massDistributionSphericalHeated">
    <description>
-     A mass distribution class in which the distribution starts out with a density profile defined by another {\normalfont
-     \ttfamily massDistribution}. This profile is then modified by heating, under the assumption that the
+     A mass distribution class in which the distribution starts out with a density profile defined by another \mono{massDistribution}. This profile is then modified by heating, under the assumption that the
      energy of a shell of mass before and after heating are related by
      \begin{equation}
      -{ \mathrm{G} M^\prime(r^\prime) \over r^\prime } = -{ \mathrm{G} M(r) \over r } + 2 \epsilon(r),
@@ -37,8 +36,7 @@
      heating. With the assumption of no shell crossing, $M^\prime(r^\prime)=M(r)$ and this equation can be solved for $r$ given
      $r^\prime$ and $\epsilon(r)$.
      
-     Not all methods have analytic solutions for this profile. If \mono{[nonAnalyticSolver]}$=${\normalfont
-     \ttfamily fallThrough} then attempts to call these methods in heated profiles will simply return the result from the
+     Not all methods have analytic solutions for this profile. If \mono{[nonAnalyticSolver]}$=$\mono{fallThrough} then attempts to call these methods in heated profiles will simply return the result from the
      unheated profile, otherwise a numerical calculation is performed.
     </description>
   </massDistribution>

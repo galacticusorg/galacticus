@@ -28,8 +28,7 @@ Implements a stellar population spectra class which utilizes the FSPS package \c
    <description>
     A stellar population spectra class utilizing the FSPS package \citep{conroy_propagation_2009}. If necessary, the
     \href{https://github.com/cconroy20/fsps}\mono{FSPS} code will be downloaded, patched and compiled and run
-    to generate spectra. These tabulations are then stored to file for later re-use. The file name used is {\normalfont
-    \ttfamily datasets/dynamic/stellarPopulations/simpleStellarPopulationsFSPS:v$&lt;$version$&gt;$\_$&lt;$descriptor$&gt;$.hdf5} where
+    to generate spectra. These tabulations are then stored to file for later re-use. The file name used is \mono{datasets/dynamic/stellarPopulations/simpleStellarPopulationsFSPS:v$&lt;$version$&gt;$\_$&lt;$descriptor$&gt;$.hdf5} where
     $&lt;$\mono{version}$&gt;$ is the FSPS version used, and $&lt;$\mono{descriptor}$&gt;$ is
     an MD5 hash descriptor of the selected stellar population.
    </description>

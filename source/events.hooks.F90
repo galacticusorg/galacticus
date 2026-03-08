@@ -516,7 +516,7 @@ contains
 
   subroutine eventHookAssign(to,from)
     !!{
-    Assignment operator for {\normalfont \ttfamily eventHook} objects.
+    Assignment operator for \mono{eventHook} objects.
     !!}
     implicit none
     class(eventHook), intent(  out) :: to

@@ -37,8 +37,7 @@
     The normalization of the mass variance is specified via the \mono{[sigma\_8]} parameter, which defines the
     linear theory root-variance of the density field in spheres of radii $8h^{-1}$Mpc. Note that when computing the
     normalization of the power spectrum to match the specified value of $\sigma_8$ a top-hat real-space window function is
-    used (as per the definition of $\sigma_8$), unless a different window function is explicitly defined via the {\normalfont
-    \ttfamily [powerSpectrumWindowFunctionTopHat]} parameter.
+    used (as per the definition of $\sigma_8$), unless a different window function is explicitly defined via the \mono{[powerSpectrumWindowFunctionTopHat]} parameter.
   
     The mass variance, $\sigma(M)$, is found by integration over the linear theory power spectrum, with the specified power
     spectrum window function. The fractional tolerance for this integration can be set via the \mono{[tolerance]} parameter. (The normalization of $\sigma(M)$ to give the desired $\sigma_8$ always uses a top-hat window
@@ -48,8 +47,7 @@
     Cubic spline interpolation is then used to interpolate in this table to give $\sigma(M)$ at any required value of $M$. The
     tabulation is always forced to be monotonically decreasing with $M$. However, the interpolation is not necessarily
     monotonic---for example in cases where $\sigma(M)$ becomes constant or close to constant as a function of $M$ the
-    interpolation can become non-monotonic over some ranges of $M$. If strict monotonicity is required set {\normalfont
-    \ttfamily [monotonicInterpolation]}=\mono{true}. This causes a monotonic spline interpolator to be used
+    interpolation can become non-monotonic over some ranges of $M$. If strict monotonicity is required set \mono{[monotonicInterpolation]}=\mono{true}. This causes a monotonic spline interpolator to be used
     instead which guarantees monotonicity.
    </description>
   </cosmologicalMassVariance>
@@ -456,8 +454,7 @@ contains
 
   double precision function filteredPowerRootVariance(self,mass,time)
     !!{
-    Return the root-variance of the cosmological density field in a spherical region containing the given {\normalfont
-    \ttfamily mass} on average.
+    Return the root-variance of the cosmological density field in a spherical region containing the given \mono{mass} on average.
     !!}
     implicit none
     class           (cosmologicalMassVarianceFilteredPower), intent(inout) :: self

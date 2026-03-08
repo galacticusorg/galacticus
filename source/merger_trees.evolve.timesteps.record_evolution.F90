@@ -38,8 +38,7 @@ main branch galaxy.
     $t_{\mathrm{record},i} &gt; t$ this criterion is not applied. If this criterion is the limiting criterion for $\Delta t$ then the
     properties of the galaxy will be recorded at the end of the timestep.
   
-    Timesteps are logarithmically spaced in cosmic time between \mono{[timeBegin]} and \newline {\normalfont
-    \ttfamily [timeEnd]}, with the total number of timesteps specified by \mono{[countSteps]}.
+    Timesteps are logarithmically spaced in cosmic time between \mono{[timeBegin]} and \newline \mono{[timeEnd]}, with the total number of timesteps specified by \mono{[countSteps]}.
   
     This recorded evolution will be written to the group \mono{mainProgenitorEvolution} in the \glc\ output
     file. Within that group two datasets, \mono{time} and \mono{expansionFactor}, give the

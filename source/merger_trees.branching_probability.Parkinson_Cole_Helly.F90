@@ -30,8 +30,7 @@ Implements a merger tree branching probability class using the algorithm of \cit
    <description>
     A merger tree branching probability class using the algorithm of \cite{parkinson_generating_2008}. The parameters $G_0$,
     $\gamma_1$ and $\gamma_2$ of their algorithm are specified by the input parameters \mono{[G0]},
-    \mono{[gamma]} and \mono{[gamma2]} respectively. Additionally, the parameter {\normalfont
-    \ttfamily accuracyFirstOrder} limits the step in $\delta_\mathrm{crit}$ so that it never exceeds
+    \mono{[gamma]} and \mono{[gamma2]} respectively. Additionally, the parameter \mono{accuracyFirstOrder} limits the step in $\delta_\mathrm{crit}$ so that it never exceeds
     \mono{accuracyFirstOrder}$\sqrt{2[\sigma^2(M_2/2)-\sigma^2(M_2)]}$, which ensures
     the the first order expansion of the merging rate that is assumed is accurate. To find bounds on the branching probability,
     we make use of the fact that eqn.~(4) of \cite{parkinson_generating_2008} can be written as
@@ -375,8 +374,7 @@ contains
 
     double precision function massBranchGeneric()
       !!{
-      Determine the mass of one of the halos to which the given halo branches, given the branching probability, {\normalfont
-      \ttfamily probability}. Typically, \mono{probabilityFraction} is found by multiplying \mono{probability}
+      Determine the mass of one of the halos to which the given halo branches, given the branching probability, \mono{probability}. Typically, \mono{probabilityFraction} is found by multiplying \mono{probability}
       by a random variable drawn in the interval 0--1 if a halo branches. This routine then finds the progenitor mass
       corresponding to this value.
       !!}

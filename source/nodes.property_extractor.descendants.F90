@@ -32,9 +32,7 @@ Implements an ISM mass output analysis property extractor class.
     merges with another, the index will be of that node and so on).
   
     Note that, to operate correctly, information about which node a given node may merge with (and when this merger will
-    happen) must be available. This is typically available in merger trees read from file (i.e. using the ``{\normalfont
-    \ttfamily read}'' \refClass{mergerTreeConstructorClass}) providing \mono{[presetMergerNodes]} and {\normalfont
-    \ttfamily [presetMergerTimes]} are both set to \mono{true}. When using randomly assigned satellite orbits
+    happen) must be available. This is typically available in merger trees read from file (i.e. using the ``\mono{read}'' \refClass{mergerTreeConstructorClass}) providing \mono{[presetMergerNodes]} and \mono{[presetMergerTimes]} are both set to \mono{true}. When using randomly assigned satellite orbits
     and merger times, information on when merging occurs does not exist until a node becomes a satellite. Thus, if the node
     becomes a satellite after the current output, but before the next output, there is no way to know which node it will belong
     to at the next output (in such cases, the fallback assumption is no merging).

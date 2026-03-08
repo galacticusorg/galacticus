@@ -44,8 +44,7 @@
   
      \item [\mono{Output\{i\}/mergerTree\{j\}/fourierProfile\{k\}}] A dataset giving the Fourier transform of
      the dark matter halo density profile (dimensionless and normalized to unity at small wavenumber) for the node with index
-     \mono{k} in merger tree with index \mono{j} at output number \mono{i}. Profiles are written only for nodes which are isolated, and are tabulated at the wavenumbers given in the {\normalfont
-     \ttfamily wavenumber} group. Note that wavenumbers are assumed to be comoving.
+     \mono{k} in merger tree with index \mono{j} at output number \mono{i}. Profiles are written only for nodes which are isolated, and are tabulated at the wavenumbers given in the \mono{wavenumber} group. Note that wavenumbers are assumed to be comoving.
   
     \end{description}
   

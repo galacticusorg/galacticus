@@ -144,8 +144,7 @@ contains
 
   function searchArrayClosest(arrayToSearch,valueToFind,tolerance,status)
     !!{
-    Searches an array, $x=($\mono{arrayToSearch}$)$, for the entry closest to value, $v(=${\normalfont
-    \ttfamily valueToFind}$)$ and returns the index of that element in the array. Optionally, a tolerance may be specified
+    Searches an array, $x=($\mono{arrayToSearch}$)$, for the entry closest to value, $v(=$\mono{valueToFind}$)$ and returns the index of that element in the array. Optionally, a tolerance may be specified
     within which the two values must match.
     !!}
     use :: Error               , only : Error_Report, errorStatusFail, errorStatusSuccess

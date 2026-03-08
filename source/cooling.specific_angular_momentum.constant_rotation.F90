@@ -52,8 +52,7 @@
      j_\mathrm{cool} = \langle j \rangle {I_3(r_\mathrm{cool})/I_2(r_\mathrm{cool})} A,
     \end{equation}
     where $I_n(r)$ is the $n^\mathrm{th}$ radial moment of the hot gas density profile from $0$ to $r$ (this therefore gives
-    the mean specific angular momentum interior to radius $r$), if \mono{[useInteriorMean]}$=${\normalfont
-    \ttfamily true}.
+    the mean specific angular momentum interior to radius $r$), if \mono{[useInteriorMean]}$=$\mono{true}.
   
     If \mono{[sourceAngularMomentumSpecificMean]}$=$\mono{darkMatter} then $\langle j \rangle$
     is the mean specific angular momentum of the dark matter halo, while if \mono{[sourceAngularMomentumSpecificMean]}$=$\mono{hotGas} then $\langle j \rangle$ is equal to the mean specific

@@ -58,8 +58,7 @@
     Simulation database\footnote{If you do not have a username and password for the Millennium Simulation database you can request
     one from \href{mailto:contact@g-vo.org}\mono{contact@g-vo.org}.}. These can be entered manually or stored in
     a section of the
-    \href{https://github.com/galacticusorg/galacticus/releases/download/bleeding-edge/Galacticus_Usage.pdf#sec.ConfigFile}{\normalfont
-    \ttfamily galacticusConfig.xml} file as follows:   
+    \href{https://github.com/galacticusorg/galacticus/releases/download/bleeding-edge/Galacticus_Usage.pdf#sec.ConfigFile}\mono{galacticusConfig.xml} file as follows:   
     \begin{verbatim}
       &lt;millenniumDB>
         &lt;host>

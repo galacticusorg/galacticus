@@ -180,8 +180,7 @@ contains
 
   double precision function variancePeakBackgroundSplitRootVariance(self,mass,time)
     !!{
-    Return the root-variance of the cosmological density field in a spherical region containing the given {\normalfont
-    \ttfamily mass} on average.
+    Return the root-variance of the cosmological density field in a spherical region containing the given \mono{mass} on average.
     !!}
     implicit none
     class           (cosmologicalMassVariancePeakBackgroundSplit), intent(inout) :: self

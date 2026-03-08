@@ -131,8 +131,7 @@ contains
 
   double precision function logNormalSample(self,node)
     !!{
-    Sample from a log-normal spin parameter distribution for the given {\normalfont
-    \ttfamily node}.
+    Sample from a log-normal spin parameter distribution for the given \mono{node}.
     !!}
     implicit none
     class(haloSpinDistributionLogNormal), intent(inout) :: self

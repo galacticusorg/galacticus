@@ -40,8 +40,7 @@ velocity.
      t_\mathrm{reincorporation} = \tau_\mathrm{reincorporation} \left( { V_\mathrm{max} \over 200 \hbox{km/s}}
      \right)^{\alpha_\mathrm{reincorporation}} (1+z)^{\beta_\mathrm{reincorporation}},
     \end{equation}
-    where $\tau_\mathrm{reincorporation}=$\mono{[timeScale]}, $\alpha_\mathrm{reincorporation}=${\normalfont
-    \ttfamily [velocityExponent]}, and $\beta_\mathrm{reincorporation}=$\mono{[redshiftExponent]}.
+    where $\tau_\mathrm{reincorporation}=$\mono{[timeScale]}, $\alpha_\mathrm{reincorporation}=$\mono{[velocityExponent]}, and $\beta_\mathrm{reincorporation}=$\mono{[redshiftExponent]}.
    </description>
   </hotHaloOutflowReincorporation>
   !!]

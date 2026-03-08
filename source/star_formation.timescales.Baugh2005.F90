@@ -139,8 +139,7 @@ contains
 
   double precision function baugh2005Timescale(self,component)
     !!{
-    Returns the timescale (in Gyr) for star formation in the given \mono{component} in the {\normalfont
-    \ttfamily baugh2005} timescale model.
+    Returns the timescale (in Gyr) for star formation in the given \mono{component} in the \mono{baugh2005} timescale model.
     !!}
     use :: Error           , only : Error_Report
     use :: Galacticus_Nodes, only : nodeComponent, nodeComponentBasic, nodeComponentDisk, nodeComponentSpheroid

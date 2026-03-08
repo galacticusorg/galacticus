@@ -37,8 +37,7 @@ Implements an intracluster medium Sunyaev-Zeldovich Compton-y parameter property
     arcminutes. The angular diameter distance is, by default, computed from the epoch of the halo. Alternatively, a fixed
     angular diameter distance can be specified via the \mono{[distanceAngular]} parameter. The outer radius,
     $R_\mathrm{out}$, is either the halo virial radius (by default), or the radius enclosing the density contrast specified by
-    the optional \mono{[densityContrast]} parameter. This density contrast is relative to either {\normalfont
-    \ttfamily mean} or \mono{critical} density as specified by the \mono{densityContrastRelativeTo} parameter.
+    the optional \mono{[densityContrast]} parameter. This density contrast is relative to either \mono{mean} or \mono{critical} density as specified by the \mono{densityContrastRelativeTo} parameter.
    </description>
    <deepCopy>
     <functionClass variables="densityContrastExtractor_"/>

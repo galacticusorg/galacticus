@@ -230,8 +230,7 @@ contains
 
   double precision function wechsler2002MassAccretionRate(self,node,time)
     !!{
-    Compute the mass accretion rate at the given \mono{time} in the mass accretion history of {\normalfont
-    \ttfamily node} using the algorithm of \cite{wechsler_concentrations_2002}.
+    Compute the mass accretion rate at the given \mono{time} in the mass accretion history of \mono{node} using the algorithm of \cite{wechsler_concentrations_2002}.
     !!}
     use :: Galacticus_Nodes, only : nodeComponentBasic, treeNode
     implicit none

@@ -542,8 +542,7 @@ contains
 
   logical function squareIsInLightcone(self,node,atPresentEpoch,radiusBuffer)
     !!{
-    Determine if the given \mono{node} lies within the lightcone. Note that, when called with {\normalfont
-    \ttfamily atPresentEpoch=false} this function returns true if the node is in the lightcone at any point during its
+    Determine if the given \mono{node} lies within the lightcone. Note that, when called with \mono{atPresentEpoch=false} this function returns true if the node is in the lightcone at any point during its
     existence. However, this check is made assuming that each node remains at fixed comoving coordinates between each output
     time---there is no consideration of movement between output times. It is therefore recommended that some buffer is added to
     catch any nodes which may briefly enter the lightcone between output times.

@@ -458,8 +458,7 @@ contains
 
   double precision function sphericalFiniteResolutionNFWPotential(self,coordinates,status) result(potential)
     !!{
-    Returns the potential (in (km/s)$^2$) in the dark matter profile of \mono{node} at the given {\normalfont
-    \ttfamily radius} (given in units of Mpc). The analytic solution (computed using Mathematica) is
+    Returns the potential (in (km/s)$^2$) in the dark matter profile of \mono{node} at the given \mono{radius} (given in units of Mpc). The analytic solution (computed using Mathematica) is
     \begin{eqnarray}
     \Phi(x) &=& -\frac{\mathrm{G} M}{r_\mathrm{s}}  \nonumber \\
             & & \left\{ +\frac{\sqrt{x^2+X^2}}{x \left(X^2+1\right)} \right. \nonumber \\

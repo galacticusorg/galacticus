@@ -36,8 +36,7 @@
      \item [\mono{lightconePositionZ}] Position of the galaxy (in comoving Mpc) along the 2$^\mathrm{nd}$
      angular direction of the lightcone;
      \item [\mono{lightconePositionObservedX}] Position of the galaxy (in comoving Mpc) along the radial
-     direction of the lightcone, accounting for the effects of line-of-sight peculiar velocity (included only if {\normalfont
-     \ttfamily [includeObservedPosition]}=\mono{true});
+     direction of the lightcone, accounting for the effects of line-of-sight peculiar velocity (included only if \mono{[includeObservedPosition]}=\mono{true});
      \item [\mono{lightconePositionObservedY}] Position of the galaxy (in comoving Mpc) along the 1$^\mathrm{st}$
      angular direction of the lightcone, accounting for the effects of line-of-sight peculiar velocity (included only if
      \mono{[includeObservedPosition]}=\mono{true});

@@ -85,8 +85,7 @@ contains
        \begin{equation}
        \sigma(M) = \left[ \sigma^2_{12} \left({M_\mathrm{halo} \over 10^{12}M_\odot}\right)^{2\gamma} + \sigma^2_\infty \right]^{1/2},
        \end{equation}
-       where $\sigma_{12}=$\mono{[normalization]}, and $\gamma=${\normalfont
-       \ttfamily [exponent]}.
+       where $\sigma_{12}=$\mono{[normalization]}, and $\gamma=$\mono{[exponent]}.
       </description>
     </inputParameter>
     !!]

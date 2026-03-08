@@ -1067,8 +1067,7 @@ contains
 
   subroutine augmentExtendByOverlap(nodeBottom,nodeTop,keepTop,exchangeProperties)
     !!{
-    Conjoin two trees by overlapping the \mono{nodeTop} of one tree with the chosen \mono{nodeBottom} of the other. If \mono{keepTop} is \mono{true}, \mono{nodeTop} replaces \mono{nodeBottom}, otherwise, \mono{nodeBottom} replaces {\normalfont
-    \ttfamily nodeTop}. If \mono{exchangeProperties} is \mono{true}, the mass and time
+    Conjoin two trees by overlapping the \mono{nodeTop} of one tree with the chosen \mono{nodeBottom} of the other. If \mono{keepTop} is \mono{true}, \mono{nodeTop} replaces \mono{nodeBottom}, otherwise, \mono{nodeBottom} replaces \mono{nodeTop}. If \mono{exchangeProperties} is \mono{true}, the mass and time
     information of the deleted node overwrites the mass and time of the retained node.
     !!}
     use :: Galacticus_Nodes, only : nodeComponentBasic, treeNode

@@ -62,8 +62,7 @@
        \item \mono{`star forming'}: only galaxies on or above the star forming main sequence are included;
        \item \mono{`quiescent}: only galaxies below the star forming main sequence are included.
       \end{itemize}
-      For the {\normalfont ``\ttfamily star forming}'' and ``\mono{quiescent}'' options, a dataset {\normalfont
-      \ttfamily mainSequenceSFR} must be specified in the \mono{sampleN} group which specifies the mean
+      For the ``\mono{star forming}'' and ``\mono{quiescent}'' options, a dataset \mono{mainSequenceSFR} must be specified in the \mono{sampleN} group which specifies the mean
       (of the logarithm of star formation rate in units of $\mathrm{M}_\odot/\hbox{yr}^{-1}$) of the star forming main sequence at
       the center of each bin, and an attribute \mono{offsetMainSequenceSFR} which specifies an offset below the
       mean of the star forming main sequence below which galaxies are considered to be quiescent. That is, a galaxy will be

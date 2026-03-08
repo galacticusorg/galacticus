@@ -269,7 +269,7 @@ contains
 
   subroutine gslFunctionWrapperDestructor(self)
     !!{
-    Destroy a {\normalfont \ttfamily gslFunction} object.
+    Destroy a \mono{gslFunction} object.
     !!}
     implicit none
     type(gslFunctionWrapper), intent(inout) :: self

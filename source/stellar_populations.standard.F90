@@ -100,8 +100,7 @@
       &nbsp;&nbsp;&lt;ageEffective value="13.8"/&gt;
       &lt;/stellarPopulationProperties&gt;
       \end{lstlisting}
-      in which case the recycled fraction and metal yield will be computed that all stars with mass greater than {\normalfont
-      \ttfamily massLongLived} have fully evolved, and energy input (from stellar winds and supernovae) will be computed assuming
+      in which case the recycled fraction and metal yield will be computed that all stars with mass greater than \mono{massLongLived} have fully evolved, and energy input (from stellar winds and supernovae) will be computed assuming
       that stellar populations instantaneously reach an age of \mono{ageEffective}.
 
       Similar options are available to control whether metal yields and energy input from stellar populations are computed using

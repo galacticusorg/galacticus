@@ -26,8 +26,7 @@
   !![
   <massDistribution name="massDistributionSphericalHeatedMonotonic">
    <description>
-     A mass distribution class in which dark matter halos start out with a density profile defined by another {\normalfont
-     \ttfamily massDistributionClass}. This profile is then modified by heating, under the assumption that the
+     A mass distribution class in which dark matter halos start out with a density profile defined by another \mono{massDistributionClass}. This profile is then modified by heating, under the assumption that the
      energy of a shell of mass before and after heating are related by
      \begin{equation}
      -{ \mathrm{G} M^\prime(r^\prime) \over r^\prime } = -{ \mathrm{G} M(r) \over r } + 2 \epsilon(r),
@@ -44,8 +43,7 @@
      monotonicity relation $r_1 &lt; r_2 \implies \xi(r_1) \le \xi(r_2)$ is enforced by starting at large radius and stepping inward,
      enforcing the condition in the next innermost shell as necessary.
      
-     Not all methods have analytic solutions for this profile. If \mono{[nonAnalyticSolver]}$=${\normalfont
-     \ttfamily fallThrough} then attempts to call these methods in heated profiles will simply return the result from the
+     Not all methods have analytic solutions for this profile. If \mono{[nonAnalyticSolver]}$=$\mono{fallThrough} then attempts to call these methods in heated profiles will simply return the result from the
      unheated profile, otherwise a numerical calculation is performed.
    </description>
   </massDistribution>

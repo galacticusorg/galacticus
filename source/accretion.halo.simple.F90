@@ -42,8 +42,7 @@
     \label{eq:accretionHalo:truncation}
     \end{equation}
     where $z_\mathrm{reionization}=$\mono{[redshiftReionization]} is the redshift at which the Universe is
-    reionized (alternatively, the optical depth to reionization can be specified via \mono{[opticalDepthReionization]} and the corresponding redshift will be computed) and $V_\mathrm{reionization}=${\normalfont
-    \ttfamily [velocitySuppressionReionization]} is the virial velocity below which accretion is suppressed after
+    reionized (alternatively, the optical depth to reionization can be specified via \mono{[opticalDepthReionization]} and the corresponding redshift will be computed) and $V_\mathrm{reionization}=$\mono{[velocitySuppressionReionization]} is the virial velocity below which accretion is suppressed after
     reionization. Setting $V_\mathrm{reionization}$ to zero will effectively switch off the effects of reionization on the
     accretion of baryons. This algorithm attempts to offer a simple prescription for the effects of reionization and has been
     explored by multiple authors (e.g. \citealt{benson_effects_2002}). In particular, \cite{font_modelingmilky_2010} show that

@@ -438,7 +438,7 @@ contains
 
   subroutine documentContainerDestructor(self)
     !!{
-    Destroy a {\normalfont \ttfamily documentContainer} object.
+    Destroy a \mono{documentContainer} object.
     !!}
     use :: FoX_DOM, only : destroy
     implicit none

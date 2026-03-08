@@ -60,8 +60,7 @@
     \begin{description}
     \item [\mono{galacticus}] merger trees are exported in \glc's native format described in detail
       \href{https://github.com/galacticusorg/galacticus/wiki/Merger-Tree-File-Format}{here};
-    \item [\mono{irate}] merger trees are exported in the \href{https://irate-format.readthedocs.io/en/stable/formatspec.html}{\normalfont
-        \ttfamily IRATE} format.
+    \item [\mono{irate}] merger trees are exported in the \href{https://irate-format.readthedocs.io/en/stable/formatspec.html}\mono{IRATE} format.
     \end{description}
     
     Properties to read from the file are specified through multiple \mono{property} sub-parameter sections, which take the form:
@@ -160,8 +159,7 @@
      &lt;/unitsMass>
     \end{verbatim}
     where \mono{[name]} is a human-readable name for the units, \mono{[unitsInSI]} gives the units
-    in the SI system, \mono{[hubbleExponent]} specifies the power to which $h$ appears in the units and {\normalfont
-      \ttfamily [scaleFactorExponent]} specifies the number of powers of the expansion factor by which the quantity should be
+    in the SI system, \mono{[hubbleExponent]} specifies the power to which $h$ appears in the units and \mono{[scaleFactorExponent]} specifies the number of powers of the expansion factor by which the quantity should be
     multiplied to place it into physical units.
     
     Finally, arbitrary metadata can be added to the file (which can be useful to record, for example, the origin of the data, or

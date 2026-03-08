@@ -18,12 +18,12 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
 !!{
-Contains a program for testing the {\normalfont \ttfamily resourceManager} class.
+Contains a program for testing the \mono{resourceManager} class.
 !!}
   
 program Test_Resource_Manager
   !!{
-  Test the {\normalfont \ttfamily resourceManager} class.
+  Test the \mono{resourceManager} class.
   !!}
   use :: Test_Resource_Manager_Wrapper, only : resourceHolder
   use :: Display                      , only : displayVerbositySet, verbosityLevelStandard

@@ -194,8 +194,7 @@ contains
 
   double precision function filteredPowerVelocityDispersion1D(self,mass,time)
     !!{
-    Return the 1-D dispersion of the velocity field smoothed over in a spherical region containing the given {\normalfont
-    \ttfamily mass} on average.
+    Return the 1-D dispersion of the velocity field smoothed over in a spherical region containing the given \mono{mass} on average.
     !!}
     implicit none
     class           (cosmologicalVelocityFieldFilteredPower), intent(inout) :: self

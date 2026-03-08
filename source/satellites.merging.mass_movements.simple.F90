@@ -30,8 +30,7 @@
     \begin{itemize}
      \item If $M_\mathrm{satellite} &gt; f_\mathrm{major} M_\mathrm{central}$ then all mass from both satellite and central
      galaxies moves to the spheroid \gls{component} of the central galaxy;
-     \item Otherwise: Gas from the satellite moves to the \gls{component} of the central specified by the {\normalfont
-     \ttfamily [minorMergerGasMovesTo]} parameter (either ``\mono{disk}'' or ``\mono{spheroid}''), stars from the satellite moves to the spheroid of the central and mass in the central does not move.
+     \item Otherwise: Gas from the satellite moves to the \gls{component} of the central specified by the \mono{[minorMergerGasMovesTo]} parameter (either ``\mono{disk}'' or ``\mono{spheroid}''), stars from the satellite moves to the spheroid of the central and mass in the central does not move.
     \end{itemize}
     Here, $f_\mathrm{major}=$\mono{[majorMergerMassRatio]} is the mass ratio above which a merger is
     considered to be ``major''.

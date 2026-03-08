@@ -62,16 +62,14 @@ module Merger_Tree_Timesteps
   
      The \mono{deadlockStatus} argument should be set to \mono{isNotDeadlocked} (provided by
      the
-     \href{https://github.com/galacticusorg/galacticus/releases/download/bleeding-edge/Galacticus_Source.pdf#source.merger_trees_evolve_deadlock_options_F90:merger_trees_evolve_deadlock_status}{\normalfont
-     \ttfamily Merger\_Trees\_Evolve\_Deadlock\_Status} module) if, and only if, the end of timestep task makes some change to
+     \href{https://github.com/galacticusorg/galacticus/releases/download/bleeding-edge/Galacticus_Source.pdf#source.merger_trees_evolve_deadlock_options_F90:merger_trees_evolve_deadlock_status}\mono{Merger\_Trees\_Evolve\_Deadlock\_Status} module) if, and only if, the end of timestep task makes some change to
      the state of the tree (e.g. merging a node), to indicate that the tree was not deadlocked in this pass (i.e. something
      actually changed in the tree).
   
      If the \mono{report} argument is \mono{true} then the function should report the value of
      \mono{timestep} prior to exiting. (This is used in reporting on timestepping criteri in deadlocked trees.)
      It is recommended that the report be made using the
-     \href{https://github.com/galacticusorg/galacticus/releases/download/bleeding-edge/Galacticus_Source.pdf#source.merger_trees_evolve_timesteps_report_F90:evolve_to_time_reports:evolve_to_time_report}{\normalfont
-     \ttfamily Evolve\_To\_Time\_Report()} function. Additionally, if the optional \mono{lockNode} and
+     \href{https://github.com/galacticusorg/galacticus/releases/download/bleeding-edge/Galacticus_Source.pdf#source.merger_trees_evolve_timesteps_report_F90:evolve_to_time_reports:evolve_to_time_report}\mono{Evolve\_To\_Time\_Report()} function. Additionally, if the optional \mono{lockNode} and
      \mono{lockType} arguments are present then additional information can be supplied to aid in diagnosing
      deadlock conditions. If the current task is limiting the timestep then the \mono{lockNode} pointer should
      be set to point to whichever node is causing the limit (which may be \mono{node} or some other node,

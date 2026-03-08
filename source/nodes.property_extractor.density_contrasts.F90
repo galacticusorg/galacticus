@@ -32,8 +32,7 @@ Implements a property extractor class for the mass and radii of spheres are spec
   <nodePropertyExtractor name="nodePropertyExtractorDensityContrasts">
    <description>
     A property extractor class for the mass and radii of spheres of specified density contrast. A list of density contrasts,
-    $\Delta$ (defined in units of the mean density of the Universe), is specified via the \mono{[densityContrasts]} parameter. For each specified density contrast, two properties are output for each node: {\normalfont
-    \ttfamily nodeRadius}$\Delta$ and \mono{nodeMass}$\Delta$ which give the radius enclosing a mean density
+    $\Delta$ (defined in units of the mean density of the Universe), is specified via the \mono{[densityContrasts]} parameter. For each specified density contrast, two properties are output for each node: \mono{nodeRadius}$\Delta$ and \mono{nodeMass}$\Delta$ which give the radius enclosing a mean density
     contrast of $\Delta$ and the mass enclosed within that radius. The parameter \mono{[darkMatterOnly]}
     controls whether density contrasts are measured for total mass (\mono{false}) or dark matter mass only
     (\mono{true}). In the latter case, density contrasts are defined relative to the mean dark matter density

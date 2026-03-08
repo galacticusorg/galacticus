@@ -98,8 +98,7 @@ contains
 
   double precision function deltaFunctionSample(self,node)
     !!{
-    Sample from a $\delta$-function spin parameter distribution for the given {\normalfont
-    \ttfamily node}.
+    Sample from a $\delta$-function spin parameter distribution for the given \mono{node}.
     !!}
     implicit none
     class(haloSpinDistributionDeltaFunction), intent(inout) :: self

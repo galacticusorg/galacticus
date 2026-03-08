@@ -39,8 +39,7 @@
     \begin{equation}
      W_\mathrm{s}(k) = \left\{ \begin{array}{ll} 1 &amp; \hbox{if } k &lt; k_\mathrm{s} \\ 0 &amp; \hbox{if } k &gt; k_\mathrm{s}, \end{array} \right.
     \end{equation}
-    where $k\mathrm{s} = \alpha / R_\mathrm{s}$ if \mono{[normalization]} is assigned a numerical value. Alternatively, if {\normalfont
-    \ttfamily [normalization]}$=$\mono{natural} then the value of
+    where $k\mathrm{s} = \alpha / R_\mathrm{s}$ if \mono{[normalization]} is assigned a numerical value. Alternatively, if \mono{[normalization]}$=$\mono{natural} then the value of
     $\alpha$ is chosen such that $k_\mathrm{s} = (6 \Pi^2 \bar{\rho}/M)^{1/3}$ if $R_\mathrm{s}=3M/4\pi\bar{\rho}$.
     The radii, $R_\mathrm{th}$ and $R_\mathrm{s}$, are chosen such that:
     \begin{eqnarray}

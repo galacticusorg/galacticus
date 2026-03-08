@@ -81,7 +81,7 @@ contains
 
   subroutine downloadVarStrChar(url,outputFileName,retries,retryWait,status)
     !!{
-    Download content from the given {\normalfont url} to the given {\normalfont \ttfamily outputFileName}.
+    Download content from the given {\normalfont url} to the given \mono{outputFileName}.
     !!}
     use :: ISO_Varying_String, only : char, varying_string
     implicit none
@@ -96,7 +96,7 @@ contains
 
   subroutine downloadCharVarStr(url,outputFileName,retries,retryWait,status)
     !!{
-    Download content from the given {\normalfont url} to the given {\normalfont \ttfamily outputFileName}.
+    Download content from the given {\normalfont url} to the given \mono{outputFileName}.
     !!}
     use :: ISO_Varying_String, only : char, varying_string
     implicit none

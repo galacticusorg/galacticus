@@ -631,7 +631,7 @@ contains
   !!]
   subroutine Table1D_Assignment(to,from)
     !!{
-    Assignment operator for the {\normalfont \ttfamily table1D} class.
+    Assignment operator for the \mono{table1D} class.
     !!}
     use :: Error, only : Error_Report
     implicit none

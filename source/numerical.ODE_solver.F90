@@ -423,7 +423,7 @@ contains
 
   subroutine gslODEDriverWrapperDestructor(self)
     !!{
-    Destroy a {\normalfont \ttfamily gslODEDriverWrapper} object.
+    Destroy a \mono{gslODEDriverWrapper} object.
     !!}
     implicit none
     type(gslODEDriverWrapper), intent(inout) :: self
@@ -434,7 +434,7 @@ contains
 
   subroutine gslODESystemWrapperDestructor(self)
     !!{
-    Destroy a {\normalfont \ttfamily gslODESystemWrapper} object.
+    Destroy a \mono{gslODESystemWrapper} object.
     !!}
     implicit none
     type(gslODESystemWrapper), intent(inout) :: self

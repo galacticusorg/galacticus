@@ -52,8 +52,7 @@
       correlation function and its covariance matrix.
     \end{description}
     
-    The HDF5 file specified by the \mono{projectedCorrelationFunctionFileName} element should contain a {\normalfont
-    \ttfamily separation} dataset, giving the separations at which the projected correlation function is measured (in units of Mpc),
+    The HDF5 file specified by the \mono{projectedCorrelationFunctionFileName} element should contain a \mono{separation} dataset, giving the separations at which the projected correlation function is measured (in units of Mpc),
     a \mono{projectedCorrelationFunctionObserved} dataset giving the observed values of the projected correlation
     function at those separations (in units of Mpc), and a \mono{covariance} dataset, giving the covariance of the
     projected correlation function (in units of Mpc$^2$).

@@ -27,8 +27,7 @@
   <stellarTracks name="stellarTracksFile">
    <description>
     A stellar tracks class in which luminosities and effective temperatures of stars are computed from a tabulated set of
-    stellar tracks, read from file and interpolated. The file containing the tracks to use is specified via the {\normalfont
-    \ttfamily stellarTracksFile} parameter. The file specified must be an HDF5 file with the following structure:
+    stellar tracks, read from file and interpolated. The file containing the tracks to use is specified via the \mono{stellarTracksFile} parameter. The file specified must be an HDF5 file with the following structure:
     \begin{verbatim}
      stellarTracksFile
       |
@@ -51,10 +50,8 @@
       x-> metallicityN
     \end{verbatim}
     Each \mono{metallicityN} group tabulates tracks for a given metallicity (the value of which is stored in
-    the \mono{metallicity} dataset within each group), and may contain an arbitrary number of {\normalfont
-    \ttfamily massN} groups. Each \mono{massN} group should contain a track for a star of some mass (the value
-    of which is given in the \mono{mass} dataset). Within each track three datasets specify the {\normalfont
-    \ttfamily age} (in Gyr), \mono{luminosity} (in $L_\odot$) and \mono{effectiveTemperature}
+    the \mono{metallicity} dataset within each group), and may contain an arbitrary number of \mono{massN} groups. Each \mono{massN} group should contain a track for a star of some mass (the value
+    of which is given in the \mono{mass} dataset). Within each track three datasets specify the \mono{age} (in Gyr), \mono{luminosity} (in $L_\odot$) and \mono{effectiveTemperature}
     (in Kelvin) along the track.
    </description>
    <runTimeFileDependencies paths="fileName"/>

@@ -288,8 +288,7 @@ contains
 
   double precision function generalizedPressSchechterMassBranch(self,haloMass,deltaCritical,time,massResolution,probabilityFraction,randomNumberGenerator_,node)
     !!{
-    Determine the mass of one of the halos to which the given halo branches, given the branching probability, {\normalfont
-    \ttfamily probabilityFraction}. Typically, \mono{probabilityFraction} is found by multiplying \mono{Generalized\_Press\_Schechter\_Branching\_Probability()} by a random variable drawn in the interval 0--1 if a halo
+    Determine the mass of one of the halos to which the given halo branches, given the branching probability, \mono{probabilityFraction}. Typically, \mono{probabilityFraction} is found by multiplying \mono{Generalized\_Press\_Schechter\_Branching\_Probability()} by a random variable drawn in the interval 0--1 if a halo
     branches. This routine then finds the progenitor mass corresponding to this value.
     !!}
     use :: Display           , only : displayMessage, displayVerbosity, verbosityLevelWarn
@@ -447,8 +446,7 @@ contains
   double precision function generalizedPressSchechterProbability(self,haloMass,deltaCritical,time,massResolution,node)
     !!{
     Return the probability per unit change in $\delta_\mathrm{crit}$ that a halo of mass \mono{haloMass} at
-    time \mono{deltaCritical} will undergo a branching to progenitors with mass greater than {\normalfont
-    \ttfamily massResolution}.
+    time \mono{deltaCritical} will undergo a branching to progenitors with mass greater than \mono{massResolution}.
     !!}
     implicit none
     class           (mergerTreeBranchingProbabilityGnrlzdPrssSchchtr), intent(inout), target :: self

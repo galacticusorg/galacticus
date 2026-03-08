@@ -59,10 +59,8 @@
              density contrasts given by spherical collapse calculations, e.g. \cite{percival_cosmological_2005};
        \item \mono{`Bryan \&amp; Norman (1998)'}: halos are defined as have mean density contrasts given by the
              fitting formula of \cite{bryan_statistical_1998};
-       \item \mono{`X * mean density'}: halos are defined as having mean densities equal to ;{\normalfont
-             \ttfamily X} times the mean density of the universe;
-       \item \mono{`X * critical density'}: halos are defined as having mean densities equal to ;{\normalfont
-             \ttfamily X} times the critical density of the universe;
+       \item \mono{`X * mean density'}: halos are defined as having mean densities equal to ;\mono{X} times the mean density of the universe;
+       \item \mono{`X * critical density'}: halos are defined as having mean densities equal to ;\mono{X} times the critical density of the universe;
       \end{itemize}
       Lastly, the file must have two attributes used to identify and level the dataset:
       \begin{itemize}

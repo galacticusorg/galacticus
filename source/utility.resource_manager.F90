@@ -25,7 +25,7 @@ module Resource_Manager
   !!{
   Implements a class that manages shared resources (typically pointers to objects shared by multiple other objects) via a
   reference counting approach and destructs them when no more references exist. Similar in approach to a
-  \href{https://en.cppreference.com/w/cpp/memory/shared_ptr}{\normalfont \ttfamily shared\_ptr} in C++.
+  \href{https://en.cppreference.com/w/cpp/memory/shared_ptr}\mono{shared\_ptr} in C++.
   !!}
   !$ use :: OMP_Lib, only : omp_lock_kind
   private
@@ -35,7 +35,7 @@ module Resource_Manager
      !!{
      A class that manages shared resources (typically pointers to objects shared by multiple other objects) via a reference
      counting approach and destructs them when no more references exist. Similar in approach to a
-     \href{https://en.cppreference.com/w/cpp/memory/shared_ptr}{\normalfont \ttfamily shared\_ptr} in C++.  
+     \href{https://en.cppreference.com/w/cpp/memory/shared_ptr}\mono{shared\_ptr} in C++.  
      !!}
      class     (*            ), pointer :: resource  => null()
      integer                  , pointer :: counter   => null()
@@ -60,7 +60,7 @@ module Resource_Manager
 
   interface resourceManager
      !!{
-     Constructors for the {\normalfont \ttfamily resourceManager} class.
+     Constructors for the \mono{resourceManager} class.
      !!}
      module procedure resourceManagerConstructor
   end interface resourceManager
@@ -73,7 +73,7 @@ contains
 
   subroutine resourceManagerForceReportOn()
     !!{
-    Force all {\normalfont \ttfamily resourceManager} objects to be created with reporting enabled.
+    Force all \mono{resourceManager} objects to be created with reporting enabled.
     !!}
     implicit none
 
@@ -83,7 +83,7 @@ contains
 
   subroutine resourceManagerForceReportOff()
     !!{
-    Cease forcing all {\normalfont \ttfamily resourceManager} objects to be created with reporting enabled.
+    Cease forcing all \mono{resourceManager} objects to be created with reporting enabled.
     !!}
     implicit none
 
@@ -93,7 +93,7 @@ contains
 
   function resourceManagerConstructor(resource,reportOn,threadSafe) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily resourceManager} class. This should be called with a pointer to the resource to
+    Constructor for the \mono{resourceManager} class. This should be called with a pointer to the resource to
     manage after it is first created.
     !!}
     use :: Display           , only : displayMessage
@@ -129,7 +129,7 @@ contains
 
   subroutine resourceManagerDestructor(self)
     !!{
-    Destructor for the {\normalfont \ttfamily resourceManager} class.
+    Destructor for the \mono{resourceManager} class.
     !!}
     implicit none
     type(resourceManager), intent(inout) :: self
@@ -140,7 +140,7 @@ contains
 
   subroutine resourceManagerAssign(to,from)
     !!{
-    Assign a {\normalfont \ttfamily resourceManager} object.
+    Assign a \mono{resourceManager} object.
     !!}
     !$ use :: OMP_Lib           , only : OMP_Set_Lock  , OMP_Unset_Lock
     use    :: Display           , only : displayMessage

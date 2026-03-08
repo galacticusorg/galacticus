@@ -2241,7 +2241,7 @@ contains
 
   subroutine mpiWindowDestructor(self)
     !!{
-    Destructor for the {\normalfont \ttfamily mpiWindow} class.
+    Destructor for the \mono{mpiWindow} class.
     !!}
 #ifdef USEMPI
     use :: Error  , only : Error_Report
@@ -2262,7 +2262,7 @@ contains
   
   subroutine mpiMemoryDestructor(self)
     !!{
-    Destructor for the {\normalfont \ttfamily mpiMemory} class.
+    Destructor for the \mono{mpiMemory} class.
     !!}
 #ifdef USEMPI
     use :: MPI_F08, only : MPI_Free_Mem

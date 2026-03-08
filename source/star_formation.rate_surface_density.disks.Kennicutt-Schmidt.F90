@@ -46,8 +46,7 @@
     \end{equation}
     where $\kappa$ is the epicyclic frequency in the disk, $\sigma_\mathrm{gas}$ is the velocity dispersion of gas in the disk
     and $q_\mathrm{crit}=$\mono{[toomreParameterCritical]} is a dimensionless constant of order unity which
-    controls where the critical density occurs. We assume that $\sigma_\mathrm{gas}$ is a constant equal to {\normalfont
-    \ttfamily [velocityDispersionDiskGas]} and that the disk has a flat rotation curve such that $\kappa = \sqrt{2} V/R$.
+    controls where the critical density occurs. We assume that $\sigma_\mathrm{gas}$ is a constant equal to \mono{[velocityDispersionDiskGas]} and that the disk has a flat rotation curve such that $\kappa = \sqrt{2} V/R$.
    </description>
   </starFormationRateSurfaceDensityDisks>
   !!]

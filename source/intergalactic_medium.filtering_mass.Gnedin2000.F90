@@ -232,8 +232,7 @@ contains
 
   double precision function gnedin2000FractionBaryonsGradientMass(self,mass,time)
     !!{
-    Return the gradient with respect to mass of the fraction of baryons accreted into a halo of the given {\normalfont
-    \ttfamily mass} at the \mono{time}.
+    Return the gradient with respect to mass of the fraction of baryons accreted into a halo of the given \mono{mass} at the \mono{time}.
     !!}
     implicit none
     class           (intergalacticMediumFilteringMassGnedin2000), intent(inout) :: self

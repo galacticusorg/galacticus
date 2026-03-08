@@ -73,8 +73,7 @@
     A &amp;=&amp; A_1+(A_2-A_1)\exp[A_3 z^{A_4}] \nonumber \\
     B &amp;=&amp; B_1+B_2 z.
     \end{eqnarray}
-    The coefficients are chosen from one of the three sets given by \cite{dutton_cold_2014}, controlled via the {\normalfont
-    \ttfamily [duttonMaccio2014FitType]} parameter, as described in Table~\ref{tb:DuttonMaccioConcentrationCoefficients}.
+    The coefficients are chosen from one of the three sets given by \cite{dutton_cold_2014}, controlled via the \mono{[duttonMaccio2014FitType]} parameter, as described in Table~\ref{tb:DuttonMaccioConcentrationCoefficients}.
     
     \begin{table}
     \begin{center}

@@ -229,8 +229,7 @@ contains
 
   double precision function zhao2009MassAccretionRate(self,node,time)
     !!{
-    Compute the mass accretion rate at the given \mono{mass} in the mass accretion history of {\normalfont
-    \ttfamily node} using the algorithm of \cite{zhao_accurate_2009}.
+    Compute the mass accretion rate at the given \mono{mass} in the mass accretion history of \mono{node} using the algorithm of \cite{zhao_accurate_2009}.
     !!}
     use :: Error, only : Error_Report
     implicit none
