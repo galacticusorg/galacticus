@@ -167,6 +167,16 @@ In cases where an explicit {\normalfont \ttfamily parameterName} attribute is gi
  !# </objectBuilder>
 \end{verbatim}
 
+When a class accepts a list of objects of the same type (e.g.\ to implement a summation over multiple instances), the {\normalfont \ttfamily copy} attribute may be used to build multiple copies in a loop. The value of {\normalfont \ttfamily copy} is a loop variable (optionally with explicit bounds as a Fortran {\normalfont \ttfamily do} statement). For example:
+\begin{verbatim}
+ !# <objectBuilder class="mergerTreeEvolveTimestep" name="mergerTreeEvolveTimestep_%mergerTreeEvolveTimestep_" source="parameters" copy="i"/>
+\end{verbatim}
+or with explicit bounds:
+\begin{verbatim}
+ !# <objectBuilder class="stellarPopulationSpectraPostprocessor" name="postprocessors(i)%stellarPopulationSpectraPostprocessor_" source="parameters" copy="i=1,countPostprocessors"/>
+\end{verbatim}
+In the first case, the loop index {\normalfont \ttfamily i} is used as the {\normalfont \ttfamily copyInstance} argument when retrieving the object, allowing the parameter node to hold multiple instances. In the second case, the loop runs from 1 to {\normalfont \ttfamily countPostprocessors} explicitly.
+
 \subsection{Object Destructor}
 
 This directive can (and should) be used to destroy objects built by the {\normalfont \ttfamily objectBuilder} directive. The {\normalfont \ttfamily objectDestructor} directive automates the process of deciding if these objects should be destroyed (or merely have pointers to them nullified). As an example, the following destructor destroys two associated objects:
@@ -210,6 +220,77 @@ will cause the value of the {\normalfont \ttfamily massThreshold} argument to {\
  !# </stateStorable>
 \end{verbatim}
 This specifies that the {\normalfont \ttfamily table} class (and all child classes) can and should be stored to file as part of the representation of the internal state. Code to store and restore all data associated with any object of this class (as well as restoring polymorphic objects to the correct type) will be generated. If certain variables of the class or subclass should be restored to specific values this can be specified through a {\normalfont \ttfamily restoreTo} element placed within an element with the name of the class or subclass (e.g. the {\normalfont \ttfamily table1DGeneric} in the above example). The {\normalfont \ttfamily restoreTo} element should specify a comma-separated list of one or more variables to set in its {\normalfont \ttfamily variables} attribute, and the state to which they should be restored in its {\normalfont \ttfamily state} attribute. Any variables which should be excluded from state store/restore (e.g. if their values are known to be determined statically at construction) can be specified via a {\normalfont \ttfamily exclude} element---a list of variables to exclude should be given as a comma-separated list in its {\normalfont \ttfamily variables} attribute.
+
+\subsection{Event Hooks}\label{sec:eventHooks}
+
+\glc\ provides an event hook infrastructure which allows {\normalfont \ttfamily functionClass} objects to hook into events triggered elsewhere in the code. There are two components to the event hook system: the definition of an event hook point in the code, and the attachment of functions to that event hook from within a {\normalfont \ttfamily functionClass} implementation.
+
+\subsubsection{Defining an Event Hook Point}
+
+An event hook point is defined using the {\normalfont \ttfamily eventHook} directive. This directive is placed at the location in the code where the event should be triggered, and specifies the interface (i.e.\ the arguments) that any hooked functions must implement. For example:
+
+\begin{verbatim}
+ !![
+ <eventHook name="branchJumpPostProcess">
+   <import>
+     <module name="Galacticus_Nodes" symbols="treeNode"/>
+   </import>
+   <interface>
+     type(treeNode), intent(inout), pointer :: node
+   </interface>
+   <callWith>node</callWith>
+ </eventHook>
+ !!]
+\end{verbatim}
+
+The {\normalfont \ttfamily name} attribute gives the name of the event hook. The {\normalfont \ttfamily interface} element defines the Fortran declarations of the arguments to be passed to any hooked functions. The {\normalfont \ttfamily callWith} element gives the list of actual arguments to pass when the event is triggered. The optional {\normalfont \ttfamily import} element can be used to specify any types or symbols that should be imported into the abstract interface of hooked functions.
+
+When the preprocessor encounters this directive, it generates code to call all functions that have been attached to this event hook. The event hook infrastructure (defined in {\normalfont \ttfamily Events\_Hooks}) handles the list of attached functions and ensures each is called in the correct order (respecting any dependencies specified at attachment time), and with the correct OpenMP thread binding.
+
+A simpler variant, {\normalfont \ttfamily eventHookStatic}, is available for cases where the set of hooked functions is fixed at compile time (i.e.\ the functions are known statically and do not change at runtime). In this case, the directive takes only a {\normalfont \ttfamily name} attribute, and the hooked functions are identified by a matching directive of the same name, which specifies the function to call via a {\normalfont \ttfamily function} attribute.
+
+\subsubsection{Attaching Functions to an Event Hook}\label{sec:autoHook}
+
+A {\normalfont \ttfamily functionClass} implementation can attach one or more of its functions to event hooks by implementing an {\normalfont \ttfamily autoHook} method. This method is automatically called whenever a new instance is created via deep copy (see \S\ref{sec:functionClassAll}), and also on newly-constructed instances. The method should call the {\normalfont \ttfamily attach} method on the relevant {\normalfont \ttfamily eventHookUnspecified} object (or a typed variant) from the {\normalfont \ttfamily Events\_Hooks} module.
+
+For example, the following {\normalfont \ttfamily autoHook} implementation attaches the {\normalfont \ttfamily betaProfileCalculationReset} function to the {\normalfont \ttfamily calculationResetEvent} event hook:
+
+\begin{lstlisting}
+  subroutine betaProfileAutoHook(self)
+    use :: Events_Hooks, only : calculationResetEvent, openMPThreadBindingAllLevels
+    implicit none
+    class(coolingRadiusBetaProfile), intent(inout) :: self
+
+    call calculationResetEvent%attach(self,betaProfileCalculationReset, &
+         & openMPThreadBindingAllLevels,label='coolingRadiusBetaProfile')
+    return
+  end subroutine betaProfileAutoHook
+\end{lstlisting}
+
+The {\normalfont \ttfamily attach} method takes the following arguments:
+\begin{description}
+\item[{\normalfont \ttfamily object\_}] The object to be passed as the first argument to the hooked function (typically {\normalfont \ttfamily self}).
+\item[{\normalfont \ttfamily function\_}] The function to attach to the event hook.
+\item[{\normalfont \ttfamily openMPThreadBinding}] \emph{(optional)} Specifies how the hooked function is bound to OpenMP threads. Possible values are {\normalfont \ttfamily openMPThreadBindingNone} (default; the function is always called regardless of which thread triggers the event), {\normalfont \ttfamily openMPThreadBindingAtLevel} (the function is only called if the current OpenMP level and thread number match), and {\normalfont \ttfamily openMPThreadBindingAllLevels} (the function is called if the thread number matches at all OpenMP levels at or above the level at which the function was hooked).
+\item[{\normalfont \ttfamily label}] \emph{(optional)} A label used for diagnostics and dependency resolution.
+\item[{\normalfont \ttfamily dependencies}] \emph{(optional)} An array of {\normalfont \ttfamily dependency} objects (of type {\normalfont \ttfamily dependencyExact} or {\normalfont \ttfamily dependencyRegEx}) specifying ordering constraints relative to other hooks with matching labels.
+\end{description}
+
+Each {\normalfont \ttfamily functionClass} implementation that provides an {\normalfont \ttfamily autoHook} method must also detach its functions from event hooks in its destructor, using the {\normalfont \ttfamily detach} method:
+
+\begin{lstlisting}
+  subroutine betaProfileDestructor(self)
+    use :: Events_Hooks, only : calculationResetEvent
+    implicit none
+    type(coolingRadiusBetaProfile), intent(inout) :: self
+
+    if (calculationResetEvent%isAttached(self,betaProfileCalculationReset)) &
+       & call calculationResetEvent%detach(self,betaProfileCalculationReset)
+    return
+  end subroutine betaProfileDestructor
+\end{lstlisting}
+
+The {\normalfont \ttfamily isAttached} method should always be called before {\normalfont \ttfamily detach} to guard against attempting to detach a hook that was never attached. The hooked function is identified by the same function pointer used in the {\normalfont \ttfamily attach} call.
 
 \subsection{Conditional Call}
 
@@ -465,6 +546,56 @@ In the above example, we define a ``simple'' implementation of the {\normalfont 
 \end{description}
 
 Functionality to store and restore the state (see \href{https://github.com/galacticusorg/galacticus/releases/download/bleeding-edge/Galacticus_Usage.pdf\#sec.Restarting}{here}) of classes built via a {\normalfont \ttfamily functionClass} directive are automatically built. If variables of a given implementation should be restored to a specific state, this can be specified by adding a {\normalfont \ttfamily restoreTo} element to the directive declaring the implementation. The {\normalfont \ttfamily restoreTo} element should specify a comma-separated list of one or more variables to set in its {\normalfont \ttfamily variables} attribute, and the state to which they should be restored in its {\normalfont \ttfamily state} attribute. Any variables which should be excluded from state store/restore (e.g. if their values are known to be determined statically at construction) can be specified via a {\normalfont \ttfamily exclude} element---a list of variables to exclude should be given as a comma-separated list in its {\normalfont \ttfamily variables} attribute.
+
+\subsubsection{Deep Copy Infrastructure}\label{sec:deepCopy}
+
+Deep copy functionality is generated automatically for all classes built via the {\normalfont \ttfamily functionClass} directive. The generated {\normalfont \ttfamily deepCopy} method copies all data members of an object into a destination object of the same type. In most cases this happens automatically, with the preprocessor detecting and appropriately handling pointer members, allocatable arrays, and nested {\normalfont \ttfamily functionClass} objects. After a deep copy is made, {\normalfont \ttfamily autoHook} (see \S\ref{sec:autoHook}) is called on the destination object to re-establish any event hook attachments.
+
+In some cases, the default deep copy behavior must be customized. This is done by adding a {\normalfont \ttfamily deepCopy} element to the directive declaring the {\normalfont \ttfamily functionClass} implementation. For example:
+
+\begin{verbatim}
+ !![
+ <coolingRadius name="coolingRadiusBetaProfile">
+  ...
+  <deepCopy>
+   <functionClass variables="radiation"/>
+  </deepCopy>
+ </coolingRadius>
+ !!]
+\end{verbatim}
+
+The {\normalfont \ttfamily deepCopy} element may contain the following sub-elements:
+\begin{description}
+\item[{\normalfont \ttfamily functionClass}] A {\normalfont \ttfamily functionClass} element with a {\normalfont \ttfamily variables} attribute specifying a comma-separated list of member variable names identifies member variables that are {\normalfont \ttfamily functionClass} objects but are \emph{not} declared as {\normalfont \ttfamily class(\ldots), pointer} (e.g.\ they are declared as {\normalfont \ttfamily type(\ldots), pointer} or are not pointers). The deep copy infrastructure will perform a full deep copy of these objects (recursively calling {\normalfont \ttfamily deepCopy} on them) and will call {\normalfont \ttfamily autoHook} on the copies.
+\item[{\normalfont \ttfamily ignore}] An {\normalfont \ttfamily ignore} element with a {\normalfont \ttfamily variables} attribute specifying a comma-separated list of variable names instructs the preprocessor to skip those variables during deep copy. This is useful for members whose values are managed externally (e.g.\ elements of a linked list that are populated separately) and should not be replicated during a deep copy.
+\item[{\normalfont \ttfamily increment}] An {\normalfont \ttfamily increment} element with a {\normalfont \ttfamily variables} attribute specifying a comma-separated list of variable names causes those variables to be incremented in the destination object after the copy. The optional {\normalfont \ttfamily atomic} attribute (set to {\normalfont \ttfamily yes}) may be used to make the increment an OpenMP atomic operation.
+\end{description}
+
+In addition to the deep copy functionality generated within {\normalfont \ttfamily functionClass} objects, the preprocessor provides three standalone directives for use in other contexts:
+
+\begin{description}
+\item[{\normalfont \ttfamily deepCopyReset}] Resets the internal {\normalfont \ttfamily copiedSelf} pointer on one or more {\normalfont \ttfamily functionClass} objects before beginning a new sequence of deep copies. Usage:
+\begin{verbatim}
+ !![
+ <deepCopyReset variables="self%myObject_"/>
+ !!]
+\end{verbatim}
+\item[{\normalfont \ttfamily deepCopy}] Performs a deep copy of a source {\normalfont \ttfamily functionClass} object into a destination object. Usage:
+\begin{verbatim}
+ !![
+ <deepCopy source="self%myObject_" destination="newObject_"/>
+ !!]
+\end{verbatim}
+The {\normalfont \ttfamily autoHook} method is called on the destination object after the copy.
+\item[{\normalfont \ttfamily deepCopyFinalize}] Resets the {\normalfont \ttfamily copiedSelf} pointer after a sequence of deep copies is complete. Usage:
+\begin{verbatim}
+ !![
+ <deepCopyFinalize variables="self%myObject_"/>
+ !!]
+\end{verbatim}
+\end{description}
+
+These three directives are typically used in sequence when manually deep-copying a {\normalfont \ttfamily functionClass} member: first {\normalfont \ttfamily deepCopyReset} to prepare the source, then {\normalfont \ttfamily deepCopy} to perform the copy, then {\normalfont \ttfamily deepCopyFinalize} to clean up.
 
 \subsection{Generic Programming}
 
