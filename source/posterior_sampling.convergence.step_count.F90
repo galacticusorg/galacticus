@@ -43,7 +43,7 @@
 
   interface posteriorSampleConvergenceStepCount
      !!{
-     Constructors for the {\normalfont \ttfamily stepCount} posterior sampling convergence class.
+     Constructors for the \mono{stepCount} posterior sampling convergence class.
      !!}
      module procedure stepCountConstructorParameters
      module procedure stepCountConstructorInternal
@@ -53,7 +53,7 @@ contains
 
   function stepCountConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily stepCount} convergence class.
+    Constructor for the \mono{stepCount} convergence class.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -77,7 +77,7 @@ contains
 
   function stepCountConstructorInternal(countSteps) result(self)
     !!{
-    Internal constructor for the {\normalfont \ttfamily stepCount} convergence class.
+    Internal constructor for the \mono{stepCount} convergence class.
     !!}
     implicit none
     type   (posteriorSampleConvergenceStepCount)                :: self
@@ -131,7 +131,7 @@ contains
 
   subroutine stepCountLogReport(self,fileUnit)
     !!{
-    Write a convergence report to the given {\normalfont \ttfamily fileUnit}.
+    Write a convergence report to the given \mono{fileUnit}.
     !!}
     implicit none
     class  (posteriorSampleConvergenceStepCount), intent(inout) :: self

@@ -176,7 +176,7 @@ contains
 
   subroutine ETHOSExtendedDestructor(self)
     !!{
-    Destructor for the {\normalfont \ttfamily ETHOS} window function class.
+    Destructor for the \mono{ETHOS} window function class.
     !!}
     implicit none
     type(powerSpectrumWindowFunctionETHOSExtended), intent(inout) :: self

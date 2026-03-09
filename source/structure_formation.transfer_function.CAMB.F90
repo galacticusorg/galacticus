@@ -90,7 +90,7 @@ contains
       <name>transferFunctionType</name>
       <source>parameters</source>
       <defaultValue>var_str('darkMatter')</defaultValue>
-      <description>Specifies whether to use the {\normalfont \ttfamily darkMatter} or {\normalfont \ttfamily total} transfer function.</description>
+      <description>Specifies whether to use the \mono{darkMatter} or \mono{total} transfer function.</description>
     </inputParameter>
     <inputParameter>
       <name>redshift</name>

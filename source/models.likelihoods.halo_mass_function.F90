@@ -427,7 +427,7 @@ contains
 
   double precision function haloMassFunctionEvaluate(self,simulationState,modelParametersActive_,modelParametersInactive_,simulationConvergence,temperature,logLikelihoodCurrent,logPriorCurrent,logPriorProposed,timeEvaluate,logLikelihoodVariance,forceAcceptance) result(logLikelihood)
     !!{
-    Return the log-likelihood for the halo mass function likelihood function. If {\normalfont \ttfamily [likelihoodPoisson]=false}
+    Return the log-likelihood for the halo mass function likelihood function. If \mono{[likelihoodPoisson]=false}
     then Gaussian statistics are assumed, otherwise, Poisson statistics are assumed. No covariance between bins is assumed.
     !!}
     use :: Error                            , only : Error_Report

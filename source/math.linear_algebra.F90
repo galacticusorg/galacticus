@@ -843,7 +843,7 @@ contains
   
   function matrixDiagonalConstructor(array) result(self)
     !!{
-    Constructor for {\normalfont \ttfamily matrix} class which builds the matrix and initializes the diagonal elements to the
+    Constructor for \mono{matrix} class which builds the matrix and initializes the diagonal elements to the
     given array (and all other elements to zero).
     !!}
     implicit none

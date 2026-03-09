@@ -54,7 +54,7 @@
 
   interface haloMassFunctionPseudoHalos
      !!{
-     Constructors for the {\normalfont \ttfamily pseudoHalos} halo mass function class.
+     Constructors for the \mono{pseudoHalos} halo mass function class.
      !!}
      module procedure pseudoHalosConstructorParameters
      module procedure pseudoHalosConstructorInternal
@@ -64,7 +64,7 @@ contains
 
   function pseudoHalosConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily pseudoHalos} halo mass function class which takes a parameter set as input.
+    Constructor for the \mono{pseudoHalos} halo mass function class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -149,7 +149,7 @@ contains
 
   function pseudoHalosConstructorInternal(normalization,exponentMass,exponentRedshift,exponentOverdensity,massZeroPointReference,massParticleReference,massParticle,countParticleMinimum,exponentMassParticle,exponentNormalization,massFunction_,cosmologyParameters_,cosmologyFunctions_,haloEnvironment_) result(self)
     !!{
-    Internal constructor for the {\normalfont \ttfamily pseudoHalos} halo mass function class.
+    Internal constructor for the \mono{pseudoHalos} halo mass function class.
     !!}
     implicit none
     type            (haloMassFunctionPseudoHalos)                        :: self
@@ -176,7 +176,7 @@ contains
 
   subroutine pseudoHalosDestructor(self)
     !!{
-    Destructor for the {\normalfont \ttfamily pseudoHalos} halo mass function class.
+    Destructor for the \mono{pseudoHalos} halo mass function class.
     !!}
     implicit none
     type(haloMassFunctionPseudoHalos), intent(inout) :: self

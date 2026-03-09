@@ -183,7 +183,7 @@ contains
       <name>transferFunctionType</name>
       <source>parameters</source>
       <defaultValue>var_str('darkMatter')</defaultValue>
-      <description>Specifies whether to use the {\normalfont \ttfamily darkMatter} or {\normalfont \ttfamily total} transfer function.</description>
+      <description>Specifies whether to use the \mono{darkMatter} or \mono{total} transfer function.</description>
     </inputParameter>
     <inputParameter>
       <name>fileName</name>
@@ -200,7 +200,7 @@ contains
       <name>factorWavenumberSmoothExtrapolation</name>
       <source>parameters</source>
       <defaultValue>2.0d0</defaultValue>
-      <description>If positive, and extrapolation is used at high wavenumbers, the slope for extrapolation will be set by averaging over wavenumbers from $k_\mathrm{max}/f$ to $k_\mathrm{max}$, where $f=${\normalfont \ttfamily [factorWavenumberSmoothExtrapolation]} and $k_\mathrm{max}$ is the highest wavenumber tabulated. This avoids spurious extrapolation for highly oscillatory transfer functions.</description>
+      <description>If positive, and extrapolation is used at high wavenumbers, the slope for extrapolation will be set by averaging over wavenumbers from $k_\mathrm{max}/f$ to $k_\mathrm{max}$, where $f=$\mono{[factorWavenumberSmoothExtrapolation]} and $k_\mathrm{max}$ is the highest wavenumber tabulated. This avoids spurious extrapolation for highly oscillatory transfer functions.</description>
     </inputParameter>
     <inputParameter>
       <name>acceptNegativeValues</name>

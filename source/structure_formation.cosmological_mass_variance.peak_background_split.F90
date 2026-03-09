@@ -91,7 +91,7 @@ contains
     <inputParameter>
       <name>factorMassEnvironment</name>
       <defaultValue>1.0d0</defaultValue>
-      <description>The background variance is computed as $\sigma(\alpha M_\mathrm{env})^2$ where $M_\mathrm{env}$ is the environment mass and $\alpha=${\normalfont \ttfamily [factorMassEnvironment]}.</description>
+      <description>The background variance is computed as $\sigma(\alpha M_\mathrm{env})^2$ where $M_\mathrm{env}$ is the environment mass and $\alpha=$\mono{[factorMassEnvironment]}.</description>
       <source>parameters</source>
     </inputParameter>
     <objectBuilder class="haloEnvironment"          name="haloEnvironment_"          source="parameters"/>

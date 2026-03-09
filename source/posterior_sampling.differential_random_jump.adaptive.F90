@@ -75,7 +75,7 @@ contains
 
   function adaptiveConstructorInternal() result(self)
     !!{
-    Internal constructor for the {\normalfont \ttfamily adaptive} posterior sampling differential evolution random jump class.
+    Internal constructor for the \mono{adaptive} posterior sampling differential evolution random jump class.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none

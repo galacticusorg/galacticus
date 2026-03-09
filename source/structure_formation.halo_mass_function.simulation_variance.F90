@@ -51,7 +51,7 @@ simulation cube.
 
   interface haloMassFunctionSimulationVariance
      !!{
-     Constructors for the {\normalfont \ttfamily simulationVariance} halo mass function class.
+     Constructors for the \mono{simulationVariance} halo mass function class.
      !!}
      module procedure simulationVarianceConstructorParameters
      module procedure simulationVarianceConstructorInternal
@@ -82,7 +82,7 @@ contains
 
   function simulationVarianceConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily simulationVariance} halo mass function class which takes a parameter set as input.
+    Constructor for the \mono{simulationVariance} halo mass function class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -123,7 +123,7 @@ contains
 
   function simulationVarianceConstructorInternal(lengthSimulationCube,perturbationFractional,massFunction_,cosmologyParameters_,powerSpectrum_,darkMatterHaloBias_) result(self)
     !!{
-    Internal constructor for the {\normalfont \ttfamily simulationVariance} halo mass function class.
+    Internal constructor for the \mono{simulationVariance} halo mass function class.
     !!}
     implicit none
     type            (haloMassFunctionSimulationVariance)                        :: self
@@ -142,7 +142,7 @@ contains
 
   subroutine simulationVarianceDestructor(self)
     !!{
-    Destructor for the {\normalfont \ttfamily simulationVariance} halo mass function class.
+    Destructor for the \mono{simulationVariance} halo mass function class.
     !!}
     implicit none
     type(haloMassFunctionSimulationVariance), intent(inout) :: self

@@ -57,7 +57,7 @@ Implements a dark matter halo mass function class which accelerates another mass
 
   interface haloMassFunctionAccelerator
      !!{
-     Constructors for the {\normalfont \ttfamily accelerator} halo mass function class.
+     Constructors for the \mono{accelerator} halo mass function class.
      !!}
      module procedure acceleratorConstructorParameters
      module procedure acceleratorConstructorInternal
@@ -70,7 +70,7 @@ contains
 
   function acceleratorConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily accelerator} halo mass function class which takes a parameter set as input.
+    Constructor for the \mono{accelerator} halo mass function class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -94,7 +94,7 @@ contains
 
   function acceleratorConstructorInternal(cosmologyParameters_,haloMassFunction_) result(self)
     !!{
-    Internal constructor for the {\normalfont \ttfamily accelerator} halo mass function class.
+    Internal constructor for the \mono{accelerator} halo mass function class.
     !!}
     implicit none
     type (haloMassFunctionAccelerator)                        :: self
@@ -112,7 +112,7 @@ contains
 
   subroutine acceleratorDestructor(self)
     !!{
-    Destructor for the {\normalfont \ttfamily accelerator} halo mass function class.
+    Destructor for the \mono{accelerator} halo mass function class.
     !!}
     implicit none
     type(haloMassFunctionAccelerator), intent(inout) :: self

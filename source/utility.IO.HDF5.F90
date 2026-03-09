@@ -7031,7 +7031,7 @@ attributeValue=trim(attributeValue)
 
   subroutine IO_HDF5_Write_Dataset_Integer8_4D(self,datasetValue,datasetName,commentText,appendTo,chunkSize,compressionLevel,datasetReturned)
     !!{
-    Open and write a long integer 4-D array dataset in {\normalfont \ttfamily self}.
+    Open and write a long integer 4-D array dataset in \mono{self}.
     !!}
     use            :: Error             , only : Error_Report
     use            :: HDF5              , only : H5P_DEFAULT_F     , H5S_SELECT_SET_F           , h5sselect_hyperslab_f , HID_T     , &

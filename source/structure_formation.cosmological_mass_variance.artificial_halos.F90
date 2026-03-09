@@ -32,7 +32,7 @@
     \begin{equation}
      \sigma^2(M,t) \rightarrow \sigma^2(M,t) + S_0 \left(\frac{M}{M_0}\right)^\alpha D^2(t),
     \end{equation}    
-    where $S_0=${\normalfont \ttfamily [normalization]}, $M_0=${\normalfont \ttfamily [massZeroPoint]}, and $\alpha=${\normalfont
+    where $S_0=$\mono{[normalization]}, $M_0=$\mono{[massZeroPoint]}, and $\alpha=${\normalfont
     \ttfamily [exponent]}.
    </description>
   </cosmologicalMassVariance>
@@ -62,7 +62,7 @@
 
   interface cosmologicalMassVarianceArtificialHalos
      !!{
-     Constructors for the {\normalfont \ttfamily artificialHalos} cosmological mass variance class.
+     Constructors for the \mono{artificialHalos} cosmological mass variance class.
      !!}
      module procedure artificialHalosConstructorParameters
      module procedure artificialHalosConstructorInternal
@@ -72,7 +72,7 @@ contains
 
   function artificialHalosConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily artificialHalos} cosmological mass variance class which takes a parameter set as input.
+    Constructor for the \mono{artificialHalos} cosmological mass variance class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -115,7 +115,7 @@ contains
 
   function artificialHalosConstructorInternal(normalization, massZeroPoint, exponent,cosmologicalMassVariance_,cosmologyFunctions_,linearGrowth_) result(self)
     !!{
-    Internal constructor for the {\normalfont \ttfamily artificialHalos} cosmological mass variance class.
+    Internal constructor for the \mono{artificialHalos} cosmological mass variance class.
     !!}
     implicit none
     type            (cosmologicalMassVarianceArtificialHalos)                        :: self
@@ -133,7 +133,7 @@ contains
 
   subroutine artificialHalosDestructor(self)
     !!{
-    Destructor for the {\normalfont \ttfamily artificialHalos} cosmological mass variance class.
+    Destructor for the \mono{artificialHalos} cosmological mass variance class.
     !!}
     implicit none
     type   (cosmologicalMassVarianceArtificialHalos), intent(inout) :: self
@@ -192,7 +192,7 @@ contains
   double precision function artificialHalosRootVarianceLogarithmicGradient(self,mass,time)
     !!{
     Return the logarithmic gradient with respect to mass of the root-variance of the cosmological density field in a spherical
-    region containing the given {\normalfont \ttfamily mass} on average.
+    region containing the given \mono{mass} on average.
     !!}
     implicit none
     class           (cosmologicalMassVarianceArtificialHalos), intent(inout) :: self
@@ -220,7 +220,7 @@ contains
   double precision function artificialHalosRootVarianceLogarithmicGradientTime(self,mass,time)
     !!{
     Return the logarithmic gradient with respect to time of the root-variance of the cosmological density field in a spherical
-    region containing the given {\normalfont \ttfamily mass} on average.
+    region containing the given \mono{mass} on average.
     !!}
     implicit none
     class           (cosmologicalMassVarianceArtificialHalos), intent(inout) :: self
@@ -250,7 +250,7 @@ contains
   subroutine artificialHalosRootVarianceAndLogarithmicGradient(self,mass,time,rootVariance,rootVarianceLogarithmicGradient)
     !!{
     Return the value and logarithmic gradient with respect to mass of the root-variance of the cosmological density field in a
-    spherical region containing the given {\normalfont \ttfamily mass} on average.
+    spherical region containing the given \mono{mass} on average.
     !!}
     implicit none
     class           (cosmologicalMassVarianceArtificialHalos), intent(inout) :: self
@@ -283,7 +283,7 @@ contains
 
   double precision function artificialHalosMass(self,rootVariance,time)
     !!{
-    Return the mass corresponding to the given {\normalfont \ttfamily } root-variance of the cosmological density field.
+    Return the mass corresponding to the given root-variance of the cosmological density field.
     !!}
     implicit none
     class           (cosmologicalMassVarianceArtificialHalos), intent(inout) :: self

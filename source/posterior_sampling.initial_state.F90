@@ -48,8 +48,8 @@
    contains
      !![
      <methods>
-       <method method="posterior"         description="Return the log of posterior probability for the given {\normalfont \ttfamily simulationState}."/>
-       <method method="descriptorSpecial" description="Handle adding special parameters to the descriptor."                                           />
+       <method method="posterior"         description="Return the log of posterior probability for the given \mono{simulationState}."/>
+       <method method="descriptorSpecial" description="Handle adding special parameters to the descriptor."                          />
      </methods>
      !!]
      final     ::                      initialStateDestructor
@@ -60,7 +60,7 @@
 
   interface posteriorSampleSimulationInitialState
      !!{
-     Constructors for the {\normalfont \ttfamily initialState} posterior sampling convergence class.
+     Constructors for the \mono{initialState} posterior sampling convergence class.
      !!}
      module procedure initialStateConstructorParameters
      module procedure initialStateConstructorInternal
@@ -70,7 +70,7 @@ contains
 
   function initialStateConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily initialState} posterior sampling simulation class which builds the object from a
+    Constructor for the \mono{initialState} posterior sampling simulation class which builds the object from a
     parameter set.
     !!}
     use :: Display         , only : displayMessage      , displayVerbosity      , verbosityLevelInfo

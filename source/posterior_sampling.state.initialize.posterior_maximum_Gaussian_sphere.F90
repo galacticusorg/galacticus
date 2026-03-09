@@ -50,7 +50,7 @@
 
   interface posteriorSampleStateInitializePosteriorMaximumGaussianSphere
      !!{
-     Constructors for the {\normalfont \ttfamily posteriorMaximumGaussianSphere} posterior sampling state initialization class.
+     Constructors for the \mono{posteriorMaximumGaussianSphere} posterior sampling state initialization class.
      !!}
      module procedure posteriorMaximumGaussianSphereConstructorParameters
      module procedure posteriorMaximumGaussianSphereConstructorInternal
@@ -60,7 +60,7 @@ contains
 
   function posteriorMaximumGaussianSphereConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily posteriorMaximumGaussianSphere} posterior sampling state initialization class.
+    Constructor for the \mono{posteriorMaximumGaussianSphere} posterior sampling state initialization class.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -100,7 +100,7 @@ contains
 
   function posteriorMaximumGaussianSphereConstructorInternal(logFileRoot,radiusSphere,radiusIsRelative,posteriorSampleStateInitialize_,randomNumberGenerator_) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily posteriorMaximumGaussianSphere} posterior sampling state initialization class.
+    Constructor for the \mono{posteriorMaximumGaussianSphere} posterior sampling state initialization class.
     !!}
     implicit none
     type            (posteriorSampleStateInitializePosteriorMaximumGaussianSphere)                        :: self
@@ -118,7 +118,7 @@ contains
 
   subroutine posteriorMaximumGaussianSphereDestructor(self)
     !!{
-    Destructor for the  {\normalfont \ttfamily posteriorMaximumGaussianSphere} posterior sampling state initialization class.
+    Destructor for the  \mono{posteriorMaximumGaussianSphere} posterior sampling state initialization class.
     !!}
     implicit none
     type(posteriorSampleStateInitializePosteriorMaximumGaussianSphere), intent(inout) :: self

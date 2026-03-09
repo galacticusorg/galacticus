@@ -313,7 +313,7 @@ contains
 
   subroutine fileAssign(to,from)
     !!{
-    Assignment operator for the {\normalfont \ttfamily file} class.
+    Assignment operator for the \mono{file} class.
     !!}
     implicit none
     class(file), intent(  out) :: to

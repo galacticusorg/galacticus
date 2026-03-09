@@ -247,7 +247,7 @@ contains
 
   double precision function bhattacharya2011B(self,time,mass)
     !!{
-    Return the parameter $\bar{b}$ in the {\normalfont \ttfamily bhattacharya2011} halo mass function at the given time and mass.
+    Return the parameter $\bar{b}$ in the \mono{bhattacharya2011} halo mass function at the given time and mass.
     !!}
     implicit none
     class           (haloMassFunctionBhattacharya2011), intent(inout) :: self
@@ -260,7 +260,7 @@ contains
 
   double precision function bhattacharya2011C(self,time,mass)
     !!{
-    Return the parameter $\bar{c}$ in the {\normalfont \ttfamily bhattacharya2011} halo mass function at the given time and mass.
+    Return the parameter $\bar{c}$ in the \mono{bhattacharya2011} halo mass function at the given time and mass.
     !!}
     implicit none
     class           (haloMassFunctionBhattacharya2011), intent(inout) :: self

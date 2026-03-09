@@ -59,7 +59,7 @@
 
   interface distributionFunctionMultivariateNormal
      !!{
-     Constructors for the {\normalfont \ttfamily normal} 1D distribution function class.
+     Constructors for the \mono{normal} 1D distribution function class.
      !!}
      module procedure multivariateNormalConstructorParameters
      module procedure multivariateNormalConstructorInternal
@@ -76,7 +76,7 @@ contains
 
   function multivariateNormalConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily multivariateNormal} 1D distribution function class which builds the object from a parameter
+    Constructor for the \mono{multivariateNormal} 1D distribution function class which builds the object from a parameter
     set.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
@@ -127,7 +127,7 @@ contains
 
   function multivariateNormalConstructorInternal(mean,covariance,errorAbsolute,errorRelative,countTrialsMaximum,randomNumberGenerator_) result(self)
     !!{
-    Constructor for {\normalfont \ttfamily multivariateNormal} multivariate distribution function class.
+    Constructor for \mono{multivariateNormal} multivariate distribution function class.
     !!}
     implicit none
     type            (distributionFunctionMultivariateNormal)                                        :: self

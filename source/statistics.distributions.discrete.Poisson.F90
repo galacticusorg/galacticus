@@ -43,7 +43,7 @@
 
   interface distributionFunctionDiscrete1DPoisson
      !!{
-     Constructors for the {\normalfont \ttfamily poisson} 1D discrete distribution function class.
+     Constructors for the \mono{poisson} 1D discrete distribution function class.
      !!}
      module procedure poissonConstructorParameters
      module procedure poissonConstructorInternal
@@ -53,7 +53,7 @@ contains
 
   function poissonConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily poisson} 1D discrete distribution function class which builds
+    Constructor for the \mono{poisson} 1D discrete distribution function class which builds
     the object from a parameter set.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
@@ -81,7 +81,7 @@ contains
 
   function poissonConstructorInternal(mean,randomNumberGenerator_) result(self)
     !!{
-    Constructor for {\normalfont \ttfamily poisson} 1D distribution function class.
+    Constructor for \mono{poisson} 1D distribution function class.
     !!}
     use :: Error, only : Error_Report
     implicit none

@@ -46,7 +46,7 @@ Implements a dark matter halo mass function class which modifies another mass fu
 
   interface haloMassFunctionDetectionEfficiency
      !!{
-     Constructors for the {\normalfont \ttfamily detectionEfficiency} halo mass function class.
+     Constructors for the \mono{detectionEfficiency} halo mass function class.
      !!}
      module procedure detectionEfficiencyConstructorParameters
      module procedure detectionEfficiencyConstructorInternal
@@ -56,7 +56,7 @@ contains
 
   function detectionEfficiencyConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily detectionEfficiency} halo mass function class which takes a parameter set as input.
+    Constructor for the \mono{detectionEfficiency} halo mass function class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -105,7 +105,7 @@ contains
 
   function detectionEfficiencyConstructorInternal(massMinimum,efficiencyAtMassMinimum,exponentMass,exponentRedshift,massFunction_,cosmologyParameters_,cosmologyFunctions_) result(self)
     !!{
-    Internal constructor for the {\normalfont \ttfamily detectionEfficiency} halo mass function class.
+    Internal constructor for the \mono{detectionEfficiency} halo mass function class.
     !!}
     implicit none
     type            (haloMassFunctionDetectionEfficiency)                        :: self
@@ -123,7 +123,7 @@ contains
 
   subroutine detectionEfficiencyDestructor(self)
     !!{
-    Destructor for the {\normalfont \ttfamily detectionEfficiency} halo mass function class.
+    Destructor for the \mono{detectionEfficiency} halo mass function class.
     !!}
     implicit none
     type(haloMassFunctionDetectionEfficiency), intent(inout) :: self

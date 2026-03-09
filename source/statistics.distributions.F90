@@ -157,7 +157,7 @@ module Statistics_Distributions
      <argument>double precision, intent(in   ), dimension(:) :: x          </argument>
      <argument>logical         , intent(in   ), optional     :: logarithmic</argument>
      <argument>integer         , intent(  out), optional     :: status     </argument>
-     <description>Return the probability density at {\normalfont \ttfamily x}.</description>
+     <description>Return the probability density at \mono{x}.</description>
    </method>
    <method name="cumulative" >
      <type>double precision</type>
@@ -165,7 +165,7 @@ module Statistics_Distributions
      <argument>double precision, intent(in   ), dimension(:) :: xLow       , xHigh</argument>
      <argument>logical         , intent(in   ), optional     :: logarithmic       </argument>
      <argument>integer         , intent(  out), optional     :: status            </argument>
-     <description>Return the cumulative probability between {\normalfont \ttfamily xLow}, and {\normalfont \ttfamily xHigh}. The cumulative distribution is defined as $P(x_1 &lt; X_1,\ldots,x_N &lt; X_N)$ where $\mathbf{X}=${\normalfont \ttfamily x}.</description>     
+     <description>Return the cumulative probability between \mono{xLow}, and \mono{xHigh}. The cumulative distribution is defined as $P(x_1 &lt; X_1,\ldots,x_N &lt; X_N)$ where $\mathbf{X}=$\mono{x}.</description>     
    </method>
   </functionClass>
   !!]
@@ -196,7 +196,7 @@ contains
 
   subroutine distributionFunctionMultivariateFinalize(self)
     !!{
-    Destructor for {\normalfont \ttfamily distributionFunction1D} objects.
+    Destructor for \mono{distributionFunction1D} objects.
     !!}
     type(distributionFunctionMultivariateClass), intent(inout) :: self
 

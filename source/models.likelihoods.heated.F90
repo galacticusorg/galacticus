@@ -24,7 +24,7 @@
   !![
   <posteriorSampleLikelihood name="posteriorSampleLikelihoodHeated">
    <description>
-     The likelihood of the provided class is heated to a temperature $T=${\normalfont \ttfamily [temperature]}, such that
+     The likelihood of the provided class is heated to a temperature $T=$\mono{[temperature]}, such that
      \begin{equation}
      \log \mathcal{L} \rightarrow T^{-1} \log \mathcal{L}.
      \end{equation}
@@ -46,7 +46,7 @@
 
   interface posteriorSampleLikelihoodHeated
      !!{
-     Constructors for the {\normalfont \ttfamily heated} posterior sampling likelihood class.
+     Constructors for the \mono{heated} posterior sampling likelihood class.
      !!}
      module procedure heatedConstructorParameters
      module procedure heatedConstructorInternal
@@ -56,7 +56,7 @@ contains
 
   function heatedConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily heated} posterior sampling likelihood class which builds the object
+    Constructor for the \mono{heated} posterior sampling likelihood class which builds the object
     from a parameter set.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters

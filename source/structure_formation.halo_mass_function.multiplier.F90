@@ -47,7 +47,7 @@ by a constant factor.
 
   interface haloMassFunctionMultiplier
      !!{
-     Constructors for the {\normalfont \ttfamily multiplier} halo mass function class.
+     Constructors for the \mono{multiplier} halo mass function class.
      !!}
      module procedure multiplierConstructorParameters
      module procedure multiplierConstructorInternal
@@ -57,7 +57,7 @@ contains
 
   function multiplierConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily multiplier} halo mass function class which takes a parameter set as input.
+    Constructor for the \mono{multiplier} halo mass function class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -95,7 +95,7 @@ contains
 
   function multiplierConstructorInternal(multiplier,exponentRedshift,massFunction_,cosmologyParameters_,cosmologyFunctions_) result(self)
     !!{
-    Internal constructor for the {\normalfont \ttfamily multiplier} halo mass function class.
+    Internal constructor for the \mono{multiplier} halo mass function class.
     !!}
     implicit none
     type            (haloMassFunctionMultiplier)                        :: self
@@ -112,7 +112,7 @@ contains
 
   subroutine multiplierDestructor(self)
     !!{
-    Destructor for the {\normalfont \ttfamily multiplier} halo mass function class.
+    Destructor for the \mono{multiplier} halo mass function class.
     !!}
     implicit none
     type(haloMassFunctionMultiplier), intent(inout) :: self

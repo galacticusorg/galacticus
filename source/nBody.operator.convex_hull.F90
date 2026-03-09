@@ -72,7 +72,7 @@ contains
 
   function convexHullConstructorInternal(randomNumberGenerator_) result (self)
     !!{
-    Internal constructor for the {\normalfont \ttfamily convexHull} N-body operator class.
+    Internal constructor for the \mono{convexHull} N-body operator class.
     !!}
     implicit none
     type (nbodyOperatorConvexHull   )                        :: self
@@ -86,7 +86,7 @@ contains
 
   subroutine convexHullDestructor(self)
     !!{
-    Destructor for the {\normalfont \ttfamily convexHull} N-body operator class.
+    Destructor for the \mono{convexHull} N-body operator class.
     !!}
     implicit none
     type(nbodyOperatorConvexHull), intent(inout) :: self

@@ -592,7 +592,7 @@ contains
 
   subroutine Signal_Handler_SIGUSR1()
     !!{
-    Handle {\normalfont \ttfamily SIGUSR1} signals, by outputting a backtrace.
+    Handle \mono{SIGUSR1} signals, by outputting a backtrace.
     !!}
     use, intrinsic :: ISO_Fortran_Env, only : error_unit
     use            :: Display        , only : displayBold  , displayMagenta, displayReset
