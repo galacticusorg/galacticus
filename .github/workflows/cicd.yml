@@ -316,18 +316,18 @@ jobs:
              echo "doPush=true"  >> "$GITHUB_OUTPUT"
           fi
       - name: Login to GitHub Container Registry
-        uses: docker/login-action@v3
+        uses: docker/login-action@v4
         with:
           registry: ghcr.io
           username: ${{ github.repository_owner }}
           password: ${{ secrets.GITHUB_TOKEN }}
       - name: Extract metadata (tags, labels) for Docker
         id: meta
-        uses: docker/metadata-action@v5
+        uses: docker/metadata-action@v6
         with:
           images: galacticusorg/galacticus
       - name: Build and push Docker image 
-        uses: docker/build-push-action@v6
+        uses: docker/build-push-action@v7
         with:
           push: ${{ steps.detectBranch.outputs.doPush }}
           tags: ghcr.io/galacticusorg/galacticus:latest
@@ -788,12 +788,18 @@ jobs:
         if: steps.check_files.outputs.files_exists == 'true'
         run: |
           cat warnings.md >> $GITHUB_STEP_SUMMARY
+      - name: Wrap warnings in collapsible section
+        if: steps.check_files.outputs.files_exists == 'true'
+        run: |
+          printf '<details><summary>Updated files (click to expand)</summary>\n\n' > warnings-collapsible.md
+          cat warnings.md >> warnings-collapsible.md
+          printf '\n\n</details>\n' >> warnings-collapsible.md
       - name: Comment on the PR if any warnings were found
         if: steps.check_files.outputs.files_exists == 'true' && github.event.pull_request.head.repo.full_name == github.repository
         continue-on-error: true
         uses: thollander/actions-comment-pull-request@v3
         with:
-          file-path: warnings.md
+          file-path: warnings-collapsible.md
   # Validation
   Validate-Dark-Matter-Only-Subhalos:
     needs: Build-Executable-DMO-Linux

@@ -189,6 +189,21 @@ runs:
       run: |
         sudo perl -MCPAN -e shell
         sudo perl -MCPAN -e 'install Bundle::CPAN'
+    - name: Configure CPAN mirrors
+      shell: bash
+      run: |
+        sudo perl -MCPAN -e '
+          CPAN::HandleConfig->load();
+          $CPAN::Config->{pushy_https} = 0;
+          $CPAN::Config->{urllist} = [
+            q{https://cpan.metacpan.org/},
+            q{https://www.cpan.org/},
+            q{https://cpan.perl.org/},
+            q{http://ftp.funet.fi/pub/languages/perl/CPAN/},
+            q{ftp://ftp.cpan.org/pub/CPAN/},
+          ];
+          CPAN::HandleConfig->commit();
+        '
     - name: Install Perl modules
       shell: bash
       run: |
