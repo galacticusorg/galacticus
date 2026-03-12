@@ -22,7 +22,6 @@ Implements a transfer function class using the CLASS code.
 !!}
 
   use :: Dark_Matter_Particles, only : darkMatterParticleClass
-  use :: File_Utilities       , only : lockDescriptor
 
   !![
   <transferFunction name="transferFunctionCLASSCDM">
@@ -186,13 +185,11 @@ contains
     Check that the provided wavenumber is within the tabulated range and, if not, recompute
     the CLASS transfer function.
     !!}
-    use :: File_Utilities  , only : File_Lock                        , File_Unlock
     use :: Interfaces_CLASS, only : Interface_CLASS_Transfer_Function
     implicit none
     class           (transferFunctionCLASSCDM), intent(inout) :: self
     double precision                          , intent(in   ) :: wavenumber
     logical                                                   :: makeTransferFunction
-    type            (lockDescriptor          )                :: fileLock
 
     ! If the file has been read and the wavenumber is within range, simply return.
     makeTransferFunction=.false.
@@ -208,12 +205,8 @@ contains
     if (.not.makeTransferFunction) return
     ! Retrieve the transfer function.
     call Interface_CLASS_Transfer_Function(self%cosmologyParameters_,[self%redshift],wavenumber,self%wavenumberMaximum,self%countPerDecade,self%fileName,self%wavenumberMaximumReached)
-    ! Get a lock on the relevant lock file.
-    call File_Lock(char(self%fileName),fileLock)
     ! Read the newly created file.
     call self%readFile(char(self%fileName))
-    ! Unlock the lock file.
-    call File_Unlock(fileLock)
     ! Check the maximum wavenumber.
     if (self%transfer%x(-1) > log(self%wavenumberMaximum)-0.01d0) self%wavenumberMaximumReached=.true.
     ! Record that the transfer function has now been initialized.

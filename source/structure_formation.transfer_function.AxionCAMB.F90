@@ -136,7 +136,9 @@ contains
        call Error_Report('transfer function expects a fuzzy dark matter particle'//{introspection:location})
     end select
     ! Set initialization state.
-    self%initialized=.false.
+    self%initialized                         =  .false.
+    ! Transfer functions are created on the fly, so locking must be used.
+    self%useLock                             =  .true.
     ! No reference transfer function is used.
     self%transferFunctionReferenceAvailable  =  .false.
     self%transferFunctionReference           => null()
