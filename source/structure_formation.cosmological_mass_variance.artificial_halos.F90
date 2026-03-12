@@ -32,8 +32,7 @@
     \begin{equation}
      \sigma^2(M,t) \rightarrow \sigma^2(M,t) + S_0 \left(\frac{M}{M_0}\right)^\alpha D^2(t),
     \end{equation}    
-    where $S_0=$\mono{[normalization]}, $M_0=$\mono{[massZeroPoint]}, and $\alpha=${\normalfont
-    \ttfamily [exponent]}.
+    where $S_0=$\mono{[normalization]}, $M_0=$\mono{[massZeroPoint]}, and $\alpha=$\mono{[exponent]}.
    </description>
   </cosmologicalMassVariance>
   !!]
