@@ -29,8 +29,8 @@ Implements a transfer function class based on the thermal \gls{wdm} modifier of 
   <enumeration>
    <name>scaleCutOffModel</name>
    <description>The model to use for the cut-off scale in the \cite{bode_halo_2001} transfer function.</description>
-   <validator>yes</validator>
    <encodeFunction>yes</encodeFunction>
+   <validator>yes</validator>
    <entry label="bode2001"              />
    <entry label="barkana2001"           />
    <entry label="viel05"                />

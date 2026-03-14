@@ -28,9 +28,9 @@
   <enumeration>
    <name>wagner2016QuiescentRedshiftRange</name>
    <description>Specifies the redshift range for the \cite{wagner_evolution_2016} analysis.</description>
+   <encodeFunction>yes</encodeFunction>
    <validator>yes</validator>
    <visibility>public</visibility>
-   <encodeFunction>yes</encodeFunction>
    <entry label="low" />
    <entry label="mid" />
    <entry label="high"/>

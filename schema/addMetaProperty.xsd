@@ -24,14 +24,16 @@
     </xs:restriction>
   </xs:simpleType> 
   
-  <xs:element name="addMetaProperty" type="xs:string">
-    <xs:attribute name="component"   use="required"/>
-    <xs:attribute name="name"        use="required"/>
-    <xs:attribute name="id"          use="required"/>
-    <xs:attribute name="isEvolvable" type="yesNo"  />
-    <xs:attribute name="isCreator"   type="yesNo"  />
-    <xs:attribute name="type"        type="type"   />
-    <xs:attribute name="rank"        type="rank"   />
+  <xs:element name="addMetaProperty">
+    <xs:complexType>
+      <xs:attribute name="component"   use="required"/>
+      <xs:attribute name="name"        use="required"/>
+      <xs:attribute name="id"          use="required"/>
+      <xs:attribute name="isEvolvable" type="yesNo"  />
+      <xs:attribute name="isCreator"   type="yesNo"  />
+      <xs:attribute name="type"        type="type"   />
+      <xs:attribute name="rank"        type="rank"   />
+    </xs:complexType>
   </xs:element>
   
 </xs:schema>

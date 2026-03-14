@@ -40,8 +40,8 @@
   <enumeration>
    <name>orderRotation</name>
    <description>Specifies how to rotate the order of likelihood evaluation by process number.</description>
-   <validator>yes</validator>
    <encodeFunction>yes</encodeFunction>
+   <validator>yes</validator>
    <entry label="none"        />
    <entry label="byRank"      />
    <entry label="byRankOnNode"/>

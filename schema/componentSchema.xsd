@@ -51,84 +51,92 @@
 	</xs:element>
 	<xs:element name="properties"                  minOccurs="0" >
 	  <xs:complexType>
-	    <xs:element name="property">
-	      <xs:complexType>
-		<xs:all>
-		  <xs:element name="name" type="xs:string" minOccurs="1"/>
-		  <xs:element name="type" type="xs:string" minOccurs="1"/>
-		  <xs:element name="rank"                  minOccurs="1" >
-		    <xs:simpleType>
-		      <xs:restriction base="xs:integer">
-			<xs:minInclusive value="0"/>
-			<xs:maxInclusive value="1"/>
-		      </xs:restriction>
-		    </xs:simpleType>
-		  </xs:element>
-		  <xs:element name="attributes"            minOccurs="1" >
-		    <xs:complexType>
-		      <xs:attribute name="isSettable"     type="xs:boolean" use="required"/>
-		      <xs:attribute name="isGettable"     type="xs:boolean" use="required"/>
-		      <xs:attribute name="isEvolvable"    type="xs:boolean" use="required"/>
-		      <xs:attribute name="createIfNeeded" type="xs:boolean"               />
-		      <xs:attribute name="isVirtual"      type="xs:boolean"               />
-		      <xs:attribute name="isDeferred"     type="xs:string"                />
-		      <xs:attribute name="isNonNegative"  type="xs:string"                />
-		    </xs:complexType>
-		  </xs:element>
-		  <xs:element name="output"                minOccurs="0" >
-		    <xs:complexType>
-		      <xs:attribute name="unitsInSI" type="xs:string"               />
-		      <xs:attribute name="comment"   type="xs:string" use="required"/>
-		      <xs:attribute name="condition" type="xs:string"               />
-		      <xs:attribute name="labels"    type="xs:string"               />
-		      <xs:attribute name="count"     type="xs:string"               />
-		      <xs:attribute name="modules"   type="xs:string"               />
-		    </xs:complexType>
-		  </xs:element>
-		  <xs:element name="classDefault"                   minOccurs="0" >
-		    <xs:complexType>
-		      <xs:simpleContent>
-			<xs:extension base="xs:string">
-			  <xs:attribute name="modules" type="xs:string"/>
-			  <xs:attribute name="count"   type="xs:string"/>
-			</xs:extension>
-		      </xs:simpleContent>
-		    </xs:complexType>
-		  </xs:element>
-		  <xs:element name="getFunction" minOccurs="0"/>
-		  <xs:element name="setFunction" minOccurs="0"/>
-		</xs:all>
-	      </xs:complexType>
-	    </xs:element>
+	    <xs:sequence>
+	      <xs:element name="property" minOccurs="1" maxOccurs="unbounded">
+		<xs:complexType>
+		  <xs:all>
+		    <xs:element name="name" type="xs:string" minOccurs="1"/>
+		    <xs:element name="type" type="xs:string" minOccurs="1"/>
+		    <xs:element name="rank"                  minOccurs="1" >
+		      <xs:simpleType>
+			<xs:restriction base="xs:integer">
+			  <xs:minInclusive value="0"/>
+			  <xs:maxInclusive value="1"/>
+			</xs:restriction>
+		      </xs:simpleType>
+		    </xs:element>
+		    <xs:element name="attributes"            minOccurs="1" >
+		      <xs:complexType>
+			<xs:attribute name="isSettable"     type="xs:boolean" use="required"/>
+			<xs:attribute name="isGettable"     type="xs:boolean" use="required"/>
+			<xs:attribute name="isEvolvable"    type="xs:boolean" use="required"/>
+			<xs:attribute name="createIfNeeded" type="xs:boolean"               />
+			<xs:attribute name="isVirtual"      type="xs:boolean"               />
+			<xs:attribute name="isDeferred"     type="xs:string"                />
+			<xs:attribute name="isNonNegative"  type="xs:string"                />
+		      </xs:complexType>
+		    </xs:element>
+		    <xs:element name="output"                minOccurs="0" >
+		      <xs:complexType>
+			<xs:attribute name="unitsInSI" type="xs:string"               />
+			<xs:attribute name="comment"   type="xs:string" use="required"/>
+			<xs:attribute name="condition" type="xs:string"               />
+			<xs:attribute name="labels"    type="xs:string"               />
+			<xs:attribute name="count"     type="xs:string"               />
+			<xs:attribute name="modules"   type="xs:string"               />
+		      </xs:complexType>
+		    </xs:element>
+		    <xs:element name="classDefault"                   minOccurs="0" >
+		      <xs:complexType>
+			<xs:simpleContent>
+			  <xs:extension base="xs:string">
+			    <xs:attribute name="modules" type="xs:string"/>
+			    <xs:attribute name="count"   type="xs:string"/>
+			  </xs:extension>
+			</xs:simpleContent>
+		      </xs:complexType>
+		    </xs:element>
+		    <xs:element name="getFunction" minOccurs="0"/>
+		    <xs:element name="setFunction" minOccurs="0"/>
+		  </xs:all>
+		</xs:complexType>
+	      </xs:element>
+	    </xs:sequence>
 	  </xs:complexType>
 	</xs:element>
 	<xs:element name="bindings"                  minOccurs="0" >
 	  <xs:complexType>
-	    <xs:element name="binding"            minOccurs="1" >
-	      <xs:complexType>
-		<xs:attribute name="method"      type="xs:string" use="required"/>
-		<xs:attribute name="function"    type="xs:string"               />
-		<xs:attribute name="description" type="xs:string"               />		
-		<xs:attribute name="returnType"  type="xs:string"               />		
-		<xs:attribute name="arguments"   type="xs:string"               />
-		<xs:attribute name="isDeferred"  type="xs:string"               />
-		<xs:element   name="interface"                    minOccurs="0"  >
-		  <xs:complexType>
-		    <xs:element name="type"     minOccurs="1"/>
-		    <xs:element name="rank"     minOccurs="0"/>
-		    <xs:element name="shape"    minOccurs="0"/>
-		    <xs:element name="self"     minOccurs="1" >
+	    <xs:sequence>
+	      <xs:element name="binding"            minOccurs="1" maxOccurs="unbounded">
+		<xs:complexType>
+		  <xs:all>
+		    <xs:element   name="interface"                    minOccurs="0"  >
 		      <xs:complexType>
-			<xs:attribute name="pass"   type="xs:boolean" use="required"/>
-			<xs:attribute name="intent" type="intent"     use="required"/>
+			<xs:sequence>
+			  <xs:element name="type"     minOccurs="1"                      />
+			  <xs:element name="rank"     minOccurs="0"                      />
+			  <xs:element name="shape"    minOccurs="0"                      />
+			  <xs:element name="module"   minOccurs="0" maxOccurs="unbounded"/>
+			  <xs:element name="self"     minOccurs="1"                       >
+			    <xs:complexType>
+			      <xs:attribute name="pass"   type="xs:boolean" use="required"/>
+			      <xs:attribute name="intent" type="intent"     use="required"/>
+			    </xs:complexType>
+			  </xs:element>
+			  <xs:element name="argument" minOccurs="0" maxOccurs="unbounded"/>
+			</xs:sequence>
 		      </xs:complexType>
 		    </xs:element>
-		    <xs:element name="module"   minOccurs="0"/>
-		    <xs:element name="argument" minOccurs="0"/>
-		  </xs:complexType>
-		</xs:element>
-	      </xs:complexType>
-	    </xs:element>
+		  </xs:all>
+		  <xs:attribute name="method"      type="xs:string" use="required"/>
+		  <xs:attribute name="function"    type="xs:string"               />
+		  <xs:attribute name="description" type="xs:string"               />
+		  <xs:attribute name="returnType"  type="xs:string"               />
+		  <xs:attribute name="arguments"   type="xs:string"               />
+		  <xs:attribute name="isDeferred"  type="xs:string"               />
+		</xs:complexType>
+	      </xs:element>
+	    </xs:sequence>
 	  </xs:complexType>
 	</xs:element>	
 	<xs:element name="functions"   type="xs:string" minOccurs="0"/>

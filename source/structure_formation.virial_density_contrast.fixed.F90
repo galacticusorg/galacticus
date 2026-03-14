@@ -29,9 +29,9 @@
   <enumeration>
    <name>fixedDensityType</name>
    <description>Specifies reference density type for fixed virial density contrast.</description>
-   <visibility>public</visibility>
-   <validator>yes</validator>
    <encodeFunction>yes</encodeFunction>
+   <validator>yes</validator>
+   <visibility>public</visibility>
    <entry label="critical" />
    <entry label="mean"     />
   </enumeration>

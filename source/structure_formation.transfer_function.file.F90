@@ -29,8 +29,8 @@
   <enumeration>
    <name>transferFunctionType</name>
    <description>Enumerates the types of transfer function to read from file.</description>
-   <validator>yes</validator>
    <encodeFunction>yes</encodeFunction>
+   <validator>yes</validator>
    <entry label="darkMatter"/>
    <entry label="total"     />
   </enumeration>

@@ -11,8 +11,7 @@ use Text::Table;
 use Text::Template 'fill_in_string';
 use Sort::Topo;
 use Scalar::Util 'reftype';
-use XML::SAX::ParserFactory;
-use XML::Validator::Schema;
+use XML::LibXML;
 use LaTeX::Encode;
 use Carp 'verbose';
 use Sub::Identify ':all';
@@ -81,11 +80,11 @@ $SIG{ __DIE__ } = sub { Carp::confess( @_ ) };
 
 sub Components_Validate {
     # Validate a component document.
-    my $document  = shift;
-    my $file      = shift;
-    my $validator = XML::Validator::Schema->new(file => $ENV{'GALACTICUS_EXEC_PATH'}."/schema/componentSchema.xsd");
-    my $parser    = XML::SAX::ParserFactory->parser(Handler => $validator); 
-    eval { $parser->parse_string($document) };
+    my $documentString = shift;
+    my $file           = shift;
+    my $schema   = XML::LibXML::Schema->new( location =>  $ENV{'GALACTICUS_EXEC_PATH'}."/schema/componentSchema.xsd");
+    my $document = XML::LibXML->load_xml( string => $documentString );
+    eval { $schema->validate( $document ) };
     die "Galacticus::Build::Components::Components_Validate(): validation failed in file ".$file.":\n".$@
 	if ( $@ );
 }

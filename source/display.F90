@@ -37,12 +37,12 @@ module Display
   <enumeration>
    <name>verbosityLevel</name>
    <description>Verbosity levels for message display.</description>
-   <indexing>0</indexing>
-   <visibility>public</visibility>
    <encodeFunction>yes</encodeFunction>
    <decodeFunction>yes</decodeFunction>
-   <errorValue>-1</errorValue>
    <validator>yes</validator>
+   <visibility>public</visibility>
+   <indexing>0</indexing>
+   <errorValue>-1</errorValue>
    <entry label="silent"  />
    <entry label="standard"/>
    <entry label="working" />

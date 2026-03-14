@@ -32,9 +32,9 @@ Implements a gravitational lensing output analysis distribution operator class.
   <enumeration>
    <name>lensedProperty</name>
    <description>Enumeration of properties affected by gravitational lensing.</description>
-   <visibility>public</visibility>
-   <validator>yes</validator>
    <encodeFunction>yes</encodeFunction>
+   <validator>yes</validator>
+   <visibility>public</visibility>
    <entry label="luminosity"/>
    <entry label="size"      />
   </enumeration>

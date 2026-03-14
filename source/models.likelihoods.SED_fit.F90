@@ -30,9 +30,9 @@
   <enumeration>
    <name>sedFitDustType</name>
    <description>Used to specify the type of dust model to use in SED fitting likelihoods.</description>
-   <visibility>private</visibility>
-   <validator>yes</validator>
    <encodeFunction>yes</encodeFunction>
+   <validator>yes</validator>
+   <visibility>private</visibility>
    <entry label="null"           />
    <entry label="charlotFall2000"/>
    <entry label="cardelli1989"   />
@@ -46,9 +46,9 @@
   <enumeration>
    <name>sedFitStartTime</name>
    <description>Used to specify the type of start time to use in SED fitting likelihoods.</description>
-   <visibility>private</visibility>
-   <validator>yes</validator>
    <encodeFunction>yes</encodeFunction>
+   <validator>yes</validator>
+   <visibility>private</visibility>
    <entry label="time"/>
    <entry label="age" />
   </enumeration>

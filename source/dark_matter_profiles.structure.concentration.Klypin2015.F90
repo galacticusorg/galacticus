@@ -54,8 +54,8 @@
   <enumeration>
    <name>klypin2015Sample</name>
    <description>Enumeration of sample choices available in the \mono{klypin2015} dark matter halo profile concentration class.</description>
-   <visibility>private</visibility>
    <encodeFunction>yes</encodeFunction>
+   <visibility>private</visibility>
    <entry label="planck200CritRelaxedMass"   />
    <entry label="planck200CritAllMass"       />
    <entry label="planck200CritRelaxedVmax"   />

@@ -3,8 +3,7 @@ use strict;
 use warnings;
 use lib $ENV{'GALACTICUS_EXEC_PATH'}."/perl";
 use XML::Simple;
-use XML::Validator::Schema;
-use XML::SAX::ParserFactory;
+use XML::LibXML;
 use File::Slurp qw(slurp);
 use LaTeX::SpellCheck;
 
@@ -101,9 +100,9 @@ while ( my $line = <$code> ) {
 	my $directiveName = (keys %{$directive})[0];
 	# Validate the directive if possible.
 	if ( -e $ENV{'GALACTICUS_EXEC_PATH'}."/schema/".$directiveName.".xsd" ) {
-	    my $validator = XML::Validator::Schema->new(file => $ENV{'GALACTICUS_EXEC_PATH'}."/schema/".$directiveName.".xsd");
-	    my $parser    = XML::SAX::ParserFactory->parser(Handler => $validator); 
-	    eval { $parser->parse_string($strippedDirective) };
+	    my $schema   = XML::LibXML::Schema->new( location =>  $ENV{'GALACTICUS_EXEC_PATH'}."/schema/".$directiveName.".xsd");
+	    my $document = XML::LibXML->load_xml( string => $strippedDirective );
+	    eval { $schema->validate( $document ) };
 	    if ( $@ ) {
 		print "XML fragment validation failed (".$fileName.":".$lineNumber."):\n".$@."\n";
 		$status = 1;

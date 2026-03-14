@@ -36,10 +36,10 @@ module Kepler_Orbits
   <enumeration>
    <name>keplerOrbit</name>
    <description>Properties of Kepler orbit objects.</description>
-   <indexing>1</indexing>
-   <validator>yes</validator>
    <encodeFunction>yes</encodeFunction>
    <decodeFunction>yes</decodeFunction>
+   <validator>yes</validator>
+   <indexing>1</indexing>
    <entry label="masses"              description="The masses of the orbiting bodies."                           />
    <entry label="massSatellite"       description="The mass of the satellite body."                              />
    <entry label="massHost"            description="The mass of the host body."                                   />

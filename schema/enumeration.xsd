@@ -3,18 +3,24 @@
   <!-- Schema used to validate enumeration directives -->
 
   <xs:element name="enumeration">
-    <xs:element name="name"           type="xs:string" minOccurs="1" maxOccurs="1"/>
-    <xs:element name="description"    type="xs:string" minOccurs="1" maxOccurs="1"/>
-    <xs:element name="encodeFunction" type="xs:string" minOccurs="0" maxOccurs="1"/>
-    <xs:element name="decodeFunction" type="xs:string" minOccurs="0" maxOccurs="1"/>
-    <xs:element name="validator"      type="xs:string" minOccurs="0" maxOccurs="1"/>
-    <xs:element name="visibility"     type="xs:string" minOccurs="0" maxOccurs="1"/>
-    <xs:element name="indexing"       type="xs:string" minOccurs="0" maxOccurs="1"/>
-    <xs:element name="errorValue"     type="xs:string" minOccurs="0" maxOccurs="1"/>
-    <xs:element name="entry">
-      <xs:attribute name="label"       use="required"/>
-      <xs:attribute name="description"               />
-    </xs:element>
+    <xs:complexType>
+      <xs:sequence>
+	<xs:element name="name"           type="xs:string" minOccurs="1" maxOccurs="1"        />
+	<xs:element name="description"    type="xs:string" minOccurs="1" maxOccurs="1"        />
+	<xs:element name="encodeFunction" type="xs:string" minOccurs="0" maxOccurs="1"        />
+	<xs:element name="decodeFunction" type="xs:string" minOccurs="0" maxOccurs="1"        />
+	<xs:element name="validator"      type="xs:string" minOccurs="0" maxOccurs="1"        />
+	<xs:element name="visibility"     type="xs:string" minOccurs="0" maxOccurs="1"        />
+	<xs:element name="indexing"       type="xs:string" minOccurs="0" maxOccurs="1"        />
+	<xs:element name="errorValue"     type="xs:string" minOccurs="0" maxOccurs="1"        />
+	<xs:element name="entry"                           minOccurs="1" maxOccurs="unbounded" >
+	  <xs:complexType>
+	    <xs:attribute name="label"       use="required"/>
+	    <xs:attribute name="description"               />
+	  </xs:complexType>
+	</xs:element>
+      </xs:sequence>
+    </xs:complexType>
   </xs:element>
   
 </xs:schema>
