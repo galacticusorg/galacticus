@@ -28,8 +28,8 @@ Implements a filter which passes only nodes that lie within a survey geometry.
   <enumeration>
    <name>positionType</name>
    <description>Enumeration of position types.</description>
-   <visibility>public</visibility>
    <encodeFunction>yes</encodeFunction>
+   <visibility>public</visibility>
    <entry label="position"/>
    <entry label="orbital" />
   </enumeration>

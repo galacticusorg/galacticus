@@ -73,8 +73,8 @@ module Node_Property_Extractors
   <enumeration>
    <name>galacticComponent</name>
    <description>Specifies the galactic component for various node property extractors.</description>
-   <visibility>public</visibility>
    <encodeFunction>yes</encodeFunction>
+   <visibility>public</visibility>
    <entry label="disk"              />
    <entry label="spheroid"          />
    <entry label="nuclearStarCluster"/>

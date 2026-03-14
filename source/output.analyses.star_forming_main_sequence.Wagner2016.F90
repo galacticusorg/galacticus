@@ -28,18 +28,18 @@
   <enumeration>
    <name>wagner2016SSFRRedshiftRange</name>
    <description>Specifies the redshift range for the \cite{wagner_evolution_2016} analysis</description>
+   <encodeFunction>yes</encodeFunction>
    <validator>yes</validator>
    <visibility>public</visibility>
-   <encodeFunction>yes</encodeFunction>
    <entry label="low" />
    <entry label="high"/>
   </enumeration>
   <enumeration>
    <name>wagner2016SSFRGalaxyType</name>
    <description>Specifies the galaxy type for the \cite{wagner_evolution_2016} analysis</description>
+   <encodeFunction>yes</encodeFunction>
    <validator>yes</validator>
    <visibility>public</visibility>
-   <encodeFunction>yes</encodeFunction>
    <entry label="quiescent"  />
    <entry label="starForming"/>
   </enumeration>

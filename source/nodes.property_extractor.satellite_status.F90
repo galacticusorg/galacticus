@@ -25,8 +25,8 @@ Implements an ISM mass output analysis property extractor class.
   <enumeration>
    <name>satelliteStatusDiscriminator</name>
    <description>Enumeration of possible discriminators for satellite orphan status.</description>
-   <visibility>private</visibility>
    <encodeFunction>yes</encodeFunction>
+   <visibility>private</visibility>
    <entry label="boundMass"/>
    <entry label="position" />
   </enumeration>

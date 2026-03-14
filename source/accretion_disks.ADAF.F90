@@ -27,8 +27,8 @@
   <enumeration>
    <name>adafRadiativeEfficiencyType</name>
    <description>Type of radiative efficiency model to use for ADAFs.</description>
-   <validator>yes</validator>
    <encodeFunction>yes</encodeFunction>
+   <validator>yes</validator>
    <entry label="fixed"   />
    <entry label="thinDisk"/>
   </enumeration>
@@ -38,8 +38,8 @@
   <enumeration>
    <name>adafViscosity</name>
    <description>Type of viscosity model to use for ADAFs.</description>
-   <validator>yes</validator>
    <encodeFunction>yes</encodeFunction>
+   <validator>yes</validator>
    <entry label="fit"  />
    <entry label="fixed"/>
   </enumeration>
@@ -49,8 +49,8 @@
   <enumeration>
    <name>adafFieldEnhancement</name>
    <description>Type of field enhancement model to use for ADAFs.</description>
-   <validator>yes</validator>
    <encodeFunction>yes</encodeFunction>
+   <validator>yes</validator>
    <entry label="exponential"/>
    <entry label="linear"     />
   </enumeration>
@@ -60,8 +60,8 @@
   <enumeration>
    <name>adafEnergy</name>
    <description>Type of energy model to use for ADAFs.</description>
-   <validator>yes</validator>
    <encodeFunction>yes</encodeFunction>
+   <validator>yes</validator>
    <entry label="pureADAF"/>
    <entry label="ISCO"    />
   </enumeration>

@@ -1,0 +1,22 @@
+<?xml version="1.0"?>
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema">
+  <!-- Schema used to validate conditionalCall directives -->
+
+  <xs:element name="conditionalCall">
+    <xs:complexType>
+      <xs:sequence>
+	<xs:element name="call"     type="xs:string" minOccurs="1" maxOccurs="1"        />
+	<xs:element name="argument"                  minOccurs="0" maxOccurs="unbounded" >
+	  <xs:complexType>
+	    <xs:attribute name="name"             use="required"/>
+	    <xs:attribute name="value"            use="required"/>
+	    <xs:attribute name="condition"                     />
+	    <xs:attribute name="parameterPresent"              />
+	    <xs:attribute name="parameterName"                 />
+	  </xs:complexType>
+	</xs:element>
+      </xs:sequence>
+    </xs:complexType>
+  </xs:element>
+  
+</xs:schema>

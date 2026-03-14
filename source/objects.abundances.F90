@@ -153,9 +153,9 @@ module Abundances_Structure
   <enumeration>
    <name>metallicityType</name>
    <description>Used to specify the metallicity scale when working with \mono{abundances} objects.</description>
-   <visibility>public</visibility>
    <encodeFunction>yes</encodeFunction>
    <validator>yes</validator>
+   <visibility>public</visibility>
    <entry label="linearByMass"                  />
    <entry label="linearByNumber"                />
    <entry label="logarithmicByMassSolar"        />

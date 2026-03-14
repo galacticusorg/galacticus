@@ -3,8 +3,7 @@ use Cwd;
 use lib $ENV{'GALACTICUS_EXEC_PATH'}."/perl";
 use strict;
 use warnings;
-use XML::SAX::ParserFactory;
-use XML::Validator::Schema;
+use XML::LibXML;
 use XML::Simple;
 use Scalar::Util 'reftype';
 use Data::Dumper;
@@ -35,9 +34,9 @@ my $valid = 0;
 if ( $format == 1 ) {
     # Handle format version 1.
     # Validate the parameter file using XML schema.
-    my $validator = XML::Validator::Schema->new(file => $ENV{'GALACTICUS_EXEC_PATH'}.'/schema/parameters.xsd');
-    my $parser    = XML::SAX::ParserFactory->parser(Handler => $validator); 
-    eval { $parser->parse_file($file) };
+    my $schema   = XML::LibXML::Schema->new( location =>  $ENV{'GALACTICUS_EXEC_PATH'}."/schema/parameters.xsd");
+    my $document = XML::LibXML->load_xml( location => $file );
+    eval { $schema->validate( $document ) };
     die "Parameter file fails XML schema validation\n".$@
 	if $@;
     # Check for duplicated entries.

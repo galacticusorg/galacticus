@@ -28,10 +28,10 @@ Implements an N-body data importer for Rockstar files.
   <enumeration>
    <name>rockstarColumn</name>
    <description>Enumeration of columns in Rockstar output files.</description>
-   <indexing>0</indexing>
-   <visibility>public</visibility>
    <encodeFunction>yes</encodeFunction>
    <validator>yes</validator>
+   <visibility>public</visibility>
+   <indexing>0</indexing>
    <entry label="scale"                          />
    <entry label="id"                             />
    <entry label="desc_scale"                     />

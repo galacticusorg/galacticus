@@ -9,9 +9,11 @@
     </xs:restriction>
   </xs:simpleType> 
   
-  <xs:element name="constructorAssign" type="xs:string">
-    <xs:attribute name="variables" use="required"/>
-    <xs:attribute name="allocate"  type="yesNo"  />
+  <xs:element name="constructorAssign">
+    <xs:complexType>
+      <xs:attribute name="variables" use="required"/>
+      <xs:attribute name="allocate"  type="yesNo"  />
+    </xs:complexType>
   </xs:element>
   
 </xs:schema>

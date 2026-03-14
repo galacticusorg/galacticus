@@ -35,9 +35,9 @@ module Black_Hole_Seeds
   <enumeration>
     <name>blackHoleFormationChannel</name>
     <description>Enumeration of black hole formation channels.</description>
-    <visibility>public</visibility>
-    <validator>yes</validator>
     <decodeFunction>yes</decodeFunction>
+    <validator>yes</validator>
+    <visibility>public</visibility>
     <entry label="undetermined"       />
     <entry label="starClusterCollapse"/>
   </enumeration>

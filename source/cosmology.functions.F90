@@ -269,10 +269,10 @@ module Cosmology_Functions
   <enumeration>
    <name>densityCosmological</name>
    <description>Enumeration of different cosmological densities.</description>
-   <visibility>public</visibility>
-   <validator>yes</validator>
    <encodeFunction>yes</encodeFunction>
    <decodeFunction>yes</decodeFunction>
+   <validator>yes</validator>
+   <visibility>public</visibility>
    <entry label="critical" />
    <entry label="mean"     />
   </enumeration>

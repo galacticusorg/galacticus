@@ -32,10 +32,10 @@ module Cosmology_Parameters
   <enumeration>
    <name>hubbleUnits</name>
    <description>Specifies the units for the Hubble constant.</description>
+   <visibility>public</visibility>
    <entry label="standard" />
    <entry label="time"     />
    <entry label="littleH"  />
-   <visibility>public</visibility>
   </enumeration>
   !!]
 

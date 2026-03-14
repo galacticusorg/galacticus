@@ -1,0 +1,23 @@
+<?xml version="1.0"?>
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema"
+	   xmlns:common="http://CommonTypesNamespace/CommonTypes"
+           elementFormDefault="qualified">
+  <!-- Schema used to validate objectBuilder directives -->
+
+  <xs:import namespace="http://CommonTypesNamespace/CommonTypes" schemaLocation="commonTypes.xsd"/>
+
+  <xs:element name="objectBuilder">
+    <xs:complexType>
+      <xs:sequence>
+	<xs:element name="default" minOccurs="0" maxOccurs="1" type="common:anyElements"/>
+      </xs:sequence>
+      <xs:attribute name="class"         use="required"/>
+      <xs:attribute name="name"          use="required"/>
+      <xs:attribute name="source"        use="required"/>
+      <xs:attribute name="copy"                        />
+      <xs:attribute name="parameterName"               />
+      <xs:attribute name="threadPrivate"               />
+    </xs:complexType>
+  </xs:element>
+  
+</xs:schema>

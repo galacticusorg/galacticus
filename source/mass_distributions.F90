@@ -849,8 +849,8 @@ module Mass_Distributions
    <name>nonAnalyticSolvers</name>
    <description>Used to specify the type of solution to use when no analytic solution is available.</description>
    <encodeFunction>yes</encodeFunction>
-   <visibility>public</visibility>
    <validator>yes</validator>
+   <visibility>public</visibility>
    <entry label="fallThrough"/>
    <entry label="numerical"  />
   </enumeration>

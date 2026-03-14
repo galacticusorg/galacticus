@@ -35,9 +35,8 @@ module Galactic_Structure_Radii_Definitions
    <name>radiusType</name>
    <description>Used to specify radii types used in output specifiers.</description>
    <encodeFunction>yes</encodeFunction>
-   <visibility>public</visibility>
    <validator>yes</validator>
-
+   <visibility>public</visibility>
    <entry label="radius"                           description="Radii are specified absolutely, in units of Mpc"                                            />
    <entry label="virialRadius"                     description="Radii are specified in units of the virial radius"                                          />
    <entry label="hotHaloOuterRadius"               description="Radii are specified in units of the outer radius of the hot halo"                           />
@@ -60,8 +59,8 @@ module Galactic_Structure_Radii_Definitions
    <name>direction</name>
    <description>Used to specify the type of velocity dispersion in output specifiers.</description>
    <encodeFunction>yes</encodeFunction>
-   <visibility>public</visibility>
    <validator>yes</validator>
+   <visibility>public</visibility>
    <entry label="radial"                     description="The radial velocity dispersion is computed"                                                                  />
    <entry label="lineOfSight"                description="The line-of-sight velocity dispersion (mass- or light-weighted) is computed"                                 />
    <entry label="lineOfSightInteriorAverage" description="The line-of-sight velocity dispersion, averaged over all interior radii (mass- or light-weighted)"           />

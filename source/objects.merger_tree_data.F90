@@ -39,9 +39,9 @@ module Merger_Tree_Data_Structure
   <enumeration>
    <name>mergerTreeFormat</name>
    <description>Used to specify which output format to use for merger tree data.</description>
-   <visibility>public</visibility>
-   <validator>yes</validator>
    <encodeFunction>yes</encodeFunction>
+   <validator>yes</validator>
+   <visibility>public</visibility>
    <entry label="galacticus" />
    <entry label="irate"      />
   </enumeration>
@@ -52,10 +52,10 @@ module Merger_Tree_Data_Structure
   <enumeration>
    <name>propertyType</name>
    <description>Used to specify properties in a \mono{mergerTreeData} structure.</description>
-   <visibility>public</visibility>
-   <validator>yes</validator>
    <encodeFunction>yes</encodeFunction>
    <decodeFunction>yes</decodeFunction>
+   <validator>yes</validator>
+   <visibility>public</visibility>
    <entry label="null"                    />
    <entry label="treeIndex"               />
    <entry label="nodeIndex"               />
@@ -110,8 +110,8 @@ module Merger_Tree_Data_Structure
   <enumeration>
    <name>units</name>
    <description>Used to specify the type of units being stored in a \mono{mergerTreeData} structure.</description>
-   <visibility>public</visibility>
    <validator>yes</validator>
+   <visibility>public</visibility>
    <entry label="mass"     />
    <entry label="length"   />
    <entry label="time"     />
@@ -133,10 +133,10 @@ module Merger_Tree_Data_Structure
   <enumeration>
    <name>metaDataType</name>
    <description>Used to specify the type of metadata being stored in a \mono{mergerTreeData} structure.</description>
-   <visibility>public</visibility>
-   <validator>yes</validator>
    <encodeFunction>yes</encodeFunction>
    <decodeFunction>yes</decodeFunction>
+   <validator>yes</validator>
+   <visibility>public</visibility>
    <entry label="generic"     />
    <entry label="cosmology"   />
    <entry label="simulation"  />
