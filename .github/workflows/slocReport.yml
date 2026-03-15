@@ -19,7 +19,7 @@ jobs:
       - name: Install tools
         run: |
           sudo apt -y update
-          sudo apt install -y libjson-pp-perl sloccount
+          sudo apt install -y sloccount
       - name: Retrieve and report status
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -27,6 +27,6 @@ jobs:
         run: |
           cd $GALACTICUS_EXEC_PATH
           git config --global --add safe.directory $GALACTICUS_EXEC_PATH
-          ./scripts/aux/slocReport.pl
+          ./scripts/aux/slocReport.py
 
           

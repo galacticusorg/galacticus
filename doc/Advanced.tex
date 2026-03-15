@@ -124,9 +124,9 @@ and so would be seen as identical.
 
 \subsection{Validating Parameter Files}\index{parameters!validating}
 
-A script, \mono{scripts/aux/validateParameters.pl}, is provided to validate parameter files and thereby ensure that they are consistent with \glc's expectations and requirements. To use simply execute:
+A script, \mono{scripts/aux/validateParameters.py}, is provided to validate parameter files and thereby ensure that they are consistent with \glc's expectations and requirements. To use simply execute:
 \begin{verbatim}
- scripts/aux/validateParameters.pl myParameters.xml
+ scripts/aux/validateParameters.py myParameters.xml
 \end{verbatim}
 No output (and an exit value of 0) indicates a valid parameter file. Invalid parameter files will result in an exit value other than 0 and will produce error messages that should help to track down the problem with the file.
 

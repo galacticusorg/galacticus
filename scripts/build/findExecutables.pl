@@ -63,7 +63,7 @@ while ( my $fileName = readdir($sourceDirectory) ) {
 	fi; \
 	./scripts/build/sourceDigests.pl `pwd` {$fileNameRoot}.exe $$useLocks
 	$(CCOMPILER) -c {$workDirectoryName.$fileNameRoot}.md5s.c -o {$workDirectoryName.$fileNameRoot}.md5s.o $(CFLAGS)
-	$(FCCOMPILER) `cat {$workDirectoryName.$fileNameRoot}.d` {$workDirectoryName.$fileNameRoot}.parameters.o {$workDirectoryName.$fileNameRoot}.md5s.o -o {$fileNameRoot}.exe$(SUFFIX) $(FCFLAGS) `./scripts/build/libraryDependencies.pl {$fileNameRoot}.exe $(FCFLAGS)` 2>&1 | ./scripts/build/postprocessLinker.pl
+	$(FCCOMPILER) `cat {$workDirectoryName.$fileNameRoot}.d` {$workDirectoryName.$fileNameRoot}.parameters.o {$workDirectoryName.$fileNameRoot}.md5s.o -o {$fileNameRoot}.exe$(SUFFIX) $(FCFLAGS) `./scripts/build/libraryDependencies.pl {$fileNameRoot}.exe $(FCFLAGS)` 2>&1 | ./scripts/build/postprocessLinker.py
 
 MAKE
 	}

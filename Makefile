@@ -556,7 +556,7 @@ $(BUILDPATH)/%.m : ./source/%.F90
 	fi; \
 	./scripts/build/sourceDigests.pl `pwd` $*.exe $$useLocks
 	$(CCOMPILER) -c $(BUILDPATH)/$*.md5s.c -o $(BUILDPATH)/$*.md5s.o $(CFLAGS)
-	$(CONDORLINKER) $(FCCOMPILER) `cat $*.d` $(BUILDPATH)/$*.parameters.o $(BUILDPATH)/$*.md5s.o -o $*.exe$(SUFFIX) $(FCFLAGS) `scripts/build/libraryDependencies.pl $*.exe $(FCFLAGS)` 2>&1 | ./scripts/build/postprocessLinker.pl
+	$(CONDORLINKER) $(FCCOMPILER) `cat $*.d` $(BUILDPATH)/$*.parameters.o $(BUILDPATH)/$*.md5s.o -o $*.exe$(SUFFIX) $(FCFLAGS) `scripts/build/libraryDependencies.pl $*.exe $(FCFLAGS)` 2>&1 | ./scripts/build/postprocessLinker.py
 
 # Library.
 -include $(BUILDPATH)/Makefile_Library_Dependencies 

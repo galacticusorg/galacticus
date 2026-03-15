@@ -7,7 +7,7 @@ use File::Find;
 # Andrew Benson (01-December-2013)
 
 # Validate the default paramter file.
-system("cd ..; scripts/aux/validateParameters.pl parameters.xml");
+system("cd ..; scripts/aux/validateParameters.py parameters.xml");
 if ( $? == 0 ) {
     print "PASSED: validation of default parameter file\n";
 } else {
@@ -27,7 +27,7 @@ sub runValidations {
     # Test if this is a parameter fil to run.
     if ( $fileName =~ m/\-(valid|invalid)\.xml$/ ) {
 	my $validity = $1;
-	system("cd ../../..; scripts/aux/validateParameters.pl testSuite/parameters/validation/".$fileName);
+	system("cd ../../..; scripts/aux/validateParameters.py testSuite/parameters/validation/".$fileName);
 	if (
 	    ( $? == 0 && $validity eq   "valid" )
 	    ||

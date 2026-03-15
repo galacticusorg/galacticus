@@ -747,7 +747,7 @@ Here, \mono{myFunction} is the name of the function to make global, while the \m
 
 \glc\ makes use of \gls{openmp} for parallel operation. \gls{openmp} \mono{critical} sections are used throughout to limit access to parts of the code which must be executed in serial. Threads will block at each \mono{critical} section if another thread is currently within it. \glc\ can profile the amount of time spent waiting at each named \gls{openmp} \mono{critical} section across all threads. To enable this profiling \glc\ should be compiled with \mono{-DOMPPROFILE} added to the compile options (in \mono{GALACTICUS\_FCFLAGS}). This will cause profiling instructions to be added to the source code prior to compilation. When this instrumented executable is run an \mono{metaData/openMP/} group will be added to the output file. This group contains two datasets, \mono{criticalSectionNames} and \mono{criticalSectionWaitTimes}. The first lists the names of all named \gls{openmp} \mono{critical} sections, while the second lists the total number of seconds (across all threads) spent waiting at each section. A script is provided to analyze this metadata:
 \begin{verbatim}
-./scripts/aux/openMPCriticalWaitProfile.pl <modelFileName>
+./scripts/aux/openMPCriticalWaitProfile.py <modelFileName>
 \end{verbatim}
 This script will analyze the \gls{openmp} \mono{critical} section wait time metadata in the named file, reporting the total time spent waiting at critical sections followed by a rank ordered list of the top ten sections by wait time. This can be useful for assessing whether optimization might help to reduce \gls{openmp} \mono{critical} section wait times.
 

@@ -213,7 +213,7 @@ sub jobArrayLaunch {
 		if ( scalar(@jobsToRun) == $jobMaximum || scalar(@jobStack) == 0 ) {
 		    # Maximum number of jobs have been accumulated (or there are no more left on the stack). Launch them all and
 		    # then clear the list.
-		    system($ENV{'GALACTICUS_EXEC_PATH'}."/scripts/aux/localLaunchWrapper.pl ".join(" ",map {$_->{'launchFile'}." ".$_->{'logFile'}} @jobsToRun));
+		    system($ENV{'GALACTICUS_EXEC_PATH'}."/scripts/aux/localLaunchWrapper.py ".join(" ",map {$_->{'launchFile'}." ".$_->{'logFile'}} @jobsToRun));
 		    @jobsToRun = ();
 		}
 	    }
