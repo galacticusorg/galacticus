@@ -158,7 +158,7 @@ sub Migrate {
 
     # Validate the parameter file.
     if ( $options{'validate'} eq "yes" ) {
-	system($ENV{'GALACTICUS_EXEC_PATH'}."/scripts/aux/validateParameters.pl ".$inputFileName);
+	system($ENV{'GALACTICUS_EXEC_PATH'}."/scripts/aux/validateParameters.py ".$inputFileName);
 	die('input file "'.$inputFileName.'"is not a valid Galacticus parameter file')
 	    unless ( $? == 0 );
     }
