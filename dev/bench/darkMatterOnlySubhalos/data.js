@@ -1,38 +1,8 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1773647555597,
+  "lastUpdate": 1773734905330,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Dark matter-only subhalos benchmarks": [
-      {
-        "commit": {
-          "author": {
-            "email": "abensonca@gmail.com",
-            "name": "Andrew Benson",
-            "username": "abensonca"
-          },
-          "committer": {
-            "email": "noreply@github.com",
-            "name": "GitHub",
-            "username": "web-flow"
-          },
-          "distinct": true,
-          "id": "7ea61e87ade0ccaa2078c7cce85a84c12cd6575e",
-          "message": "Merge pull request #785 from galacticusorg/featMemoryReportLocking\n\nUse a non-blocking lock for coordinating memory reporting",
-          "timestamp": "2025-02-07T14:37:18Z",
-          "tree_id": "15d12f9606a54f7a8204d8f0021ec381adb9273c",
-          "url": "https://github.com/galacticusorg/galacticus/commit/7ea61e87ade0ccaa2078c7cce85a84c12cd6575e"
-        },
-        "date": 1738976845340,
-        "tool": "customSmallerIsBetter",
-        "benches": [
-          {
-            "name": "Dark Matter Only Subhalos - Wall Time",
-            "value": 56.721,
-            "unit": "seconds",
-            "range": 0.0580422260093734
-          }
-        ]
-      },
       {
         "commit": {
           "author": {
@@ -8796,6 +8766,36 @@ window.BENCHMARK_DATA = {
             "name": "Dark Matter Only Subhalos - Likelihood - subhaloVelocityMaximumMean",
             "value": 10599.346127493933,
             "unit": "-logℒ"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abensonca@gmail.com",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "72da9a5daf2dd07d5c5afaf4faac671c5b90658a",
+          "message": "Merge pull request #1031 from galacticusorg/featAdjustableTimeOfCollapseTabulation\n\nAllow the resolution of the time-of-collapse table to be adjustable via a parameter",
+          "timestamp": "2026-03-17T01:19:01Z",
+          "tree_id": "75635a1b0f25c95df0875f61729c6446a580ea46",
+          "url": "https://github.com/galacticusorg/galacticus/commit/72da9a5daf2dd07d5c5afaf4faac671c5b90658a"
+        },
+        "date": 1773734901389,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Dark Matter Only Subhalos - Wall Time",
+            "value": 50.329,
+            "range": "0.0732318236840448",
+            "unit": "seconds"
           }
         ]
       }
