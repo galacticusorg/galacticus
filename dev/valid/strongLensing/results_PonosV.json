@@ -6,19 +6,19 @@ window.PONOSV_DATA = {
             "name": "Andrew Benson",
             "email": "abensonca@gmail.com"
         },
-        "id": "5cb357d0be452a1de0a9833b1734a7094017fdd8",
-        "message": "Merge pull request #1028 from galacticusorg/claude/perl-to-python-port-3rZpu\n\nMigrate auxiliary scripts from Perl to Python\n",
-        "timestamp": "2026-03-15 15:41:01+00:00",
-        "url": "https://github.com/galacticusorg/galacticus/commit/5cb357d0be452a1de0a9833b1734a7094017fdd8"
+        "id": "72da9a5daf2dd07d5c5afaf4faac671c5b90658a",
+        "message": "Merge pull request #1031 from galacticusorg/featAdjustableTimeOfCollapseTabulation\n\nAllow the resolution of the time-of-collapse table to be adjustable via a parameter\n",
+        "timestamp": "2026-03-17 01:19:01+00:00",
+        "url": "https://github.com/galacticusorg/galacticus/commit/72da9a5daf2dd07d5c5afaf4faac671c5b90658a"
     },
     "surfaceDensity": {
-        "percentageBelow": 32.14285714285714,
-        "percentageAbove": 67.85714285714286,
+        "percentageBelow": 39.285714285714285,
+        "percentageAbove": 60.714285714285715,
         "target": 0.006
     },
     "slope": {
-        "percentageBelow": 33.33333333333333,
-        "percentageAbove": 66.66666666666667,
+        "percentageBelow": 50.0,
+        "percentageAbove": 50.0,
         "target": 0.85
     }
 }
