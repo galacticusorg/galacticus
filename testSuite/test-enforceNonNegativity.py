@@ -28,7 +28,7 @@ for variation in ( "ODETol0.1", "ODETol0.01", "ODETol0.001", "ODETol0.0001", "OD
     status = subprocess.run("cd ..; ./Galacticus.exe testSuite/parameters/enforceNonNegativity/rapidDepletion.xml testSuite/parameters/enforceNonNegativity/rapidDepletion"+variation+".xml",shell=True)
     if status.returncode != 0:
         print("FAILED: model failed to run")
-        sys.exit()
+        sys.exit(0)
         
     # Begin a figure showing evolution of masses with time.
     if args.makeplots:

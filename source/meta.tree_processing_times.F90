@@ -38,8 +38,8 @@ module Meta_Tree_Compute_Times
    <method name="time" >
     <description>Return an estimate of the time needed to process a tree of the given mass.</description>
     <type>double precision</type>
-    <argument>double precision, intent(in   ) :: massTree</argument>
     <pass>yes</pass>
+    <argument>double precision, intent(in   ) :: massTree</argument>
     <code>
       ! Return a negative value indicating that no estimate is available.
       !$GLC attributes unused :: self, massTree
@@ -49,9 +49,9 @@ module Meta_Tree_Compute_Times
    <method name="timeRemaining" >
     <description>Return an estimate of the remaining time needed to process a given tree.</description>
     <type>double precision</type>
+    <pass>yes</pass>
     <argument>type(mergerTree), intent(inout) :: tree     </argument>
     <argument>double precision, intent(in   ) :: timeFinal</argument>
-    <pass>yes</pass>
     <code>
       ! Return a negative value indicating that no estimate is available.
       !$GLC attributes unused :: self, tree, timeFinal

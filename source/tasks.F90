@@ -33,7 +33,6 @@ module Tasks
    <descriptiveName>Tasks</descriptiveName>
    <description>Class providing general tasks to be performed by \glc.</description>
    <default>evolveForests</default>
-   <functionClassDestroy>no</functionClassDestroy>
    <method name="perform" >
     <description>Perform the task.</description>
     <type>void</type>

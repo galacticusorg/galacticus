@@ -21,7 +21,7 @@ except FileExistsError:
 status = subprocess.run("cd ..; export OMP_NUM_THREADS=2; ./Galacticus.exe testSuite/parameters/validate_PonosV.xml",shell=True)
 if status.returncode != 0:
    print("FAILED: PonosV validation model failed to run")
-   sys.exit()
+   sys.exit(0)
 
 # Read data.
 model       = h5py.File("outputs/validate_PonosV.hdf5","r")

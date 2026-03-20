@@ -35,9 +35,6 @@
   !![
   <radiationField name="radiationFieldIntergalacticBackgroundInternal">
    <description>A radiation field class for intergalactic background light with properties computed internally.</description>
-   <stateStore>
-     <stateStore variables="accretionDiskSpectra_" store="accretionDiskSpectraStateStore_" restore="accretionDiskSpectraStateRestore_" module="Functions_Global"/>
-   </stateStore>
    <deepCopy>
      <ignore variables="accretionDiskSpectra_"/>
    </deepCopy>

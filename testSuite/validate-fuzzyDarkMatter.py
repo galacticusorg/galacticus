@@ -17,6 +17,6 @@ except FileExistsError:
 status = subprocess.run("cd ..; ./Galacticus.exe testSuite/parameters/validate_darkMatterOnlySubhalos_Symphony_resolutionX1_CDM.xml parameters/reference/powerSpectraSuppressed.xml parameters/reference/fuzzyDarkMatter.xml testSuite/parameters/resolutionM1e9.xml",shell=True)
 if status.returncode != 0:
     print("FAILED: Fuzzy Dark Matter validation model failed to run")
-    sys.exit()
+    sys.exit(0)
 
 print("SUCCESS: Fuzzy Dark Matter validation model")

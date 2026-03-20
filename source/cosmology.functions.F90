@@ -237,9 +237,9 @@ module Cosmology_Functions
     <description>Convenience function that returns the time corresponding to an epoch specified by time or expansion factor.</description>
     <type>double precision</type>
     <pass>yes</pass>
+    <modules>Error</modules>
     <argument>double precision, intent(in   ), optional :: time           , expansionFactor</argument>
     <argument>logical         , intent(in   ), optional :: collapsingPhase</argument>
-    <modules>Error</modules>
     <code>
     if (present(time)) then
        cosmologyFunctionsEpochTime=time

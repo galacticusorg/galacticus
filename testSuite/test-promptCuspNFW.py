@@ -18,7 +18,7 @@ except FileExistsError:
 status = subprocess.run("cd ..; ./Galacticus.exe testSuite/parameters/testPromptCuspNFW.xml",shell=True)
 if status.returncode != 0:
   print("FAILED: model failed to run"  )
-  sys.exit()
+  sys.exit(0)
 
 # Read require data from the model.
 model                 = h5py.File('outputs/testPromptCuspNFW.hdf5','r')

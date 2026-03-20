@@ -35,53 +35,53 @@ module Model_Parameters
    <description>Class providing model parameters.</description>
    <default>active</default>
    <method name="name">
+     <description>Return the name of this parameter.</description>
      <type>type(varying_string)</type>
      <pass>yes</pass>
-     <description>Return the name of this parameter.</description>
    </method>
    <method name="logPrior">
+     <description>Return the log-prior for this parameter.</description>
      <type>double precision</type>
      <pass>yes</pass>
      <argument>double precision, intent(in   ) :: x</argument>
-     <description>Return the log-prior for this parameter.</description>
    </method>
    <method name="priorSample">
-     <type>double precision</type>
-     <pass>yes</pass>
      <description>Sample from the parameter's prior.</description>
-   </method>
-   <method name="priorInvert">
      <type>double precision</type>
-     <argument>double precision, intent(in   ) :: f</argument>
      <pass>yes</pass>
+    </method>
+   <method name="priorInvert">
      <description>Invert the prior, returning the parameter value given the cumulative probability.</description>
+     <type>double precision</type>
+     <pass>yes</pass>
+     <argument>double precision, intent(in   ) :: f</argument>
    </method>
    <method name="priorMinimum">
+     <description>Return the minimum non-zero value of the prior for this parameter.</description>
      <type>double precision</type>
      <pass>yes</pass>
-     <description>Return the minimum non-zero value of the prior for this parameter.</description>
    </method>
    <method name="priorMaximum">
+     <description>Return the maximum non-zero value of the prior for this parameter.</description>
      <type>double precision</type>
      <pass>yes</pass>
-     <description>Return the maximum non-zero value of the prior for this parameter.</description>
    </method>
    <method name="randomPerturbation">
+     <description>Return a random perturbation for this parameter.</description>
      <type>double precision</type>
      <pass>yes</pass>
-     <description>Return a random perturbation for this parameter.</description>
    </method>
    <method name="map">
+     <description>Map the parameter value.</description>
      <type>double precision</type>
      <pass>yes</pass>
      <argument>double precision, intent(in   ) :: x</argument>
-     <description>Map the parameter value.</description>
    </method>
    <method name="unmap">
+     <description>Unmap the parameter value.</description>
      <type>double precision</type>
      <pass>yes</pass>
      <argument>double precision, intent(in   ) :: x</argument>
-     <description>Unmap the parameter value.</description>
    </method>
   </functionClass>
   !!]

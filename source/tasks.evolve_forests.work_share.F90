@@ -35,7 +35,6 @@ module Task_Evolve_Forests_Work_Shares
    <descriptiveName>Evolve Forests Work Share</descriptiveName>
    <description>Class providing work sharing for the evolve forests task.</description>
    <default>FCFS</default>
-   <data>integer :: workerIDOffset_=-1, workerCount_=-1</data>
    <method name="forestNumber" >
     <description>Return the number of the forest to process.</description>
     <type>integer(c_size_t)</type>
@@ -63,6 +62,7 @@ module Task_Evolve_Forests_Work_Shares
      evolveForestsWorkShareWorkerCount=self%workerCount_
     </code>
    </method>
+   <data>integer :: workerIDOffset_=-1, workerCount_=-1</data>
   </functionClass>
   !!]
 

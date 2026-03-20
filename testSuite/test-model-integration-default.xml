@@ -307,6 +307,10 @@
   <mergerTreeOutputter value="standard">
     <outputReferences value="false"/>
   </mergerTreeOutputter>
+  <nodePropertyExtractor value="multi">
+    <nodePropertyExtractor value="nodeIndices"/>
+    <nodePropertyExtractor value="treeWeight"/>
+  </nodePropertyExtractor>
   <outputFileName value="testSuite/outputs/test-model-integration/default/galacticus.hdf5"/>
 
 </parameters>

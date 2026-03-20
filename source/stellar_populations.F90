@@ -38,7 +38,6 @@ module Stellar_Populations
    <descriptiveName>Stellar Populations</descriptiveName>
    <description>Class providing stellar populations.</description>
    <default>standard</default>
-   <data>integer(c_size_t) :: uniqueID_=-1_c_size_t</data>
    <method name="rateRecycling" >
     <description>Return the rate of recycling from this population.</description>
     <type>double precision</type>
@@ -85,6 +84,7 @@ module Stellar_Populations
     <type>class(stellarPopulationSpectraClass)</type>
     <pass>yes</pass>
    </method>
+   <data>integer(c_size_t) :: uniqueID_=-1_c_size_t</data>
   </functionClass>
   !!]
 

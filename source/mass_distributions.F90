@@ -199,9 +199,9 @@ module Mass_Distributions
     <type>double precision</type>
     <pass>yes</pass>
     <selfTarget>yes</selfTarget>
+    <modules>Galactic_Structure_Options</modules>
     <argument>class(coordinate                       ), intent(in   )           :: coordinates1, coordinates2</argument>
     <argument>type (enumerationStructureErrorCodeType), intent(  out), optional :: status                    </argument>
-    <modules>Galactic_Structure_Options</modules>
     <code>
       double precision :: potential1, potential2
 
@@ -226,9 +226,9 @@ module Mass_Distributions
     <type>double precision</type>
     <pass>yes</pass>
     <selfTarget>yes</selfTarget>
+    <modules>Galactic_Structure_Options</modules>
     <argument>class(coordinate                       ), intent(in   )           :: coordinates1, coordinates2</argument>
     <argument>type (enumerationStructureErrorCodeType), intent(  out), optional :: status                    </argument>
-    <modules>Galactic_Structure_Options</modules>
     <code>
       massDistributionPotentialDifferenceNumerical=massDistributionPotentialDifferenceNumerical_(self,coordinates1,coordinates2,status)
     </code>
@@ -262,8 +262,8 @@ module Mass_Distributions
     <type>double precision</type>
     <pass>yes</pass>
     <selfTarget>yes</selfTarget>
-    <argument>double precision, intent(in   ), optional :: mass, massFractional</argument>
     <modules>Root_Finder</modules>
+    <argument>double precision, intent(in   ), optional :: mass, massFractional</argument>
     <code>
       type            (rootFinder)            :: finder
       double precision            , parameter :: toleranceAbsolute=0.0d0, toleranceRelative=1.0d-6
@@ -312,8 +312,8 @@ module Mass_Distributions
     <type>double precision</type>
     <pass>yes</pass>
     <selfTarget>yes</selfTarget>
-    <argument>double precision, intent(in   ), optional :: mass, massFractional</argument>
     <modules>Root_Finder</modules>
+    <argument>double precision, intent(in   ), optional :: mass, massFractional</argument>
     <code>
       type            (rootFinder)            :: finder
       double precision            , parameter :: toleranceAbsolute=0.0d0, toleranceRelative=1.0d-6
@@ -363,9 +363,9 @@ module Mass_Distributions
     <type>double precision</type>
     <pass>yes</pass>
     <selfTarget>yes</selfTarget>
+    <modules>Root_Finder</modules>
     <argument>double precision, intent(in   )           :: density    </argument>
     <argument>double precision, intent(in   ), optional :: radiusGuess</argument>
-    <modules>Root_Finder</modules>
     <code>
       type            (rootFinder)            :: finder
       double precision            , parameter :: toleranceAbsolute=0.0d0  , toleranceRelative=1.0d-3
@@ -406,9 +406,9 @@ module Mass_Distributions
     <type>double precision</type>
     <pass>yes</pass>
     <selfTarget>yes</selfTarget>
+    <modules>Root_Finder</modules>
     <argument>double precision, intent(in   )           :: densitySurface</argument>
     <argument>double precision, intent(in   ), optional :: radiusGuess   </argument>
-    <modules>Root_Finder</modules>
     <code>
       type            (rootFinder)            :: finder
       double precision            , parameter :: toleranceAbsolute=0.0d0, toleranceRelative=1.0d-3
@@ -448,8 +448,8 @@ module Mass_Distributions
     <type>double precision</type>
     <pass>yes</pass>
     <selfTarget>yes</selfTarget>
-    <argument>double precision, intent(in   ) :: angularMomentumSpecific</argument>
     <modules>Root_Finder</modules>
+    <argument>double precision, intent(in   ) :: angularMomentumSpecific</argument>
     <code>
       type            (rootFinder)            :: finder
       double precision            , parameter :: toleranceAbsolute=0.0d0  , toleranceRelative=1.0d-6
@@ -737,9 +737,9 @@ module Mass_Distributions
     <description>Integrand for Jeans equation.</description>
     <type>double precision</type>
     <pass>yes</pass>
+    <modules>Numerical_Constants_Astronomical Coordinates</modules>
     <argument>double precision                       , intent(in   ) :: radius                                      </argument>
     <argument>class           (massDistributionClass), intent(inout) :: massDistribution_, massDistributionEmbedding</argument>
-    <modules>Numerical_Constants_Astronomical Coordinates</modules>
     <code>
       type(coordinateSpherical) :: coordinates
       if (radius > 0.0d0) then

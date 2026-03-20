@@ -33,7 +33,6 @@ module Posterior_Sampling_State
    <descriptiveName>Posterior Sampling State</descriptiveName>
    <description>Class providing state during posterior sampling simulations.</description>
    <default>simple</default>
-   <data>integer :: parameterCount, stepCount, chainIndexValue</data>
    <method name="parameterCountSet" >
     <description>Set the number of parameters in this state.</description>
     <type>void</type>
@@ -117,6 +116,7 @@ module Posterior_Sampling_State
     <argument>double precision, intent(in   ), dimension(:) :: stateVector</argument>
     <argument>logical         , intent(in   )               :: first</argument>
    </method>
+   <data>integer :: parameterCount, stepCount, chainIndexValue</data>
   </functionClass>
   !!]
 

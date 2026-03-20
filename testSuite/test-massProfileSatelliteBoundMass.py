@@ -17,14 +17,14 @@ print("...done ("+str(status)+")")
 if status.returncode != 0:
     print("FAILED: model run:")
     subprocess.run("cat outputs/test-mass-profile-satellite-bound-mass.log",shell=True)
-    sys.exit()
+    sys.exit(0)
 print("Checking for errors...")
 status = subprocess.run("grep -q -i -e fatal -e aborted -e \"Galacticus experienced an error in the GSL library\" outputs/test-mass-profile-satellite-bound-mass.log",shell=True)
 print("...done ("+str(status)+")")
 if status.returncode == 0:
     print("FAILED: model run (errors):")
     subprocess.run("cat outputs/test-mass-profile-satellite-bound-mass.log",shell=True)
-    sys.exit()
+    sys.exit(0)
 print("SUCCESS: model run")
 
 # Open the model and extract the mass profile and satellite bound mass.

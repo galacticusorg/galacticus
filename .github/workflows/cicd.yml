@@ -61,17 +61,11 @@ jobs:
       - run: echo "The name of the branch is ${{ github.ref }} and the repository is ${{ github.repository }}."
       - name: Check out repository code
         uses: actions/checkout@v6
-      - name: Check out repository analysis-perl
-        uses: actions/checkout@v6
-        with:
-          repository: galacticusorg/analysis-perl
-          path: analysis-perl
       - run: echo "The ${{ github.repository }} repository has been cloned to the runner."
       - name: "Set environmental variables"
         run: |
           echo "GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
           echo "GALACTICUS_FCFLAGS=$GALACTICUS_FCFLAGS -static" >> $GITHUB_ENV
-          echo "GALACTICUS_ANALYSIS_PERL_PATH=$GITHUB_WORKSPACE/analysis-perl" >> $GITHUB_ENV
       - name: Build the code
         run: |
           cd $GALACTICUS_EXEC_PATH
@@ -116,16 +110,10 @@ jobs:
       - run: echo "The name of the branch is ${{ github.ref }} and the repository is ${{ github.repository }}."
       - name: Check out repository code
         uses: actions/checkout@v6
-      - name: Check out repository analysis-perl
-        uses: actions/checkout@v6
-        with:
-          repository: galacticusorg/analysis-perl
-          path: analysis-perl
       - run: echo "The ${{ github.repository }} repository has been cloned to the runner."
       - name: "Set environmental variables"
         run: |
           echo "GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
-          echo "GALACTICUS_ANALYSIS_PERL_PATH=$GITHUB_WORKSPACE/analysis-perl" >> $GITHUB_ENV
       - name: Build the code
         run: |
           cd $GALACTICUS_EXEC_PATH
@@ -680,7 +668,7 @@ jobs:
     needs: Build-Executable-DMO-Linux
     uses: ./.github/workflows/testModel.yml
     with:
-      file: benchmark-darkMatterOnlySubhalos.pl
+      file: benchmark-darkMatterOnlySubhalos.py
       artifact: galacticus-exec-dmo
       runPath: ./testSuite
       cacheData: 0
@@ -692,7 +680,7 @@ jobs:
     needs: Build-Executable-Linux
     uses: ./.github/workflows/testModel.yml
     with:
-      file: benchmark-milkyWay.pl
+      file: benchmark-milkyWay.py
       artifact: galacticus-exec
       runPath: ./testSuite
       cacheData: 1
@@ -1140,7 +1128,7 @@ jobs:
         instance: [ "1:2", "2:2" ]
     uses: ./.github/workflows/testModel.yml
     with:
-      file: test-cosmology.pl
+      file: test-cosmology.py
       artifact: galacticus-exec
       runPath: ./testSuite
       options: "--launchMethod local --threadMaximum 1 --ompThreads 4 --instance ${{ matrix.instance }}"
@@ -1152,7 +1140,7 @@ jobs:
       # Ensure all jobs are run, even if some fail.
       fail-fast: false
       matrix:
-        file: [ "test-mass-conservation-simple.pl", "test-mass-conservation-standard.pl", "test-mass-conservation-coldMode.pl" ]
+        file: [ "test-mass-conservation-simple.py", "test-mass-conservation-standard.py", "test-mass-conservation-coldMode.py" ]
     uses: ./.github/workflows/testModel.yml
     with:
       file: ${{ matrix.file }}
@@ -1170,7 +1158,7 @@ jobs:
         instance: [ "1:4", "2:4", "3:4", "4:4" ]
     uses: ./.github/workflows/testModel.yml
     with:
-      file: test-merger-tree-builder.pl
+      file: test-merger-tree-builder.py
       artifact: galacticus-exec
       runPath: ./testSuite
       options: "--launchMethod local --threadMaximum 1 --ompThreads 4 --instance ${{ matrix.instance }}"
@@ -1179,7 +1167,7 @@ jobs:
     needs: Build-Executable-Linux
     uses: ./.github/workflows/testModel.yml
     with:
-      file: test-merger-tree-write.pl
+      file: test-merger-tree-write.py
       artifact: galacticus-exec
       runPath: ./testSuite
       options: "--launchMethod local --threadMaximum 1 --ompThreads 4"
@@ -1195,7 +1183,7 @@ jobs:
         instance: [ "1:2", "2:2" ]
     uses: ./.github/workflows/testModel.yml
     with:
-      file: test-model-integration.pl
+      file: test-model-integration.py
       artifact: galacticus-exec
       runPath: ./testSuite
       options: "--launchMethod local --threadMaximum 1 --ompThreads 4 --instance ${{ matrix.instance }}"
@@ -1207,34 +1195,34 @@ jobs:
       # Ensure all jobs are run, even if some fail.
       fail-fast: false
       matrix:
-        file: [ test-bar-instability.pl,
-                test-transfer-functions-axion.pl,
-                test-mass-definitions.pl,
-                test-branchlessTrees.pl,
-                test-branchSubsampling.pl,
-                test-CGM-mass-cooled.pl,
-                test-concentration-Ludlow2016.pl,
-                test-concentration-Johnson2021.pl,
-                test-tidallyTruncatedNFWFit.pl,
-                test-constraint-deterministic-spins.pl,
-                test-constraint-mass-function.pl,
-                test-extract-directives.pl,
-                test-fortran-utils.pl,
+        file: [ test-bar-instability.py,
+                test-transfer-functions-axion.py,
+                test-mass-definitions.py,
+                test-branchlessTrees.py,
+                test-branchSubsampling.py,
+                test-CGM-mass-cooled.py,
+                test-concentration-Ludlow2016.py,
+                test-concentration-Johnson2021.py,
+                test-tidallyTruncatedNFWFit.py,
+                test-constraint-deterministic-spins.py,
+                test-constraint-mass-function.py,
+                test-extract-directives.py,
+                test-fortran-utils.py,
                 test-halo-mass-functions.py,
-                test-inactive_luminosities.pl,
-                test-interoutput-star-formation-rate.pl,
-                test-mass-host-maximum.pl,
-                test-noninstantaneous-recycling.pl,
-                test-satellite-distance-minimum.pl,
-                test-treeFilterLabels.pl,
-                test-output.pl,
-                test-output-times.pl,
-                test-output-tree-contiguousity.pl,
-                test-outputSelector.pl,
-                test-parameter-validation.pl,
-                test-perl-modules.pl,
-                test-reproducibility.pl,
-                test-splitForests.pl,
+                test-inactive_luminosities.py,
+                test-interoutput-star-formation-rate.py,
+                test-mass-host-maximum.py,
+                test-noninstantaneous-recycling.py,
+                test-satellite-distance-minimum.py,
+                test-treeFilterLabels.py,
+                test-output.py,
+                test-output-times.py,
+                test-output-tree-contiguousity.py,
+                test-outputSelector.py,
+                test-parameter-validation.py,
+                test-perl-modules.py,
+                test-reproducibility.py,
+                test-splitForests.py,
                 test-parameters-diff.py,
                 test-parameters-extract.py,
                 test-parameters-changes.py,
@@ -1249,17 +1237,17 @@ jobs:
                 test-massProfileSatelliteBoundMass.py,
                 test-UniverseMachine.py,
                 test-spheroid-power-law.py,
-                test-stateRestore.pl,
-                test-checkpointing.pl,
-                test-stellar-mass-weighted-ages.pl,
-                test-tidalTracks.pl,
-                test-transferFunctionHalfModeSlope.pl,
-                test-galacticStructureStateDeallocateBug.pl,
-                test-inactiveNumerics.pl,
-                test-impulsiveHeating.pl,
-                test-haloTriaxiality.pl,
-                test-parallelTreeBuild.pl,
-                test-duplicatedOutputPropertyName.pl,
+                test-stateRestore.py,
+                test-checkpointing.py,
+                test-stellar-mass-weighted-ages.py,
+                test-tidalTracks.py,
+                test-transferFunctionHalfModeSlope.py,
+                test-galacticStructureStateDeallocateBug.py,
+                test-inactiveNumerics.py,
+                test-impulsiveHeating.py,
+                test-haloTriaxiality.py,
+                test-parallelTreeBuild.py,
+                test-duplicatedOutputPropertyName.py,
                 test-decayingDM-caustic.py,
                 test-decayingDM-profile.py,
                 test-decayingDM-shell-crossing-capture.py,
@@ -1281,7 +1269,7 @@ jobs:
       # Ensure all jobs are run, even if some fail.
       fail-fast: false
       matrix:
-        file: [ test-allowed-parameters.pl,
+        file: [ test-allowed-parameters.py,
                 test-strict-parameters.py   ]
     uses: ./.github/workflows/testModel.yml
     with:
@@ -1296,8 +1284,8 @@ jobs:
       # Ensure all jobs are run, even if some fail.
       fail-fast: false
       matrix:
-        file: [ test-Bolshoi-tree-builder.pl,
-                test-Millennium-tree-builder.pl ]
+        file: [ test-Bolshoi-tree-builder.py,
+                test-Millennium-tree-builder.py ]
     uses: ./.github/workflows/testModel.yml
     with:
       file: ${{ matrix.file }}
@@ -1312,7 +1300,7 @@ jobs:
       # Ensure all jobs are run, even if some fail.
       fail-fast: false
       matrix:
-        file: [ test-parameter-migration.pl ]
+        file: [ test-parameter-migration.py ]
     uses: ./.github/workflows/testModel.yml
     with:
       fetchDepth: 0
@@ -1326,7 +1314,7 @@ jobs:
       # Ensure all jobs are run, even if some fail.
       fail-fast: false
       matrix:
-        file: [ test-constrained-merger-trees.pl ]
+        file: [ test-constrained-merger-trees.py ]
     uses: ./.github/workflows/testModel.yml
     with:
       file: ${{ matrix.file }}
@@ -1360,7 +1348,7 @@ jobs:
         instance: [ "1:10", "2:10", "3:10", "4:10", "5:10", "6:10", "7:10", "8:10", "9:10", "10:10" ]
     uses: ./.github/workflows/testModel.yml
     with:
-      file: test-outputs.pl
+      file: test-outputs.py
       artifact: galacticus-exec
       runPath: ./testSuite
       options: "--launchMethod local --threadMaximum 1 --ompThreads 4 --instance ${{ matrix.instance }}"
@@ -1372,12 +1360,11 @@ jobs:
       # Ensure all jobs are run, even if some fail.
       fail-fast: false
       matrix:
-        file: [ testSuite/regressions/bug1066052.pl,
+        file: [ testSuite/regressions/bug1066052.py,
                 testSuite/regressions/adaptiveSFHLengths.py,
-                testSuite/regressions/mergerTreeBoxSizeWeight.pl,
-                testSuite/regressions/satellitePresetBoundMassNonZero.pl,
-                testSuite/regressions/setProperties.pl,
-                testSuite/regressions/cosmicEmu.pl,
+                testSuite/regressions/mergerTreeBoxSizeWeight.py,
+                testSuite/regressions/satellitePresetBoundMassNonZero.py,
+                testSuite/regressions/cosmicEmu.py,
                 testSuite/regressions/bug1053153.xml,
                 testSuite/regressions/bug711424.xml,
                 testSuite/regressions/bug725315.xml,
@@ -1437,7 +1424,7 @@ jobs:
         instance: [ "1:20", "2:20", "3:20", "4:20", "5:20", "6:20", "7:20", "8:20", "9:20", "10:20", "11:20", "12:20", "13:20", "14:20", "15:20", "16:20", "17:20", "18:20", "19:20", "20:20" ]
     uses: ./.github/workflows/testModel.yml
     with:
-      file: test-methods.pl
+      file: test-methods.py
       artifact: galacticus-exec
       runPath: ./testSuite
       options: "--launchMethod local --threadMaximum 1 --ompThreads 4 --instance ${{ matrix.instance }}"
@@ -1447,19 +1434,19 @@ jobs:
     needs: Build-Executables-MPI-Linux
     uses: ./.github/workflows/testModel.yml
     with:
-      file: test-stateRestore_MPI.pl
+      file: test-stateRestore_MPI.py
       artifact: galacticus-exec-MPI
       runPath: ./testSuite
-      options: --processesPerNode 8 --allow-run-as-root yes
+      options: --processesPerNode 8 --allowRunAsRoot yes
     secrets: inherit
   MPI-Radiative-Transfer-Stromgren-Sphere:
     needs: Build-Executables-MPI-Linux
     uses: ./.github/workflows/testModel.yml
     with:
-      file: test-radiativeTransfer-StromgrenSphere_MPI.pl
+      file: test-radiativeTransfer-StromgrenSphere_MPI.py
       artifact: galacticus-exec-MPI
       runPath: ./testSuite
-      options: --processesPerNode 4 --allow-run-as-root yes
+      options: --processesPerNode 4 --allowRunAsRoot yes
     secrets: inherit
   MPI-MCMC:
     needs: Build-Executables-MPI-Linux
@@ -1480,7 +1467,7 @@ jobs:
         instance: [ "1:2", "2:2" ]
     uses: ./.github/workflows/testModel.yml
     with:
-      file: test-methods_MPI.pl
+      file: test-methods_MPI.py
       artifact: galacticus-exec-MPI
       runPath: ./testSuite
       options: "--launchMethod local --threadMaximum 1 --ompThreads 1 --instance ${{ matrix.instance }}"
@@ -1491,7 +1478,7 @@ jobs:
     uses: ./.github/workflows/testModel.yml
     with:
       install: valgrind
-      file: test-memory-leaks.pl
+      file: test-memory-leaks.py
       artifact: galacticus-exec-non-static
       runPath: ./testSuite
       options: --mpi 0
@@ -1502,7 +1489,7 @@ jobs:
     uses: ./.github/workflows/testModel.yml
     with:
       install: valgrind
-      file: test-memory-leaks.pl
+      file: test-memory-leaks.py
       artifact: galacticus-exec-MPI
       runPath: ./testSuite
       options: --mpi 1

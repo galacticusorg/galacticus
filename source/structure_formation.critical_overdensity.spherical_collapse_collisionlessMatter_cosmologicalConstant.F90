@@ -82,7 +82,7 @@ contains
     class           (linearGrowthClass                                           ), pointer       :: linearGrowth_
     class           (cosmologicalMassVarianceClass                               ), pointer       :: cosmologicalMassVariance_
     class           (darkMatterParticleClass                                     ), pointer       :: darkMatterParticle_
-    double precision                                                                              :: normalization
+    double precision                                                                              :: normalization            , countTimeCollapsePerUnit
     logical                                                                                       :: tableStore
 
     !![
@@ -103,8 +103,20 @@ contains
     <objectBuilder class="cosmologicalMassVariance" name="cosmologicalMassVariance_" source="parameters"/>
     <objectBuilder class="darkMatterParticle"       name="darkMatterParticle_"       source="parameters"/>
     !!]
-    self=criticalOverdensitySphericalCollapseClsnlssMttrCsmlgclCnstnt(linearGrowth_,cosmologyFunctions_,cosmologicalMassVariance_,darkMatterParticle_,tableStore,normalization)
+    if (parameters%isPresent('countTimeCollapsePerUnit')) then
+       !![
+       <inputParameter>
+	 <name>countTimeCollapsePerUnit</name>
+	 <source>parameters</source>
+	 <description>The number of points per unit $w(t)=\delta_\mathrm{c}(t)/D(t)$ at which to tabulate the time of collapse.</description>
+       </inputParameter>
+       !!]
+    end if
     !![
+    <conditionalCall>
+      <call>self=criticalOverdensitySphericalCollapseClsnlssMttrCsmlgclCnstnt(linearGrowth_,cosmologyFunctions_,cosmologicalMassVariance_,darkMatterParticle_,tableStore,normalization{conditions})</call>
+      <argument name="countTimeCollapsePerUnit" value="countTimeCollapsePerUnit" parameterPresent="parameters"/>
+    </conditionalCall>
     <inputParametersValidate source="parameters"/>
     <objectDestructor name="linearGrowth_"            />
     <objectDestructor name="cosmologyFunctions_"      />
@@ -114,7 +126,7 @@ contains
     return
   end function sphericalCollapseClsnlssMttrCsmlgclCnstntConstructorParameters
 
-  function sphericalCollapseClsnlssMttrCsmlgclCnstntConstructorInternal(linearGrowth_,cosmologyFunctions_,cosmologicalMassVariance_,darkMatterParticle_,tableStore,normalization) result(self)
+  function sphericalCollapseClsnlssMttrCsmlgclCnstntConstructorInternal(linearGrowth_,cosmologyFunctions_,cosmologicalMassVariance_,darkMatterParticle_,tableStore,normalization,countTimeCollapsePerUnit) result(self)
     !!{
     Internal constructor for the \refClass{criticalOverdensitySphericalCollapseClsnlssMttrCsmlgclCnstnt} critical overdensity class.
     !!}
@@ -127,10 +139,10 @@ contains
     class           (cosmologicalMassVarianceClass                               ), target  , intent(in   ) :: cosmologicalMassVariance_
     class           (darkMatterParticleClass                                     ), target  , intent(in   ) :: darkMatterParticle_
     logical                                                                                 , intent(in   ) :: tableStore
-    double precision                                                              , optional, intent(in   ) :: normalization
+    double precision                                                              , optional, intent(in   ) :: normalization            , countTimeCollapsePerUnit
     !![
     <optionalArgument name="normalization" defaultsTo="1.0d0" />
-    <constructorAssign variables="*linearGrowth_, *cosmologyFunctions_, *cosmologicalMassVariance_, *darkMatterParticle_, tableStore"/>
+    <constructorAssign variables="*linearGrowth_, *cosmologyFunctions_, *cosmologicalMassVariance_, *darkMatterParticle_, tableStore, countTimeCollapsePerUnit"/>
     !!]
 
     self%normalization   =normalization_

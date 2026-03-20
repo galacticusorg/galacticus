@@ -91,12 +91,12 @@ module Star_Formation_Histories
     <description>Return an array of times for this history \emph{if} the tabulation in time is static per output.</description>
     <type>double precision, allocatable, dimension(:)</type>
     <pass>yes</pass>
+    <modules>Error</modules>
     <argument>type            (treeNode), intent(inout), optional :: node                </argument>
     <argument>integer         (c_size_t), intent(in   ), optional :: indexOutput         </argument>
     <argument>type            (history ), intent(in   ), optional :: starFormationHistory</argument>
     <argument>logical                   , intent(in   ), optional :: allowTruncation     </argument>
     <argument>double precision          , intent(  out), optional :: timeStart           </argument>
-    <modules>Error</modules>
     <code>
       !$GLC attributes unused :: allowTruncation
       if (     present(node).and.     present(indexOutput         )) call Error_Report('only one of `node` and `indexOutput` may be provided'        //{introspection:location})
@@ -116,9 +116,9 @@ module Star_Formation_Histories
      <description></description>
      <type>double precision</type>
      <pass>yes</pass>
+     <modules>Galacticus_Nodes Arrays_Search</modules>
      <argument>type(treeNode), intent(inout) :: node                </argument>
      <argument>type(history ), intent(in   ) :: starFormationHistory</argument>
-     <modules>Galacticus_Nodes Arrays_Search</modules>
      <code>
        class  (nodeComponentBasic), pointer :: basic
        integer(c_size_t          )          :: i
@@ -174,9 +174,9 @@ module Star_Formation_Histories
      <description>Extend a star formation history to span a sufficient range of times.</description>
      <type>void</type>
      <pass>yes</pass>
+     <modules>Error</modules>
      <argument>type            (history), intent(inout)               :: starFormationHistory</argument>
      <argument>double precision         , intent(in   ), dimension(:) :: times               </argument>
-     <modules>Error</modules>
      <code>
        !$GLC attributes unused :: self, starFormationHistory, times
        call Error_Report("unexpected attempt to extend star formation history"//{introspection:location})
@@ -186,9 +186,9 @@ module Star_Formation_Histories
      <description>Move one star formation history into another.</description>
      <type>void</type>
      <pass>yes</pass>
+     <modules>Error</modules>
      <argument>type(treeNode), intent(inout) :: node1                , node2                </argument>
      <argument>type(history ), intent(inout) :: starFormationHistory1, starFormationHistory2</argument>
-     <modules>Error</modules>
      <code>
        !$GLC attributes unused :: self, node1, node2
        call starFormationHistory1%increment(starFormationHistory2,autoExtend=.true.)

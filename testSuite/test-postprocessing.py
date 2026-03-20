@@ -19,7 +19,7 @@ if status.returncode != 0:
     print("   ...done ("+str(status)+")")
     print("   FAILED: model run:")
     subprocess.run("cat outputs/test-postprocessing-original.log",shell=True)
-    sys.exit()
+    sys.exit(0)
 else:
     print("   ...done")
     print("   Checking for errors...")
@@ -28,7 +28,7 @@ else:
         print("   ...done ("+str(status)+")")
         print("   FAILED: model run (errors):")
         subprocess.run("cat outputs/test-postprocessing-original.log",shell=True)
-        sys.exit()
+        sys.exit(0)
     else:
         print("   ...done")
         print("   SUCCESS: model run")
@@ -43,7 +43,7 @@ if status.returncode != 0:
     print("   ...done ("+str(status)+")")
     print("   FAILED: model run:")
     subprocess.run("cat outputs/test-postprocessing-postprocessed.log",shell=True)
-    sys.exit()
+    sys.exit(0)
 else:
     print("   ...done")
     print("   Checking for errors...")
@@ -52,7 +52,7 @@ else:
         print("   ...done ("+str(status)+")")
         print("   FAILED: model run (errors):")
         subprocess.run("cat outputs/test-postprocessing-postprocessed.log",shell=True)
-        sys.exit()
+        sys.exit(0)
     else:
         print("   ...done")
         print("   SUCCESS: model run")
@@ -74,18 +74,18 @@ for (outputName, outputOriginal) in outputsOriginal.items():
     for (datasetName, datasetOriginal) in nodesOriginal.items():
         if not datasetName in nodesPostprocessed:
             print(f"FAILED: dataset '{datasetName}' does not exist in postprocessed file output '{outputName}'")
-            sys.exit()
+            sys.exit(0)
         datasetPostprocessed = nodesPostprocessed[datasetName]
         if len(datasetPostprocessed[:]) != len(datasetOriginal[:]):
             print(f"FAILED: dataset '{datasetName}' differs in length in postprocessed file output '{outputName}'")
-            sys.exit()
+            sys.exit(0)
         if not np.allclose(datasetOriginal[:],datasetPostprocessed[:],rtol=1.0e-3,atol=1.0e-30):
             print(f"FAILED: dataset '{datasetName}' differs in postprocessed file output '{outputName}'")
-            sys.exit()
+            sys.exit(0)
     # Check that the new dataset appears in the postprocessed file.
     if not 'luminosityEmissionLineDisk:oxygenII3727' in nodesPostprocessed:
         print(f"FAILED: new dataset 'luminosityEmissionLineDisk:oxygenII3727' not present in postprocessed file output '{outputName}'")
-        sys.exit()
+        sys.exit(0)
   
 # Report success.
 print("SUCCESS: postprocessing")

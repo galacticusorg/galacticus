@@ -437,9 +437,8 @@ The resulting mass function is written to the output file in a group named ``\mo
 \end{description}
 The output group also contains a ``\mono{logLikelihood}'' attribute which gives the log-likelihood of the model given this data. Additional attributes provide a description of the analysis that allows a simple plot comparing the \glc\ and observed mass functions to be made using:
 \begin{verbatim}
-./scripts/analysis/analysesPlot.pl <outputFileName>
+./scripts/analysis/analysesPlot.py <outputFileName>
 \end{verbatim}
-(which utilizes \glc's \href{https://github.com/galacticusorg/analysis-perl}\mono{analysis-perl} tools).
 
 Multiple on-the-fly analyses can be performed, by simply grouping them inside a ``\mono{multi}'' \refClass{outputAnalysisClass}, e.g.:
 \begin{verbatim}

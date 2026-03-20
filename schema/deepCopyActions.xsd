@@ -1,0 +1,18 @@
+<?xml version="1.0"?>
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema"
+	   xmlns:common="http://CommonTypesNamespace/CommonTypes"
+           elementFormDefault="qualified">
+  <!-- Schema used to validate deepCopyActions directives -->
+
+  <xs:import namespace="http://CommonTypesNamespace/CommonTypes" schemaLocation="commonTypes.xsd"/>
+
+  <xs:element name="deepCopyActions">
+    <xs:complexType>
+      <xs:sequence>
+	<xs:any minOccurs="0" maxOccurs="unbounded" processContents="lax"/>
+      </xs:sequence>
+      <xs:attribute name="class" use="required"/>
+    </xs:complexType>
+  </xs:element>
+  
+</xs:schema>

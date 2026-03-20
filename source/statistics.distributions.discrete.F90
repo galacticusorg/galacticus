@@ -31,7 +31,6 @@ module Statistics_Distributions_Discrete
    <descriptiveName>One-dimensional Discrete Distribution Functions</descriptiveName>
    <description>Class providing discrete distribution functions of a single variable.</description>
    <default>binomial</default>
-   <data>class(randomNumberGeneratorClass), pointer :: randomNumberGenerator_ => null()</data>
    <destructor>
     <code>
      call distributionFunctionDiscrete1DFinalize(self)
@@ -39,35 +38,35 @@ module Statistics_Distributions_Discrete
     </code>
    </destructor>
    <method name="mass" >
+     <description>Return the probability mass at \mono{x}.</description>
      <type>double precision</type>
      <pass>yes</pass>
      <argument>integer, intent(in   ) :: x</argument>
-     <description>Return the probability mass at \mono{x}.</description>
    </method>
    <method name="massLogarithmic" >
+     <description>Return the logarithm of the probability mass at \mono{x}.</description>
      <type>double precision</type>
      <pass>yes</pass>
      <argument>integer, intent(in   ) :: x</argument>
-     <description>Return the logarithm of the probability mass at \mono{x}.</description>
    </method>
    <method name="cumulative" >
+     <description>Return the cumulative probability at \mono{x}.</description>
      <type>double precision</type>
      <pass>yes</pass>
      <argument>integer, intent(in   ) :: x</argument>
-     <description>Return the cumulative probability at \mono{x}.</description>
    </method>
    <method name="inverse" >
+     <description>Return the value of the independent variable corresponding to cumulative probability \mono{p}.</description>
      <type>integer</type>
      <pass>yes</pass>
      <argument>double precision, intent(in   ) :: p</argument>
-     <description>Return the value of the independent variable corresponding to cumulative probability \mono{p}.</description>
    </method>
    <method name="sample" >
+     <description>Return a random deviate from the distribution.</description>
      <type>integer</type>
      <pass>yes</pass>
-     <argument>class(randomNumberGeneratorClass), intent(inout), optional :: randomNumberGenerator_</argument>
-     <description>Return a random deviate from the distribution.</description>
      <modules>Error</modules>
+     <argument>class(randomNumberGeneratorClass), intent(inout), optional :: randomNumberGenerator_</argument>
      <code>
       double precision :: uniformRandom
       ! Draw a random number uniformly from 0 to 1 and use the inverse of our self to get the
@@ -83,15 +82,16 @@ module Statistics_Distributions_Discrete
      </code>
    </method>
    <method name="minimum" >
+     <description>Returns the minimum possible value in the distribution.</description>
      <type>integer</type>
      <pass>yes</pass>
-     <description>Returns the minimum possible value in the distribution.</description>
    </method>
    <method name="maximum" >
+     <description>Returns the maximum possible value in the distribution.</description>
      <type>integer</type>
      <pass>yes</pass>
-     <description>Returns the maximum possible value in the distribution.</description>
    </method>
+   <data>class(randomNumberGeneratorClass), pointer :: randomNumberGenerator_ => null()</data>
   </functionClass>
   !!]
 
