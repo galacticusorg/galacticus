@@ -1,4 +1,5 @@
 <changes>
+  <change type="replaceWith" path="cosmologicalMassVariance" target="cosmologicalMassVariance/cosmologicalMassVariance"/>
   <change type="replace" path="haloMassFunction">
     <haloMassFunction value="despali2015"/>
   </change>
