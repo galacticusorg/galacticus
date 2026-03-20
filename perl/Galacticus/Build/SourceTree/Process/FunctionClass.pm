@@ -73,24 +73,6 @@ sub Process_FunctionClass {
 		    %methods = %{$directive->{'method'}};
 		}
 	    }
-	    # Load any functionClassType that the base class extends.
-	    my $functionClassType;
-	    if ( exists($directive->{'extends'}) ) {
-		(my $functionClassTypeFileName) = map {$_->{'name'} eq $directive->{'extends'} ? $_->{'file'} : ()} &List::ExtraUtils::as_array($stateStorables->{'functionClassTypes'});
-		die('failed to find file containing functionClassType "'.$directive->{'extends'}.'"')
-		    unless ( defined($functionClassTypeFileName) );
-		$functionClassType->{'tree'} = &Galacticus::Build::SourceTree::ParseFile($functionClassTypeFileName);
-		my $classNode  = $functionClassType->{'tree'};
-		my $classDepth = 0;
-		while ( $classNode ) {
-		    if ( $classNode->{'type'} eq "type" ) {
-			if ( $classNode->{'name'} eq $directive->{'extends'} ) {
-			    $functionClassType->{'node'} = $classNode;
-			}
-		    }
-		    $classNode = &Galacticus::Build::SourceTree::Walk_Tree($classNode,\$classDepth);
-		}
-	    }
 	    # Find class locations.
 	    my @classLocations = &List::ExtraUtils::as_array($directiveLocations->{$directive->{'name'}}->{'file'})
 		if ( exists($directiveLocations->{$directive->{'name'}}) );
@@ -285,16 +267,6 @@ sub Process_FunctionClass {
 		    die("Galacticus::Build::SourceTree::Process::FunctionClass::Process_FunctionClass(): unable to parse variable declaration")
 			unless ( defined($declaration) );
 		    &potentialDescriptorParameters($declaration,$nonAbstractClass,undef(),$potentialNames);
-		}
-		# Add any names declared in the functionClassType.
-		if ( defined($functionClassType) ) {
-		    # Search the node for declarations.
-		    my $node = $functionClassType->{'node'}->{'firstChild'};
-		    while ( $node ) {
-			&potentialDescriptorParameters($node->{'declarations'},$nonAbstractClass,undef(),$potentialNames)
-			    if ( $node->{'type'} eq "declaration" );
-			$node = $node->{'type'} eq "contains" ? $node->{'firstChild'} : $node->{'sibling'};
-		    }
 		}
 		# Search the tree for this class to find the interface to the parameters constructor.
 		my $node = $nonAbstractClass->{'tree'}->{'firstChild'};
@@ -1391,73 +1363,6 @@ CODE
 			if ( $referenceCount );
 		}
 	    }
-	    # Add any objects declared in the functionClassType class.
-	    if ( defined($functionClassType) ) {
-		# Search the node for declarations.
-		my @ignore = ();
-		my $node   = $functionClassType->{'node'}->{'firstChild'};
-		while ( $node ) {
-		    if ( $node->{'type'} eq "declaration" ) {
-			foreach my $declaration ( &List::ExtraUtils::as_array($node->{'declarations'}) ) {
-			    my $isPointer   = grep {$_ eq "pointer"} @{$declaration->{'attributes'}};
-			    my $assigner    = $isPointer ? "=>" : "=";
-			    my $allocatable = grep {$_ eq "allocatable"} @{$declaration->{'attributes'}};
-			    (my $type = $declaration->{'type'}) =~ s/(^\s*|\s*$)//g
-								      if ( $declaration->{'intrinsic'} eq "class" || $declaration->{'intrinsic'} eq "type" );
-			    my $referenceCount= 
-				($declaration->{'intrinsic'} eq "class" || $declaration->{'intrinsic'} eq "type")
-				&&
-				(grep {$_ eq $type    } (keys(%{$stateStorables->{'functionClasses'}}),@{$stateStorables->{'functionClassInstances'}}))
-				&&
-				grep {$_ eq "pointer"}  @{$declaration   ->{'attributes'     }};
-			    foreach my $object ( @{$declaration->{'variables'}} ) {
-				(my $name = $object) =~ s/^([a-zA-Z0-9_]+).*/$1/; # Strip away anything (e.g. assignment operators) after the variable name.
-				if ( $allocatable ) {
-				    $assignment->{'code'} .= "    if (allocated(self%".$name.")) deallocate(self%".$name.")\n";
-				    $assignment->{'code'} .= "    if (allocated(from%".$name.")) then\n";
-				    # Use `mold=` to get the correct type. Then include a direct assignment after the `allocate`
-				    # as this will trigger any defined assignment which is necessary for reference counting.
-				    my $bounds = "";
-				    my $rank   = 0;
-				    if ( grep {$_ =~ m/^dimension\s*\([a-z0-9_:,\s]+\)/} @{$declaration->{'attributes'}} ) {
-					# Non-scalar parameter - values must be concatenated.
-					my $dimensionDeclarator = join(",",map {/^dimension\s*\(([a-zA-Z0-9_,:\s]+)\)/} @{$declaration->{'attributes'}});
-					$rank                   = ($dimensionDeclarator =~ tr/,//)+1;
-					$bounds = "(".join(",",map {"lbound(from%".$name.",dim=".$_."):ubound(from%".$name.",dim=".$_.")"} 1..$rank).")";
-				    }
-				    $assignment->{'code'} .= "      allocate(self%".$name.",mold=from%".$name.")\n";
-				    if ( $rank > 0 && $declaration->{'intrinsic'} eq "type" ) {
-					# <workaround type="gfortran" PR="46897" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=46897">
-					#   <seeAlso type="gfortran" PR="57696" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=57696"/>
-					#   <description>
-					#     Type-bound defined assignment not done because multiple part array references would occur in intermediate expressions.
-					#   </description>
-					# </workaround>
-					for(my $i=1;$i<=$rank;++$i) {
-					    $assignment->{'code'} .= "      do i".$i."__=lbound(from%".$name.",dim=".$i."),ubound(from%".$name.",dim=".$i.")\n";
-					}
-					my $indices = join(",",map {"i".$_."__"} 1..$rank);
-					$assignment->{'code'} .= "      self%".$name."(".$indices.")=from%".$name."(".$indices.")\n";
-					for(my $i=1;$i<=$rank;++$i) {
-					    $assignment->{'code'} .= "      end do\n";
-					}
-					$rankMaximumAssigner = $rank
-					    if ( $rank > $rankMaximumAssigner );
-				    } else {
-					# Simple assignment.
-					$assignment->{'code'} .= "      self%".$name."=from%".$name."\n";
-				    }
-				    $assignment->{'code'} .= "    end if\n";
-				} else {
-				    $assignment->{'code'} .= "    self%".$name.$assigner."from%".$name."\n";
-				}
-				$assignment->{'code'} .= "    ".($isPointer ? "if (associated(self%".$name.")) " : "")."call self%".$name."%referenceCountIncrement()\n"
-				    if ( $referenceCount );
-			    }
-			}			}
-		    $node = $node->{'sibling'};
-		}
-	    }
 	    # Add objects from the functionClass class.
 	    $assignment->{'code'} .= "self%isDefaultOfClass=from%isDefaultOfClass\n";
 	    $assignment->{'code'} .= "self%referenceCount=from%referenceCount\n";
@@ -1554,17 +1459,6 @@ CODE
 		    my $declaration = &Fortran::Utils::Unformat_Variables($declarationSource);
 		    my @ignore      = ();
 		    &deepCopyDeclarations($class,$nonAbstractClass,$node,$declaration,\@ignore,$lineNumber,$deepCopy,$foundDeepCopyNames);
-		}
-		# Add any objects declared in the functionClassType class.
-		if ( defined($functionClassType) ) {
-		    # Search the node for declarations.
-		    my @ignore = ();
-		    my $node   = $functionClassType->{'node'}->{'firstChild'};
-		    while ( $node ) {
-			&deepCopyDeclarations($class,$nonAbstractClass,$node,$node->{'declarations'},\@ignore,$lineNumber,$deepCopy,$foundDeepCopyNames)
-			    if ( $node->{'type'} eq "declaration" );
-			$node = $node->{'sibling'};
-		    }
 		}
 		# Check that the type of the destination matches, and perform the copy. Reset the reference count to the copy.
 		$deepCopy->{'code'} .= "type is (".$nonAbstractClass->{'name'}.")\n";
@@ -1770,15 +1664,6 @@ CODE
 		    die("Galacticus::Build::SourceTree::Process::FunctionClass::Process_FunctionClass(): unable to parse variable declaration")
 			unless ( defined($declaration) );
 		    &stateStoreVariables($stateStores,$stateStore,undef(),$declaration,$explicitNamesFound);
-		}
-		# Add any variables declared in the functionClassType class.
-		if ( defined($functionClassType) ) {
-		    my $node = $functionClassType->{'node'}->{'firstChild'};
-		    while ( $node ) {
-			&stateStoreVariables($stateStores,$stateStore,undef(),$node->{'declarations'},$explicitNamesFound)
-			    if ( $node->{'type'} eq "declaration" );
-			$node = $node->{'type'} eq "contains" ? $node->{'firstChild'} : $node->{'sibling'};
-		    }
 		}
 		# Check that all explicit variables were found.
 		{

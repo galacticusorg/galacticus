@@ -63,8 +63,8 @@ module Stellar_Populations_Initial_Mass_Functions
    <method name="tabulate" >
     <description>Return the initial mass function, $\phi(M)=\mathrm{d}N/\mathrm{d}M$, at the given mass $M=$\mono{initialMass}.</description>
     <type>void</type>
-    <argument>class(table1D), allocatable, intent(inout) :: imfTable</argument>
     <pass>yes</pass>
+    <argument>class(table1D), allocatable, intent(inout) :: imfTable</argument>
    </method>
    <method name="label" >
     <description>Return the label for this \gls{imf}.</description>

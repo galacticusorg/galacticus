@@ -41,9 +41,9 @@ module Dark_Matter_Halo_Mass_Accretion_Histories
     <type>double precision</type>
     <pass>yes</pass>
     <selfTarget>yes</selfTarget>
+    <modules>Root_Finder Galacticus_Nodes</modules>
     <argument>type            (treeNode), intent(inout), target :: node</argument>
     <argument>double precision          , intent(in   )         :: mass</argument>
-    <modules>Root_Finder Galacticus_Nodes</modules>
     <code>
      class  (nodeComponentBasic), pointer :: basic
      type   (rootFinder        ), save    :: finder
@@ -73,9 +73,9 @@ module Dark_Matter_Halo_Mass_Accretion_Histories
     <type>double precision</type>
     <pass>yes</pass>
     <selfTarget>yes</selfTarget>
+    <modules>Root_Finder Galacticus_Nodes</modules>
     <argument>type            (treeNode), intent(inout), target :: node</argument>
     <argument>double precision          , intent(in   )         :: time</argument>
-    <modules>Root_Finder Galacticus_Nodes</modules>
     <code>
      class  (nodeComponentBasic), pointer :: basic
      type   (rootFinder        ), save    :: finder

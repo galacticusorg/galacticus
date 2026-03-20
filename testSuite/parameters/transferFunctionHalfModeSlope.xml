@@ -9,6 +9,8 @@
 
   <!-- Task -->
   <task value="powerSpectra">
+    <wavenumberMinimum value="1.0e-2"/>
+    <wavenumberMaximum value="1.0e+2"/>
     <pointsPerDecade value="10"/>
   </task>
 

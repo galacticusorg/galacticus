@@ -74,16 +74,6 @@ foreach my $functionClassFileName ( &List::ExtraUtils::as_array($directiveLocati
 	}
     }   
 }
-# Find all files which contain functionClassType objects - these all support state store/restore.
-foreach my $functionClassFileName ( &List::ExtraUtils::as_array($directiveLocations->{'functionClassType'}->{'file'}) ) {
-    (my $fileIdentifier = $functionClassFileName) =~ s/\//_/g;
-    $fileIdentifier =~ s/^\._??//;
-    next
-	if ( $havePerFile && exists($storablesPerFile->{$fileIdentifier}) && -M $functionClassFileName > $updateTime  );
-    delete($storablesPerFile->{$fileIdentifier});
-    # Extract a functionClassType directives from this file.
-    push(@{$storablesPerFile->{$fileIdentifier}->{'functionClassTypes'}},map {{name => $_->{'name'}, file => $functionClassFileName}} &Galacticus::Build::Directives::Extract_Directives($functionClassFileName,'functionClassType'));
-}
 # Find all files which contain stateStorable objects - these explicitly support state store/restore.
 foreach my $stateStorableFileName ( &List::ExtraUtils::as_array($directiveLocations->{'stateStorable'}->{'file'}) ) {
     (my $fileIdentifier = $stateStorableFileName) =~ s/\//_/g;
@@ -150,10 +140,20 @@ foreach my $stateStorableFileName ( &List::ExtraUtils::as_array($directiveLocati
 	}
     }
 }
+# Find all files which contain eventHookStatic objects - these do not support state store/restore, but this is a convient place to enumerate them.
+foreach my $eventHookStaticFileName ( &List::ExtraUtils::as_array($directiveLocations->{'eventHookStatic'}->{'file'}) ) {
+    (my $fileIdentifier = $eventHookStaticFileName) =~ s/\//_/g;
+    $fileIdentifier =~ s/^\._??//;
+    # Extract a eventHookStatic directives from this file.
+    unless ( $havePerFile && exists($storablesPerFile->{$fileIdentifier}) && -M $eventHookStaticFileName > $updateTime  ) {
+	delete($storablesPerFile->{$fileIdentifier});
+	push(@{$storablesPerFile->{$fileIdentifier}->{'eventHookStatics'}},map {$_->{'name'}} &Galacticus::Build::Directives::Extract_Directives($eventHookStaticFileName,'eventHookStatic'));
+    }
+}
 # Sort results.
 my $stateStorables;
+@{$stateStorables->{'eventHookStatics'      }} = sort                                 map {exists($storablesPerFile->{$_}->{'eventHookStatics'      }) ? @{$storablesPerFile->{$_}->{'eventHookStatics'      }} : ()} keys(%{$storablesPerFile});
 @{$stateStorables->{'functionClasses'       }} = sort {$a->{'name'} cmp $b->{'name'}} map {exists($storablesPerFile->{$_}->{'functionClasses'       }) ? @{$storablesPerFile->{$_}->{'functionClasses'       }} : ()} keys(%{$storablesPerFile});
-@{$stateStorables->{'functionClassTypes'    }} = sort                                 map {exists($storablesPerFile->{$_}->{'functionClassTypes'    }) ? @{$storablesPerFile->{$_}->{'functionClassTypes'    }} : ()} keys(%{$storablesPerFile});
 @{$stateStorables->{'functionClassInstances'}} = sort                                 map {exists($storablesPerFile->{$_}->{'functionClassInstances'}) ? @{$storablesPerFile->{$_}->{'functionClassInstances'}} : ()} keys(%{$storablesPerFile});
 @{$stateStorables->{'stateStorables'        }} = sort {$a->{'type'} cmp $b->{'type'}} map {exists($storablesPerFile->{$_}->{'stateStorables'        }) ? @{$storablesPerFile->{$_}->{'stateStorables'        }} : ()} keys(%{$storablesPerFile});
 # Output the results.

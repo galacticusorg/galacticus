@@ -1333,7 +1333,7 @@ contains
           mergerTreeEvolverDone=event%task(tree,statusDeadlock)
           ! Move to the next event.
           if (mergerTreeEvolverDone) then
-             ! The mergerTreeEvolver was performed successfully, so remove it and move to the next event.
+             ! The task was performed successfully, so remove it and move to the next event.
              if (associated(event,tree%event)) then
                 tree%event => event%next
                 eventLast      => tree %event
@@ -1344,7 +1344,7 @@ contains
              deallocate(event)
              event => eventNext
           else
-             ! The mergerTreeEvolver was not performed, so simply move to the next event.
+             ! The task was not performed, so simply move to the next event.
              event => event%next
           end if
        else

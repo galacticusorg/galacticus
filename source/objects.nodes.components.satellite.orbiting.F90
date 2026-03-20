@@ -102,7 +102,7 @@ module Node_Component_Satellite_Orbiting
       <type>double</type>
       <rank>0</rank>
       <attributes isSettable="true" isGettable="true" isEvolvable="true" />
-      <output unitsInSI="kilo**2/megaParsec**2" comment="Energy/radius^2 of satellite."/>
+      <output unitsInSI="kilo**2/megaParsec**2" comment="Specific energy/radius² of satellite in units of (km/s)²/Mpc²."/>
     </property>
    </properties>
   </component>

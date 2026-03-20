@@ -88,8 +88,8 @@
     which ensures a symmetric treatment of subresolution accretion close to $M_1/2$.   
    </description>
    <deepCopy>
-     <ignore variables="workers"/>
-     <setTo    variables="workersInitialized" value=".false."/>
+     <ignore variables="workers"                           />
+     <setTo  variables="workersInitialized" value=".false."/>
    </deepCopy>
   </mergerTreeBuilder>
   !!]

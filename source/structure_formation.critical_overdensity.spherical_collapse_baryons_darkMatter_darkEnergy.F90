@@ -96,7 +96,7 @@ contains
     class           (cosmologicalMassVarianceClass                           ), pointer       :: cosmologicalMassVariance_
     class           (darkMatterParticleClass                                 ), pointer       :: darkMatterParticle_
     class           (intergalacticMediumFilteringMassClass                   ), pointer       :: intergalacticMediumFilteringMass_
-    double precision                                                                          :: normalization
+    double precision                                                                          :: normalization                    , countTimeCollapsePerUnit
     logical                                                                                   :: tableStore
     type            (varying_string                                          )                :: energyFixedAt
     integer                                                                                   :: tablePointsPerOctave
@@ -134,8 +134,20 @@ contains
     <objectBuilder class="darkMatterParticle"               name="darkMatterParticle_"               source="parameters"/>
     <objectBuilder class="intergalacticMediumFilteringMass" name="intergalacticMediumFilteringMass_" source="parameters"/>
     !!]
-    self=criticalOverdensitySphericalCollapseBrynsDrkMttrDrkEnrgy(cosmologyParameters_,cosmologyFunctions_,cosmologicalMassVariance_,darkMatterParticle_,intergalacticMediumFilteringMass_,tableStore,tablePointsPerOctave,enumerationCllsnlssMttrDarkEnergyFixedAtEncode(char(energyFixedAt),includesPrefix=.false.),normalization)
+    if (parameters%isPresent('countTimeCollapsePerUnit')) then
+       !![
+       <inputParameter>
+	 <name>countTimeCollapsePerUnit</name>
+	 <source>parameters</source>
+	 <description>The number of points per unit $w(t)=\delta_\mathrm{c}(t)/D(t)$ at which to tabulate the time of collapse.</description>
+       </inputParameter>
+       !!]
+    end if
     !![
+    <conditionalCall>
+      <call>self=criticalOverdensitySphericalCollapseBrynsDrkMttrDrkEnrgy(cosmologyParameters_,cosmologyFunctions_,cosmologicalMassVariance_,darkMatterParticle_,intergalacticMediumFilteringMass_,tableStore,tablePointsPerOctave,enumerationCllsnlssMttrDarkEnergyFixedAtEncode(char(energyFixedAt),includesPrefix=.false.),normalization{conditions})</call>
+      <argument name="countTimeCollapsePerUnit" value="countTimeCollapsePerUnit" parameterPresent="parameters"/>
+    </conditionalCall>
     <inputParametersValidate source="parameters"/>
     <objectDestructor name="cosmologyParameters_"             />
     <objectDestructor name="cosmologyFunctions_"              />
@@ -146,7 +158,7 @@ contains
     return
   end function sphericalCollapseBrynsDrkMttrDrkEnrgyConstructorParameters
 
-  function sphericalCollapseBrynsDrkMttrDrkEnrgyConstructorInternal(cosmologyParameters_,cosmologyFunctions_,cosmologicalMassVariance_,darkMatterParticle_,intergalacticMediumFilteringMass_,tableStore,tablePointsPerOctave,energyFixedAt,normalization) result(self)
+  function sphericalCollapseBrynsDrkMttrDrkEnrgyConstructorInternal(cosmologyParameters_,cosmologyFunctions_,cosmologicalMassVariance_,darkMatterParticle_,intergalacticMediumFilteringMass_,tableStore,tablePointsPerOctave,energyFixedAt,normalization,countTimeCollapsePerUnit) result(self)
     !!{
     Internal constructor for the \refClass{criticalOverdensitySphericalCollapseBrynsDrkMttrDrkEnrgy} critical overdensity class.
     !!}
@@ -162,10 +174,10 @@ contains
     logical                                                                             , intent(in   ) :: tableStore
     integer                                                                             , intent(in   ) :: tablePointsPerOctave
     type            (enumerationCllsnlssMttrDarkEnergyFixedAtType            )          , intent(in   ) :: energyFixedAt
-    double precision                                                          , optional, intent(in   ) :: normalization
+    double precision                                                          , optional, intent(in   ) :: normalization                    , countTimeCollapsePerUnit
     !![
     <optionalArgument name="normalization" defaultsTo="1.0d0" />
-    <constructorAssign variables="*cosmologyParameters_, *cosmologyFunctions_, *cosmologicalMassVariance_, *darkMatterParticle_, *intergalacticMediumFilteringMass_, tableStore, tablePointsPerOctave, energyFixedAt, normalization"/>
+    <constructorAssign variables="*cosmologyParameters_, *cosmologyFunctions_, *cosmologicalMassVariance_, *darkMatterParticle_, *intergalacticMediumFilteringMass_, tableStore, tablePointsPerOctave, energyFixedAt, normalization, countTimeCollapsePerUnit"/>
     !!]
 
     self%tableInitialized=.false.

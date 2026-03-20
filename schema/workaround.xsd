@@ -1,0 +1,24 @@
+<?xml version="1.0"?>
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema">
+  <!-- Schema used to validate workaround directives -->
+
+  <xs:element name="workaround">
+    <xs:complexType mixed="true">
+      <xs:sequence>
+	<xs:element name="seeAlso"                      minOccurs="0" maxOccurs="unbounded" >
+	  <xs:complexType>
+	    <xs:attribute name="type" use="required"/>
+	    <xs:attribute name="PR"                 />
+	    <xs:attribute name="url"                />
+	  </xs:complexType>
+	</xs:element>
+	<xs:element name="description" type="xs:string" minOccurs="0" maxOccurs="1"        />
+	<xs:element name="note"        type="xs:string" minOccurs="0" maxOccurs="1"        />
+      </xs:sequence>
+      <xs:attribute name="type" use="required"/>
+      <xs:attribute name="PR"                 />
+      <xs:attribute name="url"                />
+    </xs:complexType>
+  </xs:element>
+  
+</xs:schema>

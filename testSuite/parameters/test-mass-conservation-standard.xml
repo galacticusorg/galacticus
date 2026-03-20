@@ -354,6 +354,12 @@
       <outputReferences value="false"/>
     </mergerTreeOutputter>
 
+    <nodePropertyExtractor value="multi">
+      <nodePropertyExtractor value="nodeIndices" iterable="no"/>
+      <nodePropertyExtractor value="treeWeight" iterable="no"/>
+      <nodePropertyExtractor value="indicesTree" iterable="no"/>
+    </nodePropertyExtractor>
+
   </parameters>
 
 </parameterGrid>

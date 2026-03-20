@@ -71,7 +71,7 @@ for model in dataTarget.keys():
     status = subprocess.run("cd ..; ./Galacticus.exe testSuite/"+parameterFileName,shell=True)
     if status.returncode != 0:
         print("FAILED: dark matter-only decaying dark matter subhalos validation model failed to run")
-        sys.exit()
+        sys.exit(0)
     # Initialize likelihoods and results.
     likelihoods         = []
     results             = []

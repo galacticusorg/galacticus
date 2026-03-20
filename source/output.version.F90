@@ -114,10 +114,10 @@ contains
     character(len= 41       )          :: gitHashDatasets
     character(len=128       )          :: textBufferFixed
     type     (hdf5Object    )          :: versionGroup
-    type     (varying_string)          :: runTime        , inputPathStatic
+    type     (varying_string)          :: runTime
 #ifndef GIT2AVAIL
     integer                            :: status         , hashUnit
-    type     (varying_string)          :: hashFileName
+    type     (varying_string)          :: hashFileName   , inputPathStatic
 #endif
 
     ! Record the count of the system clock.

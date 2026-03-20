@@ -1,0 +1,16 @@
+<?xml version="1.0"?>
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema">
+  <!-- Schema used to validate functionGlobal directives -->
+
+  <xs:element name="functionGlobal">
+    <xs:complexType>
+      <xs:sequence>
+	<xs:element name="unitName"   type="xs:string" minOccurs="1" maxOccurs="1"        />
+	<xs:element name="type"       type="xs:string" minOccurs="1" maxOccurs="1"        />
+	<xs:element name="module"     type="xs:string" minOccurs="0" maxOccurs="unbounded"/>
+	<xs:element name="arguments"  type="xs:string" minOccurs="0" maxOccurs="unbounded"/>
+      </xs:sequence>
+    </xs:complexType>
+  </xs:element>
+  
+</xs:schema>

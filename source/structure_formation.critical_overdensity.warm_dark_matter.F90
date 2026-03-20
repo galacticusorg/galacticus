@@ -25,11 +25,8 @@ Implements a critical overdensity for collapse the \gls{wdm} modifier of \cite{b
   use :: Numerical_Interpolation, only : interpolator
 
   !![
-  <criticalOverdensity name="criticalOverdensityBarkana2001WDM" defaultThreaedPrivate="yes">
+  <criticalOverdensity name="criticalOverdensityBarkana2001WDM">
    <description>
-  !!]
-
-  !![
     A critical overdensity for collapse class based on the \gls{wdm} modifier of \cite{barkana_constraints_2001} applied to
     some other, \gls{cdm} critical overdensity class. Specifically, the critical overdensity is multiplied by a factor
     \begin{equation}

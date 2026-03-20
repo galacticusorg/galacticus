@@ -16,11 +16,11 @@ except FileExistsError:
 status = subprocess.run("cd ..; ./Galacticus.exe testSuite/parameters/testPruneLightconePruned.xml"  ,shell=True)
 if status.returncode != 0:
     print("FAILED: pruned model failed to run"  )
-    sys.exit()
+    sys.exit(0)
 status = subprocess.run("cd ..; ./Galacticus.exe testSuite/parameters/testPruneLightconeUnpruned.xml",shell=True)
 if status.returncode != 0:
     print("FAILED: unpruned model failed to run")
-    sys.exit()
+    sys.exit(0)
 
 # Read data.
 pruned        = h5py.File('outputs/testPruneLightconePruned.hdf5'  ,'r')
@@ -33,10 +33,10 @@ unprunedTimes = unpruned['Lightcone/Output1/nodeData/time'     ][:]
 # We expect three galaxies in the outputs.
 if prunedIDs  .shape[0] != 3:
     print("FAILED: pruned model has incorrect number of galaxies in output"  )
-    sys.exit()
+    sys.exit(0)
 if unprunedIDs.shape[0] != 3:
     print("FAILED: unpruned model has incorrect number of galaxies in output")
-    sys.exit()
+    sys.exit(0)
     
 # Node indices and times must match.
 prunedOrder   = np.argsort(prunedIDs  )

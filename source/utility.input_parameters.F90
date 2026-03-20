@@ -678,7 +678,7 @@ contains
          &                                                               threadSafe
     type     (resourceManager)              , intent(in   ), optional :: documentManager
     type     (documentWrapper), pointer     , intent(in   ), optional :: document
-    type     (varying_string )                                        :: message                    , inputPathC
+    type     (varying_string )                                        :: message
     type     (node           ), pointer                               :: lastModifiedNode           , revisionNode       , &
          &                                                               strictNode
     logical                                                           :: hasRevision                , hasStrict
@@ -689,6 +689,7 @@ contains
     character(len=41         )                                        :: commitHashSelf
     character(len=42         )                                        :: commitHashSelf_
     integer                                                           :: i
+    type     (varying_string )                                        :: inputPathC
 #endif
     type     (varying_string ), dimension(:), allocatable  , save     :: allowedParameterNamesGlobal
     !$omp threadprivate(allowedParameterNamesGlobal)

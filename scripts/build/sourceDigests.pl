@@ -45,11 +45,6 @@ my @functionClassFileList = map {&List::ExtraUtils::as_array($locations->{$_}->{
 my %functionClassFiles = map { $_ => 1 } @functionClassFileList;
 # Build list of allowed names.
 my @allowedNames = ( "functionClass", @functionClasses, @{$stateStorables->{'functionClassInstances'}} );
-if ( exists($stateStorables->{'functionClassTypes'}->{'name'}) ) {
-    push(@allowedNames,            $stateStorables->{'functionClassTypes'}->{'name'}   );
-} else {
-    push(@allowedNames,sort(keys(%{$stateStorables->{'functionClassTypes'}          })));
-}
 # Build a list of object file dependencies.
 (my $dependencyFileName = $ENV{'BUILDPATH'}."/".$targetName) =~ s/\.(exe|o)$/\.d/;
 my @objectFiles = map { $_ =~ /^$ENV{'BUILDPATH'}\/(.+\.o)$/ ? $1 : () } read_file($dependencyFileName, chomp => 1);
@@ -116,16 +111,6 @@ foreach my $fileName ( @fileNames ) {
 		my $hashName = $sourceDigest->{'name'};
 		$digestsPerFile->{'types'}->{$hashName}->{'sourceMD5'} = &Galacticus::Build::SourceTree::Process::SourceDigest::Find_Hash([$fileName],includeFilesExcluded => \@includeFilesExcluded, useLocks => $useLocks);
 		@{$digestsPerFile->{'types'}->{$hashName}->{'dependencies'}} = ();
-		$updatedTypes{$hashName} = 1;
-	    }
-	}
-	## functionClassType directive.
-	if ( grep {$_ eq $fileToProcess} &List::ExtraUtils::as_array($locations->{'functionClassType'}->{'file'}) ) {
-	    my @functionClassTypes = &Galacticus::Build::Directives::Extract_Directives($fileToProcess,'functionClassType');
-	    foreach my $functionClassType ( @functionClassTypes ) {
-		my $hashName = $functionClassType->{'name'};
-		$digestsPerFile->{'types'}->{$hashName}->{'sourceMD5'} = &Galacticus::Build::SourceTree::Process::SourceDigest::Find_Hash([$fileName],includeFilesExcluded => \@includeFilesExcluded, useLocks => $useLocks);
-		@{$digestsPerFile->{'types'}->{$hashName}->{'dependencies'}} = ( "functionClass" );
 		$updatedTypes{$hashName} = 1;
 	    }
 	}

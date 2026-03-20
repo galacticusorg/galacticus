@@ -34,22 +34,22 @@ module Math_Operators_Unary
    <description>Class providing unary operators.</description>
    <default>identity</default>
    <method name="operate" >
+     <description>Operate on the given value.</description>
      <type>double precision</type>
      <pass>yes</pass>
      <argument>double precision, intent(in   ) :: x</argument>
-     <description>Operate on the given value.</description>
    </method>
    <method name="unoperate" >
+     <description>Reverse the operation.</description>
      <type>double precision</type>
      <pass>yes</pass>
      <argument>double precision, intent(in   ) :: f</argument>
-     <description>Reverse the operation.</description>
    </method>
    <method name="jacobian" >
+     <description>Compute the Jacobian of the operation.</description>
      <type>double precision</type>
      <pass>yes</pass>
      <argument>double precision, intent(in   ) :: x</argument>
-     <description>Compute the Jacobian of the operation.</description>
    </method>
   </functionClass>
   !!]

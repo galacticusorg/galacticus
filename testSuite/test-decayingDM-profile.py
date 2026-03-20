@@ -29,14 +29,14 @@ for modelName in ( "CDM", "massLossFalse", "gamma0.0", "gamma0.5" ):
     if status.returncode != 0:
         print("FAILED: model run ("+modelName+"):")
         subprocess.run("cat outputs/test-decayingDM-profile-"+modelName+".log",shell=True)
-        sys.exit()
+        sys.exit(0)
     print("Checking for errors...")
     status = subprocess.run("grep -q -i -e fatal -e aborted -e \"Galacticus experienced an error in the GSL library\" outputs/test-decayingDM-profile-"+modelName+".log",shell=True)
     print("...done ("+str(status)+")")
     if status.returncode == 0:
         print("FAILED: model run (errors):")
         subprocess.run("cat outputs/test-decayingDM-profile-"+modelName+".log",shell=True)
-        sys.exit()
+        sys.exit(0)
     print("SUCCESS: model run ("+modelName+")")
     # Open the models and extract the mass profile and satellite bound mass.
     model                = h5py.File('outputs/decayingDM-profile-'+modelName+'.hdf5','r')

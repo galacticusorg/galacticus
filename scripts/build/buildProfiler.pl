@@ -1,11 +1,11 @@
 #!/usr/bin/env perl
 use strict;
 use warnings;
-use lib $ENV{'GALACTICUS_EXEC_PATH'         }."/perl";
-use lib $ENV{'GALACTICUS_ANALYSIS_PERL_PATH'}."/perl";
+use lib $ENV{'GALACTICUS_EXEC_PATH'}."/perl";
 use Galacticus::Options;
-use GnuPlot::PrettyPlots;
 use Class::Date qw(date now);
+use PDL;
+use Imager::Color;
 
 # Parse profiling information from a build log file.
 # Andrew Benson (21-June-2021)
@@ -216,8 +216,14 @@ foreach my $task ( @tasks ) {
 	    &createCell($cell,$profileFile)
 		if ( defined($cell->{'type'}) );
 	} else {
+	    my $gradient = {
+		fraction   => [   0.000,   1.000 ],
+		hue        => [   0.000, 120.000 ],
+		saturation => [   1.000,   1.000 ],
+		value      => [   1.000,   1.000 ]
+	    };
 	    my $fraction = $threadCount[$i]/$threadCountMaximum;
-	    my $color    = &GnuPlot::PrettyPlots::gradientColor($fraction,$GnuPlot::PrettyPlots::colorGradients{'redGreen'});
+	    my $color    = &gradientColor($fraction,$gradient);
 	    &createCell($cell,$profileFile)
 		if ( ! defined($cell->{'type'}) || $cell->{'type'} ne $color );
 	    # Accumulate a new cell.
@@ -252,4 +258,19 @@ sub createCell {
     }
     undef($cell->{'type'});
     $cell->{'count'} = 0;
+}
+
+sub gradientColor {
+    my $fraction  = shift();
+    my $gradient  = shift();
+    my @hsv;
+    my $gradientFraction   = pdl @{$gradient->{'fraction'  }};
+    my $gradientHue        = pdl @{$gradient->{'hue'       }};
+    my $gradientSaturation = pdl @{$gradient->{'saturation'}};
+    my $gradientValue      = pdl @{$gradient->{'value'     }};
+    ($hsv[0]) = interpolate($fraction,$gradientFraction,$gradientHue       );
+    ($hsv[1]) = interpolate($fraction,$gradientFraction,$gradientSaturation);
+    ($hsv[2]) = interpolate($fraction,$gradientFraction,$gradientValue     );
+    my $color = Imager::Color->new(hsv => \@hsv);
+    return sprintf("#%02lx%02lx%02lx%02lx", $color->rgba() );
 }

@@ -35,7 +35,6 @@ module Power_Spectrum_Window_Functions
    <descriptiveName>Power Spectrum Window Functions</descriptiveName>
    <description>Class providing window functions for filtering of power spectra.</description>
    <default>topHat</default>
-   <defaultThreadprivate>no</defaultThreadprivate>
    <method name="value" >
     <description> Returns the window function for power spectrum variance computation at the specified \mono{wavenumber} (in Mpc$^{-1}$) for a given \mono{smoothingMass} (in $M_\odot$).</description>
     <type>double precision</type>

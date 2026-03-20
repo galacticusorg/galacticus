@@ -308,5 +308,9 @@
   <outputTimes value="list">
     <redshifts value="0.0"/>
   </outputTimes>
+  <nodePropertyExtractor value="multi">
+    <nodePropertyExtractor value="nodeIndices"/>
+    <nodePropertyExtractor value="treeWeight"/>
+  </nodePropertyExtractor>
 
 </parameters>

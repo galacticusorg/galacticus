@@ -17,7 +17,7 @@ except FileExistsError:
 status = subprocess.run("cd ..; ./Galacticus.exe testSuite/parameters/validate_darkMatterOnlySubHalos.xml",shell=True)
 if status.returncode != 0:
     print("FAILED: dark matter-only subhalos validation model failed to run")
-    sys.exit()
+    sys.exit(0)
 
 # Extract and validate the likelihoods.
 validate.extract("outputs/validate_darkMatterOnlySubHalos.hdf5","Dark Matter Only Subhalos","darkMatterOnlySubhalos","testSuite/parameters/validate_darkMatterOnlySubHalos.xml")
