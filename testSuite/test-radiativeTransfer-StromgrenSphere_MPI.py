@@ -14,7 +14,7 @@ PI = np.pi
 parser = argparse.ArgumentParser()
 parser.add_argument("--processesPerNode", type=int, default=1    )
 parser.add_argument("--allowRunAsRoot"  , type=str, default="no" )
-parser.add_argument("--oversubscribe "  , type=str, default="yes")
+parser.add_argument("--oversubscribe"   , type=str, default="yes")
 args, _ = parser.parse_known_args()
 
 # We need at least 2 processes to run this test.
