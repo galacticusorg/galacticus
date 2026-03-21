@@ -6,19 +6,19 @@ window.PONOSV_DATA = {
             "name": "Andrew Benson",
             "email": "abensonca@gmail.com"
         },
-        "id": "72da9a5daf2dd07d5c5afaf4faac671c5b90658a",
-        "message": "Merge pull request #1031 from galacticusorg/featAdjustableTimeOfCollapseTabulation\n\nAllow the resolution of the time-of-collapse table to be adjustable via a parameter\n",
-        "timestamp": "2026-03-17 01:19:01+00:00",
-        "url": "https://github.com/galacticusorg/galacticus/commit/72da9a5daf2dd07d5c5afaf4faac671c5b90658a"
+        "id": "ad099f281dea4e336fb66ff7b7586f2aa1813b29",
+        "message": "Merge pull request #1029 from galacticusorg/copilot/add-schema-for-directives\n\nAdd XSD schemas for 21 previously unvalidated directives\n",
+        "timestamp": "2026-03-20 14:54:01+00:00",
+        "url": "https://github.com/galacticusorg/galacticus/commit/ad099f281dea4e336fb66ff7b7586f2aa1813b29"
     },
     "surfaceDensity": {
-        "percentageBelow": 39.285714285714285,
-        "percentageAbove": 60.714285714285715,
+        "percentageBelow": 32.14285714285714,
+        "percentageAbove": 67.85714285714286,
         "target": 0.006
     },
     "slope": {
-        "percentageBelow": 50.0,
-        "percentageAbove": 50.0,
+        "percentageBelow": 44.44444444444444,
+        "percentageAbove": 55.55555555555556,
         "target": 0.85
     }
 }
