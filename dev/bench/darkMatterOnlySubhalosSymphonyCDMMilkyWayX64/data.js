@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1773734926473,
+  "lastUpdate": 1774070977764,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Dark matter-only subhalos benchmarks (Symphony Milky Way resolutionX64)": [
@@ -1477,6 +1477,45 @@ window.BENCHMARK_DATA = {
           {
             "name": "Dark Matter Only Subhalos (Symphony CDM resolution X64 Milky Way) - Likelihood - subhaloVelocityMaximumMean",
             "value": 257.57707175377146,
+            "unit": "-logℒ"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abensonca@gmail.com",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "ad099f281dea4e336fb66ff7b7586f2aa1813b29",
+          "message": "Merge pull request #1029 from galacticusorg/copilot/add-schema-for-directives\n\nAdd XSD schemas for 21 previously unvalidated directives",
+          "timestamp": "2026-03-20T14:54:01Z",
+          "tree_id": "f3b311233a9a5085aca647a84294924423c26bb4",
+          "url": "https://github.com/galacticusorg/galacticus/commit/ad099f281dea4e336fb66ff7b7586f2aa1813b29"
+        },
+        "date": 1774070976673,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Dark Matter Only Subhalos (Symphony CDM resolution X64 Milky Way) - Likelihood - subhaloMassFunction",
+            "value": 7.423555750328122,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Dark Matter Only Subhalos (Symphony CDM resolution X64 Milky Way) - Likelihood - subhaloRadialDistribution",
+            "value": 5.09378555851626,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Dark Matter Only Subhalos (Symphony CDM resolution X64 Milky Way) - Likelihood - subhaloVelocityMaximumMean",
+            "value": 256.58547646690937,
             "unit": "-logℒ"
           }
         ]
