@@ -123,6 +123,9 @@
      metal content is specified via a \mono{metals} element. If other elements are being tracked, their
      content is specified via an element with the short-name of the element (e.g. \mono{Fe} for iron).
     \end{description}
+
+    The parameter \mono{[countRealizations]} (defaulting to 1) controls how many merger tree realizations are
+    simulated for each input tree.
    </description>
    <runTimeFileDependencies paths="fileName"/>
   </mergerTreeConstructor>
@@ -138,7 +141,7 @@
      type   (resourceManager           )                            :: documentManager
      type   (documentContainer         ), pointer                   :: document               => null()
      type   (xmlNodeList               ), allocatable, dimension(:) :: trees
-     integer(c_size_t                  )                            :: treeCount
+     integer(c_size_t                  )                            :: treeCount                       , countRealizations
    contains
      final     ::              fullySpecifiedDestructor
      procedure :: construct => fullySpecifiedConstruct
@@ -170,11 +173,12 @@ contains
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
-    type (mergerTreeConstructorFullySpecified)                :: self
-    type (inputParameters                    ), intent(inout) :: parameters
-    class(randomNumberGeneratorClass         ), pointer       :: randomNumberGenerator_
-    class(mergerTreeSeedsClass               ), pointer       :: mergerTreeSeeds_
-    type (varying_string                     )                :: fileName
+    type   (mergerTreeConstructorFullySpecified)                :: self
+    type   (inputParameters                    ), intent(inout) :: parameters
+    class  (randomNumberGeneratorClass         ), pointer       :: randomNumberGenerator_
+    class  (mergerTreeSeedsClass               ), pointer       :: mergerTreeSeeds_
+    type   (varying_string                     )                :: fileName
+    integer(c_size_t                           )                :: countRealizations
 
     !![
     <inputParameter>
@@ -182,10 +186,16 @@ contains
       <description>The name of the file containing the merger tree specification.</description>
       <source>parameters</source>
     </inputParameter>
+    <inputParameter>
+      <name>countRealizations</name>
+      <description>The number of realizations of each tree to generate.</description>
+      <source>parameters</source>
+      <defaultValue>1_c_size_t</defaultValue>
+    </inputParameter>
     <objectBuilder class="randomNumberGenerator" name="randomNumberGenerator_" source="parameters"/>
     <objectBuilder class="mergerTreeSeeds"       name="mergerTreeSeeds_"       source="parameters"/>
     !!]
-    self=mergerTreeConstructorFullySpecified(fileName,randomNumberGenerator_,mergerTreeSeeds_)
+    self=mergerTreeConstructorFullySpecified(fileName,countRealizations,randomNumberGenerator_,mergerTreeSeeds_)
     !![
     <inputParametersValidate source="parameters"/>
     <objectDestructor name="randomNumberGenerator_"/>
@@ -194,7 +204,7 @@ contains
     return
   end function fullySpecifiedConstructorParameters
 
-  function fullySpecifiedConstructorInternal(fileName,randomNumberGenerator_,mergerTreeSeeds_) result(self)
+  function fullySpecifiedConstructorInternal(fileName,countRealizations,randomNumberGenerator_,mergerTreeSeeds_) result(self)
     !!{
     Internal constructor for the \refClass{mergerTreeConstructorFullySpecified} merger tree operator class.
     !!}
@@ -206,13 +216,14 @@ contains
     implicit none
     type   (mergerTreeConstructorFullySpecified)                         :: self
     type   (varying_string                     ), intent(in   )          :: fileName
+    integer(c_size_t                           ), intent(in   )          :: countRealizations
     class  (randomNumberGeneratorClass         ), intent(in   ), target  :: randomNumberGenerator_
     class  (mergerTreeSeedsClass               ), intent(in   ), target  :: mergerTreeSeeds_
     class  (*                                  )               , pointer :: dummyPointer_
     integer                                                              :: ioErr
     type   (varying_string                     )                         :: message
     !![
-    <constructorAssign variables="fileName, *randomNumberGenerator_, *mergerTreeSeeds_"/>
+    <constructorAssign variables="fileName, countRealizations, *randomNumberGenerator_, *mergerTreeSeeds_"/>
     !!]
 
     !$omp critical (FoX_DOM_Access)
@@ -240,7 +251,8 @@ contains
     ! Get the list of trees.
     call XML_Get_Elements_By_Tag_Name(self%document%doc,"tree",self%trees)
     ! Count the number of trees.
-    self%treeCount=size(self%trees)
+    self%treeCount=+size(self%trees            ,kind=c_size_t) &
+         &         *     self%countRealizations
     if (self%treeCount <= 0) call Error_Report('no trees were specified'//{introspection:location})
     !$omp end critical (FoX_DOM_Access)
     return
@@ -280,13 +292,19 @@ contains
     type   (node                               ), pointer                     :: treeDefinition, nodeDefinition
     type   (xmlNodeList                        ), allocatable  , dimension(:) :: nodes
     integer                                                                   :: i             , nodeCount
-    integer(kind_int8                          )                              :: indexValue
+    integer(kind_int8                          )                              :: indexValue    , treeNumberActual
 
     ! Read one tree.
     if (treeNumber > 0_c_size_t .and. treeNumber <= self%treeCount) then
+       treeNumberActual=+(                      &
+            &             +   treeNumber        &
+            &             -   1_kind_int8       &
+            &            )                      &
+            &           /self%countRealizations &
+            &           +     1_kind_int8
        !$omp critical (FoX_DOM_Access)
        ! Select one tree.
-       treeDefinition => self%trees(int(treeNumber-1))%element
+       treeDefinition => self%trees(treeNumberActual-1_kind_int8)%element
        ! Get the list of nodes in this tree.
        call XML_Get_Elements_By_Tag_Name(treeDefinition,"node",nodes)
        nodeCount=size(nodes)
