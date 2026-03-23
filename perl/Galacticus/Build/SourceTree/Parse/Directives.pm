@@ -22,7 +22,7 @@ sub Parse_Directives {
     my $xml = new XML::Simple();
     # Get state storables database if we do not have it.
     $stateStorables = $xml->XMLin($ENV{'BUILDPATH'}."/stateStorables.xml")
-	if ( ! $stateStorables && -e $ENV{'BUILDPATH'}."/stateStorables.xml" );
+	if ( ! $stateStorables && exists($ENV{'BUILDPATH'}) && -e $ENV{'BUILDPATH'}."/stateStorables.xml" );
     # Walk the tree, looking for code blocks.
     my $node  = $tree;
     my $depth = 0;
