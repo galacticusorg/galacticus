@@ -49,6 +49,59 @@ defaults:
   run:
     shell: bash
 jobs:
+  # Watch for updates
+  Watch-Updates:
+    runs-on: ubuntu-latest
+    container: ghcr.io/galacticusorg/buildenv:latest
+    steps:
+      - run: echo "The job was automatically triggered by a ${{ github.event_name }} event."
+      - run: echo "This job is now running on a ${{ runner.os }} server."
+      - run: echo "The name of the branch is ${{ github.ref }} and the repository is ${{ github.repository }}."
+      - name: Check out repository code
+        uses: actions/checkout@v6
+      - run: echo "The ${{ github.repository }} repository has been cloned to the runner."
+      - name: "Set environmental variables"
+        run: |
+          echo "GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
+      - name: Mark directory safe        
+        run: |
+          git config --global --add safe.directory $GALACTICUS_EXEC_PATH
+      - name: Get changed files
+        id: changed-files
+        uses: tj-actions/changed-files@v47
+        with:
+          files: |
+            **/*.F90
+            **/*.Inc
+      - name: Look for updates
+        run: |
+          cd $GALACTICUS_EXEC_PATH
+          git config --global --add safe.directory $GALACTICUS_EXEC_PATH
+          ./scripts/aux/updateMonitor.pl ${{ steps.changed-files.outputs.all_changed_files }}
+      - name: Check file existence
+        id: check_files
+        uses: andstor/file-existence-action@v3
+        with:
+          files: warnings.md
+      - name: Output to a job summary
+        if: steps.check_files.outputs.files_exists == 'true'
+        run: |
+          cat warnings.md >> $GITHUB_STEP_SUMMARY
+      - name: Wrap warnings in collapsible section
+        if: steps.check_files.outputs.files_exists == 'true'
+        run: |
+          printf '<details><summary>Updated files (click to expand)</summary>\n\n' > warnings-collapsible.md
+          cat warnings.md >> warnings-collapsible.md
+          printf '\n\n</details>\n' >> warnings-collapsible.md
+      - name: Comment on the PR if any warnings were found
+        if: steps.check_files.outputs.files_exists == 'true' && github.event.pull_request.head.repo.full_name == github.repository
+        continue-on-error: true
+        uses: thollander/actions-comment-pull-request@v3
+        with:
+          file-path: warnings-collapsible.md
+  # Build and deploy
+  ## Linux
+  ### Static executable and test codes
   Build-Executable-Linux:
     runs-on: ubuntu-latest
     container: ghcr.io/galacticusorg/buildenv:latest
@@ -98,65 +151,6 @@ jobs:
           cmp -s work/build/mass_distributions.spherical.Sersic.p.F90 work/build/mass_distributions.spherical.Sersic.p.F90.prev
       - run: echo "This job's status is ${{ job.status }}."
   ### Non-static executable
-
-  Build-Executables-Instrumented-Linux:
-    runs-on: ubuntu-latest
-    container: ghcr.io/galacticusorg/buildenv:latest
-    steps:
-      - run: echo "The job was automatically triggered by a ${{ github.event_name }} event."
-      - run: echo "This job is now running on a ${{ runner.os }} server."
-      - run: echo "The name of the branch is ${{ github.ref }} and the repository is ${{ github.repository }}."
-      - name: Check out repository code
-        uses: actions/checkout@v6
-      - run: echo "The ${{ github.repository }} repository has been cloned to the runner."
-      - name: "Set environmental variables"
-        run: |
-          echo "GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
-          echo "GALACTICUS_DATA_PATH=$GITHUB_WORKSPACE/datasets" >> $GITHUB_ENV
-      - name: Build the code
-        run: |
-          cd $GALACTICUS_EXEC_PATH
-          git config --global --add safe.directory $GALACTICUS_EXEC_PATH
-          export GALACTICUS_FCFLAGS="$GALACTICUS_FCFLAGS -pg"
-          export GALACTICUS_CFLAGS="$GALACTICUS_CFLAGS -pg"
-          export GALACTICUS_CPPFLAGS="$GALACTICUS_CPPFLAGS -pg"
-          make -j4 Galacticus.exe
-      - name: Upload executables
-        uses: actions/upload-artifact@v7
-        with:
-          name: galacticus-exec-instrumented
-          path: 'Galacticus.exe'
-      - run: echo "This job's status is ${{ job.status }}."
-  ### Executable with dark matter only components
-
-  Build-Executable-DMO-Linux:
-    runs-on: ubuntu-latest
-    container: ghcr.io/galacticusorg/buildenv:latest
-    steps:
-      - run: echo "The job was automatically triggered by a ${{ github.event_name }} event."
-      - run: echo "This job is now running on a ${{ runner.os }} server."
-      - run: echo "The name of the branch is ${{ github.ref }} and the repository is ${{ github.repository }}."
-      - name: Check out repository code
-        uses: actions/checkout@v6
-      - run: echo "The ${{ github.repository }} repository has been cloned to the runner."
-      - name: "Set environmental variables"
-        run: |
-          echo "GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
-          echo "GALACTICUS_DATA_PATH=$GITHUB_WORKSPACE/datasets" >> $GITHUB_ENV
-          echo "GALACTICUS_ACTIVE_COMPONENTS=basic darkMatterProfile satellite spin" >> $GITHUB_ENV
-      - name: Build the code
-        run: |
-          cd $GALACTICUS_EXEC_PATH
-          git config --global --add safe.directory $GALACTICUS_EXEC_PATH
-          make -j4 Galacticus.exe
-      - name: Upload executables
-        uses: actions/upload-artifact@v7
-        with:
-          name: galacticus-exec-dmo
-          path: 'Galacticus.exe'
-      - run: echo "This job's status is ${{ job.status }}."
-  ### Executable MPI
-
   Build-Executable-Linux-Non-Static:
     runs-on: ubuntu-latest
     container: ghcr.io/galacticusorg/buildenv:latest
@@ -193,7 +187,62 @@ jobs:
           path: 'tests.*.exe'
       - run: echo "This job's status is ${{ job.status }}."
   ### Executable instrumented
-
+  Build-Executables-Instrumented-Linux:
+    runs-on: ubuntu-latest
+    container: ghcr.io/galacticusorg/buildenv:latest
+    steps:
+      - run: echo "The job was automatically triggered by a ${{ github.event_name }} event."
+      - run: echo "This job is now running on a ${{ runner.os }} server."
+      - run: echo "The name of the branch is ${{ github.ref }} and the repository is ${{ github.repository }}."
+      - name: Check out repository code
+        uses: actions/checkout@v6
+      - run: echo "The ${{ github.repository }} repository has been cloned to the runner."
+      - name: "Set environmental variables"
+        run: |
+          echo "GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
+          echo "GALACTICUS_DATA_PATH=$GITHUB_WORKSPACE/datasets" >> $GITHUB_ENV
+      - name: Build the code
+        run: |
+          cd $GALACTICUS_EXEC_PATH
+          git config --global --add safe.directory $GALACTICUS_EXEC_PATH
+          export GALACTICUS_FCFLAGS="$GALACTICUS_FCFLAGS -pg"
+          export GALACTICUS_CFLAGS="$GALACTICUS_CFLAGS -pg"
+          export GALACTICUS_CPPFLAGS="$GALACTICUS_CPPFLAGS -pg"
+          make -j4 Galacticus.exe
+      - name: Upload executables
+        uses: actions/upload-artifact@v7
+        with:
+          name: galacticus-exec-instrumented
+          path: 'Galacticus.exe'
+      - run: echo "This job's status is ${{ job.status }}."
+  ### Executable with dark matter only components
+  Build-Executable-DMO-Linux:
+    runs-on: ubuntu-latest
+    container: ghcr.io/galacticusorg/buildenv:latest
+    steps:
+      - run: echo "The job was automatically triggered by a ${{ github.event_name }} event."
+      - run: echo "This job is now running on a ${{ runner.os }} server."
+      - run: echo "The name of the branch is ${{ github.ref }} and the repository is ${{ github.repository }}."
+      - name: Check out repository code
+        uses: actions/checkout@v6
+      - run: echo "The ${{ github.repository }} repository has been cloned to the runner."
+      - name: "Set environmental variables"
+        run: |
+          echo "GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
+          echo "GALACTICUS_DATA_PATH=$GITHUB_WORKSPACE/datasets" >> $GITHUB_ENV
+          echo "GALACTICUS_ACTIVE_COMPONENTS=basic darkMatterProfile satellite spin" >> $GITHUB_ENV
+      - name: Build the code
+        run: |
+          cd $GALACTICUS_EXEC_PATH
+          git config --global --add safe.directory $GALACTICUS_EXEC_PATH
+          make -j4 Galacticus.exe
+      - name: Upload executables
+        uses: actions/upload-artifact@v7
+        with:
+          name: galacticus-exec-dmo
+          path: 'Galacticus.exe'
+      - run: echo "This job's status is ${{ job.status }}."
+  ### Executable MPI
   Build-Executables-MPI-Linux:
     runs-on: ubuntu-latest
     container: ghcr.io/galacticusorg/buildenv:latest
@@ -225,7 +274,33 @@ jobs:
           path: 'tests.*.exe'
       - run: echo "This job's status is ${{ job.status }}."
   ### Executable debugging
-
+  Build-Executables-Debugging-Linux:
+    runs-on: ubuntu-latest
+    container: ghcr.io/galacticusorg/buildenv:latest
+    steps:
+      - run: echo "The job was automatically triggered by a ${{ github.event_name }} event."
+      - run: echo "This job is now running on a ${{ runner.os }} server."
+      - run: echo "The name of the branch is ${{ github.ref }} and the repository is ${{ github.repository }}."
+      - name: Check out repository code
+        uses: actions/checkout@v6
+      - run: echo "The ${{ github.repository }} repository has been cloned to the runner."
+      - name: "Set environmental variables"
+        run: |
+          echo "GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
+          echo "GALACTICUS_DATA_PATH=$GITHUB_WORKSPACE/datasets" >> $GITHUB_ENV
+          echo "GALACTICUS_FCFLAGS+=\ -DDEBUGGING" >> $GITHUB_ENV
+      - name: Build the code
+        run: |
+          cd $GALACTICUS_EXEC_PATH
+          git config --global --add safe.directory $GALACTICUS_EXEC_PATH
+          make -j4 Galacticus.exe tests.debugging.exe
+      - name: Upload test code executables
+        uses: actions/upload-artifact@v7
+        with:
+          name: test-execs-debugging
+          path: 'tests.*.exe'
+      - run: echo "This job's status is ${{ job.status }}."
+  ### Library
   Build-Library-Linux:
     runs-on: ubuntu-latest
     container: ghcr.io/galacticusorg/buildenv:latest
@@ -263,35 +338,6 @@ jobs:
           path: 'libgalacticus.tar.bz2'
       - run: echo "This job's status is ${{ job.status }}."
   ### Docker image
-
-  Build-Executables-Debugging-Linux:
-    runs-on: ubuntu-latest
-    container: ghcr.io/galacticusorg/buildenv:latest
-    steps:
-      - run: echo "The job was automatically triggered by a ${{ github.event_name }} event."
-      - run: echo "This job is now running on a ${{ runner.os }} server."
-      - run: echo "The name of the branch is ${{ github.ref }} and the repository is ${{ github.repository }}."
-      - name: Check out repository code
-        uses: actions/checkout@v6
-      - run: echo "The ${{ github.repository }} repository has been cloned to the runner."
-      - name: "Set environmental variables"
-        run: |
-          echo "GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
-          echo "GALACTICUS_DATA_PATH=$GITHUB_WORKSPACE/datasets" >> $GITHUB_ENV
-          echo "GALACTICUS_FCFLAGS+=\ -DDEBUGGING" >> $GITHUB_ENV
-      - name: Build the code
-        run: |
-          cd $GALACTICUS_EXEC_PATH
-          git config --global --add safe.directory $GALACTICUS_EXEC_PATH
-          make -j4 Galacticus.exe tests.debugging.exe
-      - name: Upload test code executables
-        uses: actions/upload-artifact@v7
-        with:
-          name: test-execs-debugging
-          path: 'tests.*.exe'
-      - run: echo "This job's status is ${{ job.status }}."
-  ### Library
-
   Build-Docker-Linux:
     runs-on: ubuntu-latest
     permissions:
@@ -328,7 +374,6 @@ jobs:
             REPO=${{ github.event.pull_request.head.repo.full_name || github.repository }}
             BRANCH=${{ github.head_ref || github.ref_name }}          
   ### Documentation
-
   Build-Documentation-Linux:
     runs-on: ubuntu-latest
     container: ghcr.io/galacticusorg/buildenv:latest
@@ -359,7 +404,76 @@ jobs:
             ./doc/Galacticus_Source.pdf
       - run: echo "This job's status is ${{ job.status }}."
   ### Tools
-
+  Build-Tools:
+    runs-on: ubuntu-latest
+    container: ghcr.io/galacticusorg/buildenv:latest
+    needs: Build-Executable-Linux
+    steps:
+      - run: echo "The job was automatically triggered by a ${{ github.event_name }} event."
+      - run: echo "This job is now running on a ${{ runner.os }} server."
+      - run: echo "The name of the branch is ${{ github.ref }} and the repository is ${{ github.repository }}."
+      - name: Check out repository code
+        uses: actions/checkout@v6
+      - name: Check out repository datasets
+        uses: actions/checkout@v6      
+        with:
+          repository: galacticusorg/datasets
+          path: datasets
+      - run: echo "The ${{ github.repository }} repository has been cloned to the runner."
+      - name: "Set environmental variables"
+        run: |
+          echo "GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
+          echo "GALACTICUS_DATA_PATH=$GITHUB_WORKSPACE/datasets" >> $GITHUB_ENV
+          echo "GALACTICUS_FCFLAGS+=\ -static" >> $GITHUB_ENV
+      - name: Download executables
+        uses: actions/download-artifact@v8
+        with:
+          name: galacticus-exec
+      - name: Build tools
+        run: |
+          cd $GALACTICUS_EXEC_PATH
+          git config --global --add safe.directory $GALACTICUS_EXEC_PATH
+          mkdir -p $GALACTICUS_DATA_PATH/dynamic
+          chmod u=wrx ./Galacticus.exe
+          ./Galacticus.exe parameters/buildTools.xml
+          cd $GALACTICUS_DATA_PATH
+          classVersion=`awk '{if ($1 == "class:") print $2}' ${GALACTICUS_EXEC_PATH}/aux/dependencies.yml`
+          cambVersion=`awk '{if ($1 == "camb:") print $2}' ${GALACTICUS_EXEC_PATH}/aux/dependencies.yml`
+          forutilsVersion=`awk '{if ($1 == "forutils:") print $2}' ${GALACTICUS_EXEC_PATH}/aux/dependencies.yml`
+          fspsVersion=`awk '{if ($1 == "fsps:") print $2}' ${GALACTICUS_EXEC_PATH}/aux/dependencies.yml`
+          cloudyVersion=`awk '{if ($1 == "cloudy:") print $2}' ${GALACTICUS_EXEC_PATH}/aux/dependencies.yml`
+          mangleVersion=`awk '{if ($1 == "mangle:") print $2}' ${GALACTICUS_EXEC_PATH}/aux/dependencies.yml`
+          # Check that executables were statically linked
+          ! ldd dynamic/CAMB-${cambVersion}/fortran/camb
+          ! ldd dynamic/AxionCAMB/camb
+          ! ldd dynamic/class_public-${classVersion}/class
+          ! ldd dynamic/RecFast/recfast.exe
+          ! ldd dynamic/fsps-${fspsVersion}/src/autosps.exe
+          ! ldd dynamic/mangle-${mangleVersion}/bin/ransack
+          tar cfj tools.tar.bz2 \
+            dynamic/CAMB-${cambVersion}/fortran/camb \
+            dynamic/AxionCAMB/camb \
+            dynamic/class_public-${classVersion}/class \
+            dynamic/RecFast/recfast.exe \
+            dynamic/RecFast/currentVersion \
+            dynamic/c${cloudyVersion}/source/cloudy.exe \
+            dynamic/c${cloudyVersion}/data \
+            dynamic/fsps-${fspsVersion}/src/autosps.exe \
+            dynamic/fsps-${fspsVersion}/dust \
+            dynamic/fsps-${fspsVersion}/data \
+            dynamic/fsps-${fspsVersion}/nebular \
+            dynamic/fsps-${fspsVersion}/SPECTRA \
+            dynamic/fsps-${fspsVersion}/OUTPUTS \
+            dynamic/fsps-${fspsVersion}/ISOCHRONES \
+            dynamic/mangle-${mangleVersion}/bin/harmonize
+      - name: Upload tools
+        uses: actions/upload-artifact@v7
+        with:
+          name: galacticus-tools
+          path: ./datasets/tools.tar.bz2
+      - run: echo "This job's status is ${{ job.status }}."
+  ## MacOS
+  ### Static executable
   Build-Executable-MacOS:
     runs-on: macos-15-intel
     steps:
@@ -396,7 +510,6 @@ jobs:
           name: galacticus-debug-MacOS
           path: 'debugSymbolsMacOS.zip'
   ### Apple Silicon build  
-
   Build-Executable-MacOS-M1:
     runs-on: macos-15
     steps:
@@ -427,7 +540,6 @@ jobs:
           name: galacticus-debug-MacOS-M1
           path: 'debugSymbolsMacOS-M1.zip'
   ## Library
-
   Build-Library-MacOS:
     runs-on: macos-15-intel
     steps:
@@ -460,7 +572,6 @@ jobs:
           name: galacticus-library-MacOS
           path: 'libgalacticusMacOS.zip'
   ### Tools
-
   Build-Tools-MacOS:
     runs-on: macos-15-intel
     steps:
@@ -537,7 +648,6 @@ jobs:
           name: galacticus-tools-MacOS
           path: './datasets/toolsMacOS.zip'
       - run: echo "This job's status is ${{ job.status }}."
-
   Build-Tools-MacOS-M1:
     runs-on: macos-15
     steps:
@@ -615,92 +725,7 @@ jobs:
           name: galacticus-tools-MacOS-M1
           path: './datasets/toolsMacOSM1.zip'
       - run: echo "This job's status is ${{ job.status }}."
-  # Benchmarks
-
-  Watch-Updates:
-    runs-on: ubuntu-latest
-    container: ghcr.io/galacticusorg/buildenv:latest
-    steps:
-      - run: echo "The job was automatically triggered by a ${{ github.event_name }} event."
-      - run: echo "This job is now running on a ${{ runner.os }} server."
-      - run: echo "The name of the branch is ${{ github.ref }} and the repository is ${{ github.repository }}."
-      - name: Check out repository code
-        uses: actions/checkout@v6
-      - run: echo "The ${{ github.repository }} repository has been cloned to the runner."
-      - name: "Set environmental variables"
-        run: |
-          echo "GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
-      - name: Mark directory safe        
-        run: |
-          git config --global --add safe.directory $GALACTICUS_EXEC_PATH
-      - name: Get changed files
-        id: changed-files
-        uses: tj-actions/changed-files@v47
-        with:
-          files: |
-            **/*.F90
-            **/*.Inc
-      - name: Look for updates
-        run: |
-          cd $GALACTICUS_EXEC_PATH
-          git config --global --add safe.directory $GALACTICUS_EXEC_PATH
-          ./scripts/aux/updateMonitor.pl ${{ steps.changed-files.outputs.all_changed_files }}
-      - name: Check file existence
-        id: check_files
-        uses: andstor/file-existence-action@v3
-        with:
-          files: warnings.md
-      - name: Output to a job summary
-        if: steps.check_files.outputs.files_exists == 'true'
-        run: |
-          cat warnings.md >> $GITHUB_STEP_SUMMARY
-      - name: Wrap warnings in collapsible section
-        if: steps.check_files.outputs.files_exists == 'true'
-        run: |
-          printf '<details><summary>Updated files (click to expand)</summary>\n\n' > warnings-collapsible.md
-          cat warnings.md >> warnings-collapsible.md
-          printf '\n\n</details>\n' >> warnings-collapsible.md
-      - name: Comment on the PR if any warnings were found
-        if: steps.check_files.outputs.files_exists == 'true' && github.event.pull_request.head.repo.full_name == github.repository
-        continue-on-error: true
-        uses: thollander/actions-comment-pull-request@v3
-        with:
-          file-path: warnings-collapsible.md
   # Validation
-
-  Python-Interface-MacOS:
-    runs-on: macos-15-intel
-    steps:
-      - run: echo "The job was automatically triggered by a ${{ github.event_name }} event."
-      - run: echo "This job is now running on a ${{ runner.os }} server."
-      - run: echo "The name of the branch is ${{ github.ref }} and the repository is ${{ github.repository }}."
-      - name: Check out repository code
-        uses: actions/checkout@v6
-      - name: Set up build environment
-        uses: ./.github/actions/buildMacOS
-      - name: "Set environmental variables"
-        run: |
-          echo "GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
-          echo "PYTHONPATH=$GITHUB_WORKSPACE/galacticus/python" >> $GITHUB_ENV
-      - name: Install Python
-        run: |
-          sudo port install python312
-          sudo port select --set python python312
-          sudo port select --set python3 python312
-      - name: Build Galacticus
-        run: |
-          make -j`sysctl -n hw.activecpu` USEGIT2=no GALACTICUS_BUILD_OPTION=lib libgalacticus.so
-          mkdir galacticus
-          mkdir galacticus/lib
-          mkdir galacticus/python
-          mv galacticus.py galacticus/python/
-          mv libgalacticus.so galacticus/lib/
-      - name: Test interface
-        run: |
-          python3 testSuite/test-Python-interface.py
-      - run: echo "This job's status is ${{ job.status }}."
-  # Validate, deploy and update
-
   Validate-Baryonic-Suppression:
     needs: Build-Executable-Linux
     uses: ./.github/workflows/testModel.yml
@@ -713,7 +738,159 @@ jobs:
       uploadFile: ./testSuite/outputs/*.json
       uploadName: validate-baryonicSuppression
     secrets: inherit
-
+  Validate-Decaying-Dark-Matter-Only-Subhalos:
+    needs: Build-Executable-DMO-Linux
+    uses: ./.github/workflows/testModel.yml
+    with:
+      install: python3 python3-h5py python3-numpy python3-git
+      file: validate-darkMatterOnlySubhalos-decayingDarkMatter.py
+      artifact: galacticus-exec-dmo
+      runPath: ./testSuite
+      cacheData: 0
+      uploadFile: ./testSuite/outputs/*.json
+      uploadName: validate-darkMatterOnlySubhalos-decayingDarkMatter
+    secrets: inherit
+  Validate-PonosV:
+    needs: Build-Executable-DMO-Linux
+    uses: ./.github/workflows/testModel.yml
+    with:
+      install: python3 python3-h5py python3-numpy python3-git
+      file: validate-PonosV.py
+      artifact: galacticus-exec-dmo
+      runPath: ./testSuite
+      cacheData: 0
+      uploadFile: ./testSuite/outputs/*.json
+      uploadName: validate-PonosV
+    secrets: inherit
+  Validate-Dark-Matter-Only-Subhalos:
+    needs: Build-Executable-DMO-Linux
+    uses: ./.github/workflows/testModel.yml
+    with:
+      install: python3 python3-h5py python3-numpy python3-git
+      file: validate-darkMatterOnlySubhalos.py
+      artifact: galacticus-exec-dmo
+      runPath: ./testSuite
+      cacheData: 0
+      uploadFile: ./testSuite/outputs/*.json
+      uploadName: validate-darkMatterOnlySubhalos
+    secrets: inherit
+  Validate-Dark-Matter-Only-Subhalos-Symphony-X64:
+    needs: Build-Executable-DMO-Linux
+    strategy:
+      # Ensure all jobs are run, even if some fail.
+      fail-fast: false
+      matrix:
+        resolution: [ "X64" ]
+    uses: ./.github/workflows/testModel.yml
+    with:
+      install: python3 python3-h5py python3-numpy python3-git
+      file: validate-darkMatterOnlySubhalos-SymphonyCOZMIC.py
+      options: "Symphony ${{ matrix.resolution }} CDM"
+      ompNumThreads: 3
+      artifact: galacticus-exec-dmo
+      runPath: ./testSuite
+      cacheData: 0
+      uploadFile: ./testSuite/outputs/*.json
+      uploadName: validate-darkMatterOnlySubhalosSymphonyCDMMilkyWay${{ matrix.resolution }}
+    secrets: inherit
+  Validate-Dark-Matter-Only-Subhalos-Symphony:
+    needs: Build-Executable-DMO-Linux
+    strategy:
+      # Ensure all jobs are run, even if some fail.
+      fail-fast: false
+      matrix:
+        resolution: [ "X1", "X8" ]
+    uses: ./.github/workflows/testModel.yml
+    with:
+      install: python3 python3-h5py python3-numpy python3-git
+      file: validate-darkMatterOnlySubhalos-SymphonyCOZMIC.py
+      options: "Symphony ${{ matrix.resolution }} CDM"
+      artifact: galacticus-exec-dmo
+      runPath: ./testSuite
+      cacheData: 0
+      uploadFile: ./testSuite/outputs/*.json
+      uploadName: validate-darkMatterOnlySubhalosSymphonyCDMMilkyWay${{ matrix.resolution }}
+    secrets: inherit
+  Validate-Dark-Matter-Only-Subhalos-COZMICWDM:
+    needs: Build-Executable-DMO-Linux
+    strategy:
+      # Ensure all jobs are run, even if some fail.
+      fail-fast: false
+      matrix:
+        simulation: [ "WDM3keV", "WDM4keV", "WDM5keV", "WDM6keV", "WDM6.5keV", "WDM10keV" ]
+        resolution: [ "X1", "X8" ]
+    uses: ./.github/workflows/testModel.yml
+    with:
+      install: python3 python3-h5py python3-numpy python3-git
+      file: validate-darkMatterOnlySubhalos-SymphonyCOZMIC.py
+      options: "COZMIC ${{ matrix.resolution }} ${{ matrix.simulation }}"
+      artifact: galacticus-exec-dmo
+      runPath: ./testSuite
+      cacheData: 0
+      uploadFile: ./testSuite/outputs/*.json
+      uploadName: validate-darkMatterOnlySubhalosCOZMIC${{ matrix.simulation }}MilkyWay${{ matrix.resolution }}
+    secrets: inherit
+  Validate-Milky-Way-Model:
+    needs: Build-Executable-Linux
+    uses: ./.github/workflows/testModel.yml
+    with:
+      install: python3 python3-h5py python3-numpy python3-git
+      file: validate-milkyWay.py
+      artifact: galacticus-exec
+      runPath: ./testSuite
+      cacheData: 1
+      uploadFile: ./testSuite/outputs/*.json
+      uploadName: validate-milkyWayModel
+    secrets: inherit
+  Validate-Idealized-Subhalo-Simulations:
+    needs: Build-Executable-Linux
+    uses: ./.github/workflows/testModel.yml
+    with:
+      install: python3 python3-h5py python3-numpy python3-git
+      file: validate-idealizedSubhaloSimulations.py
+      artifact: galacticus-exec
+      runPath: ./testSuite
+      cacheData: 0
+      uploadFile: ./testSuite/outputs/*.json
+      uploadName: validate-idealizedSubhaloSimulations
+    secrets: inherit
+  Validate-Fuzzy-Dark-Matter:
+    needs: Build-Executable-Linux
+    uses: ./.github/workflows/testModel.yml
+    with:
+      install: python3 python3-h5py python3-numpy python3-git
+      file: validate-fuzzyDarkMatter.py
+      artifact: galacticus-exec
+      runPath: ./testSuite
+      cacheData: 1
+      ompNumThreads: 2
+    secrets: inherit
+  # Benchmarks
+  Benchmark-Dark-Matter-Only-Subhalos:
+    needs: Build-Executable-DMO-Linux
+    uses: ./.github/workflows/testModel.yml
+    with:
+      file: benchmark-darkMatterOnlySubhalos.py
+      artifact: galacticus-exec-dmo
+      runPath: ./testSuite
+      cacheData: 0
+      install: time
+      uploadFile: testSuite/outputs/benchmark_darkMatterOnlySubhalos.json
+      uploadName: benchmark-darkMatterOnlySubhalos
+    secrets: inherit
+  Benchmark-Milky-Way-Model:
+    needs: Build-Executable-Linux
+    uses: ./.github/workflows/testModel.yml
+    with:
+      file: benchmark-milkyWay.py
+      artifact: galacticus-exec
+      runPath: ./testSuite
+      cacheData: 1
+      install: time
+      uploadFile: testSuite/outputs/benchmark_milkyWayModel.json
+      uploadName: benchmark-milkyWayModel
+    secrets: inherit
+  # Profiling
   Profile-Milky-Way-SIDM-GProf:
     needs: Build-Executables-Instrumented-Linux
     uses: ./.github/workflows/profile.yml
@@ -721,8 +898,392 @@ jobs:
       profiler: gprof
       cacheData: 1
       name: milkyWay_SIDM
-  # Watch for updates
-
+  Profile-Dark-Matter-Only-Subhalos-GProf:
+    needs: Build-Executables-Instrumented-Linux
+    uses: ./.github/workflows/profile.yml
+    with:
+      profiler: gprof
+      cacheData: 0
+      name: darkMatterOnlySubHalos
+    secrets: inherit
+  Profile-Milky-Way-GProf:
+    needs: Build-Executables-Instrumented-Linux
+    uses: ./.github/workflows/profile.yml
+    with:
+      profiler: gprof
+      cacheData: 1
+      name: milkyWay
+  Profile-Dark-Matter-Only-Subhalos:
+    needs: Build-Executable-Linux
+    uses: ./.github/workflows/profile.yml
+    with:
+      profiler: perf
+      cacheData: 0
+      name: darkMatterOnlySubHalos
+      frequency: 500
+    secrets: inherit
+  Profile-Milky-Way-Model:
+    needs: Build-Executable-Linux
+    uses: ./.github/workflows/profile.yml
+    with:
+      profiler: perf
+      cacheData: 1
+      name: milkyWay
+      frequency: 100
+    secrets: inherit
+  Profile-Milky-Way-SIDM-Model:
+    needs: Build-Executable-Linux
+    uses: ./.github/workflows/profile.yml
+    with:
+      profiler: perf
+      cacheData: 1
+      name: milkyWay_SIDM
+      frequency: 100
+    secrets: inherit
+  # Tests
+  ## Linux
+  ### Test Codes
+  Codes:
+    needs: Build-Executable-Linux-Non-Static
+    strategy:
+      # Ensure all jobs are run, even if some fail.
+      fail-fast: false
+      matrix:
+        executable: [ tests.merger_tree_branching.exe,
+                      tests.spherical_collapse.baryons_dark_matter.exe,
+                      tests.spherical_collapse.open.exe,
+                      tests.spherical_collapse.flat.exe,
+                      tests.spherical_collapse.dark_energy.EdS.exe,
+                      tests.spherical_collapse.dark_energy.open.exe,
+                      tests.spherical_collapse.dark_energy.lambda.exe,
+                      tests.spherical_collapse.dark_energy.constantEoSminusHalf.exe,
+                      tests.spherical_collapse.dark_energy.constantEoSminusTwoThirds.exe,
+                      tests.spherical_collapse.dark_energy.constantEoSminus0.6.exe,
+                      tests.spherical_collapse.dark_energy.constantEoSminus0.8.exe,
+                      tests.spherical_collapse.nonlinear.exe,
+                      tests.mass_distributions.exe,
+                      tests.mass_distributions.tabulated.exe,
+                      tests.nodes.exe,
+                      tests.files.exe,
+                      tests.IO.XML.exe,
+                      tests.ODE_solver.exe,
+                      tests.random.exe,
+                      tests.random.quasi.exe,
+                      tests.arrays.exe,
+                      tests.meshes.exe,
+                      tests.convex_hulls.exe,
+                      tests.comparisons.exe,
+                      tests.geometry.coordinate_systems.exe,
+                      tests.hashes.exe,
+                      tests.hashes.perfect.exe,
+                      tests.regular_expressions.exe,
+                      tests.hashes.cryptographic.exe,
+                      tests.integration.exe,
+                      tests.integration2.exe,
+                      tests.differentiation.exe,
+                      tests.tables.exe,
+                      tests.interpolation.exe,
+                      tests.interpolation.2D.exe,
+                      tests.make_ranges.exe,
+                      tests.prompt_cusps.exe,
+                      tests.math_special_functions.exe,
+                      tests.math_distributions.exe,
+                      tests.math.fast.exe,
+                      tests.math.arithmetic.exe,
+                      tests.math.linear_algebra.exe,
+                      tests.root_finding.exe,
+                      tests.multi_dimensional_minimizer.exe,
+                      tests.search.exe,
+                      tests.Roman_numerals.exe,
+                      tests.SI_prefixes.exe,
+                      tests.sort.exe,
+                      tests.sort.topological.exe,
+                      tests.string_utilities.exe,
+                      tests.vectors.exe,
+                      tests.multi_counters.exe,
+                      tests.tensors.exe,
+                      tests.cosmic_age.exe,
+                      tests.warm_dark_matter.exe,
+                      tests.linear_growth.cosmological_constant.exe,
+                      tests.linear_growth.EdS.exe,
+                      tests.linear_growth.open.exe,
+                      tests.linear_growth.dark_energy.exe,
+                      tests.linear_growth.baryons.EdS.exe,
+                      tests.halo_mass_function.Tinker.exe,
+                      tests.halo_mass_function.Reed2007.exe,
+                      tests.halo_mass_function.environment_averaged.exe,
+                      tests.comoving_distance.exe,
+                      tests.mass_accretion_history.Correa2015.exe,
+                      tests.Zhao2009_algorithms.dark_energy.exe,
+                      tests.Zhao2009_algorithms.EdS.exe,
+                      tests.Zhao2009_algorithms.open.exe,
+                      tests.NFW96_concentration.dark_energy.exe,
+                      tests.Prada2011_concentration.exe,
+                      tests.DiemerKravtsov2014_concentration.exe,
+                      tests.concentration.Correa2015.exe,
+                      tests.concentrations.exe,
+                      tests.biases.exe,
+                      tests.kepler_orbits.exe,
+                      tests.abundances.exe,
+                      tests.sigma.exe,
+                      tests.power_spectrum.primordial.exe,
+                      tests.power_spectrum.exe,
+                      tests.transfer_functions.exe,
+                      tests.black_hole_fundamentals.exe,
+                      tests.bug745815.exe,
+                      tests.gaunt_factors.exe,
+                      tests.cooling_functions.exe,
+                      tests.accretion_disks.exe,
+                      tests.mass_accretion_history.Hearin2021.exe,
+                      tests.mass_accretion_history.Hearin2021_stochastic.exe,
+                      tests.dark_matter_profiles.exe,
+                      tests.dark_matter_profiles.projected.exe,
+                      tests.dark_matter_profiles.adiabaticGnedin2004.exe,
+                      tests.dark_matter_profiles.heated.exe,
+                      tests.dark_matter_halo_radius_enclosing_mass.exe,
+                      tests.dark_matter_profiles.tidal_tracks.exe,
+                      tests.dark_matter_profiles.generic.exe,
+                      tests.dark_matter_profiles.finite_resolution.exe,
+                      tests.dark_matter_profiles.Zhao1996.exe,
+                      tests.dark_matter_profiles.fuzzy_dark_matter.exe,
+                      tests.decaying_dark_matter.exe,
+                      tests.spectra.postprocess.Inoue2014.exe,
+                      tests.recombination_computed.exe,
+                      tests.recombination_cooling.Hummer.exe,
+                      tests.locks.exe,
+                      tests.initial_mass_functions.exe,
+                      tests.stellar_populations.exe,
+                      tests.stellar_populations.luminosities.exe,
+                      tests.excursion_sets.exe,
+                      tests.event_hooks.exe,
+                      tests.tree_branch_destroy.exe,
+                      tests.binary_search_trees.exe,
+                      tests.orbits.exe,
+                      tests.debugging.exe,
+                      tests.hashes.cryptographic.exe ]
+    uses: ./.github/workflows/testCode.yml
+    with:
+      executable: ${{ matrix.executable }}
+      artifact: test-execs
+    secrets: inherit
+  ### Regressions
+  Regressions-Cached:
+    needs: Build-Executable-Linux
+    strategy:
+      # Ensure all jobs are run, even if some fail.
+      fail-fast: false
+      matrix:
+        file: [ testSuite/regressions/cole2000TreeBuilderWDMNodeWellOrdering.xml,
+                testSuite/regressions/issue142.xml ]
+    uses: ./.github/workflows/testModel.yml
+    with:
+      file: ${{ matrix.file }}
+      artifact: galacticus-exec
+      cacheData: 1
+    secrets: inherit
+  Regressions:
+    needs: Build-Executable-Linux
+    strategy:
+      # Ensure all jobs are run, even if some fail.
+      fail-fast: false
+      matrix:
+        file: [ testSuite/regressions/preInfallEvolutionNotOnMainBranch.xml,
+                testSuite/regressions/adaptiveSFHLengths.py,
+                testSuite/regressions/particulate.py,
+                testSuite/regressions/bug1066052.py,
+                testSuite/regressions/mergerTreeBoxSizeWeight.py,
+                testSuite/regressions/satellitePresetBoundMassNonZero.py,
+                testSuite/regressions/cosmicEmu.py,
+                testSuite/regressions/bug1053153.xml,
+                testSuite/regressions/bug711424.xml,
+                testSuite/regressions/bug725315.xml,
+                testSuite/regressions/coincidentMergerAndBranchJump.xml,
+                testSuite/regressions/deadlockMergeTargetInDescendentOfMergee2.xml,
+                testSuite/regressions/deadlockMergeTargetInDescendentOfMergee.xml,
+                testSuite/regressions/finalTimeBeforeOutputTime.xml,
+                testSuite/regressions/immediateSubSubMergerThenBranchJump.xml,
+                testSuite/regressions/initialSatelliteNoPrimaryProgenitor.xml,
+                testSuite/regressions/linearGrowthForFutureModel.xml,
+                testSuite/regressions/ludlowScaleSetBeforeTreeInitialization.xml,
+                testSuite/regressions/mergerAtFinalTimeInTree.xml,
+                testSuite/regressions/subhaloMergesAtFinalTimeOfTree.xml,
+                testSuite/regressions/subhaloTwoConsecutiveMergers.xml,
+                testSuite/regressions/treeWithInitialSatelliteInProgenitorlessHost.xml,
+                testSuite/regressions/treeWithNoPrimaryProgenitor.xml,
+                testSuite/regressions/outputRank2ExtendSegFault.xml,
+                testSuite/regressions/barInstabilityFPE.xml,
+                testSuite/regressions/decayingDM-non-monotonic-mass-profile.xml,
+                testSuite/regressions/decayingDM-overflow-undepleted-profile.xml,
+                testSuite/regressions/heatingMonotonicWeakShellCrossingRadiusRoot.xml,
+                testSuite/regressions/haloMassFunctionWDMIndeterminateCollapseTime.xml,
+                testSuite/regressions/lightconeCrossingTests.xml,
+                testSuite/regressions/lightconeCrossingTestsSubresolutionMerging.xml,
+                testSuite/regressions/lightconeCrossingAtCurrentTime.xml,
+                testSuite/regressions/constrainedTreeImpossible.py,
+                testSuite/regressions/ignoreWellOrdering.xml,
+                testSuite/regressions/johnson2021CorrelatedDeviatesWithRegrid.xml ]
+    uses: ./.github/workflows/testModel.yml
+    with:
+      file: ${{ matrix.file }}
+      artifact: galacticus-exec
+    secrets: inherit
+  ### Memory leaks (non-MPI)
+  Memory-Leaks:
+    needs: Build-Executable-Linux-Non-Static
+    uses: ./.github/workflows/testModel.yml
+    with:
+      install: valgrind
+      file: test-memory-leaks.py
+      artifact: galacticus-exec-non-static
+      runPath: ./testSuite
+      options: --mpi 0
+    secrets: inherit
+  ### Memory leaks (MPI)
+  Memory-Leaks-MPI:
+    needs: Build-Executables-MPI-Linux
+    uses: ./.github/workflows/testModel.yml
+    with:
+      install: valgrind
+      file: test-memory-leaks.py
+      artifact: galacticus-exec-MPI
+      runPath: ./testSuite
+      options: --mpi 1
+    secrets: inherit
+  ### Test Parameters
+  Parameters:
+    needs: Build-Executable-Linux-Non-Static
+    uses: ./.github/workflows/testCode.yml
+    with:
+      executable: tests.parameters.exe
+      artifact: test-execs
+      expectUnrecognized: 1
+    secrets: inherit
+  ### Test HDF5 IO
+  IO-HDF5:
+    needs: Build-Executable-Linux-Non-Static
+    uses: ./.github/workflows/testCode.yml
+    with:
+      executable: tests.IO.HDF5.exe
+      artifact: test-execs
+      requirePython: 1
+    secrets: inherit
+  ### Test Crash
+  Crash:
+    needs: Build-Executable-Linux-Non-Static
+    uses: ./.github/workflows/testCode.yml
+    with:
+      executable: tests.crash.exe
+      artifact: test-execs
+      expectCrash: 1
+    secrets: inherit
+  ### Test Fail
+  Fail:
+    needs: Build-Executable-Linux-Non-Static
+    uses: ./.github/workflows/testCode.yml
+    with:
+      executable: tests.fail.exe
+      artifact: test-execs
+      expectFail: 1
+    secrets: inherit
+  ### MPI Test Codes
+  Codes-MPI:
+    needs: Build-Executables-MPI-Linux
+    strategy:
+      # Ensure all jobs are run, even if some fail.
+      fail-fast: false
+      matrix:
+        executable: [ tests.MPI.exe,
+                      tests.radiative_transfer.atomic_matter.state_solver.exe ]
+    uses: ./.github/workflows/testCode.yml
+    with:
+      executable: ${{ matrix.executable }}
+      artifact: test-execs-MPI
+      mpi: 1
+    secrets: inherit
+  ### Debugging Test Codes
+  Codes-Debugging:
+    needs: Build-Executables-Debugging-Linux
+    strategy:
+      # Ensure all jobs are run, even if some fail.
+      fail-fast: false
+      matrix:
+        executable: [ tests.debugging.exe ]
+    uses: ./.github/workflows/testCode.yml
+    with:
+      executable: ${{ matrix.executable }}
+      artifact: test-execs-debugging
+    secrets: inherit
+  ### Cosmology
+  Cosmology:
+    needs: Build-Executable-Linux
+    strategy:
+      # Ensure all jobs are run, even if some fail.
+      fail-fast: false
+      matrix:
+        instance: [ "1:2", "2:2" ]
+    uses: ./.github/workflows/testModel.yml
+    with:
+      file: test-cosmology.py
+      artifact: galacticus-exec
+      runPath: ./testSuite
+      options: "--launchMethod local --threadMaximum 1 --ompThreads 4 --instance ${{ matrix.instance }}"
+    secrets: inherit
+  ### Mass Conservation
+  Mass-Conservation:
+    needs: Build-Executable-Linux
+    strategy:
+      # Ensure all jobs are run, even if some fail.
+      fail-fast: false
+      matrix:
+        file: [ "test-mass-conservation-simple.py", "test-mass-conservation-standard.py", "test-mass-conservation-coldMode.py" ]
+    uses: ./.github/workflows/testModel.yml
+    with:
+      file: ${{ matrix.file }}
+      artifact: galacticus-exec
+      runPath: ./testSuite
+      options: "--launchMethod local --threadMaximum 1 --ompThreads 4"
+    secrets: inherit
+  ### Merger Trees
+  Merger-Tree-Builder:
+    needs: Build-Executable-Linux
+    strategy:
+      # Ensure all jobs are run, even if some fail.
+      fail-fast: false
+      matrix:
+        instance: [ "1:4", "2:4", "3:4", "4:4" ]
+    uses: ./.github/workflows/testModel.yml
+    with:
+      file: test-merger-tree-builder.py
+      artifact: galacticus-exec
+      runPath: ./testSuite
+      options: "--launchMethod local --threadMaximum 1 --ompThreads 4 --instance ${{ matrix.instance }}"
+    secrets: inherit
+  Merger-Tree-Write:
+    needs: Build-Executable-Linux
+    uses: ./.github/workflows/testModel.yml
+    with:
+      file: test-merger-tree-write.py
+      artifact: galacticus-exec
+      runPath: ./testSuite
+      options: "--launchMethod local --threadMaximum 1 --ompThreads 4"
+      needsIRATE: 1
+    secrets: inherit
+  ## Model Integration
+  Model-Integration:
+    needs: Build-Executable-Linux
+    strategy:
+      # Ensure all jobs are run, even if some fail.
+      fail-fast: false
+      matrix:
+        instance: [ "1:2", "2:2" ]
+    uses: ./.github/workflows/testModel.yml
+    with:
+      file: test-model-integration.py
+      artifact: galacticus-exec
+      runPath: ./testSuite
+      options: "--launchMethod local --threadMaximum 1 --ompThreads 4 --instance ${{ matrix.instance }}"
+    secrets: inherit
+  ## Misc Models
   Miscellaneous:
     needs: Build-Executable-Linux
     strategy:
@@ -797,307 +1358,97 @@ jobs:
       artifact: galacticus-exec
       runPath: ./testSuite
     secrets: inherit
-
-  Validate-Dark-Matter-Only-Subhalos-COZMICWDM:
-    needs: Build-Executable-DMO-Linux
-    strategy:
-      # Ensure all jobs are run, even if some fail.
-      fail-fast: false
-      matrix:
-        simulation: [ "WDM3keV", "WDM4keV", "WDM5keV", "WDM6keV", "WDM6.5keV", "WDM10keV" ]
-        resolution: [ "X1", "X8" ]
-    uses: ./.github/workflows/testModel.yml
-    with:
-      install: python3 python3-h5py python3-numpy python3-git
-      file: validate-darkMatterOnlySubhalos-SymphonyCOZMIC.py
-      options: "COZMIC ${{ matrix.resolution }} ${{ matrix.simulation }}"
-      artifact: galacticus-exec-dmo
-      runPath: ./testSuite
-      cacheData: 0
-      uploadFile: ./testSuite/outputs/*.json
-      uploadName: validate-darkMatterOnlySubhalosCOZMIC${{ matrix.simulation }}MilkyWay${{ matrix.resolution }}
-    secrets: inherit
-
-  Validate-Decaying-Dark-Matter-Only-Subhalos:
-    needs: Build-Executable-DMO-Linux
-    uses: ./.github/workflows/testModel.yml
-    with:
-      install: python3 python3-h5py python3-numpy python3-git
-      file: validate-darkMatterOnlySubhalos-decayingDarkMatter.py
-      artifact: galacticus-exec-dmo
-      runPath: ./testSuite
-      cacheData: 0
-      uploadFile: ./testSuite/outputs/*.json
-      uploadName: validate-darkMatterOnlySubhalos-decayingDarkMatter
-    secrets: inherit
-
-  Profile-Milky-Way-GProf:
-    needs: Build-Executables-Instrumented-Linux
-    uses: ./.github/workflows/profile.yml
-    with:
-      profiler: gprof
-      cacheData: 1
-      name: milkyWay
-
-  Codes:
-    needs: Build-Executable-Linux-Non-Static
-    strategy:
-      # Ensure all jobs are run, even if some fail.
-      fail-fast: false
-      matrix:
-        executable: [ tests.nodes.exe,
-                      tests.files.exe,
-                      tests.IO.XML.exe,
-                      tests.ODE_solver.exe,
-                      tests.random.exe,
-                      tests.random.quasi.exe,
-                      tests.arrays.exe,
-                      tests.meshes.exe,
-                      tests.convex_hulls.exe,
-                      tests.comparisons.exe,
-                      tests.geometry.coordinate_systems.exe,
-                      tests.hashes.exe,
-                      tests.hashes.perfect.exe,
-                      tests.regular_expressions.exe,
-                      tests.hashes.cryptographic.exe,
-                      tests.integration.exe,
-                      tests.integration2.exe,
-                      tests.differentiation.exe,
-                      tests.tables.exe,
-                      tests.interpolation.exe,
-                      tests.interpolation.2D.exe,
-                      tests.make_ranges.exe,
-                      tests.mass_distributions.exe,
-                      tests.mass_distributions.tabulated.exe,
-                      tests.prompt_cusps.exe,
-                      tests.math_special_functions.exe,
-                      tests.math_distributions.exe,
-                      tests.math.fast.exe,
-                      tests.math.arithmetic.exe,
-                      tests.math.linear_algebra.exe,
-                      tests.root_finding.exe,
-                      tests.multi_dimensional_minimizer.exe,
-                      tests.search.exe,
-                      tests.Roman_numerals.exe,
-                      tests.SI_prefixes.exe,
-                      tests.sort.exe,
-                      tests.sort.topological.exe,
-                      tests.string_utilities.exe,
-                      tests.vectors.exe,
-                      tests.multi_counters.exe,
-                      tests.tensors.exe,
-                      tests.cosmic_age.exe,
-                      tests.spherical_collapse.open.exe,
-                      tests.spherical_collapse.flat.exe,
-                      tests.spherical_collapse.dark_energy.EdS.exe,
-                      tests.spherical_collapse.dark_energy.open.exe,
-                      tests.spherical_collapse.dark_energy.lambda.exe,
-                      tests.spherical_collapse.dark_energy.constantEoSminusHalf.exe,
-                      tests.spherical_collapse.dark_energy.constantEoSminusTwoThirds.exe,
-                      tests.spherical_collapse.dark_energy.constantEoSminus0.6.exe,
-                      tests.spherical_collapse.dark_energy.constantEoSminus0.8.exe,
-                      tests.spherical_collapse.baryons_dark_matter.exe,
-                      tests.spherical_collapse.nonlinear.exe,
-                      tests.warm_dark_matter.exe,
-                      tests.linear_growth.cosmological_constant.exe,
-                      tests.linear_growth.EdS.exe,
-                      tests.linear_growth.open.exe,
-                      tests.linear_growth.dark_energy.exe,
-                      tests.linear_growth.baryons.EdS.exe,
-                      tests.halo_mass_function.Tinker.exe,
-                      tests.halo_mass_function.Reed2007.exe,
-                      tests.halo_mass_function.environment_averaged.exe,
-                      tests.comoving_distance.exe,
-                      tests.mass_accretion_history.Correa2015.exe,
-                      tests.Zhao2009_algorithms.dark_energy.exe,
-                      tests.Zhao2009_algorithms.EdS.exe,
-                      tests.Zhao2009_algorithms.open.exe,
-                      tests.NFW96_concentration.dark_energy.exe,
-                      tests.Prada2011_concentration.exe,
-                      tests.DiemerKravtsov2014_concentration.exe,
-                      tests.concentration.Correa2015.exe,
-                      tests.concentrations.exe,
-                      tests.biases.exe,
-                      tests.kepler_orbits.exe,
-                      tests.abundances.exe,
-                      tests.sigma.exe,
-                      tests.power_spectrum.primordial.exe,
-                      tests.power_spectrum.exe,
-                      tests.transfer_functions.exe,
-                      tests.black_hole_fundamentals.exe,
-                      tests.bug745815.exe,
-                      tests.gaunt_factors.exe,
-                      tests.cooling_functions.exe,
-                      tests.accretion_disks.exe,
-                      tests.mass_accretion_history.Hearin2021.exe,
-                      tests.mass_accretion_history.Hearin2021_stochastic.exe,
-                      tests.dark_matter_profiles.exe,
-                      tests.dark_matter_profiles.projected.exe,
-                      tests.dark_matter_profiles.adiabaticGnedin2004.exe,
-                      tests.dark_matter_profiles.heated.exe,
-                      tests.dark_matter_halo_radius_enclosing_mass.exe,
-                      tests.dark_matter_profiles.tidal_tracks.exe,
-                      tests.dark_matter_profiles.generic.exe,
-                      tests.dark_matter_profiles.finite_resolution.exe,
-                      tests.dark_matter_profiles.Zhao1996.exe,
-                      tests.dark_matter_profiles.fuzzy_dark_matter.exe,
-                      tests.decaying_dark_matter.exe,
-                      tests.spectra.postprocess.Inoue2014.exe,
-                      tests.recombination_computed.exe,
-                      tests.recombination_cooling.Hummer.exe,
-                      tests.locks.exe,
-                      tests.initial_mass_functions.exe,
-                      tests.stellar_populations.exe,
-                      tests.stellar_populations.luminosities.exe,
-                      tests.excursion_sets.exe,
-                      tests.merger_tree_branching.exe,
-                      tests.event_hooks.exe,
-                      tests.tree_branch_destroy.exe,
-                      tests.binary_search_trees.exe,
-                      tests.orbits.exe,
-                      tests.debugging.exe,
-                      tests.hashes.cryptographic.exe ]
-    uses: ./.github/workflows/testCode.yml
-    with:
-      executable: ${{ matrix.executable }}
-      artifact: test-execs
-    secrets: inherit
-  ### Test Parameters
-
-  Validate-Dark-Matter-Only-Subhalos-Symphony-X64:
-    needs: Build-Executable-DMO-Linux
-    strategy:
-      # Ensure all jobs are run, even if some fail.
-      fail-fast: false
-      matrix:
-        resolution: [ "X64" ]
-    uses: ./.github/workflows/testModel.yml
-    with:
-      install: python3 python3-h5py python3-numpy python3-git
-      file: validate-darkMatterOnlySubhalos-SymphonyCOZMIC.py
-      options: "Symphony ${{ matrix.resolution }} CDM"
-      ompNumThreads: 3
-      artifact: galacticus-exec-dmo
-      runPath: ./testSuite
-      cacheData: 0
-      uploadFile: ./testSuite/outputs/*.json
-      uploadName: validate-darkMatterOnlySubhalosSymphonyCDMMilkyWay${{ matrix.resolution }}
-    secrets: inherit
-
-  Validate-PonosV:
-    needs: Build-Executable-DMO-Linux
-    uses: ./.github/workflows/testModel.yml
-    with:
-      install: python3 python3-h5py python3-numpy python3-git
-      file: validate-PonosV.py
-      artifact: galacticus-exec-dmo
-      runPath: ./testSuite
-      cacheData: 0
-      uploadFile: ./testSuite/outputs/*.json
-      uploadName: validate-PonosV
-    secrets: inherit
-
-  Validate-Milky-Way-Model:
+  Miscellaneous-Unexpected:
     needs: Build-Executable-Linux
+    strategy:
+      # Ensure all jobs are run, even if some fail.
+      fail-fast: false
+      matrix:
+        file: [ test-allowed-parameters.py,
+                test-strict-parameters.py   ]
     uses: ./.github/workflows/testModel.yml
     with:
-      install: python3 python3-h5py python3-numpy python3-git
-      file: validate-milkyWay.py
+      file: ${{ matrix.file }}
       artifact: galacticus-exec
       runPath: ./testSuite
-      cacheData: 1
-      uploadFile: ./testSuite/outputs/*.json
-      uploadName: validate-milkyWayModel
+      expectUnrecognized: 1
     secrets: inherit
-
-  Memory-Leaks-MPI:
-    needs: Build-Executables-MPI-Linux
-    uses: ./.github/workflows/testModel.yml
-    with:
-      install: valgrind
-      file: test-memory-leaks.py
-      artifact: galacticus-exec-MPI
-      runPath: ./testSuite
-      options: --mpi 1
-    secrets: inherit
-  ## Emulation
-
-  Benchmark-Milky-Way-Model:
-    needs: Build-Executable-Linux
-    uses: ./.github/workflows/testModel.yml
-    with:
-      file: benchmark-milkyWay.py
-      artifact: galacticus-exec
-      runPath: ./testSuite
-      cacheData: 1
-      install: time
-      uploadFile: testSuite/outputs/benchmark_milkyWayModel.json
-      uploadName: benchmark-milkyWayModel
-    secrets: inherit
-  # Profiling
-
-  Regressions:
+  Miscellaneous-IRATE:
     needs: Build-Executable-Linux
     strategy:
       # Ensure all jobs are run, even if some fail.
       fail-fast: false
       matrix:
-        file: [ testSuite/regressions/bug1066052.py,
-                testSuite/regressions/adaptiveSFHLengths.py,
-                testSuite/regressions/mergerTreeBoxSizeWeight.py,
-                testSuite/regressions/satellitePresetBoundMassNonZero.py,
-                testSuite/regressions/cosmicEmu.py,
-                testSuite/regressions/bug1053153.xml,
-                testSuite/regressions/bug711424.xml,
-                testSuite/regressions/bug725315.xml,
-                testSuite/regressions/coincidentMergerAndBranchJump.xml,
-                testSuite/regressions/deadlockMergeTargetInDescendentOfMergee2.xml,
-                testSuite/regressions/deadlockMergeTargetInDescendentOfMergee.xml,
-                testSuite/regressions/finalTimeBeforeOutputTime.xml,
-                testSuite/regressions/immediateSubSubMergerThenBranchJump.xml,
-                testSuite/regressions/initialSatelliteNoPrimaryProgenitor.xml,
-                testSuite/regressions/linearGrowthForFutureModel.xml,
-                testSuite/regressions/ludlowScaleSetBeforeTreeInitialization.xml,
-                testSuite/regressions/mergerAtFinalTimeInTree.xml,
-                testSuite/regressions/particulate.py,
-                testSuite/regressions/subhaloMergesAtFinalTimeOfTree.xml,
-                testSuite/regressions/subhaloTwoConsecutiveMergers.xml,
-                testSuite/regressions/treeWithInitialSatelliteInProgenitorlessHost.xml,
-                testSuite/regressions/treeWithNoPrimaryProgenitor.xml,
-                testSuite/regressions/preInfallEvolutionNotOnMainBranch.xml,
-                testSuite/regressions/outputRank2ExtendSegFault.xml,
-                testSuite/regressions/barInstabilityFPE.xml,
-                testSuite/regressions/decayingDM-non-monotonic-mass-profile.xml,
-                testSuite/regressions/decayingDM-overflow-undepleted-profile.xml,
-                testSuite/regressions/heatingMonotonicWeakShellCrossingRadiusRoot.xml,
-                testSuite/regressions/haloMassFunctionWDMIndeterminateCollapseTime.xml,
-                testSuite/regressions/lightconeCrossingTests.xml,
-                testSuite/regressions/lightconeCrossingTestsSubresolutionMerging.xml,
-                testSuite/regressions/lightconeCrossingAtCurrentTime.xml,
-                testSuite/regressions/constrainedTreeImpossible.py,
-                testSuite/regressions/ignoreWellOrdering.xml,
-                testSuite/regressions/johnson2021CorrelatedDeviatesWithRegrid.xml ]
+        file: [ test-Bolshoi-tree-builder.py,
+                test-Millennium-tree-builder.py ]
+    uses: ./.github/workflows/testModel.yml
+    with:
+      file: ${{ matrix.file }}
+      artifact: galacticus-exec
+      install: python3 python3-h5py python3-numpy
+      runPath: ./testSuite
+      needsIRATE: 1
+    secrets: inherit
+  Miscellaneous-Deep:
+    needs: Build-Executable-Linux
+    strategy:
+      # Ensure all jobs are run, even if some fail.
+      fail-fast: false
+      matrix:
+        file: [ test-parameter-migration.py ]
+    uses: ./.github/workflows/testModel.yml
+    with:
+      fetchDepth: 0
+      file: ${{ matrix.file }}
+      artifact: galacticus-exec
+      runPath: ./testSuite
+    secrets: inherit
+  Miscellaneous-Cached:
+    needs: Build-Executable-Linux
+    strategy:
+      # Ensure all jobs are run, even if some fail.
+      fail-fast: false
+      matrix:
+        file: [ test-constrained-merger-trees.py ]
+    uses: ./.github/workflows/testModel.yml
+    with:
+      file: ${{ matrix.file }}
+      artifact: galacticus-exec
+      cacheData: 1
+      runPath: ./testSuite
+    secrets: inherit
+  Miscellaneous-Models:
+    needs: Build-Executable-Linux
+    strategy:
+      # Ensure all jobs are run, even if some fail.
+      fail-fast: false
+      matrix:
+        file: [ testSuite/parameters/mergerTreeEvolverThreaded.xml,
+                testSuite/parameters/constrainedMilkyWay.xml,
+                testSuite/parameters/test-nuclear-star-cluster.xml,
+                testSuite/parameters/zeroVelocityDispersionDisruptingHalo.xml,
+                testSuite/parameters/subhaloOrbitOnZAxis.xml ]
     uses: ./.github/workflows/testModel.yml
     with:
       file: ${{ matrix.file }}
       artifact: galacticus-exec
     secrets: inherit
-
-  Merger-Tree-Builder:
+  ### Outputs
+  Outputs:
     needs: Build-Executable-Linux
     strategy:
       # Ensure all jobs are run, even if some fail.
       fail-fast: false
       matrix:
-        instance: [ "1:4", "2:4", "3:4", "4:4" ]
+        instance: [ "1:10", "2:10", "3:10", "4:10", "5:10", "6:10", "7:10", "8:10", "9:10", "10:10" ]
     uses: ./.github/workflows/testModel.yml
     with:
-      file: test-merger-tree-builder.py
+      file: test-outputs.py
       artifact: galacticus-exec
       runPath: ./testSuite
       options: "--launchMethod local --threadMaximum 1 --ompThreads 4 --instance ${{ matrix.instance }}"
     secrets: inherit
-
+  ### Methods
   Methods:
     needs: Build-Executable-Linux
     strategy:
@@ -1113,37 +1464,49 @@ jobs:
       options: "--launchMethod local --threadMaximum 1 --ompThreads 4 --instance ${{ matrix.instance }}"
     secrets: inherit
   ### MPI Misc Models
-
-  Miscellaneous-Cached:
-    needs: Build-Executable-Linux
+  MPI-State-Restore:
+    needs: Build-Executables-MPI-Linux
+    uses: ./.github/workflows/testModel.yml
+    with:
+      file: test-stateRestore_MPI.py
+      artifact: galacticus-exec-MPI
+      runPath: ./testSuite
+      options: --processesPerNode 8 --allowRunAsRoot yes
+    secrets: inherit
+  MPI-Radiative-Transfer-Stromgren-Sphere:
+    needs: Build-Executables-MPI-Linux
+    uses: ./.github/workflows/testModel.yml
+    with:
+      file: test-radiativeTransfer-StromgrenSphere_MPI.py
+      artifact: galacticus-exec-MPI
+      runPath: ./testSuite
+      options: --processesPerNode 4 --allowRunAsRoot yes
+    secrets: inherit
+  MPI-MCMC:
+    needs: Build-Executables-MPI-Linux
+    uses: ./.github/workflows/testModel.yml
+    with:
+      file: testSuite/parameters/mcmcConfig.xml
+      artifact: galacticus-exec-MPI
+      mpi: 1
+      processesPerNode: 4
+    secrets: inherit
+  ### MPI Methods  
+  Methods-MPI:
+    needs: Build-Executables-MPI-Linux
     strategy:
       # Ensure all jobs are run, even if some fail.
       fail-fast: false
       matrix:
-        file: [ test-constrained-merger-trees.py ]
+        instance: [ "1:2", "2:2" ]
     uses: ./.github/workflows/testModel.yml
     with:
-      file: ${{ matrix.file }}
-      artifact: galacticus-exec
-      cacheData: 1
+      file: test-methods_MPI.py
+      artifact: galacticus-exec-MPI
       runPath: ./testSuite
+      options: "--launchMethod local --threadMaximum 1 --ompThreads 1 --instance ${{ matrix.instance }}"
     secrets: inherit
-
-  Validate-Fuzzy-Dark-Matter:
-    needs: Build-Executable-Linux
-    uses: ./.github/workflows/testModel.yml
-    with:
-      install: python3 python3-h5py python3-numpy python3-git
-      file: validate-fuzzyDarkMatter.py
-      artifact: galacticus-exec
-      runPath: ./testSuite
-      cacheData: 1
-      ompNumThreads: 2
-    secrets: inherit
-  # Tests
-  ## Linux
-  ### Test Codes
-
+  ## Emulation
   Emulation-Subhalos:
     runs-on: ubuntu-latest
     container: ghcr.io/galacticusorg/buildenv:latest
@@ -1209,462 +1572,6 @@ jobs:
           path: ./testSuite/outputs/emulation-subhalos/*.pdf
       - run: echo "This job's status is ${{ job.status }}."
   ## Python Interface
-
-  MPI-Radiative-Transfer-Stromgren-Sphere:
-    needs: Build-Executables-MPI-Linux
-    uses: ./.github/workflows/testModel.yml
-    with:
-      file: test-radiativeTransfer-StromgrenSphere_MPI.py
-      artifact: galacticus-exec-MPI
-      runPath: ./testSuite
-      options: --processesPerNode 4 --allowRunAsRoot yes
-    secrets: inherit
-
-  Validate-Dark-Matter-Only-Subhalos:
-    needs: Build-Executable-DMO-Linux
-    uses: ./.github/workflows/testModel.yml
-    with:
-      install: python3 python3-h5py python3-numpy python3-git
-      file: validate-darkMatterOnlySubhalos.py
-      artifact: galacticus-exec-dmo
-      runPath: ./testSuite
-      cacheData: 0
-      uploadFile: ./testSuite/outputs/*.json
-      uploadName: validate-darkMatterOnlySubhalos
-    secrets: inherit
-
-  Regressions-Cached:
-    needs: Build-Executable-Linux
-    strategy:
-      # Ensure all jobs are run, even if some fail.
-      fail-fast: false
-      matrix:
-        file: [ testSuite/regressions/cole2000TreeBuilderWDMNodeWellOrdering.xml,
-                testSuite/regressions/issue142.xml ]
-    uses: ./.github/workflows/testModel.yml
-    with:
-      file: ${{ matrix.file }}
-      artifact: galacticus-exec
-      cacheData: 1
-    secrets: inherit
-  ### Methods
-
-  Validate-Dark-Matter-Only-Subhalos-Symphony:
-    needs: Build-Executable-DMO-Linux
-    strategy:
-      # Ensure all jobs are run, even if some fail.
-      fail-fast: false
-      matrix:
-        resolution: [ "X1", "X8" ]
-    uses: ./.github/workflows/testModel.yml
-    with:
-      install: python3 python3-h5py python3-numpy python3-git
-      file: validate-darkMatterOnlySubhalos-SymphonyCOZMIC.py
-      options: "Symphony ${{ matrix.resolution }} CDM"
-      artifact: galacticus-exec-dmo
-      runPath: ./testSuite
-      cacheData: 0
-      uploadFile: ./testSuite/outputs/*.json
-      uploadName: validate-darkMatterOnlySubhalosSymphonyCDMMilkyWay${{ matrix.resolution }}
-    secrets: inherit
-
-  Miscellaneous-Models:
-    needs: Build-Executable-Linux
-    strategy:
-      # Ensure all jobs are run, even if some fail.
-      fail-fast: false
-      matrix:
-        file: [ testSuite/parameters/mergerTreeEvolverThreaded.xml,
-                testSuite/parameters/constrainedMilkyWay.xml,
-                testSuite/parameters/test-nuclear-star-cluster.xml,
-                testSuite/parameters/zeroVelocityDispersionDisruptingHalo.xml,
-                testSuite/parameters/subhaloOrbitOnZAxis.xml ]
-    uses: ./.github/workflows/testModel.yml
-    with:
-      file: ${{ matrix.file }}
-      artifact: galacticus-exec
-    secrets: inherit
-  ### Outputs
-
-  Model-Integration:
-    needs: Build-Executable-Linux
-    strategy:
-      # Ensure all jobs are run, even if some fail.
-      fail-fast: false
-      matrix:
-        instance: [ "1:2", "2:2" ]
-    uses: ./.github/workflows/testModel.yml
-    with:
-      file: test-model-integration.py
-      artifact: galacticus-exec
-      runPath: ./testSuite
-      options: "--launchMethod local --threadMaximum 1 --ompThreads 4 --instance ${{ matrix.instance }}"
-    secrets: inherit
-  ## Misc Models
-
-  Build-Tools:
-    runs-on: ubuntu-latest
-    container: ghcr.io/galacticusorg/buildenv:latest
-    needs: Build-Executable-Linux
-    steps:
-      - run: echo "The job was automatically triggered by a ${{ github.event_name }} event."
-      - run: echo "This job is now running on a ${{ runner.os }} server."
-      - run: echo "The name of the branch is ${{ github.ref }} and the repository is ${{ github.repository }}."
-      - name: Check out repository code
-        uses: actions/checkout@v6
-      - name: Check out repository datasets
-        uses: actions/checkout@v6      
-        with:
-          repository: galacticusorg/datasets
-          path: datasets
-      - run: echo "The ${{ github.repository }} repository has been cloned to the runner."
-      - name: "Set environmental variables"
-        run: |
-          echo "GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
-          echo "GALACTICUS_DATA_PATH=$GITHUB_WORKSPACE/datasets" >> $GITHUB_ENV
-          echo "GALACTICUS_FCFLAGS+=\ -static" >> $GITHUB_ENV
-      - name: Download executables
-        uses: actions/download-artifact@v8
-        with:
-          name: galacticus-exec
-      - name: Build tools
-        run: |
-          cd $GALACTICUS_EXEC_PATH
-          git config --global --add safe.directory $GALACTICUS_EXEC_PATH
-          mkdir -p $GALACTICUS_DATA_PATH/dynamic
-          chmod u=wrx ./Galacticus.exe
-          ./Galacticus.exe parameters/buildTools.xml
-          cd $GALACTICUS_DATA_PATH
-          classVersion=`awk '{if ($1 == "class:") print $2}' ${GALACTICUS_EXEC_PATH}/aux/dependencies.yml`
-          cambVersion=`awk '{if ($1 == "camb:") print $2}' ${GALACTICUS_EXEC_PATH}/aux/dependencies.yml`
-          forutilsVersion=`awk '{if ($1 == "forutils:") print $2}' ${GALACTICUS_EXEC_PATH}/aux/dependencies.yml`
-          fspsVersion=`awk '{if ($1 == "fsps:") print $2}' ${GALACTICUS_EXEC_PATH}/aux/dependencies.yml`
-          cloudyVersion=`awk '{if ($1 == "cloudy:") print $2}' ${GALACTICUS_EXEC_PATH}/aux/dependencies.yml`
-          mangleVersion=`awk '{if ($1 == "mangle:") print $2}' ${GALACTICUS_EXEC_PATH}/aux/dependencies.yml`
-          # Check that executables were statically linked
-          ! ldd dynamic/CAMB-${cambVersion}/fortran/camb
-          ! ldd dynamic/AxionCAMB/camb
-          ! ldd dynamic/class_public-${classVersion}/class
-          ! ldd dynamic/RecFast/recfast.exe
-          ! ldd dynamic/fsps-${fspsVersion}/src/autosps.exe
-          ! ldd dynamic/mangle-${mangleVersion}/bin/ransack
-          tar cfj tools.tar.bz2 \
-            dynamic/CAMB-${cambVersion}/fortran/camb \
-            dynamic/AxionCAMB/camb \
-            dynamic/class_public-${classVersion}/class \
-            dynamic/RecFast/recfast.exe \
-            dynamic/RecFast/currentVersion \
-            dynamic/c${cloudyVersion}/source/cloudy.exe \
-            dynamic/c${cloudyVersion}/data \
-            dynamic/fsps-${fspsVersion}/src/autosps.exe \
-            dynamic/fsps-${fspsVersion}/dust \
-            dynamic/fsps-${fspsVersion}/data \
-            dynamic/fsps-${fspsVersion}/nebular \
-            dynamic/fsps-${fspsVersion}/SPECTRA \
-            dynamic/fsps-${fspsVersion}/OUTPUTS \
-            dynamic/fsps-${fspsVersion}/ISOCHRONES \
-            dynamic/mangle-${mangleVersion}/bin/harmonize
-      - name: Upload tools
-        uses: actions/upload-artifact@v7
-        with:
-          name: galacticus-tools
-          path: ./datasets/tools.tar.bz2
-      - run: echo "This job's status is ${{ job.status }}."
-  ## MacOS
-  ### Static executable
-
-  Profile-Dark-Matter-Only-Subhalos-GProf:
-    needs: Build-Executables-Instrumented-Linux
-    uses: ./.github/workflows/profile.yml
-    with:
-      profiler: gprof
-      cacheData: 0
-      name: darkMatterOnlySubHalos
-    secrets: inherit
-
-  Profile-Milky-Way-SIDM-Model:
-    needs: Build-Executable-Linux
-    uses: ./.github/workflows/profile.yml
-    with:
-      profiler: perf
-      cacheData: 1
-      name: milkyWay_SIDM
-      frequency: 100
-    secrets: inherit
-
-  Profile-Milky-Way-Model:
-    needs: Build-Executable-Linux
-    uses: ./.github/workflows/profile.yml
-    with:
-      profiler: perf
-      cacheData: 1
-      name: milkyWay
-      frequency: 100
-    secrets: inherit
-
-  Profile-Dark-Matter-Only-Subhalos:
-    needs: Build-Executable-Linux
-    uses: ./.github/workflows/profile.yml
-    with:
-      profiler: perf
-      cacheData: 0
-      name: darkMatterOnlySubHalos
-      frequency: 500
-    secrets: inherit
-
-  Benchmark-Dark-Matter-Only-Subhalos:
-    needs: Build-Executable-DMO-Linux
-    uses: ./.github/workflows/testModel.yml
-    with:
-      file: benchmark-darkMatterOnlySubhalos.py
-      artifact: galacticus-exec-dmo
-      runPath: ./testSuite
-      cacheData: 0
-      install: time
-      uploadFile: testSuite/outputs/benchmark_darkMatterOnlySubhalos.json
-      uploadName: benchmark-darkMatterOnlySubhalos
-    secrets: inherit
-
-  Merger-Tree-Write:
-    needs: Build-Executable-Linux
-    uses: ./.github/workflows/testModel.yml
-    with:
-      file: test-merger-tree-write.py
-      artifact: galacticus-exec
-      runPath: ./testSuite
-      options: "--launchMethod local --threadMaximum 1 --ompThreads 4"
-      needsIRATE: 1
-    secrets: inherit
-  ## Model Integration
-
-  Miscellaneous-Unexpected:
-    needs: Build-Executable-Linux
-    strategy:
-      # Ensure all jobs are run, even if some fail.
-      fail-fast: false
-      matrix:
-        file: [ test-allowed-parameters.py,
-                test-strict-parameters.py   ]
-    uses: ./.github/workflows/testModel.yml
-    with:
-      file: ${{ matrix.file }}
-      artifact: galacticus-exec
-      runPath: ./testSuite
-      expectUnrecognized: 1
-    secrets: inherit
-
-  Miscellaneous-IRATE:
-    needs: Build-Executable-Linux
-    strategy:
-      # Ensure all jobs are run, even if some fail.
-      fail-fast: false
-      matrix:
-        file: [ test-Bolshoi-tree-builder.py,
-                test-Millennium-tree-builder.py ]
-    uses: ./.github/workflows/testModel.yml
-    with:
-      file: ${{ matrix.file }}
-      artifact: galacticus-exec
-      install: python3 python3-h5py python3-numpy
-      runPath: ./testSuite
-      needsIRATE: 1
-    secrets: inherit
-
-  Miscellaneous-Deep:
-    needs: Build-Executable-Linux
-    strategy:
-      # Ensure all jobs are run, even if some fail.
-      fail-fast: false
-      matrix:
-        file: [ test-parameter-migration.py ]
-    uses: ./.github/workflows/testModel.yml
-    with:
-      fetchDepth: 0
-      file: ${{ matrix.file }}
-      artifact: galacticus-exec
-      runPath: ./testSuite
-    secrets: inherit
-
-  Outputs:
-    needs: Build-Executable-Linux
-    strategy:
-      # Ensure all jobs are run, even if some fail.
-      fail-fast: false
-      matrix:
-        instance: [ "1:10", "2:10", "3:10", "4:10", "5:10", "6:10", "7:10", "8:10", "9:10", "10:10" ]
-    uses: ./.github/workflows/testModel.yml
-    with:
-      file: test-outputs.py
-      artifact: galacticus-exec
-      runPath: ./testSuite
-      options: "--launchMethod local --threadMaximum 1 --ompThreads 4 --instance ${{ matrix.instance }}"
-    secrets: inherit
-  ### Regressions
-
-  Cosmology:
-    needs: Build-Executable-Linux
-    strategy:
-      # Ensure all jobs are run, even if some fail.
-      fail-fast: false
-      matrix:
-        instance: [ "1:2", "2:2" ]
-    uses: ./.github/workflows/testModel.yml
-    with:
-      file: test-cosmology.py
-      artifact: galacticus-exec
-      runPath: ./testSuite
-      options: "--launchMethod local --threadMaximum 1 --ompThreads 4 --instance ${{ matrix.instance }}"
-    secrets: inherit
-  ### Mass Conservation
-
-  Mass-Conservation:
-    needs: Build-Executable-Linux
-    strategy:
-      # Ensure all jobs are run, even if some fail.
-      fail-fast: false
-      matrix:
-        file: [ "test-mass-conservation-simple.py", "test-mass-conservation-standard.py", "test-mass-conservation-coldMode.py" ]
-    uses: ./.github/workflows/testModel.yml
-    with:
-      file: ${{ matrix.file }}
-      artifact: galacticus-exec
-      runPath: ./testSuite
-      options: "--launchMethod local --threadMaximum 1 --ompThreads 4"
-    secrets: inherit
-  ### Merger Trees
-
-  Validate-Idealized-Subhalo-Simulations:
-    needs: Build-Executable-Linux
-    uses: ./.github/workflows/testModel.yml
-    with:
-      install: python3 python3-h5py python3-numpy python3-git
-      file: validate-idealizedSubhaloSimulations.py
-      artifact: galacticus-exec
-      runPath: ./testSuite
-      cacheData: 0
-      uploadFile: ./testSuite/outputs/*.json
-      uploadName: validate-idealizedSubhaloSimulations
-    secrets: inherit
-
-  MPI-State-Restore:
-    needs: Build-Executables-MPI-Linux
-    uses: ./.github/workflows/testModel.yml
-    with:
-      file: test-stateRestore_MPI.py
-      artifact: galacticus-exec-MPI
-      runPath: ./testSuite
-      options: --processesPerNode 8 --allowRunAsRoot yes
-    secrets: inherit
-
-  MPI-MCMC:
-    needs: Build-Executables-MPI-Linux
-    uses: ./.github/workflows/testModel.yml
-    with:
-      file: testSuite/parameters/mcmcConfig.xml
-      artifact: galacticus-exec-MPI
-      mpi: 1
-      processesPerNode: 4
-    secrets: inherit
-  ### MPI Methods  
-
-  Methods-MPI:
-    needs: Build-Executables-MPI-Linux
-    strategy:
-      # Ensure all jobs are run, even if some fail.
-      fail-fast: false
-      matrix:
-        instance: [ "1:2", "2:2" ]
-    uses: ./.github/workflows/testModel.yml
-    with:
-      file: test-methods_MPI.py
-      artifact: galacticus-exec-MPI
-      runPath: ./testSuite
-      options: "--launchMethod local --threadMaximum 1 --ompThreads 1 --instance ${{ matrix.instance }}"
-    secrets: inherit
-  ### Memory leaks (non-MPI)
-
-  Codes-MPI:
-    needs: Build-Executables-MPI-Linux
-    strategy:
-      # Ensure all jobs are run, even if some fail.
-      fail-fast: false
-      matrix:
-        executable: [ tests.MPI.exe,
-                      tests.radiative_transfer.atomic_matter.state_solver.exe ]
-    uses: ./.github/workflows/testCode.yml
-    with:
-      executable: ${{ matrix.executable }}
-      artifact: test-execs-MPI
-      mpi: 1
-    secrets: inherit
-  ### Debugging Test Codes
-
-  Memory-Leaks:
-    needs: Build-Executable-Linux-Non-Static
-    uses: ./.github/workflows/testModel.yml
-    with:
-      install: valgrind
-      file: test-memory-leaks.py
-      artifact: galacticus-exec-non-static
-      runPath: ./testSuite
-      options: --mpi 0
-    secrets: inherit
-  ### Memory leaks (MPI)
-
-  Parameters:
-    needs: Build-Executable-Linux-Non-Static
-    uses: ./.github/workflows/testCode.yml
-    with:
-      executable: tests.parameters.exe
-      artifact: test-execs
-      expectUnrecognized: 1
-    secrets: inherit
-  ### Test HDF5 IO
-
-  IO-HDF5:
-    needs: Build-Executable-Linux-Non-Static
-    uses: ./.github/workflows/testCode.yml
-    with:
-      executable: tests.IO.HDF5.exe
-      artifact: test-execs
-      requirePython: 1
-    secrets: inherit
-  ### Test Crash
-
-  Crash:
-    needs: Build-Executable-Linux-Non-Static
-    uses: ./.github/workflows/testCode.yml
-    with:
-      executable: tests.crash.exe
-      artifact: test-execs
-      expectCrash: 1
-    secrets: inherit
-  ### Test Fail
-
-  Fail:
-    needs: Build-Executable-Linux-Non-Static
-    uses: ./.github/workflows/testCode.yml
-    with:
-      executable: tests.fail.exe
-      artifact: test-execs
-      expectFail: 1
-    secrets: inherit
-  ### MPI Test Codes
-
-  Codes-Debugging:
-    needs: Build-Executables-Debugging-Linux
-    strategy:
-      # Ensure all jobs are run, even if some fail.
-      fail-fast: false
-      matrix:
-        executable: [ tests.debugging.exe ]
-    uses: ./.github/workflows/testCode.yml
-    with:
-      executable: ${{ matrix.executable }}
-      artifact: test-execs-debugging
-    secrets: inherit
-  ### Cosmology
-
   Python-Interface:
     runs-on: ubuntu-latest
     container: ghcr.io/galacticusorg/buildenv:latest
@@ -1695,7 +1602,6 @@ jobs:
       - run: echo "This job's status is ${{ job.status }}."
   ## MacOS
   ### Test Codes
-
   Codes-MacOS:
     needs: Build-Executable-MacOS
     strategy:
@@ -1710,7 +1616,38 @@ jobs:
       artifact: test-execs-MacOS
     secrets: inherit
   ### Test Python Interface
-
+  Python-Interface-MacOS:
+    runs-on: macos-15-intel
+    steps:
+      - run: echo "The job was automatically triggered by a ${{ github.event_name }} event."
+      - run: echo "This job is now running on a ${{ runner.os }} server."
+      - run: echo "The name of the branch is ${{ github.ref }} and the repository is ${{ github.repository }}."
+      - name: Check out repository code
+        uses: actions/checkout@v6
+      - name: Set up build environment
+        uses: ./.github/actions/buildMacOS
+      - name: "Set environmental variables"
+        run: |
+          echo "GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
+          echo "PYTHONPATH=$GITHUB_WORKSPACE/galacticus/python" >> $GITHUB_ENV
+      - name: Install Python
+        run: |
+          sudo port install python312
+          sudo port select --set python python312
+          sudo port select --set python3 python312
+      - name: Build Galacticus
+        run: |
+          make -j`sysctl -n hw.activecpu` USEGIT2=no GALACTICUS_BUILD_OPTION=lib libgalacticus.so
+          mkdir galacticus
+          mkdir galacticus/lib
+          mkdir galacticus/python
+          mv galacticus.py galacticus/python/
+          mv libgalacticus.so galacticus/lib/
+      - name: Test interface
+        run: |
+          python3 testSuite/test-Python-interface.py
+      - run: echo "This job's status is ${{ job.status }}."
+  # Validate, deploy and update
   Validate:
     runs-on: ubuntu-latest
     needs: [ Benchmark-Dark-Matter-Only-Subhalos, Benchmark-Milky-Way-Model, Validate-Dark-Matter-Only-Subhalos, Validate-Dark-Matter-Only-Subhalos-Symphony, Validate-Dark-Matter-Only-Subhalos-Symphony-X64, Validate-Dark-Matter-Only-Subhalos-COZMICWDM, Validate-Milky-Way-Model, Validate-PonosV, Validate-Baryonic-Suppression, Validate-Idealized-Subhalo-Simulations, Validate-Decaying-Dark-Matter-Only-Subhalos ]
@@ -2070,7 +2007,6 @@ jobs:
           git push --set-upstream origin gh-pages
           git checkout -
         if: github.event_name != 'pull_request' && github.ref == 'refs/heads/master'
-
   Deploy:
     runs-on: ubuntu-latest
     if: github.ref == 'refs/heads/master'
@@ -2210,7 +2146,6 @@ jobs:
         run: |
           gh release upload bleeding-edge ./darkMatterOnlySubHalos.perf.bz2 ./milkyWay.perf.bz2 ./milkyWay_SIDM.perf.bz2 ./darkMatterOnlySubHalos.gprof.bz2 ./milkyWay.gprof.bz2 ./milkyWay_SIDM.gprof.bz2 --clobber
           rm ./darkMatterOnlySubHalos.perf.bz2 ./milkyWay.perf.bz2 ./milkyWay_SIDM.perf.bz2 ./darkMatterOnlySubHalos.gprof.bz2 ./milkyWay.gprof.bz2 ./milkyWay_SIDM.gprof.bz2
-
   Update-Release-Tag:
     runs-on: ubuntu-latest
     if: github.ref == 'refs/heads/master'
