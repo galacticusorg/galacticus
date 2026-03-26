@@ -144,7 +144,7 @@ contains
     class(nodePropertyExtractorFractionAccretionHotMode), intent(inout) :: self
     !$GLC attributes unused :: self
 
-    fractionAccretionHotModeDescription=var_str('Fraction of halo accretion rate occuring via the hot mode.')
+    fractionAccretionHotModeDescription=var_str('Fraction of halo accretion rate occurring via the hot mode.')
     return
   end function fractionAccretionHotModeDescription
 

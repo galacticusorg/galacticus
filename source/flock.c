@@ -102,7 +102,7 @@ int flock_C(const char *name, struct lockDescriptor **ld, int lockIsShared, int 
 	/* File is blocked - sleep and try again. */
 	sleep(timeSleep);
       } else {
-	/* Some other error occured - report and abort */
+	/* Some other error occurred - report and abort */
 	if (errno == EBADF) {
 	  printf("flock_C(): bad file descriptor [EBADF]: %s\n",name);
 	} else if (errno == EINTR) {

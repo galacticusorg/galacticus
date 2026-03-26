@@ -120,7 +120,7 @@ contains
   
   double precision function timeDelayDistributionDifferential(time)
     !!{
-    Integrand used to compute the cumulative number of type Ia supernovae occuring by a given time.
+    Integrand used to compute the cumulative number of type Ia supernovae occurring by a given time.
     !!}
     implicit none
     double precision, intent(in   ) :: time

@@ -25,6 +25,7 @@
 
   use :: Cosmology_Parameters   , only : cosmologyParametersClass
   use :: Dark_Matter_Halo_Scales, only : darkMatterHaloScaleClass
+  use :: Satellites_Tidal_Fields, only : satelliteTidalFieldClass
 
   !![
   <satelliteTidalHeatingRate name="satelliteTidalHeatingRateGnedin1999">
@@ -51,6 +52,7 @@
      private
      class           (cosmologyParametersClass), pointer :: cosmologyParameters_ => null()
      class           (darkMatterHaloScaleClass), pointer :: darkMatterHaloScale_ => null()
+     class           (satelliteTidalFieldClass), pointer :: satelliteTidalField_       => null()
      double precision                                    :: epsilon                       , gamma
    contains
      final     ::                gnedin1999Destructor
@@ -77,6 +79,7 @@ contains
     type            (inputParameters                    ), intent(inout) :: parameters
     class           (cosmologyParametersClass           ), pointer       :: cosmologyParameters_
     class           (darkMatterHaloScaleClass           ), pointer       :: darkMatterHaloScale_
+    class           (satelliteTidalFieldClass           ), pointer       :: satelliteTidalField_
     double precision                                                     :: epsilon             , gamma
 
     !![
@@ -94,17 +97,19 @@ contains
     </inputParameter>
     <objectBuilder class="cosmologyParameters" name="cosmologyParameters_" source="parameters"/>
     <objectBuilder class="darkMatterHaloScale" name="darkMatterHaloScale_" source="parameters"/>
+    <objectBuilder class="satelliteTidalField" name="satelliteTidalField_" source="parameters"/>
     !!]
-    self=satelliteTidalHeatingRateGnedin1999(epsilon,gamma,cosmologyParameters_,darkMatterHaloScale_)
+    self=satelliteTidalHeatingRateGnedin1999(epsilon,gamma,cosmologyParameters_,darkMatterHaloScale_,satelliteTidalField_)
     !![
     <inputParametersValidate source="parameters"/>
     <objectDestructor name="cosmologyParameters_"/>
     <objectDestructor name="darkMatterHaloScale_"/>
+    <objectDestructor name="satelliteTidalField_"/>
     !!]
     return
   end function gnedin1999ConstructorParameters
 
-  function gnedin1999ConstructorInternal(epsilon,gamma,cosmologyParameters_,darkMatterHaloScale_) result(self)
+  function gnedin1999ConstructorInternal(epsilon,gamma,cosmologyParameters_,darkMatterHaloScale_,satelliteTidalField_) result(self)
     !!{
     Internal constructor for the \refClass{satelliteTidalHeatingRateGnedin1999} satellite tidal heating rate class.
     !!}
@@ -112,9 +117,10 @@ contains
     type            (satelliteTidalHeatingRateGnedin1999)                        :: self
     class           (cosmologyParametersClass           ), intent(in   ), target :: cosmologyParameters_
     class           (darkMatterHaloScaleClass           ), intent(in   ), target :: darkMatterHaloScale_
+    class           (satelliteTidalFieldClass           ), intent(in   ), target :: satelliteTidalField_
     double precision                                     , intent(in)            :: epsilon             , gamma
     !![
-    <constructorAssign variables="epsilon, gamma, *cosmologyParameters_, *darkMatterHaloScale_"/>
+    <constructorAssign variables="epsilon, gamma, *cosmologyParameters_, *darkMatterHaloScale_, *satelliteTidalField_"/>
     !!]
 
     return
@@ -130,6 +136,7 @@ contains
     !![
     <objectDestructor name="self%cosmologyParameters_"/>
     <objectDestructor name="self%darkMatterHaloScale_"/>
+    <objectDestructor name="self%satelliteTidalField_"/>
     !!]
     return
   end subroutine gnedin1999Destructor
@@ -146,24 +153,22 @@ contains
     use :: Mass_Distributions              , only : massDistributionClass
     use :: Tensors                         , only : assignment(=)        , max                      , operator(*) , tensorRank2Dimension3Symmetric
     use :: Vectors                         , only : Vector_Magnitude
-    use :: Coordinates                     , only : coordinateCartesian  , assignment(=)
     implicit none
     class           (satelliteTidalHeatingRateGnedin1999), intent(inout) :: self
     type            (treeNode                           ), intent(inout) :: node
     class           (nodeComponentSatellite             ), pointer       :: satellite
     type            (treeNode                           ), pointer       :: nodeHost
     class           (nodeComponentBasic                 ), pointer       :: basic
-    class           (massDistributionClass              ), pointer       :: massDistribution_        , massDistributionHost_
-    double precision                                     , dimension(3)  :: velocity
+    class           (massDistributionClass              ), pointer       :: massDistribution_
+    double precision                                     , dimension(3)  :: position                           , velocity
     double precision                                     , parameter     :: radiusHalfMassSatelliteTiny=1.0d-30, fractionMassTiny         =1.0d-6
-    type            (coordinateCartesian                )                :: position
-    double precision                                                     :: massSatellite            , velocityCircularSatellite, &
-         &                                                                  radius                   , speed                    , &
-         &                                                                  timescaleShock           , heatingRateNormalized    , &
-         &                                                                  orbitalFrequencySatellite, radiusHalfMassSatellite  , &
-         &                                                                  massHalfSatellite        , fractionDarkMatter
+    double precision                                                     :: massSatellite                      , velocityCircularSatellite       , &
+         &                                                                  radius                             , speed                           , &
+         &                                                                  timescaleShock                     , heatingRateNormalized           , &
+         &                                                                  orbitalFrequencySatellite          , radiusHalfMassSatellite         , &
+         &                                                                  massHalfSatellite                  , fractionDarkMatter
     logical                                                              :: useFrequencyOrbital
-    type            (tensorRank2Dimension3Symmetric     )                :: tidalTensor              , tidalTensorPathIntegrated
+    type            (tensorRank2Dimension3Symmetric     )                :: tidalTensor                        , tidalTensorPathIntegrated
     
     ! Construct required properties of satellite and host.
     nodeHost                  => node     %mergesWith               (        )
@@ -172,7 +177,7 @@ contains
     position                  =  satellite%position                 (        )
     velocity                  =  satellite%velocity                 (        )
     tidalTensorPathIntegrated =  satellite%tidalTensorPathIntegrated(        )
-    radius                    =  position %rSpherical               (        )
+    radius                    =  Vector_Magnitude                   (position)
     speed                     =  Vector_Magnitude                   (velocity)
     ! Find the universal dark matter fraction.
     fractionDarkMatter        =  +(                                         &
@@ -181,11 +186,7 @@ contains
          &                        )                                         &
          &                       /  self%cosmologyParameters_%OmegaMatter()
     ! Find the gravitational tidal tensor.
-    massDistributionHost_    => nodeHost%massDistribution()
-    tidalTensor              =  massDistributionHost_%tidalTensor(position)
-    !![
-    <objectDestructor name="massDistributionHost_"/>
-    !!]
+    tidalTensor              =  self%satelliteTidalField_%tidalTensor(node,nodeHost=nodeHost,includeCentrifugalAcceleration=.false.)
     ! Find the orbital frequency at the half mass radius of the satellite.
     massDistribution_        => node%massDistribution(componentTypeAll,massTypeDark)
     basic                    => node%basic()
