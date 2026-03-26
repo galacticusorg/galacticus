@@ -34,7 +34,9 @@
      !!}
      private
    contains
-     procedure :: tidalTensorRadial => nullTidalTensorRadial
+     procedure :: tidalTensor         => nullTidalTensor
+     procedure :: tidalTensorRadial   => nullTidalTensorRadial
+     procedure :: tidalTensorDominant => nullTidalTensorDominant
   end type satelliteTidalFieldNull
 
   interface satelliteTidalFieldNull
@@ -62,15 +64,49 @@ contains
     return
   end function nullConstructorParameters
 
-  double precision function nullTidalTensorRadial(self,node)
+  function nullTidalTensor(self,node,nodeHost,atPericenter,includeCentrifugalAcceleration) result(tensorTidal)
+    !!{
+    Return the radial part of the tidal tensor for satellite halos assumed to be zero.
+    !!}
+    use :: Tensors, only : tensorNullR2D3Sym
+    implicit none
+    type   (tensorRank2Dimension3Symmetric)                                  :: tensorTidal
+    class  (satelliteTidalFieldNull       ), intent(inout)                   :: self
+    type   (treeNode                      ), intent(inout)                   :: node
+    type   (treeNode                      ), intent(inout), optional, target :: nodeHost
+    logical                                , intent(in   ), optional         :: atPericenter, includeCentrifugalAcceleration
+    !$GLC attributes unused :: self, node, nodeHost, atPericenter, includeCentrifugalAcceleration
+
+    tensorTidal=tensorNullR2D3Sym
+    return
+  end function nullTidalTensor
+
+  double precision function nullTidalTensorRadial(self,node,nodeHost,atPericenter,includeCentrifugalAcceleration) result(tensorTidalRadial)
     !!{
     Return the radial part of the tidal tensor for satellite halos assumed to be zero.
     !!}
     implicit none
-    class(satelliteTidalFieldNull), intent(inout) :: self
-    type (treeNode               ), intent(inout) :: node
-    !$GLC attributes unused :: self, node
+    class  (satelliteTidalFieldNull), intent(inout)                   :: self
+    type   (treeNode               ), intent(inout)                   :: node
+    type   (treeNode               ), intent(inout), optional, target :: nodeHost
+    logical                         , intent(in   ), optional         :: atPericenter, includeCentrifugalAcceleration
+    !$GLC attributes unused :: self, node, nodeHost, atPericenter, includeCentrifugalAcceleration
 
-    nullTidalTensorRadial=0.0d0
+    tensorTidalRadial=0.0d0
     return
   end function nullTidalTensorRadial
+
+  double precision function nullTidalTensorDominant(self,node,nodeHost,atPericenter,includeCentrifugalAcceleration) result(tensorTidalDominant)
+    !!{
+    Return the dominant eigenvalue of the tidal tensor for satellite halos assumed to be zero.
+    !!}
+    implicit none
+    class  (satelliteTidalFieldNull), intent(inout)                   :: self
+    type   (treeNode               ), intent(inout)                   :: node
+    type   (treeNode               ), intent(inout), optional, target :: nodeHost
+    logical                         , intent(in   ), optional         :: atPericenter, includeCentrifugalAcceleration
+    !$GLC attributes unused :: self, node, nodeHost, atPericenter, includeCentrifugalAcceleration
+
+    tensorTidalDominant=0.0d0
+    return
+  end function nullTidalTensorDominant

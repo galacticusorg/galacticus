@@ -24,6 +24,7 @@
   !!}
 
   use :: Satellite_Tidal_Heating, only : satelliteTidalHeatingRateClass
+  use :: Satellites_Tidal_Fields, only : satelliteTidalFieldClass
   use :: Dark_Matter_Halo_Scales, only : darkMatterHaloScaleClass
 
   !![
@@ -38,6 +39,7 @@
      private
      class           (satelliteTidalHeatingRateClass), pointer :: satelliteTidalHeatingRate_ => null()
      class           (darkMatterHaloScaleClass      ), pointer :: darkMatterHaloScale_       => null()
+     class           (satelliteTidalFieldClass      ), pointer :: satelliteTidalField_       => null()
      double precision                                          :: efficiencyDecay
      logical                                                   :: applyPreInfall
    contains
@@ -65,6 +67,7 @@ contains
     type            (nodeOperatorSatelliteTidalHeating)                :: self
     type            (inputParameters                  ), intent(inout) :: parameters
     class           (satelliteTidalHeatingRateClass   ), pointer       :: satelliteTidalHeatingRate_
+    class           (satelliteTidalFieldClass         ), pointer       :: satelliteTidalField_
     class           (darkMatterHaloScaleClass         ), pointer       :: darkMatterHaloScale_
     double precision                                                   :: efficiencyDecay
     logical                                                            :: applyPreInfall
@@ -84,28 +87,31 @@ contains
     </inputParameter>
     <objectBuilder class="satelliteTidalHeatingRate" name="satelliteTidalHeatingRate_" source="parameters"/>
     <objectBuilder class="darkMatterHaloScale"       name="darkMatterHaloScale_"       source="parameters"/>
+    <objectBuilder class="satelliteTidalField"       name="satelliteTidalField_"       source="parameters"/>
     !!]
-    self=nodeOperatorSatelliteTidalHeating(efficiencyDecay,applyPreInfall,satelliteTidalHeatingRate_,darkMatterHaloScale_)
+    self=nodeOperatorSatelliteTidalHeating(efficiencyDecay,applyPreInfall,satelliteTidalHeatingRate_,satelliteTidalField_,darkMatterHaloScale_)
     !![
     <inputParametersValidate source="parameters"/>
     <objectDestructor name="satelliteTidalHeatingRate_"/>
     <objectDestructor name="darkMatterHaloScale_"      />
+    <objectDestructor name="satelliteTidalField_"      />
     !!]
     return
   end function satelliteTidalHeatingRateConstructorParameters
 
-  function satelliteTidalHeatingRateConstructorInternal(efficiencyDecay,applyPreInfall,satelliteTidalHeatingRate_,darkMatterHaloScale_) result(self)
+  function satelliteTidalHeatingRateConstructorInternal(efficiencyDecay,applyPreInfall,satelliteTidalHeatingRate_,satelliteTidalField_,darkMatterHaloScale_) result(self)
     !!{
     Internal constructor for the \refClass{nodeOperatorSatelliteTidalHeating} node operator class.
     !!}
     implicit none
     type            (nodeOperatorSatelliteTidalHeating)                        :: self
     class           (satelliteTidalHeatingRateClass   ), intent(in   ), target :: satelliteTidalHeatingRate_
+    class           (satelliteTidalFieldClass         ), intent(in   ), target :: satelliteTidalField_
     class           (darkMatterHaloScaleClass         ), intent(in   ), target :: darkMatterHaloScale_
     double precision                                   , intent(in   )         :: efficiencyDecay
     logical                                            , intent(in   )         :: applyPreInfall
     !![
-    <constructorAssign variables="efficiencyDecay, applyPreInfall, *satelliteTidalHeatingRate_, *darkMatterHaloScale_"/>
+    <constructorAssign variables="efficiencyDecay, applyPreInfall, *satelliteTidalHeatingRate_, *darkMatterHaloScale_, *satelliteTidalField_"/>
     !!]
 
     return
@@ -120,6 +126,7 @@ contains
 
     !![
     <objectDestructor name="self%satelliteTidalHeatingRate_"/>
+    <objectDestructor name="self%satelliteTidalField_"      />
     <objectDestructor name="self%darkMatterHaloScale_"      />
     !!]
     return
@@ -146,14 +153,12 @@ contains
     class           (nodeComponentBasic               )               , pointer :: basic                         , basicHost
     class           (nodeComponentSatellite           )               , pointer :: satellite
     type            (treeNode                         )               , pointer :: nodeHost
-    class           (massDistributionClass            )               , pointer :: massDistribution_
     double precision                                   , dimension(3)           :: position                      , velocity
     double precision                                   , parameter              :: frequencyFractionalTiny=1.0d-6
     double precision                                                            :: radius                        , orbitalPeriod            , &
          &                                                                         radialFrequency               , angularFrequency         , &
          &                                                                         timescaleDynamical            , frequencyOrbital
     type            (tensorRank2Dimension3Symmetric)                            :: tidalTensor                   , tidalTensorPathIntegrated
-    type            (coordinateCartesian           )                            :: coordinates
     !$GLC attributes unused :: interrupt, functionInterrupt, propertyType
 
     if     (                                   &
@@ -191,13 +196,8 @@ contains
     tidalTensorPathIntegrated =  satellite%tidalTensorPathIntegrated(        )
     radius                    =  Vector_Magnitude                   (position)
     if (radius <= 0.0d0) return ! Do not compute rates at zero radius.
-    ! Calculate tidal tensor and rate of change of integrated tidal tensor.
-    coordinates       =  position
-    massDistribution_ => nodeHost         %massDistribution(           )
-    tidalTensor       =  massDistribution_%tidalTensor     (coordinates)
-    !![
-    <objectDestructor name="massDistribution_"/>
-    !!]
+    ! Calculate tidal tensor.
+    tidalTensor=self%satelliteTidalField_%tidalTensor(node,nodeHost=nodeHost,includeCentrifugalAcceleration=.false.)
     ! Compute the orbital frequency. We use the larger of the angular and radial frequencies to avoid numerical problems for
     ! purely radial or purely circular orbits.
     angularFrequency=+Vector_Magnitude(Vector_Product(position,velocity)) &

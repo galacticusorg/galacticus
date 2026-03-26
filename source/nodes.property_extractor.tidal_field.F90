@@ -23,25 +23,22 @@
 Implements a tidal field property extractor class.
 !!}
 
+  use :: Satellites_Tidal_Fields, only : satelliteTidalFieldClass
+
   !![
   <nodePropertyExtractor name="nodePropertyExtractorTidalField">
    <description> 
-    A property extractor class which extracts the radial component of the tidal tensor assuming spherical symmetry in units of $\mathrm{Gyr^{-2}}$.
-    This is calculated using the equation:
-    \begin{equation}
-     \mathcal{F} = {\mathrm{G} M_\mathrm{host}(&lt;r) \over r^3} - 4 \pi \mathrm{G}
-     \rho_\mathrm{host}(r) + \omega^2,
-    \end{equation}
-    where $r$ is the current orbital radius. $M_\mathrm{host}(&lt;r)$ is the mass of the host halo enclosed within a sphere
-    of radius $r$, $\rho_\mathrm{host}(r)$ is the host density at radius $r$, and $\omega$ is the orbital angular velocity.
+    A property extractor class which extracts the radial component of the tidal tensor in units of $\mathrm{Gyr^{-2}}$.
    </description>
   </nodePropertyExtractor>
   !!]
   type, extends(nodePropertyExtractorScalar) :: nodePropertyExtractorTidalField
      !!{
-      A property extractor class which extracts the radial component of the tidal tensor assuming spherical symmetry in units of $\mathrm{Gyr^{-2}}$.
+      A property extractor class which extracts the radial component of the tidal tensor in units of $\mathrm{Gyr^{-2}}$.
      !!}
+     class(satelliteTidalFieldClass), pointer :: satelliteTidalField_ => null()
    contains
+     final     ::                tidalFieldDestructor
      procedure :: extract     => tidalFieldExtract
      procedure :: name        => tidalFieldName
      procedure :: description => tidalFieldDescription
@@ -53,6 +50,7 @@ Implements a tidal field property extractor class.
      Constructors for the \refClass{nodePropertyExtractorTidalField} output analysis class.
      !!}
      module procedure tidalFieldConstructorParameters
+     module procedure tidalFieldConstructorInternal
   end interface nodePropertyExtractorTidalField
 
 contains
@@ -63,67 +61,69 @@ contains
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
-    type(nodePropertyExtractorTidalField)                :: self
-    type(inputParameters                ), intent(inout) :: parameters
-
-    self=nodePropertyExtractorTidalField()
+    type (nodePropertyExtractorTidalField)                :: self
+    type (inputParameters                ), intent(inout) :: parameters
+    class(satelliteTidalFieldClass       ), pointer       :: satelliteTidalField_
+    
+    !![
+    <objectBuilder class="satelliteTidalField" name="satelliteTidalField_" source="parameters"/>
+    !!]
+    self=nodePropertyExtractorTidalField(satelliteTidalField_)
     !![
     <inputParametersValidate source="parameters"/>
+    <objectDestructor name="satelliteTidalField_"/>
     !!]
     return
   end function tidalFieldConstructorParameters
 
+  function tidalFieldConstructorInternal(satelliteTidalField_) result(self)
+    !!{
+    Internal constructor for the \refClass{nodePropertyExtractorTidalField} class.
+    !!}
+    implicit none
+    type (nodePropertyExtractorTidalField)                        :: self
+    class(satelliteTidalFieldClass       ), intent(in   ), target :: satelliteTidalField_
+    !![
+    <constructorAssign variables="*satelliteTidalField_"/>
+    !!]
+
+    return
+  end function tidalFieldConstructorInternal
+
+  subroutine tidalFieldDestructor(self)
+    !!{
+    Destructor for the \refClass{nodePropertyExtractorTidalField} class.
+    !!}
+    implicit none
+    type(nodePropertyExtractorTidalField), intent(inout) :: self
+
+    !![
+    <objectDestructor name="self%satelliteTidalField_"/>
+    !!]
+    return
+  end subroutine tidalFieldDestructor
+
   double precision function tidalFieldExtract(self,node,instance)
     !!{
-    Return the radial part of the tidal tensor for satellite halos assuming spherical symmetry of the host.
+    Return the radial part of the tidal tensor for satellite halos.
     !!}
-    use :: Coordinates                     , only : coordinateSpherical                     , assignment(=)
-    use :: Galacticus_Nodes                , only : nodeComponentSatellite        , treeNode
-    use :: Mass_Distributions              , only : massDistributionClass
-    use :: Numerical_Constants_Math        , only : Pi
-    use :: Numerical_Constants_Astronomical, only : gravitationalConstant_internal, gigaYear, &
-         &                                          megaParsec
-    use :: Numerical_Constants_Prefixes    , only : kilo 
-    use :: vectors                         , only : Vector_Magnitude
+    use :: Numerical_Constants_Astronomical, only : gigaYear, megaParsec
+    use :: Numerical_Constants_Prefixes    , only : kilo
     implicit none
-    class           (nodePropertyExtractorTidalField), intent(inout), target   :: self
-    type            (treeNode                       ), intent(inout), target   :: node
-    type            (multiCounter                   ), intent(inout), optional :: instance 
-    type            (treeNode                       ), pointer                 :: nodeHost
-    class           (nodeComponentSatellite         ), pointer                 :: satellite
-    class           (massDistributionClass          ), pointer                 :: massDistribution_
-    double precision                                                           :: densityHost       , enclosedMassHost, &
-         &                                                                        radiusOrbital     , velocityOrbital
-    type            (coordinateSpherical            )                          :: coordinatesOrbital
-    !$GLC attributes unused :: self, instance
+    class(nodePropertyExtractorTidalField), intent(inout), target   :: self
+    type (treeNode                       ), intent(inout), target   :: node
+    type (multiCounter                   ), intent(inout), optional :: instance 
+    !$GLC attributes unused :: instance
 
-    ! For isolated halos, always return zero tidal field.
     if (node%isSatellite()) then
-       ! Find the host node.
-       nodeHost  => node%parent
-       ! Get the satellite component.
-       satellite => node%satellite()
-       ! Compute orbital radius and velocity
-       radiusOrbital      =  +Vector_Magnitude(satellite%position())
-       velocityOrbital    =  +Vector_Magnitude(satellite%velocity())
-       coordinatesOrbital =  [radiusOrbital,0.0d0,0.0d0]
-       massDistribution_  => nodeHost         %massDistribution    (                  )
-       densityHost        =  massDistribution_%density             (coordinatesOrbital)
-       enclosedMassHost   =  massDistribution_%massEnclosedBySphere(     radiusOrbital)
-       !![
-       <objectDestructor name="massDistribution_"/>
-       !!]
-       ! Compute the tidal field.
-       tidalFieldExtract  = +gravitationalConstant_internal*enclosedMassHost/radiusOrbital **3 &
-            &               -4.0d0*Pi*gravitationalConstant_internal*densityHost               &
-            &               +(velocityOrbital/radiusOrbital)**2
-       ! Convert to Gyr⁻² units.
-       tidalFieldExtract  = +tidalFieldExtract                                                 &
-            &               *gigaYear**2                                                       &
-            &               *kilo**2                                                           &
-            &               /megaParsec**2
+       ! Get the tidal field and convert to Gyr⁻² units.
+       tidalFieldExtract=+self%satelliteTidalField_%tidalTensorRadial(node,includeCentrifugalAcceleration=.true.) &
+            &            *gigaYear  **2                                                                           &
+            &            *kilo      **2                                                                           &
+            &            /megaParsec**2
     else
-       tidalFieldExtract  = +0.0d0
+       ! For isolated halos, always return zero tidal field.
+       tidalFieldExtract=+0.0d0
     end if
     return
   end function tidalFieldExtract

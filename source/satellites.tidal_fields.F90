@@ -26,6 +26,7 @@ module Satellites_Tidal_Fields
   Implements calculations of tidal fields acting on satellites.
   !!}
   use :: Galacticus_Nodes, only : treeNode
+  use :: Tensors         , only : tensorRank2Dimension3Symmetric
   private
 
   !![
@@ -35,12 +36,30 @@ module Satellites_Tidal_Fields
    <description>
     Class providing models of tidal fields experienced by satellite halos.
    </description>
-   <default>null</default>
+   <default>standard</default>
+   <method name="tidalTensor" >
+    <description>Returns the tidal tensor, $\Phi_\mathrm{ab}$.</description>
+    <type>type(tensorRank2Dimension3Symmetric)</type>
+    <pass>yes</pass>
+    <argument>type   (treeNode), intent(inout)                   :: node                                        </argument>
+    <argument>type   (treeNode), intent(inout), optional, target :: nodeHost                                    </argument>
+    <argument>logical          , intent(in   ), optional         :: atPericenter, includeCentrifugalAcceleration</argument>
+   </method>
    <method name="tidalTensorRadial" >
     <description>Returns the radial component, $\Phi_\mathrm{rr}$, of the tidal tensor, $\Phi_\mathrm{ab}$.</description>
     <type>double precision</type>
     <pass>yes</pass>
-    <argument>type(treeNode), intent(inout) :: node</argument>
+    <argument>type   (treeNode), intent(inout)                   :: node                                        </argument>
+    <argument>type   (treeNode), intent(inout), optional, target :: nodeHost                                    </argument>
+    <argument>logical          , intent(in   ), optional         :: atPericenter, includeCentrifugalAcceleration</argument>
+   </method>
+   <method name="tidalTensorDominant" >
+    <description>Returns the dominant eigenvalue of the tidal tensor, $\Phi_\mathrm{ab}$.</description>
+    <type>double precision</type>
+    <pass>yes</pass>
+    <argument>type   (treeNode), intent(inout)                   :: node                                        </argument>
+    <argument>type   (treeNode), intent(inout), optional, target :: nodeHost                                    </argument>
+    <argument>logical          , intent(in   ), optional         :: atPericenter, includeCentrifugalAcceleration</argument>
    </method>
   </functionClass>
   !!]

@@ -19,9 +19,6 @@
   <!-- Baryonic components are set to null since we are not modeling them here. -->
   <componentBasic value="standard"/>
   <componentBlackHole value="standard"/>
-  <blackHoleCGMHeating value="jetPower">
-    <efficiencyRadioMode value="1.0"/>
-  </blackHoleCGMHeating>
   <blackHoleWind value="ciotti2009">
     <efficiencyWind value="2.4e-3"/>
     <efficiencyWindScalesWithEfficiencyRadiative value="false"/>

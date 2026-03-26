@@ -337,7 +337,7 @@ contains
     character       (len=24                       )                                    :: label
     character       (len=35                       )                                    :: message
     type            (varying_string               )                                    :: lockType                                       , vMessage
-    logical                                                                            :: anyTreeExistsAtOutputTime                      , hasIntertreeEvent, &
+    logical                                                                            :: anyTreeExistsAtOutputTime                      , hasInterTreeEvent, &
          &                                                                                nodeProgressed                                 , nextNodeFound    , &
          &                                                                                didEvolve                                      , interrupted      , &
          &                                                                                nodesRemain
@@ -460,7 +460,7 @@ contains
                          end if
                          ! Check for interrupt.
                          if     (                                                         &
-                              &   interrupted                                             & ! An interrupt occured.
+                              &   interrupted                                             & ! An interrupt occurred.
                               &  .and.                                                    &
                               &   (                                                       &
                               &    basic%time() < timeEndThisNode                         & ! The end of the timestep was not reached.
@@ -728,15 +728,15 @@ contains
     if (.not.anyTreeExistsAtOutputTime) then
        ! Walk over all trees in the forest.
        treeWalker       =mergerTreeWalkerAllNodes(tree,spanForest=.true.)
-       do while (treeWalker%next(node).and..not.hasIntertreeEvent)
+       do while (treeWalker%next(node).and..not.hasInterTreeEvent)
           ! Iterate over events.
           event => node%event
-          do while (associated(event).and..not.hasIntertreeEvent)
+          do while (associated(event).and..not.hasInterTreeEvent)
              select type (event)
              type is (nodeEventSubhaloPromotionInterTree)
-                hasIntertreeEvent=.true.
+                hasInterTreeEvent=.true.
              type is (nodeEventBranchJumpInterTree      )
-                hasIntertreeEvent=.true.
+                hasInterTreeEvent=.true.
              end select
              event => event%next
           end do
