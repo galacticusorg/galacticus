@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1774232477426,
+  "lastUpdate": 1774516338396,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Dark matter-only subhalos benchmarks (Symphony Milky Way resolutionX8)": [
@@ -1555,6 +1555,45 @@ window.BENCHMARK_DATA = {
           {
             "name": "Dark Matter Only Subhalos (Symphony CDM resolution X8 Milky Way) - Likelihood - subhaloVelocityMaximumMean",
             "value": 44.15451370891685,
+            "unit": "-logℒ"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abensonca@gmail.com",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "4c7b97a65ab8bf017036bd8062ee61eb3217a70f",
+          "message": "Merge pull request #1040 from galacticusorg/featCollapseHDF5Diffs\n\nMake HDF5 file diff PR comments collapsible",
+          "timestamp": "2026-03-26T01:41:19Z",
+          "tree_id": "2d48a657b6c57353b2dd7a823d91db9d0e5e53b8",
+          "url": "https://github.com/galacticusorg/galacticus/commit/4c7b97a65ab8bf017036bd8062ee61eb3217a70f"
+        },
+        "date": 1774516337497,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Dark Matter Only Subhalos (Symphony CDM resolution X8 Milky Way) - Likelihood - subhaloMassFunction",
+            "value": 2.7187285802810157,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Dark Matter Only Subhalos (Symphony CDM resolution X8 Milky Way) - Likelihood - subhaloRadialDistribution",
+            "value": 3.921603246116079,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Dark Matter Only Subhalos (Symphony CDM resolution X8 Milky Way) - Likelihood - subhaloVelocityMaximumMean",
+            "value": 44.646485787551406,
             "unit": "-logℒ"
           }
         ]
