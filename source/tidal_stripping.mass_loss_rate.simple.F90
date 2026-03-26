@@ -177,7 +177,7 @@ contains
        call Error_Report('unsupported component'//{introspection:location})
     end select
     ! Get the tidal field due to the host halo.
-    tidalTensorRadial =  self%satelliteTidalField_%tidalTensorRadial(node)
+    tidalTensorRadial =  self%satelliteTidalField_%tidalTensorRadial(node,atPericenter=.true.,includeCentrifugalAcceleration=.false.)
     ! Get the tidal force exerted at the half-mass radius.
     forceTidal        =  +tidalTensorRadial &
          &               *radiusHalfMass

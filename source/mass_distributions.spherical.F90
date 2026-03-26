@@ -847,9 +847,9 @@ contains
          &               +(massEnclosed*3.0d0   /radius**5)*positionTensor        &
          &               -(density     *4.0d0*Pi/radius**2)*positionTensor
     ! For dimensionful profiles, add the appropriate normalization.
-    if (.not.self%isDimensionless())                             &
-         & sphericalTidalTensor=+sphericalTidalTensor            &
-         &                       *gravitationalConstant_internal
+    if (.not.self%isDimensionless())                            &
+         & sphericalTidalTensor=+sphericalTidalTensor           &
+         &                      *gravitationalConstant_internal
     return
   end function sphericalTidalTensor
 

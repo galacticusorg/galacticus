@@ -74,12 +74,18 @@ jobs:
         uses: andstor/file-existence-action@v3
         with:
           files: diffs.md
-      - name: Comment on the PR if any warnings were found
+      - name: Wrap warnings in collapsible section
+        if: steps.check_files.outputs.files_exists == 'true'
+        run: |
+          printf '<details><summary>HDF5 file differences (click to expand)</summary>\n\n' > diffs-collapsible.md
+          cat diffs.md >> diffs-collapsible.md
+          printf '\n\n</details>\n' >> diffs-collapsible.md
+      - name: Comment on the PR if any diffs were found
         if: steps.check_files.outputs.files_exists == 'true' && github.event.pull_request.head.repo.full_name == github.repository
         continue-on-error: true
         uses: thollander/actions-comment-pull-request@v3
         with:
-          file-path: diffs.md
+          file-path: diffs-collapsible.md
       - name: Add a step summary
         if: steps.check_files.outputs.files_exists == 'true'
         run: |

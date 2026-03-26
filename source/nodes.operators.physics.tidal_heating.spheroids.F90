@@ -135,7 +135,7 @@ contains
          &  .or.                                                                                                                                                                  &
          &   spheroid%radius         () >                                             self%darkMatterHaloScale_%radiusVirial(node)                                                &
          & ) return
-    tidalField =self%satelliteTidalField_%tidalTensorRadial(node)
+    tidalField =self%satelliteTidalField_%tidalTensorRadial(node,atPericenter=.true.,includeCentrifugalAcceleration=.false.)
     tidalTorque=+abs(tidalField)              &
          &      *(                           &
          &        +spheroid%massGas    ()    &
