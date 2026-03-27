@@ -30,9 +30,10 @@
     The mass variance of cosmological density fields is computed by adding to the variance of another class to mimic that
     associated with the formation of artificial halos. Specifically,
     \begin{equation}
-     \sigma^2(M,t) \rightarrow \sigma^2(M,t) + S_0 \left(\frac{M}{M_0}\right)^\alpha D^2(t),
-    \end{equation}    
-    where $S_0=$\mono{[normalization]}, $M_0=$\mono{[massZeroPoint]}, and $\alpha=$\mono{[exponent]}.
+     \sigma^2(M,t) \rightarrow \sigma^2(M,t) + \left(\frac{M}{M_0}\right)^\alpha D^{2\beta}(t),
+    \end{equation}
+    where $M_0=$\mono{[massZeroPoint]} (the mass at which the variance due is 1 at $z=0$), $\alpha=$\mono{[exponentMass]},
+    $\beta=$\mono{[exponentGrowthFactor]}.
    </description>
   </cosmologicalMassVariance>
   !!]
@@ -44,8 +45,8 @@
      class           (cosmologicalMassVarianceClass), pointer :: cosmologicalMassVariance_ => null()
      class           (cosmologyFunctionsClass      ), pointer :: cosmologyFunctions_       => null()
      class           (linearGrowthClass            ), pointer :: linearGrowth_             => null()
-     double precision                                         :: normalization                      , massZeroPoint, &
-          &                                                      exponent
+     double precision                                         :: nexponentGrowthFactor              , massZeroPoint       , &
+          &                                                      exponentMass                       , exponentGrowthFactor
    contains
      final     ::                                        artificialHalosDestructor
      procedure :: sigma8                              => artificialHalosSigma8
@@ -80,30 +81,30 @@ contains
     class           (cosmologyFunctionsClass                ), pointer       :: cosmologyFunctions_
     class           (cosmologicalMassVarianceClass          ), pointer       :: cosmologicalMassVariance_
     class           (linearGrowthClass                      ), pointer       :: linearGrowth_
-    double precision                                                         :: normalization            , massZeroPoint, &
-         &                                                                      exponent
+    double precision                                                         :: exponentGrowthFactor     , massZeroPoint, &
+         &                                                                      exponentMass
     
     !![
     <inputParameter>
-      <name>normalization</name>
-      <source>parameters</source>
-      <description></description>
-    </inputParameter>
-    <inputParameter>
       <name>massZeroPoint</name>
       <source>parameters</source>
-      <description></description>
+      <description>The mass, $M_0$, in the artificial halo variance model.</description>
     </inputParameter>
     <inputParameter>
-      <name>exponent</name>
+      <name>exponentMass</name>
       <source>parameters</source>
-      <description></description>
+      <description>The exponent of mass, $\alpha$, in the artificial halo variance model.</description>
+    </inputParameter>
+    <inputParameter>
+      <name>exponentGrowthFactor</name>
+      <source>parameters</source>
+      <description>The exponent of growth factor, $\beta, in the artificial halo variance model.</description>
     </inputParameter>
     <objectBuilder class="cosmologyFunctions"       name="cosmologyFunctions_"       source="parameters"/>
     <objectBuilder class="cosmologicalMassVariance" name="cosmologicalMassVariance_" source="parameters"/>
     <objectBuilder class="linearGrowth"             name="linearGrowth_"             source="parameters"/>
     !!]
-    self=cosmologicalMassVarianceArtificialHalos(normalization, massZeroPoint, exponent,cosmologicalMassVariance_,cosmologyFunctions_,linearGrowth_)
+    self=cosmologicalMassVarianceArtificialHalos(massZeroPoint,exponentMass,exponentGrowthFactor,cosmologicalMassVariance_,cosmologyFunctions_,linearGrowth_)
     !![
     <objectDestructor name="cosmologicalMassVariance_"/>
     <objectDestructor name="cosmologyFunctions_"      />
@@ -112,7 +113,7 @@ contains
     return
   end function artificialHalosConstructorParameters
 
-  function artificialHalosConstructorInternal(normalization, massZeroPoint, exponent,cosmologicalMassVariance_,cosmologyFunctions_,linearGrowth_) result(self)
+  function artificialHalosConstructorInternal(massZeroPoint,exponentMass,exponentGrowthFactor,cosmologicalMassVariance_,cosmologyFunctions_,linearGrowth_) result(self)
     !!{
     Internal constructor for the \mono{artificialHalos} cosmological mass variance class.
     !!}
@@ -121,10 +122,10 @@ contains
     class           (cosmologicalMassVarianceClass          ), intent(in   ), target :: cosmologicalMassVariance_
     class           (cosmologyFunctionsClass                ), intent(in   ), target :: cosmologyFunctions_
     class           (linearGrowthClass                      ), intent(in   ), target :: linearGrowth_
-    double precision                                         , intent(in   )         :: normalization            , massZeroPoint, &
-         &                                                                              exponent
+    double precision                                         , intent(in   )         :: exponentGrowthFactor     , massZeroPoint, &
+         &                                                                              exponentMass
     !![
-    <constructorAssign variables="normalization, massZeroPoint, exponent, *cosmologicalMassVariance_, *cosmologyFunctions_, *linearGrowth_"/>
+    <constructorAssign variables="massZeroPoint, exponentMass, exponentGrowthFactor, *cosmologicalMassVariance_, *cosmologyFunctions_, *linearGrowth_"/>
     !!]
     
     return
@@ -176,14 +177,13 @@ contains
     class           (cosmologicalMassVarianceArtificialHalos), intent(inout) :: self
     double precision                                         , intent(in   ) :: mass, time
 
-    artificialHalosRootVariance=+sqrt(                                                           &
-         &                            +self%cosmologicalMassVariance_%rootVariance(mass,time)**2 &
-         &                            +self%normalization                                        &
-         &                            *(                                                         &
-         &                              +     mass                                               &
-         &                              /self%massZeroPoint                                      &
-         &                             )**self%exponent                                          &
-         &                            *self%linearGrowth_            %value       (     time)**2 &
+    artificialHalosRootVariance=+sqrt(                                                                                           &
+         &                            +self%cosmologicalMassVariance_%rootVariance(mass,time)** 2                                &
+         &                            +(                                                                                         &
+         &                              +     mass                                                                               &
+         &                              /self%massZeroPoint                                                                      &
+         &                             )**self%exponentMass                                                                      &
+         &                            *self%linearGrowth_            %value       (     time)**(2.0d0*self%exponentGrowthFactor) &
          &                            )
     return
   end function artificialHalosRootVariance
@@ -198,16 +198,15 @@ contains
     double precision                                         , intent(in   ) :: mass            , time
     double precision                                                         :: varianceOriginal, varianceArtificial
 
-    varianceOriginal                              =+self%cosmologicalMassVariance_%rootVariance(mass,time)**2
-    varianceArtificial                            =+self%normalization                                        &
-         &                                         *(                                                         &
-         &                                           +     mass                                               &
-         &                                           /self%massZeroPoint                                      &
-         &                                          )**self%exponent                                          &
-         &                                         *self%linearGrowth_            %value       (     time)**2
+    varianceOriginal                              =+self%cosmologicalMassVariance_%rootVariance(mass,time)** 2
+    varianceArtificial                            =+(                                                                                         &
+         &                                           +     mass                                                                               &
+         &                                           /self%massZeroPoint                                                                      &
+         &                                          )**self%exponentMass                                                                      &
+         &                                         *self%linearGrowth_            %value       (     time)**(2.0d0*self%exponentGrowthFactor)
     artificialHalosRootVarianceLogarithmicGradient=+(                                                                                                    &
          &                                           +varianceOriginal  *self%cosmologicalMassVariance_%rootVarianceLogarithmicGradient(mass,time)       &
-         &                                           +varianceArtificial*self%exponent                                                            /2.0d0 &
+         &                                           +varianceArtificial*self%exponentMass                                                        /2.0d0 &
          &                                          )                                                                                                    &
          &                                         /(                                                                                                    &
          &                                           +varianceOriginal                                                                                   &
@@ -226,16 +225,16 @@ contains
     double precision                                         , intent(in   ) :: mass            , time
     double precision                                                         :: varianceOriginal, varianceArtificial
 
-    varianceOriginal                              =+self%cosmologicalMassVariance_%rootVariance(mass,time)**2
-    varianceArtificial                            =+self%normalization                                        &
-         &                                         *(                                                         &
-         &                                           +     mass                                               &
-         &                                           /self%massZeroPoint                                      &
-         &                                          )**self%exponent                                          &
-         &                                         *self%linearGrowth_            %value       (     time)**2
+    varianceOriginal                              =+self%cosmologicalMassVariance_%rootVariance(mass,time)** 2
+    varianceArtificial                            =+(                                                                                         &
+         &                                           +     mass                                                                               &
+         &                                           /self%massZeroPoint                                                                      &
+         &                                          )**self%exponentMass                                                                      &
+         &                                         *self%linearGrowth_            %value       (     time)**(2.0d0*self%exponentGrowthFactor)
     artificialHalosRootVarianceLogarithmicGradientTime=+(                                                                                                                                              &
          &                                               +varianceOriginal  *self%cosmologicalMassVariance_%rootVarianceLogarithmicGradientTime (mass,                                          time)  &
-         &                                               +varianceArtificial*self%linearGrowth_            %logarithmicDerivativeExpansionFactor(                                               time)  &
+         &                                               +varianceArtificial*self%exponentGrowthFactor                                                                                                 &
+         &                                                                  *self%linearGrowth_            %logarithmicDerivativeExpansionFactor(                                               time)  &
          &                                               *                   self%cosmologyFunctions_      %expansionRate                       (     self%cosmologyFunctions_ %expansionFactor(time)) &
          &                                               *                                                                                                                                      time   &
          &                                              )                                                                                                                                              &
@@ -258,16 +257,15 @@ contains
     double precision                                                         :: varianceOriginal, varianceArtificial
 
     call self%cosmologicalMassVariance_%rootVarianceAndLogarithmicGradient(mass,time,rootVariance,rootVarianceLogarithmicGradient)
-    varianceOriginal              =+self%cosmologicalMassVariance_%rootVariance(mass,time)**2
-    varianceArtificial            =+self%normalization                                        &
-         &                         *(                                                         &
-         &                           +     mass                                               &
-         &                           /self%massZeroPoint                                      &
-         &                          )**self%exponent                                          &
-         &                         *self%linearGrowth_            %value       (     time)**2
+    varianceOriginal              =+self%cosmologicalMassVariance_%rootVariance(mass,time)** 2
+    varianceArtificial            =+(                                                                                         &
+         &                           +     mass                                                                               &
+         &                           /self%massZeroPoint                                                                      &
+         &                          )**self%exponentMass                                                                      &
+         &                         *self%linearGrowth_            %value       (     time)**(2.0d0*self%exponentGrowthFactor)
     rootVarianceLogarithmicGradient=+(                                                                                                    &
          &                            +varianceOriginal  *self%cosmologicalMassVariance_%rootVarianceLogarithmicGradient(mass,time)       &
-         &                            +varianceArtificial*self%exponent                                                            /2.0d0 &
+         &                            +varianceArtificial*self%exponentMass                                                        /2.0d0 &
          &                           )                                                                                                    &
          &                          /(                                                                                                    &
          &                            +varianceOriginal                                                                                   &

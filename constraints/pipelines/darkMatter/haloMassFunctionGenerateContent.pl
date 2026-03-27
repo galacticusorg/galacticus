@@ -78,22 +78,23 @@ foreach my $entry ( &iterate($simulations,\%options, stopAfter => "group") ) {
 	$entry->{'group'}->{'name'}."\n";
     # Generate isolation bias parameters.
     if ( $entry->{'suite'}->{'includeIsolationBias'}->{'value'} eq "true" && $options{'removeMultiplier'} eq "false" ) {
+	my $groupName = exists($entry->{'group'}->{'shortName'}) ? $entry->{'group'}->{'shortName'} : $entry->{'group'}->{'name'};
 	if ( exists($entry->{'suite'}->{'matchedIsolation'}) ) {
-	    $entry->{'group'}->{'labelIsolationBias'} = $entry->{'suite'}->{'matchedIsolation'}->{'suite'}.$entry->{'group'}->{'name'};
+	    $entry->{'group'}->{'labelIsolationBias'} = $entry->{'suite'}->{'matchedIsolation'}->{'suite'}.$groupName;
 	} else {
-	    $entry->{'group'}->{'labelIsolationBias'} = $entry->{'suite'}                      ->{'name' }.$entry->{'group'}->{'name'};
+	    $entry->{'group'}->{'labelIsolationBias'} = $entry->{'suite'}                      ->{'name' }.$groupName;
 	}
 	$entry->{'group'}->{'labelIsolationBias'} =~ s/:/_/g;
 	$entry->{'group'}->{'isolationBias'     } =
 	    "haloMassFunctionParameters/isolationBias"          .$entry->{'group'}->{'labelIsolationBias'}.
 	    "  haloMassFunctionParameters/isolationBiasExponent".$entry->{'group'}->{'labelIsolationBias'};
-	++$isolationBiases{$entry->{'group'}->{'labelIsolationBias'}};
+	$isolationBiases{$entry->{'group'}->{'labelIsolationBias'}} = {groupName => $groupName};
     } else {
 	$entry->{'group'}->{'labelIsolationBias'} = "";
     }
     # Generate perturbation parameters.
     if ( $entry->{'suite'}->{'includePerturbation'}->{'value'} eq "true" && $options{'removeSimulationVariance'} eq "false" ) {
-	$entry->{'group'}->{'labelPerturbation'} = $entry->{'suite'}->{'name'}.$entry->{'group'}->{'name'};
+	$entry->{'group'}->{'labelPerturbation'} = "cube,".$entry->{'group'}->{'name'};
 	$entry->{'group'}->{'perturbation'     } = "haloMassFunctionParameters/perturbation".$entry->{'group'}->{'labelPerturbation'};
 	++$perturbations{$entry->{'group'}->{'labelPerturbation'}};
     } else {
@@ -291,7 +292,7 @@ CODE
                          haloMassFunctionParameters/cW1                              haloMassFunctionParameters/beta1
                          haloMassFunctionParameters/wavenumberScaledMinimum          haloMassFunctionParameters/powerSpectrumSmoothingWidth
 
-                         haloMassFunctionParameters/artificialNormalization          haloMassFunctionParameters/artificialExponent
+                         haloMassFunctionParameters/artificialExponentMass           haloMassFunctionParameters/artificialExponentGrowthFactor
                          haloMassFunctionParameters/artificialCountParticles
 
                          {$detectionEfficiency1}
@@ -615,24 +616,24 @@ my $configCloser = fill_in_string(<<'CODE', PACKAGE => 'content');
 
     <!-- Artificial halo model parameters -->
     <modelParameter value="active">
-      <name value="haloMassFunctionParameters/artificialNormalization"/>
-      <label value="A" ignoreWarnings="true"/>
-      <distributionFunction1DPrior value="logUniform">
-	<limitLower value="1.0e-2"/>
-	<limitUpper value="1.0e+1"/>
+      <name value="haloMassFunctionParameters/artificialExponentMass"/>
+      <label value="\alpha" ignoreWarnings="true"/>
+      <distributionFunction1DPrior value="uniform">
+	<limitLower value="-3.0"/>
+	<limitUpper value="+0.0"/>
       </distributionFunction1DPrior>
-      <operatorUnaryMapper value="logarithm"/>
+      <operatorUnaryMapper value="identity"/>
       <distributionFunction1DPerturber value="cauchy">
 	<median value="0.0"/>
 	<scale value="1.0e-4"/>
       </distributionFunction1DPerturber>
     </modelParameter>
     <modelParameter value="active">
-      <name value="haloMassFunctionParameters/artificialExponent"/>
-      <label value="\alpha" ignoreWarnings="true"/>
+      <name value="haloMassFunctionParameters/artificialExponentGrowthFactor"/>
+      <label value="\beta" ignoreWarnings="true"/>
       <distributionFunction1DPrior value="uniform">
 	<limitLower value="-3.0"/>
-	<limitUpper value="+0.0"/>
+	<limitUpper value="+3.0"/>
       </distributionFunction1DPrior>
       <operatorUnaryMapper value="identity"/>
       <distributionFunction1DPerturber value="cauchy">
@@ -771,8 +772,8 @@ my $parametersOpener = fill_in_string(<<'CODE', PACKAGE => 'content');
     <q                                value="+0.51"/>
     <normalization                    value="+0.57"/>
     <!-- Artificial halo variance -->
-    <artificialNormalization          value="+1.00e+0"/>
-    <artificialExponent               value="-0.50e+0"/>
+    <artificialExponentMass           value="-0.50e+0"/>
+    <artificialExponentGrowthFactor   value="+1.00e+0"/>
     <artificialCountParticles         value="+1.00e+2"/>
     <!-- ETHOS window function -->
     <cW0                              value="+2.59"/>
@@ -830,7 +831,7 @@ CODE
 	$configCloser .= fill_in_string(<<'CODE', PACKAGE => 'content');
     <modelParameter value="active">
       <name value="haloMassFunctionParameters/isolationBias{$isolationBiasLabel}" />
-      <label value="\mathcal\{I\}_\mathrm\{{$isolationBiasLabel}\}" ignoreWarnings="true"/>
+      <label value="\mathcal\{I\}_\mathrm\{{$isolationBiases{$isolationBiasLabel}}\}" ignoreWarnings="true"/>
       <distributionFunction1DPerturber value="cauchy">
         <median value="0.0" />
         <scale value="1.0e-4" />
@@ -845,7 +846,7 @@ CODE
     </modelParameter>    
     <modelParameter value="active">
       <name value="haloMassFunctionParameters/isolationBiasExponent{$isolationBiasLabel}" />
-      <label value="\alpha_\mathrm\{{$isolationBiasLabel}\}" ignoreWarnings="true"/>
+      <label value="\alpha_\mathrm\{iso,{$isolationBiases{$isolationBiasLabel}\}" ignoreWarnings="true"/>
       <distributionFunction1DPerturber value="cauchy">
         <median value="0.0" />
         <scale value="1.0e-4" />
@@ -905,7 +906,7 @@ foreach $content::class ( sort(keys(%detectionEfficiencyClasses)) ) {
     </modelParameter>
     <modelParameter value="active">
       <name value="haloMassFunctionParameters/exponentMassDetection{$class}" />
-      <label value="\alpha_\mathrm\{min,{$class}\}" ignoreWarnings="true"/>
+      <label value="\alpha_\mathrm\{det,{$class}\}" ignoreWarnings="true"/>
       <distributionFunction1DPerturber value="cauchy">
         <median value="0.0" />
         <scale value="1.0e-4" />
@@ -918,7 +919,7 @@ foreach $content::class ( sort(keys(%detectionEfficiencyClasses)) ) {
     </modelParameter>
     <modelParameter value="active">
       <name value="haloMassFunctionParameters/exponentRedshiftDetection{$class}" />
-      <label value="\beta_\mathrm\{min,{$class}\}" ignoreWarnings="true"/>
+      <label value="\beta_\mathrm\{det,{$class}\}" ignoreWarnings="true"/>
       <distributionFunction1DPerturber value="cauchy">
         <median value="0.0" />
         <scale value="1.0e-4" />

@@ -12,7 +12,7 @@
     <includePerturbation  value="true" />
     <includeEnvironment   value="false"/>
     <limitMassMaximum     value=""     />
-    <group name="HugeMDPL" detectionEfficiencyClass="Rockstar1">
+    <group name="HugeMDPL" detectionEfficiencyClass="1">
       <resolution name="resolutionX1">
 	<simulation name="CDM">
 	  <powerSpectrumClass value="HugeMDPL"/>
@@ -24,7 +24,7 @@
 	</haloMassFunction>
       </resolution>
     </group>
-    <group name="BigMDPL" detectionEfficiencyClass="Rockstar2">
+    <group name="BigMDPL" detectionEfficiencyClass="2">
       <resolution name="resolutionX1">
 	<simulation name="CDM">
 	  <powerSpectrumClass value="BigMDPL"/>
@@ -36,7 +36,7 @@
 	</haloMassFunction>
       </resolution>
     </group>
-    <group name="MDPL2" detectionEfficiencyClass="Rockstar3">
+    <group name="MDPL2" detectionEfficiencyClass="3">
       <resolution name="resolutionX1">
 	<simulation name="CDM">
 	  <powerSpectrumClass value="MDPL2"/>
@@ -48,7 +48,7 @@
 	</haloMassFunction>
       </resolution>
     </group>
-    <group name="SMDPL" detectionEfficiencyClass="Rockstar3">
+    <group name="SMDPL" detectionEfficiencyClass="3">
       <resolution name="resolutionX1">
 	<simulation name="CDM">
 	  <powerSpectrumClass value="SMDPL"/>
@@ -60,7 +60,7 @@
 	</haloMassFunction>
       </resolution>
     </group>
-    <group name="VSMDPL" detectionEfficiencyClass="Rockstar4">
+    <group name="VSMDPL" detectionEfficiencyClass="4">
       <resolution name="resolutionX1">
 	<simulation name="CDM">
 	  <powerSpectrumClass value="VSMDPL"/>
@@ -123,7 +123,7 @@
 	</haloMassFunction>
       </resolution>
     </group>
-    <group name="MilkyWay">
+    <group name="MilkyWay" shortName="MW">
       <resolution name="resolutionX1">
 	<simulation name="CDM">
 	  <powerSpectrumClass value="Symphony:CDM"/>
