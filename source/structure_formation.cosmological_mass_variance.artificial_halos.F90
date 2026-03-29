@@ -98,7 +98,7 @@ contains
     <inputParameter>
       <name>exponentGrowthFactor</name>
       <source>parameters</source>
-      <description>The exponent of growth factor, $\beta, in the artificial halo variance model.</description>
+      <description>The exponent of growth factor, $\beta$, in the artificial halo variance model.</description>
     </inputParameter>
     <objectBuilder class="cosmologyFunctions"       name="cosmologyFunctions_"       source="parameters"/>
     <objectBuilder class="cosmologicalMassVariance" name="cosmologicalMassVariance_" source="parameters"/>
