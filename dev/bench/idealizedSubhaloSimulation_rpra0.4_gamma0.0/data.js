@@ -1,47 +1,8 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1774516465834,
+  "lastUpdate": 1774795924875,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Idealized subhalo simulations (rₚ/rₐ=0.4; γ=0.0)": [
-      {
-        "commit": {
-          "author": {
-            "email": "abenson@carnegiescience.edu",
-            "name": "Andrew Benson",
-            "username": "abensonca"
-          },
-          "committer": {
-            "email": "abenson@carnegiescience.edu",
-            "name": "Andrew Benson",
-            "username": "abensonca"
-          },
-          "distinct": true,
-          "id": "8b2d9cc16747e1474f9541a994a8e22d6cfc5f4d",
-          "message": "fix: Ensure variables are always initialized",
-          "timestamp": "2024-05-03T16:39:46-07:00",
-          "tree_id": "f36ddf8576b86ae3483f146ecce13142970abacf",
-          "url": "https://github.com/galacticusorg/galacticus/commit/8b2d9cc16747e1474f9541a994a8e22d6cfc5f4d"
-        },
-        "date": 1714798096947,
-        "tool": "customSmallerIsBetter",
-        "benches": [
-          {
-            "name": "Idealized Subhalo Simulation (rₚ/rₐ=0.4; γ=0.0) - Likelihood - satelliteBoundMass",
-            "value": 26.8526923426831,
-            "unit": "-logℒ"
-          },
-          {
-            "name": "Idealized Subhalo Simulation (rₚ/rₐ=0.4; γ=0.0) - Likelihood - satelliteRadiusVelocityMaximum",
-            "value": 12.8565298045395,
-            "unit": "-logℒ"
-          },
-          {
-            "name": "Idealized Subhalo Simulation (rₚ/rₐ=0.4; γ=0.0) - Likelihood - satelliteVelocityMaximum",
-            "value": 11.5356195289584,
-            "unit": "-logℒ"
-          }
-        ]
-      },
       {
         "commit": {
           "author": {
@@ -9906,6 +9867,45 @@ window.BENCHMARK_DATA = {
           "url": "https://github.com/galacticusorg/galacticus/commit/4c7b97a65ab8bf017036bd8062ee61eb3217a70f"
         },
         "date": 1774516464776,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Idealized Subhalo Simulation (rₚ/rₐ=0.4; γ=0.0) - Likelihood - satelliteBoundMass",
+            "value": 26.85204754908515,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Idealized Subhalo Simulation (rₚ/rₐ=0.4; γ=0.0) - Likelihood - satelliteRadiusVelocityMaximum",
+            "value": 12.856479837303228,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Idealized Subhalo Simulation (rₚ/rₐ=0.4; γ=0.0) - Likelihood - satelliteVelocityMaximum",
+            "value": 11.535714177834446,
+            "unit": "-logℒ"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abenson@carnegiescience.edu",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "abenson@carnegiescience.edu",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "distinct": true,
+          "id": "a80676f14060689c7c3647752a25a494713a27f4",
+          "message": "fix(perf): Optimize the Python `queuemanager` class\n\nFor Slurm managers, prioritize submitting jobs over postprocessing them (to ensure that the queue is always as full as possible). When retrieving status information on finished jobs, do it in a single batch for all finished jobs, instead of one at a time.",
+          "timestamp": "2026-03-26T13:46:33-07:00",
+          "tree_id": "71ae2e8fe961bcb42d8bfced4ec4f9a258538fe0",
+          "url": "https://github.com/galacticusorg/galacticus/commit/a80676f14060689c7c3647752a25a494713a27f4"
+        },
+        "date": 1774795923880,
         "tool": "customSmallerIsBetter",
         "benches": [
           {
