@@ -143,12 +143,12 @@ contains
     !!}
     use :: Galacticus_Nodes          , only : nodeComponentBasic                     , nodeComponentDarkMatterProfile
     use :: Galactic_Structure_Options, only : componentTypeDarkHalo                  , massTypeDark                        , weightByMass
-    use :: Mass_Distributions        , only : massDistributionSIDMParametricProfile, kinematicsDistributionCollisionlessTabulated, nonAnalyticSolversNumerical, massDistributionSpherical
+    use :: Mass_Distributions        , only : massDistributionSIDMParametricProfile, massDistributionNFW, kinematicsDistributionCollisionlessTabulated,kinematicsDistributionNFW,  nonAnalyticSolversNumerical, massDistributionSpherical, kinematicsDistributionClass
     use :: Dark_Matter_Halo_Scales   , only : darkMatterHaloScaleClass
     implicit none
 !    class           (darkMatterHaloScaleClass            ), pointer                 :: darkMatterHaloScale_
     class           (massDistributionClass               ), pointer                 :: massDistribution_
-    type            (kinematicsDistributionCollisionlessTabulated ), pointer                 :: kinematicsDistribution_
+    class            (kinematicsDistributionClass ), pointer                 :: kinematicsDistribution_
     class           (darkMatterProfileDMOSIDMParametric  ), intent(inout)           :: self
     type            (treeNode                            ), intent(inout)           :: node
     type            (enumerationWeightByType             ), intent(in   ), optional :: weightBy
@@ -166,42 +166,79 @@ contains
     ! If weighting is not by mass, return a null profile.
     if (weightBy_ /= weightByMass) return
     ! Create the mass distribution.
-    allocate(massDistributionSIDMParametricProfile :: massDistribution_)
-    select type(massDistribution_)
-    type is (massDistributionSIDMParametricProfile)
+    basic             => node%basic            ()
+    darkMatterProfile => node%darkMatterProfile()
+    ! Use NFW for zero core radius.
+    if (darkMatterProfile%floatRank0MetaPropertyGet(self%RcSIDMID) == 0.0d0) then
+       allocate(massDistributionNFW :: massDistribution_)
+       select type(massDistribution_)
+       type is (massDistributionNFW)
+          !![
+	  <referenceConstruct object="massDistribution_">
+            <constructor>
+              massDistributionNFW(                                                         &amp;
+	      &amp;               densityNormalization= darkMatterProfile%floatRank0MetaPropertyGet(self%RhosSIDMID), &amp;
+              &amp;               scaleLength         = darkMatterProfile%floatRank0MetaPropertyGet(self%RsSIDMID), &amp;
+              &amp;               componentType       =      componentTypeDarkHalo        , &amp;
+              &amp;               massType            =      massTypeDark                   &amp;
+              &amp;              )
+	    </constructor>
+	  </referenceConstruct>
+          !!]
+       end select
+       allocate(kinematicsDistributionNFW :: kinematicsDistribution_)
+       select type (kinematicsDistribution_)
+       type is (kinematicsDistributionNFW)
+          !![
+	  <referenceConstruct object="kinematicsDistribution_">
+	    <constructor>
+              kinematicsDistributionNFW(useSeriesApproximation=.true.)
+	    </constructor>
+	  </referenceConstruct>
+          !!]
+       end select
+    else
+       ! Use the SIDM parametric profile.
+       allocate(massDistributionSIDMParametricProfile :: massDistribution_)
+       select type(massDistribution_)
+       type is (massDistributionSIDMParametricProfile)
 !       massDistributionDecorated => self%darkMatterProfileDMO_%get  (node,weightBy,weightIndex)
-       basic             => node%basic            ()
-       darkMatterProfile => node%darkMatterProfile()
-!       select type (massDistributionDecorated)
-!       class is (massDistributionSpherical)
-!       print *, 'NodeIndex, r_s:', node%index(),darkMatterProfile%floatRank0MetaPropertyGet(self%RsSIDMID)
-       !![
-       <referenceConstruct object="massDistribution_">
-         <constructor>
-           massDistributionSIDMParametricProfile(                                                         &amp;
-	   &amp;                                   beta                = self%beta, &amp;
-           &amp;                                   densityNormalization= darkMatterProfile%floatRank0MetaPropertyGet(self%RhosSIDMID), &amp;
-           &amp;                                   radiusScale         = darkMatterProfile%floatRank0MetaPropertyGet(self%RsSIDMID), &amp;
-	   &amp;                                   radiusCore          = darkMatterProfile%floatRank0MetaPropertyGet(self%RcSIDMID), &amp;
-           &amp;                                   componentType       =      componentTypeDarkHalo        , &amp;
-           &amp;                                   massType            =      massTypeDark                   &amp;
-           &amp;                                  )
-	 </constructor>
-       </referenceConstruct>
-       !!]
-!       class default
-!          call Error_Report('expected a spherical mass distribution'//{introspection:location})
-!       end select
-    end select
-    allocate(kinematicsDistribution_)
-    !![
-    <referenceConstruct object="kinematicsDistribution_">
-      <constructor>
-        kinematicsDistributionCollisionlessTabulated( &amp;
-	 &amp;                              )
-      </constructor>
-    </referenceConstruct>
-    !!]
+          basic             => node%basic            ()
+          darkMatterProfile => node%darkMatterProfile()
+          !       select type (massDistributionDecorated)
+          !       class is (massDistributionSpherical)
+          !       print *, 'NodeIndex, r_s:', node%index(),darkMatterProfile%floatRank0MetaPropertyGet(self%RsSIDMID)
+          !![
+	  <referenceConstruct object="massDistribution_">
+            <constructor>
+              massDistributionSIDMParametricProfile(                                                         &amp;
+	      &amp;                                   beta                = self%beta, &amp;
+              &amp;                                   densityNormalization= darkMatterProfile%floatRank0MetaPropertyGet(self%RhosSIDMID), &amp;
+              &amp;                                   radiusScale         = darkMatterProfile%floatRank0MetaPropertyGet(self%RsSIDMID), &amp;
+	      &amp;                                   radiusCore          = darkMatterProfile%floatRank0MetaPropertyGet(self%RcSIDMID), &amp;
+              &amp;                                   componentType       =      componentTypeDarkHalo        , &amp;
+              &amp;                                   massType            =      massTypeDark                   &amp;
+              &amp;                                  )
+	    </constructor>
+	  </referenceConstruct>
+          !!]
+          !       class default
+          !          call Error_Report('expected a spherical mass distribution'//{introspection:location})
+          !       end select
+       end select
+       allocate(kinematicsDistributionCollisionlessTabulated :: kinematicsDistribution_)
+       select type (kinematicsDistribution_)
+       type is (kinematicsDistributionCollisionlessTabulated)
+          !![
+	  <referenceConstruct object="kinematicsDistribution_">
+	    <constructor>
+              kinematicsDistributionCollisionlessTabulated( &amp;
+	      &amp;                              )
+	    </constructor>
+	  </referenceConstruct>
+          !!]
+       end select
+    end if
     call massDistribution_%setKinematicsDistribution(kinematicsDistribution_)
     !![
     <objectDestructor name="kinematicsDistribution_"/>
