@@ -1,47 +1,8 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1774795924875,
+  "lastUpdate": 1775079403344,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Idealized subhalo simulations (rₚ/rₐ=0.4; γ=0.0)": [
-      {
-        "commit": {
-          "author": {
-            "email": "abensonca@gmail.com",
-            "name": "Andrew Benson",
-            "username": "abensonca"
-          },
-          "committer": {
-            "email": "noreply@github.com",
-            "name": "GitHub",
-            "username": "web-flow"
-          },
-          "distinct": true,
-          "id": "9178bdef24ce965d2519bffbe7e3c2c35cfda6ba",
-          "message": "Merge pull request #608 from galacticusorg/fixFFTWConditionalCompile\n\nDo not attempt to use FFTW3 functions if FFTW is not available",
-          "timestamp": "2024-05-04T16:43:35Z",
-          "tree_id": "143a2d9d031ea9c3756fef0c19c1f5f722d8d735",
-          "url": "https://github.com/galacticusorg/galacticus/commit/9178bdef24ce965d2519bffbe7e3c2c35cfda6ba"
-        },
-        "date": 1714858910277,
-        "tool": "customSmallerIsBetter",
-        "benches": [
-          {
-            "name": "Idealized Subhalo Simulation (rₚ/rₐ=0.4; γ=0.0) - Likelihood - satelliteBoundMass",
-            "value": 26.8526923426831,
-            "unit": "-logℒ"
-          },
-          {
-            "name": "Idealized Subhalo Simulation (rₚ/rₐ=0.4; γ=0.0) - Likelihood - satelliteRadiusVelocityMaximum",
-            "value": 12.8565298045395,
-            "unit": "-logℒ"
-          },
-          {
-            "name": "Idealized Subhalo Simulation (rₚ/rₐ=0.4; γ=0.0) - Likelihood - satelliteVelocityMaximum",
-            "value": 11.5356195289584,
-            "unit": "-logℒ"
-          }
-        ]
-      },
       {
         "commit": {
           "author": {
@@ -9906,6 +9867,45 @@ window.BENCHMARK_DATA = {
           "url": "https://github.com/galacticusorg/galacticus/commit/a80676f14060689c7c3647752a25a494713a27f4"
         },
         "date": 1774795923880,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Idealized Subhalo Simulation (rₚ/rₐ=0.4; γ=0.0) - Likelihood - satelliteBoundMass",
+            "value": 26.85204754908515,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Idealized Subhalo Simulation (rₚ/rₐ=0.4; γ=0.0) - Likelihood - satelliteRadiusVelocityMaximum",
+            "value": 12.856479837303228,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Idealized Subhalo Simulation (rₚ/rₐ=0.4; γ=0.0) - Likelihood - satelliteVelocityMaximum",
+            "value": 11.535714177834446,
+            "unit": "-logℒ"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abensonca@gmail.com",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "704502e230b94e4f5f20af7f48e096d7742a853b",
+          "message": "Merge pull request #1051 from galacticusorg/featCountCopiesErrorReporting\n\nAdd some error reporting when the `countCopies()` method fails",
+          "timestamp": "2026-04-01T14:25:27Z",
+          "tree_id": "7b64c0165b34be86cebbc1f140c53dc2f40d6517",
+          "url": "https://github.com/galacticusorg/galacticus/commit/704502e230b94e4f5f20af7f48e096d7742a853b"
+        },
+        "date": 1775079402070,
         "tool": "customSmallerIsBetter",
         "benches": [
           {
