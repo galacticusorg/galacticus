@@ -23,7 +23,7 @@ Implements a high-pass filter analysis property operator class.
 
   !![
   <outputAnalysisPropertyOperator name="outputAnalysisPropertyOperatorFilterHighPass">
-   <description>A high-pass filter analysis property operator class.</description>
+   <description>An output analysis property operator that applies a high-pass filter to a galaxy property value, passing values above \mono{filterThreshold} (with transition sharpness controlled by \mono{filterWidth}) and either setting or multiplying the property by the filter value.</description>
   </outputAnalysisPropertyOperator>
   !!]
   type, extends(outputAnalysisPropertyOperatorClass) :: outputAnalysisPropertyOperatorFilterHighPass

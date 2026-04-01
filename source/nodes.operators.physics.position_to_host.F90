@@ -23,7 +23,7 @@
 
   !![
   <nodeOperator name="nodeOperatorPositionToHost">
-   <description>A node operator class that relocates subhalos to the position of their host.</description>
+   <description>Sets the position of a satellite subhalo equal to the position of its host halo center, used when detailed orbital tracking is not required and satellites are assumed to reside at the host center for simplified environmental analyses.</description>
   </nodeOperator>
   !!]
   type, extends(nodeOperatorClass) :: nodeOperatorPositionToHost

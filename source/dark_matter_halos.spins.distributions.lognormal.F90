@@ -79,7 +79,7 @@ contains
       <variable>median</variable>
       <defaultValue>0.03687d0</defaultValue>
       <defaultSource>\citep{bett_spin_2007}</defaultSource>
-      <description>The median spin in a log-normal spin distribution.</description>
+      <description>The median value of the dimensionless Bullock spin parameter $\lambda$ in the log-normal distribution, representing the typical angular momentum content of dark matter halos at the present day.</description>
     </inputParameter>
     <inputParameter>
       <name>sigma</name>
@@ -87,7 +87,7 @@ contains
       <variable>sigma</variable>
       <defaultValue>0.5102d0</defaultValue>
       <defaultSource>(\citealt{bett_spin_2007}; note that in this reference the value of $\sigma$ quoted is for $\log_{10}\lambda$, while here we use $\log\lambda$)</defaultSource>
-      <description>The width of a log-normal spin distribution.</description>
+      <description>The standard deviation $\sigma$ of $\ln\lambda$ in the log-normal spin distribution, controlling the spread of spin parameters across the halo population; larger values produce a broader distribution of angular momenta.</description>
     </inputParameter>
     <objectBuilder class="darkMatterHaloScale" name="darkMatterHaloScale_" source="parameters"/>
     !!]

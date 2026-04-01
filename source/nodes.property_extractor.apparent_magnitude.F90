@@ -27,7 +27,12 @@ Implements a node property extractor class for apparent magnitudes.
   !![
   <nodePropertyExtractor name="nodePropertyExtractorMagnitudesApparent">
    <description>
-    A node property extractor which extracts stellar apparent magnitudes in all available bands.
+    A property extractor that returns stellar apparent magnitudes (AB system) in all broadband
+    filters currently activated in the stellar luminosities structure, for a specified galaxy
+    \mono{component} (disk or spheroid). The distance modulus is computed from the luminosity
+    distance (from \refClass{cosmologyFunctionsClass}) with a $+2.5\log_{10}(1+z)$ K-correction
+    for photon frequency compression. Output dataset names follow the pattern
+    \mono{componentMagnitudeApparentStellar:filterName:filterType}.
    </description>
   </nodePropertyExtractor>
   !!]

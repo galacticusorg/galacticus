@@ -23,7 +23,7 @@ Implements a filter which passes only the most massive branch halo.
 
   !![
   <galacticFilter name="galacticFilterBranchMostMassive">
-   <description>A filter which passes only the most massive branch halo.</description>
+   <description>Selects only the most massive progenitor branch (main branch) halo among a node's siblings at each timestep, filtering out secondary progenitors to focus analyses on the primary mass growth channel of a merger tree.</description>
   </galacticFilter>
   !!]
   type, extends(galacticFilterClass) :: galacticFilterBranchMostMassive

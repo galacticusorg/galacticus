@@ -32,9 +32,11 @@ module Supernovae_Population_III
   <functionClass>
    <name>supernovaePopulationIII</name>
    <descriptiveName>Population III Supernovae</descriptiveName>
-   <description>
-    Class providing models of supernovae from Population III stars.
-   </description>
+   <description>Class providing models of supernovae from Population III (metal-free) stars---the first generation
+    of stars formed from primordial gas at high redshift. Very massive Population III stars ($M \gtrsim 100
+    \mathrm{M}_\odot$) may explode as pair-instability supernovae with enormous energy output ($\sim 10^{53}$ erg), while
+    lower-mass Population III stars undergo core-collapse. The cumulative energy input from Population III
+    supernovae contributes to the reionization and early metal enrichment of the \gls{igm}.</description>
    <default>hegerWoosley2002</default>
    <method name="energyCumulative" >
     <description> Return the cumulative energy input from Population III supernovae from stars of given \mono{initialMass}, \mono{age} and \mono{metallicity}.</description>

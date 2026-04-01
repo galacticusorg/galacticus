@@ -61,25 +61,25 @@ contains
     <inputParameter>
       <name>opacityExponent</name>
       <defaultValue>0.7d0</defaultValue>
-      <description>The exponent of wavelength appearing in the opacity.</description>
+      <description>The power-law exponent of wavelength in the opacity $\tau \propto \lambda^{-n}$ in the \cite{charlot_simple_2000} two-component dust attenuation model; a value of 0.7 corresponds to the standard parameterization for interstellar and birth cloud attenuation.</description>
       <source>parameters</source>
     </inputParameter>
     <inputParameter>
       <name>birthCloudLifetime</name>
       <defaultValue>1.0d-2</defaultValue>
-      <description>The duration which stars remain within their birth clouds.</description>
+      <description>The lifetime of stellar birth clouds (in Gyr) in the \cite{charlot_simple_2000} dust model; stars younger than this age are attenuated by both the ISM component and the birth cloud component, while older stars experience only ISM attenuation.</description>
       <source>parameters</source>
     </inputParameter>
     <inputParameter>
       <name>opticalDepthISM</name>
       <defaultValue>0.5d0</defaultValue>
-      <description>The effective optical depth of the ISM.</description>
+      <description>The effective V-band optical depth $\hat{\tau}_\mathrm{V}^\mathrm{ISM}$ of the diffuse interstellar medium in the \cite{charlot_simple_2000} dust attenuation model, applied to all stellar populations regardless of age.</description>
       <source>parameters</source>
     </inputParameter>
     <inputParameter>
       <name>opticalDepthBirthClouds</name>
       <defaultValue>1.0d0</defaultValue>
-      <description>The effective optical depth of birth clouds.</description>
+      <description>The effective V-band optical depth $\hat{\tau}_\mathrm{V}^\mathrm{BC}$ of the stellar birth clouds in the \cite{charlot_simple_2000} dust model, applied only to stellar populations younger than \mono{birthCloudLifetime}; must exceed \mono{opticalDepthISM}.</description>
       <source>parameters</source>
     </inputParameter>
     !!]

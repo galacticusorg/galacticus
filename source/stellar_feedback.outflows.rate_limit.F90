@@ -23,7 +23,7 @@
 
   !![
   <stellarFeedbackOutflows name="stellarFeedbackOutflowsRateLimit">
-   <description>A rate-limiting stellar feedback model.</description>
+   <description>A rate-limiting stellar feedback outflow model that wraps another outflow model and enforces a minimum outflow timescale (in units of the component dynamical time), preventing unphysically rapid ejection of gas from the galaxy.</description>
   </stellarFeedbackOutflows>
   !!]
   type, extends(stellarFeedbackOutflowsClass) :: stellarFeedbackOutflowsRateLimit

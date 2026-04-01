@@ -47,7 +47,7 @@
   
   !![
   <outputAnalysis name="outputAnalysisStarFormingMainSequenceWagner2016">
-    <description>An output analysis class for the star forming main sequence measurements of \cite{wagner_evolution_2016}.</description>
+    <description>Computes the star-forming main sequence (mean specific star formation rate vs. stellar mass) for a specified redshift range and galaxy type (quiescent or star-forming) from \cite{wagner_evolution_2016}, with stellar mass and specific SFR random/systematic error polynomial coefficients.</description>
   </outputAnalysis>
   !!]
   type, extends(outputAnalysisStarFormingMainSequence) :: outputAnalysisStarFormingMainSequenceWagner2016

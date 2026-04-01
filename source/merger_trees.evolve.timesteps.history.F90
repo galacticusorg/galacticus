@@ -44,14 +44,14 @@ Implements a merger tree evolution timestepping class which limits the step the 
     \begin{description}
      \item[\mono{historyTime}] Cosmic time (in Gyr);
      \item[\mono{historyExpansion}] Expansion factor;
-     \item[\mono{historyStarFormationRate}] Volume averaged star formation rate (in $M_\odot/$Gyr/Mpc$^3$).
-     \item[\mono{historyDiskStarFormationRate}] Volume averaged star formation rate in disks (in $M_\odot/$Gyr/Mpc$^3$).
-     \item[\mono{historySpheroidStarFormationRate}] Volume averaged star formation rate in spheroids (in $M_\odot/$Gyr/Mpc$^3$).
-     \item[\mono{historyStellarDensity}] Volume averaged stellar mass density (in $M_\odot/$Mpc$^3$).
-     \item[\mono{historyDiskStellarDensity}] Volume averaged stellar mass density in disks (in $M_\odot/$Mpc$^3$).
-     \item[\mono{historySpheroidStellarDensity}] Volume averaged stellar mass density in spheroids (in $M_\odot/$Mpc$^3$).
-     \item[\mono{historyGasDensity}] Volume averaged cooled gas density (in $M_\odot/$Mpc$^3$).
-     \item[\mono{historyNodeDensity}] Volume averaged resolved node density (in $M_\odot/$Mpc$^3$).
+     \item[\mono{historyStarFormationRate}] Volume averaged star formation rate (in $\mathrm{M}_\odot/$Gyr/Mpc$^3$).
+     \item[\mono{historyDiskStarFormationRate}] Volume averaged star formation rate in disks (in $\mathrm{M}_\odot/$Gyr/Mpc$^3$).
+     \item[\mono{historySpheroidStarFormationRate}] Volume averaged star formation rate in spheroids (in $\mathrm{M}_\odot/$Gyr/Mpc$^3$).
+     \item[\mono{historyStellarDensity}] Volume averaged stellar mass density (in $\mathrm{M}_\odot/$Mpc$^3$).
+     \item[\mono{historyDiskStellarDensity}] Volume averaged stellar mass density in disks (in $\mathrm{M}_\odot/$Mpc$^3$).
+     \item[\mono{historySpheroidStellarDensity}] Volume averaged stellar mass density in spheroids (in $\mathrm{M}_\odot/$Mpc$^3$).
+     \item[\mono{historyGasDensity}] Volume averaged cooled gas density (in $\mathrm{M}_\odot/$Mpc$^3$).
+     \item[\mono{historyNodeDensity}] Volume averaged resolved node density (in $\mathrm{M}_\odot/$Mpc$^3$).
     \end{description}
     Dimensionful datasets have a \mono{unitsInSI} attribute which gives their units\index{units} in the SI
     system.

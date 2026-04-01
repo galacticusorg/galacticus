@@ -31,13 +31,16 @@ module Ram_Pressure_Stripping_Mass_Loss_Rate
   !![
   <functionClass>
    <name>ramPressureStripping</name>
-   <descriptiveName>Ram pressure stripping</descriptiveName>
-   <description>
-    Class providing models of ram pressure stripping-induced rates of mass loss.
-   </description>
+   <descriptiveName>Ram Pressure Stripping</descriptiveName>
+   <description>Class providing models of ram pressure stripping-induced rates of mass loss---the removal of cold
+    interstellar gas from satellite galaxies as they move through the hot intracluster or intragroup medium of their
+    host halo. The ram pressure $P_\mathrm{ram} = \rho_\mathrm{ICM} v^2$ exerted by the ambient gas on the disc
+    component strips cold gas at a rate (in $\mathrm{M}_\odot$~Gyr$^{-1}$) that depends on the satellite velocity,
+    the host gas density at the satellite's position, and the restoring pressure from the disc's self-gravity.
+    This process quenches star formation in satellite galaxies on short timescales.</description>
    <default>simpleCylindrical</default>
    <method name="rateMassLoss" >
-    <description>Returns the rate of mass loss (in $M_\odot$~Gyr$^{-1}$) due to ram pressure stripping of the given \mono{component}.</description>
+    <description>Returns the rate of mass loss (in $\mathrm{M}_\odot$~Gyr$^{-1}$) due to ram pressure stripping of the given \mono{component}.</description>
     <type>double precision</type>
     <pass>yes</pass>
     <argument>class(nodeComponent), intent(inout) :: component</argument>

@@ -23,7 +23,7 @@
 
   !![
   <starFormationRateDisks name="starFormationRateDisksFixed">
-   <description>A star formation rate in galactic disks which assumes a constant star formation rate.</description>
+   <description>A star formation rate class for galactic disks that returns a constant, user-specified rate regardless of the disk's gas content, mass, or dynamical properties. The fixed rate of star formation is set by the \mono{[starFormationRate]} parameter in units of $\mathrm{M}_\odot \hbox{Gyr}^{-1}$.</description>
   </starFormationRateDisks>
   !!]
   type, extends(starFormationRateDisksClass) :: starFormationRateDisksFixed

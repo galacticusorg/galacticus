@@ -33,10 +33,13 @@ module Dark_Matter_Profile_Scales
   <functionClass>
    <name>darkMatterProfileScaleRadius</name>
    <descriptiveName>Dark Matter Profile Scale Radii</descriptiveName>
-   <description>Class providing dark matter profile scale radii.</description>
+   <description>Class providing the scale radius $r_\mathrm{s}$ of dark matter halo density profiles. The scale radius
+    sets the characteristic transition scale between the inner and outer slopes of the density profile (e.g. at $r_\mathrm{s}$
+    the NFW profile transitions from $\rho \propto r^{-1}$ to $\rho \propto r^{-3}$). Implementations may derive the
+    scale radius from a concentration parameter, from energy conservation arguments, or from other empirical relations.</description>
    <default>concentration</default>
    <method name="radius" >
-    <description>Returns the scale radius for the given \mono{node}.</description>
+    <description>Returns the scale radius $r_\mathrm{s}$ (in Mpc) of the dark matter halo density profile for the halo in \mono{node}, the characteristic radius at which the logarithmic slope of the density profile transitions between inner and outer power laws.</description>
     <type>double precision</type>
     <pass>yes</pass>
     <selfTarget>yes</selfTarget>

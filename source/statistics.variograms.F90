@@ -31,16 +31,21 @@ module Statistics_Variograms
   <functionClass>
    <name>variogram</name>
    <descriptiveName>Variograms</descriptiveName>
-   <description>Class providing variogram models for Gaussian Process regression.</description>
+   <description>Class providing variogram models for Gaussian Process (GP) regression---parametric functions
+    $\gamma(h)$ that describe how the variance of a random field increases with separation $h$ between
+    evaluation points. Variograms are fitted to empirical semi-variance data and used to define the
+    GP covariance kernel for interpolating or emulating expensive model predictions across parameter
+    space. Implementations include spherical, exponential, and Gaussian variogram families, with
+    methods to fit model parameters and evaluate the semi-variance at any separation.</description>
    <default>spherical</default>
    <method name="fit" >
-     <description>Fit the variogram model to provided data.</description>
+     <description>Fit the variogram model parameters to the provided empirical semi-variance data (separation distances and corresponding semi-variances), using the default fitting strategy for this model.</description>
      <type>void</type>
      <pass>yes</pass>
      <argument>double precision, intent(in   ), dimension(:) :: separations, semiVariances</argument>
    </method>
    <method name="fitGeneric" >
-     <description>Fit a generic variogram model to provided data.</description>
+     <description>Fit a generic variogram model to the provided separation and semi-variance data using the specified fitting option (mean, median, or maximum), returning the best-fit parameter vector $C$ for the model.</description>
      <type>void</type>
      <pass>yes</pass>
      <argument>type            (enumerationVariogramFitOptionType), intent(in   )                            :: variogramFitOption               </argument>
@@ -51,7 +56,7 @@ module Statistics_Variograms
      </code>
    </method>
    <method name="countParameters" >
-     <description>Return the number of parameters in the variogram model.</description>
+     <description>Return the number of free parameters in the variogram model, which determines the dimension of the parameter vector $C$ passed to and returned from the fitting and evaluation methods.</description>
      <type>integer(c_size_t)</type>
      <pass>yes</pass>
    </method>
@@ -88,7 +93,7 @@ module Statistics_Variograms
      <argument>double precision, intent(in   ), optional :: separation</argument>
    </method>
    <method name="correlation" >
-     <description>Return the correlation evaluated at the given separation.</description>
+     <description>Return the correlation coefficient $C(h) = 1 - \gamma(h)/\gamma(\infty)$ evaluated at the given separation $h$, where $\gamma(h)$ is the semi-variance and $\gamma(\infty)$ is the sill, used to construct GP covariance matrices.</description>
      <type>double precision</type>
      <pass>yes</pass>
      <argument>double precision, intent(in   ) :: separation</argument>
@@ -106,7 +111,7 @@ module Statistics_Variograms
   !![
   <enumeration>
    <name>variogramFitOption</name>
-   <description>Specifies options for fitting variograms.</description>
+   <description>Specifies the statistical aggregation method used when binning empirical semi-variance data before fitting variogram models: mean, median, or maximum of the binned residuals.</description>
    <encodeFunction>yes</encodeFunction>
    <entry label="mean"   />
    <entry label="median" />

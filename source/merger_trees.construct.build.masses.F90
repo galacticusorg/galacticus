@@ -31,7 +31,11 @@ module Merger_Trees_Build_Masses
   <functionClass>
    <name>mergerTreeBuildMasses</name>
    <descriptiveName>Merger Tree Build Masses</descriptiveName>
-   <description>Class providing methods for creating sets of tree masses to use when building merger trees.</description>
+   <description>Class providing methods for generating the set of root halo masses for which merger trees
+    will be built in a \glc\ simulation. Each implementation returns an array of masses (and associated
+    weights or mass intervals) sampled from a chosen distribution---typically the halo mass function---at
+    the desired output redshift. The mass sampling determines which part of the halo mass function is
+    represented and how accurately the galaxy population is sampled.</description>
    <default>sampledDistributionUniform</default>
    <method name="construct" >
     <description>Returns a set of merger tree masses (and either their weights, or corresponding mass interval) to be built.</description>

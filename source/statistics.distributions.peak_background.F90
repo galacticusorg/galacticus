@@ -25,7 +25,7 @@
 
   !![
   <distributionFunction1D name="distributionFunction1DPeakBackground">
-   <description>A peakBackground 1D distribution function class.</description>
+   <description>A 1D peak-background split distribution function class that describes the distribution of density fluctuations in the peak-background split formalism, parameterized by the background variance and collapse threshold, used for modeling conditional halo mass functions and large-scale bias.</description>
   </distributionFunction1D>
   !!]
   type, extends(distributionFunction1DClass) :: distributionFunction1DPeakBackground
@@ -71,12 +71,12 @@ contains
     !![
     <inputParameter>
       <name>varianceBackground</name>
-      <description>The variance in the background density field.</description>
+      <description>The variance $\sigma_\mathrm{bg}^2$ of the background density field on large scales in the peak-background split formalism, which sets the width of the environmental distribution and controls the large-scale clustering bias.</description>
       <source>parameters</source>
     </inputParameter>
     <inputParameter>
       <name>thresholdCollapse</name>
-      <description>The threshold for collapse of density perturbations.</description>
+      <description>The linear overdensity threshold $\delta_\mathrm{c}$ above which density perturbations collapse to form halos in the peak-background split formalism; sets the minimum background density for halo formation.</description>
       <source>parameters</source>
     </inputParameter>
     <objectBuilder class="randomNumberGenerator" name="randomNumberGenerator_" source="parameters"/>

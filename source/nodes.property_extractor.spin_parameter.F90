@@ -25,7 +25,7 @@ Implements a spin parameter output analysis property extractor class.
 
   !![
   <nodePropertyExtractor name="nodePropertyExtractorSpin">
-   <description>A spin parameter output analysis property extractor class.</description>
+   <description>Extracts the dimensionless spin parameter $\lambda$ of a dark matter halo, characterizing its angular momentum content relative to gravitational and kinetic energy, a key parameter linking halo properties to disk galaxy sizes in semi-analytic models.</description>
   </nodePropertyExtractor>
   !!]
   type, extends(nodePropertyExtractorScalar) :: nodePropertyExtractorSpin

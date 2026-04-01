@@ -23,7 +23,7 @@
 
   !![
   <outputAnalysis name="outputAnalysisSunyaevZeldovichPlanck2013">
-   <description>A thermal Sunyaev-Zeldovich signal vs. stellar mass analysis class using the results of \cite{planck_collaboration_planck_2013}.</description>
+   <description>Computes the mean thermal Sunyaev-Zeldovich signal (Compton-$y$ parameter stacked over galaxy halos) as a function of stellar mass using the \cite{planck_collaboration_planck_2013} observational data, with configurable random and systematic error polynomial coefficients.</description>
   </outputAnalysis>
   !!]
   type, extends(outputAnalysisMeanFunction1D) :: outputAnalysisSunyaevZeldovichPlanck2013

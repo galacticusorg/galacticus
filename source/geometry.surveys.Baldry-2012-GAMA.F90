@@ -46,7 +46,7 @@ Implements the geometry of the GAMA survey used by \cite{baldry_galaxy_2012}.
      \hbox{fields G09/G15} \\ -0.361 + 0.319m &amp; \hbox{field G12} \end{array} \right.
      \label{eq:BaldryDepthPolynomial}
     \end{equation}
-    where $m= \log_{10}(M_\star/M_\odot)$. We use this polynomial fit to determine the depth of the sample as a function of
+    where $m= \log_{10}(M_\star/\mathrm{M}_\odot)$. We use this polynomial fit to determine the depth of the sample as a function of
     stellar mass.
     
     \begin{figure}
@@ -55,7 +55,7 @@ Implements the geometry of the GAMA survey used by \cite{baldry_galaxy_2012}.
      \end{center}
      \caption{The maximum distance at which a galaxy of given stellar mass can be detected in the sample of
      \protect\cite{baldry_galaxy_2012}. Points show the results obtained from data provided by Baldry, while the lines shows a
-     polynomial fit to these results (given in eqn.~\ref{eq:BaldryDepthPolynomial}). Note that above $10^9M_\odot$ the distance
+     polynomial fit to these results (given in eqn.~\ref{eq:BaldryDepthPolynomial}). Note that above $10^9\mathrm{M}_\odot$ the distance
      is limited by the imposed upper limit of $z=0.06$ in the GAMA sample---the polynomial fit does not consider these points.}
      \label{fig:BaldryGAMADepthFit}
     \end{figure}

@@ -99,13 +99,13 @@ contains
     <inputParameter>
       <name>lengthReference</name>
       <defaultValue>1.0d0</defaultValue>
-      <description>The scale radius of the isothermal profile.</description>
+      <description>The reference radius (in Mpc) of the isothermal profile at which \mono{densityNormalization} is evaluated; sets the physical length scale of the $\rho \propto r^{-2}$ profile.</description>
       <source>parameters</source>
     </inputParameter>
     <inputParameter>
       <name>mass</name>
       <defaultValue>1.0d0</defaultValue>
-      <description>The mass of the isothermal profile.</description>
+      <description>The total mass (in $\mathrm{M}_\odot$) enclosed within the reference radius, used to normalize the $\rho \propto r^{-2}$ density profile when \mono{densityNormalization} is not supplied.</description>
       <source>parameters</source>
     </inputParameter>
     <inputParameter>

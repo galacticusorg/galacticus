@@ -40,7 +40,14 @@
      
   !![
   <nodePropertyExtractor name="nodePropertyExtractorSED">
-    <description>A property extractor class for the SED of a component.</description>
+    <description>A property extractor that returns the spectral energy distribution (SED) of a
+    galaxy component (disk, spheroid, or total) at a grid of wavelengths, computed by convolving
+    the star formation history with stellar population spectral templates. Parameters include
+    \mono{component} (the galaxy component), \mono{frame} (\mono{rest} or \mono{observed}),
+    \mono{wavelengthMinimum} and \mono{wavelengthMaximum} (in \AA), \mono{resolution}
+    ($\lambda/\Delta\lambda$; negative for full template resolution), and
+    \mono{toleranceRelative} for the spectral integration. The SED is returned as a 2D array
+    over wavelength and output time.</description>
   </nodePropertyExtractor>
   !!]
   type, extends(nodePropertyExtractorArray) :: nodePropertyExtractorSED

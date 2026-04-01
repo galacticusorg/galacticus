@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021, 2022, 2023, 2024
+!!           2019, 2020, 2021, 2022, 2023, 2024, 2025, 2026
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -85,36 +85,36 @@
      !![
      <inputParameter>
        <name>radiusCore</name>
-       <description>The soliton core radius.</description>
+       <description>The soliton core radius (in Mpc) characterizing the size of the quantum pressure-supported central core of the fuzzy dark matter halo; the density profile flattens inside this scale.</description>
        <source>parameters</source>
      </inputParameter>
      <inputParameter>
        <name>densitySolitonCentral</name>
-       <description>The central density of the soliton.</description>
+       <description>The central density (in $\mathrm{M}_\odot$/Mpc$^3$) of the solitonic core at $r=0$, which sets the overall normalization of the density profile $\rho(r) = \rho_\mathrm{c} [1+(r/r_c)^2]^{-8}$.</description>
        <source>parameters</source>
      </inputParameter>
      <inputParameter>
        <name>toleranceRelativePotential</name>
        <defaultValue>1.0d-3</defaultValue>
-       <description>The relative tolerance for numerical solutions.</description>
+       <description>The relative tolerance used in numerical ODE solutions for the gravitational potential of the solitonic core profile.</description>
        <source>parameters</source>
      </inputParameter>
      <inputParameter>
        <name>dimensionless</name>
        <defaultValue>.true.</defaultValue>
-       <description>If true the profile is dimensionless.</description>
+       <description>If true the soliton profile is treated as dimensionless (scale-free), allowing its radial and density quantities to be specified in arbitrary units.</description>
        <source>parameters</source>
      </inputParameter>
      <inputParameter>
        <name>componentType</name>
        <defaultValue>var_str('unknown')</defaultValue>
-       <description>The component type for the profile.</description>
+       <description>The galactic structure component type (e.g.\ dark matter halo, disk, spheroid) represented by this mass distribution, used for component-specific queries.</description>
        <source>parameters</source>
      </inputParameter>
      <inputParameter>
        <name>massType</name>
        <defaultValue>var_str('unknown')</defaultValue>
-       <description>The mass type for the profile.</description>
+       <description>The mass type (e.g.\ dark matter, baryonic, total) represented by this mass distribution, used for mass-type-specific queries.</description>
        <source>parameters</source>
      </inputParameter>
      <conditionalCall>

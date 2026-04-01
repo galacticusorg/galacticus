@@ -23,7 +23,7 @@
 
   !![
   <outputAnalysis name="outputAnalysisHeatedLikelihood">
-   <description>A merger tree analysis class which wraps another class and ``heats'' its likelihood to a given temperature.</description>
+   <description>Wraps another \refClass{outputAnalysis} class and raises its log-likelihood to the power $1/T$ where $T$ is the \mono{temperature} parameter, effectively flattening the posterior for use in parallel tempering or annealing inference methods.</description>
   </outputAnalysis>
   !!]
   type, extends(outputAnalysisClass) :: outputAnalysisHeatedLikelihood

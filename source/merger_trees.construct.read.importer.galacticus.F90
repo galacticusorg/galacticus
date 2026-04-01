@@ -32,7 +32,7 @@
   !![
   <enumeration>
    <name>galacticusParticleEpochType</name>
-   <description>Particle epoch type enumerations.</description>
+   <description>Enumeration of the time coordinate types used to record particle epochs in Galacticus-format merger tree HDF5 files: \mono{time} (cosmic time in Gyr), \mono{expansionFactor} ($a$), or \mono{redshift} ($z$).</description>
    <entry label="time"           />
    <entry label="expansionFactor"/>
    <entry label="redshift"       />
@@ -56,9 +56,9 @@
     \href{https://virgodb.dur.ac.uk:8443/Millennium/}{Millennium Simulation database} and use the \mono{Merger\_Tree\_File\_Maker.exe} code supplied with \glc\ to convert these into an HDF5 file suitable for reading into \glc. The
     \mono{getMillenniumTrees.pl} script requires you to have a username and password to access the Millennium
     Simulation database\footnote{If you do not have a username and password for the Millennium Simulation database you can request
-    one from \href{mailto:contact@g-vo.org}\mono{contact@g-vo.org}.}. These can be entered manually or stored in
+    one from \href{mailto:contact@g-vo.org}{\mono{contact@g-vo.org}}.}. These can be entered manually or stored in
     a section of the
-    \href{https://github.com/galacticusorg/galacticus/releases/download/bleeding-edge/Galacticus_Usage.pdf#sec.ConfigFile}\mono{galacticusConfig.xml} file as follows:   
+    \href{https://github.com/galacticusorg/galacticus/releases/download/bleeding-edge/Galacticus_Usage.pdf#sec.ConfigFile}{\mono{galacticusConfig.xml}} file as follows:
     \begin{verbatim}
       &lt;millenniumDB>
         &lt;host>

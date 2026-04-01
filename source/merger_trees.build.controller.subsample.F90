@@ -36,7 +36,7 @@ Implements a merger tree build controller class which performs subsampling of br
 
   !![
   <mergerTreeBuildController name="mergerTreeBuildControllerSubsample">
-   <description>A merger tree build controller class which performs subsampling of branches.</description>
+   <description>A merger tree build controller class which performs probabilistic subsampling of branches during tree construction, retaining low-mass branches with a mass-dependent probability $P(M) = P_0 (M/M_0)^\alpha$ for $M &lt; M_0$. The mass threshold $M_0$, sampling rate $P_0$, and exponent $\alpha$ are set by \mono{[massThreshold]}, \mono{[subsamplingRateAtThreshold]}, and \mono{[exponent]}, with node weights adjusted to compensate.</description>
   </mergerTreeBuildController>
   !!]
   type, extends(mergerTreeBuildControllerClass) :: mergerTreeBuildControllerSubsample

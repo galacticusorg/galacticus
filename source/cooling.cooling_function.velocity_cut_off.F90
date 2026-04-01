@@ -38,7 +38,7 @@
 
   !![
   <coolingFunction name="coolingFunctionVelocityCutOff">
-   <description>A cooling function class which cuts off another cooling function below a certain velocity and before/after a certain epoch.</description>
+   <description>A cooling function class which suppresses the cooling function of another class in halos with virial velocities below \mono{[velocityCutOff]} and at redshifts before or after \mono{[redshiftCutOff]}, as selected by \mono{[whenCutOff]}. The formation or current node virial velocity is used depending on \mono{[useFormationNode]}.</description>
   </coolingFunction>
   !!]
   type, extends(coolingFunctionClass) :: coolingFunctionVelocityCutOff

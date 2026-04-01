@@ -25,7 +25,7 @@
   
   !![
   <nodeOperator name="nodeOperatorRamPressureMassLossDisks">
-   <description>A node operator class that performs ram pressure mass loss in disks.</description>
+   <description>Computes and applies ram pressure stripping of cold gas from satellite galaxy disks, using the Gunn-Gott criterion or similar to determine the stripped gas mass as a function of the satellite's orbital velocity through the host halo ICM.</description>
   </nodeOperator>
   !!]
   type, extends(nodeOperatorClass) :: nodeOperatorRamPressureMassLossDisks

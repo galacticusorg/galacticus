@@ -23,7 +23,7 @@ Implements an orbital speed output analysis property extractor class.
 
   !![
   <nodePropertyExtractor name="nodePropertyExtractorSpeedOrbital">
-   <description>An orbital speed output analysis property extractor class.</description>
+   <description>Extracts the current orbital speed of a satellite node as it moves through its host halo potential, computed from the satellite's velocity vector, for use in orbital energy analyses and comparison with observed satellite velocity distributions.</description>
   </nodePropertyExtractor>
   !!]
   type, extends(nodePropertyExtractorScalar) :: nodePropertyExtractorSpeedOrbital

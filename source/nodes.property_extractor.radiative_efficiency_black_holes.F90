@@ -22,9 +22,7 @@
   
   !![
   <nodePropertyExtractor name="nodePropertyExtractorRadiativeEfficiencyBlackHoles">
-   <description>
-     A node property extractor which extracts a list of all super-massive black hole radiative efficiencies.
-   </description>
+   <description>Extracts a list of radiative efficiencies for all supermassive black holes in each node, providing the fraction of accreted mass-energy radiated as electromagnetic radiation for each black hole.</description>
   </nodePropertyExtractor>
   !!]
   type, extends(nodePropertyExtractorList) :: nodePropertyExtractorRadiativeEfficiencyBlackHoles

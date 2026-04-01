@@ -26,7 +26,7 @@
   !![
   <kinematicsDistribution name="kinematicsDistributionSoliton">
     <description>
-      A kinematic distribution class for the soliton mass distribution.
+      A kinematic distribution class for the solitonic core mass distribution found in fuzzy dark matter halos. The 1D velocity dispersion profile is computed from tabulated solutions to the isotropic Jeans equation applied to the soliton density profile, encoding the quantum pressure support of ultralight axion dark matter.
     </description>
   </kinematicsDistribution>
   !!]

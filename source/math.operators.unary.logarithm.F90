@@ -23,7 +23,7 @@
 
   !![
   <operatorUnary name="operatorUnaryLogarithm">
-   <description>A logarithm unary operator.</description>
+   <description>A unary operator implementing the natural logarithm $f(x) = \ln(x)$; applying this operator transforms a positive scalar to log-space, and its inverse is the exponential $f^{-1}(f) = \exp(f)$.</description>
   </operatorUnary>
   !!]
   type, extends(operatorUnaryClass) :: operatorUnaryLogarithm

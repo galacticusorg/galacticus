@@ -19,9 +19,7 @@
 
   !![
   <nodePropertyExtractor name="nodePropertyExtractorNodeFormationTime">
-   <description>
-     A node property extractor which extracts the formation time of each node.
-   </description>
+   <description>Extracts the cosmic formation time of each node, defined as the time at which the node first exceeded a specified mass threshold, providing a proxy for the assembly epoch of each halo.</description>
   </nodePropertyExtractor>
   !!]
   type, extends(nodePropertyExtractorScalar) :: nodePropertyExtractorNodeFormationTime

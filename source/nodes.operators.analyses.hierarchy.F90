@@ -23,7 +23,7 @@
 
   !![
   <nodeOperator name="nodeOperatorHierarchy">
-   <description>A node operator class that computes quantities related to a node's position within the halo/subhalo hierarchy.</description>
+   <description>A node operator class that tracks and records the hierarchy level of each node within the halo/subhalo tree (0 for centrals, 1 for first-level subhalos, 2 for sub-subhalos, etc.), along with the maximum hierarchy level ever attained and the depth of the current branch. \mono{factorMassReset} specifies the mass growth factor required before the maximum hierarchy level is forgotten (allowing resets after major accretion events).</description>
   </nodeOperator>
   !!]
   type, extends(nodeOperatorClass) :: nodeOperatorHierarchy

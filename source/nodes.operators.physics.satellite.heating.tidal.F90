@@ -29,7 +29,7 @@
 
   !![
   <nodeOperator name="nodeOperatorSatelliteTidalHeating">
-   <description>A node operator class that applies tidal mass loss to orbiting satellite halos.</description>
+   <description>A node operator class that heats the dark matter distribution of orbiting satellite halos through tidal forces, integrating the cumulative tidal tensor along the orbit using a \refClass{satelliteTidalHeatingRateClass}. \mono{efficiencyDecay} scales the rate at which the tidal tensor integral decays between pericentric passages; \mono{applyPreInfall} enables tidal heating before the satellite formally enters the host virial radius.</description>
   </nodeOperator>
   !!]
   type, extends(nodeOperatorClass) :: nodeOperatorSatelliteTidalHeating

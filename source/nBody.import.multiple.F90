@@ -23,7 +23,7 @@ Implements an N-body data importer which imports using multiple other importers.
   
   !![
   <nbodyImporter name="nbodyImporterMultiple">
-    <description>An importer which imports using multiple other importers.</description>
+    <description>An N-body data importer which sequentially invokes multiple child \refClass{nbodyImporterClass} objects and concatenates their results into a single simulation array, enabling data to be loaded from several independent sources in one pass.</description>
     <linkedList type="nbodyImporterList" variable="importers" next="next" object="importer_" objectType="nbodyImporterClass"/>
   </nbodyImporter>
   !!]

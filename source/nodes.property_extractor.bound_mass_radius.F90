@@ -23,9 +23,7 @@ Implements a property extractor class that extracts the radius enclosing the cur
 
   !![
   <nodePropertyExtractor name="nodePropertyExtractorRadiusBoundMass">
-   <description>
-    A property extractor class that extracts the radius enclosing the current bound mass.
-   </description>
+   <description>Extracts the radius enclosing the currently gravitationally bound mass of a node, providing a measure of the physical extent of bound material as a halo undergoes tidal stripping or mass loss.</description>
   </nodePropertyExtractor>
   !!]
   type, extends(nodePropertyExtractorScalar) :: nodePropertyExtractorRadiusBoundMass

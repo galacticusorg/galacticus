@@ -23,7 +23,7 @@ Implements a selfInteracting dark matter particle class.
 
   !![
   <darkMatterParticle name="darkMatterParticleSelfInteractingDarkMatter">
-   <description>Provides a selfInteracting dark matter particle.</description>
+   <description>Provides a self-interacting dark matter particle candidate in which dark matter undergoes elastic scattering, modifying halo density profiles on small scales. The elastic self-interaction cross section per unit mass in units of cm$^2$~g$^{-1}$ is set by \mono{[crossSectionSelfInteraction]}.</description>
   </darkMatterParticle>
   !!]
   type, extends(darkMatterParticleClass) :: darkMatterParticleSelfInteractingDarkMatter

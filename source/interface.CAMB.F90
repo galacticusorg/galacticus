@@ -39,7 +39,7 @@ module Interfaces_CAMB
   !![
   <enumeration>
    <name>cambSpecies</name>
-   <description>Particle species in CAMB.</description>
+   <description>Enumeration of particle species tracked by the CAMB Boltzmann code when computing transfer functions: \mono{darkMatter} and \mono{baryons}, used to select which species' transfer function is returned.</description>
    <visibility>public</visibility>
    <indexing>1</indexing>
    <entry label="darkMatter"/>

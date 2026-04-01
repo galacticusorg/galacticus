@@ -23,7 +23,7 @@ Implements a dark matter profile scale radius output analysis property extractor
 
   !![
   <nodePropertyExtractor name="nodePropertyExtractorDarkMatterProfileScaleRadius">
-   <description>A  dark matter profile scale radius output analysis property extractor class.</description>
+   <description>Extracts the scale radius of the dark matter halo density profile (e.g., the NFW scale radius $r_\mathrm{s}$ where the logarithmic slope equals $-2$), a key structural parameter relating halo mass to its spatial extent and concentration.</description>
   </nodePropertyExtractor>
   !!]
   type, extends(nodePropertyExtractorScalar) :: nodePropertyExtractorDarkMatterProfileScaleRadius

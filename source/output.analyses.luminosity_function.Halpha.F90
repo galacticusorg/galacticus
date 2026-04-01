@@ -27,7 +27,7 @@ Implements a luminosity function output analysis class.
 
   !![
   <outputAnalysis name="outputAnalysisLuminosityFunctionHalpha">
-   <description>A luminosity function output analysis class.</description>
+   <description>Computes the H$\alpha$ emission line galaxy luminosity function in bins of line luminosity, optionally including [NII] doublet contamination (\mono{includeNitrogenII}), applying ISM dust attenuation, and with configurable binomial covariance matrix parameters for halo mass range and optional target dataset.</description>
   </outputAnalysis>
   !!]
   type, extends(outputAnalysisVolumeFunction1D) :: outputAnalysisLuminosityFunctionHalpha

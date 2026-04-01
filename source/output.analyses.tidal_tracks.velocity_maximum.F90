@@ -28,7 +28,7 @@
 
   !![
   <outputAnalysis name="outputAnalysisTidalTracksVelocityMaximum">
-    <description>An output analysis class that computes subhalo mean maximum velocity as a function of mass.</description>
+    <description>Computes the subhalo tidal evolution track of $V_\mathrm{max}$ vs. bound mass fraction, fitting the \cite{penarrubia_impact_2010} tidal track functional form with parameters $\mu$ and $\eta$, for comparison with N-body tidal stripping simulations.</description>
   </outputAnalysis>
   !!]
   type, extends(outputAnalysisClass) :: outputAnalysisTidalTracksVelocityMaximum

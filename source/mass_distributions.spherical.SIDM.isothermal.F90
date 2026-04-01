@@ -138,7 +138,7 @@ contains
     <inputParameter>
       <name>timeAge</name>
       <source>parameters</source>
-      <description>The age of the halo (in Gyr).</description>
+      <description>The age of the halo (in Gyr) since its formation, determining the total time available for SIDM self-interactions to thermalize the inner halo and produce an isothermal core.</description>
     </inputParameter>
     <inputParameter>
       <name>nonAnalyticSolver</name>

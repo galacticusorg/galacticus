@@ -34,7 +34,7 @@
   
   !![
   <task name="taskCatalogProjectedCorrelationFunction">
-   <description>A task which computes projected correlation functions based on a simple halo model approach.</description>
+   <description>A task which reads a galaxy catalog from an IRATE-format N-body halo file, applies a survey geometry mask, shifts galaxies into redshift space, and computes the projected two-point correlation function $w_\mathrm{p}(r_\mathrm{p})$ by integrating the 3D correlation function along the line of sight to a maximum separation $\pi_\mathrm{max}$.</description>
   </task>
   !!]
   type, extends(taskClass) :: taskCatalogProjectedCorrelationFunction

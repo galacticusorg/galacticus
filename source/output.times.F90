@@ -32,7 +32,12 @@ module Output_Times
   <functionClass>
    <name>outputTimes</name>
    <descriptiveName>Output Times</descriptiveName>
-   <description>Class providing output times for \glc.</description>
+   <description>Class providing the set of cosmic times (and corresponding redshifts) at which \glc\ writes
+    output snapshots. Methods return the count of output epochs, the time or redshift at each index, and
+    utilities to find the next or previous output time relative to a given cosmic time. The output time
+    schedule is used throughout the model to determine when to record galaxy properties, to guide the
+    ODE integrator timestep selection, and to compare model predictions with observational data at the
+    correct redshifts.</description>
    <default>list</default>
    <method name="count" >
     <description>Return the number of output times.</description>

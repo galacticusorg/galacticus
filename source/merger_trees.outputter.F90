@@ -33,10 +33,15 @@ module Merger_Tree_Outputters
   <functionClass>
    <name>mergerTreeOutputter</name>
    <descriptiveName>Merger Tree Outputters</descriptiveName>
-   <description>Class providing outputters for merger trees.</description>
+   <description>Class providing outputters for merger trees---objects that write merger tree and galaxy
+    data to persistent storage at each requested output time. An outputter traverses the nodes of a
+    merger tree and serializes the desired set of galaxy/halo properties to HDF5 or other formats.
+    It also handles reduction across MPI processes (combining partial outputs from different CPU
+    ranks) and finalization at the end of the simulation. The standard outputter writes node
+    properties as defined by the active \refClass{nodePropertyExtractorClass} instances.</description>
    <default>standard</default>
    <method name="outputTree" >
-    <description>Output a merger tree.</description>
+    <description>Serialize all galaxy and halo properties from the given \mono{tree} to the output dataset corresponding to output index \mono{indexOutput} at cosmic time \mono{time}.</description>
     <type>void</type>
     <pass>yes</pass>
     <argument>type            (mergerTree), intent(inout), target :: tree       </argument>
@@ -44,14 +49,14 @@ module Merger_Tree_Outputters
     <argument>double precision            , intent(in   )         :: time       </argument>
    </method>
    <method name="outputNode" >
-    <description>Output a single node.</description>
+    <description>Serialize galaxy and halo properties of the given individual \mono{node} to the output dataset corresponding to output index \mono{indexOutput}.</description>
     <type>void</type>
     <pass>yes</pass>
     <argument>type   (treeNode), intent(inout) :: node       </argument>
     <argument>integer(c_size_t), intent(in   ) :: indexOutput</argument>
    </method>
    <method name="finalize" >
-    <description>Finalize output of merger trees.</description>
+    <description>Finalize the output of merger trees, flushing any buffered data to persistent storage and performing any post-processing required after all trees have been serialized.</description>
     <type>void</type>
     <pass>yes</pass>
     <code>

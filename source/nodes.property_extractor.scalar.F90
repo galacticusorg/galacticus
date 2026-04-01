@@ -21,7 +21,7 @@
 
   !![
   <nodePropertyExtractor name="nodePropertyExtractorScalar" abstract="yes">
-   <description>An abstract output analysis property extractor class which provides a scalar floating point property.</description>
+   <description>Abstract base class for all extractors that return a single floating-point scalar value per node (e.g., mass, radius, temperature), defining the common interface implemented by the large majority of node property extractors.</description>
   </nodePropertyExtractor>
   !!]
   type, extends(nodePropertyExtractorClass), abstract :: nodePropertyExtractorScalar

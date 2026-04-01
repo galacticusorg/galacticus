@@ -32,9 +32,12 @@ module Geometry_Surveys
   <functionClass>
    <name>surveyGeometry</name>
    <descriptiveName>Survey Geometry</descriptiveName>
-   <description>
-    Class providing galaxy survey geometries and related functions.
-   </description>
+   <description>Class providing galaxy survey geometries---the selection function of an observed galaxy
+    sample, including the survey solid angle, the minimum and maximum detection distances as a function
+    of galaxy mass, luminosity, or star formation rate, and the 3-D window functions needed for
+    clustering analyses. These quantities are used in the on-the-fly output analysis classes to compute
+    galaxy stellar mass functions, luminosity functions, and two-point correlation functions by
+    applying the appropriate $V_\mathrm{max}$ weighting and survey volume corrections.</description>
    <default>liWhite2009SDSS</default>
    <method name="fieldCount" >
     <description>Returns the number of distinct fields included in the survey.</description>
@@ -46,7 +49,7 @@ module Geometry_Surveys
     </code>
    </method>
    <method name="distanceMinimum" >
-    <description>Returns the minimum distance (in Mpc) at which a galaxy of the specified \mono{mass} (in $M_\odot$) would be included in the survey.</description>
+    <description>Returns the minimum distance (in Mpc) at which a galaxy of the specified \mono{mass} (in $\mathrm{M}_\odot$) would be included in the survey.</description>
     <type>double precision</type>
     <pass>yes</pass>
     <argument>double precision, intent(in   ), optional :: mass , magnitudeAbsolute, luminosity, starFormationRate</argument>
@@ -57,7 +60,7 @@ module Geometry_Surveys
     </code>
    </method>
    <method name="distanceMaximum" >
-    <description>Returns the maximum distance (in Mpc) at which a galaxy of the specified \mono{mass} (in $M_\odot$) could be detected.</description>
+    <description>Returns the maximum distance (in Mpc) at which a galaxy of the specified \mono{mass} (in $\mathrm{M}_\odot$) could be detected.</description>
     <type>double precision</type>
     <pass>yes</pass>
     <argument>double precision, intent(in   ), optional :: mass , magnitudeAbsolute, luminosity, starFormationRate</argument>
@@ -70,7 +73,7 @@ module Geometry_Surveys
     <argument>integer, intent(in   ), optional :: field</argument>
    </method>
    <method name="volumeMaximum" >
-    <description>Returns the maximum volume (in Mpc$^3$) at which a galaxy of the specified \mono{mass} (in $M_\odot$) could be detected.</description>
+    <description>Returns the maximum volume (in Mpc$^3$) at which a galaxy of the specified \mono{mass} (in $\mathrm{M}_\odot$) could be detected.</description>
     <type>double precision</type>
     <pass>yes</pass>
     <argument>double precision, intent(in   )           :: mass</argument>
@@ -88,7 +91,7 @@ module Geometry_Surveys
     <pass>yes</pass>
    </method>
    <method name="windowFunctions" >
-    <description>Returns the window functions on a grid of the specified size (\mono{gridCount} cells in each dimension) for galaxies of the specified \mono{mass1} and \mono{mass2} (in $M_\odot$). The \mono{boxLength} should be set to an appropriate value to fully enclose (with sufficient buffering to allow for Fourier transformation) the two window functions.</description>
+    <description>Returns the window functions on a grid of the specified size (\mono{gridCount} cells in each dimension) for galaxies of the specified \mono{mass1} and \mono{mass2} (in $\mathrm{M}_\odot$). The \mono{boxLength} should be set to an appropriate value to fully enclose (with sufficient buffering to allow for Fourier transformation) the two window functions.</description>
     <type>void</type>
     <pass>yes</pass>
     <argument>double precision                  , intent(in   )                                           :: mass1          , mass2</argument>

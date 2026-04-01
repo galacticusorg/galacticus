@@ -23,7 +23,7 @@ Implements a null output analysis class.
 
   !![
   <nodePropertyExtractor name="nodePropertyExtractorNull">
-   <description>A null output analysis property extractor class.</description>
+   <description>A no-op property extractor that returns no output, used as a placeholder or default when no property extraction is required, primarily useful in testing or when an extractor slot must be filled without producing output.</description>
   </nodePropertyExtractor>
   !!]
   type, extends(nodePropertyExtractorClass) :: nodePropertyExtractorNull

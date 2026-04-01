@@ -28,7 +28,7 @@ Implements a radiation field class which sums over other radiation fields.
 
   !![
   <radiationField name="radiationFieldSummation">
-   <description>A summation radiation field class.</description>
+   <description>A radiation field class that computes the total flux as the sum of contributions from a list of constituent \refClass{radiationFieldClass} objects, enabling composite radiation backgrounds to be assembled from individual components.</description>
    <linkedList type="radiationFieldList" variable="radiationFields" next="next" object="radiationField_" objectType="radiationFieldClass"/>
   </radiationField>
   !!]

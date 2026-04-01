@@ -23,7 +23,7 @@ Implements a cooling energy radiated property extractor class.
 
   !![
   <nodePropertyExtractor name="nodePropertyExtractorCoolingEnergyRadiated">
-   <description>A cooling energy radiated property extractor class.</description>
+   <description>Extracts the total energy radiated by the hot halo gas through radiative cooling processes, tracking the cumulative energy loss from the \refClass{nodeComponentHotHalo} component. This quantity drives the supply of cold gas onto the galactic disk and ultimately powers star formation.</description>
   </nodePropertyExtractor>
   !!]
   type, extends(nodePropertyExtractorScalar) :: nodePropertyExtractorCoolingEnergyRadiated

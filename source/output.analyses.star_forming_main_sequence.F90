@@ -29,7 +29,7 @@
 
   !![
   <outputAnalysis name="outputAnalysisStarFormingMainSequence">
-   <description>A star forming main sequence output analysis class.</description>
+   <description>Computes the mean specific star formation rate as a function of stellar mass along the star-forming main sequence, reading bin configuration from file with user-specified stellar mass range and bin count, and comparing against an optional target dataset for likelihood evaluation.</description>
    <runTimeFileDependencies paths="fileName"/>
   </outputAnalysis>
   !!]

@@ -92,7 +92,7 @@ contains
     <inputParameter>
       <name>applyPreInfall</name>
       <defaultValue>.false.</defaultValue>
-      <description>If true, tidal radii are computed pre-infall.</description>
+      <description>If true, tidal radii are computed pre-infall, allowing tidal stripping to begin acting on satellites before they formally enter the host virial radius.</description>
       <source>parameters</source>
     </inputParameter>
     <objectBuilder class="cosmologyParameters" name="cosmologyParameters_" source="parameters"/>

@@ -81,7 +81,7 @@ contains
     <inputParameter>
       <name>efficiency</name>
       <source>parameters</source>
-      <description>The fractional efficiency of two-body relaxation heating.</description>
+      <description>The dimensionless efficiency factor (between 0 and 1) controlling what fraction of the energy transferred by two-body gravitational scattering actually heats the dark matter halo, accounting for partial thermalization of the relaxation energy.</description>
     </inputParameter>
     !!]
     self=darkMatterProfileHeatingTwoBodyRelaxation(massParticle,lengthSoftening,timeStart,efficiency)

@@ -294,7 +294,7 @@ contains
       <name>varianceNumberPerUnit</name>
       <defaultValue>40</defaultValue>
       <source>parameters</source>
-      <description>The number of points to tabulate per unit variance for first crossing rates.</description>
+      <description>The number of tabulation points per unit of $\sigma^2$ used when building the rate look-up table for the Farahi excursion-set first-crossing distribution; higher values improve interpolation accuracy at the cost of memory and initialization time.</description>
     </inputParameter>
     <inputParameter>
       <name>varianceNumberPerDecade</name>
@@ -312,7 +312,7 @@ contains
       <name>timeNumberPerDecade</name>
       <defaultValue>10</defaultValue>
       <source>parameters</source>
-      <description>The number of points to tabulate per decade of time.</description>
+      <description>The number of tabulation points per decade of cosmic time used when building the first-crossing rate look-up table as a function of time; higher values improve temporal interpolation accuracy for rapidly evolving cosmologies.</description>
     </inputParameter>
     <inputParameter>
       <name>varianceIsUnlimited</name>
@@ -1097,8 +1097,8 @@ contains
                    else
                       varianceMaximumRateLimit=self%varianceMaximumRate
                    end if
-                   ! For computing non-crossing rates, the results are tabulated with respect to $S_{\rm max}-S$ so that interpolation
-                   ! is more accurate when $S$ approaches $S_{\rm max}$.
+                   ! For computing non-crossing rates, the results are tabulated with respect to S_max-S so that interpolation
+                   ! is more accurate when S approaches S_max.
                    do iVariance=0,countVarianceCurrentRate
                       varianceCurrentRateQuad(iVariance)=max(varianceMaximumRateLimit-self%varianceCurrentRateNonCrossing(iVariance),0.0d0)
                    end do

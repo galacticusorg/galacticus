@@ -68,7 +68,7 @@ contains
     <inputParameter>
       <name>concentration</name>
       <source>parameters</source>
-      <description>The concentration.</description>
+      <description>The fixed NFW concentration parameter $c = r_\mathrm{virial}/r_\mathrm{scale}$ assigned to all halos regardless of mass or redshift, representing the ratio of the virial radius to the scale radius of the dark matter density profile.</description>
     </inputParameter>
     <objectBuilder class="virialDensityContrast" name="virialDensityContrast_" source="parameters"/>
     <objectBuilder class="darkMatterProfileDMO"  name="darkMatterProfileDMO_"  source="parameters"/>

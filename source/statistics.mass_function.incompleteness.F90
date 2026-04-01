@@ -32,7 +32,13 @@ module Mass_Function_Incompletenesses
    <name>massFunctionIncompleteness</name>
    <descriptiveName>Mass Function Incompletenesses</descriptiveName>
    <description>
-    Class providing incompleteness calculations for observed mass functions.
+    Class providing models of the survey completeness fraction for observed mass functions---the
+    probability that an object of a given mass is included in an observational sample. Incompleteness
+    arises from flux limits, surface brightness thresholds, or volume corrections, and causes the
+    observed number counts to fall below the true underlying mass function at low masses. The
+    \mono{completeness} method returns the fraction (between 0 and 1) of objects at a given mass
+    that are expected to appear in the sample, allowing model predictions to be corrected before
+    comparison with data.
    </description>
    <default>complete</default>
    <method name="completeness" >

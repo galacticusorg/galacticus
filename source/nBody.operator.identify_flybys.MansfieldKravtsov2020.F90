@@ -23,7 +23,7 @@ Implements an N-body data operator which identifies flyby halos following the al
 
   !![
   <nbodyOperator name="nbodyOperatorIdentifyFlybysMansfieldKravtsov2020">
-   <description>An N-body data operator which identifies flyby halos following the algorithm of \cite{mansfield_three_2020}.</description>
+   <description>An N-body data operator which identifies flyby halos using the algorithm of \cite{mansfield_three_2020}, classifying halos that pass through a larger host without merging as flybys. The \mono{errorIfNotFound} parameter controls how missing host halos are handled during the flyby search.</description>
   </nbodyOperator>
   !!]
   type, extends(nbodyOperatorClass) :: nbodyOperatorIdentifyFlybysMansfieldKravtsov2020

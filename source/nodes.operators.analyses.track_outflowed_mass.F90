@@ -23,7 +23,7 @@
 
   !![
   <nodeOperator name="nodeOperatorTrackOutflowedMass">
-   <description>A node operator class that tracks the mass and metals arriving in the \gls{cgm} from outflows.</description>
+   <description>Tracks the cumulative mass and metal content arriving in the circumgalactic medium (\gls{cgm}) via stellar and AGN-driven outflows, enabling analysis of feedback-driven enrichment histories.</description>
   </nodeOperator>
   !!]
   type, extends(nodeOperatorClass) :: nodeOperatorTrackOutflowedMass

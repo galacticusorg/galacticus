@@ -28,7 +28,13 @@ Implements a concentration output analysis property extractor class.
 
   !![
   <nodePropertyExtractor name="nodePropertyExtractorConcentration">
-   <description>A concentration output analysis property extractor class.</description>
+   <description>A property extractor that returns the concentration parameter $c = r_\mathrm{vir}/r_\mathrm{s}$
+    of the dark-matter-only halo profile, where $r_\mathrm{vir}$ is defined by the supplied
+    \refClass{virialDensityContrastClass} object and $r_\mathrm{s}$ is the NFW scale radius from the
+    \refClass{darkMatterProfileDMOClass} object. If \mono{useLastIsolatedTime} is \mono{true}, the
+    virial radius is evaluated using the density contrast at the halo's last isolated time rather than
+    the current time, matching the conventional definition of concentration used in fitting
+    functions.</description>
   </nodePropertyExtractor>
   !!]
   type, extends(nodePropertyExtractorScalar) :: nodePropertyExtractorConcentration

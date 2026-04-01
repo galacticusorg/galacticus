@@ -28,7 +28,7 @@ Implements a sequence output analysis property operator class.
 
   !![
   <outputAnalysisPropertyOperator name="outputAnalysisPropertyOperatorSequence">
-   <description>A sequence output analysis property operator class.</description>
+   <description>Applies a sequence of \refClass{outputAnalysisPropertyOperatorClass} objects in order to a property value, enabling construction of complex multi-step transformations from simple composable operators.</description>
    <linkedList type="propertyOperatorList" variable="operators" next="next" object="operator_" objectType="outputAnalysisPropertyOperatorClass"/>
   </outputAnalysisPropertyOperator>
   !!]

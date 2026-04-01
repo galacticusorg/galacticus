@@ -87,7 +87,7 @@ contains
     <inputParameter>
       <name>radiusTransition</name>
       <source>parameters</source>
-      <description>The transition radius.</description>
+      <description>The transition radius (in Mpc) at which the density profile smoothly switches from the halo profile to the accretion flow, controlled by the fourth-order transition function $f_\mathrm{trans}(r)$.</description>
     </inputParameter>
     <inputParameter>
       <name>nonAnalyticSolver</name>

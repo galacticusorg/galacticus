@@ -26,7 +26,7 @@
   
   !![
   <nodePropertyExtractor name="nodePropertyExtractorICMOpticalDepthLymanAlpha">
-    <description>An intracluster medium cooling power in band property extractor class.</description>
+    <description>Extracts the Lyman-$\alpha$ optical depth through the intracluster medium, integrating the line-center cross-section against the neutral hydrogen density profile out to the virial radius. Relevant for assessing Lyman-$\alpha$ photon escape fractions from galaxies embedded in hot gas environments.</description>
   </nodePropertyExtractor>
   !!]
   type, extends(nodePropertyExtractorScalar) :: nodePropertyExtractorICMOpticalDepthLymanAlpha

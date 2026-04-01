@@ -26,7 +26,7 @@ Implements an N-body data operator which computes pair counts in bins of separat
 
   !![
   <nbodyOperator name="nbodyOperatorPairCounts">
-   <description>An N-body data operator which computes pair counts in bins of separation.</description>
+   <description>An N-body data operator which counts particle pairs in logarithmic bins of physical separation, enabling correlation function measurements. Parameters control the separation range and bin count, particle sampling rate, bootstrap resample count, and whether to compute cross-simulation or within-simulation pair counts.</description>
   </nbodyOperator>
   !!]
   type, extends(nbodyOperatorClass) :: nbodyOperatorPairCounts
@@ -90,12 +90,12 @@ contains
     <inputParameter>
       <name>separationMinimum</name>
       <source>parameters</source>
-      <description>The minimum separation to consider for pair counts.</description>
+      <description>The minimum pairwise separation (in the same units as particle positions) of pairs to include when counting and binning particle pairs.</description>
     </inputParameter>
     <inputParameter>
       <name>separationMaximum</name>
       <source>parameters</source>
-      <description>The maximum separation to consider for pair counts.</description>
+      <description>The maximum pairwise separation (in the same units as particle positions) of pairs to include when counting and binning particle pairs.</description>
     </inputParameter>
     <inputParameter>
       <name>separationCount</name>

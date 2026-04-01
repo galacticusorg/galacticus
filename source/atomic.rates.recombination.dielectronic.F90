@@ -32,8 +32,13 @@ module Atomic_Rates_Recombination_Dielectronic
   !![
   <functionClass>
    <name>atomicRecombinationRateDielectronic</name>
-   <descriptiveName>Atomic dielectronic recombination rates.</descriptiveName>
-   <description>Class providing atomic dielectronic recombination rates.</description>
+   <descriptiveName>Atomic Dielectronic Recombination Rates</descriptiveName>
+   <description>Class providing dielectronic recombination rate coefficients (in cm$^3$ s$^{-1}$) for ions of given
+    atomic number and electron number at a specified electron temperature. Dielectronic recombination proceeds via
+    simultaneous capture of a free electron and excitation of a bound electron, followed by radiative stabilization;
+    it dominates over radiative recombination at temperatures above $\sim 10^5$ K for many ions and is therefore a
+    critical process in the ionization balance and cooling of hot collisionally ionized gas in the \gls{igm} and
+    \gls{cgm}.</description>
    <default>arnaud1985</default>
    <method name="rate" >
     <description>Return the dielectroninc recombination rate (in units of cm$^3$ s$^{-1}$) for the ion of given \mono{atomicNumber} and \mono{electronNumber} at the given \mono{temperature} (in Kelvin).</description>

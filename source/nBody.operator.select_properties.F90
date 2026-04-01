@@ -23,7 +23,7 @@
   
   !![
   <nbodyOperator name="nbodyOperatorSelectProperties">
-   <description>An N-body data operator which selects particles matching a list of integer properties.</description>
+   <description>An N-body data operator which filters N-body particles by retaining only those whose named integer property matches one of a user-supplied list of allowed values, enabling selection of subsets such as particles belonging to specific halos or simulation runs.</description>
   </nbodyOperator>
   !!]
   type, extends(nbodyOperatorClass) :: nbodyOperatorSelectProperties
@@ -62,7 +62,7 @@ contains
     <inputParameter>
       <name>propertyName</name>
       <source>parameters</source>
-      <description>A named property on which to select.</description>
+      <description>The name of the integer particle property whose values will be compared against the allowed list to determine which particles to retain.</description>
     </inputParameter>
     !!]
     allocate(selectedValues(parameters%count('selectedValues')))
@@ -70,7 +70,7 @@ contains
     <inputParameter>
       <name>selectedValues</name>
       <source>parameters</source>
-      <description>A list of allowed values for the property</description>
+      <description>A list of integer values of the named property that a particle must match to be retained; particles whose property value is not in this list are removed.</description>
     </inputParameter>
     !!]
     self=nbodyOperatorSelectProperties(propertyName,selectedValues)

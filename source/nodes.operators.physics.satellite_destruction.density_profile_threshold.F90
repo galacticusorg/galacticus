@@ -24,7 +24,7 @@
 
   !![
   <nodeOperator name="nodeOperatorSatelliteDestructionDensityProfileThreshold">
-   <description>A node operator class that triggers destruction of satellites based on their density profiles.</description>
+   <description>A node operator class that destroys satellites when the mean enclosed density within their tidal radius falls below a threshold expressed as a fraction \mono{fractionDensityProfileVirialFraction} of the host halo virial density profile. This criterion approximates complete tidal disruption and prevents unphysically extended low-density subhalo evolution.</description>
   </nodeOperator>
   !!]
   type, extends(nodeOperatorClass) :: nodeOperatorSatelliteDestructionDensityProfileThreshold

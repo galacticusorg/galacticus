@@ -25,7 +25,7 @@
 
   !![
   <nodeOperator name="nodeOperatorSatelliteDynamicalFriction">
-   <description>A node operator class that applies dynamical friction to orbiting satellite halos.</description>
+   <description>Applies the Chandrasekhar dynamical friction force to satellite halos orbiting in their host potential, decelerating satellites and driving orbital decay toward the halo center, ultimately leading to satellite merging on a dynamical friction timescale.</description>
   </nodeOperator>
   !!]
   type, extends(nodeOperatorClass) :: nodeOperatorSatelliteDynamicalFriction

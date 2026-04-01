@@ -27,7 +27,7 @@
   use :: Dark_Matter_Halo_Scales, only : darkMatterHaloScaleClass
   !![
   <outputAnalysis name="outputAnalysisBlackHoleVelocityDispersionRelation">
-   <description>A black hole-velocity dispersion mass relation output analysis class using the data from \cite{mcconnell_revisiting_2013}.</description>
+   <description>Computes the relation between supermassive black hole mass and host bulge stellar velocity dispersion using the observational data from \cite{mcconnell_revisiting_2013}, with configurable random and systematic error polynomial coefficients for both black hole mass and velocity dispersion.</description>
   </outputAnalysis>
   !!]
   type, extends(outputAnalysisMeanFunction1D) :: outputAnalysisBlackHoleVelocityDispersionRelation

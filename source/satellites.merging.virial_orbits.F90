@@ -39,7 +39,7 @@ module Virial_Orbits
    </description>
    <default>benson2005</default>
    <method name="orbit" >
-    <description>Returns an orbit object.</description>
+    <description>Returns a Kepler orbit object describing the orbital parameters (energy, angular momentum, radial and tangential velocities) of a satellite halo at the time it first crosses the virial radius of its host halo.</description>
     <type>type(keplerOrbit)</type>
     <pass>yes</pass>
     <selfTarget>yes</selfTarget>

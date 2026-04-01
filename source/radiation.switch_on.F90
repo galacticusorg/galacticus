@@ -26,7 +26,7 @@
   !![
   <radiationField name="radiationFieldSwitchOn">
    <description>
-    A radiation field class that switches on another radiation field at a specified time.
+    A radiation field class that wraps another radiation field and switches it on at a specified cosmic epoch, returning zero flux before the switch-on redshift. The redshift at which the field activates is controlled by the \mono{[redshiftSwitchOn]} parameter.
    </description>
   </radiationField>
   !!]
@@ -72,7 +72,7 @@ contains
     !![
     <inputParameter>
       <name>redshiftSwitchOn</name>
-      <description>The redshift at which to switch on the radiation field.</description>
+      <description>The redshift at which the wrapped radiation field is switched on; at cosmic times corresponding to higher redshifts (earlier times) the field returns zero flux, and at later times it returns the flux of the underlying \refClass{radiationFieldClass} object.</description>
       <source>parameters</source>
     </inputParameter>
     <objectBuilder class="cosmologyFunctions" name="cosmologyFunctions_" source="parameters"/>

@@ -25,7 +25,7 @@
 
   !![
   <outputAnalysisDistributionOperator name="outputAnalysisDistributionOperatorDiskSizeInclntn">
-   <description>An output analysis distribution operator class which implements the effects of inclination on disk size.</description>
+   <description>Models the effect of random disk inclination on apparent disk size measurements, smearing the intrinsic size distribution by the projection factor $\cos(i)$ to enable comparison with observations of randomly oriented galaxies.</description>
   </outputAnalysisDistributionOperator>
   !!]
   type, extends(outputAnalysisDistributionOperatorClass) :: outputAnalysisDistributionOperatorDiskSizeInclntn

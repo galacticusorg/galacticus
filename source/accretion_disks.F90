@@ -31,7 +31,7 @@ module Accretion_Disks
   !![
   <functionClass>
    <name>accretionDisks</name>
-   <descriptiveName>Accretion disks</descriptiveName>
+   <descriptiveName>Accretion Disks</descriptiveName>
    <description>
     A class implementing circumnuclear accretion disks. Circumnuclear accretion disks surrounding supermassive black holes at
     the centers of galaxies influence the evolution of both the black hole (via accretion rates of mass and angular momentum
@@ -40,14 +40,14 @@ module Accretion_Disks
    </description>
    <default>shakuraSunyaev</default>
    <method name="efficiencyRadiative" >
-    <description>Returns the radiative efficiency of the accretion disk.</description>
+    <description>Returns the radiative efficiency of the accretion disk, defined as the fraction of accreted rest-mass energy $\dot{M}\mathrm{c}^2$ that is emitted as radiation, given the black hole properties and accretion rate.</description>
     <type>double precision</type>
     <pass>yes</pass>
     <argument>class           (nodeComponentBlackHole), intent(inout) :: blackHole</argument>
     <argument>double precision                        , intent(in   ) :: accretionRateMass</argument>
    </method>
    <method name="powerJet" >
-    <description>Returns the power of the jet launched by the accretion disk in units of $M_\odot$ (km/s)$^2$ Gyr$^{-1}$.</description>
+    <description>Returns the power of the jet launched by the accretion disk in units of $\mathrm{M}_\odot$ (km/s)$^2$ Gyr$^{-1}$.</description>
     <type>double precision</type>
     <pass>yes</pass>
     <argument>class           (nodeComponentBlackHole), intent(inout) :: blackHole</argument>

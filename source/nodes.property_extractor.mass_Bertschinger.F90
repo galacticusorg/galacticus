@@ -19,9 +19,7 @@
 
   !![
   <nodePropertyExtractor name="nodePropertyExtractorMassBertschinger">
-   <description>
-     A node property extractor which extracts the Bertschinger mass of the halo.
-   </description>
+   <description>Extracts the Bertschinger mass of each halo node, which is the mass enclosed within the secondary infall turnaround radius and provides a measure of the total mass within the halo's influence region.</description>
   </nodePropertyExtractor>
   !!]
   type, extends(nodePropertyExtractorScalar) :: nodePropertyExtractorMassBertschinger

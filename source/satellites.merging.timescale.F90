@@ -38,7 +38,10 @@ module Satellite_Merging_Timescales
    <name>satelliteMergingTimescales</name>
    <descriptiveName>Satellite Merging Timescales</descriptiveName>
    <description>
-    Object providing merging timescales for satellites.
+    Object providing the timescale for a satellite halo to merge with its host halo, given the satellite's current
+    orbit. The merging timescale is determined by dynamical friction, which dissipates the satellite's orbital energy
+    and angular momentum until it reaches the center of the host. Implementations typically follow formulae derived
+    from $N$-body experiments, parameterized by the Coulomb logarithm and orbital properties.
    </description>
    <default>jiang2008</default>
    <method name="timeUntilMerging" >

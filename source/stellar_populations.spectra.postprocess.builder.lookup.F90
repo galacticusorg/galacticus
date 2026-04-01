@@ -88,7 +88,7 @@ contains
     allocate(postprocessors(countPostprocessors))
     !![
     <workaround type="gfortran" PR="37336" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=37336">
-      <description>Missing finalization of array constructors after their use.</description>
+      <description>Missing finalization of array constructors after their use in gfortran (PR\#37336); workaround initializes the default names array using \mono{var\_str} before passing to \mono{inputParameter}.</description>
     </workaround>
     !!]   
     namesDefault(1)=var_str('default')
@@ -96,7 +96,7 @@ contains
     <inputParameter>
       <name>names</name>
       <defaultValue>namesDefault</defaultValue>
-      <description>The names assigned to stellar spectra postprocessors.</description>
+      <description>The string names (e.g., \mono{default}, \mono{intrinsic}) assigned to each stellar spectra postprocessor, used as lookup keys when the builder is asked to return the postprocessor appropriate for a given filter or descriptor.</description>
       <source>parameters</source>
     </inputParameter>
     <objectBuilder class="stellarPopulationSpectraPostprocessor" name="postprocessors(i)%stellarPopulationSpectraPostprocessor_" source="parameters" copy="i=1,countPostprocessors"/>

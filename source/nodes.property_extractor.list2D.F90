@@ -21,7 +21,7 @@
 
   !![
   <nodePropertyExtractor name="nodePropertyExtractorList2D" abstract="yes">
-   <description>An abstract output analysis property extractor class which provides a 2D list of floating point properties.</description>
+   <description>An abstract base class for node property extractors that provide a 2D list (array of arrays) of floating-point properties, enabling extraction of variable-length per-node data such as merger histories or multi-epoch quantities.</description>
   </nodePropertyExtractor>
   !!]
   type, extends(nodePropertyExtractorClass), abstract :: nodePropertyExtractorList2D

@@ -23,9 +23,7 @@
   
   !![
   <nodePropertyExtractor name="nodePropertyExtractorSoliton">
-   <description>
-    A property extractor class for the properties of the \gls{fdm} soliton.
-   </description>
+   <description>Extracts physical properties of the fuzzy dark matter (\gls{fdm}) soliton core (such as core radius and core mass) associated with each halo node, enabling analysis of quantum pressure effects in FDM models.</description>
   </nodePropertyExtractor>
   !!]
   type, extends(nodePropertyExtractorTuple) :: nodePropertyExtractorSoliton

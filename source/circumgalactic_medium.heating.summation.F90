@@ -24,7 +24,7 @@
   !![
   <circumgalacticMediumHeating name="circumgalacticMediumHeatingSummation">
    <description>
-    A \gls{cgm} heating class that sums over other heating rate classes.
+    A circumgalactic medium heating class that computes the total CGM heating rate as the sum of contributions from a list of other heating rate classes. This allows multiple heating mechanisms (e.g. AGN feedback, stellar feedback) to be combined additively.
    </description>
    <linkedList type="heaterList" variable="heaters" next="next" object="circumgalacticMediumHeating" objectType="circumgalacticMediumHeatingClass"/>
   </circumgalacticMediumHeating>

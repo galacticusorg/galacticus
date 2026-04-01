@@ -30,7 +30,7 @@
     A merger tree operator class which records and outputs tree processing time information. Tree timing data to be recorded
     and output to the \mono{metaData/treeTiming} group. Three datasets are written to this group:
     \begin{description}
-     \item[\mono{treeMasses}] Gives the base node masses of the recorded trees (in units of $M_\odot$);
+     \item[\mono{treeMasses}] Gives the base node masses of the recorded trees (in units of $\mathrm{M}_\odot$);
      \item[\mono{treeConstructTimes}] Gives the time (in seconds) taken to construct each merger tree;
      \item[\mono{treeEvolveTimes}] Gives the time (in seconds) taken to evolve each merger tree.
     \end{description}

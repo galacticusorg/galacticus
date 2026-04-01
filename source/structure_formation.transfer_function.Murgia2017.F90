@@ -27,7 +27,7 @@
 
   !![
   <transferFunction name="transferFunctionMurgia2017">
-   <description>Provides a transfer function based on the non-cold dark matter fitting function of \cite{murgia_non-cold_2017}.</description>
+   <description>Provides a matter transfer function for non-cold dark matter models using the flexible fitting function of \cite{murgia_non-cold_2017}, which parametrizes the small-scale power suppression relative to cold dark matter. The cut-off scale length $\alpha$ and shape parameters $\beta$ and $\gamma$ control the form of the suppression, with the redshift of evaluation set by \mono{[redshift]}.</description>
   </transferFunction>
   !!]
   type, extends(transferFunctionClass) :: transferFunctionMurgia2017

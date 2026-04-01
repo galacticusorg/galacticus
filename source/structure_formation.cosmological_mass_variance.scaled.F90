@@ -75,7 +75,7 @@ contains
       <name>scale</name>
       <source>parameters</source>
       <defaultValue>1.0d0</defaultValue>
-      <description>The factor by which to scale the variance.</description>
+      <description>The multiplicative factor applied to the rms mass variance $\sigma(M,t)$ returned by the wrapped \refClass{cosmologicalMassVarianceClass} object, allowing renormalization of the power spectrum amplitude.</description>
     </inputParameter>
     <objectBuilder class="cosmologicalMassVariance" name="cosmologicalMassVariance_" source="parameters"/>
     !!]

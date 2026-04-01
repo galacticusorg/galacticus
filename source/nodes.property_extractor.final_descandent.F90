@@ -23,7 +23,7 @@ Implements an ISM mass output analysis property extractor class.
 
   !![
   <nodePropertyExtractor name="nodePropertyExtractorFinalDescendant">
-   <description>An ISM mass output analysis property extractor class.</description>
+   <description>Extracts the index of the final descendant node at the base of the merger tree for each node, enabling identification of the present-day halo into which a given progenitor will ultimately merge. Facilitates comparisons between progenitor states and their final descendants.</description>
   </nodePropertyExtractor>
   !!]
   type, extends(nodePropertyExtractorIntegerScalar) :: nodePropertyExtractorFinalDescendant

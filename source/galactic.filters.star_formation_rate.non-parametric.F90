@@ -91,7 +91,7 @@ contains
     <inputParameter>
       <name>filterType</name>
       <source>parameters</source>
-      <description>The type of filter: \mono{lowPass} or \mono{highPass}.</description>
+      <description>Specifies whether the filter passes galaxies below (\mono{lowPass}) or above (\mono{highPass}) the mass-dependent star formation rate threshold, controlling whether quiescent or star-forming galaxies are selected.</description>
     </inputParameter>
     <inputParameter>
       <name>massStellar</name>

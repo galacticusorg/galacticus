@@ -330,7 +330,7 @@
     <unitVector3               value="-0.745355992500 +0.298142397000 +0.596284794000"/>
   </geometryLightcone>
   <!-- Prune trees which lie outside the lightcone -->
-  <mergerTreeOperator value="pruneLightcone">
+  <mergerTreeOperator value="pruneLightconeSnapshots">
     <splitTrees value="true"/>
     <bufferIsolatedHalos value="true"/>
   </mergerTreeOperator>

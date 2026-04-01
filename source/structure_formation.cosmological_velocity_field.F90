@@ -32,7 +32,12 @@ module Cosmological_Velocity_Field
    <name>cosmologicalVelocityField</name>
    <descriptiveName>Cosmological Velocity Field</descriptiveName>
    <description>
-    A class providing models of the cosmological velocity field.
+    Class providing models of the large-scale cosmological peculiar velocity field---the deviation from
+    pure Hubble flow driven by gravitational collapse of density perturbations. Methods return the mean
+    pairwise radial velocity (in km~s$^{-1}$) between galaxy pairs at a given separation, and the
+    one-dimensional velocity dispersion on a scale corresponding to a given mass. These quantities enter
+    models of redshift-space distortions, pairwise statistics, and galaxy clustering in redshift surveys,
+    and depend on the matter power spectrum, cosmological parameters, and, if applicable, the halo bias.
    </description>
    <default>filteredPower</default>
    <method name="velocityRadialMeanPairwise">

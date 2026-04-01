@@ -32,7 +32,12 @@ module Universe_Operators
   <functionClass>
    <name>universeOperator</name>
    <descriptiveName>Universe Operators</descriptiveName>
-   <description>Class providing operators acting on universes.</description>
+   <description>Class providing operators that act on \mono{universe} objects---top-level transformations applied
+    to a fully-evolved \glc\ universe (containing the complete set of merger trees and their galaxies)
+    prior to or after model evolution. Universe operators can perform global post-processing steps such as
+    computing derived statistics, writing supplementary output, or modifying global properties. The interface
+    provides a single \mono{operate} method that receives the universe object and performs whatever
+    transformation the implementation requires.</description>
    <default>identity</default>
    <method name="operate" >
     <description>Operate on the universe.</description>

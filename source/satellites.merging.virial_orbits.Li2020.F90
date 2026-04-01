@@ -30,7 +30,7 @@
 
   !![
   <virialOrbit name="virialOrbitLi2020">
-   <description>Virial orbits using the \cite{li_orbital_2020} orbital parameter distribution.</description>
+   <description>A virial orbit class that draws satellite infall orbital parameters from the bimodal velocity distribution of \cite{li_orbital_2020} calibrated from cosmological N-body simulations. The distribution shape parameters $\mu_1$, $\mu_2$, $\sigma_1$, and $a_0$ can be set to tabulated or custom values.</description>
    <deepCopy>
     <functionClass variables="virialDensityContrastDefinition_"/>
    </deepCopy>

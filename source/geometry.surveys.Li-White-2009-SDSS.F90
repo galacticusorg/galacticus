@@ -55,7 +55,7 @@ Implements the survey geometry of the SDSS sample used by \cite{li_distribution_
                 &amp; &amp; + 2.852\times 10^{-2} m^3 - 6.783 \times 10^{-4} m^4,
      \label{eq:DepthPolynomial}
     \end{eqnarray}
-    where $m= \log_{10}(M_\star/M_\odot)$. We use this polynomial fit to determine the depth of the sample as a function of
+    where $m= \log_{10}(M_\star/\mathrm{M}_\odot)$. We use this polynomial fit to determine the depth of the sample as a function of
     stellar mass. We adopt a solid angle of $2.1901993$~sr \citep{percival_shape_2007} for the sample.
     
     \begin{figure}
@@ -113,13 +113,13 @@ contains
       <name>redshiftMinimum</name>
       <source>parameters</source>
       <defaultValue>0.0d0</defaultValue>
-      <description>The minimum redshift for the survey.</description>
+      <description>The minimum redshift of the \cite{li_distribution_2009} survey volume; sources below this redshift are excluded from the survey sample.</description>
     </inputParameter>
     <inputParameter>
       <name>redshiftMaximum</name>
       <defaultValue>huge(1.0d0)</defaultValue>
       <source>parameters</source>
-      <description>The maximum redshift for the survey.</description>
+      <description>The maximum redshift of the \cite{li_distribution_2009} survey volume; sources above this redshift are excluded from the survey sample.</description>
     </inputParameter>
     !!]
     ! Build the object.

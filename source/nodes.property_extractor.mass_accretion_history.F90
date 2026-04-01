@@ -19,9 +19,7 @@
 
   !![
   <nodePropertyExtractor name="nodePropertyExtractorMassAccretionHistory">
-   <description>
-     A node property extractor which extracts the mass accretion history for each node.
-   </description>
+   <description>Extracts the mass accretion history (a time series of halo mass values) for each node along the main progenitor branch, enabling analysis of halo growth histories across cosmic time.</description>
   </nodePropertyExtractor>
   !!]
   type, extends(nodePropertyExtractorList) :: nodePropertyExtractorMassAccretionHistory

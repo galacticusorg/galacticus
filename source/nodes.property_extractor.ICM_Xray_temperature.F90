@@ -27,7 +27,7 @@ Implements an intracluster medium X-ray luminosity-weighted temperature property
 
   !![
   <nodePropertyExtractor name="nodePropertyExtractorICMXRayTemperature">
-   <description>An intracluster medium X-ray luminosity-weighted temperature property extractor class.</description>
+   <description>Extracts the X-ray luminosity-weighted temperature of the intracluster medium, computed as the emission-weighted mean temperature integrated over the hot halo out to the virial radius. This quantity directly corresponds to the spectroscopic temperature observable in X-ray spectroscopy of galaxy clusters.</description>
   </nodePropertyExtractor>
   !!]
   type, extends(nodePropertyExtractorScalar) :: nodePropertyExtractorICMXRayTemperature

@@ -30,7 +30,7 @@
 
   !![
   <radiativeTransferMatter name="radiativeTransferMatterAtomic">
-   <description>A task which performs radiative transfer.</description>
+   <description>A radiative transfer matter class for atomic gas, computing photoionization, collisional ionization, recombination, and thermal equilibrium for hydrogen and helium. The abundance pattern and metallicity are set via the \mono{[abundancePattern]} and \mono{[metallicity]} parameters, and the temperature floor is controlled by \mono{[temperatureMinimum]}.</description>
   </radiativeTransferMatter>
   !!]
   type, extends(radiativeTransferMatterClass) :: radiativeTransferMatterAtomic
@@ -177,13 +177,13 @@ contains
     <inputParameter>
       <name>abundancePattern</name>
       <defaultValue>var_str('solar')</defaultValue>
-      <description>The abundance pattern to use.</description>
+      <description>The elemental abundance pattern (e.g.\ \mono{solar}) used to set the relative number densities of the tracked species relative to hydrogen when computing photoionization and cooling rates.</description>
       <source>parameters</source>
     </inputParameter>
     <inputParameter>
       <name>metallicity</name>
       <defaultValue>metallicitySolar</defaultValue>
-      <description>The metallicity to use.</description>
+      <description>The gas metallicity (in units of $Z_\odot$) used to scale the heavy-element abundances relative to the solar pattern when computing photoionization equilibrium and cooling.</description>
       <source>parameters</source>
     </inputParameter>
     !!]
@@ -196,13 +196,13 @@ contains
     <inputParameter>
       <name>elements</name>
       <defaultValue>['H']</defaultValue>
-      <description>The elements to include.</description>
+      <description>The list of chemical element symbols (e.g.\ \mono{H}, \mono{He}) whose photoionization equilibrium is tracked; defaults to hydrogen only if not specified.</description>
       <source>parameters</source>
     </inputParameter>
     <inputParameter>
       <name>outputRates</name>
       <defaultValue>.false.</defaultValue>
-      <description>If true, output photoionization and heating rates.</description>
+      <description>If true, write the per-cell photoionization and photoheating rates for each tracked element to the output HDF5 file in addition to the standard ionization-fraction and temperature outputs.</description>
       <source>parameters</source>
     </inputParameter>
     <inputParameter>
@@ -214,7 +214,7 @@ contains
     <inputParameter>
       <name>convergencePercentile</name>
       <defaultValue>0.90d0</defaultValue>
-      <description>The percentile used in the convergence criterion.</description>
+      <description>The percentile of the per-cell convergence measure distribution used to assess global convergence; e.g.\ 0.90 means convergence is declared when 90\% of cells satisfy the convergence tolerance.</description>
       <source>parameters</source>
     </inputParameter>
     <objectBuilder class="massDistribution"                        name="massDistribution_"                        source="parameters"/>

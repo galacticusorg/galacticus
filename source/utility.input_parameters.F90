@@ -1877,16 +1877,19 @@ contains
     !!{
     Return true if the specified parameter is present.
     !!}
-    use :: FoX_dom, only : ELEMENT_NODE   , getNodeName, getNodeType, hasAttribute, &
-          &                node
-    use :: Error  , only : Error_Report
-    use :: IO_XML , only : XML_Path_Exists
+    use :: FoX_dom           , only : ELEMENT_NODE   , getNodeName, getNodeType , hasAttribute, &
+          &                           node           , inException, DOMException   
+    use :: Error             , only : Error_Report
+    use :: IO_XML            , only : XML_Path_Exists
+    use :: ISO_Varying_String, only : char
     implicit none
     class    (inputParameters), intent(in   )           :: self
     character(len=*          ), intent(in   )           :: parameterName
     logical                   , intent(in   ), optional :: requireValue    , zeroIfNotPresent
     type     (node           ), pointer                 :: node_
     type     (inputParameter ), pointer                 :: currentParameter
+    type     (DOMException   )                          :: exception
+    character(len=1024       )                          :: nodeName
     !![
     <optionalArgument name="zeroIfNotPresent" defaultsTo=".false."/>
     <optionalArgument name="requireValue"     defaultsTo=".true." />
@@ -1899,8 +1902,10 @@ contains
        currentParameter => self%parameters%firstChild
        do while (associated(currentParameter))
           if (.not.currentParameter%removed.and.currentParameter%active) then
-             node_ => currentParameter%content
-             if (getNodeType(node_) == ELEMENT_NODE .and. trim(parameterName) == getNodeName(node_)) then
+             node_    => currentParameter%content
+             nodeName =  getNodeName(node_,ex=exception)
+             if (inException(exception)) call Error_Report("unable to retrieve node name when searching for '"//trim(parameterName)//"' in '"//char(self%path())//"'"//{introspection:location})
+             if (getNodeType(node_) == ELEMENT_NODE .and. trim(parameterName) == trim(nodeName)) then
                 if     (                                  &
                      &   .not.requireValue_               &
                      &  .or.                              &
@@ -2115,7 +2120,7 @@ contains
     use :: ISO_Varying_String, only : assignment(=), operator(//)
     implicit none
     type (varying_string )                        :: inputParametersPath
-    class(inputParameters), intent(inout), target :: self
+    class(inputParameters), intent(in   ), target :: self
     type (inputParameter ), pointer               :: parameterNode
     
     parameterNode       => self%parameters

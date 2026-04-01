@@ -33,8 +33,14 @@ module Nuclear_Star_Cluster_Growth_Rates
   !![
   <functionClass>
    <name>nuclearStarClusterGrowthRates</name>
-   <descriptiveName>Rates for gas inflows onto nuclear star clusters</descriptiveName>
-   <description>Class providing models of rates of gas inflow onto nuclear star clusters.</description>
+   <descriptiveName>Nuclear Star Cluster Growth Rates</descriptiveName>
+   <description>Class providing models of the rate (in $\mathrm{M}_\odot \, \mathrm{Gyr}^{-1}$) of gas
+    inflow onto the nuclear star cluster at the center of a galaxy---mass transported inward from the
+    surrounding disk or spheroid by dynamical instabilities, torques, or stellar migration. This inflow
+    feeds both star formation and, potentially, black hole accretion in the nuclear region. Implementations
+    depend on galaxy structural properties such as disk mass, scale radius, and velocity dispersion, and
+    are expected to be particularly important during periods of elevated star formation activity or
+    following mergers.</description>
    <default>antonini2015</default>
    <method name="rate" >
     <description>Returns the rate (in units of $\mathrm{M}_\odot$ Gyr$^{-1}$) of gas inflow onto the nuclear star cluster component of \mono{node}.</description>

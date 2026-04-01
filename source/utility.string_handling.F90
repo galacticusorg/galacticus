@@ -678,7 +678,8 @@ contains
   function stringXMLFormatVarStr(stringIn,indentStep,indentInitial,forceColor) result (stringOut)
     !!{
     Format an XML string with pretty indentation and coloring. Valid XML strings will be automatically pretty-formatted with one
-    element per line, automatic indenting (an initial indent, if required, can be specified via the optional \mono{indentInitial} argument). Some special formatting codes are supported:
+    element per line, automatic indenting (an initial indent, if required, can be specified via the optional
+    \mono{indentInitial} argument). Some special formatting codes are supported:
     \begin{description}
       \item[\mono{**B}:] Highlight the remainder of the line using bold.
       \item[\mono{**C}:] Display a continuation line (to indicate arbitrary additional content), \mono{......}.
@@ -698,7 +699,8 @@ contains
   function stringXMLFormatChar(stringIn,indentStep,indentInitial,forceColor) result (stringOut)
     !!{
     Format an XML string with pretty indentation and coloring. Valid XML strings will be automatically pretty-formatted with one
-    element per line, automatic indenting (an initial indent, if required, can be specified via the optional \mono{indentInitial} argument). Some special formatting codes are supported:
+    element per line, automatic indenting (an initial indent, if required, can be specified via the optional
+    \mono{indentInitial} argument). Some special formatting codes are supported:
     \begin{description}
       \item[\mono{**B}:] Highlight the remainder of the line using bold.
       \item[\mono{**C}:] Display a continuation line (to indicate arbitrary additional content), \mono{......}.

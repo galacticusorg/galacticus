@@ -26,7 +26,7 @@
 
   !![
   <task name="taskHaloModelGenerate">
-   <description>A task which generates a mock catalog of galaxies based on a simple halo model approach.</description>
+   <description>A task which populates a dark matter halo catalog with galaxies using a halo occupation distribution (HOD) model, placing central and satellite galaxies within each halo according to the conditional stellar mass function and dark matter profile, producing a mock galaxy catalog with positions for use in clustering analyses.</description>
   </task>
   !!]
   type, extends(taskClass) :: taskHaloModelGenerate

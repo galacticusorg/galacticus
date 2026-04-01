@@ -22,7 +22,7 @@ Implements a random error output analysis distribution operator class.
 !!}
   !![
   <outputAnalysisDistributionOperator name="outputAnalysisDistributionOperatorRandomErrorFixed">
-   <description>A random error output analysis distribution operator class.</description>
+   <description>An output analysis distribution operator that convolves a property distribution with a fixed-width Gaussian random error of root variance \mono{rootVariance}, modeling constant measurement scatter across all property values.</description>
   </outputAnalysisDistributionOperator>
   !!]
   type, extends(outputAnalysisDistributionOperatorRandomError) :: outputAnalysisDistributionOperatorRandomErrorFixed

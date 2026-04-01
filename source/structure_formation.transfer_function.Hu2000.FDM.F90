@@ -27,7 +27,7 @@
 
   !![
   <transferFunction name="transferFunctionHu2000FDM">
-   <description>Provides a transfer function based on the fuzzy dark matter modifier of \cite{hu_fuzzy_2000}.</description>
+   <description>Provides a matter transfer function for fuzzy dark matter (ultra-light axions), applying the quantum pressure suppression modifier of \cite{hu_fuzzy_2000} to an underlying cold dark matter transfer function. The suppression creates a characteristic small-scale cutoff determined by the axion mass, with the redshift of evaluation specified by \mono{[redshift]}.</description>
   </transferFunction>
   !!]
   type, extends(transferFunctionClass) :: transferFunctionHu2000FDM

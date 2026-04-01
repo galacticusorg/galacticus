@@ -64,7 +64,7 @@ contains
       <name>thetaTolerance</name>
       <source>parameters</source>
       <defaultValue>0.5d0</defaultValue>
-      <description>The criterion for the opening angle.</description>
+      <description>The Barnes-Hut opening-angle tolerance $\theta$; cells subtending an angle smaller than $\theta$ at a particle are treated as point masses, trading accuracy for speed.</description>
     </inputParameter>
     !!]
     self%nbodyOperatorSelfBound=nbodyOperatorSelfBound(parameters)

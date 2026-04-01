@@ -26,7 +26,11 @@
   !![
   <nodeOperator name="nodeOperatorCGMAccretion">
    <description>
-    A node operator class that implements accretion of gas into the \gls{cgm}.
+    A node operator class that drives the inflow of gas from the \gls{igm} into the circumgalactic medium (\gls{cgm}) at each
+    ODE timestep, using a \refClass{accretionHaloClass} object to compute the mass and angular momentum accretion rates.
+    \mono{allowNegativeCGMMass} controls whether the \gls{cgm} gas mass is permitted to go negative (rates driving it
+    negative are optionally truncated to zero). \mono{angularMomentumAlwaysGrows} forces \gls{cgm} angular momentum to
+    only increase, preventing reversal from negative accretion rates.
    </description>
   </nodeOperator>
   !!]

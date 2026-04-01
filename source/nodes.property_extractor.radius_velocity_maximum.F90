@@ -26,7 +26,7 @@
 
   !![
   <nodePropertyExtractor name="nodePropertyExtractorRadiusVelocityMaximum">
-   <description>A property extractor class which extracts the radius at which the maximum velocity is reached in the dark matter-only density profile.</description>
+   <description>Extracts the radius at which the circular velocity reaches its maximum value in the dark matter-only density profile of each halo, a key structural parameter that characterizes halo concentration and mass distribution.</description>
   </nodePropertyExtractor>
   !!]
   type, extends(nodePropertyExtractorScalar) :: nodePropertyExtractorRadiusVelocityMaximum

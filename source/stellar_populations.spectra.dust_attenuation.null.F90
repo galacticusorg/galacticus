@@ -23,7 +23,7 @@
 
   !![
   <stellarSpectraDustAttenuation name="stellarSpectraDustAttenuationZero">
-   <description>Returns a zero dust attenuation.</description>
+   <description>Returns zero dust attenuation (an attenuation factor of unity) at all wavelengths, used to disable dust effects while still satisfying the interface requirements of the stellar spectra dust attenuation class.</description>
   </stellarSpectraDustAttenuation>
   !!]
   type, extends(stellarSpectraDustAttenuationClass) :: stellarSpectraDustAttenuationZero

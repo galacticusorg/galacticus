@@ -32,9 +32,12 @@ module Halo_Spin_Distributions
   <functionClass>
    <name>haloSpinDistribution</name>
    <descriptiveName>Dark Matter Halo Spin Parameter Distributions</descriptiveName>
-   <description>
-    Class providing dark matter halo spin parameter distributions.
-   </description>
+   <description>Class providing the distribution $p(\lambda)$ of the dark matter halo spin parameter
+    $\lambda \equiv J |E|^{1/2} / \mathrm{G} M^{5/2}$, where $J$ is the angular momentum, $E$ the total energy,
+    and $M$ the halo mass. The spin distribution, sometimes approximated by a log-normal, determines the
+    range of galaxy disk sizes that form from cooling gas conserving the specific angular momentum of
+    the halo. Implementations return both the distribution function $p(\lambda)$ and random samples
+    from it, enabling Monte Carlo assignment of spins to halos.</description>
    <default>bett2007</default>
    <method name="sample" >
     <description>Samples a spin parameter from the distribution for the given \mono{node}.</description>

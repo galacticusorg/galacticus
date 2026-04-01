@@ -42,7 +42,7 @@ module Interface_Local_Group_DB
   !![
   <enumeration>
    <name>comparison</name>
-   <description>Comparison operators.</description>
+   <description>Enumeration of comparison operators used when filtering Local Group database entries by property value: \mono{equals}, \mono{greaterThan}, and \mono{lessThan}.</description>
    <visibility>public</visibility>
    <entry label="equals"     />
    <entry label="greaterThan"/>
@@ -53,7 +53,7 @@ module Interface_Local_Group_DB
   !![
   <enumeration>
    <name>setOperator</name>
-   <description>Set operators.</description>
+   <description>Enumeration of set operators for combining Local Group database selections: \mono{intersection} retains only common members, \mono{union} combines all members, and \mono{relativeComplement} removes members of one set from another.</description>
    <visibility>public</visibility>
    <entry label="intersection"/>
    <entry label="union"/>
@@ -64,7 +64,7 @@ module Interface_Local_Group_DB
   !![
   <enumeration>
    <name>attribute</name>
-   <description>Attribute types.</description>
+   <description>Enumeration of attribute types stored in the Local Group database for each property: \mono{value} holds the measured quantity and \mono{uncertainty} holds its associated measurement uncertainty.</description>
    <visibility>public</visibility>
    <entry label="value"      />
    <entry label="uncertainty"/>

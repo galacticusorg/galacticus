@@ -45,13 +45,13 @@ Implements a class for the conditional mass functions using the \cite{behroozi_c
     \end{equation}
     where
     \begin{equation}
-     {M_\mathrm{sat} \over 10^{12} M_\odot} = B_\mathrm{sat} \left({f^{-1}_\mathrm{SHMR}(M_\star) \over 10^{12}
-     M_\odot}\right)^{\beta_\mathrm{sat}},
+     {M_\mathrm{sat} \over 10^{12} \mathrm{M}_\odot} = B_\mathrm{sat} \left({f^{-1}_\mathrm{SHMR}(M_\star) \over 10^{12}
+     \mathrm{M}_\odot}\right)^{\beta_\mathrm{sat}},
     \end{equation}
     and
     \begin{equation}
-     {M_\mathrm{cut} \over 10^{12} M_\odot} = B_\mathrm{cut} \left({f^{-1}_\mathrm{SHMR}(M_\star) \over 10^{12}
-     M_\odot}\right)^{\beta_\mathrm{cut}}.
+     {M_\mathrm{cut} \over 10^{12} \mathrm{M}_\odot} = B_\mathrm{cut} \left({f^{-1}_\mathrm{SHMR}(M_\star) \over 10^{12}
+     \mathrm{M}_\odot}\right)^{\beta_\mathrm{cut}}.
     \end{equation}
     By default, parameter values are taken from the fit of \cite{leauthaud_new_2011}, specifically their \mono{SIG\_MOD1} method for their $z_1$ sample. These default values, and the \glc\ input parameters which can be used to adjust
     them are shown in Table~\ref{table:Behroozi2010FitParameters}. This method assumes that $P_\mathrm{s}(N|M_\star,M;\delta

@@ -25,7 +25,7 @@
   
   !![
   <nodeOperator name="nodeOperatorTidalMassLossSpheroids">
-   <description>A node operator class that performs tidal mass loss in spheroids.</description>
+   <description>Computes and applies gravitational tidal stripping of stellar mass from satellite galaxy spheroids as they orbit within the host halo tidal field, progressively removing outer stars from the bulge component at each orbit.</description>
   </nodeOperator>
   !!]
   type, extends(nodeOperatorClass) :: nodeOperatorTidalMassLossSpheroids

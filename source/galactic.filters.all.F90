@@ -23,7 +23,7 @@ Implements a galactic filter class which is the ``all'' combination of a set of 
 
   !![
   <galacticFilter name="galacticFilterAll">
-   <description>A galactic filter class which is the ``all'' combination of a set of other filters.</description>
+   <description>Implements a logical \mono{AND} combination of multiple \refClass{galacticFilterClass} objects, passing only nodes that satisfy every filter in the list, enabling construction of complex selection criteria by composing simpler filters.</description>
    <linkedList type="filterList" variable="filters" next="next" object="filter_" objectType="galacticFilterClass"/>
   </galacticFilter>
   !!]

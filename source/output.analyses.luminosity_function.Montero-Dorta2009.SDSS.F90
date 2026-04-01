@@ -23,7 +23,7 @@ Implements a stellar mass function output analysis class.
 
   !![
   <outputAnalysis name="outputAnalysisLuminosityFunctionMonteroDorta2009SDSS">
-   <description>An SDSS luminosity function output analysis class for the \cite{montero-dorta_sdss_2009} analysis.</description>
+   <description>Computes the SDSS galaxy luminosity function in one of five photometric bands (u, g, r, i, or z) for comparison with the \cite{montero-dorta_sdss_2009} measurements, with magnitude random/systematic error polynomial coefficients, gravitational lensing source size, and binomial covariance parameters.</description>
   </outputAnalysis>
   !!]
   type, extends(outputAnalysisLuminosityFunction) :: outputAnalysisLuminosityFunctionMonteroDorta2009SDSS

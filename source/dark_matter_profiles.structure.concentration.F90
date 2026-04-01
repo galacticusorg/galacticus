@@ -36,7 +36,11 @@ module Dark_Matter_Profiles_Concentration
    <name>darkMatterProfileConcentration</name>
    <descriptiveName>Dark Matter Profile Concentrations</descriptiveName>
    <description>
-    Class providing dark matter profile concentrations.
+    Class providing the concentration parameter $c = r_\mathrm{vir}/r_\mathrm{s}$ of dark matter halo density profiles, where
+    $r_\mathrm{vir}$ is the virial radius and $r_\mathrm{s}$ is the characteristic scale radius. The concentration encodes the
+    inner density structure of a halo and depends on halo mass and formation history. Implementations provide both the
+    instantaneous concentration (i.e., including any scatter around the mean) and the mean concentration--mass relation, along
+    with definitions of the density contrast and dark matter profile used in computing the concentration.
    </description>
    <default>gao2008</default>
    <method name="concentration" >

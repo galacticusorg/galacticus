@@ -18,12 +18,12 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
 !!{
-Contains a module which provides a class that implements general tasks to be performed by \glc.
+Contains a module which provides a class implementing work sharing strategies for the evolve forests task.
 !!}
 
 module Task_Evolve_Forests_Work_Shares
   !!{
-  Provides a class that implements general tasks to be performed by \glc.
+  Provides a class implementing work sharing strategies that assign merger tree forests to MPI processes and OpenMP threads for parallel execution in the evolve forests task.
   !!}
   use   , intrinsic :: ISO_C_Binding, only : c_size_t
   !$ use            :: OMP_Lib      , only : OMP_Get_Thread_Num
@@ -33,7 +33,12 @@ module Task_Evolve_Forests_Work_Shares
   <functionClass>
    <name>evolveForestsWorkShare</name>
    <descriptiveName>Evolve Forests Work Share</descriptiveName>
-   <description>Class providing work sharing for the evolve forests task.</description>
+   <description>Class providing work sharing strategies for the evolve forests task---the algorithm that
+    assigns merger tree forests to individual MPI processes and OpenMP threads for parallel execution.
+    Implementations return the index of the next forest to be processed by the calling worker, a
+    unique worker identifier, and the total worker count. Strategies include first-come-first-served
+    (FCFS) dynamic scheduling and static pre-assignment, with load balancing optionally guided by
+    tree processing time estimates from \refClass{metaTreeProcessingTimeClass}.</description>
    <default>FCFS</default>
    <method name="forestNumber" >
     <description>Return the number of the forest to process.</description>

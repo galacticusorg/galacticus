@@ -23,7 +23,7 @@
 
   !![
   <nodeOperator name="nodeOperatorNodeFormationTimeCole2000">
-   <description>A node operator class that computes the formation time for each node using the definition of \cite{cole_hierarchical_2000}.</description>
+   <description>A node operator class that records the halo formation time using the definition of \cite{cole_hierarchical_2000}, in which a halo is considered newly formed when its mass has grown by a factor \mono{massFactorReformation} since the previous formation event. \mono{reformationOnPromotionOnly} restricts reformation events to node promotions only (rather than the precise time the mass threshold is crossed during ODE integration).</description>
   </nodeOperator>
   !!]
   type, extends(nodeOperatorClass) :: nodeOperatorNodeFormationTimeCole2000

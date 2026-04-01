@@ -32,9 +32,11 @@ module Merger_Tree_Branching_Modifiers
   <functionClass>
    <name>mergerTreeBranchingProbabilityModifier</name>
    <descriptiveName>Modifiers for merger tree branching probabilities</descriptiveName>
-   <description>
-    Class implementing modifiers for merger tree branching probabilities.
-   </description>
+   <description>Class providing multiplicative modifiers to the merger tree branching probability rate,
+    applied at each potential branching event during tree construction. Modifiers allow the branching
+    probability to be re-weighted based on halo properties (mass, overdensity, redshift) beyond what
+    the base branching probability class provides. This enables fitting to N-body simulation merger
+    rates or implementing environmental or assembly-bias corrections.</description>
    <default>identity</default>
    <method name="rateModifier" >
     <description>Return the multiplicative modifier to the tree branch probability rate.</description>

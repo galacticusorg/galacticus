@@ -98,19 +98,19 @@ contains
       <name>radiusLow</name>
       <defaultValue>+0.0154d0</defaultValue>
       <source>parameters</source>
-      <description>The parameter $r_0$ in the power-law scale radius model.</description>
+      <description>The low-mass limit of the characteristic scale radius $r_0$ (in Mpc) in the power-law scale radius model, giving the scale radius normalization for low-mass halos as a function of peak height and expansion factor.</description>
     </inputParameter>
     <inputParameter>
       <name>radiusHigh</name>
       <defaultValue>+0.0962d0</defaultValue>
       <source>parameters</source>
-      <description>The parameter $r_1$ in the power-law scale radius model.</description>
+      <description>The high-mass limit of the characteristic scale radius $r_1$ (in Mpc) in the power-law scale radius model, giving the scale radius normalization for high-mass halos.</description>
     </inputParameter>
     <inputParameter>
       <name>radiusTransition</name>
       <defaultValue>+1.2137d0</defaultValue>
       <source>parameters</source>
-      <description>The parameter $r_\nu$ in the power-law scale radius model.</description>
+      <description>The peak height $\nu$ at which the characteristic scale radius transitions between its low-mass and high-mass limiting values in the power-law scale radius model.</description>
     </inputParameter>
     <inputParameter>
       <name>radiusWidth</name>
@@ -170,7 +170,7 @@ contains
       <name>scatter</name>
       <defaultValue>+0.1513d0</defaultValue>
       <source>parameters</source>
-      <description>.</description>
+      <description>The scatter (in dex) in the scale radius at fixed halo mass and redshift in the power-law scale radius model, representing the intrinsic halo-to-halo variation in concentration.</description>
     </inputParameter>
     <objectBuilder class="cosmologyFunctions"           name="cosmologyFunctions_"           source="parameters"/>
     <objectBuilder class="criticalOverdensity"          name="criticalOverdensity_"          source="parameters"/>

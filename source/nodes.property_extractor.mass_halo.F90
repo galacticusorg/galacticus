@@ -28,7 +28,13 @@ Implements a halo mass output analysis property extractor class.
 
   !![
   <nodePropertyExtractor name="nodePropertyExtractorMassHalo">
-   <description>A halo mass output analysis property extractor class.</description>
+   <description>A property extractor that returns the dark-matter-only halo mass (in
+    $\mathrm{M}_\odot$) enclosed within a radius defined by a specified virial density contrast. Two
+    density contrast objects must be provided: \mono{virialDensityContrast} for the profile
+    interpolation and \mono{virialDensityContrastDefinition} for the mass definition. If
+    \mono{useLastIsolatedTime} is \mono{true}, the density contrast is evaluated at the halo's last
+    isolated time rather than the current time, yielding the conventional virial mass definition used
+    by many halo finders.</description>
   </nodePropertyExtractor>
   !!]
   type, extends(nodePropertyExtractorScalar) :: nodePropertyExtractorMassHalo

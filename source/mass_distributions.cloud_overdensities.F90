@@ -27,7 +27,7 @@
 
   !![
   <massDistribution name="massDistributionCloudOverdensities">
-   <description>A mass distribution class which overlays clouds on another mass distribution.</description>
+   <description>A mass distribution class that overlays a population of randomly placed, constant-density spherical clouds on top of an underlying smooth mass distribution. Cloud properties are set by \mono{[radius]}, \mono{[densityContrast]}, and \mono{[volumeFillingFactor]}, with inter-cloud gas characterized by \mono{[densityContrastIntercloud]}.</description>
   </massDistribution>
   !!]
   type, public, extends(massDistributionClass) :: massDistributionCloudOverdensities
@@ -78,17 +78,17 @@ contains
     !![
     <inputParameter>
       <name>radius</name>
-      <description>The cloud radius.</description>
+      <description>The radius (in Mpc) of each individual constant-density spherical cloud overlaid on the smooth background mass distribution.</description>
       <source>parameters</source>
     </inputParameter>
     <inputParameter>
       <name>densityContrast</name>
-      <description>The cloud density contrast.</description>
+      <description>The overdensity contrast of the clouds relative to the smooth background; values greater than 1 indicate denser clouds, which are used to compute the density inside cloud regions.</description>
       <source>parameters</source>
     </inputParameter>
     <inputParameter>
       <name>volumeFillingFactor</name>
-      <description>The cloud volume filling factor.</description>
+      <description>The fraction of the total volume filled by clouds; used together with the cloud radius to determine the number of clouds randomly placed within the boundary radius.</description>
       <source>parameters</source>
     </inputParameter>
     <inputParameter>

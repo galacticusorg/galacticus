@@ -26,7 +26,7 @@
 
   !![
   <outputAnalysisDistributionOperator name="outputAnalysisDistributionOperatorRndmErrNbdyCnc">
-   <description>A random error output analysis distribution operator class providing errors in $\log_{10}$ of N-body halo concentration.</description>
+   <description>An output analysis distribution operator that applies N-body measurement errors in $\log_{10}$ halo concentration, modeling the error as a polynomial in concentration (coefficients \mono{a}) with particle-number scaling exponent \mono{b} and particle mass \mono{massParticle}.</description>
   </outputAnalysisDistributionOperator>
   !!]
   type, extends(outputAnalysisDistributionOperatorRandomError) :: outputAnalysisDistributionOperatorRndmErrNbdyCnc

@@ -81,13 +81,13 @@ contains
       <name>rateHydrogenIonizingPhotonsMinimum</name>
       <defaultValue>1.0d48</defaultValue>
       <defaultSource>(\citealt{santoro_phangs-muse_2022}; approximate)</defaultSource>
-      <description>Minimum luminosity of HII regions.</description>
+      <description>The minimum ionizing photon production rate ($Q_\mathrm{H,min}$, in photons/s) below which the power-law HII region luminosity function is truncated to zero.</description>
       <source>parameters</source>
     </inputParameter>
     <inputParameter>
       <name>rateHydrogenIonizingPhotonsMaximum</name>
       <defaultValue>huge(0.0d0)</defaultValue>
-      <description>Maximum luminosity of HII regions.</description>
+      <description>The maximum ionizing photon production rate ($Q_\mathrm{H,max}$, in photons/s) above which the power-law HII region luminosity function is truncated to zero.</description>
       <source>parameters</source>
     </inputParameter>
     !!]

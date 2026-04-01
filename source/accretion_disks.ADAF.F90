@@ -26,7 +26,7 @@
   !![
   <enumeration>
    <name>adafRadiativeEfficiencyType</name>
-   <description>Type of radiative efficiency model to use for ADAFs.</description>
+   <description>Enumeration of radiative efficiency model types for advection-dominated accretion flows (ADAFs): either a fixed efficiency or the thin-disk efficiency formula.</description>
    <encodeFunction>yes</encodeFunction>
    <validator>yes</validator>
    <entry label="fixed"   />
@@ -37,7 +37,7 @@
   !![
   <enumeration>
    <name>adafViscosity</name>
-   <description>Type of viscosity model to use for ADAFs.</description>
+   <description>Enumeration of viscosity model types for ADAFs, selecting whether the viscosity parameter $\alpha$ is computed via a fitting function of black hole spin or held at a fixed value.</description>
    <encodeFunction>yes</encodeFunction>
    <validator>yes</validator>
    <entry label="fit"  />
@@ -48,7 +48,7 @@
   !![
   <enumeration>
    <name>adafFieldEnhancement</name>
-   <description>Type of field enhancement model to use for ADAFs.</description>
+   <description>Enumeration of field-enhancing shear models for ADAFs, controlling whether the magnetic field enhancement factor $g$ follows an exponential ($g=\exp(\omega\tau)$) or linear ($g=1+\omega\tau$) form.</description>
    <encodeFunction>yes</encodeFunction>
    <validator>yes</validator>
    <entry label="exponential"/>
@@ -59,7 +59,7 @@
   !![
   <enumeration>
    <name>adafEnergy</name>
-   <description>Type of energy model to use for ADAFs.</description>
+   <description>Enumeration of energy model types for ADAFs, specifying whether the energy of accreted material is set to that of a pure ADAF (energy at infinity) or to the energy at the innermost stable circular orbit (ISCO).</description>
    <encodeFunction>yes</encodeFunction>
    <validator>yes</validator>
    <entry label="pureADAF"/>
@@ -70,7 +70,7 @@
   !![
   <enumeration>
    <name>adafTable</name>
-   <description>Enumeration of ADAF look-up tables.</description>
+   <description>Enumeration of pre-computed ADAF look-up tables, identifying whether a table stores jet power or black hole spin-up rate as a function of accretion parameters.</description>
    <visibility>private</visibility>
    <indexing>1</indexing>
    <entry label="powerJet"  />
@@ -266,7 +266,7 @@ contains
       <name>adiabaticIndex</name>
       <source>parameters</source>
       <defaultValue>adafAdiabaticIndexDefault(enumerationAdafFieldEnhancementEncode(char(fieldEnhancementOption),includesPrefix=.false.))</defaultValue>
-      <description>Specifies the effective adiabatic index of gas in an ADAF.</description>
+      <description>Specifies the effective adiabatic index $\gamma$ of gas in an ADAF, which controls the thermodynamic response of the accreting gas and influences the structure and radiative efficiency of the flow.</description>
     </inputParameter>
     <inputParameter>
       <name>viscosityOption</name>

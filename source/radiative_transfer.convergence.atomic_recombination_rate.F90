@@ -19,7 +19,7 @@
 
   !![
   <radiativeTransferConvergence name="radiativeTransferConvergenceHydrogenRecombinationRate">
-   <description>A task which performs radiative transfer.</description>
+   <description>A radiative transfer convergence class that monitors the total hydrogen atomic recombination rate across successive iterations, declaring convergence when the relative change in the total recombination rate falls below the specified tolerance. The convergence criterion is set by \mono{[toleranceRelative]}.</description>
   </radiativeTransferConvergence>
   !!]
   type, extends(radiativeTransferConvergenceClass) :: radiativeTransferConvergenceHydrogenRecombinationRate

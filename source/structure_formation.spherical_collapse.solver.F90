@@ -32,7 +32,13 @@ module Spherical_Collapse_Solvers
   <functionClass>
    <name>sphericalCollapseSolver</name>
    <descriptiveName>Spherical Collapse Solvers</descriptiveName>
-   <description>Class providing solvers for the collapse of spherical perturbations.</description>
+   <description>Class providing numerical solvers for the collapse of spherical density perturbations in a given
+    cosmology---computing the critical linear overdensity $\delta_\mathrm{c}$, the virial density
+    contrast $\Delta_\mathrm{vir}$, and the turnaround-to-virial radius ratio as functions of cosmic
+    time by integrating the spherical collapse equations. These tabulated quantities are consumed by
+    \refClass{criticalOverdensityClass} and \refClass{virialDensityContrastClass} implementations,
+    allowing the halo collapse threshold and virial radius definition to vary with redshift and
+    cosmological model.</description>
    <default>cllsnlssMttrCsmlgclCnstnt</default>
    <method name="criticalOverdensity" >
     <description>Returns a tabulation of the critical overdensity for collapse.</description>

@@ -743,8 +743,8 @@ contains
                    else
                       varianceMaximumRateLimit=self%varianceMaximumRate
                    end if
-                   ! For computing non-crossing rates, the results are tabulated with respect to $S_{\rm max}-S$ so that interpolation
-                   ! is more accurate when $S$ approaches $S_{\rm max}$.
+                   ! For computing non-crossing rates, the results are tabulated with respect to S_max-S so that interpolation
+                   ! is more accurate when $S$ approaches S_max.
                    do iVariance=0,countVarianceCurrentRate
                       varianceCurrentRateQuad(iVariance)=max(varianceMaximumRateLimit-self%varianceCurrentRateNonCrossing(iVariance),0.0d0)
                    end do

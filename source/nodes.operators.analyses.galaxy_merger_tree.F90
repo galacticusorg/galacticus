@@ -25,7 +25,7 @@
   
   !![
   <nodeOperator name="nodeOperatorGalaxyMergerTree">
-   <description>A node operator class that records properties of galaxies in every galaxy's merger tree.</description>
+   <description>A node operator class that outputs a time-series of galaxy properties along each merger tree branch at regular intervals of \mono{timeStep} Gyr, enabling reconstruction of complete evolutionary histories for post-processing. The set of properties to record is specified via a list of \refClass{nodePropertyExtractorClass} objects. Node indices, branch identifiers, and merger information are also recorded to allow reconstruction of the full tree topology.</description>
    <linkedList type="multiExtractorList" variable="extractors" next="next" object="extractor_" objectType="nodePropertyExtractorClass" module="Node_Property_Extractors"/>
   </nodeOperator>
   !!]

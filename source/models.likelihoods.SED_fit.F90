@@ -56,7 +56,7 @@
 
   !![
   <posteriorSampleLikelihood name="posteriorSampleLikelihoodSEDFit">
-   <description>A posterior sampling likelihood class which implements a likelihood for SED fitting.</description>
+   <description>A posterior sampling likelihood class which evaluates the likelihood of observed broadband spectral energy distributions (SEDs) given modeled stellar populations, including dust attenuation effects. Observed magnitudes and uncertainties are specified via \mono{[magnitudes]} and \mono{[errors]}, with dust model and star formation history burst count controlled by \mono{[dustType]} and \mono{[burstCount]}.</description>
   </posteriorSampleLikelihood>
   !!]
   type, extends(posteriorSampleLikelihoodClass) :: posteriorSampleLikelihoodSEDFit

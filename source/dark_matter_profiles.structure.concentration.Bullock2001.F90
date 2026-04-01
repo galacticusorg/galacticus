@@ -28,7 +28,7 @@
 
   !![
   <darkMatterProfileConcentration name="darkMatterProfileConcentrationBullock2001">
-   <description>Dark matter halo concentrations are computed using the algorithm of \cite{bullock_profiles_2001}.</description>
+   <description>Computes dark matter halo concentrations using the mass-collapse epoch relation of \cite{bullock_profiles_2001}, in which concentration scales with the ratio of the virial radius to the collapse-epoch scale factor. The two free parameters of the model are \mono{[F]}, which determines the collapse mass fraction, and \mono{[K]}, which sets the concentration normalization.</description>
    <deepCopy>
     <functionClass variables="virialDensityContrastDefinition_, darkMatterProfileDMODefinition_"/>
    </deepCopy>

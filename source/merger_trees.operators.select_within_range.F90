@@ -23,7 +23,7 @@ Implements a select-within-range operator on the base nodes of merger trees.
 
   !![
   <mergerTreeOperator name="mergerTreeOperatorSelectWithinRange">
-   <description>Provides a select-within-range operator on the base nodes of merger trees.</description>
+   <description>Provides a merger tree operator which selects only those trees whose base node mass falls within a specified range, discarding trees outside the bounds. The minimum and maximum accepted base node masses are set by \mono{[massMinimum]} and \mono{[massMaximum]}, enabling mass-limited ensemble selection for statistical analyses.</description>
   </mergerTreeOperator>
   !!]
   type, extends(mergerTreeOperatorClass) :: mergerTreeOperatorSelectWithinRange

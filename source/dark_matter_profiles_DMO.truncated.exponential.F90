@@ -83,7 +83,7 @@ contains
       <name>radiusFractionalDecay</name>
       <defaultValue>1.0d0</defaultValue>
       <source>parameters</source>
-      <description>The truncation scale (in units of the virial radius).</description>
+      <description>The truncation scale radius expressed as a fraction of the virial radius; the exponentially truncated dark matter profile decays as $\exp(-r/r_\mathrm{trunc})$ for $r > r_\mathrm{trunc} = $ \mono{[radiusFractionalDecay]} $\times r_\mathrm{virial}$, suppressing the profile at large radii.</description>
     </inputParameter>    
     <objectBuilder class="darkMatterProfileDMO" name="darkMatterProfileDMO_" source="parameters"/>
     <objectBuilder class="darkMatterHaloScale"  name="darkMatterHaloScale_"  source="parameters"/>

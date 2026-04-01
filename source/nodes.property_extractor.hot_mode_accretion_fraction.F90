@@ -25,7 +25,7 @@ Implements a hot mode accretion fraction rate property extractor class.
 
   !![
   <nodePropertyExtractor name="nodePropertyExtractorFractionAccretionHotMode">
-   <description>A hot mode accretion fraction property extractor class.</description>
+   <description>Extracts the fraction of total gas accretion onto a halo that arrives via the hot-mode channel, where infalling gas is shock-heated to the virial temperature rather than streaming in cold. Traces the transition between accretion regimes as a function of halo mass and redshift.</description>
   </nodePropertyExtractor>
   !!]
   type, extends(nodePropertyExtractorScalar) :: nodePropertyExtractorFractionAccretionHotMode

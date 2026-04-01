@@ -28,7 +28,7 @@ Implements a sequence output analysis weight operator class.
 
   !![
   <outputAnalysisWeightOperator name="outputAnalysisWeightOperatorSequence">
-   <description>A sequence output analysis weight operator class.</description>
+   <description>Applies a sequence of \refClass{outputAnalysisWeightOperatorClass} objects in order to a weight value, enabling construction of complex multi-step weighting schemes from composable weight operators.</description>
    <linkedList type="weightOperatorList" variable="operators" next="next" object="operator_" objectType="outputAnalysisWeightOperatorClass"/>
   </outputAnalysisWeightOperator>
   !!]

@@ -27,7 +27,7 @@
   
   !![
   <nodeOperator name="nodeOperatorStellarFeedbackSpheroids">
-   <description>A node operator class that performs stellar feedback in spheroids.</description>
+   <description>Computes stellar feedback-driven outflows from galactic spheroids (bulges), applying supernova and stellar wind energy to drive gas ejection from the dense spheroid, modulating starburst activity triggered by galaxy mergers and disk instabilities.</description>
   </nodeOperator>
   !!]
   type, extends(nodeOperatorClass) :: nodeOperatorStellarFeedbackSpheroids

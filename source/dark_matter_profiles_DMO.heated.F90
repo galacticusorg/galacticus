@@ -112,7 +112,7 @@ contains
       <name>toleratePotentialIntegrationFailure</name>
       <defaultValue>.false.</defaultValue>
       <source>parameters</source>
-      <description>If \mono{true}, tolerate failures to compute the potential.</description>
+      <description>If \mono{true}, tolerate numerical failures when computing the gravitational potential of a heated dark matter profile, allowing the calculation to continue with a fallback result rather than aborting.</description>
     </inputParameter>
     <inputParameter>
       <name>toleranceRelativeVelocityDispersion</name>

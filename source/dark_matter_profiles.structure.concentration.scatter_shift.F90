@@ -75,7 +75,7 @@ contains
     <inputParameter>
       <name>sigmaShift</name>
       <source>parameters</source>
-      <description>The number of $\sigma$ by which to shift the concentration.</description>
+      <description>The number of standard deviations $\sigma$ by which to shift the halo concentration from its mean value, allowing selection of halos with systematically higher or lower concentrations than average at fixed mass.</description>
     </inputParameter>
     !!]
     self=darkMatterProfileConcentrationScatterShift(scatter,sigmaShift,darkMatterProfileConcentration_)

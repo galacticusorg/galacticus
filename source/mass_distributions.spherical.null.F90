@@ -23,7 +23,7 @@
 
   !![
   <massDistribution name="massDistributionZero">
-   <description>A zero mass distribution class.</description>
+   <description>A mass distribution class that returns zero density, zero enclosed mass, and zero potential everywhere; useful as a null placeholder when no mass component is present in a given region.</description>
   </massDistribution>
   !!]
   type, public, extends(massDistributionSpherical) :: massDistributionZero

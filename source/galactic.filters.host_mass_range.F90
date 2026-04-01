@@ -23,7 +23,7 @@ Implements a galactic filter which passes nodes with host halo basic mass within
 
   !![
   <galacticFilter name="galacticFilterHostMassRange">
-   <description>Passes nodes with host halo basic mass, $M_\mathrm{host}$, in the range \mono{[massMinimum]}$\le M_\mathrm{host}&lt;$\mono{[massMaximum]}.</description>
+   <description>Passes nodes whose host halo basic mass, $M_\mathrm{host}$, falls within the range \mono{[massMinimum]}$\le M_\mathrm{host}&lt;$\mono{[massMaximum]}. This selects subhalos or galaxies hosted by halos of a specified mass interval, enabling mass-binned analyses of galaxy populations in their environmental context.</description>
   </galacticFilter>
   !!]
   type, extends(galacticFilterClass) :: galacticFilterHostMassRange

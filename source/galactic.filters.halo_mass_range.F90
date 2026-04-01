@@ -27,9 +27,7 @@ Implements a galactic filter for halo mass under a given definition.
 
   !![
   <galacticFilter name="galacticFilterHaloMassRange">
-   <description>
-    Halos with a halo mass \mono{massLow} $\le M &lt;$ \mono{[massHigh]} are passed.
-   </description>
+   <description>Passes nodes whose halo mass (under a specified virial density contrast definition) falls within the range [\mono{massLow}, \mono{massHigh}), enabling selection of halos by mass.</description>
   </galacticFilter>
   !!]
   type, extends(galacticFilterClass) :: galacticFilterHaloMassRange
@@ -74,12 +72,12 @@ contains
     <inputParameter>
       <name>massLow</name>
       <source>parameters</source>
-      <description>The lowest halo mass to pass.</description>
+      <description>The minimum halo mass (in $\mathrm{M}_\odot$) that a node must have to pass the filter; nodes with mass below this threshold are rejected.</description>
     </inputParameter>
     <inputParameter>
       <name>massHigh</name>
       <source>parameters</source>
-      <description>The highest halo mass to pass.</description>
+      <description>The maximum halo mass (in $\mathrm{M}_\odot$) that a node must have to pass the filter; nodes with mass above this threshold are rejected.</description>
     </inputParameter>
     <objectBuilder class="cosmologyFunctions"    name="cosmologyFunctions_"              source="parameters"                                                />
     <objectBuilder class="cosmologyParameters"   name="cosmologyParameters_"             source="parameters"                                                />

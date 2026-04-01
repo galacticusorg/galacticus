@@ -25,7 +25,7 @@ Implements a color distribution output analysis class for SDSS data.
 
   !![
   <outputAnalysis name="outputAnalysisColorDistributionSDSS">
-   <description>An SDSS color distribution function output analysis class.</description>
+   <description>Computes the distribution of galaxy optical colors from the Sloan Digital Sky Survey (SDSS), selecting one of 16 predefined stellar mass and redshift bin distributions via the \mono{distributionNumber} parameter for comparison with observational data.</description>
   </outputAnalysis>
   !!]
   type, extends(outputAnalysisVolumeFunction1D) :: outputAnalysisColorDistributionSDSS

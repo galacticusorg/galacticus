@@ -23,7 +23,7 @@ Implements a galactic filter which tests whether the given node has a specified 
   
   !![
   <galacticFilter name="galacticFilterLabelled">
-   <description>Tests whether the given node has a specified label.</description>
+   <description>Tests whether the given node has been assigned the label specified by \mono{[label]}. This filter passes only nodes that carry the designated label, enabling targeted selection of nodes based on categorical metadata attached during tree construction or post-processing.</description>
   </galacticFilter>
   !!]
   type, extends(galacticFilterClass) :: galacticFilterLabelled
@@ -61,7 +61,7 @@ contains
     <inputParameter>
       <name>label</name>
       <source>parameters</source>
-      <description>The label upon which to filter.</description>
+      <description>The label string that a node must carry in order to pass this filter; only nodes assigned this exact label during tree construction or post-processing will be selected.</description>
     </inputParameter>
     !!]
     self=galacticFilterLabelled(label)

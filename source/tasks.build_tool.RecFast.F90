@@ -19,7 +19,7 @@
 
   !![
   <task name="taskBuildToolRecFast">
-   <description>A task which builds the RecFast tool.</description>
+   <description>A task which downloads, compiles, and installs the RecFast recombination code, making it available for computing the ionization history of the universe during hydrogen and helium recombination for use in Boltzmann solvers and CMB calculations.</description>
   </task>
   !!]
   type, extends(taskClass) :: taskBuildToolRecFast

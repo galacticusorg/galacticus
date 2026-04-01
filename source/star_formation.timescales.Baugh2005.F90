@@ -94,7 +94,7 @@ contains
     <inputParameter>
       <name>velocityNormalization</name>
       <defaultValue>200.0d0</defaultValue>
-      <description>The normalization velocity, $V_0$..</description>
+      <description>The normalization velocity $V_0$ (in km/s) appearing in the \cite{baugh_can_2005} star formation timescale relation $\tau_\star = \tau_0 (V_\mathrm{disk}/V_0)^\alpha a^\beta$.</description>
       <source>parameters</source>
     </inputParameter>
     <objectBuilder class="cosmologyFunctions" name="cosmologyFunctions_" source="parameters"/>

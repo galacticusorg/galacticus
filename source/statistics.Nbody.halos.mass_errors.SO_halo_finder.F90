@@ -27,7 +27,7 @@ implements a model for errors in spherical overdensity halo finders.
 
   !![
   <nbodyHaloMassError name="nbodyHaloMassErrorSOHaloFinder">
-   <description>An N-body dark matter halo mass error class which implements a model for errors in spherical overdensity halo finders.</description>
+   <description>An N-body dark matter halo mass error class that models the statistical errors in halo masses measured by spherical overdensity halo finders, accounting for shot noise due to the finite particle mass of the simulation. The simulation particle mass is set by the \mono{[massParticle]} parameter.</description>
   </nbodyHaloMassError>
   !!]
   type, extends(nbodyHaloMassErrorClass) :: nbodyHaloMassErrorSOHaloFinder

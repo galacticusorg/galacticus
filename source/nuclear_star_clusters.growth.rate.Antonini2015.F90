@@ -116,7 +116,7 @@ contains
 
   double precision function antonini2015Rate(self,node) result(rate)
     !!{
-    Returns the gas inflow rate (in $M_\odot$ Gyr$^{-1}$) onto the galactic \gls{nsc} of \mono{node}. The \gls{nsc} is assumed to obey the \cite{antonini_coevolution_2015} gas inflow rate model.
+    Returns the gas inflow rate (in $\mathrm{M}_\odot$ Gyr$^{-1}$) onto the galactic \gls{nsc} of \mono{node}. The \gls{nsc} is assumed to obey the \cite{antonini_coevolution_2015} gas inflow rate model.
     !!}
     use :: Galacticus_Nodes, only : nodeComponentNSC, nodeComponentSpheroid
     implicit none

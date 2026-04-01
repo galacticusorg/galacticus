@@ -23,7 +23,7 @@ Implements a cosmic time output analysis property extractor class.
 
   !![
   <nodePropertyExtractor name="nodePropertyExtractorTimeFirstInfall">
-   <description>A time of first infall property extractor class.</description>
+   <description>Extracts the cosmic time at which a satellite node first crossed the virial radius of its host halo (first infall), a key epoch for quantifying how long satellites have been processed by environmental effects such as ram pressure stripping and tidal forces.</description>
   </nodePropertyExtractor>
   !!]
   type, extends(nodePropertyExtractorScalar) :: nodePropertyExtractorTimeFirstInfall

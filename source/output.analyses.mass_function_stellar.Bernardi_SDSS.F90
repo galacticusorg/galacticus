@@ -24,7 +24,7 @@ Implements an output analysis class for the \cite{bernardi_massive_2013} stellar
 
   !![
   <outputAnalysis name="outputAnalysisMassFunctionStellarBernardi2013SDSS">
-   <description>A \cite{bernardi_massive_2013} stellar mass function output analysis class.</description>
+   <description>Computes the galaxy stellar mass function for comparison with the \cite{bernardi_massive_2013} SDSS measurements, with stellar mass random/systematic error polynomial coefficients, gravitational lensing source size corrections, and binomial covariance matrix parameters for halo mass range.</description>
   </outputAnalysis>
   !!]
   type, extends(outputAnalysisMassFunctionStellar) :: outputAnalysisMassFunctionStellarBernardi2013SDSS

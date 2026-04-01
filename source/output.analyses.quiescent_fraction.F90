@@ -29,7 +29,7 @@
 
   !![
   <outputAnalysis name="outputAnalysisQuiescentFraction">
-   <description>A quiescent fraction output analysis class.</description>
+   <description>Computes the quiescent galaxy fraction as a function of stellar mass, classifying galaxies as quiescent when their specific star formation rate falls below \mono{starFormationRateSpecificQuiescentLogarithmic} (in $\log_{10}$ Gyr$^{-1}$) with a Gaussian scatter \mono{starFormationRateSpecificLogarithmicError} in the classification boundary.</description>
    <runTimeFileDependencies paths="fileName"/>
   </outputAnalysis>
   !!]

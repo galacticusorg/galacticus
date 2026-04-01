@@ -25,7 +25,7 @@ Implements a property extractor class that extracts the redshift at which a \gls
 
   !![
   <nodePropertyExtractor name="nodePropertyExtractorRedshiftLastIsolated">
-   <description>A node property extractor class which extracts the redshift at which a \gls{node} was last isolated---named ``\mono{redshiftLastIsolated}''.</description>
+   <description>Extracts the cosmological redshift at which a node was last an isolated (field) halo before becoming a satellite, providing a proxy for the epoch of environmental quenching onset, output as ``\mono{redshiftLastIsolated}''.</description>
   </nodePropertyExtractor>
   !!]
   type, extends(nodePropertyExtractorScalar) :: nodePropertyExtractorRedshiftLastIsolated

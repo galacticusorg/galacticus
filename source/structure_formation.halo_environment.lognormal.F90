@@ -28,7 +28,7 @@ Implements a log-normal halo environment.
 
   !![
   <haloEnvironment name="haloEnvironmentLogNormal">
-   <description>Implements a log-normal halo environment.</description>
+   <description>Implements a halo environment in which the large-scale overdensity follows a log-normal probability distribution, modeling the statistical distribution of cosmic environments around dark matter halos. The variance of the density field is computed within a sphere of radius given by \mono{[radiusEnvironment]}, drawn from the linear power spectrum.</description>
   </haloEnvironment>
   !!]
   type, extends(haloEnvironmentClass) :: haloEnvironmentLogNormal

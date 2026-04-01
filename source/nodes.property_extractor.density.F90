@@ -25,7 +25,13 @@
 
   !![
   <nodePropertyExtractor name="nodePropertyExtractorDensityProfile">
-   <description>A property extractor class for the density at a set of radii.</description>
+   <description>A property extractor that returns the mass density profile
+    (in $\mathrm{M}_\odot \, \mathrm{Mpc}^{-3}$) of a galaxy or halo component at a
+    user-specified set of radii. The \mono{radiusSpecifiers} parameter provides a list of radius
+    definitions (e.g.\ multiples of the virial radius, disk radius, or half-mass radius), supporting
+    both galactic structural radii and fixed physical radii. If \mono{includeRadii} is \mono{true},
+    the corresponding radii (in Mpc) are also written to the output file as a second column alongside
+    the density values.</description>
   </nodePropertyExtractor>
   !!]
   type, extends(nodePropertyExtractorArray) :: nodePropertyExtractorDensityProfile

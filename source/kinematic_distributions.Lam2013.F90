@@ -26,7 +26,7 @@
 
   !![
   <kinematicsDistribution name="kinematicsDistributionLam2013">
-   <description>A kinematic distribution class for the \cite{lam_modeling_2013} model of halo accretion flows.</description>
+   <description>A kinematic distribution class implementing the \cite{lam_modeling_2013} model of radial velocity infall in halo accretion flows. The radial velocity profile is computed from the volume-averaged two-point correlation function and cosmological linear growth rate, encoding the infall dynamics around collapsed halos at a given redshift and virial mass.</description>
   </kinematicsDistribution>
   !!]
   type, public, extends(kinematicsDistributionCollisionless) :: kinematicsDistributionLam2013
@@ -79,22 +79,22 @@ contains
     </inputParameter>
     <inputParameter>
       <name>redshift</name>
-      <description>The redshift of the halo.</description>
+      <description>The cosmological redshift of the halo, used to evaluate the cosmic time and the \cite{lam_modeling_2013} infall velocity profile at the appropriate epoch.</description>
       <source>parameters</source>
     </inputParameter>
     <inputParameter>
       <name>massVirial</name>
-      <description>The virial mass of the halo.</description>
+      <description>The virial mass (in $\mathrm{M}_\odot$) of the halo whose accretion flow kinematics are modeled by the \cite{lam_modeling_2013} framework.</description>
       <source>parameters</source>
     </inputParameter>
     <inputParameter>
       <name>radiusVirial</name>
-      <description>The virial radius of the halo.</description>
+      <description>The virial radius (in Mpc) of the halo, setting the spatial scale for the \cite{lam_modeling_2013} radial infall velocity profile.</description>
       <source>parameters</source>
     </inputParameter>
     <inputParameter>
       <name>overdensityCritical</name>
-      <description>The critical overdensity.</description>
+      <description>The critical linear overdensity threshold for collapse used in the \cite{lam_modeling_2013} accretion flow model to normalize the radial infall velocity.</description>
       <source>parameters</source>
     </inputParameter>
     <inputParameter>

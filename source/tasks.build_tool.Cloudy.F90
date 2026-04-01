@@ -19,7 +19,7 @@
 
   !![
   <task name="taskBuildToolCloudy">
-   <description>A task which builds the Cloudy tool.</description>
+   <description>A task which downloads, compiles, and installs the Cloudy photoionization and spectral synthesis code, making it available for computing cooling functions, chemical state tables, and emission line strengths of astrophysical plasmas.</description>
   </task>
   !!]
   type, extends(taskClass) :: taskBuildToolCloudy

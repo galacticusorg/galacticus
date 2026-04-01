@@ -32,17 +32,23 @@ module Gravitational_Lensing
   <name>gravitationalLensing</name>
    <descriptiveName>Gravitational Lensing</descriptiveName>
    <description>
-    Class providing gravitational lensing probabilities due to large scale structure.
+    Class providing models of the gravitational lensing magnification distribution due to intervening
+    large-scale structure along a line of sight---the probability density and cumulative distribution
+    of the magnification factor $\mu$ as a function of source redshift and angular source size. Strong
+    lensing by massive halos can boost observed fluxes significantly, affecting number counts and
+    luminosity functions at the bright end. Implementations typically follow fitting functions calibrated
+    to ray-tracing simulations (e.g.\ \citealt{takahashi_full-sky_2017}) and depend on the matter
+    power spectrum and cosmological model.
    </description>
    <default>takahashi2011</default>
    <method name="magnificationPDF" >
-    <description>Returns the differential probability function for magnification.</description>
+    <description>Returns the differential probability $\mathrm{d}P/\mathrm{d}\mu$ for a source at the given \mono{redshift} and angular size \mono{scaleSource} to be magnified by factor \mono{magnification} due to gravitational lensing.</description>
     <type>double precision</type>
     <pass>yes</pass>
     <argument>double precision, intent(in   ) :: magnification, redshift, scaleSource</argument>
    </method>
    <method name="magnificationCDF" >
-    <description>Returns the cumulative probability function for magnification.</description>
+    <description>Returns the cumulative probability $P(\mu' \le \mu)$ that a source at the given \mono{redshift} and angular size \mono{scaleSource} has a gravitational lensing magnification less than or equal to \mono{magnification}.</description>
     <type>double precision</type>
     <pass>yes</pass>
     <argument>double precision, intent(in   ) :: magnification, redshift, scaleSource</argument>

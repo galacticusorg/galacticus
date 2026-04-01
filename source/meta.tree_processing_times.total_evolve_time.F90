@@ -24,7 +24,7 @@ Implements a merger tree processing time estimator that estimates times based on
   !![
   <metaTreeProcessingTime name="metaTreeProcessingTimeTotalEvolveTime">
    <description>
-    A merger tree processing time class 
+    A merger tree processing time estimator that estimates the remaining computation time based on the total time spent evolving nodes in the tree, using a power-law scaling with cosmic time. The time scaling exponent is set by \mono{[exponentTime]} and the minimum interval between progress updates by \mono{[updateInterval]}.
    </description>
   </metaTreeProcessingTime>
   !!]

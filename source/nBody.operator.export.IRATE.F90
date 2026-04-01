@@ -26,7 +26,7 @@ Implements an N-body data operator which exports N-body data to IRATE format.
 
   !![
   <nbodyOperator name="nbodyOperatorExportIRATE">
-   <description>An N-body data operator which exports N-body data to IRATE format.</description>
+   <description>An N-body data operator which exports N-body simulation data to the IRATE (IRvine Astrophysical simulaTion structurE) HDF5 format for interoperability with other analysis tools. The output file path is set by \mono{[fileName]}, with the snapshot index and redshift specified by \mono{[snapshot]} and \mono{[redshift]}.</description>
   </nbodyOperator>
   !!]
   type, extends(nbodyOperatorClass) :: nbodyOperatorExportIRATE

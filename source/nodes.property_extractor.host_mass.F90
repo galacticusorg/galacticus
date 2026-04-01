@@ -23,7 +23,7 @@ Implements a massHost property extractor class.
 
   !![
   <nodePropertyExtractor name="nodePropertyExtractorMassHost">
-   <description>A host halo mass property extractor class.</description>
+   <description>Extracts the virial mass of the immediate host (parent) halo for satellite nodes, distinguishing the mass of the surrounding host halo from the subhalo mass itself. Returns $-1$ for isolated (non-satellite) nodes where no host exists.</description>
   </nodePropertyExtractor>
   !!]
   type, extends(nodePropertyExtractorScalar) :: nodePropertyExtractorMassHost

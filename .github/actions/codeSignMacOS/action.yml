@@ -1,0 +1,43 @@
+name: Code sign on MacOS
+
+inputs:
+  files:
+    description: 'List of files to sign'
+    required: true
+  macos_certificate:
+    description: 'Base-64 encoded signing certificate'
+    required: true
+  macos_certificate_password:
+    description: 'Password for the signing certificate'
+    required: true
+  macos_keychain_password:
+    description: 'Password to use for the temporary keychain'
+    required: true
+  macos_developer_id:
+    description: 'Developer ID for signing'
+    required: true
+runs:
+  using: 'composite'
+  steps:
+    - name: Sign Galacticus executable
+      shell: bash
+      run: |
+        ORIGINAL_DEFAULT_KEYCHAIN=$(security default-keychain | sed 's/^ *"//; s/"$//')
+        trap 'security default-keychain -s "$ORIGINAL_DEFAULT_KEYCHAIN"; security delete-keychain build.keychain' EXIT
+        security create-keychain -p "${{ inputs.macos_keychain_password }}" build.keychain
+        security default-keychain -s build.keychain
+        security unlock-keychain -p "${{ inputs.macos_keychain_password }}" build.keychain
+        echo "${{ inputs.macos_certificate }}" | base64 --decode > certificate.p12
+        security import certificate.p12 -k build.keychain -P "${{ inputs.macos_certificate_password }}" -T /usr/bin/codesign
+        security set-key-partition-list -S apple-tool:,apple: -s -k "${{ inputs.macos_keychain_password }}" build.keychain
+        rm certificate.p12
+        for file in ${{ inputs.files }}; do
+          if [ -f "$file" ]; then
+            codesign --force --options runtime --entitlements "${GITHUB_WORKSPACE}/.github/actions/codeSignMacOS/entitlements.plist" \
+              --sign "${{ inputs.macos_developer_id }}" ${file}
+            codesign --verify --deep --strict --verbose=2 ${file}
+          else
+            echo File ${file} not found for code-signing
+            exit 1
+          fi
+        done

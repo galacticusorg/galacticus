@@ -31,8 +31,13 @@ module Satellite_Deceleration_SIDM
   !![
   <functionClass>
    <name>satelliteDecelerationSIDM</name>
-   <descriptiveName>Dark matter self-interaction satellite deceleration models.</descriptiveName>
-   <description>Class providing models of the deceleration of orbiting satellites due to dark matter self-interactions.</description>
+   <descriptiveName>Dark Matter Self-interaction Satellite Deceleration</descriptiveName>
+   <description>Class providing models of the deceleration of orbiting satellites due to dark matter self-interactions
+    (SIDM)---the momentum transfer between satellite dark matter particles and those of the host halo when the
+    dark matter cross-section is non-negligible. Elastic scattering between host and satellite particles exerts a
+    drag force on the satellite, decelerating it and causing orbital decay in addition to the standard
+    gravitational dynamical friction. Implementations return the acceleration vector (in km~s$^{-1}$~Gyr$^{-1}$)
+    imparted to the satellite, which is added to the equations of motion.</description>
    <default>kummer2018</default>
    <method name="acceleration" >
     <description>Returns the satellite acceleration due to dark matter self-interactions (in units of km/s/Gyr).</description>

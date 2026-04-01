@@ -142,7 +142,7 @@ contains
     <inputParameter>
       <name>mass</name>
       <defaultValue>1.0d0</defaultValue>
-      <description>The mass of the Burkert profile.</description>
+      <description>The total mass (in $\mathrm{M}_\odot$) of the Burkert profile, used to set the density normalization $\rho_0$ when \mono{densityNormalization} is not supplied.</description>
       <source>parameters</source>
     </inputParameter>
     <inputParameter>

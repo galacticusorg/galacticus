@@ -82,7 +82,7 @@ contains
     <inputParameter>
       <name>timeAge</name>
       <source>parameters</source>
-      <description>The age of the halo (in Gyr).</description>
+      <description>The age of the halo (in Gyr) since its formation, used to compute how long SIDM self-interactions have been active in determining the size of the dark matter core.</description>
     </inputParameter>
     <inputParameter>
       <name>factorRadiusCore</name>

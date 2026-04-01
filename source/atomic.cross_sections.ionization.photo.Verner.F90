@@ -26,7 +26,8 @@
   !![
   <atomicCrossSectionIonizationPhoto name="atomicCrossSectionIonizationPhotoVerner">
    <description>
-    An atomic photoionization cross section class based on (\href{https://web.archive.org/web/20220313133758/https://www.pa.uky.edu/~verner/dima/rec/rrfit.f}\mono{phfit2.f}) written by \href{mailto:verner@pa.uky.edu}{D. A. Verner} (Version 2. March 25, 1996.
+   An atomic photoionization cross section class based on (\href{https://web.archive.org/web/20220313133758/https://www.pa.uky.edu/~verner/dima/rec/rrfit.f}{\mono{phfit2.f}})
+   written by \href{mailto:verner@pa.uky.edu}{D. A. Verner} (Version 2. March 25, 1996).
    </description>
   </atomicCrossSectionIonizationPhoto>
   !!]

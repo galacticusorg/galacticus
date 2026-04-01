@@ -25,7 +25,7 @@ Implements a spin parameter distribution output analysis class.
   
   !![
   <outputAnalysis name="outputAnalysisSpinDistributionBett2007">
-    <description>A stellar mass function output analysis class.</description>
+    <description>Computes the distribution of dark matter halo spin parameters for comparison with the \cite{bett_spin_2007} N-body simulation data, accounting for N-body measurement errors via log-normal convolution with a truncation range \mono{logNormalRange}; \mono{errorTolerant} controls behavior on integration failures.</description>
   </outputAnalysis>
   !!]
   type, extends(outputAnalysisSpinDistribution) :: outputAnalysisSpinDistributionBett2007

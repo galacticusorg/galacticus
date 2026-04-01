@@ -23,7 +23,7 @@ Implements a spheroid stellar mass output analysis property extractor class.
 
   !![
   <nodePropertyExtractor name="nodePropertyExtractorMassStellarSpheroid">
-   <description>A spheroid stellar mass output analysis property extractor class.</description>
+   <description>Extracts the stellar mass contained in the spheroid (bulge) component of a galaxy node, used to study bulge growth via mergers and disk instabilities and to calibrate the bulge-to-total mass ratio.</description>
   </nodePropertyExtractor>
   !!]
   type, extends(nodePropertyExtractorScalar) :: nodePropertyExtractorMassStellarSpheroid

@@ -25,9 +25,7 @@
 
   !![
   <nodePropertyExtractor name="nodePropertyExtractorNodeMajorMergerRecentCount">
-   <description>
-   Implements a node property extractor which extracts the number of recent node major mergers.
-   </description>
+   <description>Extracts the count of major halo merger events that occurred within a configurable lookback time window, enabling statistical analysis of recent merger activity across the halo population.</description>
   </nodePropertyExtractor>
   !!]
   type, extends(nodePropertyExtractorIntegerScalar) :: nodePropertyExtractorNodeMajorMergerRecentCount

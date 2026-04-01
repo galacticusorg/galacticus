@@ -21,7 +21,7 @@
 
   !![
   <nodePropertyExtractor name="nodePropertyExtractorTuple" abstract="yes">
-   <description>An abstract output analysis property extractor class which provides a tuple of floating point properties.</description>
+   <description>Abstract base class for extractors that return a fixed-length tuple of floating-point values per node (e.g., 3D position or velocity vectors), defining the interface for multi-component vector property extraction used in output analysis.</description>
   </nodePropertyExtractor>
   !!]
   type, extends(nodePropertyExtractorClass), abstract :: nodePropertyExtractorTuple

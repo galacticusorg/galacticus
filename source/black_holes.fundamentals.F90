@@ -123,7 +123,7 @@ contains
 
   double precision function Black_Hole_Eddington_Accretion_Rate(blackHole)
     !!{
-    Return the Eddington accretion rate (in $M_\odot$ Gyr$^{-1}$) for the black hole in \mono{blackHole}.
+    Return the Eddington accretion rate (in $\mathrm{M}_\odot$ Gyr$^{-1}$) for the black hole in \mono{blackHole}.
     !!}
     use :: Galacticus_Nodes                , only : nodeComponentBlackHole
     use :: Numerical_Constants_Astronomical, only : gigaYear

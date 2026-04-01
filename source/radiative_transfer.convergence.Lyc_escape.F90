@@ -19,7 +19,7 @@
 
   !![
   <radiativeTransferConvergence name="radiativeTransferConvergenceLycEscape">
-   <description>A task which performs radiative transfer.</description>
+   <description>A radiative transfer convergence class that monitors the hydrogen Lyman continuum photon escape rate across successive iterations, declaring convergence when the relative change in the total escape rate falls below the specified tolerance. The convergence criterion is set by \mono{[toleranceRelative]}.</description>
   </radiativeTransferConvergence>
   !!]
   type, extends(radiativeTransferConvergenceClass) :: radiativeTransferConvergenceLycEscape

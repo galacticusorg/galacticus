@@ -40,7 +40,7 @@
 
   !![
   <posteriorSampleLikelihood name="posteriorSampleLikelihoodSpinDistribution">
-   <description>A posterior sampling likelihood class which implements a likelihood for halo spin distributions.</description>
+   <description>A posterior sampling likelihood class which evaluates the likelihood of modeled dark matter halo spin parameter distributions against N-body simulation measurements, accounting for halo mass function weighting and N-body mass errors. The target spin distribution file is set by \mono{[fileName]}, with redshift, mass limits, and N-body particle count constraints specified by \mono{[redshift]}, \mono{[massMinimum]}, and \mono{[countMinimum]}.</description>
    <runTimeFileDependencies paths="fileName"/>
   </posteriorSampleLikelihood>
   !!]

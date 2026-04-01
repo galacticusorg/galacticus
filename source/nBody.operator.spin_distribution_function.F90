@@ -26,7 +26,7 @@
 
   !![
   <nbodyOperator name="nbodyOperatorSpinDistributionFunction">
-   <description>An N-body data operator which computes mass functions.</description>
+   <description>An N-body data operator which computes the halo spin distribution function by binning halos as a function of dimensionless spin parameter within a specified mass and spin range. Mass limits are set by \mono{[massMinimum]} and \mono{[massMaximum]}, spin limits and binning by \mono{[spinMinimum]}, \mono{[spinMaximum]}, and \mono{[spinCountPerDecade]}.</description>
   </nbodyOperator>
   !!]
   type, extends(nbodyOperatorClass) :: nbodyOperatorSpinDistributionFunction
@@ -84,32 +84,32 @@ contains
     <inputParameter>
       <name>spinMinimum</name>
       <source>parameters</source>
-      <description>The minimum spin to consider.</description>
+      <description>The minimum dimensionless spin parameter below which halos are excluded from the spin distribution function histogram.</description>
     </inputParameter>
     <inputParameter>
       <name>spinMaximum</name>
       <source>parameters</source>
-      <description>The maximum spin to consider.</description>
+      <description>The maximum dimensionless spin parameter above which halos are excluded from the spin distribution function histogram.</description>
     </inputParameter>
     <inputParameter>
       <name>spinCountPerDecade</name>
       <source>parameters</source>
-      <description>The number of bins per decade of spin.</description>
+      <description>The number of logarithmic bins per decade of spin parameter used when constructing the spin distribution function.</description>
     </inputParameter>
     <inputParameter>
       <name>description</name>
       <source>parameters</source>
-      <description>A description of this spin distribution function.</description>
+      <description>A human-readable description of this spin distribution function dataset, stored as metadata in the output file.</description>
     </inputParameter>
     <inputParameter>
       <name>simulationReference</name>
       <source>parameters</source>
-      <description>A reference for the simulation.</description>
+      <description>A bibliographic reference for the N-body simulation from which this spin distribution is derived, stored as output metadata.</description>
     </inputParameter>
     <inputParameter>
       <name>simulationURL</name>
       <source>parameters</source>
-      <description>A URL for the simulation.</description>
+      <description>A URL pointing to the publicly accessible dataset or documentation for the N-body simulation, stored as output metadata.</description>
     </inputParameter>
     <objectBuilder class="cosmologyParameters" name="cosmologyParameters_" source="parameters"/>
     !!]

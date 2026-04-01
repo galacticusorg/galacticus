@@ -23,7 +23,7 @@
 
   !![
   <nodeOperator name="nodeOperatorEmpiricalMassiveElliptical">
-   <description>A node operator class that inserts an empirical model of the formation history of a massive elliptical galaxy.</description>
+   <description>A node operator class that inserts an empirical evolutionary history for a massive elliptical galaxy growing at a constant specific star formation rate $\phi_\star$ (\mono{rateStarFormationSpecific}) to a final stellar mass \mono{massStellarFinal}. Optional angular momentum growth is set by \mono{angularMomentumPseudoSpecificFinal} and \mono{rateAngularMomentumPseudoSpecificSpecific}; half-mass radius evolution is set by \mono{radiusFinal} and \mono{rateRadiusSpecific}.</description>
   </nodeOperator>
   !!]
   type, extends(nodeOperatorClass) :: nodeOperatorEmpiricalMassiveElliptical

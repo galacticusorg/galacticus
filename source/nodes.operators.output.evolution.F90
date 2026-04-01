@@ -25,7 +25,7 @@
   
   !![
   <nodeOperator name="nodeOperatorEvolutionOutput">
-   <description>A node operator class that outputs data on mergers between galaxies.</description>
+   <description>A node operator class that records the complete evolutionary trajectory of each node to an XML file at each ODE post-step, for debugging and detailed analysis. \mono{outputFileName} specifies the output file (default: \mono{mergerTreeEvolution.xml}); a \mono{galacticFilter} selects which nodes to record (default: all nodes). Useful for inspecting how galaxy properties evolve between output snapshots.</description>
   </nodeOperator>
   !!]
   type, extends(nodeOperatorClass) :: nodeOperatorEvolutionOutput

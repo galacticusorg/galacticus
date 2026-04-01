@@ -23,7 +23,7 @@ Implements a filter which passes only isolated halos.
 
   !![
   <galacticFilter name="galacticFilterHaloIsolated">
-   <description>A filter which passes only isolated halos.</description>
+   <description>Passes only nodes that are currently isolated halos (host halos that are not satellites of any larger structure at the current epoch), selecting field halos to exclude substructure when analyzing host halo populations.</description>
   </galacticFilter>
   !!]
   type, extends(galacticFilterClass) :: galacticFilterHaloIsolated

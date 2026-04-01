@@ -28,7 +28,7 @@ Implements a node property extractor that fits for a tidal truncation radius for
 
   !![
   <nodePropertyExtractor name="nodePropertyExtractorTidallyTruncatedNFWFit">
-   <description>A node property extractor that fits for a tidal truncation radius for an NFW profile.</description>
+   <description>Fits a tidally truncated NFW profile to the dark matter halo, extracting the best-fit tidal truncation radius and associated structural parameters, useful for characterizing the degree of tidal stripping experienced by satellite subhalos.</description>
   <deepCopy>
     <functionClass variables="darkMatterProfileDMONFW_"/>
    </deepCopy>

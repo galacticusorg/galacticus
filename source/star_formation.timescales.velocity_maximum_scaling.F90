@@ -28,7 +28,7 @@
 
   !![
   <starFormationTimescale name="starFormationTimescaleVelocityMaxScaling">
-   <description>A velocityMaxScaling timescale for star formation.</description>
+   <description>A star formation timescale class that scales the gas consumption timescale as a power law in the host halo maximum circular velocity and redshift. The normalization is set by \mono{[timescale]}, and the power-law exponents with respect to velocity and $(1+z)$ are set by \mono{[exponentVelocity]} and \mono{[exponentRedshift]} respectively.</description>
   </starFormationTimescale>
   !!]
   type, extends(starFormationTimescaleClass) :: starFormationTimescaleVelocityMaxScaling

@@ -33,7 +33,7 @@ module Error_Utilities
   !![
   <enumeration>
     <name>signal</name>
-    <description>Enumeration of UNIX signal numbers.</description>
+    <description>Enumeration of POSIX signal numbers (\mono{SIGHUP} through \mono{SIGSYS}) used to identify which signal should trigger a graceful pause or abort of the simulation when caught by the error handler.</description>
     <decodeFunction>yes</decodeFunction>
     <visibility>public</visibility>
     <indexing>1</indexing>

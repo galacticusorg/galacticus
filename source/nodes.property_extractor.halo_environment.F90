@@ -25,7 +25,7 @@ Implements a node property extractor class for halo environment.
 
   !![
   <nodePropertyExtractor name="nodePropertyExtractorHaloEnvironment">
-   <description>A node property extractor class for halo environment.</description>
+   <description>Extracts environmental metrics for dark matter halos, specifically the linear and non-linear local overdensity, characterizing the large-scale structure environment that influences halo formation rates, assembly bias, and galaxy evolution within the cosmological density field.</description>
   </nodePropertyExtractor>
   !!]
   type, extends(nodePropertyExtractorTuple) :: nodePropertyExtractorHaloEnvironment

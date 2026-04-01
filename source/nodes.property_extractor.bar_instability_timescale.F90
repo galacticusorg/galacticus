@@ -25,7 +25,7 @@ Implements a property extractor class for bar instability timescales.
 
   !![
   <nodePropertyExtractor name="nodePropertyExtractorTimescaleBarInstability">
-   <description>A property extractor class for bar instability timescales.</description>
+   <description>Extracts the bar instability timescale for disk galaxies, which governs how quickly a stellar bar can form via gravitational instability in the disk component. Used to diagnose the onset of secular evolution and the transfer of angular momentum from disk to spheroid.</description>
   </nodePropertyExtractor>
   !!]
   type, extends(nodePropertyExtractorScalar) :: nodePropertyExtractorTimescaleBarInstability

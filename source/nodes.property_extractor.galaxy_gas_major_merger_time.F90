@@ -19,9 +19,7 @@
 
   !![
   <nodePropertyExtractor name="nodePropertyExtractorGalaxyGasMajorMergerTime">
-   <description>
-     A node property extractor which extracts the times of gas-mass-based major mergers for each galaxy.
-   </description>
+   <description>Extracts the cosmic times of gas-mass-based major merger events for each galaxy, where merger significance is determined by the gas mass ratio of the merging pair rather than total or stellar mass.</description>
   </nodePropertyExtractor>
   !!]
   type, extends(nodePropertyExtractorList) :: nodePropertyExtractorGalaxyGasMajorMergerTime

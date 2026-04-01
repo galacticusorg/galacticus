@@ -64,13 +64,13 @@ contains
     <inputParameter>
       <name>mass</name>
       <defaultValue>100.0d0</defaultValue>
-      <description>The mass of seed black holes.</description>
+      <description>The fixed mass (in $\mathrm{M}_\odot$) assigned to all newly-formed seed black holes in this implementation, representing the initial black hole mass when a halo first forms a central black hole.</description>
       <source>parameters</source>
     </inputParameter>
     <inputParameter>
       <name>spin</name>
       <defaultValue>0.0d0</defaultValue>
-      <description>The spin of seed black holes.</description>
+      <description>The dimensionless spin parameter (between $-1$ and $+1$) assigned to all newly-formed seed black holes, where $0$ corresponds to a non-rotating Schwarzschild black hole and $\pm 1$ to a maximally rotating Kerr black hole.</description>
       <source>parameters</source>
     </inputParameter>
     !!]

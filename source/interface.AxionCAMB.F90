@@ -41,7 +41,7 @@ module Interfaces_AxionCAMB
   !![
   <enumeration>
    <name>axionCambSpecies</name>
-   <description>Particle species in AxionCAMB.</description>
+   <description>Enumeration of particle species tracked by the AxionCAMB Boltzmann code when computing transfer functions: \mono{darkMatter} (total), \mono{coldDarkMatter}, \mono{fuzzyDarkMatter} (axion), and \mono{baryons}, used to select which species' transfer function is returned.</description>
    <visibility>public</visibility>
    <indexing>1</indexing>
    <entry label="darkMatter"     />

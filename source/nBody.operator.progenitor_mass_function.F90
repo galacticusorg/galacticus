@@ -26,7 +26,7 @@ Implements an N-body data operator which computes progenitor mass functions.
 
   !![
   <nbodyOperator name="nbodyOperatorProgenitorMassFunction">
-   <description>An N-body data operator which computes progenitor mass functions.</description>
+   <description>An N-body data operator which computes the progenitor mass function by tabulating mass ratios of progenitor halos relative to their parent halos in logarithmic bins. Parameters specify the parent and progenitor mass ranges, bin counts per decade, the snapshot indices for parent and progenitor selection, and simulation metadata.</description>
   </nbodyOperator>
   !!]
   type, extends(nbodyOperatorClass) :: nbodyOperatorProgenitorMassFunction
@@ -78,37 +78,37 @@ contains
     <inputParameter>
       <name>massParentMinimum</name>
       <source>parameters</source>
-      <description>The minimum parent mass to consider.</description>
+      <description>The minimum halo mass (in $\mathrm{M}_\odot$) of parent halos to include in the progenitor mass function calculation.</description>
     </inputParameter>
     <inputParameter>
       <name>massParentMaximum</name>
       <source>parameters</source>
-      <description>The maximum parent mass to consider.</description>
+      <description>The maximum halo mass (in $\mathrm{M}_\odot$) of parent halos to include in the progenitor mass function calculation.</description>
     </inputParameter>
     <inputParameter>
       <name>massParentCountPerDecade</name>
       <source>parameters</source>
-      <description>The number of bins per decade of parent mass.</description>
+      <description>The number of logarithmic bins per decade of parent halo mass used when tabulating the progenitor mass function.</description>
     </inputParameter>
     <inputParameter>
       <name>massRatioProgenitorMinimum</name>
       <source>parameters</source>
-      <description>The minimum mass ratio to consider.</description>
+      <description>The minimum progenitor-to-parent mass ratio to include when binning the progenitor mass function.</description>
     </inputParameter>
     <inputParameter>
       <name>massRatioProgenitorMaximum</name>
       <source>parameters</source>
-      <description>The maximum mass ratio to consider.</description>
+      <description>The maximum progenitor-to-parent mass ratio to include when binning the progenitor mass function.</description>
     </inputParameter>
     <inputParameter>
       <name>massRatioProgenitorCountPerDecade</name>
       <source>parameters</source>
-      <description>The number of bins per decade of mass ratio.</description>
+      <description>The number of logarithmic bins per decade of progenitor-to-parent mass ratio used when tabulating the progenitor mass function.</description>
     </inputParameter>
     <inputParameter>
       <name>snapshotParents</name>
       <source>parameters</source>
-      <description>The snapshot at which to select parent halos.</description>
+      <description>The snapshot index identifying the epoch at which parent halos are selected for the progenitor mass function.</description>
     </inputParameter>
     !!]
     allocate(snapshotsProgenitors(parameters%count('snapshotsProgenitors')))
@@ -116,7 +116,7 @@ contains
     <inputParameter>
       <name>snapshotsProgenitors</name>
       <source>parameters</source>
-      <description>The snapshots at which to select progenitor halos.</description>
+      <description>An array of snapshot indices identifying the epochs at which progenitor halos are selected and matched to parent halos in the progenitor mass function.</description>
     </inputParameter>
     <inputParameter>
       <name>description</name>

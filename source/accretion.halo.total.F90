@@ -18,7 +18,8 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
 !!{
-Contains a module which provides a class for calculations of the intergalactic medium thermal and ionization state.
+Contains a module which provides a class for calculations of the total accretion rate onto halos for use by the halo
+accretion classes which compute the accretion rates of baryonic material.
 !!}
 
 module Accretion_Halo_Totals
@@ -38,13 +39,13 @@ module Accretion_Halo_Totals
    </description>
    <default>simple</default>
    <method name="accretionRate" >
-    <description>Return the total accretion rate onto the given \mono{node}.</description>
+    <description>Return the total baryonic plus dark matter accretion rate (in $\mathrm{M}_\odot$ Gyr$^{-1}$) onto the halo corresponding to the given \mono{node}, i.e. the mass which would be accreted in a dark matter-only universe scaled to the total mass.</description>
     <type>double precision</type>
     <pass>yes</pass>
     <argument>type(treeNode), intent(inout) :: node</argument>
    </method>
    <method name="accretedMass" >
-    <description>Return the total accreted mass in the given \mono{node}.</description>
+    <description>Return the cumulative total accreted mass (in $\mathrm{M}_\odot$) in the halo corresponding to the given \mono{node}, representing all mass accreted over the halo's history.</description>
     <type>double precision</type>
     <pass>yes</pass>
     <argument>type(treeNode), intent(inout) :: node</argument>

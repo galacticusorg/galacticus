@@ -36,7 +36,7 @@ module Display
   !![
   <enumeration>
    <name>verbosityLevel</name>
-   <description>Verbosity levels for message display.</description>
+   <description>Enumeration of verbosity levels for controlling the amount of output displayed during a \glc\ run, ranging from \mono{silent} (no output) through \mono{standard}, \mono{working}, \mono{warn}, and \mono{info} to \mono{debug} (maximum diagnostic output).</description>
    <encodeFunction>yes</encodeFunction>
    <decodeFunction>yes</decodeFunction>
    <validator>yes</validator>

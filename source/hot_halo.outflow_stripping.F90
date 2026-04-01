@@ -32,9 +32,11 @@ module Hot_Halo_Outflows_Stripping
   <functionClass>
    <name>hotHaloOutflowStripping</name>
    <descriptiveName>Hot Halo Outflow Reincorporation</descriptiveName>
-   <description>
-    Class providing models of stripping of outflowed mass in the hot halo.
-   </description>
+   <description>Class providing models of the stripping of outflowed (ejected) gas from the hot halo of a
+    satellite galaxy as it orbits within its host halo. When a galaxy becomes a satellite the ejected gas
+    reservoir associated with it may be stripped by tidal or ram pressure forces from the host halo. The
+    fraction of outflowed gas stripped (returned to the host halo's hot gas) depends on the orbital position
+    and the relative pressures, affecting the satellite's subsequent star formation and stellar mass.</description>
    <default>zero</default>
    <method name="neverStripped" >
     <description>Return true if outflows are never stripped from this halo.</description>

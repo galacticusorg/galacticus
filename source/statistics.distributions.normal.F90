@@ -81,12 +81,12 @@ contains
     !![
     <inputParameter>
       <name>mean</name>
-      <description>The mean of the normal distribution.</description>
+      <description>The mean $\mu$ of the normal (Gaussian) distribution, specifying the location of the peak of the probability density function; optionally constrained within $[x_\mathrm{l}, x_\mathrm{u}]$.</description>
       <source>parameters</source>
     </inputParameter>
     <inputParameter>
       <name>variance</name>
-      <description>The variance of the normal distribution.</description>
+      <description>The variance $S = \sigma^2 > 0$ of the normal distribution, controlling the width of the Gaussian bell curve; the standard deviation is $\sigma = \sqrt{S}$ and the FWHM is $2\sqrt{2\ln 2}\,\sigma$.</description>
       <source>parameters</source>
     </inputParameter>
     !!]
@@ -94,7 +94,7 @@ contains
        !![
        <inputParameter>
          <name>limitLower</name>
-         <description>The lower limit of the normal distribution.</description>
+         <description>The lower truncation limit $x_\mathrm{l}$ of the normal distribution; when set, the distribution is renormalized over $[x_\mathrm{l}, x_\mathrm{u}]$ rather than $(-\infty, +\infty)$.</description>
          <source>parameters</source>
        </inputParameter>
        !!]
@@ -103,7 +103,7 @@ contains
        !![
        <inputParameter>
          <name>limitUpper</name>
-         <description>The upper limit of the normal distribution.</description>
+         <description>The upper truncation limit $x_\mathrm{u}$ of the normal distribution; when set, the distribution is renormalized over $[x_\mathrm{l}, x_\mathrm{u}]$ rather than $(-\infty, +\infty)$.</description>
          <source>parameters</source>
        </inputParameter>
        !!]

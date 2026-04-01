@@ -234,7 +234,7 @@ contains
 
   double precision function velocityMaximumScalingRate(self,node)
     !!{
-    Returns the cooling rate (in $M_\odot$ Gyr$^{-1}$) in the hot atmosphere for a model in which this rate scales with the maximum circular velocity of the halo.
+    Returns the cooling rate (in $\mathrm{M}_\odot$ Gyr$^{-1}$) in the hot atmosphere for a model in which this rate scales with the maximum circular velocity of the halo.
     !!}
     use :: Galacticus_Nodes  , only : nodeComponentBasic   , nodeComponentHotHalo, treeNode
     use :: Mass_Distributions, only : massDistributionClass

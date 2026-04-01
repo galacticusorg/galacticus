@@ -42,7 +42,8 @@
     \label{eq:accretionHalo:truncation}
     \end{equation}
     where $z_\mathrm{reionization}=$\mono{[redshiftReionization]} is the redshift at which the Universe is
-    reionized (alternatively, the optical depth to reionization can be specified via \mono{[opticalDepthReionization]} and the corresponding redshift will be computed) and $V_\mathrm{reionization}=$\mono{[velocitySuppressionReionization]} is the virial velocity below which accretion is suppressed after
+    reionized (alternatively, the optical depth to reionization can be specified via \mono{[opticalDepthReionization]} and the corresponding redshift will be computed) and
+    $V_\mathrm{reionization}=$\mono{[velocitySuppressionReionization]} is the virial velocity below which accretion is suppressed after
     reionization. Setting $V_\mathrm{reionization}$ to zero will effectively switch off the effects of reionization on the
     accretion of baryons. This algorithm attempts to offer a simple prescription for the effects of reionization and has been
     explored by multiple authors (e.g. \citealt{benson_effects_2002}). In particular, \cite{font_modelingmilky_2010} show that
@@ -154,7 +155,7 @@ contains
          <name>redshiftReionization</name>
          <defaultSource>(\citealt{hinshaw_nine-year_2012}; CMB$+H_0+$BAO)</defaultSource>
          <defaultValue>9.97d0</defaultValue>
-         <description>The redshift below which baryonic accretion is suppressed.</description>
+         <description>The redshift of reionization below which baryonic accretion onto halos is suppressed due to the ionizing background heating the intergalactic medium and preventing gas from accreting onto low-mass halos.</description>
          <source>parameters</source>
        </inputParameter>
        !!]
@@ -402,7 +403,7 @@ contains
 
   function simpleAccretionRateMetals(self,node,accretionMode)
     !!{
-    Computes the rate of mass of abundance accretion (in $M_\odot/$Gyr) onto \mono{node} from the intergalactic medium.
+    Computes the rate of mass of abundance accretion (in $\mathrm{M}_\odot/$Gyr) onto \mono{node} from the intergalactic medium.
     !!}
     use :: Abundances_Structure, only : metallicityTypeLinearByMass, adjustElementsReset
     use :: Galacticus_Nodes    , only : nodeComponentBasic
@@ -425,7 +426,7 @@ contains
 
   function simpleAccretedMassMetals(self,node,accretionMode)
     !!{
-    Computes the mass of abundances accreted (in $M_\odot$) onto \mono{node} from the intergalactic medium.
+    Computes the mass of abundances accreted (in $\mathrm{M}_\odot$) onto \mono{node} from the intergalactic medium.
     !!}
     use :: Abundances_Structure, only : metallicityTypeLinearByMass, adjustElementsReset
     use :: Galacticus_Nodes    , only : nodeComponentBasic
@@ -448,7 +449,7 @@ contains
 
   function simpleFailedAccretionRateMetals(self,node,accretionMode)
     !!{
-    Computes the rate of failed mass of abundance accretion (in $M_\odot/$Gyr) onto \mono{node} from the intergalactic medium.
+    Computes the rate of failed mass of abundance accretion (in $\mathrm{M}_\odot/$Gyr) onto \mono{node} from the intergalactic medium.
     !!}
     use :: Abundances_Structure, only : metallicityTypeLinearByMass, adjustElementsReset
     use :: Galacticus_Nodes    , only : nodeComponentBasic
@@ -471,7 +472,7 @@ contains
 
   function simpleFailedAccretedMassMetals(self,node,accretionMode)
     !!{
-    Computes the mass of abundances that failed to accrete (in $M_\odot$) onto \mono{node} from the intergalactic medium.
+    Computes the mass of abundances that failed to accrete (in $\mathrm{M}_\odot$) onto \mono{node} from the intergalactic medium.
     !!}
     use :: Abundances_Structure, only : metallicityTypeLinearByMass, adjustElementsReset
     use :: Galacticus_Nodes    , only : nodeComponentBasic
@@ -494,7 +495,7 @@ contains
   
   function simpleAccretionRateChemicals(self,node,accretionMode)
     !!{
-    Computes the rate of mass of chemicals accretion (in $M_\odot/$Gyr) onto \mono{node} from the intergalactic medium. Assumes a
+    Computes the rate of mass of chemicals accretion (in $\mathrm{M}_\odot/$Gyr) onto \mono{node} from the intergalactic medium. Assumes a
     primordial mixture of hydrogen and helium and that accreted material is in collisional ionization equilibrium at the virial
     temperature.
     !!}
@@ -519,7 +520,7 @@ contains
 
   function simpleAccretedMassChemicals(self,node,accretionMode)
     !!{
-    Computes the mass of chemicals accreted (in $M_\odot$) onto \mono{node} from the intergalactic medium.
+    Computes the mass of chemicals accreted (in $\mathrm{M}_\odot$) onto \mono{node} from the intergalactic medium.
     !!}
     use :: Chemical_Abundances_Structure, only : chemicalAbundances
     implicit none
@@ -542,7 +543,7 @@ contains
 
   function simpleChemicalMasses(self,node,massAccreted,accretionMode)
     !!{
-    Compute the masses of chemicals accreted (in $M_\odot$) onto \mono{node} from the intergalactic medium.
+    Compute the masses of chemicals accreted (in $\mathrm{M}_\odot$) onto \mono{node} from the intergalactic medium.
     !!}
     use :: Abundances_Structure             , only : zeroAbundances
     use :: Chemical_Abundances_Structure    , only : chemicalAbundances

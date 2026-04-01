@@ -27,7 +27,14 @@
   use :: Radiation_Fields                    , only : radiationFieldCosmicMicrowaveBackground
   !![
   <nodePropertyExtractor name="nodePropertyExtractorCGMCoolingFunction">
-   <description>A property extractor class for the CGM cooling function at a set of radii.</description>
+   <description>A property extractor that returns the radiative cooling function
+    $\Lambda(T,n_\mathrm{H},Z)$ (in erg~cm$^3$~s$^{-1}$) of the circumgalactic medium at a
+    user-specified set of radii in the hot halo, evaluated using the supplied
+    \refClass{coolingFunctionClass} object with local density, temperature, and metallicity. The
+    \mono{radiusSpecifiers} parameter defines the radii; \mono{includeRadii} and
+    \mono{includeDensity} optionally add the radius (Mpc) and hydrogen number density
+    (cm$^{-3}$) columns to the output. The \mono{label} suffix distinguishes multiple instances
+    of this extractor.</description>
    <deepCopy>
     <functionClass variables="radiation"/>
    </deepCopy>

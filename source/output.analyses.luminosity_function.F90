@@ -26,7 +26,7 @@ Implements a luminosity function output analysis class.
 
   !![
   <outputAnalysis name="outputAnalysisLuminosityFunction">
-   <description>A luminosity function output analysis class.</description>
+   <description>Computes the galaxy luminosity function as a number density per magnitude bin, with user-specified absolute magnitude bin centers, \mono{label}, \mono{comment}, optional target dataset for likelihood evaluation, and binomial covariance matrix construction parameters for halo mass range.</description>
   </outputAnalysis>
   !!]
   type, extends(outputAnalysisVolumeFunction1D) :: outputAnalysisLuminosityFunction

@@ -25,7 +25,11 @@
   !![
   <nodeOperator name="nodeOperatorDiskRadiusPowerLaw">
    <description>
-    A node operator that implements an an empirical power law relationship between disk stellar radius and stellar mass.
+    A node operator that sets the disk scale radius using an empirical broken power law in stellar mass,
+    $r_\mathrm{s} = \gamma \left(M_\star/\mathrm{M}_\odot\right)^\alpha \left[1 + (M_\star/M_0)^{\beta-\alpha}\right]$,
+    calibrated to observations (default parameters from \citealt{shen_size_2003} for late-type galaxies). \mono{alpha} and
+    \mono{beta} are the low- and high-mass exponents, \mono{gamma} is the normalization, and \mono{massPivot} is the
+    transition mass $M_0$. The radius is updated at node initialization, after mergers, and when the ODE is solved analytically.
    </description>
   </nodeOperator>
   !!]
@@ -33,7 +37,7 @@
      !!{
      Implements a power law prescription for the stellar mass--stellar radius relation of disks. Specifically:
      \begin{equation}
-       r_\mathrm{s} = \gamma \left( \frac{M_\star}{M_\odot} \right)^\alpha \left( 1 + \frac{M_\star}{M_0}^{\beta-\alpha} \right), 
+       r_\mathrm{s} = \gamma \left( \frac{M_\star}{\mathrm{M}_\odot} \right)^\alpha \left( 1 + \frac{M_\star}{M_0}^{\beta-\alpha} \right), 
      \end{equation}
      where $r_\mathrm{s}$ is the disk scale radius, $M_\star$ is the stellar mass of the disk, and $M_0$, $\alpha$, $\beta$, and $\gamma$
      are free parameters.

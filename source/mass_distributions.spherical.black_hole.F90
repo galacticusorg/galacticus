@@ -72,7 +72,7 @@ contains
     <inputParameter>
       <name>mass</name>
       <defaultValue>1.0d0</defaultValue>
-      <description>The mass of the black hole.</description>
+      <description>The mass (in $\mathrm{M}_\odot$) of the black hole, which is treated as a point mass whose gravitational potential is $-\mathrm{G}M/r$.</description>
       <source>parameters</source>
     </inputParameter>
     <inputParameter>

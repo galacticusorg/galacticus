@@ -26,7 +26,7 @@
 
   !![
   <outputAnalysis name="outputAnalysisStellarVsHaloMassRelationLeauthaud2012">
-   <description>A stellar vs halo mass relation output analysis class.</description>
+   <description>Computes the stellar mass--halo mass relation (mean or scatter) for one of three COSMOS redshift intervals from \cite{leauthaud_new_2012}, with optional single-bin likelihood and likelihood normalization, and systematic error polynomial coefficients for both stellar and halo masses.</description>
   </outputAnalysis>
   !!]
   type, extends(outputAnalysisClass) :: outputAnalysisStellarVsHaloMassRelationLeauthaud2012

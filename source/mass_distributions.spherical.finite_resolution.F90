@@ -79,7 +79,7 @@ contains
     <inputParameter>
       <name>lengthResolution</name>
       <source>parameters</source>
-      <description>The resolution length scale.</description>
+      <description>The spatial resolution length scale (in Mpc) below which the underlying density profile is softened to a flat core, mimicking the finite force resolution of an N-body simulation.</description>
     </inputParameter>
     <inputParameter>
       <name>nonAnalyticSolver</name>

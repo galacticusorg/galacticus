@@ -23,7 +23,7 @@ Implements a node operator class that shifts node constrained branch status at n
 
   !![
   <nodeOperator name="nodeOperatorConstrainedBranch">
-   <description>A node operator class that shifts node constrained branch status at node promotion.</description>
+   <description>Propagates the constrained-branch flag from a node to its promoted descendant during node promotion events, ensuring that constraint metadata (e.g., from N-body simulations) is preserved as halos evolve between timesteps.</description>
   </nodeOperator>
   !!]
   type, extends(nodeOperatorClass) :: nodeOperatorConstrainedBranch

@@ -28,14 +28,10 @@ jobs:
       - name: "Set environmental variables"
         run: |
           echo "GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
-      - name: Install tools
-        run: |
-          sudo apt -y update
-          sudo apt install -y libwww-curl-perl libjson-pp-perl perl-doc libtext-bibtex-perl
       - name: Update the bibliography
         if: ${{ env.adstoken != '' }}
         run: |
-          ./scripts/aux/bibliographyUpdate.pl ${{ secrets.NASA_ADS_API_TOKEN }}
+          python3 scripts/aux/bibliographyUpdate.py ${{ secrets.NASA_ADS_API_TOKEN }}
       - name: Create Pull Request
         if: ${{ ( env.appid != '' ) && ( env.adstoken != '' ) }}
         uses: peter-evans/create-pull-request@v8

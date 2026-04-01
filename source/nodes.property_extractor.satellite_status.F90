@@ -34,7 +34,12 @@ Implements an ISM mass output analysis property extractor class.
 
   !![
   <nodePropertyExtractor name="nodePropertyExtractorSatelliteStatus">
-   <description>An ISM mass output analysis property extractor class.</description>
+   <description>A property extractor that returns an integer satellite status flag for each node:
+    0 for central (non-satellite) halos, 1 for satellites that still have a resolved dark matter
+    subhalo, and 2 for orphaned satellites that have lost their subhalo below the resolution limit.
+    The \mono{discriminator} parameter (default: \mono{boundMass}) controls whether orphan status is
+    determined from the bound mass history of the satellite component or the position history of the
+    position component, allowing flexibility in how subhalo disruption is identified.</description>
   </nodePropertyExtractor>
   !!]
   type, extends(nodePropertyExtractorIntegerScalar) :: nodePropertyExtractorSatelliteStatus

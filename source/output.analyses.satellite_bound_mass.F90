@@ -28,7 +28,7 @@
 
   !![
   <outputAnalysis name="outputAnalysisSatelliteBoundMass">
-    <description>An output analysis class that computes satellite bound mass fraction as a function of time.</description>
+    <description>Computes the satellite subhalo bound mass fraction as a function of time since infall, tracking tidal stripping evolution and comparing model predictions against a target dataset read from \mono{fileName}, with a relative model uncertainty parameter.</description>
   </outputAnalysis>
   !!]
   type, extends(outputAnalysisClass) :: outputAnalysisSatelliteBoundMass

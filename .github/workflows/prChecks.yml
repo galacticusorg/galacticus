@@ -181,10 +181,10 @@ jobs:
         run: |
           status=0
           for file in ${{ steps.changed-files.outputs.all_changed_files }}; do
-            if ./scripts/aux/staticAnalyzer.pl $file; then
+            if python3 scripts/aux/staticAnalyzer.py $file; then
               echo "Fortran file $file passes analysis"
             else
-              echo "Fortran file $file fails analysis"              
+              echo "Fortran file $file fails analysis"
               status=1
             fi
           done
@@ -200,13 +200,14 @@ jobs:
         run: |
           echo "GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
           echo "DICTIONARY=en_US" >> $GITHUB_ENV
+          echo "PYTHONPATH=$GITHUB_WORKSPACE/python" >> $GITHUB_ENV
       - name: Mark directory safe        
         run: |
           git config --global --add safe.directory $GALACTICUS_EXEC_PATH
       - name: Install tools
         run: |
           apt -y update
-          apt install -y texlive texlive-latex-extra texlive-science texlive-extra-utils hunspell hunspell-en-us libxml-simple-perl libregexp-common-perl libfile-temp-perl
+          apt install -y texlive texlive-latex-extra texlive-science texlive-extra-utils hunspell hunspell-en-us python3-lxml
       - name: Build class information
         run: |
           cd $GALACTICUS_EXEC_PATH
@@ -222,10 +223,10 @@ jobs:
         run: |
           status=0
           for file in ${{ steps.changed-files.outputs.all_changed_files }}; do
-            if ./scripts/aux/embeddedAnalyzer.pl $file warnings.md; then
+            if python3 scripts/aux/embeddedAnalyzer.py $file warnings.md; then
               echo "Embedded XML/LaTeX in file $file passes analysis"
             else
-              echo "Embedded XML/LaTeX in file $file fails analysis"              
+              echo "Embedded XML/LaTeX in file $file fails analysis"
               status=1
             fi
           done
@@ -262,13 +263,14 @@ jobs:
         run: |
           echo "GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
           echo "DICTIONARY=en_US" >> $GITHUB_ENV
+          echo "PYTHONPATH=$GITHUB_WORKSPACE/python" >> $GITHUB_ENV
       - name: Mark directory safe        
         run: |
           git config --global --add safe.directory $GALACTICUS_EXEC_PATH
       - name: Install tools
         run: |
           apt -y update
-          apt install -y texlive texlive-latex-extra texlive-science texlive-extra-utils hunspell hunspell-en-us libxml-simple-perl libregexp-common-perl libfile-temp-perl
+          apt install -y texlive texlive-latex-extra texlive-science texlive-extra-utils hunspell hunspell-en-us python3-lxml
       - name: Build class information
         run: |
           cd $GALACTICUS_EXEC_PATH
@@ -283,7 +285,7 @@ jobs:
         run: |
           status=0
           for file in ${{ steps.changed-files.outputs.all_changed_files }}; do
-            ./scripts/aux/spellChecker.pl $file warnings.md
+            python3 scripts/aux/spellChecker.py $file warnings.md
           done
       - name: Check file existence
         id: check_files

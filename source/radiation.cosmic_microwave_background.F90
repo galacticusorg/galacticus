@@ -25,7 +25,7 @@
 
   !![
   <radiationField name="radiationFieldCosmicMicrowaveBackground">
-   <description>A radiation field class for the cosmic microwave background.</description>
+   <description>A radiation field class for the cosmic microwave background (CMB), modelled as a blackbody with temperature $T_\mathrm{CMB}(z) = T_0\,(1+z)$ that evolves with redshift according to the adopted cosmology.</description>
   </radiationField>
   !!]
   type, extends(radiationFieldBlackBody) :: radiationFieldCosmicMicrowaveBackground

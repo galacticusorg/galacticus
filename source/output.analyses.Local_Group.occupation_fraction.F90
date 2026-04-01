@@ -24,7 +24,7 @@
 
   !![
   <outputAnalysis name="outputAnalysisLocalGroupOccupationFraction">
-   <description>An output analysis class for the Local Group stellar mass-halo mass relation.</description>
+   <description>Computes the fraction of dark matter halos occupied by observed Local Group satellite galaxies as a function of stellar mass, with configurable stellar mass random/systematic error polynomial coefficients, binomial covariance matrix parameters, and position-type selection.</description>
   </outputAnalysis>
   !!]
   type, extends(outputAnalysisClass) :: outputAnalysisLocalGroupOccupationFraction

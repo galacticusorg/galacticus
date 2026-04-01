@@ -23,7 +23,7 @@ Implements a filter which passes only constrained branch halos.
 
   !![
   <galacticFilter name="galacticFilterConstrainedBranch">
-   <description>A filter which passes only constrained branch halos.</description>
+   <description>Passes only nodes that lie on constrained branches of a merger tree, i.e., branches whose merger history was constructed to match some applied constraint rather than generated stochastically, enabling targeted analysis of constrained vs. unconstrained halo populations.</description>
   </galacticFilter>
   !!]
   type, extends(galacticFilterClass) :: galacticFilterConstrainedBranch

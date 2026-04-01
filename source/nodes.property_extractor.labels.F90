@@ -19,7 +19,7 @@
 
   !![
   <nodePropertyExtractor name="nodePropertyExtractorLabels">
-   <description>A node property extractor which extracts labels associated with nodes.</description>
+   <description>Extracts integer-encoded labels (categorical tags) attached to nodes via the \mono{Nodes\_Labels} module, such as merger tree branch identifiers or classification flags. Converts each registered label to an integer output for storage and analysis of labeled merger tree populations.</description>
   </nodePropertyExtractor>
   !!]
   type, extends(nodePropertyExtractorIntegerTuple) :: nodePropertyExtractorLabels

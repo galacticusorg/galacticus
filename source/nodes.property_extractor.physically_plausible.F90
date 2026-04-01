@@ -23,7 +23,7 @@
 
   !![
   <nodePropertyExtractor name="nodePropertyExtractorIsPhysicallyPlausible">
-   <description>A node property extractor class which reports if a node is considered to be physically plausible.</description>
+   <description>Extracts an integer flag indicating whether a node's physical state is considered plausible (e.g., non-negative masses, physical sizes), useful for quality control filtering of output catalogs.</description>
   </nodePropertyExtractor>
   !!]
   type, extends(nodePropertyExtractorIntegerScalar) :: nodePropertyExtractorIsPhysicallyPlausible

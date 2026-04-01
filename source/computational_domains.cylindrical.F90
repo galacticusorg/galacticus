@@ -32,7 +32,7 @@
   
   !![
   <computationalDomain name="computationalDomainCylindrical">
-   <description>A computational domain using a cylindrical grid.</description>
+   <description>Defines a computational domain on a cylindrical grid, with radial and vertical boundaries specified by \mono{[rBoundaries]} and \mono{[zBoundaries]}, and the number of cells in each dimension by \mono{[countCells]}. Convergence of integrated cell quantities is monitored using percentile and threshold criteria set by \mono{[convergencePercentile]} and \mono{[convergenceThreshold]}.</description>
   </computationalDomain>
   !!]
   type, extends(computationalDomainClass) :: computationalDomainCylindrical
@@ -111,37 +111,37 @@ contains
     <inputParameter>
       <name>rBoundaries</name>
       <defaultValue>[+0.0d0,+1.0d0]</defaultValue>
-      <description>The $r$-interval spanned by the computational domain.</description>
+      <description>A two-element array $[r_\mathrm{min}, r_\mathrm{max}]$ specifying the radial extent of the cylindrical computational domain, where $r=0$ is the cylinder axis.</description>
       <source>parameters</source>
     </inputParameter>
     <inputParameter>
       <name>zBoundaries</name>
       <defaultValue>[-1.0d0,+1.0d0]</defaultValue>
-      <description>The $z$-interval spanned by the computational domain.</description>
+      <description>A two-element array $[z_\mathrm{min}, z_\mathrm{max}]$ specifying the vertical extent of the cylindrical computational domain along the symmetry axis.</description>
       <source>parameters</source>
     </inputParameter>
     <inputParameter>
       <name>countCells</name>
       <defaultValue>[3_c_size_t,3_c_size_t]</defaultValue>
-      <description>The number of cells in the domain in each dimension.</description>
+      <description>A two-element integer array specifying the number of grid cells along the $r$ and $z$ dimensions of the cylindrical computational domain, controlling the spatial resolution of the radiative transfer calculation.</description>
       <source>parameters</source>
     </inputParameter>
     <inputParameter>
       <name>convergencePercentile</name>
       <defaultValue>0.99d0</defaultValue>
-      <description>The percentile used in the convergence criterion.</description>
+      <description>The percentile of cells (between 0 and 1) used in assessing convergence; only this fraction of cells must satisfy the convergence threshold, allowing outlier cells to be excluded.</description>
       <source>parameters</source>
     </inputParameter>
     <inputParameter>
       <name>convergenceThreshold</name>
       <defaultValue>2.0d0</defaultValue>
-      <description>The threshold for the convergence measure.</description>
+      <description>The threshold value for the convergence measure; the domain is considered converged when the specified percentile of cells has a convergence metric below this value.</description>
       <source>parameters</source>
     </inputParameter>
     <inputParameter>
       <name>convergenceRatioThreshold</name>
       <defaultValue>1.1d0</defaultValue>
-      <description>The threshold for the change in convergence criterion.</description>
+      <description>The threshold for the ratio of the convergence criterion between successive iterations; convergence is accepted when this ratio falls below the threshold, indicating the solution is no longer changing significantly.</description>
       <source>parameters</source>
     </inputParameter>
     <objectBuilder class="radiativeTransferMatter"      name="radiativeTransferMatter_"      source="parameters"/>

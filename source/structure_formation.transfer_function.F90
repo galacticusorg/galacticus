@@ -32,7 +32,11 @@ module Transfer_Functions
   <functionClass>
    <name>transferFunction</name>
    <descriptiveName>Transfer Function</descriptiveName>
-   <description>Class providing transfer functions for power spectra.</description>
+   <description>Class providing transfer functions $T(k)$ for the matter power spectrum. The transfer function encodes the
+    modification of the primordial power spectrum by physical processes between inflation and matter-radiation equality,
+    including baryon acoustic oscillations, Silk damping, and free-streaming of dark matter particles. It is defined such
+    that the linear power spectrum at late times is $P(k) \propto k^{n_s} T^2(k)$. Implementations may also return the
+    wavenumber at which $T(k)$ is suppressed by a given factor, characterizing the small-scale cutoff scale.</description>
    <default>eisensteinHu1999</default>
    <method name="value" >
     <description>Return the transfer function for $k=$\mono{wavenumber} [Mpc$^{-1}$].</description>
@@ -61,21 +65,21 @@ module Transfer_Functions
     <pass>yes</pass>
    </method>
    <method name="halfModeMass" >
-    <description>Return the mass (in $M_\odot$) corresponding to the wavenumber at which the transfer function is suppressed by a factor of two due to small-scale dark matter particle physics.</description>
+    <description>Return the mass (in $\mathrm{M}_\odot$) corresponding to the wavenumber at which the transfer function is suppressed by a factor of two due to small-scale dark matter particle physics.</description>
     <type>double precision</type>
     <pass>yes</pass>
     <selfTarget>yes</selfTarget>
     <argument>integer, intent(  out), optional :: status</argument>
    </method>
    <method name="quarterModeMass" >
-    <description>Return the mass (in $M_\odot$) corresponding to the wavenumber at which the transfer function is suppressed by a factor of four due to small-scale dark matter particle physics.</description>
+    <description>Return the mass (in $\mathrm{M}_\odot$) corresponding to the wavenumber at which the transfer function is suppressed by a factor of four due to small-scale dark matter particle physics.</description>
     <type>double precision</type>
     <pass>yes</pass>
     <selfTarget>yes</selfTarget>
     <argument>integer, intent(  out), optional :: status</argument>
    </method>
    <method name="fractionModeMass" >
-    <description>Return the mass (in $M_\odot$) corresponding to the wavenumber at which the transfer function is suppressed is reduced by \mono{fraction} due to small-scale dark matter particle physics.</description>
+    <description>Return the mass (in $\mathrm{M}_\odot$) corresponding to the wavenumber at which the transfer function is suppressed is reduced by \mono{fraction} due to small-scale dark matter particle physics.</description>
     <type>double precision</type>
     <pass>yes</pass>
     <selfTarget>yes</selfTarget>

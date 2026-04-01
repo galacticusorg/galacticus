@@ -19,9 +19,7 @@
 
   !![
   <nodePropertyExtractor name="nodePropertyExtractorGalaxyMergerTreePhysical">
-   <description>
-     A node property extractor which extracts the physical properties of galaxy merger trees.
-   </description>
+   <description>Extracts physical (floating-point) properties of nodes within galaxy merger trees, such as halo masses, virial radii, and cosmic times, providing the continuous-valued data needed for merger tree analysis.</description>
   </nodePropertyExtractor>
   !!]
   type, extends(nodePropertyExtractorList) :: nodePropertyExtractorGalaxyMergerTreePhysical

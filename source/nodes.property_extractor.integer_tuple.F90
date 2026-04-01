@@ -22,7 +22,7 @@
 
   !![
   <nodePropertyExtractor name="nodePropertyExtractorIntegerTuple" abstract="yes">
-   <description>An abstract output analysis property extractor class which provides a tuple of integer properties.</description>
+   <description>Abstract base class for extractors that return a fixed-length tuple of integer values per node, defining the interface (element count, names, descriptions, and units) for multi-valued integer outputs such as combined index arrays used in output analysis.</description>
   </nodePropertyExtractor>
   !!]
   type, extends(nodePropertyExtractorClass), abstract :: nodePropertyExtractorIntegerTuple

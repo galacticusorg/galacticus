@@ -32,7 +32,7 @@
     A dark matter profile concentration class in which the concentration is computed using a fitting function from
     \cite{munoz-cuartas_redshift_2011}:
     \begin{equation}
-    \log_{10} c = a \log_{10} \left( {M_\mathrm{halo} \over h^{-1}M_\odot} \right) + b.
+    \log_{10} c = a \log_{10} \left( {M_\mathrm{halo} \over h^{-1}\mathrm{M}_\odot} \right) + b.
     \end{equation}
     The parameters are a function of redshift, $z$, given by
     \begin{eqnarray}

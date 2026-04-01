@@ -23,9 +23,7 @@
 
   !![
   <nodeOperator name="nodeOperatorCosmicTime">
-   <description>
-    A node operator class that simply evolves the cosmic time of a node.
-   </description>
+   <description>Evolves the cosmic time property of each node analytically during differential evolution, providing a fundamental time-tracking mechanism used by other node operators and analyses.</description>
   </nodeOperator>
   !!]
   type, extends(nodeOperatorClass) :: nodeOperatorCosmicTime

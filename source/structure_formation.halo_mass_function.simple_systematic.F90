@@ -24,14 +24,11 @@ Implements a dark matter halo mass function class which modifies another mass fu
   !![
   <haloMassFunction name="haloMassFunctionSimpleSystematic">
    <description>
-  !!]
-
-  !![
     A halo mass function class in which the mass function is computed by modifying another halo mass function (specified as a
     subparameter) using a simple model for systematic errors as follows:
     \begin{equation}
       {\mathrm{d} n\over \mathrm{d}M}(M) \rightarrow {\mathrm{d} n\over \mathrm{d}M}(M) \left( 1 + \alpha + \beta
-      \log_{10}\left[ {M \over 10^{12}M_\odot} \right] \right)
+      \log_{10}\left[ {M \over 10^{12}\mathrm{M}_\odot} \right] \right)
     \end{equation}
     where $\alpha=$\mono{[alpha]}, and $\beta=$\mono{[beta]}.
    </description>

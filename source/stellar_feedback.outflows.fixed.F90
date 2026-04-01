@@ -24,16 +24,13 @@
   !![
   <stellarFeedbackOutflows name="stellarFeedbackOutflowsFixed">
    <description>
-  !!]
-
-  !![
     A stellar feedback outflow class in which the outflow rate is fixed. Specifically,
     \begin{equation}
      \dot{M}_\mathrm{outflow} = f_\mathrm{outflow} {\dot{E} \over E_\mathrm{canonical}},
     \end{equation}
     where $f_\mathrm{outflow}=$\mono{[fraction]} is the fraction of the star formation rate that goes into
     outflow, $\dot{E}$ is the rate of energy input from stellar populations and $E_\mathrm{canonical}$ is the total energy
-    input by a canonical stellar population normalized to $1 M_\odot$ after infinite time.
+    input by a canonical stellar population normalized to $1 \mathrm{M}_\odot$ after infinite time.
    </description>
   </stellarFeedbackOutflows>
   !!]
@@ -73,7 +70,7 @@ contains
       <name>fraction</name>
       <source>parameters</source>
       <defaultValue>0.01d0</defaultValue>
-      <description>The ratio of outflow rate to star formation rate in disks.</description>
+      <description>The fixed fraction $f_\mathrm{outflow}$ of the stellar energy input rate (normalized to a canonical $1\,\mathrm{M}_\odot$ population) that drives gas outflows, setting the mass loading factor for stellar feedback in the galaxy.</description>
     </inputParameter>
     !!]
     self=stellarFeedbackOutflowsFixed(fraction)
@@ -99,7 +96,7 @@ contains
 
   subroutine fixedOutflowRate(self,component,rateStarFormation,rateEnergyInput,rateOutflowEjective,rateOutflowExpulsive)
     !!{
-    Returns the outflow rate (in $M_\odot$ Gyr$^{-1}$) due to stellar feedback in the given \mono{component}. Assumes a fixed ratio of outflow rate to star formation rate.
+    Returns the outflow rate (in $\mathrm{M}_\odot$ Gyr$^{-1}$) due to stellar feedback in the given \mono{component}. Assumes a fixed ratio of outflow rate to star formation rate.
    !!}
     use :: Stellar_Feedback, only : feedbackEnergyInputAtInfinityCanonical
     implicit none

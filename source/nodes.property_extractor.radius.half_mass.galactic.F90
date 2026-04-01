@@ -23,7 +23,7 @@ Implements a half-galactic mass radius output analysis property extractor class.
 
   !![
   <nodePropertyExtractor name="nodePropertyExtractorRadiusHalfMassGalactic">
-   <description>A half-galactic mass output analysis property extractor class.</description>
+   <description>Extracts the half-galactic-mass radius, the 3D radius enclosing half of the total galactic mass (stars plus gas) in both disk and spheroid components, used to characterize the physical extent of galaxies across cosmic time.</description>
   </nodePropertyExtractor>
   !!]
   type, extends(nodePropertyExtractorScalar) :: nodePropertyExtractorRadiusHalfMassGalactic

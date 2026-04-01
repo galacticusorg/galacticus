@@ -26,7 +26,7 @@
   !![
   <circumgalacticMediumHeating name="circumgalacticMediumHeatingAGNFeedback">
    <description>
-    A \gls{cgm} heating class for AGN feedback.
+    A circumgalactic medium heating class that computes heating from AGN feedback, coupling the energy output of active galactic nuclei to the hot gas halo. This class delegates to a black hole CGM heating implementation to determine the heating rate.
    </description>
   </circumgalacticMediumHeating>
   !!]

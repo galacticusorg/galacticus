@@ -169,12 +169,12 @@ contains
        <inputParameter>
          <name>criticalOverdensityConstrained</name>
          <source>parameters</source>
-         <description>The critical overdensity at the end of the Brownian bridge.</description>
+         <description>The linear theory critical overdensity $\delta_\mathrm{c}$ (extrapolated to the present epoch) that defines the constrained end-point of the Brownian bridge in excursion-set space; used together with \mono{varianceConstrained} to pin the random walk to a specific progenitor halo.</description>
        </inputParameter>
        <inputParameter>
          <name>varianceConstrained</name>
          <source>parameters</source>
-         <description>The variance at the end of the Brownian bridge.</description>
+         <description>The mass variance $\sigma^2(M)$ corresponding to the constrained end-point mass of the Brownian bridge; together with \mono{criticalOverdensityConstrained} it specifies the progenitor mass to which the excursion-set random walk is conditioned.</description>
        </inputParameter>
        !!]
        massConstrained=cosmologicalMassVariance_%mass          (time               =timePresent                   ,rootVariance=sqrt(varianceConstrained))
@@ -192,12 +192,12 @@ contains
        <inputParameter>
          <name>redshiftConstrained</name>
          <source>parameters</source>
-         <description>The redshift at the end of the Brownian bridge.</description>
+         <description>The redshift of the progenitor epoch that defines the constrained end-point of the Brownian bridge; converted internally to a cosmic time and then to a linear overdensity threshold via the critical overdensity at that epoch.</description>
        </inputParameter>
        <inputParameter>
          <name>massConstrained</name>
          <source>parameters</source>
-         <description>The halo mass at the end of the Brownian bridge.</description>
+         <description>The halo mass ($\mathrm{M}_\odot$) of the constrained progenitor at the end of the Brownian bridge; converted internally to a mass variance $\sigma^2(M)$ that pins the excursion-set random walk to a specific progenitor scale.</description>
        </inputParameter>
        !!]
        expansionFactor               =+cosmologyFunctions_      %expansionFactorFromRedshift(redshift       =redshiftConstrained                 )

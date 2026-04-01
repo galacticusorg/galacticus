@@ -65,7 +65,7 @@ contains
     <inputParameter>
       <name>rate</name>
       <source>parameters</source>
-      <description>The rate at which to subsample points.</description>
+      <description>The probability (between 0 and 1) that each particle is retained; particles are drawn independently from a uniform distribution to achieve the target subsampling fraction.</description>
     </inputParameter>
     <objectBuilder class="randomNumberGenerator" name="randomNumberGenerator_" source="parameters"/>
     !!]

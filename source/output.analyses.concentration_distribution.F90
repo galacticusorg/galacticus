@@ -25,7 +25,7 @@
 
   !![
   <outputAnalysis name="outputAnalysisConcentrationDistribution">
-   <description>A concentration distribution function output analysis class.</description>
+   <description>Computes the distribution of dark matter halo concentration parameters within a specified mass range and redshift, reading bin configuration from a file and comparing model predictions against target data with a minimum fractional root variance floor.</description>
    <runTimeFileDependencies paths="fileName"/>
   </outputAnalysis>
   !!]

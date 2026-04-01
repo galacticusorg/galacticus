@@ -77,7 +77,7 @@ contains
     !![
     <inputParameter>
       <name>variogramFitOption</name>
-      <description>Option controlling how the variogram is to be fit.</description>
+      <description>Option controlling how the binned semi-variance data are aggregated before fitting the Gaussian variogram model; allowed values are \mono{mean}, \mono{median} (default), or \mono{maximum} of the residuals within each separation bin.</description>
       <defaultValue>var_str('median')</defaultValue>
       <source>parameters</source>
     </inputParameter>

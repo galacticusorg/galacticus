@@ -27,7 +27,9 @@ Implements an N-body data importer for IRATE files.
 
   !![
   <nbodyImporter name="nbodyImporterIRATE">
-   <description>An importer for IRATE files.</description>
+   <description>An importer for N-body simulation data stored in IRATE (IRvine Astrophysical simulaTion structurE) HDF5 format,
+   reading halo properties from a specified snapshot. The input file is set by \mono{[fileName]}, the snapshot to read by
+   \mono{[snapshot]}, and an optional simulation label by \mono{[label]}.</description>
    <runTimeFileDependencies paths="fileName"/>
   </nbodyImporter>
   !!]

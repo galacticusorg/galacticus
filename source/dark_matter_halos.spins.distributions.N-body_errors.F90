@@ -122,7 +122,7 @@ contains
     <inputParameter>
       <name>massParticle</name>
       <source>parameters</source>
-      <description>Mass of particle in the simulation.</description>
+      <description>The mass (in $\mathrm{M}_\odot$) of a single N-body simulation particle, used together with the halo particle count to estimate measurement errors in the halo spin parameter arising from discrete particle sampling.</description>
     </inputParameter>
     <inputParameter>
       <name>particleCountMinimum</name>

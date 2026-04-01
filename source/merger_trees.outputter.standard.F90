@@ -60,7 +60,7 @@
   
   !![
   <mergerTreeOutputter name="mergerTreeOutputterStandard">
-   <description>The standard merger tree outputter.</description>
+   <description>The standard merger tree outputter which writes galaxy and halo properties to HDF5 output files at each requested output time during galaxy evolution. Output is organized into groups named by \mono{[outputsGroupName]}, with optional dataset reference output controlled by the \mono{[outputReferences]} parameter.</description>
    <stateStorable>
     <restoreTo variables="outputsGroupOpened"                                                                                            state=".false."                    />
     <restoreTo variables="outputGroupsCount  , doublePropertiesWritten, integerPropertiesWritten, doubleBufferCount, integerBufferCount" state="0"                          />

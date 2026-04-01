@@ -33,7 +33,12 @@ module Excursion_Sets_Barriers
    <name>excursionSetBarrier</name>
    <descriptiveName>Excursion Set Barrier</descriptiveName>
    <description>
-    Class providing barriers for the excursion set problem.
+    Class providing the collapse barrier $B(\sigma^2, t)$ in the extended Press-Schechter excursion
+    set formalism---the threshold overdensity that a random walk in the density field must first cross
+    for a region of variance $\sigma^2$ to collapse by cosmic time $t$. The barrier height and its
+    gradient with respect to variance control the halo mass function and merger rate: a constant
+    barrier (spherical collapse) gives the Press-Schechter result, while a moving or stochastic barrier
+    (ellipsoidal collapse) produces mass functions in better agreement with N-body simulations.
    </description>
    <default>criticalOverdensity</default>
    <method name="barrier" >

@@ -23,7 +23,7 @@ Implements an identity output analysis property operator class.
 
   !![
   <outputAnalysisPropertyOperator name="outputAnalysisPropertyOperatorIdentity">
-   <description>An identity output analysis property operator class.</description>
+   <description>Applies no transformation to a property value, passing it through unchanged; useful as a no-op placeholder in output analysis property operator pipelines or for testing purposes.</description>
   </outputAnalysisPropertyOperator>
   !!]
   type, extends(outputAnalysisPropertyOperatorClass) :: outputAnalysisPropertyOperatorIdentity

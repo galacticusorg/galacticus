@@ -26,7 +26,7 @@
 
   !![
   <darkMatterProfile name="darkMatterProfileDarkMatterOnly">
-   <description>An implementation of non-dark-matter-only dark matter halo profiles which are unchanged from their dark-matter-only counterpart.</description>
+   <description>An implementation of non-dark-matter-only dark matter halo profiles that returns the unmodified dark-matter-only profile, i.e. baryonic effects on the dark matter distribution are ignored. Whether to compute velocity dispersions via the Chandrasekhar integral is controlled by \mono{[chandrasekharIntegralComputeVelocityDispersion]}.</description>
   </darkMatterProfile>
   !!]
   type, extends(darkMatterProfileClass) :: darkMatterProfileDarkMatterOnly

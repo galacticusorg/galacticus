@@ -25,7 +25,7 @@
   
   !![
   <nodeOperator name="nodeOperatorFiltered">
-   <description>A filtered node operator class.</description>
+   <description>A node operator class that applies a collection of child \refClass{nodeOperatorClass} objects only to nodes that pass a \refClass{galacticFilterClass} test, enabling conditional application of physical processes based on node properties.</description>
   </nodeOperator>
   !!]
   type, extends(nodeOperatorMulti) :: nodeOperatorFiltered

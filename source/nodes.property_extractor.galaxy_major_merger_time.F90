@@ -19,9 +19,7 @@
 
   !![
   <nodePropertyExtractor name="nodePropertyExtractorGalaxyMajorMergerTime">
-   <description>
-     A node property extractor which extracts the time of the last major merger for each galaxy.
-   </description>
+   <description>Extracts the cosmic time of the most recent major merger event for each galaxy, where major mergers are identified by a configurable mass ratio threshold applied to merging halos.</description>
   </nodePropertyExtractor>
   !!]
   type, extends(nodePropertyExtractorList) :: nodePropertyExtractorGalaxyMajorMergerTime

@@ -19,7 +19,7 @@
 
   !![
   <radiativeTransferOutputter name="radiativeTransferOutputterNull">
-   <description>A null radiative transfer outputter class.</description>
+   <description>A null (no-op) radiative transfer outputter that performs no output operations, used as a placeholder or default when radiative transfer results do not need to be written out.</description>
   </radiativeTransferOutputter>
   !!]
   type, extends(radiativeTransferOutputterClass) :: radiativeTransferOutputterNull

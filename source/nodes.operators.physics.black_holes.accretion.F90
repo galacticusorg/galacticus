@@ -26,7 +26,7 @@
 
   !![
   <nodeOperator name="nodeOperatorBlackHolesAccretion">
-   <description>A node operator class that implements accretion onto black holes.</description>
+   <description>Evolves supermassive black hole masses by computing gas accretion rates (including Bondi and feedback-regulated modes) and integrating them over each timestep, driving AGN feedback that regulates star formation in massive galaxies.</description>
   </nodeOperator>
   !!]
   type, extends(nodeOperatorClass) :: nodeOperatorBlackHolesAccretion

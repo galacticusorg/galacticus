@@ -98,7 +98,7 @@ contains
     </inputParameter>
     <inputParameter>
       <name>mass</name>
-      <description>The mass within the outer radius.</description>
+      <description>The total mass (in $\mathrm{M}_\odot$) of the hot gas distribution enclosed within \mono{radiusOuter}; used to normalize the Enzo hydrostatic density profile.</description>
       <source>parameters</source>
     </inputParameter>
     <inputParameter>

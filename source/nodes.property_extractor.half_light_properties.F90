@@ -27,7 +27,7 @@ Implements a half-light radii property extractor class.
     A node property extractor which extracts half-light radii and the masses enclosed within them. The half-light radius in
     each specified luminosity band is extracted as \mono{[halfLightRadius\{luminosityID\}]} (in Mpc), where
     \mono{\{luminosityID\}} is the usual luminosity identifier suffix, and the total (dark + baryonic) mass
-    within that radius is extracted as \mono{[halfLightMass\{luminosityID\}]} (in $M_\odot$).
+    within that radius is extracted as \mono{[halfLightMass\{luminosityID\}]} (in $\mathrm{M}_\odot$).
    </description>
   </nodePropertyExtractor>
   !!]

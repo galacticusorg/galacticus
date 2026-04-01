@@ -109,7 +109,7 @@ contains
     <inputParameter>
       <name>mass</name>
       <defaultValue>1.0d0</defaultValue>
-      <description>The mass of the cored profile.</description>
+      <description>The total mass (in $\mathrm{M}_\odot$) of the cored NFW halo, used to set the density normalization when the concentration and virial radius are provided instead of \mono{densityNormalization}.</description>
       <source>parameters</source>
     </inputParameter>
     <inputParameter>

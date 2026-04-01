@@ -28,7 +28,7 @@
 
   !![
   <outputAnalysis name="outputAnalysisProgenitorMassFunction">
-   <description>A dark matter halo progenitor mass function output analysis class.</description>
+   <description>Computes the dark matter halo progenitor mass function (distribution of progenitor-to-descendant mass ratios at a given parent redshift) and compares to target data, with options for log-space likelihood, mass ratio range, covariance diagonalization, and restriction to always-isolated progenitors.</description>
    <deepCopy>
     <functionClass variables="galacticFilterParentMass_, outputAnalysisWeightOperatorNbodyMass_, nodePropertyExtractorMassParent_"/>
    </deepCopy>

@@ -24,9 +24,6 @@ Implements a quadratic excursion set barrier class.
   !![
   <excursionSetBarrier name="excursionSetBarrierQuadratic">
    <description>
-  !!]
-
-  !![
     A quadratic excursion set barrier class. The barrier is given by:
     \begin{equation}
     B(S) = B_0 + B_1 S + B_2 S^2,
@@ -75,21 +72,21 @@ contains
       <source>parameters</source>
       <variable>coefficientConstant</variable>
       <defaultValue>1.67d0</defaultValue>
-      <description>The constant coefficient in the quadratic excursion set barrier.</description>
+      <description>The constant (zero-order) coefficient $B_0$ in the quadratic excursion-set barrier $B(\sigma^2) = B_0 + B_1\,\sigma^2 + B_2\,(\sigma^2)^2$; represents the flat threshold inherited from spherical collapse.</description>
     </inputParameter>
     <inputParameter>
       <name>coefficientLinear</name>
       <source>parameters</source>
       <variable>coefficientLinear</variable>
       <defaultValue>0.0d0</defaultValue>
-      <description>The linear coefficient in the quadratic excursion set barrier.</description>
+      <description>The linear (first-order in $\sigma^2$) coefficient $B_1$ in the quadratic excursion-set barrier $B(\sigma^2) = B_0 + B_1\,\sigma^2 + B_2\,(\sigma^2)^2$; encodes the leading ellipsoidal collapse correction to the collapse threshold.</description>
     </inputParameter>
     <inputParameter>
       <name>coefficientQuadratic</name>
       <source>parameters</source>
       <variable>coefficientQuadratic</variable>
       <defaultValue>0.0d0</defaultValue>
-      <description>The quadratic coefficient in the quadratic excursion set barrier.</description>
+      <description>The quadratic (second-order in $\sigma^2$) coefficient $B_2$ in the excursion-set barrier $B(\sigma^2) = B_0 + B_1\,\sigma^2 + B_2\,(\sigma^2)^2$; allows further curvature of the barrier to match simulation-calibrated mass functions.</description>
     </inputParameter>
     !!]
     self=excursionSetBarrierQuadratic(coefficientConstant,coefficientLinear,coefficientQuadratic)

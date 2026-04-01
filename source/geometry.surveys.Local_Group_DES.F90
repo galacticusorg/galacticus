@@ -24,7 +24,7 @@ Implements the geometry of the DES survey for Local Group dwarfs.
 
   !![
   <surveyGeometry name="surveyGeometryLocalGroupDES">
-   <description>Implements the geometry of the DES survey for Local Group dwarfs.</description>
+   <description>Implements the angular footprint and maximum detection distance of the Dark Energy Survey (DES) as applied to Local Group dwarf galaxy searches. The survey volume is defined by \gls{mangle} polygon files, with the maximum survey distance set by \mono{[distanceMaximumSurvey]}.</description>
   </surveyGeometry>
   !!]
   type, extends(surveyGeometryMangle) :: surveyGeometryLocalGroupDES

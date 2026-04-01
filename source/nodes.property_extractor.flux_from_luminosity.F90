@@ -25,7 +25,7 @@ Implements a class which extracts fluxes from luminosities.
 
   !![
   <nodePropertyExtractor name="nodePropertyExtractorFluxFromLuminosity">
-   <description>A property extractor that converts luminosities to fluxes.</description>
+   <description>Converts intrinsic luminosities to observed fluxes by dividing by $4\pi d_\mathrm{L}^2$, where $d_\mathrm{L}$ is the luminosity distance at the output redshift. Enables direct comparison of model predictions to flux-limited observational surveys at $z>0$.</description>
   </nodePropertyExtractor>
   !!]
   type, extends(nodePropertyExtractorTuple) :: nodePropertyExtractorFluxFromLuminosity

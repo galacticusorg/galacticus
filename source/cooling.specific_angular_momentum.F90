@@ -32,10 +32,12 @@ module Cooling_Specific_Angular_Momenta
   !![
   <functionClass>
    <name>coolingSpecificAngularMomentum</name>
-   <descriptiveName>Specific angular momentua of cooling gas.</descriptiveName>
-   <description>
-    Class providing models of the specific angular momentum of gas in the hot atmosphere surrounding a galaxy.
-   </description>
+   <descriptiveName>Specific Angular Momenta of Cooling Gas</descriptiveName>
+   <description>Class providing models of the specific angular momentum (in km s$^{-1}$ Mpc) of gas cooling out
+    of the hot halo and infalling onto the galaxy. The angular momentum of infalling gas determines the size and
+    rotational structure of the galaxy disk that forms from it. Different implementations may assume solid-body
+    rotation of the hot gas, track the angular momentum profile of the halo, or apply corrections for angular
+    momentum transport during infall.</description>
    <default>constantRotation</default>
    <method name="angularMomentumSpecific" >
     <description>Return the specific angular momentum (in units of km/s Mpc) of cooling gas in \mono{node}.</description>

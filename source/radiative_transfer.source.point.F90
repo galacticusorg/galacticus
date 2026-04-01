@@ -22,7 +22,7 @@
   
   !![
   <radiativeTransferSource name="radiativeTransferSourcePoint">
-   <description>A photon source class for point sources.</description>
+   <description>A photon source class for unresolved point-like radiative transfer sources that emit isotropically from a fixed location in three-dimensional space. The source position and a descriptive label are given by the \mono{[position]} and \mono{[label]} parameters, and the spectral shape is provided via the \mono{[radiativeTransferSpectrum]} object.</description>
   </radiativeTransferSource>
   !!]
   type, extends(radiativeTransferSourceClass) :: radiativeTransferSourcePoint

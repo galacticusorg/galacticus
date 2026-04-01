@@ -23,7 +23,7 @@ Implements an ISM mass output analysis property extractor class.
 
   !![
   <nodePropertyExtractor name="nodePropertyExtractorMassISM">
-   <description>An ISM mass output analysis property extractor class.</description>
+   <description>Extracts the total interstellar medium (ISM) gas mass of a galaxy by summing the gaseous mass distributions of the disk and spheroid components. Provides the combined cold gas reservoir for comparison with observational ISM mass estimates from CO, dust, or HI surveys.</description>
   </nodePropertyExtractor>
   !!]
   type, extends(nodePropertyExtractorScalar) :: nodePropertyExtractorMassISM

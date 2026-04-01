@@ -23,7 +23,7 @@ Implements an N-body data operator which applies some other operator to a select
   
   !![
   <nbodyOperator name="nbodyOperatorSimulationSelector">
-   <description>An N-body data operator which applies some other operator to a selected simulation.</description>
+   <description>An N-body data operator which applies a delegate \refClass{nbodyOperatorClass} to a single element of the simulation array identified by \mono{[indexSimulation]}, leaving all other simulations unchanged.</description>
   </nbodyOperator>
   !!]
   type, extends(nbodyOperatorClass) :: nbodyOperatorSimulationSelector
@@ -63,7 +63,7 @@ contains
     <inputParameter>
       <name>indexSimulation</name>
       <source>parameters</source>
-      <description>The index of the simulation to which to apply the operator.</description>
+      <description>The 1-based index into the simulation array selecting the single simulation dataset to which the delegate operator will be applied.</description>
     </inputParameter>
     <objectBuilder class="nbodyOperator" name="nbodyOperator_" source="parameters"/>
     !!]

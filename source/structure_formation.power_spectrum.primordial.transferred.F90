@@ -31,7 +31,12 @@ module Power_Spectra_Primordial_Transferred
   <functionClass>
    <name>powerSpectrumPrimordialTransferred</name>
    <descriptiveName>Transferred Primordial Power Spectrum</descriptiveName>
-   <description>Class providing the transferred primordial power spectrum.</description>
+   <description>Class providing the transferred primordial power spectrum $T^2(k)P_\mathrm{prim}(k,t)$---the
+    product of the primordial power spectrum $P_\mathrm{prim}(k) \propto k^{n_s}$ with the linear
+    transfer function squared $T^2(k)$, which encodes the suppression of power on small scales by
+    radiation pressure before matter-radiation equality. The transferred spectrum is the starting point
+    for computing the late-time matter power spectrum $P(k,t) = D^2(t) T^2(k) P_\mathrm{prim}(k)$
+    used in the mass variance, halo mass function, and clustering predictions.</description>
    <default>simple</default>
    <method name="power" >
     <description>Return the (unnormalized) power in the transferred primordial power spectrum at the given \mono{wavenumber} (specified in units of Mpc$^{-1}$.</description>

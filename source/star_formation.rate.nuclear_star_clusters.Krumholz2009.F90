@@ -48,7 +48,7 @@
     \begin{equation}
      \chi = 0.77 \left[ 1 + 3.1 Z^{\prime 0.365} \right],
     \end{equation}
-    and $\Sigma_1= \Sigma_\mathrm{gas}^\mathrm{NSC}/M_\odot \hbox{pc}^{-2}$ where $\Sigma_\mathrm{gas}^\mathrm{NSC}=\frac{M_\mathrm{gas}^{NSC}}{4\pi r^\mathrm{NSC}}$
+    and $\Sigma_1= \Sigma_\mathrm{gas}^\mathrm{NSC}/\mathrm{M}_\odot \hbox{pc}^{-2}$ where $\Sigma_\mathrm{gas}^\mathrm{NSC}=\frac{M_\mathrm{gas}^{NSC}}{4\pi r^\mathrm{NSC}}$
     is the surface density of the NSC gas reservoir. The timescale is given by 
     \begin{equation}
     t_\mathrm{SF}^{-1} = (2.36~\mathrm{Gyr})^{-1}\times \left\{ \begin{array}{cc} \left(\frac{\Sigma_\mathrm{res}}{\Sigma_\mathrm{th}} \right) ^{-0.33}, &amp;
@@ -93,7 +93,7 @@ contains
       <name>frequencyStarFormation</name>
       <defaultSource>\citep{krumholz_star_2009}</defaultSource>
       <defaultValue>2.36d0</defaultValue>
-      <description>The star formation frequency (in units of Gyr).</description>
+      <description>The characteristic timescale for star formation in nuclear star clusters (in units of Gyr), corresponding to the normalization factor $(2.36~\mathrm{Gyr})^{-1}$ in the \cite{krumholz_star_2009} star formation rate law.</description>
       <source>parameters</source>
     </inputParameter>
     !!]
@@ -119,7 +119,7 @@ contains
 
   double precision function krumholz2009Rate(self,node)
     !!{
-    Returns the star formation rate (in $M_\odot$ Gyr$^{-1}$) for star formation in the galactic \gls{nsc} of \mono{node}. The \gls{nsc} is assumed to obey the \cite{krumholz_star_2009} star formation rule.
+    Returns the star formation rate (in $\mathrm{M}_\odot$ Gyr$^{-1}$) for star formation in the galactic \gls{nsc} of \mono{node}. The \gls{nsc} is assumed to obey the \cite{krumholz_star_2009} star formation rule.
     !!}
     use :: Galacticus_Nodes                          , only : nodeComponentNSC
     use :: Abundances_Structure                      , only : metallicityTypeLinearByMassSolar

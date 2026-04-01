@@ -24,7 +24,7 @@ Implements an fixed critical overdensity class.
   !![
   <criticalOverdensity name="criticalOverdensityFixed">
    <description>
-    A critical overdensity class in which the critical overdensity is set to a fixed number given by \mono{[criticalOverdensity]}.
+    A critical overdensity class in which the critical overdensity for gravitational collapse of dark matter halos is set to a constant, redshift-independent value given by the parameter \mono{[criticalOverdensity]}, irrespective of cosmological evolution.
    </description>
   </criticalOverdensity>
   !!]

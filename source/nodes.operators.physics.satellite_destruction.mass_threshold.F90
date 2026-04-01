@@ -23,7 +23,7 @@
 
   !![
   <nodeOperator name="nodeOperatorSatelliteDestructionMassThreshold">
-   <description>A node operator class that triggers destruction of satellites based on their bound mass.</description>
+   <description>A node operator class that destroys satellites when their bound dark matter mass falls below any of three thresholds: \mono{massDestructionAbsolute} (an absolute mass in $\mathrm{M}_\odot$, default 0), \mono{massDestructionMassInfallFraction} (a fraction of the infall mass, default 0.01), or \mono{massDestructionMassTreeFraction} (a fraction of the merger tree root mass, default 0). When \mono{mergeOnDestruction} is true, the satellite is merged with its central rather than destroyed outright.</description>
   </nodeOperator>
   !!]
   type, extends(nodeOperatorClass) :: nodeOperatorSatelliteDestructionMassThreshold

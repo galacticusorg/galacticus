@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 import numpy as np
 import h5py
 import argparse
@@ -17,6 +17,7 @@ import urllib.request
 import matplotlib.pyplot as plt
 import matplotlib.patches as patches
 import json
+import yaml
 import codecs
 from termcolor import colored
 from git import Repo
@@ -309,38 +310,87 @@ def linesParse(job):
         if grid['lineData']['status'][indices] == 0:
             grid['lineData']['status'][indices] = 2
         return
-    # Allow multiple attempts to read the lines file in case the file is written over NFS and we must wait for it to catch up.    
+    # Read the full line list only if we need to establish wavelengths.
+    if not "wavelengthsEstablished" in grid:
+        # Allow multiple attempts to read the lines file in case the file is written over NFS and we must wait for it to catch up.
+        attemptsMaximum = 10
+        if "countAttempts" in job:
+            attemptsMaximum = job['countAttempts']
+        linesFound      = {}
+        for attempt in range(attemptsMaximum):
+            # Read the lines file.
+            badFile = True
+            if os.path.isfile(job['linesFullFileName']):
+                badFile = False
+                linesFile = open(job['linesFullFileName'],"r")
+                for line in linesFile:
+                    if re.match(r'^#',line):
+                        continue
+                    columns = re.split(r'\t+',line)
+                    if len(columns) != 5:
+                        badFile = True
+                    # Extract line properties. Use the "intrinsic" line luminosities. From the Cloudy documentation:
+                    #
+                    #  | This is the spectrum produced within the cloud and does not include effects of dust that lies outside the
+                    #  | line-forming region. These intensities do not include the reddening effects of any grains or other opacity
+                    #  | sources that lie outside the line-forming region.
+                    lineWavelength = columns[0].strip()
+                    lineLabel      = columns[1].rstrip()
+                    if lineLabel in lineList:
+                        lineName       = lineList[lineLabel]
+                        lineWavelength = float(lineWavelength)
+                        grid['lineData'][lineName]['wavelength'] = lineWavelength
+                        linesFound[lineLabel] = 1
+                linesFile.close()
+            if badFile:
+                if attempt == attemptsMaximum-1:
+                    print("FAIL [unable to find Cloudy output full lines file]: "+label+" see "+job['logOutput'])
+                    if grid['lineData']['status'][indices] == 0:
+                        grid['lineData']['status'][indices] = 3
+                else:
+                    time.sleep(10)
+            else:
+                break
+        # Check that we found all lines.
+        for lineName in lineList:
+            if lineName not in linesFound:
+                print("FAIL [some emission lines missing]: "+label+" '"+lineName+"' see "+job['logOutput'])
+                if grid['lineData']['status'][indices] == 0:
+                    grid['lineData']['status'][indices] = 3
+        # Record that wavelengths have been established.
+        grid['wavelengthsEstablished'] = 1
+    # Read the specific line list to retrieve luminosities.
+    # Allow multiple attempts to read the lines file in case the file is written over NFS and we must wait for it to catch up.
     attemptsMaximum = 10
     if "countAttempts" in job:
         attemptsMaximum = job['countAttempts']
     linesFound      = {}
     for attempt in range(attemptsMaximum):
- 	# Read the lines file.
+        # Read the lines file.
         badFile = True
         if os.path.isfile(job['linesFileName']):
             badFile = False
             linesFile = open(job['linesFileName'],"r")
             for line in linesFile:
-                if re.match(r'^#',line):
+                if re.match(r'^#'        ,line):
+                    continue
+                if re.match(r'^iteration',line):
+                    continue
+                if re.match(r'^\s*$'     ,line):
                     continue
                 columns = re.split(r'\t+',line)
-                if len(columns) != 5:
+                if len(columns) != 2:
                     badFile = True
- 		# Extract line properties. Use the "intrinsic" line luminosities. From the Cloudy documentation:
- 		#
- 		#  | This is the spectrum produced within the cloud and does not include effects of dust that lies outside the
-		#  | line-forming region. These intensities do not include the reddening effects of any grains or other opacity
- 		#  | sources that lie outside the line-forming region.
-                lineEnergy     = columns[0]
-                lineLabel      = columns[1]
-                lineLuminosity = columns[2]
-                if lineLabel in lineList:
-                    lineName       = lineList[lineLabel]
-                    lineLuminosity = float(lineLuminosity)
-                    lineEnergy     = float(lineEnergy    )
-                    lineWavelength = plancksConstant*speedOfLight/rydbergEnergy/electronVolt/lineEnergy/angstroms
-                    grid['lineData'][lineName]['luminosity'][indices] = 10.0**lineLuminosity
-                    grid['lineData'][lineName]['wavelength']          = lineWavelength
+                # Extract line properties. The luminosity output is the "intrinsic" line luminosities. From the Cloudy documentation:
+                #
+                #  | This is the spectrum produced within the cloud and does not include effects of dust that lies outside the
+                #  | line-forming region. These intensities do not include the reddening effects of any grains or other opacity
+                #  | sources that lie outside the line-forming region.
+                lineLabel      = columns[0].rstrip()
+                lineLuminosity = columns[1].strip()
+                if lineLabel in lineListShortened:
+                    lineName              = lineListShortened[lineLabel]
+                    grid['lineData'][lineName]['luminosity'][indices] = lineLuminosity
                     linesFound[lineLabel] = 1
             linesFile.close()
         if badFile:
@@ -353,7 +403,7 @@ def linesParse(job):
         else:
             break
     # Check that we found all lines.
-    for lineName in lineList:
+    for lineName in lineListShortened:
         if lineName not in linesFound:
             print("FAIL [some emission lines missing]: "+label+" '"+lineName+"' see "+job['logOutput'])
             if grid['lineData']['status'][indices] == 0:
@@ -362,6 +412,7 @@ def linesParse(job):
     if grid['lineData']['status'][indices] == 0:
         if not args.noClean:
             os.remove(job['linesFileName'       ])
+            os.remove(job['linesFullFileName'   ])
             os.remove(job['continuumFileName'   ])
             os.remove(job['launchFile'          ])
             os.remove(job['logOutput'           ])
@@ -407,6 +458,7 @@ def reprocessSSP(grid,args):
                             "grid":                 grid                                                ,
  	                    "cloudyScriptFileName": args.workspace+"cloudyInput"  +str(jobNumber)+".txt",
  	                    "linesFileName":        args.workspace+"lines"        +str(jobNumber)+".out",
+ 	                    "linesFullFileName":    args.workspace+"linesFull"    +str(jobNumber)+".out",
  	                    "continuumFileName":    args.workspace+"continuum"    +str(jobNumber)+".out",
  	                    "indices":              ( iAge, iMetallicity, iNormalization, iLogHydrogenDensity ),
                         }
@@ -449,6 +501,7 @@ def reprocessAGN(grid,args):
                             "grid":                 grid                                                ,
  	                    "cloudyScriptFileName": args.workspace+"cloudyInput"  +str(jobNumber)+".txt",
  	                    "linesFileName":        args.workspace+"lines"        +str(jobNumber)+".out",
+ 	                    "linesFullFileName":    args.workspace+"linesFull"    +str(jobNumber)+".out",
  	                    "continuumFileName":    args.workspace+"continuum"    +str(jobNumber)+".out",
  	                    "indices":              ( iSpectralIndex, iMetallicity, iIonizationParameter, iLogHydrogenDensity ),
                         }
@@ -607,13 +660,8 @@ def generateJobSSP(grid,args):
     cloudyScript += "punch continuum \"continuum"+str(jobNumber)+".out\"\n"
     ## Set line output options.
     cloudyScript += "print lines faint _off\n"
-    ## WORKAROUND     
-    ## Currently disabled as Cloudy has a bug that prevents us from outputting in vacuum wavelengths. See these
-    ## two error reports:
-    ##   https://cloudyastrophysics.groups.io/g/Main/topic/101921207#5396
-    ##   https://cloudyastrophysics.groups.io/g/Main/topic/102424985#5431
-    #cloudyScript += "print line vacuum\n"
-    cloudyScript += "save lines, array \"lines"+str(jobNumber)+".out\"\n"
+    cloudyScript += "save lines array \"linesFull"+str(jobNumber)+".out\" units angstrom last \n"
+    cloudyScript += "save lines list \"lines"+str(jobNumber)+".out\" \"lineList.txt\" column last absolute\n"
     ## Write the Cloudy script to file.
     cloudyScriptFileName = "cloudyInput"+str(jobNumber)+".txt"
     cloudyScriptFile = open(args.workspace+cloudyScriptFileName,"w")
@@ -633,6 +681,7 @@ def generateJobSSP(grid,args):
         "grid":                 grid                                                ,
  	"cloudyScriptFileName": args.workspace+cloudyScriptFileName                 ,
  	"linesFileName":        args.workspace+"lines"        +str(jobNumber)+".out",
+ 	"linesFullFileName":    args.workspace+"linesFull"    +str(jobNumber)+".out",
  	"continuumFileName":    args.workspace+"continuum"    +str(jobNumber)+".out",
  	"indices":      	( iAge, iMetallicity, iNormalization, iLogHydrogenDensity ),
         "command":              "cd "+args.workspace+"; ulimit -c 0\n"+cloudyPath+"/source/cloudy.exe < "+cloudyScriptFileName+"\n"+"if [ $? != 0 ]; then\necho CLOUDY FAILED\nfi\n"
@@ -725,13 +774,8 @@ def generateJobAGN(grid,args):
     cloudyScript += "punch continuum \"continuum"+str(jobNumber)+".out\"\n"
     ## Set line output options.
     cloudyScript += "print lines faint _off\n"
-    ## WORKAROUND     
-    ## Currently disabled as Cloudy has a bug that prevents us from outputting in vacuum wavelengths. See these
-    ## two error reports:
-    ##   https://cloudyastrophysics.groups.io/g/Main/topic/101921207#5396
-    ##   https://cloudyastrophysics.groups.io/g/Main/topic/102424985#5431
-    #cloudyScript += "print line vacuum\n"
-    cloudyScript += "save lines, array \"lines"+str(jobNumber)+".out\"\n"
+    cloudyScript += "save lines array \"linesFull"+str(jobNumber)+".out\" units angstrom last \n"
+    cloudyScript += "save lines list \"lines"+str(jobNumber)+".out\" \"lineList.txt\" column last absolute\n"
     ## Write the Cloudy script to file.
     cloudyScriptFileName = "cloudyInput"+str(jobNumber)+".txt"
     cloudyScriptFile = open(args.workspace+cloudyScriptFileName,"w")
@@ -751,6 +795,7 @@ def generateJobAGN(grid,args):
         "grid":                 grid                                                ,
  	"cloudyScriptFileName": args.workspace+cloudyScriptFileName                 ,
  	"linesFileName":        args.workspace+"lines"        +str(jobNumber)+".out",
+ 	"linesFullFileName":    args.workspace+"linesFull"    +str(jobNumber)+".out",
  	"continuumFileName":    args.workspace+"continuum"    +str(jobNumber)+".out",
  	"indices":      	( iSpectralIndex, iMetallicity, iIonizationParameter, iLogHydrogenDensity ),
         "command":              "cd "+args.workspace+"; ulimit -c 0\n"+cloudyPath+"/source/cloudy.exe < "+cloudyScriptFileName+"\n"+"if [ $? != 0 ]; then\necho CLOUDY FAILED\nfi\n"
@@ -1194,40 +1239,43 @@ def outputAGN(grid,args):
         datasetLine.attrs['unitsInSI'  ] = unitsIntensity
         datasetLine.attrs['wavelength' ] = grid['lineData'][lineName]['wavelength']
 
-
+# Determine the version of Cloudy in use by Galacticus.
+with open('aux/dependencies.yml', 'r') as dependencyFile:
+    dependencies = yaml.load(dependencyFile, Loader=yaml.BaseLoader)
+    
 # Parse command line arguments.
 parser = argparse.ArgumentParser(prog='analysesPlotcreateEmissionLinesTable.py',description='Generate tables of Cloudy models for use in emission line calculations.')
-parser.add_argument('--outputFileName'                                    ,action='store'                            ,help='the file to which the table should be output'                                                                         )
-parser.add_argument('--sspFileName'                                       ,action='store'                            ,help='the SSP file for which to compute emission line luminosities'                                                         )
-parser.add_argument('--agnModel'                                          ,action='store'                            ,help='the AGN model for which to compute emission line luminosities'                                                        )
-parser.add_argument('--workspace'            ,default='cloudyTable/'      ,action='store'                            ,help='the path in which temporary files should be created'                                                                  )
-parser.add_argument('--reprocess'                                         ,action='store_true'                       ,help='reprocess models that failed to be read previously'                                                                   )
-parser.add_argument('--rerun'                                             ,action='store_true'                       ,help='rerun models that previously failed'                                                                                  )
-parser.add_argument('--generateOnly'                                      ,action='store_true'                       ,help='only generate model input files, do not run them'                                                                     )
-parser.add_argument('--overview'                                          ,action='store_true'                       ,help='include the Cloudy overview in the output'                                                                            )
-parser.add_argument('--noClean'                                           ,action='store_true'                       ,help='do not clean up temporary files'                                                                                      )
-parser.add_argument('--noGrains'                                          ,action='store_true'                       ,help='do not include dust grains in the models'                                                                             )
-parser.add_argument('--normalization'        ,default='ionizingLuminosity',action='store'                            ,help='specify how the spectrum is to be normalized (`ionizingLuminosity` or `massStellar`)'                                 )
-parser.add_argument('--factorMorphology'     ,default='1.0'               ,action='store'      ,type=restricted_float,help='set the morphology factor (f=R_{in}/R_{Strömgren}; https://ui.adsabs.harvard.edu/abs/2016A%2526A...594A..37M)'        )
-parser.add_argument('--metallicitySupersample',default='2'                ,action='store'      ,type=restricted_int  ,help='the factor by which to supersample stellar metallicities)'                                                            )
-parser.add_argument('--ageSubsample'          ,default='1'                ,action='store'      ,type=restricted_int  ,help='the factor by which to subsample stellar ages)'                                                                       )
+parser.add_argument('--outputFileName'                                      ,action='store'                            ,help='the file to which the table should be output'                                                                         )
+parser.add_argument('--sspFileName'                                         ,action='store'                            ,help='the SSP file for which to compute emission line luminosities'                                                         )
+parser.add_argument('--agnModel'                                            ,action='store'                            ,help='the AGN model for which to compute emission line luminosities'                                                        )
+parser.add_argument('--workspace'            ,default='cloudyTable/'        ,action='store'                            ,help='the path in which temporary files should be created'                                                                  )
+parser.add_argument('--reprocess'                                           ,action='store_true'                       ,help='reprocess models that failed to be read previously'                                                                   )
+parser.add_argument('--rerun'                                               ,action='store_true'                       ,help='rerun models that previously failed'                                                                                  )
+parser.add_argument('--generateOnly'                                        ,action='store_true'                       ,help='only generate model input files, do not run them'                                                                     )
+parser.add_argument('--overview'                                            ,action='store_true'                       ,help='include the Cloudy overview in the output'                                                                            )
+parser.add_argument('--noClean'                                             ,action='store_true'                       ,help='do not clean up temporary files'                                                                                      )
+parser.add_argument('--noGrains'                                            ,action='store_true'                       ,help='do not include dust grains in the models'                                                                             )
+parser.add_argument('--normalization'        ,default='ionizingLuminosity'  ,action='store'                            ,help='specify how the spectrum is to be normalized (`ionizingLuminosity` or `massStellar`)'                                 )
+parser.add_argument('--factorMorphology'     ,default='1.0'                 ,action='store'      ,type=restricted_float,help='set the morphology factor (f=R_{in}/R_{Strömgren}; https://ui.adsabs.harvard.edu/abs/2016A%2526A...594A..37M)'        )
+parser.add_argument('--metallicitySupersample',default='2'                  ,action='store'      ,type=restricted_int  ,help='the factor by which to supersample stellar metallicities)'                                                            )
+parser.add_argument('--ageSubsample'          ,default='1'                  ,action='store'      ,type=restricted_int  ,help='the factor by which to subsample stellar ages)'                                                                       )
 #  Dust-to-metals ratio. Defaults to 0.401 corresponding to the dust-to-metals ratio for the reference model of Gutkin, Charlot &
 #  Bruzual (2016; https://ui.adsabs.harvard.edu/abs/2016MNRAS.462.1757G; table 1). This differs slightly from their stated value,
 #  but agrees with our internal calculation of this value from their data.'
-parser.add_argument('--dustToMetalsRatio'    ,default='0.401'             ,action='store'      ,type=restricted_float,help='set the dust-to-metals ratio (ξ; https://ui.adsabs.harvard.edu/abs/2016MNRAS.462.1757G).'                             )
-parser.add_argument('--abundanceAdjust'                                   ,action='append'                           ,help='specify an adjustment to the abundance of an element, e.g. `S:0.2` would increase the abundance of sulfur by 0.2 dex.')
-parser.add_argument('--stopOuterRadius'                                   ,action='store_true'                       ,help='set Cloudy to stop at the cloud outer radius'                                                                         )
-parser.add_argument('--stopElectronFraction' ,default='0.01'              ,action='store'      ,type=restricted_float,help='set the elctron fraction at which to stop the Cloudy models'                                                          )
-parser.add_argument('--stopLymanOpticalDepth',default='10.0'              ,action='store'      ,type=restricted_float,help='set the Lyman optical depth at which to stop the Cloudy models'                                                       )
-parser.add_argument('--ageMaximum'           ,default='1.0e30'            ,action='store'      ,type=restricted_float,help='set the maximum age of stellar populations for which to compute models'                                               )
-parser.add_argument('--iterationsMaximum'    ,default='0'                 ,action='store'      ,type=restricted_int  ,help='set the maximum number of iterations in Cloudy (0 to iterate to convergence)'                                         )
-parser.add_argument('--cloudyVersion'        ,default="23.01"             ,action='store'                            ,help='the version of Cloudy to use'                                                                                         )
-parser.add_argument('--suffixGitHubPages'                                 ,action='store'                            ,help='update GitHub pages content using this suffix'                                                                        )
-parser.add_argument('--model'                                             ,action='store'      ,type=restricted_int  ,help='run only the given model number'                                                                                      )
-parser.add_argument('--partition'                                         ,action='store'                            ,help='the partition to which to submit jobs'                                                                                )
-parser.add_argument('--jobMaximum'                                        ,action='store'      ,type=restricted_int  ,help='the maximum number of active jobs to allow'                                                                           )
-parser.add_argument('--waitOnSubmit'                                      ,action='store'      ,type=restricted_int  ,help='the time (in seconds) to wait after submitting each job'                                                              )
-parser.add_argument('--waitOnActive'                                      ,action='store'      ,type=restricted_int  ,help='the time (in seconds) to wait after polling active jobs'                                                              )
+parser.add_argument('--dustToMetalsRatio'    ,default='0.401'               ,action='store'      ,type=restricted_float,help='set the dust-to-metals ratio (ξ; https://ui.adsabs.harvard.edu/abs/2016MNRAS.462.1757G).'                             )
+parser.add_argument('--abundanceAdjust'                                     ,action='append'                           ,help='specify an adjustment to the abundance of an element, e.g. `S:0.2` would increase the abundance of sulfur by 0.2 dex.')
+parser.add_argument('--stopOuterRadius'                                     ,action='store_true'                       ,help='set Cloudy to stop at the cloud outer radius'                                                                         )
+parser.add_argument('--stopElectronFraction' ,default='0.01'                ,action='store'      ,type=restricted_float,help='set the elctron fraction at which to stop the Cloudy models'                                                          )
+parser.add_argument('--stopLymanOpticalDepth',default='10.0'                ,action='store'      ,type=restricted_float,help='set the Lyman optical depth at which to stop the Cloudy models'                                                       )
+parser.add_argument('--ageMaximum'           ,default='1.0e30'              ,action='store'      ,type=restricted_float,help='set the maximum age of stellar populations for which to compute models'                                               )
+parser.add_argument('--iterationsMaximum'    ,default='0'                   ,action='store'      ,type=restricted_int  ,help='set the maximum number of iterations in Cloudy (0 to iterate to convergence)'                                         )
+parser.add_argument('--cloudyVersion'        ,default=dependencies['cloudy'],action='store'                            ,help='the version of Cloudy to use'                                                                                         )
+parser.add_argument('--suffixGitHubPages'                                   ,action='store'                            ,help='update GitHub pages content using this suffix'                                                                        )
+parser.add_argument('--model'                                               ,action='store'      ,type=restricted_int  ,help='run only the given model number'                                                                                      )
+parser.add_argument('--partition'                                           ,action='store'                            ,help='the partition to which to submit jobs'                                                                                )
+parser.add_argument('--jobMaximum'                                          ,action='store'      ,type=restricted_int  ,help='the maximum number of active jobs to allow'                                                                           )
+parser.add_argument('--waitOnSubmit'                                        ,action='store'      ,type=restricted_int  ,help='the time (in seconds) to wait after submitting each job'                                                              )
+parser.add_argument('--waitOnActive'                                        ,action='store'      ,type=restricted_int  ,help='the time (in seconds) to wait after polling active jobs'                                                              )
 args = parser.parse_args()
 
 # Validate options.
@@ -1460,12 +1508,7 @@ for element in atomicData.findall('./element'):
 # Define the list of lines to extract. The following dictionary contains keys which match the line names in the Cloudy emission
 # lines output file, and values which are our internal names for these lines.
 lineList = {
-    ## WORKAROUND     
-    ## Currently using in-air wavelengths as Cloudy has a bug that prevents us from outputting in vacuum wavelengths. See these
-    ## two error reports:
-    ##   https://cloudyastrophysics.groups.io/g/Main/topic/101921207#5396
-    ##   https://cloudyastrophysics.groups.io/g/Main/topic/102424985#5431
-    # In air wavelengths.
+    # Cloudy uses in-air wavelengths are used for the line labels. Vacuum wavelengths will be obtained from the output files.
     "H  1                6562.80A": "balmerAlpha6565"  ,
     "H  1                4861.32A": "balmerBeta4863"   ,
     "H  1                4340.46A": "balmerGamma4342"  ,
@@ -1483,25 +1526,19 @@ lineList = {
     "S  2                6716.44A": "sulfurII6718"     ,
     "S  3                9068.62A": "sulfurIII9071"    ,
     "S  3                9530.62A": "sulfurIII9533"
-     # In vacuum wavelengths.
-     # "H  1                6564.62A": "balmerAlpha6565"  ,
-     # "H  1                4862.69A": "balmerBeta4863"   ,
-     # "H  1                4341.68A": "balmerGamma4342"  ,
-     # "H  1                4102.89A": "balmerDelta4103"  ,
-     # "H  1                1.87561m": "paschenAlpha18756",
-     # "H  1                1.28215m": "paschenBeta12822" ,
-     # "O  2                3727.09A": "oxygenII3727"     ,
-     # "O  2                3729.88A": "oxygenII3730"     ,
-     # "O  3                4960.29A": "oxygenIII4960"    ,
-     # "O  3                5008.24A": "oxygenIII5008"    ,
-     # "O  3                4932.60A": "oxygenIII4933"    ,
-     # "N  2                6585.27A": "nitrogenII6585"   ,
-     # "N  2                6549.86A": "nitrogenII6550"   ,
-     # "S  2                6732.67A": "sulfurII6733"     ,
-     # "S  2                6718.29A": "sulfurII6718"     ,
-     # "S  3                9071.11A": "sulfurIII9071"    ,
-     # "S  3                9533.23A": "sulfurIII9533"
 }
+
+# Build a shortened label list that is used for reading the short Cloudy outputs.
+lineListShortened = {}
+for lineLabel in lineList:
+    lineLabelShortened = re.sub(r'                ',' ',lineLabel)
+    lineListShortened[lineLabelShortened] = lineList[lineLabel]
+
+# Write a line list file - this controls which lines Cloudy will output.
+lineListFile = open(args.workspace+"lineList.txt","w")
+for lineLabel in lineList:
+    lineListFile.write(f'{lineLabel}\n')
+lineListFile.close()
 
 # Establish the model grid.
 grid = {}

@@ -64,7 +64,7 @@ contains
 
   double precision function zeroRate(self,node)
     !!{
-    Returns the mass loss rate from the dark matter halo of the given \gls{node} in units of $M_\odot$/Gyr.
+    Returns the mass loss rate from the dark matter halo of the given \gls{node} in units of $\mathrm{M}_\odot$/Gyr.
     !!}
     implicit none
     class(darkMatterHaloMassLossRateZero), intent(inout) :: self

@@ -22,7 +22,7 @@
 
   !![
   <task name="taskNBodyAnalyze">
-   <description>A task which analyzes N-body simulation data.</description>
+   <description>A task which imports particle or halo data from an N-body simulation using a configurable importer, applies a chain of operators (e.g., computing density profiles, identifying substructure, computing statistics), and optionally writes the processed data back to the imported format.</description>
   </task>
   !!]
   type, extends(taskClass) :: taskNBodyAnalyze

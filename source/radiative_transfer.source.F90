@@ -32,7 +32,12 @@ module Radiative_Transfer_Sources
   <functionClass>
    <name>radiativeTransferSource</name>
    <descriptiveName>Radiative Transfer Photon Sources</descriptiveName>
-   <description>Class providing photon sources for radiative transfer calculations.</description>
+   <description>Class providing photon sources for Monte Carlo radiative transfer calculations---objects that
+    emit photon packets into the computational domain. Each implementation describes a specific type of
+    radiation source (e.g.\ a point source, a stellar population, an AGN, or a uniform field) and
+    provides the luminosity spectrum (in $L_\odot$~\AA$^{-1}$), the integrated luminosity over a
+    wavelength range, and a method to initialize photon packet properties (wavelength, position,
+    direction, and luminosity weight) drawn from the source's spatial and spectral distribution.</description>
    <default>point</default>
    <method name="initializePhotonPacket" >
     <description>Initialize a photon packet from the source.</description>

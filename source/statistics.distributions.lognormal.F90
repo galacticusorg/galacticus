@@ -23,7 +23,7 @@
 
   !![
   <distributionFunction1D name="distributionFunction1DLogNormal">
-   <description>A normal 1D distribution function class.</description>
+   <description>A log-normal 1D distribution function class, implementing the distribution $p(x) \propto x^{-1}\exp(-[\ln x - \ln x_0]^2 / 2\sigma^2)$ parameterized by the median $x_0$ and logarithmic width $\sigma$, or equivalently by the mean and variance, optionally truncated to a finite interval.</description>
   </distributionFunction1D>
   !!]
   type, extends(distributionFunction1DNormal) :: distributionFunction1DLogNormal
@@ -91,12 +91,12 @@ contains
        !![
        <inputParameter>
 	 <name>x0</name>
-	 <description>The parameter $x_0$ of the log-normal distribution.</description>
+	 <description>The median (geometric mean) $x_0 > 0$ of the log-normal distribution; the distribution peaks at $x_0 \exp(-\sigma^2)$ and has median $x_0$.</description>
 	 <source>parameters</source>
        </inputParameter>
        <inputParameter>
 	 <name>sigma</name>
-	 <description>The parameter $\sigma$ of the log-normal distribution.</description>
+	 <description>The logarithmic width (standard deviation of $\ln x$) $\sigma > 0$ of the log-normal distribution; the distribution becomes more skewed and broader as $\sigma$ increases.</description>
 	 <source>parameters</source>
        </inputParameter>
        !!]
@@ -106,12 +106,12 @@ contains
     !![
     <inputParameter>
       <name>limitLower</name>
-      <description>The lower limit of the normal distribution.</description>
+      <description>The lower truncation limit $x_\mathrm{min}$ of the log-normal distribution; when set, the distribution is renormalized over $[x_\mathrm{min}, x_\mathrm{max}]$ rather than $(0, \infty)$.</description>
       <source>parameters</source>
     </inputParameter>
     <inputParameter>
       <name>limitUpper</name>
-      <description>The upper limit of the normal distribution.</description>
+      <description>The upper truncation limit $x_\mathrm{max}$ of the log-normal distribution; when set, the distribution is renormalized over $[x_\mathrm{min}, x_\mathrm{max}]$ rather than $(0, \infty)$.</description>
       <source>parameters</source>
     </inputParameter>
     <objectBuilder class="randomNumberGenerator" name="randomNumberGenerator_" source="parameters"/>

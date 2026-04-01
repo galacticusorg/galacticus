@@ -26,7 +26,7 @@
 
   !![
   <nodePropertyExtractor name="nodePropertyExtractorStarFormationHistoryTimes">
-    <description>A property extractor class for the star formation history tabulation times of a component.</description>
+    <description>A property extractor that returns the lookback-time bin boundaries (in Gyr) used to tabulate the star formation history for a specified galaxy \mono{component} (disk, spheroid, or nuclearStarCluster). These time values define the age axis of the star formation history grid and are needed to reconstruct the full star formation history from the mass array returned by \refClass{nodePropertyExtractorStarFormationHistoryMass}. The number of returned times depends on the specific \refClass{starFormationHistoryClass} implementation.</description>
   </nodePropertyExtractor>
   !!]
   type, extends(nodePropertyExtractorList) :: nodePropertyExtractorStarFormationHistoryTimes

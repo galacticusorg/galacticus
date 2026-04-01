@@ -42,7 +42,7 @@
   !![
   <enumeration>
    <name>pushType</name>
-   <description>Cross-tree event type enumeration.</description>
+   <description>Enumeration of cross-tree event types used when reading merger trees: \mono{branchJump} handles nodes that switch host branches between snapshots, while \mono{subhaloPromotion} handles subhalos promoted to isolated status.</description>
    <entry label="branchJump"      />
    <entry label="subhaloPromotion"/>
   </enumeration>
@@ -52,7 +52,7 @@
   !![
   <enumeration>
    <name>nodeReachability</name>
-   <description>Node reachability status.</description>
+   <description>Enumeration of node reachability status when traversing a merger tree read from file: \mono{unreachable} nodes cannot be reached from the root of the tree structure, while \mono{reachable} nodes can.</description>
    <entry label="unreachable"/>
    <entry label="reachable"  />
   </enumeration>
@@ -62,7 +62,7 @@
   !![
   <enumeration>
    <name>subhaloAngularMomentaMethod</name>
-   <description>Subhalo angular momentum methods.</description>
+   <description>Enumeration of methods for assigning angular momenta to subhalos when reading merger trees from file: \mono{scale} uses the halo spin parameter, while \mono{summation} sums contributions from child nodes.</description>
    <encodeFunction>yes</encodeFunction>
    <entry label="scale"    />
    <entry label="summation"/>

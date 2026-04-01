@@ -24,7 +24,7 @@
 
   !![
   <coolingRate name="coolingRateMainBranchOnly">
-   <description>A cooling rate class which modifies another cooling rate by cutting off cooling in side branches.</description>
+   <description>Wraps a \refClass{coolingRateClass} object and suppresses cooling in side branches of the merger tree, restricting gas cooling to the main progenitor branch only for studies of main branch evolution.</description>
   </coolingRate>
   !!]
   type, extends(coolingRateClass) :: coolingRateMainBranchOnly
@@ -97,7 +97,7 @@ contains
 
   double precision function mainBranchOnlyRate(self,node)
     !!{
-    Returns the cooling rate (in $M_\odot$ Gyr$^{-1}$) in the hot atmosphere for a model in which this rate is cut off
+    Returns the cooling rate (in $\mathrm{M}_\odot$ Gyr$^{-1}$) in the hot atmosphere for a model in which this rate is cut off
     in side branches.
     !!}
     implicit none

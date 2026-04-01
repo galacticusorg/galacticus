@@ -23,7 +23,7 @@
 
   !![
   <distributionFunction1D name="distributionFunction1DGamma">
-   <description>A 1D gamma distribution function class.</description>
+   <description>A 1D gamma distribution function class, implementing the gamma distribution $p(x) \propto x^{k-1} \mathrm{e}^{-\lambda x}$ with shape parameter $k$ and rate parameter $\lambda$, optionally truncated to a finite interval $[x_\mathrm{min}, x_\mathrm{max}]$.</description>
   </distributionFunction1D>
   !!]
   type, extends(distributionFunction1DClass) :: distributionFunction1DGamma
@@ -67,22 +67,22 @@ contains
     !![
     <inputParameter>
       <name>shape</name>
-      <description>The shape parameter of the gamma distribution function.</description>
+      <description>The shape parameter $k > 0$ of the gamma distribution, controlling the skewness and peakedness; for $k=1$ it reduces to an exponential distribution, and for large $k$ it approaches a Gaussian.</description>
       <source>parameters</source>
     </inputParameter>
     <inputParameter>
       <name>rate</name>
-      <description>The rate parameter of the gamma distribution function.</description>
+      <description>The rate parameter $\lambda > 0$ of the gamma distribution (the inverse of the scale parameter $\theta = 1/\lambda$), which determines the horizontal scale; larger values give a more concentrated distribution near zero.</description>
       <source>parameters</source>
     </inputParameter>
     <inputParameter>
       <name>limitLower</name>
-      <description>The lower limit of the gamma distribution function.</description>
+      <description>The lower truncation limit of the gamma distribution; when set, the distribution is renormalized to integrate to unity over $[\mathrm{limitLower}, \mathrm{limitUpper}]$ rather than $[0, \infty)$.</description>
       <source>parameters</source>
     </inputParameter>
     <inputParameter>
       <name>limitUpper</name>
-      <description>The upper limit of the gamma distribution function.</description>
+      <description>The upper truncation limit of the gamma distribution; when set, the distribution is renormalized to integrate to unity over $[\mathrm{limitLower}, \mathrm{limitUpper}]$ rather than $[0, \infty)$.</description>
       <source>parameters</source>
     </inputParameter>
     <objectBuilder class="randomNumberGenerator" name="randomNumberGenerator_" source="parameters"/>

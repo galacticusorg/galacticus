@@ -26,7 +26,7 @@ Implements a weight operator class in which the weight is multiplied by an integ
 
   !![
   <outputAnalysisWeightOperator name="outputAnalysisWeightOperatorNormal">
-   <description>A weight operator class in which the weight is multiplied by an integral over a normal distribution.</description>
+   <description>An output analysis weight operator that multiplies galaxy weights by the integral of a normal distribution (with specified \mono{rootVariance}) over the range [\mono{rangeLower}, \mono{rangeUpper}], for incorporating Gaussian selection uncertainties in statistical comparisons.</description>
   </outputAnalysisWeightOperator>
   !!]
   type, extends(outputAnalysisWeightOperatorClass) :: outputAnalysisWeightOperatorNormal

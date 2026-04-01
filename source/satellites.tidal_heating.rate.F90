@@ -33,7 +33,7 @@ module Satellite_Tidal_Heating
   !![
   <functionClass>
    <name>satelliteTidalHeatingRate</name>
-   <descriptiveName>Satellite halo tidal heating rate models.</descriptiveName>
+   <descriptiveName>Satellite Halo Tidal Heating Rates</descriptiveName>
    <description>
     Class providing models of tidal heating rates in satellite halos. Specifically, the integrated, normalized (i.e. the energy
     divided by radius squared) tidal heating energy, $Q_\mathrm{tidal}$.

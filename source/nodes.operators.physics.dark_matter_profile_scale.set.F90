@@ -37,7 +37,11 @@
   !![
   <nodeOperator name="nodeOperatorDarkMatterProfileScaleSet">
    <description>
-    A node operator class that sets dark matter profile scale radius.
+    A node operator class that initializes and maintains the dark matter profile scale radius for each halo using a
+    \refClass{darkMatterProfileScaleRadiusClass} object. \mono{factorReset} controls the multiplicative factor by which a
+    halo mass must grow before its scale radius is recomputed. \mono{forward} selects whether scale radii are assigned by
+    walking forward along the branch (until mass exceeds \mono{factorReset} times the previously computed value) or backward
+    (until mass falls below $1/$\mono{factorReset} of the previous value).
    </description>
   </nodeOperator>
   !!]

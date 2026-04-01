@@ -34,7 +34,7 @@ Implements a stellar mass output analysis property extractor class.
   
   !![
   <nodePropertyExtractor name="nodePropertyExtractorLuminosityStellarFromSED">
-   <description>A stellar luminosity output analysis property extractor class.</description>
+   <description>A property extractor that computes broadband stellar luminosities in AB units by integrating an SED (provided by a \refClass{nodePropertyExtractorSED} object) through a set of broadband filter response functions specified by \mono{filterNames}. For each filter, the filter transmission curve is convolved with the galaxy SED to compute $L_\nu$ in the AB zero-point system. This approach allows luminosities to be derived from an already-computed SED without re-running the full stellar population synthesis, making it efficient when many filters are required from a single SED.</description>
    <deepCopy>
     <functionClass variables="nodePropertyExtractor_"/>
    </deepCopy>

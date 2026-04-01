@@ -100,17 +100,17 @@ contains
     !![
     <inputParameter>
       <name>halfWidth</name>
-      <description>The shell half-width.</description>
+      <description>The half-width (in Mpc) of each overdense spherical shell, representing the effective radius of the notional spherical cloud projected along the line of sight after accounting for a random impact parameter.</description>
       <source>parameters</source>
     </inputParameter>
     <inputParameter>
       <name>densityContrast</name>
-      <description>The shell density contrast.</description>
+      <description>The density contrast of the overdense spherical shells relative to the smooth underlying mass distribution, i.e.\ $\Delta_\mathrm{c} = \rho_\mathrm{shell} / \rho_\mathrm{background}$.</description>
       <source>parameters</source>
     </inputParameter>
     <inputParameter>
       <name>volumeFillingFactor</name>
-      <description>The shell volume filling factor.</description>
+      <description>The fraction of the total sightline volume occupied by overdense shells; together with \mono{halfWidth} determines the number of shells $N_\mathrm{c} = 3 f_\mathrm{v} l / r_\mathrm{c}$ along the line of sight.</description>
       <source>parameters</source>
     </inputParameter>
     <inputParameter>

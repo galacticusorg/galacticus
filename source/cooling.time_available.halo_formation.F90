@@ -29,7 +29,7 @@
     \begin{equation}
      t_\mathrm{available} = t - t_\mathrm{form},
     \end{equation}
-    where $t_\mathrm{form}$ is the time at which the halo formed (see \S\ref{sec:ComponentFormationTimes}).
+    where $t_\mathrm{form}$ is the time at which the halo formed.
    </description>
   </coolingTimeAvailable>
   !!]

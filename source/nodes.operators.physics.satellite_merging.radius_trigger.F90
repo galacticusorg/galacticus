@@ -26,7 +26,7 @@
 
   !![
   <nodeOperator name="nodeOperatorSatelliteMergingRadiusTrigger">
-   <description>A node operator class that triggers merging of satellites based on their orbital radius.</description>
+   <description>A node operator class that merges satellite halos with their central when the orbital radius falls below \mono{radiusVirialFraction} times the host virial radius (default 0.01). Optionally records Keplerian orbital elements of merged subhalos when \mono{recordMergedSubhaloProperties} is true; \mono{recordFirstLevelOnly} restricts recording to first-level subhalos relative to the final host.</description>
   </nodeOperator>
   !!]
   type, extends(nodeOperatorClass) :: nodeOperatorSatelliteMergingRadiusTrigger

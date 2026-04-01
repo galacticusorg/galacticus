@@ -32,13 +32,15 @@ module Cooling_Cold_Mode_Infall_Rates
   !![
   <functionClass>
    <name>coldModeInfallRate</name>
-   <descriptiveName>Infall rates in cold mode accretion.</descriptiveName>
-   <description>
-    Class providing models of the infall rate of gas in the cold mode.
-   </description>
+   <descriptiveName>Cold Mode Accretion Infall Rates</descriptiveName>
+   <description>Class providing models of the cold-mode infall rate (in $\mathrm{M}_\odot$ Gyr$^{-1}$) at which gas streams
+    along cold filaments directly into the galaxy, bypassing the hot atmosphere. Cold-mode accretion is thought to
+    dominate at high redshift and in lower-mass halos where the virial temperature is too low to maintain a stable
+    hot atmosphere. The cold-mode infall rate supplements the hot-mode cooling rate to give the total gas supply
+    available for star formation.</description>
    <default>dynamicalTime</default>
    <method name="infallRate" >
-    <description>Returns the cold mode infall rate for \mono{node} (in units of $M_\odot$ Gyr$^{-1}$).</description>
+    <description>Returns the cold mode infall rate for \mono{node} (in units of $\mathrm{M}_\odot$ Gyr$^{-1}$).</description>
     <type>double precision</type>
     <pass>yes</pass>
     <argument>type(treeNode), intent(inout) :: node</argument>

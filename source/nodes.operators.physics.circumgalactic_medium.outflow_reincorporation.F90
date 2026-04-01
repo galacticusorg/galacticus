@@ -26,7 +26,10 @@
   !![
   <nodeOperator name="nodeOperatorCGMOutflowReincorporation">
    <description>
-    A node operator class that implements reincorporation of outflowing gas into the \gls{cgm}.
+    A node operator class that reincorporates gas previously ejected by stellar feedback back into the \gls{cgm} hot gas
+    reservoir, using a \refClass{hotHaloOutflowReincorporationClass} to compute the reincorporation rate.
+    \mono{includeSatellites} controls whether satellite halos also have their outflowing gas reincorporated, or whether
+    reincorporation is applied only to central galaxies.
    </description>
   </nodeOperator>
   !!]

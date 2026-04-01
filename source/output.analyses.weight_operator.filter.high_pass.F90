@@ -23,7 +23,7 @@ Implements a high-pass filter analysis weight operator class.
 
   !![
   <outputAnalysisWeightOperator name="outputAnalysisWeightOperatorFilterHighPass">
-   <description>A high-pass filter analysis weight operator class.</description>
+   <description>An output analysis weight operator that multiplies galaxy weights by a high-pass filter function, suppressing contributions from galaxies with properties below \mono{filterThreshold} (with transition sharpness controlled by \mono{filterWidth}) during statistical comparisons.</description>
   </outputAnalysisWeightOperator>
   !!]
   type, extends(outputAnalysisWeightOperatorClass) :: outputAnalysisWeightOperatorFilterHighPass

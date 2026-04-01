@@ -31,9 +31,13 @@ module Star_Formation_Timescales
   !![
   <functionClass>
    <name>starFormationTimescale</name>
-   <descriptiveName>Timescales for star formation</descriptiveName>
+   <descriptiveName>Star Formation Timescales</descriptiveName>
    <description>
-    Class providing models of timescales for star formation.
+    Class providing models of the timescale (in Gyr) over which gas is converted into stars in a galaxy
+    component. The star formation timescale sets the depletion time of the gas reservoir---the ratio of
+    available gas mass to star formation rate---and is a key regulator of galaxy growth. Implementations
+    may tie the timescale to the local dynamical time, gas surface density, or molecular gas fraction,
+    with different dependencies expected for disk versus spheroid components.
    </description>
    <default>dynamicalTime</default>
    <method name="timescale" >

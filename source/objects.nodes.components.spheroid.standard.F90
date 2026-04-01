@@ -664,7 +664,7 @@ contains
   subroutine Node_Component_Spheroid_Standard_Energy_Gas_Input_Rate(self,rate,interrupt,interruptProcedure)
     !!{
     Handles input of energy into the spheroid gas from other components (e.g. black holes). The energy input rate should be in
-    units of $M_\odot$ km$^2$ s$^{-2}$ Gyr$^{-1}$.
+    units of $\mathrm{M}_\odot$ km$^2$ s$^{-2}$ Gyr$^{-1}$.
     !!}
     use :: Abundances_Structure, only : abundances   , operator(*)
     use :: Error               , only : Error_Report

@@ -23,7 +23,7 @@ Implements a dark matter profile scale radius output analysis property extractor
 
   !![
   <nodePropertyExtractor name="nodePropertyExtractorDarkMatterProfileShapeParameter">
-   <description>A  dark matter profile scale radius output analysis property extractor class.</description>
+   <description>Extracts the shape parameter of the dark matter halo density profile (e.g., the Einasto index or inner logarithmic slope), which characterizes the curvature of the profile and distinguishes between different dark matter density models such as NFW, Einasto, or cored profiles.</description>
   </nodePropertyExtractor>
   !!]
   type, extends(nodePropertyExtractorScalar) :: nodePropertyExtractorDarkMatterProfileShapeParameter

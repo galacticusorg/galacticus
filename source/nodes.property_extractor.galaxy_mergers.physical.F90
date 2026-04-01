@@ -19,9 +19,7 @@
 
   !![
   <nodePropertyExtractor name="nodePropertyExtractorGalaxyMergersPhysical">
-   <description>
-     A node property extractor which extracts the physical properties of galaxy-galaxy mergers.
-   </description>
+   <description>Extracts physical (floating-point) properties of galaxy-galaxy merger events, such as stellar masses, mass ratios, and merger times, providing continuous-valued data for statistical analysis of galaxy merging.</description>
   </nodePropertyExtractor>
   !!]
   type, extends(nodePropertyExtractorList) :: nodePropertyExtractorGalaxyMergersPhysical

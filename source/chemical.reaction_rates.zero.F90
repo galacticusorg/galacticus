@@ -24,7 +24,7 @@
   !![
   <chemicalReactionRate name="chemicalReactionRateZero">
    <description>
-    A chemical reaction rate class in which all rates are zero.
+    A null implementation of the chemical reaction rate class that returns zero rates for all reactions and all chemical species. Useful for disabling chemistry while testing other physical processes or in models that do not require chemical evolution.
    </description>
   </chemicalReactionRate>
   !!]

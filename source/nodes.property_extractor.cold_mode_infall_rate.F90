@@ -25,7 +25,7 @@ Implements a cold mode infall rate property extractor class.
 
   !![
   <nodePropertyExtractor name="nodePropertyExtractorRateInfallColdMode">
-   <description>A cold mode infall rate property extractor class.</description>
+   <description>Extracts the infall rate of cold-mode gas accreting onto a galaxy, capturing the filamentary cold-stream accretion channel that bypasses virial shock heating and directly feeds star formation. Particularly relevant for high-redshift galaxies in massive halos.</description>
   </nodePropertyExtractor>
   !!]
   type, extends(nodePropertyExtractorScalar) :: nodePropertyExtractorRateInfallColdMode

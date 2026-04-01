@@ -42,7 +42,12 @@ module Halo_Model_Power_Spectrum_Modifiers
    <name>haloModelPowerSpectrumModifier</name>
    <descriptiveName>Halo Model Power Spectrum Modifier</descriptiveName>
    <description>
-    Class providing modifiers to the power spectra in halo model clustering calculations.
+    Class providing modifiers to the one-halo and two-halo power spectrum terms in halo model galaxy
+    clustering calculations. The \mono{modify} method accepts the raw halo-model power spectrum at
+    each wavenumber and modifies it in place for a specified term (one-halo or two-halo), allowing
+    corrections such as baryonic feedback suppression, assembly bias, or scale-dependent effects to
+    be applied without altering the underlying halo occupation distribution. Implementations may be
+    mass-dependent (for per-halo corrections) or act globally on the full power spectrum array.
    </description>
    <default>identity</default>
    <method name="modify" >

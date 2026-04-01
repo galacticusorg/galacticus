@@ -32,10 +32,15 @@ module Merger_Tree_Initialization
   <functionClass>
    <name>mergerTreeInitializor</name>
    <descriptiveName>Merger Tree Initializors</descriptiveName>
-   <description>Class providing initialization of merger trees.</description>
+   <description>Class providing initialization of merger trees---objects that set the initial conditions
+    for the galaxy/halo properties of each node in a newly constructed merger tree before the ODE
+    integration begins. Initialization typically sets the hot gas mass, dark matter halo properties,
+    and other state variables of each node at its formation time, based on the halo mass and the
+    chosen physical model. Multiple initializations can be chained to set up different components
+    independently.</description>
    <default>standard</default>
    <method name="initialize" >
-    <description>Initialize the given tree.</description>
+    <description>Set the initial conditions for all nodes in the given \mono{tree}, populating galaxy and halo properties (e.g.\ hot gas mass, dark matter halo state) at each node's formation time before ODE integration proceeds to \mono{timeEnd}.</description>
     <type>void</type>
     <pass>yes</pass>
     <argument>type            (mergerTree), intent(inout) :: tree   </argument>

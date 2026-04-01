@@ -23,7 +23,12 @@ Implements an ISM metallicity output analysis property extractor class.
 
   !![
   <nodePropertyExtractor name="nodePropertyExtractorMetallicityStellar">
-   <description>A stellar metallicity output analysis property extractor class.</description>
+   <description>A property extractor that returns the stellar metallicity of a node, defined as the
+    mass ratio of a specified element to hydrogen in the stellar component, $Z_\star = M_X / M_\mathrm{H}$,
+    summed over disk and spheroid stars. The \mono{element} parameter specifies the atomic symbol
+    (e.g.\ \mono{Fe}, \mono{O}) for the metal used in the definition. Only elements tracked by the
+    abundances structure are valid choices. Returns zero for nodes with no stellar mass, and tracks
+    the mass-weighted mean metallicity of all stars formed.</description>
   </nodePropertyExtractor>
   !!]
   type, extends(nodePropertyExtractorScalar) :: nodePropertyExtractorMetallicityStellar

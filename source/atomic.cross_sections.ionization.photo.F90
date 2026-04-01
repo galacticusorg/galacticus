@@ -30,8 +30,11 @@ module Atomic_Cross_Sections_Ionization_Photo
   !![
   <functionClass>
    <name>atomicCrossSectionIonizationPhoto</name>
-   <descriptiveName>Atomic cross sections for photo-ionization.</descriptiveName>
-   <description>Class providing atomic cross sections for photo-ionization.</description>
+   <descriptiveName>Atomic Cross-sections for Photo-ionization</descriptiveName>
+   <description>Class providing photo-ionization cross sections (in cm$^2$) for atoms of a given atomic number in a
+    specified ionization state and electron shell, as a function of photon wavelength (in \AA). These cross sections
+    are used in radiative transfer and \gls{igm} ionization calculations to compute the rate at which photons are
+    absorbed by neutral or partially-ionized gas.</description>
    <default>verner</default>
    <method name="crossSection" >
     <description>Returns the cross-section for photoionization (in units of cm$^2$) for a given atom in a given ionization state at the specified \mono{wavelength} (given in units of \AA).</description>

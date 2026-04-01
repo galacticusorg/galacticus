@@ -24,7 +24,7 @@
   !![
   <starFormationTimescale name="starFormationTimescaleFixed">
    <description>
-    A star formation timescale class which fixed timescale for star formation \mono{[timescale]} (in Gyr).
+    A star formation timescale class that returns a constant, user-specified gas consumption timescale regardless of the galactic component properties. This implements the simplest possible star formation model for testing and comparison purposes. The timescale is set by the \mono{[timescale]} parameter in units of Gyr.
    </description>
   </starFormationTimescale>
   !!]

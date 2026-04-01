@@ -21,9 +21,7 @@
 
   !![
   <nodePropertyExtractor name="nodePropertyExtractorRadiusBlackHoles">
-   <description>
-     A node property extractor which extracts a list of all super-massive black hole radii and radial migration rates.
-   </description>
+   <description>Extracts a list of radial positions and radial migration rates for all supermassive black holes in each node, enabling analysis of black hole orbital evolution within their host galaxies.</description>
   </nodePropertyExtractor>
   !!]
   type, extends(nodePropertyExtractorList) :: nodePropertyExtractorRadiusBlackHoles

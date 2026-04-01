@@ -94,7 +94,7 @@ contains
        <inputParameter>
 	 <name>massMatch</name>
 	 <source>parameters</source>
-	 <description>The mass scale at which to renormalize.</description>
+	 <description>The halo mass ($\mathrm{M}_\odot$) at which the renormalized critical overdensity is matched to the reference value; if absent, normalization is matched at the cosmic mean density scale.</description>
        </inputParameter>
        !!]
     end if
