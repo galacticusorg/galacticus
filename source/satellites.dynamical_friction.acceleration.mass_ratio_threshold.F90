@@ -25,7 +25,7 @@
   !![
   <satelliteDynamicalFriction name="satelliteDynamicalFrictionMassRatioThreshold">
    <description>
-    A satellite dynamical friction class that truncates the acceleration to zero below a satellite/host mass ratio.
+    A satellite dynamical friction class that wraps another dynamical friction implementation and suppresses the deceleration to zero whenever the satellite-to-host halo mass ratio falls below a threshold value. This prevents unphysically large dynamical friction forces on very low-mass satellites. The mass ratio threshold is set by \mono{[massRatioThreshold]}.
    </description>
   </satelliteDynamicalFriction>
   !!]

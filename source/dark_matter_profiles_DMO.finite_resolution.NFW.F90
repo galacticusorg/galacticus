@@ -73,12 +73,12 @@ contains
     <inputParameter>
       <name>lengthResolution</name>
       <source>parameters</source>
-      <description>The resolution length, $\Delta x$.</description>
+      <description>The gravitational softening length $\Delta x$ (in Mpc) of the N-body simulation used to smooth the NFW profile at small radii, preventing artificial divergence below the resolution scale.</description>
     </inputParameter>
     <inputParameter>
       <name>massResolution</name>
       <source>parameters</source>
-      <description>The resolution mass, $\Delta M$.</description>
+      <description>The mass resolution $\Delta M$ (in $\mathrm{M}_\odot$) of the N-body simulation, used to determine the finite-resolution softening of the NFW profile for halos near the resolution limit.</description>
     </inputParameter>
     <inputParameter>
       <name>resolutionIsComoving</name>

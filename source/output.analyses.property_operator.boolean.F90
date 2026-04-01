@@ -23,7 +23,7 @@ Implements a boolean analysis property operator class.
 
   !![
   <outputAnalysisPropertyOperator name="outputAnalysisPropertyOperatorBoolean">
-   <description>A boolean analysis property operator class, specifically $x \rightarrow 0$ if $x=0$, and $x \rightarrow 1$ otherwise..</description>
+   <description>An output analysis property operator that converts a continuous property to a boolean value ($x \rightarrow 0$ if $x=0$, otherwise $x \rightarrow 1$), with \mono{preciseZero} controlling whether zero inputs map to exact zero or the smallest representable non-zero value.</description>
   </outputAnalysisPropertyOperator>
   !!]
   type, extends(outputAnalysisPropertyOperatorClass) :: outputAnalysisPropertyOperatorBoolean

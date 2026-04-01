@@ -67,12 +67,12 @@ contains
     !![
     <inputParameter>
       <name>concentrationMinimum</name>
-      <description>The minimum concentration to allow for halos.</description>
+      <description>The minimum allowed concentration parameter $c = r_\mathrm{virial}/r_\mathrm{scale}$ for dark matter halos; scale radii that would imply concentrations below this floor are adjusted upward to enforce the constraint.</description>
       <source>parameters</source>
     </inputParameter>   
     <inputParameter>
       <name>concentrationMaximum</name>
-      <description>The maximum concentration to allow for halos.</description>
+      <description>The maximum allowed concentration parameter $c = r_\mathrm{virial}/r_\mathrm{scale}$ for dark matter halos; scale radii that would imply concentrations above this ceiling are adjusted downward to enforce the constraint.</description>
       <source>parameters</source>
     </inputParameter>   
     <objectBuilder class="darkMatterHaloScale"          name="darkMatterHaloScale_"          source="parameters"/>

@@ -32,7 +32,7 @@
     A stellar feedback class which assumes that the cumulative energy input from a stellar population is equal to the total
     number of (Type II and Type Ia) supernovae multiplied by \mono{[supernovaEnergy]} (specified in ergs) plus
     any Population III-specific supernovae energy plus the integrated energy input from stellar winds. The minimum mass of a
-    star required to form a Type II supernova is specified (in $M_\odot$) via the \mono{[initialMassForSupernovaeTypeII]} parameter.
+    star required to form a Type II supernova is specified (in $\mathrm{M}_\odot$) via the \mono{[initialMassForSupernovaeTypeII]} parameter.
    </description>
   </stellarFeedback>
   !!]
@@ -93,7 +93,7 @@ contains
     <inputParameter>
       <name>supernovaEnergy</name>
       <defaultValue>1.0d51</defaultValue>
-      <description>The energy produced by a supernova (in ergs).</description>
+      <description>The canonical energy released per supernova event (in ergs), used to compute the total mechanical energy input from the supernova population; the default value of $10^{51}$ erg corresponds to the standard core-collapse supernova energy.</description>
       <source>parameters</source>
     </inputParameter>
     !!]

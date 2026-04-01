@@ -31,10 +31,12 @@ module Hot_Halo_Ram_Pressure_Stripping_Timescales
   !![
   <functionClass>
    <name>hotHaloRamPressureTimescale</name>
-   <descriptiveName>Models of ram pressure stripping timescales due to the hot halo.</descriptiveName>
-   <description>
-    Class providing models of ram pressure stripping timescales due to the hot halo.
-   </description>
+   <descriptiveName>Hot Halo Ram Pressure Timescales</descriptiveName>
+   <description>Class providing models of the ram pressure stripping timescale (in Gyr) for the hot gas
+    atmosphere of a satellite galaxy orbiting in its host halo. Instead of computing an instantaneous
+    stripping radius, the timescale approach allows for gradual stripping of hot gas over time, capturing
+    the orbital history and the time required for ram pressure to overcome the satellite's self-gravity.
+    The timescale may depend on the local ram pressure, the orbital velocity, or the halo dynamical time.</description>
    <default>ramPressureAcceleration</default>
    <method name="timescale" >
     <description>Return the ram pressure stripping timescale for \mono{node} (in units of Gyr).</description>

@@ -30,7 +30,7 @@
 
   !![
   <nodePropertyExtractor name="nodePropertyExtractorMulti">
-   <description>A multi output extractor property extractor class.</description>
+   <description>Combines multiple individual property extractors into a single extractor, iterating through a list of \refClass{nodePropertyExtractorClass} objects and collecting their outputs together, enabling extraction of diverse properties in a single pass through the node tree.</description>
    <linkedList type="multiExtractorList" variable="extractors" next="next" object="extractor_" objectType="nodePropertyExtractorClass"/>
   </nodePropertyExtractor>
   !!]

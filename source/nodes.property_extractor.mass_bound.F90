@@ -23,7 +23,7 @@ Implements an output analysis property extractor class that extracts the bound m
 
   !![
   <nodePropertyExtractor name="nodePropertyExtractorMassBound">
-   <description>An output analysis property extractor class that extracts the bound mass.</description>
+   <description>Extracts the gravitationally bound mass remaining in a subhalo after tidal stripping, representing the mass retained within the tidal radius as the subhalo orbits in its host potential, relevant to subhalo abundance matching.</description>
   </nodePropertyExtractor>
   !!]
   type, extends(nodePropertyExtractorScalar) :: nodePropertyExtractorMassBound

@@ -34,9 +34,12 @@ module Chemical_Reaction_Rates
   <functionClass>
    <name>chemicalReactionRate</name>
    <descriptiveName>Chemical Reaction Rates</descriptiveName>
-   <description>
-    Class providing chemical reaction rates.
-   </description>
+   <description>Class providing rates for chemical reactions among gas-phase species (e.g.\ H$_2$ formation and
+    photodissociation, HD, HeH$^+$). Given local conditions---column density for self-shielding, gas temperature,
+    chemical abundances, a clumping factor, and the ambient radiation field---each implementation returns the net
+    reaction rates (in consistent volumetric units) for each tracked chemical species. These rates drive the
+    non-equilibrium evolution of the chemical network and are particularly relevant for modeling the formation of
+    molecular gas and cooling in the early universe and in low-metallicity \gls{igm} gas.</description>
    <default>zero</default>
    <method name="rates" >
     <description>Return the collisional excitation cooling rate , in units of J/m$^3$/s, for ion of given \mono{atomicNumber} and \mono{electronNumber} at temperature \mono{T} (in Kelvin).</description>

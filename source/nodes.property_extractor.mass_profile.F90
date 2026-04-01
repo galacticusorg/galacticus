@@ -26,7 +26,13 @@
 
   !![
   <nodePropertyExtractor name="nodePropertyExtractorMassProfile">
-   <description>A property extractor class for the enclosed mass at a set of radii.</description>
+   <description>A property extractor that returns the enclosed mass profile
+    (in $\mathrm{M}_\odot$) at a user-specified set of radii, supporting a variety of radius
+    definitions (virial radius multiples, disk/spheroid scale radii, half-mass radii, galactic mass
+    or light fractions, and satellite bound-mass fractions). The \mono{radiusSpecifiers} parameter
+    specifies the list of radii; if \mono{includeRadii} is \mono{true}, the actual radii in Mpc are
+    also written to the output. The dark matter fraction from cosmological parameters is used to
+    translate satellite bound mass into a corresponding dark matter radius.</description>
   </nodePropertyExtractor>
   !!]
   type, extends(nodePropertyExtractorArray) :: nodePropertyExtractorMassProfile

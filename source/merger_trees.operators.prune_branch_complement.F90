@@ -26,7 +26,7 @@
   !![
   <mergerTreeOperator name="mergerTreeOperatorPruneBranchComplement">
    <description>
-    A merger tree operator class which prunes all but the branch starting from \mono{[branchNodeID]}.
+    A merger tree operator class which prunes all branches of a merger tree except the single branch rooted at the node identified by \mono{[branchNodeID]}, isolating one lineage for detailed analysis. This enables focused study of a specific halo's merger history by removing all unrelated branches from the tree structure.
    </description>
   </mergerTreeOperator>
   !!]

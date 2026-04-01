@@ -30,7 +30,7 @@
 
   !![
   <darkMatterProfileConcentration name="darkMatterProfileConcentrationCorrea2015">
-   <description>Dark matter halo concentrations are computed using the algorithm of \cite{correa_accretion_2015}.</description>
+   <description>Computes dark matter halo concentrations using the accretion-history-based fitting function of \cite{correa_accretion_2015}, which relates concentration to the mass accretion history of the halo through a power-law relation in redshift. The normalization of the concentration-mass relation is calibrated by the free parameter \mono{[A]}.</description>
    <deepCopy>
     <functionClass variables="virialDensityContrastDefinition_, darkMatterProfileDMODefinition_"/>
    </deepCopy>

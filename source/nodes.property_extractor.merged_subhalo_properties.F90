@@ -21,9 +21,7 @@
   
   !![
   <nodePropertyExtractor name="nodePropertyExtractorMergedSubhaloProperties">
-   <description>
-     A node property extractor which extracts properties of merged subhalo orbits.
-   </description>
+   <description>Extracts orbital properties (such as orbital energy, angular momentum, and pericentric distance) of subhalos at the time they merged, enabling analysis of merger dynamics and post-merger evolution.</description>
   </nodePropertyExtractor>
   !!]
   type, extends(nodePropertyExtractorList) :: nodePropertyExtractorMergedSubhaloProperties

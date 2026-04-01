@@ -23,7 +23,7 @@ Implements a filter which passes only main branch halos.
 
   !![
   <galacticFilter name="galacticFilterMainBranch">
-   <description>A filter which passes only main branch halos.</description>
+   <description>Passes only nodes that lie on the main progenitor branch of their merger tree (the branch of most massive progenitors tracing the primary assembly history), filtering out secondary merger branches for analyses focused on main branch evolution.</description>
   </galacticFilter>
   !!]
   type, extends(galacticFilterClass) :: galacticFilterMainBranch

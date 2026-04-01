@@ -23,7 +23,7 @@ Implements an N-body data importer which merges data from other importers.
   
   !![
   <nbodyImporter name="nbodyImporterMerge">
-   <description>An importer which merges data from other importers.</description>
+   <description>An N-body data importer which combines particle and halo data from multiple delegate importer objects into a single unified dataset, enabling analysis of combined simulation volumes or multi-component datasets. A simulation label is provided via \mono{[label]}, and any number of child importer objects can be specified in the linked list.</description>
    <linkedList type="nbodyImporterList" variable="importers" next="next" object="importer_" objectType="nbodyImporterClass"/>
   </nbodyImporter>
   !!]

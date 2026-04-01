@@ -23,7 +23,7 @@ Implements a cosmic time output analysis property extractor class.
 
   !![
   <nodePropertyExtractor name="nodePropertyExtractorTime">
-   <description>A cosmic time output analysis property extractor class.</description>
+   <description>Extracts the cosmic time (age of the universe) at the epoch of each output snapshot, providing the absolute time coordinate for each node and enabling time-based analysis of galaxy formation histories across cosmic epochs.</description>
   </nodePropertyExtractor>
   !!]
   type, extends(nodePropertyExtractorScalar) :: nodePropertyExtractorTime

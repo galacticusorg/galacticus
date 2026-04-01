@@ -50,7 +50,7 @@ module Cosmology_Functions
     <argument>logical         , intent(  out), optional :: collapsingOut     </argument>
    </method>
    <method name="cosmicTime" >
-    <description>Return the cosmological age at the given expansion factor.</description>
+    <description>Return the cosmological age (in Gyr) of the universe at the given expansion factor $a$, computed by integrating the Friedmann equation from $a=0$ to the specified value.</description>
     <type>double precision</type>
     <pass>yes</pass>
     <argument>double precision, intent(in   )           :: expansionFactor</argument>
@@ -191,14 +191,14 @@ module Cosmology_Functions
     <argument>double precision, intent(in   ) :: comovingDistance</argument>
    </method>
    <method name="distanceComovingConvert" >
-    <description>Convert between different measures of comoving distance.</description>
+    <description>Convert between different measures of comoving distance (luminosity distance, distance modulus, or k-corrected distance modulus) given an input distance or redshift, returning the requested output distance measure.</description>
     <type>double precision</type>
     <pass>yes</pass>
     <argument>integer         , intent(in   )           :: output</argument>
     <argument>double precision, intent(in   ), optional :: distanceLuminosity, distanceModulus, distanceModulusKCorrected, redshift</argument>
    </method>
    <method name="redshiftFromExpansionFactor" >
-    <description>Returns redshift for a given expansion factor.</description>
+    <description>Returns the cosmological redshift, typically $z = 1/a - 1$, corresponding to the given expansion factor $a$, where $a=1$ corresponds to the present day ($z=0$).</description>
     <type>double precision</type>
     <pass>yes</pass>
     <argument>double precision, intent(in   ) :: expansionFactor</argument>
@@ -208,7 +208,7 @@ module Cosmology_Functions
     </code>
    </method>
    <method name="expansionFactorFromRedshift" >
-    <description>Returns expansion factor given a redshift.</description>
+    <description>Returns the cosmological expansion factor, typically $a = 1/(1+z)$, corresponding to the given redshift $z$, where $a=1$ at the present day and $a\rightarrow 0$ at the Big Bang.</description>
     <type>double precision</type>
     <pass>yes</pass>
     <argument>double precision, intent(in   ) :: redshift</argument>
@@ -268,7 +268,7 @@ module Cosmology_Functions
   !![
   <enumeration>
    <name>densityCosmological</name>
-   <description>Enumeration of different cosmological densities.</description>
+   <description>Enumeration of different cosmological density references: the critical density (the density required for a spatially flat universe) and the mean matter density (the average matter density of the universe).</description>
    <encodeFunction>yes</encodeFunction>
    <decodeFunction>yes</decodeFunction>
    <validator>yes</validator>

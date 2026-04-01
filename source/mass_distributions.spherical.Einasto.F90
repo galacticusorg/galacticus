@@ -128,7 +128,7 @@ contains
     <inputParameter>
       <name>mass</name>
       <defaultValue>1.0d0</defaultValue>
-      <description>The mass of the Einasto profile.</description>
+      <description>The total mass (in $\mathrm{M}_\odot$) of the Einasto profile, used to set the density normalization $\rho_{-2}$ when \mono{densityNormalization} is not supplied.</description>
       <source>parameters</source>
     </inputParameter>
     <inputParameter>

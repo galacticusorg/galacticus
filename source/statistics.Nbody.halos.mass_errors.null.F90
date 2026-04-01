@@ -23,7 +23,7 @@ Implements a null N-body dark matter halo mass error class.
 
   !![
   <nbodyHaloMassError name="nbodyHaloMassErrorNull">
-   <description>A null N-body dark matter halo mass error class. Errors are always zero.</description>
+   <description>A null N-body dark matter halo mass error class in which the fractional mass error is identically zero for all halos and at all epochs---i.e., it assumes that N-body halo masses are known perfectly with no measurement uncertainty. This is appropriate when mass errors are negligible or when error effects have already been accounted for by other means.</description>
   </nbodyHaloMassError>
   !!]
   type, extends(nbodyHaloMassErrorClass) :: nbodyHaloMassErrorNull

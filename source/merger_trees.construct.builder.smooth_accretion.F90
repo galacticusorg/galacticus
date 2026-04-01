@@ -30,8 +30,8 @@
    <description>
     A merger tree builder class which builds a branchless merger tree with a smooth accretion history using the selected
     \refPhysics{darkMatterHaloMassAccretionHistory} class. The tree has a final mass of \mono{massHalo} (in
-    units of $M_\odot$) at redshift \mono{redshiftBase} and is continued back in time by decreasing the halo
-    mass by a factor \mono{massHaloDeclineFactor} at each new \gls{node} until a specified \mono{massHaloResolution} (in units of $M_\odot$) is reached.
+    units of $\mathrm{M}_\odot$) at redshift \mono{redshiftBase} and is continued back in time by decreasing the halo
+    mass by a factor \mono{massHaloDeclineFactor} at each new \gls{node} until a specified \mono{massHaloResolution} (in units of $\mathrm{M}_\odot$) is reached.
    </description>
   </mergerTreeBuilder>
   !!]

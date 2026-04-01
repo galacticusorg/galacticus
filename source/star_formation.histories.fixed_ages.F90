@@ -839,7 +839,7 @@ contains
        write (label,'(e16.10)') basic%time         ( )
        message="time ("//label//") "
        write (label,'(e16.10)')       timesCrossing(1)
-       message=message//"does not match expected time ("//label//") for node "//node%index()
+       message=message//"does not match expected time ("//label//") for node "//node%index()//" (star formation history created in progenitor "//basic%longIntegerRank0MetaPropertyGet(self%createdInID)//")"
        call Error_Report(message//{introspection:location})
     end if
     ! Set the times for this output. Note that the times stored in the history object are relative to t=0, so we increment them by

@@ -46,7 +46,7 @@ Implements the geometry of the ULTRAVISTA survey used by \cite{muzzin_evolution_
     \exp[(m-11.24)/0.02] }
      \label{eq:MuzzinDepthPolynomial}
     \end{equation}
-    where $m= \log_{10}(M_\star/M_\odot)$.
+    where $m= \log_{10}(M_\star/\mathrm{M}_\odot)$.
     
     \begin{figure}
      \begin{center}

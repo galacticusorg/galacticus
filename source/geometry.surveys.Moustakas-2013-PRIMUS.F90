@@ -44,7 +44,7 @@ Implements the geometry of the PRIMUS survey used by \cite{moustakas_primus:_201
     z_\mathrm{max}(M_\star) = +6.87+m(-1.656+m(+0.1003)) &amp; &amp; \hbox{ELAIS-S1}
      \label{eq:MoustakasDepthPolynomial}
     \end{eqnarray}
-    where $m= \log_{10}(M_\star/M_\odot)$. We use this polynomial fit to determine the depth of the sample as a function of
+    where $m= \log_{10}(M_\star/\mathrm{M}_\odot)$. We use this polynomial fit to determine the depth of the sample as a function of
     stellar mass.
     
     \begin{figure}

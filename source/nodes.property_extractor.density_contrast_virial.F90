@@ -25,7 +25,7 @@ Implements a virial density contrast output analysis property extractor class.
 
   !![
   <nodePropertyExtractor name="nodePropertyExtractorDensityContrastVirial">
-   <description>A virial density contrast output analysis property extractor class.</description>
+   <description>Extracts the virial density contrast $\Delta_\mathrm{vir}$, the ratio of mean halo density to the critical (or mean) density of the universe used to define the halo boundary. Evaluated at the time the halo was last isolated, this quantity varies with cosmology and redshift.</description>
   </nodePropertyExtractor>
   !!]
   type, extends(nodePropertyExtractorScalar) :: nodePropertyExtractorDensityContrastVirial

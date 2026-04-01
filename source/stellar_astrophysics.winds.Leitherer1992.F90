@@ -107,7 +107,7 @@ contains
 
   double precision function leitherer1992RateMassLoss(self,initialMass,age,metallicity)
     !!{
-    Compute the mass loss rate (in $M_\odot$/Gyr) from a star of given \mono{initialMass}, \mono{age} and \mono{metallicity} using the fitting formula of \cite{leitherer_deposition_1992}.
+    Compute the mass loss rate (in $\mathrm{M}_\odot$/Gyr) from a star of given \mono{initialMass}, \mono{age} and \mono{metallicity} using the fitting formula of \cite{leitherer_deposition_1992}.
     !!}
     implicit none
     class           (stellarWindsLeitherer1992), intent(inout) :: self

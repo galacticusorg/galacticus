@@ -26,7 +26,7 @@ An implementation of the hot halo mass distribution class which uses the model o
 
   !![
   <hotHaloMassDistribution name="hotHaloMassDistributionPatejLoeb2015">
-   <description>Provides an implementation of the hot halo mass distribution class which uses the model of \cite{patej_simple_2015}.</description>
+   <description>Provides an implementation of the hot halo mass distribution class using the circumgalactic medium model of \cite{patej_simple_2015}, in which the gas density follows a power-law profile tied to the dark matter distribution. The density slope is controlled by \mono{[gamma]}, and the shock radius by \mono{[radiusShock]}.</description>
   </hotHaloMassDistribution>
   !!]
   type, extends(hotHaloMassDistributionClass) :: hotHaloMassDistributionPatejLoeb2015

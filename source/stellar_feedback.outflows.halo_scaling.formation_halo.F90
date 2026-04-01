@@ -23,7 +23,7 @@
 
   !![
   <stellarFeedbackOutflows name="stellarFeedbackOutflowsHaloScalingFormationHalo">
-   <description>An stellar feedback model which scales with halo velocity.</description>
+   <description>A stellar feedback outflow model in which the mass outflow rate scales with the virial velocity and redshift of the galaxy's \emph{formation} halo (rather than the current host halo), giving feedback that reflects the initial potential well the galaxy formed in.</description>
   </stellarFeedbackOutflows>
   !!]
   type, extends(stellarFeedbackOutflowsHaloScaling) :: stellarFeedbackOutflowsHaloScalingFormationHalo
@@ -62,7 +62,7 @@ contains
       <name>fraction</name>
       <source>parameters</source>
       <defaultValue>0.01d0</defaultValue>
-      <description>The ratio of outflow rate to star formation rate in disks.</description>
+      <description>The normalization $f$ of the outflow rate relative to the star formation rate, evaluated at the formation halo's virial velocity of 200 km/s and expansion factor of 1, setting the overall mass-loading amplitude.</description>
     </inputParameter>
     <inputParameter>
       <name>exponentVelocity</name>
@@ -74,7 +74,7 @@ contains
       <name>exponentRedshift</name>
       <source>parameters</source>
       <defaultValue>0.0d0</defaultValue>
-      <description>The exponent of redshift in the outflow rate in disks.</description>
+      <description>The power-law exponent of the cosmological expansion factor $(1+z)$ in the formation-halo outflow rate, allowing the mass-loading factor to evolve with the redshift of the formation halo; a value of zero gives no redshift evolution.</description>
     </inputParameter>
     <objectBuilder class="cosmologyFunctions"  name="cosmologyFunctions_"  source="parameters"/>
     <objectBuilder class="darkMatterHaloScale" name="darkMatterHaloScale_" source="parameters"/>

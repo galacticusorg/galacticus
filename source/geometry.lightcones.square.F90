@@ -221,7 +221,7 @@ contains
       <name>origin</name>
       <source>parameters</source>
       <variable>origin</variable>
-      <description>The origin for the lightcone.</description>
+      <description>The 3D Cartesian position vector (in Mpc) of the observer's location from which the square lightcone extends along the direction defined by the unit vectors.</description>
     </inputParameter>
     <inputParameter>
       <name>unitVector1</name>
@@ -888,14 +888,17 @@ contains
     use :: Numerical_Constants_Physical    , only : speedLight
     use :: Vectors                         , only : Vector_Magnitude
     use :: Root_Finder                     , only : rootFinder
-    use :: Sorting                         , only : sort
+    use :: Sorting                         , only : sortIndex                               , sort
     use :: Functions_Global                , only : nodeOperatorPredeterminedSolveAnalytics_
     implicit none
     class           (geometryLightconeSquare), intent(inout)                , target                :: self
     type            (treeNode               ), intent(inout)                , target                :: node
     double precision                         , intent(in   )                                        :: timeStart                   , timeEnd
     double precision                         , intent(inout), dimension(:  ), allocatable, optional :: timesCrossing
-    double precision                                        , dimension(:  ), allocatable           :: timesCrossingTmp
+    double precision                                        , dimension(:  ), allocatable           :: timesCrossingTmp            , timeSeek          , &
+         &                                                                                             distanceRootSeek            , distanceConeSeek  , &
+         &                                                                                             distanceNodeSeek
+    integer         (c_size_t               )               , dimension(:  ), allocatable           :: order
     integer                                                 , dimension(3,2)                        :: periodicRange
     class           (nodeComponentBasic     )                               , pointer               :: basic
     class           (nodeComponentPosition  )                               , pointer               :: position
@@ -990,16 +993,18 @@ contains
                 timeCrossing=finder%find(rootRange=[timeStart_,timeEnd])
                 if (reporting) then
                    call displayIndent("Lightcone crossing seek:")
-                   call displayMessage("time         distance root")
-                   call displayMessage("__________________________")
-                   call sort(timeSeek(1:countSeek),distanceSeek(1:countSeek))
+                   call displayMessage("time         distance root distance node distance cone")
+                   call displayMessage("______________________________________________________")
+                   order=sortIndex(timeSeek(1:countSeek))
                    do iSeek=1,countSeek
-                      write (label,'(e12.6,1x,e12.6)') timeSeek(iSeek),distanceSeek(iSeek)
+                      write (label,'(e12.6,1x,e12.6,1x,e12.6,1x,e12.6)') timeSeek(order(iSeek)),distanceRootSeek(order(iSeek)),distanceNodeSeek(order(iSeek)),distanceConeSeek(order(iSeek))
                       call displayMessage(trim(adjustl(label)))
                    end do
                    call displayUnindent("")
-                   deallocate(timeSeek    )
-                   deallocate(distanceSeek)
+                   deallocate(timeSeek        )
+                   deallocate(distanceRootSeek)
+                   deallocate(distanceNodeSeek)
+                   deallocate(distanceConeSeek)
                 end if
                 ! Check that the node is in the field of view at this time, that this is the earliest crossing, and that the
                 ! crossing occurs at least some small time after the current time of the node. (This last condition is to ensure
@@ -1024,12 +1029,14 @@ contains
                       call displayMessage("time         distance root")
                       call displayMessage("__________________________")
                      do iSeek=1,countSteps
-                         write (label,'(e12.6,1x,e12.6)') timeSeek(iSeek),distanceSeek(iSeek)
+                         write (label,'(e12.6,1x,e12.6)') timeSeek(iSeek),distanceRootSeek(iSeek)
                          call displayMessage(trim(adjustl(label)))
                       end do
                       call displayUnindent("")
-                      deallocate(timeSeek    )
-                      deallocate(distanceSeek)
+                      deallocate(timeSeek        )
+                      deallocate(distanceRootSeek)
+                      deallocate(distanceNodeSeek)
+                      deallocate(distanceConeSeek)
                    end if
                    ! Only set this crossing as the result if it is the earliest crossing time found so far.
                    if (timeCrossing < squareTimeLightconeCrossing) then
@@ -1068,44 +1075,59 @@ contains
        end if
     end if    
     return
-  end function squareTimeLightconeCrossing
-  
-  double precision function timeCrossingRoot(time)
-    !!{
-    Function used to find the time at which a node crosses the lightcone.
-    !!}
-    use :: Vectors, only : Vector_Magnitude
-    implicit none
-    double precision, intent(in   )             :: time
-    double precision, dimension(3)              :: positionNode
-    double precision, dimension(:), allocatable :: timeSeek_   , distanceSeek_
-    double precision                            :: distanceNode
+
+  contains
     
-    positionNode    =self_%nodePositionReplicant(node_,time,self_%origin,[i_,j_,k_],setTime=.true.)
-    distanceNode    =Vector_Magnitude(positionNode)
-    timeCrossingRoot=+                          distanceNode           &
-         &           -self_%cosmologyFunctions_%distanceComoving(time)
+    double precision function timeCrossingRoot(time)
+      !!{
+      Function used to find the time at which a node crosses the lightcone.
+      !!}
+      implicit none
+      double precision, intent(in   )             :: time
+      double precision, dimension(3)              :: positionNode
+      double precision, dimension(:), allocatable :: timeSeek_    , distanceRoot_, &
+           &                                         distanceNode_, distanceCone_
+      double precision                            :: distanceNode
+      
+      positionNode    =self%nodePositionReplicant(node,time,self%origin,[i,j,k],setTime=.true.)
+      distanceNode    =Vector_Magnitude(positionNode)
+      timeCrossingRoot=+                         distanceNode           &
+           &           -self%cosmologyFunctions_%distanceComoving(time)
       if (reporting) then
          if (countSeek == 0) then
-            allocate(timeSeek    (32))
-            allocate(distanceSeek(32))
+            allocate(timeSeek        (32))
+            allocate(distanceRootSeek(32))
+            allocate(distanceNodeSeek(32))
+            allocate(distanceConeSeek(32))
          else if (countSeek == size(timeSeek)) then
-            call move_alloc(timeSeek    ,timeSeek_    )
-            call move_alloc(distanceSeek,distanceSeek_)
-            allocate(timeSeek    (countSeek*2))
-            allocate(distanceSeek(countSeek*2))
-            timeSeek    (1:countSeek)=timeSeek_
-            distanceSeek(1:countSeek)=distanceSeek_
+            call move_alloc(timeSeek        ,timeSeek_    )
+            call move_alloc(distanceRootSeek,distanceRoot_)
+            call move_alloc(distanceNodeSeek,distanceNode_)
+            call move_alloc(distanceConeSeek,distanceCone_)
+            allocate(timeSeek        (countSeek*2))
+            allocate(distanceRootSeek(countSeek*2))
+            allocate(distanceNodeSeek(countSeek*2))
+            allocate(distanceConeSeek(countSeek*2))
+            timeSeek        (1:countSeek)=timeSeek_
+            distanceRootSeek(1:countSeek)=distanceRoot_
+            distanceNodeSeek(1:countSeek)=distanceNode_
+            distanceConeSeek(1:countSeek)=distanceCone_
             deallocate(timeSeek_    )
-            deallocate(distanceSeek_)
+            deallocate(distanceRoot_)
+            deallocate(distanceNode_)
+            deallocate(distanceCone_)
          end if
          countSeek=countSeek+1
-         timeSeek    (countSeek)=time
-         distanceSeek(countSeek)=timeCrossingRoot
+         timeSeek        (countSeek)=time
+         distanceRootSeek(countSeek)=timeCrossingRoot
+         distanceNodeSeek(countSeek)=distanceNode
+         distanceConeSeek(countSeek)=self%cosmologyFunctions_%distanceComoving(time)
       end if
-    return
-  end function timeCrossingRoot
-    
+      return
+    end function timeCrossingRoot
+
+  end function squareTimeLightconeCrossing
+  
   function squareIsInFieldOfView(self,position) result(isInFieldOfView)
     !!{
     Return true if the given position is in the field of view of the lightcone.

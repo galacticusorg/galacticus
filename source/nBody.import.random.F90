@@ -25,7 +25,7 @@ Implements an N-body data importer which generates random points.
 
   !![
   <nbodyImporter name="nbodyImporterRandom">
-   <description>An importer which generates random points.</description>
+   <description>An N-body data importer which generates uniformly distributed random points within a user-specified cuboid volume, useful for testing operators or constructing random reference catalogs. The number of points is set by \mono{[countPoints]}, with the spatial extent of the cuboid controlled by \mono{[xRange]}, \mono{[yRange]}, and \mono{[zRange]}.</description>
   </nbodyImporter>
   !!]
   type, extends(nbodyImporterClass) :: nbodyImporterRandom

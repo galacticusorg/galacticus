@@ -26,7 +26,7 @@ Implements an N-body data importer for Gadget binary files.
 
   !![
   <nbodyImporter name="nbodyImporterGadgetBinary">
-   <description>An importer for Gadget binary files.</description>
+   <description>An importer for N-body simulation data in Gadget binary format, reading particle positions, velocities, and masses for a specified particle type. The input file is set by \mono{[fileName]}, with physical unit conversions specified by \mono{[unitMassInSI]}, \mono{[unitLengthInSI]}, and \mono{[unitVelocityInSI]}, and the particle type selected by \mono{[particleType]}.</description>
    <runTimeFileDependencies paths="fileName"/>
   </nbodyImporter>
   !!]

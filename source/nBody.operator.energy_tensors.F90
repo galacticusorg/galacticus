@@ -26,7 +26,7 @@ Implements an N-body data operator which determines the kinetic and Chandrasekha
   
   !![
   <nbodyOperator name="nbodyOperatorEnergyTensors">
-   <description>An N-body data operator which determines the kinetic and Chandrasekhar potential energy tensors.</description>
+   <description>An N-body data operator which determines the kinetic and Chandrasekhar potential energy tensors of a particle distribution, characterizing the dynamical state and shape of N-body halos. Self-bound particle restriction is controlled by \mono{[selfBoundOnly]}, and statistical uncertainties can be estimated using bootstrap resampling via \mono{[bootstrapSampleCount]}.</description>
   </nbodyOperator>
   !!]
   type, extends(nbodyOperatorClass) :: nbodyOperatorEnergyTensors

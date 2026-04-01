@@ -32,20 +32,26 @@ module Dark_Matter_Halo_Biases
   !![
   <functionClass>
    <name>darkMatterHaloBias</name>
-   <descriptiveName>Dark matter halo biases.</descriptiveName>
+   <descriptiveName>Dark Matter Halo Biases</descriptiveName>
    <description>
-    Class providing models of the bias of dark matter halos.
+    Class providing models of the linear bias factor $b(M, t)$ of dark matter halos---the ratio of
+    halo-to-matter overdensity on large scales, describing how strongly halos cluster relative to the
+    underlying dark matter distribution. More massive halos form in rarer, higher-$\nu$ peaks and are
+    therefore more strongly biased. The bias enters the two-halo term of the halo model power spectrum,
+    void-galaxy cross-correlations, and galaxy clustering predictions. Implementations typically follow
+    analytic fitting functions (e.g.\ \citealt{tinker_large_2010}) calibrated to N-body simulations
+    as a function of halo mass and redshift.
    </description>
    <default>tinker2010</default>
    <method name="biasByMass" >
-    <description>Returns the bias of a halo specified by a mass (in $M_\odot$) and time (in Gyr).</description>
+    <description>Returns the bias of a halo specified by a mass (in $\mathrm{M}_\odot$) and time (in Gyr).</description>
     <type>double precision</type>
     <pass>yes</pass>
     <argument>double precision, intent(in   )           :: mass, time</argument>
     <argument>double precision, intent(in   ), optional :: radius</argument>
    </method>
    <method name="biasByNode" >
-    <description>Returns the bias of the halo in the supplied \gls{node}.</description>
+    <description>Returns the large-scale linear bias factor $b$ of the dark matter halo represented by the supplied \gls{node}, extracted from the node's basic component for its mass and formation time.</description>
     <type>double precision</type>
     <pass>yes</pass>
     <argument>type            (treeNode), intent(inout)           :: node</argument>

@@ -23,7 +23,7 @@ Implements a node operator class that records the index of the branch tip for ea
 
   !![
   <nodeOperator name="nodeOperatorIndexBranchTip">
-   <description>A node operator class that records the index of the branch tip for each node.</description>
+   <description>Traverses each merger tree branch and records the index of the earliest progenitor (branch tip) in each node's metadata, enabling fast lookup of the branch origin without repeated tree traversals during output or analysis.</description>
   </nodeOperator>
   !!]
   type, extends(nodeOperatorClass) :: nodeOperatorIndexBranchTip

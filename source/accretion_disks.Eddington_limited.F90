@@ -25,7 +25,9 @@
   <accretionDisks name="accretionDisksEddingtonLimited">
    <description>
     A circumnuclear accretion disk class in which accretion is always Eddington-limited. This class does not assume any
-    physical model for the accretion disk, but merely assumes that jets are powered at a fixed fraction \mono{[efficiencyJet]} of the Eddington luminosity. The radiative efficiency is similarly set at a fixed value of \mono{[efficiencyRadiation]}. Since no physical model for the disk is assumed, the black hole spin up rate is always
+    physical model for the accretion disk, but merely assumes that jets are powered at a fixed fraction \mono{[efficiencyJet]}
+    of the Eddington luminosity. The radiative efficiency is similarly set at a fixed value of
+    \mono{[efficiencyRadiation]}. Since no physical model for the disk is assumed, the black hole spin up rate is always
     set to zero.
    </description>
   </accretionDisks>
@@ -74,7 +76,7 @@ contains
       <name>efficiencyJet</name>
       <source>parameters</source>
       <defaultValue>0.1d0</defaultValue>
-      <description>The jet efficiency of the Eddington-limited accretion disk.</description>
+      <description>The jet efficiency of the Eddington-limited accretion disk, defined as the fraction of the accreted rest-mass energy $\dot{M}\mathrm{c}^2$ that is channeled into a relativistic jet outflow.</description>
     </inputParameter>
     !!]
     self=accretionDisksEddingtonLimited(efficiencyRadiation,efficiencyJet)

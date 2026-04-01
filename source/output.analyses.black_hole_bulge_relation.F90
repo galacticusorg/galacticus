@@ -23,7 +23,7 @@
 
   !![
   <outputAnalysis name="outputAnalysisBlackHoleBulgeRelation">
-   <description>A black hole-bulge mass relation output analysis class.</description>
+   <description>Computes the relation between supermassive black hole mass and host spheroid (bulge) stellar mass for comparison with observational data, with configurable random and systematic error polynomial coefficients for both black hole and bulge masses.</description>
   </outputAnalysis>
   !!]
   type, extends(outputAnalysisMeanFunction1D) :: outputAnalysisBlackHoleBulgeRelation

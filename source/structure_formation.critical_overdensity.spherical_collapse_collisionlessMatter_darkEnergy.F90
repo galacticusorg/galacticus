@@ -24,7 +24,7 @@
 
   !![
   <criticalOverdensity name="criticalOverdensitySphericalCollapseClsnlssMttrDrkEnrgy">
-   <description>Critical overdensity for collapse based on the spherical collapse in a matter plus dark energy universe.</description>
+   <description>Critical overdensity for gravitational collapse of dark matter halos, computed numerically via the spherical collapse model in a universe containing collisionless matter and dark energy. The normalization of the result can be adjusted via \mono{[normalization]}, and tabulated solutions can be stored to and restored from file for computational efficiency.</description>
   </criticalOverdensity>
   !!]
   type, extends(criticalOverdensitySphericalCollapseClsnlssMttrCsmlgclCnstnt) :: criticalOverdensitySphericalCollapseClsnlssMttrDrkEnrgy
@@ -67,13 +67,13 @@ contains
       <name>normalization</name>
       <source>parameters</source>
       <defaultValue>1.0d0</defaultValue>
-      <description>A normalizing factor to be applied to the critical overdensity.</description>
+      <description>A multiplicative normalization factor applied to the spherical collapse critical overdensity $\delta_\mathrm{c}$ returned by this class, allowing calibration against simulations or fitting functions.</description>
     </inputParameter>
     <inputParameter>
       <name>tableStore</name>
       <source>parameters</source>
       <defaultValue>.true.</defaultValue>
-      <description>If true, store/restore the tabulated solution to/from file when possible.</description>
+      <description>If true, store the tabulated spherical collapse solutions to a file and restore them on subsequent runs to avoid recomputing the numerical ODE integration from scratch.</description>
     </inputParameter>
     <objectBuilder class="linearGrowth"             name="linearGrowth_"             source="parameters"/>
     <objectBuilder class="cosmologyFunctions"       name="cosmologyFunctions_"       source="parameters"/>

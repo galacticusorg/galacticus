@@ -29,7 +29,7 @@
   <haloSpinDistribution name="haloSpinDistributionBett2007">
    <description>
     A halo spin distribution in which the spin is drawn from the distribution found by \cite{bett_spin_2007}. The $\lambda_0$
-    and $\alpha$ parameter of Bett et al.'s distribution are set by the \mono{[lambda0]} and \mono{[alpha]} input parameters.
+    and $\alpha$ parameter of \cite{bett_spin_2007}'s distribution are set by the \mono{[lambda0]} and \mono{[alpha]} input parameters.
    </description>
   </haloSpinDistribution>
   !!]

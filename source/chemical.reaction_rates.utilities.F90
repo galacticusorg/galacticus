@@ -33,7 +33,7 @@ contains
 
   double precision function Chemicals_Mass_To_Density_Conversion(radius)
     !!{
-    Returns the conversion factor from mass of chemicals in ($M_\odot$) to number density in cm$^{-3}$ assuming
+    Returns the conversion factor from mass of chemicals in ($\mathrm{M}_\odot$) to number density in cm$^{-3}$ assuming
     that the mass is distributed uniformly in a sphere of the given \mono{radius} (in Mpc).
     !!}
     use :: Numerical_Constants_Astronomical, only : massSolar     , megaParsec
@@ -49,7 +49,7 @@ contains
 
   double precision function Chemicals_Mass_To_Fraction_Conversion(massTotal)
     !!{
-    Returns the conversion factor from mass of chemicals in ($M_\odot$) to a number density (in cm$^{-3}$) per unit total mass
+    Returns the conversion factor from mass of chemicals in ($\mathrm{M}_\odot$) to a number density (in cm$^{-3}$) per unit total mass
     density given a total \mono{mass} (in $\mathrm{M}_\odot$).
     !!}
     use :: Numerical_Constants_Astronomical, only : massSolar     , megaParsec

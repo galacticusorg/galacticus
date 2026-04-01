@@ -33,9 +33,9 @@
     from flux density uncertainties and errors in the assumed distance to each source, are taken from Fig.~19 of
     \cite{haynes_arecibo_2011}. The magnitude of the error as a function of HI mass is fit using a functional form:
     \begin{equation}
-     \sigma_\mathrm{obs} = a + \exp\left(-{\log_{10}(M_\mathrm{HI}/M_\odot)-b\over c}\right),
+     \sigma_\mathrm{obs} = a + \exp\left(-{\log_{10}(M_\mathrm{HI}/\mathrm{M}_\odot)-b\over c}\right),
     \end{equation}
-     where $\sigma_\mathrm{obs}$ is the error on $\log_{10}(M_\mathrm{HI}/M_\odot)$. We find a reasonable fit using
+     where $\sigma_\mathrm{obs}$ is the error on $\log_{10}(M_\mathrm{HI}/\mathrm{M}_\odot)$. We find a reasonable fit using
      values\footnote{This should not be regarded as a formal good fit. Error estimates are approximate---we have simply found a
      functional form that roughly describes them, along with conservative errors on the parameters of this function which are
      included in the priors.} of $a=$\mono{a}$=0.100 \pm 0.010$, $b=$\mono{b}$=5.885 \pm

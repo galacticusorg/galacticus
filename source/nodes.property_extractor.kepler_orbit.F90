@@ -21,7 +21,7 @@
 
   !![
   <nodePropertyExtractor name="nodePropertyExtractorKeplerOrbit" abstract="yes">
-   <description>A property extractor class for \mono{keplerOrbit} objects.</description>
+   <description>Abstract base class for extractors of orbital parameters stored in \mono{keplerOrbit} objects associated with satellite nodes. Supports extraction of orbital energy, angular momentum, pericenter and apocenter radii, eccentricity, semi-major axis, velocities, and masses of the satellite's orbit within its host halo.</description>
   </nodePropertyExtractor>
   !!]
   type, extends(nodePropertyExtractorTuple), abstract :: nodePropertyExtractorKeplerOrbit

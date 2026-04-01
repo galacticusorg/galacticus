@@ -26,7 +26,7 @@ Implements a filter that passes nodes only if they exist at an output time.
   !![
   <galacticFilter name="galacticFilterOutputTimes">
    <description>
-     A filter that passes nodes only if they exist at an output time.
+     A filter that passes nodes only if their cosmic time coincides with one of the requested simulation output times, within a relative tolerance specified by \mono{[toleranceRelative]}. This ensures that only nodes snapshotted at designated output epochs are included in post-processing analyses.
   </description>
   </galacticFilter>
   !!]

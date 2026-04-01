@@ -7,7 +7,6 @@ use XML::Simple;
 use Data::Dumper;
 use Clone qw(clone);
 use Digest::MD5 qw(md5_hex);
-use Scalar::Util qw(reftype);
 use Galacticus::Options;
 use Galacticus::Launch::Hooks;
 use Galacticus::Launch::Local;

@@ -19,9 +19,7 @@
 
   !![
   <nodePropertyExtractor name="nodePropertyExtractorExcursion">
-   <description>
-     A node property extractor which extracts the (infimum of the) excursion corresponding to the mass accretion history for each node.
-   </description>
+   <description>Extracts the infimum of the excursion (the minimum value of the random walk trajectory above threshold) corresponding to the mass accretion history for each node in the excursion set formalism.</description>
   </nodePropertyExtractor>
   !!]
   type, extends(nodePropertyExtractorList) :: nodePropertyExtractorExcursion

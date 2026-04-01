@@ -26,7 +26,7 @@ Implements an N-body data operator which computes mass functions.
 
   !![
   <nbodyOperator name="nbodyOperatorMassFunction">
-   <description>An N-body data operator which computes mass functions.</description>
+   <description>An N-body data operator which computes the halo mass function from N-body simulation data, binning halos logarithmically in mass. Parameters specify the minimum and maximum halo mass, the number of bins per decade, and metadata such as a description, reference, and URL for the simulation.</description>
   </nbodyOperator>
   !!]
   type, extends(nbodyOperatorClass) :: nbodyOperatorMassFunction
@@ -72,32 +72,32 @@ contains
     <inputParameter>
       <name>massMinimum</name>
       <source>parameters</source>
-      <description>The minimum mass to consider counts.</description>
+      <description>The minimum halo mass (in $\mathrm{M}_\odot$) below which halos are excluded from the mass function histogram.</description>
     </inputParameter>
     <inputParameter>
       <name>massMaximum</name>
       <source>parameters</source>
-      <description>The maximum mass to consider.</description>
+      <description>The maximum halo mass (in $\mathrm{M}_\odot$) above which halos are excluded from the mass function histogram.</description>
     </inputParameter>
     <inputParameter>
       <name>massCountPerDecade</name>
       <source>parameters</source>
-      <description>The number of bins per decade of mass.</description>
+      <description>The number of logarithmic bins per decade of halo mass used when constructing the halo mass function.</description>
     </inputParameter>
     <inputParameter>
       <name>description</name>
       <source>parameters</source>
-      <description>A description of this mass function.</description>
+      <description>A human-readable description of this mass function dataset, stored as metadata in the output file.</description>
     </inputParameter>
     <inputParameter>
       <name>simulationReference</name>
       <source>parameters</source>
-      <description>A reference for the simulation.</description>
+      <description>A bibliographic reference for the N-body simulation from which this mass function is derived, stored as metadata.</description>
     </inputParameter>
     <inputParameter>
       <name>simulationURL</name>
       <source>parameters</source>
-      <description>A URL for the simulation.</description>
+      <description>A URL pointing to the publicly accessible dataset or documentation for the N-body simulation, stored as metadata.</description>
     </inputParameter>
     <objectBuilder class="cosmologyParameters" name="cosmologyParameters_" source="parameters"/>
     !!]

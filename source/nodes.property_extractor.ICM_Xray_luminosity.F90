@@ -27,7 +27,7 @@ Implements an intracluster medium X-ray luminosity property extractor class.
 
   !![
   <nodePropertyExtractor name="nodePropertyExtractorICMXRayLuminosity">
-   <description>An intracluster medium X-ray luminosity property extractor class.</description>
+   <description>Extracts the X-ray luminosity of the intracluster medium by integrating thermal bremsstrahlung and line emission from hot halo gas out to the virial radius, using a cooling function evaluated at each radial shell. Useful for comparison with X-ray cluster survey observations.</description>
   </nodePropertyExtractor>
   !!]
   type, extends(nodePropertyExtractorScalar) :: nodePropertyExtractorICMXRayLuminosity

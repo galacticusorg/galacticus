@@ -24,7 +24,7 @@ Implements a stellar mass function output analysis class.
 
   !![
   <outputAnalysis name="outputAnalysisLuminosityFunctionGunawardhana2013SDSS">
-   <description>An SDSS H$\alpha$ luminosity function output analysis class for the \cite{gunawardhana_galaxy_2013} analysis.</description>
+   <description>Computes the H$\alpha$ emission line luminosity function for comparison with the SDSS \cite{gunawardhana_galaxy_2013} measurements, with H$\alpha$ luminosity random/systematic error polynomial coefficients, gravitational lensing source size, and binomial covariance matrix parameters.</description>
   </outputAnalysis>
   !!]
   type, extends(outputAnalysisLuminosityFunctionHalpha) :: outputAnalysisLuminosityFunctionGunawardhana2013SDSS

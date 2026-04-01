@@ -25,9 +25,7 @@ Implements a tidal radius property extractor class.
 
   !![
   <nodePropertyExtractor name="nodePropertyExtractorRadiusTidal">
-   <description>
-    A tidal radius property extractor class. Extracts the tidal radius in the halo in Mpc.
-   </description>
+   <description>Extracts the tidal radius of each halo in Mpc, defined as the radius at which the tidal forces from the host halo equal the self-gravity of the subhalo, beyond which mass is susceptible to stripping.</description>
   </nodePropertyExtractor>
   !!]
   type, extends(nodePropertyExtractorScalar) :: nodePropertyExtractorRadiusTidal

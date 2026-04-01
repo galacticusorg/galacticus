@@ -163,31 +163,31 @@ contains
     <inputParameter>
       <name>inertiaWeight</name>
       <defaultValue>0.72d0</defaultValue>
-      <description>Inertia parameter.</description>
+      <description>The inertia weight $w$ controlling how much of the particle's current velocity is retained at each step; values less than 1 provide damping that aids convergence.</description>
       <source>parameters</source>
     </inputParameter>
     <inputParameter>
       <name>accelerationCoefficientPersonal</name>
       <defaultValue>1.193d0</defaultValue>
-      <description>Personal acceleration parameter.</description>
+      <description>The personal (cognitive) acceleration coefficient $c_1$ scaling the attraction of each particle toward its own historical best-known position.</description>
       <source>parameters</source>
     </inputParameter>
     <inputParameter>
       <name>accelerationCoefficientGlobal</name>
       <defaultValue>1.193d0</defaultValue>
-      <description>Global acceleration parameter.</description>
+      <description>The global (social) acceleration coefficient $c_2$ scaling the attraction of each particle toward the swarm's global best-known position.</description>
       <source>parameters</source>
     </inputParameter>
     <inputParameter>
       <name>velocityCoefficient</name>
       <defaultValue>0.5d0</defaultValue>
-      <description>Velocity parameter.</description>
+      <description>The maximum velocity coefficient $v_\mathrm{max}$ expressed as a fraction of the parameter space range, limiting the step size of particle velocities during ongoing swarm iterations.</description>
       <source>parameters</source>
     </inputParameter>
     <inputParameter>
       <name>velocityCoefficientInitial</name>
       <defaultValue>0.0d0</defaultValue>
-      <description>Velocity parameter.</description>
+      <description>The initial velocity coefficient used to scale particle velocities at the start of the swarm simulation, before the main velocity update rule applies.</description>
       <source>parameters</source>
     </inputParameter>
     <objectBuilder class="posteriorSampleLikelihood"        name="posteriorSampleLikelihood_"        source="parameters"/>

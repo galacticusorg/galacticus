@@ -19,7 +19,7 @@
 
   !![
   <radiativeTransferSpectrum name="radiativeTransferSpectrumBlackBody">
-   <description>A photon spectrum class for blackbody spectra.</description>
+   <description>A photon spectrum class that computes the spectral luminosity of a thermal blackbody source for use in radiative transfer calculations, scaling the Planck function to a specified bolometric luminosity. The blackbody temperature and total bolometric luminosity are set by the \mono{[temperature]} (in Kelvin) and \mono{[luminosityBolometric]} (in $L_\odot$) parameters.</description>
   </radiativeTransferSpectrum>
   !!]
   type, extends(radiativeTransferSpectrumClass) :: radiativeTransferSpectrumBlackBody

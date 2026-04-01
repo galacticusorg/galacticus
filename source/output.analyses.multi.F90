@@ -28,7 +28,7 @@
 
   !![
   <outputAnalysis name="outputAnalysisMulti">
-   <description>A merger tree analysis class which combines multiple other analyses.</description>
+   <description>Combines multiple \refClass{outputAnalysisClass} objects into a single analysis that runs all of them, enabling modular composition of independent analyses into a single output analysis configuration.</description>
    <linkedList type="multiAnalysisList" variable="analyses" next="next" object="analysis_" objectType="outputAnalysisClass"/>
   </outputAnalysis>
   !!]

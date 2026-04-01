@@ -25,7 +25,7 @@ Implements an interval pass filter on any node property.
 
   !![
   <galacticFilter name="galacticFilterIntervalPass">
-   <description>an interval pass filter on any node property.</description>
+   <description>An interval pass galactic filter that passes only nodes for which a scalar property, extracted via \mono{[nodePropertyExtractor]}, lies within the interval [\mono{[thresholdLow]}, \mono{[thresholdHigh]}]. This enables selection of galaxies or halos within any bounded range of an extractable property.</description>
   </galacticFilter>
   !!]
   type, extends(galacticFilterClass) :: galacticFilterIntervalPass

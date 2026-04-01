@@ -26,7 +26,7 @@
 
   !![
   <outputAnalysis name="outputAnalysisHIVsHaloMassRelationPadmanabhan2017">
-   <description>An HI vs halo mass relation output analysis class.</description>
+   <description>Computes the HI gas mass to dark matter halo mass relation for comparison with the \cite{padmanabhan_halo_2017} ALFALFA observational constraints, with systematic and random error polynomial coefficients and optional single-bin likelihood evaluation.</description>
   </outputAnalysis>
   !!]
   type, extends(outputAnalysisMeanFunction1D) :: outputAnalysisHIVsHaloMassRelationPadmanabhan2017

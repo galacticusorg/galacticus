@@ -26,7 +26,7 @@ Implements an N-body data operator which determines the mean position and veloci
   
   !![
   <nbodyOperator name="nbodyOperatorMeanPosition">
-   <description>An N-body data operator which determines the mean position and velocity of particles.</description>
+   <description>An N-body data operator which computes the mass-weighted mean position and mean velocity of particles within an N-body halo. The \mono{selfBoundOnly} parameter restricts the calculation to self-bound particles, and \mono{bootstrapSampleCount} controls the number of bootstrap resamples for error estimation.</description>
   </nbodyOperator>
   !!]
   type, extends(nbodyOperatorClass) :: nbodyOperatorMeanPosition

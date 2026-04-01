@@ -42,7 +42,7 @@ module Posterior_Sampling_Prop_Size_Temp_Exp
     for use in tempered differential evolution simulations
    </description>
    <method name="exponent" >
-    <description>Return the temperature exponent.</description>
+    <description>Return the temperature-scaling exponent $\alpha$ for the current simulation state, which controls how the proposal size $\gamma$ scales with the chain temperature in tempered differential evolution runs.</description>
     <type>double precision</type>
     <pass>yes</pass>
     <argument>class           (posteriorSampleStateClass      ), intent(inout), dimension(:) :: temperedStates</argument>

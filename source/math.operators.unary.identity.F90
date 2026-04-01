@@ -23,7 +23,7 @@
 
   !![
   <operatorUnary name="operatorUnaryIdentity">
-   <description>An identity unary operator.</description>
+   <description>A unary operator implementing the identity transformation $f(x) = x$; applying this operator leaves the value unchanged, and its inverse is also the identity.</description>
   </operatorUnary>
   !!]
   type, extends(operatorUnaryClass) :: operatorUnaryIdentity

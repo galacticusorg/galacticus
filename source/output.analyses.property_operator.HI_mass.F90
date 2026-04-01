@@ -25,7 +25,7 @@ Implements a conversion of ISM mass to HI mass analysis property operator class.
 
   !![
   <outputAnalysisPropertyOperator name="outputAnalysisPropertyOperatorHIMass">
-   <description>A conversion of ISM mass to HI mass analysis property operator class.</description>
+   <description>Converts ISM (interstellar medium) gas mass to neutral hydrogen (HI) mass using a \refClass{outputAnalysisMolecularRatioClass} object, accounting for the molecular-to-atomic gas ratio to predict observable HI properties.</description>
   </outputAnalysisPropertyOperator>
   !!]
   type, extends(outputAnalysisPropertyOperatorClass) :: outputAnalysisPropertyOperatorHIMass

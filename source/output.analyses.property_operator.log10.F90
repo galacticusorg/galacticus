@@ -23,7 +23,7 @@ Implements an log10 output analysis property operator class.
 
   !![
   <outputAnalysisPropertyOperator name="outputAnalysisPropertyOperatorLog10">
-   <description>An log10 output analysis property operator class.</description>
+   <description>Applies a $\log_{10}$ transformation to a property value, converting from linear to logarithmic scale as part of an output analysis property operator pipeline.</description>
   </outputAnalysisPropertyOperator>
   !!]
   type, extends(outputAnalysisPropertyOperatorClass) :: outputAnalysisPropertyOperatorLog10

@@ -115,13 +115,13 @@ contains
     <inputParameter>
       <name>thresholdHatR</name>
       <defaultValue>1.2d0</defaultValue>
-      <description>The $\hat{R}$ value at which convergence is declared.</description>
+      <description>The Gelman-Rubin potential scale reduction factor $\hat{R}$ threshold below which all parameters must fall for the chains to be declared converged; values close to 1.0 indicate convergence, with 1.2 being a common default.</description>
       <source>parameters</source>
     </inputParameter>
     <inputParameter>
       <name>burnCount</name>
       <defaultValue>0</defaultValue>
-      <description>The number of steps to burn before computing convergence.</description>
+      <description>The number of initial MCMC steps to discard as burn-in before beginning to accumulate chain history for the Gelman-Rubin $\hat{R}$ convergence test.</description>
       <source>parameters</source>
     </inputParameter>
     <inputParameter>
@@ -133,13 +133,13 @@ contains
     <inputParameter>
       <name>outlierCountMaximum</name>
       <defaultValue>0</defaultValue>
-      <description>The maximum number of outlier states allowed.</description>
+      <description>The maximum number of chains whose current state may be identified as statistical outliers when computing the convergence statistic.</description>
       <source>parameters</source>
     </inputParameter>
     <inputParameter>
       <name>outlierSignificance</name>
       <defaultValue>0.05d0</defaultValue>
-      <description>The significance at which to declare a state an outlier.</description>
+      <description>The statistical significance level used when testing whether a chain's current log-likelihood deviates sufficiently from the ensemble mean to be classified as an outlier chain.</description>
       <source>parameters</source>
     </inputParameter>
     <inputParameter>

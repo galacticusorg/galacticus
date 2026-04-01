@@ -82,32 +82,32 @@ contains
     !![
     <inputParameter>
       <name>gammaInitial</name>
-      <description>The initial proposal size, $\gamma$.</description>
+      <description>The initial value of the proposal scaling parameter $\gamma$ used before the acceptance rate has been assessed and any adaptive adjustment has been made.</description>
       <source>parameters</source>
     </inputParameter>
     <inputParameter>
       <name>gammaMinimum</name>
-      <description>The minimum allowed proposal size, $\gamma$.</description>
+      <description>The minimum value to which the proposal scaling parameter $\gamma$ is permitted to be reduced during adaptive adjustment, preventing the step size from becoming vanishingly small.</description>
       <source>parameters</source>
     </inputParameter>
     <inputParameter>
       <name>gammaMaximum</name>
-      <description>The maximum allowed proposal size, $\gamma$.</description>
+      <description>The maximum value to which the proposal scaling parameter $\gamma$ is permitted to be increased during adaptive adjustment, preventing excessively large steps that would degrade acceptance rates.</description>
       <source>parameters</source>
     </inputParameter>
     <inputParameter>
       <name>gammaAdjustFactor</name>
-      <description>The factor by which to adjust the proposal size, $\gamma$.</description>
+      <description>The multiplicative factor by which $\gamma$ is increased or decreased at each adaptation step when the current acceptance rate falls outside the target range.</description>
       <source>parameters</source>
     </inputParameter>
     <inputParameter>
       <name>acceptanceRateMinimum</name>
-      <description>The minimum acceptable acceptance rate.</description>
+      <description>The minimum acceptable chain acceptance rate; if the measured acceptance rate falls below this threshold $\gamma$ is reduced to produce smaller, more easily accepted proposals.</description>
       <source>parameters</source>
     </inputParameter>
     <inputParameter>
       <name>acceptanceRateMaximum</name>
-      <description>The maximum acceptable acceptance rate.</description>
+      <description>The maximum acceptable chain acceptance rate; if the measured acceptance rate exceeds this threshold $\gamma$ is increased to produce larger proposals that explore the posterior more efficiently.</description>
       <source>parameters</source>
     </inputParameter>
     <inputParameter>

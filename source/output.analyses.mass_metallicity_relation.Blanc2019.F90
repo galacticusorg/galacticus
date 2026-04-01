@@ -23,7 +23,7 @@
 
   !![
   <outputAnalysis name="outputAnalysisMassMetallicityBlanc2019">
-   <description>A gas-phase mass-metallicity relation analysis class using the observational results of \cite{blanc_characteristic_2019}.</description>
+   <description>Computes the gas-phase stellar mass--metallicity relation for comparison with the \cite{blanc_characteristic_2019} observational data, with stellar mass and metallicity random/systematic error polynomial coefficients and a gas fraction threshold for sample selection.</description>
   </outputAnalysis>
   !!]
   type, extends(outputAnalysisMeanFunction1D) :: outputAnalysisMassMetallicityBlanc2019

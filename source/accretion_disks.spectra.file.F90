@@ -27,7 +27,7 @@
 
   !![
   <accretionDiskSpectra name="accretionDiskSpectraFile">
-   <description>Accretion disk spectra are interpolated from tables read from file.</description>
+   <description>Accretion disk spectra are computed by interpolating from tabulated data read from a file specified by \mono{[fileName]}. The tables provide spectral energy distributions as a function of physical parameters, enabling efficient lookup of accretion disk emission across a range of conditions.</description>
    <runTimeFileDependencies paths="fileName"/>
   </accretionDiskSpectra>
   !!]

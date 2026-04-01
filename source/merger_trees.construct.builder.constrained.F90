@@ -33,7 +33,7 @@
   !![
   <mergerTreeBuilder name="mergerTreeBuilderConstrained">
    <description>
-    A merger tree builder class that enforces constraints on the merger tree built by some other builder.
+    A merger tree builder class that enforces physical constraints on merger trees constructed by a delegate builder class, repeatedly rebuilding trees until all filter criteria are satisfied. Multiple builder-filter pairs can be specified, with \mono{[trialCountMaximum]} setting the maximum number of rebuild attempts before the process fails.
    </description>
    <linkedList type="constrainedBuilderList" variable="mergerTreeBuilders" next="next" object="mergerTreeBuilder_ mergerTreeFilter_" objectType="mergerTreeBuilderClass mergerTreeFilterClass"/>
   </mergerTreeBuilder>

@@ -26,7 +26,7 @@
 
   !![
   <modelParameter name="modelParameterActive">
-   <description>An active model parameter class.</description>
+   <description>An active model parameter class representing a free parameter that participates in posterior sampling, with a prior distribution, perturbation distribution, and optional mapping transformation. The parameter name is set by \mono{[name]}, with prior and perturbation distributions provided as objects, and a unary operator applied to transform the parameter value for model evaluation.</description>
   </modelParameter>
   !!]
   type, extends(modelParameterClass) :: modelParameterActive
@@ -75,7 +75,7 @@ contains
     !![
     <inputParameter>
       <name>name</name>
-      <description>The name of the parameter.</description>
+      <description>The name of the active model parameter as it appears in the \glc\ parameter file and output metadata; used to identify and retrieve the parameter during posterior sampling runs.</description>
       <defaultValue>var_str('')</defaultValue>
       <source>parameters</source>
     </inputParameter>

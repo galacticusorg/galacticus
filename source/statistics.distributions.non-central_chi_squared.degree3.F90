@@ -24,7 +24,11 @@
   !![
   <distributionFunction1D name="distributionFunction1DNonCentralChiDegree3">
    <description>
-    A non-central $\chi^2$ distribution with 3 degrees of freedom.
+    A non-central $\chi^2$ distribution with 3 degrees of freedom, parameterized by the non-centrality parameter $\lambda \ge 0$.
+    The density is evaluated using the modified Bessel function of the first kind $I_{1/2}$, and the CDF is computed analytically
+    using complementary error functions. When $\lambda = 0$ the distribution reduces to the central $\chi^2_3$ distribution.
+    This distribution arises naturally when computing the distribution of the modulus of a 3D vector whose components are
+    independent Gaussians with non-zero means.
    </description>
   </distributionFunction1D>
   !!]
@@ -67,7 +71,7 @@ contains
     !![
     <inputParameter>
       <name>lambda</name>
-      <description>Non centrality parameter</description>
+      <description>The non-centrality parameter $\lambda \ge 0$ of the non-central $\chi^2$ distribution with 3 degrees of freedom, equal to the sum of squares of the non-central normal means; when $\lambda = 0$ the distribution reduces to a central $\chi^2_3$.</description>
       <source>parameters</source>
     </inputParameter>
     <objectBuilder class="randomNumberGenerator" name="randomNumberGenerator_" source="parameters"/>

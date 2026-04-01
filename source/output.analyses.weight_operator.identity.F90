@@ -23,7 +23,7 @@ Implements an identity analysis weight operator class.
 
   !![
   <outputAnalysisWeightOperator name="outputAnalysisWeightOperatorIdentity">
-   <description>An identity analysis weight operator class.</description>
+   <description>Returns a weight of unity for every node without modification, serving as a no-op weight operator in output analysis pipelines where uniform weighting is desired.</description>
   </outputAnalysisWeightOperator>
   !!]
   type, extends(outputAnalysisWeightOperatorClass) :: outputAnalysisWeightOperatorIdentity

@@ -25,7 +25,7 @@
 
   !![
   <nodeOperator name="nodeOperatorSatelliteMassLoss">
-   <description>A node operator class that triggers merging of satellites based on a merging time.</description>
+   <description>A node operator class that evolves the bound dark matter mass of satellite halos at each ODE timestep using a \refClass{darkMatterHaloMassLossRateClass} to compute the mass loss rate. \mono{massBoundIsInactive} controls whether the bound mass is treated as an inactive ODE variable (set true for improved performance when mass loss is negligible or prescribed externally).</description>
   </nodeOperator>
   !!]
   type, extends(nodeOperatorClass) :: nodeOperatorSatelliteMassLoss

@@ -51,13 +51,13 @@ class SLURMManager(QueueManager):
             self.options[option]  = config.find(option).text
         for option in 'jobMaximum', 'waitOnSubmit', 'waitOnActive':
             self.options[option]  = int(config.find(option).text)
-        if args.partition    is not None:
+        if 'partition'    in vars(args) and args.partition    is not None:
             self.options['partition'   ] = args.partition
-        if args.jobMaximum   is not None:
+        if 'jobMaximum'   in vars(args) and args.jobMaximum   is not None:
             self.options['jobMaximum'  ] = args.jobMaximum
-        if args.waitOnSubmit is not None:
+        if 'waitOnSubmit' in vars(args) and args.waitOnSubmit is not None:
             self.options['waitOnSubmit'] = args.waitOnSubmit
-        if args.waitOnActive is not None:
+        if 'waitOnActive' in vars(args) and args.waitOnActive is not None:
             self.options['waitOnActive'] = args.waitOnActive
             
     def submitJobs(self,jobs):
@@ -97,27 +97,44 @@ class SLURMManager(QueueManager):
                         print(f'Job "{activeJobs[jobID]["label"]}" has started')
                     activeJobs[jobID]['state'] = jobState
                 # Remove jobs that are no longer active.
-                jobIDsToRemove = []
+                jobIDsToRemove = {}
                 for jobID in activeJobs:
                     if jobID not in runningJobs:
-                        jobIDsToRemove.append(jobID)
-                for jobID in jobIDsToRemove:
-                    print(f'Job "{activeJobs[jobID]["label"]}" has finished')
-                    scontrol = subprocess.run(['scontrol', 'show', 'job', jobID, '--json'], capture_output=True, text=True)
-                    if scontrol.returncode == 0:
-                        # Parse the JSON output from scontrol
-                        jobData = json.loads(scontrol.stdout)
-                        try:
-                            activeJobs[jobID]['exitStatus'] = jobData['jobs'][0]['exit_code']['return_code']['number']
-                        except IndexError:
-                            activeJobs[jobID]['exitStatus'] = -2
-                    else:
+                        jobIDsToRemove[jobID] = 1
+                # Get status of all jobs to be removed.
+                sacct = subprocess.run(['sacct', '-j', ",".join(list(jobIDsToRemove.keys())), '--json'], capture_output=True, text=True)
+                if sacct.returncode == 0:
+                    # Parse the JSON output from sacct.
+                    jobsToRemoveData = json.loads(sacct.stdout)
+                    for job in jobsToRemoveData['jobs']:
+                        jobID = str(job['job_id'])
+                        if jobID in jobIDsToRemove:
+                            print(f'Job "{activeJobs[jobID]["label"]}" has finished')
+                            # Store the return code for the job.
+                            try:
+                                activeJobs[jobID]['exitStatus'] = job['exit_code']['return_code']['number']
+                            except IndexError:
+                                activeJobs[jobID]['exitStatus'] = -2
+                            # Perform any "on completion" task.
+                            if 'onCompletion' in activeJobs[jobID]:
+                                activeJobs[jobID]['onCompletion'](activeJobs[jobID])
+                            # Remove the job from the list of active jobs.
+                            del activeJobs[jobID]
+                            # Remove the job ID from the dictionary of jobs to remove.
+                            del jobIDsToRemove[jobID]
+                    # For any remaining jobs in our dictionary of jobs to remove, we got no data from sacct.
+                    for jobID in jobIDsToRemove:
+                        print(f'Job "{activeJobs[jobID]["label"]}" has finished')
                         activeJobs[jobID]['exitStatus'] = -1
-                    if 'onCompletion' in activeJobs[jobID]:
-                        activeJobs[jobID]['onCompletion'](activeJobs[jobID])
-                    del activeJobs[jobID]
+                else:
+                    # `sacct` failed - report this but do not exit - could be a temporary failure.
+                    print(f"`sacct` command failed with return code: {sacct.returncode}")
+                    print(sacct.stderr)
+                    time.sleep(self.options['waitOnActive'])
                 # Decide if we should submit a new job.
-                if len(runningJobs) < self.options['jobMaximum'] and len(jobs) > 0:
+                didSubmit = False
+                countNewSubmits = self.options['jobMaximum']-len(runningJobs)
+                while countNewSubmits > 0 and len(jobs) > 0:
                     # Get the next job.
                     job = jobs.pop()
                     # Set job defaults.
@@ -188,8 +205,14 @@ class SLURMManager(QueueManager):
                             time.sleep(timeSleep)
                     if not submitSuccess:
                         raise Exception("`sbatch` command failed after multiple attempts")
+                    # Record that we submitted a job.
+                    didSubmit = True
+                    # Decrement the number of new jobs we can submit.
+                    countNewSubmits = countNewSubmits-1
+                    # Wait before submitting a new job.
                     time.sleep(self.options['waitOnSubmit'])
-                elif len(activeJobs) > 0:
+                # If no jobs were submitted, wait before checking again.
+                if not didSubmit:
                     time.sleep(self.options['waitOnActive'])
             else:
                 # `squeue` failed - report this but do not exit - could be a temporary failure.

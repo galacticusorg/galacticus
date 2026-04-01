@@ -118,7 +118,7 @@
   !![
   <enumeration>
    <name>sussingHaloFormat</name>
-   <description>Halo file formats.</description>
+   <description>Enumeration of supported halo catalog file format versions for the ``Sussing Merger Trees'' ASCII importer: \mono{old} and \mono{new} refer to distinct AHF column layouts, while \mono{all} accepts either format.</description>
    <entry label="old"/>
    <entry label="new"/>
    <entry label="all"/>
@@ -163,14 +163,14 @@ contains
       <name>forestFirst</name>
       <variable>self%forestFirst</variable>
       <defaultValue>1</defaultValue>
-      <description>Index of first forest to include.</description>
+      <description>The 1-based index of the first forest in the file to include when reading a subset of forests; forests before this index are skipped.</description>
       <source>parameters</source>
     </inputParameter>
     <inputParameter>
       <name>forestLast</name>
       <variable>self%forestLast</variable>
       <defaultValue>-1</defaultValue>
-      <description>Index of last forest to include.</description>
+      <description>The 1-based index of the last forest in the file to include when reading a subset of forests; a value of $-1$ includes all forests through the end of the file.</description>
       <source>parameters</source>
     </inputParameter>
     <inputParameter>

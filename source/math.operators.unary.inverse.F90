@@ -23,7 +23,7 @@
 
   !![
   <operatorUnary name="operatorUnaryInverse">
-   <description>An inverse unary operator.</description>
+   <description>A unary operator implementing the multiplicative inverse $f(x) = 1/x$; applying this operator returns the reciprocal of the input value, and the operator is self-inverse.</description>
   </operatorUnary>
   !!]
   type, extends(operatorUnaryClass) :: operatorUnaryInverse

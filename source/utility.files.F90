@@ -722,7 +722,7 @@ contains
 
   function File_Name_Expand_VarStr(fileNameIn) result(fileNameOut)
     !!{
-    Expands placeholders for Galacticus paths in file names.
+    Expands placeholders for \glc\ paths in file names.
     !!}
     use :: ISO_Varying_String, only : char
     implicit none
@@ -755,7 +755,7 @@ contains
 
   function File_Name_Expand_Char(fileNameIn) result(fileNameOut)
     !!{
-    Expands placeholders for Galacticus paths in file names.
+    Expands placeholders for \glc\ paths in file names.
     !!}
     use :: Input_Paths       , only : inputPath    , pathTypeDataDynamic, pathTypeDataStatic, pathTypeExec
     use :: ISO_Varying_String, only : assignment(=), replace            , index             , extract     , &

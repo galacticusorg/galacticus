@@ -24,7 +24,7 @@
 
   !![
   <task name="taskHaloSpinDistribution">
-   <description>A task which computes and outputs the halo spin distribution.</description>
+   <description>A task which computes and outputs the differential distribution of dark matter halo spin parameters $\mathrm{d}P/\mathrm{d}\lambda$ over a specified range of spin values at each output time, for halos above a specified minimum mass.</description>
   </task>
   !!]
   type, extends(taskClass) :: taskHaloSpinDistribution

@@ -51,9 +51,9 @@
       .
      &lt;/stars&gt;
     \end{verbatim}
-    Each \mono{star} element must contain the \mono{initialMass} (given in $M_\odot$) and
+    Each \mono{star} element must contain the \mono{initialMass} (given in $\mathrm{M}_\odot$) and
     \mono{metallicity} tags. Other tags are optional. \mono{lifetime} gives the lifetime of
-    such a star (in Gyr), \mono{ejectedMass} gives the total mass (in $M_\odot$) ejected by such a star during
+    such a star (in Gyr), \mono{ejectedMass} gives the total mass (in $\mathrm{M}_\odot$) ejected by such a star during
     its lifetime, \mono{metalYieldMass} gives the total mass of metals yielded by the star during its lifetime
     while \mono{elementYieldMassX} gives the mass of element \mono{X} yielded by the star
     during its lifetime. The \mono{source} and \mono{url} tags are not used, but are strongly

@@ -19,10 +19,7 @@
 
   !![
   <nodePropertyExtractor name="nodePropertyExtractorSatelliteMinimumDistance">
-   <description>
-     A node property extractor which extracts the minimum distance from the center that a satellite has ever reached in its
-     current host halo.
-   </description>
+   <description>Extracts the minimum pericentric distance ever reached by a satellite node within its current host halo, recording the closest approach to the halo center as an indicator of tidal stripping history.</description>
   </nodePropertyExtractor>
   !!]
   type, extends(nodePropertyExtractorScalar) :: nodePropertyExtractorSatelliteMinimumDistance

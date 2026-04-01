@@ -30,7 +30,7 @@
 
   !![
   <linearGrowth name="linearGrowthBaryonsDarkMatter">
-   <description>Linear growth of cosmological structure in models containing baryons and dark matter. Assumes no growth of radiation perturbations.</description>
+   <description>Linear growth of cosmological density perturbations in models containing both baryons and collisionless dark matter, computed by numerically integrating the coupled growth equations. Radiation perturbation growth is neglected. The integration is initialized at the redshift \mono{[redshiftInitial]} and can use CAMB to set transfer function wavenumber sampling.</description>
    <deepCopy>
     <functionClass variables="linearGrowthCollisionlessMatter_"/>
    </deepCopy>

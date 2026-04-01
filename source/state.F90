@@ -18,13 +18,13 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
 !!{
-Contains a module which implements storage and recovery of the Galacticus internal state. Used for restoring random number
+Contains a module which implements storage and recovery of the \glc\ internal state. Used for restoring random number
 generator sequences for example.
 !!}
 
 module State
   !!{
-  Implements storage and recovery of the Galacticus internal state. Used for restoring random number
+  Implements storage and recovery of the \glc\ internal state. Used for restoring random number
   generator sequences for example.
   !!}
   use, intrinsic :: ISO_C_Binding     , only : c_size_t
@@ -57,7 +57,9 @@ contains
   !!]
   subroutine State_Store(logMessage)
     !!{
-    Store the internal state.
+    Serialize and write the current \glc\ internal state (random number generator sequences, object data, etc.) to
+    binary files on disk, enabling later restarts from this checkpoint. Supports OpenMP thread-local and MPI rank-local
+    state files. Optionally appends a log message to a human-readable log file alongside the state file.
     !!}
 #ifdef USEMPI
     use            :: MPI_Utilities     , only : mpiSelf
@@ -149,7 +151,10 @@ contains
   !!]
   subroutine State_Retrieve
     !!{
-    Retrieve the internal state.
+    Restore the \glc\ internal state from previously written checkpoint files, allowing a simulation to be restarted
+    from a saved state. Reads both the binary Fortran state file and the GSL random number generator state file. This
+    operation is performed at most once per run (subsequent calls are no-ops) and is thread-safe via OpenMP critical sections.
+    Supports OpenMP thread-local and MPI rank-local state files.
     !!}
     use            :: Interface_GSL     , only : gslFileOpen , gslFileClose
 #ifdef USEMPI

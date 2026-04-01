@@ -78,8 +78,7 @@
 
   <!-- Prune trees which lie outside the lightcone -->
   <mergerTreeOperator value="pruneLightcone">
-    <splitTrees          value="true"/>
-    <bufferIsolatedHalos value="true"/>
+    <splitTrees value="true"/>
   </mergerTreeOperator>
 
   <!-- Specify output properties -->

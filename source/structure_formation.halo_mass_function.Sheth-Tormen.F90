@@ -25,7 +25,7 @@ Implements a \cite{sheth_ellipsoidal_2001} dark matter halo mass function class.
   !![
   <haloMassFunction name="haloMassFunctionShethTormen">
    <description>
-    A dark matter halo mass function class using the function given by \cite{sheth_ellipsoidal_2001}.
+    The dark matter halo mass function is computed using the ellipsoidal collapse fitting function of \cite{sheth_ellipsoidal_2001}, which improves upon the Press-Schechter formalism by accounting for non-spherical collapse. The shape parameters $a$, $p$ and normalization $A$ of the fit can each be specified via input parameters.
    </description>
   </haloMassFunction>
   !!]

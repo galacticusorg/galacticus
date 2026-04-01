@@ -23,7 +23,7 @@ Implements an inverting filter.
 
   !![
   <galacticFilter name="galacticFilterNot">
-   <description>A filter which simply inverts the result of another filter.</description>
+   <description>Implements logical negation of a wrapped \refClass{galacticFilterClass}, passing nodes that the wrapped filter would reject and rejecting those it would pass, enabling complement-based selection criteria without defining explicit inverse filters.</description>
   </galacticFilter>
   !!]
   type, extends(galacticFilterClass) :: galacticFilterNot

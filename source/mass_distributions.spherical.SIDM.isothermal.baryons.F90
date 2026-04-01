@@ -122,7 +122,7 @@ contains
     <inputParameter>
       <name>timeAge</name>
       <source>parameters</source>
-      <description>The age of the halo (in Gyr).</description>
+      <description>The age of the halo (in Gyr) since its formation, setting the time available for SIDM interactions to thermalize the dark matter core while the baryonic potential influences the resulting density profile.</description>
     </inputParameter>
     <inputParameter>
       <name>nonAnalyticSolver</name>

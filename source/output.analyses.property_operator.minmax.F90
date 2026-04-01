@@ -23,7 +23,7 @@ Implements a min-max analysis property operator class.
 
   !![
   <outputAnalysisPropertyOperator name="outputAnalysisPropertyOperatorMinMax">
-   <description>A min-max analysis property operator class.</description>
+   <description>An output analysis property operator that clamps a galaxy property value to lie within a specified range, replacing values below \mono{thresholdMinimum} with the minimum threshold and values above \mono{thresholdMaximum} with the maximum threshold.</description>
   </outputAnalysisPropertyOperator>
   !!]
   type, extends(outputAnalysisPropertyOperatorClass) :: outputAnalysisPropertyOperatorMinMax

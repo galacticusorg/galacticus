@@ -19,7 +19,7 @@
 
   !![
   <task name="taskLocalGroupDatabase">
-   <description>A task which updates the Local Group database.</description>
+   <description>A task which updates the Local Group database, downloading and processing observational data on Local Group galaxies (such as stellar masses, star formation rates, and structural parameters) for use as constraints in galaxy formation models.</description>
   </task>
   !!]
   type, extends(taskClass) :: taskLocalGroupDatabase

@@ -100,56 +100,56 @@
      </inputParameter>
      <inputParameter>
        <name>radiusCore</name>
-       <description>The soliton core radius.</description>
+       <description>The soliton core radius (in Mpc) characterizing the size of the central quantum pressure-supported core of the fuzzy dark matter halo before the profile transitions to the outer NFW envelope.</description>
        <source>parameters</source>
      </inputParameter>
      <inputParameter>
        <name>radiusSoliton</name>
-       <description>The soliton transition radius.</description>
+       <description>The transition radius (in Mpc) at which the solitonic core profile smoothly joins onto the outer NFW envelope; the density profile matches the NFW form beyond this radius.</description>
        <source>parameters</source>
      </inputParameter>
      <inputParameter>
        <name>densitySolitonCentral</name>
-       <description>The central density of the soliton.</description>
+       <description>The central density (in $\mathrm{M}_\odot$/Mpc$^3$) of the solitonic core at $r=0$, which sets the normalization of the soliton density profile $\rho(r) = \rho_\mathrm{c} [1+(r/r_c)^2]^{-8}$.</description>
        <source>parameters</source>
      </inputParameter>
      <inputParameter>
        <name>densityNormalizationNFW</name>
-       <description>The density normalization of the NFW profile.</description>
+       <description>The density normalization $\rho_0$ (in $\mathrm{M}_\odot$/Mpc$^3$) of the outer NFW component, setting the amplitude of the $\rho(r) = \rho_0/[(r/r_\mathrm{s})(1+r/r_\mathrm{s})^2]$ profile.</description>
        <source>parameters</source>
      </inputParameter>
      <inputParameter>
        <name>concentration</name>
-       <description>The concentration of the NFW profile.</description>
+       <description>The concentration parameter $c = r_\mathrm{vir}/r_\mathrm{s}$ of the outer NFW component, specifying how centrally concentrated the NFW halo is.</description>
        <source>parameters</source>
      </inputParameter>
      <inputParameter>
        <name>radiusVirial</name>
-       <description>The virial radius of the NFW profile.</description>
+       <description>The virial radius (in Mpc) of the outer NFW component, defining the outer boundary of the halo at which the mean enclosed density equals the virial overdensity threshold.</description>
        <source>parameters</source>
      </inputParameter>
      <inputParameter>
        <name>toleranceRelativePotential</name>
        <defaultValue>1.0d-3</defaultValue>
-       <description>The relative tolerance for numerical solutions.</description>
+       <description>The relative tolerance used in numerical ODE solutions for the gravitational potential of the soliton-NFW composite profile.</description>
        <source>parameters</source>
      </inputParameter>
      <inputParameter>
        <name>dimensionless</name>
        <defaultValue>.true.</defaultValue>
-       <description>If true the profile is dimensionless.</description>
+       <description>If true the soliton-NFW profile is treated as dimensionless (scale-free), allowing its radial and density quantities to be specified in arbitrary units.</description>
        <source>parameters</source>
      </inputParameter>
      <inputParameter>
        <name>componentType</name>
        <defaultValue>var_str('unknown')</defaultValue>
-       <description>The component type for the profile.</description>
+       <description>The galactic structure component type (e.g.\ dark matter halo, disk, spheroid) represented by this mass distribution, used for component-specific queries.</description>
        <source>parameters</source>
      </inputParameter>
      <inputParameter>
        <name>massType</name>
        <defaultValue>var_str('unknown')</defaultValue>
-       <description>The mass type for the profile.</description>
+       <description>The mass type (e.g.\ dark matter, baryonic, total) represented by this mass distribution, used for mass-type-specific queries.</description>
        <source>parameters</source>
      </inputParameter>
      <conditionalCall>

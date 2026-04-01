@@ -53,7 +53,7 @@
   !![
   <enumeration>
    <name>sequence</name>
-   <description>Enumeration of isoelectronic sequences.</description>
+   <description>Enumeration of isoelectronic sequences (atoms/ions with the same number of electrons) used to select the appropriate tabulated recombination cooling data from \cite{hummer_total_1994}: hydrogen-like, helium-like, or no sequence.</description>
    <indexing>0</indexing>
    <entry label="none"    />
    <entry label="hydrogen"/>
@@ -64,7 +64,7 @@
   !![
   <enumeration>
    <name>level</name>
-   <description>Enumeration of levels.</description>
+   <description>Enumeration of recombination level cases used in the \cite{hummer_total_1994} tables: level 1 includes recombinations to all levels (Case A), while level B excludes direct recombinations to the ground state (Case B).</description>
    <indexing>1</indexing>
    <entry label="1"/>
    <entry label="B"/>

@@ -567,7 +567,7 @@ contains
 
   function naozBarkana2007AccretionRateMetals(self,node,accretionMode)
     !!{
-    Computes the rate of mass of abundance accretion (in $M_\odot/$Gyr) onto \mono{node} from the intergalactic medium.
+    Computes the rate of mass of abundance accretion (in $\mathrm{M}_\odot/$Gyr) onto \mono{node} from the intergalactic medium.
     !!}
     use :: Abundances_Structure, only : abundances        , zeroAbundances      , metallicityTypeLinearByMass, adjustElementsReset
     use :: Galacticus_Nodes    , only : nodeComponentBasic, nodeComponentHotHalo
@@ -633,7 +633,7 @@ contains
 
   function naozBarkana2007FailedAccretionRateMetals(self,node,accretionMode)
     !!{
-    Computes the rate of failed mass of abundance accretion (in $M_\odot/$Gyr) onto \mono{node} from the intergalactic medium.
+    Computes the rate of failed mass of abundance accretion (in $\mathrm{M}_\odot/$Gyr) onto \mono{node} from the intergalactic medium.
     !!}
     use :: Abundances_Structure, only : abundances        , zeroAbundances      , metallicityTypeLinearByMass, adjustElementsReset
     use :: Galacticus_Nodes    , only : nodeComponentBasic, nodeComponentHotHalo
@@ -699,7 +699,7 @@ contains
 
   function naozBarkana2007AccretionRateChemicals(self,node,accretionMode)
     !!{
-    Computes the rate of mass of chemicals accretion (in $M_\odot/$Gyr) onto \mono{node} from the intergalactic medium. Assumes a
+    Computes the rate of mass of chemicals accretion (in $\mathrm{M}_\odot/$Gyr) onto \mono{node} from the intergalactic medium. Assumes a
     primordial mixture of hydrogen and helium and that accreted material is in collisional ionization equilibrium at the virial
     temperature.
     !!}

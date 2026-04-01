@@ -33,7 +33,7 @@
     where $V_\mathrm{outflow}=$\mono{[velocityCharacteristic]} (in km/s) and
     $\alpha_\mathrm{outflow}=$\mono{[exponent]} are input parameters, $V$ is the characteristic velocity of
     the component, $\dot{E}$ is the rate of energy input from stellar populations and $E_\mathrm{canonical}$ is the total
-    energy input by a canonical stellar population normalized to $1 M_\odot$ after infinite time.
+    energy input by a canonical stellar population normalized to $1 \mathrm{M}_\odot$ after infinite time.
    </description>
   </stellarFeedbackOutflows>
   !!]
@@ -115,7 +115,7 @@ contains
 
   subroutine powerLawOutflowRate(self,component,rateStarFormation,rateEnergyInput,rateOutflowEjective,rateOutflowExpulsive)
     !!{
-    Returns the outflow rate (in $M_\odot$ Gyr$^{-1}$) for star formation in the given \mono{component}. The outflow rate is given by \begin{equation} \dot{M}_\mathrm{outflow} = \left({V_\mathrm{outflow} \over
+    Returns the outflow rate (in $\mathrm{M}_\odot$ Gyr$^{-1}$) for star formation in the given \mono{component}. The outflow rate is given by \begin{equation} \dot{M}_\mathrm{outflow} = \left({V_\mathrm{outflow} \over
     V}\right)^{\alpha_\mathrm{outflow}}, \end{equation} where $V_\mathrm{outflow}$(=\mono{velocityCharacteristic}) is the velocity scale at which outflow rate equals star formation rate and $\alpha_{\mathrm
     outflow}$(=\mono{exponent}) controls the scaling with velocity. Note that the velocity
     $V$ is whatever characteristic value returned by the disk/spheroid component. This scaling is functionally similar to

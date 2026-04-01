@@ -19,7 +19,7 @@
 
   !![
   <task name="taskBuildToolCAMB">
-   <description>A task which builds the CAMB tool.</description>
+   <description>A task which downloads, compiles, and installs the CAMB (Code for Anisotropies in the Microwave Background) Boltzmann code, making it available for computing CMB power spectra, matter transfer functions, and linear matter power spectra.</description>
   </task>
   !!]
   type, extends(taskClass) :: taskBuildToolCAMB

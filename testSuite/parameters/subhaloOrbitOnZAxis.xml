@@ -477,7 +477,6 @@
   
     <mergerTreeOperator value="pruneLightcone">
       <splitTrees value="true"/>
-      <bufferIsolatedHalos value="true"/>
     </mergerTreeOperator>
   
 

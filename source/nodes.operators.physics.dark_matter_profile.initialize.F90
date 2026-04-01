@@ -23,9 +23,7 @@
   
   !![
   <nodeOperator name="nodeOperatorDarkMatterProfileInitialize">
-   <description>
-    A node operator class that simply initializes the dark matter profile.
-   </description>
+   <description>Initializes the dark matter profile of each halo node at tree initialization time, setting up the profile state required by downstream physics calculations that depend on halo structure.</description>
   </nodeOperator>
   !!]
   type, extends(nodeOperatorClass) :: nodeOperatorDarkMatterProfileInitialize

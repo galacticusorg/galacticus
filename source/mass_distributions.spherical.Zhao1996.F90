@@ -168,7 +168,7 @@ contains
     <inputParameter>
       <name>mass</name>
       <defaultValue>1.0d0</defaultValue>
-      <description>The mass of the Zhao1996 profile.</description>
+      <description>The total mass (in $\mathrm{M}_\odot$) of the \cite{zhao_analytical_1996} profile, used to set the density normalization $\rho_0$ when \mono{densityNormalization} is not supplied directly.</description>
       <source>parameters</source>
     </inputParameter>
     <inputParameter>

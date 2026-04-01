@@ -32,10 +32,12 @@ module Cooling_Freefall_Times_Available
   !![
   <functionClass>
    <name>freefallTimeAvailable</name>
-   <descriptiveName>Freefall time available.</descriptiveName>
-   <description>
-    Class providing models of the time available for freefall in cooling calculations.
-   </description>
+   <descriptiveName>Freefall Time Available</descriptiveName>
+   <description>Class providing models of the time available for freefall (in Gyr) in the cooling flow calculation,
+    analogous to the cooling time available class but governing the freefall radius. This time, typically anchored
+    to halo formation, enters the computation of the freefall radius and thereby determines which cooling regime
+    applies. The rate of increase of this available time is also provided for use in ODE-based evolution of the
+    hot gas atmosphere.</description>
    <default>haloFormation</default>
    <method name="timeAvailable" >
     <description>Returns the time available for freefall in cooling calculations in \mono{node}.</description>

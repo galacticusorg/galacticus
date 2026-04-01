@@ -60,7 +60,7 @@
     \begin{description}
     \item [\mono{galacticus}] merger trees are exported in \glc's native format described in detail
       \href{https://github.com/galacticusorg/galacticus/wiki/Merger-Tree-File-Format}{here};
-    \item [\mono{irate}] merger trees are exported in the \href{https://irate-format.readthedocs.io/en/stable/formatspec.html}\mono{IRATE} format.
+    \item [\mono{irate}] merger trees are exported in the \href{https://irate-format.readthedocs.io/en/stable/formatspec.html}{\mono{IRATE}} format.
     \end{description}
     
     Properties to read from the file are specified through multiple \mono{property} sub-parameter sections, which take the form:

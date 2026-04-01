@@ -87,7 +87,7 @@ contains
     <inputParameter>
       <name>timescaleMinimum</name>
       <defaultValue>1.0d-3</defaultValue>
-      <description>The minimum timescale for star formation.</description>
+      <description>The minimum allowed timescale for star formation (in Gyr) in the dynamical time prescription, preventing unphysically short formation timescales in high-density or high-velocity systems.</description>
       <source>parameters</source>
     </inputParameter>
     !!]

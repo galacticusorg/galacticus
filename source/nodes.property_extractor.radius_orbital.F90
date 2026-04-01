@@ -23,7 +23,7 @@ Implements an orbital radius output analysis property extractor class.
 
   !![
   <nodePropertyExtractor name="nodePropertyExtractorRadiusOrbital">
-   <description>An orbital radius output analysis property extractor class.</description>
+   <description>Extracts the current 3D orbital radius of a satellite node from the center of its host halo, tracking the satellite's position along its orbit for use in analyses of satellite radial distributions and orbital evolution.</description>
   </nodePropertyExtractor>
   !!]
   type, extends(nodePropertyExtractorScalar) :: nodePropertyExtractorRadiusOrbital

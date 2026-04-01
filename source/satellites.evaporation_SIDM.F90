@@ -31,11 +31,16 @@ module Satellite_Evaporation_SIDM
   !![
   <functionClass>
    <name>satelliteEvaporationSIDM</name>
-   <descriptiveName>Dark matter self-interaction satellite evaporation models.</descriptiveName>
-   <description>Class providing models of the evaporation of orbiting satellites due to dark matter self-interactions.</description>
+   <descriptiveName>Dark Matter Self-interaction Satellite Evaporation</descriptiveName>
+   <description>Class providing models of the evaporation of orbiting satellites due to dark matter self-interactions
+    (SIDM)---the mass loss from satellite halos caused by energetic scattering events between satellite dark
+    matter particles and those of the host halo. High-momentum-transfer scatters can eject satellite particles,
+    gradually eroding the subhalo on top of tidal stripping. Implementations return the satellite mass loss rate
+    (in $\mathrm{M}_\odot$~Gyr$^{-1}$) from SIDM-driven evaporation, which depends on the self-interaction cross-section,
+    the satellite-host relative velocity, and the local number density of host particles.</description>
    <default>kummer2018</default>
    <method name="massLossRate" >
-    <description>Returns the satellite mass loss rate due to dark matter self-interactions (in units of $M_\odot$/Gyr).</description>
+    <description>Returns the satellite mass loss rate due to dark matter self-interactions (in units of $\mathrm{M}_\odot$/Gyr).</description>
     <type>double precision</type>
     <pass>yes</pass>
     <argument>type(treeNode), intent(inout) :: node</argument>

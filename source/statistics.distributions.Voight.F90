@@ -23,7 +23,7 @@
 
   !![
   <distributionFunction1D name="distributionFunction1DVoight">
-   <description>A 1D distribution function class for Voight profiles.</description>
+   <description>A 1D distribution function class for Voigt profiles, which are convolutions of a Lorentzian (Cauchy) distribution with a Gaussian distribution, parameterized by the Lorentzian half-width $\gamma$, location $\mu$, and Gaussian width $\sigma$, optionally truncated to a finite interval.</description>
   </distributionFunction1D>
   !!]
   type, extends(distributionFunction1DClass) :: distributionFunction1DVoight
@@ -70,28 +70,28 @@ contains
     !![
     <inputParameter>
       <name>gamma</name>
-      <description>The parameter $\gamma$ of the Voight function.</description>
+      <description>The Lorentzian half-width at half-maximum $\gamma > 0$ of the Voigt profile, controlling the width of the Cauchy (Lorentzian) component; larger values give broader, heavier tails.</description>
       <source>parameters</source>
     </inputParameter>
     <inputParameter>
       <name>mu</name>
-      <description>The parameter $\gamma$ of the Voight function.</description>
+      <description>The location parameter $\mu$ of the Voigt profile, specifying the center (peak position) of the combined Lorentzian-Gaussian distribution.</description>
       <source>parameters</source>
     </inputParameter>
     <inputParameter>
       <name>sigma</name>
-      <description>The parameter $\sigma$ of the Voight function.</description>
+      <description>The Gaussian standard deviation $\sigma > 0$ of the Voigt profile, controlling the width of the Gaussian component; the overall profile width is determined by the combination of $\gamma$ and $\sigma$.</description>
       <source>parameters</source>
     </inputParameter>
     <inputParameter>
       <name>limitLower</name>
-      <description>The lower limit of the Voight function.</description>
+      <description>The lower truncation limit of the Voigt distribution; when specified, the distribution is renormalized over the restricted interval $[\mathrm{limitLower}, \mathrm{limitUpper}]$.</description>
       <defaultValue>-huge(0.0d0)</defaultValue>
       <source>parameters</source>
     </inputParameter>
     <inputParameter>
       <name>limitUpper</name>
-      <description>The upper limit of the Voight function.</description>
+      <description>The upper truncation limit of the Voigt distribution; when specified, the distribution is renormalized over the restricted interval $[\mathrm{limitLower}, \mathrm{limitUpper}]$.</description>
       <defaultValue>+huge(0.0d0)</defaultValue>
       <source>parameters</source>
     </inputParameter>

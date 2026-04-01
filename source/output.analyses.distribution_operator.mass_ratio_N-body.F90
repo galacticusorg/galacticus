@@ -26,7 +26,7 @@
 
   !![
   <outputAnalysisDistributionOperator name="outputAnalysisDistributionOperatorMassRatioNBody">
-   <description>A random error output analysis distribution operator class.</description>
+   <description>An output analysis distribution operator that convolves a property with random errors derived from the N-body halo mass ratio distribution, integrating over parent halo masses between \mono{massParentMinimum} and \mono{massParentMaximum} at time \mono{timeParent}.</description>
   </outputAnalysisDistributionOperator>
   !!]
   type, extends(outputAnalysisDistributionOperatorClass) :: outputAnalysisDistributionOperatorMassRatioNBody

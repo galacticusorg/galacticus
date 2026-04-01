@@ -22,7 +22,7 @@
 
   !![
   <nodePropertyExtractor name="nodePropertyExtractorPeakHeight">
-   <description>A property extractor class for peak height of the halo.</description>
+   <description>Extracts the peak height $\nu = \delta_c / \sigma(M)$ of a dark matter halo, the ratio of the linear collapse threshold to the mass-variance, which parametrizes halo formation probability and is used in excursion-set and bias analyses.</description>
   </nodePropertyExtractor>
   !!]
   type, extends(nodePropertyExtractorTuple) :: nodePropertyExtractorPeakHeight

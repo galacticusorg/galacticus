@@ -70,14 +70,14 @@ contains
       <source>parameters</source>
       <variable>coefficientConstant</variable>
       <defaultValue>1.67d0</defaultValue>
-      <description>The constant coefficient in the linear excursion set barrier.</description>
+      <description>The constant (zero-order) coefficient $B_0$ in the linear excursion-set barrier $B(\sigma^2) = B_0 + B_1\,\sigma^2$; corresponds to the spherical collapse threshold $\delta_\mathrm{c} \approx 1.686$ in the simplest case.</description>
     </inputParameter>
     <inputParameter>
       <name>coefficientLinear</name>
       <source>parameters</source>
       <variable>coefficientLinear</variable>
       <defaultValue>0.0d0</defaultValue>
-      <description>The linear coefficient in the linear excursion set barrier.</description>
+      <description>The linear (first-order in $\sigma^2$) coefficient $B_1$ in the excursion-set barrier $B(\sigma^2) = B_0 + B_1\,\sigma^2$; a non-zero value produces a moving barrier that mimics ellipsoidal collapse corrections to the halo mass function.</description>
     </inputParameter>
     !!]
     self=excursionSetBarrierLinear(coefficientConstant,coefficientLinear)

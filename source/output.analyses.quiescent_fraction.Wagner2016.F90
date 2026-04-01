@@ -39,7 +39,7 @@
   
   !![
   <outputAnalysis name="outputAnalysisQuiescentFractionWagner2016">
-    <description>An output analysis class for the quiescent fraction measurements of \cite{wagner_evolution_2016}.</description>
+    <description>Computes the quiescent galaxy fraction as a function of stellar mass for a low or high redshift interval from \cite{wagner_evolution_2016}, with stellar mass and specific star formation rate random/systematic error polynomial coefficients and redshift range selection.</description>
   </outputAnalysis>
   !!]
   type, extends(outputAnalysisQuiescentFraction) :: outputAnalysisQuiescentFractionWagner2016

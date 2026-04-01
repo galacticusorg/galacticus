@@ -23,7 +23,7 @@
 
   !![
   <outputAnalysis name="outputAnalysisStarFormingMainSequenceSchreiber2015">
-    <description>An output analysis class for the star forming main sequence measurements of \cite{schreiber_herschel_2015}.</description>
+    <description>Computes the star-forming main sequence (mean specific star formation rate vs. stellar mass) at one of six redshift indices for comparison with the Herschel \cite{schreiber_herschel_2015} measurements, with stellar mass and specific SFR random/systematic error polynomial coefficients.</description>
   </outputAnalysis>
   !!]
   type, extends(outputAnalysisStarFormingMainSequence) :: outputAnalysisStarFormingMainSequenceSchreiber2015

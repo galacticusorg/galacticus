@@ -63,7 +63,7 @@
 
   !![
   <mergerTreeOperator name="mergerTreeOperatorParticulate">
-   <description>Provides a merger tree operator which create particle representations of \glc\ halos.</description>
+   <description>Provides a merger tree operator which creates particle representations of \glc\ dark matter halos by sampling N-body particles from the halo density profile at a specified snapshot time. Particle mass is set by \mono{[massParticle]}, the snapshot time by \mono{[time]}, the truncation radius by \mono{[radiusTruncateOverRadiusVirial]}, and output by \mono{[outputFileName]}.</description>
   </mergerTreeOperator>
   !!]
   type, extends(mergerTreeOperatorClass) :: mergerTreeOperatorParticulate
@@ -273,7 +273,7 @@ contains
       <name>chunkSize</name>
       <source>parameters</source>
       <defaultValue>-1</defaultValue>
-      <description>HDF5 dataset chunk size.</description>
+      <description>The HDF5 dataset chunk size (in number of particles) used when writing particle data to the output file; set to $-1$ to disable chunking and write all particles in a single contiguous dataset.</description>
     </inputParameter>
     <objectBuilder class="cosmologyParameters"  name="cosmologyParameters_"  source="parameters"/>
     <objectBuilder class="cosmologyFunctions"   name="cosmologyFunctions_"   source="parameters"/>

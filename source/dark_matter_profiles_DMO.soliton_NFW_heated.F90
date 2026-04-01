@@ -149,7 +149,7 @@ contains
       <name>toleratePotentialIntegrationFailure</name>
       <defaultValue>.false.</defaultValue>
       <source>parameters</source>
-      <description>If \mono{true}, tolerate failures to compute the potential.</description>
+      <description>If \mono{true}, tolerate numerical failures when computing the gravitational potential of the heated soliton-NFW dark matter profile (e.g. due to extreme heating), allowing the calculation to proceed with a fallback result.</description>
     </inputParameter>
     <inputParameter>
       <name>velocityDispersionApproximate</name>

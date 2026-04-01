@@ -34,7 +34,7 @@
 
   !![
   <darkMatterProfileConcentration name="darkMatterProfileConcentrationDiemerJoyce2019">
-   <description>Dark matter halo concentrations are computed using the algorithm of \cite{diemer_accurate_2019}.</description>
+   <description>Computes dark matter halo concentrations using the fitting function of \cite{diemer_accurate_2019}, which models concentration as a function of the effective spectral slope of the matter power spectrum. The fitting parameters controlling the normalization and slopes of the concentration-mass relation are \mono{[kappa]}, \mono{[a0]}, \mono{[a1]}, \mono{[b0]}, and \mono{[b1]}.</description>
    <deepCopy>
     <functionClass variables="virialDensityContrastDefinition_, darkMatterProfileDMODefinition_"/>
    </deepCopy>

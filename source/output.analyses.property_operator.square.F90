@@ -23,7 +23,7 @@ Implements a square output analysis property operator class.
 
   !![
   <outputAnalysisPropertyOperator name="outputAnalysisPropertyOperatorSquare">
-   <description>An square output analysis property operator class.</description>
+   <description>Applies a squaring transformation ($x^2$) to a property value, useful for converting linear quantities to squared quantities (e.g., velocity to velocity-squared) in output analysis pipelines.</description>
   </outputAnalysisPropertyOperator>
   !!]
   type, extends(outputAnalysisPropertyOperatorClass) :: outputAnalysisPropertyOperatorSquare

@@ -23,7 +23,7 @@
 
   !![
   <mergerTreeBuildMasses name="mergerTreeBuildMassesReplicate">
-   <description>A merger tree masses class which replicates masses from another class a specified number of times.</description>
+   <description>A merger tree masses class which replicates the halo mass list from a delegate class a specified number of times, effectively increasing statistical sampling of the halo population. The number of replications is controlled by the \mono{[replicationCount]} parameter, multiplying the effective tree count for improved sampling statistics.</description>
   </mergerTreeBuildMasses>
   !!]
   type, extends(mergerTreeBuildMassesClass) :: mergerTreeBuildMassesReplicate

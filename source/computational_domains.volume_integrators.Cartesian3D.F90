@@ -19,7 +19,7 @@
 
   !![
   <computationalDomainVolumeIntegrator name="computationalDomainVolumeIntegratorCartesian3D">
-   <description>A computational domain volume integrator for 3D Cartesian cells.</description>
+   <description>Computes volume integrals over three-dimensional Cartesian grid cells, with the spatial extent of the domain defined by \mono{[xBoundaries]}, \mono{[yBoundaries]}, and \mono{[zBoundaries]}. Each cell volume is the product of its axis-aligned extents, enabling accurate integration of physical quantities over the full Cartesian domain.</description>
   </computationalDomainVolumeIntegrator>
   !!]
   type, extends(computationalDomainVolumeIntegratorClass) :: computationalDomainVolumeIntegratorCartesian3D
@@ -63,19 +63,19 @@ contains
     <inputParameter>
       <name>xBoundaries</name>
       <defaultValue>[-1.0d0,+1.0d0]</defaultValue>
-      <description>The $x$-interval spanned by the computational domain.</description>
+      <description>A two-element array $[x_\mathrm{min}, x_\mathrm{max}]$ specifying the extent of the 3D Cartesian integration domain along the $x$-axis.</description>
       <source>parameters</source>
     </inputParameter>
     <inputParameter>
       <name>yBoundaries</name>
       <defaultValue>[-1.0d0,+1.0d0]</defaultValue>
-      <description>The $y$-interval spanned by the computational domain.</description>
+      <description>A two-element array $[y_\mathrm{min}, y_\mathrm{max}]$ specifying the extent of the 3D Cartesian integration domain along the $y$-axis.</description>
       <source>parameters</source>
     </inputParameter>
     <inputParameter>
       <name>zBoundaries</name>
       <defaultValue>[-1.0d0,+1.0d0]</defaultValue>
-      <description>The $z$-interval spanned by the computational domain.</description>
+      <description>A two-element array $[z_\mathrm{min}, z_\mathrm{max}]$ specifying the extent of the 3D Cartesian integration domain along the $z$-axis.</description>
       <source>parameters</source>
     </inputParameter>
     !!]

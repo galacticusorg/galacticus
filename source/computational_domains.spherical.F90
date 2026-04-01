@@ -32,7 +32,7 @@
   
   !![
   <computationalDomain name="computationalDomainSpherical">
-   <description>A computational domain using a spherical grid.</description>
+   <description>Defines a computational domain on a one-dimensional spherical grid, with radial boundaries set by \mono{[boundaries]} and the number of radial cells by \mono{[countCells]}. Convergence of quantities within each shell is assessed using percentile and threshold criteria specified by \mono{[convergencePercentile]} and \mono{[convergenceThreshold]}.</description>
   </computationalDomain>
   !!]
   type, extends(computationalDomainClass) :: computationalDomainSpherical
@@ -109,31 +109,31 @@ contains
     <inputParameter>
       <name>boundaries</name>
       <defaultValue>[+0.0d0,+1.0d0]</defaultValue>
-      <description>The $r$-interval spanned by the computational domain.</description>
+      <description>A two-element array $[r_\mathrm{min}, r_\mathrm{max}]$ specifying the radial extent of the spherically symmetric computational domain.</description>
       <source>parameters</source>
     </inputParameter>
     <inputParameter>
       <name>countCells</name>
       <defaultValue>3_c_size_t</defaultValue>
-      <description>The number of cells in the domain in radius.</description>
+      <description>The number of radial grid cells in the spherically symmetric computational domain, controlling the radial resolution of the radiative transfer calculation.</description>
       <source>parameters</source>
     </inputParameter>
     <inputParameter>
       <name>convergencePercentile</name>
       <defaultValue>0.99d0</defaultValue>
-      <description>The percentile used in the convergence criterion.</description>
+      <description>The percentile of cells (between 0 and 1) used in assessing convergence; only this fraction of cells must satisfy the convergence threshold, allowing outlier cells to be excluded.</description>
       <source>parameters</source>
     </inputParameter>
     <inputParameter>
       <name>convergenceThreshold</name>
       <defaultValue>2.0d0</defaultValue>
-      <description>The threshold for the convergence measure.</description>
+      <description>The threshold value for the convergence measure; the spherical domain is considered converged when the specified percentile of cells has a convergence metric below this value.</description>
       <source>parameters</source>
     </inputParameter>
     <inputParameter>
       <name>convergenceRatioThreshold</name>
       <defaultValue>1.1d0</defaultValue>
-      <description>The threshold for the change in convergence criterion.</description>
+      <description>The threshold for the ratio of the convergence criterion between successive iterations; convergence is accepted when this ratio falls below the threshold, indicating the solution is no longer changing significantly.</description>
       <source>parameters</source>
     </inputParameter>
     <objectBuilder class="radiativeTransferMatter"      name="radiativeTransferMatter_"      source="parameters"/>

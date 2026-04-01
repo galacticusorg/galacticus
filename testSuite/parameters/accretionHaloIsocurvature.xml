@@ -1,0 +1,8 @@
+<?xml version="1.0"?>
+<!-- Parameter file used for testing the effects of isocurvature perturbations on halo accretion. -->
+<parameters>
+  <formatVersion>2</formatVersion>
+  <lastModified revision="975fffd5aadf697707003f16bf9b4caee8ebe97d" time="2025-10-22T21:34:03"/>
+
+  <componentBasic value="standard"/>
+</parameters>

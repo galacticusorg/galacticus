@@ -24,7 +24,7 @@
   !![
   <enumeration>
    <name>mass</name>
-   <description>Enumeration of mass limits.</description>
+   <description>Enumeration of halo mass bins (low and high mass) used to parameterize the population distributions of mass accretion history parameters in the stochastic \cite{hearin_differentiable_2021} model.</description>
    <decodeFunction>yes</decodeFunction>
    <indexing>1</indexing>
    <entry label="low" />
@@ -35,7 +35,7 @@
   !![
   <enumeration>
    <name>formation</name>
-   <description>Enumeration of formation epochs.</description>
+   <description>Enumeration of halo formation epoch types (early-forming and late-forming) used to classify halos and select the appropriate parameter distribution in the stochastic \cite{hearin_differentiable_2021} MAH model.</description>
    <decodeFunction>yes</decodeFunction>
    <indexing>1</indexing>
    <entry label="early"/>
@@ -46,7 +46,7 @@
   !![
   <enumeration>
    <name>parameter</name>
-   <description>Enumeration of parameters.</description>
+   <description>Enumeration of the stochastic MAH model parameters drawn from the multivariate normal distribution: the early-time power law index $u_\mathrm{early}$, late-time index $u_\mathrm{late}$, and the logarithmic reference time $\log_{10}(t_0)$.</description>
    <decodeFunction>yes</decodeFunction>
    <indexing>1</indexing>
    <entry label="uEarly"       />
@@ -57,7 +57,7 @@
 
   !![
   <darkMatterHaloMassAccretionHistory name="darkMatterHaloMassAccretionHistoryHearin2021Stochastic">
-   <description>Dark matter halo mass accretion histories using the rolling power-law model of \cite{hearin_differentiable_2021} with stochastic sampling of parameters.</description>
+   <description>Computes dark matter halo mass accretion histories using the rolling power-law model of \cite{hearin_differentiable_2021} with stochastic sampling of the early- and late-time power-law indices from population distributions. The fraction of late-forming halos at low and high halo mass is set by \mono{[fractionLateLow]} and \mono{[fractionLateHigh]}, and the roll-over rate by \mono{[rateRollOver]}.</description>
   </darkMatterHaloMassAccretionHistory>
   !!]
   type, extends(darkMatterHaloMassAccretionHistoryHearin2021) :: darkMatterHaloMassAccretionHistoryHearin2021Stochastic
@@ -247,7 +247,7 @@ contains
     </inputParameter>
     <inputParameter>
       <name>rateRollOver</name>
-      <description>The roll over rate parameter, $k$.</description>
+      <description>The roll-over rate parameter $k$ in the stochastic \cite{hearin_differentiable_2021} MAH model, controlling how rapidly the power law index transitions from its early-time to late-time value across the population.</description>
       <source>parameters</source>
       <defaultValue>3.5d0</defaultValue>
     <type>real</type>

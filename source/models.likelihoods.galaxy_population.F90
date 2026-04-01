@@ -26,7 +26,10 @@
 
   !![
   <posteriorSampleLikelihood name="posteriorSampleLikelihoodGalaxyPopulation">
-   <description>A posterior sampling likelihood class which implements a likelihood for \glc\ models.</description>
+   <description>A posterior sampling likelihood class which evaluates the likelihood of \glc\ galaxy formation model outputs
+   against observational constraints, supporting parallelized model evaluation across MPI process groups. The number of
+   collaborative MPI groups is set by \mono{[evaluationsPerThread]}, with analysis storage controlled by \mono{[storeResults]} and
+   model randomization by \mono{[randomize]}.</description>
   </posteriorSampleLikelihood>
   !!]
   type, extends(posteriorSampleLikelihoodBaseParameters) :: posteriorSampleLikelihoodGalaxyPopulation
@@ -86,7 +89,7 @@ contains
     !![
     <inputParameter>
       <name>baseParametersFileName</name>
-      <description>The base set of parameters to use.</description>
+      <description>The path to the XML parameter file that provides the base configuration for each \glc\ model evaluation, to which parameter changes from the posterior sampler are then applied.</description>
       <source>parameters</source>
     </inputParameter>
     <inputParameter>
@@ -142,7 +145,7 @@ contains
     </inputParameter>
     <inputParameter>
       <name>reportState</name>
-      <description>If true, report the state being evaluated.</description>
+      <description>If true, log a summary of the model parameter state to standard output at the beginning of each likelihood evaluation.</description>
       <defaultValue>.false.</defaultValue>
       <source>parameters</source>
     </inputParameter>

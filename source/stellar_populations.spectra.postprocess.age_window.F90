@@ -63,13 +63,13 @@ contains
     <inputParameter>
       <name>ageMinimum</name>
       <defaultValue>0.0d0</defaultValue>
-      <description>The minimum age of stellar populations to retain.</description>
+      <description>The minimum stellar population age (in Gyr) to retain in the age-window postprocessor; populations younger than this threshold contribute zero luminosity, effectively excluding very young stars from the integrated spectrum.</description>
       <source>parameters</source>
     </inputParameter>
     <inputParameter>
       <name>ageMaximum</name>
       <defaultValue>huge(0.0d0)</defaultValue>
-      <description>The maximum age of stellar populations to retain.</description>
+      <description>The maximum stellar population age (in Gyr) to retain in the age-window postprocessor; populations older than this threshold contribute zero luminosity, effectively excluding old stellar populations from the integrated spectrum.</description>
       <source>parameters</source>
     </inputParameter>
     !!]

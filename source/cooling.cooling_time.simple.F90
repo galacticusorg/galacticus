@@ -27,9 +27,6 @@
   !![
   <coolingTime name="coolingTimeSimple">
    <description>
-  !!]
-
-  !![
     A cooling time class in which the cooling time is simply
     \begin{equation}
      t_\mathrm{cool} = {N \over 2} {\mathrm{k}_\mathrm{B} T n_\mathrm{tot} \over \Lambda},
@@ -128,7 +125,7 @@ contains
 
   double precision function simpleTime(self,node,temperature,density,gasAbundances,chemicalDensities,radiation)
     !!{
-    Compute the cooling time (in Gyr) for gas at the given \mono{temperature} (in Kelvin), \mono{density} (in $M_\odot$
+    Compute the cooling time (in Gyr) for gas at the given \mono{temperature} (in Kelvin), \mono{density} (in $\mathrm{M}_\odot$
     Mpc$^{-3}$), composition specified by \mono{gasAbundances} and experiencing a radiation field as described by \mono{radiation}.
     !!}
     use :: Numerical_Constants_Astronomical, only : gigaYear          , massSolar, megaParsec
@@ -182,7 +179,7 @@ contains
 
   double precision function simpleGradientDensityLogarithmic(self,node,temperature,density,gasAbundances,chemicalDensities,radiation)
     !!{
-    Return $\d\ln t_\mathrm{cool}/\d\ln \rho$ for gas at the given \mono{temperature} (in Kelvin), \mono{density} (in $M_\odot$
+    Return $\d\ln t_\mathrm{cool}/\d\ln \rho$ for gas at the given \mono{temperature} (in Kelvin), \mono{density} (in $\mathrm{M}_\odot$
     Mpc$^{-3}$), composition specified by \mono{gasAbundances} and experiencing a radiation field as described by \mono{radiation}.
     !!}
    implicit none
@@ -201,7 +198,7 @@ contains
 
   double precision function simpleGradientTemperatureLogarithmic(self,node,temperature,density,gasAbundances,chemicalDensities,radiation)
     !!{
-    Return $\d\ln t_\mathrm{cool}/\d\ln T$ for gas at the given \mono{temperature} (in Kelvin), \mono{density} (in $M_\odot$
+    Return $\d\ln t_\mathrm{cool}/\d\ln T$ for gas at the given \mono{temperature} (in Kelvin), \mono{density} (in $\mathrm{M}_\odot$
     Mpc$^{-3}$), composition specified by \mono{gasAbundances} and experiencing a radiation field as described by \mono{radiation}.
     !!}
     implicit none

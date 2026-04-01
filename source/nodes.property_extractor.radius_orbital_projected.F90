@@ -23,7 +23,7 @@
 
   !![
   <nodePropertyExtractor name="nodePropertyExtractorRadiusOrbitalProjected">
-   <description>A property extractor that extracts the projected orbital radius. Projection is always along the $z$-axis.</description>
+   <description>Extracts the projected orbital radius of a satellite node on the plane of the sky (projected along the $z$-axis), providing the 2D projected separation from the host halo center for comparison with observational satellite radial profiles.</description>
    <deepCopy>
     <functionClass variables="nodePropertyExtractor_"/>
    </deepCopy>

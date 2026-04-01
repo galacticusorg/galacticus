@@ -25,7 +25,7 @@ Implements a thermal warm dark matter particle class.
 
   !![
   <darkMatterParticle name="darkMatterParticleWDMThermal">
-   <description>Provides a thermal warm dark matter particle.</description>
+   <description>Provides a thermal relic warm dark matter particle whose free-streaming length suppresses small-scale structure formation. The particle mass in keV is set by \mono{[mass]}, and the effective number of relativistic degrees of freedom at freeze-out by \mono{[degreesOfFreedomEffective]}.</description>
   </darkMatterParticle>
   !!]
   type, extends(darkMatterParticleClass) :: darkMatterParticleWDMThermal
@@ -75,7 +75,7 @@ contains
       <source>parameters</source>
       <variable>massValue</variable>
       <defaultValue>1.0d0</defaultValue>
-      <description>The mass (in keV) of the thermal warm dark matter particle.</description>
+      <description>The mass (in keV) of the thermal warm dark matter particle, which determines the free-streaming length and the suppression of small-scale structure relative to cold dark matter; smaller masses give stronger suppression.</description>
     </inputParameter>
     <inputParameter>
       <name>degreesOfFreedomEffective</name>

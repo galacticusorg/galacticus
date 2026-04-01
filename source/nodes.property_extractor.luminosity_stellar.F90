@@ -26,7 +26,13 @@ Implements a stellar mass output analysis property extractor class.
 
   !![
   <nodePropertyExtractor name="nodePropertyExtractorLuminosityStellar">
-   <description>A stellar luminosity output analysis property extractor class.</description>
+   <description>A property extractor that returns the total stellar luminosity of a node in a
+    specified broadband filter, in units of the AB zero-point. The \mono{filterName} and
+    \mono{filterType} parameters select the photometric band and whether to use rest-frame or
+    observer-frame luminosities. The optional \mono{redshiftBand} shifts the band to a fixed
+    redshift (for K-corrections), and \mono{postprocessChain} applies a named spectral
+    postprocessing chain (e.g.\ \gls{igm} attenuation) before the photometric integration.
+    Luminosity indices are pre-computed per output time for efficiency.</description>
   </nodePropertyExtractor>
   !!]
   type, extends(nodePropertyExtractorScalar) :: nodePropertyExtractorLuminosityStellar

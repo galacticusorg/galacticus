@@ -31,7 +31,12 @@ module Tasks
   <functionClass>
    <name>task</name>
    <descriptiveName>Tasks</descriptiveName>
-   <description>Class providing general tasks to be performed by \glc.</description>
+   <description>Class providing general top-level tasks to be performed by \glc\---the primary unit of
+    computation that the code executes when run. Each task implementation defines a self-contained
+    operation, such as evolving a forest of merger trees to produce a galaxy catalogue, running a
+    Bayesian parameter estimation, performing N-body analysis, or executing a radiative transfer
+    calculation. The \mono{perform} method carries out the task and optionally returns an exit status,
+    while \mono{requiresOutputFile} indicates whether HDF5 output should be opened beforehand.</description>
    <default>evolveForests</default>
    <method name="perform" >
     <description>Perform the task.</description>

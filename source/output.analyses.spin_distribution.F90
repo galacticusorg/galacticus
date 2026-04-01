@@ -25,7 +25,7 @@
 
   !![
   <outputAnalysis name="outputAnalysisSpinDistribution">
-   <description>A stellar mass function output analysis class.</description>
+   <description>Computes the dark matter halo spin parameter distribution within a specified mass range and redshift, accounting for N-body measurement errors via log-normal convolution with truncation range \mono{logNormalRange}; reads bin configuration from file and supports optional target dataset for likelihood evaluation.</description>
    <runTimeFileDependencies paths="fileName"/>
   </outputAnalysis>
   !!]

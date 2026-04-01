@@ -68,12 +68,12 @@ contains
     !![
     <inputParameter>
       <name>mass</name>
-      <description>The mass of the cloud.</description>
+      <description>The total mass (in $\mathrm{M}_\odot$) of the constant-density spherical cloud, used together with the radius to set the uniform density of the cloud.</description>
       <source>parameters</source>
     </inputParameter>
     <inputParameter>
       <name>radius</name>
-      <description>The radius of the cloud.</description>
+      <description>The outer radius (in Mpc) of the constant-density spherical cloud; the density is zero beyond this radius and uniform within it.</description>
       <source>parameters</source>
     </inputParameter>
     <inputParameter>

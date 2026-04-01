@@ -32,7 +32,7 @@ module Radiative_Transfer_Convergences
   !![
   <enumeration>
    <name>statusCell</name>
-   <description>Specifies cell status for convergence testing.</description>
+   <description>Specifies whether a domain cell is the first cell, last cell, or an intermediate cell in a convergence test sweep, allowing implementations to perform special initialization or finalization actions at the domain boundaries.</description>
    <visibility>public</visibility>
    <entry label="first"/>
    <entry label="last" />
@@ -44,16 +44,21 @@ module Radiative_Transfer_Convergences
   <functionClass>
    <name>radiativeTransferConvergence</name>
    <descriptiveName>Radiative Transfer Convergence Criteria</descriptiveName>
-   <description>Class providing convergence criteria for radiative transfer calculations.</description>
+   <description>Class providing convergence criteria for Monte Carlo radiative transfer calculations---diagnostics
+    that assess whether the iterative solution (radiation field, ionization state, or dust temperature)
+    has converged to a stable solution after sufficient photon packets have been propagated. Methods
+    process escaping photon packets, test individual domain cells for convergence, and determine whether
+    the entire grid has reached the required accuracy. Multiple iterations of photon propagation may
+    be needed before convergence is declared and the final radiation field is recorded.</description>
    <default>always</default>
    <method name="photonPacketEscapes" >
-    <description>Process an escaping photon packet for convergence testing.</description>
+    <description>Process a photon packet that has escaped the computational domain, accumulating any statistics needed by the convergence criterion before the packet is discarded.</description>
     <type>void</type>
     <pass>yes</pass>
     <argument>class(radiativeTransferPhotonPacketClass), intent(inout) :: photonPacket</argument>
    </method>
    <method name="testConvergence" >
-    <description>Test a domain cell for convergence.</description>
+    <description>Test whether a single domain cell has converged by comparing its current radiation field or matter state against the previous iteration, setting the \mono{converged} flag accordingly.</description>
     <type>void</type>
     <pass>yes</pass>
     <argument>class  (radiativeTransferMatterClass     ), intent(inout) :: radiativeTransferMatter_</argument>

@@ -18,12 +18,15 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
 !!{
-Contains a module which implements calculations of one-dimensional shocks.
+Contains a module which implements Rankine-Hugoniot jump conditions for one-dimensional (planar) shocks, returning the
+density compression ratio as a function of upstream Mach number and adiabatic index.
 !!}
 
 module Shocks_1D
   !!{
-  iImplements calculations of one-dimensional shocks.
+  Implements calculations of one-dimensional shock jump conditions. Provides the Rankine-Hugoniot density jump ratio
+  across a planar shock as a function of the upstream Mach number and adiabatic index, including the strong-shock
+  (infinite Mach number) limit.
   !!}
   private
   public :: Shocks_1D_Density_Jump
@@ -35,7 +38,10 @@ contains
 
   double precision function Shocks_1D_Density_Jump(adiabaticIndex,machNumberPreShock)
     !!{
-    Computes the density jump across a one-dimensional shock.
+    Computes the density compression ratio $\rho_2/\rho_1$ across a one-dimensional planar shock using the
+    Rankine-Hugoniot jump conditions. For a finite upstream Mach number $\mathcal{M}$, the ratio is
+    $(\gamma+1)\mathcal{M}^2 / [(\gamma-1)\mathcal{M}^2 + 2]$; in the strong-shock limit
+    ($\mathcal{M} \to \infty$) this reduces to $(\gamma+1)/(\gamma-1)$, where $\gamma$ is the adiabatic index.
     !!}
     implicit none
     double precision, intent(in   ) :: adiabaticIndex,machNumberPreShock

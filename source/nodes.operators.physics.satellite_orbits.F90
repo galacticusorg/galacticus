@@ -25,7 +25,7 @@
 
   !![
   <nodeOperator name="nodeOperatorSatelliteOrbit">
-   <description>A node operator class that propagates satellite halos along their orbits.</description>
+   <description>A node operator class that integrates the orbital motion of satellite halos through the potential of their host halo, updating position and velocity at each ODE timestep via the equations of motion in the host potential. \mono{trackPreInfallOrbit} enables approximate orbit integration before formal infall, which is useful for modelling pre-infall tidal effects and environmental processes.</description>
   </nodeOperator>
   !!]
   type, extends(nodeOperatorClass) :: nodeOperatorSatelliteOrbit

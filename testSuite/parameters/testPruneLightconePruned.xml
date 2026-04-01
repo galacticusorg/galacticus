@@ -355,7 +355,6 @@
   </mergerTreeNodeEvolver>
   <mergerTreeNodeMerger value="singleLevelHierarchy"/>
   <mergerTreeOperator value="pruneLightcone">
-    <bufferIsolatedHalos value="true"/>
     <splitTrees value="true"/>
   </mergerTreeOperator>
   <mergerTreeOutputter value="null"/>

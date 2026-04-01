@@ -31,10 +31,12 @@ module Stellar_Astrophysics
   <functionClass>
    <name>stellarAstrophysics</name>
    <descriptiveName>Stellar Astrophysics</descriptiveName>
-   <description>
-    Class providing models of stellar astrophysics including recycled mass, metal yield, and lifetime as a function of initial
-    properties.
-   </description>
+   <description>Class providing individual stellar astrophysics---the properties of single stars as a function of
+    initial mass and metallicity, including the stellar lifetime, the mass ejected (returned to the \gls{ism}) at
+    death, and the metal mass yielded. These per-star quantities are integrated over the \gls{imf} and star
+    formation history to compute the net recycling, yield, and energy input for a stellar population. Implementations
+    are typically based on stellar evolution grids from e.g. \cite{padovani_theoretical_1993} or similar libraries
+    and include inverse functions mapping lifetime to initial mass.</description>
    <default>file</default>
    <method name="massInitial" >
     <description>Returns the initial mass of a star of given \mono{lifetime} and \mono{metallicity}.</description>

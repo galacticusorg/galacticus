@@ -82,13 +82,13 @@ contains
     <inputParameter>
       <name>samplingMassThreshold</name>
       <defaultValue>0.0d0</defaultValue>
-      <description>Mass threshold below which satellites are subsampled.</description>
+      <description>The satellite halo mass below which subsampling is applied; satellites more massive than this threshold are always retained with probability 1.</description>
       <source>parameters</source>
     </inputParameter>
     <inputParameter>
       <name>samplingInfallTimeThreshold</name>
       <defaultValue>huge(0.0d0)</defaultValue>
-      <description>Infall time threshold below which satellites are subsampled.</description>
+      <description>The infall time (in Gyr) below which subsampling is applied; satellites that fell in more recently than this threshold are always retained with probability 1.</description>
       <source>parameters</source>
     </inputParameter>
     <inputParameter>
@@ -100,13 +100,13 @@ contains
     <inputParameter>
       <name>samplingFunctionSlope</name>
       <defaultValue>0.0d0</defaultValue>
-      <description>Slope of the sampling function.</description>
+      <description>The power-law slope $\beta$ of the satellite subsampling function $f = \alpha (M_\mathrm{sat}/M_0)^\beta$, controlling how rapidly the sampling probability varies with satellite mass.</description>
       <source>parameters</source>
     </inputParameter>
     <inputParameter>
       <name>samplingFunctionNormalization</name>
       <defaultValue>1.0d0</defaultValue>
-      <description>Normalization of the sampling function.</description>
+      <description>The normalization coefficient $\alpha$ of the satellite subsampling function $f = \alpha (M_\mathrm{sat}/M_0)^\beta$, setting the overall sampling probability at the reference mass $M_0$.</description>
       <source>parameters</source>
     </inputParameter>
     !!]

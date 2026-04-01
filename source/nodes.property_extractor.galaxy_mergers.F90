@@ -23,7 +23,7 @@
 
   !![
   <nodePropertyExtractor name="nodePropertyExtractorGalaxyMergers">
-   <description>An output extractor property extractor class that combines physical and index properties of galaxy mergers.</description>
+   <description>Extracts combined physical and index properties for galaxy merger events by composing the \refClass{nodePropertyExtractorGalaxyMergersPhysical} and \refClass{nodePropertyExtractorGalaxyMergersIndices} extractors, packaging scalar and integer merger information (e.g., mass ratios, progenitor IDs, merger times) into a single output for post-processing analysis.</description>
   </nodePropertyExtractor>
   !!]
   type, extends(nodePropertyExtractorMulti) :: nodePropertyExtractorGalaxyMergers

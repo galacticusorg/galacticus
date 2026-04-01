@@ -33,7 +33,7 @@ Implements an output analysis class for the \cite{baldry_galaxy_2012} stellar ma
     where the $\mathbf{S}$ operator is a multiplicative factor accounting for systematic errors in stellar mass determination and is
     equal to \citep{behroozi_comprehensive_2010}
     \begin{equation}
-     \log_\mathrm{10} S = \sum_{i=0}^N s_i \log_\mathrm{10}^i \left({M_\star \over 10^{11.3}M_\odot}\right),
+     \log_\mathrm{10} S = \sum_{i=0}^N s_i \log_\mathrm{10}^i \left({M_\star \over 10^{11.3}\mathrm{M}_\odot}\right),
     \end{equation}
     where $s=$\mono{[systematicErrorPolynomialCoefficient]}, the {\normalfont \bfseries G} operator is a
     multiplicative factor drawn from a log-normal distribution of width $\sigma(M)$~dex for each galaxy to mimic the effects of random
@@ -41,7 +41,7 @@ Implements an output analysis class for the \cite{baldry_galaxy_2012} stellar ma
     operator accounts for gravitational lensing, and the {\normalfont \bfseries C} operator accounts for the difference between model
     and observed cosmologies. The random error model is given by:
     \begin{equation}
-     \sigma(M) = \hbox{min}\left[\sigma_\mathrm{max},\hbox{max}\left[\sigma_\mathrm{min},\sum_{i=0}^N r_i \log_\mathrm{10}^i \left({M_\star \over 10^{11.3}M_\odot}\right)\right]\right],
+     \sigma(M) = \hbox{min}\left[\sigma_\mathrm{max},\hbox{max}\left[\sigma_\mathrm{min},\sum_{i=0}^N r_i \log_\mathrm{10}^i \left({M_\star \over 10^{11.3}\mathrm{M}_\odot}\right)\right]\right],
     \end{equation}
     where $r=$\mono{[randomErrorPolynomialCoefficient]}, $\sigma_\mathrm{min}$=\mono{[randomErrorMinimum]}, and $\sigma_\mathrm{max}$=\mono{[randomErrorMaximum]}.
    </description>

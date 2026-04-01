@@ -30,7 +30,7 @@ Implements a star formation rate property extractor class.
    <description>
     A node property extractor which extracts the star formation rate in a galaxy. The type of star formation rate is controlled by
     the \mono{[component]} parameter, which can be either ``\mono{disk}'', ``\mono{spheroid}'', ``\mono{nsc}'' or ``\mono{total}''. The corresponding star formation
-    rate is extracted as \mono{\textless\ component\textgreater\ StarFormationRate} in units of $M_\odot$/Gyr.
+    rate is extracted as \mono{\textless\ component\textgreater\ StarFormationRate} in units of $\mathrm{M}_\odot$/Gyr.
    </description>
   </nodePropertyExtractor>
   !!]

@@ -28,7 +28,11 @@
   !![
   <nodeOperator name="nodeOperatorHaloAxisRatiosMenkerBenson2022">
    <description>
-    A node operator class that initializes halo axis ratios using the model of \cite{menker_random_2022}.
+    A node operator class that initializes ellipsoidal halo axis ratios by tracking the energy tensor eigenvalues along
+    merger tree branches using the model of \cite{menker_random_2022}. \mono{timescaleSphericalizationFractional} sets the
+    sphericalization timescale in units of the halo dynamical time (default from \citealt{menker_random_2022});
+    \mono{energyBoost} scales the orbital energy contribution (default from \citealt{johnson_random_2021});
+    \mono{exponentMass} controls the mass-ratio power-law dependence of orbital angular momentum contributions.
    </description>
   </nodeOperator>
   !!]

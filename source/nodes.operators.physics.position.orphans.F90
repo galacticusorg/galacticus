@@ -23,7 +23,7 @@
 
   !![
   <nodeOperator name="nodeOperatorPositionOrphans">
-   <description>A node operator class that sets the positions of orphaned subhalos.</description>
+   <description>Assigns spatial positions to orphaned satellite galaxies (subhalos that have lost their dark matter through tidal stripping below the resolution limit), typically by continuing the orbital trajectory or placing them at the last known position.</description>
   </nodeOperator>
   !!]
   type, extends(nodeOperatorPositionDiscrete) :: nodeOperatorPositionOrphans

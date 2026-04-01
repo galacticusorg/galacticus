@@ -29,7 +29,7 @@
 
   !![
   <nodeOperator name="nodeOperatorStarFormationNuclearStarClusters">
-   <description>A node operator class that performs star formation in \glspl{nsc}.</description>
+   <description>A node operator class that performs star formation in nuclear star clusters (\glspl{nsc}) by integrating gas conversion into stars at each ODE timestep. The star formation rate is computed by \refClass{starFormationRateNuclearStarClustersClass} and applied to evolve the \gls{nsc} gas mass, stellar mass, chemical abundances, and star formation history. \mono{luminositiesStellarInactive} controls whether stellar luminosities participate in the ODE solver.</description>
   </nodeOperator>
   !!]
   type, extends(nodeOperatorClass) :: nodeOperatorStarFormationNuclearStarClusters

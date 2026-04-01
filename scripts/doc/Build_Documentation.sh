@@ -71,7 +71,7 @@ if [ $? -ne 0 ]; then
 fi
 
 # Extract constants data.
-./scripts/doc/constants.pl $DIR doc/constants.tex
+python3 scripts/doc/constants.py $DIR doc/constants.tex
 if [ $? -ne 0 ]; then
  echo Failed to extract constants data
  exit 1

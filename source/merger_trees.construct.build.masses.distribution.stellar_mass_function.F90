@@ -156,13 +156,13 @@
    \end{equation}
    where
    \begin{equation}
-    {M_\mathrm{sat} \over 10^{12} M_\odot} = B_\mathrm{sat} \left({f^{-1}_\mathrm{SHMR}(M_\star) \over 10^{12}
-    M_\odot}\right)^{\beta_\mathrm{sat}},
+    {M_\mathrm{sat} \over 10^{12} \mathrm{M}_\odot} = B_\mathrm{sat} \left({f^{-1}_\mathrm{SHMR}(M_\star) \over 10^{12}
+    \mathrm{M}_\odot}\right)^{\beta_\mathrm{sat}},
    \end{equation}
    and
    \begin{equation}
-    {M_\mathrm{cut} \over 10^{12} M_\odot} = B_\mathrm{cut} \left({f^{-1}_\mathrm{SHMR}(M_\star) \over 10^{12}
-    M_\odot}\right)^{\beta_\mathrm{cut}}.
+    {M_\mathrm{cut} \over 10^{12} \mathrm{M}_\odot} = B_\mathrm{cut} \left({f^{-1}_\mathrm{SHMR}(M_\star) \over 10^{12}
+    \mathrm{M}_\odot}\right)^{\beta_\mathrm{cut}}.
    \end{equation}
   
    We use the best fit parameters from the \mono{SIG\_MOD1} method of \cite{leauthaud_new_2011} for their
@@ -200,8 +200,8 @@
    The errors in the \cite{li_distribution_2009} observed stellar mass function are well fit by (see
    Fig.~\ref{fig:stellarMassFunctionErrors}):
    \begin{equation}
-    \alpha(M_\star) = 10^{-3} \left({M_\star\over 4.5\times 10^{10}M_\odot}\right)^{-0.3} \exp\left(-{M_\star\over 4.5\times
-    10^{10}M_\odot}\right) + 10^{-7},
+    \alpha(M_\star) = 10^{-3} \left({M_\star\over 4.5\times 10^{10}\mathrm{M}_\odot}\right)^{-0.3} \exp\left(-{M_\star\over 4.5\times
+    10^{10}\mathrm{M}_\odot}\right) + 10^{-7},
     \label{eq:stellarMassFunctionErrorsFit}
    \end{equation}
    and the tree processing time in \glc\ can be described by:

@@ -24,7 +24,7 @@
 
   !![
   <outputAnalysis name="outputAnalysisLocalGroupMassVelocityDispersionRelation">
-   <description>An output analysis class for Local Group satellite galaxy mass-velocity dispersion relations.</description>
+   <description>Computes the stellar mass--velocity dispersion relation for Local Group satellite galaxies, comparing model predictions against observed data with stellar mass and velocity dispersion random/systematic error polynomial coefficients, binomial covariance parameters, and position-type selection.</description>
   </outputAnalysis>
   !!]
   type, extends(outputAnalysisClass) :: outputAnalysisLocalGroupMassVelocityDispersionRelation

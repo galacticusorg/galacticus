@@ -23,7 +23,7 @@
 
   !![
   <outputAnalysis name="outputAnalysisLocalGroupStellarMassFunction">
-   <description>An output analysis class for Local Group satellite galaxy mass functions.</description>
+   <description>Computes the stellar mass function of Local Group satellite galaxies for comparison with observational data, with random/systematic error polynomial coefficients, fractional scatter, binomial covariance matrix parameters, position-type selection, and zero-point log-likelihood control.</description>
    <deepCopy>
     <functionClass variables="volumeFunctionSatellites, volumeFunctionCentrals"/>
    </deepCopy>

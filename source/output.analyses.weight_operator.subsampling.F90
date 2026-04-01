@@ -23,7 +23,8 @@ Implements a subsampling weight operator class.
 
   !![
   <outputAnalysisWeightOperator name="outputAnalysisWeightOperatorSubsampling">
-   <description>A subsampling weight operator class.</description>
+   <description>Applies a subsampling weight to each node, upweighting the nodes to preserve correct number statistics after
+   merger tree branches have been subsampled.</description>
   </outputAnalysisWeightOperator>
   !!]
   type, extends(outputAnalysisWeightOperatorClass) :: outputAnalysisWeightOperatorSubsampling

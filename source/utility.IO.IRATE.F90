@@ -18,12 +18,15 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
 !!{
-Contains a module which provides IO in \gls{irate} format.
+Contains a module which provides IO in \gls{irate} format. The \gls{irate} (IRvine Astrophysical simulaTion structurE)
+format is an HDF5-based format for storing halo catalogs and simulation data, with standardized groups for snapshots,
+cosmological parameters, and simulation properties.
 !!}
 
 module IO_IRATE
   !!{
-  Provides IO in \gls{irate} format.
+  Provides IO in \gls{irate} format, an HDF5-based standard for halo catalogs that stores per-snapshot halo properties
+  (positions, velocities, masses, IDs) alongside cosmological and simulation metadata.
   !!}
   use :: Cosmology_Functions , only : cosmologyFunctionsClass
   use :: Cosmology_Parameters, only : cosmologyParametersClass
@@ -33,7 +36,8 @@ module IO_IRATE
 
   type :: irate
      !!{
-     A class for interacting with \gls{irate} format files.
+     A class for interacting with \gls{irate} format HDF5 files, providing methods to read and write halo catalogs (positions,
+     velocities, masses, IDs) and simulation properties (box size, cosmology), with automatic unit conversion to physical units.
      !!}
      type (varying_string          )          :: fileName
      class(cosmologyFunctionsClass ), pointer :: cosmologyFunctions_  => null()

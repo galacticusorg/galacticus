@@ -32,10 +32,13 @@ module Galactic_Structure_Solvers
   !![
   <functionClass>
    <name>galacticStructureSolver</name>
-   <descriptiveName>Solvers for galactic structure</descriptiveName>
-   <description>
-    Class providing solvers for galactic structure---specifically, finding radii of galactic components.
-   </description>
+   <descriptiveName>Galactic Structure Solver</descriptiveName>
+   <description>Class providing solvers for galactic structure---algorithms that determine the sizes
+    (half-mass or scale radii) of galactic components (disc, bulge, nuclear star cluster), e.g. by finding
+    the equilibrium configuration that satisfies the angular momentum conservation constraint, i.e.
+    the radius at which the specific angular momentum of the component matches that of the infalling
+    gas. Solving for the structure may require self-consistent accounting of the gravitational potential
+    from all components including dark matter, gas, and stars.</description>
    <default>equilibrium</default>
    <method name="solve" >
     <description>Solves for the structure of components in the given \mono{node}.</description>

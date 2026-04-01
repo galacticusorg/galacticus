@@ -34,9 +34,11 @@ module Stellar_Population_Spectra
   <functionClass>
    <name>stellarPopulationSpectra</name>
    <descriptiveName>Stellar Population Spectra</descriptiveName>
-   <description>
-    Class providing stellar population spectra, which are used to construct integrated spectra of galaxies.
-   </description>
+   <description>Class providing spectral energy distributions (SEDs) for simple stellar populations (SSPs)---the
+    luminosity per unit frequency (in $L_\odot$ Hz$^{-1}$) of a coeval population of stars as a function of age,
+    metallicity, and wavelength. These SEDs are convolved with the star formation history to produce the integrated
+    galaxy SED, which is compared to observed photometry or spectra. Implementations typically wrap stellar
+    isochrone libraries and atmosphere grids such as FSPS, BC03, or BPASS.</description>
    <default>FSPS</default>
    <method name="luminosity" >
     <description>Return the luminosity (in units of $L_\odot$ Hz$^{-1}$) for a stellar population, composition \mono{abundances}, of the given \mono{age} (in Gyr), at the specified \mono{wavelength} (in Angstroms).</description>

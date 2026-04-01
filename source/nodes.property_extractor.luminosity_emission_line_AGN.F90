@@ -68,6 +68,7 @@
      procedure :: names        => lmnstyEmssnLineAGNNames
      procedure :: descriptions => lmnstyEmssnLineAGNDescriptions
      procedure :: unitsInSI    => lmnstyEmssnLineAGNUnitsInSI
+     procedure :: metaData     => lmnstyEmssnLineAGNMetaData
   end type nodePropertyExtractorLmnstyEmssnLineAGN
 
   interface nodePropertyExtractorLmnstyEmssnLineAGN
@@ -557,7 +558,7 @@ contains
   end subroutine lmnstyEmssnLineAGNDescriptions
 
   function lmnstyEmssnLineAGNUnitsInSI(self,time) result(unitsInSI)
-  !!{
+    !!{
     Return the units of the \mono{lmnstyEmssnLineAGN} properties in the SI system.
     !!}
     use :: Numerical_Constants_Units, only : ergs
@@ -572,3 +573,18 @@ contains
     return
   end function lmnstyEmssnLineAGNUnitsInSI
  
+  subroutine lmnstyEmssnLineAGNMetaData(self,node,indexProperty,metaDataRank0,metaDataRank1)
+    !!{
+    Interface for tuple property meta-data.
+    !!}
+    implicit none
+    class  (nodePropertyExtractorLmnstyEmssnLineAGN), intent(inout) :: self
+    type   (treeNode                               ), intent(inout) :: node
+    integer                                         , intent(in   ) :: indexProperty
+    type   (doubleHash                             ), intent(inout) :: metaDataRank0
+    type   (rank1DoubleHash                        ), intent(inout) :: metaDataRank1
+    !$GLC attributes unused :: node, metaDataRank1
+
+    call metaDataRank0%set('wavelength',self%wavelengths(indexProperty))
+    return
+  end subroutine lmnstyEmssnLineAGNMetaData

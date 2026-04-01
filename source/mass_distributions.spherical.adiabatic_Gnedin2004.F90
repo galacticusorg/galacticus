@@ -212,7 +212,7 @@ contains
     </inputParameter>
     <inputParameter>
       <name>darkMatterFraction</name>
-      <description>The universal dark matter fraction.</description>
+      <description>The universal cosmic dark matter fraction $\Omega_\mathrm{DM}/\Omega_\mathrm{M}$, used to define the initial dark matter fraction in the halo before adiabatic contraction.</description>
       <source>parameters</source>
     </inputParameter>
     <inputParameter>

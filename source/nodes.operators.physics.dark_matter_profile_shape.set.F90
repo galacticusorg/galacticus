@@ -25,9 +25,7 @@
   
   !![
   <nodeOperator name="nodeOperatorDarkMatterProfileShapeSet">
-   <description>
-    A node operator class that sets dark matter profile shape parameter.
-   </description>
+   <description>Sets the dark matter profile shape parameter for each halo using a \refClass{darkMatterProfileShapeClass} object, updating this parameter at tree initialization and node promotion events.</description>
   </nodeOperator>
   !!]
   type, extends(nodeOperatorClass) :: nodeOperatorDarkMatterProfileShapeSet

@@ -33,11 +33,13 @@ module Dark_Matter_Profiles_Shape
    <name>darkMatterProfileShape</name>
    <descriptiveName>Dark Matter Profile Shapes</descriptiveName>
    <description>
-    Class providing dark matter profile shape parameters.
+    Class providing the shape parameter $\alpha$ of dark matter halo density profiles such as the Einasto profile,
+    $\rho(r) \propto \exp\{-\frac{2}{\alpha}[(r/r_\mathrm{s})^\alpha - 1]\}$. The shape parameter controls the curvature
+    of the profile near the center and is typically fit from $N$-body simulations as a function of halo mass and redshift.
    </description>
    <default>gao2008</default>
    <method name="shape" >
-    <description>Returns the shape parameter for the given \mono{node}.</description>
+    <description>Returns the dimensionless shape parameter $\alpha$ of the Einasto dark matter density profile for the halo in \mono{node}, controlling the curvature of the inner profile with typical values in the range $0.1$--$0.3$ from N-body simulations.</description>
     <type>double precision</type>
     <pass>yes</pass>
     <argument>type(treeNode), intent(inout) :: node</argument>

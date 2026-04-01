@@ -19,9 +19,7 @@
 
   !![
   <nodePropertyExtractor name="nodePropertyExtractorSpinBlackHoles">
-   <description>
-     A node property extractor which extracts a list of all super-massive black hole spins.
-   </description>
+   <description>Extracts a list of dimensionless spin parameters for all supermassive black holes in each node, providing per-black-hole angular momentum data for studies of black hole spin evolution and jet production efficiency.</description>
   </nodePropertyExtractor>
   !!]
   type, extends(nodePropertyExtractorList) :: nodePropertyExtractorSpinBlackHoles

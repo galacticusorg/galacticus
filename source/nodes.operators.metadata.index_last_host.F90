@@ -23,7 +23,7 @@ Implements a node operator class that records the index of the node in which a n
 
   !![
   <nodeOperator name="nodeOperatorIndexLastHost">
-   <description>A node operator class that records the index of the node in which a node was last a satellite.</description>
+   <description>Records and maintains the index of the host node in which a satellite was most recently hosted, tracking this metadata through mergers and promotions to enable identification of a node's last host halo.</description>
   </nodeOperator>
   !!]
   type, extends(nodeOperatorClass) :: nodeOperatorIndexLastHost

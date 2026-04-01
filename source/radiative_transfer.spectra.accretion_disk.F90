@@ -21,7 +21,7 @@
 
   !![
   <radiativeTransferSpectrum name="radiativeTransferSpectrumAccretionDisk">
-   <description>A photon spectrum class for accretion disk spectra.</description>
+   <description>A photon spectrum class that computes the spectral luminosity of radiation emitted by an accreting black hole accretion disk in radiative transfer calculations. The black hole mass and Eddington-scaled accretion rate are set by the \mono{[blackHoleMass]} and \mono{[accretionRateEddington]} parameters.</description>
   </radiativeTransferSpectrum>
   !!]
   type, extends(radiativeTransferSpectrumClass) :: radiativeTransferSpectrumAccretionDisk

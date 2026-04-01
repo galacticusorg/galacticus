@@ -27,7 +27,7 @@ Implements a filter which passes only nodes that lie within a survey geometry.
   !![
   <enumeration>
    <name>positionType</name>
-   <description>Enumeration of position types.</description>
+   <description>Enumeration of node position types used when testing membership within a survey geometry: \mono{position} uses the intrinsic node position, while \mono{orbital} uses the node's orbital position.</description>
    <encodeFunction>yes</encodeFunction>
    <visibility>public</visibility>
    <entry label="position"/>
@@ -37,7 +37,7 @@ Implements a filter which passes only nodes that lie within a survey geometry.
 
   !![
   <galacticFilter name="galacticFilterSurveyGeometry">
-   <description>A filter which passes only nodes that lie within a survey geometry.</description>
+   <description>A galactic filter that passes only nodes whose sky position and distance fall within the footprint of a specified survey geometry object. The \mono{[positionType]} parameter selects whether the node's intrinsic or orbital position is used when evaluating inclusion within the survey volume.</description>
   </galacticFilter>
   !!]
   type, extends(galacticFilterClass) :: galacticFilterSurveyGeometry

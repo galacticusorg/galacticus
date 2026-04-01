@@ -33,11 +33,13 @@ module Dark_Matter_Halo_Mass_Accretion_Histories
    <name>darkMatterHaloMassAccretionHistory</name>
    <descriptiveName>Dark Matter Halo Mass Accretion Histories</descriptiveName>
    <description>
-    Class providing dark matter halo mass accretion histories.
+    Class providing dark matter halo mass accretion histories (MAHs), i.e. the mass of a halo's main progenitor as a
+    function of time or redshift. The MAH encodes how rapidly a halo assembled its mass and is used to set the structural
+    properties of halos via concentration models, to compute merger rates, and to track the formation redshift of halos.
    </description>
    <default>wechsler2002</default>
    <method name="time">
-    <description>Returns the time at which the given halo mass was reached.</description>
+    <description>Returns the cosmological time (in Gyr) at which the main progenitor of the halo in \mono{node} first reached the specified halo mass, found by root-finding on the mass accretion history.</description>
     <type>double precision</type>
     <pass>yes</pass>
     <selfTarget>yes</selfTarget>
@@ -69,7 +71,7 @@ module Dark_Matter_Halo_Mass_Accretion_Histories
     </code>
    </method>
    <method name="mass">
-    <description>Returns the halo mass at the given halo time.</description>
+    <description>Returns the halo mass (in $\mathrm{M}_\odot$) of the main progenitor of the halo in \mono{node} at the specified cosmological time, evaluated from the parametric mass accretion history model.</description>
     <type>double precision</type>
     <pass>yes</pass>
     <selfTarget>yes</selfTarget>
@@ -101,7 +103,7 @@ module Dark_Matter_Halo_Mass_Accretion_Histories
     </code>
    </method>
    <method name="massAccretionRate">
-    <description>Returns the mass accretion rate at the specified time.</description>
+    <description>Returns the halo mass accretion rate (in $\mathrm{M}_\odot$ Gyr$^{-1}$) of the main progenitor of the halo in \mono{node} at the specified cosmological time, computed as the time derivative of the mass accretion history.</description>
     <type>double precision</type>
     <pass>yes</pass>
     <argument>type            (treeNode), intent(inout) :: node</argument>

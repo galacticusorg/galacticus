@@ -18,12 +18,14 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
 !!{
-Contains a module which implements various utility functions for extracting data from XML files.
+Contains a module which implements various utility functions for extracting data from XML files, including DOM tree traversal,
+XPath-like element lookup, data array extraction, and XInclude reference resolution.
 !!}
 
 module IO_XML
   !!{
-  Implements various utility functions for extracting data from XML files.
+  Implements various utility functions for extracting data from XML files using the FoX DOM library, including element
+  search by tag name, array data reading, XPath-style path traversal, and recursive resolution of \mono{xi:include} directives.
   !!}
   use :: FoX_dom           , only : node
   use :: ISO_Varying_String, only : varying_string
@@ -55,7 +57,8 @@ module IO_XML
   
   type :: xincludeNode
      !!{
-     Type used while resolving XInclude references during XML parsing.
+     Type used to track a pending \mono{xi:include} element while resolving XInclude references during XML parsing, storing
+     the parent node, the include element itself, the file to be included, and an optional XPointer expression.
      !!}
      type(node          ), pointer :: nodeParent => null(), nodeXInclude => null()
      type(varying_string)          :: fileName            , xPath

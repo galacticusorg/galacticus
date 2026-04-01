@@ -63,7 +63,7 @@ contains
     !![
     <inputParameter>
       <name>exponentValue</name>
-      <description>The exponent of temperature.</description>
+      <description>The fixed value of the temperature-scaling exponent $\alpha$ by which the proposal size $\gamma$ is scaled as $\gamma \propto T^{\alpha}$ in tempered differential evolution runs.</description>
       <source>parameters</source>
     </inputParameter>
     !!]

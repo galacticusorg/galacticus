@@ -23,7 +23,7 @@
 
   !![
   <kinematicsDistribution name="kinematicsDistributionHeated">
-   <description>A heated kinematic distribution class masses.</description>
+   <description>A kinematic distribution class for mass distributions subject to external heating. The 1D velocity dispersion is computed by solving the Jeans equation modified to account for the additional energy injected by the heating source. The \mono{[velocityDispersionApproximate]} flag enables an approximate solver for improved performance.</description>
   </kinematicsDistribution>
   !!]
   type, public, extends(kinematicsDistributionClass) :: kinematicsDistributionHeated

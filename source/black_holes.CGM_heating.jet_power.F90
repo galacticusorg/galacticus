@@ -27,7 +27,7 @@
   !![
   <blackHoleCGMHeating name="blackHoleCGMHeatingJetPower">
    <description>
-    A black hole CGM heating class using the accretion disk jet power.
+    A black hole CGM heating class that models AGN radio-mode feedback by coupling the accretion disk jet power to the circumgalactic medium. The fraction of jet power deposited as heat in the \gls{cgm} is set by the \mono{[efficiencyRadioMode]} parameter.
    </description>
   </blackHoleCGMHeating>
   !!]

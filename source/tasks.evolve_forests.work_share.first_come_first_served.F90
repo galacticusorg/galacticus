@@ -21,7 +21,7 @@
 
   !![
   <evolveForestsWorkShare name="evolveForestsWorkShareFCFS">
-   <description>A forest evolution work sharing class in which forests are assigned on a first-come-first-served basis.</description>
+   <description>A forest evolution work sharing class implementing dynamic first-come-first-served (FCFS) scheduling, in which each worker atomically increments a shared MPI counter to claim the next available forest. This provides good load balancing across variable-cost forests at the expense of MPI synchronization overhead. Optionally, a subset of active MPI process ranks can be specified.</description>
   </evolveForestsWorkShare>
   !!]
   type, extends(evolveForestsWorkShareClass) :: evolveForestsWorkShareFCFS

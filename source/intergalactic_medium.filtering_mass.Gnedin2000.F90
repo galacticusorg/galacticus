@@ -32,7 +32,7 @@
 
   !![
   <intergalacticMediumFilteringMass name="intergalacticMediumFilteringMassGnedin2000">
-   <description>An implementation of the \cite{gnedin_effect_2000} filtering mass calculation.</description>
+   <description>An implementation of the \cite{gnedin_effect_2000} filtering mass calculation, which determines the characteristic halo mass below which gas accretion is suppressed by photoionization heating from the intergalactic radiation field. The filtering mass is computed by integrating an ODE system driven by the \gls{igm} thermal state and linear growth history.</description>
   </intergalacticMediumFilteringMass>
   !!]
   type, extends(intergalacticMediumFilteringMassClass) :: intergalacticMediumFilteringMassGnedin2000

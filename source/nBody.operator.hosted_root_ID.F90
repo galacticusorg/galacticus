@@ -23,7 +23,7 @@
 
   !![
   <nbodyOperator name="nbodyOperatorHostedRootID">
-   <description>An N-body data operator which determines an ID of the root halo found by following hosts.</description>
+   <description>An N-body data operator which determines the ID of the topmost root halo in the host hierarchy by iteratively following host links upward from each particle. The \mono{errorIfNotFound} parameter controls whether a missing host causes a fatal error or instead assigns a sentinel value of $-1$.</description>
   </nbodyOperator>
   !!]
   type, extends(nbodyOperatorClass) :: nbodyOperatorHostedRootID

@@ -26,7 +26,7 @@ Implements a stellar luminosity output analysis property extractor class which a
 
   !![
   <nodePropertyExtractor name="nodePropertyExtractorLmnstyStllrCF2000">
-   <description>A stellar luminosity output analysis property extractor class which applies the dust model of \cite{charlot_simple_2000}.</description>
+   <description>A property extractor that returns the dust-attenuated stellar luminosity in a specified broadband \mono{filterName} (and \mono{filterType}) at rest-frame redshift \mono{redshiftBand}, applying the two-component dust model of \cite{charlot_simple_2000}. In this model, young stars ($\lesssim$10~Myr) are attenuated by both ambient ISM dust and their birth cloud dust, while older stars are attenuated only by ISM dust. The V-band optical depths of each component are set by \mono{depthOpticalISMCoefficient} and \mono{depthOpticalCloudsCoefficient}, with a power-law wavelength dependence controlled by \mono{wavelengthExponent}. Luminosities are returned in AB zero-point units (i.e.\ $L_\nu$ relative to the AB standard source).</description>
   </nodePropertyExtractor>
   !!]
   type, extends(nodePropertyExtractorScalar) :: nodePropertyExtractorLmnstyStllrCF2000

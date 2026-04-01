@@ -79,7 +79,7 @@
 
   !![
   <darkMatterProfileConcentration name="darkMatterProfileConcentrationKlypin2015">
-   <description>Dark matter halo concentrations are computed using the algorithm of \cite{klypin_multidark_2014}.</description>
+   <description>Computes dark matter halo concentrations using the fitting functions calibrated from the MultiDark simulations by \cite{klypin_multidark_2014}. The specific fitting function applied depends on the halo sample selected via \mono{[sample]}, which controls the density contrast definition and the simulation suite used for calibration.</description>
    <deepCopy>
     <functionClass variables="darkMatterProfileDMODefinition_"/>
    </deepCopy>

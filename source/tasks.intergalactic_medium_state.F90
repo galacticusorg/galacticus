@@ -24,12 +24,12 @@
 
   !![
   <task name="taskIntergalacticMediumState">
-   <description>A task which outputs the state of the intergalactic medium.</description>
+   <description>A task which computes and outputs the thermal and ionization state of the intergalactic medium (IGM) at each output time, including the IGM temperature, neutral fraction, and Jeans filtering mass that regulates gas accretion onto low-mass halos.</description>
   </task>
   !!]
   type, extends(taskClass) :: taskIntergalacticMediumState
      !!{
-     Implementation of a task which computes and outputs the halo mass function and related quantities.
+     Implementation of a task which computes and outputs the thermal and ionization state of the intergalactic medium at each output time.
      !!}
      private
      class(cosmologyFunctionsClass              ), pointer :: cosmologyFunctions_               => null()

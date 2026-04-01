@@ -23,7 +23,7 @@
 
   !![
   <nodeOperator name="nodeOperatorMassAccretionHistory">
-   <description>A node operator class that collects and stores the mass accretion history of each node.</description>
+   <description>Records the mass accretion history of each dark matter halo by logging the virial mass at each timestep, building a time-series record used by mass accretion history fitting and mass growth rate analyses.</description>
   </nodeOperator>
   !!]
   type, extends(nodeOperatorClass) :: nodeOperatorMassAccretionHistory

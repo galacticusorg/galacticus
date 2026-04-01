@@ -26,7 +26,7 @@ Implements an N-body data operator which determines the subset of particles that
 
   !![
   <nbodyOperator name="nbodyOperatorSelfBound">
-   <description>An N-body data operator which determines the subset of particles that are self-bound.</description>
+   <description>An N-body data operator which iteratively determines the gravitationally self-bound subset of particles within an N-body halo. Parameters control convergence tolerance, the minimum number of representative particles, the sampling rate, the bound fraction used to compute the halo center, and how prior-snapshot binding information is used.</description>
   </nbodyOperator>
   !!]
   type, extends(nbodyOperatorClass) :: nbodyOperatorSelfBound

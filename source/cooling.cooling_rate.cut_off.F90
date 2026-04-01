@@ -180,7 +180,7 @@ contains
 
   double precision function cutOffRate(self,node)
     !!{
-    Returns the cooling rate (in $M_\odot$ Gyr$^{-1}$) in the hot atmosphere for a model in which this rate is cut off
+    Returns the cooling rate (in $\mathrm{M}_\odot$ Gyr$^{-1}$) in the hot atmosphere for a model in which this rate is cut off
     before/after a given epoch and below a given virial velocity.
     !!}
     use :: Galacticus_Nodes, only : nodeComponentBasic, treeNode

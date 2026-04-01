@@ -23,7 +23,7 @@ Implements a stellar mass effective radius node property extractor class.
 
   !![
   <nodePropertyExtractor name="nodePropertyExtractorRadiusEffectiveStellar">
-   <description>A stellar mass effective radius node property extractor class.</description>
+   <description>Extracts the stellar mass-weighted effective (half-mass) radius of a galaxy, combining disk and spheroid contributions to compute the projected radius enclosing half the total stellar mass, for comparison to observed size--mass relations.</description>
   </nodePropertyExtractor>
   !!]
   type, extends(nodePropertyExtractorScalar) :: nodePropertyExtractorRadiusEffectiveStellar

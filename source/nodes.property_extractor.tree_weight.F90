@@ -23,7 +23,7 @@ Implements a merger tree weight property extractor class.
 
   !![
   <nodePropertyExtractor name="nodePropertyExtractorTreeWeight">
-   <description>A merger tree weight property extractor class.</description>
+   <description>Extracts the statistical weight assigned to each merger tree, representing the number density of halos of that mass in the target cosmology, used when combining results across trees sampled at discrete mass points to recover volume-averaged statistics.</description>
   </nodePropertyExtractor>
   !!]
   type, extends(nodePropertyExtractorScalar) :: nodePropertyExtractorTreeWeight

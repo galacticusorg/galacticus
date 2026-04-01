@@ -24,7 +24,7 @@
 
   !![
   <outputAnalysis name="outputAnalysisLocalGroupMassSizeRelation">
-   <description>An output analysis class for Local Group satellite galaxy mass-size relations.</description>
+   <description>Computes the stellar mass--half-light radius relation for Local Group satellite galaxies, comparing model predictions against observed data with stellar mass and size random/systematic error polynomial coefficients, binomial covariance parameters, and position-type selection.</description>
   </outputAnalysis>
   !!]
   type, extends(outputAnalysisClass) :: outputAnalysisLocalGroupMassSizeRelation

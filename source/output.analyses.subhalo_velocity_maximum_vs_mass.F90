@@ -25,7 +25,7 @@
 
   !![
   <outputAnalysis name="outputAnalysisSubhaloVMaxVsMass">
-   <description>An output analysis class that computes subhalo mean maximum velocity as a function of mass.</description>
+   <description>Computes the mean subhalo maximum circular velocity $V_\mathrm{max}$ as a function of bound mass at a given redshift, reading target data and mass bin configuration from file, for comparison with N-body simulation subhalo population statistics.</description>
    <runTimeFileDependencies paths="fileName"/>
   </outputAnalysis>
   !!]

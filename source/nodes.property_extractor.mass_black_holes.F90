@@ -19,9 +19,7 @@
 
   !![
   <nodePropertyExtractor name="nodePropertyExtractorMassBlackHoles">
-   <description>
-     A node property extractor which extracts a list of all super-massive black hole masses.
-   </description>
+   <description>Extracts a list of masses for all supermassive black holes in each node, providing per-black-hole mass data for analysis of black hole demographics and the black hole mass function.</description>
   </nodePropertyExtractor>
   !!]
   type, extends(nodePropertyExtractorList) :: nodePropertyExtractorMassBlackHoles

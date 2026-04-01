@@ -23,7 +23,7 @@ Implements an output analysis property extractor class that scalarizes one eleme
 
   !![
   <nodePropertyExtractor name="nodePropertyExtractorScalarizer">
-   <description>An output analysis property extractor class that scalarizes one element from an array node property extractor.</description>
+   <description>A property extractor that wraps an array or tuple \refClass{nodePropertyExtractorClass} and returns a single scalar value by selecting one entry from the array. The \mono{element} parameter specifies which element index to extract; for tuple extractors an additional \mono{item} parameter selects the item (row) within the tuple. This allows individual components of compound property arrays (e.g.\ a single radial bin from a density profile, or one filter band from a magnitude tuple) to be extracted as independent scalar output datasets.</description>
   </nodePropertyExtractor>
   !!]
   type, extends(nodePropertyExtractorScalar) :: nodePropertyExtractorScalarizer

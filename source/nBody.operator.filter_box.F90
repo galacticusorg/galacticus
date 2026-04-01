@@ -23,7 +23,7 @@ Implements an N-body data operator which filters particles outside a cuboid regi
   
   !![
   <nbodyOperator name="nbodyOperatorFilterBox">
-   <description>An N-body data operator which filters particles outside a cuboid region.</description>
+   <description>An N-body data operator which retains only particles whose positions fall within a specified axis-aligned cuboid region, enabling spatially localized analysis of simulation volumes. The lower and upper boundaries of the cuboid are specified as three-element coordinate arrays via \mono{[cornerLower]} and \mono{[cornerUpper]}.</description>
   </nbodyOperator>
   !!]
   type, extends(nbodyOperatorClass) :: nbodyOperatorFilterBox

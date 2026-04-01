@@ -25,7 +25,7 @@ Implements an output analysis property extractor class that extracts a property 
 
   !![
   <nodePropertyExtractor name="nodePropertyExtractorDescendantNode">
-   <description>An output analysis property extractor class that extracts a property from a descendant node of the given node.</description>
+   <description>A property extractor that traverses the merger tree forward in time from the current node and applies a scalar \refClass{nodePropertyExtractorClass} to the descendant node found at redshift \mono{redshiftDescendant}. The descendant is located by walking the main progenitor line until the node whose time matches the target time (converted from \mono{redshiftDescendant} via \refClass{cosmologyFunctionsClass}). This enables comparison of a galaxy's properties at its observed epoch with those of its descendant at a later redshift within a single output dataset.</description>
   </nodePropertyExtractor>
   !!]
   type, extends(nodePropertyExtractorScalar) :: nodePropertyExtractorDescendantNode

@@ -27,8 +27,7 @@
   !![
   <satelliteMergingTimescales name="satelliteMergingTimescalesBoylanKolchin2008">
    <description>
-    A satellite merging timescale class which computes merging timescales using the dynamical friction calibration of
-    \cite{boylan-kolchin_dynamical_2008}.
+    A satellite merging timescale class that computes the time until a satellite galaxy merges with its host using the N-body calibrated dynamical friction formula of \cite{boylan-kolchin_dynamical_2008}. The predicted timescale can be rescaled by the \mono{[timescaleMultiplier]} parameter.
    </description>
   </satelliteMergingTimescales>
   !!]

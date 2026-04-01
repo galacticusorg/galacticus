@@ -29,8 +29,7 @@
   !![
   <darkMatterProfile name="darkMatterProfileAdiabaticGnedin2004">
    <description>
-    A dark matter profile class which builds \refClass{massDistributionSphericalAdiabaticGnedin2004} objects to apply adiabatic
-    contraction to other dark matter profiles.
+    A dark matter profile class which applies adiabatic contraction to dark matter profiles using the model of \cite{gnedin_response_2004}, building \refClass{massDistributionSphericalAdiabaticGnedin2004} objects. The shape of the contraction is governed by parameters \mono{[A]}, \mono{[omega]}, and the pivot radius \mono{[radiusFractionalPivot]}, with numerical accuracy controlled by \mono{[toleranceRelative]}.
    </description>
   </darkMatterProfile>
   !!]

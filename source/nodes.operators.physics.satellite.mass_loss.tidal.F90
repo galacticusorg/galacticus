@@ -25,7 +25,7 @@
 
   !![
   <nodeOperator name="nodeOperatorSatelliteTidalMassLoss">
-   <description>A node operator class that applies tidal mass loss to orbiting satellite halos.</description>
+   <description>A node operator class that strips dark matter from orbiting satellite halos at each ODE timestep, using a \refClass{satelliteTidalStrippingClass} to compute the tidal mass loss rate. The bound mass of the satellite is evolved as an ODE variable. \mono{applyPreInfall} enables tidal stripping before the satellite formally enters the host virial radius, allowing pre-infall environmental mass loss.</description>
   </nodeOperator>
   !!]
   type, extends(nodeOperatorClass) :: nodeOperatorSatelliteTidalMassLoss

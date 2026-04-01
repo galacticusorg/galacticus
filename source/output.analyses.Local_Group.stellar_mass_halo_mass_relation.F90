@@ -24,7 +24,7 @@
 
   !![
   <outputAnalysis name="outputAnalysisLocalGroupStellarMassHaloMassRelation">
-   <description>An output analysis class for the Local Group stellar mass-halo mass relation.</description>
+   <description>Computes the stellar mass--halo mass relation for Local Group satellite galaxies, comparing model predictions against observed data with stellar mass random/systematic error polynomial coefficients, binomial covariance matrix parameters, and position-type selection.</description>
   </outputAnalysis>
   !!]
   type, extends(outputAnalysisClass) :: outputAnalysisLocalGroupStellarMassHaloMassRelation

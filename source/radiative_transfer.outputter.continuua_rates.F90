@@ -21,7 +21,7 @@
   
   !![
   <radiativeTransferOutputter name="radiativeTransferOutputterContinuuaRates">
-   <description>A radiative transfer outputter class which outputs the photon emission rates in the continuua of all specified elements.</description>
+   <description>A radiative transfer outputter class that records the ionizing photon emission rates in the photoionization continua of all specified chemical elements, enabling tracking of the Lyman continuum and other ionizing fluxes. The list of elements to track is specified via the \mono{[elements]} parameter.</description>
   </radiativeTransferOutputter>
   !!]
   type, extends(radiativeTransferOutputterClass) :: radiativeTransferOutputterContinuuaRates

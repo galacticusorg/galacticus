@@ -32,7 +32,10 @@ module Accretion_Disk_Spectra
   <functionClass>
    <name>accretionDiskSpectra</name>
    <descriptiveName>Accretion Disk Spectra</descriptiveName>
-   <description>Class providing spectra of accretion disks.</description>
+   <description>Class providing the spectral energy distribution (in $L_\odot$ Hz$^{-1}$) of circumnuclear accretion
+    disks around supermassive black holes, as a function of wavelength. The spectrum depends on the black hole accretion
+    rate and radiative efficiency, and is used to compute AGN contributions to the UV background, photoionization of the
+    \gls{igm}, and other radiative effects.</description>
    <default>hopkins2007</default>
    <method name="spectrumNode" >
     <description>Returns the spectrum (in units of $L_\odot$~Hz$^{-1}$) of the accretion disk at the given wavelength (in units of \AA) for \mono{node}.</description>

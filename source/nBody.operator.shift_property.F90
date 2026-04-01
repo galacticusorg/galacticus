@@ -62,12 +62,12 @@ contains
     <inputParameter>
       <name>propertyName</name>
       <source>parameters</source>
-      <description>A named property on which to select.</description>
+      <description>The name of the integer particle property whose values will be shifted by adding the constant \mono{shiftBy}.</description>
     </inputParameter>
     <inputParameter>
       <name>shiftBy</name>
       <source>parameters</source>
-      <description>The amount by which to shift the property.</description>
+      <description>The integer constant added to every value of the named property, enabling renumbering or offset corrections for IDs and indices.</description>
     </inputParameter>
     !!]
     self=nbodyOperatorShiftProperty(propertyName,shiftBy)

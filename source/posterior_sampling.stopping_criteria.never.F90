@@ -23,7 +23,7 @@
 
   !![
   <posteriorSampleStoppingCriterion name="posteriorSampleStoppingCriterionNever">
-   <description>A posterior sampling stopping class which never stops.</description>
+   <description>A posterior sampling stopping criterion class that always returns false, allowing the sampler to run for the full maximum number of steps without terminating early based on any stopping condition.</description>
   </posteriorSampleStoppingCriterion>
   !!]
   type, extends(posteriorSampleStoppingCriterionClass) :: posteriorSampleStoppingCriterionNever

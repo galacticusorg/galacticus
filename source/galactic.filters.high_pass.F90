@@ -25,7 +25,7 @@ Implements a high-pass filter on any node property.
 
   !![
   <galacticFilter name="galacticFilterHighPass">
-   <description>A high-pass filter on any node property.</description>
+   <description>A high-pass galactic filter that passes only nodes for which a scalar property, extracted via \mono{[nodePropertyExtractor]}, equals or exceeds the specified \mono{[threshold]} value. This allows selection of galaxies or halos above any quantitative threshold in any extractable property.</description>
   </galacticFilter>
   !!]
   type, extends(galacticFilterClass) :: galacticFilterHighPass

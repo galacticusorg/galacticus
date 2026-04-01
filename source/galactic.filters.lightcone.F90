@@ -25,9 +25,7 @@ Implements a galactic filter on lightcone geometry.
 
   !![
   <galacticFilter name="galacticFilterLightcone">
-   <description>
-   A galactic filter on lightcone geometry.
-   </description>
+   <description>Passes nodes that fall within a lightcone geometry as defined by a \refClass{geometryLightconeClass} object, enabling mock catalog construction by selecting only galaxies observable within the survey volume.</description>
   </galacticFilter>
   !!]
   type, extends(galacticFilterClass) :: galacticFilterLightcone

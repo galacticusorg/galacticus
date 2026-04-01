@@ -40,7 +40,7 @@ Implements the survey geometry used by \cite{martin_arecibo_2010}.
     sample with power-law function as shown in Fig.~\ref{fig:ALFALFALineWidthMassRelation}. We find that the median line width
     can be approximated by
     \begin{equation}
-     \log_{10} (W_\mathrm{50}/\hbox{km s}^{-1}) = c_0 + c_1 \log_10(M_\mathrm{HI}/M_\odot),
+     \log_{10} (W_\mathrm{50}/\hbox{km s}^{-1}) = c_0 + c_1 \log_10(M_\mathrm{HI}/\mathrm{M}_\odot),
      \label{eq:ALFALFALineWidthMassRelation}
     \end{equation}
     with $c_0=-0.770$ and $c_1=0.315$. Given the line width, the corresponding integrated flux limit, $S_\mathrm{int}$, for a

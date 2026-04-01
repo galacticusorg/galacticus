@@ -26,7 +26,7 @@
 
   !![
   <galacticStructureSolver name="galacticStructureSolverEquilibrium">
-   <description>An ``equilibrium'' solver for galactic structure.</description>
+   <description>An ``equilibrium'' solver for galactic structure that iteratively finds radii at which each galactic component is in equilibrium within the combined gravitational potential of dark matter and baryons. Convergence is controlled by \mono{[solutionTolerance]}, with optional inclusion of baryon self-gravity via \mono{[includeBaryonGravity]}.</description>
   </galacticStructureSolver>
   !!]
   type, extends(galacticStructureSolverClass) :: galacticStructureSolverEquilibrium

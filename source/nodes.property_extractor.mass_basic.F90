@@ -23,7 +23,7 @@ Implements an output analysis property extractor class that extracts the basic m
 
   !![
   <nodePropertyExtractor name="nodePropertyExtractorMassBasic">
-   <description>An output analysis property extractor class that extracts the basic mass.</description>
+   <description>Extracts the ``basic'' mass of a node as defined by the basic component, representing the total dark matter halo mass including all mass associated with the node, suitable for halo mass function and clustering analyses.</description>
   </nodePropertyExtractor>
   !!]
   type, extends(nodePropertyExtractorScalar) :: nodePropertyExtractorMassBasic

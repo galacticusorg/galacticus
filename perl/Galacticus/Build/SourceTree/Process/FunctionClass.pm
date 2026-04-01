@@ -2715,6 +2715,8 @@ CODE
 
 	    # Generate documentation. We construct two sets of documentation, one describing the physics models, and one describing the code implementation.
             my $documentationPhysics = "\\section{"      .$directive->{'descriptiveName'}."}\\label{phys:".$directive->{'name'}."}\\hyperdef{physics}{".$directive->{'name'}."}{}\n\n";
+	    $documentationPhysics .= $directive->{'description'}."\n\n"
+	        if ( exists($directive->{'description'}) );
 	    if ( exists($directive->{'default'}) ) {
 		$documentationPhysics .= "Default implementation: \\refPhysics{".$directive->{'name'}.ucfirst($directive->{'default'})."}\n\n";
 	    } else {

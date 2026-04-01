@@ -23,7 +23,7 @@ Implements a half-stellar mass radius output analysis property extractor class.
 
   !![
   <nodePropertyExtractor name="nodePropertyExtractorRadiusHalfMassStellar">
-   <description>A half-(stellar) mass output analysis property extractor class.</description>
+   <description>Extracts the projected half-stellar-mass radius (effective radius), the radius enclosing half the total stellar luminosity or stellar mass of a galaxy, a fundamental size observable used in galaxy structural studies.</description>
   </nodePropertyExtractor>
   !!]
   type, extends(nodePropertyExtractorScalar) :: nodePropertyExtractorRadiusHalfMassStellar

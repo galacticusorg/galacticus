@@ -33,16 +33,21 @@ module Power_Spectrum_Window_Functions
   <functionClass>
    <name>powerSpectrumWindowFunction</name>
    <descriptiveName>Power Spectrum Window Functions</descriptiveName>
-   <description>Class providing window functions for filtering of power spectra.</description>
+   <description>Class providing window functions $W(k, M)$ for filtering the matter power spectrum when computing
+    the rms mass variance $\sigma(M) = \int \mathrm{d}k\, k^2 P(k) |W(k,M)|^2$. The window function
+    smooths the density field on the scale enclosing mass $M$, and the choice of window (e.g.\ real-space
+    top-hat, sharp $k$-space, or Gaussian) affects the resulting mass function. Methods return the
+    filter value at a given wavenumber and smoothing mass, and indicate the maximum relevant wavenumber
+    and whether the amplitude is mass-independent.</description>
    <default>topHat</default>
    <method name="value" >
-    <description> Returns the window function for power spectrum variance computation at the specified \mono{wavenumber} (in Mpc$^{-1}$) for a given \mono{smoothingMass} (in $M_\odot$).</description>
+    <description> Returns the window function for power spectrum variance computation at the specified \mono{wavenumber} (in Mpc$^{-1}$) for a given \mono{smoothingMass} (in $\mathrm{M}_\odot$).</description>
     <type>double precision</type>
     <pass>yes</pass>
     <argument>double precision, intent(in   ) :: wavenumber, smoothingMass</argument>
    </method>
    <method name="wavenumberMaximum" >
-    <description>Returns the maximum wavenumber for which the window function for power spectrum variance computation is non-zero for a given \mono{smoothingMass} (in $M_\odot$).</description>
+    <description>Returns the maximum wavenumber for which the window function for power spectrum variance computation is non-zero for a given \mono{smoothingMass} (in $\mathrm{M}_\odot$).</description>
     <type>double precision</type>
     <pass>yes</pass>
     <argument>double precision, intent(in   ) :: smoothingMass</argument>

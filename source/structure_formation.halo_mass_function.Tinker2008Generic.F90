@@ -23,7 +23,7 @@
 
   !![
   <haloMassFunction name="haloMassFunctionTinker2008Generic">
-   <description>The halo mass function is computed from the function given by \cite{tinker_towardhalo_2008} with user-specified parameters.</description>
+   <description>The dark matter halo mass function is computed using the empirical fitting function of \cite{tinker_towardhalo_2008}, calibrated against N-body simulations over a wide range of halo masses and redshifts. The normalization $A$ and shape parameters $a$, $b$, $c$ of the fit can each be specified directly via input parameters.</description>
   </haloMassFunction>
   !!]
   type, extends(haloMassFunctionTinker2008Form) :: haloMassFunctionTinker2008Generic

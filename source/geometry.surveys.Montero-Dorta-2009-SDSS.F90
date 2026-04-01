@@ -25,7 +25,7 @@ Implements the geometry of the SDSS survey used by \cite{montero-dorta_sdss_2009
 
   !![
   <surveyGeometry name="surveyGeometryMonteroDorta2009SDSS">
-   <description>Implements the geometry of the SDSS survey of \cite{montero-dorta_sdss_2009}.</description>
+   <description>Implements the geometry of the SDSS survey as used by \cite{montero-dorta_sdss_2009} for their luminosity function measurements. The effective survey volume is defined by redshift limits \mono{[redshiftMinimum]} and \mono{[redshiftMaximum]} and apparent magnitude limits in a specified photometric \mono{[band]}.</description>
   </surveyGeometry>
   !!]
   type, extends(surveyGeometryBernardi2013SDSS) :: surveyGeometryMonteroDorta2009SDSS

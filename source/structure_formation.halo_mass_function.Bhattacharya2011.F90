@@ -25,7 +25,7 @@
 
   !![
   <haloMassFunction name="haloMassFunctionBhattacharya2011">
-   <description>The halo mass function is computed from the function given by \cite{bhattacharya_mass_2011}.</description>
+   <description>The dark matter halo mass function is computed using the redshift-dependent fitting function of \cite{bhattacharya_mass_2011}, calibrated against N-body simulations. The shape parameters $\bar{a}$, $\bar{p}$, $\bar{q}$, and normalization $\bar{A}$ of the fit can each be specified via input parameters.</description>
   </haloMassFunction>
   !!]
   type, extends(haloMassFunctionClass) :: haloMassFunctionBhattacharya2011

@@ -31,7 +31,7 @@
 
   !![
   <outputAnalysis name="outputAnalysisStarFormationRateFunction">
-   <description>A stellar mass function output analysis class.</description>
+   <description>Computes the galaxy star formation rate function as a number density per unit log-star-formation-rate, with user-specified SFR bin centers, \mono{label}, \mono{comment}, optional target dataset for likelihood evaluation, and binomial covariance matrix construction parameters for halo mass range.</description>
   </outputAnalysis>
   !!]
   type, extends(outputAnalysisVolumeFunction1D) :: outputAnalysisStarFormationRateFunction

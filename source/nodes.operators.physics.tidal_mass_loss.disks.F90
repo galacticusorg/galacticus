@@ -25,7 +25,7 @@
   
   !![
   <nodeOperator name="nodeOperatorTidalMassLossDisks">
-   <description>A node operator class that performs tidal mass loss in disks.</description>
+   <description>Computes and applies gravitational tidal stripping of stellar and gaseous mass from satellite galaxy disks as they orbit within the host halo tidal field, removing material outside the satellite's tidal radius at each pericentric passage.</description>
   </nodeOperator>
   !!]
   type, extends(nodeOperatorClass) :: nodeOperatorTidalMassLossDisks

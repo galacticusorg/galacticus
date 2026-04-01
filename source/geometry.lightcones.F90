@@ -33,7 +33,12 @@ module Geometry_Lightcones
   <functionClass>
    <name>geometryLightcone</name>
    <descriptiveName>Lightcone Geometries</descriptiveName>
-   <description>Class providing geometries of lightcones.</description>
+   <description>Class providing lightcone geometries---the spatial and temporal selection function that
+    defines which galaxies from the simulation volume are observable by a survey. A lightcone selects
+    objects whose simulated positions intersect the observer's past light cone, accounting for periodic
+    box replication. Implementations provide the minimum and maximum comoving lookback time, test
+    whether a node lies within the cone, compute the position and velocity at lightcone crossing, and
+    return the solid angle of the survey.</description>
    <default>null</default>
    <method name="timeMinimum" >
     <description>Returns the minimum time in the lightcone.</description>

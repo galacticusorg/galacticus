@@ -44,7 +44,7 @@
   
   !![
   <task name="taskHaloMassFunction">
-    <description>A task which computes and outputs the halo mass function and related quantities.</description>
+    <description>A task which computes and outputs the differential halo mass function $\mathrm{d}n/\mathrm{d}\log M$ and related quantities---including halo bias, concentration, scale radius, dark matter profile, virial density contrasts, and unevolved subhalo mass function---over a grid of halo masses and output times.</description>
     <descriptorSpecial>descriptorSpecial</descriptorSpecial>
   </task>
   !!]

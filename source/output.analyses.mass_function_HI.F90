@@ -26,7 +26,7 @@ Implements an HI mass function output analysis class.
 
   !![
   <outputAnalysis name="outputAnalysisMassFunctionHI">
-   <description>An HI mass function output analysis class.</description>
+   <description>Computes the HI gas mass function as a number density per unit log-mass, with user-specified mass bin centers, \mono{label}, \mono{comment}, optional target dataset for likelihood evaluation, and binomial covariance matrix construction parameters for halo mass range.</description>
   </outputAnalysis>
   !!]
   type, extends(outputAnalysisVolumeFunction1D) :: outputAnalysisMassFunctionHI

@@ -24,7 +24,7 @@
 
   !![
   <outputAnalysis name="outputAnalysisLocalGroupMassMetallicityRelation">
-   <description>An output analysis class for Local Group satellite galaxy mass-metallicity relations.</description>
+   <description>Computes the stellar mass--gas-phase metallicity relation for Local Group satellite galaxies, comparing model predictions against observed data with stellar mass and metallicity random/systematic error polynomial coefficients, binomial covariance parameters, and position-type selection.</description>
   </outputAnalysis>
   !!]
   type, extends(outputAnalysisClass) :: outputAnalysisLocalGroupMassMetallicityRelation

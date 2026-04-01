@@ -27,7 +27,7 @@
 
   !![
   <task name="taskExcursionSets">
-   <description>A task which computes and outputs the halo mass function and related quantities.</description>
+   <description>A task which computes and outputs excursion set statistics over a grid of halo masses and cosmic times, including the variance of the density field, the excursion set barrier, the first-crossing probability and rate, the halo mass function, and the matter power spectrum. These quantities characterize the stochastic evolution of density perturbations in the extended Press-Schechter formalism.</description>
   </task>
   !!]
   type, extends(taskClass) :: taskExcursionSets

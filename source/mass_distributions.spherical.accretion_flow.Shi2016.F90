@@ -121,17 +121,17 @@ contains
     !![
     <inputParameter>
       <name>mass</name>
-      <description>The mass of the halo.</description>
+      <description>The virial mass (in $\mathrm{M}_\odot$) of the halo used to set the normalization of the \cite{shi_outer_2016} accretion flow density profile.</description>
       <source>parameters</source>
     </inputParameter>
     <inputParameter>
       <name>massAccretionRate</name>
-      <description>The mass accretion rate of the halo.</description>
+      <description>The mass accretion rate (in $\mathrm{M}_\odot$/Gyr) of the halo, used in the \cite{shi_outer_2016} framework to set the amplitude of the outer accretion flow density profile.</description>
       <source>parameters</source>
     </inputParameter>
      <inputParameter>
       <name>radiusVirial</name>
-      <description>The virial radius of the halo.</description>
+      <description>The virial radius (in Mpc) of the halo, used together with the turnaround radius ratio to set the spatial scale of the \cite{shi_outer_2016} accretion flow.</description>
       <source>parameters</source>
     </inputParameter>
      <inputParameter>
@@ -141,7 +141,7 @@ contains
     </inputParameter>
     <inputParameter>
       <name>redshift</name>
-      <description>The redshift of the halo.</description>
+      <description>The cosmological redshift of the halo, used to evaluate the cosmic time and expansion factor for the \cite{shi_outer_2016} accretion flow solution.</description>
       <source>parameters</source>
     </inputParameter>
     <inputParameter>

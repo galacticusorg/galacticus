@@ -26,7 +26,7 @@
 
   !![
   <outputAnalysis name="outputAnalysisSubhaloRadialDistribution">
-   <description>An output analysis class for subhalo mass functions.</description>
+   <description>Computes the radial distribution of subhalos as a function of fractional host-halo radius at a given redshift, with configurable mass threshold (absolute or as virial mass ratio), fractional radius bins, and negative binomial scatter in likelihood calculations.</description>
    <deepCopy>
     <functionClass variables="volumeFunctionsSubHalos, volumeFunctionsHostHalos"/>
    </deepCopy>

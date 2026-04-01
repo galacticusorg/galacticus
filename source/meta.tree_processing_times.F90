@@ -33,7 +33,12 @@ module Meta_Tree_Compute_Times
   <functionClass>
    <name>metaTreeProcessingTime</name>
    <descriptiveName>Merger Tree Processing Times</descriptiveName>
-   <description>Class providing estimates of processing times for merger trees.</description>
+   <description>Class providing estimates of the computational processing time required for merger
+    trees---predictions of how long (in wall-clock time) it will take to evolve a merger tree of a given
+    root halo mass, and of the remaining time for a partially-processed tree. These estimates are
+    used by the work-sharing scheduler to balance computational load across MPI processes: trees
+    expected to take longer can be started earlier or assigned to dedicated workers. The null
+    implementation returns a negative value indicating that no estimate is available.</description>
    <default>null</default>
    <method name="time" >
     <description>Return an estimate of the time needed to process a tree of the given mass.</description>

@@ -83,7 +83,7 @@ contains
     <inputParameter>
       <name>cutoffVelocityKick</name>
       <source>parameters</source>
-      <description>The minimum velocity kick to pass.</description>
+      <description>The minimum velocity kick (in km/s) that a subhalo must be able to impart on the stream for the node to pass; subhalos whose maximum kick falls below this threshold are rejected.</description>
     </inputParameter>
     <objectBuilder class="outputTimes" name="outputTimes_" source="parameters"/>
     !!]

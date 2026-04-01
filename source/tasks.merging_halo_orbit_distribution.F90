@@ -28,7 +28,7 @@
 
   !![
   <task name="taskMergingHaloOrbitDistribution">
-   <description>A task which tabulates the orbital parameter distribution for merging halos.</description>
+   <description>A task which tabulates the joint distribution of orbital parameters (velocity at virial radius and tangential-to-total velocity ratio) for halos merging into host halos, sampled from the virial orbit model weighted by the merger tree branching probability and halo mass function, and outputs the resulting distribution for analysis.</description>
   </task>
   !!]
   type, extends(taskClass) :: taskMergingHaloOrbitDistribution

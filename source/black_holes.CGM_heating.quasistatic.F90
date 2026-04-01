@@ -28,7 +28,7 @@
   !![
   <blackHoleCGMHeating name="blackHoleCGMHeatingQuasistatic">
    <description>
-    A black hole CGM heating class where the coupling strength is determined by how quasistatic the \gls{cgm} is.
+    A black hole CGM heating class that models quasi-static AGN feedback, in which the rate of energy deposited into the circumgalactic medium depends on how closely the \gls{cgm} is in hydrostatic equilibrium. The overall coupling efficiency is controlled by the \mono{[efficiencyHeating]} parameter.
    </description>
   </blackHoleCGMHeating>
   !!]

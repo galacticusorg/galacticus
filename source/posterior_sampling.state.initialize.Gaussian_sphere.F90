@@ -75,7 +75,7 @@ contains
     !![
     <inputParameter>
       <name>radiusSphere</name>
-      <description>The radius of the Gaussian sphere.</description>
+      <description>The radius of the Gaussian sphere from which each chain's initial parameter vector is drawn; if \mono{radiusIsRelative} is true this is expressed as a fraction of the prior extent, otherwise it is an absolute radius in parameter space.</description>
       <source>parameters</source>
     </inputParameter>
     <inputParameter>

@@ -81,22 +81,22 @@ contains
     !![
     <inputParameter>
       <name>exponentInitial</name>
-      <description>The initial exponent.</description>
+      <description>The initial value of the temperature-scaling exponent $\alpha$ used before any adaptive adjustment based on the acceptance-rate gradient has been applied.</description>
       <source>parameters</source>
     </inputParameter>
     <inputParameter>
       <name>exponentMinimum</name>
-      <description>The minimum allowed exponent.</description>
+      <description>The minimum value to which the temperature-scaling exponent $\alpha$ may be reduced during adaptive adjustment, preventing the temperature dependence from becoming negligibly weak.</description>
       <source>parameters</source>
     </inputParameter>
     <inputParameter>
       <name>exponentMaximum</name>
-      <description>The maximum allowed exponent.</description>
+      <description>The maximum value to which the temperature-scaling exponent $\alpha$ may be increased during adaptive adjustment, preventing the proposal size from growing too steeply with temperature.</description>
       <source>parameters</source>
     </inputParameter>
     <inputParameter>
       <name>exponentAdjustFactor</name>
-      <description>The factor by which to adjust the exponent.</description>
+      <description>The additive increment by which the temperature-scaling exponent $\alpha$ is increased or decreased at each adaptation step when the acceptance-rate gradient falls outside the target range.</description>
       <source>parameters</source>
     </inputParameter>
     <inputParameter>

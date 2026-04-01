@@ -31,7 +31,7 @@
     \dot{M}_\mathrm{outflow} = {\dot{E}_\mathrm{SN} \over E_\mathrm{SN} \dot{M}_\star} \int_0^\infty \beta_0
     \Sigma_{g,1}^{-\mu}(r) f_\mathrm{g}^\nu(r) \dot{\Sigma}_\star(r) 2 \pi r \mathrm{d}r,
     \end{equation}
-    where $\Sigma_{g,1}(r)$ is the surface density of gas in units of $M_\odot$ pc$^{-2}$, $f_\mathrm{g}(r)$ is the gas
+    where $\Sigma_{g,1}(r)$ is the surface density of gas in units of $\mathrm{M}_\odot$ pc$^{-2}$, $f_\mathrm{g}(r)$ is the gas
     fraction, $\dot{\Sigma}_\star(r)$ is the surface density of star formation rate, $\dot{M}_\star$ is the total star
     formation rate in the disk, $\dot{E}_\mathrm{SN}$ is the current energy input rate from supernovae, $E_\mathrm{SN}$ is the
     total energy input per unit mass from a stellar population after infinite time, $\beta_0=$\mono{[beta0]},
@@ -137,12 +137,12 @@ contains
 
   subroutine creasey2013OutflowRate(self,component,rateStarFormation,rateEnergyInput,rateOutflowEjective,rateOutflowExpulsive)
     !!{
-    Returns the outflow rate (in $M_\odot$ Gyr$^{-1}$) for star formation in the galactic disk \mono{component} using
+    Returns the outflow rate (in $\mathrm{M}_\odot$ Gyr$^{-1}$) for star formation in the galactic disk \mono{component} using
     the model of \cite{creasey_how_2013}. The outflow rate is given by
     \begin{equation}
     \dot{M}_\mathrm{outflow} = \int_0^\infty \beta_0 \Sigma_{g,1}^{-\mu}(r) f_\mathrm{g}^\nu(r) \dot{\Sigma}_\star(r) 2 \pi r \mathrm{d}r,
     \end{equation}
-    where $\Sigma_{g,1}(r)$ is the surface density of gas in units of $M_\odot$ pc$^{-2}$, $f_\mathrm{g}(r)$ is the gas
+    where $\Sigma_{g,1}(r)$ is the surface density of gas in units of $\mathrm{M}_\odot$ pc$^{-2}$, $f_\mathrm{g}(r)$ is the gas
     fraction, $\dot{\Sigma}_\star(r)$ is the surface density of star formation rate, $\beta_0=$\mono{[beta0]},
     $\mu=$\mono{[mu]}, and $\nu=$\mono{[nu]}.
     !!}

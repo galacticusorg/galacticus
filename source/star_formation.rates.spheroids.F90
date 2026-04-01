@@ -31,8 +31,11 @@ module Star_Formation_Rates_Spheroids
   !![
   <functionClass>
    <name>starFormationRateSpheroids</name>
-   <descriptiveName>Rates for star formation in spheroids.</descriptiveName>
-   <description>Class providing models of rates of star formation in spheroids.</description>
+   <descriptiveName>Star Formation Rates in Spheroids</descriptiveName>
+   <description>Class providing models of the star formation rate (in $\mathrm{M}_\odot$ Gyr$^{-1}$) in the spheroid (bulge)
+    component of a galaxy. Star formation in spheroids is typically triggered by galaxy mergers or disk instabilities
+    that funnel gas into the galactic center. Implementations commonly adopt a timescale approach in which the star
+    formation rate is proportional to the available cold gas mass divided by a dynamical or depletion timescale.</description>
    <default>timescale</default>
    <method name="rate" >
     <description>Returns the rate (in units of $\mathrm{M}_\odot$ Gyr$^{-1}$) for star formation in the spheroid component of \mono{node}.</description>

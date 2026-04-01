@@ -23,7 +23,7 @@
 
   !![
   <kinematicsDistribution name="kinematicsDistributionIsothermal">
-   <description>An isothermal kinematic distribution class masses.</description>
+   <description>An isothermal kinematic distribution class for collisional gas components in which all particles share a single uniform temperature. The 1D velocity dispersion is derived from the gas temperature \mono{[temperature]} and mean atomic mass \mono{[massAtomicMean]}, appropriate for modelling thermally supported gas in hydrostatic equilibrium.</description>
   </kinematicsDistribution>
   !!]
   type, public, extends(kinematicsDistributionClass) :: kinematicsDistributionIsothermal
@@ -65,7 +65,7 @@ contains
        !![
        <inputParameter>
 	 <name>temperature</name>
-	 <description>The temperature of the distribution.</description>
+	 <description>The temperature (in Kelvin) of the isothermal gas distribution; used with \mono{massAtomicMean} to compute the 1D velocity dispersion via $\sigma^2 = k_\mathrm{B} T / (\mu m_\mathrm{H})$.</description>
 	 <source>parameters</source>
        </inputParameter>
        <inputParameter>
@@ -79,7 +79,7 @@ contains
        !![
        <inputParameter>
 	 <name>velocityDispersion</name>
-	 <description>The velocity dispersion of the distribution.</description>
+	 <description>The 1D velocity dispersion (in km/s) of the isothermal distribution, used directly when no \mono{temperature} is specified; sets the thermally broadened line-of-sight velocity spread.</description>
 	 <source>parameters</source>
        </inputParameter>
        !!]

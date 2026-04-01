@@ -23,7 +23,7 @@
 
   !![
   <outputAnalysis name="outputAnalysisMassMetallicityAndrews2013">
-   <description>A mass-metallicity relation output analysis class.</description>
+   <description>Computes the gas-phase stellar mass--metallicity relation for comparison with the \cite{andrews_mass-metallicity_2013} observational data, with stellar mass and metallicity random/systematic error polynomial coefficients and a gas fraction threshold for sample selection.</description>
   </outputAnalysis>
   !!]
   type, extends(outputAnalysisMeanFunction1D) :: outputAnalysisMassMetallicityAndrews2013

@@ -26,7 +26,7 @@
 
   !![
   <outputAnalysis name="outputAnalysisSubhaloMassFunction">
-   <description>An output analysis class for subhalo mass functions.</description>
+   <description>Computes the subhalo mass function (number of subhalos per unit mass ratio relative to the host halo) at a given redshift, reading bin configuration and target data from file, with options for empty-bin handling and negative binomial scatter in likelihood calculations.</description>
    <deepCopy>
     <functionClass variables="volumeFunctionsSubHalos, volumeFunctionsHostHalos"/>
    </deepCopy>

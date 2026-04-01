@@ -43,7 +43,11 @@ module Computational_Domains
   <functionClass>
    <name>computationalDomain</name>
    <descriptiveName>Computational Domains</descriptiveName>
-   <description>Class providing computational domains.</description>
+   <description>Class providing computational domains for Monte Carlo radiative transfer calculations--- discretized spatial grids
+    that partition the simulation volume into cells, each carrying absorption and emission properties. A computational domain
+    supports iterating over cells, locating a position within its cell structure, computing ray path lengths to cell boundaries,
+    accumulating photon packet absorptions, and solving for the local ionization and temperature state. Implementations include
+    Cartesian and spherical grids.</description>
    <default>cartesian3D</default>
    <method name="iterator" >
     <description>Return an iterator which can be used to iterate over the domain.</description>
@@ -52,12 +56,14 @@ module Computational_Domains
     <argument>class(domainIterator), intent(inout), allocatable :: iterator</argument>
    </method>
    <method name="initialize" >
-    <description>Initialize the computational domain.</description>
+    <description>Initialize the computational domain, setting up internal data structures and allocating resources required before
+    radiative transfer iterations begin.</description>
     <type>void</type>
     <pass>yes</pass>
    </method>
    <method name="reset" >
-    <description>Reset computational domain prior to a new iteration.</description>
+    <description>Reset the computational domain state prior to beginning a new radiative transfer iteration, clearing accumulated
+    photon packet statistics while preserving the domain geometry and cell structure.</description>
     <type>void</type>
     <pass>yes</pass>
    </method>
@@ -69,7 +75,7 @@ module Computational_Domains
     <argument>integer         (c_size_t), allocatable, dimension(:), intent(inout) :: indices</argument>
    </method>
    <method name="absorptionCoefficient" >
-    <description>Return the absorption coefficient in the domain cell.</description>
+    <description>Return the absorption coefficient (in units of inverse length) in the domain cell identified by the given indices for a photon packet at its current wavelength, used to compute photon packet attenuation as it traverses the cell.</description>
     <type>double precision</type>
     <pass>yes</pass>
     <argument>class  (radiativeTransferPhotonPacketClass)              , intent(inout) :: photonPacket</argument>
@@ -100,17 +106,17 @@ module Computational_Domains
     <argument>integer         (c_size_t                          ), dimension(:), intent(inout) :: indices</argument>
    </method>
    <method name="stateSolve" >
-    <description>Solve for the state of matter in the computational domain.</description>
+    <description>Solve for the equilibrium state of matter throughout the computational domain given the accumulated radiation field, updating physical quantities such as temperature, ionization state, or chemical abundances in each cell.</description>
     <type>void</type>
     <pass>yes</pass>
    </method>
    <method name="converged" >
-    <description>Return true if the computational domain is converged.</description>
+    <description>Return true if the computational domain has reached a converged solution, meaning that the matter state (e.g. ionization, temperature) is no longer changing significantly between successive radiative transfer iterations.</description>
     <type>logical</type>
     <pass>yes</pass>
    </method>
    <method name="output" >
-    <description>Output the computational domain.</description>
+    <description>Output the current state of the computational domain (cell properties, radiation field, matter state) to the specified HDF5 group for post-processing analysis or diagnostic purposes.</description>
     <type>void</type>
     <pass>yes</pass>
     <argument>type(hdf5Object), intent(inout) :: outputGroup</argument>

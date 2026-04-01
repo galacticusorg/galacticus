@@ -23,7 +23,7 @@
 
   !![
   <nodeOperator name="nodeOperatorSatelliteOrphanize">
-   <description>A node operator class that triggers orphanizing of satellites that reach the end of their history.</description>
+   <description>Converts satellite nodes into orphan galaxies when they reach the end of their tracked merger tree history, detaching them from their host halo and allowing them to persist as unresolved substructure.</description>
   </nodeOperator>
   !!]
   type, extends(nodeOperatorClass) :: nodeOperatorSatelliteOrphanize

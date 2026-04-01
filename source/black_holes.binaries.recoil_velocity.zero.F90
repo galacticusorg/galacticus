@@ -26,7 +26,7 @@
   !![
   <blackHoleBinaryRecoil name="blackHoleBinaryRecoilZero">
    <description>
-    A black hole binary recoil class in which the recoil velocity is always zero.
+    A null implementation of the black hole binary recoil velocity class that always returns zero recoil velocity. Useful for isolating other merger dynamics or for models where gravitational wave recoil is negligible.
    </description>
   </blackHoleBinaryRecoil>
   !!]

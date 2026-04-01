@@ -26,7 +26,7 @@ Implements an N-body data importer for Gadget HDF5 files.
 
   !![
   <nbodyImporter name="nbodyImporterGadgetHDF5">
-   <description>An importer for Gadget HDF5 files.</description>
+   <description>An importer for N-body simulation data in Gadget HDF5 format, reading particle positions, velocities, and masses for a selected particle type from a structured HDF5 file. The input file is set by \mono{[fileName]}, with physical unit conversions via \mono{[unitMassInSI]}, \mono{[unitLengthInSI]}, and \mono{[unitVelocityInSI]}, and particle type by \mono{[particleType]}.</description>
    <runTimeFileDependencies paths="fileName"/>
   </nbodyImporter>
   !!]

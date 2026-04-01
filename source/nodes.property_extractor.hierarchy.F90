@@ -19,9 +19,7 @@
 
   !![
   <nodePropertyExtractor name="nodePropertyExtractorHierarchy">
-   <description>
-     A node property extractor which extracts meta-properties related to the position of a node within the (sub-)halo hierarchy.
-   </description>
+   <description>Extracts meta-properties describing the structural position of a node within the halo hierarchy, such as its depth level in the subhalo nesting, enabling analysis of multi-level substructure in merger trees.</description>
   </nodePropertyExtractor>
   !!]
   type, extends(nodePropertyExtractorIntegerTuple) :: nodePropertyExtractorHierarchy

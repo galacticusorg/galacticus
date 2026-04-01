@@ -30,7 +30,7 @@ module Output_Analyses_Options
   !![
   <enumeration>
    <name>outputAnalysisPropertyType</name>
-   <description>Property types.</description>
+   <description>Enumeration of the scaling types used for output analysis properties, distinguishing linear, logarithmic (base-10), magnitude, and unknown scalings.</description>
    <entry label="linear"    />
    <entry label="log10"     />
    <entry label="magnitude" />
@@ -41,7 +41,7 @@ module Output_Analyses_Options
   !![
   <enumeration>
    <name>outputAnalysisPropertyQuantity</name>
-   <description>Property quantities.</description>
+   <description>Enumeration of the physical quantity types represented by output analysis properties, such as mass, star formation rate, luminosity, or unknown.</description>
    <entry label="unknown"          />
    <entry label="mass"             />
    <entry label="starFormationRate"/>

@@ -23,7 +23,7 @@
 
   !![
   <distributionFunctionDiscrete1D name="distributionFunctionDiscrete1DNegativeBinomial">
-   <description>A negative binomial 1D discrete distribution function class.</description>
+   <description>A negative binomial 1D discrete distribution function class, modeling the number of successes $k$ observed before a fixed number of failures $r$ in a sequence of independent Bernoulli trials each with success probability $p$, with probability mass function $P(k) = \binom{k+r-1}{k} p^r (1-p)^k$. Note that the cumulative and inverse CDF methods are not currently implemented; only the probability mass function and its logarithm are available.</description>
   </distributionFunctionDiscrete1D>
   !!]
   type, extends(distributionFunctionDiscrete1DClass) :: distributionFunctionDiscrete1DNegativeBinomial
@@ -66,12 +66,12 @@ contains
     !![
     <inputParameter>
       <name>probabilitySuccess</name>
-      <description>The probability of success for a single trial.</description>
+      <description>The probability $p \in (0,1]$ of success on a single Bernoulli trial; the distribution models the number of successes before $r$ failures occur, with mean $pr/(1-p)$.</description>
       <source>parameters</source>
     </inputParameter>
     <inputParameter>
       <name>countFailures</name>
-      <description>The number of failures.</description>
+      <description>The target number of failures $r$ before the experiment stops; the distribution gives the number of successes $k$ observed before the $r$-th failure, with variance $pr/(1-p)^2$.</description>
       <source>parameters</source>
     </inputParameter>
     <objectBuilder class="randomNumberGenerator" name="randomNumberGenerator_" source="parameters"/>

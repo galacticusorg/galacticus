@@ -23,7 +23,7 @@ Implements a last-defined virial radius property extractor class.
 
   !![
   <nodePropertyExtractor name="nodePropertyExtractorRadiusVirialLastDefined">
-   <description>A last-defined virial radius property extractor class.</description>
+   <description>Extracts the most recently computed virial radius of a halo, retaining the last well-defined value even after a node becomes a subhalo and its own virial radius is no longer physically meaningful.</description>
   </nodePropertyExtractor>
   !!]
   type, extends(nodePropertyExtractorScalar) :: nodePropertyExtractorRadiusVirialLastDefined

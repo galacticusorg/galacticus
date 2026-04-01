@@ -30,7 +30,7 @@ module Atomic_Rates_Recombination_Radiative
   !![
   <enumeration>
    <name>recombinationCase</name>
-   <description>Enumeration of radiative recombination cases (A or B).</description>
+   <description>Enumeration of radiative recombination cases: Case A includes recombinations to all levels (appropriate for optically thin media), Case B excludes recombinations directly to the ground state (appropriate for optically thick media where Lyman series photons are immediately reabsorbed).</description>
    <visibility>public</visibility>
    <indexing>-2</indexing>
    <entry label="a"/>
@@ -44,7 +44,11 @@ module Atomic_Rates_Recombination_Radiative
   <functionClass>
    <name>atomicRecombinationRateRadiative</name>
    <descriptiveName>Atomic Radiative Recombination</descriptiveName>
-   <description>Class providing atomic radiative recombination rates.</description>
+   <description>Class providing radiative recombination rate coefficients (in cm$^3$ s$^{-1}$) for ions of given
+    atomic number and ionization state at a specified electron temperature. Case A (all recombinations) and case B
+    (excluding recombinations directly to the ground state, for optically thick nebulae) coefficients are
+    supported. These rates are used in ionization equilibrium calculations and in determining the recombination
+    line luminosities of nebulae.</description>
    <default>verner1996</default>
    <method name="rate" >
     <description>Returns the radiative recombination rate in units of cm$^3$ s$^{-1}$.</description>

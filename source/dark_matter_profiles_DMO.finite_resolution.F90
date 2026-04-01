@@ -90,12 +90,12 @@ contains
     <inputParameter>
       <name>lengthResolution</name>
       <source>parameters</source>
-      <description>The resolution length, $\Delta x$.</description>
+      <description>The gravitational softening length $\Delta x$ (in Mpc) of the N-body simulation, which sets the minimum spatial scale below which the dark matter profile is smoothed to avoid artificial two-body effects.</description>
     </inputParameter>
     <inputParameter>
       <name>massResolution</name>
       <source>parameters</source>
-       <description>The resolution mass, $\Delta M$.</description>
+       <description>The mass resolution $\Delta M$ (in $\mathrm{M}_\odot$) of the N-body simulation, representing the minimum halo mass that can be resolved; profiles of halos near this limit are softened to account for particle discreteness effects.</description>
     </inputParameter>
     <inputParameter>
       <name>resolutionIsComoving</name>

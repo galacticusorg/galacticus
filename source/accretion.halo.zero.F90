@@ -23,7 +23,7 @@
 
   !![
   <accretionHalo name="accretionHaloZero">
-   <description>Accretion onto halos assuming no accretion.</description>
+   <description>A null implementation of halo accretion that assumes zero accretion of baryonic matter from the intergalactic medium onto halos at all times. Useful for isolating other physical processes or testing purposes.</description>
   </accretionHalo>
   !!]
   type, extends(accretionHaloClass) :: accretionHaloZero
@@ -141,7 +141,7 @@ contains
 
   function zeroAccretionRateMetals(self,node,accretionMode)
     !!{
-    Computes the rate of mass of abundance accretion (in $M_\odot/$Gyr) onto \mono{node} from the intergalactic medium.
+    Computes the rate of mass of abundance accretion (in $\mathrm{M}_\odot/$Gyr) onto \mono{node} from the intergalactic medium.
     !!}
     use :: Abundances_Structure, only : abundances, zeroAbundances
     implicit none
@@ -157,7 +157,7 @@ contains
 
   function zeroAccretedMassMetals(self,node,accretionMode)
     !!{
-    Computes the mass of abundances accreted (in $M_\odot$) onto \mono{node} from the intergalactic medium.
+    Computes the mass of abundances accreted (in $\mathrm{M}_\odot$) onto \mono{node} from the intergalactic medium.
     !!}
     use :: Abundances_Structure, only : abundances, zeroAbundances
     implicit none
@@ -173,7 +173,7 @@ contains
 
   function zeroFailedAccretionRateMetals(self,node,accretionMode)
     !!{
-    Computes the rate of failed mass of abundance accretion (in $M_\odot/$Gyr) onto \mono{node} from the intergalactic medium.
+    Computes the rate of failed mass of abundance accretion (in $\mathrm{M}_\odot/$Gyr) onto \mono{node} from the intergalactic medium.
     !!}
     use :: Abundances_Structure, only : abundances, zeroAbundances
     implicit none
@@ -189,7 +189,7 @@ contains
 
   function zeroFailedAccretedMassMetals(self,node,accretionMode)
     !!{
-    Computes the mass of abundances that failed to accrete (in $M_\odot$) onto \mono{node} from the intergalactic medium.
+    Computes the mass of abundances that failed to accrete (in $\mathrm{M}_\odot$) onto \mono{node} from the intergalactic medium.
     !!}
     use :: Abundances_Structure, only : abundances, zeroAbundances
     implicit none
@@ -205,7 +205,7 @@ contains
 
   function zeroAccretionRateChemicals(self,node,accretionMode)
     !!{
-    Computes the rate of mass of chemicals accretion (in $M_\odot/$Gyr) onto \mono{node} from the intergalactic medium.
+    Computes the rate of mass of chemicals accretion (in $\mathrm{M}_\odot/$Gyr) onto \mono{node} from the intergalactic medium.
     !!}
     use :: Chemical_Abundances_Structure, only : chemicalAbundances, zeroChemicalAbundances
     implicit none
@@ -221,7 +221,7 @@ contains
 
   function zeroAccretedMassChemicals(self,node,accretionMode)
     !!{
-    Computes the mass of chemicals accreted (in $M_\odot$) onto \mono{node} from the intergalactic medium.
+    Computes the mass of chemicals accreted (in $\mathrm{M}_\odot$) onto \mono{node} from the intergalactic medium.
     !!}
     use :: Chemical_Abundances_Structure, only : chemicalAbundances, zeroChemicalAbundances
     implicit none

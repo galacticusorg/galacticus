@@ -111,7 +111,7 @@ contains
     <inputParameter>
       <name>stellarDensityChangeBinaryMotion</name>
       <defaultValue>.true.</defaultValue>
-      <description>The change in density due to the black hole's motion.</description>
+      <description>If true, account for the change in stellar density caused by the black hole binary's motion through the stellar background when computing the hardening rate of the binary via stellar scattering.</description>
       <source>parameters</source>
     </inputParameter>
     <inputParameter>

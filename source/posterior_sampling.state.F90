@@ -31,16 +31,21 @@ module Posterior_Sampling_State
   <functionClass>
    <name>posteriorSampleState</name>
    <descriptiveName>Posterior Sampling State</descriptiveName>
-   <description>Class providing state during posterior sampling simulations.</description>
+   <description>Class providing the state vector during Bayesian posterior sampling simulations---the current
+    position of a Markov chain in parameter space, together with its chain index, step count, and parameter
+    count. Implementations store and retrieve the parameter vector (via \mono{get}/\mono{set}), advance
+    the step counter, and optionally maintain a history of chain positions for convergence diagnostics.
+    The state is updated at each MCMC step and queried by the likelihood function to evaluate the
+    model at the proposed parameter values.</description>
    <default>simple</default>
    <method name="parameterCountSet" >
-    <description>Set the number of parameters in this state.</description>
+    <description>Set the number of active parameters that this state vector will track, allocating internal storage for the parameter vector of the given dimension.</description>
     <type>void</type>
     <pass>yes</pass>
     <argument>integer, intent(in   ) :: parameterCount</argument>
    </method>
    <method name="chainIndex" >
-    <description>Return the index of the chain associated with this state.</description>
+    <description>Return the integer index (0-based) of the Markov chain that owns this state object, used to identify chains in multi-chain posterior sampling algorithms.</description>
     <type>integer</type>
     <pass>yes</pass>
     <code>
@@ -48,7 +53,7 @@ module Posterior_Sampling_State
     </code>
    </method>
    <method name="chainIndexSet" >
-    <description>Set the index of the chain associated with this state.</description>
+    <description>Assign the integer chain index to this state object, identifying which Markov chain it belongs to in a multi-chain ensemble sampler.</description>
     <type>void</type>
     <pass>yes</pass>
     <argument>integer, intent(in   ) :: chainIndex</argument>
@@ -57,7 +62,7 @@ module Posterior_Sampling_State
     </code>
    </method>
    <method name="count" >
-    <description>Returns the number of steps in the current state.</description>
+    <description>Returns the total number of sampling steps that have been taken since the state was last reset, used for logging and convergence diagnostics.</description>
     <type>integer</type>
     <pass>yes</pass>
     <code>
@@ -65,7 +70,7 @@ module Posterior_Sampling_State
     </code>
    </method>
    <method name="dimension" >
-    <description>Returns the dimension of the state.</description>
+    <description>Returns the number of active parameters (dimension of the state vector) for this sampling state, equal to the value previously set by \mono{parameterCountSet}.</description>
     <type>integer</type>
     <pass>yes</pass>
     <code>
@@ -73,7 +78,7 @@ module Posterior_Sampling_State
     </code>
    </method>
    <method name="reset" >
-    <description>Reset the state object.</description>
+    <description>Reset the state object to its initial condition by zeroing the step counter and clearing any accumulated history, in preparation for a new sampling run.</description>
     <type>void</type>
     <pass>yes</pass>
     <code>
@@ -81,12 +86,12 @@ module Posterior_Sampling_State
     </code>
    </method>
    <method name="get" >
-    <description>Get the current state vector.</description>
+    <description>Return the current parameter vector representing the position of this chain in the model parameter space at the most recently accepted sampling step.</description>
     <type>double precision, dimension(self%parameterCount)</type>
     <pass>yes</pass>
    </method>
    <method name="update" >
-    <description>Update the state vector.</description>
+    <description>Advance the state to the new parameter vector \mono{stateNew}, optionally logging it to the chain history; \mono{isConverged} and \mono{outlierMask} are used to track whether post-convergence steps should be recorded.</description>
     <type>void</type>
     <pass>yes</pass>
     <argument>double precision, intent(in   ), dimension(:)           :: stateNew</argument>
@@ -95,22 +100,22 @@ module Posterior_Sampling_State
     <argument>logical         , intent(in   ), dimension(:), optional :: outlierMask</argument>
    </method>
    <method name="mean" >
-    <description>Return the mean state.</description>
+    <description>Return the mean parameter vector computed over all stored steps in the chain history, providing a point estimate of the posterior mode or mean.</description>
     <type>double precision, dimension(self%parameterCount)</type>
     <pass>yes</pass>
    </method>
    <method name="variance" >
-    <description>Return the variance in the state vector.</description>
+    <description>Return the per-parameter variance computed over all stored steps in the chain history, providing a measure of posterior width for each model parameter.</description>
     <type>double precision, dimension(self%parameterCount)</type>
     <pass>yes</pass>
    </method>
    <method name="acceptanceRate" >
-    <description>Return the state acceptance rate.</description>
+    <description>Return the fraction of proposed moves that were accepted over the recent history of this chain, used to monitor and adaptively tune proposal distributions.</description>
     <type>double precision</type>
     <pass>yes</pass>
    </method>
    <method name="restore" >
-    <description>Restore the state, one step at a time.</description>
+    <description>Replay a previously recorded state vector into the state history one step at a time, used when resuming a sampling run from a saved log file; \mono{first} signals the start of the restoration sequence.</description>
     <type>void</type>
     <pass>yes</pass>
     <argument>double precision, intent(in   ), dimension(:) :: stateVector</argument>

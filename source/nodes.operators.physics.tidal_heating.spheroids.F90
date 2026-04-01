@@ -26,7 +26,7 @@
 
   !![
   <nodeOperator name="nodeOperatorTidalHeatingSpheroids">
-   <description>A node operator class that performs tidal heating in spheroids.</description>
+   <description>Computes tidal heating of satellite galaxy spheroids by the tidal field of the host halo, injecting energy into the stellar component that causes spheroid puffing-up and can drive mass loss from tidally heated satellite galaxies.</description>
   </nodeOperator>
   !!]
   type, extends(nodeOperatorClass) :: nodeOperatorTidalHeatingSpheroids

@@ -32,8 +32,11 @@ module Atomic_Ionization_Potentials
   !![
   <functionClass>
    <name>atomicIonizationPotential</name>
-   <descriptiveName>Atomic ionization potentials.</descriptiveName>
-   <description>Class providing atomic ionization potentials.</description>
+   <descriptiveName>Atomic Ionization Potentials</descriptiveName>
+   <description>Class providing atomic ionization potentials (in eV) for atoms of given atomic number in a specified
+    ionization state (i.e. with a given number of remaining electrons). Ionization potentials set the energy
+    threshold for photo-ionization and are used in computing photo-ionization rates from a given radiation field
+    spectrum in \gls{igm} and \gls{cgm} calculations.</description>
    <default>verner</default>
    <method name="potential" >
     <description>Returns the ionization potential (in units of eV) for a given atom in a given ionization state.</description>

@@ -23,7 +23,7 @@
 
   !![
   <outputAnalysis name="outputAnalysisICMXrayLuminosityTemperature">
-   <description>An ICM X-ray luminosity-temperature relation output analysis class.</description>
+   <description>Computes the intracluster medium X-ray luminosity--temperature relation for galaxy groups and clusters, comparing model predictions to observational data with configurable random and systematic error polynomial coefficients for both luminosity and temperature.</description>
   </outputAnalysis>
   !!]
   type, extends(outputAnalysisMeanFunction1D) :: outputAnalysisICMXrayLuminosityTemperature

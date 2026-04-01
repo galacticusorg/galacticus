@@ -20,14 +20,14 @@
   !!{
   Implementation of a merger tree masses class which uses a fixed mass for trees.
   !!}
-  use :: Cosmology_Parameters     , only : cosmologyParametersClass
-  use :: Dark_Matter_Halo_Scales  , only : darkMatterHaloScaleClass
-  use :: Nodes_Operators          , only : nodeOperatorClass
-  use :: Numerical_Random_Numbers , only : randomNumberGeneratorClass
+  use :: Cosmology_Parameters    , only : cosmologyParametersClass
+  use :: Dark_Matter_Halo_Scales , only : darkMatterHaloScaleClass
+  use :: Nodes_Operators         , only : nodeOperatorClass
+  use :: Numerical_Random_Numbers, only : randomNumberGeneratorClass
 
   !![
   <mergerTreeBuildMasses name="mergerTreeBuildMassesFixedMass">
-   <description>A merger tree masses class which uses a fixed mass for trees.</description>
+   <description>A merger tree masses class which assigns fixed, user-specified halo masses to merger trees for galaxy formation modeling. Multiple mass values and tree counts can be provided, with \mono{[masses]}, \mono{[treeCount]}, and, optionally, \mono{[radii]} controlling the halo mass, number of trees per mass, and the reference radius within which masses are defined.</description>
   </mergerTreeBuildMasses>
   !!]
   type, extends(mergerTreeBuildMassesClass) :: mergerTreeBuildMassesFixedMass

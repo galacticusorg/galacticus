@@ -24,7 +24,7 @@
 
   !![
   <outputAnalysisDistributionOperator name="outputAnalysisDistributionOperatorRandomErrorPlynml">
-   <description>A random error output analysis distribution operator class.</description>
+   <description>An output analysis distribution operator that convolves a property distribution with a Gaussian random error whose width is a polynomial function of the property value, with configurable polynomial coefficients, zero-point, and minimum/maximum error clamps.</description>
   </outputAnalysisDistributionOperator>
   !!]
   type, extends(outputAnalysisDistributionOperatorRandomError) :: outputAnalysisDistributionOperatorRandomErrorPlynml

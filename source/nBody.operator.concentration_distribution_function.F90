@@ -26,7 +26,7 @@
   
   !![
   <nbodyOperator name="nbodyOperatorConcentrationDistributionFunction">
-   <description>An N-body data operator which computes mass functions.</description>
+   <description>An N-body data operator which computes the halo concentration distribution function by binning halos as a function of concentration within a specified mass and concentration range. Mass limits are set by \mono{[massMinimum]} and \mono{[massMaximum]}, concentration limits and binning by \mono{[concentrationMinimum]}, \mono{[concentrationMaximum]}, and \mono{[concentrationCountPerDecade]}.</description>
   </nbodyOperator>
   !!]
   type, extends(nbodyOperatorClass) :: nbodyOperatorConcentrationDistributionFunction
@@ -74,42 +74,42 @@ contains
     <inputParameter>
       <name>massMinimum</name>
       <source>parameters</source>
-      <description>The minimum mass to consider.</description>
+      <description>The minimum halo mass (in $\mathrm{M}_\odot$) below which halos are excluded from the concentration distribution function.</description>
     </inputParameter>
     <inputParameter>
       <name>massMaximum</name>
       <source>parameters</source>
-      <description>The maximum mass to consider.</description>
+      <description>The maximum halo mass (in $\mathrm{M}_\odot$) above which halos are excluded from the concentration distribution function.</description>
     </inputParameter>
     <inputParameter>
       <name>concentrationMinimum</name>
       <source>parameters</source>
-      <description>The minimum concentration to consider.</description>
+      <description>The minimum halo concentration parameter below which halos are excluded from the distribution function histogram.</description>
     </inputParameter>
     <inputParameter>
       <name>concentrationMaximum</name>
       <source>parameters</source>
-      <description>The maximum concentration to consider.</description>
+      <description>The maximum halo concentration parameter above which halos are excluded from the distribution function histogram.</description>
     </inputParameter>
     <inputParameter>
       <name>concentrationCountPerDecade</name>
       <source>parameters</source>
-      <description>The number of bins per decade of concentration.</description>
+      <description>The number of logarithmic bins per decade of concentration parameter used when constructing the concentration distribution function.</description>
     </inputParameter>
     <inputParameter>
       <name>description</name>
       <source>parameters</source>
-      <description>A description of this concentration distribution function.</description>
+      <description>A human-readable description of this concentration distribution function dataset, stored as metadata in the output file.</description>
     </inputParameter>
     <inputParameter>
       <name>simulationReference</name>
       <source>parameters</source>
-      <description>A reference for the simulation.</description>
+      <description>A bibliographic reference for the N-body simulation from which this concentration distribution is derived, stored as output metadata.</description>
     </inputParameter>
     <inputParameter>
       <name>simulationURL</name>
       <source>parameters</source>
-      <description>A URL for the simulation.</description>
+      <description>A URL pointing to the publicly accessible dataset or documentation for the N-body simulation, stored as output metadata.</description>
     </inputParameter>
     <objectBuilder class="cosmologyParameters" name="cosmologyParameters_" source="parameters"/>
     !!]

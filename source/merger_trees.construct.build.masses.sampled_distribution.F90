@@ -25,7 +25,7 @@
 
   !![
   <mergerTreeBuildMasses name="mergerTreeBuildMassesSampledDistribution" abstract="yes">
-   <description>A merger tree masses class which samples masses from a distribution.</description>
+   <description>A merger tree masses class which samples halo masses from a user-specified distribution function to populate the halo mass function. The mass range is bounded by \mono{[massTreeMinimum]} and \mono{[massTreeMaximum]}, with the sampling density set by \mono{[treesPerDecade]} trees per decade of halo mass.</description>
   </mergerTreeBuildMasses>
   !!]
   type, abstract, extends(mergerTreeBuildMassesClass) :: mergerTreeBuildMassesSampledDistribution

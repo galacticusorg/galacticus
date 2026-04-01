@@ -33,17 +33,22 @@ module Stellar_Population_Spectra_Postprocess
    <name>stellarPopulationSpectraPostprocessor</name>
    <descriptiveName>Postprocessors for stellar population spectra</descriptiveName>
    <description>
-    Class providing postprocessors for stellar population spectra. Postprocessors apply effects such as absorption by the \gls{igm}.
+    Class providing postprocessors for stellar population spectra---multiplicative corrections to the
+    spectral energy distribution applied after the intrinsic stellar population spectrum is computed.
+    Each postprocessor returns a wavelength-, age-, and redshift-dependent multiplicative factor to
+    account for effects such as \gls{igm} absorption of Lyman-series photons, intergalactic dust
+    attenuation, or other propagation effects between the source and the observer. Multiple
+    postprocessors can be chained to apply cumulative corrections for different physical processes.
    </description>
    <default>inoue2014</default>
    <method name="multiplier" >
-    <description>Return the multiplicative modification to the spectrum.</description>
+    <description>Return the multiplicative correction factor (between 0 and 1) to apply to the stellar population spectrum at the given wavelength (\AA), stellar population age (Gyr), and source redshift, accounting for propagation effects such as IGM absorption.</description>
     <type>double precision</type>
     <pass>yes</pass>
     <argument>double precision, intent(in   ) :: wavelength, age, redshift</argument>
    </method>
    <method name="isRedshiftDependent" >
-    <description>Return true if the postprocessor is redshift dependent.</description>
+    <description>Return true if this postprocessor's correction factor depends on the source redshift, allowing the ODE solver to determine whether the luminosity must be recomputed when the redshift changes rather than using a cached value.</description>
     <type>logical</type>
     <pass>yes</pass>
     <code>
@@ -73,7 +78,7 @@ module Stellar_Population_Spectra_Postprocess
   !![
   <functionClass>
    <name>stellarPopulationSpectraPostprocessorBuilder</name>
-   <descriptiveName>Builder for postprocessors for stellar population spectra</descriptiveName>
+   <descriptiveName>Stellar Population Spectra Postprocessor Builders</descriptiveName>
    <description>
     Class providing builders for postprocessors for stellar population spectra. These act as a factory for \mono{stellarPopulationSpectraPostprocessor} objects. Different postprocessors can be applied to different filters. The
     \mono{[luminosityPostprocessSet]} parameter specifies, for each filter, a descriptor which is passed to
@@ -82,7 +87,7 @@ module Stellar_Population_Spectra_Postprocess
    </description>
    <default>lookup</default>
    <method name="build" >
-    <description>Build and return a postprocessor.</description>
+    <description>Build and return a \refClass{stellarPopulationSpectraPostprocessorClass} object corresponding to the given string descriptor, acting as a factory that constructs the appropriate postprocessor (e.g., IGM absorption, dust) for each photometric filter.</description>
     <type>class(stellarPopulationSpectraPostprocessorClass)</type>
     <pass>yes</pass>
     <argument>type(varying_string), intent(in   ) :: descriptor</argument>

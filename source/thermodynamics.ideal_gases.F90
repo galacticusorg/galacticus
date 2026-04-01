@@ -18,12 +18,15 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
 !!{
-Contains a module which implements thermodynamic properties of ideal gases.
+Contains a module which implements thermodynamic properties of ideal gases, including the adiabatic sound speed and the
+Jeans length for a self-gravitating gas cloud.
 !!}
 
 module Ideal_Gases_Thermodynamics
   !!{
-  Implements thermodynamic properties of ideal gases.
+  Implements thermodynamic properties of ideal gases. Provides the adiabatic sound speed (assuming $\gamma = 5/3$) and the
+  Jeans length, defined as the sound crossing time times the free-fall time, for gas of a given temperature, density, and
+  mean atomic mass.
   !!}
   implicit none
   private
@@ -33,7 +36,11 @@ contains
 
   double precision function Ideal_Gas_Jeans_Length(temperature,density)
     !!{
-    Return the Jeans length (in Mpc) for gas of given temperature and density).
+    Return the Jeans length (in Mpc) for gas of given temperature (in Kelvin) and density (in internal units). The Jeans
+    length is computed as the ratio of the adiabatic sound speed to the square root of the gravitational constant times
+    the density, $\lambda_\mathrm{J} = c_\mathrm{s} / \sqrt{G \rho}$, which is the geometric mean of the sound crossing
+    time and the free-fall time scaled to a length. The sound speed is evaluated assuming a monatomic ideal gas
+    ($\gamma = 5/3$) with primordial mean atomic mass.
     !!}
     use :: Numerical_Constants_Astronomical, only : gravitationalConstant_internal
     implicit none

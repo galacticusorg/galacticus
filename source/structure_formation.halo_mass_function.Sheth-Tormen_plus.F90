@@ -26,7 +26,7 @@
   
   !![
   <haloMassFunction name="haloMassFunctionShethTormenPlus">
-   <description>The halo mass function is computed using an extended version of the \cite{sheth_ellipsoidal_2001} fitting function.</description>
+   <description>The dark matter halo mass function is computed using an extended version of the ellipsoidal collapse fitting function of \cite{sheth_ellipsoidal_2001}, with additional free parameters to provide greater flexibility in fitting. The shape parameters $\bar{a}$, $\bar{b}$, $\bar{c}$, $\bar{d}$, $\bar{p}$, $\bar{q}$ and normalization $\bar{A}$ can each be specified via input parameters.</description>
   </haloMassFunction>
   !!]
   type, extends(haloMassFunctionClass) :: haloMassFunctionShethTormenPlus

@@ -25,7 +25,7 @@
 
   !![
   <powerSpectrumWindowFunction name="powerSpectrumWindowFunctionLagrangianChan2017">
-   <description>A power spectrum window function class that implements the Lagrangian filter of \cite{chan_effective_2017}.</description>
+   <description>A power spectrum window function class that implements the Lagrangian filter of \cite{chan_effective_2017}, which provides a smoothed transition in Fourier space designed to match the effective filtering of matter fields in Lagrangian perturbation theory. The scale of the embedded Gaussian window is controlled by the parameter $f$ given by \mono{[f]}.</description>
   </powerSpectrumWindowFunction>
   !!]
   type, extends(powerSpectrumWindowFunctionClass) :: powerSpectrumWindowFunctionLagrangianChan2017

@@ -23,7 +23,7 @@
 
   !![
   <modelParameter name="modelParameterDerived">
-   <description>A model parameter class in which the parameter value is derived from other parameters.</description>
+   <description>A model parameter class in which the parameter value is not sampled directly but instead derived algorithmically from other model parameters via a mathematical expression. The parameter name is set by \mono{[name]} and the derivation formula by \mono{[definition]}, enabling computed quantities to be tracked as named parameters during posterior sampling.</description>
   </modelParameter>
   !!]
   type, extends(modelParameterInactive) :: modelParameterDerived
@@ -64,12 +64,12 @@ contains
     !![
     <inputParameter>
       <name>name</name>
-      <description>The name of the parameter.</description>
+      <description>The name of the derived model parameter as it appears in the \glc\ parameter file and posterior sampling output; used to identify this computed quantity in the parameter chain.</description>
       <source>parameters</source>
     </inputParameter>
     <inputParameter>
       <name>definition</name>
-      <description>The definition of the parameter.</description>
+      <description>The mathematical expression or formula used to derive this parameter's value from other model parameters during posterior sampling.</description>
       <source>parameters</source>
     </inputParameter>
     !!]

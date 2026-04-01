@@ -23,7 +23,12 @@ Implements an ISM metallicity output analysis property extractor class.
 
   !![
   <nodePropertyExtractor name="nodePropertyExtractorMetallicityISM">
-   <description>An ISM metallicity output analysis property extractor class.</description>
+   <description>A property extractor that returns the gas-phase metallicity of the interstellar medium
+    (ISM), defined as the mass ratio of a specified element to hydrogen, $Z = M_X / M_\mathrm{H}$,
+    summed over disk and spheroid gas components. The \mono{element} parameter specifies the atomic
+    symbol (e.g.\ \mono{Fe}, \mono{O}, \mono{Si}) for the element used to define metallicity. Only
+    elements being actively tracked in the abundances structure are valid choices. Returns zero for
+    nodes with no cold gas.</description>
   </nodePropertyExtractor>
   !!]
   type, extends(nodePropertyExtractorScalar) :: nodePropertyExtractorMetallicityISM

@@ -25,7 +25,7 @@
 
   !![
   <nodeOperator name="nodeOperatorBlackHolesTripleInteraction">
-   <description>A node operator class that implements triple interactions between black holes.</description>
+   <description>Handles gravitational interactions between three black holes when a third black hole is present in a system already containing a binary, computing hardening of the inner binary and the ejection or capture of the third black hole.</description>
   </nodeOperator>
   !!]
   type, extends(nodeOperatorClass) :: nodeOperatorBlackHolesTripleInteraction

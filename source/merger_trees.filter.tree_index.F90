@@ -25,7 +25,7 @@ Implements a merger tree filter which passes if the tree matches the given index
   
   !![
   <mergerTreeFilter name="mergerTreeFilterTreeIndex">
-   <description>A merger tree filter which passes if the tree matches the given index.</description>
+   <description>A merger tree filter which passes only the merger tree whose unique integer index matches a specified value, enabling selective processing or analysis of a single tree from a larger ensemble. The target tree index is specified by the \mono{[index]} parameter.</description>
   </mergerTreeFilter>
   !!]
   type, extends(mergerTreeFilterClass) :: mergerTreeFilterTreeIndex

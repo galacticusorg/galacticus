@@ -31,13 +31,16 @@ module Stellar_Feedback_Outflows
   !![
   <functionClass>
    <name>stellarFeedbackOutflows</name>
-   <descriptiveName>Stellar feedback.</descriptiveName>
-   <description>
-    Class providing models of outflows due to stellar feedback.
-   </description>
+   <descriptiveName>Stellar Feedback Outflows</descriptiveName>
+   <description>Class providing models of outflows driven by stellar feedback---the ejection of interstellar gas
+    from galactic discs and spheroids by energy and momentum deposited by supernovae and stellar winds.
+    Outflow rates (in $\mathrm{M}_\odot$~Gyr$^{-1}$) are returned separately for ejective outflows (gas removed
+    from the galaxy but retained in the halo) and expulsive outflows (gas expelled beyond the halo virial
+    radius), as functions of the star formation rate and the energy input rate. These outflows regulate
+    star formation and enrich the circumgalactic medium with metals.</description>
    <default>powerLaw</default>
    <method name="outflowRate" >
-    <description>Returns the outflow rates (both ejective and expulsive) due to stellar feedback in the given \mono{component} in units of $M_\odot/$Gyr.</description>
+    <description>Returns the outflow rates (both ejective and expulsive) due to stellar feedback in the given \mono{component} in units of $\mathrm{M}_\odot/$Gyr.</description>
     <type>void</type>
     <pass>yes</pass>
     <argument>class           (nodeComponent), intent(inout) :: component</argument>

@@ -33,7 +33,7 @@
     where $V_\mathrm{superwind}=$\mono{[velocityCharacteristic]} (in km/s) and
     $\beta_\mathrm{superwind}=$\mono{[massLoading]} are input parameters, $V$ is the characteristic velocity
     of the component, $\dot{E}$ is the rate of energy input from stellar populations and $E_\mathrm{canonical}$ is the total
-    energy input by a canonical stellar population normalized to $1 M_\odot$ after infinite time.
+    energy input by a canonical stellar population normalized to $1 \mathrm{M}_\odot$ after infinite time.
    </description>
   </stellarFeedbackOutflows>
   !!]
@@ -78,7 +78,7 @@ contains
       <name>massLoading</name>
       <source>parameters</source>
       <defaultValue>2.0d0</defaultValue>
-      <description>The mass-loading of ``superwind'' outflows.</description>
+      <description>The mass-loading parameter $\beta_\mathrm{superwind}$ of the superwind outflow model, giving the outflow rate per unit stellar energy input normalized to a canonical $1\,\mathrm{M}_\odot$ stellar population; larger values drive more gas out of the galaxy.</description>
     </inputParameter>
     !!]
     self=stellarFeedbackOutflowsSuperWind(velocityCharacteristic,massLoading)
@@ -104,7 +104,7 @@ contains
 
   subroutine superWindOutflowRate(self,component,rateStarFormation,rateEnergyInput,rateOutflowEjective,rateOutflowExpulsive)
     !!{
-    Returns the outflow rate (in $M_\odot$ Gyr$^{-1}$) for star formation in the given \mono{component}. The outflow
+    Returns the outflow rate (in $\mathrm{M}_\odot$ Gyr$^{-1}$) for star formation in the given \mono{component}. The outflow
     rate is given by 
     \begin{equation}
     \dot{M}_\mathrm{outflow} = f_\mathrm{SW,0} \left\{ \begin{array}{ll} 1 & \hbox{ if } V_\mathrm{disk} < V_\mathrm{disk,SW} \\ (V_\mathrm{disk,SW}/V_\mathrm{disk})^2 &  \hbox{ if } V_\mathrm{disk} \ge V_\mathrm{disk,SW} \end{array} \right. ,

@@ -32,13 +32,16 @@ module Dark_Matter_Halos_Mass_Loss_Rates
   !![
   <functionClass>
    <name>darkMatterHaloMassLossRate</name>
-   <descriptiveName>Dark matter halo mass loss rates.</descriptiveName>
+   <descriptiveName>Dark Matter Halo Mass Loss Rates</descriptiveName>
    <description>
-    Class providing models of the mass loss rate from dark matter (sub)halos.
+    Class providing models of the rate of mass loss from dark matter (sub)halos due to tidal stripping and other
+    processes. Returns the rate of change of halo mass (in $\mathrm{M}_\odot$ Gyr$^{-1}$) for a given node. This class is
+    used in combination with tidal stripping models to track the evolution of subhalo masses as they orbit within a
+    host halo.
    </description>
    <default>zero</default>
    <method name="rate" >
-    <description>Returns the rate of mass loss (in $M_\odot$/Gyr) from \mono{node}.</description>
+    <description>Returns the rate of mass loss (in $\mathrm{M}_\odot$/Gyr) from \mono{node}.</description>
     <type>double precision</type>
     <pass>yes</pass>
     <argument>type(treeNode), intent(inout) :: node</argument>

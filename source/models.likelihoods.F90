@@ -34,9 +34,14 @@ module Models_Likelihoods
   <functionClass>
    <name>posteriorSampleLikelihood</name>
    <descriptiveName>Posterior Sampling Likelihoods</descriptiveName>
-   <description>Class providing likelihoods for posterior sampling simulations.</description>
+   <description>Class providing likelihood functions for Bayesian posterior sampling simulations---the log-probability
+    $\ln\mathcal{L}(\boldsymbol{\theta})$ that the observational data would be observed given model
+    parameters $\boldsymbol{\theta}$. Implementations compare \glc\ model predictions with observational
+    constraints (e.g.\ stellar mass functions, sizes, colors) and return the log-likelihood and its
+    variance. The likelihood is combined with the prior from \refClass{modelParameterClass} objects to
+    drive the posterior sampler toward the best-fit parameter region.</description>
    <method name="evaluate" >
-    <description>Evaluate the likelihood.</description>
+    <description>Evaluate the log-likelihood $\ln\mathcal{L}$ at the current \mono{simulationState} given the active and inactive model parameter lists, returning the log-likelihood value and optionally its variance for stochastic estimators.</description>
     <type>double precision</type>
     <pass>yes</pass>
     <selfTarget>yes</selfTarget>

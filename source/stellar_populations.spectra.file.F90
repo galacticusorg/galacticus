@@ -135,7 +135,7 @@ contains
     <inputParameter>
       <name>fileName</name>
       <source>parameters</source>
-      <description>The name of the file from which to read spectra.</description>
+      <description>The path to the HDF5 file containing the tabulated stellar population spectra, with datasets for ages (Gyr), metallicities (log Solar), wavelengths (\AA), and spectra ($L_\odot\,\mathrm{Hz}^{-1}$); see the \mono{scripts/ssps} folder for conversion scripts.</description>
     </inputParameter>
     !!]
     self=stellarPopulationSpectraFile(forceZeroMetallicity,char(fileName))

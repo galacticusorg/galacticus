@@ -415,7 +415,7 @@ contains
     end if
     write (massStellarMinimumLogarithmic,'(f5.2)') log10(massStellarMinimum)
     write (massStellarMaximumLogarithmic,'(f5.2)') log10(massStellarMaximum)
-    description=description//"$"//trim(adjustl(massStellarMinimumLogarithmic))//" < \log_{10}(M_\star/M_\odot) < "//trim(adjustl(massStellarMaximumLogarithmic))//"$"
+    description=description//"$"//trim(adjustl(massStellarMinimumLogarithmic))//" < \log_{10}(M_\star/\mathrm{M}_\odot) < "//trim(adjustl(massStellarMaximumLogarithmic))//"$"
     self%outputAnalysisVolumeFunction1D=                                                          &
          & outputAnalysisVolumeFunction1D(                                                        &
          &                                var_str('galaxySizesSDSS')//trim(distributionName)    , &

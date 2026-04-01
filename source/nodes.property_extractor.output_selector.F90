@@ -25,7 +25,8 @@
   
   !![
   <nodePropertyExtractor name="nodePropertyExtractorOutputSelector">
-   <description>A node property extractor class that allows selection of output times at which to extract properties.</description>
+   <description>A wrapper property extractor that delegates extraction to one or more child \refClass{nodePropertyExtractorClass} objects but restricts output to a user-specified subset of output times. At each output time, the extractor checks whether that time matches one of the allowed output times (within a relative tolerance set by \mono{toleranceRelative}); non-matching times return zero-size datasets. This is useful when different properties need to be extracted at different output epochs without running separate simulations.</description>
+   <linkedList type="multiExtractorList" variable="extractors" next="next" object="extractor_" objectType="nodePropertyExtractorClass"/>
   </nodePropertyExtractor>
   !!]
   type, extends(nodePropertyExtractorMulti) :: nodePropertyExtractorOutputSelector

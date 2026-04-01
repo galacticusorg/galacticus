@@ -28,7 +28,7 @@
 
   !![
   <nodeOperator name="nodeOperatorMulti">
-   <description>A multi node operator property process class.</description>
+   <description>A node operator class that applies a linked list of multiple child \refClass{nodeOperatorClass} objects sequentially to each node, enabling a composite set of physical processes to be executed as a single operator.</description>
    <linkedList type="multiProcessList" variable="processes" next="next" object="process_" objectType="nodeOperatorClass"/>
   </nodeOperator>
   !!]

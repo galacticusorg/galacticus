@@ -23,7 +23,7 @@ Implements a black hole mass property extractor class.
 
   !![
   <nodePropertyExtractor name="nodePropertyExtractorMassBlackHole">
-   <description>An black mass property extractor class.</description>
+   <description>Extracts the mass of the central supermassive black hole in a galaxy node, accounting for growth via gas accretion and black hole mergers, for comparison with $M_\bullet$--$\sigma$ and $M_\bullet$--$M_\mathrm{bulge}$ scaling relations.</description>
   </nodePropertyExtractor>
   !!]
   type, extends(nodePropertyExtractorScalar) :: nodePropertyExtractorMassBlackHole

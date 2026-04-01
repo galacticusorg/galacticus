@@ -25,7 +25,7 @@
 
   !![
   <outputAnalysisDistributionOperator name="outputAnalysisDistributionOperatorSpinNBodyErrors">
-   <description>An output analysis distribution operator class to account for errors on N-body measurements of halo spin.</description>
+   <description>An output analysis distribution operator that convolves a halo spin distribution with the measurement errors arising from finite N-body particle sampling, modeling the scatter in spin parameter estimates from N-body simulations; \mono{errorTolerant} controls behavior when integration tolerance failures occur.</description>
   </outputAnalysisDistributionOperator>
   !!]
   type, extends(outputAnalysisDistributionOperatorClass) :: outputAnalysisDistributionOperatorSpinNBodyErrors

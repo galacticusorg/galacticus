@@ -23,9 +23,7 @@
   
   !![
   <nodePropertyExtractor name="nodePropertyExtractorTrackOutflowedMass">
-   <description>
-    A property extractor class for the mass and metal mass of gas outflowed to the \gls{cgm}.
-   </description>
+   <description>Extracts the cumulative mass and metal mass of gas that has been outflowed to the circumgalactic medium (\gls{cgm}) via stellar and AGN feedback, as tracked by the \refClass{nodeOperatorTrackOutflowedMass} operator.</description>
   </nodePropertyExtractor>
   !!]
   type, extends(nodePropertyExtractorTuple) :: nodePropertyExtractorTrackOutflowedMass

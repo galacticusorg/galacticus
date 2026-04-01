@@ -110,7 +110,7 @@ contains
       <name>toleratePotentialIntegrationFailure</name>
       <defaultValue>.false.</defaultValue>
       <source>parameters</source>
-      <description>If \mono{true}, tolerate failures to compute the potential.</description>
+      <description>If \mono{true}, tolerate numerical failures when computing the gravitational potential of a decaying dark matter profile (e.g. due to extreme decay fractions), allowing the calculation to proceed with a fallback result rather than terminating.</description>
     </inputParameter>
     <objectBuilder class="darkMatterParticle"   name="darkMatterParticle_"   source="parameters"/>
     <objectBuilder class="darkMatterHaloScale"  name="darkMatterHaloScale_"  source="parameters"/>

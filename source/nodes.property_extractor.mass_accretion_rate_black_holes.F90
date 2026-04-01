@@ -21,9 +21,7 @@
 
   !![
   <nodePropertyExtractor name="nodePropertyExtractorMassAccretionRateBlackHoles">
-   <description>
-     A node property extractor which extracts a list of all super-massive black hole mass accretion rates.
-   </description>
+   <description>Extracts a list of mass accretion rates for all supermassive black holes in each node, enabling output of per-black-hole accretion activity for analysis of AGN populations and feedback.</description>
   </nodePropertyExtractor>
   !!]
   type, extends(nodePropertyExtractorList) :: nodePropertyExtractorMassAccretionRateBlackHoles

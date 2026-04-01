@@ -26,7 +26,7 @@
 
   !![
   <outputAnalysisDistributionOperator name="outputAnalysisDistributionOperatorRndmErrNbodyMass">
-   <description>A random error output analysis distribution operator class providing errors in $\log_{10}$ of N-body halo mass.</description>
+   <description>Applies random measurement errors to $\log_{10}$ N-body halo masses, modeling the scatter introduced by halo mass estimation from N-body simulations to enable fair comparison between model and observed mass functions.</description>
   </outputAnalysisDistributionOperator>
   !!]
   type, extends(outputAnalysisDistributionOperatorRandomError) :: outputAnalysisDistributionOperatorRndmErrNbodyMass

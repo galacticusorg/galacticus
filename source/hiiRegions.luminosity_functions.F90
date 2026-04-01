@@ -32,8 +32,13 @@ module HII_Region_Luminosity_Functions
   !![
   <functionClass>
    <name>hiiRegionLuminosityFunction</name>
-   <descriptiveName>HII region luminosity function.</descriptiveName>
-   <description>Class providing models of luminosity function for emission line.</description>
+   <descriptiveName>HII Region Luminosity Functions</descriptiveName>
+   <description>Class providing models of the H\textsc{ii} region luminosity function---the distribution of
+    ionizing photon rates $Q_\mathrm{H}$ (photons~s$^{-1}$) among H\textsc{ii} regions within a
+    galaxy, characterizing the population of star-forming nebulae. Methods return the cumulative
+    distribution and cumulative luminosity of regions between specified minimum and maximum ionizing
+    photon rates, allowing the total nebular emission and its variation with galaxy star formation
+    rate to be computed for emission-line luminosity function predictions.</description>
    <default>powerLaw</default>
    <method name="cumulativeDistributionFunction">
     <description>Returns the cumulative distribution of the HII region luminosity function between a minimum and maximum $Q_\mathrm{H}$.</description>

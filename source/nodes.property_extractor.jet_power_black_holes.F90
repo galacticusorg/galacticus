@@ -22,9 +22,7 @@
 
   !![
   <nodePropertyExtractor name="nodePropertyExtractorJetPowerBlackHoles">
-   <description>
-     A node property extractor which extracts a list of all super-massive jet powers.
-   </description>
+   <description>Extracts a list of jet power values for all supermassive black holes in a node, enabling output of the mechanical AGN feedback power contributed by each black hole separately.</description>
   </nodePropertyExtractor>
   !!]
   type, extends(nodePropertyExtractorList) :: nodePropertyExtractorJetPowerBlackHoles

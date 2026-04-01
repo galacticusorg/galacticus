@@ -32,12 +32,14 @@ module Stellar_Astrophysics_Winds
   <functionClass>
    <name>stellarWinds</name>
    <descriptiveName>Stellar Winds</descriptiveName>
-   <description>
-    Class providing models of stellar winds.
-   </description>
+   <description>Class providing models of stellar winds, specifically the mass-loss rate (in $\mathrm{M}_\odot$ Gyr$^{-1}$)
+    and terminal wind velocity (in km s$^{-1}$) as functions of initial stellar mass, age, and metallicity. Stellar
+    winds from massive OB stars and Wolf-Rayet stars are a significant source of mass and momentum input to the
+    \gls{ism} and contribute to the mechanical luminosity available for stellar feedback. The wind properties enter
+    the stellar feedback class to determine the energy and momentum coupling to the surrounding gas.</description>
    <default>leitherer1992</default>
    <method name="rateMassLoss" >
-    <description>Return the mass loss rate (in $M_\odot$/Gyr) from stars of given \mono{initialMass}, \mono{age} and \mono{metallicity}.</description>
+    <description>Return the mass loss rate (in $\mathrm{M}_\odot$/Gyr) from stars of given \mono{initialMass}, \mono{age} and \mono{metallicity}.</description>
     <type>double precision</type>
     <pass>yes</pass>
     <argument>double precision, intent(in   ) :: initialMass, age, metallicity</argument>

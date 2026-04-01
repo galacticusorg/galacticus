@@ -19,9 +19,7 @@
 
   !![
   <nodePropertyExtractor name="nodePropertyExtractorGalaxyMergersIndices">
-   <description>
-     A node property extractor which extracts the indices properties of galaxy-galaxy mergers.
-   </description>
+   <description>Extracts integer index properties of galaxy-galaxy merger events (as distinct from halo mergers), such as node indices of the merging galaxy pair, enabling reconstruction of the galaxy merger history.</description>
   </nodePropertyExtractor>
   !!]
   type, extends(nodePropertyExtractorIntegerList) :: nodePropertyExtractorGalaxyMergersIndices

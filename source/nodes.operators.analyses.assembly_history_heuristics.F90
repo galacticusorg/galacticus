@@ -85,7 +85,7 @@ contains
     <inputParameter>
       <name>exponentGrowth</name>
       <defaultValue>100.0d0</defaultValue>
-      <description>The maximum plausible growth exponent.</description>
+      <description>The maximum plausible power-law exponent $\alpha$ in the mass growth criterion $|\log(M_2/M_1)| > \alpha |\log(t_2/t_1)|$; primary progenitors that grow faster than this are flagged as unphysical.</description>
       <source>parameters</source>
     </inputParameter>
     <inputParameter>

@@ -32,9 +32,11 @@ module Hot_Halo_Mass_Distributions_Core_Radii
   <functionClass>
    <name>hotHaloMassDistributionCoreRadius</name>
    <descriptiveName>Hot Halo Mass Distributions Core Radii</descriptiveName>
-   <description>
-    Object implementing core radii for hot halo mass distributions.
-   </description>
+   <description>Class providing the core radius (in Mpc) for cored hot halo density profiles. A finite core
+    radius softens the central density cusp and is motivated by the effects of AGN feedback and supernova
+    heating, which can evacuate gas from the central regions of a halo. The core radius sets the transition
+    between the flat central density and the declining outer profile in models such as the cored $\beta$-model,
+    and thus controls the central gas density and cooling rate.</description>
    <default>virialFraction</default>
    <method name="radius" >
     <description>Return the core radius of the hot halo mass distribution.</description>

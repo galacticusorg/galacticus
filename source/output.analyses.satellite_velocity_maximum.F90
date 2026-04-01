@@ -29,7 +29,7 @@
 
   !![
   <outputAnalysis name="outputAnalysisSatelliteVelocityMaximum">
-    <description>An output analysis class that computes satellite maximum circular velocity fraction as a function of time.</description>
+    <description>Computes the satellite subhalo maximum circular velocity fraction ($V_\mathrm{max}/V_\mathrm{max,0}$) as a function of time since infall, tracking tidal evolution and comparing against a target dataset read from \mono{fileName}, with a relative model uncertainty parameter.</description>
   </outputAnalysis>
   !!]
   type, extends(outputAnalysisClass) :: outputAnalysisSatelliteVelocityMaximum

@@ -32,24 +32,29 @@ module Model_Parameters
   <functionClass>
    <name>modelParameter</name>
    <descriptiveName>Model Parameters</descriptiveName>
-   <description>Class providing model parameters.</description>
+   <description>Class providing model parameters for Bayesian inference---the individual free parameters of a
+    \glc\ model that are explored during parameter estimation (e.g.\ via MCMC). Each parameter has a name,
+    a prior distribution (with \mono{logPrior}, \mono{priorSample}, \mono{priorInvert}, \mono{priorMinimum},
+    and \mono{priorMaximum} methods), and a bijective mapping to an unconstrained real line for efficient
+    sampling (via \mono{map}/\mono{unmap}). Implementations include active parameters that vary during
+    inference, and fixed parameters held at constant values.</description>
    <default>active</default>
    <method name="name">
-     <description>Return the name of this parameter.</description>
+     <description>Return the name of this parameter as it appears in the \glc\ parameter file and in output metadata, used to identify the parameter when applying posterior sampler updates.</description>
      <type>type(varying_string)</type>
      <pass>yes</pass>
    </method>
    <method name="logPrior">
-     <description>Return the log-prior for this parameter.</description>
+     <description>Return the natural logarithm of the prior probability density evaluated at the physical parameter value \mono{x}, used in computing the log-posterior during Bayesian inference.</description>
      <type>double precision</type>
      <pass>yes</pass>
      <argument>double precision, intent(in   ) :: x</argument>
    </method>
    <method name="priorSample">
-     <description>Sample from the parameter's prior.</description>
+     <description>Draw a random sample from the prior distribution for this parameter, returning a physical parameter value; used to initialize the posterior sampler or generate prior predictive samples.</description>
      <type>double precision</type>
      <pass>yes</pass>
-    </method>
+   </method>
    <method name="priorInvert">
      <description>Invert the prior, returning the parameter value given the cumulative probability.</description>
      <type>double precision</type>
@@ -72,13 +77,13 @@ module Model_Parameters
      <pass>yes</pass>
    </method>
    <method name="map">
-     <description>Map the parameter value.</description>
+     <description>Apply the bijective mapping to transform the physical parameter value \mono{x} onto the unconstrained real line used by the posterior sampler (e.g.\ logarithm for positive-definite parameters).</description>
      <type>double precision</type>
      <pass>yes</pass>
      <argument>double precision, intent(in   ) :: x</argument>
    </method>
    <method name="unmap">
-     <description>Unmap the parameter value.</description>
+     <description>Apply the inverse bijective mapping to transform the sampler's unconstrained variable \mono{x} back to the physical parameter value used to evaluate the model.</description>
      <type>double precision</type>
      <pass>yes</pass>
      <argument>double precision, intent(in   ) :: x</argument>

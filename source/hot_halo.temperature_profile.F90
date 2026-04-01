@@ -33,9 +33,11 @@ module Hot_Halo_Temperature_Profiles
   <functionClass>
    <name>hotHaloTemperatureProfile</name>
    <descriptiveName>Hot halo temperature profiles</descriptiveName>
-   <description>
-    Class implementing hot halo temperature profiles.
-   </description>
+   <description>Class providing the temperature profile of the hot gas atmosphere surrounding a galaxy,
+    returned as a \refClass{kinematicsDistributionClass} object. The temperature profile enters the local
+    cooling time calculation, determines the thermal pressure support against gravity, and sets the sound
+    speed relevant for ram pressure estimates. Implementations range from an isothermal profile at the virial
+    temperature to polytropic or observationally-motivated radially varying profiles.</description>
    <default>virial</default>
    <method name="get" >
     <description>Return the temperature distribution of the hot halo.</description>

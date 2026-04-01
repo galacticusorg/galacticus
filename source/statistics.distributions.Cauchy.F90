@@ -74,12 +74,12 @@ contains
     !![
     <inputParameter>
       <name>median</name>
-      <description>The median of the Cauchy distribution function.</description>
+      <description>The location parameter (median) $x_0$ of the Cauchy distribution, which determines the peak position of the distribution. Unlike the mean, the median is well-defined for the Cauchy distribution.</description>
       <source>parameters</source>
     </inputParameter>
     <inputParameter>
       <name>scale</name>
-      <description>The scale parameter of the Cauchy distribution function.</description>
+      <description>The scale parameter $\gamma > 0$ of the Cauchy distribution, which controls the width (half-width at half-maximum) of the distribution; larger values give a broader, heavier-tailed distribution.</description>
       <source>parameters</source>
     </inputParameter>
     <objectBuilder class="randomNumberGenerator" name="randomNumberGenerator_" source="parameters"/>

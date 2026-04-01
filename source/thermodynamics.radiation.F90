@@ -19,7 +19,9 @@
 
 module Thermodynamics_Radiation
   !!{
-  Implements calculations of thermal radiation.
+  Implements calculations of Planck blackbody thermal radiation. Provides the spectral radiance per unit wavelength or per
+  unit frequency (the Planck function) as a function of wavelength and temperature, and the total bolometric radiance
+  integrated over all frequencies using the Stefan-Boltzmann law.
   !!}
   implicit none
   private

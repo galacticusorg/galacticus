@@ -32,7 +32,11 @@ module Merger_Trees_Builders
   <functionClass>
    <name>mergerTreeBuilder</name>
    <descriptiveName>Merger Tree Builders</descriptiveName>
-   <description>Class providing merger tree builders.</description>
+   <description>Class providing merger tree builders---algorithms that construct the branching history (merger
+    tree) of a dark matter halo by stochastically sampling halo merging rates from the extended Press-Schechter
+    formalism or similar approaches. Starting from a root halo at the present epoch, a builder walks backward
+    in cosmic time, placing progenitor halos at each branching event until the tree reaches its mass resolution
+    limit or a specified early time.</description>
    <default>cole2000</default>
    <method name="build" >
     <description>Builds and returns a merger tree given the root \mono{node}.</description>

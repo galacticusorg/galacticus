@@ -21,7 +21,7 @@
 
   !![
   <nodePropertyExtractor name="nodePropertyExtractorList" abstract="yes">
-   <description>An abstract output analysis property extractor class which provides a list of floating point properties.</description>
+   <description>Abstract base class for extractors that return a variable-length list of floating-point values per node, defining the interface (element count, names, descriptions, and units) for extractors that output time series, multi-epoch property histories, or other variable-length sequences in output analysis.</description>
   </nodePropertyExtractor>
   !!]
   type, extends(nodePropertyExtractorClass), abstract :: nodePropertyExtractorList

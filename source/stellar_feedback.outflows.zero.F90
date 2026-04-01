@@ -23,7 +23,7 @@
 
   !![
   <stellarFeedbackOutflows name="stellarFeedbackOutflowsZero">
-   <description>A zero rate stellar feedback model.</description>
+   <description>A stellar feedback outflow model that produces zero outflow rate, used to disable stellar feedback-driven gas ejection while still satisfying the interface requirements of the stellar feedback outflows class.</description>
   </stellarFeedbackOutflows>
   !!]
   type, extends(stellarFeedbackOutflowsClass) :: stellarFeedbackOutflowsZero

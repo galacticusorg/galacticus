@@ -23,7 +23,7 @@
 
   !![
   <modelParameter name="modelParameterInactive">
-   <description>An inactive model parameter class.</description>
+   <description>An inactive model parameter class representing a fixed parameter that does not participate in posterior sampling and has no prior distribution or perturbation applied during inference. The parameter name is set by \mono{[name]}, making it available as a named parameter in the model parameter set without affecting the sampling space.</description>
   </modelParameter>
   !!]
   type, extends(modelParameterClass) :: modelParameterInactive
@@ -67,7 +67,7 @@ contains
     !![
     <inputParameter>
       <name>name</name>
-      <description>The name of the parameter.</description>
+      <description>The name of the inactive model parameter as it appears in the \glc\ parameter file; held at a fixed value during posterior sampling without contributing to the sampler's free parameter space.</description>
       <defaultValue>var_str('')</defaultValue>
       <source>parameters</source>
     </inputParameter>

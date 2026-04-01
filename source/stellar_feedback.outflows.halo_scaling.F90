@@ -26,7 +26,7 @@
 
   !![
   <stellarFeedbackOutflows name="stellarFeedbackOutflowsHaloScaling">
-   <description>An stellar feedback model which scales with halo velocity.</description>
+   <description>A stellar feedback outflow model in which the mass outflow rate scales as a power law in the host halo virial velocity and cosmological expansion factor, providing a physically motivated mass-loading factor that increases in lower-mass halos.</description>
   </stellarFeedbackOutflows>
   !!]
   type, extends(stellarFeedbackOutflowsClass) :: stellarFeedbackOutflowsHaloScaling
@@ -79,7 +79,7 @@ contains
       <name>fraction</name>
       <source>parameters</source>
       <defaultValue>0.01d0</defaultValue>
-      <description>The ratio of outflow rate to star formation rate in disks.</description>
+      <description>The normalization $f$ of the outflow rate relative to the star formation rate at a reference halo velocity of 200 km/s and expansion factor of 1, setting the overall mass-loading amplitude of the halo-scaling feedback model.</description>
     </inputParameter>
     <inputParameter>
       <name>exponentVelocity</name>
@@ -91,7 +91,7 @@ contains
       <name>exponentRedshift</name>
       <source>parameters</source>
       <defaultValue>0.0d0</defaultValue>
-      <description>The exponent of redshift in the outflow rate in disks.</description>
+      <description>The power-law exponent of the cosmological expansion factor $(1+z)$ in the halo-scaling outflow rate, allowing the mass-loading factor to evolve with redshift; a value of zero gives no redshift evolution.</description>
     </inputParameter>
     <objectBuilder class="cosmologyFunctions"  name="cosmologyFunctions_"  source="parameters"/>
     <objectBuilder class="darkMatterHaloScale" name="darkMatterHaloScale_" source="parameters"/>
@@ -149,7 +149,7 @@ contains
 
   subroutine haloScalingOutflowRate(self,component,rateStarFormation,rateEnergyInput,rateOutflowEjective,rateOutflowExpulsive)
     !!{
-    Returns the outflow rate (in $M_\odot$ Gyr$^{-1}$) for star formation in the given \mono{component}.
+    Returns the outflow rate (in $\mathrm{M}_\odot$ Gyr$^{-1}$) for star formation in the given \mono{component}.
     !!}
     use :: Galacticus_Nodes, only : treeNode, nodeComponentBasic
     implicit none

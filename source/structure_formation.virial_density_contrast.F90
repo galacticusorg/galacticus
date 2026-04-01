@@ -32,7 +32,10 @@ module Virial_Density_Contrast
    <name>virialDensityContrast</name>
    <descriptiveName>Virial Density Contrasts</descriptiveName>
    <description>
-    Class providing dark matter halo virial mean density contrasts.
+    Class providing dark matter halo virial mean density contrasts, $\Delta_\mathrm{vir}$. The virial radius of a halo is defined
+    as the radius within which the mean enclosed density equals $\Delta_\mathrm{vir}$ times the background matter density (or
+    critical density, depending on convention). Different cosmologies and spherical-collapse approximations lead to different
+    values of $\Delta_\mathrm{vir}(z)$.
    </description>
    <default>sphericalCollapseClsnlssMttrCsmlgclCnstnt</default>
    <method name="densityContrast" >

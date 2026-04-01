@@ -24,7 +24,7 @@
 
   !![
   <nbodyHaloMassError name="nbodyHaloMassErrorFriendsOfFriends">
-   <description>An N-body dark matter halo mass error class which uses a fit appropriate for friends-of-friends group finders.</description>
+   <description>An N-body dark matter halo mass error class that models the statistical mass errors in halos identified by friends-of-friends group finding algorithms, using a fitting function calibrated against simulations. The simulation particle mass required for the error model is set by the \mono{[massParticle]} parameter.</description>
   </nbodyHaloMassError>
   !!]
   type, extends(nbodyHaloMassErrorPowerLaw) :: nbodyHaloMassErrorFriendsOfFriends

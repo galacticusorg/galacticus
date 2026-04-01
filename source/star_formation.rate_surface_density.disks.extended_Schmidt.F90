@@ -28,8 +28,8 @@
    <description>
     A star formation rate surface density class implementing the extended Schmidt law \citep{shi_extended_2011}:
     \begin{equation}
-    \dot{\Sigma}_\star = A \left(x_\mathrm{H} {\Sigma_\mathrm{gas}\over M_\odot \hbox{pc}^{-2}}\right)^{N_1}
-    \left({\Sigma_{\star}\over M_\odot \hbox{pc}^{-2}}\right)^{N_2}
+    \dot{\Sigma}_\star = A \left(x_\mathrm{H} {\Sigma_\mathrm{gas}\over \mathrm{M}_\odot \hbox{pc}^{-2}}\right)^{N_1}
+    \left({\Sigma_{\star}\over \mathrm{M}_\odot \hbox{pc}^{-2}}\right)^{N_2}
     \end{equation}
     where $A=$\mono{[normalization]}, $N_1=$\mono{[exponentGas]} and $N_2=$\mono{[exponentStars]} are parameters.
    </description>
@@ -82,7 +82,7 @@ contains
       <name>normalization</name>
       <defaultSource>\citep{shi_extended_2011}</defaultSource>
       <defaultValue>0.5248d-10</defaultValue>
-      <description>The normalization of the extended Schmidt star formation law [$M_\odot$ yr$^{-1}$pc$^{-2}$].</description>
+      <description>The normalization of the extended Schmidt star formation law [$\mathrm{M}_\odot$ yr$^{-1}$pc$^{-2}$].</description>
       <source>parameters</source>
     </inputParameter>
     <inputParameter>
@@ -172,11 +172,11 @@ contains
 
   double precision function extendedSchmidtRate(self,node,radius)
     !!{
-    Returns the star formation rate surface density (in $M_\odot$ Gyr$^{-1}$ Mpc$^{-2}$) for star formation
+    Returns the star formation rate surface density (in $\mathrm{M}_\odot$ Gyr$^{-1}$ Mpc$^{-2}$) for star formation
     in the galactic disk of \mono{node}. The disk is assumed to obey the extended Schmidt law of \cite{shi_extended_2011}:
     \begin{equation}
-    \dot{\Sigma}_\star = A \left(x_\mathrm{H} {\Sigma_\mathrm{gas}\over M_\odot \hbox{pc}^{-2}}\right)
-    ^{N_1} \left({\Sigma_{\star}\over M_\odot \hbox{pc}^{-2}}\right)^{N_2},
+    \dot{\Sigma}_\star = A \left(x_\mathrm{H} {\Sigma_\mathrm{gas}\over \mathrm{M}_\odot \hbox{pc}^{-2}}\right)
+    ^{N_1} \left({\Sigma_{\star}\over \mathrm{M}_\odot \hbox{pc}^{-2}}\right)^{N_2},
     \end{equation}
     where $A=$\mono{[normalization]}, $N_1=$\mono{[exponentGas]}, and $N_2=$\mono{[exponentStars]}.
     !!}

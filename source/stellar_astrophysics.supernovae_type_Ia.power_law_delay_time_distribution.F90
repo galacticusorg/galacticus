@@ -73,7 +73,7 @@ contains
       <source>parameters</source>
       <defaultValue>-1.07d0</defaultValue>
       <defaultSource>\citep[][field galaxy DTD]{freundlich_delay_2012}</defaultSource>
-      <description>The exponent $\alpha$ in the delay time distribution.</description>
+      <description>The power-law index $\alpha$ in the Type Ia supernova delay time distribution $\mathrm{d}N/\mathrm{d}t \propto t^\alpha$, describing how the rate declines with time after star formation; the default value of $-1.07$ follows \cite{freundlich_delay_2012}.</description>
     </inputParameter>
     <inputParameter>
       <name>normalization</name>

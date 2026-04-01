@@ -23,7 +23,7 @@
 
   !![
   <darkMatterHaloMassAccretionHistory name="darkMatterHaloMassAccretionHistoryHearin2021">
-   <description>Dark matter halo mass accretion histories using the rolling power-law model of \cite{hearin_differentiable_2021}.</description>
+   <description>Computes dark matter halo mass accretion histories using the differentiable rolling power-law model of \cite{hearin_differentiable_2021}, in which the mass growth rate transitions smoothly between early- and late-time power laws. The early- and late-time indices are set by \mono{[powerLawIndexEarly]} and \mono{[powerLawIndexLate]}, the transition rate by \mono{[rateRollOver]}, and the time of peak mass by \mono{[timeMaximum]}.</description>
   </darkMatterHaloMassAccretionHistory>
   !!]
   type, extends(darkMatterHaloMassAccretionHistoryClass) :: darkMatterHaloMassAccretionHistoryHearin2021
@@ -85,22 +85,22 @@ contains
     !![
     <inputParameter>
       <name>powerLawIndexEarly</name>
-      <description>The early time power law index.</description>
+      <description>The power law index governing halo mass growth at early times in the \cite{hearin_differentiable_2021} rolling power-law MAH model; positive values correspond to a rapidly assembling halo at high redshift.</description>
       <source>parameters</source>
     </inputParameter>
     <inputParameter>
       <name>powerLawIndexLate</name>
-      <description>The late time power law index.</description>
+      <description>The power law index governing halo mass growth at late times in the \cite{hearin_differentiable_2021} rolling power-law MAH model; negative values correspond to halos that have ceased mass growth or are losing mass via tidal stripping.</description>
       <source>parameters</source>
     </inputParameter>
     <inputParameter>
       <name>rateRollOver</name>
-      <description>The roll over rate parameter, $k$.</description>
+      <description>The roll-over rate parameter $k$ in the \cite{hearin_differentiable_2021} MAH model, controlling how rapidly the power law index transitions from its early-time to late-time value; larger $k$ gives a sharper transition.</description>
       <source>parameters</source>
     </inputParameter>
     <inputParameter>
       <name>timeMaximum</name>
-      <description>The time of the maximum mass.</description>
+      <description>The cosmological time (in Gyr) at which the halo reaches its peak mass in the \cite{hearin_differentiable_2021} MAH model, marking the transition between mass assembly and mass loss regimes.</description>
       <source>parameters</source>
     </inputParameter>
     !!]

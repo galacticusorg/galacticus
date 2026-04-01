@@ -23,9 +23,7 @@
 
   !![
   <nodeOperator name="nodeOperatorDMOUninterpolated">
-   <description>
-    A node operator class that keeps the ``\gls{dmou}'' fixed between node promotion events.
-   </description>
+   <description>Keeps the dark matter only uninterpolated (\gls{dmou}) mass fixed at its current value between node promotion events, preventing interpolation-induced drift and ensuring mass consistency during tree evolution.</description>
   </nodeOperator>
   !!]
   type, extends(nodeOperatorClass) :: nodeOperatorDMOUninterpolated

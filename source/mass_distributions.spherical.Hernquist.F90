@@ -88,7 +88,7 @@ contains
     <inputParameter>
       <name>mass</name>
       <defaultValue>1.0d0</defaultValue>
-      <description>The mass of the Hernquist profile.</description>
+      <description>The total mass (in $\mathrm{M}_\odot$) of the Hernquist profile, used to set the density normalization when \mono{densityNormalization} is not supplied directly.</description>
       <source>parameters</source>
     </inputParameter>
     <inputParameter>

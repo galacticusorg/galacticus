@@ -19,7 +19,12 @@
 
   !![
   <nodePropertyExtractor name="nodePropertyExtractorSatelliteVirialOrbit">
-   <description>A property extractor class for \mono{keplerOrbit} objects.</description>
+   <description>A property extractor that outputs selected orbital elements of the virial orbit of
+    satellite nodes---the Keplerian orbit at the time the satellite first crosses the host virial
+    radius. The \mono{properties} parameter specifies the list of orbital quantities to extract
+    (e.g.\ radial velocity, tangential velocity, specific energy, angular momentum), returning one
+    output column per selected property per satellite. This is used to characterize the infall
+    conditions of satellite galaxies and dark matter subhalos.</description>
   </nodePropertyExtractor>
   !!]
   type, extends(nodePropertyExtractorKeplerOrbit) :: nodePropertyExtractorSatelliteVirialOrbit

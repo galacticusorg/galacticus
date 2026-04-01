@@ -23,7 +23,7 @@ Implements a stellar mass-weighted morphology output analysis property extractor
 
   !![
   <nodePropertyExtractor name="nodePropertyExtractorMassStellarMorphology">
-   <description>A stellar mass-weighted morphology output analysis property extractor class.</description>
+   <description>Extracts a stellar mass-weighted morphological indicator for a galaxy, quantifying the fractional contribution of disk vs. spheroid components to the total stellar mass as a proxy for Hubble-type morphological classification.</description>
   </nodePropertyExtractor>
   !!]
   type, extends(nodePropertyExtractorScalar) :: nodePropertyExtractorMassStellarMorphology

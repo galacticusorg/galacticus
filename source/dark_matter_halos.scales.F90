@@ -32,7 +32,10 @@ module Dark_Matter_Halo_Scales
   <functionClass>
    <name>darkMatterHaloScale</name>
    <descriptiveName>Dark Matter Halo Scales</descriptiveName>
-   <description>Class providing dark matter halo scales.</description>
+   <description>Class providing the characteristic physical scales of dark matter halos, including the virial radius,
+    virial velocity, virial temperature, mean density, and dynamical timescale. These scales define the boundary and
+    characteristic properties of a dark matter halo and are required by many other classes that compute cooling rates,
+    star formation, and satellite orbital dynamics.</description>
    <default>virialDensityContrastDefinition</default>
    <method name="timescaleDynamical" >
     <description>The characteristic dynamical timescale of a dark matter halo.</description>
@@ -41,7 +44,7 @@ module Dark_Matter_Halo_Scales
     <argument>type(treeNode), intent(inout) :: node</argument>
    </method>
    <method name="velocityVirial" >
-    <description>The virial velocity of a dark matter halo</description>
+    <description>Returns the virial velocity (in km/s) of the dark matter halo associated with \mono{node}, defined as the circular velocity at the virial radius and providing a characteristic velocity scale for the halo.</description>
     <type>double precision</type>
     <pass>yes</pass>
     <argument>type(treeNode), intent(inout) :: node</argument>
@@ -53,13 +56,13 @@ module Dark_Matter_Halo_Scales
     <argument>type(treeNode), intent(inout) :: node</argument>
    </method>
    <method name="temperatureVirial" >
-    <description>The virial temperature of a dark matter halo</description>
+    <description>Returns the virial temperature (in K) of the dark matter halo associated with \mono{node}, i.e. the characteristic gas temperature corresponding to the virial velocity, below which gas can be thermally supported against gravitational collapse.</description>
     <type>double precision</type>
     <pass>yes</pass>
     <argument>type(treeNode), intent(inout) :: node</argument>
    </method>
    <method name="radiusVirial" >
-    <description>The virial radius of a dark matter halo.</description>
+    <description>Returns the virial radius (in Mpc) of the dark matter halo associated with \mono{node}, defined as the radius within which the mean interior density equals a specified overdensity threshold times the critical or mean density.</description>
     <type>double precision</type>
     <pass>yes</pass>
     <argument>type(treeNode), intent(inout) :: node</argument>
@@ -71,19 +74,19 @@ module Dark_Matter_Halo_Scales
     <argument>type(treeNode), intent(inout) :: node</argument>
    </method>
    <method name="radiusVirialGrowthRate" >
-    <description>The growth rate of the virial radius of a dark matter halo.</description>
+    <description>Returns the time derivative of the virial radius (in Mpc/Gyr) of the dark matter halo associated with \mono{node}, indicating how rapidly the halo is growing or shrinking in physical size.</description>
     <type>double precision</type>
     <pass>yes</pass>
     <argument>type(treeNode), intent(inout) :: node</argument>
    </method>
    <method name="densityMean" >
-    <description>The mean density of a dark matter halo.</description>
+    <description>Returns the mean interior density (in $\mathrm{M}_\odot$ Mpc$^{-3}$) of the dark matter halo associated with \mono{node}, computed as the halo mass divided by its virial volume, representing the average density within the virial radius.</description>
     <type>double precision</type>
     <pass>yes</pass>
     <argument>type(treeNode), intent(inout) :: node</argument>
    </method>
    <method name="densityMeanGrowthRate" >
-    <description>The growth rate of the mean density of a dark matter halo.</description>
+    <description>Returns the time derivative of the mean interior density (in $\mathrm{M}_\odot$ Mpc$^{-3}$ Gyr$^{-1}$) of the dark matter halo associated with \mono{node}, reflecting how the balance between mass accretion and volume growth changes over time.</description>
     <type>double precision</type>
     <pass>yes</pass>
     <argument>type(treeNode), intent(inout) :: node</argument>

@@ -25,7 +25,11 @@ Implements a cooling rate property extractor class.
 
   !![
   <nodePropertyExtractor name="nodePropertyExtractorVelocityMaximum">
-   <description>A cooling rate property extractor class.</description>
+   <description>A property extractor that returns the maximum circular velocity (in km~s$^{-1}$) of the
+    dark-matter-only halo profile, $V_\mathrm{max} = \max_r \sqrt{GM(&lt; r)/r}$, computed from the
+    supplied \refClass{darkMatterProfileDMOClass} object. The output dataset is named
+    \mono{darkMatterProfileDMO}\mono{propertyName}, where \mono{propertyName} (default:
+    \mono{VelocityMaximum}) can be set to distinguish multiple instances of this extractor.</description>
   </nodePropertyExtractor>
   !!]
   type, extends(nodePropertyExtractorScalar) :: nodePropertyExtractorVelocityMaximum

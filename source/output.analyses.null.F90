@@ -23,7 +23,7 @@ Implements a null output analysis class.
 
   !![
   <outputAnalysis name="outputAnalysisNull">
-   <description>A null output analysis class.</description>
+   <description>A no-op output analysis implementation that performs no analysis or output, useful as a placeholder or for disabling analyses without removing them from the configuration.</description>
   </outputAnalysis>
   !!]
   type, extends(outputAnalysisClass) :: outputAnalysisNull

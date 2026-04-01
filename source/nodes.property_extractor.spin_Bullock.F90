@@ -25,7 +25,7 @@ Implements a node property extractor class for the \cite{bullock_profiles_2001} 
 
   !![
   <nodePropertyExtractor name="nodePropertyExtractorSpinBullock">
-   <description>A node property extractor class for the \cite{bullock_profiles_2001} definition of spin parameter.</description>
+   <description>Extracts the \cite{bullock_profiles_2001} spin parameter $\lambda' = J / (\sqrt{2} M V r)$ of dark matter halos, an alternative dimensionless spin measure that is more easily computed from halo catalogs than the classical Peebles spin parameter.</description>
   </nodePropertyExtractor>
   !!]
   type, extends(nodePropertyExtractorTuple) :: nodePropertyExtractorSpinBullock

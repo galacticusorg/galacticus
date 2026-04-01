@@ -78,7 +78,7 @@ contains
     <inputParameter>
       <name>densityCentral</name>
       <defaultValue>1.0d0</defaultValue>
-      <description>The density in the slab mid-plane.</description>
+      <description>The gas density at the slab mid-plane ($z=0$), $\rho_0$, which sets the overall normalization of the Gaussian vertical profile $\rho(z) = \rho_0 \exp(-z^2/2 z_\mathrm{s}^2)$.</description>
       <source>parameters</source>
     </inputParameter>
     <inputParameter>

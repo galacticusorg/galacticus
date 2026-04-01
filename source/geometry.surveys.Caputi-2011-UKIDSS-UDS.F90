@@ -47,7 +47,7 @@ Implements the survey geometry used by \cite{caputi_stellar_2011}.
      z(M_\star) = -56.247 + 5.881 m,
      \label{eq:UKIDSSUDSDepthPolynomial}
     \end{equation}
-    where $m= \log_{10}(M_\star/M_\odot)$. We use this polynomial fit to determine the depth of the sample as a function of stellar mass.
+    where $m= \log_{10}(M_\star/\mathrm{M}_\odot)$. We use this polynomial fit to determine the depth of the sample as a function of stellar mass.
     
     \begin{figure}
      \begin{center}

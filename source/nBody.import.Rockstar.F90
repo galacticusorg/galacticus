@@ -27,7 +27,7 @@ Implements an N-body data importer for Rockstar files.
   !![
   <enumeration>
    <name>rockstarColumn</name>
-   <description>Enumeration of columns in Rockstar output files.</description>
+   <description>Enumeration of all column labels found in Rockstar halo finder output files, covering halo IDs, positions, velocities, masses, angular momenta, concentrations, and merger tree properties.</description>
    <encodeFunction>yes</encodeFunction>
    <validator>yes</validator>
    <visibility>public</visibility>
@@ -95,7 +95,7 @@ Implements an N-body data importer for Rockstar files.
   !![
   <enumeration>
    <name>columnType</name>
-   <description>Enumeration of columns types in Rockstar output files.</description>
+   <description>Enumeration of the data types (integer or real) that can appear in Rockstar output file columns, used internally to select the correct parsing routine for each column.</description>
    <visibility>private</visibility>
    <entry label="integer"/>
    <entry label="real"   />
@@ -104,7 +104,7 @@ Implements an N-body data importer for Rockstar files.
   
   !![
   <nbodyImporter name="nbodyImporterRockstar">
-   <description>An importer for Rockstar files.</description>
+   <description>An importer for dark matter halo catalog data in Rockstar halo finder output format, reading halo positions, velocities, masses, and other properties from ASCII text files. The input file is set by \mono{[fileName]}, with a simulation label by \mono{[label]}, and additional columns to import specified by \mono{[readColumns]}.</description>
    <runTimeFileDependencies paths="fileName"/>
   </nbodyImporter>
   !!]
@@ -170,7 +170,7 @@ contains
        <inputParameter>
          <name>readColumns</name>
          <source>parameters</source>
-         <description>The names of additional columns to read.</description>
+         <description>A list of additional Rockstar column names (beyond the default set) to read and store as named properties on each halo.</description>
        </inputParameter>
        !!]
        do i=1,size(readColumns)

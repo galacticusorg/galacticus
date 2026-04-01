@@ -89,7 +89,7 @@ contains
       <name>scaleFactorVelocity</name>
       <source>parameters</source>
       <defaultValue>1.0d0</defaultValue>
-      <description>A scale factor to be applied to inflow velocities.</description>
+      <description>A dimensionless multiplicative scale factor applied to the inflow velocities computed from the correlation-function-based accretion flow model, allowing calibration of the infall velocity amplitude relative to the two-point clustering prediction.</description>
     </inputParameter>
     <objectBuilder class="cosmologyFunctions"          name="cosmologyFunctions_"          source="parameters"/>
     <objectBuilder class="criticalOverdensity"         name="criticalOverdensity_"         source="parameters"/>

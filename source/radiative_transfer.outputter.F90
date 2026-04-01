@@ -34,10 +34,15 @@ module Radiative_Transfer_Outputters
   <functionClass>
    <name>radiativeTransferOutputter</name>
    <descriptiveName>Radiative Transfer Outputters</descriptiveName>
-   <description>Class providing outputters for radiative transfer calculations.</description>
+   <description>Class providing outputters for Monte Carlo radiative transfer calculations---routines that
+    collect and record photon packet statistics as packets propagate through the computational domain.
+    Methods handle escaped photon packets (recording their wavelength, direction, and weight), output
+    properties of the source distribution, and optionally record intermediate quantities such as the
+    local radiation field or ionization state. Implementations write results to HDF5 output groups
+    for subsequent analysis of the emergent spectrum or radiation field.</description>
    <default>null</default>
    <method name="reset" >
-    <description>Reset the outputter.</description>
+    <description>Reset the outputter to its initial state, clearing any accumulated photon packet statistics in preparation for a new iteration or output epoch.</description>
     <type>void</type>
     <pass>yes</pass>
     <code>

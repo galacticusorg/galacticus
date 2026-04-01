@@ -32,7 +32,12 @@ module Numerical_Random_Numbers
   <functionClass>
    <name>randomNumberGenerator</name>
    <descriptiveName>Random Number Generators</descriptiveName>
-   <description>Class providing random number generators.</description>
+   <description>Class providing pseudo-random number generators---algorithms that produce sequences of numbers
+    with the statistical properties of true randomness. Methods return uniform deviates on $[0,1)$, Gaussian
+    deviates, and raw integer samples, with support for seeding and independent sequences per MPI process
+    and OpenMP thread. Random number generators are used throughout \glc\ for Monte Carlo sampling,
+    stochastic merger tree construction, posterior sampling simulations, and generating scatter in
+    model predictions.</description>
    <default>GSL</default>
    <method name="mpiIndependent" >
     <description>Return true if this random number generator produces independent sequences per MPI process (when using the same seed and offsetting is requested).</description>

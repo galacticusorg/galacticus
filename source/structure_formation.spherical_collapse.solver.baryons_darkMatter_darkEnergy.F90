@@ -25,7 +25,7 @@
 
   !![
   <sphericalCollapseSolver name="sphericalCollapseSolverBaryonsDarkMatterDarkEnergy">
-   <description>A spherical collapse solver for universes consisting of baryons, collisionless matter, and dark energy.</description>
+   <description>A spherical collapse solver for universes consisting of baryons, collisionless dark matter, and dark energy, computing the evolution of a spherical top-hat overdensity through turnaround and virialization. Baryons can be treated as either clustering or non-clustering via \mono{[baryonsClustering]}, and the energy-fixing radius for dark energy is set by \mono{[radiusFixed]}.</description>
   </sphericalCollapseSolver>
   !!]
   type, extends(sphericalCollapseSolverCllsnlssMttrDarkEnergy) :: sphericalCollapseSolverBaryonsDarkMatterDarkEnergy

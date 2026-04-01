@@ -30,7 +30,7 @@
   !![
   <enumeration>
    <name>sussingBadValueTest</name>
-   <description>Bad value test options.</description>
+   <description>Enumeration of comparison operators used to detect invalid or sentinel halo property values in ``Sussing Merger Trees'' files: \mono{lessThan} flags values below a threshold, \mono{greaterThan} flags values above a threshold.</description>
    <encodeFunction>yes</encodeFunction>
    <entry label="lessThan"   />
    <entry label="greaterThan"/>
@@ -41,7 +41,7 @@
   !![
   <enumeration>
    <name>sussingMassOption</name>
-   <description>Halo mass definitions.</description>
+   <description>Enumeration of halo mass definition options for the ``Sussing Merger Trees'' importer, selecting which mass column to use: \mono{default}, \mono{FoF} (friends-of-friends), \mono{200Mean}, \mono{200Crit}, or \mono{topHat}.</description>
    <encodeFunction>yes</encodeFunction>
    <entry label="default"/>
    <entry label="FoF"    />
@@ -53,7 +53,7 @@
 
   !![
   <mergerTreeImporter name="mergerTreeImporterSussing" abstract="yes">
-   <description>Importer for ``Sussing Merger Trees'' format merger tree files \citep{srisawat_sussing_2013}.</description>
+   <description>Importer for merger tree files in the ``Sussing Merger Trees'' format \citep{srisawat_sussing_2013}, reading halo properties from N-body simulation snapshots and constructing halo merger histories. Supports spatial subvolume splitting via \mono{[subvolumeCount]} and \mono{[subvolumeIndex]}, with cosmological parameter mismatch handling controlled by \mono{[fatalMismatches]}.</description>
   </mergerTreeImporter>
   !!]
   type, extends(mergerTreeImporterClass) :: mergerTreeImporterSussing

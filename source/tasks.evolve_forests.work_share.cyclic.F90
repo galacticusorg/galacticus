@@ -21,7 +21,7 @@
 
   !![
   <evolveForestsWorkShare name="evolveForestsWorkShareCyclic">
-   <description>A forest evolution work sharing class in which forests are assigned by cycling through processes.</description>
+   <description>A forest evolution work sharing class implementing static cyclic assignment, where each worker (MPI rank or OpenMP thread) is pre-assigned a contiguous block of forests offset by the worker index and strided by the total worker count. This gives deterministic, reproducible forest-to-worker mapping at the cost of potentially uneven load balancing.</description>
   </evolveForestsWorkShare>
   !!]
   type, extends(evolveForestsWorkShareClass) :: evolveForestsWorkShareCyclic

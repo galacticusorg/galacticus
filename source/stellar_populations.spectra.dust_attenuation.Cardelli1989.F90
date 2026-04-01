@@ -69,7 +69,7 @@ contains
     <inputParameter>
       <name>Rv</name>
       <defaultValue>3.1d0</defaultValue>
-      <description>The relative visibility, $R_\mathrm{V}$.</description>
+      <description>The ratio of total to selective extinction $R_\mathrm{V} = A_\mathrm{V}/E(B-V)$ in the \cite{cardelli_relationship_1989} dust attenuation law; the standard Milky Way value is $R_\mathrm{V} = 3.1$, with smaller values corresponding to greyer extinction curves.</description>
       <source>parameters</source>
     </inputParameter>
     !!]

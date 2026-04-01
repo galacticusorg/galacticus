@@ -181,22 +181,22 @@ contains
     <inputParameter>
       <name>lengthResolution</name>
       <source>parameters</source>
-      <description>The resolution length scale.</description>
+      <description>The spatial resolution length scale (in Mpc) of the N-body simulation being modeled; sets the minimum effective radius below which the NFW density profile is softened.</description>
     </inputParameter>
     <inputParameter>
       <name>radiusScale</name>
       <source>parameters</source>
-      <description>The NFW scale radius.</description>
+      <description>The NFW scale radius (in Mpc) at which the density profile transitions from the inner $\rho \propto r^{-1}$ slope to the outer $\rho \propto r^{-3}$ slope.</description>
     </inputParameter>
     <inputParameter>
       <name>radiusVirial</name>
       <source>parameters</source>
-      <description>The virial radius.</description>
+      <description>The virial radius (in Mpc) of the halo, defining the outer boundary of the NFW profile at which the mean enclosed density equals the virial overdensity threshold.</description>
     </inputParameter>
     <inputParameter>
       <name>mass</name>
       <source>parameters</source>
-      <description>The mass within the virial radius.</description>
+      <description>The total mass (in $\mathrm{M}_\odot$) enclosed within the virial radius, used together with \mono{radiusScale} and \mono{radiusVirial} to normalize the NFW density profile.</description>
     </inputParameter>
     <inputParameter>
       <name>componentType</name>
@@ -302,7 +302,7 @@ contains
 
   double precision function sphericalFiniteResolutionNFWMassEnclosedBySphere(self,radius) result(mass)
     !!{
-    Returns the enclosed mass (in $M_\odot$) at the given \mono{radius} (given in units of Mpc). The analytic
+    Returns the enclosed mass (in $\mathrm{M}_\odot$) at the given \mono{radius} (given in units of Mpc). The analytic
     solution (computed using Mathematica) is
     \begin{equation}
     M(x) = 4 \pi \rho_0 r_\mathrm{s}^3 \left[ -\frac{\sqrt{x^2+X^2}}{(1+x) \left(1+X^2\right)}+\tanh ^{-1}\left(\frac{x}{\sqrt{x^2+X^2}}\right)+\frac{\left(1+2X^2\right) \tanh ^{-1}\left(\frac{X^2-x}{\sqrt{1+X^2} \sqrt{x^2+X^2}}\right)}{\left(1+X^2\right)^{3/2}} -\frac{\left(1 + 2 X^2\right) \tanh ^{-1}\left(\sqrt{\frac{X^2}{1 + X^2}}\right)}{\left(1+ X^2\right)^{3/2}}+\frac{\sqrt{X^2}}{1 + X^2} \right],

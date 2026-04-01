@@ -74,8 +74,7 @@ jobs:
           set -o pipefail
           make GALACTICUS_BUILD_OPTION=compileprof -j4 Galacticus.exe 2>&1 | tee build.log
           set +o pipefail
-          chmod u=wrx ./scripts/build/buildProfiler.pl
-          ./scripts/build/buildProfiler.pl build.log buildProfile.html --durationMinimum 20
+          python3 ./scripts/build/buildProfiler.py build.log buildProfile.html --durationMinimum 20
           grep -vqzi error:          build.log || (echo "FAIL: errors found in build.log"          && false)
           grep -vqzi warning:        build.log || (echo "FAIL: warnings found in build.log"        && false)
           grep -vqzi 'is up to date' build.log || (echo "FAIL: 'is up to date' found in build.log" && false)
@@ -444,6 +443,14 @@ jobs:
           dsymutil -o Galacticus.exe.dSYM Galacticus.exe
           zip -r debugSymbolsMacOS.zip Galacticus.exe.dSYM
           mv Galacticus.exe Galacticus_MacOS.exe
+      - name: Sign Galacticus executable
+        uses: ./.github/actions/codeSignMacOS
+        with:
+          files: Galacticus_MacOS.exe
+          macos_certificate: ${{ secrets.MACOS_CERTIFICATE }}
+          macos_certificate_password: ${{ secrets.MACOS_CERTIFICATE_PASSWORD }}
+          macos_keychain_password: ${{ secrets.MACOS_KEYCHAIN_PASSWORD }}
+          macos_developer_id: ${{ secrets.MACOS_DEVELOPER_ID }}
       - name: Upload Galacticus executable
         uses: actions/upload-artifact@v7
         with:
@@ -479,6 +486,14 @@ jobs:
           dsymutil -o Galacticus.exe.dSYM Galacticus.exe
           zip -r debugSymbolsMacOS-M1.zip Galacticus.exe.dSYM
           mv Galacticus.exe Galacticus_MacOS-M1.exe
+      - name: Sign Galacticus executable
+        uses: ./.github/actions/codeSignMacOS
+        with:
+          files: Galacticus_MacOS-M1.exe
+          macos_certificate: ${{ secrets.MACOS_CERTIFICATE }}
+          macos_certificate_password: ${{ secrets.MACOS_CERTIFICATE_PASSWORD }}
+          macos_keychain_password: ${{ secrets.MACOS_KEYCHAIN_PASSWORD }}
+          macos_developer_id: ${{ secrets.MACOS_DEVELOPER_ID }}
       - name: Upload Galacticus executable
         uses: actions/upload-artifact@v7
         with:
@@ -542,6 +557,7 @@ jobs:
         run: |
           make -j`sysctl -n hw.activecpu` USEGIT2=no Galacticus.exe
       - name: Build tools
+        id: buildTools
         run: |
           classVersion=`awk '{if ($1 == "class:") print $2}' ${GALACTICUS_EXEC_PATH}/aux/dependencies.yml`
           cambVersion=`awk '{if ($1 == "camb:") print $2}' ${GALACTICUS_EXEC_PATH}/aux/dependencies.yml`
@@ -569,6 +585,24 @@ jobs:
           cd $GALACTICUS_DATA_PATH/dynamic/mangle-${mangleVersion}/src/
           cp ../bin/harmonize .
           $GALACTICUS_EXEC_PATH/scripts/build/staticRelinker.pl `grep -E '\-o harmonize' $GALACTICUS_EXEC_PATH/build.log`
+          echo "camb=${GALACTICUS_DATA_PATH}/dynamic/CAMB-${cambVersion}/fortran/camb" >> "$GITHUB_OUTPUT"
+          echo "axioncamb=${GALACTICUS_DATA_PATH}/dynamic/AxionCAMB/camb" >> "$GITHUB_OUTPUT"
+          echo "class=${GALACTICUS_DATA_PATH}/dynamic/class_public-${classVersion}/class" >> "$GITHUB_OUTPUT"
+          echo "recfast=${GALACTICUS_DATA_PATH}/dynamic/RecFast/recfast.exe" >> "$GITHUB_OUTPUT"
+          echo "cloudy=${GALACTICUS_DATA_PATH}/dynamic/c${cloudyVersion}/source/cloudy.exe" >> "$GITHUB_OUTPUT"
+          echo "fsps=${GALACTICUS_DATA_PATH}/dynamic/fsps-${fspsVersion}/src/autosps.exe" >> "$GITHUB_OUTPUT"
+          echo "mangle=${GALACTICUS_DATA_PATH}/dynamic/mangle-${mangleVersion}/bin/harmonize" >> "$GITHUB_OUTPUT"
+      - name: Sign tool executables
+        uses: ./.github/actions/codeSignMacOS
+        with:
+          files: ${{ steps.buildTools.outputs.camb }} ${{ steps.buildTools.outputs.axioncamb }} ${{ steps.buildTools.outputs.class }} ${{ steps.buildTools.outputs.recfast }} ${{ steps.buildTools.outputs.cloudy }} ${{ steps.buildTools.outputs.fsps }} ${{ steps.buildTools.outputs.mangle }}
+          macos_certificate: ${{ secrets.MACOS_CERTIFICATE }}
+          macos_certificate_password: ${{ secrets.MACOS_CERTIFICATE_PASSWORD }}
+          macos_keychain_password: ${{ secrets.MACOS_KEYCHAIN_PASSWORD }}
+          macos_developer_id: ${{ secrets.MACOS_DEVELOPER_ID }}
+      - name: Package
+        run: |          
+          # Package the zip with the signed executables
           cd $GALACTICUS_DATA_PATH
           zip -r toolsMacOS.zip \
             dynamic/CAMB-${cambVersion}/fortran/camb \
@@ -586,7 +620,7 @@ jobs:
             dynamic/fsps-${fspsVersion}/OUTPUTS \
             dynamic/fsps-${fspsVersion}/ISOCHRONES \
             dynamic/mangle-${mangleVersion}/bin/harmonize
-      - name: Upload Galacticus executable
+      - name: Upload tool executables
         uses: actions/upload-artifact@v7
         with:
           name: galacticus-tools-MacOS
@@ -613,6 +647,7 @@ jobs:
           make -j`sysctl -n hw.activecpu` USEGIT2=no Galacticus.exe 2>&1 | tee build.log
           ./scripts/build/staticRelinker.pl `grep '\-o Galacticus.exe' build.log`
       - name: Build tools
+        id: buildTools
         run: |
           classVersion=`awk '{if ($1 == "class:") print $2}' ${GALACTICUS_EXEC_PATH}/aux/dependencies.yml`
           cambVersion=`awk '{if ($1 == "camb:") print $2}' ${GALACTICUS_EXEC_PATH}/aux/dependencies.yml`
@@ -640,6 +675,24 @@ jobs:
           cd $GALACTICUS_DATA_PATH/dynamic/mangle-${mangleVersion}/src
           cp ../bin/harmonize .
           $GALACTICUS_EXEC_PATH/scripts/build/staticRelinker.pl `grep -E '\-o harmonize' $GALACTICUS_EXEC_PATH/build.log`
+          echo "camb=${GALACTICUS_DATA_PATH}/dynamic/CAMB-${cambVersion}/fortran/camb" >> "$GITHUB_OUTPUT"
+          echo "axioncamb=${GALACTICUS_DATA_PATH}/dynamic/AxionCAMB/camb" >> "$GITHUB_OUTPUT"
+          echo "class=${GALACTICUS_DATA_PATH}/dynamic/class_public-${classVersion}/class" >> "$GITHUB_OUTPUT"
+          echo "recfast=${GALACTICUS_DATA_PATH}/dynamic/RecFast/recfast.exe" >> "$GITHUB_OUTPUT"
+          echo "cloudy=${GALACTICUS_DATA_PATH}/dynamic/c${cloudyVersion}/source/cloudy.exe" >> "$GITHUB_OUTPUT"
+          echo "fsps=${GALACTICUS_DATA_PATH}/dynamic/fsps-${fspsVersion}/src/autosps.exe" >> "$GITHUB_OUTPUT"
+          echo "mangle=${GALACTICUS_DATA_PATH}/dynamic/mangle-${mangleVersion}/bin/harmonize" >> "$GITHUB_OUTPUT"
+      - name: Sign tool executables
+        uses: ./.github/actions/codeSignMacOS
+        with:
+          files: ${{ steps.buildTools.outputs.camb }} ${{ steps.buildTools.outputs.axioncamb }} ${{ steps.buildTools.outputs.class }} ${{ steps.buildTools.outputs.recfast }} ${{ steps.buildTools.outputs.cloudy }} ${{ steps.buildTools.outputs.fsps }} ${{ steps.buildTools.outputs.mangle }}
+          macos_certificate: ${{ secrets.MACOS_CERTIFICATE }}
+          macos_certificate_password: ${{ secrets.MACOS_CERTIFICATE_PASSWORD }}
+          macos_keychain_password: ${{ secrets.MACOS_KEYCHAIN_PASSWORD }}
+          macos_developer_id: ${{ secrets.MACOS_DEVELOPER_ID }}
+      - name: Repackage
+        run: |          
+          # Re-package the zip with the signed executables
           cd $GALACTICUS_DATA_PATH
           zip -r toolsMacOSM1.zip \
             dynamic/CAMB-${cambVersion}/fortran/camb \
@@ -657,7 +710,7 @@ jobs:
             dynamic/fsps-${fspsVersion}/OUTPUTS \
             dynamic/fsps-${fspsVersion}/ISOCHRONES \
             dynamic/mangle-${mangleVersion}/bin/harmonize
-      - name: Upload Galacticus executable
+      - name: Upload tool executables
         uses: actions/upload-artifact@v7
         with:
           name: galacticus-tools-MacOS-M1
@@ -766,7 +819,7 @@ jobs:
         run: |
           cd $GALACTICUS_EXEC_PATH
           git config --global --add safe.directory $GALACTICUS_EXEC_PATH
-          ./scripts/aux/updateMonitor.pl ${{ steps.changed-files.outputs.all_changed_files }}
+          python3 scripts/aux/updateMonitor.py ${{ steps.changed-files.outputs.all_changed_files }}
       - name: Check file existence
         id: check_files
         uses: andstor/file-existence-action@v3
@@ -1048,7 +1101,8 @@ jobs:
                       tests.binary_search_trees.exe,
                       tests.orbits.exe,
                       tests.debugging.exe,
-                      tests.hashes.cryptographic.exe ]
+                      tests.hashes.cryptographic.exe,
+                      tests.accretion_halo_isocurvature.exe ]
     uses: ./.github/workflows/testCode.yml
     with:
       executable: ${{ matrix.executable }}

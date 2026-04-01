@@ -23,7 +23,7 @@
 
   !![
   <atomicIonizationRateCollisional name="atomicIonizationRateCollisionalZero">
-   <description>Atomic collisional ionization rates are assumed to be zero.</description>
+   <description>A null implementation of atomic collisional ionization rates that returns zero for all species and temperatures. Useful for isolating other ionization and recombination processes or for testing purposes.</description>
   </atomicIonizationRateCollisional>
   !!]
   type, extends(atomicIonizationRateCollisionalClass) :: atomicIonizationRateCollisionalZero

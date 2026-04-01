@@ -27,7 +27,7 @@ environment.
   !![
   <haloMassFunction name="haloMassFunctionEnvironmentAveraged">
    <description>
-    The halo mass function is computed averaging another (presumably environment-dependent) mass function over environment.
+    The dark matter halo mass function is computed by averaging another, environment-dependent mass function over the probability distribution of large-scale environments, marginalizating over the local density field. This allows environment-dependent mass functions to be used in a mean cosmological context, with optional accounting for unoccupied volume via \mono{[includeUnoccupiedVolume]}.
    </description>
   </haloMassFunction>
   !!]

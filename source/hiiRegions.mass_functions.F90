@@ -33,7 +33,12 @@ module HII_Region_Mass_Functions
   <functionClass>
    <name>hiiRegionMassFunction</name>
    <descriptiveName>HII region mass functions</descriptiveName>
-   <description>Class providing models of mass functions for HII regions.</description>
+   <description>Class providing models of the H\textsc{ii} region mass function---the distribution of gas
+    masses among star-forming regions within a galaxy. Methods return the cumulative distribution
+    (fraction of H\textsc{ii} regions by count) and cumulative mass (fraction of H\textsc{ii} region
+    gas by mass) between specified minimum and maximum masses. These distributions are used to
+    model the emission-line properties and the interstellar medium structure of star-forming
+    galaxies in on-the-fly output analysis.</description>
    <default>rosolowsky2021</default>
    <method name="cumulativeDistributionFunction">
     <description>Returns the cumulative distribution of the HII region mass function between a minimum and maximum mass.</description>

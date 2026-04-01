@@ -25,7 +25,7 @@ Implements an N-body dark matter halo mass error class using the model of \cite{
 
   !![
   <nbodyHaloMassError name="nbodyHaloMassErrorTrenti2010">
-   <description>An N-body dark matter halo mass error class using the model of \cite{trenti_how_2010}.</description>
+   <description>An N-body dark matter halo mass error class that models correlated halo mass errors between different halos and epochs using the fitting formula of \cite{trenti_how_2010}. The simulation particle mass and correlation model parameters $C_0$, $\alpha$, and $\beta$ are set via the corresponding input parameters.</description>
   </nbodyHaloMassError>
   !!]
   type, extends(nbodyHaloMassErrorPowerLaw) :: nbodyHaloMassErrorTrenti2010

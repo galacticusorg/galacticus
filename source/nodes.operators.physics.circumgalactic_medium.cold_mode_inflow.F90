@@ -27,7 +27,10 @@
   !![
   <nodeOperator name="nodeOperatorCGMColdModeInflow">
    <description>
-    A node operator class that implements cold mode inflow of gas from the \gls{cgm}.
+    A node operator class that transfers cold-mode infalling gas from the \gls{cgm} into a galaxy component at each ODE
+    timestep, using a \refClass{coldModeInfallRateClass} to compute the mass flux and a \refClass{coolingInfallTorqueClass}
+    for the associated angular momentum. \mono{component} selects the destination (disk or spheroid); \mono{coolingFrom}
+    selects whether the angular momentum of infalling gas is computed from the \mono{currentNode} or the \mono{formationNode}.
    </description>
   </nodeOperator>
   !!]

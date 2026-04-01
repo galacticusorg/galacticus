@@ -25,7 +25,7 @@ Implements a dark matter profile SIDM interaction radius property extractor clas
 
   !![
   <nodePropertyExtractor name="nodePropertyExtractorDarkMatterProfileRadiusInteractionSIDM">
-   <description>A dark matter profile SIDM interaction radius property extractor class.</description>
+   <description>Extracts the self-interaction radius $r_1$ from the dark matter halo density profile under self-interacting dark matter (SIDM) models. This scale marks the boundary within which dark matter particles experience significant scattering, driving core formation and suppressing central density cusps.</description>
   </nodePropertyExtractor>
   !!]
   type, extends(nodePropertyExtractorScalar) :: nodePropertyExtractorDarkMatterProfileRadiusInteractionSIDM

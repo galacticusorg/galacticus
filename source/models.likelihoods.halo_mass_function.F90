@@ -25,7 +25,7 @@
 
   !![
   <posteriorSampleLikelihood name="posteriorSampleLikelihoodHaloMassFunction">
-   <description>A posterior sampling likelihood class which implements a likelihood for halo mass functions.</description>
+   <description>A posterior sampling likelihood class which evaluates the likelihood of a modeled dark matter halo mass function against observed data, supporting Poisson or multivariate normal statistics. The target data file is set by \mono{[fileName]}, with the evaluation redshift, mass limits, and minimum halo count per bin set by \mono{[redshift]}, \mono{[massMinimum]}, and \mono{[countMinimum]}.</description>
    <runTimeFileDependencies paths="fileName"/>
   </posteriorSampleLikelihood>
   !!]
@@ -82,7 +82,7 @@ contains
     !![
     <inputParameter>
       <name>baseParametersFileName</name>
-      <description>The base set of parameters to use.</description>
+      <description>The path to the XML parameter file that provides the base configuration for each model evaluation, to which parameter changes from the posterior sampler are then applied.</description>
       <source>parameters</source>
     </inputParameter>
     <inputParameter>

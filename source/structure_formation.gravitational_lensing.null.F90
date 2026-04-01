@@ -23,7 +23,7 @@ Implements a null gravitational lensing distribution.
 
   !![
   <gravitationalLensing name="gravitationalLensingNull">
-   <description>Implements a null gravitational lensing distribution.</description>
+   <description>A gravitational lensing class that returns a delta-function magnification distribution peaked at $\mu=1$ (i.e., no lensing), used as a null model to disable lensing corrections in luminosity or flux calculations.</description>
   </gravitationalLensing>
   !!]
   type, extends(gravitationalLensingClass) :: gravitationalLensingNull

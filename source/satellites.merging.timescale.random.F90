@@ -25,7 +25,7 @@
 
   !![
   <satelliteMergingTimescales name="satelliteMergingTimescalesRandom">
-   <description>Returns a random timescale for merging.</description>
+   <description>Returns a satellite merging timescale chosen randomly between the current snapshot time and the next snapshot time, providing a simple statistical prescription for satellite merging that avoids artificial synchronization with snapshot output times.</description>
   </satelliteMergingTimescales>
   !!]
 

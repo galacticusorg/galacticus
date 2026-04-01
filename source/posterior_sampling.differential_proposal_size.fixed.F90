@@ -63,7 +63,7 @@ contains
     !![
     <inputParameter>
       <name>proposalSize</name>
-      <description>The proposal size, $\gamma$.</description>
+      <description>The fixed value of the proposal scaling parameter $\gamma$ used to scale the vector difference between two randomly selected chain states when forming differential evolution proposals.</description>
       <source>parameters</source>
     </inputParameter>
     !!]

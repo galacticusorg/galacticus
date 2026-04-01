@@ -32,7 +32,7 @@
   
   !![
   <computationalDomain name="computationalDomainCartesian3D">
-   <description>A computational domain using a 3D Cartesian grid.</description>
+   <description>Defines a computational domain on a three-dimensional Cartesian grid, with cell boundaries along each axis specified by \mono{[xBoundaries]}, \mono{[yBoundaries]}, and \mono{[zBoundaries]}, and the number of cells per dimension by \mono{[countCells]}. Convergence of cell quantities is assessed using a percentile criterion controlled by \mono{[convergencePercentile]} and \mono{[convergenceThreshold]}.</description>
   </computationalDomain>
   !!]
   type, extends(computationalDomainClass) :: computationalDomainCartesian3D
@@ -113,43 +113,43 @@ contains
     <inputParameter>
       <name>xBoundaries</name>
       <defaultValue>[-1.0d0,+1.0d0]</defaultValue>
-      <description>The $x$-interval spanned by the computational domain.</description>
+      <description>A two-element array $[x_\mathrm{min}, x_\mathrm{max}]$ specifying the physical extent of the 3D Cartesian computational domain along the $x$-axis.</description>
       <source>parameters</source>
     </inputParameter>
     <inputParameter>
       <name>yBoundaries</name>
       <defaultValue>[-1.0d0,+1.0d0]</defaultValue>
-      <description>The $y$-interval spanned by the computational domain.</description>
+      <description>A two-element array $[y_\mathrm{min}, y_\mathrm{max}]$ specifying the physical extent of the 3D Cartesian computational domain along the $y$-axis.</description>
       <source>parameters</source>
     </inputParameter>
     <inputParameter>
       <name>zBoundaries</name>
       <defaultValue>[-1.0d0,+1.0d0]</defaultValue>
-      <description>The $z$-interval spanned by the computational domain.</description>
+      <description>A two-element array $[z_\mathrm{min}, z_\mathrm{max}]$ specifying the physical extent of the 3D Cartesian computational domain along the $z$-axis.</description>
       <source>parameters</source>
     </inputParameter>
     <inputParameter>
       <name>countCells</name>
       <defaultValue>[3_c_size_t,3_c_size_t,3_c_size_t]</defaultValue>
-      <description>The number of cells in the domain in each dimension.</description>
+      <description>A three-element integer array specifying the number of grid cells along the $x$, $y$, and $z$ dimensions of the 3D Cartesian computational domain, controlling the spatial resolution of the radiative transfer calculation.</description>
       <source>parameters</source>
     </inputParameter>
     <inputParameter>
       <name>convergencePercentile</name>
       <defaultValue>0.99d0</defaultValue>
-      <description>The percentile used in the convergence criterion.</description>
+      <description>The percentile of cells (between 0 and 1) used in assessing convergence; only this fraction of cells (those with the smallest deviations) must satisfy the convergence threshold, allowing cells with rare high-flux events to be excluded.</description>
       <source>parameters</source>
     </inputParameter>
     <inputParameter>
       <name>convergenceThreshold</name>
       <defaultValue>2.0d0</defaultValue>
-      <description>The threshold for the convergence measure.</description>
+      <description>The threshold value for the convergence measure; the domain is considered converged when the specified percentile of cells has a convergence metric below this value, indicating that the radiative transfer solution has stabilized.</description>
       <source>parameters</source>
     </inputParameter>
     <inputParameter>
       <name>convergenceRatioThreshold</name>
       <defaultValue>1.1d0</defaultValue>
-      <description>The threshold for the change in convergence criterion.</description>
+      <description>The threshold for the ratio of the convergence criterion between successive iterations; convergence is accepted when this ratio falls below the threshold, indicating that the solution is no longer changing significantly between iterations.</description>
       <source>parameters</source>
     </inputParameter>
     <objectBuilder class="radiativeTransferMatter"      name="radiativeTransferMatter_"      source="parameters"/>

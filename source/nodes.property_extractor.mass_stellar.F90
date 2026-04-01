@@ -23,7 +23,7 @@ Implements a stellar mass property extractor class.
 
   !![
   <nodePropertyExtractor name="nodePropertyExtractorMassStellar">
-   <description>A stellar mass output analysis property extractor class.</description>
+   <description>Extracts the total stellar mass of a galaxy node by summing the stellar masses of disk and spheroid components, for comparison with stellar mass functions and stellar-to-halo mass relations from photometric surveys.</description>
   </nodePropertyExtractor>
   !!]
   type, extends(nodePropertyExtractorScalar) :: nodePropertyExtractorMassStellar

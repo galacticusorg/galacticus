@@ -23,7 +23,7 @@
 
   !![
   <nodeOperator name="nodeOperatorEmpiricalCentralDisk">
-   <description>A node operator class that inserts an empirical model of the formation history of a central disk galaxy.</description>
+   <description>A node operator class that inserts an empirical evolutionary history for a central disk galaxy growing at a constant specific star formation rate $\phi_\star$ (\mono{rateStarFormationSpecific}) to a final stellar mass \mono{massStellarFinal} at the root node. Angular momentum growth is parameterized by \mono{angularMomentumSpecificFinal} and \mono{rateAngularMomentumSpecificSpecific}. Useful for controlled experiments embedding prescribed disk galaxies in merger trees.</description>
   </nodeOperator>
   !!]
   type, extends(nodeOperatorClass) :: nodeOperatorEmpiricalCentralDisk

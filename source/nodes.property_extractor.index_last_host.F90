@@ -23,7 +23,7 @@ Implements a node property extractor for the index of the last host node.
 
   !![
   <nodePropertyExtractor name="nodePropertyExtractorIndexLastHost">
-   <description>A last host node index property extractor.</description>
+   <description>Extracts the stored index of the last host halo node, i.e., the host halo at the time a subhalo most recently became a satellite. Useful for tracking satellite infall histories and computing the elapsed time since infall into the current host environment.</description>
   </nodePropertyExtractor>
   !!]
   type, extends(nodePropertyExtractorIntegerScalar) :: nodePropertyExtractorIndexLastHost

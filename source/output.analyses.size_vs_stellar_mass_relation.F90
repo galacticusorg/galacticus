@@ -191,7 +191,7 @@ contains
       <name>sample</name>
       <source>parameters</source>
       <defaultValue>1</defaultValue>
-      <description>The sample to use.</description>
+      <description>The integer index (starting at 1) of the \mono{sampleN} group within the target HDF5 file to use when computing the size--stellar mass relation likelihood.</description>
     </inputParameter>
     <inputParameter>
       <name>likelihoodNormalize</name>

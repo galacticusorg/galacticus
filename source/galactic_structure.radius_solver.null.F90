@@ -23,7 +23,7 @@
 
   !![
   <galacticStructureSolver name="galacticStructureSolverNull">
-   <description>An ``null'' solver for galactic structure.</description>
+   <description>A no-op galactic structure solver that performs no radius solving, useful as a placeholder when galactic structure calculations are not needed or as a baseline for testing.</description>
   </galacticStructureSolver>
   !!]
   type, extends(galacticStructureSolverClass) :: galacticStructureSolverNull

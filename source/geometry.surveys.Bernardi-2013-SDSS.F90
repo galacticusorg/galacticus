@@ -44,7 +44,7 @@ Implements the geometry of the SDSS survey used by \cite{bernardi_massive_2013}.
      (0.572399+m (-0.0110301)))))
      \label{eq:BernardiDepthPolynomial}
     \end{equation}
-    where $m= \log_{10}(M_\star/M_\odot)$. We use this polynomial fit to determine the depth of the sample as a function of
+    where $m= \log_{10}(M_\star/\mathrm{M}_\odot)$. We use this polynomial fit to determine the depth of the sample as a function of
     stellar mass.
     
     \begin{figure}

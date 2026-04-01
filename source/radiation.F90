@@ -61,7 +61,12 @@ module Radiation_Fields
   <functionClass>
    <name>radiationField</name>
    <descriptiveName>Radiation Fields</descriptiveName>
-   <description>Class providing radiation fields.</description>
+   <description>Class providing radiation fields---the specific intensity (flux per unit frequency per steradian,
+    in units of ergs~cm$^{-2}$~s$^{-1}$~Hz$^{-1}$~ster$^{-1}$) of a radiation background as a function of
+    wavelength and cosmic time. Radiation fields are used to compute photoionization and photodissociation
+    rates in the \gls{igm} and \gls{cgm} by integrating the flux weighted by relevant cross-sections over
+    wavelength. Implementations include the cosmic microwave background, ultraviolet and X-ray ionizing
+    backgrounds, and stellar radiation fields.</description>
    <default>null</default>
    <method name="flux">
     <description>Return the flux (in units of ergs cm$^{-2}$ s$^{-1}$ Hz$^{-1}$ ster$^{-1}$) of the given radiation field.</description>
@@ -74,9 +79,9 @@ module Radiation_Fields
     <description>Integrates the flux (in units of ergs cm$^{-2}$ s$^{-1}$ Hz$^{-1}$ ster$^{-1}$) of the given radiation structure between the wavelengths given in \mono{wavelengthRange} over a cross section specified by the function \mono{crossSectionFunction}.</description>
     <type>double precision</type>
     <pass>yes</pass>
-    <argument>double precision                  , dimension(2), intent(in   ) :: wavelengthRange</argument>
+    <argument>double precision                              , dimension(2), intent(in   ) :: wavelengthRange</argument>
     <argument>procedure       (crossSectionFunctionTemplate), pointer                     :: crossSectionFunction</argument>
-    <argument>type            (treeNode        )              , intent(inout) :: node</argument>
+    <argument>type            (treeNode                    )              , intent(inout) :: node</argument>
     <code>
      radiationFieldIntegrateOverCrossSection=radiationFieldIntegrateOverCrossSection_(self,wavelengthRange,crossSectionFunction,node)
     </code>
@@ -87,7 +92,7 @@ module Radiation_Fields
      <pass>yes</pass>
    </method>
    <method name="timeSet">
-     <description>Set the time of the radiation field.</description>
+     <description>Set the cosmic time (in Gyr) at which the radiation field properties---such as the CMB temperature or the UV background intensity---should be evaluated for subsequent flux queries.</description>
      <type>void</type>
      <pass>yes</pass>
      <argument>double precision, intent(in   ) :: time</argument>
