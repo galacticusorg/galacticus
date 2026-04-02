@@ -172,11 +172,12 @@
   ! Sub-module scope variables used in root finding.
   class           (geometryLightconeSquare), pointer                   :: self_
   type            (treeNode               ), pointer                   :: node_
-  integer                                                              :: i_       , j_          , &
-       &                                                                  k_       , countSeek
+  integer                                                              :: i_              , j_              , &
+       &                                                                  k_              , countSeek
   logical                                                              :: reporting
-  double precision                         , allocatable, dimension(:) :: timeSeek , distanceSeek
-  !$omp threadprivate(self_,node_,i_,j_,k_,timeSeek,distanceSeek,countSeek,reporting)
+  double precision                         , allocatable, dimension(:) :: timeSeek        , distanceRootSeek, &
+       &                                                                  distanceNodeSeek, distanceConeSeek
+  !$omp threadprivate(self_,node_,i_,j_,k_,timeSeek,distanceRootSeek,distanceNodeSeek,distanceConeSeek,countSeek,reporting)
   
 contains
 
@@ -895,9 +896,7 @@ contains
     type            (treeNode               ), intent(inout)                , target                :: node
     double precision                         , intent(in   )                                        :: timeStart                   , timeEnd
     double precision                         , intent(inout), dimension(:  ), allocatable, optional :: timesCrossing
-    double precision                                        , dimension(:  ), allocatable           :: timesCrossingTmp            , timeSeek          , &
-         &                                                                                             distanceRootSeek            , distanceConeSeek  , &
-         &                                                                                             distanceNodeSeek
+    double precision                                        , dimension(:  ), allocatable           :: timesCrossingTmp
     integer         (c_size_t               )               , dimension(:  ), allocatable           :: order
     integer                                                 , dimension(3,2)                        :: periodicRange
     class           (nodeComponentBasic     )                               , pointer               :: basic
@@ -919,7 +918,7 @@ contains
     logical                                  , save                                                 :: finderConstructed   =.false.
     !$omp threadprivate(finder,finderConstructed)
     character       (len= 64                )                                                       :: label
-
+    
     reporting=any(node%index() == self%nodeIndicesReport)
     if (reporting) then
        write (label,'(i12)') node%index()
@@ -1075,59 +1074,57 @@ contains
        end if
     end if    
     return
-
-  contains
-    
-    double precision function timeCrossingRoot(time)
-      !!{
-      Function used to find the time at which a node crosses the lightcone.
-      !!}
-      implicit none
-      double precision, intent(in   )             :: time
-      double precision, dimension(3)              :: positionNode
-      double precision, dimension(:), allocatable :: timeSeek_    , distanceRoot_, &
-           &                                         distanceNode_, distanceCone_
-      double precision                            :: distanceNode
-      
-      positionNode    =self%nodePositionReplicant(node,time,self%origin,[i,j,k],setTime=.true.)
-      distanceNode    =Vector_Magnitude(positionNode)
-      timeCrossingRoot=+                         distanceNode           &
-           &           -self%cosmologyFunctions_%distanceComoving(time)
-      if (reporting) then
-         if (countSeek == 0) then
-            allocate(timeSeek        (32))
-            allocate(distanceRootSeek(32))
-            allocate(distanceNodeSeek(32))
-            allocate(distanceConeSeek(32))
-         else if (countSeek == size(timeSeek)) then
-            call move_alloc(timeSeek        ,timeSeek_    )
-            call move_alloc(distanceRootSeek,distanceRoot_)
-            call move_alloc(distanceNodeSeek,distanceNode_)
-            call move_alloc(distanceConeSeek,distanceCone_)
-            allocate(timeSeek        (countSeek*2))
-            allocate(distanceRootSeek(countSeek*2))
-            allocate(distanceNodeSeek(countSeek*2))
-            allocate(distanceConeSeek(countSeek*2))
-            timeSeek        (1:countSeek)=timeSeek_
-            distanceRootSeek(1:countSeek)=distanceRoot_
-            distanceNodeSeek(1:countSeek)=distanceNode_
-            distanceConeSeek(1:countSeek)=distanceCone_
-            deallocate(timeSeek_    )
-            deallocate(distanceRoot_)
-            deallocate(distanceNode_)
-            deallocate(distanceCone_)
-         end if
-         countSeek=countSeek+1
-         timeSeek        (countSeek)=time
-         distanceRootSeek(countSeek)=timeCrossingRoot
-         distanceNodeSeek(countSeek)=distanceNode
-         distanceConeSeek(countSeek)=self%cosmologyFunctions_%distanceComoving(time)
-      end if
-      return
-    end function timeCrossingRoot
-
   end function squareTimeLightconeCrossing
-  
+    
+  double precision function timeCrossingRoot(time)
+    !!{
+    Function used to find the time at which a node crosses the lightcone.
+    !!}
+    use :: Vectors, only : Vector_Magnitude
+    implicit none
+    double precision, intent(in   )             :: time
+    double precision, dimension(3)              :: positionNode
+    double precision, dimension(:), allocatable :: timeSeek_    , distanceRoot_, &
+         &                                         distanceNode_, distanceCone_
+    double precision                            :: distanceNode
+    
+    positionNode    =self_%nodePositionReplicant(node_,time,self_%origin,[i_,j_,k_],setTime=.true.)
+    distanceNode    =Vector_Magnitude(positionNode)
+    timeCrossingRoot=+                          distanceNode           &
+         &           -self_%cosmologyFunctions_%distanceComoving(time)
+    if (reporting) then
+       if (countSeek == 0) then
+          allocate(timeSeek        (32))
+          allocate(distanceRootSeek(32))
+          allocate(distanceNodeSeek(32))
+          allocate(distanceConeSeek(32))
+       else if (countSeek == size(timeSeek)) then
+          call move_alloc(timeSeek        ,timeSeek_    )
+          call move_alloc(distanceRootSeek,distanceRoot_)
+          call move_alloc(distanceNodeSeek,distanceNode_)
+          call move_alloc(distanceConeSeek,distanceCone_)
+          allocate(timeSeek        (countSeek*2))
+          allocate(distanceRootSeek(countSeek*2))
+          allocate(distanceNodeSeek(countSeek*2))
+          allocate(distanceConeSeek(countSeek*2))
+          timeSeek        (1:countSeek)=timeSeek_
+          distanceRootSeek(1:countSeek)=distanceRoot_
+          distanceNodeSeek(1:countSeek)=distanceNode_
+          distanceConeSeek(1:countSeek)=distanceCone_
+          deallocate(timeSeek_    )
+          deallocate(distanceRoot_)
+          deallocate(distanceNode_)
+          deallocate(distanceCone_)
+       end if
+       countSeek=countSeek+1
+       timeSeek        (countSeek)=time
+       distanceRootSeek(countSeek)=timeCrossingRoot
+       distanceNodeSeek(countSeek)=distanceNode
+       distanceConeSeek(countSeek)=self_%cosmologyFunctions_%distanceComoving(time)
+    end if
+    return
+  end function timeCrossingRoot
+    
   function squareIsInFieldOfView(self,position) result(isInFieldOfView)
     !!{
     Return true if the given position is in the field of view of the lightcone.
