@@ -122,7 +122,7 @@ for modelName in sorted(os.listdir(dataDirectory)):
         ]
 
         description = "Simple stellar population spectra from the BPASS v2.2.1 library"
-        description += "including binary stars" if binarity == "bin" else "not including binary stars"
+        description += " including binary stars" if binarity == "bin" else " not including binary stars"
 
         m_chab = re.match(r'_?chab(\d+)', imfLabel)
         m_all  = re.match(r'(\d+)all_(\d+)', imfLabel)

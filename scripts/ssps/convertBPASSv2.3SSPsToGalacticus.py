@@ -115,7 +115,7 @@ for modelName in sorted(os.listdir(dataDirectory)):
 
         alphaValue = int(alphaLabel) / 10.0
         description = "Simple stellar population spectra from the BPASS v2.3 library"
-        description += "including binary stars" if binarity == "bin" else "not including binary stars"
+        description += " including binary stars" if binarity == "bin" else " not including binary stars"
         description += f" with \u03b1-alement enhancement of \u0394log\u2081\u2080(\u03b1/Fe)={alphaValue:+4.1f}"
         alpha = f"\u03b1-alement enhancement of \u0394log\u2081\u2080(\u03b1/Fe)={alphaValue:+4.1f}."
 
