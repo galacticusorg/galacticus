@@ -323,23 +323,25 @@ contains
     return
   end subroutine densityProfileDescriptions
 
-  subroutine densityProfileColumnDescriptions(self,descriptions,values,valuesDescription,valuesUnitsInSI,time)
+  subroutine densityProfileColumnDescriptions(self,descriptions,values,valuesDescription,valuesUnits,time)
     !!{
     Return column descriptions of the \mono{densityProfile} property.
     !!}
+    use :: Output_Units               , only : unitType   , unitsMake
+    use, intrinsic :: ISO_C_Binding   , only : c_int
     implicit none
     class           (nodePropertyExtractorDensityProfile), intent(inout)                            :: self
     double precision                                     , intent(in   ), optional                  :: time
     type            (varying_string                     ), intent(inout), dimension(:), allocatable :: descriptions
-    double precision                                     , intent(inout), dimension(:), allocatable :: values 
+    double precision                                     , intent(inout), dimension(:), allocatable :: values
     type            (varying_string                     ), intent(  out)                            :: valuesDescription
-    double precision                                     , intent(  out)                            :: valuesUnitsInSI
+    type            (unitType                           ), intent(  out)                            :: valuesUnits
     !$GLC attributes unused :: time
 
     allocate(descriptions(self%radiiCount))
     allocate(values      (              0))
     valuesDescription=var_str('')
-    valuesUnitsInSI  =0.0d0
+    valuesUnits      =unitsMake(unitsInSI=0.0d0,isComoving=0_c_int)
     descriptions     =self%radii%name
     return
   end subroutine densityProfileColumnDescriptions

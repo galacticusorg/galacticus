@@ -248,6 +248,7 @@ contains
     use :: HDF5_Access                     , only : hdf5Access
     use :: IO_HDF5                         , only : hdf5Object
     use :: Numerical_Constants_Astronomical, only : gigaYear
+    use :: Output_Units                    , only : unitsMake
     implicit none
     class(outputAnalysisSatelliteRadiusVelocityMaximum), intent(inout)           :: self
     type (varying_string                              ), intent(in   ), optional :: groupName
@@ -281,14 +282,11 @@ contains
     call analysisGroup%writeAttribute(self%logLikelihood()                                           ,'logLikelihood'                            )
     call analysisGroup%writeAttribute('Simulations'                                                  ,'targetLabel'                              )
     call analysisGroup%writeDataset  (self%time                               ,'time'                               ,'Time'                                          ,datasetReturned=dataset)
-    call dataset      %writeAttribute('Gyr'                                   ,'units'                                                                                                       )
-    call dataset      %writeAttribute(gigaYear                                ,'unitsInSI'                                                                                                   )
+    call dataset      %writeAttribute(unitsMake(unitsInSI=gigaYear,description='Gyr',quantity='Gyr'),'units'                                                                                                       )
     call analysisGroup%writeDataset  (self%fractionRadiusVelocityMaximum      ,'fractionRadiusVelocityMaximum'      ,'Fraction of maximum circular velocity'         ,datasetReturned=dataset)
-    call dataset      %writeAttribute(' '                                     ,'units'                                                                                                       )
-    call dataset      %writeAttribute(1.0d0                                   ,'unitsInSI'                                                                                                   )
+    call dataset      %writeAttribute(unitsMake(unitsInSI=1.0d0),'units'                                                                                                       )
     call analysisGroup%writeDataset  (self%fractionRadiusVelocityMaximumTarget,'fractionRadiusVelocityMaximumTarget','Fraction of maximum circular velocity [target]',datasetReturned=dataset)
-    call dataset      %writeAttribute(' '                                     ,'units'                                                                                                       )
-    call dataset      %writeAttribute(1.0d0                                   ,'unitsInSI'                                                                                                   )
+    call dataset      %writeAttribute(unitsMake(unitsInSI=1.0d0),'units'                                                                                                       )
     !$ call hdf5Access%unset()
     return
   end subroutine satelliteRadiusVelocityMaximumFinalize

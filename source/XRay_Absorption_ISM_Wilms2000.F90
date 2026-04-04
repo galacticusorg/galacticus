@@ -42,6 +42,7 @@ program XRay_Absorption_ISM_Wilms2000
   use :: Numerical_Constants_Prefixes , only : kilo
   use :: Numerical_Constants_Units    , only : electronVolt
   use :: Numerical_Ranges             , only : Make_Range
+  use :: Output_Units                 , only : unitsMake
   implicit none
   integer                                                                , parameter :: energyCount       =1000
   integer                                                                , parameter :: metallicityCount  =100
@@ -100,12 +101,12 @@ program XRay_Absorption_ISM_Wilms2000
   outputFile=hdf5Object('data/atomic/Interstellar_Absorption_Wilms_2000.hdf5',overWrite=.true.,chunkSize=1024_hsize_t,compressionLevel=9)
   ! Write energy table.
   call outputFile%writeDataset(energy(1:energyCount),datasetName="energy",comment="Photon energy in keV",datasetReturned=myDataset)
-  call myDataset %writeAttribute(kilo*electronVolt,"unitsInSI")
+  call myDataset %writeAttribute(unitsMake(unitsInSI=kilo*electronVolt),"units")
   ! Write metallicity table.
   call outputFile%writeDataset(metallicity,datasetName="metallicity",comment="Metallicity")
   ! Write crossSection table.
   call outputFile%writeDataset(crossSection,datasetName="crossSection",comment="Absorption cross section in cm²",datasetReturned=myDataset)
-  call myDataset %writeAttribute(1.0d-4,"unitsInSI")
+  call myDataset %writeAttribute(unitsMake(unitsInSI=1.0d-4),"units")
   ! Add meta-data.
   call outputFile%writeAttribute("Created by Galacticus using dotbvabs function from XSpec","description")
   call outputFile%writeAttribute(Formatted_Date_and_Time(),"timestamp")

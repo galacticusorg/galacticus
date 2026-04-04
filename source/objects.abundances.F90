@@ -938,6 +938,7 @@ contains
     Assign names to output buffers for an abundances object.
     !!}
     use :: Merger_Tree_Outputter_Buffer_Types, only : outputPropertyInteger, outputPropertyDouble
+    use :: Output_Units                      , only : unitsMake
     implicit none
     class           (abundances           )              , intent(in   ) :: self
     double precision                                     , intent(in   ) :: time
@@ -952,13 +953,13 @@ contains
     doubleProperty=doubleProperty+1
     doubleProperties(doubleProperty)%name     =trim(prefix )//  'Metals'
     doubleProperties(doubleProperty)%comment  =trim(comment)//' [Metals]'
-    doubleProperties(doubleProperty)%unitsInSI=unitsInSI
+    doubleProperties(doubleProperty)%units    =unitsMake(unitsInSI=unitsInSI)
     if (elementsCount > 0) then
        do iElement=1,elementsCount
           doubleProperty=doubleProperty+1
           doubleProperties(doubleProperty)%name     =trim(prefix )//      trim(elementsToTrack(iElement))
           doubleProperties(doubleProperty)%comment  =trim(comment)//' ['//trim(elementsToTrack(iElement))//']'
-          doubleProperties(doubleProperty)%unitsInSI=unitsInSI
+          doubleProperties(doubleProperty)%units    =unitsMake(unitsInSI=unitsInSI)
        end do
     end if
     return

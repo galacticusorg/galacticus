@@ -992,6 +992,7 @@ contains
     !!}
     use :: ISO_Varying_String                , only : assignment(=)        , operator(//)        , trim
     use :: Merger_Tree_Outputter_Buffer_Types, only : outputPropertyInteger, outputPropertyDouble
+    use :: Output_Units                      , only : unitsMake
     implicit none
     class           (stellarLuminosities  )              , intent(in   ) :: self
     double precision                                     , intent(in   ) :: time
@@ -1009,7 +1010,7 @@ contains
              doubleProperty=doubleProperty+1
              doubleProperties(doubleProperty)%name     =trim(prefix )// ':'//trim(luminosityName(i))
              doubleProperties(doubleProperty)%comment  =trim(comment)//' ['//trim(luminosityName(i))//']'
-             doubleProperties(doubleProperty)%unitsInSI=unitsInSI
+             doubleProperties(doubleProperty)%units    =unitsMake(unitsInSI=unitsInSI)
              call doubleProperties(doubleProperty)%metaDataRank0%set('wavelengthEffective',luminosityWavelengthEffective(i))
              call doubleProperties(doubleProperty)%metaDataRank0%set('vegaOffset'         ,luminosityVegaOffset         (i))
           end if

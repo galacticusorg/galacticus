@@ -17,7 +17,8 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  use :: Hashes, only : doubleHash, rank1DoubleHash
+  use :: Hashes      , only : doubleHash, rank1DoubleHash
+  use :: Output_Units, only : unitType  , unitsMake
 
   !![
   <nodePropertyExtractor name="nodePropertyExtractorArray" abstract="yes">
@@ -49,6 +50,7 @@
      procedure(arrayNames       ), deferred :: names
      procedure(arrayDescriptions), deferred :: descriptions
      procedure(arrayUnitsInSI   ), deferred :: unitsInSI
+     procedure                              :: units              => arrayUnits
      procedure                              :: metaData           => arrayMetaData
   end type nodePropertyExtractorArray
 
@@ -91,17 +93,17 @@
   end interface
 
   abstract interface
-     subroutine arrayColumns(self,descriptions,values,valuesDescription,valuesUnitsInSI,time)
+     subroutine arrayColumns(self,descriptions,values,valuesDescription,valuesUnits,time)
        !!{
        Interface for array column descriptions.
        !!}
-       import varying_string, nodePropertyExtractorArray
+       import varying_string, nodePropertyExtractorArray, unitType
        class           (nodePropertyExtractorArray), intent(inout)                            :: self
        double precision                            , intent(in   ), optional                  :: time
        type            (varying_string            ), intent(inout), allocatable, dimension(:) :: descriptions
        double precision                            , intent(inout), allocatable, dimension(:) :: values
        type            (varying_string            ), intent(  out)                            :: valuesDescription
-       double precision                            , intent(  out)                            :: valuesUnitsInSI
+       type            (unitType                  ), intent(  out)                            :: valuesUnits
      end subroutine arrayColumns
   end interface
 
@@ -141,7 +143,27 @@
   end interface
 
 contains
-  
+
+  function arrayUnits(self,time) result(units_)
+    !!{
+    Default implementation: wraps the deferred \refmeth{nodePropertyExtractorArray}{unitsInSI} array into an array of
+    \reftype{unitType}.
+    !!}
+    implicit none
+    type            (unitType                  ), dimension(:), allocatable :: units_
+    class           (nodePropertyExtractorArray), intent(inout)             :: self
+    double precision                            , intent(in   ), optional   :: time
+    double precision                            , dimension(:), allocatable :: siValues
+    integer                                                                  :: i
+
+    siValues=self%unitsInSI(time)
+    allocate(units_(size(siValues)))
+    do i=1,size(siValues)
+       units_(i)=unitsMake(unitsInSI=siValues(i),isComoving=0)
+    end do
+    return
+  end function arrayUnits
+
   subroutine arrayMetaData(self,node,indexProperty,metaDataRank0,metaDataRank1)
     !!{
     Interface for array property meta-data.

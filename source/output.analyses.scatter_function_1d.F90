@@ -606,9 +606,10 @@ contains
     !!{
     Implement a \mono{scatterFunction1D} output analysis finalization.
     !!}
-    use :: Output_HDF5, only : outputFile
-    use :: HDF5_Access, only : hdf5Access
-    use :: IO_HDF5    , only : hdf5Object
+    use :: Output_HDF5  , only : outputFile
+    use :: HDF5_Access  , only : hdf5Access
+    use :: IO_HDF5      , only : hdf5Object
+    use :: Output_Units , only : unitsMake
     implicit none
     class(outputAnalysisScatterFunction1D), intent(inout)           :: self
     type (varying_string                 ), intent(in   ), optional :: groupName
@@ -641,24 +642,19 @@ contains
     call    analysisGroup%writeAttribute(     char(self% scatterLabel)//"CovarianceTarget",'yCovarianceTarget'                                                                                                )
     ! Write computed datasets.
     call    analysisGroup%writeDataset  (          self%binCenter                         ,char(self%propertyLabel)                       ,char(self%propertyComment)                 ,datasetReturned=dataset)
-    call    dataset      %writeAttribute(     char(self%propertyUnits       )             ,'units'                                                                                                            )
-    call    dataset      %writeAttribute(          self%propertyUnitsInSI                 ,'unitsInSI'                                                                                                        )
+    call    dataset      %writeAttribute(unitsMake(unitsInSI=self%propertyUnitsInSI,description=char(self%propertyUnits),quantity=char(self%propertyUnits)),'units'                                                                                                            )
     call    analysisGroup%writeDataset  (          self%scatterValue                      ,char(self% scatterLabel)                       ,char(self% scatterComment)                 ,datasetReturned=dataset)
-    call    dataset      %writeAttribute(     char(self%    scatterUnits    )             ,'units'                                                                                                            )
-    call    dataset      %writeAttribute(          self%scatterUnitsInSI                  ,'unitsInSI'                                                                                                        )
+    call    dataset      %writeAttribute(unitsMake(unitsInSI=self%scatterUnitsInSI,description=char(self%scatterUnits),quantity=char(self%scatterUnits)),'units'                                                                                                            )
     call    analysisGroup%writeDataset  (          self%scatterCovariance                 ,char(self% scatterLabel)//"Covariance"         ,char(self% scatterComment)//" [covariance]",datasetReturned=dataset)
-    call    dataset      %writeAttribute("["//char(self%    scatterUnits    )//"]²"       ,'units'                                                                                                            )
-    call    dataset      %writeAttribute(          self%    scatterUnitsInSI   **2        ,'unitsInSI'                                                                                                        )
+    call    dataset      %writeAttribute(unitsMake(unitsInSI=self%scatterUnitsInSI**2,description="["//char(self%scatterUnits)//"]²",quantity="["//char(self%scatterUnits)//"]²"),'units'                                                                                                            )
     ! If available, include the log-likelihood and target dataset.
     if (allocated(self%scatterValueTarget)) then
        call analysisGroup%writeAttribute(          self%logLikelihood()                   ,'logLikelihood'                                                                                                    )
        call analysisGroup%writeAttribute(     char(self%targetLabel         )             ,'targetLabel'                                                                                                      )
        call analysisGroup%writeDataset  (          self%scatterValueTarget                ,char(self%    scatterLabel)//"Target"          ,char(self% scatterComment)                 ,datasetReturned=dataset)
-       call dataset      %writeAttribute(     char(self%    scatterUnits    )             ,'units'                                                                                                            )
-       call dataset      %writeAttribute(          self%scatterUnitsInSI                  ,'unitsInSI'                                                                                                        )
+       call dataset      %writeAttribute(unitsMake(unitsInSI=self%scatterUnitsInSI,description=char(self%scatterUnits),quantity=char(self%scatterUnits)),'units'                                                                                                            )
        call analysisGroup%writeDataset  (          self%scatterCovarianceTarget           ,char(self%    scatterLabel)//"CovarianceTarget",char(self% scatterComment)//" [covariance]",datasetReturned=dataset)
-       call dataset      %writeAttribute("["//char(self%    scatterUnits    )//"]²"       ,'units'                                                                                                            )
-       call dataset      %writeAttribute(          self%    scatterUnitsInSI   **2        ,'unitsInSI'                                                                                                        )
+       call dataset      %writeAttribute(unitsMake(unitsInSI=self%scatterUnitsInSI**2,description="["//char(self%scatterUnits)//"]²",quantity="["//char(self%scatterUnits)//"]²"),'units'                                                                                                            )
     end if
     !$ call hdf5Access%unset()
     return

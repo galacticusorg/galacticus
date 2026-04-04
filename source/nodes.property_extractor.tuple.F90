@@ -17,7 +17,8 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  use :: Hashes, only : doubleHash, rank1DoubleHash
+  use :: Hashes      , only : doubleHash, rank1DoubleHash
+  use :: Output_Units, only : unitType  , unitsMake
 
   !![
   <nodePropertyExtractor name="nodePropertyExtractorTuple" abstract="yes">
@@ -45,6 +46,7 @@
      procedure(tupleNames       ), deferred :: names
      procedure(tupleDescriptions), deferred :: descriptions
      procedure(tupleUnitsInSI   ), deferred :: unitsInSI
+     procedure                              :: units        => tupleUnits
      procedure                              :: metaData     => tupleMetaData
   end type nodePropertyExtractorTuple
 
@@ -110,7 +112,27 @@
   end interface
 
 contains
-  
+
+  function tupleUnits(self,time) result(units_)
+    !!{
+    Default implementation: wraps the deferred \refmeth{nodePropertyExtractorTuple}{unitsInSI} array into an array of
+    \reftype{unitType}.  Subclasses may override this to populate \mono{description}, \mono{quantity}, and \mono{isComoving}.
+    !!}
+    implicit none
+    type            (unitType                  ), dimension(:), allocatable :: units_
+    class           (nodePropertyExtractorTuple), intent(inout)             :: self
+    double precision                            , intent(in   )             :: time
+    double precision                            , dimension(:), allocatable :: siValues
+    integer                                                                 :: i
+
+    siValues=self%unitsInSI(time)
+    allocate(units_(size(siValues)))
+    do i=1,size(siValues)
+       units_(i)=unitsMake(unitsInSI=siValues(i),isComoving=0)
+    end do
+    return
+  end function tupleUnits
+
   subroutine tupleMetaData(self,node,indexProperty,metaDataRank0,metaDataRank1)
     !!{
     Interface for tuple property meta-data.

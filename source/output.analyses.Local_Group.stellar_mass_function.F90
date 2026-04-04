@@ -600,6 +600,7 @@ contains
     use :: HDF5_Access                     , only : hdf5Access
     use :: IO_HDF5                         , only : hdf5Object
     use :: Numerical_Constants_Astronomical, only : massSolar
+    use :: Output_Units                    , only : unitsMake
     implicit none
     class(outputAnalysisLocalGroupStellarMassFunction), intent(inout)           :: self
     type (varying_string                             ), intent(in   ), optional :: groupName
@@ -629,8 +630,7 @@ contains
     call analysisGroup%writeAttribute('massFunctionCovariance'           ,'yCovariance'                                                                                  )
     call analysisGroup%writeAttribute('Observed'                         ,'targetLabel'                                                                                  )
     call analysisGroup%writeDataset  (self%masses                        ,'massStellar'           ,'Stellar mass at the bin center'              ,datasetReturned=dataset)
-    call dataset      %writeAttribute('M☉'                               ,'units'                                                                                        )
-    call dataset      %writeAttribute(massSolar                          ,'unitsInSI'                                                                                    )
+    call dataset      %writeAttribute(unitsMake(unitsInSI=massSolar,description='M☉',quantity='M☉'),'units'                                                                                        )
     call analysisGroup%writeDataset  (self%massFunction                  ,'massFunction'          ,'Satellite number per bin [model]'                                    )
     call analysisGroup%writeDataset  (self%covariance                    ,'massFunctionCovariance','Satellite number per bin [model; covariance]'                        )
     call analysisGroup%writeDataset  (self%massFunctionTarget            ,'massFunctionTarget'    ,'Satellite number per bin [observed]'                                 )

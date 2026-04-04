@@ -184,6 +184,7 @@ contains
     use    :: Mass_Distributions              , only : massDistributionClass
     use    :: Merger_Tree_Walkers             , only : mergerTreeWalkerAllNodes
     use    :: Numerical_Constants_Astronomical, only : megaParsec
+    use    :: Output_Units                    , only : unitsMake
     use    :: String_Handling                 , only : operator(//)
     implicit none
     class           (mergerTreeOutputterHaloFourierProfiles), intent(inout)               :: self
@@ -207,7 +208,7 @@ contains
     if (.not.self%outputGroup%isOpen()) then
        self%outputGroup=outputFile%openGroup("haloFourierProfiles","Halo model data.")
        call self   %outputGroup%writeDataset  (self%wavenumber ,'wavenumber','Wavenumber at which Fourier transform of density profile is tabulated [Mpc⁻¹].',datasetReturned=dataset)
-       call dataset            %writeAttribute(1.0d0/megaParsec,'unitsInSI'                                                                                                          )
+       call dataset            %writeAttribute(unitsMake(unitsInSI=1.0d0/megaParsec),'units'                                                                                          )
     end if
     outputGroup=self%outputGroup%openGroup(char(var_str('output')//indexOutput),char(var_str("Fourier space density profiles of halos for all trees at output number ")//indexOutput//"."))
     !$ call hdf5Access%unset()

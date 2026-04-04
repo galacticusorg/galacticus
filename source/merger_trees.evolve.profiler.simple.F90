@@ -168,6 +168,7 @@ contains
     use :: HDF5_Access                     , only : hdf5Access
     use :: IO_HDF5                         , only : hdf5Object
     use :: Numerical_Constants_Astronomical, only : gigaYear
+    use :: Output_Units                    , only : unitsMake
     use :: ISO_Varying_String              , only : assignment(=)
     implicit none
     type            (mergerTreeEvolveProfilerSimple), intent(inout)               :: self
@@ -223,7 +224,7 @@ contains
        call self%propertyHits%keys  (propertyNames   )
        call self%propertyHits%values(propertyHitCount)
        call profilerDataGroup%writeDataset  (self%timeStep                  ,"timeStep"                  ,"Timestep [Gyr]"                             ,datasetReturned=metaDataDataset)
-       call metaDataDataset  %writeAttribute(     gigaYear                  ,"unitsInSI"                                                                                               )
+       call metaDataDataset  %writeAttribute(unitsMake(unitsInSI=gigaYear   ),"units"                                                                                                  )
        call profilerDataGroup%writeDataset  (self%  timeStepCount           ,"timeStepCount"             ,"Timestep histogram []"                                                      )
        call profilerDataGroup%writeDataset  (self%evaluationCount           ,"evaluationCount"           ,"Evaluations at this timestep []"                                            )
        call profilerDataGroup%writeDataset  (self%  timeCPU                 ,"timeCPU"                   ,"CPU time histogram [s]"                                                     )

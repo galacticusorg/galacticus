@@ -144,7 +144,8 @@ sub Implementation_Output_Names {
 	content     => "",
 	modules     =>
 	    [
-	     "Merger_Tree_Outputter_Buffer_Types"
+	     "Merger_Tree_Outputter_Buffer_Types",
+	     "Output_Units"
 	    ],
 	variables   =>
 	    [
@@ -215,7 +216,7 @@ CODE
 {$outputType}Property                                   = {$outputType}Property+1
 {$outputType}Properties({$outputType}Property)%name     ='{$class->{'name'}.ucfirst($property->{'name'})}'
 {$outputType}Properties({$outputType}Property)%comment  ='{$property->{'output'}->{'comment'  }}'
-{$outputType}Properties({$outputType}Property)%unitsInSI= {$property->{'output'}->{'unitsInSI'}}
+{$outputType}Properties({$outputType}Property)%units    =unitsMake(unitsInSI={$property->{'output'}->{'unitsInSI'}},quantity='{$property->{'output'}->{'quantity'} // ""}',isComoving={$property->{'output'}->{'isComoving'} // 0})
 CODE
 	    } elsif ( $code::property->{'data'}->{'rank'} == 1 ) {
 		if ( $code::property->{'output'}->{'labels'} =~ m/^\[(.*)\]$/ ) {
@@ -225,7 +226,7 @@ CODE
 {$outputType}Property                                   ={$outputType}Property+1
 {$outputType}Properties({$outputType}Property)%name     ='{$class->{'name'}.ucfirst($property->{'name'}).$label}'
 {$outputType}Properties({$outputType}Property)%comment  ='{$property->{'output'}->{'comment'  }} [{$label}]'
-{$outputType}Properties({$outputType}Property)%unitsInSI= {$property->{'output'}->{'unitsInSI'}}
+{$outputType}Properties({$outputType}Property)%units    =unitsMake(unitsInSI={$property->{'output'}->{'unitsInSI'}},quantity='{$property->{'output'}->{'quantity'} // ""}',isComoving={$property->{'output'}->{'isComoving'} // 0})
 CODE
 		    }
 		} elsif ( exists($code::property->{'output'}->{'count'}) ) {
@@ -235,7 +236,7 @@ do i=1,{$property->{'output'}->{'count'}}
    {$outputType}Property                                   ={$outputType}Property+1
    {$outputType}Properties({$outputType}Property)%name     ='{$class->{'name'}.ucfirst($propertyName)}'//{$label}
    {$outputType}Properties({$outputType}Property)%comment  ='{$property->{'output'}->{'comment'  }} [' //{$label}//']'
-   {$outputType}Properties({$outputType}Property)%unitsInSI= {$property->{'output'}->{'unitsInSI'}}
+   {$outputType}Properties({$outputType}Property)%units    =unitsMake(unitsInSI={$property->{'output'}->{'unitsInSI'}},quantity='{$property->{'output'}->{'quantity'} // ""}',isComoving={$property->{'output'}->{'isComoving'} // 0})
 end do
 CODE
                 }

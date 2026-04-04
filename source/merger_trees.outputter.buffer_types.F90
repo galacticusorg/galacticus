@@ -29,11 +29,12 @@ module Merger_Tree_Outputter_Buffer_Types
   use :: Hashes            , only : doubleHash    , rank1DoubleHash
   use :: IO_HDF5           , only : hdf5VarDouble , hdf5VarDouble2D, hdf5VarInteger8
   use :: ISO_Varying_String, only : varying_string
+  use :: Output_Units      , only : unitType
   public
 
   ! Maximum length of names and comments.
   integer, parameter :: propertyNameLengthMax=256, propertyCommentLengthMax=256
-  
+
   type :: outputPropertyInteger
      !!{
      A type used to store integer data for output.
@@ -42,13 +43,13 @@ module Merger_Tree_Outputter_Buffer_Types
      character       (len=propertyCommentLengthMax)                              :: comment
      type            (doubleHash                  ), allocatable                 :: metaDataRank0
      type            (rank1DoubleHash             ), allocatable                 :: metaDataRank1
-     double precision                                                            :: unitsInSI
+     type            (unitType                    )                              :: units
      integer         (kind_int8                   ), allocatable, dimension(:  ) :: scalar
      integer         (kind_int8                   ), allocatable, dimension(:,:) :: rank1
      type            (hdf5VarInteger8             ), allocatable, dimension(:  ) :: rank1VarLen
      type            (varying_string              ), allocatable, dimension(:  ) :: rank1Descriptors
   end type outputPropertyInteger
-  
+
   type :: outputPropertyDouble
      !!{
      A type used to store double precision data for output.
@@ -57,7 +58,7 @@ module Merger_Tree_Outputter_Buffer_Types
      character       (len=propertyCommentLengthMax)                              :: comment
      type            (doubleHash                  ), allocatable                 :: metaDataRank0
      type            (rank1DoubleHash             ), allocatable                 :: metaDataRank1
-     double precision                                                            :: unitsInSI
+     type            (unitType                    )                              :: units
      double precision                              , allocatable, dimension(:  ) :: scalar
      double precision                              , allocatable, dimension(:,:) :: rank1
      type            (hdf5VarDouble               ), allocatable, dimension(:  ) :: rank1VarLen
@@ -65,7 +66,7 @@ module Merger_Tree_Outputter_Buffer_Types
      type            (varying_string              ), allocatable, dimension(:  ) :: rank1Descriptors
      double precision                              , allocatable, dimension(:  ) :: rank1DescriptorValues
      type            (varying_string               )                             :: rank1DescriptorComment
-     double precision                                                            :: rank1DescriptorUnitsInSI
+     type            (unitType                    )                              :: rank1DescriptorUnits
   end type outputPropertyDouble
 
 end module Merger_Tree_Outputter_Buffer_Types

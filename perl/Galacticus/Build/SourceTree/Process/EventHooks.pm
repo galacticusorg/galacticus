@@ -511,6 +511,7 @@ subroutine eventsHooksWaitTimes()
     use :: IO_HDF5           , only : hdf5Object
     use :: HDF5_Access       , only : hdf5Access
     use :: ISO_Varying_String, only : varying_string      , var_str
+    use :: Output_Units      , only : unitsMake
 #endif
     implicit none
 #ifdef OMPPROFILE
@@ -534,10 +535,10 @@ CODE
     ! Write wait time data.
     call waitTimeGroup%writeDataset(eventHookNames         ,"eventHookNames"         ,"Names of event hooks"                                                              )
     call waitTimeGroup%writeDataset(eventHookReadWaitTimes ,"eventHookReadWaitTimes" ,"Total time spent waiting to read-lock event hooks" ,datasetReturned=waitTimeDataset)
-    call waitTimeDataset%writeAttribute(1.0d0,"unitsInSI")
+    call waitTimeDataset%writeAttribute(unitsMake(unitsInSI=1.0d0),"units")
     call waitTimeDataset%close()
     call waitTimeGroup%writeDataset(eventHookWriteWaitTimes,"eventHookWriteWaitTimes","Total time spent waiting to write-lock event hooks",datasetReturned=waitTimeDataset)
-    call waitTimeDataset%writeAttribute(1.0d0,"unitsInSI")
+    call waitTimeDataset%writeAttribute(unitsMake(unitsInSI=1.0d0),"units")
     call waitTimeDataset%close()
     ! Close output groups.
     call waitTimeGroup%close()

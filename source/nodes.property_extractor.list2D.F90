@@ -17,7 +17,8 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  use :: Hashes, only : doubleHash, rank1DoubleHash
+  use :: Hashes      , only : doubleHash, rank1DoubleHash
+  use :: Output_Units, only : unitType  , unitsMake
 
   !![
   <nodePropertyExtractor name="nodePropertyExtractorList2D" abstract="yes">
@@ -45,6 +46,7 @@
      procedure(list2DNames       ), deferred :: names
      procedure(list2DDescriptions), deferred :: descriptions
      procedure(list2DUnitsInSI   ), deferred :: unitsInSI
+     procedure                               :: units        => list2DUnits
      procedure                               :: metaData     => list2DMetaData
   end type nodePropertyExtractorList2D
 
@@ -106,7 +108,26 @@
   end interface
 
 contains
-  
+
+  function list2DUnits(self) result(units_)
+    !!{
+    Default implementation: wraps the deferred \refmeth{nodePropertyExtractorList2D}{unitsInSI} array into an array of
+    \reftype{unitType}.
+    !!}
+    implicit none
+    type (unitType                   ), dimension(:), allocatable :: units_
+    class(nodePropertyExtractorList2D), intent(inout)             :: self
+    double precision                  , dimension(:), allocatable :: siValues
+    integer                                                       :: i
+
+    siValues=self%unitsInSI()
+    allocate(units_(size(siValues)))
+    do i=1,size(siValues)
+       units_(i)=unitsMake(unitsInSI=siValues(i),isComoving=0)
+    end do
+    return
+  end function list2DUnits
+
   subroutine list2DMetaData(self,node,time,metaDataRank0,metaDataRank1)
     !!{
     Interface for list2D property meta-data.

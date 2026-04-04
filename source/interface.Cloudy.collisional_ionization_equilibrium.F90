@@ -53,6 +53,7 @@ contains
     use :: Numerical_Constants_Astronomical, only : heliumToHydrogenAbundancePrimordial, heliumToHydrogenAbundanceSolar
     use :: Numerical_Constants_Prefixes    , only : kilo
     use :: Numerical_Constants_Units       , only : electronVolt
+    use :: Output_Units                    , only : unitsMake
     use :: Numerical_Ranges                , only : Make_Range                         , rangeTypeLinear               , rangeTypeLogarithmic
     use :: String_Handling                 , only : operator(//)
     use :: System_Command                  , only : System_Command_Do
@@ -269,8 +270,7 @@ contains
              call    outputFile%writeDataset  (metallicitiesLogarithmic                                  ,'metallicity'                     ,datasetReturned=dataset)
              call    dataset   %writeAttribute('fix'                                                     ,'extrapolateLow'                                          )
              call    dataset   %writeAttribute('fix'                                                     ,'extrapolateHigh'                                         )
-             call    dataset   %writeAttribute('K'                                                       ,'units'                                                   )
-             call    dataset   %writeAttribute(1.0d0                                                     ,'unitsInSI'                                               )
+             call    dataset   %writeAttribute(unitsMake(unitsInSI=1.0d0,description='K')               ,'units'                                                   )
              call    outputFile%writeDataset  (10.0d0**temperaturesLogarithmic                           ,'temperature'                     ,datasetReturned=dataset)
              call    dataset   %writeAttribute('extrapolate'                                             ,'extrapolateLow'                                          )
              call    dataset   %writeAttribute('extrapolate'                                             ,'extrapolateHigh'                                         )
@@ -279,8 +279,7 @@ contains
                 call outputFile%writeDataset  (energyContinuum                                           ,'energyContinuum'                 ,datasetReturned=dataset)
                 call dataset   %writeAttribute('extrapolate'                                             ,'extrapolateLow'                                          )
                 call dataset   %writeAttribute('extrapolate'                                             ,'extrapolateHigh'                                         )
-                call dataset   %writeAttribute('keV'                                                     ,'units'                                                   )
-                call dataset   %writeAttribute(kilo*electronVolt                                         ,'unitsInSI'                                               )
+                call dataset   %writeAttribute(unitsMake(unitsInSI=kilo*electronVolt,description='keV')  ,'units'                                                   )
                 call outputFile%writeDataset  (powerEmittedFractionalCumulative                          ,'powerEmittedFractionalCumulative',datasetReturned=dataset)
              end if
              ! Add attributes.
@@ -296,8 +295,7 @@ contains
              call    outputFile%writeDataset  (metallicitiesLogarithmic                                  ,'metallicity'    ,datasetReturned=dataset)
              call    dataset   %writeAttribute('fix'                                                     ,'extrapolateLow'                         )
              call    dataset   %writeAttribute('fix'                                                     ,'extrapolateHigh'                        )
-             call    dataset   %writeAttribute('K'                                                       ,'units'                                  )
-             call    dataset   %writeAttribute(1.0d0                                                     ,'unitsInSI'                              )
+             call    dataset   %writeAttribute(unitsMake(unitsInSI=1.0d0,description='K')               ,'units'                                  )
              call    outputFile%writeDataset  (10.0d0**temperaturesLogarithmic                           ,'temperature'    ,datasetReturned=dataset)
              call    dataset   %writeAttribute('extrapolate'                                             ,'extrapolateLow'                         )
              call    dataset   %writeAttribute('extrapolate'                                             ,'extrapolateHigh'                        )

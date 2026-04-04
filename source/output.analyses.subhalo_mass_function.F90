@@ -553,6 +553,7 @@ contains
     use :: HDF5_Access                     , only : hdf5Access
     use :: IO_HDF5                         , only : hdf5Object
     use :: Numerical_Constants_Astronomical, only : massSolar
+    use :: Output_Units                    , only : unitsMake
     implicit none
     class(outputAnalysisSubhaloMassFunction), intent(inout)           :: self
     type (varying_string                   ), intent(in   ), optional :: groupName
@@ -580,8 +581,7 @@ contains
     call analysisGroup   %writeAttribute('massFunction'                       ,'yDataset'                                                                                            )
     call analysisGroup   %writeAttribute('massFunctionCovariance'             ,'yCovariance'                                                                                         )
     call analysisGroup   %writeDataset  (self%massRatios                      ,'massRatio'                   ,'Mass ratio at the bin center'                 ,datasetReturned=dataset)
-    call dataset         %writeAttribute(' '                                  ,'units'                                                                                               )
-    call dataset         %writeAttribute(1.0d0                                ,'unitsInSI'                                                                                           )
+    call dataset         %writeAttribute(unitsMake(unitsInSI=1.0d0),'units'                                                                                               )
     call analysisGroup   %writeDataset  (self%massFunction                    ,'massFunction'                ,'Subhalo number per bin [model]'                                       )
     call analysisGroup   %writeDataset  (self%covariance                      ,'massFunctionCovariance'      ,'Subhalo number per bin [model; covariance]'                           )
     if (allocated(self%massFunctionTarget)) then

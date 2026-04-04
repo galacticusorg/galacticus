@@ -162,6 +162,7 @@ contains
           &                                         varying_string
     use :: Numerical_Constants_Astronomical, only : gigaYear               , luminositySolar, massSolar
     use :: Numerical_Constants_Units       , only : metersToAngstroms
+    use :: Output_Units                    , only : unitsMake
     use :: String_Handling                 , only : operator(//)
     use :: System_Command                  , only : System_Command_Do
     use :: Tables                          , only : table1D
@@ -258,22 +259,17 @@ contains
       ! Add IMF.
       imfGroup=spectraFile%openGroup('initialMassFunction')
       call imfGroup%writeDataset  (imf%xs(),'mass'                  ,datasetReturned=dataset)
-      call dataset %writeAttribute('M☉'                 ,'units'                           )
-      call dataset %writeAttribute(      massSolar      ,'unitsInSI'                       )
+      call dataset %writeAttribute(unitsMake(unitsInSI=massSolar,description='M☉'),'units')
       call imfGroup%writeDataset  (imf%ys()   ,'initialMassFunction',datasetReturned=dataset)
-      call dataset %writeAttribute('M☉⁻¹'               ,'units'                           )
-      call dataset %writeAttribute(1.0d0/massSolar      ,'unitsInSI'                       )
+      call dataset %writeAttribute(unitsMake(unitsInSI=1.0d0/massSolar,description='M☉⁻¹'),'units')
       ! Write datasets.
       call spectraFile%writeDataset  (wavelength ,'wavelengths'        ,datasetReturned=dataset)
-      call dataset    %writeAttribute('Å'                  ,'units'                            )
-      call dataset    %writeAttribute(1.0d0/metersToAngstroms             ,'unitsInSI'         )
+      call dataset    %writeAttribute(unitsMake(unitsInSI=1.0d0/metersToAngstroms,description='Å'),'units')
       call spectraFile%writeDataset  (age        ,'ages'         ,      datasetReturned=dataset)
-      call dataset    %writeAttribute('Gyr'                ,'units'                            )
-      call dataset    %writeAttribute(gigaYear             ,'unitsInSI'                        )
+      call dataset    %writeAttribute(unitsMake(unitsInSI=gigaYear,description='Gyr'),'units')
       call spectraFile%writeDataset  (metallicity,'metallicities'                              )
       call spectraFile%writeDataset  (spectrum   ,'spectra'            ,datasetReturned=dataset)
-      call dataset    %writeAttribute('L☉ Hz⁻¹'            ,'units'                            )
-      call dataset    %writeAttribute(luminositySolar      ,'unitsInSI'                        )
+      call dataset    %writeAttribute(unitsMake(unitsInSI=luminositySolar,description='L☉ Hz⁻¹'),'units')
     end block
     !$ call hdf5Access%unset()
   return

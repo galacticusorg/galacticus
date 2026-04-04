@@ -19,6 +19,7 @@
 
   use :: Kind_Numbers, only : kind_int8
   use :: Hashes      , only : doubleHash, rank1DoubleHash
+  use :: Output_Units, only : unitType  , unitsMake
 
   !![
   <nodePropertyExtractor name="nodePropertyExtractorIntegerList" abstract="yes">
@@ -46,6 +47,7 @@
      procedure(integerListNames       ), deferred :: names
      procedure(integerListDescriptions), deferred :: descriptions
      procedure(integerListUnitsInSI   ), deferred :: unitsInSI
+     procedure                                    :: units        => integerListUnits
      procedure                                    :: metaData     => integerListMetaData
   end type nodePropertyExtractorIntegerList
 
@@ -107,7 +109,26 @@
   end interface
 
 contains
-  
+
+  function integerListUnits(self) result(units_)
+    !!{
+    Default implementation: wraps the deferred \refmeth{nodePropertyExtractorIntegerList}{unitsInSI} array into an array of
+    \reftype{unitType}.
+    !!}
+    implicit none
+    type (unitType                          ), dimension(:), allocatable :: units_
+    class(nodePropertyExtractorIntegerList  ), intent(inout)             :: self
+    double precision                         , dimension(:), allocatable :: siValues
+    integer                                                              :: i
+
+    siValues=self%unitsInSI()
+    allocate(units_(size(siValues)))
+    do i=1,size(siValues)
+       units_(i)=unitsMake(unitsInSI=siValues(i),isComoving=0)
+    end do
+    return
+  end function integerListUnits
+
   subroutine integerListMetaData(self,node,metaDataRank0,metaDataRank1)
     !!{
     Interface for list property meta-data.

@@ -19,6 +19,7 @@
 
   use :: Kind_Numbers, only : kind_int8
   use :: Hashes      , only : doubleHash, rank1DoubleHash
+  use :: Output_Units, only : unitType  , unitsMake
 
   !![
   <nodePropertyExtractor name="nodePropertyExtractorIntegerScalar" abstract="yes">
@@ -44,6 +45,7 @@
      procedure(integerScalarName   ), deferred :: name
      procedure(integerScalarName   ), deferred :: description
      procedure                                 :: unitsInSI   => integerScalarUnitsInSI
+     procedure                                 :: units       => integerScalarUnits
      procedure                                 :: metaData    => integerScalarMetaData
   end type nodePropertyExtractorIntegerScalar
 
@@ -73,6 +75,18 @@
   end interface
 
 contains
+
+  function integerScalarUnits(self) result(units_)
+    !!{
+    Default implementation: wraps \refmeth{nodePropertyExtractorIntegerScalar}{unitsInSI} into a \reftype{unitType}.
+    !!}
+    implicit none
+    type (unitType                           )                :: units_
+    class(nodePropertyExtractorIntegerScalar), intent(inout) :: self
+
+    units_=unitsMake(unitsInSI=self%unitsInSI(),isComoving=0)
+    return
+  end function integerScalarUnits
 
   double precision function integerScalarUnitsInSI(self)
     !!{

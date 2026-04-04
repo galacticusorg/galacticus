@@ -472,9 +472,10 @@ contains
     !!{
     Implement a \mono{morphologicalFractionGAMAMoffett2016} output analysis finalization.
     !!}
-    use :: Output_HDF5, only : outputFile
-    use :: HDF5_Access, only : hdf5Access
-    use :: IO_HDF5    , only : hdf5Object
+    use :: Output_HDF5  , only : outputFile
+    use :: HDF5_Access  , only : hdf5Access
+    use :: IO_HDF5      , only : hdf5Object
+    use :: Output_Units , only : unitsMake
     implicit none
     class(outputAnalysisMorphologicalFractionGAMAMoffett2016), intent(inout)           :: self
     type (varying_string                                    ), intent(in   ), optional :: groupName
@@ -502,26 +503,20 @@ contains
     call analysisGroup%writeAttribute(     char(self%    meanLabel)//"ErrorUpperTarget",'yErrorUpperTarget'                                                                                             )
     ! Write computed datasets.
     call analysisGroup%writeDataset  (          self%binCenter                         ,char(self%propertyLabel)                    ,char(self%propertyComment)                 ,datasetReturned=dataset)
-    call dataset      %writeAttribute(     char(self%propertyUnits    )                ,'units'                                                                                                         )
-    call dataset      %writeAttribute(          self%propertyUnitsInSI                 ,'unitsInSI'                                                                                                     )
+    call dataset      %writeAttribute(unitsMake(unitsInSI=self%propertyUnitsInSI,description=char(self%propertyUnits),quantity=char(self%propertyUnits)),'units'                                                                                                         )
     call analysisGroup%writeDataset  (          self%meanValue                         ,char(self%    meanLabel)                    ,char(self%    meanComment)                 ,datasetReturned=dataset)
-    call dataset      %writeAttribute(     char(self%    meanUnits    )                ,'units'                                                                                                         )
-    call dataset      %writeAttribute(          self%meanUnitsInSI                     ,'unitsInSI'                                                                                                     )
+    call dataset      %writeAttribute(unitsMake(unitsInSI=self%meanUnitsInSI,description=char(self%meanUnits),quantity=char(self%meanUnits)),'units'                                                                                                         )
     call analysisGroup%writeDataset  (          self%meanCovariance                    ,char(self%    meanLabel)//"Covariance"      ,char(self%    meanComment)//" [covariance]",datasetReturned=dataset)
-    call dataset      %writeAttribute("["//char(self%    meanUnits    )//"]²"          ,'units'                                                                                                         )
-    call dataset      %writeAttribute(          self%    meanUnitsInSI   **2           ,'unitsInSI'                                                                                                     )
+    call dataset      %writeAttribute(unitsMake(unitsInSI=self%meanUnitsInSI**2,description="["//char(self%meanUnits)//"]²",quantity="["//char(self%meanUnits)//"]²"),'units'                                                                                                         )
     ! Include the log-likelihood and target dataset.
     call analysisGroup%writeAttribute(          self%logLikelihood()                   ,'logLikelihood'                                                                                                 )
     call analysisGroup%writeAttribute(     char(self%targetLabel      )                ,'targetLabel'                                                                                                   )
     call analysisGroup%writeDataset  (          self%meanValueTarget                   ,char(self%    meanLabel)//"Target"          ,char(self%    meanComment)                 ,datasetReturned=dataset)
-    call dataset      %writeAttribute(     char(self%    meanUnits    )                ,'units'                                                                                                         )
-    call dataset      %writeAttribute(          self%meanUnitsInSI                     ,'unitsInSI'                                                                                                     )
+    call dataset      %writeAttribute(unitsMake(unitsInSI=self%meanUnitsInSI,description=char(self%meanUnits),quantity=char(self%meanUnits)),'units'                                                                                                         )
     call analysisGroup%writeDataset  (          self%functionErrorLowerTarget          ,char(self%    meanLabel)//"ErrorLowerTarget",char(self%    meanComment)                 ,datasetReturned=dataset)
-    call dataset      %writeAttribute(     char(self%    meanUnits    )                ,'units'                                                                                                         )
-    call dataset      %writeAttribute(          self%meanUnitsInSI                     ,'unitsInSI'                                                                                                     )
+    call dataset      %writeAttribute(unitsMake(unitsInSI=self%meanUnitsInSI,description=char(self%meanUnits),quantity=char(self%meanUnits)),'units'                                                                                                         )
     call analysisGroup%writeDataset  (          self%functionErrorUpperTarget          ,char(self%    meanLabel)//"ErrorUpperTarget",char(self%    meanComment)                 ,datasetReturned=dataset)
-    call dataset      %writeAttribute(     char(self%    meanUnits    )                ,'units'                                                                                                         )
-    call dataset      %writeAttribute(          self%meanUnitsInSI                     ,'unitsInSI'                                                                                                     )
+    call dataset      %writeAttribute(unitsMake(unitsInSI=self%meanUnitsInSI,description=char(self%meanUnits),quantity=char(self%meanUnits)),'units'                                                                                                         )
     !$ call hdf5Access%unset()
     return
   end subroutine morphologicalFractionGAMAMoffett2016Finalize

@@ -17,7 +17,8 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  use :: Hashes, only : doubleHash, rank1DoubleHash
+  use :: Hashes      , only : doubleHash, rank1DoubleHash
+  use :: Output_Units, only : unitType  , unitsMake
 
   !![
   <nodePropertyExtractor name="nodePropertyExtractorScalar" abstract="yes">
@@ -43,6 +44,7 @@
      procedure(scalarName     ), deferred :: name
      procedure(scalarName     ), deferred :: description
      procedure(scalarUnitsInSI), deferred :: unitsInSI
+     procedure                            :: units       => scalarUnits
      procedure                            :: metaData    => scalarMetaData
   end type nodePropertyExtractorScalar
 
@@ -80,7 +82,21 @@
   end interface
 
 contains
-  
+
+  function scalarUnits(self) result(units_)
+    !!{
+    Default implementation: wraps the deferred \refmeth{nodePropertyExtractorScalar}{unitsInSI} result into a
+    \reftype{unitType}.  Subclasses may override this method to populate \mono{description}, \mono{quantity},
+    and \mono{isComoving}.
+    !!}
+    implicit none
+    type (unitType                  )                :: units_
+    class(nodePropertyExtractorScalar), intent(inout) :: self
+
+    units_=unitsMake(unitsInSI=self%unitsInSI(),isComoving=0)
+    return
+  end function scalarUnits
+
   subroutine scalarMetaData(self,node,metaDataRank0,metaDataRank1)
     !!{
     Interface for scalar property meta-data.

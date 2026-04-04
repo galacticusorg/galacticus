@@ -372,6 +372,7 @@ contains
     use :: HDF5_Access                     , only : hdf5Access
     use :: IO_HDF5                         , only : hdf5Object
     use :: Numerical_Constants_Astronomical, only : gigaYear    , massSolar, megaParsec
+    use :: Output_Units                    , only : unitsMake
     implicit none
     class           (*         ), intent(inout)               :: self
     double precision            , allocatable  , dimension(:) :: rateStarFormationDisk , rateStarFormationSpheroid, &
@@ -387,10 +388,10 @@ contains
        if (.not.historyGroup%hasDataset('time')) then
           ! Write non-cumulative datasets on the first write.
           call historyGroup  %writeDataset  (self%time                       ,"time"             ,"Time [Gyr]"                       ,datasetReturned=historyDataset)
-          call historyDataset%writeAttribute(gigaYear                        ,"unitsInSI"                                                                           )
+          call historyDataset%writeAttribute(unitsMake(unitsInSI=gigaYear                        ),"units"                                                                              )
           call historyGroup  %writeDataset  (self%expansionFactor            ,"expansionFactor"  ,"Expansion factor []"                                             )
           call historyGroup  %writeDataset  (self%rateStarFormation          ,"rateStarFormation","Star formation rate [M⊙/Gyr/Mpc³]",datasetReturned=historyDataset)
-          call historyDataset%writeAttribute(massSolar/gigaYear/megaParsec**3,"unitsInSI"                                                                           )
+          call historyDataset%writeAttribute(unitsMake(unitsInSI=massSolar/gigaYear/megaParsec**3),"units"                                                                              )
        else
           ! Read existing datasets, and accumulate.
           call historyGroup%readDataset('rateStarFormationDisk'    ,rateStarFormationDisk    )
@@ -412,21 +413,21 @@ contains
        end if
        ! Accumulate other datasets. (We are doing this inside an hdf5Access lock, so OpenMP threads will not conflict here.)
        call historyGroup  %writeDataset  (self%rateStarFormationDisk      ,"rateStarFormationDisk"    ,"Star formation rate in disks [M⊙/Gyr/Mpc³]"    ,datasetReturned=historyDataset)
-       call historyDataset%writeAttribute(massSolar/gigaYear/megaParsec**3,"unitsInSI"                                                                                                )
+       call historyDataset%writeAttribute(unitsMake(unitsInSI=massSolar/gigaYear/megaParsec**3),"units"                                                                                                   )
        call historyGroup  %writeDataset  (self%rateStarFormationSpheroid  ,"rateStarFormationSpheroid","Star formation rate in spheroids [M⊙/Gyr/Mpc³]",datasetReturned=historyDataset)
-       call historyDataset%writeAttribute(massSolar/gigaYear/megaParsec**3,"unitsInSI"                                                                                                )
+       call historyDataset%writeAttribute(unitsMake(unitsInSI=massSolar/gigaYear/megaParsec**3),"units"                                                                                                   )
        call historyGroup  %writeDataset  (self%densityStellar             ,"densityStellar"           ,"Stellar mass density [M⊙/Mpc³]"                ,datasetReturned=historyDataset)
-       call historyDataset%writeAttribute(massSolar/megaParsec**3         ,"unitsInSI"                                                                                                )
+       call historyDataset%writeAttribute(unitsMake(unitsInSI=massSolar/megaParsec**3         ),"units"                                                                                                   )
        call historyGroup  %writeDataset  (self%densityStellarDisk         ,"densityStellarDisk"       ,"Stellar mass density in disks [M⊙/Mpc³]"       ,datasetReturned=historyDataset)
-       call historyDataset%writeAttribute(massSolar/megaParsec**3         ,"unitsInSI"                                                                                                )
+       call historyDataset%writeAttribute(unitsMake(unitsInSI=massSolar/megaParsec**3         ),"units"                                                                                                   )
        call historyGroup  %writeDataset  (self%densityStellarSpheroid     ,"densityStellarSpheroid"   ,"Stellar mass density in spheroids [M⊙/Mpc³]"   ,datasetReturned=historyDataset)
-       call historyDataset%writeAttribute(massSolar/megaParsec**3         ,"unitsInSI"                                                                                                )
+       call historyDataset%writeAttribute(unitsMake(unitsInSI=massSolar/megaParsec**3         ),"units"                                                                                                   )
        call historyGroup  %writeDataset  (self%densityColdGas             ,"densityColdGas"           ,"Gas mass density [M⊙/Mpc³]"                    ,datasetReturned=historyDataset)
-       call historyDataset%writeAttribute(massSolar/megaParsec**3         ,"unitsInSI"                                                                                                )
+       call historyDataset%writeAttribute(unitsMake(unitsInSI=massSolar/megaParsec**3         ),"units"                                                                                                   )
        call historyGroup  %writeDataset  (self%densityHotHaloGas          ,"densityHotHaloGas"        ,"Hot gas mass density [M⊙/Mpc³]"                ,datasetReturned=historyDataset)
-       call historyDataset%writeAttribute(massSolar/megaParsec**3         ,"unitsInSI"                                                                                                )
+       call historyDataset%writeAttribute(unitsMake(unitsInSI=massSolar/megaParsec**3         ),"units"                                                                                                   )
        call historyGroup  %writeDataset  (self%densityNode                ,"densityNode"              ,"Node mass density [M⊙/Mpc³]"                   ,datasetReturned=historyDataset)
-       call historyDataset%writeAttribute(massSolar/megaParsec**3         ,"unitsInSI"                                                                                                )
+       call historyDataset%writeAttribute(unitsMake(unitsInSI=massSolar/megaParsec**3         ),"units"                                                                                                   )
        !$ call hdf5Access %unset         (                                                                                                                                            )
     class default
        call Error_Report('incorrect class'//{introspection:location})

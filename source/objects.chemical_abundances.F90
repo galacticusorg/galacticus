@@ -760,6 +760,7 @@ contains
     !!}
     use :: ISO_Varying_String                , only : char
     use :: Merger_Tree_Outputter_Buffer_Types, only : outputPropertyInteger, outputPropertyDouble
+    use :: Output_Units                      , only : unitsMake
     implicit none
     class           (chemicalAbundances   )              , intent(in   ) :: self
     double precision                                     , intent(in   ) :: time
@@ -776,7 +777,7 @@ contains
           doubleProperty=doubleProperty+1
           doubleProperties(doubleProperty)%name     =trim(prefix )//      char(chemicalsToTrack(i))
           doubleProperties(doubleProperty)%comment  =trim(comment)//' ['//char(chemicalsToTrack(i))//']'
-          doubleProperties(doubleProperty)%unitsInSI=unitsInSI
+          doubleProperties(doubleProperty)%units    =unitsMake(unitsInSI=unitsInSI)
        end do
     end if
     return

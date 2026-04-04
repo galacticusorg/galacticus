@@ -34,7 +34,9 @@ my @nodePropertiesOutputList =
 	 type        => "double",
 	 name        => "subsamplingWeight",
 	 description => "Weight of node in the subsample.",
-	 unitsInSI   => "0.0d0"
+	 unitsInSI   => "0.0d0",
+	 quantity    => "",
+	 isComoving  => 0
      }
     );
 
@@ -120,7 +122,8 @@ sub Tree_Node_Output_Names {
 	content     => "",
 	modules     =>
 	    [
-	     "Merger_Tree_Outputter_Buffer_Types"
+	     "Merger_Tree_Outputter_Buffer_Types",
+	     "Output_Units"
 	    ],
 	variables   =>
 	    [
@@ -171,7 +174,7 @@ sub Tree_Node_Output_Names {
 integerProperty=integerProperty+1
 integerProperties(integerProperty)%name     ="node{ucfirst($_->{'name'})}"
 integerProperties(integerProperty)%comment  ="{$_->{'description'}}"
-integerProperties(integerProperty)%unitsInSI={$_->{'unitsInSI'}}
+integerProperties(integerProperty)%units    =unitsMake(unitsInSI={$_->{'unitsInSI'}},quantity='{$_->{'quantity'} // ""}',isComoving={$_->{'isComoving'} // 0})
 CODE
 	}
 	elsif ( $_->{'type'} eq "double"  )
@@ -180,7 +183,7 @@ CODE
 doubleProperty=doubleProperty+1
 doubleProperties(doubleProperty)%name     ="node{ucfirst($_->{'name'})}"
 doubleProperties(doubleProperty)%comment  ="{$_->{'description'}}"
-doubleProperties(doubleProperty)%unitsInSI={$_->{'unitsInSI'}}
+doubleProperties(doubleProperty)%units    =unitsMake(unitsInSI={$_->{'unitsInSI'}},quantity='{$_->{'quantity'} // ""}',isComoving={$_->{'isComoving'} // 0})
 CODE
 	}
     };

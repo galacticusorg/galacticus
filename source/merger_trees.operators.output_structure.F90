@@ -112,6 +112,7 @@ contains
     !!}
     use    :: Error                             , only : Error_Report
     use    :: Output_HDF5                       , only : outputFile
+    use    :: Output_Units                      , only : unitsMake
     use    :: Galacticus_Nodes                  , only : nodeComponentBasic
     !$ use :: HDF5_Access                       , only : hdf5Access
     use    :: Kind_Numbers                      , only : kind_int8
@@ -269,11 +270,11 @@ contains
        !$ call hdf5Access%set  ()
        do i=1,countPropertiesDouble
           call treeGroup%writeDataset  (propertiesDouble (:,i),char(namesDouble (i)),char(descriptionsDouble (i)),datasetReturned=dataset)
-          call dataset  %writeAttribute(unitsInSIDouble  (  i),'unitsInSI'                                                               )
+          call dataset  %writeAttribute(unitsMake(unitsInSI=unitsInSIDouble  (  i)),'units'                                             )
        end do
        do i=1,countPropertiesInteger
           call treeGroup%writeDataset  (propertiesInteger(:,i),char(namesInteger(i)),char(descriptionsInteger(i)),datasetReturned=dataset)
-          call dataset  %writeAttribute(unitsInSIInteger (  i),'unitsInSI'                                                               )
+          call dataset  %writeAttribute(unitsMake(unitsInSI=unitsInSIInteger (  i)),'units'                                             )
        end do
        !$ call hdf5Access%unset()
        ! Free workspace.

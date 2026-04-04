@@ -118,6 +118,7 @@ contains
     !!}
     use :: Input_Parameters, only : inputParameter                , inputParameters
     use :: Functions_Global, only : accretionDiskSpectraConstruct_, accretionDiskSpectraDestruct_
+    use :: Output_Units                , only : unitsMake
     implicit none
     type            (radiationFieldIntergalacticBackgroundInternal)                :: self
     type            (inputParameters                              ), intent(inout) :: parameters
@@ -491,6 +492,7 @@ contains
     use            :: Numerical_Constants_Units   , only : metersToAngstroms                , ergs
     use            :: Numerical_Integration       , only : integrator
     use            :: Numerical_ODE_Solvers       , only : odeSolver
+    use            :: Output_Units                , only : unitsMake
     use            :: Stellar_Population_Spectra  , only : stellarPopulationSpectraClass
     use            :: Stellar_Populations         , only : stellarPopulationClass
     implicit none
@@ -669,11 +671,11 @@ contains
              !$ call hdf5Access%set()
              outputGroup=outputFile%openGroup('backgroundRadiation','Cosmic background radiation data.')
              call    outputGroup  %writeDataset  (self%wavelength        ,'wavelength','Wavelength at which the background radiation is tabulated [Å].'    ,datasetReturned=outputDataset)
-             call    outputDataset%writeAttribute(1.0d0/metersToAngstroms,'unitsInSI'                                                                                                    )
+             call outputDataset%writeAttribute(unitsMake(unitsInSI=1.0d0/metersToAngstroms),'units')
              call    outputGroup  %writeDataset  (self%redshift          ,'redshift'  ,'Redshift at which the background radiation is tabulated [].'       ,datasetReturned=outputDataset)
-             call    outputDataset%writeAttribute(0.0d0                  ,'unitsInSI'                                                                                                    )
+             call outputDataset%writeAttribute(unitsMake(unitsInSI=0.0d0                  ),'units')
              call    outputGroup  %writeDataset  (state%flux             ,'flux'      ,'Flux is the cosmic background radiation [erg cm⁻² s⁻¹ Hz⁻¹ sr⁻¹].' ,datasetReturned=outputDataset)
-             call    outputDataset%writeAttribute(ergs/centi**2          ,'unitsInSI'                                                                                                    )
+             call outputDataset%writeAttribute(unitsMake(unitsInSI=ergs/centi**2          ),'units')
              !$ call hdf5Access   %unset         (                                                                                                                                       )
           end if
        end select

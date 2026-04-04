@@ -19,6 +19,7 @@
 
   use :: Kind_Numbers, only : kind_int8
   use :: Hashes      , only : doubleHash, rank1DoubleHash
+  use :: Output_Units, only : unitType  , unitsMake
 
   !![
   <nodePropertyExtractor name="nodePropertyExtractorIntegerTuple" abstract="yes">
@@ -46,6 +47,7 @@
      procedure(integerTupleNames       ), deferred :: names
      procedure(integerTupleDescriptions), deferred :: descriptions
      procedure(integerTupleUnitsInSI   ), deferred :: unitsInSI
+     procedure                                     :: units       => integerTupleUnits
      procedure                                     :: metaData    => integerTupleMetaData
   end type nodePropertyExtractorIntegerTuple
 
@@ -111,6 +113,26 @@
   end interface
 
 contains
+
+  function integerTupleUnits(self,time) result(units_)
+    !!{
+    Default implementation: wraps the deferred \refmeth{nodePropertyExtractorIntegerTuple}{unitsInSI} array into an array of
+    \reftype{unitType}.
+    !!}
+    implicit none
+    type            (unitType                        ), dimension(:), allocatable :: units_
+    class           (nodePropertyExtractorIntegerTuple), intent(inout)            :: self
+    double precision                                  , intent(in   )             :: time
+    double precision                                  , dimension(:), allocatable :: siValues
+    integer                                                                       :: i
+
+    siValues=self%unitsInSI(time)
+    allocate(units_(size(siValues)))
+    do i=1,size(siValues)
+       units_(i)=unitsMake(unitsInSI=siValues(i),isComoving=0)
+    end do
+    return
+  end function integerTupleUnits
 
   subroutine integerTupleMetaData(self,node,indexProperty,metaDataRank0,metaDataRank1)
     !!{

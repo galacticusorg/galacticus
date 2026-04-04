@@ -888,6 +888,7 @@ contains
     use :: HDF5_Access                     , only : hdf5Access
     use :: IO_HDF5                         , only : hdf5Object
     use :: Numerical_Constants_Astronomical, only : megaParsec
+    use :: Output_Units                    , only : unitsMake
     implicit none
     class(outputAnalysisCorrelationFunction), intent(inout)           :: self
     type (varying_string                   ), intent(in   ), optional :: groupName
@@ -920,24 +921,19 @@ contains
     call    analysisGroup%writeAttribute('correlationFunctionCovarianceTarget'               ,'yCovarianceTarget'                                                                                    )
     ! Write computed datasets.
     call    analysisGroup%writeDataset  (self%separations                                    ,'separation'                         ,'Separation'                             ,datasetReturned=dataset)
-    call    dataset      %writeAttribute('ᵪMpc'                                              ,'units'                                                                                                )
-    call    dataset      %writeAttribute(megaParsec                                          ,'unitsInSI'                                                                                            )
+    call    dataset      %writeAttribute(unitsMake(unitsInSI=megaParsec,description='ᵪMpc',quantity='ᵪMpc'),'units'                                                                                                )
     call    analysisGroup%writeDataset  (self%binnedProjectedCorrelation                     ,'correlationFunction'                ,'Projected correlation'                  ,datasetReturned=dataset)
-    call    dataset      %writeAttribute('ᵪMpc'                                              ,'units'                                                                                                )
-    call    dataset      %writeAttribute(megaParsec                                          ,'unitsInSI'                                                                                            )
+    call    dataset      %writeAttribute(unitsMake(unitsInSI=megaParsec,description='ᵪMpc',quantity='ᵪMpc'),'units'                                                                                                )
     call    analysisGroup%writeDataset  (self%binnedProjectedCorrelationCovariance           ,'correlationFunctionCovariance'      ,'Projected correlation covariance'       ,datasetReturned=dataset)
-    call    dataset      %writeAttribute('ᵪMpc²'                                             ,'units'                                                                                                )
-    call    dataset      %writeAttribute(megaParsec**2                                       ,'unitsInSI'                                                                                            )
+    call    dataset      %writeAttribute(unitsMake(unitsInSI=megaParsec**2,description='ᵪMpc²',quantity='ᵪMpc²'),'units'                                                                                                )
     ! If available, include the log-likelihood and target dataset.
     if (allocated(self%binnedProjectedCorrelationTarget)) then
        call analysisGroup%writeAttribute(     self%logLikelihood()                           ,'logLikelihood'                                                                                        )
        call analysisGroup%writeAttribute(char(self%targetLabel)                              ,'targetLabel'                                                                                          )
        call analysisGroup%writeDataset  (     self%binnedProjectedCorrelationTarget          ,"correlationFunctionTarget"          ,'Projected correlation target'           ,datasetReturned=dataset)
-       call dataset      %writeAttribute(     "ᵪMpc"                                         ,'units'                                                                                                )
-       call dataset      %writeAttribute(     megaParsec                                     ,'unitsInSI'                                                                                            )
+       call dataset      %writeAttribute(unitsMake(unitsInSI=megaParsec,description="ᵪMpc",quantity="ᵪMpc"),'units'                                                                                                )
        call analysisGroup%writeDataset  (     self%binnedProjectedCorrelationCovarianceTarget,"correlationFunctionCovarianceTarget",'Projected correlation covariance target',datasetReturned=dataset)
-       call dataset      %writeAttribute(     "ᵪMpc²"                                        ,'units'                                                                                                )
-       call dataset      %writeAttribute(      megaParsec**2                                 ,'unitsInSI'                                                                                            )
+       call dataset      %writeAttribute(unitsMake(unitsInSI=megaParsec**2,description="ᵪMpc²",quantity="ᵪMpc²"),'units'                                                                                                )
     end if
     !$ call hdf5Access%unset()
     return
