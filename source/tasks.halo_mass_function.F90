@@ -492,6 +492,7 @@ contains
     use            :: Numerical_Constants_Prefixes        , only : kilo
     use            :: Numerical_Integration               , only : GSL_Integ_Gauss15                  , integrator
     use            :: Numerical_Ranges                    , only : Make_Range                         , rangeTypeLogarithmic
+    use            :: Output_Units                        , only : unitsMake
     use            :: String_Handling                     , only : String_Upper_Case_First            , operator(//)
     implicit none
     class           (taskHaloMassFunction                   ), intent(inout), target                 :: self
