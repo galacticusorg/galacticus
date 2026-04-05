@@ -1,38 +1,8 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1775079271793,
+  "lastUpdate": 1775391527721,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Dark matter-only subhalos benchmarks": [
-      {
-        "commit": {
-          "author": {
-            "email": "abensonca@gmail.com",
-            "name": "Andrew Benson",
-            "username": "abensonca"
-          },
-          "committer": {
-            "email": "noreply@github.com",
-            "name": "GitHub",
-            "username": "web-flow"
-          },
-          "distinct": true,
-          "id": "a1c6a485eff809fd76b9d40d7893699f13e77b80",
-          "message": "Merge pull request #800 from galacticusorg/fixMPIWaitTime\n\nChange the MPI wait-on-error time to zero",
-          "timestamp": "2025-02-21T15:05:38Z",
-          "tree_id": "f3f3550cadd37503c41691028df41c9ab9bfca9d",
-          "url": "https://github.com/galacticusorg/galacticus/commit/a1c6a485eff809fd76b9d40d7893699f13e77b80"
-        },
-        "date": 1740179371287,
-        "tool": "customSmallerIsBetter",
-        "benches": [
-          {
-            "name": "Dark Matter Only Subhalos - Wall Time",
-            "value": 54.789,
-            "unit": "seconds",
-            "range": 0.0579905164660731
-          }
-        ]
-      },
       {
         "commit": {
           "author": {
@@ -8796,6 +8766,36 @@ window.BENCHMARK_DATA = {
             "name": "Dark Matter Only Subhalos - Likelihood - subhaloVelocityMaximumMean",
             "value": 10593.84489997874,
             "unit": "-logℒ"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abenson@obs.carnegiescience.edu",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "abenson@obs.carnegiescience.edu",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "distinct": true,
+          "id": "439f3eceebc2a3db1c10363c57f3a910934f5660",
+          "message": "fix: Merge branch 'claude/port-linkchecker-perl-python-9CtmA'",
+          "timestamp": "2026-04-02T08:54:42-07:00",
+          "tree_id": "332a8c9838a34624a4b599ac58524ca35e205fa4",
+          "url": "https://github.com/galacticusorg/galacticus/commit/439f3eceebc2a3db1c10363c57f3a910934f5660"
+        },
+        "date": 1775391522817,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Dark Matter Only Subhalos - Wall Time",
+            "value": 53.036,
+            "range": "0.07568619424967858",
+            "unit": "seconds"
           }
         ]
       }
