@@ -38,8 +38,6 @@ sub Process_FunctionClass {
     our $stateStorables;
     # Initialize deep copy actions database.
     our $deepCopyActions;
-    # Determine if debugging output is required.
-    our $debugging = exists($ENV{'GALACTICUS_OBJECTS_DEBUG'}) && $ENV{'GALACTICUS_OBJECTS_DEBUG'} eq "yes";
     # Get state storables database if we do not have it.
     $stateStorables = $xml->XMLin($ENV{'BUILDPATH'}."/stateStorables.xml")
 	unless ( $stateStorables );
@@ -1355,12 +1353,6 @@ CODE
 	    
 	    # Add "deepCopy" method.
 	    my $deepCopy;
-            if ( $debugging ) {
-		$deepCopy->{'modules'}->{'MPI_Utilities'     } = 1;
-		$deepCopy->{'modules'}->{'ISO_Varying_String'} = 1;
-		$deepCopy->{'modules'}->{'String_Handling'   } = 1;
-		$deepCopy->{'modules'}->{'Display'           } = 1;
-            }
 	    $deepCopy->{'rankMaximum'       } = 0;
 	    $deepCopy->{'needReferenceCount'} = 0;
             my $linkedListVariables;
@@ -1391,7 +1383,7 @@ CODE
 		    last
 			unless ( $node );
 		    # Handle linked lists.
-		    (my $linkedListCode, my $linkedListResetCode, my $linkedListFinalizeCode, my $linkedListModule) = &deepCopyLinkedList($class,$nonAbstractClass,$linkedListVariables,$linkedListResetVariables,$linkedListFinalizeVariables,$debugging);
+		    (my $linkedListCode, my $linkedListResetCode, my $linkedListFinalizeCode, my $linkedListModule) = &deepCopyLinkedList($class,$nonAbstractClass,$linkedListVariables,$linkedListResetVariables,$linkedListFinalizeVariables);
 		    $deepCopy->{'assignments' } .= $linkedListCode;
 		    $deepCopy->{'resetCode'   } .= $linkedListResetCode;
 		    $deepCopy->{'finalizeCode'} .= $linkedListFinalizeCode;
@@ -1807,8 +1799,6 @@ CODE
 		source     => "Galacticus::Build::SourceTree::Process::FunctionClass::Process_FunctionClass()",
 		line       => 1
 	    };
-            $usesNode->{'moduleUse'}->{'ISO_C_Binding'} = {intrinsic => 1, all => 1}
-                if ( $debugging );
             $modulePreContains->{'content'} .= "    integer(c_size_t) :: stateOperationID=0\n";
             $modulePreContains->{'content'} .= "    class(".$directive->{'name'}."Class), public, pointer :: copiedSelf => null()\n";
             $usesNode->{'moduleUse'}->{'ISO_C_Binding'} =
@@ -2076,11 +2066,7 @@ CODE
 		}
 		$modulePostContains->{'content'} .= "        select type (self)\n";
 		$modulePostContains->{'content'} .= "          type is (".$directive->{'name'}.ucfirst($directive->{'default'}).")\n";
-		$modulePostContains->{'content'} .= "            call debugStackPush(loc(self))\n"
-		    if ( $debugging );
 		$modulePostContains->{'content'} .= "            self=".$directive->{'name'}.ucfirst($directive->{'default'})."(subParameters)\n";
-		$modulePostContains->{'content'} .= "            call debugStackPop()\n"
-		    if ( $debugging );
 		$modulePostContains->{'content'} .= "         end select\n";
 		if ( exists($class->{'recursive'}) && $class->{'recursive'} eq "yes" ) {
 		    $modulePostContains->{'content'} .= "        ".$directive->{'name'}."RecursiveBuildNode   => null()\n";
@@ -2126,11 +2112,7 @@ CODE
 		}
 		$modulePostContains->{'content'} .= "        select type (self)\n";
 		$modulePostContains->{'content'} .= "          type is (".$class->{'name'}.")\n";
-		$modulePostContains->{'content'} .= "            call debugStackPush(loc(self))\n"
-		    if ( $debugging );
 		$modulePostContains->{'content'} .= "            self=".$class->{'name'}."(subParameters)\n";
-		$modulePostContains->{'content'} .= "            call debugStackPop()\n"
-		    if ( $debugging );
 		$modulePostContains->{'content'} .= "         end select\n";
 		if ( exists($class->{'recursive'}) && $class->{'recursive'} eq "yes" ) {
 		    $modulePostContains->{'content'} .= "        ".$directive->{'name'}."RecursiveBuildNode   => null()\n";
@@ -3021,7 +3003,6 @@ sub deepCopyLinkedList {
     my $linkedListVariables         = shift();
     my $linkedListResetVariables    = shift();
     my $linkedListFinalizeVariables = shift();
-    my $debugging                   = shift();
     return ("","","",undef())
 	unless ( exists($class->{'linkedList'}) );
     my $linkedList = $class->{'linkedList'};
@@ -3078,7 +3059,6 @@ sub deepCopyLinkedList {
 	$code::object          =                                            $objects    [$i]         ;
 	$code::objectType      =                                            $objectTypes[$i]         ;
 	$code::location        = &Galacticus::Build::SourceTree::Process::SourceIntrospection::Location($class->{'node'},$class->{'node'}->{'line'});
-	$code::debugCode       = $debugging ? "if (debugReporting.and.mpiSelf\%isMaster()) call displayMessage(var_str('functionClass[own] (class : ownerName : ownerLoc : objectLoc : sourceLoc): [".$code::objectType."] : ".$code::object." : ')//loc(".$code::type."itemNew)//' : '//loc(".$code::type."itemNew%".$code::object.")//' : '//".&Galacticus::Build::SourceTree::Process::SourceIntrospection::Location($class->{'node'},$class->{'node'}->{'line'},compact => 1).",verbosityLevelSilent)\n" : "";
 	if ( $i == 0 ) {
 	    $deepCopyCode .= fill_in_string(<<'CODE', PACKAGE => 'code');
 {$type}item             => destination%{$variable}
@@ -3137,7 +3117,6 @@ CODE
         {$type}item%{$object}%copiedSelf => {$type}itemNew%{$object}
         call {$type}itemNew%{$object}%autoHook()
        end if
-       {$debugCode}
       end if
    {$type}item => {$type}item%{$next}
 end do
@@ -3447,7 +3426,6 @@ sub deepCopyDeclarations {
     my $deepCopy           =   shift() ;
     my $foundDeepCopyNames =   shift() ;
     our $stateStorables;
-    our $debugging;
     our $deepCopyActions;
     foreach my $declaration ( &List::ExtraUtils::as_array($declarations) ) {
 	# Deep copy of functionClass objects.
@@ -3487,8 +3465,6 @@ sub deepCopyDeclarations {
 		$deepCopy->{'assignments' } .= "  self%".$name."%copiedSelf => destination%".$name."\n";
 		$deepCopy->{'assignments' } .= "  call destination%".$name."%autoHook()\n";
 		$deepCopy->{'assignments' } .= " end if\n";
-		$deepCopy->{'assignments' } .= " if (debugReporting.and.mpiSelf\%isMaster()) call displayMessage(var_str('functionClass[own] (class : ownerName : ownerLoc : objectLoc : sourceLoc): ".$name." : [destination] : ')//loc(destination)//' : '//loc(destination%".$name.")//' : '//".&Galacticus::Build::SourceTree::Process::SourceIntrospection::Location($node,$lineNumber,compact => 1).",verbosityLevelSilent)\n"
-		    if ( $debugging );
 		$deepCopy->{'assignments' } .= "end if\n";
 	    }
 	};
@@ -3573,8 +3549,6 @@ sub deepCopyDeclarations {
 		    $deepCopy->{'assignments' } .= "call destination%".$name."%autoHook()\n";
 		    $deepCopy->{'assignments' } .= "end if\n"
 			if ( grep {$_ eq "pointer"}  @{$declaration->{'attributes'}} );
-		    $deepCopy->{'assignments' } .= "if (debugReporting.and.mpiSelf\%isMaster()) call displayMessage(var_str('functionClass[own] (class : ownerName : ownerLoc : objectLoc : sourceLoc): ".$name." : [destination] : ')//loc(destination)//' : '//loc(destination%".$name.")//' : '//".&Galacticus::Build::SourceTree::Process::SourceIntrospection::Location($node,$lineNumber,compact => 1).",verbosityLevelSilent)\n"
-			if ( $debugging );
 		    if ( grep {$_ eq "pointer"}  @{$declaration->{'attributes'}} ) {
 			$deepCopy->{'assignments' } .= "end if\n";
 			$deepCopy->{'resetCode'   } .= "end if\n";

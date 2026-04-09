@@ -68,9 +68,7 @@ module Node_Component_Dark_Matter_Profile_Scale_Free
 contains
 
   !![
-  <nodeComponentInitializationTask>
-   <unitName>Node_Component_Dark_Matter_Profile_Scale_Free_Init</unitName>
-  </nodeComponentInitializationTask>
+  <nodeComponentInitializationTask function="Node_Component_Dark_Matter_Profile_Scale_Free_Init"/>
   !!]
   subroutine Node_Component_Dark_Matter_Profile_Scale_Free_Init(parameters)
     !!{
@@ -92,9 +90,7 @@ contains
   end subroutine Node_Component_Dark_Matter_Profile_Scale_Free_Init
     
   !![
-  <nodeComponentThreadInitializationTask>
-   <unitName>Node_Component_Dark_Matter_Profile_Scale_Free_Thread_Init</unitName>
-  </nodeComponentThreadInitializationTask>
+  <nodeComponentThreadInitializationTask function="Node_Component_Dark_Matter_Profile_Scale_Free_Thread_Init"/>
   !!]
   subroutine Node_Component_Dark_Matter_Profile_Scale_Free_Thread_Init(parameters)
     !!{
@@ -115,9 +111,7 @@ contains
   end subroutine Node_Component_Dark_Matter_Profile_Scale_Free_Thread_Init
 
   !![
-  <nodeComponentThreadUninitializationTask>
-   <unitName>Node_Component_Dark_Matter_Profile_Scale_Free_Thread_Uninit</unitName>
-  </nodeComponentThreadUninitializationTask>
+  <nodeComponentThreadUninitializationTask function="Node_Component_Dark_Matter_Profile_Scale_Free_Thread_Uninit"/>
   !!]
   subroutine Node_Component_Dark_Matter_Profile_Scale_Free_Thread_Uninit()
     !!{
@@ -136,9 +130,7 @@ contains
   end subroutine Node_Component_Dark_Matter_Profile_Scale_Free_Thread_Uninit
 
   !![
-  <stateStoreTask>
-   <unitName>Node_Component_Dark_Matter_Profile_Scale_Free_State_Store</unitName>
-  </stateStoreTask>
+  <stateStoreTask function="Node_Component_Dark_Matter_Profile_Scale_Free_State_Store"/>
   !!]
   subroutine Node_Component_Dark_Matter_Profile_Scale_Free_State_Store(stateFile,gslStateFile,stateOperationID)
     !!{
@@ -159,9 +151,7 @@ contains
   end subroutine Node_Component_Dark_Matter_Profile_Scale_Free_State_Store
 
   !![
-  <stateRetrieveTask>
-   <unitName>Node_Component_Dark_Matter_Profile_Scale_Free_State_Restore</unitName>
-  </stateRetrieveTask>
+  <stateRetrieveTask function="Node_Component_Dark_Matter_Profile_Scale_Free_State_Restore"/>
   !!]
   subroutine Node_Component_Dark_Matter_Profile_Scale_Free_State_Restore(stateFile,gslStateFile,stateOperationID)
     !!{

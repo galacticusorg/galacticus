@@ -1,11 +1,17 @@
 <?xml version="1.0"?>
-<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema">
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema"
+           xmlns:common="http://CommonTypesNamespace/CommonTypes">
   <!-- Schema used to validate eventHookStatic directives -->
+  <xs:import namespace="http://CommonTypesNamespace/CommonTypes" schemaLocation="commonTypes.xsd"/>
 
   <xs:element name="eventHookStatic">
     <xs:complexType>
+      <xs:all>
+        <xs:element name="callWith" type="xs:string" minOccurs="0"/>
+        <xs:element name="onReturn" type="xs:string" minOccurs="0"/>
+      </xs:all>
       <xs:attribute name="name" use="required"/>
     </xs:complexType>
   </xs:element>
-  
+
 </xs:schema>

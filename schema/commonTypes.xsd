@@ -2,6 +2,13 @@
 <xs:schema targetNamespace="http://CommonTypesNamespace/CommonTypes"
            xmlns:xs="http://www.w3.org/2001/XMLSchema">
 
+  <xs:simpleType name="yesNo">
+    <xs:restriction base="xs:string">
+      <xs:enumeration value="yes"/>
+      <xs:enumeration value="no" />
+    </xs:restriction>
+  </xs:simpleType> 
+
   <xs:complexType name="anyElements">
     <xs:sequence>
       <xs:any minOccurs="0" maxOccurs="unbounded" processContents="lax"/>

@@ -1,7 +1,8 @@
-<?xml version="1.0"?>
+<?xml version='1.0' encoding='UTF-8'?>
 <!-- Parameters for default Roman model. -->
+
 <parameters>
-  <lastModified revision="e4897b4d895b215ba5092568a0b8a86a93dab836" time="2025-12-01T22:22:32"/>
+  <lastModified revision="551c092c6cfb98a955ac3631fb6dfbff1a5364f5" time="2026-04-02T18:27:58"/>
   <formatVersion>2</formatVersion>
   <version>0.9.4</version>
 
@@ -379,6 +380,7 @@
       <lengthBox value="=[geometryLightcone::lengthReplication]*(([cosmologyParameters::HubbleConstant]/100.0)^[geometryLightcone::lengthHubbleExponent])*([geometryLightcone::lengthUnitsInSI]/3.08567758e+22)"/>
       <wrapPeriodic value="false"/>
     </nodeOperator>
+    <nodeOperator value="CGMOuterRadiusRamPressureStripping"/>
   </nodeOperator>
   <starFormationHistory value="fixedAges">
       <ageMinimum value="0.001"/>

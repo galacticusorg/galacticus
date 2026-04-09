@@ -59,9 +59,7 @@ module Instruments_Filters
 contains
 
   !![
-  <nodeComponentInitializationTask>
-   <unitName>Filters_Initialize</unitName>
-  </nodeComponentInitializationTask>
+  <nodeComponentInitializationTask function="Filters_Initialize"/>
   !!]
   subroutine Filters_Initialize(parameters)
     !!{

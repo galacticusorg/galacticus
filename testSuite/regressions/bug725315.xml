@@ -1,11 +1,15 @@
-<?xml version="1.0"?>
+<?xml version='1.0' encoding='UTF-8'?>
 <!-- Regression test case for Bug #725315 - "Segfault when using star -->
+
 <!-- formation histories (metallicity split)" -->
+
 <!-- Andrew Benson -->
+
 <!-- 25-February-2011 -->
+
 <parameters>
   <formatVersion>2</formatVersion>
-  <lastModified revision="975fffd5aadf697707003f16bf9b4caee8ebe97d" time="2025-10-22T21:34:03"/>
+  <lastModified revision="551c092c6cfb98a955ac3631fb6dfbff1a5364f5" time="2026-04-02T18:27:58"/>
 
   <cosmologyParameters value="simple">
     <OmegaMatter value="0.2725"/>
@@ -105,6 +109,7 @@
       <excessHeatDrivesOutflow value="true"/>
       <rateMaximumExpulsion value="1.0"/>
     </nodeOperator>
+    <nodeOperator value="CGMOuterRadiusRamPressureStripping"/>
   </nodeOperator>
 
   <cosmologicalMassVariance value="filteredPower">

@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="UTF-8"?>
+<?xml version='1.0' encoding='UTF-8'?>
 <!-- Apply the Johnson et al. (2021) concentration model to a tree which has been regridded onto
      uniform timesteps. The Johnson et al. model uses correlated deviates to perform a random
      walk in concentration in poorly-resolved tree branches, with a correlation coefficient that
@@ -7,8 +7,9 @@
      which caused a failure in Cholesky decomposition. This cases is now explictly handled such
      that nodes with identical masses to their primary progenitor are not included in the
      Cholesky decomposition. -->
+
 <parameters>
-  <lastModified revision="564b5abb588ea45f2aee8782032b868791899765" time="2026-02-20T03:21:30"/>
+  <lastModified revision="551c092c6cfb98a955ac3631fb6dfbff1a5364f5" time="2026-04-02T18:27:58"/>
   <lastModified/>
   <formatVersion>2</formatVersion>
   <version>0.9.4</version>
@@ -486,36 +487,22 @@
       <fractionMassFormation value="0.5"/>
     </nodeOperator>
     <nodeOperator value="uniqueIDBranchTip"/>
-  <nodeOperator value="blackHolesAccretion"/>
-
-  <nodeOperator value="blackHolesWinds"/>
-
-  <nodeOperator value="CGMAccretion">
-
-  <allowNegativeCGMMass value="true"/>
-
-  <angularMomentumAlwaysGrows value="false"/>
-
-  </nodeOperator>
-
-  <nodeOperator value="CGMOutflowReincorporation">
-
-  <includeSatellites value="true"/>
-
-  </nodeOperator>
-
-  <nodeOperator value="CGMCoolingHeating">
-
-  <component value="disk"/>
-
-  <coolingFrom value="currentNode"/>
-
-  <excessHeatDrivesOutflow value="true"/>
-
-  <rateMaximumExpulsion value="1.0"/>
-
-  </nodeOperator>
-
+    <nodeOperator value="blackHolesAccretion"/>
+    <nodeOperator value="blackHolesWinds"/>
+    <nodeOperator value="CGMAccretion">
+      <allowNegativeCGMMass value="true"/>
+      <angularMomentumAlwaysGrows value="false"/>
+    </nodeOperator>
+    <nodeOperator value="CGMOutflowReincorporation">
+      <includeSatellites value="true"/>
+    </nodeOperator>
+    <nodeOperator value="CGMCoolingHeating">
+      <component value="disk"/>
+      <coolingFrom value="currentNode"/>
+      <excessHeatDrivesOutflow value="true"/>
+      <rateMaximumExpulsion value="1.0"/>
+    </nodeOperator>
+    <nodeOperator value="CGMOuterRadiusRamPressureStripping"/>
   </nodeOperator>
 
   <mergerTreeOperator value="regridTimes">

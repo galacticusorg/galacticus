@@ -1860,11 +1860,12 @@ contains
     !!{
     Return true if the specified parameter is present.
     !!}
-    use :: FoX_dom           , only : ELEMENT_NODE   , getNodeName, getNodeType , hasAttribute, &
-          &                           node           , inException, DOMException   
+    use :: FoX_dom           , only : ELEMENT_NODE   , getNodeName , getNodeType , hasAttribute    , &
+          &                           node           , inException , DOMException, getExceptionCode
     use :: Error             , only : Error_Report
     use :: IO_XML            , only : XML_Path_Exists
-    use :: ISO_Varying_String, only : char
+    use :: ISO_Varying_String, only : char           , operator(//), var_str
+    use :: String_Handling   , only : char
     implicit none
     class    (inputParameters), intent(in   )           :: self
     character(len=*          ), intent(in   )           :: parameterName
@@ -1887,7 +1888,7 @@ contains
           if (.not.currentParameter%removed.and.currentParameter%active) then
              node_    => currentParameter%content
              nodeName =  getNodeName(node_,ex=exception)
-             if (inException(exception)) call Error_Report("unable to retrieve node name when searching for '"//trim(parameterName)//"' in '"//char(self%path())//"'"//{introspection:location})
+             if (inException(exception)) call Error_Report(var_str("(exception: '")//char(getExceptionCode(exception))//"')unable to retrieve node name when searching for '"//trim(parameterName)//"' in '"//char(self%path())//"' [current node has type '"//char(getNodeType(node_))//"' with (possibly incorrect) name '"//getNodeName(node_,ex=exception)//"']"//{introspection:location})
              if (getNodeType(node_) == ELEMENT_NODE .and. trim(parameterName) == trim(nodeName)) then
                 if     (                                  &
                      &   .not.requireValue_               &

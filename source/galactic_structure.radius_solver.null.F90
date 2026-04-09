@@ -136,7 +136,7 @@ contains
     !!{
     Solve for the structure of galactic components.
     !!}
-    include 'galactic_structure.radius_solver.plausible.modules.inc'
+    use :: Galactic_Structure_Radius_Solver_Utilities, only : radiusSolverPlausibilities
     implicit none
     class  (galacticStructureSolverNull), intent(inout)           :: self
     type   (treeNode                   ), intent(inout), target   :: node
@@ -145,6 +145,6 @@ contains
 
     node%isPhysicallyPlausible=.true.
     node%isSolvable           =.true.
-    include 'galactic_structure.radius_solver.plausible.inc'
+    call radiusSolverPlausibilities(node)
     return
   end subroutine nullSolve

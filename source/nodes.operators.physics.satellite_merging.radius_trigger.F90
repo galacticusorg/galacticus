@@ -26,7 +26,13 @@
 
   !![
   <nodeOperator name="nodeOperatorSatelliteMergingRadiusTrigger">
-   <description>A node operator class that merges satellite halos with their central when the orbital radius falls below \mono{radiusVirialFraction} times the host virial radius (default 0.01). Optionally records Keplerian orbital elements of merged subhalos when \mono{recordMergedSubhaloProperties} is true; \mono{recordFirstLevelOnly} restricts recording to first-level subhalos relative to the final host.</description>
+    <description>
+      A node operator class that merges satellite halos with their central when the orbital radius falls below the larger of
+      \mono{radiusVirialFraction} times the host virial radius (default 0.01), and \mono{radiusHalfMassFraction} times the sum
+      of the central and satellite galactic half-mass radii (default 1.0). Optionally records Keplerian orbital elements of merged
+      subhalos when \mono{recordMergedSubhaloProperties} is true; \mono{recordFirstLevelOnly} restricts recording to first-level
+      subhalos relative to the final host.
+    </description>
   </nodeOperator>
   !!]
   type, extends(nodeOperatorClass) :: nodeOperatorSatelliteMergingRadiusTrigger
@@ -35,7 +41,7 @@
      !!}
      private
      class           (darkMatterHaloScaleClass), pointer :: darkMatterHaloScale_                            => null()
-     double precision                                    :: radiusVirialFraction
+     double precision                                    :: radiusVirialFraction                                     , radiusHalfMassFraction
      logical                                             :: recordMergedSubhaloProperties                            , recordFirstLevelOnly
      integer                                             :: mergedSubhaloIDs             (keplerOrbitCount)          , nodeHierarchyLevelMaximumID
    contains
@@ -72,10 +78,16 @@ contains
     type            (nodeOperatorSatelliteMergingRadiusTrigger)                :: self
     type            (inputParameters                          ), intent(inout) :: parameters
     class           (darkMatterHaloScaleClass                 ), pointer       :: darkMatterHaloScale_
-    double precision                                                           :: radiusVirialFraction
+    double precision                                                           :: radiusVirialFraction         , radiusHalfMassFraction
     logical                                                                    :: recordMergedSubhaloProperties, recordFirstLevelOnly
 
     !![
+    <inputParameter>
+      <name>radiusHalfMassFraction</name>
+      <defaultValue>1.0d0</defaultValue>
+      <description>The fraction of the sum of the central and satellite half-mass radii below which satellites are merged.</description>
+      <source>parameters</source>
+    </inputParameter>
     <inputParameter>
       <name>radiusVirialFraction</name>
       <defaultValue>0.01d0</defaultValue>
@@ -96,7 +108,7 @@ contains
     </inputParameter>
     <objectBuilder class="darkMatterHaloScale" name="darkMatterHaloScale_" source="parameters"/>
     !!]
-    self=nodeOperatorSatelliteMergingRadiusTrigger(radiusVirialFraction,recordMergedSubhaloProperties,recordFirstLevelOnly,darkMatterHaloScale_)
+    self=nodeOperatorSatelliteMergingRadiusTrigger(radiusHalfMassFraction,radiusVirialFraction,recordMergedSubhaloProperties,recordFirstLevelOnly,darkMatterHaloScale_)
     !![
     <inputParametersValidate source="parameters"/>
     <objectDestructor name="darkMatterHaloScale_"/>
@@ -104,7 +116,7 @@ contains
     return
   end function satelliteMergingRadiusTriggerConstructorParameters
 
-  function satelliteMergingRadiusTriggerConstructorInternal(radiusVirialFraction,recordMergedSubhaloProperties,recordFirstLevelOnly,darkMatterHaloScale_) result(self)
+  function satelliteMergingRadiusTriggerConstructorInternal(radiusHalfMassFraction,radiusVirialFraction,recordMergedSubhaloProperties,recordFirstLevelOnly,darkMatterHaloScale_) result(self)
     !!{
     Internal constructor for the \refClass{nodeOperatorSatelliteMergingRadiusTrigger} node operator class.
     !!}
@@ -112,11 +124,11 @@ contains
          &                       keplerOrbitRadiusPericenter, keplerOrbitTimeCurrent
     implicit none
     type            (nodeOperatorSatelliteMergingRadiusTrigger)                        :: self
-    double precision                                           , intent(in   )         :: radiusVirialFraction
+    double precision                                           , intent(in   )         :: radiusVirialFraction         , radiusHalfMassFraction
     logical                                                    , intent(in   )         :: recordMergedSubhaloProperties, recordFirstLevelOnly
     class           (darkMatterHaloScaleClass                 ), intent(in   ), target :: darkMatterHaloScale_
     !![
-    <constructorAssign variables="radiusVirialFraction, recordMergedSubhaloProperties, recordFirstLevelOnly, *darkMatterHaloScale_"/>
+    <constructorAssign variables="radiusHalfMassFraction, radiusVirialFraction, recordMergedSubhaloProperties, recordFirstLevelOnly, *darkMatterHaloScale_"/>
     !!]
     
     if (recordMergedSubhaloProperties) then
@@ -306,11 +318,14 @@ contains
     <objectDestructor name="massDistribution_"    />
     <objectDestructor name="massDistributionHost_"/>
     !!]
-    satelliteMergingRadiusTriggerRadiusMerge=max(                                                              &
-         &                                       +                          radiusHalfMassSatellite            &
-         &                                       +                          radiusHalfMassCentral            , &
-         &                                       +self%                     radiusVirialFraction               &
-         &                                       *self%darkMatterHaloScale_%radiusVirial           (nodeHost)  &
+    satelliteMergingRadiusTriggerRadiusMerge=max(                                                                &
+         &                                       +  self%                     radiusHalfMassFraction             &
+         &                                       *(                                                              &
+         &                                         +                          radiusHalfMassSatellite            &
+         &                                         +                          radiusHalfMassCentral              &
+         &                                        )                                                            , &
+         &                                         +self%                     radiusVirialFraction               &
+         &                                         *self%darkMatterHaloScale_%radiusVirial           (nodeHost)  &
          &                                      )
     return
   end function satelliteMergingRadiusTriggerRadiusMerge

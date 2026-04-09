@@ -1,9 +1,11 @@
-<?xml version="1.0" encoding="UTF-8"?>
+<?xml version='1.0' encoding='UTF-8'?>
 <!-- A parameter file with an outdated revision but no strict compliance requested -->
+
 <!-- 02-December-2025                                                              -->
+
 <parameters>
   <formatVersion>2</formatVersion>
-  <lastModified revision="262562000c251ee5b935019673f606a8a8c47c10" time="2025-10-22T21:34:03" strict="false"/>
+  <lastModifieds revision="262562000c251ee5b935019673f606a8a8c47c10" time="2026-04-02T18:27:58" strict="false"/>
 
   <!-- Component selection -->
   <componentBasic value="standard"/>
@@ -18,6 +20,14 @@
   <componentHotHalo value="standard">
     <starveSatellites value="false"/>
   </componentHotHalo>
+  <hotHaloOutflowStripping value="standard">
+
+  <efficiency value="0.1"/></hotHaloOutflowStripping>
+
+  <coolingInfallTorque value="fixed">
+
+  <fractionLossAngularMomentum value="0.3"/></coolingInfallTorque>
+
   <componentSatellite value="standard"/>
   <componentSpheroid value="standard">
     <ratioAngularMomentumScaleRadius value="0.5"/>
@@ -282,6 +292,12 @@
       <excessHeatDrivesOutflow value="true"/>
       <rateMaximumExpulsion value="1.0"/>
     </nodeOperator>
+    <nodeOperator value="CGMCoolingHeating">
+      <component value="disk"/>
+      <coolingFrom value="currentNode"/>
+      <excessHeatDrivesOutflow value="true"/>
+    <rateMaximumExpulsion value="1.0"/></nodeOperator>
+    <nodeOperator value="CGMOuterRadiusRamPressureStripping"/>
   </nodeOperator>
 
   <!-- Numerical tolerances -->

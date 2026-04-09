@@ -35,21 +35,10 @@ contains
     Set pointers to all global functions.
     !!}
     use :: Functions_Global
-    !![
-    <include directive="functionGlobal" type="moduleUse">
-    !!]
-    include 'functionGlobal.modules.inc'
-    !![
-    </include>
-    !!]
     implicit none
 
     !![
-    <include directive="functionGlobal" type="functionGlobalEstablish" >
-    !!]
-    include 'functionGlobal.establish.inc'
-    !![
-    </include>
+    <functionsGlobal type="establish"/>
     !!]
     return
   end subroutine Functions_Global_Set

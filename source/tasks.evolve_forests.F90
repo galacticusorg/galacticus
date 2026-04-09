@@ -450,14 +450,6 @@ contains
     !$ use            :: OMP_Lib                 , only : OMP_Destroy_Lock                 , OMP_Get_Thread_Num                 , OMP_Init_Lock  , omp_lock_kind
     use               :: Sorting                 , only : sortIndex
     use               :: String_Handling         , only : operator(//)
-    ! Include modules needed for tasks.
-    !![
-    <include directive="universePostEvolveTask" type="moduleUse" functionType="void">
-    !!]
-    include 'tasks.evolve_tree.universePostEvolveTask.moduleUse.inc'
-    !![
-    </include>
-    !!]
     implicit none
     class           (taskEvolveForests       ), intent(inout), target           :: self
     integer                                   , intent(  out), optional         :: status
@@ -948,11 +940,7 @@ contains
     !$ call OMP_Destroy_Lock(initializationLock)
     ! Perform any post universe evolve tasks
     !![
-    <include directive="universePostEvolveTask" type="functionCall" functionType="void">
-    !!]
-    include 'tasks.evolve_tree.universePostEvolveTask.inc'
-    !![
-    </include>
+    <eventHookStatic name="universePostEvolveTask"/>
     !!]
 
     call displayUnindent('Done task: merger tree evolution')

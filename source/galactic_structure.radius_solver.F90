@@ -56,19 +56,4 @@ module Galactic_Structure_Solvers
   </functionClass>
   !!]
 
-  abstract interface
-     double precision function solverGet(node)
-       import treeNode
-       type(treeNode), intent(inout) :: node
-     end function solverGet
-  end interface
-
-  abstract interface
-     subroutine solverSet(node,value)
-       import treeNode
-       type            (treeNode), intent(inout) :: node
-       double precision          , intent(in   ) :: value
-     end subroutine solverSet
-  end interface
-
 end module Galactic_Structure_Solvers

@@ -19,12 +19,12 @@ jobs:
       adstoken: ${{ secrets.NASA_ADS_API_TOKEN }}
     steps:
       - uses: actions/checkout@v6
-      - uses: tibdex/github-app-token@v2
+      - uses: actions/create-github-app-token@v3
         if: ${{ env.appid != '' }}
         id: generate-token
         with:
-          app_id: ${{ secrets.DEPLOY_APP_ID }}
-          private_key: ${{ secrets.DEPLOY_APP_PRIVATE_KEY }}
+          app-id: ${{ secrets.DEPLOY_APP_ID }}
+          private-key: ${{ secrets.DEPLOY_APP_PRIVATE_KEY }}
       - name: "Set environmental variables"
         run: |
           echo "GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV

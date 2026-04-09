@@ -197,7 +197,7 @@
     </translation>
   </migration>
   <migration commit="7030a7dab187c4e0aa5112681b3273647595bbde">
-    <translation function="radiationFieldIntergalacticBackgroundCMB"/>
+    <translation function="radiation_field_intergalactic_background_cmb"/>
   </migration>
   <migration commit="bdcfda39270bcb782937b8106034dd32144f44cd">
     <translation xpath="//galacticDynamicsBarInstability[@value='efstathiou1982' or @value='efstathiou1982Tidal' or @value='fixedTimescale']/fractionAngularMomentumRetained[@value]">
@@ -226,16 +226,16 @@
     </translation>
   </migration>
   <migration commit="085033d9d7d8f1956eb0b5b7918ce731229d57e2">
-    <translation function="blackHoleSeedMass"/>
+    <translation function="black_hole_seed_mass"/>
   </migration>
   <migration commit="e87039e32d4d86a381ce015abf11e08a20c7e68e">
-    <translation function="blackHolePhysics"/>
+    <translation function="black_hole_physics"/>
   </migration>
   <migration commit="c71d2291b119918574bc006255028c62430b554b">
-    <translation function="modelParameterXPath"/>
+    <translation function="model_parameter_xpath"/>
   </migration>
   <migration commit="f483d9caf532e5f33cdbe46aad53d076316ec394">
-    <translation function="methodSuffixRemove"/>
+    <translation function="method_suffix_remove"/>
   </migration>
   <migration commit="2af8b4de4a0d9c4e83a0254a2f161dc94e305c15">
     <translation xpath="//stellarFeedbackOutflows[@value]">
@@ -243,10 +243,10 @@
     </translation>
   </migration>
   <migration commit="9e30e6b7b20cde818f4d9e935b0a34f0b5c78c29">
-    <translation function="satelliteOrphanize"/>
+    <translation function="satellite_orphanize"/>
   </migration>
   <migration commit="49430476890d1e0d92c686020f046e972952f81e">
-    <translation function="blackHoleNonCentral"/>
+    <translation function="black_hole_non_central"/>
   </migration>
   <migration commit="65c7326e2d0e0e85feea12ef933222871f069fb2">
     <translation xpath="//scaleCutOffModel[@value]">
@@ -259,16 +259,19 @@
     </translation>
   </migration>
   <migration commit="c8ece7c25a69867343f09ac4c4c325380dbf8f21">
-    <translation function="hotHaloVerySimple"/>
+    <translation function="hot_halo_very_simple"/>
   </migration>
   <migration commit="d4bf2d8db876eb8e44d94e1672bc36a6ea8135cc">
-    <translation function="collaborativeMPI"/>
+    <translation function="collaborative_mpi"/>
   </migration>
   <migration commit="8e1ca452b775faffbba73ded8deb7fb348523429">
-    <translation function="hotHaloStandardAccretion"/>
+    <translation function="hot_halo_standard_accretion"/>
   </migration>
   <migration commit="d51ad8f72ee53c80cd6cb933ff21cc3ec52b32fe">
-    <translation function="hotHaloStandardInflowOutflow"/>
+    <translation function="hot_halo_standard_inflow_outflow"/>
+  </migration>
+  <migration commit="551c092c6cfb98a955ac3631fb6dfbff1a5364f5">
+    <translation function="hot_halo_standard_ram_pressure_stripping"/>
   </migration>
 
   <!-- Known default values for parameters -->

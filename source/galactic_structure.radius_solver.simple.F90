@@ -192,32 +192,16 @@ contains
     !!{
     Solve for the structure of galactic components.
     !!}
-    use :: Calculations_Resets       , only : Calculations_Reset
-    use :: Error                     , only : Error_Report
-    use :: Galactic_Structure_Options, only : enumerationComponentTypeType
-    !![
-    <include directive="radiusSolverTask" type="moduleUse">
-    !!]
-    include 'galactic_structure.radius_solver.tasks.modules.inc'
-    !![
-    </include>
-    <include directive="radiusSolverPlausibility" type="moduleUse">
-    !!]
-    include 'galactic_structure.radius_solver.plausible.modules.inc'
-    !![
-    </include>
-    !!]
+    use :: Calculations_Resets                       , only : Calculations_Reset
+    use :: Error                                     , only : Error_Report
+    use :: Galactic_Structure_Radius_Solver_Utilities, only : radiusSolverPlausibilities, radiusSolverTasks, radiusSolver
     implicit none
     class           (galacticStructureSolverSimple), intent(inout)           :: self
     type            (treeNode                     ), intent(inout), target   :: node
     logical                                        , intent(in   ), optional :: plausibilityOnly
     logical                                        , parameter               :: specificAngularMomentumRequired=.true.
-    procedure       (solverGet                    ), pointer                 :: radiusGet                             , velocityGet
-    procedure       (solverSet                    ), pointer                 :: radiusSet                             , velocitySet
+    procedure       (radiusSolver                 ), pointer                 :: radiusSolve_
     type            (treeNode                     ), pointer                 :: haloNode
-    logical                                                                  :: componentActive
-    double precision                                                         :: specificAngularMomentum
-    type            (enumerationComponentTypeType )                          :: component
     !![
     <optionalArgument name="plausibilityOnly" defaultsTo=".false."/>
     !!]
@@ -225,14 +209,7 @@ contains
     ! Check that the galaxy is physical plausible. In this simple solver, we don't act on this.
     node%isPhysicallyPlausible=.true.
     node%isSolvable           =.true.
-    !![
-    <include directive="radiusSolverPlausibility" type="functionCall" functionType="void">
-     <functionArgs>node</functionArgs>
-    !!]
-    include 'galactic_structure.radius_solver.plausible.inc'
-    !![
-    </include>
-    !!]
+    call radiusSolverPlausibilities(node)
     if (node%isPhysicallyPlausible .and. .not.plausibilityOnly_) then
        ! Determine which node to use for halo properties.
        if (self%useFormationHalo) then
@@ -242,16 +219,9 @@ contains
           haloNode => node
        end if
        ! Solve for each component.
+       radiusSolve_ => radiusSolve
        call Calculations_Reset(node)
-       !![
-       <include directive="radiusSolverTask" type="functionCall" functionType="void">
-        <functionArgs>node,componentActive,component,specificAngularMomentumRequired,specificAngularMomentum,radiusGet,radiusSet,velocityGet,velocitySet</functionArgs>
-        <onReturn>if (componentActive) call radiusSolve(node,component,specificAngularMomentum,radiusGet,radiusSet,velocityGet,velocitySet)</onReturn>
-       !!]
-       include 'galactic_structure.radius_solver.tasks.inc'
-       !![
-       </include>
-       !!]
+       call radiusSolverTasks(node,specificAngularMomentumRequired,radiusSolve_)
     end if
     return
 
@@ -261,8 +231,10 @@ contains
       !!{
       Solve for the equilibrium radius of the given component.
       !!}
-      use :: Mass_Distributions, only : massDistributionClass
-      implicit none
+      use :: Galactic_Structure_Radius_Solver_Utilities, only : solverGet                   , solverSet
+      use :: Mass_Distributions                        , only : massDistributionClass
+      use :: Galactic_Structure_Options                , only : enumerationComponentTypeType
+     implicit none
       type            (treeNode                    ), intent(inout)          :: node
       type            (enumerationComponentTypeType), intent(in   )          :: component
       double precision                              , intent(in   )          :: specificAngularMomentum

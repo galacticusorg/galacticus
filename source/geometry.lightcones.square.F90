@@ -1437,9 +1437,6 @@ contains
        if (associated(self%nodeOperator_)) then
           allocate(destination%nodeOperator_,mold=self%nodeOperator_)
           call nodeOperatorDeepCopy_(self%nodeOperator_,destination%nodeOperator_)
-#ifdef OBJECTDEBUG
-          if (debugReporting.and.mpiSelf%isMaster()) call displayMessage(var_str('functionClass[own] (class : ownerName : ownerLoc : objectLoc : sourceLoc): galacticstructure : [destination] : ')//loc(destination)//' : '//loc(destination%nodeOperator_)//' : '//{introspection:location:compact},verbosityLevelSilent)
-#endif
        end if
     class default
        call Error_Report('destination and source types do not match'//{introspection:location})

@@ -26,11 +26,8 @@ module Functions_Global
   Provides pointers to global functions.
   !!}
   public
+
   !![
-  <include directive="functionGlobal" type="functionGlobalPointers" >
-  !!]
-  include 'functionGlobal.pointers.inc'
-  !![
-  </include>
+  <functionsGlobal type="pointers"/>
   !!]
 end module Functions_Global

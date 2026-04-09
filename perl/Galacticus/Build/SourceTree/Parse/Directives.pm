@@ -255,9 +255,18 @@ SCHEMA
 			my $schemaDocument = fill_in_string(<<'SCHEMA', PACKAGE => 'eventHookStatic');
 <?xml version="1.0"?>
 <xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema">
+  <xs:simpleType name="yesNo">
+    <xs:restriction base="xs:string">
+      <xs:enumeration value="yes"/>
+      <xs:enumeration value="no" />
+    </xs:restriction>
+  </xs:simpleType> 
   <xs:element name="{$name}">
     <xs:complexType>
-      <xs:attribute name="function" use="required"/>
+      <xs:attribute name="function"  use="required"             />
+      <xs:attribute name="after"     use="optional"             />
+      <xs:attribute name="before"    use="optional"             />
+      <xs:attribute name="useGlobal" use="optional" type="yesNo"/>
     </xs:complexType>
   </xs:element>
 </xs:schema>

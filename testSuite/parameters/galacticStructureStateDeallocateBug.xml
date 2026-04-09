@@ -1,10 +1,13 @@
-<?xml version="1.0" encoding="UTF-8"?>
+<?xml version='1.0' encoding='UTF-8'?>
 <!-- Galacticus model constrained to match baryonic physics data                        -->
+
 <!-- See https://github.com/galacticusorg/galacticus/wiki/Constraints:-Baryonic-Physics -->
+
 <!-- 30-November-2020                                                                   -->
+
 <parameters>
   <formatVersion>2</formatVersion>
-  <lastModified revision="975fffd5aadf697707003f16bf9b4caee8ebe97d" time="2025-10-22T21:34:03"/>
+  <lastModified revision="551c092c6cfb98a955ac3631fb6dfbff1a5364f5" time="2026-04-02T18:27:58"/>
 
 
   <!-- Component selection -->
@@ -427,6 +430,7 @@
     </nodeOperator>
     <nodeOperator value="CGMOutflowReincorporation">
       <includeSatellites value="true"/>
+      <outflowToColdMode value="false"/>
     </nodeOperator>
     <nodeOperator value="CGMCoolingHeating">
       <component value="disk"/>
@@ -438,6 +442,7 @@
       <component value="disk"/>
       <coolingFrom value="currentNode"/>
     </nodeOperator>
+    <nodeOperator value="CGMOuterRadiusRamPressureStripping"/>
   </nodeOperator>
   
   <starFormationHistory value="adaptive">
