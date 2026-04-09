@@ -937,14 +937,7 @@ contains
     !!{
     Perform a deep copy of the object.
     !!}
-    use :: Error             , only : Error_Report
-#ifdef OBJECTDEBUG
-    use :: Display           , only : displayMessage            , verbosityLevelSilent
-    use :: MPI_Utilities     , only : mpiSelf
-    use :: Function_Classes  , only : debugReporting
-    use :: ISO_Varying_String, only : operator(//)              , var_str
-    use :: String_Handling   , only : operator(//)
-#endif
+    use :: Error, only : Error_Report
     implicit none
     class(starFormationHistoryFixedAges), intent(inout), target :: self
     class(starFormationHistoryClass    ), intent(inout)         :: destination
@@ -995,9 +988,6 @@ contains
                 self%geometryLightcone_%copiedSelf => destination%geometryLightcone_
                 call destination%geometryLightcone_%autoHook()
              end if
-#ifdef OBJECTDEBUG
-             if (debugReporting.and.mpiSelf%isMaster()) call displayMessage(var_str('functionClass[own] (class : ownerName : ownerLoc : objectLoc : sourceLoc): darkmatterprofiledmo_ : [destination] : ')//loc(destination)//' : '//loc(destination%geometryLightcone_)//' : '//{introspection:location:compact},verbosityLevelSilent)
-#endif
           end if
           nullify(destination%cosmologyFunctions_)
           if (associated(self%cosmologyFunctions_)) then
@@ -1015,9 +1005,6 @@ contains
                 self%cosmologyFunctions_%copiedSelf => destination%cosmologyFunctions_
                 call destination%cosmologyFunctions_%autoHook()
              end if
-#ifdef OBJECTDEBUG
-             if (debugReporting.and.mpiSelf%isMaster()) call displayMessage(var_str('functionClass[own] (class : ownerName : ownerLoc : objectLoc : sourceLoc): darkmatterprofiledmo_ : [destination] : ')//loc(destination)//' : '//loc(destination%cosmologyFunctions_)//' : '//{introspection:location:compact},verbosityLevelSilent)
-#endif
           end if
        end if
     class default

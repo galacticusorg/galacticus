@@ -22,9 +22,6 @@
 #
 #    deepCopy: This directive causes a deep copy to be made of a source object into a destination object. The reference count of
 #    the copied object is reset to unity.
-#
-# All of these directives supported output of debugging information (detailing the location of the object in question along with
-# that of its "owner") which can be analyzed by ./scripts/aux/functionClassReferencesDebug.pl.
 
 package Galacticus::Build::SourceTree::Process::ObjectBuilder;
 use strict;
@@ -43,8 +40,6 @@ $Galacticus::Build::SourceTree::Hooks::processHooks{'objectBuilder'} = \&Process
 sub Process_ObjectBuilder {
     # Get the tree.
     my $tree = shift();
-    # Determine if debugging output is required.
-    my $debugging = exists($ENV{'GALACTICUS_OBJECTS_DEBUG'}) && $ENV{'GALACTICUS_OBJECTS_DEBUG'} eq "yes";
     # Walk the tree, looking for code blocks.
     my $node               = $tree;
     my $xml                = new XML::Simple();
@@ -70,41 +65,6 @@ sub Process_ObjectBuilder {
 	    my $defaultName   = $parameterName eq $node->{'directive'}->{'class'};
 	    die("objects with defaults must have explicit parameter names")
 		if ( exists($node->{'directive'}->{'default'}) && ! exists($node->{'directive'}->{'parameterName'}) );
-	    # If including debugging information determine what will own the built object.
-	    my $debugMessage;
-	    if ( $debugging ) {
-		my $ownerName;
-		my $ownerLoc;
-		if ( $node->{'directive'}->{'name'} =~ m/^(.+)\%[a-zA-Z0-9_]+$/ ) {
-		    $ownerName = $1;
-		    if ( lc($ownerName) eq lc($returnValueLabel) ) {
-			$ownerLoc = "debugStackGet()";
-		    } else {
-			$ownerLoc = "loc(".$ownerName.")";
-		    }
-		} else {
-		    $ownerName = $node->{'parent'}->{'name'};
-		    $ownerLoc  = "'code:unknown'";
-		    my $nodeParent = $node->{'parent'};
-		    while ( $nodeParent ) {
-			my $nodeChild = $nodeParent->{'firstChild'};
-			while ( $nodeChild ) {
-			    if ( $nodeChild->{'type'} eq "declaration" ) {
-				foreach my $declaration ( @{$nodeChild->{'declarations'}} ) {
-				    if ( grep {lc($_) eq lc($node->{'directive'}->{'name'})} @{$declaration->{'variables'}} ) {
-					$ownerLoc = "'".$nodeParent->{'type'}.":".$nodeParent->{'name'}."'";
-				    }
-				}
-			    }
-			    $nodeChild = $nodeChild->{'sibling'};
-			}
-			$nodeParent = $nodeParent->{'parent'};
-		    }
-		}
-		$debugMessage = "if (debugReporting.and.mpiSelf\%isMaster()) call displayMessage(var_str('functionClass[own] (class : ownerName : ownerLoc : objectLoc : sourceLoc): ".$node->{'directive'}->{'class'}." : ".$ownerName." : ')//".$ownerLoc."//' : '//loc(".$node->{'directive'}->{'name'}.")//' : '//".&Galacticus::Build::SourceTree::Process::SourceIntrospection::Location($node,$node->{'line'},compact => 1).",verbosityLevelSilent)\n";
-	    } else {
-		$debugMessage = "";
-	    }
 	    # Begin code construction.
 	    my $parametersDefaultRequired = 0;
 	    my $builderCode;
@@ -175,7 +135,6 @@ sub Process_ObjectBuilder {
 	    $builderCode .= "         class is (".$node->{'directive'}->{'class'}."Class)\n";
 	    $builderCode .= "            ".$node->{'directive'}->{'name'}." => genericObject\n";
 	    $builderCode .= "            call ".$node->{'directive'}->{'name'}."%referenceCountIncrement()\n";
-	    $builderCode .= $debugMessage;
 	    $builderCode .= "         class default\n";
 	    $builderCode .= "            call Error_Report('parameter-stored object is not of [$node->{'directive'}->{'class'}] class'//".&Galacticus::Build::SourceTree::Process::SourceIntrospection::Location($node,$node->{'line'}).")\n";
 	    $builderCode .= "         end select\n";
@@ -183,7 +142,6 @@ sub Process_ObjectBuilder {
 	    $builderCode .= "         ! Object does not yet exist - build it and store in the parameter node. Increment reference counter here as this is a newly constructed object.\n";
 	    $builderCode .= "         ".$node->{'directive'}->{'name'}." => ".$node->{'directive'}->{'class'}."(parametersCurrent".$copyInstance.(exists($node->{'directive'}->{'parameterName'}) ? ",parameterName='".$parameterName."'" : "").")\n";
 	    $builderCode .= "            call ".$node->{'directive'}->{'name'}."%referenceCountIncrement()\n";
-	    $builderCode .= $debugMessage;
 	    $builderCode .= "         call parameterNode%objectSet(".$node->{'directive'}->{'name'}.")\n";
 	    $builderCode .= "         call ".$node->{'directive'}->{'name'}."%autoHook()\n";
 	    $builderCode .= "      end if\n";
@@ -211,7 +169,6 @@ sub Process_ObjectBuilder {
 		$builderCode .= "      ".$node->{'directive'}->{'name'}." => ".$node->{'directive'}->{'class'}."(parametersCurrent)\n";
 		$builderCode .= "      call ".$node->{'directive'}->{'name'}."%referenceCountIncrement()\n";
 		$builderCode .= "      call ".$node->{'directive'}->{'name'}."%autoHook()\n";
-		$builderCode .= $debugMessage;
 		$builderCode .= $copyLoopClose;
 		$builderCode .= "      if (mpiSelf%isMaster() .and. .not.".$warnStatus.") then\n";
 		$builderCode .= "         block\n";
@@ -346,33 +303,6 @@ sub Process_ObjectBuilder {
 			}
 		    }
 		};
-		if ( $debugging ) {
-		    $usesNode->{'moduleUse'}->{'MPI_Utilities'     } =
-		    {
-			intrinsic => 0,
-			all       => 1
-		    };
-		    $usesNode->{'moduleUse'}->{'Display'} =
-		    {
-			intrinsic => 0,
-			all       => 1
-		    };
-		    $usesNode->{'moduleUse'}->{'String_Handling'   } =
-		    {
-			intrinsic => 0,
-			all       => 1
-		    };
-		    $usesNode->{'moduleUse'}->{'ISO_Varying_String'} =
-		    {
-			intrinsic => 0,
-			all       => 1
-		    };
-		    $usesNode->{'moduleUse'}->{'Function_Classes'  } =
-		    {
-			intrinsic => 0,
-			all       => 1
-		    };
-		}
 		&Galacticus::Build::SourceTree::Parse::ModuleUses::AddUses($node->{'parent'},$usesNode);
 		# Record that we have added the necessary declarations to the parent.
 		$node->{'parent'}->{'objectBuilderDeclarations'} = 1;
@@ -425,40 +355,6 @@ sub Process_ObjectBuilder {
 	    $node->{'directive'}->{'processed'} =  1;
 	}
 	if ( $node->{'type'} eq "objectDestructor" && ! $node->{'directive'}->{'processed'} ) {
-	    # If including debugging information determine what will own the built object.
-	    my $debugMessage;
-	    if ( $debugging ) {
-		my $ownerName;
-		my $ownerLoc;
-		if ( exists($node->{'directive'}->{'owner'}) ) {
-		    $ownerName =     $node->{'directive'}->{'owner'}    ;
-		    $ownerLoc  = "'".$node->{'directive'}->{'owner'}."'";
-		} elsif ( $node->{'directive'}->{'name'} =~ m/^(.+)\%[a-zA-Z0-9_]+$/ ) {
-		    $ownerName = $1;
-		    $ownerLoc  = "loc(".$ownerName.")";
-		} else {
-		    $ownerName = $node->{'parent'}->{'name'};
-		    $ownerLoc  = "'code:unknown'";
-		    my $nodeParent = $node->{'parent'};
-		    while ( $nodeParent ) {
-			my $nodeChild = $nodeParent->{'firstChild'};
-			while ( $nodeChild ) {
-			    if ( $nodeChild->{'type'} eq "declaration" ) {
-				foreach my $declaration ( @{$nodeChild->{'declarations'}} ) {
-				    if ( grep {lc($_) eq lc($node->{'directive'}->{'name'})} @{$declaration->{'variables'}} ) {
-					$ownerLoc = "'".$nodeParent->{'type'}.":".$nodeParent->{'name'}."'";
-				    }
-				}
-			    }
-			    $nodeChild = $nodeChild->{'sibling'};
-			}
-			$nodeParent = $nodeParent->{'parent'};
-		    }
-		}
-		$debugMessage = "if (debugReporting.and.mpiSelf\%isMaster()) call displayMessage(var_str('functionClass[disown] (class : ownerName : ownerLoc : objectLoc : sourceLoc): [".($node->{'directive'}->{'name'} =~ m/([a-zA-Z0-9]+)_+$/ ? $1 : "unknown")."] : ".$ownerName." : ')//".$ownerLoc."//' : '//loc(".$node->{'directive'}->{'name'}.")//' : '//".&Galacticus::Build::SourceTree::Process::SourceIntrospection::Location($node,$node->{'line'},compact => 1).",verbosityLevelSilent)\n";
-	    } else {
-		$debugMessage = "";
-	    }
 	    # Generate source code for the object destructor. The pointer should only be deallocated if associated and
 	    # finalizable. Otherwise simply nullify it.
 	    my $destructorCode;
@@ -467,19 +363,12 @@ sub Process_ObjectBuilder {
 	    $destructorCode .= "   referenceCount_=".$node->{'directive'}->{'name'}."%referenceCountDecrement()\n";
             $destructorCode .= "   if (referenceCount_ == 0) then\n";
             $destructorCode .= "      ! Deallocate the pointer.\n";
- 	    $destructorCode .= $debugMessage;
 	    $destructorCode .= "      deallocate(".$node->{'directive'}->{'name'}.")\n";
             $destructorCode .= "   else if (referenceCount_ < 0) then\n";
             $destructorCode .= "      ! Negative counter - should not happen.\n";
-	    if ( $debugging ) {
-		$destructorCode .= "      if (mpiSelf\%isMaster()) call displayMessage(var_str('objectDestructor: negative reference counter (should abort, but will nullify for debugging) ".$node->{'directive'}->{'name'}." {loc: ')//loc(".$node->{'directive'}->{'name'}.")//'} at'//".&Galacticus::Build::SourceTree::Process::SourceIntrospection::Location($node,$node->{'line'}).")\n";
-		$destructorCode .= "      nullify(".$node->{'directive'}->{'name'}.")\n";		
-	    } else {
-		$destructorCode .= "      call Error_Report('negative reference counter in object \"".$node->{'directive'}->{'name'}."\"'//".&Galacticus::Build::SourceTree::Process::SourceIntrospection::Location($node,$node->{'line'}).")\n";
-	    }
+	    $destructorCode .= "      call Error_Report('negative reference counter in object \"".$node->{'directive'}->{'name'}."\"'//".&Galacticus::Build::SourceTree::Process::SourceIntrospection::Location($node,$node->{'line'}).")\n";
             $destructorCode .= "   else\n";
             $destructorCode .= "      ! Nullify the pointer.\n";
-	    $destructorCode .= $debugMessage;
             $destructorCode .= "      nullify(".$node->{'directive'}->{'name'}.")\n"
 		unless ( exists($node->{'directive'}->{'nullify'}) && $node->{'directive'}->{'nullify'} eq "no" );
             $destructorCode .= "   end if\n";
@@ -523,13 +412,6 @@ sub Process_ObjectBuilder {
 		    }
 		}
 	    };
-	    if ( $debugging ) {
-		$usesNode->{'moduleUse'}->{'MPI_Utilities'     } = {intrinsic => 0, all => 1};
-		$usesNode->{'moduleUse'}->{'Display'           } = {intrinsic => 0, all => 1};
-		$usesNode->{'moduleUse'}->{'String_Handling'   } = {intrinsic => 0, all => 1};
-		$usesNode->{'moduleUse'}->{'ISO_Varying_String'} = {intrinsic => 0, all => 1};
-		$usesNode->{'moduleUse'}->{'Function_Classes'  } = {intrinsic => 0, all => 1};
-	    }
 	    # Insert the modules node.
 	    &Galacticus::Build::SourceTree::Parse::ModuleUses::AddUses($node->{'parent'},$usesNode);
 	    # Mark the directive as processed.
@@ -538,74 +420,6 @@ sub Process_ObjectBuilder {
 	if ( $node->{'type'} eq "referenceCountIncrement" && ! $node->{'directive'}->{'processed'} ) {
 	    # Generate source code for the reference count increment.
 	    my $incrementCode = "call ".(exists($node->{'directive'}->{'owner'}) ? $node->{'directive'}->{'owner'}."%" : "").$node->{'directive'}->{'object'}."%referenceCountIncrement()\n";
-	    # If including debugging information generate required code.
-	    my $debugMessage = "";
-	    if ( $debugging ) {
-		my $ownerName;
-		my $ownerLoc;
-		my $isResult = 0;
-		if ( exists($node->{'directive'}->{'owner'}) ) {
-		    $ownerName = $node->{'directive'}->{'owner'};
-		    if ( exists($node->{'directive'}->{'isResult'}) && $node->{'directive'}->{'isResult'} eq "yes" ) {
-			$ownerLoc = "debugStackGet()";
-			$isResult = 1;
-		    } else {
-			$ownerLoc = "loc(".$ownerName.")";
-		    }
-		} else {
-		    $ownerName = $node->{'parent'}->{'name'};
-		    $ownerLoc  = "'code:unknown'";
-		    my $nodeParent = $node->{'parent'};
-		    while ( $nodeParent ) {
-			my $nodeChild = $nodeParent->{'firstChild'};
-			while ( $nodeChild ) {
-			    if ( $nodeChild->{'type'} eq "declaration" ) {
-				foreach my $declaration ( @{$nodeChild->{'declarations'}} ) {
-				    if ( grep {lc($_) eq lc($node->{'directive'}->{'object'})} @{$declaration->{'variables'}} ) {
-					$ownerLoc = "'".$nodeParent->{'type'}.":".$nodeParent->{'name'}."'";
-				    }
-				}
-			    }
-			    $nodeChild = $nodeChild->{'sibling'};
-			}
-			$nodeParent = $nodeParent->{'parent'};
-		    }
-		}
-		$incrementCode .= "if (debugReporting.and.mpiSelf\%isMaster()) call displayMessage(var_str('functionClass[own] (class : ownerName : ownerLoc : objectLoc : sourceLoc): [".($node->{'directive'}->{'object'} =~ m/([a-zA-Z0-9_]+)$/ ? $1 : "unknown")."] : ".$ownerName." : ')//".$ownerLoc."//' : '//loc(".(exists($node->{'directive'}->{'owner'}) ? $node->{'directive'}->{'owner'}."%" : "").$node->{'directive'}->{'object'}.")//' : '//".&Galacticus::Build::SourceTree::Process::SourceIntrospection::Location($node,$node->{'line'},compact => 1).",verbosityLevelSilent)\n";
-		my $usesNode =
-		{
-		    type      => "moduleUse",
-		    moduleUse =>
-		    {
-			MPI_Utilities =>
-			{
-			    intrinsic => 0,
-			    all       => 1
-			},
-			Display =>
-			{
-			    intrinsic => 0,
-			    all       => 1
-			},
-			String_Handling    =>
-		        {
-			    intrinsic => 0,
-			    all       => 1
-			},
-			ISO_Varying_String =>
-		        {
-			    intrinsic => 0,
-			    all       => 1
-			},
-			Function_Classes =>
-		        {
-			    intrinsic => 0,
-			    all       => 1
-			}
-		    }
-		};
-		&Galacticus::Build::SourceTree::Parse::ModuleUses::AddUses($node->{'parent'},$usesNode);
-	    }
 	    # Build a code node.
 	    my $newNode =
 	    {
@@ -623,40 +437,6 @@ sub Process_ObjectBuilder {
 	if ( $node->{'type'} eq "referenceAcquire" && ! $node->{'directive'}->{'processed'} ) {
 	    # Generate source code for the reference aquisition.
 	    my $acquireCode = (exists($node->{'directive'}->{'owner'}) ? $node->{'directive'}->{'owner'}."%" : "").$node->{'directive'}->{'target'}." => ".$node->{'directive'}->{'source'}."\n";
-	    # If including debugging information push the target location to the debug stack.
-	    if ( $debugging ) {
-		my $ownerName;
-		my $ownerLoc;
-		if ( exists($node->{'directive'}->{'owner'}) ) {
-		    $ownerName = $node->{'directive'}->{'owner'};
-		    if ( exists($node->{'directive'}->{'isResult'}) && $node->{'directive'}->{'isResult'} eq "yes" ) {
-			$ownerLoc = "debugStackGet()";
-		    } else {
-			$ownerLoc = "loc(".$node->{'directive'}->{'owner'}.")";
-		    }
-		} else {
-		    $ownerName = $node->{'parent'}->{'name'};
-		    $ownerLoc = "'code:unknown'";
-		    my $nodeParent = $node->{'parent'};
-		    while ( $nodeParent ) {
-			my $nodeChild = $nodeParent->{'firstChild'};
-			while ( $nodeChild ) {
-			    if ( $nodeChild->{'type'} eq "declaration" ) {
-				foreach my $declaration ( @{$nodeChild->{'declarations'}} ) {
-				    if ( grep {lc($_) eq lc($node->{'directive'}->{'target'})} @{$declaration->{'variables'}} ) {
-					$ownerLoc = "'".$nodeParent->{'type'}.":".$nodeParent->{'name'}."'";
-				    }
-				}
-			    }
-			    $nodeChild = $nodeChild->{'sibling'};
-			}
-			$nodeParent = $nodeParent->{'parent'};
-		    }
-		}		
-		$acquireCode = "call debugStackPush(".$ownerLoc.")\n".$acquireCode."call debugStackPop()\n"
-		    unless ( $ownerLoc eq "debugStackGet()" );
-		$acquireCode .= "if (debugReporting.and.mpiSelf\%isMaster()) call displayMessage(var_str('functionClass[own] (class : ownerName : ownerLoc : objectLoc : sourceLoc): [".($node->{'directive'}->{'target'} =~ m/([a-zA-Z0-9_]+)$/ ? $1 : "unknown")."] : ".$ownerName." : ')//".$ownerLoc."//' : '//loc(".(exists($node->{'directive'}->{'owner'}) ? $node->{'directive'}->{'owner'}."%" : "").$node->{'directive'}->{'target'}.")//' : '//".&Galacticus::Build::SourceTree::Process::SourceIntrospection::Location($node,$node->{'line'},compact => 1).",verbosityLevelSilent)\n";
-	    }
 	    $acquireCode .= "call ".(exists($node->{'directive'}->{'owner'}) ? $node->{'directive'}->{'owner'}."%" : "").$node->{'directive'}->{'target'}."%referenceCountIncrement()\n";
 	    # Build a code node.
 	    my $newNode =
@@ -681,87 +461,6 @@ sub Process_ObjectBuilder {
 	    my $constructCode  = $objectName."=".$constructor."\n";
 	    $constructCode    .= "call ".$objectName."\%referenceCountIncrement()\n";
 	    $constructCode    .= "call ".$objectName."\%autoHook()\n";
- 	    # If including debugging information push the target location to the debug stack.
-	    if ( $debugging ) {
-		my $objectLoc = "loc(".(exists($node->{'directive'}->{'owner'}) ? $node->{'directive'}->{'owner'}."%" : "").$node->{'directive'}->{'object'}.")";	
-		$constructCode  = "call debugStackPush(".$objectLoc.")\n".$constructCode."call debugStackPop()\n";
-		my $ownerName;
-		my $ownerLoc;
-		my $isResult = 0;
-		if ( exists($node->{'directive'}->{'isResult'}) ) {
-		    if ( exists($node->{'directive'}->{'owner'}) ) {
-			$ownerName = $node->{'directive'}->{'owner'};
-		    } else {
-			if ( $node->{'parent'}->{'opener'} =~ m/result\s*\(\s*([a-zA-Z0-9_]+)\s*\)\s*$/ ) {
-			    $ownerName = $1;
-			} else {
-			    $ownerName = $node->{'parent'}->{'name'}; 
-			}
-		    }
-		    $ownerLoc = "debugStackGet()";
-		    $isResult = 1;
-		} elsif ( exists($node->{'directive'}->{'owner'}) ) {
-		    $ownerName = $node->{'directive'}->{'owner'};
-		    $ownerLoc = "loc(".$ownerName.")";
-		} else {
-		    $ownerName = $node->{'parent'}->{'name'};
-		    if ( exists($node->{'directive'}->{'ownerLoc'}) ) {
-			$ownerLoc = "'".$node->{'directive'}->{'ownerLoc'}."'";
-		    } else {
-			$ownerLoc  = "'code:unknown'";
-			my $nodeParent = $node->{'parent'};
-			while ( $nodeParent ) {
-			    my $nodeChild = $nodeParent->{'firstChild'};
-			    while ( $nodeChild ) {
-				if ( $nodeChild->{'type'} eq "declaration" ) {
-				    foreach my $declaration ( @{$nodeChild->{'declarations'}} ) {
-					if ( grep {lc($_) eq lc($node->{'directive'}->{'object'})} @{$declaration->{'variables'}} ) {
-					    $ownerLoc = "'".$nodeParent->{'type'}.":".$nodeParent->{'name'}."'";
-					}
-				    }
-				}
-				$nodeChild = $nodeChild->{'sibling'};
-			    }
-			    $nodeParent = $nodeParent->{'parent'};
-			}
-		    }
-		}
-		$constructCode .= "if (debugReporting.and.mpiSelf\%isMaster()) call displayMessage(var_str('functionClass[own] (class : ownerName : ownerLoc : objectLoc : sourceLoc): [".($node->{'directive'}->{'object'} =~ m/([a-zA-Z0-9_]+)$/ ? $1 : "unknown")."] : ".$ownerName." : ')//".$ownerLoc."//' : '//loc(".(exists($node->{'directive'}->{'owner'}) ? $node->{'directive'}->{'owner'}."%" : "").$node->{'directive'}->{'object'}.")//' : '//".&Galacticus::Build::SourceTree::Process::SourceIntrospection::Location($node,$node->{'line'},compact => 1).",verbosityLevelSilent)\n";
-		my $usesNode =
-		{
-		    type      => "moduleUse",
-		    moduleUse =>
-		    {
-			MPI_Utilities =>
-			{
-			    intrinsic => 0,
-			    all       => 1
-			},
-			Display =>
-			{
-			    intrinsic => 0,
-			    all       => 1
-			},
-			String_Handling    =>
-		        {
-			    intrinsic => 0,
-			    all       => 1
-			},
-			ISO_Varying_String =>
-		        {
-			    intrinsic => 0,
-			    all       => 1
-			},
-			Function_Classes   =>
-			{
-			    intrinsic => 0,
-			    all       => 1
-			}
-		    }
-		};
-		&Galacticus::Build::SourceTree::Parse::ModuleUses::AddUses($node->{'parent'},$usesNode);
-		
-	    }
 	    my $newNode =
 	    {
 		type       => "code"                        ,
@@ -780,70 +479,6 @@ sub Process_ObjectBuilder {
 	    my $deepCopyCode  = "call ".$node->{'directive'}->{'source'}."%deepCopy(".$node->{'directive'}->{'destination'}.")\n";
 	    $deepCopyCode    .= $node->{'directive'}->{'source'}."\%copiedSelf => ".$node->{'directive'}->{'destination'}."\n";
 	    $deepCopyCode    .= "call ".$node->{'directive'}->{'destination'}."%autoHook()\n";
- 	    # If including debugging information push the target location to the debug stack.
-	    if ( $debugging ) {
-		my $ownerName;
-		my $ownerLoc;
-		my $objectClass;
-		if ( $node->{'directive'}->{'destination'} =~ m/^(.+)\%([a-zA-Z0-9_]+)$/ ) {
-		    $ownerName   = $1;
-		    $objectClass = $2;
-		    $ownerLoc    = "loc(".$ownerName.")";
-		} else {
-		    $objectClass = $node->{'directive'}->{'destination'};
-		    $ownerName   = $node->{'parent'}->{'name'};
-		    $ownerLoc    = "'code:unknown'";
-		    my $nodeParent = $node->{'parent'};
-		    while ( $nodeParent ) {
-			my $nodeChild = $nodeParent->{'firstChild'};
-			while ( $nodeChild ) {
-			    if ( $nodeChild->{'type'} eq "declaration" ) {
-				foreach my $declaration ( @{$nodeChild->{'declarations'}} ) {
-				    if ( grep {lc($_) eq lc($node->{'directive'}->{'destination'})} @{$declaration->{'variables'}} ) {
-					$ownerLoc = "'".$nodeParent->{'type'}.":".$nodeParent->{'name'}."'";
-				    }
-				}
-			    }
-			    $nodeChild = $nodeChild->{'sibling'};
-			}
-			$nodeParent = $nodeParent->{'parent'};
-		    }
-		}
-		$deepCopyCode .= "if (debugReporting.and.mpiSelf\%isMaster()) call displayMessage(var_str('functionClass[own] (class : ownerName : ownerLoc : objectLoc : sourceLoc): ".$objectClass." : ".$ownerName." : ')//".$ownerLoc."//' : '//loc(".$node->{'directive'}->{'destination'}.")//' : '//".&Galacticus::Build::SourceTree::Process::SourceIntrospection::Location($node,$node->{'line'},compact => 1).",verbosityLevelSilent)\n";
-		my $usesNode =
-		{
-		    type      => "moduleUse",
-		    moduleUse =>
-		    {
-			MPI_Utilities =>
-			{
-			    intrinsic => 0,
-			    all       => 1
-			},
-			Display =>
-			{
-			    intrinsic => 0,
-			    all       => 1
-			},
-			String_Handling    =>
-		        {
-			    intrinsic => 0,
-			    all       => 1
-			},
-			ISO_Varying_String =>
-		        {
-			    intrinsic => 0,
-			    all       => 1
-			},
-			Function_Classes   =>
-			{
-			    intrinsic => 0,
-			    all       => 1
-			}
-		    }
-		};
-		&Galacticus::Build::SourceTree::Parse::ModuleUses::AddUses($node->{'parent'},$usesNode);
-	    }
 	    # Build a code node.
 	    my $newNode =
 	    {

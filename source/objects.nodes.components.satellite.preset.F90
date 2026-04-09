@@ -98,9 +98,7 @@ module Node_Component_Satellite_Preset
 contains
 
   !![
-  <nodeComponentThreadInitializationTask>
-   <unitName>Node_Component_Satellite_Preset_Thread_Initialize</unitName>
-  </nodeComponentThreadInitializationTask>
+  <nodeComponentThreadInitializationTask function="Node_Component_Satellite_Preset_Thread_Initialize"/>
   !!]
   subroutine Node_Component_Satellite_Preset_Thread_Initialize(parameters_)
     !!{
@@ -122,9 +120,7 @@ contains
   end subroutine Node_Component_Satellite_Preset_Thread_Initialize
 
   !![
-  <nodeComponentThreadUninitializationTask>
-   <unitName>Node_Component_Satellite_Preset_Thread_Uninitialize</unitName>
-  </nodeComponentThreadUninitializationTask>
+  <nodeComponentThreadUninitializationTask function="Node_Component_Satellite_Preset_Thread_Uninitialize"/>
   !!]
   subroutine Node_Component_Satellite_Preset_Thread_Uninitialize()
     !!{

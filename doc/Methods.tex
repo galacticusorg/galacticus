@@ -2,11 +2,13 @@
 
 \section{Code Directives}\label{sec:CodeDirectives}\hyperdef{sec}{CodeDirectives}{}\index{directives}\index{code!directives}
 
-\glc\ is designed to be flexible and extensible, allowing you to add new classes and functionality without having to hack the code extensively. To achieve this it makes much use of embedded code directives which, for example, explain to the build system how a particular subroutine or function connects into the \glc\ code. Such code directives are indicated by lines beginning with \mono{!\#}, and take the form of short blocks of XML. For example, a typical code directive might look like:
+\glc\ is designed to be flexible and extensible, allowing you to add new classes and functionality without having to hack the code extensively. To achieve this it makes much use of embedded code directives which, for example, explain to the build system how a particular subroutine or function connects into the \glc\ code. Such code directives are enclosed in blocks delimited by \mono{!![} and \mono{!!]}, and take the form of short blocks of XML. For example, a typical code directive might look like:
 \begin{verbatim}
- !# <accretionDisks>
- !#  <unitName>Accretion_Disks_Shakura_Sunyaev_Initialize</unitName>
- !# </accretionDisks>
+ !![
+ <accretionDisks>
+   <unitName>Accretion_Disks_Shakura_Sunyaev_Initialize</unitName>
+ </accretionDisks>
+ !!]
 \end{verbatim}
 This directive would typically appear just prior to a subroutine which initializes the Shakura-Sunyaev accretion disk module (it could appear anywhere throughout that module, but it makes sense to keep it close to the subroutine that it references). The \mono{accretionDisks} tag explains to the \glc\ build system that this module contains an implementation of black hole accretion disks. The \mono{unitName} tag specifies the name of a program unit which (in this case) should be called to initialize this accretion disk implementation. The build system will then insert appropriate \mono{use} and \mono{call} statements into the \glc\ code such that this routine will be called if and when accretion disks are required by \glc.
 
@@ -62,65 +64,67 @@ In general, \mono{objects.nodes.components.\textless component\textgreater.F90} 
 
 Component definition itself takes the form of an embedded XML document. The following example illustrates such a document:
 \begin{verbatim}
-  !# <component>
-  !#  <class>disk</class>
-  !#  <name>exponential</name>
-  !#  <isDefault>yes</isDefault>
-  !#  <properties>
-  !#   <property>
-  !#     <name>isInitialized</name>
-  !#     <type>logical</type>
-  !#     <rank>0</rank>
-  !#     <attributes isSettable="true" isGettable="true" isEvolvable="false" />
-  !#   </property>
-  !#   <property>
-  !#     <name>massStellar</name>
-  !#     <type>real</type>
-  !#     <rank>0</rank>
-  !#     <attributes isSettable="true" isGettable="true" isEvolvable="true" isNonNegative="true" />
-  !#     <output unitsInSI="massSolar" comment="Mass of stars in the exponential disk."/>
-  !#   </property>
-  !#   <property>
-  !#     <name>abundancesStellar</name>
-  !#     <type>abundances</type>
-  !#     <rank>0</rank>
-  !#     <attributes isSettable="true" isGettable="true" isEvolvable="true" isNonNegative="true" />
-  !#     <output unitsInSI="massSolar" comment="Mass of metals in the stellar phase of the exponential disk."/>
-  !#   </property>
-  !#   <property>
-  !#     <name>massGas</name>
-  !#     <type>real</type>
-  !#     <rank>0</rank>
-  !#     <attributes isSettable="true" isGettable="true" isEvolvable="true" createIfNeeded="true" isNonNegative="true" />
-  !#     <output unitsInSI="massSolar" comment="Mass of gas in the exponential disk."/>
-  !#   </property>
-  !#   <property>
-  !#     <name>coolingMass</name>
-  !#     <attributes isSettable="false" isGettable="false" isEvolvable="true" isDeferred="rate" isVirtual="true" />
-  !#     <type>real</type>
-  !#     <rank>0</rank>
-  !#   </property>
-  !#   <property>
-  !#     <name>halfMassRadius</name>
-  !#     <attributes isSettable="false" isGettable="true" isEvolvable="false" isVirtual="true" />
-  !#     <type>real</type>
-  !#     <rank>0</rank>
-  !#     <getFunction>Node_Component_Disk_Exponential_Half_Mass_Radius</getFunction>
-  !#   </property>
-  !#   <property>
-  !#     <name>luminositiesStellar</name>
-  !#     <type>real</type>
-  !#     <rank>1</rank>
-  !#     <attributes isSettable="true" isGettable="true" isEvolvable="true" isNonNegative="true" />
-  !#     <classDefault modules="Stellar_Population_Properties_Luminosities" count="Stellar_Population_Luminosities_Count()">0.0d0</classDefault>
-  !#     <output labels="':'//Stellar_Population_Luminosities_Name({i})" count="Stellar_Population_Luminosities_Count()" condition="Stellar_Population_Luminosities_Output({i},time)" modules="Stellar_Population_Properties_Luminosities" unitsInSI="luminosityZeroPointAB" comment="Luminosity of disk stars."/>
-  !#   </property>
-  !#  </properties>
-  !#  <bindings>
-  !#   <binding method="attachPipes" function="Node_Component_Disk_Exponential_Attach_Pipes" type="void" />
-  !#  </bindings>
-  !#  <functions>objects.nodes.components.disk.exponential.custom_methods.inc</functions>
-  !# </component>
+  !![
+  <component>
+   <class>disk</class>
+   <name>exponential</name>
+   <isDefault>yes</isDefault>
+   <properties>
+    <property>
+      <name>isInitialized</name>
+      <type>logical</type>
+      <rank>0</rank>
+      <attributes isSettable="true" isGettable="true" isEvolvable="false" />
+    </property>
+    <property>
+      <name>massStellar</name>
+      <type>real</type>
+      <rank>0</rank>
+      <attributes isSettable="true" isGettable="true" isEvolvable="true" isNonNegative="true" />
+      <output unitsInSI="massSolar" comment="Mass of stars in the exponential disk."/>
+    </property>
+    <property>
+      <name>abundancesStellar</name>
+      <type>abundances</type>
+      <rank>0</rank>
+      <attributes isSettable="true" isGettable="true" isEvolvable="true" isNonNegative="true" />
+      <output unitsInSI="massSolar" comment="Mass of metals in the stellar phase of the exponential disk."/>
+    </property>
+    <property>
+      <name>massGas</name>
+      <type>real</type>
+      <rank>0</rank>
+      <attributes isSettable="true" isGettable="true" isEvolvable="true" createIfNeeded="true" isNonNegative="true" />
+      <output unitsInSI="massSolar" comment="Mass of gas in the exponential disk."/>
+    </property>
+    <property>
+      <name>coolingMass</name>
+      <attributes isSettable="false" isGettable="false" isEvolvable="true" isDeferred="rate" isVirtual="true" />
+      <type>real</type>
+      <rank>0</rank>
+    </property>
+    <property>
+      <name>halfMassRadius</name>
+      <attributes isSettable="false" isGettable="true" isEvolvable="false" isVirtual="true" />
+      <type>real</type>
+      <rank>0</rank>
+      <getFunction>Node_Component_Disk_Exponential_Half_Mass_Radius</getFunction>
+    </property>
+    <property>
+      <name>luminositiesStellar</name>
+      <type>real</type>
+      <rank>1</rank>
+      <attributes isSettable="true" isGettable="true" isEvolvable="true" isNonNegative="true" />
+      <classDefault modules="Stellar_Population_Properties_Luminosities" count="Stellar_Population_Luminosities_Count()">0.0d0</classDefault>
+      <output labels="':'//Stellar_Population_Luminosities_Name({i})" count="Stellar_Population_Luminosities_Count()" condition="Stellar_Population_Luminosities_Output({i},time)" modules="Stellar_Population_Properties_Luminosities" unitsInSI="luminosityZeroPointAB" comment="Luminosity of disk stars."/>
+    </property>
+   </properties>
+   <bindings>
+    <binding method="attachPipes" function="Node_Component_Disk_Exponential_Attach_Pipes" type="void" />
+   </bindings>
+   <functions>objects.nodes.components.disk.exponential.custom_methods.inc</functions>
+  </component>
+  !!]
 \end{verbatim}
 
 The elements of this document have the following meaning:
@@ -237,32 +241,6 @@ along with several others used internally for output, serialization etc.
 
 All component properties which have an \mono{isEvolvable} attribute set to \mono{true} are included in \glc's ODE solver as the node is evolved forward in time. As described in \S\ref{sec:ComponentMethods}, \glc\ will create two functions that permit the rate of change of a property adjusted and for the absolute scale used in ODE error control to be set.
 
-A ``rate compute'' function should be defined to perform any calculations necessary to determine the rate of change of the property and adjust the rate appropriately. Below is an example of the rate compute subroutine for the stellar mass property of the exponential disk component, with only the basic structure shown:
-\begin{lstlisting}[escapechar=@,breaklines,prebreak=\&,postbreak=\&]
-  !# <rateComputeTask>
-  !#  <unitName>Node_Component_Disk_Exponential_Rate_Compute</unitName>
-  !# </rateComputeTask>
-  subroutine Node_Component_Disk_Exponential_Rate_Compute(node,odeConverged,interrupt,interruptProcedure,propertyType)
-    implicit none
-    type     (treeNode             ), pointer, intent(inout) :: node
-    logical                                  , intent(in   ) :: odeConverged
-    logical                                  , intent(inout) :: interrupt
-    procedure(                     ), pointer, intent(inout) :: interruptProcedure
-    integer                                  , intent(in   ) :: propertyType
-    class    (nodeComponentDisk    ), pointer                :: disk
- 
-    ! Get the disk and check that it is of our class.
-    disk => node%disk()
-    select type (disk)
-    class is (nodeComponentDiskExponential)
-      ...
-      call disk%massStellarRate(stellarMassRate)
-      ...
-    end select
-    return
-  end subroutine Node_Component_Disk_Exponential_Rate_Compute
-\end{lstlisting}
-Here, we get the disk component and check that it of the \mono{exponential} variety. If it is, we compute the rates of change for one or more properties and then adjust their rates appropriately. If multiple instances of a component are used then the rate compute function should loop over all instances and adjust rates appropriately. The \mono{propertyType} argument will be set either to \mono{propertyTypeActive} or \mono{propertyTypeInactive}, and indicates if rates should be computed for active or inactive variables. (Rates for active variables can be computed and set even if inactive variables are requested, and vice versa. They will simply be ignored, and so this merely wastes compute time.) The \mono{odeConverged} variable indicates if the ODE solver has reached convergence---in some instances it is useful to trigger interrupts only once convergence is reached. If an interrupt occurs, \mono{interrupt} should be set to \mono{true}, and \mono{interruptProcedure} should be set to point to the function to call on interrupt.
 
 When evolving ODEs the ODE solver aims to keep the error on property $i$ below
 \begin{equation}
@@ -270,9 +248,11 @@ When evolving ODEs the ODE solver aims to keep the error on property $i$ below
 \end{equation}
 where $epsilon_\mathrm{abs}=$\mono{[odeToleranceAbsolute]}, $epsilon_\mathrm{rel}=$\mono{[odeToleranceRelative]}, $y_i$ is the value of property $i$ and $s_i$ is a scaling factor which controls the absolute tolerance for this property. By default, $s_i=1$, but this can be changed for a component utilizing the \mono{scaleSetTask} directive. This allows a function to be called in which the component sets suitable scale factors for each of its properties prior to any ODE evolution being carried out. This can be very useful, for example, in cases where two components are coupled. Consider a case where a disk is transferring material to a spheroid via a bar instability. If the disk is orders of magnitude more massive that the spheroid then the rate of mass transfer can be very high (i.e. $\dot{y}/y$ for the spheroid will be large). With just a relative tolerance (i.e. the $\epsilon_\mathrm{rel} |y_i|$ term) this would require very short timesteps for the spheroid. However, in such cases we don't care about such tiny tolerances for the spheroid (since it will grow to be substantially more massive). Therefore, it may be appropriate to set $s_i$ to be equal to the sum of the disk and spheroid properties for example. The scale set directive and associated subroutine should follow this template:
 \begin{verbatim}
-  !# <scaleSetTask>
-  !#  <unitName>Node_Component_Disk_Exponential_Scale_Set</unitName>
-  !# </scaleSetTask>
+  !![
+  <scaleSetTask>
+    <unitName>Node_Component_Disk_Exponential_Scale_Set</unitName>
+  </scaleSetTask>
+  !!]
   subroutine Node_Component_Disk_Exponential_Scale_Set(thisNode)
     implicit none
     type (treeNode         ), pointer, intent(inout) :: thisNode
@@ -314,9 +294,11 @@ An interrupt procedure should have the form:
 
 Functions implement basic calculations (e.g. computing the power spectrum). Additional implementations of a \mono{functionClass} are added using the a directive with the name of that \mono{functionClass}. The implementation should be placed in a file containing the directive. For example, for the \mono{mergerTreeTimestep} \mono{functionClass} the file must containing a directive of the form
 \begin{verbatim}
-!# <mergerTreeTimestep name="mergerTreeTimestepMyImplementation">
-!# <description>A short description of the implementation.</description>
-!# </mergerTreeTimestep>
+!![
+<mergerTreeTimestep name="mergerTreeTimestepMyImplementation">
+  <description>A short description of the implementation.</description>
+</mergerTreeTimestep>
+!!]
 \end{verbatim}
 where \mono{MyImplementation} is an appropriate name for the implementation. This file should be treated as a regular Fortran submodule, but without the initial \mono{submodule} and final \mono{end submodule} lines. That is, it may contain \mono{use} statements and variable declarations prior to the \mono{contains} line, and should contain all functions required by the implementation after that line. It is standard, but not required, that function names should be prefixed with the name of the implementation (e.g. ``\mono{MyImplementation}'' in the above example). The file \emph{must} define a type that extends the named \mono{functionClass} class (or extends another type which is itself an extension of the named \mono{functionClass} class), containing any data needed by the implementation along with type-bound functions required by the implementation.
 
@@ -328,9 +310,11 @@ Events are triggered during merger tree evolution. Examples are when a node need
 
 Additional methods for node promotion (i.e. when a primary progenitor reaches its parent halo) can be added using the \mono{nodePromotionTask} directive. The directive should contain a single argument, giving the name of a subroutine to be called to initialize the method. For example, the \mono{basic} tree node method uses this directive as follows:
 \begin{verbatim}
-  !# <nodePromotionTask>
-  !#  <unitName>Tree_Node_Basic_Promote</unitName>
-  !# </nodePromotionTask>
+  !![
+  <nodePromotionTask>
+   <unitName>Tree_Node_Basic_Promote</unitName>
+  </nodePromotionTask>
+  !!]
 \end{verbatim}
 Here, \mono{Tree\_Node\_Basic\_Promote} is the name of a subroutine which will be called to perform whatever tasks are required prior to the promotion. The subroutine must have the following form:
 \begin{verbatim}
@@ -365,180 +349,15 @@ This solver, which can be activated by setting \mono{[diskVerySimpleUseAnalyticS
 \end{itemize}
 Under these conditions, the flow of mass between gas, stellar, and outflowed phases is analytically solvable.
 
-\subsubsection{Calculation Reset Tasks}\label{sec:CalculationResetTask}
-
-Additional methods for calculation reset tasks (i.e. flagging that the properties of a node may have changed so that any calculations must be performed anew) can be added using the \mono{calculationResetTask} directive. The directive should contain a single argument, giving the name of a subroutine to be called to perform the task. For example, the standard hot halo component adds a task as follows:
-\begin{verbatim}
-  !# <calculationResetTask>
-  !#  <unitName>Tree_Node_Hot_Halo_Reset_Standard</unitName>
-  !# </calculationResetTask>
-\end{verbatim}
-Here, \mono{Tree\_Node\_Hot\_Halo\_Reset\_Standard} is the name of a subroutine which will be called to perform whatever tasks are required. The subroutine must have the following form:
-\begin{verbatim}
-   subroutine Reset_Task(thisNode)
-    implicit none
-    type(treeNode), pointer, intent(inout) :: thisNode
-    .
-    .
-    .
-    return
-  end subroutine Prederivative_Task
-\end{verbatim}
-where \mono{thisNode} is the node for which derivatives will be computed. Tasks typically involve precomputing quantities that will be used in finding the derivatives or resetting the state so that stored quantities will be recomputed as needed.
-
-\subsubsection{Galactic Component Density}\label{sec:GalacticComponentDensity}
-
-The function \mono{Galactic\_Structure\_Density()} computes the density of material at a given position within a node. To have their density counted, each component must register a task using:
-\begin{verbatim}
- !# <densityTask>
- !#  <unitName>Density_Procedure</unitName>
- !# </densityTask>
-\end{verbatim}
-where \mono{Density\_Procedure} is the name of a function with the following template
-\begin{verbatim}
- double precision function Density_Procedure(thisNode,position,coordinateSystem,componentType,massType,weightBy,weightIndex)
-    type(treeNode),   intent(inout), pointer  :: thisNode
-    integer,          intent(in)              :: massType,coordinateSystem,componentType,weightBy,weightIndex
-    double precision, intent(in)              :: radius
-    .
-    .
-    .
-    return
- end function Density_Procedure
-\end{verbatim}
-If \mono{componentType} is a match to the component then the function should return the density of the component matching type \mono{massType} at \mono{position} for \mono{thisNode}. \mono{componentType} and \mono{massType} can take one of the values described in \S\ref{sec:ComponentMassTypes}. In the above ``density'' can actually refer to different quantities depending on the values of \mono{weightBy} (and \mono{weightIndex}):
-\begin{description}
-\item [\mono{weightByMass}] The actual mass should be returned (the value of \mono{weightIndex} is irrelevant);
-\item [\mono{weightByLuminosity}] The \mono{weightIndex}$^\mathrm{th}$ luminosity should be returned.
-\end{description}
-
-\subsubsection{Galactic Component Enclosed Mass}
-
-The function \mono{Galactic\_Structure\_Enclosed\_Mass()} computes the mass within a specified radius in a node. To have their mass counted, each component must register a task using:
-\begin{verbatim}
- !# <enclosedMassTask>
- !#  <unitName>Enclosed_Mass_Procedure</unitName>
- !# </enclosedMassTask>
-\end{verbatim}
-where \mono{Enclosed\_Mass\_Procedure} is the name of a function with the following template
-\begin{verbatim}
- double precision function Enclosed_Mass_Procedure(thisNode,radius,componentType,massType,weightBy,weightIndex)
-    type(treeNode),   intent(inout), pointer  :: thisNode
-    integer,          intent(in)              :: massType,componentType,weightBy,weightIndex
-    double precision, intent(in)              :: radius
-    .
-    .
-    .
-    return
- end function Enclosed_Mass_Procedure
-\end{verbatim}
-If \mono{componentType} is a match to the component then the function should return the ``mass'' of the component matching type \mono{massType} within \mono{radius} for \mono{thisNode}.  \mono{componentType} and \mono{massType} can take one of the values described in \S\ref{sec:ComponentMassTypes}.
-If \mono{radius} is equal to or greater than \mono{radiusLarge} the routine should the total ``mass'' (i.e. ``mass'' within infinite radius). In the above ``mass'' can actually refer to different quantities depending on the values of \mono{weightBy} (and \mono{weightIndex}):
-\begin{description}
-\item [\mono{weightByMass}] The actual mass should be returned (the value of \mono{weightIndex} is irrelevant);
-\item [\mono{weightByLuminosity}] The \mono{weightIndex}$^\mathrm{th}$ luminosity should be returned.
-\end{description}
-
-\subsubsection{Galactic Component Rotation Curve}
-
-The function \mono{Galactic\_Structure\_Rotation\_Curve()} computes the rotation curve at a specified radius in a node. To have their contribution counted, each component must register a task using:
-\begin{verbatim}
- !# <rotationCurveTask>
- !#  <unitName>Rotation_Curve_Procedure</unitName>
- !# </rotationCurveTask>
-\end{verbatim}
-where \mono{Rotation\_Curve\_Procedure} is the name of a function with the following template
-\begin{verbatim}
- double precision function Rotation_Curve_Procedure(thisNode,radius,componentType,massType)
-    type(treeNode),   intent(inout), pointer  :: thisNode
-    integer,          intent(in)              :: massType,componentType
-    double precision, intent(in)              :: radius
-    .
-    .
-    .
-    return
- end function Rotation_Curve_Procedure
-\end{verbatim}
-If \mono{componentType} is a match to the component then the procedure should return the contribution to the rotation curve due to the component matching type \mono{massType} within \mono{radius} for \mono{thisNode}. \mono{componentType} and \mono{massType} can take one of the values described in \S\ref{sec:ComponentMassTypes}.
-
-\subsubsection{Galactic Component Rotation Curve Gradient}
-
-The function \mono{Galactic\_Structure\_Rotation\_Curve\_Gradient()} computes the gradient of the rotation curve at a specified radius in a node. To have their contribution counted, each component must register a task using:
-\begin{verbatim}
- !# <rotationCurveGradientTask>
- !#  <unitName>Rotation_Curve_Gradient_Procedure</unitName>
- !# </rotationCurveGradientTask>
-\end{verbatim}
-where \mono{Rotation\_Curve\_Gradient\_Procedure} is the name of a function with the following template
-\begin{verbatim}
- double precision function Rotation_Curve_Gradient_Procedure(thisNode,radius,componentType,massType)
-    type(treeNode),   intent(inout), pointer  :: thisNode
-    integer,          intent(in)              :: massType,componentType
-    double precision, intent(in)              :: radius
-    .
-    .
-    .
-    return
- end function Rotation_Curve_Gradient_Procedure
-\end{verbatim}
-If \mono{componentType} is a match to the component then the function should return the contribution to the gradient of $V_\mathrm{c}^2(r)$ due to the component matching type \mono{massType} within \mono{radius} for \mono{thisNode}. \emph{Note that this is the gradient of the square of the rotation curve to permit gradients to be directly summed.} \mono{componentType} and \mono{massType} can take one of the values described in \S\ref{sec:ComponentMassTypes}.
-
-\subsubsection{Galactic Component Potential}
-
-The function \mono{Galactic\_Structure\_Potential()} computes the potential at a specified radius in a node. To have their contribution counted, each component must register a task using:
-\begin{verbatim}
-  !# <potentialTask>
-  !#  <unitName>Potential_Task</unitName>
-  !# </potentialTask>
-\end{verbatim}
-where \mono{Potential\_Task} is the name of a function with the following template
-\begin{verbatim}
- double precision function Potential_Procedure(thisNode,radius,componentType,massType)
-    type(treeNode),   intent(inout), pointer   :: thisNode
-    integer,          intent(in),    optional  :: componentType  
-    double precision, intent(in)               :: radius
-    .
-    .
-    return
- end function Potential_Procedure
-\end{verbatim}
-If \mono{componentType} is a match to the component then the procedure should return the contribution to the rotation curve due to the component matching type \mono{massType} within \mono{radius} for \mono{thisNode}. \mono{componentType} and \mono{massType} can take one of the values described in \S\ref{sec:ComponentMassTypes}.
-
-\subsubsection{Galactic Component Surface Density}
-
-The function \mono{Galactic\_Structure\_Surface\_Density()} computes the surface density of material at a given position within a node. Note that while a 3-D position is specified the routine should return the surface density corresponding to integrating the component density through the minor axis (typically the $z$-axis). To have their surface density counted, each component must register a task using:
-\begin{verbatim}
- !# <surfaceDensityTask>
- !#  <unitName>Surface_Density_Procedure</unitName>
- !# </surfaceDensityTask>
-\end{verbatim}
-where \mono{Surface\_Density\_Procedure} is the name of a function with the following template
-\begin{verbatim}
- double precision function Surface_Density_Procedure(thisNode,position,coordinateSystem,componentType,massType)
-    type(treeNode),   intent(inout), pointer     :: thisNode
-    integer,          intent(in)                 :: massType,coordinateSystem,componentType
-    double precision, intent(in),    dimension(3):: position
-    .
-    .
-    .
-    return
- end function Surface_Density_Procedure
-\end{verbatim}
-If \mono{componentType} is a match to the component then the function should return the surface density of the component matching type \mono{massType} at \mono{position} for \mono{thisNode}. \mono{componentType} and \mono{massType} can take one of the values described in \S\ref{sec:ComponentMassTypes}.
-The coordinate system in which \mono{position} is specified is given by \mono{coordinateSystem} which can take on the following values:
-\begin{description}
- \item [\mono{coordinateSystemCartesian}] Cartesian $(x,y,z)$;
- \item [\mono{coordinateSystemSpherical}] Spherical $(r,\theta,\phi)$;
- \item [\mono{coordinateSystemCylindrical}] Cylindrical $(R,\phi,z)$.
-\end{description}
-
 \subsubsection{Halo Formation Events}\label{sec:HaloFormationEvents}\hyperdef{sec}{HaloFormationEvents}{}
 
 Tasks to be performed when a halo is deemed to have ``formed'' (or reformed) can be registered using the \mono{haloFormationTask} directive. For example, the \mono{Tree\_Node\_Methods\_Hot\_Halo} module registers a task using
 \begin{verbatim}
- !# <haloFormationTask>
- !#  <unitName>Hot_Halo_Formation_Task</unitName>
- !# </haloFormationTask>
+ !![
+ <haloFormationTask>
+   <unitName>Hot_Halo_Formation_Task</unitName>
+ </haloFormationTask>
+ !!]
 \end{verbatim}
 The contents of \mono{<unitName>} should give the name of the subroutine to be called on halo formation. The subroutine should have a single argument, \mono{thisNode}, which is the node that has (re)formed.
 
@@ -546,9 +365,11 @@ The contents of \mono{<unitName>} should give the name of the subroutine to be c
 
 Tasks to be performed just prior to closing the \glc\ output HDF5 file (typically involving writing accumulated data to that file) can be registered using the \mono{hdfPreCloseTask} directive. For example, the \mono{Merger\_Tree\_Timesteps\_History} module registers a task using
 \begin{verbatim}
- !# <hdfPreCloseTask>
- !#  <unitName>Merger_Tree_History_Write</unitName>
- !# </hdfPreCloseTask>
+ !![
+ <hdfPreCloseTask>
+   <unitName>Merger_Tree_History_Write</unitName>
+ </hdfPreCloseTask>
+ !!]
 \end{verbatim}
 The contents of \mono{<unitName>} should give the name of the subroutine to be called prior to HDF5 file closure. The subroutine should have no arguments.
 
@@ -556,9 +377,11 @@ The contents of \mono{<unitName>} should give the name of the subroutine to be c
 
 Extra outputs for merger trees (i.e. those which do not involve output of a fixed number of properties for every node---examples might be star formation histories for a subset of galaxies) can be added using the directive: \mono{mergerTreeExtraOutputTask}. The directive should give the name of the subroutine to be called to perform the task. A template for this task is:
 \begin{verbatim}
-  !# <mergerTreeExtraOutputTask>
-  !#  <unitName>Galacticus_Extra_Output_Example</unitName>
-  !# </mergerTreeExtraOutputTask>
+  !![
+  <mergerTreeExtraOutputTask>
+   <unitName>Galacticus_Extra_Output_Example</unitName>
+  </mergerTreeExtraOutputTask>
+  !!]
   subroutine Galacticus_Extra_Output_Example(thisNode,iOutput,treeIndex,nodePassesFilter)
     implicit none
     type(treeNode),          intent(inout), pointer :: thisNode
@@ -577,10 +400,12 @@ The subroutine will be called for each node in each merger tree at each output, 
 
 Additional outputs for merger trees can be added using three directives: \mono{mergerTreeOutputPropertyCount}, \mono{mergerTreeOutputNames} and \mono{mergerTreeOutputTask}. Each directive should give the name of the subroutine to be called to perform the task and, additionally, a name for sorting (this should be the same for all three directives and ensures that output tasks are always called in the correct order). Templates for these tasks are:
 \begin{verbatim}
-  !# <mergerTreeOutputNames>
-  !#  <unitName>Galacticus_Output_Tree_Example_Names</unitName>
-  !#  <sortName>Galacticus_Output_Tree_Example</sortName>
-  !# </mergerTreeOutputNames>
+  !![
+  <mergerTreeOutputNames>
+   <unitName>Galacticus_Output_Tree_Example_Names</unitName>
+   <sortName>Galacticus_Output_Tree_Example</sortName>
+  </mergerTreeOutputNames>
+  !!]
   subroutine Galacticus_Output_Tree_Example_Names(integerProperty,integerPropertyNames,integerPropertyComments,integerPropertyUnitsSI &
        &,doubleProperty,doublePropertyNames,doublePropertyComments,doublePropertyUnitsSI,time)
     implicit none
@@ -595,10 +420,12 @@ Additional outputs for merger trees can be added using three directives: \mono{m
     return
   end subroutine Galacticus_Output_Tree_Example_Names
 
-  !# <mergerTreeOutputPropertyCount>
-  !#  <unitName>Galacticus_Output_Tree_Example_Property_Count</unitName>
-  !#  <sortName>Galacticus_Output_Tree_Example</sortName>
-  !# </mergerTreeOutputPropertyCount>
+  !![
+  <mergerTreeOutputPropertyCount>
+   <unitName>Galacticus_Output_Tree_Example_Property_Count</unitName>
+   <sortName>Galacticus_Output_Tree_Example</sortName>
+  </mergerTreeOutputPropertyCount>
+  !!]
   subroutine Galacticus_Output_Tree_Example_Property_Count(integerPropertyCount,doublePropertyCount)
     implicit none
     integer, intent(inout) :: integerPropertyCount,doublePropertyCount
@@ -608,10 +435,12 @@ Additional outputs for merger trees can be added using three directives: \mono{m
     return
   end subroutine Galacticus_Output_Tree_Example_Property_Count
 
-  !# <mergerTreeOutputTask>
-  !#  <unitName>Galacticus_Output_Tree_Example</unitName>
-  !#  <sortName>Galacticus_Output_Tree_Example</sortName>
-  !# </mergerTreeOutputTask>
+  !![
+  <mergerTreeOutputTask>
+   <unitName>Galacticus_Output_Tree_Example</unitName>
+   <sortName>Galacticus_Output_Tree_Example</sortName>
+  </mergerTreeOutputTask>
+  !!]
   subroutine Galacticus_Output_Tree_Example(thisNode,integerProperty,integerBufferCount,integerBuffer,doubleProperty&
        &,doubleBufferCount,doubleBuffer)
     implicit none
@@ -632,9 +461,11 @@ before each property value is set. The value can then be stored in, for example,
 
 Additional tasks to be performed during merger tree initialization can be added using the \mono{mergerTreeInitializeTask} directive. The directive should contain a single argument, giving the name of a subroutine to be called to initialize the method. For example, the \mono{standard} basic component method uses this directive as follows:
 \begin{verbatim}
-  !# <mergerTreeInitializeTask>
-  !#  <unitName>Halo_Mass_Accretion_Rate</unitName>
-  !# </mergerTreeInitializeTask>
+  !![
+  <mergerTreeInitializeTask>
+   <unitName>Halo_Mass_Accretion_Rate</unitName>
+  </mergerTreeInitializeTask>
+  !!]
 \end{verbatim}
 Here, \mono{Halo\_Mass\_Accretion\_Rate} is the name of a subroutine which will be called to perform whatever tasks are required as a result of the merger. The subroutine must have the following form:
 \begin{verbatim}
@@ -653,9 +484,11 @@ where \mono{thisNode} is the node to be initialized. The subroutine will be call
 
 Additional methods for post-step tasks (i.e. things that should be done after each ODE solver step when evolving a node differentially) can be added using the \mono{postStepTask} directive. The directive should contain a single argument, giving the name of a subroutine to be called to perform the task. For example, the standard hot halo component adds a task as follows:
 \begin{verbatim}
-  !# <postStepTask>
-  !#  <unitName>Tree_Node_Hot_Halo_Poststep_Standard</unitName>
-  !# </postStepTask>
+  !![
+  <postStepTask>
+   <unitName>Tree_Node_Hot_Halo_Poststep_Standard</unitName>
+  </postStepTask>
+  !!]
 \end{verbatim}
 Here, \mono{Tree\_Node\_Hot\_Halo\_Poststep\_Standard} is the name of a subroutine which will be called to perform whatever tasks are required. The subroutine must have the following form:
 \begin{verbatim}
@@ -680,15 +513,19 @@ Galactic radii solver functions (see \refPhysics{galacticStructureSolver}) need 
 \end{enumerate}
 The  \mono{radiusSolverPlausibility} and \mono{radiusSolverTask} directives facilitate this. A component which has a radius to be solved for should include directives of the form:
 \begin{verbatim}
- !# <radiusSolverTask>
- !#  <unitName>Component_Radius_Solver_Plausibility</unitName>
- !# </radiusSolverTask>
+ !![
+ <radiusSolverTask>
+  <unitName>Component_Radius_Solver_Plausibility</unitName>
+ </radiusSolverTask>
+  !!]
 \end{verbatim}
 and
 \begin{verbatim}
- !# <radiusSolverTask>
- !#  <unitName>Component_Radius_Solver</unitName>
- !# </radiusSolverTask>
+ !![
+ <radiusSolverTask>
+  <unitName>Component_Radius_Solver</unitName>
+ </radiusSolverTask>
+  !!]
 \end{verbatim}
 where \mono{Component\_Radius\_Solver\_Plausibility} is the name of a subroutine which will specify whether or not the component is physically plausible for radius solving (e.g. has non-negative mass) and should have the following form:
 \begin{verbatim}
@@ -725,9 +562,11 @@ The galactic structure radii solver routines will use this information to determ
 
 Additional methods for satellite host change events (i.e. when a satellite node moves to a new host) can be added using the \mono{satelliteHostChangeTask} directive. The directive should contain a single argument, giving the name of a subroutine to be called to initialize the method. For example, the \mono{simple} satellite orbits components uses this directive as follows:
 \begin{verbatim}
-  !# <satelliteHostChangeTask>
-  !#  <unitName>Satellite_Orbit_New_Host</unitName>
-  !# </satelliteHostChangeTask>
+  !![
+  <satelliteHostChangeTask>
+   <unitName>Satellite_Orbit_New_Host</unitName>
+  </satelliteHostChangeTask>
+  !!]
 \end{verbatim}
 Here, \mono{Satellite\_Orbit\_New\_Host} is the name of a subroutine which will be called to perform whatever tasks are required as a result of the host change. The subroutine must have the following form:
 \begin{verbatim}

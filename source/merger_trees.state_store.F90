@@ -34,9 +34,7 @@ module Merger_Tree_State_Store
 contains
 
   !![
-  <stateStoreTask>
-   <unitName>mergerTreeStateStore</unitName>
-  </stateStoreTask>
+  <stateStoreTask function="mergerTreeStateStore"/>
   !!]
   subroutine mergerTreeStateStore(stateFile,gslStateFile,stateOperatorID)
     !!{
@@ -54,9 +52,7 @@ contains
   end subroutine mergerTreeStateStore
 
   !![
-  <stateRetrieveTask>
-   <unitName>mergerTreeStateRestore</unitName>
-  </stateRetrieveTask>
+  <stateRetrieveTask function="mergerTreeStateRestore"/>
   !!]
   subroutine mergerTreeStateRestore(stateFile,gslStateFile,stateOperatorID)
     !!{

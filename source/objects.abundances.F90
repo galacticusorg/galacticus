@@ -181,9 +181,7 @@ module Abundances_Structure
 contains
 
   !![
-  <nodeComponentInitializationTask>
-   <unitName>Abundances_Initialize</unitName>
-  </nodeComponentInitializationTask>
+  <nodeComponentInitializationTask function="Abundances_Initialize"/>
   !!]
   subroutine Abundances_Initialize(parameters_)
     !!{

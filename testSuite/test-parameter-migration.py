@@ -10,7 +10,7 @@ subprocess.run("mkdir -p outputs", shell=True)
 
 # Migrate the test parameter file.
 status = subprocess.run(
-    "cd ..; scripts/aux/parametersMigrate.pl testSuite/parameters/parameterMigration.xml testSuite/outputs/parameterMigrated.xml --lastModifiedRevision 6eab8997cd73cb0a474228ade542d133890ad138^",
+    "cd ..; ./scripts/aux/parametersMigrate.py testSuite/parameters/parameterMigration.xml testSuite/outputs/parameterMigrated.xml --lastModifiedRevision 6eab8997cd73cb0a474228ade542d133890ad138^",
     shell=True
 )
 if status.returncode == 0:

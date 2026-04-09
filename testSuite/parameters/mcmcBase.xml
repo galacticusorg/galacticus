@@ -1,10 +1,12 @@
-<?xml version="1.0" encoding="UTF-8"?>
+<?xml version='1.0' encoding='UTF-8'?>
 <!-- Default parameters for Galacticus v0.9.4 -->
+
 <!-- 30-October-2011                          -->
+
 <parameters>
   <!-- Parameters for tutorial on constraining Galacticus parameters - https://github.com/galacticusorg/galacticus/wiki/Tutorial%3A-Constraining-Galacticus-Parameters -->
   <formatVersion>2</formatVersion>
-  <lastModified revision="975fffd5aadf697707003f16bf9b4caee8ebe97d" time="2025-10-22T21:34:03"/>
+  <lastModified revision="551c092c6cfb98a955ac3631fb6dfbff1a5364f5" time="2026-04-02T18:27:58"/>
 
   <!-- Task and work control -->
   <task                   value="evolveForests"/>
@@ -113,6 +115,7 @@
       <excessHeatDrivesOutflow value="true"/>
       <rateMaximumExpulsion value="1.0"/>
     </nodeOperator>
+    <nodeOperator value="CGMOuterRadiusRamPressureStripping"/>
   </nodeOperator>
   
   <!-- Numerical tolerances -->
@@ -147,4 +150,4 @@
     <likelihoodBins                       value="9"      />
   </outputAnalysis>
 
-</parameters>
+<componentHotHalo value="standard"/></parameters>

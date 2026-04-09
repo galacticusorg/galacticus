@@ -1,7 +1,10 @@
-<?xml version="1.0" encoding="UTF-8"?>
+<?xml version='1.0' encoding='UTF-8'?>
 <!-- Defines a set of Galacticus models which explore exporting of merger trees. -->
+
 <!-- Andrew Benson                                                               -->
+
 <!-- 12-October-2012                                                             -->
+
 <parameterGrid>
   <emailReport>no</emailReport>
   <doAnalysis>no</doAnalysis>
@@ -16,7 +19,7 @@
   </pbs>
   <parameters>
     <formatVersion>2</formatVersion>
-    <lastModified revision="975fffd5aadf697707003f16bf9b4caee8ebe97d" time="2025-10-22T21:34:03"/>
+    <lastModified revision="551c092c6cfb98a955ac3631fb6dfbff1a5364f5" time="2026-04-02T18:27:58"/>
     <mergerTreeConstructor value="build">
       <mergerTreeOperator value="export" parameterLevel="top">
         <outputFileName value="testSuite/outputs/test-merger-tree-write/exportedTreesGLC.hdf5"/>

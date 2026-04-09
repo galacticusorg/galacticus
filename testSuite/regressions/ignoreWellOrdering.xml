@@ -1,11 +1,13 @@
-<?xml version="1.0" encoding="utf-8"?>
-
+<?xml version='1.0' encoding='UTF-8'?>
 <!-- Regression model to test the fix for unlinking of non-well-ordered branches. -->
+
 <!-- https://github.com/galacticusorg/galacticus/issues/955 -->
+
 <!-- efb1ffc430635a8c7fe807e00e0121d3715c7ece -->
+
 <parameters>
   <formatVersion>2</formatVersion>
-  <lastModified revision="3f3d9a2af2b05c0a279e4aa3602f89fd682665cc"/>
+  <lastModified revision="551c092c6cfb98a955ac3631fb6dfbff1a5364f5" time="2026-04-02T18:27:58"/>
 
   <!-- Specify tasks to perform -->
   <task value="evolveForests"/>

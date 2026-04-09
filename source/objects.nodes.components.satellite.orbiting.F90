@@ -141,9 +141,7 @@ module Node_Component_Satellite_Orbiting
 contains
 
   !![
-  <nodeComponentInitializationTask>
-   <unitName>Node_Component_Satellite_Orbiting_Initialize</unitName>
-  </nodeComponentInitializationTask>
+  <nodeComponentInitializationTask function="Node_Component_Satellite_Orbiting_Initialize"/>
   !!]
   subroutine Node_Component_Satellite_Orbiting_Initialize(parameters)
     !!{
@@ -206,9 +204,7 @@ contains
   end subroutine Node_Component_Satellite_Orbiting_Initialize
 
   !![
-  <nodeComponentThreadInitializationTask>
-   <unitName>Node_Component_Satellite_Orbiting_Thread_Initialize</unitName>
-  </nodeComponentThreadInitializationTask>
+  <nodeComponentThreadInitializationTask function="Node_Component_Satellite_Orbiting_Thread_Initialize"/>
   !!]
   subroutine Node_Component_Satellite_Orbiting_Thread_Initialize(parameters)
     !!{
@@ -252,9 +248,7 @@ contains
   end subroutine Node_Component_Satellite_Orbiting_Thread_Initialize
 
   !![
-  <nodeComponentThreadUninitializationTask>
-   <unitName>Node_Component_Satellite_Orbiting_Thread_Uninitialize</unitName>
-  </nodeComponentThreadUninitializationTask>
+  <nodeComponentThreadUninitializationTask function="Node_Component_Satellite_Orbiting_Thread_Uninitialize"/>
   !!]
   subroutine Node_Component_Satellite_Orbiting_Thread_Uninitialize()
     !!{
@@ -285,9 +279,7 @@ contains
   end subroutine Node_Component_Satellite_Orbiting_Thread_Uninitialize
 
   !![
-  <mergerTreeInitializeTask>
-   <unitName>Node_Component_Satellite_Orbiting_Tree_Initialize</unitName>
-  </mergerTreeInitializeTask>
+  <mergerTreeInitializeTask function="Node_Component_Satellite_Orbiting_Tree_Initialize"/>
   !!]
   subroutine Node_Component_Satellite_Orbiting_Tree_Initialize(node)
     !!{
@@ -309,9 +301,7 @@ contains
   end subroutine Node_Component_Satellite_Orbiting_Tree_Initialize
 
   !![
-  <scaleSetTask>
-   <unitName>Node_Component_Satellite_Orbiting_Scale_Set</unitName>
-  </scaleSetTask>
+  <scaleSetTask function="Node_Component_Satellite_Orbiting_Scale_Set"/>
   !!]
   subroutine Node_Component_Satellite_Orbiting_Scale_Set(node)
     !!{
@@ -387,9 +377,7 @@ contains
   end subroutine Node_Component_Satellite_Orbiting_Initializor
 
   !![
-  <nodeMergerTask>
-   <unitName>Node_Component_Satellite_Orbiting_Create</unitName>
-  </nodeMergerTask>
+  <nodeMergerTask function="Node_Component_Satellite_Orbiting_Create"/>
   !!]
   subroutine Node_Component_Satellite_Orbiting_Create(node)
     !!{
@@ -630,9 +618,7 @@ contains
   end subroutine Node_Component_Satellite_Orbiting_Bound_Mass_Initialize
 
   !![
-  <stateStoreTask>
-   <unitName>Node_Component_Satellite_Orbiting_State_Store</unitName>
-  </stateStoreTask>
+  <stateStoreTask function="Node_Component_Satellite_Orbiting_State_Store"/>
   !!]
   subroutine Node_Component_Satellite_Orbiting_State_Store(stateFile,gslStateFile,stateOperationID)
     !!{
@@ -653,9 +639,7 @@ contains
   end subroutine Node_Component_Satellite_Orbiting_State_Store
 
   !![
-  <stateRetrieveTask>
-   <unitName>Node_Component_Satellite_Orbiting_State_Restore</unitName>
-  </stateRetrieveTask>
+  <stateRetrieveTask function="Node_Component_Satellite_Orbiting_State_Restore"/>
   !!]
   subroutine Node_Component_Satellite_Orbiting_State_Restore(stateFile,gslStateFile,stateOperationID)
     !!{

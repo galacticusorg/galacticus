@@ -189,22 +189,7 @@ contains
     !!{
     Perform a deep copy of percolation virial density contrast objects.
     !!}
-    use :: Error             , only : Error_Report
-#ifdef OBJECTDEBUG
-    use :: MPI_Utilities     , only : mpiSelf
-#endif
-#ifdef OBJECTDEBUG
-    use :: Function_Classes  , only : debugReporting
-#endif
-#ifdef OBJECTDEBUG
-    use :: Display           , only : displayMessage, verbosityLevelSilent
-#endif
-#ifdef OBJECTDEBUG
-    use :: ISO_Varying_String, only : operator(//)  , var_str
-#endif
-#ifdef OBJECTDEBUG
-    use :: String_Handling   , only : operator(//)
-#endif
+    use :: Error, only : Error_Report
     implicit none
     class(*), intent(inout) :: self, destination
 
@@ -233,9 +218,6 @@ contains
                 self%darkMatterProfileDMO_%copiedSelf => destination%darkMatterProfileDMO_
                 call destination%darkMatterProfileDMO_%autoHook()
              end if
-#ifdef OBJECTDEBUG
-             if (debugReporting.and.mpiSelf%isMaster()) call displayMessage(var_str('functionClass[own] (class : ownerName : ownerLoc : objectLoc : sourceLoc): darkmatterprofiledmo_ : [destination] : ')//loc(destination)//' : '//loc(destination%darkmatterprofiledmo_)//' : '//{introspection:location:compact},verbosityLevelSilent)
-#endif
           end if
           if (associated(self%cosmologyParameters_)) then
              if (associated(self%cosmologyParameters_%copiedSelf)) then
@@ -252,9 +234,6 @@ contains
                 self%cosmologyParameters_%copiedSelf => destination%cosmologyParameters_
                 call destination%cosmologyParameters_%autoHook()
              end if
-#ifdef OBJECTDEBUG
-             if (debugReporting.and.mpiSelf%isMaster()) call displayMessage(var_str('functionClass[own] (class : ownerName : ownerLoc : objectLoc : sourceLoc): cosmologyparameters_ : [destination] : ')//loc(destination)//' : '//loc(destination%cosmologyParameters_)//' : '//{introspection:location:compact},verbosityLevelSilent)
-#endif
           end if
           if (associated(self%cosmologyFunctions_)) then
              if (associated(self%cosmologyFunctions_%copiedSelf)) then
@@ -271,9 +250,6 @@ contains
                 self%cosmologyFunctions_%copiedSelf => destination%cosmologyFunctions_
                 call destination%cosmologyFunctions_%autoHook()
              end if
-#ifdef OBJECTDEBUG
-             if (debugReporting.and.mpiSelf%isMaster()) call displayMessage(var_str('functionClass[own] (class : ownerName : ownerLoc : objectLoc : sourceLoc): cosmologyfunctions_ : [destination] : ')//loc(destination)//' : '//loc(destination%cosmologyFunctions_)//' : '//{introspection:location:compact},verbosityLevelSilent)
-#endif
           end if
           if (associated(self%darkMatterHaloScale_)) then
              if (associated(self%darkMatterHaloScale_%copiedSelf)) then
@@ -290,9 +266,6 @@ contains
                 self%darkMatterHaloScale_%copiedSelf => destination%darkMatterHaloScale_
                 call destination%darkMatterHaloScale_%autoHook()
              end if
-#ifdef OBJECTDEBUG
-             if (debugReporting.and.mpiSelf%isMaster()) call displayMessage(var_str('functionClass[own] (class : ownerName : ownerLoc : objectLoc : sourceLoc): darkmatterhaloscale_ : [destination] : ')//loc(destination)//' : '//loc(destination%darkMatterHaloScale_)//' : '//{introspection:location:compact},verbosityLevelSilent)
-#endif
           end if
           if (associated(self%darkMatterProfileConcentration_)) then
              if (associated(self%darkMatterProfileConcentration_%copiedSelf)) then
@@ -309,9 +282,6 @@ contains
                 self%darkMatterProfileConcentration_%copiedSelf => destination%darkMatterProfileConcentration_
                 call destination%darkMatterProfileConcentration_%autoHook()
              end if
-#ifdef OBJECTDEBUG
-             if (debugReporting.and.mpiSelf%isMaster()) call displayMessage(var_str('functionClass[own] (class : ownerName : ownerLoc : objectLoc : sourceLoc): darkmatterprofileconcentration_ : [destination] : ')//loc(destination)//' : '//loc(destination%darkMatterProfileConcentration_)//' : '//{introspection:location:compact},verbosityLevelSilent)
-#endif
           end if
           if (associated(self%darkMatterProfileShape_)) then
              if (associated(self%darkMatterProfileShape_%copiedSelf)) then
@@ -328,9 +298,6 @@ contains
                 self%darkMatterProfileShape_%copiedSelf => destination%darkMatterProfileShape_
                 call destination%darkMatterProfileShape_%autoHook()
              end if
-#ifdef OBJECTDEBUG
-             if (debugReporting.and.mpiSelf%isMaster()) call displayMessage(var_str('functionClass[own] (class : ownerName : ownerLoc : objectLoc : sourceLoc): darkmatterprofileshape_ : [destination] : ')//loc(destination)//' : '//loc(destination%darkMatterProfileShape_)//' : '//{introspection:location:compact},verbosityLevelSilent)
-#endif
           end if
        class default
           call Error_Report("destination must be of 'percolationObjects' class"//{introspection:location})

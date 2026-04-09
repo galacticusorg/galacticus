@@ -25,6 +25,8 @@ my $workDirectoryName       = $ENV{'BUILDPATH'}."/";
 my $xml                     = new XML::Simple();
 # Load the file of directive locations.
 my $locations               = -e $workDirectoryName."directiveLocations.xml" ? $xml->XMLin($workDirectoryName."directiveLocations.xml") : undef();
+# Load the file of state storables.
+my $stateStorables          = -e $workDirectoryName."stateStorables.xml"     ? $xml->XMLin($workDirectoryName."stateStorables.xml"    ) : undef();
 # List of external modules (which will be ignored for dependency analysis of the source code).
 my @externalModules = ( "omp_lib", "hdf5", "h5tb", "h5lt", "h5global", "h5fortran_types", "fox_common", "fox_dom", "fox_wxml", "fox_utils", "mpi", "mpi_f08" );
 # Modules that require a library to be linked. These are key-value pairs with the key being the module name, and the value the
@@ -81,6 +83,7 @@ while ( my $line = <$compilerDefs> ) {
     my @columns = split(" ",$line);
     push(@preprocessorDirectives,$columns[1]);
 }
+close($compilerDefs);
 
 # Initialize structure to hold record of directives from each source file.
 my $usesPerFile;
@@ -177,7 +180,7 @@ foreach my $sourceFile ( @sourceFilesToProcess ) {
     # Extract lists of directives from this file which require special handling.
     my $directives;
     @{$directives->{$_}} = &Galacticus::Build::Directives::Extract_Directives($sourceFile->{'fullPathFileName'},$_)
-	foreach ( "functionClass", "inputParameter", "enumeration", "eventHook", "eventHookStatic", "eventHookManager" );
+	foreach ( "functionClass", "inputParameter", "enumeration", "eventHook", "eventHookStatic", "eventHookManager", "functionsGlobal" );
     # Special handling for functionClass directives - add implementation files to the list of files to scan.
     if ( scalar(@{$directives->{'functionClass'}}) > 0 ) {
 	foreach my $functionClass ( @{$directives->{'functionClass'}} ) {
@@ -209,19 +212,66 @@ foreach my $sourceFile ( @sourceFilesToProcess ) {
 	($usesPerFile->{'eventHooksManager'}->{'objectFileName'} = $workSubDirectoryName.$sourceFile    ->{'fileName'}) =~ s/\.(f|f90|c|cpp)$/.o/i;
 	$usesPerFile ->{'eventHooksManager'}->{'fileIdentifier'} =                       $fileIdentifier                                          ;
     }
+    if ( scalar(@{$directives->{'functionsGlobal'}}) > 0 ) {
+	if ( grep {$_->{'type'} eq "pointers"} @{$directives->{'functionsGlobal'}} ) {
+	    push(@{$usesPerFile->{$fileIdentifier}->{'modulesUsed'}},$workDirectoryName."error.mod",$workDirectoryName."input_parameters.mod");
+	    foreach ( map {&Galacticus::Build::Directives::Extract_Directives($_,'functionGlobal')} &List::ExtraUtils::as_array($locations->{'functionGlobal'}->{'file'}) ) {
+		if ( exists($_->{'module'}) ) {
+		    foreach my $module ( &List::ExtraUtils::as_array($_->{'module'}) ) {
+			if ( $module =~ m/^([a-zA-Z0-9_]+)/ ) {
+			    push(@{$usesPerFile->{$fileIdentifier}->{'modulesUsed'}},$workDirectoryName.lc($1).".mod")
+				unless ( lc($1) eq "iso_c_binding" );
+			}
+		    }
+		}
+	    }
+	}
+	if ( grep {$_->{'type'} eq "establish"} @{$directives->{'functionsGlobal'}} ) {
+	    foreach my $functionGlobalFile ( &List::ExtraUtils::as_array($locations->{'functionGlobal'}->{'file'}) ) {
+		my $moduleName;
+		my $functionClassName;
+		open(my $file,$functionGlobalFile) or die "Can't open input file: $functionGlobalFile";
+		while (my $line = <$file>) {
+		    if ( $line =~ m/^\s*module\s+([a-zA-Z0-9_]+)/ && $line !~ m/^\s*module\s+procedure\s+([a-zA-Z0-9_]+)/ ) {
+			$moduleName = $1;
+			last;
+		    }
+		    if ( $line =~ m/^\s*<(\S+)/ ) {
+			my $elementName = $1;
+			$functionClassName = $elementName."Class"
+			    if ( defined($stateStorables) && exists(${$stateStorables->{'functionClasses'}}{$elementName."Class"}) );
+		    }
+		}
+		close($file);
+		$moduleName = ${$stateStorables->{'functionClasses'}}{$functionClassName}->{'module'}
+		    if ( ! defined($moduleName) && defined($functionClassName) );
+		die("useDependencies.pl: unable to locate containing module for global function in file '".$functionGlobalFile."'")
+		    unless ( defined($moduleName) );
+		push(@{$usesPerFile->{$fileIdentifier}->{'modulesUsed'}},$workDirectoryName.lc($moduleName).".mod");
+	    }
+	}
+    }
     # Accumulate dependencies for static event hook modules.
     if ( scalar(@{$directives->{'eventHookStatic'}}) > 0  ) {
 	foreach my $eventHookStatic ( @{$directives->{'eventHookStatic'}} ) {
 	    foreach my $eventHookedStaticFile ( &List::ExtraUtils::as_array($locations->{$eventHookStatic->{'name'}}->{'file'}) ) {
 		my $moduleName;
+		my $functionClassName;
 		open(my $file,$eventHookedStaticFile) or die "Can't open input file: $eventHookedStaticFile";
 		while (my $line = <$file>) {
-		    if ( $line =~ m/^\s*module\s+([a-zA-Z0-9_]+)/ ) {
+		    if ( $line =~ m/^\s*module\s+([a-zA-Z0-9_]+)/ && $line !~ m/^\s*module\s+procedure\s+([a-zA-Z0-9_]+)/ ) {
 			$moduleName = $1;
 			last;
 		    }
+		    if ( $line =~ m/^\s*<(\S+)/ ) {
+			my $elementName = $1;
+			$functionClassName = $elementName."Class"
+			    if ( exists(${$stateStorables->{'functionClasses'}}{$elementName."Class"}) );
+		    }
 		}
 		close($file);
+		$moduleName = ${$stateStorables->{'functionClasses'}}{$functionClassName}->{'module'}
+		    if ( ! defined($moduleName) && defined($functionClassName) );
 		die("useDependencies.pl: unable to locate containing module for static event '".$eventHookStatic->{'name'}."' in file '".$eventHookedStaticFile."'")
 		    unless ( defined($moduleName) );
 		push(@{$usesPerFile->{$fileIdentifier}->{'modulesUsed'}},$workDirectoryName.lc($moduleName).".mod");

@@ -26,7 +26,7 @@ Types and ranks of allocatable arrays required by the \glc\ are discovered by th
 
 \subsubsection{Executable Files}\index{files!executable}\index{executable files}\label{sec:buildExecutables}
 
-Files which produce executables (including the \mono{Galacticus.exe} executable) are discovered by the \mono{scripts/build/findExecutables.pl}\index{findExecutables.pl@\mono{findExecutables.pl}} script, which generates rules describing how these files should be built, along with all of their dependencies, and writes them to \mono{\$(BUILDPATH)/Makefile\_All\_Execs}\index{Makefile_All_Execs@\mono{Makefile\_All\_Execs}}. All Fortran files in the \mono{source} directory are parsed, and executable files are identified as those containing a \mono{program} statement. All executables so identified are also added to the list of objects that will be built by \mono{make all}.
+Files which produce executables (including the \mono{Galacticus.exe} executable) are discovered by the \mono{scripts/build/findExecutables.py}\index{findExecutables.py@\mono{findExecutables.py}} script, which generates rules describing how these files should be built, along with all of their dependencies, and writes them to \mono{\$(BUILDPATH)/Makefile\_All\_Execs}\index{Makefile_All_Execs@\mono{Makefile\_All\_Execs}}. All Fortran files in the \mono{source} directory are parsed, and executable files are identified as those containing a \mono{program} statement. All executables so identified are also added to the list of objects that will be built by \mono{make all}.
 
 \subsubsection{Modules Provided}\index{modules!provided}\index{provided modules}\label{sec:buildModulesProvided}
 
@@ -36,7 +36,7 @@ Additionally, rules are generated which describe how to build the following clas
 \begin{description}
 \item[\mono{*.mod.d}] Contains a list of all object files upon which the module depends. Used in constructing the final set of objects which must be linked to build an executable.
 \item[\mono{*.mod.gv}] Contains a list of all source files upon which the module depends. Used in constructing \gls{graphviz} visualizations of dependencies.
-\item[\mono{*.m}] Contains a list of all modules provided by the corresponding object file. Used when building object files to test whether corresponding module files have been changed---allows avoidance of recompilation cascades if modules do not need to be updated (i.e. if the modules do not differ as judged by the \mono{scripts/build/compareModules.pl}\index{findExecutables.pl@\mono{compareModules.pl}} script).
+\item[\mono{*.m}] Contains a list of all modules provided by the corresponding object file. Used when building object files to test whether corresponding module files have been changed---allows avoidance of recompilation cascades if modules do not need to be updated (i.e. if the modules do not differ).
 \end{description}
 
 \subsubsection{Modules Used}\index{modules!used}\index{used modules}\label{sec:buildModulesUsed}
@@ -52,7 +52,7 @@ Additionally, rules are generated which describe how to build the following clas
 
 \subsubsection{Included Files}\index{files!include}\index{include files}\label{sec:buildIncludeDeps}
 
-Dependencies on files due to the use of ``\mono{include}'' statements (in both Fortran and C source files) are discovered by the \mono{scripts/build/includeDependencies.pl}\index{includeDependencies.pl@\mono{includeDependencies.pl}} script, which generates rules describing these dependencies and writes them to \mono{\$(BUILDPATH)/Makefile\_Include\_Dependencies}\index{Makefile_Include_Dependencies@\mono{Makefile\_Include\_Dependencies}}.
+Dependencies on files due to the use of ``\mono{include}'' statements (in both Fortran and C source files) are discovered by the \mono{scripts/build/includeDependencies.py}\index{includeDependencies.py@\mono{includeDependencies.py}} script, which generates rules describing these dependencies and writes them to \mono{\$(BUILDPATH)/Makefile\_Include\_Dependencies}\index{Makefile_Include_Dependencies@\mono{Makefile\_Include\_Dependencies}}.
 
 All Fortran and C/C++ source files in the \mono{source} directory are parsed. Files specified in any include statement in a source file are added as a dependency of that source file if unless the source file is C/C++ and the named include file can be found in either \mono{source/}, a standard system include path, or in any include path specified in the \mono{GALACTICUS\_CFLAGS}\index{environment variables!GALACTICUS_CFLAGS@\mono{GALACTICUS\_CFLAGS}}\index{GALACTICUS_CFLAGS@\mono{GALACTICUS\_CFLAGS}} or \mono{GALACTICUS\_CPPFLAGS}\index{environment variables!GALACTICUS_CPPFLAGS@\mono{GALACTICUS\_CPPFLAGS}}\index{GALACTICUS_CPPFLAGS@\mono{GALACTICUS\_CPPFLAGS}} environment variables.
 
@@ -78,7 +78,7 @@ Generation of code to implement the functionality of \mono{include} directives i
 
 Before being compiled, all Fortran source files are passed through a tree-based preprocessor. The functionality of this preprocessor is described in \S\ref{sec:sourceTreePreprocessor}. The preprocessor is invoked on each source file by the \mono{preprocess.pl}\index{preprocess.pl@\mono{preprocess.pl}} script, which takes a \mono{source/*.F90} file as input and outputs a preprocessed file \mono{\$(BUILDPATH)/*.p.F90}.
 
-Output from the \mono{gfortran} compiler is directed through the \mono{postprocess.pl}\index{postprocess.pl@\mono{postprocess.pl}} script. This script currently performs the following functions:
+Output from the \mono{gfortran} compiler is directed through the \mono{postprocess.py}\index{postprocess.py@\mono{postprocess.py}} script. This script currently performs the following functions:
 \begin{itemize}
 \item Builds a map from line numbers in the preprocessed source file back to line numbers in the unpreprocessed source, and translates line numbers in any error or warnings messages from the compiler into line numbers in the unpreprocessed source;
 \item Filters out incorrect warning messages about the lack of scalar finalizers (see GCC \href{https://gcc.gnu.org/bugzilla/show_bug.cgi?id=58175}{PR58175});
@@ -97,15 +97,13 @@ All files involved in the build process are summarized below.
 
 \item[\mono{scripts/build/codeDirectivesParse.pl}\index{codeDirectivesParse.pl@\mono{codeDirectivesParse.pl}}:] Discovers and parses directives embedded in source files. Generates \mono{make} rules for the resulting dependencies, a file providing a mapping of which files contain each directive, and rule files describing how to build each include file resulting from a \mono{include} directive;
 
-\item[\mono{scripts/build/compareModuleFiles.pl}\index{compareModuleFiles.pl@\mono{compareModuleFiles.pl}}:] Tests whether two Fortran module files are identical (ignoring timestamp information). Used to avoid updating modules when not necessary and so avoids recompilation cascades;
-
-\item[\mono{scripts/build/includeDependencies.pl}\index{includeDependencies.pl@\mono{includeDependencies.pl}}:] Discovers (and generates rules for) dependencies between files arising from the use of ``\mono{include}'' statements (see \S\ref{sec:buildIncludeDeps});
+\item[\mono{scripts/build/includeDependencies.py}\index{includeDependencies.py@\mono{includeDependencies.py}}:] Discovers (and generates rules for) dependencies between files arising from the use of ``\mono{include}'' statements (see \S\ref{sec:buildIncludeDeps});
   
 \item[\mono{scripts/build/executableSize.pl\index{executableSize.pl@\mono{executableSize.pl}}}:] Generates a file containing details of the size of each generated executable which can be used at runtime for memory reporting (see \S\ref{sec:buildExecutables});
 
-\item[\mono{scripts/build/findExecutables.pl\index{findExecutables.pl@\mono{findExecutables.pl}}}:] Discovers (and generates rules for) files which generate executables (see \S\ref{sec:buildExecutables});
+\item[\mono{scripts/build/findExecutables.py\index{findExecutables.py@\mono{findExecutables.py}}}:] Discovers (and generates rules for) files which generate executables (see \S\ref{sec:buildExecutables});
 
-\item[\mono{scripts/build/libraryDependencies.pl}\index{libraryDependencies.pl@\mono{libraryDependencies.pl}}:] Determines the set of libraries that must be linked with each executable, and ensures they are ordered correctly for static linking;
+\item[\mono{scripts/build/libraryDependencies.py}\index{libraryDependencies.py@\mono{libraryDependencies.py}}:] Determines the set of libraries that must be linked with each executable, and ensures they are ordered correctly for static linking;
 
 \item[\mono{scripts/build/memoryManagementFunctions.pl}\index{memoryManagementFunctions.pl@\mono{memoryManagementFunctions.pl}}:] Generates memory allocation/deallocation functions for allocatable intrinsic arrays (see \S\ref{sec:buildGenerationMemory});
 
@@ -113,19 +111,19 @@ All files involved in the build process are summarized below.
 
 \item[\mono{scripts/build/parameterDependencies.pl}\index{parameterDependencies.pl@\mono{parameterDependencies.pl}}:] Determines all parameters upon which a given executable depends (see \S\ref{sec:parameterDependencies});
 
-\item[\mono{scripts/build/postprocess.pl}\index{postprocess.pl@\mono{postprocess.pl}}:] Postprocesses the output of the \mono{gfortran} compiler to remove spurious warnings and provide line numbers in warning/error reports that point into the unpreprocessed source files (see \S\ref{sec:codeBuildPrePostProcess});
+\item[\mono{scripts/build/postprocess.py}\index{postprocess.py@\mono{postprocess.py}}:] Postprocesses the output of the \mono{gfortran} compiler to remove spurious warnings and provide line numbers in warning/error reports that point into the unpreprocessed source files (see \S\ref{sec:codeBuildPrePostProcess});
 
 \item[\mono{scripts/build/preprocess.pl}\index{preprocess.pl@\mono{preprocess.pl}}:] Preprocesses Fortran source code to provide various extended functionality (see \S\ref{sec:codeBuildPrePostProcess});
 
 \item[\mono{scripts/build/useDependencies.pl}\index{useDependencies.pl@\mono{useDependencies.pl}}:] Discovers (and generates rules for) dependencies between files originating from module \mono{use} statements (see \S\ref{sec:buildModulesUsed});
   
-\item[\mono{\$(BUILDPATH)/Makefile\_All\_Execs}\index{Makefile_All_Execs@\mono{Makefile\_All\_Execs}}:] Contains rules describing how to build the executable file for each distinct program---generated by \mono{scripts/build/findExecutables.pl}\index{findExecutables.pl@\mono{findExecutables.pl}} (see \S\ref{sec:buildExecutables});
+\item[\mono{\$(BUILDPATH)/Makefile\_All\_Execs}\index{Makefile_All_Execs@\mono{Makefile\_All\_Execs}}:] Contains rules describing how to build the executable file for each distinct program---generated by \mono{scripts/build/findExecutables.py}\index{findExecutables.py@\mono{findExecutables.py}} (see \S\ref{sec:buildExecutables});
 
 \item[\mono{\$(BUILDPATH)/Makefile\_Component\_Includes}\index{Makefile_Component_Includes@\mono{Makefile\_Component\_Includes}}:] Describes dependencies on the \mono{nodeComponent} class hierarchy module on include files which implement specific functionality for individual node component implementations;
   
 \item[\mono{\$(BUILDPATH)/Makefile\_Directives}\index{Makefile_Directives@\mono{Makefile\_Directives}}:] Describes rules for building include files for \mono{include} directives;
 
-\item[\mono{\$(BUILDPATH)/Makefile\_Include\_Dependencies}\index{Makefile_Include_Dependencies@\mono{Makefile\_Include\_Dependencies}}:] Contains rules describing the dependencies of source file on files included via ``\mono{include}'' statements---generated by \mono{scripts/build/includeDependencies.pl}\index{includeDependencies.pl@\mono{includeDependencies.pl}} (see \S\ref{sec:buildIncludeDeps});
+\item[\mono{\$(BUILDPATH)/Makefile\_Include\_Dependencies}\index{Makefile_Include_Dependencies@\mono{Makefile\_Include\_Dependencies}}:] Contains rules describing the dependencies of source file on files included via ``\mono{include}'' statements---generated by \mono{scripts/build/includeDependencies.py}\index{includeDependencies.py@\mono{includeDependencies.py}} (see \S\ref{sec:buildIncludeDeps});
 
 \item[\mono{\$(BUILDPATH)/Makefile\_Module\_Dependencies}\index{Makefile_Module_Dependencies@\mono{Makefile\_Module\_Dependencies}}:] Contains rules which describe how to build module files from their source files (see \S\ref{sec:buildModulesProvided});
 

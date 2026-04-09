@@ -172,7 +172,7 @@ class SLURMManager(QueueManager):
                     fileBatch.write('#!/bin/bash\n')
                     for option in job:
                         if option in optionMap:
-                            suffix = "M" if re.match("^mem\-",optionMap[option],) else ""
+                            suffix = "M" if re.match(r"^mem\-",optionMap[option],) else ""
                             fileBatch.write(f'#SBATCH --{optionMap[option]}={job[option]}{suffix}\n')
                     fileBatch.write(f'ulimit -t unlimited\n')
                     fileBatch.write(f'ulimit -c unlimited\n')
@@ -189,7 +189,7 @@ class SLURMManager(QueueManager):
                         if sbatch.returncode == 0:
                             submitSuccess = True
                             # Extract the job ID.
-                            match = re.search("\d+", sbatch.stdout)
+                            match = re.search(r"\d+", sbatch.stdout)
                             if match:
                                 job['jobID'] = match.group(0)
                                 job['state'] = "PENDING"

@@ -36,6 +36,7 @@
      procedure :: densityGradientRadial => zeroDensityGradientRadial
      procedure :: densityRadialMoment   => zeroDensityRadialMoment
      procedure :: massEnclosedBySphere  => zeroMassEnclosedBySphere
+     procedure :: surfaceDensity        => zeroSurfaceDensity
      procedure :: rotationCurve         => zeroRotationCurve
      procedure :: rotationCurveGradient => zeroRotationCurveGradient
      procedure :: potentialIsAnalytic   => zeroPotentialIsAnalytic
@@ -146,6 +147,19 @@ contains
     zeroMassEnclosedBySphere=0.0d0
     return
   end function zeroMassEnclosedBySphere
+
+  double precision function zeroSurfaceDensity(self,coordinates)
+    !!{
+    Return the surface density at the specified \mono{coordinates} in a zero distribution.
+    !!}
+    implicit none
+    class(massDistributionZero), intent(inout) :: self
+    class(coordinate          ), intent(in   ) :: coordinates
+    !$GLC attributes unused :: self, coordinates
+
+    zeroSurfaceDensity=0.0d0
+    return
+  end function zeroSurfaceDensity
 
   double precision function zeroRotationCurve(self,radius)
     !!{

@@ -77,9 +77,7 @@ module Node_Component_Disk_Very_Simple_Size
 contains
 
   !![
-  <nodeComponentInitializationTask>
-   <unitName>Node_Component_Disk_Very_Simple_Size_Initialize</unitName>
-  </nodeComponentInitializationTask>
+  <nodeComponentInitializationTask function="Node_Component_Disk_Very_Simple_Size_Initialize"/>
   !!]
   subroutine Node_Component_Disk_Very_Simple_Size_Initialize(parameters)
     !!{
@@ -108,9 +106,7 @@ contains
   end subroutine Node_Component_Disk_Very_Simple_Size_Initialize
   
   !![
-  <nodeComponentThreadInitializationTask>
-   <unitName>Node_Component_Disk_Very_Simple_Size_Thread_Initialize</unitName>
-  </nodeComponentThreadInitializationTask>
+  <nodeComponentThreadInitializationTask function="Node_Component_Disk_Very_Simple_Size_Thread_Initialize"/>
   !!]
   subroutine Node_Component_Disk_Very_Simple_Size_Thread_Initialize(parameters)
     !!{
@@ -162,9 +158,7 @@ contains
   end subroutine Node_Component_Disk_Very_Simple_Size_Thread_Initialize
 
   !![
-  <nodeComponentThreadUninitializationTask>
-   <unitName>Node_Component_Disk_Very_Simple_Size_Thread_Uninitialize</unitName>
-  </nodeComponentThreadUninitializationTask>
+  <nodeComponentThreadUninitializationTask function="Node_Component_Disk_Very_Simple_Size_Thread_Uninitialize"/>
   !!]
   subroutine Node_Component_Disk_Very_Simple_Size_Thread_Uninitialize()
     !!{
@@ -184,9 +178,7 @@ contains
   end subroutine Node_Component_Disk_Very_Simple_Size_Thread_Uninitialize
 
   !![
-  <radiusSolverPlausibility>
-   <unitName>Node_Component_Disk_Very_Simple_Size_Radius_Solver_Plausibility</unitName>
-  </radiusSolverPlausibility>
+  <radiusSolverPlausibility function="Node_Component_Disk_Very_Simple_Size_Radius_Solver_Plausibility"/>
   !!]
   subroutine Node_Component_Disk_Very_Simple_Size_Radius_Solver_Plausibility(node)
     !!{
@@ -210,9 +202,7 @@ contains
   end subroutine Node_Component_Disk_Very_Simple_Size_Radius_Solver_Plausibility
 
   !![
-  <radiusSolverTask>
-   <unitName>Node_Component_Disk_Very_Simple_Size_Radius_Solver</unitName>
-  </radiusSolverTask>
+  <radiusSolverTask function="Node_Component_Disk_Very_Simple_Size_Radius_Solver"/>
   !!]
   subroutine Node_Component_Disk_Very_Simple_Size_Radius_Solver(node,componentActive,component,specificAngularMomentumRequired,specificAngularMomentum,Radius_Get&
        &,Radius_Set,Velocity_Get,Velocity_Set)
@@ -316,9 +306,7 @@ contains
   end subroutine Node_Component_Disk_Very_Simple_Size_Velocity_Set
 
   !![
-  <stateStoreTask>
-   <unitName>Node_Component_Disk_Very_Simple_Size_State_Store</unitName>
-  </stateStoreTask>
+  <stateStoreTask function="Node_Component_Disk_Very_Simple_Size_State_Store"/>
   !!]
   subroutine Node_Component_Disk_Very_Simple_Size_State_Store(stateFile,gslStateFile,stateOperationID)
     !!{
@@ -340,9 +328,7 @@ contains
   end subroutine Node_Component_Disk_Very_Simple_Size_State_Store
 
   !![
-  <stateRetrieveTask>
-   <unitName>Node_Component_Disk_Very_Simple_Size_State_Retrieve</unitName>
-  </stateRetrieveTask>
+  <stateRetrieveTask function="Node_Component_Disk_Very_Simple_Size_State_Retrieve"/>
   !!]
   subroutine Node_Component_Disk_Very_Simple_Size_State_Retrieve(stateFile,gslStateFile,stateOperationID)
     !!{

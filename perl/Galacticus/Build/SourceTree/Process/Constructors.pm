@@ -22,8 +22,6 @@ sub Process_Constructors {
     my $xml   = new XML::Simple();
     # Initialize state storables database.
     my $stateStorables;
-    # Determine if debugging output is required.
-    my $debugging = exists($ENV{'GALACTICUS_OBJECTS_DEBUG'}) && $ENV{'GALACTICUS_OBJECTS_DEBUG'} eq "yes";
     # Walk the tree, looking for code blocks.
     my $node  = $tree;
     my $depth = 0;
@@ -111,11 +109,6 @@ sub Process_Constructors {
 			$assignmentSource .= "   if (associated(".$returnValueLabel."%".$argumentName.")) "
 			    if ( $isPointer );
 			$assignmentSource .= " call ".$returnValueLabel."%".$argumentName."%referenceCountIncrement()\n";
-			if ( $debugging ) {
-			    $assignmentSource .= "   if (debugReporting.and.mpiSelf\%isMaster()) then\n";
-			    $assignmentSource .= "   ".$optional." call displayMessage(var_str('functionClass[own] (class : ownerName : ownerLoc : objectLoc : sourceLoc): [".$argumentName."] : ".$returnValueLabel." : ')//debugStackGet()//' : '//loc(".$returnValueLabel."%".$argumentName.")//' : '//".&Galacticus::Build::SourceTree::Process::SourceIntrospection::Location($node,$node->{'line'},compact => 1).",verbosityLevelSilent)\n";
-			    $assignmentSource .= "   end if\n";
-			}
 			$assignmentSource .= "   end if\n"
 			    unless ( $optional eq "" );
 		    } elsif ( $declaration->{'type'} eq "*" ) {
@@ -126,11 +119,6 @@ sub Process_Constructors {
 			$assignmentSource .= "select type(s__ => ".$returnValueLabel."%".$argumentName.")\n";
 			$assignmentSource .= "class is (functionClass)\n";
 			$assignmentSource .= " call s__%referenceCountIncrement()\n";
-			if ( $debugging ) {
-			    $assignmentSource .= "   if (debugReporting.and.mpiSelf\%isMaster()) then\n";
-			    $assignmentSource .= "   ".$optional." call displayMessage(var_str('functionClass[own] (class : ownerName : ownerLoc : objectLoc : sourceLoc): [".$argumentName."] : ".$returnValueLabel." : ')//debugStackGet()//' : '//loc(".$returnValueLabel."%".$argumentName.")//' : '//".&Galacticus::Build::SourceTree::Process::SourceIntrospection::Location($node,$node->{'line'},compact => 1).",verbosityLevelSilent)\n";
-			    $assignmentSource .= "   end if\n";
-			}
 			$assignmentSource .= "end select\n";
 			$assignmentSource .= "   end if\n"
 			    if ( $isPointer );
@@ -152,42 +140,6 @@ sub Process_Constructors {
 	    };
 	    # Insert the node.
 	    &Galacticus::Build::SourceTree::InsertAfterNode($node,[$newNode]);
-	    # Add modules for debugging.
-	    if ( $debugging ) {
-		my $usesNode =
-		{
-		    type      => "moduleUse",
-		    moduleUse =>
-		    {
-			MPI_Utilities =>
-			{
-			    intrinsic => 0,
-			    all       => 1
-			},
-			Display =>
-			{
-			    intrinsic => 0,
-			    all       => 1
-			},
-			String_Handling    =>
-			{
-			    intrinsic => 0,
-			    all       => 1
-			},
-			ISO_Varying_String =>
-			{
-			    intrinsic => 0,
-			    all       => 1
-			},
-			Function_Classes   =>
-			{
-			    intrinsic => 0,
-			    all       => 1
-			},
-		    }
-		};
-		&Galacticus::Build::SourceTree::Parse::ModuleUses::AddUses($node->{'parent'},$usesNode);
-	    }
 	}
 	$node = &Galacticus::Build::SourceTree::Walk_Tree($node,\$depth);
     }

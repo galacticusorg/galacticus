@@ -174,9 +174,7 @@ module Stellar_Luminosities_Structure
 contains
 
   !![
-  <nodeComponentInitializationTask>
-   <unitName>Stellar_Luminosities_Initializor</unitName>
-  </nodeComponentInitializationTask>
+  <nodeComponentInitializationTask function="Stellar_Luminosities_Initializor" after="Stellar_Luminosities_Initialize"/>
   !!]
   subroutine Stellar_Luminosities_Initializor(parameters)
     !!{
@@ -434,9 +432,7 @@ contains
   end subroutine Stellar_Luminosities_Initializor
   
   !![
-  <nodeComponentThreadInitializationTask>
-   <unitName>Stellar_Luminosities_Thread_Initializor</unitName>
-  </nodeComponentThreadInitializationTask>
+  <nodeComponentThreadInitializationTask function="Stellar_Luminosities_Thread_Initializor"/>
   !!]
   subroutine Stellar_Luminosities_Thread_Initializor(parameters)
     use :: Input_Parameters, only : inputParameters
@@ -450,9 +446,7 @@ contains
   end subroutine Stellar_Luminosities_Thread_Initializor
   
   !![
-  <nodeComponentThreadUninitializationTask>
-   <unitName>Stellar_Luminosities_Thread_Uninitializor</unitName>
-  </nodeComponentThreadUninitializationTask>
+  <nodeComponentThreadUninitializationTask function="Stellar_Luminosities_Thread_Uninitializor"/>
   !!]
   subroutine Stellar_Luminosities_Thread_Uninitializor()
     implicit none
@@ -1839,9 +1833,7 @@ contains
   end subroutine Stellar_Luminosities_Parameter_Map_Double
 
   !![
-  <stateStoreTask>
-   <unitName>Stellar_Luminosities_State_Store</unitName>
-  </stateStoreTask>
+  <stateStoreTask function="Stellar_Luminosities_State_Store"/>
   !!]
   subroutine Stellar_Luminosities_State_Store(stateFile,gslStateFile,stateOperationID)
     !!{
@@ -1875,9 +1867,7 @@ contains
   end subroutine Stellar_Luminosities_State_Store
 
   !![
-  <stateRetrieveTask>
-   <unitName>Stellar_Luminosities_State_Restore</unitName>
-  </stateRetrieveTask>
+  <stateRetrieveTask function="Stellar_Luminosities_State_Restore"/>
   !!]
   subroutine Stellar_Luminosities_State_Restore(stateFile,gslStateFile,stateOperationID)
     !!{

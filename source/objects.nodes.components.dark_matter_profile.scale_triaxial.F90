@@ -54,9 +54,7 @@ module Node_Component_Dark_Matter_Profile_Scale_Triaxial
 contains
 
   !![
-  <scaleSetTask>
-   <unitName>Node_Component_Dark_Matter_Profile_Scale_Triaxial_Scale_Set</unitName>
-  </scaleSetTask>
+  <scaleSetTask function="Node_Component_Dark_Matter_Profile_Scale_Triaxial_Scale_Set"/>
   !!]
   subroutine Node_Component_Dark_Matter_Profile_Scale_Triaxial_Scale_Set(node)
     !!{

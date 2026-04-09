@@ -1,61 +1,115 @@
-<?xml version="1.0"?>
+<?xml version='1.0' encoding='UTF-8'?>
 <!-- Test case for a merger tree (read from file) with the following structure: -->
+
 <!--             +===+                                                          -->
+
 <!--             | 5 |                                                          -->
+
 <!--             +===+                                                          -->
+
 <!--               |                                                            -->
+
 <!--               |                                                            -->
+
 <!--               v                                                            -->
+
 <!--             +===+                                                          -->
+
 <!--             | 4 | =++                                                      -->
+
 <!--             +===+  ||                                                      -->
+
 <!--               |    ||                                                      -->
+
 <!--        +======+    ||                                                      -->
+
 <!--        |           ||                                                      -->
+
 <!--        v           ||                                                      -->
+
 <!--      +===+         ||                                                      -->
+
 <!--      | 3 |         ||                                                      -->
+
 <!--      +===+         ||                                                      -->
+
 <!--        |           ||                                                      -->
+
 <!--        |           ||                                                      -->
+
 <!--        v           ||                                                      -->
+
 <!--      +===+         ||                                                      -->
+
 <!--      | 2 | <+======++                                                      -->
+
 <!--      +===+                                                                 -->
+
 <!--        |                                                                   -->
+
 <!--        |                                                                   -->
+
 <!--        v                                                                   -->
+
 <!--      +===+                                                                 -->
+
 <!--      | 1 |                                                                 -->
+
 <!--      +===+                                                                 -->
+
 <!--                                                                            -->
+
 <!--       digraph Tree {                                                       -->
+
 <!--      "1" [shape=circle, label="1=black, style=solid];                      -->
+
 <!--      "2" [shape=circle, label="2=black, style=solid];                      -->
+
 <!--      "2" -> "1" ;                                                          -->
+
 <!--      "3" [shape=circle, label="3=black, style=solid];                      -->
+
 <!--      "3" -> "2" ;                                                          -->
+
 <!--      "4" [shape=box   , label="4=black, style=solid];                      -->
+
 <!--      "4" -> "3" [color=red];                                               -->
+
 <!--      "4" -> "2" ;                                                          -->
+
 <!--      "5" [shape=circle, label="5=black, style=solid];                      -->
+
 <!--      "5" -> "4" ;                                                          -->
+
 <!--       }                                                                    -->
+
 <!--                                                                            -->
+
 <!-- In this tree, node 5 is the only isolated progenitor of node 3, but        -->
+
 <!-- descends into a subhalo (node 4) of node 3. Originally, Galacticus         -->
+
 <!-- failed in this situation as it treated node 5 as being the primary         -->
+
 <!-- progenitor of node 3 (since it's the only choice). This is incorrect (as   -->
+
 <!-- node 5 clearly becomes a subhalo in node 3), and additionally caused a     -->
+
 <!-- segfault since node 5 is flagged as a mergee of node 2 - once node 5 was   -->
+
 <!-- promoted to node 4 (and subsequently destroyed) attempts to access it      -->
+
 <!-- via the mergee pointer from node 2 resulted in a segfault.                 -->
+
 <!--                                                                            -->
+
 <!-- Andrew Benson                                                              -->
+
 <!-- 08-November-2011                                                           -->
+
 <parameters>
   <formatVersion>2</formatVersion>
-  <lastModified revision="975fffd5aadf697707003f16bf9b4caee8ebe97d" time="2025-10-22T21:34:03"/>
+  <lastModified revision="551c092c6cfb98a955ac3631fb6dfbff1a5364f5" time="2026-04-02T18:27:58"/>
 
   <mergerTreeConstructor value="read">
     <fileNames value="testSuite/data/mergerTrees/treeWithNoPrimaryProgenitor.hdf5"/>
@@ -145,6 +199,7 @@
       <excessHeatDrivesOutflow value="true"/>
       <rateMaximumExpulsion value="1.0"/>
     </nodeOperator>
+    <nodeOperator value="CGMOuterRadiusRamPressureStripping"/>
   </nodeOperator>
 
 </parameters>

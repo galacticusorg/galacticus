@@ -53,3 +53,4 @@ source/FFTlog
 source/texfrag
 __pycache__
 .DS_Store
+.vscode

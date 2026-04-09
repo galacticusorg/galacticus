@@ -513,9 +513,7 @@ contains
   end function Node_Pull_From_Tree
 
   !![
-  <universePostEvolveTask>
-   <unitName>Inter_Tree_Event_Post_Evolve</unitName>
-  </universePostEvolveTask>
+  <universePostEvolveTask function="Inter_Tree_Event_Post_Evolve"/>
   !!]
   subroutine Inter_Tree_Event_Post_Evolve()
     !!{

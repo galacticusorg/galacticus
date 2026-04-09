@@ -5,6 +5,7 @@ import re
 import sys
 import subprocess
 import urllib.request
+from urllib.error import HTTPError
 
 def initialize(options):
     # Initialize Cloudy by downloading and compiling.

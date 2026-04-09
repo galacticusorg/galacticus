@@ -44,10 +44,9 @@ module Node_Component_Hot_Halo_Standard
   private
   public :: Node_Component_Hot_Halo_Standard_Initialize         , Node_Component_Hot_Halo_Standard_Thread_Initialize, &
        &    Node_Component_Hot_Halo_Standard_Scale_Set          , Node_Component_Hot_Halo_Standard_Tree_Initialize  , &
-       &    Node_Component_Hot_Halo_Standard_Post_Step          , Node_Component_Hot_Halo_Standard_Reset            , &
-       &    Node_Component_Hot_Halo_Standard_Rate_Compute       , Node_Component_Hot_Halo_Standard_Pre_Evolve       , &
-       &    Node_Component_Hot_Halo_Standard_State_Store        , Node_Component_Hot_Halo_Standard_State_Restore    , &
-       &    Node_Component_Hot_Halo_Standard_Thread_Uninitialize
+       &    Node_Component_Hot_Halo_Standard_Post_Step          , Node_Component_Hot_Halo_Standard_State_Restore    , &
+       &    Node_Component_Hot_Halo_Standard_Thread_Uninitialize, Node_Component_Hot_Halo_Standard_Pre_Evolve       , &
+       &    Node_Component_Hot_Halo_Standard_State_Store
 
   !![
   <component>
@@ -190,21 +189,6 @@ module Node_Component_Hot_Halo_Standard
     </property>
    </properties>
    <bindings>
-     <binding method="outflowReturn" isDeferred="true" >
-      <interface>
-       <type>void</type>
-       <self pass="true" intent="inout" />
-       <argument>logical                 , intent(inout)          :: interrupt</argument>
-       <argument>procedure(interruptTask), intent(inout), pointer :: interruptProcedure</argument>
-      </interface>
-     </binding>
-     <binding method="outerRadiusGrowthRate" isDeferred="true" >
-      <interface>
-       <type>double</type>
-       <rank>0</rank>
-       <self pass="true" intent="inout" />
-      </interface>
-     </binding>
      <binding method="massDistribution" isDeferred="true" >
       <interface>
        <type>class(massDistributionClass), pointer</type>
@@ -242,11 +226,6 @@ module Node_Component_Hot_Halo_Standard
   ! Internal count of abundances and chemicals.
   integer                                                                         :: abundancesCount                                             , chemicalsCount
 
-  ! Quantities stored to avoid repeated computation.
-  integer         (kind=kind_int8                                    )            :: uniqueIDPrevious
-  logical                                                                         :: gotOuterRadiusGrowthRate                            =.false.
-  double precision                                                                :: outerRadiusGrowthRateStored
-  !$omp threadprivate(gotOuterRadiusGrowthRate,outerRadiusGrowthRateStored,uniqueIDPrevious)
   ! Radiation structure.
   class           (radiationFieldClass                               ), pointer   :: radiation
   !$omp threadprivate(radiation)
@@ -265,9 +244,7 @@ module Node_Component_Hot_Halo_Standard
 contains
 
   !![
-  <nodeComponentInitializationTask>
-   <unitName>Node_Component_Hot_Halo_Standard_Initialize</unitName>
-  </nodeComponentInitializationTask>
+  <nodeComponentInitializationTask function="Node_Component_Hot_Halo_Standard_Initialize"/>
   !!]
   subroutine Node_Component_Hot_Halo_Standard_Initialize(parameters)
     !!{
@@ -362,19 +339,13 @@ contains
        call hotHalo%             massDistributionFunction(Node_Component_Hot_Halo_Standard_Mass_Distribution_        )
        ! Bind the mass sink function.
        call hotHalo%                 massSinkRateFunction(Node_Component_Hot_Halo_Standard_Mass_Sink                 )
-       ! Bind the outflow return function.
-       call hotHalo%                outflowReturnFunction(Node_Component_Hot_Halo_Standard_Outflow_Return            )
-       ! Bind the outer radius growth rate function.
-       call hotHalo%        outerRadiusGrowthRateFunction(Node_Component_Hot_Halo_Standard_Outer_Radius_Growth_Rate  )
     end if
     !$omp end critical (Node_Component_Hot_Halo_Standard_Initialize)
     return
   end subroutine Node_Component_Hot_Halo_Standard_Initialize
 
   !![
-  <nodeComponentThreadInitializationTask>
-   <unitName>Node_Component_Hot_Halo_Standard_Thread_Initialize</unitName>
-  </nodeComponentThreadInitializationTask>
+  <nodeComponentThreadInitializationTask function="Node_Component_Hot_Halo_Standard_Thread_Initialize"/>
   !!]
   subroutine Node_Component_Hot_Halo_Standard_Thread_Initialize(parameters)
     !!{
@@ -430,9 +401,7 @@ contains
   end subroutine Node_Component_Hot_Halo_Standard_Thread_Initialize
 
   !![
-  <nodeComponentThreadUninitializationTask>
-   <unitName>Node_Component_Hot_Halo_Standard_Thread_Uninitialize</unitName>
-  </nodeComponentThreadUninitializationTask>
+  <nodeComponentThreadUninitializationTask function="Node_Component_Hot_Halo_Standard_Thread_Uninitialize"/>
   !!]
   subroutine Node_Component_Hot_Halo_Standard_Thread_Uninitialize()
     !!{
@@ -464,27 +433,6 @@ contains
     return
   end subroutine Node_Component_Hot_Halo_Standard_Thread_Uninitialize
 
-  !![
-  <calculationResetTask>
-  <unitName>Node_Component_Hot_Halo_Standard_Reset</unitName>
-  </calculationResetTask>
-  !!]
-  subroutine Node_Component_Hot_Halo_Standard_Reset(node,uniqueID)
-    !!{
-    Remove memory of stored computed values as we're about to begin computing derivatives anew.
-    !!}
-    use :: Galacticus_Nodes, only : treeNode
-    use :: Kind_Numbers    , only : kind_int8
-    implicit none
-    type   (treeNode ), intent(inout) :: node
-    integer(kind_int8), intent(in   ) :: uniqueID
-    !$GLC attributes unused :: node
-
-    uniqueIDPrevious        =uniqueID
-    gotOuterRadiusGrowthRate=.false.
-    return
-  end subroutine Node_Component_Hot_Halo_Standard_Reset
-
   double precision function Node_Component_Hot_Halo_Standard_Outer_Radius(self)
     !!{
     Return the outer radius in the standard hot halo.
@@ -508,9 +456,7 @@ contains
   end function Node_Component_Hot_Halo_Standard_Outer_Radius
 
   !![
-  <postStepTask>
-   <unitName>Node_Component_Hot_Halo_Standard_Post_Step</unitName>
-  </postStepTask>
+  <postStepTask function="Node_Component_Hot_Halo_Standard_Post_Step"/>
   !!]
   subroutine Node_Component_Hot_Halo_Standard_Post_Step(node,status)
     !!{
@@ -655,42 +601,6 @@ contains
     return
   end subroutine postEvolve
 
-  subroutine Node_Component_Hot_Halo_Standard_Strip_Gas_Rate(node,gasMassRate,interrupt,interruptProcedure)
-    !!{
-    Add gas stripped from the hot halo to the stripped gas reservoirs under the assumption of uniformly distributed properties
-    (e.g. fully-mixed metals).
-    !!}
-    use :: Galacticus_Nodes, only : interruptTask, nodeComponentHotHalo, nodeComponentHotHaloStandard, treeNode
-    implicit none
-    type            (treeNode            ), intent(inout)          :: node
-    double precision                      , intent(in   )          :: gasMassRate
-    logical                               , intent(inout)          :: interrupt
-    procedure       (interruptTask       ), intent(inout), pointer :: interruptProcedure
-    class           (nodeComponentHotHalo)               , pointer :: hotHalo
-    double precision                                               :: gasMass
-
-    ! Exit immediately for zero rate.
-    if (gasMassRate == 0.0d0) return
-
-    ! Get the hot halo component.
-    hotHalo => node%hotHalo()
-    select type (hotHalo)
-    class is (nodeComponentHotHaloStandard)
-       ! Get the gas mass present.
-       gasMass=hotHalo%mass()
-       ! If gas is present, adjust the rates.
-       if (gasMass > 0.0d0) then
-          ! Mass.
-          call hotHalo%      strippedMassRate(                     gasMassRate        ,interrupt,interruptProcedure)
-          ! Metal abundances.
-          call hotHalo%strippedAbundancesRate(hotHalo%abundances()*gasMassRate/gasMass,interrupt,interruptProcedure)
-          ! Chemical abundances.
-          call hotHalo% strippedChemicalsRate(hotHalo%chemicals ()*gasMassRate/gasMass,interrupt,interruptProcedure)
-       end if
-    end select
-    return
-  end subroutine Node_Component_Hot_Halo_Standard_Strip_Gas_Rate
-
   subroutine Node_Component_Hot_Halo_Standard_Outflowing_Mass_Rate(self,rate,interrupt,interruptProcedure)
     !!{
     Accept outflowing gas from a galaxy and deposit it into the outflowed and stripped reservoirs.
@@ -809,9 +719,7 @@ contains
   end subroutine Node_Component_Hot_Halo_Standard_Outflowing_Abundances_Rate
 
   !![
-  <preEvolveTask>
-  <unitName>Node_Component_Hot_Halo_Standard_Pre_Evolve</unitName>
-  </preEvolveTask>
+  <preEvolveTask function="Node_Component_Hot_Halo_Standard_Pre_Evolve"/>
   !!]
   subroutine Node_Component_Hot_Halo_Standard_Pre_Evolve(node)
     !!{
@@ -834,190 +742,6 @@ contains
     end select
     return
   end subroutine Node_Component_Hot_Halo_Standard_Pre_Evolve
-
-  !![
-  <rateComputeTask>
-   <unitName>Node_Component_Hot_Halo_Standard_Rate_Compute</unitName>
-  </rateComputeTask>
-  !!]
-  subroutine Node_Component_Hot_Halo_Standard_Rate_Compute(node,interrupt,interruptProcedure,propertyType)
-    !!{
-    Compute the hot halo node mass rate of change.
-    !!}
-    use :: Abundances_Structure                 , only : abundances                        , abs
-    use :: Accretion_Halos                      , only : accretionModeHot                  , accretionModeTotal
-    use :: Galacticus_Nodes                     , only : defaultHotHaloComponent           , interruptTask             , nodeComponentHotHalo, &
-          &                                              nodeComponentHotHaloStandard      , propertyInactive          , treeNode
-    use :: Node_Component_Hot_Halo_Standard_Data, only : outerRadiusOverVirialRadiusMinimum
-    use :: Numerical_Constants_Math             , only : Pi
-    use :: Mass_Distributions                   , only : massDistributionClass
-    use :: Coordinates                          , only : coordinateSpherical               , assignment(=)
-    use :: Galactic_Structure_Options           , only : componentTypeHotHalo              , massTypeGaseous
-    implicit none
-    type            (treeNode             ), intent(inout)          :: node
-    logical                                , intent(inout)          :: interrupt
-    procedure       (interruptTask        ), intent(inout), pointer :: interruptProcedure
-    integer                                , intent(in   )          :: propertyType
-    class           (nodeComponentHotHalo )               , pointer :: hotHalo
-    class           (massDistributionClass)               , pointer :: massDistribution_
-    type            (coordinateSpherical  )                         :: coordinates
-    double precision                                                :: outerRadius         , outerRadiusGrowthRate, &
-         &                                                             densityAtOuterRadius, massLossRate
-
-    ! Return immediately if inactive variables are requested.
-    if (propertyInactive(propertyType)) return
-    ! Return immediately if this class is not in use.
-    if (.not.defaultHotHaloComponent%standardIsActive()) return
-    ! Reset calculations if necessary.
-    if (node%uniqueID() /= uniqueIDPrevious) call Node_Component_Hot_Halo_Standard_Reset(node,node%uniqueID())
-    ! Get the hot halo component.
-    hotHalo => node%hotHalo()
-    ! Ensure that the standard hot halo implementation is active.
-    if (defaultHotHaloComponent%standardIsActive()) then
-       ! Perform return of outflowed material.
-       select type (hotHalo)
-       class is (nodeComponentHotHaloStandard)
-          call hotHalo%outflowReturn(interrupt,interruptProcedure)
-          ! Test whether this halo is a satellite or not.
-          if (node%isSatellite()) then
-             ! For satellites, get the current ram pressure stripping radius for this hot halo.
-             outerRadiusGrowthRate=hotHalo%outerRadiusGrowthRate()
-             outerRadius          =hotHalo%outerRadius          ()
-             if     (                                                                                                      &
-                  &   outerRadiusGrowthRate   /= 0.0d0                                                                     &
-                  &  .and.                                                                                                 &
-                  &   hotHalo%mass         () >  0.0d0                                                                     &
-                  &  .and.                                                                                                 &
-                  &   outerRadius             <=                                   darkMatterHaloScale_%radiusVirial(node) &
-                  &  .and.                                                                                                 &
-                  &   outerRadius             > outerRadiusOverVirialRadiusMinimum*darkMatterHaloScale_%radiusVirial(node) &
-                  & ) then
-                coordinates          =  [outerRadius,0.0d0,0.0d0]
-                massDistribution_    => node             %massDistribution(componentTypeHotHalo,massTypeGaseous)
-                densityAtOuterRadius =  massDistribution_%density         (coordinates                         )
-                !![
-		<objectDestructor name="massDistribution_"/>
-                !!]
-                massLossRate        =4.0d0*Pi*densityAtOuterRadius*outerRadius**2*outerRadiusGrowthRate
-                call hotHalo%outerRadiusRate(+outerRadiusGrowthRate,interrupt,interruptProcedure)
-                call hotHalo%   massSinkRate(+         massLossRate,interrupt,interruptProcedure)
-                if (.not.hotHaloOutflowStripping_%neverStripped(node)) &
-                     & call Node_Component_Hot_Halo_Standard_Strip_Gas_Rate(node,-massLossRate,interrupt,interruptProcedure)
-             end if
-          else
-             ! For isolated halos, the outer radius should grow with the virial radius.
-             call hotHalo%outerRadiusRate(darkMatterHaloScale_%radiusVirialGrowthRate(node),interrupt,interruptProcedure)
-          end if
-       end select
-    end if
-    return
-  end subroutine Node_Component_Hot_Halo_Standard_Rate_Compute
-
-  double precision function Node_Component_Hot_Halo_Standard_Outer_Radius_Growth_Rate(self)
-    !!{
-    Compute the growth rate of the outer radius of the hot halo.
-    !!}
-    use :: Galacticus_Nodes, only : nodeComponentHotHaloStandard, treeNode
-    implicit none
-    class           (nodeComponentHotHaloStandard), intent(inout) :: self
-    type            (treeNode                    ), pointer       :: node
-    double precision                                              :: ramPressureRadius, outerRadius
-    
-    ! Compute the outer radius growth rate if necessary.
-    if (.not.gotOuterRadiusGrowthRate) then
-       node              => self                        %hostNode
-       ramPressureRadius =  hotHaloRamPressureStripping_%radiusStripped(node)
-       outerRadius       =  self                        %outerRadius   (    )
-       ! Test whether the ram pressure radius is smaller than the current outer radius of the hot gas profile.
-       if     (                                           &
-            &  ramPressureRadius      < outerRadius .and. &
-            &  self%angularMomentum() >       0.0d0       &
-            & ) then
-          ! The ram pressure stripping radius is within the outer radius. Cause the outer radius to shrink to the ram pressure
-          ! stripping radius on the halo dynamical timescale.
-          outerRadiusGrowthRateStored=                                &
-               &  (ramPressureRadius-outerRadius)                     &
-               & /hotHaloRamPressureTimescale_%timescale(node)
-       else
-          outerRadiusGrowthRateStored=0.0d0
-       end if
-       ! Record that outer radius growth rate is now computed.
-       gotOuterRadiusGrowthRate=.true.
-    end if
-    ! Return the pre-computed value.
-    Node_Component_Hot_Halo_Standard_Outer_Radius_Growth_Rate=outerRadiusGrowthRateStored
-    return
-  end function Node_Component_Hot_Halo_Standard_Outer_Radius_Growth_Rate
-
-  subroutine Node_Component_Hot_Halo_Standard_Outflow_Return(self,interrupt,interruptProcedure)
-    !!{
-    Return outflowed gas to the hot halo.
-    !!}
-    use :: Galacticus_Nodes                     , only : interruptTask        , nodeComponentBasic       , nodeComponentHotHaloStandard, treeNode
-    use :: Node_Component_Hot_Halo_Standard_Data, only : starveSatellites     , starveSatellitesOutflowed
-    use :: Numerical_Constants_Math             , only : Pi
-    use :: Mass_Distributions                   , only : massDistributionClass
-    use :: Galactic_Structure_Options           , only : componentTypeHotHalo , massTypeGaseous
-    use :: Coordinates                          , only : coordinateSpherical  , assignment(=)
-    implicit none
-    class           (nodeComponentHotHaloStandard), intent(inout)          :: self
-    logical                                       , intent(inout)          :: interrupt
-    procedure       (interruptTask               ), intent(inout), pointer :: interruptProcedure
-    type            (treeNode                    )               , pointer :: node
-    class           (nodeComponentBasic          )               , pointer :: basic
-    class           (massDistributionClass       )               , pointer :: massDistribution_
-    type            (coordinateSpherical         )                         :: coordinates
-    double precision                                                       :: densityAtOuterRadius, massReturnRate, &
-         &                                                                    radiusVirial        , outerRadius   , &
-         &                                                                    densityMinimum
-    !$GLC attributes unused :: interrupt, interruptProcedure
-
-    ! Get the hosting node.
-    node => self%hostNode
-    ! Next tasks occur only for systems in which outflowed gas is being recycled.
-    if (.not.(starveSatellites.or.starveSatellitesOutflowed).or..not.node%isSatellite()) then
-       massReturnRate=hotHaloOutflowReincorporation_%rate         (node)
-       ! The outer radius must be increased as the halo fills up with gas.
-       outerRadius =self                %outerRadius (    )
-       radiusVirial=darkMatterHaloScale_%radiusVirial(node)
-       if (outerRadius < radiusVirial) then
-          coordinates          =  [outerRadius,0.0d0,0.0d0]
-          basic                => node             %basic           (                                    )
-          massDistribution_    => node             %massDistribution(componentTypeHotHalo,massTypeGaseous)
-          densityAtOuterRadius =  massDistribution_%density         (coordinates                         )
-          !![
-	  <objectDestructor name="massDistribution_"/>
-          !!]
-          ! If the outer radius and density are non-zero we can expand the outer radius at a rate determined by the current
-          ! density profile.
-          if (outerRadius > 0.0d0 .and. densityAtOuterRadius > 0.0d0) then
-             ! Limit the density at the outer radius to one third of the mean virial density (for baryons, assuming a
-             ! universal baryon fraction) to prevent arbitrarily rapid growth of the outer radius in halos containing almost
-             ! no gas.
-             densityMinimum=(cosmologyParameters_%omegaBaryon()/cosmologyParameters_%omegaMatter())*basic%mass()/radiusVirial**3/4.0d0/Pi
-             call self%outerRadiusRate(                           &
-                  &                     massReturnRate            &
-                  &                    /4.0d0                     &
-                  &                    /Pi                        &
-                  &                    /outerRadius**2            &
-                  &                    /max(                      &
-                  &                         densityAtOuterRadius, &
-                  &                         densityMinimum        &
-                  &                        )                      &
-                  &                   )
-             ! Otherwise, if we have a positive rate of mass return, simply grow the radius at the virial velocity.
-          else if (massReturnRate > 0.0d0) then
-             ! Force some growth here so the radius is not trapped at zero.
-             call self%outerRadiusRate(                       &
-                  &                    +massReturnRate        &
-                  &                    /basic         %mass() &
-                  &                    *radiusVirial          &
-                  &                   )
-          end if
-       end if
-    end if
-    return
-  end subroutine Node_Component_Hot_Halo_Standard_Outflow_Return
 
   subroutine Node_Component_Hot_Halo_Standard_Mass_Sink(self,setValue,interrupt,interruptProcedure)
     !!{
@@ -1073,9 +797,7 @@ contains
   end subroutine Node_Component_Hot_Halo_Standard_Hot_Gas_All_Rate
 
   !![
-  <scaleSetTask>
-   <unitName>Node_Component_Hot_Halo_Standard_Scale_Set</unitName>
-  </scaleSetTask>
+  <scaleSetTask function="Node_Component_Hot_Halo_Standard_Scale_Set"/>
   !!]
   subroutine Node_Component_Hot_Halo_Standard_Scale_Set(node)
     !!{
@@ -1126,9 +848,7 @@ contains
   end subroutine Node_Component_Hot_Halo_Standard_Scale_Set
 
   !![
-  <mergerTreeInitializeTask>
-   <unitName>Node_Component_Hot_Halo_Standard_Tree_Initialize</unitName>
-  </mergerTreeInitializeTask>
+  <mergerTreeInitializeTask function="Node_Component_Hot_Halo_Standard_Tree_Initialize"/>
   !!]
   subroutine Node_Component_Hot_Halo_Standard_Tree_Initialize(node)
     !!{
@@ -1308,9 +1028,7 @@ contains
   end subroutine haloFormation
 
   !![
-  <stateStoreTask>
-   <unitName>Node_Component_Hot_Halo_Standard_State_Store</unitName>
-  </stateStoreTask>
+  <stateStoreTask function="Node_Component_Hot_Halo_Standard_State_Store"/>
   !!]
   subroutine Node_Component_Hot_Halo_Standard_State_Store(stateFile,gslStateFile,stateOperationID)
     !!{
@@ -1331,9 +1049,7 @@ contains
   end subroutine Node_Component_Hot_Halo_Standard_State_Store
 
   !![
-  <stateRetrieveTask>
-   <unitName>Node_Component_Hot_Halo_Standard_State_Restore</unitName>
-  </stateRetrieveTask>
+  <stateRetrieveTask function="Node_Component_Hot_Halo_Standard_State_Restore"/>
   !!]
   subroutine Node_Component_Hot_Halo_Standard_State_Restore(stateFile,gslStateFile,stateOperationID)
     !!{

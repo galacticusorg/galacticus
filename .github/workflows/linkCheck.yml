@@ -28,10 +28,14 @@ jobs:
           key: linkCheckFailures-${{ github.run_id }}
           restore-keys: |
             linkCheckFailures
+      - name: Set up Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: '3.x'
       - name: Install tools
         run: |
-          sudo apt -y update
-          sudo apt install -y python3-pypdf2 perl libregexp-common-perl curl git libwww-curl-perl libjson-pp-perl libxml-simple-perl
+           python -m pip install --upgrade pip
+           pip install PyPDF2 requests lxml
       - name: Check for broken links
         if: ${{ env.adstoken != '' }}
         id: check_links
@@ -39,7 +43,7 @@ jobs:
         run: |
           cd $GALACTICUS_EXEC_PATH
           git config --global --add safe.directory $GALACTICUS_EXEC_PATH
-          ./scripts/aux/linkChecker.pl ${{ secrets.NASA_ADS_API_TOKEN }} badURLs.md
+          ./scripts/aux/linkChecker.py ${{ secrets.NASA_ADS_API_TOKEN }} badURLs.md
       - name: Check file existence
         id: check_files
         uses: andstor/file-existence-action@v3
