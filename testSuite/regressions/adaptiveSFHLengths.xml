@@ -100,7 +100,7 @@
     <treeCount value="1"/>
   </mergerTreeBuildMasses>
   <mergerTreeMassResolution value="fixed">
-    <massResolution value="1.0e7"/>
+    <massResolution value="1.0e8"/>
   </mergerTreeMassResolution>
   
   <mergerTreeOperator value="sequence">
