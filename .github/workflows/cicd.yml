@@ -66,6 +66,7 @@ jobs:
         run: |
           echo "GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
           echo "GALACTICUS_FCFLAGS=$GALACTICUS_FCFLAGS -static" >> $GITHUB_ENV
+          echo "DEBIAN_FRONTEND=noninteractive" >> $GITHUB_ENV
       - name: Build the code
         run: |
           cd $GALACTICUS_EXEC_PATH
@@ -113,6 +114,7 @@ jobs:
       - name: "Set environmental variables"
         run: |
           echo "GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
+          echo "DEBIAN_FRONTEND=noninteractive" >> $GITHUB_ENV
       - name: Build the code
         run: |
           cd $GALACTICUS_EXEC_PATH
@@ -150,6 +152,7 @@ jobs:
         run: |
           echo "GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
           echo "GALACTICUS_DATA_PATH=$GITHUB_WORKSPACE/datasets" >> $GITHUB_ENV
+          echo "DEBIAN_FRONTEND=noninteractive" >> $GITHUB_ENV
       - name: Build the code
         run: |
           cd $GALACTICUS_EXEC_PATH
@@ -180,6 +183,7 @@ jobs:
           echo "GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
           echo "GALACTICUS_DATA_PATH=$GITHUB_WORKSPACE/datasets" >> $GITHUB_ENV
           echo "GALACTICUS_ACTIVE_COMPONENTS=basic darkMatterProfile satellite spin" >> $GITHUB_ENV
+          echo "DEBIAN_FRONTEND=noninteractive" >> $GITHUB_ENV
       - name: Build the code
         run: |
           cd $GALACTICUS_EXEC_PATH
@@ -206,6 +210,7 @@ jobs:
         run: |
           echo "GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
           echo "GALACTICUS_DATA_PATH=$GITHUB_WORKSPACE/datasets" >> $GITHUB_ENV
+          echo "DEBIAN_FRONTEND=noninteractive" >> $GITHUB_ENV
       - name: Build the code
         run: |
           cd $GALACTICUS_EXEC_PATH
@@ -238,6 +243,7 @@ jobs:
           echo "GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
           echo "GALACTICUS_DATA_PATH=$GITHUB_WORKSPACE/datasets" >> $GITHUB_ENV
           echo "GALACTICUS_FCFLAGS+=\ -DDEBUGGING" >> $GITHUB_ENV
+          echo "DEBIAN_FRONTEND=noninteractive" >> $GITHUB_ENV
       - name: Build the code
         run: |
           cd $GALACTICUS_EXEC_PATH
@@ -263,6 +269,7 @@ jobs:
       - name: "Set environmental variables"
         run: |
           echo "GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
+          echo "DEBIAN_FRONTEND=noninteractive" >> $GITHUB_ENV
       - name: Build the code
         run: |
           cd $GALACTICUS_EXEC_PATH
@@ -336,6 +343,7 @@ jobs:
       - name: "Set environmental variables"
         run: |
           echo "GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
+          echo "DEBIAN_FRONTEND=noninteractive" >> $GITHUB_ENV
       - name: Build the docs
         run: |
           cd $GALACTICUS_EXEC_PATH
@@ -374,6 +382,7 @@ jobs:
           echo "GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
           echo "GALACTICUS_DATA_PATH=$GITHUB_WORKSPACE/datasets" >> $GITHUB_ENV
           echo "GALACTICUS_FCFLAGS+=\ -static" >> $GITHUB_ENV
+          echo "DEBIAN_FRONTEND=noninteractive" >> $GITHUB_ENV
       - name: Download executables
         uses: actions/download-artifact@v8
         with:
@@ -805,6 +814,7 @@ jobs:
       - name: "Set environmental variables"
         run: |
           echo "GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
+          echo "DEBIAN_FRONTEND=noninteractive" >> $GITHUB_ENV
       - name: Mark directory safe        
         run: |
           git config --global --add safe.directory $GALACTICUS_EXEC_PATH
@@ -1570,6 +1580,7 @@ jobs:
           echo "GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
           echo "GALACTICUS_DATA_PATH=$GITHUB_WORKSPACE/datasets" >> $GITHUB_ENV
           echo "PYTHONPATH=$GITHUB_WORKSPACE/python" >> $GITHUB_ENV
+          echo "DEBIAN_FRONTEND=noninteractive" >> $GITHUB_ENV
       - name: Download executables
         uses: actions/download-artifact@v8
         with:
@@ -1629,6 +1640,7 @@ jobs:
         run: |
           echo "GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
           echo "PYTHONPATH=$GITHUB_WORKSPACE/galacticus/python" >> $GITHUB_ENV
+          echo "DEBIAN_FRONTEND=noninteractive" >> $GITHUB_ENV
       - name: Install Python
         run: |
           apt -y update && apt -y upgrade
@@ -1672,6 +1684,7 @@ jobs:
         run: |
           echo "GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
           echo "PYTHONPATH=$GITHUB_WORKSPACE/galacticus/python" >> $GITHUB_ENV
+          echo "DEBIAN_FRONTEND=noninteractive" >> $GITHUB_ENV
       - name: Install Python
         run: |
           sudo port install python312
