@@ -4,12 +4,12 @@ window.PONOSV_DATA = {
     "commit": {
         "author": {
             "name": "Andrew Benson",
-            "email": "abensonca@gmail.com"
+            "email": "abenson@obs.carnegiescience.edu"
         },
-        "id": "bbd2fdeb3488409651e9b6250f75a3ce920703b8",
-        "message": "Merge pull request #1058 from galacticusorg/fixObsoletedScripts\n\nRemove obsoleted scripts\n",
-        "timestamp": "2026-04-09 20:37:56+00:00",
-        "url": "https://github.com/galacticusorg/galacticus/commit/bbd2fdeb3488409651e9b6250f75a3ce920703b8"
+        "id": "57a796d08f966b2354f92b36e553fdc0fddb3517",
+        "message": "fix: Reduce resolution of a test model\n\nThe adapative star formation history dataset length test is slow to run. It runs much faster with lower resolution and still allows for dataset lengths to be tested.\n",
+        "timestamp": "2026-04-10 15:04:25-07:00",
+        "url": "https://github.com/galacticusorg/galacticus/commit/57a796d08f966b2354f92b36e553fdc0fddb3517"
     },
     "surfaceDensity": {
         "percentageBelow": 42.857142857142854,
@@ -17,8 +17,8 @@ window.PONOSV_DATA = {
         "target": 0.006
     },
     "slope": {
-        "percentageBelow": 63.63636363636363,
-        "percentageAbove": 36.36363636363637,
+        "percentageBelow": 72.72727272727272,
+        "percentageAbove": 27.272727272727273,
         "target": 0.85
     }
 }
