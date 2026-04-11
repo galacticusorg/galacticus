@@ -1,38 +1,8 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1775793537422,
+  "lastUpdate": 1775932920685,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Milky Way model benchmarks": [
-      {
-        "commit": {
-          "author": {
-            "email": "abensonca@gmail.com",
-            "name": "Andrew Benson",
-            "username": "abensonca"
-          },
-          "committer": {
-            "email": "noreply@github.com",
-            "name": "GitHub",
-            "username": "web-flow"
-          },
-          "distinct": true,
-          "id": "457e041d4d43b9bcae7e689cc70e268734e825ac",
-          "message": "Merge pull request #804 from galacticusorg/fixUndecoratedKinematics\n\nUse the correct mass distribution when undecorating kinematics distributions",
-          "timestamp": "2025-02-27T15:17:04Z",
-          "tree_id": "a6b1a7de8ebbb4fb11961e288f35cc1be08742b1",
-          "url": "https://github.com/galacticusorg/galacticus/commit/457e041d4d43b9bcae7e689cc70e268734e825ac"
-        },
-        "date": 1740692523510,
-        "tool": "customSmallerIsBetter",
-        "benches": [
-          {
-            "name": "Milky Way model - Wall Time",
-            "value": 36.736,
-            "unit": "seconds",
-            "range": 0.0853135393710654
-          }
-        ]
-      },
       {
         "commit": {
           "author": {
@@ -10716,6 +10686,34 @@ window.BENCHMARK_DATA = {
             "name": "Milky Way model - Likelihood - localGroupStellarMassHaloMassRelation",
             "value": 6.760358236317407,
             "unit": "-logℒ"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "name": "Andrew Benson",
+            "username": "abensonca",
+            "email": "abenson@obs.carnegiescience.edu"
+          },
+          "committer": {
+            "name": "Andrew Benson",
+            "username": "abensonca",
+            "email": "abenson@obs.carnegiescience.edu"
+          },
+          "id": "57a796d08f966b2354f92b36e553fdc0fddb3517",
+          "message": "fix: Reduce resolution of a test model\n\nThe adapative star formation history dataset length test is slow to run. It runs much faster with lower resolution and still allows for dataset lengths to be tested.",
+          "timestamp": "2026-04-10T22:04:25Z",
+          "url": "https://github.com/galacticusorg/galacticus/commit/57a796d08f966b2354f92b36e553fdc0fddb3517"
+        },
+        "date": 1775932919763,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Milky Way model - Wall Time",
+            "value": 66.93599999999999,
+            "range": "0.07408373640685245",
+            "unit": "seconds"
           }
         ]
       }
