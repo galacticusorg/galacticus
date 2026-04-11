@@ -2,6 +2,7 @@ name: 'CI/CD'
 on:
   workflow_dispatch:
   pull_request:
+    types: [opened, synchronize, reopened, ready_for_review]
   push:
     branches:
       - 'master'
@@ -53,6 +54,7 @@ jobs:
   ## Linux
   ### Static executable and test codes
   Build-Executable-Linux:
+    if: ${{ !github.event.pull_request.draft }}
     runs-on: ubuntu-latest
     container: ghcr.io/galacticusorg/buildenv:latest
     steps:
@@ -102,6 +104,7 @@ jobs:
       - run: echo "This job's status is ${{ job.status }}."
   ### Non-static executable
   Build-Executable-Linux-Non-Static:
+    if: ${{ !github.event.pull_request.draft }}
     runs-on: ubuntu-latest
     container: ghcr.io/galacticusorg/buildenv:latest
     steps:
