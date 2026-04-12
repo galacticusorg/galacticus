@@ -43,7 +43,10 @@ After building, the two artifacts must be placed in a directory layout that \mon
 To create this layout from the build directory, run:
 \begin{verbatim}
 mkdir -p galacticus/lib galacticus/python
-# Copy runtime dependencies (Linux; adjust filter as appropriate)
+# Copy runtime dependencies (Linux).
+# The grep -v filter excludes standard system libraries that are
+# always present; extend it with additional paths if your system
+# has further libraries that do not need to be bundled.
 ldd libgalacticus.so \
     | awk '{if (NF == 4) print $3}' \
     | grep -v -e /libc.so -e /libdl.so -e /libm.so \
@@ -52,7 +55,7 @@ ldd libgalacticus.so \
 mv galacticus.py     galacticus/python/
 mv libgalacticus.so  galacticus/lib/
 \end{verbatim}
-On macOS, replace the \mono{ldd} step with an equivalent \mono{otool -L} invocation.
+On macOS, replace the \mono{ldd} step with an equivalent \mono{otool -L} invocation to list linked libraries, and omit libraries that reside under \mono{/usr/lib} or \mono{/System/Library} as those are provided by the OS.
 
 The library can optionally be distributed as a self-contained archive:
 \begin{verbatim}
@@ -197,10 +200,11 @@ ldd /path/to/prefix/galacticus/lib/libgalacticus.so
 \end{verbatim}
 Any library listed as \emph{not found} must be located and copied into \mono{galacticus/lib/}.
 
-Alternatively, set \mono{LD\_LIBRARY\_PATH} to include the directory containing the missing library:
+Alternatively, set \mono{LD\_LIBRARY\_PATH} to include the directory containing the missing library. For example, on a system with GCC~12 installed on an x86\_64 architecture:
 \begin{verbatim}
 export LD_LIBRARY_PATH=/usr/lib/gcc/x86_64-linux-gnu/12:$LD_LIBRARY_PATH
 \end{verbatim}
+Replace \mono{12} with your installed GCC version (e.g. \mono{11}, \mono{13}) and adjust the architecture component (e.g. \mono{aarch64-linux-gnu}) to match your system.
 
 \subsection{Wrong Python Version or ABI Mismatch}\label{sec:pythonInterface:troubleshooting:abi}
 
