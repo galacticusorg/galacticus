@@ -1,5 +1,12 @@
 # Utility functions for reading and parsing Fortran source code.
 # Andrew Benson (ported to Python 2026)
+"""Utility functions for reading and parsing Fortran source code.
+
+Provides helpers for iterating over logical Fortran lines (handling
+continuation lines and stripping comments) and for locating the start of
+inline comments, including correct treatment of string literals and
+OpenMP sentinels.
+"""
 
 def get_fortran_line(file_obj):
     """Read one logical Fortran line from file_obj, handling & continuation lines.
