@@ -30,7 +30,8 @@ program Test_Math_Distributions
   use            :: Input_Parameters                   , only : inputParameters
   use            :: Math_Distributions_Poisson_Binomial, only : Poisson_Binomial_Distribution        , Poisson_Binomial_Distribution_Mean_Pairs
   use            :: Numerical_Random_Numbers           , only : randomNumberGeneratorGSL
-  use            :: Statistics_Distributions           , only : distributionFunction1DGamma          , distributionFunction1DVoight                  , distributionFunction1DNonCentralChiDegree3, distributionFunctionMultivariateNormal
+  use            :: Statistics_Distributions           , only : distributionFunction1DGamma          , distributionFunction1DVoight                  , distributionFunction1DNonCentralChiDegree3, distributionFunctionMultivariateNormal, &
+       &                                                        distributionFunction1DLogUniform
   use            :: Statistics_Distributions_Discrete  , only : distributionFunctionDiscrete1DPoisson, distributionFunctionDiscrete1DNegativeBinomial
   use            :: Unit_Tests                         , only : Assert                               , Unit_Tests_Begin_Group                        , Unit_Tests_End_Group                      , Unit_Tests_Finish
   implicit none
@@ -46,6 +47,7 @@ program Test_Math_Distributions
   type            (distributionFunctionDiscrete1DPoisson         )                  :: distributionFunctionDiscrete1DPoisson_
   type            (distributionFunctionDiscrete1DNegativeBinomial)                  :: distributionFunctionDiscrete1DNegativeBinomial_
   type            (distributionFunctionMultivariateNormal        )                  :: distributionFunctionMultivariateNormal_
+  type            (distributionFunction1DLogUniform              )                  :: distributionFunctionLogUniform_
   integer                                                                           :: i                                                      , j           , &
        &                                                                               k
   type            (randomNumberGeneratorGSL                      )                  :: prng
@@ -140,6 +142,11 @@ program Test_Math_Distributions
   call Assert("Negative binomial: pdf",      y ,[1.31110211204155d-2,3.303977322344709d-2,5.31940348897497d-2,6.95068722559397d-2,8.028043745561050d-2,8.541838545276970d-2,8.570311340427860d-2,8.227498886810760d-2,7.631005217516913d-2,6.884862485137586d-2],relTol=1.0d-4)
   call Assert("Negative binomial: cdf",      p ,[1.31110211204155d-2,4.615079434386259d-2,9.93448292336122d-2,1.68851701489552d-1,2.491321389451624d-1,3.345505243979319d-1,4.202536378022105d-1,5.025286266703195d-1,5.788386788454862d-1,6.476873036968634d-1],relTol=1.0d-4)
   call Assert("Negative binomial: cdf",1.0d0-pc,[1.31110211204155d-2,4.615079434386259d-2,9.93448292336122d-2,1.68851701489552d-1,2.491321389451624d-1,3.345505243979319d-1,4.202536378022105d-1,5.025286266703195d-1,5.788386788454862d-1,6.476873036968634d-1],relTol=1.0d-4)
+
+  ! Log-uniform distribution.
+  distributionFunctionLogUniform_=distributionFunction1DLogUniform(1.0d-4,1.0d4)
+  call Assert("Log-uniform: pdf",[distributionFunctionLogUniform_%density   (1.0d-5),distributionFunctionLogUniform_%density   (1.0d0),distributionFunctionLogUniform_%density   (1.0d+5)],[0.0d0,1.0d0            /8.0d0/log(10.0d0),0.0d0],relTol=1.0d-4)
+  call Assert("Log-uniform: cdf",[distributionFunctionLogUniform_%cumulative(1.0d-5),distributionFunctionLogUniform_%cumulative(1.0d0),distributionFunctionLogUniform_%cumulative(1.0d+5)],[0.0d0,log(1.0d0/1.0d-4)/8.0d0/log(10.0d0),1.0d0],relTol=1.0d-4)
 
   ! End unit tests.
   call Unit_Tests_End_Group()
