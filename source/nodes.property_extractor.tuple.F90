@@ -128,7 +128,7 @@ contains
     siValues=self%unitsInSI(time)
     allocate(units_(size(siValues)))
     do i=1,size(siValues)
-       units_(i)=unitType(siValues(i),isComoving=0)
+       units_(i)=unitType(siValues(i),isComoving=.false.)
     end do
     return
   end function tupleUnits

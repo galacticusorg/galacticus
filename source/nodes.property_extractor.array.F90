@@ -159,7 +159,7 @@ contains
     siValues=self%unitsInSI(time)
     allocate(units(size(siValues)))
     do i=1,size(siValues)
-       units(i)=unitType(siValues(i),isComoving=0)
+       units(i)=unitType(siValues(i),isComoving=.false.)
     end do
     return
   end function arrayUnits

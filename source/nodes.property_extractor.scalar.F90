@@ -93,7 +93,7 @@ contains
     type (unitType                   )                :: units
     class(nodePropertyExtractorScalar), intent(inout) :: self
 
-    units=unitType(self%unitsInSI(),isComoving=0)
+    units=unitType(self%unitsInSI(),isComoving=.false.)
     return
   end function scalarUnits
 
