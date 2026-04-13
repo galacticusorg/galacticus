@@ -96,6 +96,7 @@ contains
     Constructor for the \refClass{computationalDomainCylindrical} computational domain class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
+  use :: Units_MetaData, only : unitType
     implicit none
     type            (computationalDomainCylindrical   )                 :: self
     type            (inputParameters                  ), intent(inout)  :: parameters

@@ -22,6 +22,7 @@
   !!}
   
   use :: Cosmology_Functions     , only : cosmologyFunctionsClass
+  use :: Units_MetaData, only : unitType
   use :: Dark_Matter_Halo_Scales , only : darkMatterHaloScaleClass
   use :: Dark_Matter_Profiles_DMO, only : darkMatterProfileDMOClass
   use :: Galactic_Filters        , only : galacticFilterClass

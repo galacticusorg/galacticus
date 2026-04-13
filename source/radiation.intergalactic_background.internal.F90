@@ -22,6 +22,7 @@
   !!}
 
   use :: Atomic_Cross_Sections_Ionization_Photo, only : atomicCrossSectionIonizationPhotoClass
+  use :: Units_MetaData, only : unitType
   use :: Cosmology_Functions                   , only : cosmologyFunctionsClass
   use :: Cosmology_Parameters                  , only : cosmologyParametersClass
   use :: Intergalactic_Medium_State            , only : intergalacticMediumStateClass

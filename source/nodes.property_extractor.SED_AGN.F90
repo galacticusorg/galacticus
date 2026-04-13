@@ -21,6 +21,7 @@
   Implements a property extractor class for the SED of the AGN.
   !!}
   use :: Cosmology_Functions   , only : cosmologyFunctionsClass
+  use :: Units_MetaData, only : unitType
   use :: Accretion_Disk_Spectra, only : accretionDiskSpectraClass
 
   !![

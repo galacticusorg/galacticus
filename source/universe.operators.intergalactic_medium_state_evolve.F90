@@ -20,6 +20,7 @@
   !+ Contributions to this file made by: Daniel McAndrew.
 
   use :: Atomic_Cross_Sections_Ionization_Photo      , only : atomicCrossSectionIonizationPhoto      , atomicCrossSectionIonizationPhotoClass
+  use :: Units_MetaData, only : unitType
   use :: Atomic_Ionization_Potentials                , only : atomicIonizationPotential              , atomicIonizationPotentialClass
   use :: Atomic_Radiation_Gaunt_Factors              , only : gauntFactor                            , gauntFactorClass
   use :: Atomic_Rates_Excitation_Collisional         , only : atomicExcitationRateCollisional        , atomicExcitationRateCollisionalClass

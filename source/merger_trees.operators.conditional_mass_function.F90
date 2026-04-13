@@ -22,6 +22,7 @@
   !!}
 
   use :: Cosmology_Functions              , only : cosmologyFunctionsClass
+  use :: Units_MetaData, only : unitType
   use :: Statistics_NBody_Halo_Mass_Errors, only : nbodyHaloMassErrorClass
 
   !![

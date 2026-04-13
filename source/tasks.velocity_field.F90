@@ -18,6 +18,7 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
   use :: Cosmology_Functions        , only : cosmologyFunctionsClass
+  use :: Units_MetaData, only : unitType
   use :: Cosmological_Velocity_Field, only : cosmologicalVelocityFieldClass
   use :: Dark_Matter_Halo_Scales    , only : darkMatterHaloScaleClass
   use :: Output_Times               , only : outputTimesClass

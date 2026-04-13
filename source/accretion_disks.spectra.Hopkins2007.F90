@@ -41,6 +41,7 @@
   !!}
 
   use :: File_Utilities, only : lockDescriptor
+  use :: Units_MetaData, only : unitType
 
   !![
   <accretionDiskSpectra name="accretionDiskSpectraHopkins2007">
