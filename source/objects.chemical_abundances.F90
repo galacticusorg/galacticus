@@ -754,20 +754,21 @@ contains
     return
   end subroutine Chemicals_Output_Count
 
-  subroutine Chemicals_Output_Names(self,integerProperty,integerProperties,doubleProperty,doubleProperties,time,prefix,comment,unitsInSI)
+  subroutine Chemicals_Output_Names(self,integerProperty,integerProperties,doubleProperty,doubleProperties,time,prefix,comment,unitsInSI,unitsDescription,unitsQuantity)
     !!{
     Assign names to output buffers for an abundances object.
     !!}
     use :: ISO_Varying_String                , only : char
     use :: Merger_Tree_Outputter_Buffer_Types, only : outputPropertyInteger, outputPropertyDouble
-    use :: Output_Units                      , only : unitsMake
+    use :: Units_MetaData                    , only : unitType
     implicit none
     class           (chemicalAbundances   )              , intent(in   ) :: self
     double precision                                     , intent(in   ) :: time
     integer                                              , intent(inout) :: doubleProperty    , integerProperty
     type            (outputPropertyInteger), dimension(:), intent(inout) :: integerProperties
     type            (outputPropertyDouble ), dimension(:), intent(inout) :: doubleProperties
-    character       (len=*                )              , intent(in   ) :: comment           , prefix
+    character       (len=*                )              , intent(in   ) :: comment           , prefix         , &
+         &                                                                  unitsDescription  , unitsQuantity
     double precision                                     , intent(in   ) :: unitsInSI
     integer                                                              :: i
     !$GLC attributes unused :: self, time, integerProperty, integerProperties
@@ -775,9 +776,9 @@ contains
     if (chemicalsCount > 0) then
        do i=1,chemicalsCount
           doubleProperty=doubleProperty+1
-          doubleProperties(doubleProperty)%name     =trim(prefix )//      char(chemicalsToTrack(i))
-          doubleProperties(doubleProperty)%comment  =trim(comment)//' ['//char(chemicalsToTrack(i))//']'
-          doubleProperties(doubleProperty)%units    =unitsMake(unitsInSI=unitsInSI)
+          doubleProperties(doubleProperty)%name   =trim(prefix )//      char(chemicalsToTrack(i))
+          doubleProperties(doubleProperty)%comment=trim(comment)//' ['//char(chemicalsToTrack(i))//']'
+          doubleProperties(doubleProperty)%units  =unitType(unitsInSI,unitsDescription,unitsQuantity)
        end do
     end if
     return

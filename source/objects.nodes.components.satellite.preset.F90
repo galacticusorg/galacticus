@@ -57,7 +57,7 @@ module Node_Component_Satellite_Preset
       <attributes isSettable="false" isGettable="true" isEvolvable="false" isVirtual="true" />
       <getFunction>SatellitePresetMergeBoundMass</getFunction>
       <classDefault>selfBasic%mass()</classDefault>
-      <output unitsInSI="massSolar" comment="Bound mass of the node."/>
+      <output unitsInSI="massSolar" unitsDescription="Solar masses" unitsQuantity="solMass" comment="Bound mass of the node."/>
     </property>
     <property>
       <name>boundMassHistory</name>

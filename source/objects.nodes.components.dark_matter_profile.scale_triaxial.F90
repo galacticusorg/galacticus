@@ -44,7 +44,7 @@ module Node_Component_Dark_Matter_Profile_Scale_Triaxial
       <type>double</type>
       <rank>1</rank>
       <attributes isSettable="true" isGettable="true" isEvolvable="true"/>
-      <output labels="[X,Y,Z]" unitsInSI="0.0d0" comment="Triaxial axis ratios the dark matter profile."/>
+      <output labels="[X,Y,Z]" unitsInSI="1.0d0" comment="Triaxial axis ratios the dark matter profile."/>
       <classDefault>[-1.0d0,-1.0d0,-1.0d0]</classDefault>
     </property>
    </properties>

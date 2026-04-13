@@ -17,8 +17,8 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  use :: Hashes      , only : doubleHash, rank1DoubleHash
-  use :: Output_Units, only : unitType  , unitsMake
+  use :: Hashes        , only : doubleHash, rank1DoubleHash
+  use :: Units_MetaData, only : unitType
 
   !![
   <nodePropertyExtractor name="nodePropertyExtractorList" abstract="yes">
@@ -109,21 +109,21 @@
 
 contains
 
-  function listUnits(self) result(units_)
+  function listUnits(self) result(units)
     !!{
-    Default implementation: wraps the deferred \refmeth{nodePropertyExtractorList}{unitsInSI} array into an array of
-    \reftype{unitType}.
+    Default implementation: wraps the deferred \mono{nodePropertyExtractorList} \mono{unitsInSI} array into an array of
+    \mono{unitType}.
     !!}
     implicit none
-    type (unitType                  ), dimension(:), allocatable :: units_
+    type (unitType                 ), dimension(:) , allocatable :: units
     class(nodePropertyExtractorList), intent(inout)              :: self
-    double precision                 , dimension(:), allocatable :: siValues
+    double precision                , dimension(:) , allocatable :: siValues
     integer                                                      :: i
 
     siValues=self%unitsInSI()
-    allocate(units_(size(siValues)))
+    allocate(units(size(siValues)))
     do i=1,size(siValues)
-       units_(i)=unitsMake(unitsInSI=siValues(i),isComoving=0)
+       units(i)=unitType(siValues(i))
     end do
     return
   end function listUnits

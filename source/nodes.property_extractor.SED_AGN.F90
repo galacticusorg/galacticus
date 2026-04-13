@@ -340,7 +340,7 @@ contains
     return
   end function sedAGNWavelengths
 
-  subroutine sedAGNColumnDescriptions(self,descriptions,values,valuesDescription,valuesUnitsInSI,time)
+  subroutine sedAGNColumnDescriptions(self,descriptions,values,valuesDescription,valuesUnits,time)
     !!{
     Return column descriptions of the \mono{sedAGN} property.
     !!}
@@ -351,7 +351,7 @@ contains
     type            (varying_string             ), intent(inout), dimension(:), allocatable :: descriptions
     double precision                             , intent(inout), dimension(:), allocatable :: values 
     type            (varying_string             ), intent(  out)                            :: valuesDescription
-    double precision                             , intent(  out)                            :: valuesUnitsInSI
+    type            (unitType                   ), intent(  out)                            :: valuesUnits
     integer         (c_size_t                   )                                           :: i
     character       (len=18                     )                                           :: label
     !$GLC attributes unused :: self, time
@@ -364,7 +364,7 @@ contains
        descriptions(i)=trim(label)
     end do
     valuesDescription=var_str('Wavelengths at which the SED is tabulated [in units of Å].')
-    valuesUnitsInSI  =1.0d0/metersToAngstroms
+    valuesUnits      =unitType(1.0d0/metersToAngstroms,"Angstroms","angstroms",.false.)
     return
   end subroutine sedAGNColumnDescriptions
 

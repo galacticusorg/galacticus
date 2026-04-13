@@ -390,10 +390,14 @@ contains
          &                                var_str('starFormationRate'                                                        ), &
          &                                var_str('Star formation rate at the bin center'                                    ), &
          &                                var_str('M☉/Gyr'                                                                   ), &
+         &                                var_str('solMass/Gyr'                                                              ), &
+         &                                .false.                                                                             , &
          &                                massSolar/gigaYear                                                                  , &
          &                                var_str('starFormationRateFunction'                                                ), &
          &                                var_str('Star formation rate function averaged over each bin '                     ), &
          &                                var_str('Mpc⁻³'                                                                    ), &
+         &                                var_str('Mpc^-3'                                                                   ), &
+         &                                .true.                                                                              , &
          &                                megaParsec**(-3)                                                                    , &
          &                                log10(starFormationRates)                                                           , &
          &                                bufferCount                                                                         , &

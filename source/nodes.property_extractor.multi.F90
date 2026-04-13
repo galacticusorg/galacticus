@@ -22,7 +22,7 @@
   !!}
 
   use :: Hashes      , only : doubleHash, rank1DoubleHash
-  use :: Output_Units, only : unitType  , unitsMake
+  use :: Units_MetaData, only : unitType
 
   type, public :: multiExtractorList
      class(nodePropertyExtractorClass), pointer :: extractor_ => null()
@@ -516,7 +516,7 @@ contains
     Return column descriptions of the multiple properties.
     !!}
     use :: Error       , only : Error_Report
-    use :: Output_Units, only : unitType
+    use :: Units_MetaData, only : unitType
     implicit none
     class           (nodePropertyExtractorMulti), intent(inout)                             :: self
     type            (enumerationElementTypeType), intent(in   )                             :: elementType

@@ -379,8 +379,8 @@ contains
     !!{
     Return column descriptions of the \mono{projectedMass} property.
     !!}
-    use :: Output_Units               , only : unitType   , unitsMake
-    use, intrinsic :: ISO_C_Binding   , only : c_int
+    use            :: Units_MetaData, only : unitType
+    use, intrinsic :: ISO_C_Binding , only : c_int
     implicit none
     class           (nodePropertyExtractorProjectedMass), intent(inout)                            :: self
     double precision                                    , intent(in   ), optional                  :: time
@@ -394,7 +394,7 @@ contains
     allocate(descriptions(self%radiiCount))
     allocate(values      (              0))
     valuesDescription=var_str('')
-    valuesUnits      =unitsMake(unitsInSI=0.0d0,isComoving=0_c_int)
+    valuesUnits      =unitType(0.0d0)
     descriptions     =self%radii%name
     return
   end subroutine projectedMassColumnDescriptions

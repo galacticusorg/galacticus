@@ -29,7 +29,7 @@ module Merger_Tree_Outputter_Buffer_Types
   use :: Hashes            , only : doubleHash    , rank1DoubleHash
   use :: IO_HDF5           , only : hdf5VarDouble , hdf5VarDouble2D, hdf5VarInteger8
   use :: ISO_Varying_String, only : varying_string
-  use :: Output_Units      , only : unitType
+  use :: Units_MetaData      , only : unitType
   public
 
   ! Maximum length of names and comments.

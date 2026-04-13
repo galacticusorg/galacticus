@@ -19,7 +19,6 @@
 
   use :: Kind_Numbers, only : kind_int8
   use :: Hashes      , only : doubleHash, rank1DoubleHash
-  use :: Output_Units, only : unitType  , unitsMake
 
   !![
   <nodePropertyExtractor name="nodePropertyExtractorIntegerTuple" abstract="yes">
@@ -114,22 +113,23 @@
 
 contains
 
-  function integerTupleUnits(self,time) result(units_)
+  function integerTupleUnits(self,time) result(units)
     !!{
-    Default implementation: wraps the deferred \refmeth{nodePropertyExtractorIntegerTuple}{unitsInSI} array into an array of
-    \reftype{unitType}.
+    Default implementation: wraps the deferred \mono{nodePropertyExtractorIntegerTuple} \mono{unitsInSI} array into an array of
+    \mono{unitType}.
     !!}
+    use :: Units_MetaData, only : unitType
     implicit none
-    type            (unitType                        ), dimension(:), allocatable :: units_
-    class           (nodePropertyExtractorIntegerTuple), intent(inout)            :: self
-    double precision                                  , intent(in   )             :: time
-    double precision                                  , dimension(:), allocatable :: siValues
-    integer                                                                       :: i
+    type            (unitType                         ), dimension(:), allocatable :: units
+    class           (nodePropertyExtractorIntegerTuple), intent(inout)             :: self
+    double precision                                   , intent(in   )             :: time
+    double precision                                   , dimension(:), allocatable :: siValues
+    integer                                                                        :: i
 
     siValues=self%unitsInSI(time)
-    allocate(units_(size(siValues)))
+    allocate(units(size(siValues)))
     do i=1,size(siValues)
-       units_(i)=unitsMake(unitsInSI=siValues(i),isComoving=0)
+       units(i)=unitType(siValues(i),isComoving=0)
     end do
     return
   end function integerTupleUnits

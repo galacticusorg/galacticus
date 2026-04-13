@@ -52,7 +52,7 @@ module Node_Component_Satellite_Orbiting
       <type>double</type>
       <rank>1</rank>
       <attributes isSettable="true" isGettable="true" isEvolvable="true" />
-      <output labels="[X,Y,Z]" unitsInSI="megaParsec" comment="Orbital position of the node relative to its immediate host (sub-)halo."/>
+      <output labels="[X,Y,Z]" unitsInSI="megaParsec" unitsDescription="Mpc" unitsQuantity="Mpc" comment="Orbital position of the node relative to its immediate host (sub-)halo."/>
       <classDefault>[0.0d0,0.0d0,0.0d0]</classDefault>
     </property>
     <property>
@@ -60,7 +60,7 @@ module Node_Component_Satellite_Orbiting
       <type>double</type>
       <rank>1</rank>
       <attributes isSettable="true" isGettable="true" isEvolvable="true" />
-      <output labels="[X,Y,Z]" unitsInSI="kilo" comment="Orbital velocity of the node relative to its immediate host (sub-)halo."/>
+      <output labels="[X,Y,Z]" unitsInSI="kilo" unitsDescription="km/s" unitsQuantity="km/s" comment="Orbital velocity of the node relative to its immediate host (sub-)halo."/>
       <classDefault>[0.0d0,0.0d0,0.0d0]</classDefault>
     </property>
     <property>
@@ -83,7 +83,7 @@ module Node_Component_Satellite_Orbiting
       <rank>0</rank>
       <attributes isSettable="true" isGettable="true" isEvolvable="true" />
       <classDefault>selfBasic%mass()</classDefault>
-      <output unitsInSI="massSolar" comment="Bound mass of the node."/>
+      <output unitsInSI="massSolar" unitsDescription="Solar masses" unitsQuantity="solMass" comment="Bound mass of the node."/>
     </property>
     <property>
       <name>virialOrbit</name>
@@ -102,7 +102,7 @@ module Node_Component_Satellite_Orbiting
       <type>double</type>
       <rank>0</rank>
       <attributes isSettable="true" isGettable="true" isEvolvable="true" />
-      <output unitsInSI="kilo**2/megaParsec**2" comment="Specific energy/radius² of satellite in units of (km/s)²/Mpc²."/>
+      <output unitsInSI="kilo**2/megaParsec**2" unitsDescription="(km/s/Mpc)²" unitsQuantity="km^2/(s^2 Mpc^2)" comment="Specific energy/radius² of satellite in units of (km/s)²/Mpc²."/>
     </property>
    </properties>
   </component>

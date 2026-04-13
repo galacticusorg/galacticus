@@ -1433,7 +1433,7 @@ contains
     use    :: HDF5_Access                     , only : hdf5Access
     use    :: IO_HDF5                         , only : hdf5Object
     use    :: Numerical_Constants_Astronomical, only : massSolar
-    use    :: Output_Units                    , only : unitsMake
+    use    :: Units_MetaData                  , only : unitType
     !$ use :: OMP_Lib                         , only : OMP_Get_Num_Threads
     implicit none
     class           (mergerTreeOperatorConditionalMF), intent(inout)                         :: self
@@ -1560,9 +1560,9 @@ contains
        ! Our group does not already exist. Simply write the data.
        conditionalMassFunctionGroup=outputFile%openGroup(char(self%nameGroupOutput),'Conditional mass functions of merger trees.',objectsOverwritable=.true.,overwriteOverride=.true.)
        call conditionalMassFunctionGroup%writeDataset  (self%massParents                       ,"massParent"                        ,"Mass of parent node [Msolar]"              ,datasetReturned=massDataset)
-       call massDataset                 %writeAttribute(unitsMake(unitsInSI=massSolar         ),"units"                                                                                                      )
+       call massDataset                 %writeAttribute(unitType(massSolar,"Solar masses","solMass"),"units")
        call conditionalMassFunctionGroup%writeDataset  (self%massRatios                        ,"massRatio"                         ,"Mass of ratio node [Msolar]"               ,datasetReturned=massDataset)
-       call massDataset                 %writeAttribute(unitsMake(unitsInSI=massSolar         ),"units"                                                                                                      )
+       call massDataset                 %writeAttribute(unitType(massSolar,"Solar masses","solMass"),"units")
        call conditionalMassFunctionGroup%writeDataset  (self%redshiftsParent                   ,"redshiftParent"                    ,"Redshift of parent node []"                                            )
        call conditionalMassFunctionGroup%writeDataset  (self%redshiftsProgenitor               ,"redshiftProgenitor"                ,"Redshift of progenitor node []"                                        )
        accumulationCount=0

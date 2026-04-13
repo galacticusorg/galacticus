@@ -385,19 +385,20 @@ contains
      !!{
      Update the properties for a given universe.
      !!}
-     use            :: Arrays_Search           , only : searchArrayClosest
-     use            :: Display                 , only : displayIndent     , displayMessage, displayUnindent
-     use            :: Error                   , only : Error_Report
-     use            :: Output_HDF5             , only : outputFile
-     use            :: Galacticus_Nodes        , only : mergerTree        , mergerTreeList, nodeComponentBasic, treeNode, &
-          &                                             universe          , universeEvent
-     use            :: HDF5_Access             , only : hdf5Access
-     use            :: IO_HDF5                 , only : hdf5Object
-     use, intrinsic :: ISO_C_Binding           , only : c_size_t
-     use            :: ISO_Varying_String      , only : varying_string
-     use            :: Numerical_Constants_Math, only : Pi
-     use            :: Numerical_ODE_Solvers   , only : odeSolver
-     use            :: Output_Units            , only : unitsMake
+     use            :: Arrays_Search                   , only : searchArrayClosest
+     use            :: Display                         , only : displayIndent     , displayMessage, displayUnindent
+     use            :: Error                           , only : Error_Report
+     use            :: Output_HDF5                     , only : outputFile
+     use            :: Galacticus_Nodes                , only : mergerTree        , mergerTreeList, nodeComponentBasic, treeNode, &
+          &                                                     universe          , universeEvent
+     use            :: HDF5_Access                     , only : hdf5Access
+     use            :: IO_HDF5                         , only : hdf5Object
+     use, intrinsic :: ISO_C_Binding                   , only : c_size_t
+     use            :: ISO_Varying_String              , only : varying_string
+     use            :: Numerical_Constants_Math        , only : Pi
+     use            :: Numerical_Constants_Astronomical, only : massSolar
+     use            :: Numerical_ODE_Solvers           , only : odeSolver
+     use            :: Units_MetaData                  , only : unitType
      implicit none
      class           (universeEvent     ), intent(inout)            :: event
      type            (universe          ), intent(inout)            :: universe_
@@ -503,25 +504,25 @@ contains
            !$ call hdf5Access%set()
            igmGroup=outputFile%openGroup('igmProperties', 'Properties of the intergalactic medium.')
            call igmGroup  %writeDataset  (self%redshift            ,'redshift'        ,'Redshift [].'                                  ,datasetReturned=igmDataset)
-           call igmDataset%writeAttribute(unitsMake(unitsInSI=0.0d0),'units'                                                                                   )
+           call igmDataset%writeAttribute(unitType(1.0d0                             ),'units')
            call igmGroup  %writeDataset  (self%temperature         ,'temperature'     ,'Temperature of the IGM [K].'                   ,datasetReturned=igmDataset)
-           call igmDataset%writeAttribute(unitsMake(unitsInSI=1.0d0),'units'                                                                                   )
+           call igmDataset%writeAttribute(unitType(1.0d0    ,"Kelvin"      ,"K"      ),'units')
            call igmGroup  %writeDataset  (self%densityHydrogen(:,1),'densityHydrogen1','Density of H1 in the IGM [m⁻³].'               ,datasetReturned=igmDataset)
-           call igmDataset%writeAttribute(unitsMake(unitsInSI=1.0d0),'units'                                                                                   )
+           call igmDataset%writeAttribute(unitType(1.0d0    ,"m⁻³"         ,"m^-3"   ),'units')
            call igmGroup  %writeDataset  (self%densityHydrogen(:,2),'densityHydrogen2','Density of H2 in the IGM [m⁻³].'               ,datasetReturned=igmDataset)
-           call igmDataset%writeAttribute(unitsMake(unitsInSI=1.0d0),'units'                                                                                   )
+           call igmDataset%writeAttribute(unitType(1.0d0    ,"m⁻³"         ,"m^-3"   ),'units')
            call igmGroup  %writeDataset  (self%densityHelium  (:,1),'densityHelium1'  ,'Density of He1 in the IGM [m⁻³].'              ,datasetReturned=igmDataset)
-           call igmDataset%writeAttribute(unitsMake(unitsInSI=1.0d0),'units'                                                                                   )
+           call igmDataset%writeAttribute(unitType(1.0d0    ,"m⁻³"         ,"m^-3"   ),'units')
            call igmGroup  %writeDataset  (self%densityHelium  (:,2),'densityHelium2'  ,'Density of He2 in the IGM [m⁻³].'              ,datasetReturned=igmDataset)
-           call igmDataset%writeAttribute(unitsMake(unitsInSI=1.0d0),'units'                                                                                   )
+           call igmDataset%writeAttribute(unitType(1.0d0    ,"m⁻³"         ,"m^-3"   ),'units')
            call igmGroup  %writeDataset  (self%densityHelium  (:,3),'densityHelium3'  ,'Density of He3 in the IGM [m⁻³].'              ,datasetReturned=igmDataset)
-           call igmDataset%writeAttribute(unitsMake(unitsInSI=1.0d0),'units'                                                                                   )
+           call igmDataset%writeAttribute(unitType(1.0d0    ,"m⁻³"         ,"m^-3"   ),'units')
            call igmGroup  %writeDataset  (self%clumpingFactor      ,'clumpingFactor'  ,'Clumping factor in the IGM [].'                ,datasetReturned=igmDataset)
-           call igmDataset%writeAttribute(unitsMake(unitsInSI=1.0d0),'units'                                                                                   )
+           call igmDataset%writeAttribute(unitType(1.0d0                             ),'units')
            call igmGroup  %writeDataset  (self%opticalDepth        ,'opticalDepth'    ,'Electron scattering optical depth from z=0 [].',datasetReturned=igmDataset)
-           call igmDataset%writeAttribute(unitsMake(unitsInSI=1.0d0),'units'                                                                                   )
+           call igmDataset%writeAttribute(unitType(1.0d0                             ),'units')
            call igmGroup  %writeDataset  (self%massFiltering       ,'filteringMass'   ,'Filtering mass in the IGM [M☉].'               ,datasetReturned=igmDataset)
-           call igmDataset%writeAttribute(unitsMake(unitsInSI=1.0d0),'units'                                                                                   )
+           call igmDataset%writeAttribute(unitType(massSolar,"Solar masses","solMass"),'units')
            !$ call hdf5Access%unset()
         end if
         ! Store the past history to the default IGM state class.

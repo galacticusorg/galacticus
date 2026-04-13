@@ -308,7 +308,7 @@ contains
     use :: Numerical_Constants_Math        , only : Pi
     use :: Numerical_Integration           , only : integrator
     use :: Numerical_Ranges                , only : Make_Range   , rangeTypeLinear   , rangeTypeLogarithmic
-    use :: Output_Units                    , only : unitsMake
+    use :: Units_MetaData                  , only : unitType
     implicit none
     class           (taskMassFunctionCovariance), intent(inout), target                   :: self
     integer                                     , intent(  out), optional                 :: status
@@ -603,17 +603,17 @@ contains
     ! Write out the covariance matrix.
     !$ call hdf5Access%set()
     call massFunctionFile %writeDataset  (mass               ,"mass"             ,"Mass; M [M☉]"                                    ,datasetReturned=dataset)
-    call dataset%writeAttribute(unitsMake(unitsInSI=massSolar          ),"units"                                    )
+    call dataset%writeAttribute(unitType(massSolar          ,"Solar masses","solMass"       ),"units")
     call massFunctionFile %writeDataset  (massFunction       ,"massFunction"     ,"Mass function; dn/dln(M) [Mpc⁻³]"                ,datasetReturned=dataset)
-    call dataset%writeAttribute(unitsMake(unitsInSI=1.0d0/megaParsec**3),"units"                                    )
+    call dataset%writeAttribute(unitType(1.0d0/megaParsec**3,"Mpc⁻³"       ,"Mpc^-3" ,.true.),"units")
     call massFunctionFile %writeDataset  (covariance         ,"covariance"       ,"Covariance of mass function; [Mpc⁻⁶]"            ,datasetReturned=dataset)
-    call dataset%writeAttribute(unitsMake(unitsInSI=1.0d0/megaParsec**3),"units"                                    )
+    call dataset%writeAttribute(unitType(1.0d0/megaParsec**3,"Mpc⁻³"       ,"Mpc^-3" ,.true.),"units")
     call massFunctionFile %writeDataset  (covariancePoisson  ,"covariancePoisson","Covariance due to Poisson noise; [Mpc⁻⁶]"        ,datasetReturned=dataset)
-    call dataset%writeAttribute(unitsMake(unitsInSI=1.0d0/megaParsec**3),"units"                                    )
+    call dataset%writeAttribute(unitType(1.0d0/megaParsec**3,"Mpc⁻³"       ,"Mpc^-3" ,.true.),"units")
     call massFunctionFile %writeDataset  (covarianceHalo     ,"covarianceHalo"   ,"Covariance due to halo effect; [Mpc⁻⁶]"          ,datasetReturned=dataset)
-    call dataset%writeAttribute(unitsMake(unitsInSI=1.0d0/megaParsec**3),"units"                                    )
+    call dataset%writeAttribute(unitType(1.0d0/megaParsec**3,"Mpc⁻³"       ,"Mpc^-3" ,.true.),"units")
     call massFunctionFile %writeDataset  (covarianceLSS      ,"covarianceLSS"    ,"Covariance due to large scale structure; [Mpc⁻⁶]",datasetReturned=dataset)
-    call dataset%writeAttribute(unitsMake(unitsInSI=1.0d0/megaParsec**3),"units"                                    )
+    call dataset%writeAttribute(unitType(1.0d0/megaParsec**3,"Mpc⁻³"       ,"Mpc^-3" ,.true.),"units")
     call massFunctionFile %writeDataset  (correlation        ,"correlation"      ,"Correlation matrix for stellar mass function; []"                        )
     !$ call hdf5Access%unset()
     ! Done.

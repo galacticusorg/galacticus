@@ -42,7 +42,7 @@ contains
     use :: IO_HDF5              , only : hdf5Object
     use :: ISO_Varying_String   , only : varying_string         , var_str
     use :: OpenMP_Utilities_Data, only : criticalSectionWaitTime, criticalSectionCount
-    use :: Output_Units         , only : unitsMake
+    use :: Units_MetaData       , only : unitType
 #endif
     implicit none
 #ifdef OMPPROFILE
@@ -58,7 +58,7 @@ contains
     ! Write wait time data.
     call waitTimeGroup%writeDataset(criticalSectionNames   ,"criticalSectionNames"    ,"Names of OpenMP critical sections"                                                   )
     call waitTimeGroup%writeDataset(criticalSectionWaitTime,"criticalSectionWaitTimes","Total time spent waiting at OpenMP critical sections",datasetReturned=waitTimeDataset)
-    call waitTimeDataset%writeAttribute(unitsMake(unitsInSI=1.0d0),"units")
+    call waitTimeDataset%writeAttribute(unitType(1.0d0,"seconds","s"),"units")
     call waitTimeDataset%close()
     ! Close output groups.
     call waitTimeGroup%close()

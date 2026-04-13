@@ -279,11 +279,15 @@ contains
          &                                var_str('color'                                        ), &
          &                                var_str('Color at the bin center'                      ), &
          &                                var_str('dimensionless'                                ), &
-         &                                0.0d0                                                   , &
+         &                                var_str(' '                                            ), &
+         &                                .false.                                                 , &
+         &                                1.0d0                                                   , &
          &                                var_str('colorDistributionSDSSFunction'                ), &
          &                                var_str('Color distribution averaged over each bin'    ), &
          &                                var_str('dimensionless'                                ), &
-         &                                0.0d0                                                   , &
+         &                                var_str(' '                                            ), &
+         &                                .false.                                                 , &
+         &                                1.0d0                                                   , &
          &                                colors                                                  , &
          &                                bufferCount                                             , &
          &                                outputWeight                                            , &

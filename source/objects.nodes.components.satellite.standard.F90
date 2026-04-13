@@ -45,7 +45,7 @@ module Node_Component_Satellite_Standard
       <rank>0</rank>
       <attributes isSettable="true" isGettable="true" isEvolvable="true" />
       <classDefault>selfBasic%mass()</classDefault>
-      <output unitsInSI="massSolar" comment="Bound mass of the node."/>
+      <output unitsInSI="massSolar" unitsDescription="Solar masses" unitsQuantity="solMass" comment="Bound mass of the node."/>
     </property>
     <property>
       <name>virialOrbit</name>

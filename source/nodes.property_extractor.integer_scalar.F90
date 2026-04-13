@@ -19,7 +19,6 @@
 
   use :: Kind_Numbers, only : kind_int8
   use :: Hashes      , only : doubleHash, rank1DoubleHash
-  use :: Output_Units, only : unitType  , unitsMake
 
   !![
   <nodePropertyExtractor name="nodePropertyExtractorIntegerScalar" abstract="yes">
@@ -76,15 +75,16 @@
 
 contains
 
-  function integerScalarUnits(self) result(units_)
+  function integerScalarUnits(self) result(units)
     !!{
     Default implementation: wraps \refmeth{nodePropertyExtractorIntegerScalar}{unitsInSI} into a \reftype{unitType}.
     !!}
+    use :: Units_MetaData, only : unitType
     implicit none
-    type (unitType                           )                :: units_
+    type (unitType                          )                :: units
     class(nodePropertyExtractorIntegerScalar), intent(inout) :: self
 
-    units_=unitsMake(unitsInSI=self%unitsInSI(),isComoving=0)
+    units=unitType(self%unitsInSI())
     return
   end function integerScalarUnits
 

@@ -58,28 +58,28 @@ module Node_Component_Disk_Very_Simple
       <type>double</type>
       <rank>0</rank>
       <attributes isSettable="true" isGettable="true" isEvolvable="true" />
-      <output unitsInSI="massSolar" comment="Mass of stars in the very simple disk."/>
+      <output unitsInSI="massSolar" unitsDescription="Solar masses" unitsQuantity="solMass" comment="Mass of stars in the very simple disk."/>
     </property>
     <property>
       <name>abundancesStellar</name>
       <type>abundances</type>
       <rank>0</rank>
       <attributes isSettable="true" isGettable="true" isEvolvable="true" />
-      <output unitsInSI="massSolar" comment="Mass of metals in the stellar phase of the standard disk."/>
+      <output unitsInSI="massSolar" unitsDescription="Solar masses" unitsQuantity="solMass" comment="Mass of metals in the stellar phase of the standard disk."/>
     </property>
     <property>
       <name>massGas</name>
       <type>double</type>
       <rank>0</rank>
       <attributes isSettable="true" isGettable="true" isEvolvable="true" createIfNeeded="true" />
-      <output unitsInSI="massSolar" comment="Mass of gas in the very simple disk."/>
+      <output unitsInSI="massSolar" unitsDescription="Solar masses" unitsQuantity="solMass" comment="Mass of gas in the very simple disk."/>
     </property>
     <property>
       <name>abundancesGas</name>
       <type>abundances</type>
       <rank>0</rank>
       <attributes isSettable="true" isGettable="true" isEvolvable="true" createIfNeeded="true" />
-      <output unitsInSI="massSolar" comment="Mass of metals in the gas phase of the standard disk."/>
+      <output unitsInSI="massSolar" unitsDescription="Solar masses" unitsQuantity="solMass" comment="Mass of metals in the gas phase of the standard disk."/>
     </property>
     <property>
       <name>stellarPropertiesHistory</name>
@@ -92,7 +92,7 @@ module Node_Component_Disk_Very_Simple
       <type>stellarLuminosities</type>
       <rank>0</rank>
       <attributes isSettable="true" isGettable="true" isEvolvable="true" />
-      <output unitsInSI="luminosityZeroPointAB" comment="Luminosity of disk stars."/>
+      <output unitsInSI="luminosityZeroPointAB" unitsDescription="AB-magnitude zero point" unitsQuantity="4.465920e17 W/Hz" comment="Luminosity of disk stars."/>
     </property>
    </properties>
    <bindings>

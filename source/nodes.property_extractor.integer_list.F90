@@ -17,9 +17,9 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  use :: Kind_Numbers, only : kind_int8
-  use :: Hashes      , only : doubleHash, rank1DoubleHash
-  use :: Output_Units, only : unitType  , unitsMake
+  use :: Kind_Numbers  , only : kind_int8
+  use :: Hashes        , only : doubleHash, rank1DoubleHash
+  use :: Units_MetaData, only : unitType
 
   !![
   <nodePropertyExtractor name="nodePropertyExtractorIntegerList" abstract="yes">
@@ -110,21 +110,21 @@
 
 contains
 
-  function integerListUnits(self) result(units_)
+  function integerListUnits(self) result(units)
     !!{
-    Default implementation: wraps the deferred \refmeth{nodePropertyExtractorIntegerList}{unitsInSI} array into an array of
-    \reftype{unitType}.
+    Default implementation: wraps the deferred \mono{nodePropertyExtractorIntegerList} \mono{unitsInSI} array into an array of
+    \mono{unitType}.
     !!}
     implicit none
-    type (unitType                          ), dimension(:), allocatable :: units_
+    type (unitType                          ), dimension(:), allocatable :: units
     class(nodePropertyExtractorIntegerList  ), intent(inout)             :: self
     double precision                         , dimension(:), allocatable :: siValues
     integer                                                              :: i
 
     siValues=self%unitsInSI()
-    allocate(units_(size(siValues)))
+    allocate(units(size(siValues)))
     do i=1,size(siValues)
-       units_(i)=unitsMake(unitsInSI=siValues(i),isComoving=0)
+       units(i)=unitType(siValues(i),isComoving=0)
     end do
     return
   end function integerListUnits

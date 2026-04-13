@@ -418,10 +418,14 @@ contains
          &                                var_str('luminosity'                                                                      ), &
          &                                var_str('Hα luminosity at the bin center'                                                 ), &
          &                                var_str('ergs/s'                                                                          ), &
+         &                                var_str('erg/s'                                                                           ), &
+         &                                .false.                                                                                    , &
          &                                ergs                                                                                       , &
          &                                var_str('luminosityFunction'                                                              ), &
          &                                var_str('luminosity function averaged over each bin'                                      ), &
          &                                var_str('ᵪMpc⁻³'                                                                          ), &
+         &                                var_str('Mpc^-3'                                                                          ), &
+         &                                .true.                                                                                     , &
          &                                megaParsec**(-3)                                                                           , &
          &                                log10(luminosities)                                                                        , &
          &                                bufferCount                                                                                , &

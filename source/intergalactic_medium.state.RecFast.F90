@@ -91,7 +91,7 @@ contains
     use :: IO_HDF5                         , only : hdf5Object
     use :: Interfaces_RecFast              , only : Interface_RecFast_Initialize
     use :: Numerical_Constants_Astronomical, only : heliumByMassPrimordial
-    use :: Output_Units                    , only : unitsMake
+    use :: Units_MetaData                  , only : unitType
     use :: System_Command                  , only : System_Command_Do
     implicit none
     type            (intergalacticMediumStateRecFast)                              :: self
@@ -194,7 +194,7 @@ contains
          call outputFile%writeDataset  (hIonizedFraction   ,'hIonizedFraction' ,'Fraction of ionized hydrogen'                        )
          call outputFile%writeDataset  (heIonizedFraction  ,'heIonizedFraction','Fraction of ionized helium'                          )
          call outputFile%writeDataset  (matterTemperature  ,'matterTemperature','Temperature of matter'       ,datasetReturned=dataset)
-         call dataset   %writeAttribute(unitsMake(unitsInSI=1.0d0,description='Kelvin'),'units'                                                                   )
+         call dataset   %writeAttribute(unitType(1.0d0,'Kelvin','K'),'units')
          ! Add description and provenance to output structure.
          call outputFile%writeAttribute('IGM ionization/thermal state computed using RecFast','description'         )
          call outputFile%writeAttribute(fileFormatVersionCurrent                             ,'fileFormat'          )

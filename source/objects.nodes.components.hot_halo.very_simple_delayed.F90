@@ -46,14 +46,14 @@ module Node_Component_Hot_Halo_VS_Delayed
       <type>double</type>
       <rank>0</rank>
       <attributes isSettable="true" isGettable="true" isEvolvable="true" />
-      <output unitsInSI="massSolar" comment="Mass of gas in the hot halo."/>
+      <output unitsInSI="massSolar" unitsDescription="Solar masses" unitsQuantity="solMass" comment="Mass of gas in the hot halo."/>
     </property>
     <property>
       <name>outflowedAbundances</name>
       <type>abundances</type>
       <rank>0</rank>
       <attributes isSettable="true" isGettable="true" isEvolvable="true" />
-      <output unitsInSI="massSolar" comment="Mass of metals in the outflowed phase of the hot halo."/>
+      <output unitsInSI="massSolar" unitsDescription="Solar masses" unitsQuantity="solMass" comment="Mass of metals in the outflowed phase of the hot halo."/>
     </property>
    </properties>
    <bindings>

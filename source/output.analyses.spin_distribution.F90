@@ -555,11 +555,15 @@ contains
          &                                                             var_str('spin'                                    ), &
          &                                                             var_str('Spin at the bin center'                  ), &
          &                                                             var_str('dimensionless'                           ), &
-         &                                                             0.0d0                                              , &
+         &                                                             var_str(' '                                       ), &
+         &                                                             .true.                                             , &
+         &                                                             1.0d0                                              , &
          &                                                             var_str('spinDistributionFunction'                ), &
          &                                                             var_str('Spin distribution averaged over each bin'), &
          &                                                             var_str('dimensionless'                           ), &
-         &                                                             0.0d0                                              , &
+         &                                                             var_str(' '                                       ), &
+         &                                                             .true.                                             , &
+         &                                                             1.0d0                                              , &
          &                                                             log10(spins)                                       , &
          &                                                             bufferCount                                        , &
          &                                                             outputWeight                                       , &

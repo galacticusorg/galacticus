@@ -17,8 +17,8 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  use :: Hashes      , only : doubleHash, rank1DoubleHash
-  use :: Output_Units, only : unitType  , unitsMake
+  use :: Hashes        , only : doubleHash, rank1DoubleHash
+  use :: Units_MetaData, only : unitType
 
   !![
   <nodePropertyExtractor name="nodePropertyExtractorArray" abstract="yes">
@@ -33,14 +33,14 @@
    contains
      !![
      <methods>
-       <method method="columnDescriptions" description="Return a description of the columns."                               />
-       <method method="size"               description="Return the number of elements in the array."                        />
-       <method method="elementCount"       description="Return the number of properties in the array."                      />
-       <method method="extract"            description="Extract the properties from the given \mono{node}."/>
-       <method method="names"              description="Return the name of the properties extracted."                       />
-       <method method="descriptions"       description="Return a description of the properties extracted."                  />
-       <method method="unitsInSI"          description="Return the units of the properties extracted in the SI system."     />
-       <method method="metaData"           description="Populate a hash with meta-data for the property."                   />
+       <method method="columnDescriptions" description="Return a description of the columns."                          />
+       <method method="size"               description="Return the number of elements in the array."                   />
+       <method method="elementCount"       description="Return the number of properties in the array."                 />
+       <method method="extract"            description="Extract the properties from the given \mono{node}."            />
+       <method method="names"              description="Return the name of the properties extracted."                  />
+       <method method="descriptions"       description="Return a description of the properties extracted."             />
+       <method method="unitsInSI"          description="Return the units of the properties extracted in the SI system."/>
+       <method method="metaData"           description="Populate a hash with meta-data for the property."              />
      </methods>
      !!]
      procedure(arrayColumns     ), deferred :: columnDescriptions
@@ -144,22 +144,22 @@
 
 contains
 
-  function arrayUnits(self,time) result(units_)
+  function arrayUnits(self,time) result(units)
     !!{
     Default implementation: wraps the deferred \refmeth{nodePropertyExtractorArray}{unitsInSI} array into an array of
     \reftype{unitType}.
     !!}
     implicit none
-    type            (unitType                  ), dimension(:), allocatable :: units_
+    type            (unitType                  ), dimension(:), allocatable :: units
     class           (nodePropertyExtractorArray), intent(inout)             :: self
     double precision                            , intent(in   ), optional   :: time
     double precision                            , dimension(:), allocatable :: siValues
     integer                                                                  :: i
 
     siValues=self%unitsInSI(time)
-    allocate(units_(size(siValues)))
+    allocate(units(size(siValues)))
     do i=1,size(siValues)
-       units_(i)=unitsMake(unitsInSI=siValues(i),isComoving=0)
+       units(i)=unitType(siValues(i),isComoving=0)
     end do
     return
   end function arrayUnits

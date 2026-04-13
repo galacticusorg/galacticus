@@ -112,7 +112,7 @@ contains
     !!}
     use    :: Error                             , only : Error_Report
     use    :: Output_HDF5                       , only : outputFile
-    use    :: Output_Units                      , only : unitsMake
+    use    :: Units_MetaData                    , only : unitType
     use    :: Galacticus_Nodes                  , only : nodeComponentBasic
     !$ use :: HDF5_Access                       , only : hdf5Access
     use    :: Kind_Numbers                      , only : kind_int8
@@ -122,6 +122,7 @@ contains
          &                                               nodePropertyExtractorMulti   , nodePropertyExtractorNull, nodePropertyExtractorScalar       , nodePropertyExtractorTuple
     use    :: Poly_Ranks                        , only : polyRankDouble               , polyRankInteger          , assignment(=)
     use    :: String_Handling                   , only : operator(//)
+    use    :: Units_MetaData                    , only : unitType
     implicit none
     class           (mergerTreeOperatorOutputStructure), intent(inout) , target      :: self
     type            (mergerTree                       ), intent(inout) , target      :: tree
@@ -132,7 +133,7 @@ contains
     integer         (kind_int8                        ), dimension(:,:), allocatable :: propertiesInteger
     type            (varying_string                   ), dimension(  :), allocatable :: namesDouble          , namesInteger          , &
          &                                                                              descriptionsDouble   , descriptionsInteger
-    double precision                                   , dimension(  :), allocatable :: unitsInSIDouble      , unitsInSIInteger
+    type            (unitType                         ), dimension(  :), allocatable :: unitsDouble          , unitsInteger
     type            (polyRankDouble                   ), dimension(  :), allocatable :: doubleProperties
     type            (polyRankInteger                  ), dimension(  :), allocatable :: integerProperties
     type            (mergerTreeWalkerIsolatedNodes    )                              :: treeWalker
@@ -184,38 +185,38 @@ contains
        ! Allocate storage for the properties.
        allocate(propertiesDouble (countNodes,countPropertiesDouble ))
        allocate(propertiesInteger(countNodes,countPropertiesInteger))
-       allocate(unitsInSIDouble  (           countPropertiesDouble ))
-       allocate(unitsInSIInteger (           countPropertiesInteger))
+       allocate(unitsDouble      (           countPropertiesDouble ))
+       allocate(unitsInteger     (           countPropertiesInteger))
        ! Retrieve property names, descriptions, and units.
        select type (extractor_ => self%nodePropertyExtractor_)
        class is (nodePropertyExtractorScalar       )
           ! Scalar property extractor.
           namesDouble        (1)=extractor_%name        (                                                   )
           descriptionsDouble (1)=extractor_%description (                                                   )
-          unitsInSIDouble    (1)=extractor_%unitsInSI   (                                                   )
+          unitsDouble        (1)=extractor_%units       (                                                   )
        class is (nodePropertyExtractorTuple        )
           ! Tuple property extractor.
           call extractor_%names                         (                   basic%time(),namesDouble        )
           call extractor_%descriptions                  (                   basic%time(),descriptionsDouble )
-          unitsInSIDouble    (:)=extractor_%unitsInSI   (                   basic%time()                    )
+          unitsDouble        (:)=extractor_%units       (                   basic%time()                    )
        class is (nodePropertyExtractorIntegerScalar)
           ! Integer scalar property extractor.
           namesInteger       (1)=extractor_%name        (                                                   )
           descriptionsInteger(1)=extractor_%description (                                                   )
-          unitsInSIInteger   (1)=extractor_%unitsInSI   (                                                   )
+          unitsInteger       (1)=extractor_%units       (                                                   )
        class is (nodePropertyExtractorIntegerTuple )
           ! Integer tuple property extractor.
           call extractor_%names                         (                   basic%time(),namesInteger       )
           call extractor_%descriptions                  (                   basic%time(),descriptionsInteger)
-          unitsInSIInteger   (:)=extractor_%unitsInSI   (                   basic%time()                    )
+          unitsInteger       (:)=extractor_%units       (                   basic%time()                    )
        class is (nodePropertyExtractorMulti        )
           ! Multi property extractor.
           call extractor_%names                         (elementTypeDouble ,basic%time(),namesDouble        )
           call extractor_%descriptions                  (elementTypeDouble ,basic%time(),descriptionsDouble )
-          unitsInSIDouble    (:)=extractor_%unitsInSI   (elementTypeDouble ,basic%time()                    )
+          unitsDouble        (:)=extractor_%units       (elementTypeDouble ,basic%time()                    )
           call extractor_%names                         (elementTypeInteger,basic%time(),namesInteger       )
           call extractor_%descriptions                  (elementTypeInteger,basic%time(),descriptionsInteger)
-          unitsInSIInteger   (:)=extractor_%unitsInSI   (elementTypeInteger,basic%time()                    )
+          unitsInteger       (:)=extractor_%units       (elementTypeInteger,basic%time()                    )
        end select
        ! Walk the tree again accumulating properties for output to arrays.
        countNodes =0
@@ -270,11 +271,11 @@ contains
        !$ call hdf5Access%set  ()
        do i=1,countPropertiesDouble
           call treeGroup%writeDataset  (propertiesDouble (:,i),char(namesDouble (i)),char(descriptionsDouble (i)),datasetReturned=dataset)
-          call dataset  %writeAttribute(unitsMake(unitsInSI=unitsInSIDouble  (  i)),'units'                                             )
+          call dataset  %writeAttribute(unitsDouble      (  i),'units'                                                                   )
        end do
        do i=1,countPropertiesInteger
           call treeGroup%writeDataset  (propertiesInteger(:,i),char(namesInteger(i)),char(descriptionsInteger(i)),datasetReturned=dataset)
-          call dataset  %writeAttribute(unitsMake(unitsInSI=unitsInSIInteger (  i)),'units'                                             )
+          call dataset  %writeAttribute(unitsInteger     (  i),'units'                                                                   )
        end do
        !$ call hdf5Access%unset()
        ! Free workspace.
@@ -284,8 +285,8 @@ contains
        if (allocated(namesInteger       )) deallocate(namesInteger       )
        if (allocated(descriptionsDouble )) deallocate(descriptionsDouble )
        if (allocated(descriptionsInteger)) deallocate(descriptionsInteger)
-       if (allocated(unitsInSIDouble    )) deallocate(unitsInSIDouble    )
-       if (allocated(unitsInSIInteger   )) deallocate(unitsInSIInteger   )
+       if (allocated(unitsDouble        )) deallocate(unitsDouble        )
+       if (allocated(unitsInteger       )) deallocate(unitsInteger       )
        ! Move to the next tree.
        treeCurrent => treeCurrent%nextTree
     end do

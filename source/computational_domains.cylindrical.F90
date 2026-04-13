@@ -725,7 +725,7 @@ contains
     !$ use :: HDF5_Access                     , only : hdf5Access
     use    :: ISO_Varying_String              , only : char
     use    :: Numerical_Constants_Astronomical, only : megaparsec
-    use    :: Output_Units                    , only : unitsMake
+    use    :: Units_MetaData                  , only : unitType
     implicit none
     class           (computationalDomainCylindrical), intent(inout)                 :: self
     type            (hdf5Object                    ), intent(inout)                 :: outputGroup
@@ -736,10 +736,10 @@ contains
     
     !$ call hdf5Access%set  ()
     call outputGroup%writeDataset  (self%boundariesCells(1)%boundary                                                               ,'domainBoundariesRadial'  ,datasetReturned=dataset)
-    call dataset    %writeAttribute(unitsMake(unitsInSI=megaparsec,description='Mpc')                                              ,'units'                                           )
+    call dataset    %writeAttribute(unitType(megaparsec,'Mpc','Mpc'),'units')
     call dataset    %writeAttribute('boundaries of computational domain cells in the radial direction in cylindrical coordinates'  ,'description'                                     )
     call outputGroup%writeDataset  (self%boundariesCells(2)%boundary                                                               ,'domainBoundariesVertical',datasetReturned=dataset)
-    call dataset    %writeAttribute(unitsMake(unitsInSI=megaparsec,description='Mpc')                                              ,'units'                                           )
+    call dataset    %writeAttribute(unitType(megaparsec,'Mpc','Mpc'),'units')
     call dataset    %writeAttribute('boundaries of computational domain cells in the vertical direction in cylindrical coordinates','description'                                     )
     !$ call hdf5Access%unset()
     countOutputs=self%radiativeTransferMatter_%countOutputs()

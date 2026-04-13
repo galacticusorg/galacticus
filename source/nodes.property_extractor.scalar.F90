@@ -18,7 +18,7 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
   use :: Hashes      , only : doubleHash, rank1DoubleHash
-  use :: Output_Units, only : unitType  , unitsMake
+  use :: Units_MetaData, only : unitType
 
   !![
   <nodePropertyExtractor name="nodePropertyExtractorScalar" abstract="yes">
@@ -83,17 +83,17 @@
 
 contains
 
-  function scalarUnits(self) result(units_)
+  function scalarUnits(self) result(units)
     !!{
-    Default implementation: wraps the deferred \refmeth{nodePropertyExtractorScalar}{unitsInSI} result into a
-    \reftype{unitType}.  Subclasses may override this method to populate \mono{description}, \mono{quantity},
+    Default implementation: wraps the deferred \mono{nodePropertyExtractorScalar} \mono{unitsInSI} result into a
+    \mono{unitType}. Subclasses may override this method to populate \mono{description}, \mono{quantity},
     and \mono{isComoving}.
     !!}
     implicit none
-    type (unitType                  )                :: units_
+    type (unitType                   )                :: units
     class(nodePropertyExtractorScalar), intent(inout) :: self
 
-    units_=unitsMake(unitsInSI=self%unitsInSI(),isComoving=0)
+    units=unitType(self%unitsInSI(),isComoving=0)
     return
   end function scalarUnits
 

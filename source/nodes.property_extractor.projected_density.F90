@@ -396,21 +396,21 @@ contains
     !!{
     Return column descriptions of the \mono{projectedDensity} property.
     !!}
-    use :: Output_Units               , only : unitType   , unitsMake
-    use, intrinsic :: ISO_C_Binding   , only : c_int
+    use            :: Units_MetaData, only : unitType
+    use, intrinsic :: ISO_C_Binding , only : c_int
     implicit none
     class           (nodePropertyExtractorProjectedDensity), intent(inout)                            :: self
     double precision                                       , intent(in   ), optional                  :: time
     type            (varying_string                       ), intent(inout), dimension(:), allocatable :: descriptions
     double precision                                       , intent(inout), dimension(:), allocatable :: values
-    type            (varying_string                         ), intent(  out)                            :: valuesDescription
-    type            (unitType                              ), intent(  out)                            :: valuesUnits
+    type            (varying_string                       ), intent(  out)                            :: valuesDescription
+    type            (unitType                             ), intent(  out)                            :: valuesUnits
     !$GLC attributes unused :: time
 
     allocate(descriptions(self%radiiCount))
     allocate(values      (              0))
     valuesDescription=var_str('')
-    valuesUnits      =unitsMake(unitsInSI=0.0d0,isComoving=0_c_int)
+    valuesUnits      =unitType(1.0d0)
     descriptions     =self%radii%name
     return
   end subroutine projectedDensityColumnDescriptions

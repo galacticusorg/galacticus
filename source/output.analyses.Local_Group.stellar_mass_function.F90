@@ -426,11 +426,15 @@ contains
        &amp;                         var_str('massStellar')                                 , &amp;
        &amp;                         var_str('Stellar mass at the bin center')              , &amp;
        &amp;                         var_str('M☉')                                          , &amp;
+       &amp;                         var_str('solMass')                                     , &amp;
+       &amp;                         .false.                                                , &amp;
        &amp;                         massSolar                                              , &amp;
        &amp;                         var_str('massFunction')                                , &amp;
        &amp;                         var_str('Differential satellite stellar mass function'), &amp;
        &amp;                         var_str(' ')                                           , &amp;
-       &amp;                         0.0d0                                                  , &amp;
+       &amp;                         var_str(' ')                                           , &amp;
+       &amp;                         .false.                                                , &amp;
+       &amp;                         1.0d0                                                  , &amp;
        &amp;                         massesSatellites                                       , &amp;
        &amp;                         bufferCountSatellites                                  , &amp;
        &amp;                         outputWeightSatellites                                 , &amp;
@@ -457,11 +461,15 @@ contains
        &amp;                         var_str(' ')                                          , &amp;
        &amp;                         var_str(' ')                                          , &amp;
        &amp;                         var_str(' ')                                          , &amp;
-       &amp;                         0.0d0                                                 , &amp;
+       &amp;                         var_str(' ')                                          , &amp;
+       &amp;                         .false.                                               , &amp;
+       &amp;                         1.0d0                                                 , &amp;
        &amp;                         var_str(' ')                                          , &amp;
        &amp;                         var_str(' ')                                          , &amp;
        &amp;                         var_str(' ')                                          , &amp;
-       &amp;                         0.0d0                                                 , &amp;
+       &amp;                         var_str(' ')                                          , &amp;
+       &amp;                         .false.                                               , &amp;
+       &amp;                         1.0d0                                                 , &amp;
        &amp;                         massesCentrals                                        , &amp;
        &amp;                         bufferCountCentrals                                   , &amp;
        &amp;                         outputWeightCentrals                                  , &amp;
@@ -600,7 +608,7 @@ contains
     use :: HDF5_Access                     , only : hdf5Access
     use :: IO_HDF5                         , only : hdf5Object
     use :: Numerical_Constants_Astronomical, only : massSolar
-    use :: Output_Units                    , only : unitsMake
+    use :: Units_MetaData                  , only : unitType
     implicit none
     class(outputAnalysisLocalGroupStellarMassFunction), intent(inout)           :: self
     type (varying_string                             ), intent(in   ), optional :: groupName
@@ -630,7 +638,7 @@ contains
     call analysisGroup%writeAttribute('massFunctionCovariance'           ,'yCovariance'                                                                                  )
     call analysisGroup%writeAttribute('Observed'                         ,'targetLabel'                                                                                  )
     call analysisGroup%writeDataset  (self%masses                        ,'massStellar'           ,'Stellar mass at the bin center'              ,datasetReturned=dataset)
-    call dataset      %writeAttribute(unitsMake(unitsInSI=massSolar,description='M☉',quantity='M☉'),'units'                                                                                        )
+    call dataset      %writeAttribute(unitType(massSolar,description='M☉',quantity='solMass'),'units')
     call analysisGroup%writeDataset  (self%massFunction                  ,'massFunction'          ,'Satellite number per bin [model]'                                    )
     call analysisGroup%writeDataset  (self%covariance                    ,'massFunctionCovariance','Satellite number per bin [model; covariance]'                        )
     call analysisGroup%writeDataset  (self%massFunctionTarget            ,'massFunctionTarget'    ,'Satellite number per bin [observed]'                                 )

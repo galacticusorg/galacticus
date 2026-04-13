@@ -633,11 +633,15 @@ contains
          &                                var_str('redshiftFormation'                                 ), &
          &                                var_str('Formation redshift at the bin center'              ), &
          &                                var_str('dimensionless'                                     ), &
-         &                                0.0d0                                                        , &
+         &                                var_str(' '                                                 ), &
+         &                                .false.                                                      , &
+         &                                1.0d0                                                        , &
          &                                var_str('formationTimeDistribution'                         ), &
          &                                var_str('Distribution formation time averaged over each bin'), &
          &                                var_str('dimensionless'                                     ), &
-         &                                0.0d0                                                        , &
+         &                                var_str(' '                                                 ), &
+         &                                .false.                                                      , &
+         &                                1.0d0                                                        , &
          &                                redshiftProgenitors                                          , &
          &                                bufferCount                                                  , &
          &                                outputWeight                                                 , &

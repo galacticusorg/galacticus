@@ -44,7 +44,7 @@ module Node_Component_Dark_Matter_Profile_Scale_Shape
       <type>double</type>
       <rank>0</rank>
       <attributes isSettable="true" isGettable="true" isEvolvable="true"/>
-      <output unitsInSI="0.0d0" comment="Shape parameter of the dark matter profile."/>
+      <output unitsInSI="1.0d0" comment="Shape parameter of the dark matter profile."/>
       <classDefault>-1.0d0</classDefault>
     </property>
    </properties>

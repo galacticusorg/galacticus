@@ -479,16 +479,16 @@ contains
     !!{
     Return column descriptions of the \mono{sed} property.
     !!}
-    use :: Numerical_Constants_Units, only : metersToAngstroms
-    use :: Output_Units             , only : unitType         , unitsMake
-    use, intrinsic :: ISO_C_Binding , only : c_int
+    use            :: Numerical_Constants_Units, only : metersToAngstroms
+    use            :: Units_MetaData           , only : unitType
+    use, intrinsic :: ISO_C_Binding            , only : c_int
     implicit none
     class           (nodePropertyExtractorSED), intent(inout)                            :: self
     double precision                          , intent(in   ), optional                  :: time
     type            (varying_string          ), intent(inout), dimension(:), allocatable :: descriptions
     double precision                          , intent(inout), dimension(:), allocatable :: values 
     type            (varying_string          ), intent(  out)                            :: valuesDescription
-    type            (unitType               ), intent(  out)                            :: valuesUnits
+    type            (unitType                ), intent(  out)                            :: valuesUnits
     integer         (c_size_t                )                                           :: i
     character       (len=18                  )                                           :: label
     
@@ -500,7 +500,7 @@ contains
        descriptions(i)=trim(label)
     end do
     valuesDescription=var_str('Wavelengths at which the SED is tabulated [in units of Å].')
-    valuesUnits      =unitsMake(unitsInSI=1.0d0/metersToAngstroms,isComoving=0_c_int)
+    valuesUnits      =unitType(1.0d0/metersToAngstroms,"Angstroms","angstrom")
     return
   end subroutine sedColumnDescriptions
 

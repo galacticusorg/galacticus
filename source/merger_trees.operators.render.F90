@@ -131,7 +131,7 @@ contains
     use :: IO_HDF5                         , only : hdf5Object
     use :: Merger_Tree_Walkers             , only : mergerTreeWalkerAllNodes
     use :: Numerical_Constants_Astronomical, only : gigaYear                , megaParsec
-    use :: Output_Units                    , only : unitsMake
+    use :: Units_MetaData                  , only : unitType
     implicit none
     class           (mergerTreeOperatorRender), intent(inout), target         :: self
     type            (mergerTree              ), intent(inout), target         :: tree
@@ -194,11 +194,11 @@ contains
     call fileObject %writeDataset  (childIndex     ,"childIndex"     ,"Child index []"                                 )
     call fileObject %writeDataset  (expansionFactor,"expansionFactor","Expansion factor []"                            )
     call fileObject %writeDataset  (time           ,"time"           ,"Time [Gyr]"         ,datasetReturned=treeDataset)
-    call treeDataset%writeAttribute(unitsMake(unitsInSI=gigaYear       ),"units"                                                        )
+    call treeDataset%writeAttribute(unitType(gigaYear  ,"Gyr","Gyr"),"units")
     call fileObject %writeDataset  (radiusVirial   ,"radiusVirial"   ,"Virial radius [Mpc]",datasetReturned=treeDataset)
-    call treeDataset%writeAttribute(unitsMake(unitsInSI=megaParsec     ),"units"                                                        )
+    call treeDataset%writeAttribute(unitType(megaParsec,"Mpc","Mpc"),"units")
     call fileObject %writeDataset  (position_      ,"position"       ,"Position [Mpc]"     ,datasetReturned=treeDataset)
-    call treeDataset%writeAttribute(unitsMake(unitsInSI=megaParsec     ),"units"                                                        )
+    call treeDataset%writeAttribute(unitType(megaParsec,"Mpc","Mpc"),"units")
     ! Deallocate temporary arrays.
     deallocate(nodeIndex      )
     deallocate(parentIndex    )

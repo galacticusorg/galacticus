@@ -145,7 +145,7 @@ sub Implementation_Output_Names {
 	modules     =>
 	    [
 	     "Merger_Tree_Outputter_Buffer_Types",
-	     "Output_Units"
+	     "Units_MetaData"
 	    ],
 	variables   =>
 	    [
@@ -216,7 +216,7 @@ CODE
 {$outputType}Property                                   = {$outputType}Property+1
 {$outputType}Properties({$outputType}Property)%name     ='{$class->{'name'}.ucfirst($property->{'name'})}'
 {$outputType}Properties({$outputType}Property)%comment  ='{$property->{'output'}->{'comment'  }}'
-{$outputType}Properties({$outputType}Property)%units    =unitsMake(unitsInSI={$property->{'output'}->{'unitsInSI'}},quantity='{$property->{'output'}->{'quantity'} // ""}',isComoving={$property->{'output'}->{'isComoving'} // 0})
+{$outputType}Properties({$outputType}Property)%units    =unitType(unitsInSI={$property->{'output'}->{'unitsInSI'}},description='{$property->{'output'}->{'description'} // ""}',quantity='{$property->{'output'}->{'quantity'} // ""}',isComoving={$property->{'output'}->{'isComoving'} // '.false.'})
 CODE
 	    } elsif ( $code::property->{'data'}->{'rank'} == 1 ) {
 		if ( $code::property->{'output'}->{'labels'} =~ m/^\[(.*)\]$/ ) {
@@ -226,7 +226,7 @@ CODE
 {$outputType}Property                                   ={$outputType}Property+1
 {$outputType}Properties({$outputType}Property)%name     ='{$class->{'name'}.ucfirst($property->{'name'}).$label}'
 {$outputType}Properties({$outputType}Property)%comment  ='{$property->{'output'}->{'comment'  }} [{$label}]'
-{$outputType}Properties({$outputType}Property)%units    =unitsMake(unitsInSI={$property->{'output'}->{'unitsInSI'}},quantity='{$property->{'output'}->{'quantity'} // ""}',isComoving={$property->{'output'}->{'isComoving'} // 0})
+{$outputType}Properties({$outputType}Property)%units    =unitType(unitsInSI={$property->{'output'}->{'unitsInSI'}},description='{$property->{'output'}->{'description'} // ""}',quantity='{$property->{'output'}->{'quantity'} // ""}',isComoving={$property->{'output'}->{'isComoving'} // '.false.'})
 CODE
 		    }
 		} elsif ( exists($code::property->{'output'}->{'count'}) ) {
@@ -236,16 +236,18 @@ do i=1,{$property->{'output'}->{'count'}}
    {$outputType}Property                                   ={$outputType}Property+1
    {$outputType}Properties({$outputType}Property)%name     ='{$class->{'name'}.ucfirst($propertyName)}'//{$label}
    {$outputType}Properties({$outputType}Property)%comment  ='{$property->{'output'}->{'comment'  }} [' //{$label}//']'
-   {$outputType}Properties({$outputType}Property)%units    =unitsMake(unitsInSI={$property->{'output'}->{'unitsInSI'}},quantity='{$property->{'output'}->{'quantity'} // ""}',isComoving={$property->{'output'}->{'isComoving'} // 0})
+   {$outputType}Properties({$outputType}Property)%units    =unitType(unitsInSI={$property->{'output'}->{'unitsInSI'}},description='{$property->{'output'}->{'description'} // ""}',quantity='{$property->{'output'}->{'quantity'} // ""}',isComoving={$property->{'output'}->{'isComoving'} // '.false.'})
 end do
 CODE
                 }
 	    }
 	} else {
-	    $code::unitsInSI = exists($code::property->{'output'}->{'unitsInSI'}) ? $code::property->{'output'}->{'unitsInSI'} : "0.0d0";
+	    $code::unitsInSI        = exists($code::property->{'output'}->{'unitsInSI'       }) ? $code::property->{'output'}->{'unitsInSI'       } : "0.0d0";
+	    $code::unitsDescription = exists($code::property->{'output'}->{'unitsDescription'}) ? $code::property->{'output'}->{'unitsDescription'} : "''"   ;
+	    $code::unitsQuantity    = exists($code::property->{'output'}->{'unitsQuantity'   }) ? $code::property->{'output'}->{'unitsQuantity'   } : "''"   ;
 	    $function->{'content'} .= fill_in_string(<<'CODE', PACKAGE => 'code');
 output{ucfirst($property->{'data'}->{'type'})}=self%{$property->{'name'}}()			   
-call output{ucfirst($property->{'data'}->{'type'})}%outputNames(integerProperty,integerProperties,doubleProperty,doubleProperties,time,'{$class->{'name'}.ucfirst($property->{'name'})}','{$property->{'output'}->{'comment'}}',{$unitsInSI})
+call output{ucfirst($property->{'data'}->{'type'})}%outputNames(integerProperty,integerProperties,doubleProperty,doubleProperties,time,'{$class->{'name'}.ucfirst($property->{'name'})}','{$property->{'output'}->{'comment'}}',{$unitsInSI},'{$unitsDescription}','{$unitsQuantity}')
 CODE
 	}
     }

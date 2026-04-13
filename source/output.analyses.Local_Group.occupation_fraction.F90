@@ -372,11 +372,15 @@ contains
 	   &amp;                        var_str('massHalo'                                             ), &amp;
 	   &amp;                        var_str('Halo mass at the bin center'                          ), &amp;
 	   &amp;                        var_str('M☉'                                                   ), &amp;
+	   &amp;                        var_str('solMass'                                              ), &amp;
+	   &amp;                        .false.                                                         , &amp;
 	   &amp;                        massSolar                                                       , &amp;
 	   &amp;                        var_str('fractionOccupation'                                   ), &amp;
            &amp;                        var_str('Occupation fraction'                                  ), &amp;
            &amp;                        var_str('dimensionless'                                        ), &amp;
-           &amp;                        0.0d0                                                           , &amp;
+           &amp;                        var_str(' '                                                    ), &amp;
+           &amp;                        .false.                                                         , &amp;
+           &amp;                        1.0d0                                                           , &amp;
 	   &amp;                        masses                                                          , &amp;
 	   &amp;                        bufferCount                                                     , &amp;
 	   &amp;                        outputWeight                                                    , &amp;

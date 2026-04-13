@@ -461,10 +461,14 @@ contains
 	   &amp;                        var_str('massStellar'                                                                                          ), &amp;
 	   &amp;                        var_str('Stellar mass at the bin center'                                                                       ), &amp;
 	   &amp;                        var_str('M☉'                                                                                                   ), &amp;
+	   &amp;                        var_str('solMass'                                                                                              ), &amp;
+	   &amp;                        .false.                                                                                                         , &amp;
 	   &amp;                        massSolar                                                                                                       , &amp;
 	   &amp;                        var_str('velocityDispersionMean'                                                                               ), &amp;
            &amp;                        var_str('Mean logarithmic line-of-sight velocity dispersion at the half stellar-mass radius; ⟨log₁₀(σ/km s⁻¹)⟩'), &amp;
            &amp;                        var_str('dimensionless'                                                                                        ), &amp;
+           &amp;                        var_str(' '                                                                                                    ), &amp;
+           &amp;                        .false.                                                                                                         , &amp;
            &amp;                        0.0d0                                                                                                           , &amp;
 	   &amp;                        massesNonZero                                                                                                   , &amp;
 	   &amp;                        bufferCount                                                                                                     , &amp;

@@ -17,8 +17,8 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  use :: Hashes      , only : doubleHash, rank1DoubleHash
-  use :: Output_Units, only : unitType  , unitsMake
+  use :: Hashes        , only : doubleHash, rank1DoubleHash
+  use :: Units_MetaData, only : unitType
 
   !![
   <nodePropertyExtractor name="nodePropertyExtractorTuple" abstract="yes">
@@ -128,7 +128,7 @@ contains
     siValues=self%unitsInSI(time)
     allocate(units_(size(siValues)))
     do i=1,size(siValues)
-       units_(i)=unitsMake(unitsInSI=siValues(i),isComoving=0)
+       units_(i)=unitType(siValues(i),isComoving=0)
     end do
     return
   end function tupleUnits

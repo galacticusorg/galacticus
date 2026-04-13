@@ -464,10 +464,14 @@ contains
          &                              var_str('massStellar'                                                            ), &
          &                              var_str('Stellar mass at the bin center'                                         ), &
          &                              var_str('$\mathrm{M}_\odot$'                                                     ), &
+         &                              var_str('solMass'                                                                ), &
+         &                              .false.                                                                           , &
          &                              massSolar                                                                         , &
          &                              var_str('rateStarFormationSpecific'                                              ), &
          &                              var_str('Logarithmic specific star formation rate averaged over each bin'        ), &
          &                              var_str(' '                                                                      ), &
+         &                              var_str(' '                                                                      ), &
+         &                              .false.                                                                           , &
          &                              1.0d0                                                                             , &
          &                              log10(massesStellar)                                                              , &
          &                              bufferCount                                                                       , &

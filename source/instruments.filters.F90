@@ -390,7 +390,7 @@ contains
     use :: HDF5_Access              , only : hdf5Access
     use :: IO_HDF5                  , only : hdf5Object
     use :: Numerical_Constants_Units, only : metersToAngstroms
-    use :: Output_Units             , only : unitsMake
+    use :: Units_MetaData           , only : unitType
     implicit none
     type            (hdf5Object) :: filtersGroup       , dataset
     integer                      :: i
@@ -405,7 +405,7 @@ contains
     filtersGroup=outputFile%openGroup('Filters','Properties of filters used.')
     call filtersGroup%writeDataset(filterResponses(1:countFilterResponses)%name               ,'name'               ,'Filter name.'                                               )
     call filtersGroup%writeDataset(filterResponses(1:countFilterResponses)%wavelengthEffective,'wavelengthEffective','Effective wavelength of filter [Å].',datasetReturned=dataset)
-    call dataset%writeAttribute(unitsMake(unitsInSI=1.0d0/metersToAngstroms,description="Angstroms [Å]",quantity="Angstroms [Å]"),"units")
+    call dataset%writeAttribute(unitType(1.0d0/metersToAngstroms,"Angstroms [Å]",quantity="angstrom"),"units")
     !$ call hdf5Access%unset()
     return
   end subroutine Filters_Output

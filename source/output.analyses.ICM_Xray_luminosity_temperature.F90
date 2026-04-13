@@ -260,10 +260,14 @@ contains
          &                                                         var_str('temperatureICMXray'                                               ), &
          &                                                         var_str('X-ray temperature of the ICM'                                     ), &
          &                                                         var_str('keV'                                                              ), &
+         &                                                         var_str('keV'                                                              ), &
+         &                                                         .false.                                                                     , &
          &                                                         kilo*electronVolt                                                           , &
          &                                                         var_str('luminosityICMXray'                                                ), &
          &                                                         var_str('Mean logarithmic (base-10) X-ray luminosity of the ICM'           ), &
          &                                                         var_str('ergs/s'                                                           ), &
+         &                                                         var_str('erg/s'                                                            ), &
+         &                                                         .false.                                                                     , &
          &                                                         ergs                                                                        , &
          &                                                         temperatures                                                                , &
          &                                                         bufferCount                                                                 , &

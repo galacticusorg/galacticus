@@ -50,7 +50,7 @@ module Node_Component_Black_Hole_Standard
       <type>double</type>
       <rank>0</rank>
       <attributes isSettable="true" isGettable="true" isEvolvable="true" isNonNegative="true" />
-      <output unitsInSI="massSolar" comment="Mass of the black hole."/>
+      <output unitsInSI="massSolar" unitsDescription="Solar masses" unitsQuantity="solMass" comment="Mass of the black hole."/>
     </property>
     <property>
       <name>spin</name>
@@ -58,7 +58,7 @@ module Node_Component_Black_Hole_Standard
       <rank>0</rank>
       <attributes isSettable="true" isGettable="true" isEvolvable="true" isNonNegative="true" />
       <getFunction>Node_Component_Black_Hole_Standard_Spin</getFunction>
-      <output unitsInSI="0.0d0" comment="Spin of the black hole."/>
+      <output unitsInSI="1.0d0" comment="Spin of the black hole."/>
     </property>
     <property>
       <name>radialPosition</name>

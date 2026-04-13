@@ -43,7 +43,7 @@ module Node_Component_Halo_Angular_Momentum_Scalar
       <type>double</type>
       <rank>0</rank>
       <attributes isSettable="true" isGettable="true" isEvolvable="true" />
-      <output unitsInSI="massSolar*megaParsec*kilo" comment="Angular momentum magnitude of the DMO halo."/>
+      <output unitsInSI="massSolar*megaParsec*kilo" unitsDescription="Msun Mpc km/s" unitsQuantity="solMass Mpc km/s" comment="Angular momentum magnitude of the DMO halo."/>
     </property>
     <property>
       <name>angularMomentumGrowthRate</name>
