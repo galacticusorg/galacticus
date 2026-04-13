@@ -484,12 +484,17 @@ contains
 
   integer function String_Levenshtein_Distance(s,t)
     !!{
-    Compute the \href{http://en.wikipedia.org/wiki/Levenshtein_distance}{Levenshtein distance} between strings \mono{a} and \mono{b}.
+    Compute the \href{http://en.wikipedia.org/wiki/Levenshtein_distance}{Levenshtein distance} between strings \mono{a} and
+    \mono{b}. Requires only \mono{len(t)}$\times$\mono{2} storage as the Levenshtein algorithm only ever needs to refer to the
+    immediately previous row of the transformation. Rows are alternated by using a modulo-2 operation to determine to which row
+    reads/writes should be made.
     !!}
     implicit none
-    character(len=*), intent(in   )                     :: s, t
-    integer         , dimension(0:len(t),0:1)           :: d
-    integer                                             :: i, j, m, n, iCurr, iPrev
+    character(len=*), intent(in   )           :: s    , t
+    integer         , dimension(0:len(t),0:1) :: d
+    integer                                   :: i    , j    , &
+         &                                       m    , n    , &
+         &                                       iCurr, iPrev
 
     m=len(s)
     n=len(t)
@@ -503,7 +508,7 @@ contains
        d(0,iCurr)=i ! Cost of transforming s(1..i) into an empty string.
        do j=1,n
           if (s(i:i) == t(j:j)) then
-             d(j,iCurr)=d(j-1,iPrev)                              ! No operation required.
+             d(j,iCurr)=d(j-1,iPrev)          ! No operation required.
           else
              d(j,iCurr)=min(d(j  ,iPrev)+1, & ! A deletion.
                   &         d(j-1,iCurr)+1, & ! An insertion.
