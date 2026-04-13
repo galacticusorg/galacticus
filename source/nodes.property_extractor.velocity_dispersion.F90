@@ -21,7 +21,6 @@
   Implements a property extractor class for the velocity dispersion at a set of radii.
   !!}
   use :: Dark_Matter_Halo_Scales             , only : darkMatterHaloScale    , darkMatterHaloScaleClass
-  use :: Units_MetaData, only : unitType
   use :: Galactic_Structure_Radii_Definitions, only : radiusSpecifier
   use :: Galactic_Structure_Options          , only : enumerationMassTypeType, enumerationComponentTypeType, enumerationWeightByType
   use :: Mass_Distributions                  , only : massDistributionClass  , kinematicsDistributionClass

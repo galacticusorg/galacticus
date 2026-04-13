@@ -21,7 +21,6 @@
   Implements a property extractor class for the SED of a component.
   !!}
   use :: Cosmology_Functions                   , only : cosmologyFunctionsClass
-  use :: Units_MetaData, only : unitType
   use :: Galactic_Structure_Options            , only : enumerationComponentTypeType
   use :: Output_Times                          , only : outputTimesClass
   use :: Stellar_Population_Spectra            , only : stellarPopulationSpectraClass

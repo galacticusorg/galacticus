@@ -22,7 +22,6 @@ Implements a property extractor class for the mass and radii of spheres are spec
 !!}
 
   use :: Cosmology_Functions       , only : cosmologyFunctions     , cosmologyFunctionsClass , enumerationDensityCosmologicalType
-  use :: Units_MetaData, only : unitType
   use :: Cosmology_Parameters      , only : cosmologyParameters    , cosmologyParametersClass
   use :: Dark_Matter_Halo_Scales   , only : darkMatterHaloScale    , darkMatterHaloScaleClass
   use :: Galactic_Structure_Options, only : enumerationMassTypeType

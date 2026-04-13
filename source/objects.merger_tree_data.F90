@@ -427,7 +427,6 @@ contains
     Add a metadatum.
     !!}
     use :: Error             , only : Error_Report
-  use :: Units_MetaData, only : unitType
     use :: ISO_Varying_String, only : assignment(=)
     implicit none
     class           (mergerTreeData             ), intent(inout)               :: mergerTrees

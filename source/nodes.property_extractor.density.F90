@@ -21,7 +21,6 @@
   Implements a property extractor class for the density at a set of radii.
   !!}
   use :: Dark_Matter_Halo_Scales             , only : darkMatterHaloScale   , darkMatterHaloScaleClass
-  use :: Units_MetaData, only : unitType
   use :: Galactic_Structure_Radii_Definitions, only : radiusSpecifier
 
   !![

@@ -23,7 +23,6 @@ main branch galaxy.
 !!}
 
   use :: Cosmology_Functions    , only : cosmologyFunctions, cosmologyFunctionsClass
-  use :: Units_MetaData, only : unitType
   use :: Numerical_Interpolation, only : interpolator
   use :: Output_Times           , only : outputTimes       , outputTimesClass
 

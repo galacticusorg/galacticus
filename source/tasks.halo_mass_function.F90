@@ -18,7 +18,6 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
   use :: Cosmological_Density_Field               , only : cosmologicalMassVarianceClass          , criticalOverdensityClass         , haloEnvironmentClass
-  use :: Units_MetaData, only : unitType
   use :: Cosmology_Functions                      , only : cosmologyFunctionsClass
   use :: Cosmology_Parameters                     , only : cosmologyParametersClass
   use :: Dark_Matter_Halo_Biases                  , only : darkMatterHaloBiasClass

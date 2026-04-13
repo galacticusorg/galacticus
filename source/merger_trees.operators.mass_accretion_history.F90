@@ -23,7 +23,6 @@
   !!}
 
   use :: Cosmology_Functions    , only : cosmologyFunctionsClass
-  use :: Units_MetaData, only : unitType
   use :: Dark_Matter_Halo_Scales, only : darkMatterHaloScaleClass
   use :: IO_HDF5                , only : hdf5Object
 

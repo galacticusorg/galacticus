@@ -95,7 +95,6 @@ contains
     Constructor for the \refClass{computationalDomainSpherical} computational domain class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
-  use :: Units_MetaData, only : unitType
     implicit none
     type            (computationalDomainSpherical     )                :: self
     type            (inputParameters                  ), intent(inout) :: parameters

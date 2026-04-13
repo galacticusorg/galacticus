@@ -97,7 +97,6 @@ contains
     Constructor for the \refClass{computationalDomainCartesian3D} computational domain class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
-  use :: Units_MetaData, only : unitType
     implicit none
     type            (computationalDomainCartesian3D   )                 :: self
     type            (inputParameters                  ), intent(inout)  :: parameters

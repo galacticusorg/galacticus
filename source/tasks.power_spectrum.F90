@@ -18,7 +18,6 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
   use :: Cosmological_Density_Field     , only : cosmologicalMassVarianceClass
-  use :: Units_MetaData, only : unitType
   use :: Cosmology_Functions            , only : cosmologyFunctionsClass
   use :: Cosmology_Parameters           , only : cosmologyParametersClass
   use :: Linear_Growth                  , only : linearGrowthClass
