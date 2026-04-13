@@ -21,15 +21,15 @@
 !/ exclude
 
 !!{
-Contains a program which determines the C-interoperable Fortran types that correspond to the HDF5 \mono{hid\_t},
-\mono{hsize\_t}, and \mono{size\_t} types on the current system.
+! Contains a program which determines the C-interoperable Fortran types that correspond to the HDF5 \mono{hid\_t},
+! \mono{hsize\_t}, and \mono{size\_t} types on the current system.
 !!}
 
 program hdf5FCInterop
   !!{
-  Determines C-interoperable Fortran types that correspond to HDF5 types. The results are written to standard output and are
-  used during the build process to select appropriate \mono{ISO\_C\_Binding} type constants for each HDF5 type, avoiding
-  potential compiler warnings about C interoperability that would arise from using the HDF5-provided type kinds directly.
+  ! Determines C-interoperable Fortran types that correspond to HDF5 types. The results are written to standard output and are
+  ! used during the build process to select appropriate \mono{ISO\_C\_Binding} type constants for each HDF5 type, avoiding
+  ! potential compiler warnings about C interoperability that would arise from using the HDF5-provided type kinds directly.
   !!}
   use            :: HDF5         , only : hid_t, hsize_t, size_t
   use, intrinsic :: ISO_C_Binding, only : c_int, c_long , c_long_long, c_size_t

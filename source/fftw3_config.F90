@@ -21,7 +21,7 @@
 !/ exclude
 
 !!{
-Contains a program used to test whether the FFTW3 library is available on the current system.
+! Contains a program used to test whether the FFTW3 library is available on the current system.
 !!}
 
 program fftw3_config
