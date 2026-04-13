@@ -488,33 +488,29 @@ contains
     !!}
     implicit none
     character(len=*), intent(in   )                :: s, t
-    integer         , dimension(0:len(s),0:len(t)) :: d
+    integer         , dimension(0:len(t))          :: prev, curr
     integer                                        :: i, j, m, n
 
     m=len(s)
     n=len(t)
-    do i=0,m
-       d(i,0)=i ! The distance of any first string to an empty second string.
-    end do
+    ! Initialize prev(:) as the cost of transforming an empty string into t(1..j).
     do j=0,n
-       d(0,j)=j ! The distance of any second string to an empty first string.
+       prev(j)=j
     end do
-    do j=1,n
-       do i=1,m
+    do i=1,m
+       curr(0)=i ! Cost of transforming s(1..i) into an empty string.
+       do j=1,n
           if (s(i:i) == t(j:j)) then
-             d(i,j)=d(i-1,j-1)       ! No operation required.
+             curr(j)=prev(j-1)                              ! No operation required.
           else
-             d(i,j)=minval(               &
-                  &        [              &
-                  &         d(i-1,j  )+1, & ! A deletion.
-                  &         d(i  ,j-1)+1, & ! An insertion.
-                  &         d(i-1,j-1)+1  & ! A substitution.
-                  &        ]              &
-                  &       )
-                end if
-             end do
-          end do
-          String_Levenshtein_Distance=d(m,n)
+             curr(j)=min(prev(j  )+1, & ! A deletion.
+                  &      curr(j-1)+1, & ! An insertion.
+                  &      prev(j-1)+1)   ! A substitution.
+          end if
+       end do
+       prev=curr
+    end do
+    String_Levenshtein_Distance=prev(n)
     return
   end function String_Levenshtein_Distance
   
