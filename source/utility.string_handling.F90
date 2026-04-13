@@ -487,30 +487,31 @@ contains
     Compute the \href{http://en.wikipedia.org/wiki/Levenshtein_distance}{Levenshtein distance} between strings \mono{a} and \mono{b}.
     !!}
     implicit none
-    character(len=*), intent(in   )                :: s, t
-    integer         , dimension(0:len(t))          :: prev, curr
-    integer                                        :: i, j, m, n
+    character(len=*), intent(in   )                     :: s, t
+    integer         , dimension(0:len(t),0:1)           :: d
+    integer                                             :: i, j, m, n, iCurr, iPrev
 
     m=len(s)
     n=len(t)
-    ! Initialize prev(:) as the cost of transforming an empty string into t(1..j).
+    ! Initialize row 0 as the cost of transforming an empty string into t(1..j).
     do j=0,n
-       prev(j)=j
+       d(j,0)=j
     end do
     do i=1,m
-       curr(0)=i ! Cost of transforming s(1..i) into an empty string.
+       iCurr=mod(i  ,2)
+       iPrev=mod(i-1,2)
+       d(0,iCurr)=i ! Cost of transforming s(1..i) into an empty string.
        do j=1,n
           if (s(i:i) == t(j:j)) then
-             curr(j)=prev(j-1)                              ! No operation required.
+             d(j,iCurr)=d(j-1,iPrev)                              ! No operation required.
           else
-             curr(j)=min(prev(j  )+1, & ! A deletion.
-                  &      curr(j-1)+1, & ! An insertion.
-                  &      prev(j-1)+1)   ! A substitution.
+             d(j,iCurr)=min(d(j  ,iPrev)+1, & ! A deletion.
+                  &         d(j-1,iCurr)+1, & ! An insertion.
+                  &         d(j-1,iPrev)+1)   ! A substitution.
           end if
        end do
-       prev=curr
     end do
-    String_Levenshtein_Distance=prev(n)
+    String_Levenshtein_Distance=d(n,mod(m,2))
     return
   end function String_Levenshtein_Distance
   
