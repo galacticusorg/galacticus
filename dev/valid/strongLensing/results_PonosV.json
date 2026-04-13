@@ -4,21 +4,21 @@ window.PONOSV_DATA = {
     "commit": {
         "author": {
             "name": "Andrew Benson",
-            "email": "abenson@obs.carnegiescience.edu"
+            "email": "abensonca@gmail.com"
         },
-        "id": "57a796d08f966b2354f92b36e553fdc0fddb3517",
-        "message": "fix: Reduce resolution of a test model\n\nThe adapative star formation history dataset length test is slow to run. It runs much faster with lower resolution and still allows for dataset lengths to be tested.\n",
-        "timestamp": "2026-04-10 15:04:25-07:00",
-        "url": "https://github.com/galacticusorg/galacticus/commit/57a796d08f966b2354f92b36e553fdc0fddb3517"
+        "id": "5c441d11c9474971575f552d6974cf2b49d0eae6",
+        "message": "Merge pull request #1065 from galacticusorg/fixTidalTruncationRadii\n\nSet an infinite truncation radius for profiles that are precisely NFW (i.e. are not truncated)\n",
+        "timestamp": "2026-04-13 14:44:44+00:00",
+        "url": "https://github.com/galacticusorg/galacticus/commit/5c441d11c9474971575f552d6974cf2b49d0eae6"
     },
     "surfaceDensity": {
-        "percentageBelow": 42.857142857142854,
-        "percentageAbove": 57.142857142857146,
+        "percentageBelow": 32.14285714285714,
+        "percentageAbove": 67.85714285714286,
         "target": 0.006
     },
     "slope": {
-        "percentageBelow": 72.72727272727272,
-        "percentageAbove": 27.272727272727273,
+        "percentageBelow": 44.44444444444444,
+        "percentageAbove": 55.55555555555556,
         "target": 0.85
     }
 }
