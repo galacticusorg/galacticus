@@ -33,7 +33,7 @@ size_t H5T_Variable_Get(void)
   return H5T_VARIABLE;
 }
 
-/* Length of the string fields inside unitType - must match unitStringLength in Output_Units.F90 */
+/* Length of the string fields inside unitType - must match unitStringLength in utility.units.F90 (Units_MetaData module) */
 #define UNIT_STRING_LENGTH 512
 
 /* C mirror of the Fortran unitType bind(C) derived type.
