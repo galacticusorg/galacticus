@@ -43,27 +43,8 @@ After building, the two artifacts must be placed in a directory layout that \mon
 To create this layout from the build directory, run:
 \begin{verbatim}
 mkdir -p galacticus/lib galacticus/python
-# Copy runtime dependencies (Linux).
-# The grep -v filter excludes standard system libraries that are
-# always present; extend it with additional paths if your system
-# has further libraries that do not need to be bundled.
-ldd libgalacticus.so \
-    | awk '{if (NF == 4) print $3}' \
-    | grep -v -e /libc.so -e /libdl.so -e /libm.so \
-               -e /libpthread.so -e /librt.so \
-    | xargs -n 1 -I{} cp {} galacticus/lib/
 mv galacticus.py     galacticus/python/
 mv libgalacticus.so  galacticus/lib/
-\end{verbatim}
-On macOS, replace the \mono{ldd} step with an equivalent \mono{otool -L} invocation to list linked libraries, and omit libraries that reside under \mono{/usr/lib} or \mono{/System/Library} as those are provided by the OS.
-
-The library can optionally be distributed as a self-contained archive:
-\begin{verbatim}
-tar cvfj libgalacticus.tar.bz2 galacticus
-\end{verbatim}
-Recipients can then extract it with:
-\begin{verbatim}
-tar xvfj libgalacticus.tar.bz2
 \end{verbatim}
 
 \subsection{Making the Module Importable}\label{sec:pythonInterface:build:pythonpath}
