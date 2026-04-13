@@ -41,8 +41,8 @@
      Implementation of a 1D distribution function which is uniform in the logarithm of the variable.
      !!}
      private
-     double precision :: limitLower    , limitUpper    , &
-          &              logLimitLower , logNormalization
+     double precision :: limitLower   , limitUpper      , &
+          &              logLimitLower, logNormalization
    contains
      procedure :: density    => logUniformDensity
      procedure :: cumulative => logUniformCumulative
@@ -109,8 +109,13 @@ contains
     if (limitLower <= 0.0d0     ) call Error_Report('`limitLower` > 0 is required'           //{introspection:location})
     if (limitUpper <= 0.0d0     ) call Error_Report('`limitUpper` > 0 is required'           //{introspection:location})
     if (limitLower >= limitUpper) call Error_Report('`limitLower` < `limitUpper` is required'//{introspection:location})
-    self%logLimitLower   =log(self%limitLower           )
-    self%logNormalization=log(self%limitUpper/self%limitLower)
+    self%logLimitLower   =log(                 &
+         &                    +self%limitLower &
+         &                   )
+    self%logNormalization=log(                 &
+         &                    +self%limitUpper &
+         &                    /self%limitLower &
+         &                   )
     return
   end function logUniformConstructorInternal
 
