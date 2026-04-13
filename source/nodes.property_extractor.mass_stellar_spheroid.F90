@@ -37,6 +37,7 @@ Implements a spheroid stellar mass output analysis property extractor class.
      procedure :: name        => massStellarSpheroidName
      procedure :: description => massStellarSpheroidDescription
      procedure :: unitsInSI   => massStellarSpheroidUnitsInSI
+     procedure :: units       => massStellarSpheroidUnits
   end type nodePropertyExtractorMassStellarSpheroid
 
   interface nodePropertyExtractorMassStellarSpheroid
@@ -138,3 +139,17 @@ contains
     massStellarSpheroidUnitsInSI=massSolar
     return
   end function massStellarSpheroidUnitsInSI
+
+  function massStellarSpheroidUnits(self) result(units)
+    !!{
+    Return the units of the massStellarSpheroid property.
+    !!}
+    use :: Units_MetaData, only : unitType
+    implicit none
+    type (unitType    )                :: units
+    class(nodePropertyExtractorMassStellarSpheroid), intent(inout) :: self
+    !$GLC attributes unused :: self
+
+    units=unitType(self%unitsInSI(),description='Solar masses',quantity='solMass')
+    return
+  end function massStellarSpheroidUnits

@@ -36,6 +36,7 @@ Implements an output analysis property extractor class that extracts the bound m
      procedure :: name        => massBoundName
      procedure :: description => massBoundDescription
      procedure :: unitsInSI   => massBoundUnitsInSI
+     procedure :: units       => massBoundUnits
   end type nodePropertyExtractorMassBound
 
   interface nodePropertyExtractorMassBound
@@ -119,3 +120,17 @@ contains
     massBoundUnitsInSI=massSolar
     return
   end function massBoundUnitsInSI
+
+  function massBoundUnits(self) result(units)
+    !!{
+    Return the units of the massBound property.
+    !!}
+    use :: Units_MetaData, only : unitType
+    implicit none
+    type (unitType    )                :: units
+    class(nodePropertyExtractorMassBound), intent(inout) :: self
+    !$GLC attributes unused :: self
+
+    units=unitType(self%unitsInSI(),description='Solar masses',quantity='solMass')
+    return
+  end function massBoundUnits

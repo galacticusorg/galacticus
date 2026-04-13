@@ -57,6 +57,7 @@
      procedure :: names              => projectedDensityNames
      procedure :: descriptions       => projectedDensityDescriptions
      procedure :: unitsInSI          => projectedDensityUnitsInSI
+     procedure :: units       => projectedDensityUnits
   end type nodePropertyExtractorProjectedDensity
 
   interface nodePropertyExtractorProjectedDensity
@@ -433,3 +434,23 @@ contains
     return
   end function projectedDensityUnitsInSI
 
+  function projectedDensityUnits(self,time) result(units)
+    !!{
+    Return the units of the projectedDensity properties.
+    !!}
+    use :: Units_MetaData, only : unitType
+    implicit none
+    type            (unitType    ), dimension(:), allocatable :: units
+    class           (nodePropertyExtractorProjectedDensity), intent(inout)             :: self
+    double precision              , intent(in   ), optional   :: time
+    double precision              , dimension(:), allocatable :: siValues
+    integer                                                   :: i
+    !$GLC attributes unused :: self
+
+    siValues=self%unitsInSI(time)
+    allocate(units(size(siValues)))
+    do i=1,size(siValues)
+       units(i)=unitType(siValues(i),description='M☉/Mpc²',quantity='solMass/Mpc**2')
+    end do
+    return
+  end function projectedDensityUnits

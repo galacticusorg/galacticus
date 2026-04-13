@@ -42,6 +42,7 @@ Implements an output analysis property extractor class that extracts a property 
      procedure :: name        => descendantNodeName
      procedure :: description => descendantNodeDescription
      procedure :: unitsInSI   => descendantNodeUnitsInSI
+     procedure :: units       => descendantNodeUnits
   end type nodePropertyExtractorDescendantNode
 
   interface nodePropertyExtractorDescendantNode
@@ -186,3 +187,17 @@ contains
     descendantNodeUnitsInSI=self%nodePropertyExtractor_%unitsInSI()
     return
   end function descendantNodeUnitsInSI
+
+  function descendantNodeUnits(self) result(units)
+    !!{
+    Return the units of the descendantNode property.
+    !!}
+    use :: Units_MetaData, only : unitType
+    implicit none
+    type (unitType    )                :: units
+    class(nodePropertyExtractorDescendantNode), intent(inout) :: self
+    !$GLC attributes unused :: self
+
+    units=unitType(self%unitsInSI(),description='????',quantity='????')
+    return
+  end function descendantNodeUnits

@@ -37,6 +37,7 @@ Implements a stellar mass effective radius node property extractor class.
      procedure :: name        => radiusEffectiveStellarName
      procedure :: description => radiusEffectiveStellarDescription
      procedure :: unitsInSI   => radiusEffectiveStellarUnitsInSI
+     procedure :: units       => radiusEffectiveStellarUnits
   end type nodePropertyExtractorRadiusEffectiveStellar
 
   interface nodePropertyExtractorRadiusEffectiveStellar
@@ -123,3 +124,17 @@ contains
     radiusEffectiveStellarUnitsInSI=megaParsec
     return
   end function radiusEffectiveStellarUnitsInSI
+
+  function radiusEffectiveStellarUnits(self) result(units)
+    !!{
+    Return the units of the radiusEffectiveStellar property.
+    !!}
+    use :: Units_MetaData, only : unitType
+    implicit none
+    type (unitType    )                :: units
+    class(nodePropertyExtractorRadiusEffectiveStellar), intent(inout) :: self
+    !$GLC attributes unused :: self
+
+    units=unitType(self%unitsInSI(),description='Mpc',quantity='Mpc')
+    return
+  end function radiusEffectiveStellarUnits

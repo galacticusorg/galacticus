@@ -46,6 +46,7 @@ Implements an orbital position output analysis property extractor class.
      procedure :: names        => positionOrbitalNames
      procedure :: descriptions => positionOrbitalDescriptions
      procedure :: unitsInSI    => positionOrbitalUnitsInSI
+     procedure :: units       => positionOrbitalUnits
   end type nodePropertyExtractorPositionOrbital
 
   interface nodePropertyExtractorPositionOrbital
@@ -186,3 +187,24 @@ contains
     positionOrbitalUnitsInSI=megaParsec
     return
   end function positionOrbitalUnitsInSI
+
+  function positionOrbitalUnits(self,time) result(units)
+    !!{
+    Return the units of the positionOrbital properties.
+    !!}
+    use :: Units_MetaData, only : unitType
+    implicit none
+    type            (unitType    ), dimension(:), allocatable :: units
+    class           (nodePropertyExtractorPositionOrbital), intent(inout)             :: self
+    double precision              , intent(in   )             :: time
+    double precision              , dimension(:), allocatable :: siValues
+    integer                                                   :: i
+    !$GLC attributes unused :: self
+
+    siValues=self%unitsInSI(time)
+    allocate(units(size(siValues)))
+    do i=1,size(siValues)
+       units(i)=unitType(siValues(i),description='Mpc',quantity='Mpc')
+    end do
+    return
+  end function positionOrbitalUnits

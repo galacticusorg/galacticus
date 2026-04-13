@@ -37,6 +37,7 @@ Implements a cooling energy radiated property extractor class.
      procedure :: name        => coolingEnergyRadiatedName
      procedure :: description => coolingEnergyRadiatedDescription
      procedure :: unitsInSI   => coolingEnergyRadiatedUnitsInSI
+     procedure :: units       => coolingEnergyRadiatedUnits
   end type nodePropertyExtractorCoolingEnergyRadiated
 
   interface nodePropertyExtractorCoolingEnergyRadiated
@@ -134,3 +135,17 @@ contains
     coolingEnergyRadiatedUnitsInSI=ergs*gigaYear
     return
   end function coolingEnergyRadiatedUnitsInSI
+
+  function coolingEnergyRadiatedUnits(self) result(units)
+    !!{
+    Return the units of the coolingEnergyRadiated property.
+    !!}
+    use :: Units_MetaData, only : unitType
+    implicit none
+    type (unitType    )                :: units
+    class(nodePropertyExtractorCoolingEnergyRadiated), intent(inout) :: self
+    !$GLC attributes unused :: self
+
+    units=unitType(self%unitsInSI(),description='erg Gyr',quantity='erg*Gyr')
+    return
+  end function coolingEnergyRadiatedUnits

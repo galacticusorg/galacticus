@@ -52,6 +52,7 @@ Implements an ISM mass output analysis property extractor class.
      procedure :: extract     => satelliteStatusExtract
      procedure :: name        => satelliteStatusName
      procedure :: description => satelliteStatusDescription
+     procedure :: units       => satelliteStatusUnits
   end type nodePropertyExtractorSatelliteStatus
 
   interface nodePropertyExtractorSatelliteStatus
@@ -211,4 +212,16 @@ contains
     return
   end function satelliteStatusDescription
 
+  function satelliteStatusUnits(self) result(units)
+    !!{
+    Return the units of the satelliteStatus property.
+    !!}
+    use :: Units_MetaData, only : unitType
+    implicit none
+    type (unitType    )                :: units
+    class(nodePropertyExtractorSatelliteStatus), intent(inout) :: self
+    !$GLC attributes unused :: self
 
+    units=unitType(self%unitsInSI(),description='????',quantity='????')
+    return
+  end function satelliteStatusUnits

@@ -33,6 +33,7 @@
      procedure :: names        => massBlackHolesNames
      procedure :: descriptions => massBlackHolesDescriptions
      procedure :: unitsInSI    => massBlackHolesUnitsInSI
+     procedure :: units       => massBlackHolesUnits
   end type nodePropertyExtractorMassBlackHoles
 
   interface nodePropertyExtractorMassBlackHoles
@@ -136,3 +137,23 @@ contains
     unitsInSI(1)=massSolar
     return
   end function massBlackHolesUnitsInSI
+
+  function massBlackHolesUnits(self) result(units)
+    !!{
+    Return the units of the massBlackHoles properties.
+    !!}
+    use :: Units_MetaData, only : unitType
+    implicit none
+    type (unitType    ), dimension(:), allocatable :: units
+    class(nodePropertyExtractorMassBlackHoles), intent(inout)             :: self
+    double precision   , dimension(:), allocatable :: siValues
+    integer                                        :: i
+    !$GLC attributes unused :: self
+
+    siValues=self%unitsInSI()
+    allocate(units(size(siValues)))
+    do i=1,size(siValues)
+       units(i)=unitType(siValues(i),description='Solar masses',quantity='solMass')
+    end do
+    return
+  end function massBlackHolesUnits

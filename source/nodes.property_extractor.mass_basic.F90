@@ -36,6 +36,7 @@ Implements an output analysis property extractor class that extracts the basic m
      procedure :: name        => massBasicName
      procedure :: description => massBasicDescription
      procedure :: unitsInSI   => massBasicUnitsInSI
+     procedure :: units       => massBasicUnits
   end type nodePropertyExtractorMassBasic
 
   interface nodePropertyExtractorMassBasic
@@ -119,3 +120,17 @@ contains
     massBasicUnitsInSI=massSolar
     return
   end function massBasicUnitsInSI
+
+  function massBasicUnits(self) result(units)
+    !!{
+    Return the units of the massBasic property.
+    !!}
+    use :: Units_MetaData, only : unitType
+    implicit none
+    type (unitType    )                :: units
+    class(nodePropertyExtractorMassBasic), intent(inout) :: self
+    !$GLC attributes unused :: self
+
+    units=unitType(self%unitsInSI(),description='Solar masses',quantity='solMass')
+    return
+  end function massBasicUnits

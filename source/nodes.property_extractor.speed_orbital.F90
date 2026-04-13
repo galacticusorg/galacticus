@@ -36,6 +36,7 @@ Implements an orbital speed output analysis property extractor class.
      procedure :: name        => speedOrbitalName
      procedure :: description => speedOrbitalDescription
      procedure :: unitsInSI   => speedOrbitalUnitsInSI
+     procedure :: units       => speedOrbitalUnits
   end type nodePropertyExtractorSpeedOrbital
 
   interface nodePropertyExtractorSpeedOrbital
@@ -134,3 +135,17 @@ contains
     speedOrbitalUnitsInSI=kilo
     return
   end function speedOrbitalUnitsInSI
+
+  function speedOrbitalUnits(self) result(units)
+    !!{
+    Return the units of the speedOrbital property.
+    !!}
+    use :: Units_MetaData, only : unitType
+    implicit none
+    type (unitType    )                :: units
+    class(nodePropertyExtractorSpeedOrbital), intent(inout) :: self
+    !$GLC attributes unused :: self
+
+    units=unitType(self%unitsInSI(),description='km/s',quantity='km/s')
+    return
+  end function speedOrbitalUnits

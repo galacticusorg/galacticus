@@ -43,6 +43,7 @@ Implements a cooling rate property extractor class.
      procedure :: name        => rateCoolingName
      procedure :: description => rateCoolingDescription
      procedure :: unitsInSI   => rateCoolingUnitsInSI
+     procedure :: units       => rateCoolingUnits
   end type nodePropertyExtractorRateCooling
 
   interface nodePropertyExtractorRateCooling
@@ -157,4 +158,16 @@ contains
     return
   end function rateCoolingUnitsInSI
 
+  function rateCoolingUnits(self) result(units)
+    !!{
+    Return the units of the rateCooling property.
+    !!}
+    use :: Units_MetaData, only : unitType
+    implicit none
+    type (unitType    )                :: units
+    class(nodePropertyExtractorRateCooling), intent(inout) :: self
+    !$GLC attributes unused :: self
 
+    units=unitType(self%unitsInSI(),description='M☉/Gyr',quantity='solMass/Gyr')
+    return
+  end function rateCoolingUnits

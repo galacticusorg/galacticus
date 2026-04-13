@@ -40,6 +40,7 @@
      procedure :: extract     => nodeMajorMergerRecentCountExtract
      procedure :: name        => nodeMajorMergerRecentCountName
      procedure :: description => nodeMajorMergerRecentCountDescription
+     procedure :: units       => nodeMajorMergerRecentCountUnits
   end type nodePropertyExtractorNodeMajorMergerRecentCount
 
   interface nodePropertyExtractorNodeMajorMergerRecentCount
@@ -151,3 +152,17 @@ contains
     nodeMajorMergerRecentCountDescription=var_str('The number of recent major mergers experienced by this node.')
     return
   end function nodeMajorMergerRecentCountDescription
+
+  function nodeMajorMergerRecentCountUnits(self) result(units)
+    !!{
+    Return the units of the nodeMajorMergerRecentCount property.
+    !!}
+    use :: Units_MetaData, only : unitType
+    implicit none
+    type (unitType    )                :: units
+    class(nodePropertyExtractorNodeMajorMergerRecentCount), intent(inout) :: self
+    !$GLC attributes unused :: self
+
+    units=unitType(self%unitsInSI(),description='????',quantity='????')
+    return
+  end function nodeMajorMergerRecentCountUnits

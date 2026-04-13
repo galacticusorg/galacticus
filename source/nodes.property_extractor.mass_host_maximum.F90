@@ -36,6 +36,7 @@
      procedure :: name        => massHostMaximumName
      procedure :: description => massHostMaximumDescription
      procedure :: unitsInSI   => massHostMaximumUnitsInSI
+     procedure :: units       => massHostMaximumUnits
   end type nodePropertyExtractorMassHostMaximum
 
   interface nodePropertyExtractorMassHostMaximum
@@ -133,3 +134,17 @@ contains
     massHostMaximumUnitsInSI=massSolar
     return
   end function massHostMaximumUnitsInSI
+
+  function massHostMaximumUnits(self) result(units)
+    !!{
+    Return the units of the massHostMaximum property.
+    !!}
+    use :: Units_MetaData, only : unitType
+    implicit none
+    type (unitType    )                :: units
+    class(nodePropertyExtractorMassHostMaximum), intent(inout) :: self
+    !$GLC attributes unused :: self
+
+    units=unitType(self%unitsInSI(),description='Solar masses',quantity='solMass')
+    return
+  end function massHostMaximumUnits

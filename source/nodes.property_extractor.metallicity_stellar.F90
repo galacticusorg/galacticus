@@ -43,6 +43,7 @@ Implements an ISM metallicity output analysis property extractor class.
      procedure :: name        => metallicityStellarName
      procedure :: description => metallicityStellarDescription
      procedure :: unitsInSI   => metallicityStellarUnitsInSI
+     procedure :: units       => metallicityStellarUnits
   end type nodePropertyExtractorMetallicityStellar
 
   interface nodePropertyExtractorMetallicityStellar
@@ -180,3 +181,17 @@ contains
     metallicityStellarUnitsInSI=0.0d0
     return
   end function metallicityStellarUnitsInSI
+
+  function metallicityStellarUnits(self) result(units)
+    !!{
+    Return the units of the metallicityStellar property.
+    !!}
+    use :: Units_MetaData, only : unitType
+    implicit none
+    type (unitType    )                :: units
+    class(nodePropertyExtractorMetallicityStellar), intent(inout) :: self
+    !$GLC attributes unused :: self
+
+    units=unitType(self%unitsInSI())
+    return
+  end function metallicityStellarUnits

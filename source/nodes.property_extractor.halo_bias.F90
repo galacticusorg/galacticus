@@ -43,6 +43,7 @@ Implements an ISM mass output analysis property extractor class.
      procedure :: name        => haloBiasName
      procedure :: description => haloBiasDescription
      procedure :: unitsInSI   => haloBiasUnitsInSI
+     procedure :: units       => haloBiasUnits
   end type nodePropertyExtractorHaloBias
 
   interface nodePropertyExtractorHaloBias
@@ -160,3 +161,17 @@ contains
     haloBiasUnitsInSI=0.0d0
     return
   end function haloBiasUnitsInSI
+
+  function haloBiasUnits(self) result(units)
+    !!{
+    Return the units of the haloBias property.
+    !!}
+    use :: Units_MetaData, only : unitType
+    implicit none
+    type (unitType    )                :: units
+    class(nodePropertyExtractorHaloBias), intent(inout) :: self
+    !$GLC attributes unused :: self
+
+    units=unitType(self%unitsInSI())
+    return
+  end function haloBiasUnits

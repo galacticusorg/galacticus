@@ -36,6 +36,7 @@ Implements a dark matter profile scale radius output analysis property extractor
      procedure :: name        => darkMatterProfileShapeParameterName
      procedure :: description => darkMatterProfileShapeParameterDescription
      procedure :: unitsInSI   => darkMatterProfileShapeParameterUnitsInSI
+     procedure :: units       => darkMatterProfileShapeParameterUnits
   end type nodePropertyExtractorDarkMatterProfileShapeParameter
 
   interface nodePropertyExtractorDarkMatterProfileShapeParameter
@@ -118,3 +119,17 @@ contains
     darkMatterProfileShapeParameterUnitsInSI=0.0d0
     return
   end function darkMatterProfileShapeParameterUnitsInSI
+
+  function darkMatterProfileShapeParameterUnits(self) result(units)
+    !!{
+    Return the units of the darkMatterProfileShapeParameter property.
+    !!}
+    use :: Units_MetaData, only : unitType
+    implicit none
+    type (unitType    )                :: units
+    class(nodePropertyExtractorDarkMatterProfileShapeParameter), intent(inout) :: self
+    !$GLC attributes unused :: self
+
+    units=unitType(self%unitsInSI())
+    return
+  end function darkMatterProfileShapeParameterUnits

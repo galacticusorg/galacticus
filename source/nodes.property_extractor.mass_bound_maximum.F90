@@ -36,6 +36,7 @@
      procedure :: name        => massBoundMaximumName
      procedure :: description => massBoundMaximumDescription
      procedure :: unitsInSI   => massBoundMaximumUnitsInSI
+     procedure :: units       => massBoundMaximumUnits
   end type nodePropertyExtractorMassBoundMaximum
 
   interface nodePropertyExtractorMassBoundMaximum
@@ -140,3 +141,17 @@ contains
     massBoundMaximumUnitsInSI=massSolar
     return
   end function massBoundMaximumUnitsInSI
+
+  function massBoundMaximumUnits(self) result(units)
+    !!{
+    Return the units of the massBoundMaximum property.
+    !!}
+    use :: Units_MetaData, only : unitType
+    implicit none
+    type (unitType    )                :: units
+    class(nodePropertyExtractorMassBoundMaximum), intent(inout) :: self
+    !$GLC attributes unused :: self
+
+    units=unitType(self%unitsInSI(),description='Solar masses',quantity='solMass')
+    return
+  end function massBoundMaximumUnits

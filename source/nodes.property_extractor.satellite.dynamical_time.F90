@@ -50,6 +50,7 @@ Provides a class that implements a satellite dynamical time extractor.
      procedure :: name        => dynamicalTimeName
      procedure :: description => dynamicalTimeDescription
      procedure :: unitsInSI   => dynamicalTimeUnitsInSI
+     procedure :: units       => satelliteDynamicalTimeUnits
   end type nodePropertyExtractorSatelliteDynamicalTime
 
   interface nodePropertyExtractorSatelliteDynamicalTime
@@ -184,6 +185,16 @@ contains
     return
   end function dynamicalTimeUnitsInSI
 
+  function satelliteDynamicalTimeUnits(self) result(units)
+    !!{
+    Return the units of the satelliteDynamicalTime property.
+    !!}
+    use :: Units_MetaData, only : unitType
+    implicit none
+    type (unitType    )                :: units
+    class(nodePropertyExtractorSatelliteDynamicalTime), intent(inout) :: self
+    !$GLC attributes unused :: self
 
-
-
+    units=unitType(self%unitsInSI(),description='Gyr',quantity='Gyr')
+    return
+  end function satelliteDynamicalTimeUnits

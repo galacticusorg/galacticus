@@ -40,6 +40,7 @@ Implements a tidal radius property extractor class.
      procedure :: name        => radiusTidalName
      procedure :: description => radiusTidalDescription
      procedure :: unitsInSI   => radiusTidalUnitsInSI
+     procedure :: units       => radiusTidalUnits
   end type nodePropertyExtractorRadiusTidal
 
   interface nodePropertyExtractorRadiusTidal
@@ -153,4 +154,16 @@ contains
     return
   end function radiusTidalUnitsInSI
 
+  function radiusTidalUnits(self) result(units)
+    !!{
+    Return the units of the radiusTidal property.
+    !!}
+    use :: Units_MetaData, only : unitType
+    implicit none
+    type (unitType    )                :: units
+    class(nodePropertyExtractorRadiusTidal), intent(inout) :: self
+    !$GLC attributes unused :: self
 
+    units=unitType(self%unitsInSI(),description='Mpc',quantity='Mpc')
+    return
+  end function radiusTidalUnits

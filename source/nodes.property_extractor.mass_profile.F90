@@ -61,6 +61,7 @@
      procedure :: names              => massProfileNames
      procedure :: descriptions       => massProfileDescriptions
      procedure :: unitsInSI          => massProfileUnitsInSI
+     procedure :: units       => massProfileUnits
   end type nodePropertyExtractorMassProfile
 
   interface nodePropertyExtractorMassProfile
@@ -392,3 +393,23 @@ contains
     return
   end function massProfileUnitsInSI
 
+  function massProfileUnits(self,time) result(units)
+    !!{
+    Return the units of the massProfile properties.
+    !!}
+    use :: Units_MetaData, only : unitType
+    implicit none
+    type            (unitType    ), dimension(:), allocatable :: units
+    class           (nodePropertyExtractorMassProfile), intent(inout)             :: self
+    double precision              , intent(in   ), optional   :: time
+    double precision              , dimension(:), allocatable :: siValues
+    integer                                                   :: i
+    !$GLC attributes unused :: self
+
+    siValues=self%unitsInSI(time)
+    allocate(units(size(siValues)))
+    do i=1,size(siValues)
+       units(i)=unitType(siValues(i),description='Solar masses',quantity='solMass')
+    end do
+    return
+  end function massProfileUnits

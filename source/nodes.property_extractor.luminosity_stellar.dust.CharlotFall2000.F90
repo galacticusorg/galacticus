@@ -48,6 +48,7 @@ Implements a stellar luminosity output analysis property extractor class which a
      procedure :: name        => lmnstyStllrCF2000Name
      procedure :: description => lmnstyStllrCF2000Description
      procedure :: unitsInSI   => lmnstyStllrCF2000UnitsInSI
+     procedure :: units       => lmnstyStllrCF2000Units
   end type nodePropertyExtractorLmnstyStllrCF2000
 
   interface nodePropertyExtractorLmnstyStllrCF2000
@@ -390,3 +391,17 @@ contains
     lmnstyStllrCF2000UnitsInSI=luminosityZeroPointAB
     return
   end function lmnstyStllrCF2000UnitsInSI
+
+  function lmnstyStllrCF2000Units(self) result(units)
+    !!{
+    Return the units of the lmnstyStllrCF2000 property.
+    !!}
+    use :: Units_MetaData, only : unitType
+    implicit none
+    type (unitType    )                :: units
+    class(nodePropertyExtractorLmnstyStllrCF2000), intent(inout) :: self
+    !$GLC attributes unused :: self
+
+    units=unitType(self%unitsInSI(),description='????',quantity='????')
+    return
+  end function lmnstyStllrCF2000Units

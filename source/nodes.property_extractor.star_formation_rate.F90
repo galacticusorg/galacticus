@@ -51,6 +51,7 @@ Implements a star formation rate property extractor class.
      procedure :: name        => starFormationRateName
      procedure :: description => starFormationRateDescription
      procedure :: unitsInSI   => starFormationRateUnitsInSI
+     procedure :: units       => starFormationRateUnits
   end type nodePropertyExtractorStarFormationRate
 
   interface nodePropertyExtractorStarFormationRate
@@ -239,3 +240,17 @@ contains
     starFormationRateUnitsInSI=massSolar/gigaYear
     return
   end function starFormationRateUnitsInSI
+
+  function starFormationRateUnits(self) result(units)
+    !!{
+    Return the units of the starFormationRate property.
+    !!}
+    use :: Units_MetaData, only : unitType
+    implicit none
+    type (unitType    )                :: units
+    class(nodePropertyExtractorStarFormationRate), intent(inout) :: self
+    !$GLC attributes unused :: self
+
+    units=unitType(self%unitsInSI(),description='M☉/Gyr',quantity='solMass/Gyr')
+    return
+  end function starFormationRateUnits

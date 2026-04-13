@@ -40,6 +40,7 @@ Implements a property extractor class for bar instability timescales.
      procedure :: name        => timescaleBarInstabilityName
      procedure :: description => timescaleBarInstabilityDescription
      procedure :: unitsInSI   => timescaleBarInstabilityUnitsInSI
+     procedure :: units       => timescaleBarInstabilityUnits
   end type nodePropertyExtractorTimescaleBarInstability
 
   interface nodePropertyExtractorTimescaleBarInstability
@@ -155,4 +156,16 @@ contains
     return
   end function timescaleBarInstabilityUnitsInSI
 
+  function timescaleBarInstabilityUnits(self) result(units)
+    !!{
+    Return the units of the timescaleBarInstability property.
+    !!}
+    use :: Units_MetaData, only : unitType
+    implicit none
+    type (unitType    )                :: units
+    class(nodePropertyExtractorTimescaleBarInstability), intent(inout) :: self
+    !$GLC attributes unused :: self
 
+    units=unitType(self%unitsInSI(),description='Gyr',quantity='Gyr')
+    return
+  end function timescaleBarInstabilityUnits

@@ -94,6 +94,7 @@
      procedure :: luminosityMean          => sedLuminosityMean
      procedure :: indexTemplateTime       => sedIndexTemplateTime
      procedure :: indexTemplateNode       => sedIndexTemplateNode
+     procedure :: units       => sEDUnits
   end type nodePropertyExtractorSED
   
   interface nodePropertyExtractorSED
@@ -1122,3 +1123,24 @@ contains
     sedHistoryHashedDescriptor=Hash_MD5(descriptorString)
     return
   end function sedHistoryHashedDescriptor
+
+  function sEDUnits(self,time) result(units)
+    !!{
+    Return the units of the sED properties.
+    !!}
+    use :: Units_MetaData, only : unitType
+    implicit none
+    type            (unitType    ), dimension(:), allocatable :: units
+    class           (nodePropertyExtractorSED), intent(inout)             :: self
+    double precision              , intent(in   ), optional   :: time
+    double precision              , dimension(:), allocatable :: siValues
+    integer                                                   :: i
+    !$GLC attributes unused :: self
+
+    siValues=self%unitsInSI(time)
+    allocate(units(size(siValues)))
+    do i=1,size(siValues)
+       units(i)=unitType(siValues(i),description='L☉',quantity='solLum')
+    end do
+    return
+  end function sEDUnits

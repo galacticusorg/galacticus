@@ -37,6 +37,7 @@ Implements a stellar mass property extractor class.
      procedure :: description => massStellarDescription
      procedure :: unitsInSI   => massStellarUnitsInSI
      procedure :: quantity    => massStellarQuantity
+     procedure :: units       => massStellarUnits
   end type nodePropertyExtractorMassStellar
 
   interface nodePropertyExtractorMassStellar
@@ -138,3 +139,17 @@ contains
     massStellarQuantity=outputAnalysisPropertyQuantityMass
     return
   end function massStellarQuantity
+
+  function massStellarUnits(self) result(units)
+    !!{
+    Return the units of the massStellar property.
+    !!}
+    use :: Units_MetaData, only : unitType
+    implicit none
+    type (unitType    )                :: units
+    class(nodePropertyExtractorMassStellar), intent(inout) :: self
+    !$GLC attributes unused :: self
+
+    units=unitType(self%unitsInSI(),description='Solar masses',quantity='solMass')
+    return
+  end function massStellarUnits

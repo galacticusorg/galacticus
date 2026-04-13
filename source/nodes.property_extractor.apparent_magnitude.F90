@@ -50,6 +50,7 @@ Implements a node property extractor class for apparent magnitudes.
      procedure :: names        => magnitudesApparentNames
      procedure :: descriptions => magnitudesApparentDescriptions
      procedure :: unitsInSI    => magnitudesApparentUnitsInSI
+     procedure :: units       => magnitudesApparentUnits
   end type nodePropertyExtractorMagnitudesApparent
 
   interface nodePropertyExtractorMagnitudesApparent
@@ -252,3 +253,23 @@ contains
     return
   end function magnitudesApparentUnitsInSI
 
+  function magnitudesApparentUnits(self,time) result(units)
+    !!{
+    Return the units of the magnitudesApparent properties.
+    !!}
+    use :: Units_MetaData, only : unitType
+    implicit none
+    type            (unitType    ), dimension(:), allocatable :: units
+    class           (nodePropertyExtractorMagnitudesApparent), intent(inout)             :: self
+    double precision              , intent(in   )             :: time
+    double precision              , dimension(:), allocatable :: siValues
+    integer                                                   :: i
+    !$GLC attributes unused :: self
+
+    siValues=self%unitsInSI(time)
+    allocate(units(size(siValues)))
+    do i=1,size(siValues)
+       units(i)=unitType(siValues(i))
+    end do
+    return
+  end function magnitudesApparentUnits

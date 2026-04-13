@@ -34,6 +34,7 @@
      procedure :: names        => excursionNames
      procedure :: descriptions => excursionDescriptions
      procedure :: unitsInSI    => excursionUnitsInSI
+     procedure :: units       => excursionUnits
   end type nodePropertyExtractorExcursion
 
   interface nodePropertyExtractorExcursion
@@ -154,3 +155,23 @@ contains
     unitsInSI=1.0d0
     return
   end function excursionUnitsInSI
+
+  function excursionUnits(self) result(units)
+    !!{
+    Return the units of the excursion properties.
+    !!}
+    use :: Units_MetaData, only : unitType
+    implicit none
+    type (unitType    ), dimension(:), allocatable :: units
+    class(nodePropertyExtractorExcursion), intent(inout)             :: self
+    double precision   , dimension(:), allocatable :: siValues
+    integer                                        :: i
+    !$GLC attributes unused :: self
+
+    siValues=self%unitsInSI()
+    allocate(units(size(siValues)))
+    do i=1,size(siValues)
+       units(i)=unitType(siValues(i))
+    end do
+    return
+  end function excursionUnits

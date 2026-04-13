@@ -44,6 +44,7 @@
      procedure :: name        => radiusOrbitalProjectedName
      procedure :: description => radiusOrbitalProjectedDescription
      procedure :: unitsInSI   => radiusOrbitalProjectedUnitsInSI
+     procedure :: units       => radiusOrbitalProjectedUnits
   end type nodePropertyExtractorRadiusOrbitalProjected
 
   interface nodePropertyExtractorRadiusOrbitalProjected
@@ -156,3 +157,17 @@ contains
     radiusOrbitalProjectedUnitsInSI=megaParsec
     return
   end function radiusOrbitalProjectedUnitsInSI
+
+  function radiusOrbitalProjectedUnits(self) result(units)
+    !!{
+    Return the units of the radiusOrbitalProjected property.
+    !!}
+    use :: Units_MetaData, only : unitType
+    implicit none
+    type (unitType    )                :: units
+    class(nodePropertyExtractorRadiusOrbitalProjected), intent(inout) :: self
+    !$GLC attributes unused :: self
+
+    units=unitType(self%unitsInSI(),description='Mpc',quantity='Mpc')
+    return
+  end function radiusOrbitalProjectedUnits

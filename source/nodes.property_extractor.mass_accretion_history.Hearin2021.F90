@@ -37,6 +37,7 @@ Implements a node property extractor class for parameters of the \cite{hearin_di
      procedure :: names        => massAccretionHistoryHearin2021Names
      procedure :: descriptions => massAccretionHistoryHearin2021Descriptions
      procedure :: unitsInSI    => massAccretionHistoryHearin2021UnitsInSI
+     procedure :: units       => massAccretionHistoryHearin2021Units
   end type nodePropertyExtractorMassAccretionHistoryHearin2021
 
   interface nodePropertyExtractorMassAccretionHistoryHearin2021
@@ -167,3 +168,23 @@ contains
     return
   end function massAccretionHistoryHearin2021UnitsInSI
 
+  function massAccretionHistoryHearin2021Units(self,time) result(units)
+    !!{
+    Return the units of the massAccretionHistoryHearin2021 properties.
+    !!}
+    use :: Units_MetaData, only : unitType
+    implicit none
+    type            (unitType    ), dimension(:), allocatable :: units
+    class           (nodePropertyExtractorMassAccretionHistoryHearin2021), intent(inout)             :: self
+    double precision              , intent(in   )             :: time
+    double precision              , dimension(:), allocatable :: siValues
+    integer                                                   :: i
+    !$GLC attributes unused :: self
+
+    siValues=self%unitsInSI(time)
+    allocate(units(size(siValues)))
+    do i=1,size(siValues)
+       units(i)=unitType(siValues(i))
+    end do
+    return
+  end function massAccretionHistoryHearin2021Units

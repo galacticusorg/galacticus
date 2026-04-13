@@ -46,6 +46,7 @@
      procedure :: names              => blackHoleSeedingVergara2023Names
      procedure :: descriptions       => blackHoleSeedingVergara2023Descriptions
      procedure :: unitsInSI          => blackHoleSeedingVergara2023UnitsInSI
+     procedure :: units       => blackHoleSeedingVergara2023Units
   end type nodePropertyExtractorBlackHoleSeedingVergara2023
 
   interface nodePropertyExtractorBlackHoleSeedingVergara2023
@@ -221,3 +222,29 @@ contains
      &                                     ]
     return
   end function blackHoleSeedingVergara2023UnitsInSI
+
+  function blackHoleSeedingVergara2023Units(self,time) result(units)
+    !!{
+    Return the units of the blackHoleSeedingVergara2023 properties.
+    !!}
+    use :: Units_MetaData, only : unitType
+    implicit none
+    type            (unitType    ), dimension(:), allocatable :: units
+    class           (nodePropertyExtractorBlackHoleSeedingVergara2023), intent(inout)             :: self
+    double precision              , intent(in   )             :: time
+    double precision              , dimension(:), allocatable :: siValues
+    integer                                                   :: i
+    !$GLC attributes unused :: self
+
+    siValues=self%unitsInSI(time)
+    allocate(units(8))
+    units(1)=unitType(siValues(1))
+    units(2)=unitType(siValues(2),description='Solar masses',quantity='solMass')
+    units(3)=unitType(siValues(3),description='Gyr',quantity='Gyr')
+    units(4)=unitType(siValues(4),description='Mpc',quantity='Mpc')
+    units(5)=unitType(siValues(5),description='km/s',quantity='km/s')
+    units(6)=unitType(siValues(6),description='Solar masses',quantity='solMass')
+    units(7)=unitType(siValues(7),description='Solar masses',quantity='solMass')
+    units(8)=unitType(siValues(8),description='Solar masses',quantity='solMass')
+    return
+  end function blackHoleSeedingVergara2023Units

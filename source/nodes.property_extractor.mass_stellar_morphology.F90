@@ -36,6 +36,7 @@ Implements a stellar mass-weighted morphology output analysis property extractor
      procedure :: name        => massStellarMorphologyName
      procedure :: description => massStellarMorphologyDescription
      procedure :: unitsInSI   => massStellarMorphologyUnitsInSI
+     procedure :: units       => massStellarMorphologyUnits
   end type nodePropertyExtractorMassStellarMorphology
 
   interface nodePropertyExtractorMassStellarMorphology
@@ -136,3 +137,17 @@ contains
     massStellarMorphologyUnitsInSI=0.0d0
     return
   end function massStellarMorphologyUnitsInSI
+
+  function massStellarMorphologyUnits(self) result(units)
+    !!{
+    Return the units of the massStellarMorphology property.
+    !!}
+    use :: Units_MetaData, only : unitType
+    implicit none
+    type (unitType    )                :: units
+    class(nodePropertyExtractorMassStellarMorphology), intent(inout) :: self
+    !$GLC attributes unused :: self
+
+    units=unitType(self%unitsInSI())
+    return
+  end function massStellarMorphologyUnits

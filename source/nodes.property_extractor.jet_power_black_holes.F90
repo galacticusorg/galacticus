@@ -39,6 +39,7 @@
      procedure :: names        => jetPowerBlackHolesNames
      procedure :: descriptions => jetPowerBlackHolesDescriptions
      procedure :: unitsInSI    => jetPowerBlackHolesUnitsInSI
+     procedure :: units       => jetPowerBlackHolesUnits
   end type nodePropertyExtractorJetPowerBlackHoles
 
   interface nodePropertyExtractorJetPowerBlackHoles
@@ -186,3 +187,23 @@ contains
          &       /gigaYear
     return
   end function jetPowerBlackHolesUnitsInSI
+
+  function jetPowerBlackHolesUnits(self) result(units)
+    !!{
+    Return the units of the jetPowerBlackHoles properties.
+    !!}
+    use :: Units_MetaData, only : unitType
+    implicit none
+    type (unitType    ), dimension(:), allocatable :: units
+    class(nodePropertyExtractorJetPowerBlackHoles), intent(inout)             :: self
+    double precision   , dimension(:), allocatable :: siValues
+    integer                                        :: i
+    !$GLC attributes unused :: self
+
+    siValues=self%unitsInSI()
+    allocate(units(size(siValues)))
+    do i=1,size(siValues)
+       units(i)=unitType(siValues(i),description='????',quantity='????')
+    end do
+    return
+  end function jetPowerBlackHolesUnits

@@ -34,6 +34,7 @@
      procedure :: names        => galaxyMergersIndicesNames
      procedure :: descriptions => galaxyMergersIndicesDescriptions
      procedure :: unitsInSI    => galaxyMergersIndicesUnitsInSI
+     procedure :: units       => galaxyMergersIndicesUnits
   end type nodePropertyExtractorGalaxyMergersIndices
 
   interface nodePropertyExtractorGalaxyMergersIndices
@@ -149,3 +150,23 @@ contains
     unitsInSI(1)=0.0d0
     return
   end function galaxyMergersIndicesUnitsInSI
+
+  function galaxyMergersIndicesUnits(self) result(units)
+    !!{
+    Return the units of the galaxyMergersIndices properties.
+    !!}
+    use :: Units_MetaData, only : unitType
+    implicit none
+    type (unitType    ), dimension(:), allocatable :: units
+    class(nodePropertyExtractorGalaxyMergersIndices), intent(inout)             :: self
+    double precision   , dimension(:), allocatable :: siValues
+    integer                                        :: i
+    !$GLC attributes unused :: self
+
+    siValues=self%unitsInSI()
+    allocate(units(size(siValues)))
+    do i=1,size(siValues)
+       units(i)=unitType(siValues(i))
+    end do
+    return
+  end function galaxyMergersIndicesUnits

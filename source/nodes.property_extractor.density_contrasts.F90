@@ -64,6 +64,7 @@ Implements a property extractor class for the mass and radii of spheres are spec
      procedure :: descriptions       => densityContrastsDescriptions
      procedure :: columnDescriptions => densityContrastsColumnDescriptions
      procedure :: unitsInSI          => densityContrastsUnitsInSI
+     procedure :: units       => densityContrastsUnits
   end type nodePropertyExtractorDensityContrasts
 
   interface nodePropertyExtractorDensityContrasts
@@ -365,3 +366,24 @@ contains
          &               -densityTarget
     return
   end function densityContrastsRoot
+
+  function densityContrastsUnits(self,time) result(units)
+    !!{
+    Return the units of the densityContrasts properties.
+    !!}
+    use :: Units_MetaData, only : unitType
+    implicit none
+    type            (unitType    ), dimension(:), allocatable :: units
+    class           (nodePropertyExtractorDensityContrasts), intent(inout)             :: self
+    double precision              , intent(in   ), optional   :: time
+    double precision              , dimension(:), allocatable :: siValues
+    integer                                                   :: i
+    !$GLC attributes unused :: self
+
+    siValues=self%unitsInSI(time)
+    allocate(units(size(siValues)))
+    do i=1,size(siValues)
+       units(i)=unitType(siValues(i),description='????',quantity='????')
+    end do
+    return
+  end function densityContrastsUnits

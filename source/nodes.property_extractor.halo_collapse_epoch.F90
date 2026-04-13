@@ -55,6 +55,7 @@
      procedure :: name        => haloCollapseEpochName
      procedure :: description => haloCollapseEpochDescription
      procedure :: unitsInSI   => haloCollapseEpochUnitsInSI
+     procedure :: units       => haloCollapseEpochUnits
   end type nodePropertyExtractorHaloCollapseEpoch
 
   interface nodePropertyExtractorHaloCollapseEpoch
@@ -221,3 +222,17 @@ contains
     haloCollapseEpochUnitsInSI=1.0d0
     return
   end function haloCollapseEpochUnitsInSI
+
+  function haloCollapseEpochUnits(self) result(units)
+    !!{
+    Return the units of the haloCollapseEpoch property.
+    !!}
+    use :: Units_MetaData, only : unitType
+    implicit none
+    type (unitType    )                :: units
+    class(nodePropertyExtractorHaloCollapseEpoch), intent(inout) :: self
+    !$GLC attributes unused :: self
+
+    units=unitType(self%unitsInSI())
+    return
+  end function haloCollapseEpochUnits

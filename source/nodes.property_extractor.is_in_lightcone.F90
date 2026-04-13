@@ -39,6 +39,7 @@ Implements a property extractor for ``in lightcone'' status.
      procedure :: extract     => isInLightconeExtract
      procedure :: name        => isInLightconeName
      procedure :: description => isInLightconeDescription
+     procedure :: units       => isInLightconeUnits
   end type nodePropertyExtractorIsInLightcone
 
   interface nodePropertyExtractorIsInLightcone
@@ -146,4 +147,16 @@ contains
     return
   end function isInLightconeDescription
 
+  function isInLightconeUnits(self) result(units)
+    !!{
+    Return the units of the isInLightcone property.
+    !!}
+    use :: Units_MetaData, only : unitType
+    implicit none
+    type (unitType    )                :: units
+    class(nodePropertyExtractorIsInLightcone), intent(inout) :: self
+    !$GLC attributes unused :: self
 
+    units=unitType(self%unitsInSI(),description='????',quantity='????')
+    return
+  end function isInLightconeUnits

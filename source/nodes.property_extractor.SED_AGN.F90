@@ -65,6 +65,7 @@
      procedure :: names                   => sedAGNNames
      procedure :: descriptions            => sedAGNDescriptions
      procedure :: unitsInSI               => sedAGNUnitsInSI
+     procedure :: units       => sEDAGNUnits
   end type nodePropertyExtractorSEDAGN
   
   interface nodePropertyExtractorSEDAGN
@@ -383,3 +384,24 @@ contains
     unitsInSI(1)=luminositySolar
     return
   end function sedAGNUnitsInSI
+
+  function sEDAGNUnits(self,time) result(units)
+    !!{
+    Return the units of the sEDAGN properties.
+    !!}
+    use :: Units_MetaData, only : unitType
+    implicit none
+    type            (unitType    ), dimension(:), allocatable :: units
+    class           (nodePropertyExtractorSEDAGN), intent(inout)             :: self
+    double precision              , intent(in   ), optional   :: time
+    double precision              , dimension(:), allocatable :: siValues
+    integer                                                   :: i
+    !$GLC attributes unused :: self
+
+    siValues=self%unitsInSI(time)
+    allocate(units(size(siValues)))
+    do i=1,size(siValues)
+       units(i)=unitType(siValues(i),description='L☉',quantity='solLum')
+    end do
+    return
+  end function sEDAGNUnits

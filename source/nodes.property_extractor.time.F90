@@ -36,6 +36,7 @@ Implements a cosmic time output analysis property extractor class.
      procedure :: name        => timeName
      procedure :: description => timeDescription
      procedure :: unitsInSI   => timeUnitsInSI
+     procedure :: units       => timeUnits
   end type nodePropertyExtractorTime
 
   interface nodePropertyExtractorTime
@@ -119,3 +120,17 @@ contains
     timeUnitsInSI=gigaYear
     return
   end function timeUnitsInSI
+
+  function timeUnits(self) result(units)
+    !!{
+    Return the units of the time property.
+    !!}
+    use :: Units_MetaData, only : unitType
+    implicit none
+    type (unitType    )                :: units
+    class(nodePropertyExtractorTime), intent(inout) :: self
+    !$GLC attributes unused :: self
+
+    units=unitType(self%unitsInSI(),description='Gyr',quantity='Gyr')
+    return
+  end function timeUnits

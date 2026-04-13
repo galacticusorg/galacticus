@@ -35,6 +35,7 @@ Implements merger tree index property extractor class.
      procedure :: extract     => indicesTreeExtract
      procedure :: name        => indicesTreeName
      procedure :: description => indicesTreeDescription
+     procedure :: units       => indicesTreeUnits
   end type nodePropertyExtractorIndicesTree
 
   interface nodePropertyExtractorIndicesTree
@@ -105,3 +106,16 @@ contains
     return
   end function indicesTreeDescription
 
+  function indicesTreeUnits(self) result(units)
+    !!{
+    Return the units of the indicesTree property.
+    !!}
+    use :: Units_MetaData, only : unitType
+    implicit none
+    type (unitType    )                :: units
+    class(nodePropertyExtractorIndicesTree), intent(inout) :: self
+    !$GLC attributes unused :: self
+
+    units=unitType(self%unitsInSI(),description='????',quantity='????')
+    return
+  end function indicesTreeUnits

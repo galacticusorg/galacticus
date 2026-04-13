@@ -43,6 +43,7 @@ Implements a node property extractor class for the \cite{bullock_profiles_2001} 
      procedure :: names        => spinBullockNames
      procedure :: descriptions => spinBullockDescriptions
      procedure :: unitsInSI    => spinBullockUnitsInSI
+     procedure :: units       => spinBullockUnits
   end type nodePropertyExtractorSpinBullock
 
   interface nodePropertyExtractorSpinBullock
@@ -213,3 +214,23 @@ contains
     return
   end function spinBullockUnitsInSI
 
+  function spinBullockUnits(self,time) result(units)
+    !!{
+    Return the units of the spinBullock properties.
+    !!}
+    use :: Units_MetaData, only : unitType
+    implicit none
+    type            (unitType    ), dimension(:), allocatable :: units
+    class           (nodePropertyExtractorSpinBullock), intent(inout)             :: self
+    double precision              , intent(in   )             :: time
+    double precision              , dimension(:), allocatable :: siValues
+    integer                                                   :: i
+    !$GLC attributes unused :: self
+
+    siValues=self%unitsInSI(time)
+    allocate(units(size(siValues)))
+    do i=1,size(siValues)
+       units(i)=unitType(siValues(i))
+    end do
+    return
+  end function spinBullockUnits

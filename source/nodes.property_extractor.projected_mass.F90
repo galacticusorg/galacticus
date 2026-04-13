@@ -57,6 +57,7 @@
      procedure :: names              => projectedMassNames
      procedure :: descriptions       => projectedMassDescriptions
      procedure :: unitsInSI          => projectedMassUnitsInSI
+     procedure :: units       => projectedMassUnits
   end type nodePropertyExtractorProjectedMass
 
   interface nodePropertyExtractorProjectedMass
@@ -417,3 +418,23 @@ contains
     return
   end function projectedMassUnitsInSI
 
+  function projectedMassUnits(self,time) result(units)
+    !!{
+    Return the units of the projectedMass properties.
+    !!}
+    use :: Units_MetaData, only : unitType
+    implicit none
+    type            (unitType    ), dimension(:), allocatable :: units
+    class           (nodePropertyExtractorProjectedMass), intent(inout)             :: self
+    double precision              , intent(in   ), optional   :: time
+    double precision              , dimension(:), allocatable :: siValues
+    integer                                                   :: i
+    !$GLC attributes unused :: self
+
+    siValues=self%unitsInSI(time)
+    allocate(units(size(siValues)))
+    do i=1,size(siValues)
+       units(i)=unitType(siValues(i),description='Solar masses',quantity='solMass')
+    end do
+    return
+  end function projectedMassUnits

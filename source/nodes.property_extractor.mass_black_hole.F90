@@ -37,6 +37,7 @@ Implements a black hole mass property extractor class.
      procedure :: name        => massBlackHoleName
      procedure :: description => massBlackHoleDescription
      procedure :: unitsInSI   => massBlackHoleUnitsInSI
+     procedure :: units       => massBlackHoleUnits
   end type nodePropertyExtractorMassBlackHole
 
   interface nodePropertyExtractorMassBlackHole
@@ -134,3 +135,17 @@ contains
     massBlackHoleUnitsInSI=massSolar
     return
   end function massBlackHoleUnitsInSI
+
+  function massBlackHoleUnits(self) result(units)
+    !!{
+    Return the units of the massBlackHole property.
+    !!}
+    use :: Units_MetaData, only : unitType
+    implicit none
+    type (unitType    )                :: units
+    class(nodePropertyExtractorMassBlackHole), intent(inout) :: self
+    !$GLC attributes unused :: self
+
+    units=unitType(self%unitsInSI(),description='Solar masses',quantity='solMass')
+    return
+  end function massBlackHoleUnits

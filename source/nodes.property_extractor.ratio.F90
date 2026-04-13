@@ -45,6 +45,7 @@ Implements a ratio output analysis property extractor class.
      procedure :: name        => ratioName
      procedure :: description => ratioDescription
      procedure :: unitsInSI   => ratioUnitsInSI
+     procedure :: units       => ratioUnits
   end type nodePropertyExtractorRatio
 
   interface nodePropertyExtractorRatio
@@ -205,3 +206,16 @@ contains
     return
   end function ratioUnitsInSI
 
+  function ratioUnits(self) result(units)
+    !!{
+    Return the units of the ratio property.
+    !!}
+    use :: Units_MetaData, only : unitType
+    implicit none
+    type (unitType    )                :: units
+    class(nodePropertyExtractorRatio), intent(inout) :: self
+    !$GLC attributes unused :: self
+
+    units=unitType(self%unitsInSI(),description='????',quantity='????')
+    return
+  end function ratioUnits

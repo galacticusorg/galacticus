@@ -72,6 +72,7 @@
      procedure :: names              => cgmCoolingFunctionNames
      procedure :: descriptions       => cgmCoolingFunctionDescriptions
      procedure :: unitsInSI          => cgmCoolingFunctionUnitsInSI
+     procedure :: units       => cGMCoolingFunctionUnits
   end type nodePropertyExtractorCGMCoolingFunction
 
   interface nodePropertyExtractorCGMCoolingFunction
@@ -486,3 +487,23 @@ contains
     return
   end function cgmCoolingFunctionUnitsInSI
 
+  function cGMCoolingFunctionUnits(self,time) result(units)
+    !!{
+    Return the units of the cGMCoolingFunction properties.
+    !!}
+    use :: Units_MetaData, only : unitType
+    implicit none
+    type            (unitType    ), dimension(:), allocatable :: units
+    class           (nodePropertyExtractorCGMCoolingFunction), intent(inout)             :: self
+    double precision              , intent(in   ), optional   :: time
+    double precision              , dimension(:), allocatable :: siValues
+    integer                                                   :: i
+    !$GLC attributes unused :: self
+
+    siValues=self%unitsInSI(time)
+    allocate(units(size(siValues)))
+    do i=1,size(siValues)
+       units(i)=unitType(siValues(i),description='????',quantity='????')
+    end do
+    return
+  end function cGMCoolingFunctionUnits

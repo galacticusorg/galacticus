@@ -87,6 +87,7 @@
      procedure :: descriptions => lightconeDescriptions
      procedure :: unitsInSI    => lightconeUnitsInSI
      procedure :: addInstances => lightconeAddInstances
+     procedure :: units       => lightconeUnits
   end type nodePropertyExtractorLightcone
 
   interface nodePropertyExtractorLightcone
@@ -442,3 +443,23 @@ contains
     return
   end function lightconeUnitsInSI
 
+  function lightconeUnits(self,time) result(units)
+    !!{
+    Return the units of the lightcone properties.
+    !!}
+    use :: Units_MetaData, only : unitType
+    implicit none
+    type            (unitType    ), dimension(:), allocatable :: units
+    class           (nodePropertyExtractorLightcone), intent(inout)             :: self
+    double precision              , intent(in   )             :: time
+    double precision              , dimension(:), allocatable :: siValues
+    integer                                                   :: i
+    !$GLC attributes unused :: self
+
+    siValues=self%unitsInSI(time)
+    allocate(units(size(siValues)))
+    do i=1,size(siValues)
+       units(i)=unitType(siValues(i),description='????',quantity='????')
+    end do
+    return
+  end function lightconeUnits

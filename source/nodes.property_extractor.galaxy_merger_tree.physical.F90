@@ -34,6 +34,7 @@
      procedure :: names        => galaxyMergerTreePhysicalNames
      procedure :: descriptions => galaxyMergerTreePhysicalDescriptions
      procedure :: unitsInSI    => galaxyMergerTreePhysicalUnitsInSI
+     procedure :: units       => galaxyMergerTreePhysicalUnits
   end type nodePropertyExtractorGalaxyMergerTreePhysical
 
   interface nodePropertyExtractorGalaxyMergerTreePhysical
@@ -203,3 +204,23 @@ contains
     end do
     return
   end function galaxyMergerTreePhysicalUnitsInSI
+
+  function galaxyMergerTreePhysicalUnits(self) result(units)
+    !!{
+    Return the units of the galaxyMergerTreePhysical properties.
+    !!}
+    use :: Units_MetaData, only : unitType
+    implicit none
+    type (unitType    ), dimension(:), allocatable :: units
+    class(nodePropertyExtractorGalaxyMergerTreePhysical), intent(inout)             :: self
+    double precision   , dimension(:), allocatable :: siValues
+    integer                                        :: i
+    !$GLC attributes unused :: self
+
+    siValues=self%unitsInSI()
+    allocate(units(size(siValues)))
+    do i=1,size(siValues)
+       units(i)=unitType(siValues(i),description='Gyr',quantity='Gyr')
+    end do
+    return
+  end function galaxyMergerTreePhysicalUnits

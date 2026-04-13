@@ -42,6 +42,7 @@
      procedure :: extract     => constrainedStatusExtract
      procedure :: name        => constrainedStatusName
      procedure :: description => constrainedStatusDescription
+     procedure :: units       => constrainedStatusUnits
   end type nodePropertyExtractorConstrainedStatus
 
   interface nodePropertyExtractorConstrainedStatus
@@ -136,3 +137,17 @@ contains
     constrainedStatusDescription=var_str('Indicates if the node is on the constrained branch (0|1).')
     return
   end function constrainedStatusDescription
+
+  function constrainedStatusUnits(self) result(units)
+    !!{
+    Return the units of the constrainedStatus property.
+    !!}
+    use :: Units_MetaData, only : unitType
+    implicit none
+    type (unitType    )                :: units
+    class(nodePropertyExtractorConstrainedStatus), intent(inout) :: self
+    !$GLC attributes unused :: self
+
+    units=unitType(self%unitsInSI(),description='????',quantity='????')
+    return
+  end function constrainedStatusUnits

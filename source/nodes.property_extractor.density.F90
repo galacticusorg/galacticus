@@ -57,6 +57,7 @@
      procedure :: names              => densityProfileNames
      procedure :: descriptions       => densityProfileDescriptions
      procedure :: unitsInSI          => densityProfileUnitsInSI
+     procedure :: units       => densityProfileUnits
   end type nodePropertyExtractorDensityProfile
 
   interface nodePropertyExtractorDensityProfile
@@ -364,3 +365,23 @@ contains
     return
   end function densityProfileUnitsInSI
 
+  function densityProfileUnits(self,time) result(units)
+    !!{
+    Return the units of the densityProfile properties.
+    !!}
+    use :: Units_MetaData, only : unitType
+    implicit none
+    type            (unitType    ), dimension(:), allocatable :: units
+    class           (nodePropertyExtractorDensityProfile), intent(inout)             :: self
+    double precision              , intent(in   ), optional   :: time
+    double precision              , dimension(:), allocatable :: siValues
+    integer                                                   :: i
+    !$GLC attributes unused :: self
+
+    siValues=self%unitsInSI(time)
+    allocate(units(size(siValues)))
+    do i=1,size(siValues)
+       units(i)=unitType(siValues(i),description='M☉/Mpc³',quantity='solMass/Mpc**3')
+    end do
+    return
+  end function densityProfileUnits

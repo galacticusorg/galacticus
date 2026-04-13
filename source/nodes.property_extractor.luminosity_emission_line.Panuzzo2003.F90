@@ -82,6 +82,7 @@ Implements an emission line luminosity node property extractor class.
      procedure :: name        => lmnstyEmssnLinePanuzzo2003Name
      procedure :: description => lmnstyEmssnLinePanuzzo2003Description
      procedure :: unitsInSI   => lmnstyEmssnLinePanuzzo2003UnitsInSI
+     procedure :: units       => lmnstyEmssnLinePanuzzo2003Units
   end type nodePropertyExtractorLmnstyEmssnLinePanuzzo2003
 
   interface nodePropertyExtractorLmnstyEmssnLinePanuzzo2003
@@ -627,3 +628,17 @@ contains
     lmnstyEmssnLinePanuzzo2003UnitsInSI=ergs
     return
   end function lmnstyEmssnLinePanuzzo2003UnitsInSI
+
+  function lmnstyEmssnLinePanuzzo2003Units(self) result(units)
+    !!{
+    Return the units of the lmnstyEmssnLinePanuzzo2003 property.
+    !!}
+    use :: Units_MetaData, only : unitType
+    implicit none
+    type (unitType    )                :: units
+    class(nodePropertyExtractorLmnstyEmssnLinePanuzzo2003), intent(inout) :: self
+    !$GLC attributes unused :: self
+
+    units=unitType(self%unitsInSI(),description='erg',quantity='erg')
+    return
+  end function lmnstyEmssnLinePanuzzo2003Units

@@ -40,6 +40,7 @@ Implements a hot mode accretion fraction rate property extractor class.
      procedure :: name        => fractionAccretionHotModeName
      procedure :: description => fractionAccretionHotModeDescription
      procedure :: unitsInSI   => fractionAccretionHotModeUnitsInSI
+     procedure :: units       => fractionAccretionHotModeUnits
   end type nodePropertyExtractorFractionAccretionHotMode
 
   interface nodePropertyExtractorFractionAccretionHotMode
@@ -160,4 +161,16 @@ contains
     return
   end function fractionAccretionHotModeUnitsInSI
 
+  function fractionAccretionHotModeUnits(self) result(units)
+    !!{
+    Return the units of the fractionAccretionHotMode property.
+    !!}
+    use :: Units_MetaData, only : unitType
+    implicit none
+    type (unitType    )                :: units
+    class(nodePropertyExtractorFractionAccretionHotMode), intent(inout) :: self
+    !$GLC attributes unused :: self
 
+    units=unitType(self%unitsInSI())
+    return
+  end function fractionAccretionHotModeUnits

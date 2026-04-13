@@ -40,6 +40,7 @@ Implements a dark matter profile SIDM interaction radius property extractor clas
      procedure :: name        => darkMatterProfileRadiusInteractionSIDMName
      procedure :: description => darkMatterProfileRadiusInteractionSIDMDescription
      procedure :: unitsInSI   => darkMatterProfileRadiusInteractionSIDMUnitsInSI
+     procedure :: units       => darkMatterProfileRadiusInteractionSIDMUnits
   end type nodePropertyExtractorDarkMatterProfileRadiusInteractionSIDM
 
   interface nodePropertyExtractorDarkMatterProfileRadiusInteractionSIDM
@@ -162,3 +163,17 @@ contains
     darkMatterProfileRadiusInteractionSIDMUnitsInSI=megaParsec
     return
   end function darkMatterProfileRadiusInteractionSIDMUnitsInSI
+
+  function darkMatterProfileRadiusInteractionSIDMUnits(self) result(units)
+    !!{
+    Return the units of the darkMatterProfileRadiusInteractionSIDM property.
+    !!}
+    use :: Units_MetaData, only : unitType
+    implicit none
+    type (unitType    )                :: units
+    class(nodePropertyExtractorDarkMatterProfileRadiusInteractionSIDM), intent(inout) :: self
+    !$GLC attributes unused :: self
+
+    units=unitType(self%unitsInSI(),description='Mpc',quantity='Mpc')
+    return
+  end function darkMatterProfileRadiusInteractionSIDMUnits

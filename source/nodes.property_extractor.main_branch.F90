@@ -51,6 +51,7 @@
      procedure :: extract     => mainBranchStatusExtract
      procedure :: name        => mainBranchStatusName
      procedure :: description => mainBranchStatusDescription
+     procedure :: units       => mainBranchStatusUnits
   end type nodePropertyExtractorMainBranchStatus
 
   interface nodePropertyExtractorMainBranchStatus
@@ -164,3 +165,17 @@ contains
     mainBranchStatusDescription=var_str('Indicates if the node is on the main branch of the merger tree (0|1).')
     return
   end function mainBranchStatusDescription
+
+  function mainBranchStatusUnits(self) result(units)
+    !!{
+    Return the units of the mainBranchStatus property.
+    !!}
+    use :: Units_MetaData, only : unitType
+    implicit none
+    type (unitType    )                :: units
+    class(nodePropertyExtractorMainBranchStatus), intent(inout) :: self
+    !$GLC attributes unused :: self
+
+    units=unitType(self%unitsInSI(),description='????',quantity='????')
+    return
+  end function mainBranchStatusUnits

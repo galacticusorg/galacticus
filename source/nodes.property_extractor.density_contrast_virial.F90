@@ -41,6 +41,7 @@ Implements a virial density contrast output analysis property extractor class.
      procedure :: name        => densityContrastVirialName
      procedure :: description => densityContrastVirialDescription
      procedure :: unitsInSI   => densityContrastVirialUnitsInSI
+     procedure :: units       => densityContrastVirialUnits
   end type nodePropertyExtractorDensityContrastVirial
 
   interface nodePropertyExtractorDensityContrastVirial
@@ -159,3 +160,17 @@ contains
     unitsInSI=1.0d0
     return
   end function densityContrastVirialUnitsInSI
+
+  function densityContrastVirialUnits(self) result(units)
+    !!{
+    Return the units of the densityContrastVirial property.
+    !!}
+    use :: Units_MetaData, only : unitType
+    implicit none
+    type (unitType    )                :: units
+    class(nodePropertyExtractorDensityContrastVirial), intent(inout) :: self
+    !$GLC attributes unused :: self
+
+    units=unitType(self%unitsInSI(),description='????',quantity='????')
+    return
+  end function densityContrastVirialUnits

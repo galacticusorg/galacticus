@@ -69,6 +69,7 @@ Implements a property extractor for basic node indices.
      procedure :: names        => nodeIndicesNames
      procedure :: descriptions => nodeIndicesDescriptions
      procedure :: unitsInSI    => nodeIndicesUnitsInSI
+     procedure :: units       => nodeIndicesUnits
   end type nodePropertyExtractorNodeIndices
 
   interface nodePropertyExtractorNodeIndices
@@ -190,3 +191,23 @@ contains
     return
   end function nodeIndicesUnitsInSI
 
+  function nodeIndicesUnits(self,time) result(units)
+    !!{
+    Return the units of the nodeIndices properties.
+    !!}
+    use :: Units_MetaData, only : unitType
+    implicit none
+    type            (unitType    ), dimension(:), allocatable :: units
+    class           (nodePropertyExtractorNodeIndices), intent(inout)             :: self
+    double precision              , intent(in   )             :: time
+    double precision              , dimension(:), allocatable :: siValues
+    integer                                                   :: i
+    !$GLC attributes unused :: self
+
+    siValues=self%unitsInSI(time)
+    allocate(units(size(siValues)))
+    do i=1,size(siValues)
+       units(i)=unitType(siValues(i))
+    end do
+    return
+  end function nodeIndicesUnits

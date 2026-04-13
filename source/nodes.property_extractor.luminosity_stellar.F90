@@ -53,6 +53,7 @@ Implements a stellar mass output analysis property extractor class.
      procedure :: name        => luminosityStellarName
      procedure :: description => luminosityStellarDescription
      procedure :: unitsInSI   => luminosityStellarUnitsInSI
+     procedure :: units       => luminosityStellarUnits
   end type nodePropertyExtractorLuminosityStellar
 
   interface nodePropertyExtractorLuminosityStellar
@@ -266,3 +267,17 @@ contains
     luminosityStellarUnitsInSI=luminosityZeroPointAB
     return
   end function luminosityStellarUnitsInSI
+
+  function luminosityStellarUnits(self) result(units)
+    !!{
+    Return the units of the luminosityStellar property.
+    !!}
+    use :: Units_MetaData, only : unitType
+    implicit none
+    type (unitType    )                :: units
+    class(nodePropertyExtractorLuminosityStellar), intent(inout) :: self
+    !$GLC attributes unused :: self
+
+    units=unitType(self%unitsInSI(),description='????',quantity='????')
+    return
+  end function luminosityStellarUnits

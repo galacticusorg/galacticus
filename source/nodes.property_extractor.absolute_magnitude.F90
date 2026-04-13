@@ -47,6 +47,7 @@ Implements a node property extractor class for absolute magnitudes.
      procedure :: names        => magnitudesAbsoluteNames
      procedure :: descriptions => magnitudesAbsoluteDescriptions
      procedure :: unitsInSI    => magnitudesAbsoluteUnitsInSI
+     procedure :: units       => magnitudesAbsoluteUnits
   end type nodePropertyExtractorMagnitudesAbsolute
 
   interface nodePropertyExtractorMagnitudesAbsolute
@@ -220,3 +221,23 @@ contains
     return
   end function magnitudesAbsoluteUnitsInSI
 
+  function magnitudesAbsoluteUnits(self,time) result(units)
+    !!{
+    Return the units of the magnitudesAbsolute properties.
+    !!}
+    use :: Units_MetaData, only : unitType
+    implicit none
+    type            (unitType    ), dimension(:), allocatable :: units
+    class           (nodePropertyExtractorMagnitudesAbsolute), intent(inout)             :: self
+    double precision              , intent(in   )             :: time
+    double precision              , dimension(:), allocatable :: siValues
+    integer                                                   :: i
+    !$GLC attributes unused :: self
+
+    siValues=self%unitsInSI(time)
+    allocate(units(size(siValues)))
+    do i=1,size(siValues)
+       units(i)=unitType(siValues(i))
+    end do
+    return
+  end function magnitudesAbsoluteUnits

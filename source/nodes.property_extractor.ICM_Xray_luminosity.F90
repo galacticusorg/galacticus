@@ -44,6 +44,7 @@ Implements an intracluster medium X-ray luminosity property extractor class.
      procedure :: name        => icmXRayLuminosityName
      procedure :: description => icmXRayLuminosityDescription
      procedure :: unitsInSI   => icmXRayLuminosityUnitsInSI
+     procedure :: units       => iCMXRayLuminosityUnits
   end type nodePropertyExtractorICMXRayLuminosity
 
   interface nodePropertyExtractorICMXRayLuminosity
@@ -259,3 +260,16 @@ contains
     return
   end function icmXRayLuminosityUnitsInSI
 
+  function iCMXRayLuminosityUnits(self) result(units)
+    !!{
+    Return the units of the iCMXRayLuminosity property.
+    !!}
+    use :: Units_MetaData, only : unitType
+    implicit none
+    type (unitType    )                :: units
+    class(nodePropertyExtractorICMXRayLuminosity), intent(inout) :: self
+    !$GLC attributes unused :: self
+
+    units=unitType(self%unitsInSI(),description='erg',quantity='erg')
+    return
+  end function iCMXRayLuminosityUnits
