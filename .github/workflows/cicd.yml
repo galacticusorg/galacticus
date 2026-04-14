@@ -142,6 +142,7 @@ jobs:
       - run: echo "This job's status is ${{ job.status }}."
   ### Executable instrumented
   Build-Executables-Instrumented-Linux:
+    if: ${{ !github.event.pull_request.draft }}
     runs-on: ubuntu-latest
     container: ghcr.io/galacticusorg/buildenv:latest
     steps:
@@ -172,6 +173,7 @@ jobs:
       - run: echo "This job's status is ${{ job.status }}."
   ### Executable with dark matter only components
   Build-Executable-DMO-Linux:
+    if: ${{ !github.event.pull_request.draft }}
     runs-on: ubuntu-latest
     container: ghcr.io/galacticusorg/buildenv:latest
     steps:
@@ -200,6 +202,7 @@ jobs:
       - run: echo "This job's status is ${{ job.status }}."
   ### Executable MPI
   Build-Executables-MPI-Linux:
+    if: ${{ !github.event.pull_request.draft }}
     runs-on: ubuntu-latest
     container: ghcr.io/galacticusorg/buildenv:latest
     steps:
@@ -232,6 +235,7 @@ jobs:
       - run: echo "This job's status is ${{ job.status }}."
   ### Executable debugging
   Build-Executables-Debugging-Linux:
+    if: ${{ !github.event.pull_request.draft }}
     runs-on: ubuntu-latest
     container: ghcr.io/galacticusorg/buildenv:latest
     steps:
@@ -260,6 +264,7 @@ jobs:
       - run: echo "This job's status is ${{ job.status }}."
   ### Library
   Build-Library-Linux:
+    if: ${{ !github.event.pull_request.draft }}
     runs-on: ubuntu-latest
     container: ghcr.io/galacticusorg/buildenv:latest
     steps:
@@ -298,6 +303,7 @@ jobs:
       - run: echo "This job's status is ${{ job.status }}."
   ### Docker image
   Build-Docker-Linux:
+    if: ${{ !github.event.pull_request.draft }}
     runs-on: ubuntu-latest
     permissions:
       packages: write
@@ -334,6 +340,7 @@ jobs:
             BRANCH=${{ github.head_ref || github.ref_name }}          
   ### Documentation
   Build-Documentation-Linux:
+    if: ${{ !github.event.pull_request.draft }}
     runs-on: ubuntu-latest
     container: ghcr.io/galacticusorg/buildenv:latest
     steps:
@@ -436,6 +443,7 @@ jobs:
   ## MacOS
   ### Static executable
   Build-Executable-MacOS:
+    if: ${{ !github.event.pull_request.draft }}
     runs-on: macos-15-intel
     steps:
       - run: echo "The job was automatically triggered by a ${{ github.event_name }} event."
@@ -480,6 +488,7 @@ jobs:
           path: 'debugSymbolsMacOS.zip'
   ### Apple Silicon build  
   Build-Executable-MacOS-M1:
+    if: ${{ !github.event.pull_request.draft }}
     runs-on: macos-15
     steps:
       - run: echo "The job was automatically triggered by a ${{ github.event_name }} event."
@@ -518,6 +527,7 @@ jobs:
           path: 'debugSymbolsMacOS-M1.zip'
   ## Library
   Build-Library-MacOS:
+    if: ${{ !github.event.pull_request.draft }}
     runs-on: macos-15-intel
     steps:
       - run: echo "The job was automatically triggered by a ${{ github.event_name }} event."
@@ -550,6 +560,7 @@ jobs:
           path: 'libgalacticusMacOS.zip'
   ### Tools
   Build-Tools-MacOS:
+    if: ${{ !github.event.pull_request.draft }}
     runs-on: macos-15-intel
     steps:
       - run: echo "The job was automatically triggered by a ${{ github.event_name }} event."
@@ -645,6 +656,7 @@ jobs:
           path: './datasets/toolsMacOS.zip'
       - run: echo "This job's status is ${{ job.status }}."
   Build-Tools-MacOS-M1:
+    if: ${{ !github.event.pull_request.draft }}
     runs-on: macos-15
     steps:
       - run: echo "The job was automatically triggered by a ${{ github.event_name }} event."
