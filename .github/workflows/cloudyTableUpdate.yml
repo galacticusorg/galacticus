@@ -46,13 +46,13 @@ jobs:
   # Build tables, update datasets repo, open PRs
   build-and-update:
     needs: detect-cloudy-update
-    if: steps.detect-cloudy-update.outputs.cloudy_updated == 'true'
+    if: needs.detect-cloudy-update.outputs.cloudy_updated == 'true'
     runs-on: ubuntu-latest
     container: ghcr.io/galacticusorg/buildenv:latest
     env:
       appid: ${{ secrets.DEPLOY_APP_ID }}
-      CLOUDY_VERSION: ${{ steps.detect-cloudy-update.outputs.new_version }}
-      OLD_CLOUDY_VERSION: ${{ steps.detect-cloudy-update.outputs.old_version }}
+      CLOUDY_VERSION: ${{ needs.detect-cloudy-update.outputs.new_version }}
+      OLD_CLOUDY_VERSION: ${{ needs.detect-cloudy-update.outputs.old_version }}
     steps:
       - name: Check out galacticus repository
         uses: actions/checkout@v6
