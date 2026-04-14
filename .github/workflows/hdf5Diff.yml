@@ -14,7 +14,7 @@ defaults:
 jobs:
   # Generate diffs of HDF5 files that are changed in a PR. Also provides links to an online HDF5 viewer.
   HDF5-Diff:
-    if: ${{ !github.event.pull_request.draft }}
+    if: ${{ github.event_name != 'pull_request' || !github.event.pull_request.draft }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
