@@ -33,8 +33,9 @@ my @nodePropertiesOutputList =
      {
 	 type             => "double",
 	 name             => "subsamplingWeight",
-	 unitsDescription => "Weight of node in the subsample.",
+	 description      => "Weight of node in the subsample.",
 	 unitsInSI        => "1.0d0",
+	 unitsDescription => "",
 	 unitsQuantity    => "",
 	 isComoving       => ".false."
      }
