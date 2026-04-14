@@ -46,13 +46,13 @@ jobs:
   # Build tables, update datasets repo, open PRs
   build-and-update:
     needs: detect-cloudy-update
-    if: needs.detect-cloudy-update.outputs.cloudy_updated == 'true'
+    if: steps.detect-cloudy-update.outputs.cloudy_updated == 'true'
     runs-on: ubuntu-latest
     container: ghcr.io/galacticusorg/buildenv:latest
     env:
       appid: ${{ secrets.DEPLOY_APP_ID }}
-      CLOUDY_VERSION: ${{ needs.detect-cloudy-update.outputs.new_version }}
-      OLD_CLOUDY_VERSION: ${{ needs.detect-cloudy-update.outputs.old_version }}
+      CLOUDY_VERSION: ${{ steps.detect-cloudy-update.outputs.new_version }}
+      OLD_CLOUDY_VERSION: ${{ steps.detect-cloudy-update.outputs.old_version }}
     steps:
       - name: Check out galacticus repository
         uses: actions/checkout@v6
@@ -198,7 +198,7 @@ PREOF
           gh pr create \
             --repo galacticusorg/datasets \
             --head "${BRANCH}" \
-            --base main \
+            --base master \
             --title "feat: update Atomic CIE Cloudy tables for Cloudy v${CLOUDY_VERSION}" \
             --body-file /tmp/datasets-pr-body.md \
             --assignee abensonca
