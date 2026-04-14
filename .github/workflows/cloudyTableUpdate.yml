@@ -98,13 +98,23 @@ jobs:
         run: |
           COOLING_STATIC="$GALACTICUS_DATA_PATH/static/cooling"
           CHEM_STATIC="$GALACTICUS_DATA_PATH/static/chemicalState"
+          COOLING_ARCHIVE="${COOLING_STATIC}/cooling_function_Atomic_CIE_Cloudy_c${OLD_CLOUDY_VERSION}.hdf5"
+          CHEM_ARCHIVE="${CHEM_STATIC}/chemical_state_Atomic_CIE_Cloudy_c${OLD_CLOUDY_VERSION}.hdf5"
           if [ -f "${COOLING_STATIC}/cooling_function_Atomic_CIE_Cloudy.hdf5" ]; then
+            if [ -e "${COOLING_ARCHIVE}" ]; then
+              echo "Archive destination already exists: ${COOLING_ARCHIVE}" >&2
+              exit 1
+            fi
             mv "${COOLING_STATIC}/cooling_function_Atomic_CIE_Cloudy.hdf5" \
-               "${COOLING_STATIC}/cooling_function_Atomic_CIE_Cloudy_c${OLD_CLOUDY_VERSION}.hdf5"
+               "${COOLING_ARCHIVE}"
           fi
           if [ -f "${CHEM_STATIC}/chemical_state_Atomic_CIE_Cloudy.hdf5" ]; then
+            if [ -e "${CHEM_ARCHIVE}" ]; then
+              echo "Archive destination already exists: ${CHEM_ARCHIVE}" >&2
+              exit 1
+            fi
             mv "${CHEM_STATIC}/chemical_state_Atomic_CIE_Cloudy.hdf5" \
-               "${CHEM_STATIC}/chemical_state_Atomic_CIE_Cloudy_c${OLD_CLOUDY_VERSION}.hdf5"
+               "${CHEM_ARCHIVE}"
           fi
       - name: Promote new tables to static
         if: ${{ env.appid != '' }}
