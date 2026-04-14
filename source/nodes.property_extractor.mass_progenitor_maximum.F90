@@ -141,9 +141,8 @@ contains
     !!}
     use :: Units_MetaData, only : unitType
     implicit none
-    type (unitType    )                :: units
+    type (unitType                                  )                :: units
     class(nodePropertyExtractorMassProgenitorMaximum), intent(inout) :: self
-    !$GLC attributes unused :: self
 
     units=unitType(self%unitsInSI(),description='Solar masses',quantity='solMass')
     return

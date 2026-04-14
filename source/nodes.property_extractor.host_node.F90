@@ -165,10 +165,9 @@ contains
     !!}
     use :: Units_MetaData, only : unitType
     implicit none
-    type (unitType    )                :: units
+    type (unitType                     )                :: units
     class(nodePropertyExtractorHostNode), intent(inout) :: self
-    !$GLC attributes unused :: self
 
-    units=unitType(self%unitsInSI(),description='????',quantity='????')
+    units=self%nodePropertyExtractor_%units()
     return
   end function hostNodeUnits

@@ -683,6 +683,7 @@ contains
     use, intrinsic :: ISO_C_Binding                   , only : c_size_t
     use            :: Numerical_Constants_Astronomical, only : megaParsec
     use            :: String_Handling                 , only : operator(//)
+    use            :: Units_MetaData                  , only : unitType
     implicit none
     class  (mergerTreeOutputterStandard), intent(inout) :: self
     type   (mergerTree                 ), intent(inout) :: tree
@@ -698,8 +699,8 @@ contains
     ! Create a group for the tree.
     tree%hdf5Group=self%outputGroups(indexOutput)%hdf5Group%openGroup(char(groupName),char(description))
     ! Add the merger tree weight to the group.
-    call tree%hdf5Group%writeAttribute(tree%volumeWeight  ,"volumeWeight"         )
-    call tree%hdf5Group%writeAttribute(1.0d0/megaParsec**3,"volumeWeightUnitsInSI")
+    call tree%hdf5Group%writeAttribute(tree%volumeWeight                                    ,"volumeWeight"         )
+    call tree%hdf5Group%writeAttribute(unitType(1.0d0/megaParsec**3,'Mpc⁻³','Mpc^-3',.true.),"volumeWeightUnitsInSI")
     return
   end subroutine standardMakeGroup
 

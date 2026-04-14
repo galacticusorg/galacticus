@@ -395,16 +395,15 @@ contains
 
   function massProfileUnits(self,time) result(units)
     !!{
-    Return the units of the massProfile properties.
+    Return the units of the mass profile properties.
     !!}
     use :: Units_MetaData, only : unitType
     implicit none
-    type            (unitType    ), dimension(:), allocatable :: units
-    class           (nodePropertyExtractorMassProfile), intent(inout)             :: self
-    double precision              , intent(in   ), optional   :: time
-    double precision              , dimension(:), allocatable :: siValues
-    integer                                                   :: i
-    !$GLC attributes unused :: self
+    type            (unitType                        ), dimension(:) , allocatable :: units
+    class           (nodePropertyExtractorMassProfile), intent(inout)              :: self
+    double precision                                  , intent(in   ), optional    :: time
+    double precision                                  , dimension(:) , allocatable :: siValues
+    integer                                                                        :: i
 
     siValues=self%unitsInSI(time)
     allocate(units(size(siValues)))

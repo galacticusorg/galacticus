@@ -42,7 +42,6 @@
      procedure :: extract     => branchMostMassiveExtract
      procedure :: name        => branchMostMassiveName
      procedure :: description => branchMostMassiveDescription
-     procedure :: units       => branchMostMassiveUnits
   end type nodePropertyExtractorBranchMostMassive
 
   interface nodePropertyExtractorBranchMostMassive
@@ -134,17 +133,3 @@ contains
     branchMostMassiveDescription=var_str('Indicates if the node is on the most massive branch of its tree (0|1).')
     return
   end function branchMostMassiveDescription
-
-  function branchMostMassiveUnits(self) result(units)
-    !!{
-    Return the units of the branchMostMassive property.
-    !!}
-    use :: Units_MetaData, only : unitType
-    implicit none
-    type (unitType    )                :: units
-    class(nodePropertyExtractorBranchMostMassive), intent(inout) :: self
-    !$GLC attributes unused :: self
-
-    units=unitType(self%unitsInSI(),description='????',quantity='????')
-    return
-  end function branchMostMassiveUnits

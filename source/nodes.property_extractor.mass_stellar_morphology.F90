@@ -128,25 +128,24 @@ contains
 
   double precision function massStellarMorphologyUnitsInSI(self)
     !!{
-    Return the units of the massStellarMorphology property in the SI system.
+    Return the units of the stellar mass morphology property in the SI system.
     !!}
     implicit none
     class(nodePropertyExtractorMassStellarMorphology), intent(inout) :: self
     !$GLC attributes unused :: self
 
-    massStellarMorphologyUnitsInSI=0.0d0
+    massStellarMorphologyUnitsInSI=1.0d0
     return
   end function massStellarMorphologyUnitsInSI
 
   function massStellarMorphologyUnits(self) result(units)
     !!{
-    Return the units of the massStellarMorphology property.
+    Return the units of the stellar mass morphology property.
     !!}
     use :: Units_MetaData, only : unitType
     implicit none
-    type (unitType    )                :: units
+    type (unitType                                  )                :: units
     class(nodePropertyExtractorMassStellarMorphology), intent(inout) :: self
-    !$GLC attributes unused :: self
 
     units=unitType(self%unitsInSI())
     return

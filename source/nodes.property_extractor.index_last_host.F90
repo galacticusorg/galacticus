@@ -36,7 +36,6 @@ Implements a node property extractor for the index of the last host node.
      procedure :: extract     => indexLastHostExtract
      procedure :: name        => indexLastHostName
      procedure :: description => indexLastHostDescription
-     procedure :: units       => indexLastHostUnits
   end type nodePropertyExtractorIndexLastHost
 
   interface nodePropertyExtractorIndexLastHost
@@ -122,17 +121,3 @@ contains
     indexLastHostDescription=var_str('Index of the node in whcih this node was last a satellite.')
     return
   end function indexLastHostDescription
-
-  function indexLastHostUnits(self) result(units)
-    !!{
-    Return the units of the indexLastHost property.
-    !!}
-    use :: Units_MetaData, only : unitType
-    implicit none
-    type (unitType    )                :: units
-    class(nodePropertyExtractorIndexLastHost), intent(inout) :: self
-    !$GLC attributes unused :: self
-
-    units=unitType(self%unitsInSI(),description='????',quantity='????')
-    return
-  end function indexLastHostUnits

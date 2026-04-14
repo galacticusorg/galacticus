@@ -204,11 +204,11 @@ contains
     !!}
     use :: Units_MetaData, only : unitType
     implicit none
-    type            (unitType    ), dimension(:), allocatable :: units
+    type            (unitType                                         ), dimension(:), allocatable :: units
     class           (nodePropertyExtractorStarFormationRateInterOutput), intent(inout)             :: self
-    double precision              , intent(in   )             :: time
-    double precision              , dimension(:), allocatable :: siValues
-    integer                                                   :: i
+    double precision                                                   , intent(in   )             :: time
+    double precision                                                   , dimension(:), allocatable :: siValues
+    integer                                                                                        :: i
     !$GLC attributes unused :: self
 
     siValues=self%unitsInSI(time)

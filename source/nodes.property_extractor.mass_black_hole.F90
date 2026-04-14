@@ -125,7 +125,7 @@ contains
 
   double precision function massBlackHoleUnitsInSI(self)
     !!{
-    Return the units of the massBlackHole property in the SI system.
+    Return the units of the black hole mass property in the SI system.
     !!}
     use :: Numerical_Constants_Astronomical, only : massSolar
     implicit none
@@ -138,13 +138,12 @@ contains
 
   function massBlackHoleUnits(self) result(units)
     !!{
-    Return the units of the massBlackHole property.
+    Return the units of the black hole mass property.
     !!}
     use :: Units_MetaData, only : unitType
     implicit none
-    type (unitType    )                :: units
+    type (unitType                          )                :: units
     class(nodePropertyExtractorMassBlackHole), intent(inout) :: self
-    !$GLC attributes unused :: self
 
     units=unitType(self%unitsInSI(),description='Solar masses',quantity='solMass')
     return

@@ -207,7 +207,7 @@ contains
        radiusEinsteinExtract=+self%finder%find(rootGuess=self%darkMatterHaloScale_%radiusVirial(node)) &
             &                /distanceAngularLens                                                      &
             &                /degreesToRadians                                                         &
-            &                /arcsecondstoDegrees
+            &                /arcsecondsToDegrees
     end if
     return
   end function radiusEinsteinExtract
@@ -317,14 +317,14 @@ contains
 
   function radiusEinsteinUnits(self) result(units)
     !!{
-    Return the units of the radiusEinstein property.
+    Return the units of the Einstein radius property.
     !!}
     use :: Units_MetaData, only : unitType
     implicit none
-    type (unitType    )                :: units
+    type (unitType                           )                :: units
     class(nodePropertyExtractorRadiusEinstein), intent(inout) :: self
     !$GLC attributes unused :: self
 
-    units=unitType(self%unitsInSI(),description='degrees',quantity='deg')
+    units=unitType(self%unitsInSI(),description='arcseconds',quantity='arcsecond')
     return
   end function radiusEinsteinUnits

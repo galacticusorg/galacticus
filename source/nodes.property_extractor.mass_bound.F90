@@ -110,7 +110,7 @@ contains
 
   double precision function massBoundUnitsInSI(self)
     !!{
-    Return the units of the massBound property in the SI system.
+    Return the units of the bound mass property in the SI system.
     !!}
     use :: Numerical_Constants_Astronomical, only : massSolar
     implicit none
@@ -123,11 +123,11 @@ contains
 
   function massBoundUnits(self) result(units)
     !!{
-    Return the units of the massBound property.
+    Return the units of the bound mass property.
     !!}
     use :: Units_MetaData, only : unitType
     implicit none
-    type (unitType    )                :: units
+    type (unitType                      )                :: units
     class(nodePropertyExtractorMassBound), intent(inout) :: self
     !$GLC attributes unused :: self
 

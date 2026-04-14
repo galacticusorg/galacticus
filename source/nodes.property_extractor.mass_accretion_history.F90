@@ -164,15 +164,13 @@ contains
     !!}
     use :: Units_MetaData, only : unitType
     implicit none
-    type (unitType    ), dimension(:), allocatable :: units
-    class(nodePropertyExtractorMassAccretionHistory), intent(inout)             :: self
-    double precision   , dimension(:), allocatable :: siValues
-    integer                                        :: i
-    !$GLC attributes unused :: self
+    type            (unitType                                 ), dimension(:), allocatable :: units
+    class           (nodePropertyExtractorMassAccretionHistory), intent(inout)             :: self
+    double precision                                           , dimension(:), allocatable :: siValues
 
     siValues=self%unitsInSI()
     allocate(units(2))
-    units(1)=unitType(siValues(1),description='Gyr',quantity='Gyr')
+    units(1)=unitType(siValues(1),description='Gyr'         ,quantity='Gyr'    )
     units(2)=unitType(siValues(2),description='Solar masses',quantity='solMass')
     return
   end function massAccretionHistoryUnits

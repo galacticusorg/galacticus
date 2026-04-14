@@ -34,7 +34,7 @@
      procedure :: names        => galaxyMergerTreeMergerPhysicalNames
      procedure :: descriptions => galaxyMergerTreeMergerPhysicalDescriptions
      procedure :: unitsInSI    => galaxyMergerTreeMergerPhysicalUnitsInSI
-     procedure :: units       => galaxyMergerTreeMergerPhysicalUnits
+     procedure :: units        => galaxyMergerTreeMergerPhysicalUnits
   end type nodePropertyExtractorGalaxyMergerTreeMergerPhysical
 
   interface nodePropertyExtractorGalaxyMergerTreeMergerPhysical
@@ -141,7 +141,7 @@ contains
     !!{
     Return the units of the \mono{galaxyMergerTreeMergerPhysical} properties in the SI system.
     !!}
-    use :: Numerical_Constants_Astronomical, only : gigaYear, massSolar
+    use :: Numerical_Constants_Astronomical, only : gigaYear
     implicit none
     double precision                                                     , dimension(:) , allocatable :: unitsInSI
     class           (nodePropertyExtractorGalaxyMergerTreeMergerPhysical), intent(inout)              :: self
@@ -156,18 +156,14 @@ contains
     !!{
     Return the units of the galaxyMergerTreeMergerPhysical properties.
     !!}
-    use :: Units_MetaData, only : unitType
+    use :: Units_MetaData                  , only : unitType
+    use :: Numerical_Constants_Astronomical, only : gigaYear
     implicit none
-    type (unitType    ), dimension(:), allocatable :: units
+    type (unitType                                           ), dimension(:), allocatable :: units
     class(nodePropertyExtractorGalaxyMergerTreeMergerPhysical), intent(inout)             :: self
-    double precision   , dimension(:), allocatable :: siValues
-    integer                                        :: i
     !$GLC attributes unused :: self
 
-    siValues=self%unitsInSI()
-    allocate(units(size(siValues)))
-    do i=1,size(siValues)
-       units(i)=unitType(siValues(i),description='Gyr',quantity='Gyr')
-    end do
+    allocate(units(1))
+    units(1)=unitType(gigaYear,description='Gyr',quantity='Gyr')
     return
   end function galaxyMergerTreeMergerPhysicalUnits

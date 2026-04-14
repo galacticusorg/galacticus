@@ -50,7 +50,6 @@ Implements an ISM mass output analysis property extractor class.
      procedure :: extract     => descendantsExtract
      procedure :: name        => descendantsName
      procedure :: description => descendantsDescription
-     procedure :: units       => descendantsUnits
   end type nodePropertyExtractorDescendants
 
   interface nodePropertyExtractorDescendants
@@ -191,7 +190,6 @@ contains
     return
   end function descendantsExtract
 
-
   function descendantsName(self)
     !!{
     Return the name of the descendants property.
@@ -217,17 +215,3 @@ contains
     descendantsDescription=var_str('ID of the node which this node will have descended into by the next timestep.')
     return
   end function descendantsDescription
-
-  function descendantsUnits(self) result(units)
-    !!{
-    Return the units of the descendants property.
-    !!}
-    use :: Units_MetaData, only : unitType
-    implicit none
-    type (unitType    )                :: units
-    class(nodePropertyExtractorDescendants), intent(inout) :: self
-    !$GLC attributes unused :: self
-
-    units=unitType(self%unitsInSI(),description='????',quantity='????')
-    return
-  end function descendantsUnits

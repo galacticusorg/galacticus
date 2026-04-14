@@ -132,7 +132,7 @@ contains
     !!}
     use :: Units_MetaData, only : unitType
     implicit none
-    type (unitType    )                :: units
+    type (unitType                     )                :: units
     class(nodePropertyExtractorMassHost), intent(inout) :: self
     !$GLC attributes unused :: self
 

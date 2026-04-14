@@ -133,11 +133,11 @@ contains
 
   function nodeMajorMergerTimeUnits(self) result(units)
     !!{
-    Return the units of the nodeMajorMergerTime property.
+    Return the units of the node major merger time property.
     !!}
     use :: Units_MetaData, only : unitType
     implicit none
-    type (unitType    )                :: units
+    type (unitType                                )                :: units
     class(nodePropertyExtractorNodeMajorMergerTime), intent(inout) :: self
     !$GLC attributes unused :: self
 

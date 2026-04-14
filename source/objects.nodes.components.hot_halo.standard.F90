@@ -88,7 +88,7 @@ module Node_Component_Hot_Halo_Standard
       <type>double</type>
       <rank>0</rank>
       <attributes isSettable="true" isGettable="true" isEvolvable="true" createIfNeeded="true" isNonNegative="true" />
-      <output unitsInSI="massSolar*megaParsec*kilo" comment="Angular momentum of gas in the hot halo."/>
+      <output unitsInSI="massSolar*megaParsec*kilo" unitsDescription="Msun Mpc km/s" unitsQuantity="solMass Mpc km/s" comment="Angular momentum of gas in the hot halo."/>
     </property>
     <property>
       <name>outflowedMass</name>

@@ -114,7 +114,7 @@ contains
 
   double precision function massStellarUnitsInSI(self)
     !!{
-    Return the units of the massStellar property in the SI system.
+    Return the units of the stellar mass property in the SI system.
     !!}
     use :: Numerical_Constants_Astronomical, only : massSolar
     implicit none
@@ -128,7 +128,7 @@ contains
 
   function massStellarQuantity(self)
     !!{
-    Return the class of the stellar luminosity property.
+    Return the class of the stellar mass property.
     !!}
     use :: Output_Analyses_Options, only : outputAnalysisPropertyQuantityMass
     implicit none
@@ -142,11 +142,11 @@ contains
 
   function massStellarUnits(self) result(units)
     !!{
-    Return the units of the massStellar property.
+    Return the units of the stellar mass property.
     !!}
     use :: Units_MetaData, only : unitType
     implicit none
-    type (unitType    )                :: units
+    type (unitType                        )                :: units
     class(nodePropertyExtractorMassStellar), intent(inout) :: self
     !$GLC attributes unused :: self
 

@@ -158,7 +158,7 @@ contains
     class(nodePropertyExtractorHaloBias), intent(inout) :: self
     !$GLC attributes unused :: self
 
-    haloBiasUnitsInSI=0.0d0
+    haloBiasUnitsInSI=1.0d0
     return
   end function haloBiasUnitsInSI
 
@@ -168,10 +168,10 @@ contains
     !!}
     use :: Units_MetaData, only : unitType
     implicit none
-    type (unitType    )                :: units
+    type (unitType                     )                :: units
     class(nodePropertyExtractorHaloBias), intent(inout) :: self
     !$GLC attributes unused :: self
 
-    units=unitType(self%unitsInSI())
+    units=unitType(1.0d0)
     return
   end function haloBiasUnits

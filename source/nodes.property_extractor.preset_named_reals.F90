@@ -167,13 +167,11 @@ contains
     !!{
     Return the units of the \mono{presetNamedReals} properties in the SI system.
     !!}
-    use :: Numerical_Constants_Astronomical, only : megaParsec
-    use :: Numerical_Constants_Prefixes    , only : kilo
     implicit none
     double precision                                       , dimension(:) , allocatable :: presetNamedRealsUnitsInSI
     class           (nodePropertyExtractorPresetNamedReals), intent(inout)              :: self
     double precision                                       , intent(in   )              :: time
-   !$GLC attributes unused :: time
+    !$GLC attributes unused :: time
 
     allocate(presetNamedRealsUnitsInSI(size(self%presetNames)))
     presetNamedRealsUnitsInSI=-1.0d0
@@ -186,17 +184,16 @@ contains
     !!}
     use :: Units_MetaData, only : unitType
     implicit none
-    type            (unitType    ), dimension(:), allocatable :: units
-    class           (nodePropertyExtractorPresetNamedReals), intent(inout)             :: self
-    double precision              , intent(in   )             :: time
-    double precision              , dimension(:), allocatable :: siValues
-    integer                                                   :: i
-    !$GLC attributes unused :: self
+    type            (unitType                             ), dimension(:) , allocatable :: units
+    class           (nodePropertyExtractorPresetNamedReals), intent(inout)              :: self
+    double precision                                       , intent(in   )              :: time
+    double precision                                       , dimension(:) , allocatable :: siValues
+    integer                                                                             :: i
 
     siValues=self%unitsInSI(time)
     allocate(units(size(siValues)))
     do i=1,size(siValues)
-       units(i)=unitType(siValues(i),description='????',quantity='????')
+       units(i)=unitType(-1.0d0)
     end do
     return
   end function presetNamedRealsUnits

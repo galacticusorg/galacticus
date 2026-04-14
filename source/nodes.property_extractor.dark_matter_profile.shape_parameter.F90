@@ -116,7 +116,7 @@ contains
     class(nodePropertyExtractorDarkMatterProfileShapeParameter), intent(inout) :: self
     !$GLC attributes unused :: self
 
-    darkMatterProfileShapeParameterUnitsInSI=0.0d0
+    darkMatterProfileShapeParameterUnitsInSI=1.0d0
     return
   end function darkMatterProfileShapeParameterUnitsInSI
 
@@ -126,10 +126,10 @@ contains
     !!}
     use :: Units_MetaData, only : unitType
     implicit none
-    type (unitType    )                :: units
+    type (unitType                                            )                :: units
     class(nodePropertyExtractorDarkMatterProfileShapeParameter), intent(inout) :: self
     !$GLC attributes unused :: self
 
-    units=unitType(self%unitsInSI())
+    units=unitType(1.0d0)
     return
   end function darkMatterProfileShapeParameterUnits

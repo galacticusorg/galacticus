@@ -389,19 +389,15 @@ contains
     !!{
     Return the units of the sEDAGN properties.
     !!}
-    use :: Units_MetaData, only : unitType
+    use :: Numerical_Constants_Astronomical, only : luminositySolar
+    use :: Units_MetaData                  , only : unitType
     implicit none
-    type            (unitType    ), dimension(:), allocatable :: units
+    type            (unitType                   ), dimension(:), allocatable :: units
     class           (nodePropertyExtractorSEDAGN), intent(inout)             :: self
-    double precision              , intent(in   ), optional   :: time
-    double precision              , dimension(:), allocatable :: siValues
-    integer                                                   :: i
-    !$GLC attributes unused :: self
+    double precision                             , intent(in   ), optional   :: time
+    !$GLC attributes unused :: self, time
 
-    siValues=self%unitsInSI(time)
-    allocate(units(size(siValues)))
-    do i=1,size(siValues)
-       units(i)=unitType(siValues(i),description='L☉',quantity='solLum')
-    end do
+    allocate(units(1))
+    units(1)=unitType(luminositySolar,description='L☉',quantity='solLum')
     return
   end function sEDAGNUnits

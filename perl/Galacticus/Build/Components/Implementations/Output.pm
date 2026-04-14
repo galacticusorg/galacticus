@@ -216,7 +216,7 @@ CODE
 {$outputType}Property                                   = {$outputType}Property+1
 {$outputType}Properties({$outputType}Property)%name     ='{$class->{'name'}.ucfirst($property->{'name'})}'
 {$outputType}Properties({$outputType}Property)%comment  ='{$property->{'output'}->{'comment'  }}'
-{$outputType}Properties({$outputType}Property)%units    =unitType(unitsInSI={$property->{'output'}->{'unitsInSI'}},description='{$property->{'output'}->{'description'} // ""}',quantity='{$property->{'output'}->{'quantity'} // ""}',isComoving={$property->{'output'}->{'isComoving'} // '.false.'})
+{$outputType}Properties({$outputType}Property)%units    =unitType(unitsInSI={$property->{'output'}->{'unitsInSI'}},description='{$property->{'output'}->{'unitsDescription'} // ""}',quantity='{$property->{'output'}->{'unitsQuantity'} // ""}',isComoving={$property->{'output'}->{'isComoving'} // '.false.'})
 CODE
 	    } elsif ( $code::property->{'data'}->{'rank'} == 1 ) {
 		if ( $code::property->{'output'}->{'labels'} =~ m/^\[(.*)\]$/ ) {
@@ -226,7 +226,7 @@ CODE
 {$outputType}Property                                   ={$outputType}Property+1
 {$outputType}Properties({$outputType}Property)%name     ='{$class->{'name'}.ucfirst($property->{'name'}).$label}'
 {$outputType}Properties({$outputType}Property)%comment  ='{$property->{'output'}->{'comment'  }} [{$label}]'
-{$outputType}Properties({$outputType}Property)%units    =unitType(unitsInSI={$property->{'output'}->{'unitsInSI'}},description='{$property->{'output'}->{'description'} // ""}',quantity='{$property->{'output'}->{'quantity'} // ""}',isComoving={$property->{'output'}->{'isComoving'} // '.false.'})
+{$outputType}Properties({$outputType}Property)%units    =unitType(unitsInSI={$property->{'output'}->{'unitsInSI'}},description='{$property->{'output'}->{'unitsDescription'} // ""}',quantity='{$property->{'output'}->{'unitsQuantity'} // ""}',isComoving={$property->{'output'}->{'isComoving'} // '.false.'})
 CODE
 		    }
 		} elsif ( exists($code::property->{'output'}->{'count'}) ) {
@@ -236,13 +236,13 @@ do i=1,{$property->{'output'}->{'count'}}
    {$outputType}Property                                   ={$outputType}Property+1
    {$outputType}Properties({$outputType}Property)%name     ='{$class->{'name'}.ucfirst($propertyName)}'//{$label}
    {$outputType}Properties({$outputType}Property)%comment  ='{$property->{'output'}->{'comment'  }} [' //{$label}//']'
-   {$outputType}Properties({$outputType}Property)%units    =unitType(unitsInSI={$property->{'output'}->{'unitsInSI'}},description='{$property->{'output'}->{'description'} // ""}',quantity='{$property->{'output'}->{'quantity'} // ""}',isComoving={$property->{'output'}->{'isComoving'} // '.false.'})
+   {$outputType}Properties({$outputType}Property)%units    =unitType(unitsInSI={$property->{'output'}->{'unitsInSI'}},description='{$property->{'output'}->{'unitsDescription'} // ""}',quantity='{$property->{'output'}->{'unitsQuantity'} // ""}',isComoving={$property->{'output'}->{'isComoving'} // '.false.'})
 end do
 CODE
                 }
 	    }
 	} else {
-	    $code::unitsInSI        = exists($code::property->{'output'}->{'unitsInSI'       }) ? $code::property->{'output'}->{'unitsInSI'       } : "0.0d0";
+	    $code::unitsInSI        = exists($code::property->{'output'}->{'unitsInSI'       }) ? $code::property->{'output'}->{'unitsInSI'       } : "1.0d0";
 	    $code::unitsDescription = exists($code::property->{'output'}->{'unitsDescription'}) ? $code::property->{'output'}->{'unitsDescription'} : "''"   ;
 	    $code::unitsQuantity    = exists($code::property->{'output'}->{'unitsQuantity'   }) ? $code::property->{'output'}->{'unitsQuantity'   } : "''"   ;
 	    $function->{'content'} .= fill_in_string(<<'CODE', PACKAGE => 'code');

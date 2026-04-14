@@ -41,7 +41,7 @@ Implements a node property extractor class for halo environment.
      procedure :: names        => haloEnvironmentNames
      procedure :: descriptions => haloEnvironmentDescriptions
      procedure :: unitsInSI    => haloEnvironmentUnitsInSI
-     procedure :: units       => haloEnvironmentUnits
+     procedure :: units        => haloEnvironmentUnits
   end type nodePropertyExtractorHaloEnvironment
 
   interface nodePropertyExtractorHaloEnvironment
@@ -178,7 +178,7 @@ contains
     !$GLC attributes unused :: self, time
 
     allocate(haloEnvironmentUnitsInSI(2))
-    haloEnvironmentUnitsInSI=0.0d0
+    haloEnvironmentUnitsInSI=1.0d0
     return
   end function haloEnvironmentUnitsInSI
 
@@ -188,17 +188,15 @@ contains
     !!}
     use :: Units_MetaData, only : unitType
     implicit none
-    type            (unitType    ), dimension(:), allocatable :: units
+    type            (unitType                            ), dimension(:), allocatable :: units
     class           (nodePropertyExtractorHaloEnvironment), intent(inout)             :: self
-    double precision              , intent(in   )             :: time
-    double precision              , dimension(:), allocatable :: siValues
-    integer                                                   :: i
-    !$GLC attributes unused :: self
+    double precision                                      , intent(in   )             :: time
+    integer                                                                           :: i
+    !$GLC attributes unused :: self, time
 
-    siValues=self%unitsInSI(time)
-    allocate(units(size(siValues)))
-    do i=1,size(siValues)
-       units(i)=unitType(siValues(i))
+    allocate(units(2))
+    do i=1,2
+       units(i)=unitType(1.0d0)
     end do
     return
   end function haloEnvironmentUnits

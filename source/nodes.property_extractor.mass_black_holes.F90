@@ -33,7 +33,7 @@
      procedure :: names        => massBlackHolesNames
      procedure :: descriptions => massBlackHolesDescriptions
      procedure :: unitsInSI    => massBlackHolesUnitsInSI
-     procedure :: units       => massBlackHolesUnits
+     procedure :: units        => massBlackHolesUnits
   end type nodePropertyExtractorMassBlackHoles
 
   interface nodePropertyExtractorMassBlackHoles
@@ -125,7 +125,7 @@ contains
 
   function massBlackHolesUnitsInSI(self) result(unitsInSI)
     !!{
-    Return the units of the \mono{massBlackHoles} properties in the SI system.
+    Return the units of the black hole mass properties in the SI system.
     !!}
     use :: Numerical_Constants_Astronomical, only : massSolar
     implicit none
@@ -140,15 +140,14 @@ contains
 
   function massBlackHolesUnits(self) result(units)
     !!{
-    Return the units of the massBlackHoles properties.
+    Return the units of the black hole mass properties.
     !!}
     use :: Units_MetaData, only : unitType
     implicit none
-    type (unitType    ), dimension(:), allocatable :: units
-    class(nodePropertyExtractorMassBlackHoles), intent(inout)             :: self
-    double precision   , dimension(:), allocatable :: siValues
-    integer                                        :: i
-    !$GLC attributes unused :: self
+    type            (unitType                           ), dimension(:) , allocatable :: units
+    class           (nodePropertyExtractorMassBlackHoles), intent(inout)              :: self
+    double precision                                     , dimension(:) , allocatable :: siValues
+    integer                                                                           :: i
 
     siValues=self%unitsInSI()
     allocate(units(size(siValues)))

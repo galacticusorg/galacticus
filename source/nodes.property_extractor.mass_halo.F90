@@ -203,7 +203,7 @@ contains
 
   double precision function massHaloUnitsInSI(self)
     !!{
-    Return the units of the massHalo property in the SI system.
+    Return the units of the halo mass property in the SI system.
     !!}
     use :: Numerical_Constants_Astronomical, only : massSolar
     implicit none
@@ -216,13 +216,12 @@ contains
 
   function massHaloUnits(self) result(units)
     !!{
-    Return the units of the massHalo property.
+    Return the units of the halo mass property.
     !!}
     use :: Units_MetaData, only : unitType
     implicit none
-    type (unitType    )                :: units
+    type (unitType                     )                :: units
     class(nodePropertyExtractorMassHalo), intent(inout) :: self
-    !$GLC attributes unused :: self
 
     units=unitType(self%unitsInSI(),description='Solar masses',quantity='solMass')
     return

@@ -186,11 +186,10 @@ contains
     !!}
     use :: Units_MetaData, only : unitType
     implicit none
-    type (unitType    ), dimension(:), allocatable :: units
-    class(nodePropertyExtractorMassAccretionRateBlackHoles), intent(inout)             :: self
-    double precision   , dimension(:), allocatable :: siValues
-    integer                                        :: i
-    !$GLC attributes unused :: self
+    type            (unitType                                        ), dimension(:) , allocatable :: units
+    class           (nodePropertyExtractorMassAccretionRateBlackHoles), intent(inout)              :: self
+    double precision                                                  , dimension(:) , allocatable :: siValues
+    integer                                                                                        :: i
 
     siValues=self%unitsInSI()
     allocate(units(size(siValues)))

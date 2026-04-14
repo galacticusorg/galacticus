@@ -260,16 +260,15 @@ contains
     return
   end function icmXRayLuminosityUnitsInSI
 
-  function iCMXRayLuminosityUnits(self) result(units)
+  function icmXRayLuminosityUnits(self) result(units)
     !!{
     Return the units of the iCMXRayLuminosity property.
     !!}
     use :: Units_MetaData, only : unitType
     implicit none
-    type (unitType    )                :: units
+    type (unitType                              )                :: units
     class(nodePropertyExtractorICMXRayLuminosity), intent(inout) :: self
-    !$GLC attributes unused :: self
 
-    units=unitType(self%unitsInSI(),description='erg',quantity='erg')
+    units=unitType(self%unitsInSI(),description='ergs',quantity='erg')
     return
-  end function iCMXRayLuminosityUnits
+  end function icmXRayLuminosityUnits

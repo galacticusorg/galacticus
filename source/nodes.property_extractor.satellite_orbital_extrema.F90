@@ -259,19 +259,21 @@ contains
     !!{
     Return the units of the satelliteOrbitalExtrema properties.
     !!}
-    use :: Units_MetaData, only : unitType
+    use :: Numerical_Constants_Astronomical, only : megaParsec
+    use :: Numerical_Constants_Prefixes    , only : kilo
+    use :: Units_MetaData                  , only : unitType
     implicit none
-    type            (unitType    ), dimension(:), allocatable :: units
+    type            (unitType                                    ), dimension(:), allocatable :: units
     class           (nodePropertyExtractorSatelliteOrbitalExtrema), intent(inout)             :: self
-    double precision              , intent(in   )             :: time
-    double precision              , dimension(:), allocatable :: siValues
-    integer                                                   :: i
-    !$GLC attributes unused :: self
+    double precision                                              , intent(in   )             :: time
 
-    siValues=self%unitsInSI(time)
-    allocate(units(size(siValues)))
-    do i=1,size(siValues)
-       units(i)=unitType(siValues(i),description='????',quantity='????')
-    end do
+    if (self%extractPericenter) then
+       units(self%offsetPericenter  )=unitType(megaParsec,'Mpc' ,'Mpc' )
+       units(self%offsetPericenter+1)=unitType(kilo      ,'km/s','km/s')
+    end if
+    if (self%extractApocenter ) then
+       units(self%offsetApocenter   )=unitType(megaParsec,'Mpc' ,'Mpc' )
+       units(self%offsetApocenter +1)=unitType(kilo      ,'km/s','km/s')
+    end if
     return
   end function satelliteOrbitalExtremaUnits

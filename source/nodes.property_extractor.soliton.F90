@@ -207,20 +207,19 @@ contains
     !!}
     use :: Units_MetaData, only : unitType
     implicit none
-    type            (unitType    ), dimension(:), allocatable :: units
-    class           (nodePropertyExtractorSoliton), intent(inout)             :: self
-    double precision              , intent(in   )             :: time
-    double precision              , dimension(:), allocatable :: siValues
-    integer                                                   :: i
+    type            (unitType                    ), dimension(:) , allocatable :: units
+    class           (nodePropertyExtractorSoliton), intent(inout)              :: self
+    double precision                              , intent(in   )              :: time
+    double precision                              , dimension(:) , allocatable :: siValues
     !$GLC attributes unused :: self
 
     siValues=self%unitsInSI(time)
     allocate(units(6))
-    units(1)=unitType(siValues(1),description='Solar masses',quantity='solMass')
-    units(2)=unitType(siValues(2),description='Solar masses',quantity='solMass')
-    units(3)=unitType(siValues(3),description='M☉/Mpc³',quantity='solMass/Mpc**3')
-    units(4)=unitType(siValues(4),description='Mpc',quantity='Mpc')
-    units(5)=unitType(siValues(5),description='Mpc',quantity='Mpc')
-    units(6)=unitType(siValues(6))
+    units(1)=unitType(siValues(1),description='Solar masses',quantity='solMass'      )
+    units(2)=unitType(siValues(2),description='Solar masses',quantity='solMass'      )
+    units(3)=unitType(siValues(3),description='M☉/Mpc³'     ,quantity='solMass/Mpc^3')
+    units(4)=unitType(siValues(4),description='Mpc'         ,quantity='Mpc'          )
+    units(5)=unitType(siValues(5),description='Mpc'         ,quantity='Mpc'          )
+    units(6)=unitType(siValues(6)                                                    )
     return
   end function solitonUnits

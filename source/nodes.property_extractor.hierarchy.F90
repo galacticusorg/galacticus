@@ -162,7 +162,7 @@ contains
    !$GLC attributes unused :: self, time
 
     allocate(hierarchyUnitsInSI(3))
-    hierarchyUnitsInSI=0.0d0
+    hierarchyUnitsInSI=1.0d0
     return
   end function hierarchyUnitsInSI
 
@@ -172,17 +172,15 @@ contains
     !!}
     use :: Units_MetaData, only : unitType
     implicit none
-    type            (unitType    ), dimension(:), allocatable :: units
+    type            (unitType                      ), dimension(:), allocatable :: units
     class           (nodePropertyExtractorHierarchy), intent(inout)             :: self
-    double precision              , intent(in   )             :: time
-    double precision              , dimension(:), allocatable :: siValues
-    integer                                                   :: i
-    !$GLC attributes unused :: self
+    double precision                                , intent(in   )             :: time
+    integer                                                                     :: i
+    !$GLC attributes unused :: self, time
 
-    siValues=self%unitsInSI(time)
-    allocate(units(size(siValues)))
-    do i=1,size(siValues)
-       units(i)=unitType(siValues(i))
+    allocate(units(3))
+    do i=1,3
+       units(i)=unitType(1.0d0)
     end do
     return
   end function hierarchyUnits

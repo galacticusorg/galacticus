@@ -243,11 +243,11 @@ contains
 
   function starFormationRateUnits(self) result(units)
     !!{
-    Return the units of the starFormationRate property.
+    Return the units of the star formation rat property.
     !!}
     use :: Units_MetaData, only : unitType
     implicit none
-    type (unitType    )                :: units
+    type (unitType                              )                :: units
     class(nodePropertyExtractorStarFormationRate), intent(inout) :: self
     !$GLC attributes unused :: self
 

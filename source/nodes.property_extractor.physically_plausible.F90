@@ -35,7 +35,6 @@
      procedure :: extract     => isPhysicallyPlausibleExtract
      procedure :: name        => isPhysicallyPlausibleName
      procedure :: description => isPhysicallyPlausibleDescription
-     procedure :: units       => isPhysicallyPlausibleUnits
   end type nodePropertyExtractorIsPhysicallyPlausible
 
   interface nodePropertyExtractorIsPhysicallyPlausible
@@ -108,17 +107,3 @@ contains
     isPhysicallyPlausibleDescription=var_str('Indicates if the node considered to be physically plausible (0|1).')
     return
   end function isPhysicallyPlausibleDescription
-
-  function isPhysicallyPlausibleUnits(self) result(units)
-    !!{
-    Return the units of the isPhysicallyPlausible property.
-    !!}
-    use :: Units_MetaData, only : unitType
-    implicit none
-    type (unitType    )                :: units
-    class(nodePropertyExtractorIsPhysicallyPlausible), intent(inout) :: self
-    !$GLC attributes unused :: self
-
-    units=unitType(self%unitsInSI(),description='????',quantity='????')
-    return
-  end function isPhysicallyPlausibleUnits

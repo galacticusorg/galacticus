@@ -45,15 +45,16 @@
    contains
      !![
      <methods>
-       <method description="Return a description of the columns."                                        method="columnDescriptions"/>
-       <method description="Return the number of properties in the tuple."                               method="elementCount"      />
-       <method description="Extract the double properties from the given \mono{node}."  method="extractDouble"     />
-       <method description="Extract the integer properties from the given \mono{node}." method="extractInteger"    />
-       <method description="Return the names of the properties extracted."                               method="names"             />
-       <method description="Return descriptions of the properties extracted."                            method="descriptions"      />
-       <method description="Return the units of the properties extracted in the SI system."              method="unitsInSI"         />
-       <method description="Return the ranks of the properties extracted."                               method="ranks"             />
-       <method description="Populate a hash with meta-data for the property."                            method="metaData"          />
+       <method description="Return a description of the columns."                           method="columnDescriptions"/>
+       <method description="Return the number of properties in the tuple."                  method="elementCount"      />
+       <method description="Extract the double properties from the given \mono{node}."      method="extractDouble"     />
+       <method description="Extract the integer properties from the given \mono{node}."     method="extractInteger"    />
+       <method description="Return the names of the properties extracted."                  method="names"             />
+       <method description="Return descriptions of the properties extracted."               method="descriptions"      />
+       <method description="Return the units of the properties extracted in the SI system." method="unitsInSI"         />
+       <method description="Return an object containing units metadata for the properties." method="units"             />
+       <method description="Return the ranks of the properties extracted."                  method="ranks"             />
+       <method description="Populate a hash with meta-data for the property."               method="metaData"          />
      </methods>
      !!]
      final     ::                       multiDestructor
@@ -787,8 +788,8 @@ contains
 
   function multiUnits(self,elementType,time)
     !!{
-    Return the units of the multiple properties as \reftype{unitType} objects, delegating to each sub-extractor's
-    \refmeth{nodePropertyExtractorClass}{units} method.
+    Return the units of the multiple properties as \mono{unitType} objects, delegating to each sub-extractor's
+    \mono{nodePropertyExtractorClass}{units} method.
     !!}
     use :: Error, only : Error_Report
     implicit none

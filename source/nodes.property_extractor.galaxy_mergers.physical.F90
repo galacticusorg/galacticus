@@ -36,7 +36,7 @@
      procedure :: names        => galaxyMergersPhysicalNames
      procedure :: descriptions => galaxyMergersPhysicalDescriptions
      procedure :: unitsInSI    => galaxyMergersPhysicalUnitsInSI
-     procedure :: units       => galaxyMergersPhysicalUnits
+     procedure :: units        => galaxyMergersPhysicalUnits
   end type nodePropertyExtractorGalaxyMergersPhysical
 
   interface nodePropertyExtractorGalaxyMergersPhysical
@@ -184,20 +184,18 @@ contains
     !!{
     Return the units of the galaxyMergersPhysical properties.
     !!}
-    use :: Units_MetaData, only : unitType
+    use :: Numerical_Constants_Astronomical, only : gigaYear, massSolar
+    use :: Units_MetaData                  , only : unitType
     implicit none
-    type (unitType    ), dimension(:), allocatable :: units
-    class(nodePropertyExtractorGalaxyMergersPhysical), intent(inout)             :: self
-    double precision   , dimension(:), allocatable :: siValues
-    integer                                        :: i
+    type            (unitType                                  ), dimension(:), allocatable :: units
+    class           (nodePropertyExtractorGalaxyMergersPhysical), intent(inout)             :: self
     !$GLC attributes unused :: self
 
-    siValues=self%unitsInSI()
     allocate(units(5))
-    units(1)=unitType(siValues(1),description='Gyr',quantity='Gyr')
-    units(2)=unitType(siValues(2),description='Solar masses',quantity='solMass')
-    units(3)=unitType(siValues(3),description='Solar masses',quantity='solMass')
-    units(4)=unitType(siValues(4),description='Solar masses',quantity='solMass')
-    units(5)=unitType(siValues(5),description='Solar masses',quantity='solMass')
+    units(1)=unitType(gigaYear ,description='Gyr'         ,quantity='Gyr'    )
+    units(2)=unitType(massSolar,description='Solar masses',quantity='solMass')
+    units(3)=unitType(massSolar,description='Solar masses',quantity='solMass')
+    units(4)=unitType(massSolar,description='Solar masses',quantity='solMass')
+    units(5)=unitType(massSolar,description='Solar masses',quantity='solMass')
     return
   end function galaxyMergersPhysicalUnits

@@ -33,11 +33,12 @@
    contains
      !![
      <methods>
-       <method method="extract"     description="Extract the property from the given \mono{node}."/>
-       <method method="name"        description="Return the name of the property extracted."                       />
-       <method method="description" description="Return a description of the property extracted."                  />
-       <method method="unitsInSI"   description="Return the units of the property extracted in the SI system."     />
-       <method method="metaData"    description="Populate a hash with meta-data for the property."                 />
+       <method method="extract"     description="Extract the property from the given \mono{node}."             />
+       <method method="name"        description="Return the name of the property extracted."                   />
+       <method method="description" description="Return a description of the property extracted."              />
+       <method method="unitsInSI"   description="Return the units of the property extracted in the SI system." />
+       <method method="units"        description="Return an object containing units metadata for the property."/>
+       <method method="metaData"    description="Populate a hash with meta-data for the property."             />
      </methods>
      !!]
      procedure(integerScalarExtract), deferred :: extract
@@ -77,7 +78,7 @@ contains
 
   function integerScalarUnits(self) result(units)
     !!{
-    Default implementation: wraps \refmeth{nodePropertyExtractorIntegerScalar}{unitsInSI} into a \reftype{unitType}.
+    Default implementation: wraps \mono{nodePropertyExtractorIntegerScalar}{unitsInSI} into a \mono{unitType}.
     !!}
     use :: Units_MetaData, only : unitType
     implicit none
@@ -96,7 +97,7 @@ contains
     class(nodePropertyExtractorIntegerScalar), intent(inout) :: self
     !$GLC attributes unused :: self
 
-    integerScalarUnitsInSI=0.0d0
+    integerScalarUnitsInSI=1.0d0
     return
   end function integerScalarUnitsInSI
 

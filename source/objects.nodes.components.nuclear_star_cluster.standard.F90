@@ -115,7 +115,7 @@ module Node_Component_NSC_Standard
       <attributes isSettable="false" isGettable="true" isEvolvable="false" isVirtual="true" />
       <type>double</type>
       <rank>0</rank>
-      <output unitsInSI="megaParsec" comment="Radial scale length in the standard nuclear star cluster."/>
+      <output unitsInSI="megaParsec" unitsDescription="Mpc" unitsQuantity="Mpc" comment="Radial scale length in the standard nuclear star cluster."/>
       <getFunction>Node_Component_NSC_Standard_Half_Mass_Radius</getFunction>
     </property>
     <property>

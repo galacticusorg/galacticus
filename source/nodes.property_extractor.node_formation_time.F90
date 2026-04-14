@@ -137,7 +137,7 @@ contains
     !!}
     use :: Units_MetaData, only : unitType
     implicit none
-    type (unitType    )                :: units
+    type (unitType                              )                :: units
     class(nodePropertyExtractorNodeFormationTime), intent(inout) :: self
     !$GLC attributes unused :: self
 

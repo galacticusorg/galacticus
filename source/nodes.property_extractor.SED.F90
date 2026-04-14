@@ -514,12 +514,29 @@ contains
     double precision                          , allocatable  , dimension(:) :: sedUnitsInSI
     class           (nodePropertyExtractorSED), intent(inout)               :: self
     double precision                          , intent(in   ), optional     :: time
-    !$GLC attributes unused :: time
+    !$GLC attributes unused :: self, time
 
     allocate(sedUnitsInSI(1))
     sedUnitsInSI(1)=luminositySolar
     return
   end function sedUnitsInSI
+
+  function SEDUnits(self,time) result(units)
+    !!{
+    Return the units of the SED properties.
+    !!}
+    use :: Numerical_Constants_Astronomical, only : luminositySolar
+    use :: Units_MetaData                  , only : unitType
+    implicit none
+    type            (unitType                ), dimension(:), allocatable :: units
+    class           (nodePropertyExtractorSED), intent(inout)             :: self
+    double precision                          , intent(in   ), optional   :: time
+    !$GLC attributes unused :: self, time
+
+    allocate(units(1))
+    units(1)=unitType(luminositySolar,description='L☉',quantity='solLum')
+    return
+  end function SEDUnits
 
   integer function sedIndexTemplateTime(self,time,countTemplates) result(indexTemplate)
     !!{
@@ -1123,24 +1140,3 @@ contains
     sedHistoryHashedDescriptor=Hash_MD5(descriptorString)
     return
   end function sedHistoryHashedDescriptor
-
-  function sEDUnits(self,time) result(units)
-    !!{
-    Return the units of the sED properties.
-    !!}
-    use :: Units_MetaData, only : unitType
-    implicit none
-    type            (unitType    ), dimension(:), allocatable :: units
-    class           (nodePropertyExtractorSED), intent(inout)             :: self
-    double precision              , intent(in   ), optional   :: time
-    double precision              , dimension(:), allocatable :: siValues
-    integer                                                   :: i
-    !$GLC attributes unused :: self
-
-    siValues=self%unitsInSI(time)
-    allocate(units(size(siValues)))
-    do i=1,size(siValues)
-       units(i)=unitType(siValues(i),description='L☉',quantity='solLum')
-    end do
-    return
-  end function sEDUnits

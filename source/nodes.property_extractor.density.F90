@@ -20,7 +20,7 @@
   !!{
   Implements a property extractor class for the density at a set of radii.
   !!}
-  use :: Dark_Matter_Halo_Scales             , only : darkMatterHaloScale   , darkMatterHaloScaleClass
+  use :: Dark_Matter_Halo_Scales             , only : darkMatterHaloScale, darkMatterHaloScaleClass
   use :: Galactic_Structure_Radii_Definitions, only : radiusSpecifier
 
   !![
@@ -57,7 +57,7 @@
      procedure :: names              => densityProfileNames
      procedure :: descriptions       => densityProfileDescriptions
      procedure :: unitsInSI          => densityProfileUnitsInSI
-     procedure :: units       => densityProfileUnits
+     procedure :: units              => densityProfileUnits
   end type nodePropertyExtractorDensityProfile
 
   interface nodePropertyExtractorDensityProfile
@@ -369,19 +369,16 @@ contains
     !!{
     Return the units of the densityProfile properties.
     !!}
-    use :: Units_MetaData, only : unitType
+    use :: Numerical_Constants_Astronomical, only : massSolar, megaParsec
+    use :: Units_MetaData                  , only : unitType
     implicit none
-    type            (unitType    ), dimension(:), allocatable :: units
+    type            (unitType                           ), dimension(:), allocatable :: units
     class           (nodePropertyExtractorDensityProfile), intent(inout)             :: self
-    double precision              , intent(in   ), optional   :: time
-    double precision              , dimension(:), allocatable :: siValues
-    integer                                                   :: i
-    !$GLC attributes unused :: self
+    double precision                                     , intent(in   ), optional   :: time
 
-    siValues=self%unitsInSI(time)
-    allocate(units(size(siValues)))
-    do i=1,size(siValues)
-       units(i)=unitType(siValues(i),description='M☉/Mpc³',quantity='solMass/Mpc**3')
-    end do
+    allocate(units(self%elementCount_))
+    units       (1)=unitType(massSolar/megaParsec**3,description='M☉/Mpc³',quantity='solMass/Mpc^3')
+    if (self%includeRadii)                                                                           &
+         & units(2)=unitType(          megaParsec   ,description='Mpc'    ,quantity='Mpc'          )
     return
   end function densityProfileUnits

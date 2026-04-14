@@ -424,12 +424,11 @@ contains
     !!}
     use :: Units_MetaData, only : unitType
     implicit none
-    type            (unitType    ), dimension(:), allocatable :: units
-    class           (nodePropertyExtractorProjectedMass), intent(inout)             :: self
-    double precision              , intent(in   ), optional   :: time
-    double precision              , dimension(:), allocatable :: siValues
-    integer                                                   :: i
-    !$GLC attributes unused :: self
+    type            (unitType                          ), dimension(:) , allocatable :: units
+    class           (nodePropertyExtractorProjectedMass), intent(inout)              :: self
+    double precision                                    , intent(in   ), optional    :: time
+    double precision                                    , dimension(:) , allocatable :: siValues
+    integer                                                                          :: i
 
     siValues=self%unitsInSI(time)
     allocate(units(size(siValues)))

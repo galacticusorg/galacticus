@@ -190,16 +190,15 @@ contains
 
   function positionOrbitalUnits(self,time) result(units)
     !!{
-    Return the units of the positionOrbital properties.
+    Return the units of the orbital position properties.
     !!}
     use :: Units_MetaData, only : unitType
     implicit none
-    type            (unitType    ), dimension(:), allocatable :: units
+    type            (unitType                            ), dimension(:), allocatable :: units
     class           (nodePropertyExtractorPositionOrbital), intent(inout)             :: self
-    double precision              , intent(in   )             :: time
-    double precision              , dimension(:), allocatable :: siValues
-    integer                                                   :: i
-    !$GLC attributes unused :: self
+    double precision                                      , intent(in   )             :: time
+    double precision                                      , dimension(:), allocatable :: siValues
+    integer                                                                           :: i
 
     siValues=self%unitsInSI(time)
     allocate(units(size(siValues)))

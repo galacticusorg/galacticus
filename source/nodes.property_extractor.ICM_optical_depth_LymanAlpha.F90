@@ -294,16 +294,16 @@ contains
     return
   end function icmOpticalDepthLymanAlphaUnitsInSI
 
-  function iCMOpticalDepthLymanAlphaUnits(self) result(units)
+  function icmOpticalDepthLymanAlphaUnits(self) result(units)
     !!{
-    Return the units of the iCMOpticalDepthLymanAlpha property.
+    Return the units of the ICMOpticalDepthLymanAlpha property.
     !!}
     use :: Units_MetaData, only : unitType
     implicit none
-    type (unitType    )                :: units
+    type (unitType                                      )                :: units
     class(nodePropertyExtractorICMOpticalDepthLymanAlpha), intent(inout) :: self
     !$GLC attributes unused :: self
 
-    units=unitType(self%unitsInSI())
+    units=unitType(1.0d0)
     return
-  end function iCMOpticalDepthLymanAlphaUnits
+  end function icmOpticalDepthLymanAlphaUnits

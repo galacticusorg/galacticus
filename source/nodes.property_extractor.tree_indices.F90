@@ -112,10 +112,10 @@ contains
     !!}
     use :: Units_MetaData, only : unitType
     implicit none
-    type (unitType    )                :: units
+    type (unitType                        )                :: units
     class(nodePropertyExtractorIndicesTree), intent(inout) :: self
     !$GLC attributes unused :: self
 
-    units=unitType(self%unitsInSI(),description='????',quantity='????')
+    units=unitType(1.0d0)
     return
   end function indicesTreeUnits

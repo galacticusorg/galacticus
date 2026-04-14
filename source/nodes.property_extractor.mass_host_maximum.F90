@@ -124,7 +124,7 @@ contains
 
   double precision function massHostMaximumUnitsInSI(self)
     !!{
-    Return the units of the \mono{massHostMaximum} properties in the SI system.
+    Return the units of the maximum host mass property in the SI system.
     !!}
     use :: Numerical_Constants_Astronomical, only : massSolar
     implicit none
@@ -137,11 +137,11 @@ contains
 
   function massHostMaximumUnits(self) result(units)
     !!{
-    Return the units of the massHostMaximum property.
+    Return the units of the maximum host mass property.
     !!}
     use :: Units_MetaData, only : unitType
     implicit none
-    type (unitType    )                :: units
+    type (unitType                            )                :: units
     class(nodePropertyExtractorMassHostMaximum), intent(inout) :: self
     !$GLC attributes unused :: self
 

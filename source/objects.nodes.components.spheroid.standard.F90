@@ -113,7 +113,7 @@ module Node_Component_Spheroid_Standard
       <type>double</type>
       <rank>0</rank>
       <attributes isSettable="true" isGettable="true" isEvolvable="false" />
-      <output unitsInSI="kilo" comment="Circular velocity at the scale length of the standard spheroid."/>
+      <output unitsInSI="kilo" unitsDescription="km/s" unitsQuantity="km/s" comment="Circular velocity at the scale length of the standard spheroid."/>
     </property>
     <property>
       <name>luminositiesStellar</name>

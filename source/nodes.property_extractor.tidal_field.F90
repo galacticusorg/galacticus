@@ -174,10 +174,10 @@ contains
     !!}
     use :: Units_MetaData, only : unitType
     implicit none
-    type (unitType    )                :: units
+    type (unitType                       )                :: units
     class(nodePropertyExtractorTidalField), intent(inout) :: self
     !$GLC attributes unused :: self
 
-    units=unitType(self%unitsInSI(),description='Gyr⁻²',quantity='Gyr**-2')
+    units=unitType(self%unitsInSI(),description='Gyr⁻²',quantity='Gyr^-2')
     return
   end function tidalFieldUnits

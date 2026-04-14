@@ -157,7 +157,7 @@ contains
     class(nodePropertyExtractorFractionAccretionHotMode), intent(inout) :: self
     !$GLC attributes unused :: self
 
-    fractionAccretionHotModeUnitsInSI=0.0d0
+    fractionAccretionHotModeUnitsInSI=1.0d0
     return
   end function fractionAccretionHotModeUnitsInSI
 
@@ -167,10 +167,10 @@ contains
     !!}
     use :: Units_MetaData, only : unitType
     implicit none
-    type (unitType    )                :: units
+    type (unitType                                     )                :: units
     class(nodePropertyExtractorFractionAccretionHotMode), intent(inout) :: self
     !$GLC attributes unused :: self
 
-    units=unitType(self%unitsInSI())
+    units=unitType(1.0d0)
     return
   end function fractionAccretionHotModeUnits

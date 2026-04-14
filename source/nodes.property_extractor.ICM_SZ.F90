@@ -364,20 +364,20 @@ contains
     class(nodePropertyExtractorICMSZ), intent(inout) :: self
     !$GLC attributes unused :: self
 
-    icmSZUnitsInSI=0.0d0
+    icmSZUnitsInSI=1.0d0
     return
   end function icmSZUnitsInSI
 
-  function iCMSZUnits(self) result(units)
+  function icmSZUnits(self) result(units)
     !!{
-    Return the units of the iCMSZ property.
+    Return the units of the ICMSZ property.
     !!}
     use :: Units_MetaData, only : unitType
     implicit none
-    type (unitType    )                :: units
+    type (unitType                  )                :: units
     class(nodePropertyExtractorICMSZ), intent(inout) :: self
     !$GLC attributes unused :: self
 
-    units=unitType(self%unitsInSI())
+    units=unitType(1.0d0)
     return
-  end function iCMSZUnits
+  end function icmSZUnits

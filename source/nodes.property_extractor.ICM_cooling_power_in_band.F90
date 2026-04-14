@@ -328,16 +328,16 @@ contains
     return
   end function icmCoolingPowerInBandUnitsInSI
 
-  function iCMCoolingPowerInBandUnits(self) result(units)
+  function icmCoolingPowerInBandUnits(self) result(units)
     !!{
     Return the units of the iCMCoolingPowerInBand property.
     !!}
     use :: Units_MetaData, only : unitType
     implicit none
-    type (unitType    )                :: units
+    type (unitType                                  )                :: units
     class(nodePropertyExtractorICMCoolingPowerInBand), intent(inout) :: self
     !$GLC attributes unused :: self
 
-    units=unitType(self%unitsInSI())
+    units=unitType(1.0d0)
     return
-  end function iCMCoolingPowerInBandUnits
+  end function icmCoolingPowerInBandUnits

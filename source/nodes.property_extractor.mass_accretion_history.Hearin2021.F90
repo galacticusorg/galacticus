@@ -164,7 +164,7 @@ contains
     !$GLC attributes unused :: self, time
 
     allocate(massAccretionHistoryHearin2021UnitsInSI(3))
-    massAccretionHistoryHearin2021UnitsInSI=0.0d0
+    massAccretionHistoryHearin2021UnitsInSI=1.0d0
     return
   end function massAccretionHistoryHearin2021UnitsInSI
 
@@ -174,17 +174,15 @@ contains
     !!}
     use :: Units_MetaData, only : unitType
     implicit none
-    type            (unitType    ), dimension(:), allocatable :: units
-    class           (nodePropertyExtractorMassAccretionHistoryHearin2021), intent(inout)             :: self
-    double precision              , intent(in   )             :: time
-    double precision              , dimension(:), allocatable :: siValues
-    integer                                                   :: i
-    !$GLC attributes unused :: self
+    type            (unitType                                           ), dimension(:) , allocatable :: units
+    class           (nodePropertyExtractorMassAccretionHistoryHearin2021), intent(inout)              :: self
+    double precision                                                     , intent(in   )              :: time
+    integer                                                                                           :: i
+    !$GLC attributes unused :: self, time
 
-    siValues=self%unitsInSI(time)
-    allocate(units(size(siValues)))
-    do i=1,size(siValues)
-       units(i)=unitType(siValues(i))
+    allocate(units(3))
+    do i=1,3
+       units(i)=unitType(1.0d0)
     end do
     return
   end function massAccretionHistoryHearin2021Units

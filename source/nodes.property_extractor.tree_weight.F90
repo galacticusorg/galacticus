@@ -123,10 +123,10 @@ contains
     !!}
     use :: Units_MetaData, only : unitType
     implicit none
-    type (unitType    )                :: units
+    type (unitType                       )                :: units
     class(nodePropertyExtractorTreeWeight), intent(inout) :: self
     !$GLC attributes unused :: self
 
-    units=unitType(self%unitsInSI(),description='Mpc⁻³',quantity='Mpc**-3')
+    units=unitType(self%unitsInSI(),description='Mpc⁻³',quantity='Mpc^-3',isComoving=.true.)
     return
   end function treeWeightUnits

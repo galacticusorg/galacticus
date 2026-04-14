@@ -142,10 +142,10 @@ contains
     !!}
     use :: Units_MetaData, only : unitType
     implicit none
-    type (unitType    )                :: units
+    type (unitType                                  )                :: units
     class(nodePropertyExtractorCoolingEnergyRadiated), intent(inout) :: self
     !$GLC attributes unused :: self
 
-    units=unitType(self%unitsInSI(),description='erg Gyr',quantity='erg*Gyr')
+    units=unitType(self%unitsInSI(),description='ergs Gyr',quantity='erg*Gyr')
     return
   end function coolingEnergyRadiatedUnits

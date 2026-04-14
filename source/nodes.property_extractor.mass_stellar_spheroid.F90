@@ -129,7 +129,7 @@ contains
 
   double precision function massStellarSpheroidUnitsInSI(self)
     !!{
-    Return the units of the massStellarSpheroid property in the SI system.
+    Return the units of the spheroid stellar mass property in the SI system.
     !!}
     use :: Numerical_Constants_Astronomical, only : massSolar
     implicit none
@@ -142,11 +142,11 @@ contains
 
   function massStellarSpheroidUnits(self) result(units)
     !!{
-    Return the units of the massStellarSpheroid property.
+    Return the units of the spheroid stellar mass property.
     !!}
     use :: Units_MetaData, only : unitType
     implicit none
-    type (unitType    )                :: units
+    type (unitType                                )                :: units
     class(nodePropertyExtractorMassStellarSpheroid), intent(inout) :: self
     !$GLC attributes unused :: self
 

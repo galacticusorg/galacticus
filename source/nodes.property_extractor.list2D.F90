@@ -32,12 +32,13 @@
    contains
      !![
      <methods>
-       <method method="elementCount" description="Return a count of the number of properties extracted."              />
-       <method method="extract"      description="Extract the properties from the given \mono{node}."/>
-       <method method="names"        description="Return the name of the properties extracted."                       />
-       <method method="descriptions" description="Return a description of the properties extracted."                  />
-       <method method="unitsInSI"    description="Return the units of the properties extracted in the SI system."     />
-       <method method="metaData"     description="Populate a hash with meta-data for the property."                   />
+       <method method="elementCount" description="Return a count of the number of properties extracted."         />
+       <method method="extract"      description="Extract the properties from the given \mono{node}."            />
+       <method method="names"        description="Return the name of the properties extracted."                  />
+       <method method="descriptions" description="Return a description of the properties extracted."             />
+       <method method="unitsInSI"    description="Return the units of the properties extracted in the SI system."/>
+       <method method="units"        description="Return an object containing units metadata for the properties."/>
+       <method method="metaData"     description="Populate a hash with meta-data for the property."              />
      </methods>
      !!]
      procedure(list2DElementCount), deferred :: elementCount
@@ -110,8 +111,8 @@ contains
 
   function list2DUnits(self) result(units_)
     !!{
-    Default implementation: wraps the deferred \refmeth{nodePropertyExtractorList2D}{unitsInSI} array into an array of
-    \reftype{unitType}.
+    Default implementation: wraps the deferred \mono{nodePropertyExtractorList2D}{unitsInSI} array into an array of
+    \mono{unitType}.
     !!}
     use :: Units_MetaData, only : unitType
     implicit none

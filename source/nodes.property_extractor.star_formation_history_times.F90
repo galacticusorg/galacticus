@@ -221,10 +221,10 @@ contains
     !!}
     use :: Units_MetaData, only : unitType
     implicit none
-    type (unitType    ), dimension(:), allocatable :: units
-    class(nodePropertyExtractorStarFormationHistoryTimes), intent(inout)             :: self
-    double precision   , dimension(:), allocatable :: siValues
-    integer                                        :: i
+    type            (unitType                                      ), dimension(:) , allocatable :: units
+    class           (nodePropertyExtractorStarFormationHistoryTimes), intent(inout)              :: self
+    double precision                                                , dimension(:) , allocatable :: siValues
+    integer                                                                                      :: i
     !$GLC attributes unused :: self
 
     siValues=self%unitsInSI()

@@ -191,19 +191,20 @@ contains
     !!{
     Return the units of the radiiHalfLightProperties properties.
     !!}
-    use :: Units_MetaData, only : unitType
+    use :: Units_MetaData                  , only : unitType
+    use :: Numerical_Constants_Astronomical, only : massSolar              , megaParsec
+    use :: Stellar_Luminosities_Structure  , only : unitStellarLuminosities
     implicit none
-    type            (unitType    ), dimension(:), allocatable :: units
+    type            (unitType                                     ), dimension(:), allocatable :: units
     class           (nodePropertyExtractorRadiiHalfLightProperties), intent(inout)             :: self
-    double precision              , intent(in   )             :: time
-    double precision              , dimension(:), allocatable :: siValues
-    integer                                                   :: i
+    double precision                                               , intent(in   )             :: time
+    integer                                                                                    :: i
     !$GLC attributes unused :: self
 
-    siValues=self%unitsInSI(time)
-    allocate(units(size(siValues)))
-    do i=1,size(siValues)
-       units(i)=unitType(siValues(i),description='????',quantity='????')
+    allocate(units(2*unitStellarLuminosities%luminosityOutputCount(time)))
+    do i=0,unitStellarLuminosities%luminosityOutputCount(time)-1
+       units(2*i+1)=unitType(megaParsec,description='Mpc',quantity='Mpc'    )
+       units(2*i+2)=unitType(massSolar ,description='M☉' ,quantity='solMass')
     end do
     return
   end function radiiHalfLightPropertiesUnits

@@ -179,7 +179,7 @@ contains
     class(nodePropertyExtractorMetallicityISM), intent(inout) :: self
     !$GLC attributes unused :: self
 
-    metallicityISMUnitsInSI=0.0d0
+    metallicityISMUnitsInSI=1.0d0
     return
   end function metallicityISMUnitsInSI
 
@@ -189,7 +189,7 @@ contains
     !!}
     use :: Units_MetaData, only : unitType
     implicit none
-    type (unitType    )                :: units
+    type (unitType                           )                :: units
     class(nodePropertyExtractorMetallicityISM), intent(inout) :: self
     !$GLC attributes unused :: self
 

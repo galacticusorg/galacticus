@@ -35,7 +35,6 @@ Implements an ISM mass output analysis property extractor class.
      procedure :: extract     => finalDescendantExtract
      procedure :: name        => finalDescendantName
      procedure :: description => finalDescendantDescription
-     procedure :: units       => finalDescendantUnits
   end type nodePropertyExtractorFinalDescendant
 
   interface nodePropertyExtractorFinalDescendant
@@ -88,7 +87,6 @@ contains
     return
   end function finalDescendantExtract
 
-
   function finalDescendantName(self)
     !!{
     Return the name of the finalDescendant property.
@@ -114,17 +112,3 @@ contains
     finalDescendantDescription=var_str('ID of the node which this node will have descended into at the base of the tree.')
     return
   end function finalDescendantDescription
-
-  function finalDescendantUnits(self) result(units)
-    !!{
-    Return the units of the finalDescendant property.
-    !!}
-    use :: Units_MetaData, only : unitType
-    implicit none
-    type (unitType    )                :: units
-    class(nodePropertyExtractorFinalDescendant), intent(inout) :: self
-    !$GLC attributes unused :: self
-
-    units=unitType(self%unitsInSI(),description='????',quantity='????')
-    return
-  end function finalDescendantUnits

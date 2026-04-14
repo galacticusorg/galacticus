@@ -33,12 +33,13 @@
    contains
      !![
      <methods>
-       <method method="elementCount" description="Return the number of properties in the tuple."                      />
-       <method method="extract"      description="Extract the properties from the given \mono{node}."/>
-       <method method="names"        description="Return the names of the properties extracted."                      />
-       <method method="descriptions" description="Return descriptions of the properties extracted."                   />
-       <method method="unitsInSI"    description="Return the units of the properties extracted in the SI system."     />
-       <method method="metaData"     description="Populate a hash with meta-data for the property."                   />
+       <method method="elementCount" description="Return the number of properties in the tuple."                 />
+       <method method="extract"      description="Extract the properties from the given \mono{node}."            />
+       <method method="names"        description="Return the names of the properties extracted."                 />
+       <method method="descriptions" description="Return descriptions of the properties extracted."              />
+       <method method="unitsInSI"    description="Return the units of the properties extracted in the SI system."/>
+       <method method="units"        description="Return an object containing units metadata for the properties."/>
+       <method method="metaData"     description="Populate a hash with meta-data for the property."              />
      </methods>
      !!]
      procedure(integerTupleElementCount), deferred :: elementCount
@@ -129,7 +130,7 @@ contains
     siValues=self%unitsInSI(time)
     allocate(units(size(siValues)))
     do i=1,size(siValues)
-       units(i)=unitType(siValues(i),isComoving=.false.)
+       units(i)=unitType(siValues(i))
     end do
     return
   end function integerTupleUnits

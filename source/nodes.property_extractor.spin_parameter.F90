@@ -156,7 +156,7 @@ contains
     class(nodePropertyExtractorSpin), intent(inout) :: self
     !$GLC attributes unused :: self
 
-    spinUnitsInSI=0.0d0
+    spinUnitsInSI=1.0d0
     return
   end function spinUnitsInSI
 
@@ -166,7 +166,7 @@ contains
     !!}
     use :: Units_MetaData, only : unitType
     implicit none
-    type (unitType    )                :: units
+    type (unitType                 )                :: units
     class(nodePropertyExtractorSpin), intent(inout) :: self
     !$GLC attributes unused :: self
 

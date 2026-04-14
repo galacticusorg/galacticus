@@ -72,7 +72,7 @@
      procedure :: names              => cgmCoolingFunctionNames
      procedure :: descriptions       => cgmCoolingFunctionDescriptions
      procedure :: unitsInSI          => cgmCoolingFunctionUnitsInSI
-     procedure :: units       => cGMCoolingFunctionUnits
+     procedure :: units              => cGMCoolingFunctionUnits
   end type nodePropertyExtractorCGMCoolingFunction
 
   interface nodePropertyExtractorCGMCoolingFunction
@@ -491,19 +491,20 @@ contains
     !!{
     Return the units of the cGMCoolingFunction properties.
     !!}
-    use :: Units_MetaData, only : unitType
+    use :: Numerical_Constants_Astronomical, only : megaParsec
+    use :: Numerical_Constants_Prefixes    , only : centi
+    use :: Numerical_Constants_Units       , only : ergs
+    use :: Units_MetaData                  , only : unitType
     implicit none
-    type            (unitType    ), dimension(:), allocatable :: units
+    type            (unitType                               ), dimension(:), allocatable :: units
     class           (nodePropertyExtractorCGMCoolingFunction), intent(inout)             :: self
-    double precision              , intent(in   ), optional   :: time
-    double precision              , dimension(:), allocatable :: siValues
-    integer                                                   :: i
-    !$GLC attributes unused :: self
+    double precision                                         , intent(in   ), optional   :: time
 
-    siValues=self%unitsInSI(time)
-    allocate(units(size(siValues)))
-    do i=1,size(siValues)
-       units(i)=unitType(siValues(i),description='????',quantity='????')
-    end do
+    allocate(units(self%elementCount_))
+    units       (1)=unitType(ergs *centi     **3,description='ergs cm³',quantity='ergs cm^3')
+    if (self%includeRadii  )                                              &
+         & units(2)=unitType(      megaParsec   ,description='Mpc     ',quantity='Mpc'      )
+    if (self%includeDensity)                                              &
+         & units(3)=unitType(1.0d0/centi     **3,description='cm⁻³'    ,quantity='cm^-3'    )
     return
   end function cGMCoolingFunctionUnits

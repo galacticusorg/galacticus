@@ -156,7 +156,7 @@ contains
     class(nodePropertyExtractorRedshift), intent(inout) :: self
     !$GLC attributes unused :: self
 
-    redshiftUnitsInSI=0.0d0
+    redshiftUnitsInSI=1.0d0
     return
   end function redshiftUnitsInSI
 
@@ -166,10 +166,10 @@ contains
     !!}
     use :: Units_MetaData, only : unitType
     implicit none
-    type (unitType    )                :: units
+    type (unitType                     )                :: units
     class(nodePropertyExtractorRedshift), intent(inout) :: self
     !$GLC attributes unused :: self
 
-    units=unitType(self%unitsInSI())
+    units=unitType(1.0d0)
     return
   end function redshiftUnits

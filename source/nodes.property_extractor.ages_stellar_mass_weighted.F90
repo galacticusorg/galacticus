@@ -253,19 +253,18 @@ contains
     !!{
     Return the units of the agesStellarMassWeighted properties.
     !!}
-    use :: Units_MetaData, only : unitType
+    use :: Numerical_Constants_Astronomical, only : gigaYear
+    use :: Units_MetaData                  , only : unitType
     implicit none
-    type            (unitType    ), dimension(:), allocatable :: units
+    type            (unitType                                    ), dimension(:), allocatable :: units
     class           (nodePropertyExtractorAgesStellarMassWeighted), intent(inout)             :: self
-    double precision              , intent(in   )             :: time
-    double precision              , dimension(:), allocatable :: siValues
-    integer                                                   :: i
+    double precision                                              , intent(in   )             :: time
+    integer                                                                                   :: i
     !$GLC attributes unused :: self
 
-    siValues=self%unitsInSI(time)
-    allocate(units(size(siValues)))
-    do i=1,size(siValues)
-       units(i)=unitType(siValues(i),description='Gyr',quantity='Gyr')
+    allocate(units(3))
+    do i=1,3
+       units(i)=unitType(gigaYear,description='Gyr',quantity='Gyr')
     end do
     return
   end function agesStellarMassWeightedUnits

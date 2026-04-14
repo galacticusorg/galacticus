@@ -274,10 +274,9 @@ contains
     !!}
     use :: Units_MetaData, only : unitType
     implicit none
-    type (unitType    )                :: units
+    type (unitType                              )                :: units
     class(nodePropertyExtractorLuminosityStellar), intent(inout) :: self
-    !$GLC attributes unused :: self
 
-    units=unitType(self%unitsInSI(),description='????',quantity='????')
+    units=unitType(self%unitsInSI(),description='AB-magnitude zero point',quantity='4.465920e17 W/Hz')
     return
   end function luminosityStellarUnits

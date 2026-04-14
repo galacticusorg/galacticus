@@ -33,11 +33,12 @@
    contains
      !![
      <methods>
-       <method method="extract"     description="Extract the property from the given \mono{node}."/>
-       <method method="name"        description="Return the name of the property extracted."                       />
-       <method method="description" description="Return a description of the property extracted."                  />
-       <method method="unitsInSI"   description="Return the units of the property extracted in the SI system."     />
-       <method method="metaData"    description="Populate a hash with meta-data for the property."                 />
+       <method method="extract"     description="Extract the property from the given \mono{node}."              />
+       <method method="name"        description="Return the name of the property extracted."                    />
+       <method method="description" description="Return a description of the property extracted."               />
+       <method method="unitsInSI"   description="Return the units of the property extracted in the SI system."  />
+       <method method="units"       description="Return an object containing units metadata for the properties."/>
+       <method method="metaData"    description="Populate a hash with meta-data for the property."              />
      </methods>
      !!]
      procedure(scalarExtract  ), deferred :: extract

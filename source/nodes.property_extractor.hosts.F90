@@ -39,7 +39,6 @@ Implements a host index output analysis property extractor class.
      procedure :: extract     => indicesHostExtract
      procedure :: name        => indicesHostName
      procedure :: description => indicesHostDescription
-     procedure :: units       => indicesHostUnits
   end type nodePropertyExtractorIndicesHost
 
   interface nodePropertyExtractorIndicesHost
@@ -144,17 +143,3 @@ contains
     indicesHostDescription=var_str('ID of the node which hosts this node (or -1 is there is no host).')
     return
   end function indicesHostDescription
-
-  function indicesHostUnits(self) result(units)
-    !!{
-    Return the units of the indicesHost property.
-    !!}
-    use :: Units_MetaData, only : unitType
-    implicit none
-    type (unitType    )                :: units
-    class(nodePropertyExtractorIndicesHost), intent(inout) :: self
-    !$GLC attributes unused :: self
-
-    units=unitType(self%unitsInSI(),description='????',quantity='????')
-    return
-  end function indicesHostUnits

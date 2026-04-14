@@ -33,12 +33,13 @@
    contains
      !![
      <methods>
-       <method method="elementCount" description="Return the number of properties in the tuple."                      />
-       <method method="extract"      description="Extract the properties from the given \mono{node}."/>
-       <method method="names"        description="Return the names of the properties extracted."                      />
-       <method method="descriptions" description="Return descriptions of the properties extracted."                   />
-       <method method="unitsInSI"    description="Return the units of the properties extracted in the SI system."     />
-       <method method="metaData"     description="Populate a hash with meta-data for the property."                   />
+       <method method="elementCount" description="Return the number of properties in the tuple."                 />
+       <method method="extract"      description="Extract the properties from the given \mono{node}."            />
+       <method method="names"        description="Return the names of the properties extracted."                 />
+       <method method="descriptions" description="Return descriptions of the properties extracted."              />
+       <method method="unitsInSI"    description="Return the units of the properties extracted in the SI system."/>
+       <method method="units"        description="Return an object containing units metadata for the properties."/>
+       <method method="metaData"     description="Populate a hash with meta-data for the property."              />
      </methods>
      !!]
      procedure(tupleElementCount), deferred :: elementCount
@@ -115,8 +116,8 @@ contains
 
   function tupleUnits(self,time) result(units_)
     !!{
-    Default implementation: wraps the deferred \refmeth{nodePropertyExtractorTuple}{unitsInSI} array into an array of
-    \reftype{unitType}.  Subclasses may override this to populate \mono{description}, \mono{quantity}, and \mono{isComoving}.
+    Default implementation: wraps the deferred \mono{nodePropertyExtractorTuple}{unitsInSI} array into an array of
+    \mono{unitType}.  Subclasses may override this to populate \mono{description}, \mono{quantity}, and \mono{isComoving}.
     !!}
     implicit none
     type            (unitType                  ), dimension(:), allocatable :: units_

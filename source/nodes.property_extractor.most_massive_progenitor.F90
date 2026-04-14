@@ -40,7 +40,6 @@ Implements a node property extractor for the most massive progenitor.
      procedure :: extract     => mostMassiveProgenitorExtract
      procedure :: name        => mostMassiveProgenitorName
      procedure :: description => mostMassiveProgenitorDescription
-     procedure :: units       => mostMassiveProgenitorUnits
   end type nodePropertyExtractorMostMassiveProgenitor
 
   interface nodePropertyExtractorMostMassiveProgenitor
@@ -155,17 +154,3 @@ contains
     mostMassiveProgenitorDescription=var_str('Flag indicating if this node is the most massive progenitor in its tree at this time.')
     return
   end function mostMassiveProgenitorDescription
-
-  function mostMassiveProgenitorUnits(self) result(units)
-    !!{
-    Return the units of the mostMassiveProgenitor property.
-    !!}
-    use :: Units_MetaData, only : unitType
-    implicit none
-    type (unitType    )                :: units
-    class(nodePropertyExtractorMostMassiveProgenitor), intent(inout) :: self
-    !$GLC attributes unused :: self
-
-    units=unitType(self%unitsInSI(),description='????',quantity='????')
-    return
-  end function mostMassiveProgenitorUnits

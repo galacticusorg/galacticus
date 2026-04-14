@@ -40,6 +40,7 @@
        <method method="names"              description="Return the name of the properties extracted."                  />
        <method method="descriptions"       description="Return a description of the properties extracted."             />
        <method method="unitsInSI"          description="Return the units of the properties extracted in the SI system."/>
+       <method method="units"              description="Return an object containing units metadata for the properties."/>
        <method method="metaData"           description="Populate a hash with meta-data for the property."              />
      </methods>
      !!]
@@ -146,8 +147,8 @@ contains
 
   function arrayUnits(self,time) result(units)
     !!{
-    Default implementation: wraps the deferred \refmeth{nodePropertyExtractorArray}{unitsInSI} array into an array of
-    \reftype{unitType}.
+    Default implementation: wraps the deferred \mono{nodePropertyExtractorArray}{unitsInSI} array into an array of
+    \mono{unitType}.
     !!}
     implicit none
     type            (unitType                  ), dimension(:), allocatable :: units

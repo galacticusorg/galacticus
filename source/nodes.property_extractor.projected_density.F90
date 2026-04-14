@@ -20,7 +20,7 @@
   !!{
   Implements a property extractor class for the projected density at a set of radii.
   !!}
-  use :: Dark_Matter_Halo_Scales             , only : darkMatterHaloScale   , darkMatterHaloScaleClass
+  use :: Dark_Matter_Halo_Scales             , only : darkMatterHaloScale, darkMatterHaloScaleClass
   use :: Galactic_Structure_Radii_Definitions, only : radiusSpecifier
 
   !![
@@ -440,12 +440,11 @@ contains
     !!}
     use :: Units_MetaData, only : unitType
     implicit none
-    type            (unitType    ), dimension(:), allocatable :: units
+    type            (unitType                             ), dimension(:), allocatable :: units
     class           (nodePropertyExtractorProjectedDensity), intent(inout)             :: self
-    double precision              , intent(in   ), optional   :: time
-    double precision              , dimension(:), allocatable :: siValues
-    integer                                                   :: i
-    !$GLC attributes unused :: self
+    double precision                                       , intent(in   ), optional   :: time
+    double precision                                       , dimension(:), allocatable :: siValues
+    integer                                                                            :: i
 
     siValues=self%unitsInSI(time)
     allocate(units(size(siValues)))

@@ -110,7 +110,7 @@ contains
 
   double precision function massBasicUnitsInSI(self)
     !!{
-    Return the units of the massBasic property in the SI system.
+    Return the units of the basic mass property in the SI system.
     !!}
     use :: Numerical_Constants_Astronomical, only : massSolar
     implicit none
@@ -123,13 +123,12 @@ contains
 
   function massBasicUnits(self) result(units)
     !!{
-    Return the units of the massBasic property.
+    Return the units of the basic mass property.
     !!}
     use :: Units_MetaData, only : unitType
     implicit none
-    type (unitType    )                :: units
+    type (unitType                      )                :: units
     class(nodePropertyExtractorMassBasic), intent(inout) :: self
-    !$GLC attributes unused :: self
 
     units=unitType(self%unitsInSI(),description='Solar masses',quantity='solMass')
     return

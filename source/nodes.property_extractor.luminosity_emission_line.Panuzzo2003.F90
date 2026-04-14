@@ -635,10 +635,9 @@ contains
     !!}
     use :: Units_MetaData, only : unitType
     implicit none
-    type (unitType    )                :: units
+    type (unitType                                       )                :: units
     class(nodePropertyExtractorLmnstyEmssnLinePanuzzo2003), intent(inout) :: self
-    !$GLC attributes unused :: self
 
-    units=unitType(self%unitsInSI(),description='erg',quantity='erg')
+    units=unitType(self%unitsInSI(),description='ergs',quantity='erg')
     return
   end function lmnstyEmssnLinePanuzzo2003Units

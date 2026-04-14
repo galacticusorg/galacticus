@@ -36,7 +36,6 @@
      procedure :: extract     => blackHoleFormationChannelExtract
      procedure :: name        => blackHoleFormationChannelName
      procedure :: description => blackHoleFormationChannelDescription
-     procedure :: units       => blackHoleFormationChannelUnits
   end type nodePropertyExtractorBlackHoleFormationChannel
 
   interface nodePropertyExtractorBlackHoleFormationChannel
@@ -142,17 +141,3 @@ contains
     end do
     return
   end function blackHoleFormationChannelDescription
-
-  function blackHoleFormationChannelUnits(self) result(units)
-    !!{
-    Return the units of the blackHoleFormationChannel property.
-    !!}
-    use :: Units_MetaData, only : unitType
-    implicit none
-    type (unitType    )                :: units
-    class(nodePropertyExtractorBlackHoleFormationChannel), intent(inout) :: self
-    !$GLC attributes unused :: self
-
-    units=unitType(self%unitsInSI(),description='????',quantity='????')
-    return
-  end function blackHoleFormationChannelUnits

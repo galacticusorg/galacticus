@@ -92,7 +92,7 @@ contains
 
     !![
     <objectDestructor name="self%blackHoleBinarySeparationGrowthRate_"/>
-    !!]                                                                                                                                                                                                               
+    !!]
     return
   end subroutine radiusBlackHolesDestructor
 
@@ -183,15 +183,13 @@ contains
     !!}
     use :: Units_MetaData, only : unitType
     implicit none
-    type (unitType    ), dimension(:), allocatable :: units
-    class(nodePropertyExtractorRadiusBlackHoles), intent(inout)             :: self
-    double precision   , dimension(:), allocatable :: siValues
-    integer                                        :: i
-    !$GLC attributes unused :: self
+    type            (unitType                             ), dimension(:) , allocatable :: units
+    class           (nodePropertyExtractorRadiusBlackHoles), intent(inout)              :: self
+    double precision                                       , dimension(:) , allocatable :: siValues
 
     siValues=self%unitsInSI()
     allocate(units(2))
-    units(1)=unitType(siValues(1),description='Mpc',quantity='Mpc')
+    units(1)=unitType(siValues(1),description='Mpc'    ,quantity='Mpc'    )
     units(2)=unitType(siValues(2),description='Mpc/Gyr',quantity='Mpc/Gyr')
     return
   end function radiusBlackHolesUnits

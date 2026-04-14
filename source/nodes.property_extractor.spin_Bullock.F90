@@ -30,7 +30,7 @@ Implements a node property extractor class for the \cite{bullock_profiles_2001} 
   !!]
   type, extends(nodePropertyExtractorTuple) :: nodePropertyExtractorSpinBullock
      !!{
-     A property extractor class for the \cite{bullock_profiles_2001} definition of spin parameter..
+     A property extractor class for the \cite{bullock_profiles_2001} definition of spin parameter.
      !!}
      private
      class  (darkMatterHaloScaleClass), pointer :: darkMatterHaloScale_ => null()
@@ -210,7 +210,7 @@ contains
     !$GLC attributes unused :: self, time
 
     allocate(spinBullockUnitsInSI(self%elementCount_))
-    spinBullockUnitsInSI=0.0d0
+    spinBullockUnitsInSI=1.0d0
     return
   end function spinBullockUnitsInSI
 
@@ -220,11 +220,11 @@ contains
     !!}
     use :: Units_MetaData, only : unitType
     implicit none
-    type            (unitType    ), dimension(:), allocatable :: units
+    type            (unitType                        ), dimension(:), allocatable :: units
     class           (nodePropertyExtractorSpinBullock), intent(inout)             :: self
-    double precision              , intent(in   )             :: time
-    double precision              , dimension(:), allocatable :: siValues
-    integer                                                   :: i
+    double precision                                  , intent(in   )             :: time
+    double precision                                  , dimension(:), allocatable :: siValues
+    integer                                                                       :: i
     !$GLC attributes unused :: self
 
     siValues=self%unitsInSI(time)

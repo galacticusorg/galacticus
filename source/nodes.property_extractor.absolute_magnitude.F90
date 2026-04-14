@@ -217,7 +217,7 @@ contains
     !$GLC attributes unused :: self
 
     allocate(unitsInSI(unitStellarLuminosities%luminosityOutputCount(time)))
-    unitsInSI=0.0d0
+    unitsInSI=1.0d0
     return
   end function magnitudesAbsoluteUnitsInSI
 
@@ -225,19 +225,18 @@ contains
     !!{
     Return the units of the magnitudesAbsolute properties.
     !!}
-    use :: Units_MetaData, only : unitType
+    use :: Stellar_Luminosities_Structure, only : unitStellarLuminosities
+    use :: Units_MetaData                , only : unitType
     implicit none
-    type            (unitType    ), dimension(:), allocatable :: units
+    type            (unitType                               ), dimension(:), allocatable :: units
     class           (nodePropertyExtractorMagnitudesAbsolute), intent(inout)             :: self
-    double precision              , intent(in   )             :: time
-    double precision              , dimension(:), allocatable :: siValues
-    integer                                                   :: i
+    double precision                                         , intent(in   )             :: time
+    integer                                                                              :: i
     !$GLC attributes unused :: self
 
-    siValues=self%unitsInSI(time)
-    allocate(units(size(siValues)))
-    do i=1,size(siValues)
-       units(i)=unitType(siValues(i))
+    allocate(units(unitStellarLuminosities%luminosityOutputCount(time)))
+    do i=1,size(units)
+       units(i)=unitType(1.0d0)
     end do
     return
   end function magnitudesAbsoluteUnits
