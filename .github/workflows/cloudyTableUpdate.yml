@@ -24,7 +24,7 @@ jobs:
     steps:
       - uses: actions/checkout@v6
         with:
-          fetch-depth: 2
+          fetch-depth: 0
       - name: Check if Cloudy version changed
         id: check
         run: |
@@ -33,7 +33,7 @@ jobs:
             oldVersion="${{ inputs.old_cloudy_version }}"
             echo "updated=true" >> "$GITHUB_OUTPUT"
           else
-            oldVersion=$(git diff HEAD~1 HEAD -- aux/dependencies.yml | grep '^-cloudy:' | awk '{print $2}')
+            oldVersion=$(git diff ${{ github.event.before }} ${{ github.sha }} -- aux/dependencies.yml | grep '^-cloudy:' | awk '{print $2}')
             if [ -n "${oldVersion}" ] && [ "${oldVersion}" != "${newVersion}" ]; then
               echo "updated=true" >> "$GITHUB_OUTPUT"
             else
@@ -156,6 +156,10 @@ jobs:
           BRANCH="cloudy-cie-tables-c${CLOUDY_VERSION}"
           git checkout -b "${BRANCH}"
           git add static/cooling/ static/chemicalState/
+          if git diff --cached --quiet; then
+            echo "No changes to commit for datasets repo; skipping PR creation"
+            exit 0
+          fi
           git commit -m "feat: update Atomic CIE Cloudy tables for Cloudy v${CLOUDY_VERSION}"
           git remote set-url origin "https://x-access-token:${GH_TOKEN}@github.com/galacticusorg/datasets.git"
           git push origin "${BRANCH}"
