@@ -62,65 +62,67 @@ In general, \mono{objects.nodes.components.\textless component\textgreater.F90} 
 
 Component definition itself takes the form of an embedded XML document. The following example illustrates such a document:
 \begin{verbatim}
-  !# <component>
-  !#  <class>disk</class>
-  !#  <name>exponential</name>
-  !#  <isDefault>yes</isDefault>
-  !#  <properties>
-  !#   <property>
-  !#     <name>isInitialized</name>
-  !#     <type>logical</type>
-  !#     <rank>0</rank>
-  !#     <attributes isSettable="true" isGettable="true" isEvolvable="false" />
-  !#   </property>
-  !#   <property>
-  !#     <name>massStellar</name>
-  !#     <type>real</type>
-  !#     <rank>0</rank>
-  !#     <attributes isSettable="true" isGettable="true" isEvolvable="true" isNonNegative="true" />
-  !#     <output unitsInSI="massSolar" comment="Mass of stars in the exponential disk."/>
-  !#   </property>
-  !#   <property>
-  !#     <name>abundancesStellar</name>
-  !#     <type>abundances</type>
-  !#     <rank>0</rank>
-  !#     <attributes isSettable="true" isGettable="true" isEvolvable="true" isNonNegative="true" />
-  !#     <output unitsInSI="massSolar" comment="Mass of metals in the stellar phase of the exponential disk."/>
-  !#   </property>
-  !#   <property>
-  !#     <name>massGas</name>
-  !#     <type>real</type>
-  !#     <rank>0</rank>
-  !#     <attributes isSettable="true" isGettable="true" isEvolvable="true" createIfNeeded="true" isNonNegative="true" />
-  !#     <output unitsInSI="massSolar" comment="Mass of gas in the exponential disk."/>
-  !#   </property>
-  !#   <property>
-  !#     <name>coolingMass</name>
-  !#     <attributes isSettable="false" isGettable="false" isEvolvable="true" isDeferred="rate" isVirtual="true" />
-  !#     <type>real</type>
-  !#     <rank>0</rank>
-  !#   </property>
-  !#   <property>
-  !#     <name>halfMassRadius</name>
-  !#     <attributes isSettable="false" isGettable="true" isEvolvable="false" isVirtual="true" />
-  !#     <type>real</type>
-  !#     <rank>0</rank>
-  !#     <getFunction>Node_Component_Disk_Exponential_Half_Mass_Radius</getFunction>
-  !#   </property>
-  !#   <property>
-  !#     <name>luminositiesStellar</name>
-  !#     <type>real</type>
-  !#     <rank>1</rank>
-  !#     <attributes isSettable="true" isGettable="true" isEvolvable="true" isNonNegative="true" />
-  !#     <classDefault modules="Stellar_Population_Properties_Luminosities" count="Stellar_Population_Luminosities_Count()">0.0d0</classDefault>
-  !#     <output labels="':'//Stellar_Population_Luminosities_Name({i})" count="Stellar_Population_Luminosities_Count()" condition="Stellar_Population_Luminosities_Output({i},time)" modules="Stellar_Population_Properties_Luminosities" unitsInSI="luminosityZeroPointAB" comment="Luminosity of disk stars."/>
-  !#   </property>
-  !#  </properties>
-  !#  <bindings>
-  !#   <binding method="attachPipes" function="Node_Component_Disk_Exponential_Attach_Pipes" type="void" />
-  !#  </bindings>
-  !#  <functions>objects.nodes.components.disk.exponential.custom_methods.inc</functions>
-  !# </component>
+  !![
+  <component>
+   <class>disk</class>
+   <name>exponential</name>
+   <isDefault>yes</isDefault>
+   <properties>
+    <property>
+      <name>isInitialized</name>
+      <type>logical</type>
+      <rank>0</rank>
+      <attributes isSettable="true" isGettable="true" isEvolvable="false" />
+    </property>
+    <property>
+      <name>massStellar</name>
+      <type>real</type>
+      <rank>0</rank>
+      <attributes isSettable="true" isGettable="true" isEvolvable="true" isNonNegative="true" />
+      <output unitsInSI="massSolar" unitsDescription="Solar masses" unitsQuantity="solMass" comment="Mass of stars in the exponential disk."/>
+    </property>
+    <property>
+      <name>abundancesStellar</name>
+      <type>abundances</type>
+      <rank>0</rank>
+      <attributes isSettable="true" isGettable="true" isEvolvable="true" isNonNegative="true" />
+      <output unitsInSI="massSolar" unitsDescription="Solar masses" unitsQuantity="solMass" comment="Mass of metals in the stellar phase of the exponential disk."/>
+    </property>
+    <property>
+      <name>massGas</name>
+      <type>real</type>
+      <rank>0</rank>
+      <attributes isSettable="true" isGettable="true" isEvolvable="true" createIfNeeded="true" isNonNegative="true" />
+      <output unitsInSI="massSolar" unitsDescription="Solar masses" unitsQuantity="solMass" comment="Mass of gas in the exponential disk."/>
+    </property>
+    <property>
+      <name>coolingMass</name>
+      <attributes isSettable="false" isGettable="false" isEvolvable="true" isDeferred="rate" isVirtual="true" />
+      <type>real</type>
+      <rank>0</rank>
+    </property>
+    <property>
+      <name>halfMassRadius</name>
+      <attributes isSettable="false" isGettable="true" isEvolvable="false" isVirtual="true" />
+      <type>real</type>
+      <rank>0</rank>
+      <getFunction>Node_Component_Disk_Exponential_Half_Mass_Radius</getFunction>
+    </property>
+    <property>
+      <name>luminositiesStellar</name>
+      <type>real</type>
+      <rank>1</rank>
+      <attributes isSettable="true" isGettable="true" isEvolvable="true" isNonNegative="true" />
+      <classDefault modules="Stellar_Population_Properties_Luminosities" count="Stellar_Population_Luminosities_Count()">0.0d0</classDefault>
+      <output labels="':'//Stellar_Population_Luminosities_Name({i})" count="Stellar_Population_Luminosities_Count()" condition="Stellar_Population_Luminosities_Output({i},time)" modules="Stellar_Population_Properties_Luminosities" unitsInSI="luminosityZeroPointAB" unitsDescription="AB-magnitude zero point" unitsQuantity="4.465920e17 W/Hz" comment="Luminosity of disk stars."/>
+    </property>
+   </properties>
+   <bindings>
+    <binding method="attachPipes" function="Node_Component_Disk_Exponential_Attach_Pipes" type="void" />
+   </bindings>
+   <functions>objects.nodes.components.disk.exponential.custom_methods.inc</functions>
+  </component>
+  !!]
 \end{verbatim}
 
 The elements of this document have the following meaning:
@@ -156,6 +158,8 @@ Additionally, a method is created which returns true or false depending on wheth
 \item [\mono{output}] \emph{[Optional]} If present, the property will be included in the \glc\ output file. The following attributes control the details of that output:
 \begin{description}
 \item [\mono{unitsInSI}] The units of the output quantity in the SI system.
+\item [\mono{unitsDescription}] A human-readable description of the units of the output quantity.
+\item [\mono{unitsQuantity}] An \mono{astropy.units}-parseable description of the units of the output quantity.
 \item [\mono{comment}] A comment to be included with the HDF5 dataset for this property.
 \item [\mono{condition}] A statement which must evaluate to \mono{true} or \mono{false} and which will be used to determine if the property will be output. The present output time for is available as \mono{time}. In the case of an array property the construct ``\mono{\{i\}}'' can be used to pass the index of the element for which the condition should be evaluated.
 \item [\mono{modules}] A comma-separated list of any modules required to perform the output (e.g. modules which contain functions or values that are used).
