@@ -62,9 +62,7 @@ module Node_Component_Halo_Angular_Momentum_Scalar
 contains
 
   !![
-  <nodeComponentThreadInitializationTask>
-   <unitName>Node_Component_Halo_Angular_Momentum_Scalar_Thread_Initialize</unitName>
-  </nodeComponentThreadInitializationTask>
+  <nodeComponentThreadInitializationTask function="Node_Component_Halo_Angular_Momentum_Scalar_Thread_Initialize"/>
   !!]
   subroutine Node_Component_Halo_Angular_Momentum_Scalar_Thread_Initialize(parameters)
     !!{
@@ -84,9 +82,7 @@ contains
   end subroutine Node_Component_Halo_Angular_Momentum_Scalar_Thread_Initialize
 
   !![
-  <nodeComponentThreadUninitializationTask>
-   <unitName>Node_Component_Halo_Angular_Momentum_Scalar_Thread_Uninitialize</unitName>
-  </nodeComponentThreadUninitializationTask>
+  <nodeComponentThreadUninitializationTask function="Node_Component_Halo_Angular_Momentum_Scalar_Thread_Uninitialize"/>
   !!]
   subroutine Node_Component_Halo_Angular_Momentum_Scalar_Thread_Uninitialize()
     !!{
@@ -104,9 +100,7 @@ contains
   end subroutine Node_Component_Halo_Angular_Momentum_Scalar_Thread_Uninitialize
 
   !![
-  <scaleSetTask>
-   <unitName>Node_Component_Halo_Angular_Momentum_Scalar_Scale_Set</unitName>
-  </scaleSetTask>
+  <scaleSetTask function="Node_Component_Halo_Angular_Momentum_Scalar_Scale_Set"/>
   !!]
   subroutine Node_Component_Halo_Angular_Momentum_Scalar_Scale_Set(node)
     !!{
@@ -133,9 +127,7 @@ contains
   end subroutine Node_Component_Halo_Angular_Momentum_Scalar_Scale_Set
 
   !![
-  <stateStoreTask>
-   <unitName>Node_Component_Halo_Angular_Momentum_Scalar_State_Store</unitName>
-  </stateStoreTask>
+  <stateStoreTask function="Node_Component_Halo_Angular_Momentum_Scalar_State_Store"/>
   !!]
   subroutine Node_Component_Halo_Angular_Momentum_Scalar_State_Store(stateFile,gslStateFile,stateOperationID)
     !!{
@@ -156,9 +148,7 @@ contains
   end subroutine Node_Component_Halo_Angular_Momentum_Scalar_State_Store
 
   !![
-  <stateRetrieveTask>
-   <unitName>Node_Component_Halo_Angular_Momentum_Scalar_State_Restore</unitName>
-  </stateRetrieveTask>
+  <stateRetrieveTask function="Node_Component_Halo_Angular_Momentum_Scalar_State_Restore"/>
   !!]
   subroutine Node_Component_Halo_Angular_Momentum_Scalar_State_Restore(stateFile,gslStateFile,stateOperationID)
     !!{

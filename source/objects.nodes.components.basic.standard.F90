@@ -70,9 +70,7 @@ module Node_Component_Basic_Standard
 contains
 
   !![
-  <scaleSetTask>
-   <unitName>Node_Component_Basic_Standard_Scale_Set</unitName>
-  </scaleSetTask>
+  <scaleSetTask function="Node_Component_Basic_Standard_Scale_Set"/>
   !!]
   subroutine Node_Component_Basic_Standard_Scale_Set(node)
     !!{
@@ -99,9 +97,7 @@ contains
   end subroutine Node_Component_Basic_Standard_Scale_Set
 
   !![
-  <radiusSolverPlausibility>
-   <unitName>Node_Component_Basic_Standard_Plausibility</unitName>
-  </radiusSolverPlausibility>
+  <radiusSolverPlausibility function="Node_Component_Basic_Standard_Plausibility"/>
   !!]
   subroutine Node_Component_Basic_Standard_Plausibility(node)
     !!{

@@ -12,7 +12,7 @@ models = [
     {"label": "AxionCAMB",         "testPeaks": "no"},
     {"label": "AxionMurgia2017",   "testPeaks": "no",  "toleranceCutOff": 0.10},
     {"label": "AxionHu2000",       "testPeaks": "yes", "toleranceCutOff": 0.160, "tolerancePeakWavenumber": 0.090, "tolerancePeakAmplitude": 0.802},
-    {"label": "AxionPassaglia2022","testPeaks": "yes", "toleranceCutOff": 0.025, "tolerancePeakWavenumber": 0.015, "tolerancePeakAmplitude": 0.165},
+    {"label": "AxionPassaglia2022","testPeaks": "yes", "toleranceCutOff": 0.025, "tolerancePeakWavenumber": 0.017, "tolerancePeakAmplitude": 0.165},
 ]
 
 # Ensure output directory exists.

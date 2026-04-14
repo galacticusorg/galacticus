@@ -58,24 +58,14 @@ contains
     Perform initialization tasks for node components.
     !!}
     use :: Input_Parameters, only : inputParameters
-    !![
-    <include directive="nodeComponentInitializationTask" type="moduleUse">
-    !!]
-    include 'node_components.initialize.moduleUse.inc'
-    !![
-    </include>
-    !!]
     implicit none
     type(inputParameters), intent(inout) :: parameters
 
     if (initializationCount == 0) then
        !![
-       <include directive="nodeComponentInitializationTask" type="functionCall" functionType="void">
-        <functionArgs>parameters</functionArgs>
-       !!]
-       include 'node_components.initialize.inc'
-       !![
-       </include>
+       <eventHookStatic name="nodeComponentInitializationTask">
+        <callWith>parameters</callWith>
+       </eventHookStatic>
        !!]
     end if
     initializationCount=initializationCount+1
@@ -89,13 +79,6 @@ contains
     use :: Input_Parameters, only : inputParameters
     use :: Events_Hooks    , only : eventsHooksAtLevelToAllLevels   , calculationResetEvent   , openMPThreadBindingAllLevels
     use :: Galacticus_Nodes, only : massDistributionCalculationReset, massDistributionsDestroy, massDistributionsLast
-    !![
-    <include directive="nodeComponentThreadInitializationTask" type="moduleUse">
-    !!]
-    include 'node_components.threadInitialize.moduleUse.inc'
-    !![
-    </include>
-    !!]
     implicit none
     type(inputParameters), intent(inout) :: parameters
 
@@ -104,12 +87,9 @@ contains
        ! an OpenMP parallel section inherits objects from before the parallel region.
        call eventsHooksAtLevelToAllLevels(.true. )
        !![
-       <include directive="nodeComponentThreadInitializationTask" type="functionCall" functionType="void">
-        <functionArgs>parameters</functionArgs>
-       !!]
-       include 'node_components.threadInitialize.inc'
-       !![
-       </include>
+       <eventHookStatic name="nodeComponentThreadInitializationTask">
+        <callWith>parameters</callWith>
+       </eventHookStatic>
        !!]
        ! Attach to an event that will be used to reset massDistributions of treeNodes during evolution.
        call calculationResetEvent%attach(massDistributionsLast,massDistributionCalculationReset,openMPThreadBindingAllLevels,label='massDistribution')
@@ -135,13 +115,6 @@ contains
     !!{
     Perform per-thread uninitialization tasks for node components.
     !!}
-    !![
-    <include directive="nodeComponentThreadUninitializationTask" type="moduleUse">
-    !!]
-    include 'node_components.threadUninitialize.moduleUse.inc'
-    !![
-    </include>
-    !!]
     use :: Events_Hooks    , only : calculationResetEvent
     use :: Galacticus_Nodes, only : massDistributionCalculationReset, massDistributionsLast
     implicit none
@@ -149,11 +122,7 @@ contains
     initializationThreadCount=initializationThreadCount-1
     if (initializationThreadCount == 0) then
        !![
-       <include directive="nodeComponentThreadUninitializationTask" type="functionCall" functionType="void">
-       !!]
-       include 'node_components.threadUninitialize.inc'
-       !![
-       </include>
+       <eventHookStatic name="nodeComponentThreadUninitializationTask"/>
        !!]
        if (calculationResetEvent%isAttached(massDistributionsLast,massDistributionCalculationReset)) call calculationResetEvent%detach(massDistributionsLast,massDistributionCalculationReset)
     end if

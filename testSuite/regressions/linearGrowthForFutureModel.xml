@@ -1,12 +1,17 @@
-<?xml version="1.0" encoding="UTF-8"?>
+<?xml version='1.0' encoding='UTF-8'?>
 <!-- A regregression test case which utilizes a model in which comsological parameters have been        -->
+
 <!-- redefined to correspond to those at expansion factor of a=1.666. This results in an age of the     -->
+
 <!-- Universe of ~22Gyr, which is greater than the default value of 20Gyr used in tabulating the linear -->
+
 <!-- growth factor. This casued a bug when trying to normalize the linear growth factor to unity at the -->
+
 <!-- present day (as the table didn't extend to 22Gyr and so interpolation failed).                     -->
+
 <parameters>
   <formatVersion>2</formatVersion>
-  <lastModified revision="975fffd5aadf697707003f16bf9b4caee8ebe97d" time="2025-10-22T21:34:03"/>
+  <lastModified revision="551c092c6cfb98a955ac3631fb6dfbff1a5364f5" time="2026-04-02T18:27:58"/>
 
 
   <!-- Specify a small set of trees -->
@@ -284,6 +289,7 @@
       <excessHeatDrivesOutflow value="true"/>
       <rateMaximumExpulsion value="1.0"/>
     </nodeOperator>
+    <nodeOperator value="CGMOuterRadiusRamPressureStripping"/>
   </nodeOperator>
 
   <!-- Numerical tolerances -->

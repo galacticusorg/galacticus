@@ -1,12 +1,17 @@
-<?xml version="1.0" encoding="UTF-8"?>
+<?xml version='1.0' encoding='UTF-8'?>
 <!-- Runs a tree in which a subhalo jumps to a node which has no descendant and,   -->
+
 <!-- in the next step, merges with a node in another branch. Such cases have to be -->
+
 <!-- identified and the branch jump explicitly allowed. Otherwise, the subhalo     -->
+
 <!-- will deadlock the tree as it cannot evolve in a host that has no descendant.  -->
+
 <!-- 7-December-2012                                                               -->
+
 <parameters>
   <formatVersion>2</formatVersion>
-  <lastModified revision="975fffd5aadf697707003f16bf9b4caee8ebe97d" time="2025-10-22T21:34:03"/>
+  <lastModified revision="551c092c6cfb98a955ac3631fb6dfbff1a5364f5" time="2026-04-02T18:27:58"/>
 
 
   <!-- Component selection -->
@@ -71,7 +76,7 @@
     <treeIndexToRootNodeIndex value="true"/>
     <presetPositions value="false"/>
     <presetAngularMomenta value="false"/>
-    <presetOrbits value="false"/>
+    <presetOrbits value="true"/>
     <presetMergerTimes value="true"/>
     <presetMergerNodes value="true"/>
     <presetScaleRadii value="false"/>
@@ -286,6 +291,7 @@
       <excessHeatDrivesOutflow value="true"/>
       <rateMaximumExpulsion value="1.0"/>
     </nodeOperator>
+    <nodeOperator value="CGMOuterRadiusRamPressureStripping"/>
   </nodeOperator>
 
   <!-- Galaxy merger options -->

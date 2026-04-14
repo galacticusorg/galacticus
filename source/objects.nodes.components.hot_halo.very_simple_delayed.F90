@@ -69,9 +69,7 @@ module Node_Component_Hot_Halo_VS_Delayed
 contains
 
   !![
-  <nodeComponentInitializationTask>
-   <unitName>Node_Component_Hot_Halo_VS_Delayed_Initialize</unitName>
-  </nodeComponentInitializationTask>
+  <nodeComponentInitializationTask function="Node_Component_Hot_Halo_VS_Delayed_Initialize"/>
   !!]
   subroutine Node_Component_Hot_Halo_VS_Delayed_Initialize(parameters)
     !!{
@@ -141,9 +139,7 @@ contains
   end subroutine Node_Component_Hot_Halo_VS_Delayed_Outflowing_Abundances_Rate
 
   !![
-  <scaleSetTask>
-   <unitName>Node_Component_Hot_Halo_VS_Delayed_Scale_Set</unitName>
-  </scaleSetTask>
+  <scaleSetTask function="Node_Component_Hot_Halo_VS_Delayed_Scale_Set"/>
   !!]
   subroutine Node_Component_Hot_Halo_VS_Delayed_Scale_Set(node)
     !!{

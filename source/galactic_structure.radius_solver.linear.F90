@@ -177,20 +177,14 @@ contains
     Solve for the structure of galactic components assuming no self-gravity of baryons, and that size simply scales in
     proportion to specific angular momentum.
     !!}
-    use :: Calculations_Resets       , only : Calculations_Reset
-    use :: Galactic_Structure_Options, only : enumerationComponentTypeType
-    include 'galactic_structure.radius_solver.tasks.modules.inc'
-    include 'galactic_structure.radius_solver.plausible.modules.inc'
-    implicit none
+    use :: Calculations_Resets                       , only : Calculations_Reset
+    use :: Galactic_Structure_Radius_Solver_Utilities, only : radiusSolverPlausibilities  , radiusSolverTasks, radiusSolver
+   implicit none
     class           (galacticStructureSolverLinear), intent(inout)           :: self
     type            (treeNode                     ), intent(inout), target   :: node
     logical                                        , intent(in   ), optional :: plausibilityOnly
     logical                                        , parameter               :: specificAngularMomentumRequired=.true.
-    procedure       (solverGet                    ), pointer                 :: radiusGet                             , velocityGet
-    procedure       (solverSet                    ), pointer                 :: radiusSet                             , velocitySet
-    logical                                                                  :: componentActive
-    double precision                                                         :: specificAngularMomentum
-    type            (enumerationComponentTypeType )                          :: component
+    procedure       (radiusSolver                 ), pointer                 :: radiusSolve_
     !![
     <optionalArgument name="plausibilityOnly" defaultsTo=".false."/>
     !!]
@@ -198,10 +192,11 @@ contains
     ! Check that the galaxy is physical plausible. In this linear solver, we don't act on this.
     node%isPhysicallyPlausible=.true.
     node%isSolvable           =.true.
-    include 'galactic_structure.radius_solver.plausible.inc'
+    call radiusSolverPlausibilities(node)
     if (plausibilityOnly_) return
+    radiusSolve_ => radiusSolve
     call Calculations_Reset(node)
-    include 'galactic_structure.radius_solver.tasks.inc'
+    call radiusSolverTasks(node,specificAngularMomentumRequired,radiusSolve_)
     return
 
   contains
@@ -210,6 +205,8 @@ contains
       !!{
       Solve for the equilibrium radius of the given component.
       !!}
+      use :: Galactic_Structure_Radius_Solver_Utilities, only : solverGet                   , solverSet
+      use :: Galactic_Structure_Options                , only : enumerationComponentTypeType
       implicit none
       type            (treeNode                    ), intent(inout)          :: node
       type            (enumerationComponentTypeType), intent(in   )          :: component

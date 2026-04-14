@@ -12,9 +12,12 @@ parser = argparse.ArgumentParser()
 parser.add_argument("--launchMethod",  type=str, default="local")
 parser.add_argument("--threadMaximum", type=int, default=1)
 parser.add_argument("--ompThreads",    type=int, default=4)
+parser.add_argument("--instance",      type=str, default=None)
 args, _ = parser.parse_known_args()
 
 launchOptions = f"--launchMethod {args.launchMethod} --threadMaximum {args.threadMaximum} --ompThreads {args.ompThreads}"
+if args.instance:
+    launchOptions += f" --instance {args.instance}"
 
 # Simply run the models.
 subprocess.run(f"cd ..; scripts/aux/launch.pl testSuite/test-methods_MPI.xml {launchOptions}", shell=True)

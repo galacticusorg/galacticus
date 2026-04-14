@@ -29,9 +29,6 @@ module Function_Classes
   implicit none
   private
   public :: functionClass
-#ifdef OBJECTDEBUG
-  public :: debugStackPush, debugStackPop, debugStackGet
-#endif
 
   type, abstract :: functionClass
      !!{
@@ -55,18 +52,6 @@ module Function_Classes
      procedure :: referenceCountIncrement => functionClassReferenceCountIncrement
      procedure :: referenceCountDecrement => functionClassReferenceCountDecrement
   end type functionClass
-
-#ifdef OBJECTDEBUG
-  integer                , parameter                        :: debugStackSizeMaximum=100
-  type   (varying_string), dimension(debugStackSizeMaximum) :: debugLocStack
-  integer                                                   :: debugLocStackSize    =  0
-  logical                , public                           :: debugReporting       =.true.
-  interface debugStackPush
-     module procedure debugStackPushStr
-     module procedure debugStackPushLoc
-  end interface debugStackPush
-  !$omp threadprivate(debugLocStack,debugLocStackSize,debugReporting)
-#endif
 
 contains
 
@@ -151,65 +136,5 @@ contains
     end if
     return
   end function functionClassReferenceCountDecrement
-
-#ifdef OBJECTDEBUG
-  subroutine debugStackPushStr(location)
-    !!{
-    Push a text-location onto the debug location stack.
-    !!}
-    use :: Error, only : Error_Report
-    implicit none
-    character(len=*), intent(in   ) :: location
-
-    debugLocStackSize=debugLocStackSize+1
-    if (debugLocStackSize > debugStackSizeMaximum) call Error_Report('debug stack is not large enough'//{introspection:location})
-    debugLocStack(debugLocStackSize)=trim(location)
-    return
-  end subroutine debugStackPushStr
-
-  subroutine debugStackPushLoc(location)
-    !!{
-    Push a numeric-location onto the debug location stack.
-    !!}
-    use            :: Error        , only : Error_Report
-    use, intrinsic :: ISO_C_Binding, only : c_size_t
-    implicit none
-    integer  (c_size_t), intent(in   ) :: location
-    character(len=24  )                :: locationStr
-
-    debugLocStackSize=debugLocStackSize+1
-    if (debugLocStackSize > debugStackSizeMaximum) call Error_Report('debug stack is not large enough'//{introspection:location})
-    write (locationStr,'(i24)') location
-    debugLocStack(debugLocStackSize)=trim(adjustl(locationStr))
-    return
-  end subroutine debugStackPushLoc
-
-  subroutine debugStackPop()
-    !!{
-    Pop a location off the debug stack.
-    !!}
-    use :: Error, only : Error_Report
-    implicit none
-
-    debugLocStackSize=debugLocStackSize-1
-    if (debugLocStackSize < 0) call Error_Report('pop from empty debug stack'//{introspection:location})
-    return
-  end subroutine debugStackPop
-
-  function debugStackGet()
-    !!{
-    Get the current location from the debug stack.
-    !!}
-    implicit none
-    type(varying_string) :: debugStackGet
-
-    if (debugLocStackSize <= 0) then
-       debugStackGet='[unknown]'
-    else
-       debugStackGet=debugLocStack(debugLocStackSize)
-    end if
-    return
-  end function debugStackGet
-#endif
 
 end module Function_Classes

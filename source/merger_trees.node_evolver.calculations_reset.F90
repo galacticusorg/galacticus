@@ -44,24 +44,8 @@ contains
     Calls any routines required to reset all calculation for a new or updated node.
     !!}
     use :: Galacticus_Nodes, only : treeNode
-    !![
-    <include directive="calculationResetTask" type="moduleUse">
-    !!]
-    include 'calculation_reset.tasks.modules.inc'
-    !![
-    </include>
-    !!]
     implicit none
     type(treeNode), intent(inout) :: node
-
-    !![
-    <include directive="calculationResetTask" type="functionCall" functionType="void">
-     <functionArgs>node,node%uniqueID()</functionArgs>
-    !!]
-    include 'calculation_reset.tasks.inc'
-    !![
-    </include>
-    !!]
 
     !![
     <eventHook name="calculationReset">

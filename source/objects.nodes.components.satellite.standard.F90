@@ -67,9 +67,7 @@ module Node_Component_Satellite_Standard
 contains
 
   !![
-  <nodeComponentInitializationTask>
-    <unitName>Node_Component_Satellite_Standard_Initialize</unitName>
-  </nodeComponentInitializationTask>
+  <nodeComponentInitializationTask function="Node_Component_Satellite_Standard_Initialize"/>
   !!]
   subroutine Node_Component_Satellite_Standard_Initialize(parameters)
     !!{
@@ -98,9 +96,7 @@ contains
   end subroutine Node_Component_Satellite_Standard_Initialize
 
   !![
-  <nodeComponentThreadInitializationTask>
-   <unitName>Node_Component_Satellite_Standard_Thread_Initialize</unitName>
-  </nodeComponentThreadInitializationTask>
+  <nodeComponentThreadInitializationTask function="Node_Component_Satellite_Standard_Thread_Initialize"/>
   !!]
   subroutine Node_Component_Satellite_Standard_Thread_Initialize(parameters)
     !!{
@@ -124,9 +120,7 @@ contains
   end subroutine Node_Component_Satellite_Standard_Thread_Initialize
 
   !![
-  <nodeComponentThreadUninitializationTask>
-   <unitName>Node_Component_Satellite_Standard_Thread_Uninitialize</unitName>
-  </nodeComponentThreadUninitializationTask>
+  <nodeComponentThreadUninitializationTask function="Node_Component_Satellite_Standard_Thread_Uninitialize"/>
   !!]
   subroutine Node_Component_Satellite_Standard_Thread_Uninitialize()
     !!{
@@ -186,9 +180,7 @@ contains
   end subroutine subhaloPromotion
   
   !![
-  <inactiveSetTask>
-    <unitName>Node_Component_Satellite_Standard_Inactive</unitName>
-  </inactiveSetTask>
+  <inactiveSetTask function="Node_Component_Satellite_Standard_Inactive"/>
   !!]
   subroutine Node_Component_Satellite_Standard_Inactive(node)
     !!{
@@ -210,9 +202,7 @@ contains
   end subroutine Node_Component_Satellite_Standard_Inactive
   
   !![
-  <scaleSetTask>
-    <unitName>Node_Component_Satellite_Standard_Scale_Set</unitName>
-  </scaleSetTask>
+  <scaleSetTask function="Node_Component_Satellite_Standard_Scale_Set"/>
   !!]
   subroutine Node_Component_Satellite_Standard_Scale_Set(node)
     !!{

@@ -47,6 +47,7 @@ use Galacticus::Build::SourceTree::Process::Constructors;
 use Galacticus::Build::SourceTree::Process::ConditionalCall;
 use Galacticus::Build::SourceTree::Process::EventHooks;
 use Galacticus::Build::SourceTree::Process::EventHooksStatic;
+use Galacticus::Build::SourceTree::Process::FunctionsGlobal;
 use Galacticus::Build::SourceTree::Process::ParameterMigration;
 use Galacticus::Build::SourceTree::Process::Dependencies;
 use Galacticus::Build::SourceTree::Process::ClassDocumentation;

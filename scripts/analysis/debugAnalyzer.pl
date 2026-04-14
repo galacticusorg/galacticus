@@ -29,12 +29,6 @@ while ( my $line = <$debugLog> ) {
 	print $line;
 	die("failed to parse line");
     }
-
-
-    ## AJB HACK
-    last
-	if ( $i > 10 );
-
 }
 close($debugLog);
 my $stepCount = $i+1;

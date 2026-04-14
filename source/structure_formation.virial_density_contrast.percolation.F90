@@ -383,21 +383,6 @@ contains
     !!}
     use :: Functions_Global  , only : percolationObjectsDeepCopy_
     use :: Error             , only : Error_Report
-#ifdef OBJECTDEBUG
-    use :: MPI_Utilities     , only : mpiSelf
-#endif
-#ifdef OBJECTDEBUG
-    use :: Function_Classes  , only : debugReporting
-#endif
-#ifdef OBJECTDEBUG
-    use :: Display           , only : displayMessage             , verbosityLevelSilent
-#endif
-#ifdef OBJECTDEBUG
-    use :: ISO_Varying_String, only : operator(//)               , var_str
-#endif
-#ifdef OBJECTDEBUG
-    use :: String_Handling   , only : operator(//)
-#endif
     implicit none
     class(virialDensityContrastPercolation), intent(inout), target :: self
     class(virialDensityContrastClass      ), intent(inout)         :: destination
@@ -450,9 +435,6 @@ contains
              self%cosmologyFunctions_%copiedSelf => destination%cosmologyFunctions_
              call destination%cosmologyFunctions_%autoHook()
           end if
-#ifdef OBJECTDEBUG
-          if (debugReporting.and.mpiSelf%isMaster()) call displayMessage(var_str('functionClass[own] (class : ownerName : ownerLoc : objectLoc : sourceLoc): cosmologyfunctions_ : [destination] : ')//loc(destination)//' : '//loc(destination%cosmologyFunctions_)//' : '//{introspection:location:compact},verbosityLevelSilent)
-#endif
        end if
        nullify(destination%percolationobjects_)
        if (associated(self%percolationobjects_)) then

@@ -190,9 +190,7 @@ module Node_Component_Spheroid_Standard
 contains
 
   !![
-  <nodeComponentInitializationTask>
-   <unitName>Node_Component_Spheroid_Standard_Initialize</unitName>
-  </nodeComponentInitializationTask>
+  <nodeComponentInitializationTask function="Node_Component_Spheroid_Standard_Initialize"/>
   !!]
   subroutine Node_Component_Spheroid_Standard_Initialize(parameters)
     !!{
@@ -259,9 +257,7 @@ contains
   end subroutine Node_Component_Spheroid_Standard_Initialize
 
   !![
-  <nodeComponentThreadInitializationTask>
-   <unitName>Node_Component_Spheroid_Standard_Thread_Initialize</unitName>
-  </nodeComponentThreadInitializationTask>
+  <nodeComponentThreadInitializationTask function="Node_Component_Spheroid_Standard_Thread_Initialize"/>
   !!]
   subroutine Node_Component_Spheroid_Standard_Thread_Initialize(parameters)
     !!{
@@ -361,9 +357,7 @@ contains
   end subroutine Node_Component_Spheroid_Standard_Thread_Initialize
 
   !![
-  <nodeComponentThreadUninitializationTask>
-   <unitName>Node_Component_Spheroid_Standard_Thread_Uninitialize</unitName>
-  </nodeComponentThreadUninitializationTask>
+  <nodeComponentThreadUninitializationTask function="Node_Component_Spheroid_Standard_Thread_Uninitialize"/>
   !!]
   subroutine Node_Component_Spheroid_Standard_Thread_Uninitialize()
     !!{
@@ -393,9 +387,7 @@ contains
   end subroutine Node_Component_Spheroid_Standard_Thread_Uninitialize
 
   !![
-  <preEvolveTask>
-  <unitName>Node_Component_Spheroid_Standard_Pre_Evolve</unitName>
-  </preEvolveTask>
+  <preEvolveTask function="Node_Component_Spheroid_Standard_Pre_Evolve"/>
   !!]
   subroutine Node_Component_Spheroid_Standard_Pre_Evolve(node)
     !!{
@@ -448,9 +440,7 @@ contains
   end subroutine postEvolve
 
   !![
-  <postStepTask>
-    <unitName>Node_Component_Spheroid_Standard_Post_Step</unitName>
-  </postStepTask>
+  <postStepTask function="Node_Component_Spheroid_Standard_Post_Step"/>
   !!]
   subroutine Node_Component_Spheroid_Standard_Post_Step(node,status)
     !!{
@@ -791,9 +781,7 @@ contains
   end subroutine Node_Component_Spheroid_Standard_Stellar_Prprts_History_Rate
 
   !![
-  <scaleSetTask>
-   <unitName>Node_Component_Spheroid_Standard_Scale_Set</unitName>
-  </scaleSetTask>
+  <scaleSetTask function="Node_Component_Spheroid_Standard_Scale_Set"/>
   !!]
   subroutine Node_Component_Spheroid_Standard_Scale_Set(node)
     !!{
@@ -892,9 +880,7 @@ contains
   end subroutine Node_Component_Spheroid_Standard_Scale_Set
 
   !![
-  <inactiveSetTask>
-   <unitName>Node_Component_Spheroid_Standard_Inactive</unitName>
-  </inactiveSetTask>
+  <inactiveSetTask function="Node_Component_Spheroid_Standard_Inactive"/>
   !!]
   subroutine Node_Component_Spheroid_Standard_Inactive(node)
     !!{
@@ -1241,10 +1227,7 @@ contains
   end subroutine satelliteMerger
 
   !![
-  <radiusSolverPlausibility>
-   <unitName>Node_Component_Spheroid_Standard_Radius_Solver_Plausibility</unitName>
-   <after>Node_Component_Basic_Standard_Plausibility</after>
-  </radiusSolverPlausibility>
+  <radiusSolverPlausibility function="Node_Component_Spheroid_Standard_Radius_Solver_Plausibility" after="Node_Component_Basic_Standard_Plausibility"/>
   !!]
   subroutine Node_Component_Spheroid_Standard_Radius_Solver_Plausibility(node)
     !!{
@@ -1354,9 +1337,7 @@ contains
   end subroutine Node_Component_Spheroid_Standard_Velocity_Solve_Set
 
   !![
-  <radiusSolverTask>
-   <unitName>Node_Component_Spheroid_Standard_Radius_Solver</unitName>
-  </radiusSolverTask>
+  <radiusSolverTask function="Node_Component_Spheroid_Standard_Radius_Solver"/>
   !!]
   subroutine Node_Component_Spheroid_Standard_Radius_Solver(node,componentActive,component,specificAngularMomentumRequired,specificAngularMomentum,Radius_Get,Radius_Set,Velocity_Get&
        &,Velocity_Set)
@@ -1537,9 +1518,7 @@ contains
   end subroutine mergerTreeExtraOutput
 
   !![
-  <stateStoreTask>
-   <unitName>Node_Component_Spheroid_Standard_State_Store</unitName>
-  </stateStoreTask>
+  <stateStoreTask function="Node_Component_Spheroid_Standard_State_Store"/>
   !!]
   subroutine Node_Component_Spheroid_Standard_State_Store(stateFile,gslStateFile,stateOperationID)
     !!{
@@ -1562,9 +1541,7 @@ contains
   end subroutine Node_Component_Spheroid_Standard_State_Store
 
   !![
-  <stateRetrieveTask>
-   <unitName>Node_Component_Spheroid_Standard_State_Retrieve</unitName>
-  </stateRetrieveTask>
+  <stateRetrieveTask function="Node_Component_Spheroid_Standard_State_Retrieve"/>
   !!]
   subroutine Node_Component_Spheroid_Standard_State_Retrieve(stateFile,gslStateFile,stateOperationID)
     !!{

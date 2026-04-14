@@ -13,9 +13,12 @@ parser = argparse.ArgumentParser()
 parser.add_argument("--launchMethod",  type=str, default="local")
 parser.add_argument("--threadMaximum", type=int, default=1)
 parser.add_argument("--ompThreads",    type=int, default=4)
+parser.add_argument("--instance",      type=str, default=None)
 args, _ = parser.parse_known_args()
 
 launchOptions = f"--launchMethod {args.launchMethod} --threadMaximum {args.threadMaximum} --ompThreads {args.ompThreads}"
+if args.instance:
+    launchOptions += f" --instance {args.instance}"
 
 # Determine dynamic data path.
 dataDynamicPath = os.environ.get("GALACTICUS_DYNAMIC_DATA_PATH", os.environ.get("GALACTICUS_DATA_PATH", ""))

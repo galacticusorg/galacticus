@@ -134,9 +134,7 @@ module Chemical_Abundances_Structure
 contains
 
   !![
-  <nodeComponentInitializationTask>
-   <unitName>Chemical_Abundances_Initialize</unitName>
-  </nodeComponentInitializationTask>
+  <nodeComponentInitializationTask function="Chemical_Abundances_Initialize"/>
   !!]
    subroutine Chemical_Abundances_Initialize(parameters_)
     !!{

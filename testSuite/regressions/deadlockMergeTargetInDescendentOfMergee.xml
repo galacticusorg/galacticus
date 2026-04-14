@@ -1,9 +1,9 @@
-<?xml version="1.0"?>
+<?xml version='1.0' encoding='UTF-8'?>
 <parameters>
   <!-- This model uses a tree which has a merge target which becomes a satellite in a descendant of its mergee. If such satellites
        are not allowed to evolve until their host no longer has a child node this can result in a deadlock. -->
   <formatVersion>2</formatVersion>
-  <lastModified revision="975fffd5aadf697707003f16bf9b4caee8ebe97d" time="2025-10-22T21:34:03"/>
+  <lastModified revision="551c092c6cfb98a955ac3631fb6dfbff1a5364f5" time="2026-04-02T18:27:58"/>
 
   <cosmologyParameters value="simple">
     <HubbleConstant value="67.77"/>
@@ -158,6 +158,7 @@
       <excessHeatDrivesOutflow value="true"/>
       <rateMaximumExpulsion value="1.0"/>
     </nodeOperator>
+    <nodeOperator value="CGMOuterRadiusRamPressureStripping"/>
   </nodeOperator>
 
 </parameters>

@@ -4,6 +4,9 @@
 
 # Build option.
 GALACTICUS_BUILD_OPTION ?= default
+ifdef  BUILDPATH
+ override BUILDPATH := $(patsubst %/,%,$(BUILDPATH))
+endif
 ifeq '$(GALACTICUS_BUILD_OPTION)' 'default'
 export BUILDPATH ?= ./work/build
 export SUFFIX ?=
@@ -194,7 +197,7 @@ $(BUILDPATH)/%.p.F90 : $(BUILDPATH)/%.p.F90.up
 	@true
 $(BUILDPATH)/%.o : $(BUILDPATH)/%.p.F90 $(BUILDPATH)/%.m $(BUILDPATH)/%.d $(BUILDPATH)/%.fl Makefile
 	@mkdir -p $(BUILDPATH)/moduleBuild
-	$(FCCOMPILER) -c $(BUILDPATH)/$*.p.F90 -o $(BUILDPATH)/$*.o $(FCFLAGS) 2>&1 | ./scripts/build/postprocess.pl $(BUILDPATH)/$*.p.F90
+	$(FCCOMPILER) -c $(BUILDPATH)/$*.p.F90 -o $(BUILDPATH)/$*.o $(FCFLAGS) 2>&1 | ./scripts/build/postprocess.py $(BUILDPATH)/$*.p.F90
 	@mlist=`cat $(BUILDPATH)/$*.m` ; \
 	for mod in $$mlist ; \
 	do \
@@ -556,12 +559,12 @@ $(BUILDPATH)/%.m : ./source/%.F90
 	fi; \
 	./scripts/build/sourceDigests.pl `pwd` $*.exe $$useLocks
 	$(CCOMPILER) -c $(BUILDPATH)/$*.md5s.c -o $(BUILDPATH)/$*.md5s.o $(CFLAGS)
-	$(CONDORLINKER) $(FCCOMPILER) `cat $*.d` $(BUILDPATH)/$*.parameters.o $(BUILDPATH)/$*.md5s.o -o $*.exe$(SUFFIX) $(FCFLAGS) `scripts/build/libraryDependencies.pl $*.exe $(FCFLAGS)` 2>&1 | ./scripts/build/postprocessLinker.py
+	$(CONDORLINKER) $(FCCOMPILER) `cat $*.d` $(BUILDPATH)/$*.parameters.o $(BUILDPATH)/$*.md5s.o -o $*.exe$(SUFFIX) $(FCFLAGS) `scripts/build/libraryDependencies.py $*.exe $(FCFLAGS)` 2>&1 | ./scripts/build/postprocessLinker.py
 
 # Library.
 -include $(BUILDPATH)/Makefile_Library_Dependencies 
 $(BUILDPATH)/Makefile_Library_Dependencies:
-	./scripts/build/libraryInterfacesDependencies.pl
+	./scripts/build/libraryInterfacesDependencies.py
 $(BUILDPATH)/libgalacticus.Inc: $(BUILDPATH)/directiveLocations.xml $(BUILDPATH)/stateStorables.xml
 	./scripts/build/libraryInterfaces.pl
 $(BUILDPATH)/libgalacticus.p.Inc.up : $(BUILDPATH)/libgalacticus.Inc $(BUILDPATH)/hdf5FCInterop.dat $(BUILDPATH)/openMPCriticalSections.xml
@@ -585,7 +588,7 @@ libgalacticus.so: $(BUILDPATH)/libgalacticus.o $(BUILDPATH)/libgalacticus_classe
 	fi; \
 	./scripts/build/sourceDigests.pl `pwd` libgalacticus.o $$useLocks
 	$(CCOMPILER) -c $(BUILDPATH)/libgalacticus.md5s.c -o $(BUILDPATH)/libgalacticus.md5s.o $(CFLAGS)
-	$(FCCOMPILER) -shared `sort -u $(BUILDPATH)/libgalacticus.d $(BUILDPATH)/libgalacticus_classes.d` $(BUILDPATH)/libgalacticus.parameters.o $(BUILDPATH)/libgalacticus.md5s.o -o libgalacticus.so $(FCFLAGS) `scripts/build/libraryDependencies.pl libgalacticus.o $(FCFLAGS)`
+	$(FCCOMPILER) -shared `sort -u $(BUILDPATH)/libgalacticus.d $(BUILDPATH)/libgalacticus_classes.d` $(BUILDPATH)/libgalacticus.parameters.o $(BUILDPATH)/libgalacticus.md5s.o -o libgalacticus.so $(FCFLAGS) `scripts/build/libraryDependencies.py libgalacticus.o $(FCFLAGS)`
 
 # Ensure that we don't delete object files which make considers to be intermediate
 .PRECIOUS: $(BUILDPATH)/%.p.F90 $(BUILDPATH)/%.p.F90.up $(BUILDPATH)/%.Inc $(BUILDPATH)/%.Inc.up $(BUILDPATH)/%.d
@@ -608,8 +611,8 @@ libgalacticus.so: $(BUILDPATH)/libgalacticus.o $(BUILDPATH)/libgalacticus_classe
 
 $(BUILDPATH)/openMPCriticalSections.count.inc $(BUILDPATH)/openMPCriticalSections.enumerate.inc: $(BUILDPATH)/openMPCriticalSections.xml
 	@touch $(BUILDPATH)/openMPCriticalSections.count.inc $(BUILDPATH)/openMPCriticalSections.enumerate.inc
-$(BUILDPATH)/openMPCriticalSections.xml: ./scripts/build/enumerateOpenMPCriticalSections.pl
-	./scripts/build/enumerateOpenMPCriticalSections.pl `pwd`
+$(BUILDPATH)/openMPCriticalSections.xml: ./scripts/build/enumerateOpenMPCriticalSections.py
+	./scripts/build/enumerateOpenMPCriticalSections.py `pwd`
 
 # Dependency on dependencies.
 $(BUILDPATH)/utility.dependencies.p.F90.up : aux/dependencies.yml
@@ -658,7 +661,7 @@ $(BUILDPATH)/Makefile_Module_Dependencies: ./scripts/build/moduleDependencies.pl
 	@mkdir -p $(BUILDPATH)
 	./scripts/build/moduleDependencies.pl `pwd`
 
-$(BUILDPATH)/Makefile_Use_Dependencies: ./scripts/build/useDependencies.pl $(BUILDPATH)/directiveLocations.xml $(BUILDPATH)/Makefile_Directives $(BUILDPATH)/Makefile_Include_Dependencies $(BUILDPATH)/Makefile_Library_Dependencies $(ALLSOURCESINC)
+$(BUILDPATH)/Makefile_Use_Dependencies: ./scripts/build/useDependencies.pl $(BUILDPATH)/directiveLocations.xml $(BUILDPATH)/Makefile_Directives $(BUILDPATH)/Makefile_Include_Dependencies $(BUILDPATH)/Makefile_Library_Dependencies $(BUILDPATH)/libgalacticus.Inc $(ALLSOURCESINC)
 	@mkdir -p $(BUILDPATH)
 	./scripts/build/useDependencies.pl `pwd`
 
@@ -668,13 +671,13 @@ $(BUILDPATH)/Makefile_Directives: ./scripts/build/codeDirectivesParse.pl $(ALLSO
 	./scripts/build/stateStorables.pl `pwd`
 	./scripts/build/deepCopyActions.pl `pwd`
 
-$(BUILDPATH)/Makefile_Include_Dependencies: ./scripts/build/includeDependencies.pl $(ALLSOURCES)
+$(BUILDPATH)/Makefile_Include_Dependencies: ./scripts/build/includeDependencies.py $(ALLSOURCES)
 	@mkdir -p $(BUILDPATH)
-	./scripts/build/includeDependencies.pl `pwd`
+	./scripts/build/includeDependencies.py `pwd`
 
-$(BUILDPATH)/Makefile_All_Execs: ./scripts/build/findExecutables.pl $(ALLSOURCES)
+$(BUILDPATH)/Makefile_All_Execs: ./scripts/build/findExecutables.py $(ALLSOURCES)
 	@mkdir -p $(BUILDPATH)
-	./scripts/build/findExecutables.pl `pwd`
+	./scripts/build/findExecutables.py `pwd`
 
 deps: $(MAKE_DEPS) $(BUILDPATH)/Makefile_All_Execs
 

@@ -1,13 +1,10 @@
 <?xml version="1.0"?>
-<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema">
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema"
+           xmlns:common="http://CommonTypesNamespace/CommonTypes"
+           elementFormDefault="qualified">
   <!-- Schema used to validate addMetaProperty directives -->
 
-  <xs:simpleType name="yesNo">
-    <xs:restriction base="xs:string">
-      <xs:enumeration value="yes"/>
-      <xs:enumeration value="no" />
-    </xs:restriction>
-  </xs:simpleType> 
+  <xs:import namespace="http://CommonTypesNamespace/CommonTypes" schemaLocation="commonTypes.xsd"/>
 
   <xs:simpleType name="type">
     <xs:restriction base="xs:string">
@@ -26,13 +23,13 @@
   
   <xs:element name="addMetaProperty">
     <xs:complexType>
-      <xs:attribute name="component"   use="required"/>
-      <xs:attribute name="name"        use="required"/>
-      <xs:attribute name="id"          use="required"/>
-      <xs:attribute name="isEvolvable" type="yesNo"  />
-      <xs:attribute name="isCreator"   type="yesNo"  />
-      <xs:attribute name="type"        type="type"   />
-      <xs:attribute name="rank"        type="rank"   />
+      <xs:attribute name="component"   use="required"     />
+      <xs:attribute name="name"        use="required"     />
+      <xs:attribute name="id"          use="required"     />
+      <xs:attribute name="isEvolvable" type="common:yesNo"/>
+      <xs:attribute name="isCreator"   type="common:yesNo"/>
+      <xs:attribute name="type"        type="type"        />
+      <xs:attribute name="rank"        type="rank"        />
     </xs:complexType>
   </xs:element>
   

@@ -219,23 +219,17 @@ contains
     !!{
     Solve for the structure of galactic components.
     !!}
-    use :: Calculations_Resets       , only : Calculations_Reset
-    use :: Display                   , only : displayMessage
-    use :: Error                     , only : Error_Report                , Warn
-    use :: Galactic_Structure_Options, only : enumerationComponentTypeType
-    include 'galactic_structure.radius_solver.tasks.modules.inc'
-    include 'galactic_structure.radius_solver.plausible.modules.inc'
+    use :: Calculations_Resets                       , only : Calculations_Reset
+    use :: Display                                   , only : displayMessage
+    use :: Error                                     , only : Error_Report              , Warn
+    use :: Galactic_Structure_Radius_Solver_Utilities, only : radiusSolverPlausibilities, radiusSolverTasks, radiusSolver
     implicit none
     class           (galacticStructureSolverEquilibrium), intent(inout)           :: self
     type            (treeNode                          ), intent(inout), target   :: node
     logical                                             , intent(in   ), optional :: plausibilityOnly
     logical                                             , parameter               :: specificAngularMomentumRequired=.true.
     integer                                             , parameter               :: iterationMaximum               =  100
-    procedure       (solverGet                         ), pointer                 :: radiusGet                             , velocityGet
-    procedure       (solverSet                         ), pointer                 :: radiusSet                             , velocitySet
-    logical                                                                       :: componentActive
-    double precision                                                              :: specificAngularMomentum
-    type            (enumerationComponentTypeType      )                          :: component
+    procedure       (radiusSolver                      ), pointer                 :: radiusSolve_
     !![
     <optionalArgument name="plausibilityOnly" defaultsTo=".false."/>
     !!]
@@ -243,7 +237,7 @@ contains
     ! Check that the galaxy is physical plausible. In this equilibrium solver, we don't act on this.
     node%isPhysicallyPlausible=.true.
     node%isSolvable           =.true.
-    include 'galactic_structure.radius_solver.plausible.inc'
+    call radiusSolverPlausibilities(node)
     if (node%isPhysicallyPlausible .and. .not.plausibilityOnly_) then
        ! Initialize the solver state.
        countIterations=0
@@ -260,7 +254,8 @@ contains
           countIterations      =countIterations+1
           countComponentsActive=0
           if (countIterations > 1) fitMeasure=0.0d0
-          include 'galactic_structure.radius_solver.tasks.inc'
+          radiusSolve_ => radiusSolve
+          call radiusSolverTasks(node,specificAngularMomentumRequired,radiusSolve_)
           ! Check that we have some active components.
           if (countComponentsActive == 0) then
              fitMeasure=0.0d0
@@ -291,13 +286,15 @@ contains
       !!{
       Solve for the equilibrium radius of the given component.
       !!}
-      use :: Display                         , only : displayVerbosity              , displayVerbositySet, verbosityLevelStandard
-      use :: Galactic_Structure_Options      , only : massTypeBaryonic              , radiusLarge        , massTypeDark          , componentTypeDarkHalo
-      use :: Mass_Distributions              , only : massDistributionClass
-      use :: Error                           , only : Error_Report
-      use :: ISO_Varying_String              , only : varying_string
-      use :: Numerical_Constants_Astronomical, only : gravitationalConstant_internal
-      use :: String_Handling                 , only : operator(//)
+      use :: Galactic_Structure_Radius_Solver_Utilities, only : solverGet                     , solverSet
+      use :: Display                                   , only : displayVerbosity              , displayVerbositySet, verbosityLevelStandard
+      use :: Galactic_Structure_Options                , only : massTypeBaryonic              , radiusLarge        , massTypeDark          , componentTypeDarkHalo, &
+           &                                                    enumerationComponentTypeType
+      use :: Mass_Distributions                        , only : massDistributionClass
+      use :: Error                                     , only : Error_Report
+      use :: ISO_Varying_String                        , only : varying_string
+      use :: Numerical_Constants_Astronomical          , only : gravitationalConstant_internal
+      use :: String_Handling                           , only : operator(//)
       implicit none
       type            (treeNode                    ), intent(inout)                     :: node
       type            (enumerationComponentTypeType), intent(in   )                     :: component

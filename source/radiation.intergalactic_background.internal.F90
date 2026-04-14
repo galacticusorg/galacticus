@@ -877,9 +877,6 @@ contains
        if (associated(self%accretionDiskSpectra_)) then
           allocate(destination%accretionDiskSpectra_,mold=self%accretionDiskSpectra_)
           call accretionDiskSpectraDeepCopy_(self%accretionDiskSpectra_,destination%accretionDiskSpectra_)
-#ifdef OBJECTDEBUG
-          if (debugReporting.and.mpiSelf%isMaster()) call displayMessage(var_str('functionClass[own] (class : ownerName : ownerLoc : objectLoc : sourceLoc): galacticstructure : [destination] : ')//loc(destination)//' : '//loc(destination%accretionDiskSpectra_)//' : '//{introspection:location:compact},verbosityLevelSilent)
-#endif
        end if
     class default
        call Error_Report('destination and source types do not match'//{introspection:location})
