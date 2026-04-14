@@ -39,10 +39,10 @@
      profile up to a maximum radius.
      !!}
      private
-     class           (darkMatterHaloScaleClass), pointer :: darkMatterHaloScale_ => null()
+     class           (darkMatterHaloScaleClass), pointer :: darkMatterHaloScale_          => null()
      double precision                                    :: radiusMaximumOverRadiusVirial
    contains
-     final     ::             maximumRadiusDestructor
+     final     ::              maximumRadiusDestructor
      procedure :: massBound => maximumRadiusMassBound
   end type satelliteMassBoundInitializorMaximumRadius
 
@@ -115,22 +115,21 @@ contains
     return
   end subroutine maximumRadiusDestructor
 
-  double precision function maximumRadiusMassBound(self,node)
+  double precision function maximumRadiusMassBound(self,node) result(massBound)
     !!{
     Returns the initial bound mass of a satellite halo by integrating the density profile up to a maximum radius.
     !!}
     use :: Mass_Distributions, only : massDistributionClass
-    use :: Galacticus_Nodes  , only : treeNode
     implicit none
     class           (satelliteMassBoundInitializorMaximumRadius), intent(inout) :: self
     type            (treeNode                                  ), intent(inout) :: node
     class           (massDistributionClass                     ), pointer       :: massDistribution_
-    double precision                                                            :: maximumRadius
+    double precision                                                            :: radiusMaximum
 
-    maximumRadius              =  +self               %radiusMaximumOverRadiusVirial                 &
-         &                        *self%darkMatterHaloScale_%radiusVirial                (node       )
-    massDistribution_          =>  node               %massDistribution                 (           )
-    maximumRadiusMassBound     =   massDistribution_  %massEnclosedBySphere             (maximumRadius)
+    radiusMaximum     =  +self                                  %radiusMaximumOverRadiusVirial                &
+         &               *self             %darkMatterHaloScale_%radiusVirial                 (node         )
+    massDistribution_ =>  node                                  %massDistribution             (             )
+    massBound         =   massDistribution_                     %massEnclosedBySphere         (radiusMaximum)
     !![
     <objectDestructor name="massDistribution_"/>
     !!]

@@ -30,7 +30,7 @@ module Node_Component_Satellite_Orbiting
   use :: Kepler_Orbits                    , only : keplerOrbit
   use :: Satellites_Bound_Mass_Initialize , only : satelliteMassBoundInitializorClass
   use :: Tensors                          , only : tensorRank2Dimension3Symmetric
-  use :: Virial_Orbits                    , only : virialOrbit                        , virialOrbitClass
+  use :: Virial_Orbits                    , only : virialOrbit                       , virialOrbitClass
   implicit none
   private
   public :: Node_Component_Satellite_Orbiting_Scale_Set        , Node_Component_Satellite_Orbiting_Create             , &

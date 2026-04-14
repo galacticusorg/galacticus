@@ -22,8 +22,8 @@
   definition.
   !!}
 
-  use :: Cosmology_Functions   , only : cosmologyFunctionsClass
-  use :: Cosmology_Parameters  , only : cosmologyParametersClass
+  use :: Cosmology_Functions    , only : cosmologyFunctionsClass
+  use :: Cosmology_Parameters   , only : cosmologyParametersClass
   use :: Virial_Density_Contrast, only : virialDensityContrastClass
 
   !![
@@ -32,7 +32,7 @@
     A satellite bound mass initializor class that sets the initial bound mass of the satellite halo to the mass enclosed within
     the radius defined by a given density contrast. The density contrast is evaluated using the
     \refClass{virialDensityContrastClass} object specified by \mono{[virialDensityContrastDefinition]}, and the mass is computed
-    using the \refFunction{Dark\_Matter\_Profile\_Mass\_Definition} function, which accounts for the halo density profile.
+    using the \mono{Dark\_Matter\_Profile\_Mass\_Definition} function, which accounts for the halo density profile.
    </description>
   </satelliteMassBoundInitializor>
   !!]
@@ -42,12 +42,12 @@
      contrast definition.
      !!}
      private
-     class(cosmologyFunctionsClass  ), pointer :: cosmologyFunctions_             => null()
-     class(cosmologyParametersClass ), pointer :: cosmologyParameters_            => null()
-     class(virialDensityContrastClass), pointer :: virialDensityContrast_          => null()
+     class(cosmologyFunctionsClass   ), pointer :: cosmologyFunctions_              => null()
+     class(cosmologyParametersClass  ), pointer :: cosmologyParameters_             => null()
+     class(virialDensityContrastClass), pointer :: virialDensityContrast_           => null()
      class(virialDensityContrastClass), pointer :: virialDensityContrastDefinition_ => null()
    contains
-     final     ::             densityContrastDestructor
+     final     ::              densityContrastDestructor
      procedure :: massBound => densityContrastMassBound
   end type satelliteMassBoundInitializorDensityContrast
 
@@ -76,17 +76,17 @@ contains
     class(virialDensityContrastClass                  ), pointer       :: virialDensityContrastDefinition_
 
     !![
-    <objectBuilder class="cosmologyFunctions"    name="cosmologyFunctions_"             source="parameters"                                          />
-    <objectBuilder class="cosmologyParameters"   name="cosmologyParameters_"            source="parameters"                                          />
-    <objectBuilder class="virialDensityContrast" name="virialDensityContrast_"          source="parameters"                                          />
+    <objectBuilder class="cosmologyFunctions"    name="cosmologyFunctions_"              source="parameters"                                                />
+    <objectBuilder class="cosmologyParameters"   name="cosmologyParameters_"             source="parameters"                                                />
+    <objectBuilder class="virialDensityContrast" name="virialDensityContrast_"           source="parameters"                                                />
     <objectBuilder class="virialDensityContrast" name="virialDensityContrastDefinition_" source="parameters" parameterName="virialDensityContrastDefinition"/>
     !!]
     self=satelliteMassBoundInitializorDensityContrast(cosmologyFunctions_,cosmologyParameters_,virialDensityContrast_,virialDensityContrastDefinition_)
     !![
     <inputParametersValidate source="parameters"/>
-    <objectDestructor name="cosmologyFunctions_"            />
-    <objectDestructor name="cosmologyParameters_"           />
-    <objectDestructor name="virialDensityContrast_"         />
+    <objectDestructor name="cosmologyFunctions_"             />
+    <objectDestructor name="cosmologyParameters_"            />
+    <objectDestructor name="virialDensityContrast_"          />
     <objectDestructor name="virialDensityContrastDefinition_"/>
     !!]
     return
@@ -117,9 +117,9 @@ contains
     type(satelliteMassBoundInitializorDensityContrast), intent(inout) :: self
 
     !![
-    <objectDestructor name="self%cosmologyFunctions_"            />
-    <objectDestructor name="self%cosmologyParameters_"           />
-    <objectDestructor name="self%virialDensityContrast_"         />
+    <objectDestructor name="self%cosmologyFunctions_"             />
+    <objectDestructor name="self%cosmologyParameters_"            />
+    <objectDestructor name="self%virialDensityContrast_"          />
     <objectDestructor name="self%virialDensityContrastDefinition_"/>
     !!]
     return
@@ -130,19 +130,19 @@ contains
     Returns the initial bound mass of a satellite halo based on a specified density contrast definition.
     !!}
     use :: Dark_Matter_Profile_Mass_Definitions, only : Dark_Matter_Profile_Mass_Definition
-    use :: Galacticus_Nodes                    , only : nodeComponentBasic                 , treeNode
+    use :: Galacticus_Nodes                    , only : nodeComponentBasic
     implicit none
     class(satelliteMassBoundInitializorDensityContrast), intent(inout) :: self
     type (treeNode                                    ), intent(inout) :: node
     class(nodeComponentBasic                          ), pointer       :: basic
 
     basic                      => node%basic()
-    densityContrastMassBound   =  Dark_Matter_Profile_Mass_Definition(                                                                                                              &
-         &                                                                         node                                                                                           , &
-         &                                                             densityContrast       =self%virialDensityContrastDefinition_%densityContrast(basic%mass(),basic%time())    , &
-         &                                                             cosmologyParameters_  =self%cosmologyParameters_                                                           , &
-         &                                                             cosmologyFunctions_   =self%cosmologyFunctions_                                                            , &
-         &                                                             virialDensityContrast_=self%virialDensityContrast_                                                           &
+    densityContrastMassBound   =  Dark_Matter_Profile_Mass_Definition(                                                                                                          &
+         &                                                                                    node                                                                            , &
+         &                                                             densityContrast       =self%virialDensityContrastDefinition_%densityContrast(basic%mass(),basic%time()), &
+         &                                                             cosmologyParameters_  =self%cosmologyParameters_                                                       , &
+         &                                                             cosmologyFunctions_   =self%cosmologyFunctions_                                                        , &
+         &                                                             virialDensityContrast_=self%virialDensityContrast_                                                       &
          &                                                            )
     return
   end function densityContrastMassBound

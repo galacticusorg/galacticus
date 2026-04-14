@@ -43,7 +43,6 @@
      Constructors for the \refClass{satelliteMassBoundInitializorBasicMass} satellite bound mass initializor class.
      !!}
      module procedure basicMassConstructorParameters
-     module procedure basicMassConstructorInternal
   end interface satelliteMassBoundInitializorBasicMass
 
 contains
@@ -65,29 +64,19 @@ contains
     return
   end function basicMassConstructorParameters
 
-  function basicMassConstructorInternal() result(self)
-    !!{
-    Internal constructor for the \refClass{satelliteMassBoundInitializorBasicMass} satellite bound mass initializor class.
-    !!}
-    implicit none
-    type(satelliteMassBoundInitializorBasicMass) :: self
-
-    return
-  end function basicMassConstructorInternal
-
-  double precision function basicMassMassBound(self,node)
+  double precision function basicMassMassBound(self,node) result(massBound)
     !!{
     Returns the initial bound mass of a satellite halo set equal to the node basic mass.
     !!}
-    use :: Galacticus_Nodes, only : nodeComponentBasic, treeNode
+    use :: Galacticus_Nodes, only : nodeComponentBasic
     implicit none
     class(satelliteMassBoundInitializorBasicMass), intent(inout) :: self
     type (treeNode                              ), intent(inout) :: node
-    class(nodeComponentBasic                   ), pointer       :: basic
+    class(nodeComponentBasic                    ), pointer       :: basic
     !$GLC attributes unused :: self
 
-    basic             => node %basic()
-    basicMassMassBound =  basic%mass ()
+    basic     => node %basic()
+    massBound =  basic%mass ()
     return
   end function basicMassMassBound
 
