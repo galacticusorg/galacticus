@@ -695,8 +695,16 @@ def iso_c_binding_import(argument_list, *extra_symbols):
 
 
 def python_arg_list(argument_list):
-    """Generate Python argument list."""
-    args = []
+    """Generate Python argument list.
+
+    Mirrors Perl pythonArgList(): if the first argument is not named 'self'
+    (i.e. for constructors) prepend 'self' explicitly.  For methods the first
+    argument already is 'self' (python.isPresent=1) so the loop adds it and
+    no explicit prepend is needed.
+    """
+    first_name = argument_list[0]['name'] if argument_list else None
+    args = [] if first_name == 'self' else ['self']
+
     first_optional = False
     for arg in argument_list:
         if not arg.get('python', {}).get('isPresent'):
