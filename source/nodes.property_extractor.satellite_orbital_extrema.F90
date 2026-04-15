@@ -267,6 +267,7 @@ contains
     class           (nodePropertyExtractorSatelliteOrbitalExtrema), intent(inout)             :: self
     double precision                                              , intent(in   )             :: time
 
+    allocate(units(self%elementCount_))
     if (self%extractPericenter) then
        units(self%offsetPericenter  )=unitType(megaParsec,'Mpc' ,'Mpc' )
        units(self%offsetPericenter+1)=unitType(kilo      ,'km/s','km/s')
