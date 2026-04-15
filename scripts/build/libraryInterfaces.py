@@ -136,13 +136,17 @@ def _process_implementations(func_class, directive_locations, state_storables,
     extensions = {}
     module_uses_impls = {}
 
-    # First pass: collect extensions and module uses
+    # First pass: collect extensions and module uses per implementation file.
     for impl_file in as_array(impls):
         tree = SourceTree.parse_file(impl_file)
+        impl_name = None
+        local_module_uses = []
+
         for node in SourceTree.walk_tree(tree):
             if node['type'] == class_name:
                 impl_name = node.get('directive', {}).get('name')
-            elif node['type'] == 'type' and node.get('name') == impl_name:
+            elif (impl_name and node['type'] == 'type'
+                  and node.get('name') == impl_name):
                 opener = node.get('opener', '')
                 m = re.search(r',\s*extends\s*\(\s*([a-zA-Z0-9_]+)\s*\)', opener)
                 if m:
@@ -150,37 +154,93 @@ def _process_implementations(func_class, directive_locations, state_storables,
             elif node['type'] == 'moduleUse':
                 module_use = node.get('moduleUse', {})
                 if module_use:
-                    module_uses_impls.setdefault(impl_name, []).append(module_use)
+                    local_module_uses.append(module_use)
 
-    # Second pass: collect implementations and generate code
+        if impl_name:
+            impl_conf = func_class.get(impl_name)
+            is_excluded = (isinstance(impl_conf, dict)
+                           and impl_conf.get('exclude') == 'yes')
+            if not is_excluded:
+                module_uses_impls[impl_name] = local_module_uses
+
+    # Second pass: find constructors and build the implementations list.
     class_id = 0
     impls_list = []
     for impl_file in as_array(impls):
         tree = SourceTree.parse_file(impl_file)
         impl_name = None
-        class_id += 1
+        is_abstract = False
+        name_constructor = None
+        args_constructor = []
 
         for node in SourceTree.walk_tree(tree):
             if node['type'] == class_name:
                 impl_name = node.get('directive', {}).get('name')
-            elif node['type'] == 'function' and impl_name and node.get('name') == impl_name + 'Internal':
-                # Extract constructor arguments
-                args = []
+                is_abstract = (node.get('directive', {}).get('abstract', 'no') == 'yes')
+
+            elif (impl_name
+                  and node['type'] == 'interface'
+                  and node.get('name', '').lower() == impl_name.lower()):
+                # Scan moduleProcedure children for an Internal-suffixed constructor.
+                child = node.get('firstChild')
+                while child:
+                    if child['type'] == 'moduleProcedure':
+                        internal = [n for n in child.get('names', [])
+                                    if n.lower().endswith('internal')]
+                        if len(internal) == 1:
+                            name_constructor = internal[0]
+                    child = child.get('sibling')
+
+            elif (name_constructor
+                  and node['type'] == 'function'
+                  and node.get('name', '').lower() == name_constructor.lower()):
+                # Extract argument names from the function opener.
                 opener = node.get('opener', '')
-                m = re.search(r'\((.*?)\)', opener)
+                m = re.search(
+                    r'function\s+' + re.escape(name_constructor) + r'\s*\(([^)]+)\)',
+                    opener, re.IGNORECASE)
                 if m:
-                    args = [{'name': a.strip()} for a in m.group(1).split(',')]
-                impls_list.append({
-                    'name': impl_name,
-                    'classID': class_id,
-                    'fileName': impl_file,
-                    'moduleUses': module_uses_impls.get(impl_name, []),
-                    'arguments': args,
-                })
+                    args_constructor = [{'name': a.strip()}
+                                        for a in m.group(1).split(',')]
+                # Enrich each argument with its declared type from child declaration nodes.
+                child = node.get('firstChild')
+                while child:
+                    if child['type'] == 'declaration':
+                        for decl in child.get('declarations', []):
+                            for var_name in decl.get('variableNames', []):
+                                for arg in args_constructor:
+                                    if arg['name'].lower() == var_name.lower():
+                                        arg['intrinsic'] = decl.get('intrinsic')
+                                        arg['type'] = decl.get('type')
+                                        arg['attributes'] = decl.get('attributes', [])
+                    child = child.get('sibling')
+
+        if impl_name is None:
+            raise ValueError(
+                f"Unable to find implementation of '{class_name}' in '{impl_file}'")
+
+        # Fall back to impl_name as constructor if no Internal constructor was found.
+        if not name_constructor:
+            name_constructor = impl_name
+
+        # classID is assigned to every file, even abstract/excluded ones (mirrors Perl).
+        class_id += 1
+
+        impl_conf = func_class.get(impl_name)
+        is_excluded = (isinstance(impl_conf, dict)
+                       and impl_conf.get('exclude') == 'yes')
+        if not is_abstract and not is_excluded:
+            impls_list.append({
+                'name':      impl_name,
+                'classID':   class_id,
+                'fileName':  impl_file,
+                'moduleUses': module_uses_impls.get(impl_name, []),
+                'arguments': args_constructor,
+            })
 
     func_class['implementations'] = impls_list
 
-    # Generate interfaces
+    # Generate interfaces.
     interfaces_python_classes(python, func_class)
     interfaces_pointer_get(code, func_class)
     interfaces_constructors(code, python, func_class, lib_function_classes,

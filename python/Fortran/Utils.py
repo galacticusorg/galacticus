@@ -57,16 +57,18 @@ UNIT_OPENERS = {
         ),
     },
     # Function (with optional type prefix)
+    # Function (with optional type prefix)
+    # Capture groups (0-based): 0=intrinsic, 1=kind, 2=function_name, 3=args_with_parens, 4=args_content
     'function': {
-        'unit_name': 5,
-        'intrinsic': 1,
-        'kind': 2,
-        'arguments': 7,
+        'unit_name': 2,
+        'intrinsic': 0,
+        'kind': 1,
+        'arguments': 4,
         'regex': re.compile(
             r'^\s*(?:impure\s+|pure\s+|elemental\s+|recursive\s+|module\s+)*'
             r'\s*(real|integer|double\s+precision|double\s+complex|character|logical)?'
             r'\s*(\((?:(?:kind|len)=)?[\w\d]*\))?'
-            r'\s*function\s+(' + LABEL + r')'  # group 3 (index 2 after the optional prefix groups)
+            r'\s*function\s+(' + LABEL + r')'
             r'\s*(\(\s*(' + ARGUMENT_LIST + r')\))?',
             re.IGNORECASE,
         ),
