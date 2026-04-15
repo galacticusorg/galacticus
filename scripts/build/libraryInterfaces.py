@@ -245,7 +245,8 @@ def _process_implementations(func_class, directive_locations, state_storables,
     interfaces_pointer_get(code, func_class)
     interfaces_constructors(code, python, func_class, lib_function_classes,
                            extensions, module_uses_impls)
-    interfaces_methods(code, python, func_class, extensions, module_uses_impls)
+    interfaces_methods(code, python, func_class, extensions, module_uses_impls,
+                       lib_function_classes)
     interfaces_destructor(code, python, func_class)
 
 
@@ -363,7 +364,8 @@ def __init__({','.join(py_args)}):
         })
 
 
-def interfaces_methods(code, python, func_class, extensions, module_uses_impls):
+def interfaces_methods(code, python, func_class, extensions, module_uses_impls,
+                       lib_function_classes=None):
     """Generate method wrappers."""
     class_name = func_class['name']
 
@@ -393,7 +395,7 @@ def interfaces_methods(code, python, func_class, extensions, module_uses_impls):
                     })
 
         # Process arguments
-        arg_list = assign_c_types(arg_list, {})
+        arg_list = assign_c_types(arg_list, lib_function_classes or {})
         arg_list = assign_c_attributes(arg_list)
         arg_list = build_python_reassignments(arg_list)
         arg_list = build_fortran_reassignments(arg_list, func_class, None,
@@ -514,21 +516,28 @@ def _write_fortran_code(code, build_path):
 
 
 def assign_c_types(argument_list, lib_function_classes):
-    """Assign appropriate C types for each argument."""
-    for arg in argument_list:
+    """Assign appropriate C types for each argument.
+
+    Mirrors Perl assignCTypes().  Processes the list in reverse and builds a
+    new one so that the _ID companion argument for functionClass parameters
+    can be inserted immediately after its parent without disturbing the rest
+    of the list.
+    """
+    new_list = []
+    for arg in reversed(argument_list):
         arg.setdefault('ctypes', {})
         arg.setdefault('fortran', {})
         arg.setdefault('python', {})
         arg.setdefault('galacticus', {})
 
-        arg['isOptional'] = 'optional' in arg.get('attributes', [])
+        arg['isOptional'] = bool('optional' in arg.get('attributes', []))
         arg['fortran']['isPresent'] = 1
         arg['python']['isPresent'] = 1
         arg['galacticus']['isPresent'] = 1
         arg['isFunctionClass'] = 0
 
-        intrinsic = arg.get('intrinsic', '')
-        type_spec = arg.get('type')
+        intrinsic  = arg.get('intrinsic', '')
+        type_spec  = arg.get('type') or ''
 
         if intrinsic == 'double precision':
             arg['ctypes']['type'] = 'c_double'
@@ -546,14 +555,47 @@ def assign_c_types(argument_list, lib_function_classes):
             if type_spec == 'varying_string':
                 arg['ctypes']['type'] = 'c_char_p'
                 arg['fortran']['type'] = 'character(c_char)'
+            elif re.match(r'^enumeration[a-z0-9_]+type$', type_spec, re.IGNORECASE):
+                # Enumeration types map to C int.
+                arg['ctypes']['type'] = 'c_int'
+                arg['fortran']['type'] = 'integer(c_int)'
             else:
                 arg['ctypes']['type'] = 'c_void_p'
                 arg['fortran']['type'] = 'type(c_ptr)'
         elif intrinsic == 'class':
             arg['ctypes']['type'] = 'c_void_p'
             arg['fortran']['type'] = 'type(c_ptr)'
+            # Check whether this is a functionClass argument.
+            if type_spec.endswith('Class'):
+                class_key = type_spec[:-5]  # strip trailing 'Class'
+                if class_key in lib_function_classes:
+                    arg['isFunctionClass'] = 1
+                    # 'self' is dispatched via the method binding, not passed directly.
+                    if arg['name'] == 'self':
+                        arg['galacticus']['isPresent'] = 0
+                    # Insert a companion _ID argument (carries the concrete class ID).
+                    arg_id = {
+                        'name':       arg['name'] + '_ID',
+                        'intrinsic':  'integer',
+                        'type':       None,
+                        'attributes': ['intent(in)'],
+                        'ctypes':     {'type': 'c_int'},
+                        'fortran':    {'type': 'integer(c_int)', 'isPresent': 1},
+                        'python':     {'isPresent': 0},
+                        'galacticus': {'isPresent': 0},
+                        'isOptional': False,
+                        'isFunctionClass': False,
+                    }
+                    if arg['isOptional']:
+                        arg_id['attributes'].append('optional')
+                        arg_id['isOptional'] = True
+                        arg_id['python']['present'] = arg['name']
+                    # Insert _ID before the current front, then arg before that.
+                    new_list.insert(0, arg_id)
 
-    return argument_list
+        new_list.insert(0, arg)
+
+    return new_list
 
 
 def assign_c_attributes(argument_list):
