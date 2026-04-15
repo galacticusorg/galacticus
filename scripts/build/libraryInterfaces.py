@@ -634,9 +634,40 @@ def assign_c_attributes(argument_list):
 
 
 def build_python_reassignments(argument_list):
-    """Generate Python argument reassignments."""
-    # Stub: full implementation handles functionClass arguments
-    return argument_list
+    """Set python['passAs'] and python['reassignment'] for functionClass args.
+
+    Mirrors Perl buildPythonReassignments().  Processes in reverse so that when
+    a functionClass arg is encountered, its _ID companion is already sitting at
+    the front of new_list (it was the immediately preceding arg in forward
+    order, so the last one pushed in reverse order).
+
+    Non-optional:  passAs = 'name._glcObj' / 'name._classID'
+    Optional:      passAs = 'name_glcObj'  / 'name_classID' plus an
+                   if/else reassignment block that extracts the values or
+                   sets them to None when the argument is absent.
+    """
+    new_list = []
+    for arg in reversed(argument_list):
+        if arg.get('isFunctionClass'):
+            arg_id = new_list.pop(0)          # shift _ID off front of new list
+            name = arg['name']
+            if arg.get('isOptional'):
+                arg['python']['passAs']        = name + '_glcObj'
+                arg_id['python']['passAs']     = name + '_classID'
+                arg['python']['reassignment']  = (
+                    f'    if {name}:\n'
+                    f'        {name}_glcObj ={name}._glcObj\n'
+                    f'        {name}_classID={name}._classID\n'
+                    f'    else:\n'
+                    f'        {name}_glcObj =None\n'
+                    f'        {name}_classID=None\n'
+                )
+            else:
+                arg['python']['passAs']    = name + '._glcObj'
+                arg_id['python']['passAs'] = name + '._classID'
+            new_list.insert(0, arg_id)        # unshift _ID back
+        new_list.insert(0, arg)               # unshift current arg
+    return new_list
 
 
 def build_fortran_reassignments(argument_list, func_class, implementation,
