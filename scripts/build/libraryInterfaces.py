@@ -649,9 +649,22 @@ def fortran_reassignments(argument_list):
 
 
 def fortran_module_uses(argument_list):
-    """Generate Fortran module use statements."""
-    # Stub
-    return ''
+    """Generate Fortran module use statements.
+
+    Mirrors Perl fortranModuleUses(): accumulates {module: {symbol: 1}} dicts
+    from every arg's fortran['modules'] field, then emits one 'use' line per
+    module with a sorted 'only' list.
+    """
+    modules = {}
+    for arg in argument_list:
+        for mod_name, symbols in arg.get('fortran', {}).get('modules', {}).items():
+            modules.setdefault(mod_name, {}).update(symbols)
+
+    code = ''
+    for mod_name in sorted(modules):
+        syms = ', '.join(sorted(modules[mod_name]))
+        code += f'  use :: {mod_name}, only : {syms}\n'
+    return code
 
 
 def fortran_call_code(argument_list, pre_arguments, post_arguments, continuation):
