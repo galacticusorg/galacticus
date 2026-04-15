@@ -1037,8 +1037,11 @@ contains
     if (allocated(self%integerProperty)) then
        do i=1,size(self%integerProperty)
           if (allocated(self%integerProperty(i)%metaDataRank0)) deallocate(self%integerProperty(i)%metaDataRank0)
+          if (allocated(self%integerProperty(i)%metaDataRank1)) deallocate(self%integerProperty(i)%metaDataRank1)
           allocate(self%integerProperty(i)%metaDataRank0)
-          self%integerProperty(i)%metaDataRank0=doubleHash()
+          allocate(self%integerProperty(i)%metaDataRank1)
+          self%integerProperty(i)%metaDataRank0=     doubleHash()
+          self%integerProperty(i)%metaDataRank1=rank1DoubleHash()
        end do
     end if
     if (allocated(self%doubleProperty )) then
