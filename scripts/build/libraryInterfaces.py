@@ -676,13 +676,21 @@ def fortran_call_code(argument_list, pre_arguments, post_arguments, continuation
 
 
 def iso_c_binding_import(argument_list, *extra_symbols):
-    """Generate ISO_C_Binding import statement."""
+    """Generate ISO_C_Binding import statement.
+
+    Mirrors Perl isoCBindingImport(): collects the kind symbol from each
+    argument's Fortran type (e.g. 'c_double' from 'real(c_double)') plus
+    any extra symbols stored in fortran['isoCBindingSymbols'] (e.g.
+    'c_f_pointer' added for pointer-dereference reassignments).
+    """
     symbols = set(extra_symbols)
     for arg in argument_list:
         fort_type = arg.get('fortran', {}).get('type', '')
         m = re.search(r'\(([a-z_]+)\)', fort_type)
         if m:
             symbols.add(m.group(1))
+        for sym in arg.get('fortran', {}).get('isoCBindingSymbols', []):
+            symbols.add(sym)
     return f"  use, intrinsic :: ISO_C_Binding, only : {', '.join(sorted(symbols))}\n"
 
 
