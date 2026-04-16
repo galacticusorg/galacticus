@@ -41,6 +41,8 @@ def hash_list(d, key_as=None):
     for key in sorted(d.keys()):
         val = d[key]
         if key_as is not None:
+            if not isinstance(val, dict):
+                val = {}
             val[key_as] = key
         result.append(val)
     return result
