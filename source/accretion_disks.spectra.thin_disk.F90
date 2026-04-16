@@ -481,7 +481,7 @@ contains
             The spectral integral is performed numerically over disk radii
             with the logarithmic change of variable $t = \ln(r/r_\mathrm{isco})$.
       \item Warm/hot corona: power law $\propto\nu^{-\Gamma}\mathrm{e}^{-h\nu/E_c}$
-            normalised so the integral equals $f_\mathrm{warm/hot}\,L_\mathrm{bol}$,
+            normalized so the integral equals $f_\mathrm{warm/hot}\,L_\mathrm{bol}$,
             using the upper incomplete gamma function computed at construction time.
     \end{itemize}
     !!}
