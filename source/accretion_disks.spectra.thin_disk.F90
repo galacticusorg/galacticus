@@ -60,7 +60,7 @@
     T_0^4 = \frac{3 L_\mathrm{disk}}{4 \pi \sigma R_\mathrm{ISCO}^2}.
     \end{equation}
     
-    The warm and hot corona spectra are power laws with exponential cutoffs, normalised by the
+    The warm and hot corona spectra are power laws with exponential cutoffs, normalized by the
     upper incomplete gamma function to achieve the same strict closure. This functional form is
     commonly used to model hot coronae \citep[e.g.][]{fabian_properties_2015}, and is used here
     as a phenomenological model for the warm bump also. The model uses only the thin-disk
