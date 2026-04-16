@@ -194,13 +194,13 @@ contains
       <name>massBlackHoleFiducial</name>
       <source>parameters</source>
       <defaultValue>1.0d8</defaultValue>
-      <description>The fiducial black hole mass (in $\mathrm{M}_\odot$) used when \refMethod{spectrumMassRate} is called without a specific node (i.e.\ when only the accretion rate and radiative efficiency are available).</description>
+      <description>The fiducial black hole mass (in $\mathrm{M}_\odot$) used when \mono{spectrumMassRate} is called without a specific node (i.e.\ when only the accretion rate and radiative efficiency are available).</description>
     </inputParameter>
     <inputParameter>
       <name>spinBlackHoleFiducial</name>
       <source>parameters</source>
       <defaultValue>0.5d0</defaultValue>
-      <description>The fiducial dimensionless black hole spin used when \refMethod{spectrumMassRate} is called without a specific node.</description>
+      <description>The fiducial dimensionless black hole spin used when \mono{spectrumMassRate} is called without a specific node.</description>
     </inputParameter>
     <objectBuilder class="blackHoleAccretionRate" name="blackHoleAccretionRate_" source="parameters"/>
     <objectBuilder class="accretionDisks"         name="accretionDisks_"         source="parameters"/>
@@ -609,7 +609,7 @@ contains
       !!{
       Integrand for the disk radial quadrature with $t = \ln(r/r_\mathrm{isco})$.
       The Shakura--Sunyaev temperature profile is
-      $T(x) = T_\mathrm{max}\,x^{-3/4}\,(1 - x^{-1/2})^{1/4}$ where $x = e^t$ (Shakura & Sunyaev; 1983; A\&A; 24; 337; eq. 3.5).
+      $T(x) = T_\mathrm{max}\,x^{-3/4}\,(1 - x^{-1/2})^{1/4}$ where $x = e^t$ (Shakura \& Sunyaev; 1983; A\&A; 24; 337; eq. 3.5).
       The factor $x^2 = e^{2t}$ arises from the change of variables $\mathrm{d}r = r\,\mathrm{d}t$.
       !!}
       implicit none
