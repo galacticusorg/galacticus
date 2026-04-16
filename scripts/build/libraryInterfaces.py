@@ -32,13 +32,22 @@ def main():
     state_storables = _load_xml(os.path.join(build_path, 'stateStorables.xml'))
     library_classes = _load_xml(os.path.join(exec_path, 'source', 'libraryClasses.xml'))
 
+    # stateStorables.xml stores functionClasses as a flat list of elements each
+    # carrying name= and module= attributes.  XML::Simple re-keys these by name
+    # automatically; we replicate that here.
+    fc_storables = {
+        fc['name']: fc
+        for fc in as_array(state_storables.get('functionClasses', []))
+        if isinstance(fc, dict) and 'name' in fc
+    }
+
     # Process function classes
     lib_function_classes = library_classes.get('classes', {})
     for func_class in hash_list(lib_function_classes, key_as='name'):
         # Augment with module information
         class_key = func_class['name'] + 'Class'
-        if state_storables.get('functionClasses', {}).get(class_key):
-            func_class['module'] = state_storables['functionClasses'][class_key].get('module')
+        if fc_storables.get(class_key):
+            func_class['module'] = fc_storables[class_key].get('module')
 
     # Process each function class
     directive_fc = directive_locations.get('functionClass', {})
