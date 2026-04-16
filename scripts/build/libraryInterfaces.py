@@ -78,7 +78,11 @@ def _load_xml(path):
 
 
 def _xml_elem_to_dict(elem):
-    """Convert XML element to nested dict (simple version)."""
+    """Convert XML element to nested dict (mirrors XML::Simple behaviour).
+
+    Text-only elements (no attributes, no children) return the text string
+    directly, matching XML::Simple's default behaviour.
+    """
     result = dict(elem.attrib)
     children_by_tag = {}
 
@@ -93,6 +97,10 @@ def _xml_elem_to_dict(elem):
             children_by_tag[tag] = val
 
     result.update(children_by_tag)
+    # If element has no attributes and no children, return text content directly.
+    # This mirrors XML::Simple which returns the text string for such elements.
+    if not result:
+        return (elem.text or '').strip()
     return result
 
 
