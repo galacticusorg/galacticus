@@ -366,11 +366,25 @@ contains
     ! Add dependencies to the new hooked function.
     if (present(dependencies)) then
        allocate(hookNew%dependencies(size(dependencies)),mold=dependencies)
-       hookNew%dependencies=dependencies
        do i=1,size(dependencies)
           select type (dependency_ => hookNew%dependencies(i))
+          type is (dependencyExact)
+             select type (dependency__ => dependencies(i))
+             type is (dependencyExact)
+                dependency_=dependency__
+             class default
+                call Error_Report('new and old dependency types do not match - this should not happen'//{introspection:location})
+             end select
           type is (dependencyRegEx)
-             dependency_%regEx_=regEx(dependency_%label)
+             select type (dependency__ => dependencies(i))
+             type is (dependencyRegEx)
+                dependency_=dependency__
+                dependency_%regEx_=regEx(dependency_%label)
+             class default
+                call Error_Report('new and old dependency types do not match - this should not happen'//{introspection:location})
+             end select
+          class default
+             call Error_Report('unknown dependency type'//{introspection:location})
           end select
        end do
     end if
