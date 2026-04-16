@@ -536,12 +536,12 @@ def _pass_directives(tree):
             stripped = re.sub(r'^\s*!<\s*', '', raw_line)
 
             if re.match(r'^\s*!!\]', raw_line):
-                # End of XML block.
-                if in_directive and raw_dir_buf:
+                # End of XML block.  Flush any directive not yet flushed
+                # (safety catch; normally flushed at end-tag detection below).
+                if raw_dir_buf:
                     xml_text = ''.join(raw_dir_buf)
                     dir_node = _parse_directive_xml(xml_text, node)
                     if dir_node:
-                        # Flush preceding raw code.
                         if raw_code_buf:
                             new_nodes.append(_make_code_node(
                                 ''.join(raw_code_buf), node['source'], node['line']))
@@ -575,7 +575,19 @@ def _pass_directives(tree):
                         r'^\s*<' + re.escape(directive_root) + r'\s*/>', stripped)
                             if directive_root else False)
                     if end1 or end2 or end3:
-                        in_directive = False
+                        # Mirrors Perl $endDirective: flush immediately so that
+                        # the !!] handler sees an empty raw_dir_buf.
+                        xml_text = ''.join(raw_dir_buf)
+                        dir_node = _parse_directive_xml(xml_text, node)
+                        if dir_node:
+                            if raw_code_buf:
+                                new_nodes.append(_make_code_node(
+                                    ''.join(raw_code_buf), node['source'], node['line']))
+                                raw_code_buf = []
+                            new_nodes.append(dir_node)
+                        raw_dir_buf    = []
+                        in_directive   = False
+                        directive_root = None
                 continue
 
             raw_code_buf.append(raw_line)
