@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # Generates C/Fortran/Python interfaces to Galacticus library classes.
-# Andrew Benson (ported to Python 2026)
+# Andrew Benson (ported to Python with assistance from Claude 2026)
 
 import sys
 import os
@@ -151,7 +151,6 @@ def _process_function_class_file(file_name, code, python, lib_function_classes,
             func_class, directive_locations, state_storables,
             code, python, lib_function_classes
         )
-
 
 def _process_implementations(func_class, directive_locations, state_storables,
                              code, python, lib_function_classes):
