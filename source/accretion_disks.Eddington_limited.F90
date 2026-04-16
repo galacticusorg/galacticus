@@ -100,17 +100,18 @@ contains
     return
   end function eddingtonLimitedConstructorInternal
 
-  double precision function eddingtonLimitedEfficiencyRadiative(self,blackHole,accretionRateMass)
+  double precision function eddingtonLimitedEfficiencyRadiative(self,blackHole,accretionRateMass,accretionDiskType) result(efficiencyRadiative)
     !!{
     Return the radiative efficiency of an Eddington-limited accretion disk.
     !!}
     implicit none
-    class           (accretionDisksEddingtonLimited), intent(inout) :: self
-    class           (nodeComponentBlackHole        ), intent(inout) :: blackHole
-    double precision                                , intent(in   ) :: accretionRateMass
-    !$GLC attributes unused :: blackHole, accretionRateMass
+    class           (accretionDisksEddingtonLimited  ), intent(inout)           :: self
+    class           (nodeComponentBlackHole          ), intent(inout)           :: blackHole
+    double precision                                  , intent(in   )           :: accretionRateMass
+    type            (enumerationAccretionDiskTypeType), intent(in   ), optional :: accretionDiskType
+    !$GLC attributes unused :: blackHole, accretionRateMass, accretionDiskType
 
-    eddingtonLimitedEfficiencyRadiative=self%efficiencyRadiation
+    efficiencyRadiative=self%efficiencyRadiation
     return
   end function eddingtonLimitedEfficiencyRadiative
 
