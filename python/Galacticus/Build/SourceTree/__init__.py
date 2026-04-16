@@ -312,12 +312,12 @@ def _parse_units(parent):  # noqa: F811  (intentional redefinition)
             if closer_re and closer_re.match(processed_line):
                 top_node['closer'] = raw_line
                 # Recurse into the accumulated inner content.
-                inner_content = ''.join(stack[-1][1])
-                if inner_content:
-                    top_node['content'] = inner_content
-                    inner_children = _parse_units(top_node)
+                # inner_lines may contain pre-built sentinel nodes interspersed
+                # with raw string chunks, so use _children_from_mixed_lines.
+                inner_lines = stack[-1][1]
+                if inner_lines:
+                    inner_children = _children_from_mixed_lines(inner_lines, top_node)
                     _link_children(top_node, inner_children)
-                    del top_node['content']
                 stack.pop()
                 # Deliver the closed node to the new top scope.
                 if stack:
@@ -405,16 +405,11 @@ def _parse_units(parent):  # noqa: F811  (intentional redefinition)
 
     # Close any units left open (e.g. partial files, included fragments).
     while stack:
-        top_node = stack[-1][0]
-        inner_content = ''.join(
-            item if isinstance(item, str) else item[1].get('opener', '')
-            for item in stack[-1][1]
-        )
-        if inner_content:
-            top_node['content'] = inner_content
-            inner_children = _parse_units(top_node)
+        top_node   = stack[-1][0]
+        inner_lines = stack[-1][1]
+        if inner_lines:
+            inner_children = _children_from_mixed_lines(inner_lines, top_node)
             _link_children(top_node, inner_children)
-            del top_node['content']
         stack.pop()
         flush_code(top_children)
         top_children.append(top_node)
@@ -431,9 +426,41 @@ def _parse_units(parent):  # noqa: F811  (intentional redefinition)
 
 def _resolve_sentinels(node_list):
     """Walk node_list and fix up any inner buffers that contain sentinel nodes."""
-    # This is a no-op in the current implementation because _parse_units now
-    # handles the recursive resolution inline.  Kept as a hook for future use.
+    # No-op: sentinel resolution is handled inline by _children_from_mixed_lines.
     pass
+
+
+def _children_from_mixed_lines(inner_lines, parent):
+    """Build child node list from inner_lines (mixed strings and sentinel tuples).
+
+    inner_lines is a list where each element is either:
+      - a str  (raw Fortran source chunk), or
+      - a ('\x00NODE\x00', node) tuple  (a pre-built child node).
+
+    String runs are joined and parsed via _parse_units; sentinel nodes are
+    spliced in at the correct position so ordering is preserved.
+    """
+    children = []
+    str_buf  = []
+    source   = parent.get('source', 'unknown')
+    line     = parent.get('line',   0)
+
+    def _flush():
+        if not str_buf:
+            return
+        text  = ''.join(str_buf)
+        dummy = {'content': text, 'source': source, 'line': line}
+        children.extend(_parse_units(dummy))
+        str_buf.clear()
+
+    for item in inner_lines:
+        if isinstance(item, str):
+            str_buf.append(item)
+        else:
+            _flush()
+            children.append(item[1])  # pre-built node
+    _flush()
+    return children
 
 
 # ---------------------------------------------------------------------------
