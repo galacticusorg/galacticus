@@ -846,6 +846,7 @@ contains
     <deepCopyFinalize variables="cosmologyFunctions_ cosmologyParameters_ darkMatterHaloBias_ darkMatterHaloScale_ linearGrowth_ correlationFunctionTwoPoint_ cosmologicalVelocityField_ cosmologicalMassVariance_ criticalOverdensity_ mergerTreeBranchingProbability_"/>
     !!]
     !$omp end critical(virialOrbitLossConeDeepCopy)
+    !$omp barrier
     ! Construct a halo environment.
     radiusEnvironment=+20.0d0
     massEnvironment  =+ 4.0d0                                              &

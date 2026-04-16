@@ -592,6 +592,7 @@ contains
           <deepCopyFinalize variables="stellarAstrophysics_ initialMassFunction_ stellarFeedback_ supernovaeTypeIa_"/>
           !!]
           !$omp end critical(stellarPopulationsStandardDeepCopy)
+          !$omp barrier
           call integrator_%initialize  (24                        ,61                        )
           call integrator_%toleranceSet(property%toleranceAbsolute,property%toleranceRelative)
           call integrator_%integrandSet(property%integrand                                   )

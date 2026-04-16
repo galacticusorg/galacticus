@@ -341,6 +341,7 @@ contains
        <deepCopyFinalize variables="cosmologyFunctions_ intergalacticMediumState_"/>
        !!]
        !$omp end critical(linearGrowthBaryonsDrkMttrDeepCopy)
+       !$omp barrier
        solver=odeSolver(4_c_size_t,growthFactorODEs,toleranceAbsolute=odeToleranceAbsolute,toleranceRelative=odeToleranceRelative)
        !$omp do
        do j=1,countWavenumbers

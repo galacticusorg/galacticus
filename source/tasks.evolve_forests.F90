@@ -547,6 +547,7 @@ contains
     <deepCopyFinalize variables="mergerTreeEvolver_ mergerTreeOutputter_ mergerTreeInitializor_ mergerTreeConstructor_ mergerTreeOperator_ nodeOperator_"/>
     !!]
     !$omp end critical(evolveForestsDeepCopy)
+    !$omp barrier
     ! Call routines to perform initialization which must occur for all threads if run in parallel.
     allocate(parameters)
     parameters=inputParameters(self%parameters)

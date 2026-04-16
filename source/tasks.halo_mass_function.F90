@@ -710,6 +710,7 @@ contains
        !!]
     end do
     !$omp end critical(taskHaloMassFunctionDeepCopy)
+    !$omp barrier
     ! Call routines to perform initialization which must occur for all threads if run in parallel.
     allocate(parameters)
     parameters=inputParameters(self%parameters)

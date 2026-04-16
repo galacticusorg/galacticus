@@ -266,6 +266,7 @@ contains
           <deepCopyFinalize variables="excursionSetBarrier_ cosmologicalMassVariance_"/>
 	  !!]
           !$omp end critical(excursionSetsSolverFarahiMidpointDeepCopy)
+          !$omp barrier
           allocate(barrier        (0:self%countVariance))
           allocate(barrierMidpoint(0:self%countVariance))
           !$omp do schedule(dynamic)
@@ -716,6 +717,7 @@ contains
           <deepCopyFinalize variables="excursionSetBarrier_ cosmologicalMassVariance_"/>
           !!]
           !$omp end critical(excursionSetsSolverFarahiMidpointDeepCopy)
+          !$omp barrier
           allocate(barrierRateQuad        (self%countVarianceProgenitorRate))
           allocate(barrierMidpointRateQuad(self%countVarianceProgenitorRate))
           ! In the first run, first crossing rates are computed. In the second run, non-crossing rates are computed at different
