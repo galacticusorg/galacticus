@@ -42,12 +42,21 @@ def main():
     }
 
     # Process function classes
-    lib_function_classes = library_classes.get('classes', {})
-    for func_class in hash_list(lib_function_classes, key_as='name'):
-        # Augment with module information
-        class_key = func_class['name'] + 'Class'
+    # libraryClasses.xml uses self-closing tags as class names, so _xml_elem_to_dict
+    # returns '' for empty entries.  Normalize to dicts in-place so downstream code
+    # can always call .get() on each entry and modifications persist.
+    raw_classes = library_classes.get('classes', {})
+    lib_function_classes = {}
+    for name, val in raw_classes.items():
+        fc = val if isinstance(val, dict) else {}
+        fc['name'] = name
+        lib_function_classes[name] = fc
+
+    # Augment with module information from stateStorables.
+    for name, fc in lib_function_classes.items():
+        class_key = name + 'Class'
         if fc_storables.get(class_key):
-            func_class['module'] = fc_storables[class_key].get('module')
+            fc['module'] = fc_storables[class_key].get('module')
 
     # Process each function class
     directive_fc = directive_locations.get('functionClass', {})
