@@ -569,30 +569,206 @@ contains
   end function triangleSwapCheck
 
   ! ════════════════════════════════════════════════════════════════════════════
-  ! Phase 3 stubs: closest neighbours + partial derivatives
+  ! Phase 3: closest neighbours + partial derivatives
   ! ════════════════════════════════════════════════════════════════════════════
 
   subroutine findClosestNeighbors(ndp, xd, yd, ncp, ipc)
-    use :: Error, only : Error_Report
+    !!{
+    For each of the {\normalfont \ttfamily ndp} data points, select the {\normalfont \ttfamily ncp} closest neighbours,
+    ensuring they are not all collinear.  Output is stored in {\normalfont \ttfamily ipc(ncp*ndp)}, with the {\normalfont
+    \ttfamily ncp} neighbours of point {\normalfont \ttfamily ip1} at indices {\normalfont \ttfamily (ip1-1)*ncp+1 ..
+    ip1*ncp}.  On error {\normalfont \ttfamily ipc(1)} is set to 0.
+    Port of {\normalfont \ttfamily idcldp} from the original BIVAR package (Akima 1978).
+    !!}
     implicit none
     integer                       , intent(in ) :: ndp, ncp
     double precision, dimension(:), intent(in ) :: xd, yd
     integer         , dimension(:), intent(out) :: ipc
+    double precision                            :: dsqmn, dsqmx, dsqi
+    double precision                            :: dx12, dy12, dx13, dy13
+    double precision                            :: x1, y1
+    double precision, dimension(ncp)            :: dsq0
+    integer                                     :: ip1, ip2, ip2mn, ip3, ip3mn
+    integer                                     :: j1, j2, j3, j4, jmx
+    integer                                     :: ipc0(ncp)
+    integer                                     :: nclpt
+    logical                                     :: inList
+
     ipc = 0
-    ! TODO Phase 3: port idcldp
-    call Error_Report('findClosestNeighbors not yet implemented'//char(0),'numerical.interpolation.2D.irregular')
+    if (ndp < 2 .or. ncp < 1 .or. ncp >= ndp) then
+       write (*,'(a,2(1x,i0))') '  findClosestNeighbors: bad parameters ndp,ncp =', ndp, ncp
+       return
+    end if
+
+    do ip1 = 1, ndp
+       x1 = xd(ip1);  y1 = yd(ip1)
+
+       ! ── Collect the first ncp distinct neighbours ──────────────────────────
+       j1    = 0
+       dsqmx = 0.0d0
+       jmx   = 1
+       do ip2 = 1, ndp
+          if (ip2 == ip1) cycle
+          dsqi = (xd(ip2)-x1)**2 + (yd(ip2)-y1)**2
+          j1      = j1 + 1
+          dsq0(j1) = dsqi
+          ipc0(j1) = ip2
+          if (dsqi > dsqmx) then
+             dsqmx = dsqi;  jmx = j1
+          end if
+          if (j1 >= ncp) exit
+       end do
+       ip2mn = ip2 + 1
+
+       ! ── Replace with closer points if any exist ────────────────────────────
+       do ip2 = ip2mn, ndp
+          if (ip2 == ip1) cycle
+          dsqi = (xd(ip2)-x1)**2 + (yd(ip2)-y1)**2
+          if (dsqi >= dsqmx) cycle
+          dsq0(jmx) = dsqi;  ipc0(jmx) = ip2
+          dsqmx = 0.0d0
+          do j1 = 1, ncp
+             if (dsq0(j1) > dsqmx) then
+                dsqmx = dsq0(j1);  jmx = j1
+             end if
+          end do
+       end do
+
+       ! ── Check if all ncp+1 points are collinear ───────────────────────────
+       ip2  = ipc0(1)
+       dx12 = xd(ip2) - x1;  dy12 = yd(ip2) - y1
+       j3   = 2
+       do while (j3 <= ncp)
+          ip3  = ipc0(j3)
+          dx13 = xd(ip3) - x1;  dy13 = yd(ip3) - y1
+          if (dy13*dx12 - dx13*dy12 /= 0.0d0) exit
+          j3 = j3 + 1
+       end do
+
+       if (j3 > ncp) then
+          ! All ncp neighbours are collinear — search for closest non-collinear point.
+          nclpt = 0
+          do ip3 = 1, ndp
+             if (ip3 == ip1) cycle
+                inList = .false.
+             do j4 = 1, ncp
+                if (ip3 == ipc0(j4)) then
+                   inList = .true.;  exit
+                end if
+             end do
+             if (inList) cycle
+             dx13 = xd(ip3) - x1;  dy13 = yd(ip3) - y1
+             if (dy13*dx12 - dx13*dy12 == 0.0d0) cycle
+             dsqi = (xd(ip3)-x1)**2 + (yd(ip3)-y1)**2
+             if (nclpt == 0 .or. dsqi < dsqmn) then
+                nclpt = 1;  dsqmn = dsqi;  ip3mn = ip3
+             end if
+          end do
+          if (nclpt == 0) then
+             write (*,'(a)') '  findClosestNeighbors: all data points are collinear'
+             ipc(1) = 0
+             return
+          end if
+          ! Replace the farthest candidate with the non-collinear point.
+          dsqmx     = dsqmn
+          ipc0(jmx) = ip3mn
+       end if
+
+       ! ── Store the ncp neighbours for point ip1 ────────────────────────────
+       j1 = (ip1-1)*ncp
+       do j2 = 1, ncp
+          j1      = j1 + 1
+          ipc(j1) = ipc0(j2)
+       end do
+    end do
   end subroutine findClosestNeighbors
 
   subroutine estimateDerivatives(ndp, xd, yd, zd, ncp, ipc, pd)
-    use :: Error, only : Error_Report
+    !!{
+    Estimate first- and second-order partial derivatives at each data point using the {\normalfont \ttfamily ncp} closest
+    neighbours.  Output {\normalfont \ttfamily pd(5*ndp)} stores ZX, ZY, ZXX, ZXY, ZYY for point {\normalfont \ttfamily ip0}
+    at indices {\normalfont \ttfamily 5*ip0-4 .. 5*ip0}.
+    Port of {\normalfont \ttfamily idpdrv} from the original BIVAR package (Akima 1978).
+    !!}
     implicit none
     integer                       , intent(in ) :: ndp, ncp
     double precision, dimension(:), intent(in ) :: xd, yd, zd
     integer         , dimension(:), intent(in ) :: ipc
     double precision, dimension(:), intent(out) :: pd
-    pd = 0.0d0
-    ! TODO Phase 3: port idpdrv
-    call Error_Report('estimateDerivatives not yet implemented'//char(0),'numerical.interpolation.2D.irregular')
+    double precision :: dnmx, dnmy, dnmz, nmx, nmy, nmz
+    double precision :: dnmxx, dnmxy, dnmyx, dnmyy
+    double precision :: nmxx, nmxy, nmyx, nmyy
+    double precision :: dx1, dy1, dz1, dx2, dy2, dzx1, dzy1, dzx2, dzy2
+    double precision :: x0, y0, z0, zx0, zy0
+    integer          :: ip0, ic1, ic2, ic2mn, ipi
+    integer          :: jipc0, jipc, jpd0, jpd
+    integer          :: ncpm1
+
+    ncpm1 = ncp - 1
+
+    ! ── Pass 1: estimate ZX and ZY (first derivatives) ────────────────────────
+    do ip0 = 1, ndp
+       x0    = xd(ip0);  y0 = yd(ip0);  z0 = zd(ip0)
+       nmx   = 0.0d0;  nmy = 0.0d0;  nmz = 0.0d0
+       jipc0 = ncp*(ip0-1)
+       do ic1 = 1, ncpm1
+          ipi = ipc(jipc0+ic1)
+          dx1 = xd(ipi)-x0;  dy1 = yd(ipi)-y0;  dz1 = zd(ipi)-z0
+          ic2mn = ic1 + 1
+          do ic2 = ic2mn, ncp
+             ipi  = ipc(jipc0+ic2)
+             dx2  = xd(ipi)-x0;  dy2  = yd(ipi)-y0
+             dnmz = dx1*dy2 - dy1*dx2
+             if (dnmz == 0.0d0) cycle
+             dz2  = zd(ipi)-z0
+             dnmx = dy1*dz2 - dz1*dy2
+             dnmy = dz1*dx2 - dx1*dz2
+             if (dnmz < 0.0d0) then
+                dnmx = -dnmx;  dnmy = -dnmy;  dnmz = -dnmz
+             end if
+             nmx = nmx+dnmx;  nmy = nmy+dnmy;  nmz = nmz+dnmz
+          end do
+       end do
+       jpd0        = 5*ip0
+       pd(jpd0-4)  = -nmx/nmz
+       pd(jpd0-3)  = -nmy/nmz
+    end do
+
+    ! ── Pass 2: estimate ZXX, ZXY, ZYY (second derivatives) ──────────────────
+    do ip0 = 1, ndp
+       jpd0  = 5*ip0
+       x0    = xd(ip0);  y0  = yd(ip0)
+       zx0   = pd(jpd0-4);  zy0 = pd(jpd0-3)
+       nmxx  = 0.0d0;  nmxy = 0.0d0;  nmyx = 0.0d0;  nmyy = 0.0d0;  nmz = 0.0d0
+       jipc0 = ncp*(ip0-1)
+       do ic1 = 1, ncpm1
+          ipi  = ipc(jipc0+ic1)
+          dx1  = xd(ipi)-x0;  dy1  = yd(ipi)-y0
+          jpd  = 5*ipi
+          dzx1 = pd(jpd-4)-zx0;  dzy1 = pd(jpd-3)-zy0
+          ic2mn = ic1 + 1
+          do ic2 = ic2mn, ncp
+             ipi  = ipc(jipc0+ic2)
+             dx2  = xd(ipi)-x0;  dy2  = yd(ipi)-y0
+             dnmz = dx1*dy2 - dy1*dx2
+             if (dnmz == 0.0d0) cycle
+             jpd  = 5*ipi
+             dzx2 = pd(jpd-4)-zx0;  dzy2 = pd(jpd-3)-zy0
+             dnmxx = dy1*dzx2 - dzx1*dy2
+             dnmxy = dzx1*dx2 - dx1*dzx2
+             dnmyx = dy1*dzy2 - dzy1*dy2
+             dnmyy = dzy1*dx2 - dx1*dzy2
+             if (dnmz < 0.0d0) then
+                dnmxx=-dnmxx; dnmxy=-dnmxy; dnmyx=-dnmyx; dnmyy=-dnmyy; dnmz=-dnmz
+             end if
+             nmxx=nmxx+dnmxx; nmxy=nmxy+dnmxy; nmyx=nmyx+dnmyx; nmyy=nmyy+dnmyy
+             nmz =nmz +dnmz
+          end do
+       end do
+       pd(jpd0-2) = -nmxx/nmz
+       pd(jpd0-1) = -(nmxy+nmyx)/(2.0d0*nmz)
+       pd(jpd0)   = -nmyy/nmz
+    end do
   end subroutine estimateDerivatives
 
   ! ════════════════════════════════════════════════════════════════════════════
