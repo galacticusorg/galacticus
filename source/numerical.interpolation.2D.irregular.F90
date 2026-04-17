@@ -38,9 +38,6 @@ module Numerical_Interpolation_2D_Irregular
      different instances have no shared mutable state and are therefore safe to call from concurrent OpenMP threads.
      !!}
      private
-     ! ── legacy workspace (used by idbvip; removed in Phase 6) ─────────────────
-     integer         , allocatable, dimension(:) :: integerWork
-     double precision, allocatable, dimension(:) :: realWork
      ! ── input data points ─────────────────────────────────────────────────────
      integer                                     :: nData      = 0
      integer                                     :: nNeighbors = 5
@@ -76,15 +73,21 @@ module Numerical_Interpolation_2D_Irregular
 contains
 
   ! ════════════════════════════════════════════════════════════════════════════
-  ! Public API  (Phase 6 will replace the idbvip call with the new path)
+  ! Public API
   ! ════════════════════════════════════════════════════════════════════════════
 
   function Interpolate_2D_Irregular_Array(dataX,dataY,dataZ,interpolateX,interpolateY,workspace,numberComputePoints,reset) &
        result(zi)
     !!{
     Perform interpolation on a set of points irregularly spaced on a 2D surface.
+    On {\normalfont \ttfamily reset=.true.} (or the first call) the triangulation, closest-neighbour
+    indices, partial derivatives, and 9-section lookup grid are all rebuilt from scratch.
+    On subsequent calls ({\normalfont \ttfamily reset=.false.}) the triangulation and closest-neighbour
+    indices are reused but the partial derivatives are re-estimated, which correctly handles the case
+    where the Z values change between calls while the XY positions do not.
+    The function is fully thread-safe: all state is held in {\normalfont \ttfamily workspace} and
+    no global or module-level variables are accessed.
     !!}
-    use :: Bivar, only : idbvip
     implicit none
     type            (interp2dIrregularObject)                               , intent(inout)           :: workspace
     double precision                         , dimension(:)                 , intent(in   )           :: dataX        , dataY       , &
@@ -93,9 +96,7 @@ contains
     integer                                                                 , intent(in   ), optional :: numberComputePoints
     logical                                                                 , intent(inout), optional :: reset
     double precision                         , dimension(size(interpolateX))                          :: zi
-    integer                                                                                           :: dataPointCount        , integerWorkspaceSize, &
-         &                                                                                               interpolatedPointCount , numberComputePointsActual, &
-         &                                                                                               realWorkspaceSize      , resetFlag
+    integer                                                                                           :: i
     logical                                                                                           :: resetActual
 
     ! Determine reset status.
@@ -105,50 +106,24 @@ contains
     else
        resetActual = .true.
     end if
-    if (resetActual) then
-       resetFlag = 1
+
+    ! Decide how many neighbours to use for partial derivative estimation.
+    if (present(numberComputePoints)) workspace%nNeighbors = numberComputePoints
+
+    if (resetActual .or. .not. workspace%initialized) then
+       call initializeWorkspace(workspace, dataX, dataY, dataZ)
     else
-       resetFlag = 2
+       ! Reuse triangulation and closest-neighbour indices; re-estimate partial
+       ! derivatives in case the Z values have changed since the previous call.
+       workspace%zData = dataZ
+       call estimateDerivatives(workspace%nData, workspace%xData, workspace%yData, &
+            &                   workspace%zData, workspace%nNeighbors,              &
+            &                   workspace%ipc, workspace%pd)
     end if
 
-    ! Decide how many points to use for computing partial derivatives.
-    if (present(numberComputePoints)) then
-       numberComputePointsActual = numberComputePoints
-    else
-       numberComputePointsActual = 5
-    end if
-
-    dataPointCount         = size(dataX)
-    interpolatedPointCount = size(interpolateX)
-
-    ! Ensure legacy workspace is large enough.
-    integerWorkspaceSize = max(31,27+numberComputePointsActual)*dataPointCount+interpolatedPointCount
-    realWorkspaceSize    = 8*dataPointCount
-    if (allocated(workspace%integerWork)) then
-       if (size(workspace%integerWork) < integerWorkspaceSize) then
-          deallocate(workspace%integerWork)
-          allocate  (workspace%integerWork(integerWorkspaceSize))
-          workspace%integerWork = 0
-       end if
-       if (size(workspace%realWork) < realWorkspaceSize) then
-          deallocate(workspace%realWork)
-          allocate  (workspace%realWork(realWorkspaceSize))
-          workspace%realWork = 0.0d0
-       end if
-    else
-       allocate(workspace%integerWork(integerWorkspaceSize))
-       allocate(workspace%realWork   (realWorkspaceSize   ))
-       workspace%integerWork = 0
-       workspace%realWork    = 0.0d0
-    end if
-
-    ! TODO Phase 6: replace the idbvip call below with the new path (initializeWorkspace +
-    ! interpolateOne loop) and remove the use :: Bivar above and the legacy workspace fields.
-    !$omp critical (idbvip)
-    call idbvip(resetFlag,numberComputePointsActual,dataPointCount,dataX,dataY,dataZ, &
-         &      interpolatedPointCount,interpolateX,interpolateY,zi,                   &
-         &      workspace%integerWork,workspace%realWork)
-    !$omp end critical (idbvip)
+    do i = 1, size(interpolateX)
+       zi(i) = interpolateOne(workspace, interpolateX(i), interpolateY(i))
+    end do
 
   end function Interpolate_2D_Irregular_Array
 
@@ -172,14 +147,13 @@ contains
   end function Interpolate_2D_Irregular_Scalar
 
   ! ════════════════════════════════════════════════════════════════════════════
-  ! Internal orchestration (called from Phase 6 onwards)
+  ! Internal orchestration
   ! ════════════════════════════════════════════════════════════════════════════
 
   subroutine initializeWorkspace(ws, xd, yd, zd)
     !!{
     Build triangulation, find closest neighbours, estimate derivatives, and build the 9-section lookup grid.
     !!}
-    use :: Error, only : Error_Report
     implicit none
     type            (interp2dIrregularObject), intent(inout) :: ws
     double precision, dimension(:)           , intent(in   ) :: xd, yd, zd
@@ -213,15 +187,13 @@ contains
     !!{
     Locate the triangle containing {\normalfont \ttfamily (xii,yii)} and interpolate.
     !!}
-    use :: Error, only : Error_Report
     implicit none
     type            (interp2dIrregularObject), intent(inout) :: ws
     double precision                         , intent(in   ) :: xii, yii
     integer                                                  :: iti
 
-    iti             = locatePoint(ws, xii, yii)
-    ws%lastTriangle = iti
-    interpolateOne  = interpolatePoint(ws, xii, yii, iti)
+    iti            = locatePoint(ws, xii, yii)
+    interpolateOne = interpolatePoint(ws, xii, yii, iti)
   end function interpolateOne
 
   ! ════════════════════════════════════════════════════════════════════════════
