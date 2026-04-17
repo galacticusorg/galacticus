@@ -987,18 +987,188 @@ contains
   end function locatePoint
 
   ! ════════════════════════════════════════════════════════════════════════════
-  ! Phase 5 stub: interpolation at a located point
+  ! Phase 5: interpolation at a located point
   ! ════════════════════════════════════════════════════════════════════════════
 
   double precision function interpolatePoint(ws, xii, yii, iti)
-    use :: Error, only : Error_Report
+    !!{
+    Evaluate the interpolated (or extrapolated) Z value at {\normalfont \ttfamily (xii,yii)} given the
+    location code {\normalfont \ttfamily iti} returned by {\normalfont \ttfamily locatePoint}.
+    Three cases are handled:
+    \begin{description}
+      \item[Interior triangle {\normalfont \ttfamily (iti <= nTriangles+nBorder)}]
+        5th-degree quintic Bézier surface in barycentric UV coordinates (Akima 1978).
+      \item[Border segment {\normalfont \ttfamily (il1==il2)}]
+        Quadratic extrapolation perpendicular to the segment, 5th-degree along it.
+      \item[Exterior corner {\normalfont \ttfamily (il1/=il2)}]
+        2nd-degree Taylor expansion centred on the shared corner vertex.
+    \end{description}
+    Port of {\normalfont \ttfamily idptip} from the original BIVAR package (Akima 1978).
+    Coefficient caching (the original {\normalfont \ttfamily itpv} flag) is omitted since in
+    Galacticus usage the cache was never effective.
+    !!}
     implicit none
     type            (interp2dIrregularObject), intent(in) :: ws
     double precision                         , intent(in) :: xii, yii
     integer                                  , intent(in) :: iti
-    interpolatePoint = 0.0d0
-    ! TODO Phase 5: port idptip
-    call Error_Report('interpolatePoint not yet implemented'//char(0),'numerical.interpolation.2D.irregular')
+    integer          :: nt, nl, ntl, it0, il1, il2, i, idp, jipl, jipt, jpd, jpdd, kpd
+    double precision :: x(3), y(3), z(3), pd(15)
+    double precision :: zu(3), zv(3), zuu(3), zuv(3), zvv(3)
+    double precision :: x0, y0, a, b, c, d, aa, bb, cc, dd
+    double precision :: ad, bc, dlt, ap, bp, cp, dp, adbc, ab, cd, act2, bdt2
+    double precision :: p00, p01, p02, p03, p04, p05
+    double precision :: p10, p11, p12, p13, p14
+    double precision :: p20, p21, p22, p23
+    double precision :: p30, p31, p32
+    double precision :: p40, p41, p50
+    double precision :: p0, p1, p2, p3, p4
+    double precision :: h1, h2, h3
+    double precision :: lu, lv, thxu, thuv, thus, thsv, csuv
+    double precision :: ac, g1, g2, dx, dy, u, v
+
+    nt  = ws%nTriangles
+    nl  = ws%nBorder
+    ntl = nt + nl
+    it0 = iti
+
+    if (it0 <= ntl) then
+       ! ── Case 1: interior triangle → 5th-degree quintic in UV barycentric coords ─
+       jipt = 3*(it0-1)
+       jpd  = 0
+       do i = 1, 3
+          jipt       = jipt + 1
+          idp        = ws%ipt(jipt)
+          x(i)       = ws%xData(idp);  y(i) = ws%yData(idp);  z(i) = ws%zData(idp)
+          jpdd       = 5*(idp-1)
+          do kpd = 1, 5
+             jpd  = jpd  + 1;  jpdd = jpdd + 1
+             pd(jpd) = ws%pd(jpdd)
+          end do
+       end do
+       x0   = x(1);  y0  = y(1)
+       a    = x(2)-x0;  b = x(3)-x0;  c = y(2)-y0;  d = y(3)-y0
+       ad   = a*d;  bc = b*c;  dlt = ad-bc
+       ap   =  d/dlt;  bp = -b/dlt;  cp = -c/dlt;  dp = a/dlt
+       aa   = a*a;  act2 = 2.0d0*a*c;  cc = c*c
+       ab   = a*b;  adbc = ad+bc;       cd = c*d
+       bb   = b*b;  bdt2 = 2.0d0*b*d;  dd = d*d
+       do i = 1, 3
+          jpd     = 5*i
+          zu(i)   = a*pd(jpd-4)+c*pd(jpd-3)
+          zv(i)   = b*pd(jpd-4)+d*pd(jpd-3)
+          zuu(i)  = aa*pd(jpd-2)+act2*pd(jpd-1)+cc*pd(jpd)
+          zuv(i)  = ab*pd(jpd-2)+adbc*pd(jpd-1)+cd*pd(jpd)
+          zvv(i)  = bb*pd(jpd-2)+bdt2*pd(jpd-1)+dd*pd(jpd)
+       end do
+       p00  = z(1);  p10 = zu(1);  p01 = zv(1)
+       p20  = 0.5d0*zuu(1);  p11 = zuv(1);  p02 = 0.5d0*zvv(1)
+       h1   = z(2)-p00-p10-p20;  h2 = zu(2)-p10-zuu(1);  h3 = zuu(2)-zuu(1)
+       p30  =  10.0d0*h1-4.0d0*h2+0.5d0*h3
+       p40  = -15.0d0*h1+7.0d0*h2         -h3
+       p50  =   6.0d0*h1-3.0d0*h2+0.5d0*h3
+       h1   = z(3)-p00-p01-p02;  h2 = zv(3)-p01-zvv(1);  h3 = zvv(3)-zvv(1)
+       p03  =  10.0d0*h1-4.0d0*h2+0.5d0*h3
+       p04  = -15.0d0*h1+7.0d0*h2         -h3
+       p05  =   6.0d0*h1-3.0d0*h2+0.5d0*h3
+       lu   = sqrt(aa+cc);  lv = sqrt(bb+dd)
+       thxu = atan2(c,a);  thuv = atan2(d,b)-thxu;  csuv = cos(thuv)
+       p41  = 5.0d0*lv*csuv/lu*p50;  p14 = 5.0d0*lu*csuv/lv*p05
+       h1   = zv(2)-p01-p11-p41;  h2 = zuv(2)-p11-4.0d0*p41
+       p21  =  3.0d0*h1-h2;  p31 = -2.0d0*h1+h2
+       h1   = zu(3)-p10-p11-p14;  h2 = zuv(3)-p11-4.0d0*p14
+       p12  =  3.0d0*h1-h2;  p13 = -2.0d0*h1+h2
+       thus = atan2(d-c,b-a)-thxu;  thsv = thuv-thus
+       ! Reuse aa,bb,cc,dd for angle-derived quantities.
+       aa   =  sin(thsv)/lu;  bb = -cos(thsv)/lu
+       cc   =  sin(thus)/lv;  dd =  cos(thus)/lv
+       ac   = aa*cc;  ad = aa*dd;  bc = bb*cc
+       g1   = aa*ac*(3.0d0*bc+2.0d0*ad)
+       g2   = cc*ac*(3.0d0*ad+2.0d0*bc)
+       h1   = -aa*aa*aa*(5.0d0*aa*bb*p50+(4.0d0*bc+ad)*p41) &
+              -cc*cc*cc*(5.0d0*cc*dd*p05+(4.0d0*ad+bc)*p14)
+       h2   = 0.5d0*zvv(2)-p02-p12
+       h3   = 0.5d0*zuu(3)-p20-p21
+       p22  = (g1*h2+g2*h3-h1)/(g1+g2)
+       p32  = h2-p22;  p23 = h3-p22
+       dx   = xii-x0;  dy = yii-y0
+       u    = ap*dx+bp*dy;  v = cp*dx+dp*dy
+       p0   = p00+v*(p01+v*(p02+v*(p03+v*(p04+v*p05))))
+       p1   = p10+v*(p11+v*(p12+v*(p13+v*p14)))
+       p2   = p20+v*(p21+v*(p22+v*p23))
+       p3   = p30+v*(p31+v*p32)
+       p4   = p40+v*p41
+       interpolatePoint = p0+u*(p1+u*(p2+u*(p3+u*(p4+u*p50))))
+
+    else
+       ! Decode exterior location.
+       il1 = it0/ntl;  il2 = it0-il1*ntl
+
+       if (il1 == il2) then
+          ! ── Case 2: on a border segment → quadratic in u, 5th-degree in v ───────
+          jipl = 3*(il1-1)
+          jpd  = 0
+          do i = 1, 2
+             jipl       = jipl + 1
+             idp        = ws%ipl(jipl)
+             x(i)       = ws%xData(idp);  y(i) = ws%yData(idp);  z(i) = ws%zData(idp)
+             jpdd       = 5*(idp-1)
+             do kpd = 1, 5
+                jpd  = jpd  + 1;  jpdd = jpdd + 1
+                pd(jpd) = ws%pd(jpdd)
+             end do
+          end do
+          ! u is perpendicular to the border segment, v is along it.
+          x0   = x(1);  y0 = y(1)
+          a    = y(2)-y(1);  b = x(2)-x(1);  c = -b;  d = a
+          ad   = a*d;  bc = b*c;  dlt = ad-bc
+          ap   = d/dlt;  bp = -b/dlt;  cp = -bp;  dp = ap
+          aa   = a*a;  act2 = 2.0d0*a*c;  cc = c*c
+          ab   = a*b;  adbc = ad+bc;       cd = c*d
+          bb   = b*b;  bdt2 = 2.0d0*b*d;  dd = d*d
+          do i = 1, 2
+             jpd     = 5*i
+             zu(i)   = a*pd(jpd-4)+c*pd(jpd-3)
+             zv(i)   = b*pd(jpd-4)+d*pd(jpd-3)
+             zuu(i)  = aa*pd(jpd-2)+act2*pd(jpd-1)+cc*pd(jpd)
+             zuv(i)  = ab*pd(jpd-2)+adbc*pd(jpd-1)+cd*pd(jpd)
+             zvv(i)  = bb*pd(jpd-2)+bdt2*pd(jpd-1)+dd*pd(jpd)
+          end do
+          p00  = z(1);  p10 = zu(1);  p01 = zv(1)
+          p20  = 0.5d0*zuu(1);  p11 = zuv(1);  p02 = 0.5d0*zvv(1)
+          h1   = z(2)-p00-p01-p02;  h2 = zv(2)-p01-zvv(1);  h3 = zvv(2)-zvv(1)
+          p03  =  10.0d0*h1-4.0d0*h2+0.5d0*h3
+          p04  = -15.0d0*h1+7.0d0*h2         -h3
+          p05  =   6.0d0*h1-3.0d0*h2+0.5d0*h3
+          h1   = zu(2)-p10-p11;  h2 = zuv(2)-p11
+          p12  =  3.0d0*h1-h2;  p13 = -2.0d0*h1+h2
+          p21  = 0.0d0
+          p23  = -zuu(2)+zuu(1);  p22 = -1.5d0*p23
+          dx   = xii-x0;  dy = yii-y0
+          u    = ap*dx+bp*dy;  v = cp*dx+dp*dy
+          p0   = p00+v*(p01+v*(p02+v*(p03+v*(p04+v*p05))))
+          p1   = p10+v*(p11+v*(p12+v*p13))
+          p2   = p20+v*(p21+v*(p22+v*p23))
+          interpolatePoint = p0+u*(p1+u*p2)
+
+       else
+          ! ── Case 3: exterior corner → 2nd-degree Taylor at the shared vertex ───
+          jipl = 3*il2-2
+          idp  = ws%ipl(jipl)
+          x(1) = ws%xData(idp);  y(1) = ws%yData(idp);  z(1) = ws%zData(idp)
+          jpdd = 5*(idp-1)
+          do kpd = 1, 5
+             jpdd    = jpdd + 1
+             pd(kpd) = ws%pd(jpdd)
+          end do
+          p00  = z(1);  p10 = pd(1);  p01 = pd(2)
+          p20  = 0.5d0*pd(3);  p11 = pd(4);  p02 = 0.5d0*pd(5)
+          u    = xii-x(1);  v = yii-y(1)
+          p0   = p00+v*(p01+v*p02)
+          p1   = p10+v*p11
+          interpolatePoint = p0+u*(p1+u*p20)
+       end if
+    end if
+
   end function interpolatePoint
 
 end module Numerical_Interpolation_2D_Irregular
