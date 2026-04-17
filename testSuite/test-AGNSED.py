@@ -26,6 +26,11 @@ efficiencyBlackHole = nodes['radiativeEfficiencyBlackHoles'][:]
 wavelength          = nodes['agnSEDColumnValues'           ][:]
 sedBlackHole        = nodes['agnSED'                       ][:]
 
+# Map efficiency and rate into numpy arrays. These are read in as lists of numpy arrays (as there can, in principle, be multiple
+# black holes in each galaxy).
+efficiencyBlackHole = np.array(list(map(lambda x: x[0],efficiencyBlackHole)))
+rateBlackHole       = np.array(list(map(lambda x: x[0],rateBlackHole      )))
+
 # Define physical constants (SI units).
 massSolar             = 1.99e+30
 gigaYear              = 3.16e+16
