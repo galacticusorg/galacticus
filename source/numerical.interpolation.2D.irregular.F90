@@ -772,25 +772,218 @@ contains
   end subroutine estimateDerivatives
 
   ! ════════════════════════════════════════════════════════════════════════════
-  ! Phase 4 stubs: 9-section grid + point location
+  ! Phase 4: 9-section grid + point location
   ! ════════════════════════════════════════════════════════════════════════════
 
   subroutine buildSectionGrid(ws)
-    use :: Error, only : Error_Report
+    !!{
+    Build the 9-section spatial lookup grid over the triangulation stored in {\normalfont \ttfamily ws}.
+    On return {\normalfont \ttfamily ws\%xs1}, {\normalfont \ttfamily ws\%xs2}, {\normalfont \ttfamily ws\%ys1},
+    {\normalfont \ttfamily ws\%ys2}, {\normalfont \ttfamily ws\%ntsc}, {\normalfont \ttfamily ws\%sectionData},
+    and {\normalfont \ttfamily ws\%triBounds} are populated and {\normalfont \ttfamily ws\%gridReady} is set to
+    {\normalfont \ttfamily .true.}.
+    Port of the initialisation block of {\normalfont \ttfamily idlctn} from the original BIVAR package (Akima 1978).
+    !!}
     implicit none
-    type(interp2dIrregularObject), intent(inout) :: ws
-    ! TODO Phase 4: extracted from idlctn initialisation block
-    call Error_Report('buildSectionGrid not yet implemented'//char(0),'numerical.interpolation.2D.irregular')
+    type            (interp2dIrregularObject), intent(inout) :: ws
+    integer                                                  :: ndp, nt, idp, it0, it0t3, isc, jwk, jiwk
+    integer                                                  :: i1, i2, i3
+    integer                                                  :: idsc(9)
+    double precision                                         :: xi, yi, xmn, xmx, ymn, ymx
+
+    ndp = ws%nData
+    nt  = ws%nTriangles
+
+    ! Compute bounding box of all data points to set section boundaries.
+    xmn = ws%xData(1);  xmx = xmn
+    ymn = ws%yData(1);  ymx = ymn
+    do idp = 2, ndp
+       xi = ws%xData(idp);  yi = ws%yData(idp)
+       xmn = min(xi, xmn);  xmx = max(xi, xmx)
+       ymn = min(yi, ymn);  ymx = max(yi, ymx)
+    end do
+    ws%xs1 = (xmn + xmn + xmx) / 3.0d0
+    ws%xs2 = (xmn + xmx + xmx) / 3.0d0
+    ws%ys1 = (ymn + ymn + ymx) / 3.0d0
+    ws%ys2 = (ymn + ymx + ymx) / 3.0d0
+
+    ! Allocate section arrays.
+    if (allocated(ws%ntsc))        deallocate(ws%ntsc)
+    if (allocated(ws%sectionData)) deallocate(ws%sectionData)
+    if (allocated(ws%triBounds))   deallocate(ws%triBounds)
+    allocate(ws%ntsc(9))
+    allocate(ws%sectionData(9*nt))
+    allocate(ws%triBounds(4*nt))
+    ws%ntsc = 0
+
+    ! For each triangle, determine which sections its bounding box overlaps.
+    idsc = 0
+    do it0 = 1, nt
+       it0t3 = it0 * 3
+       i1 = ws%ipt(it0t3-2);  i2 = ws%ipt(it0t3-1);  i3 = ws%ipt(it0t3)
+       xmn = min(ws%xData(i1), ws%xData(i2), ws%xData(i3))
+       xmx = max(ws%xData(i1), ws%xData(i2), ws%xData(i3))
+       ymn = min(ws%yData(i1), ws%yData(i2), ws%yData(i3))
+       ymx = max(ws%yData(i1), ws%yData(i2), ws%yData(i3))
+       ! Bottom row (y < ys1 band): bbox bottom reaches below ys1.
+       if (ymn <= ws%ys1) then
+          if (xmn <= ws%xs1)                          idsc(1) = 1
+          if (xmx >= ws%xs1 .and. xmn <= ws%xs2)      idsc(2) = 1
+          if (xmx >= ws%xs2)                          idsc(3) = 1
+       end if
+       ! Middle row (ys1..ys2 band): bbox overlaps that band.
+       if (ymx >= ws%ys1 .and. ymn <= ws%ys2) then
+          if (xmn <= ws%xs1)                          idsc(4) = 1
+          if (xmx >= ws%xs1 .and. xmn <= ws%xs2)      idsc(5) = 1
+          if (xmx >= ws%xs2)                          idsc(6) = 1
+       end if
+       ! Top row (y > ys2 band): bbox top reaches above ys2.
+       if (ymx >= ws%ys2) then
+          if (xmn <= ws%xs1)                          idsc(7) = 1
+          if (xmx >= ws%xs1 .and. xmn <= ws%xs2)      idsc(8) = 1
+          if (xmx >= ws%xs2)                          idsc(9) = 1
+       end if
+       ! Append this triangle index to each section it overlaps.
+       ! Storage: entry k (0-based) for section isc is at index 9*k+isc.
+       do isc = 1, 9
+          if (idsc(isc) /= 0) then
+             jiwk                  = 9*ws%ntsc(isc) + isc
+             ws%sectionData(jiwk)  = it0
+             ws%ntsc(isc)          = ws%ntsc(isc) + 1
+             idsc(isc)             = 0
+          end if
+       end do
+       ! Store bounding box for fast pre-rejection in locatePoint.
+       jwk = it0 * 4
+       ws%triBounds(jwk-3) = xmn;  ws%triBounds(jwk-2) = xmx
+       ws%triBounds(jwk-1) = ymn;  ws%triBounds(jwk)   = ymx
+    end do
+
+    ws%gridReady = .true.
   end subroutine buildSectionGrid
 
   integer function locatePoint(ws, xii, yii)
-    use :: Error, only : Error_Report
+    !!{
+    Locate the triangle or border-segment region containing {\normalfont \ttfamily (xii,yii)}.
+    Returns {\normalfont \ttfamily iti} in {\normalfont \ttfamily 1..nTriangles} for interior points;
+    returns {\normalfont \ttfamily il1*(nTriangles+nBorder)+il2} for exterior points, encoding the
+    nearest border-segment pair.  Updates {\normalfont \ttfamily ws\%lastTriangle} for subsequent calls.
+    Port of the lookup block of {\normalfont \ttfamily idlctn} from the original BIVAR package (Akima 1978).
+    !!}
     implicit none
     type            (interp2dIrregularObject), intent(inout) :: ws
     double precision                         , intent(in   ) :: xii, yii
-    locatePoint = 0
-    ! TODO Phase 4: port idlctn lookup
-    call Error_Report('locatePoint not yet implemented'//char(0),'numerical.interpolation.2D.irregular')
+    integer          :: nt, nl, ntl, it0, it0t3, isc, ntsci, jiwk, itsc, jwk
+    integer          :: il1, il1t3, il2, ip1, ip2, ip3
+    double precision :: x0, y0, x1, y1, x2, y2, x3, y3
+    logical          :: found
+
+    nt  = ws%nTriangles
+    nl  = ws%nBorder
+    ntl = nt + nl
+    x0  = xii;  y0 = yii
+    found = .false.
+
+    ! ── Check inter-call cache ─────────────────────────────────────────────────
+    it0 = ws%lastTriangle
+    if (it0 >= 1 .and. it0 <= nt) then
+       ! Cached interior triangle: point must be on the non-negative side of all three edges.
+       it0t3 = it0 * 3
+       ip1   = ws%ipt(it0t3-2);  x1 = ws%xData(ip1);  y1 = ws%yData(ip1)
+       ip2   = ws%ipt(it0t3-1);  x2 = ws%xData(ip2);  y2 = ws%yData(ip2)
+       if (side2(x1,y1,x2,y2,x0,y0) >= 0.0d0) then
+          ip3 = ws%ipt(it0t3);   x3 = ws%xData(ip3);  y3 = ws%yData(ip3)
+          if (side2(x2,y2,x3,y3,x0,y0) >= 0.0d0 .and. &
+              side2(x3,y3,x1,y1,x0,y0) >= 0.0d0)        found = .true.
+       end if
+    else if (it0 > nt) then
+       ! Cached exterior region: decode border segment indices.
+       il1   = it0 / ntl
+       il2   = it0 - il1*ntl
+       il1t3 = il1 * 3
+       ip1   = ws%ipl(il1t3-2);  x1 = ws%xData(ip1);  y1 = ws%yData(ip1)
+       ip2   = ws%ipl(il1t3-1);  x2 = ws%xData(ip2);  y2 = ws%yData(ip2)
+       if (il2 == il1) then
+          ! On border segment il1 itself.
+          if (spdt2(x1,y1,x2,y2,x0,y0) >= 0.0d0 .and. &
+              spdt2(x2,y2,x1,y1,x0,y0) >= 0.0d0 .and. &
+              side2(x1,y1,x2,y2,x0,y0) <= 0.0d0)        found = .true.
+       else
+          ! Between border segments il1 and il2.
+          if (spdt2(x1,y1,x2,y2,x0,y0) <= 0.0d0) then
+             ip3 = ws%ipl(3*il2-1);  x3 = ws%xData(ip3);  y3 = ws%yData(ip3)
+             if (spdt2(x3,y3,x2,y2,x0,y0) <= 0.0d0) found = .true.
+          end if
+       end if
+    end if
+
+    if (.not. found) then
+       ! ── Section-based triangle search ────────────────────────────────────────
+       isc = 1
+       if (x0 >= ws%xs1) isc = isc + 1
+       if (x0 >= ws%xs2) isc = isc + 1
+       if (y0 >= ws%ys1) isc = isc + 3
+       if (y0 >= ws%ys2) isc = isc + 3
+       ntsci = ws%ntsc(isc)
+       do itsc = 1, ntsci
+          jiwk  = 9*(itsc-1) + isc
+          it0   = ws%sectionData(jiwk)
+          jwk   = it0 * 4
+          if (x0 < ws%triBounds(jwk-3)) cycle
+          if (x0 > ws%triBounds(jwk-2)) cycle
+          if (y0 < ws%triBounds(jwk-1)) cycle
+          if (y0 > ws%triBounds(jwk))   cycle
+          it0t3 = it0 * 3
+          ip1   = ws%ipt(it0t3-2);  x1 = ws%xData(ip1);  y1 = ws%yData(ip1)
+          ip2   = ws%ipt(it0t3-1);  x2 = ws%xData(ip2);  y2 = ws%yData(ip2)
+          if (side2(x1,y1,x2,y2,x0,y0) < 0.0d0) cycle
+          ip3   = ws%ipt(it0t3);    x3 = ws%xData(ip3);  y3 = ws%yData(ip3)
+          if (side2(x2,y2,x3,y3,x0,y0) < 0.0d0) cycle
+          if (side2(x3,y3,x1,y1,x0,y0) < 0.0d0) cycle
+          found = .true.
+          exit
+       end do
+
+       if (.not. found) then
+          ! ── Border segment scan (point is exterior to the data area) ────────────
+          it0 = 1  ! fallback: use triangle 1 if no border region found
+          do il1 = 1, nl
+             il1t3 = il1 * 3
+             ip1   = ws%ipl(il1t3-2);  x1 = ws%xData(ip1);  y1 = ws%yData(ip1)
+             ip2   = ws%ipl(il1t3-1);  x2 = ws%xData(ip2);  y2 = ws%yData(ip2)
+             ! Skip if point is "before" the start of this segment's projection.
+             if (spdt2(x2,y2,x1,y1,x0,y0) < 0.0d0) cycle
+             if (spdt2(x1,y1,x2,y2,x0,y0) >= 0.0d0) then
+                ! Point projects onto the segment; must be on the exterior side.
+                if (side2(x1,y1,x2,y2,x0,y0) > 0.0d0) cycle
+                il2 = il1
+             else
+                ! Point is past the end — check the adjacent corner region.
+                il2 = mod(il1,nl) + 1
+                ip3 = ws%ipl(3*il2-1);  x3 = ws%xData(ip3);  y3 = ws%yData(ip3)
+                if (spdt2(x3,y3,x2,y2,x0,y0) > 0.0d0) cycle
+             end if
+             it0 = il1*ntl + il2
+             exit
+          end do
+       end if
+    end if
+
+    ws%lastTriangle = it0
+    locatePoint     = it0
+
+  contains
+
+    double precision function side2(u1,v1,u2,v2,u3,v3)
+      double precision, intent(in) :: u1, v1, u2, v2, u3, v3
+      side2 = (u1-u3)*(v2-v3) - (v1-v3)*(u2-u3)
+    end function side2
+
+    double precision function spdt2(u1,v1,u2,v2,u3,v3)
+      double precision, intent(in) :: u1, v1, u2, v2, u3, v3
+      spdt2 = (u1-u2)*(u3-u2) + (v1-v2)*(v3-v2)
+    end function spdt2
+
   end function locatePoint
 
   ! ════════════════════════════════════════════════════════════════════════════
