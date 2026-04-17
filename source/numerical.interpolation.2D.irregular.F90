@@ -38,28 +38,34 @@ module Numerical_Interpolation_2D_Irregular
      different instances have no shared mutable state and are therefore safe to call from concurrent OpenMP threads.
      !!}
      private
-     ! Input data points
-     integer                                        :: nData       = 0
-     integer                                        :: nNeighbors  = 5
-     double precision, allocatable, dimension(:)    :: xData, yData, zData
-     ! Triangulation: ipt(3*nTriangles) stores vertex indices CCW; ipl(3*nBorder) stores border segment endpoints + triangle
-     integer                                        :: nTriangles  = 0
-     integer                                        :: nBorder     = 0
-     integer         , allocatable, dimension(:)    :: ipt, ipl
-     ! Closest-neighbour indices: ipc(nNeighbors*nData)
-     integer         , allocatable, dimension(:)    :: ipc
-     ! Partial derivatives: pd(5*nData) stores ZX,ZY,ZXX,ZXY,ZYY per point
-     double precision, allocatable, dimension(:)    :: pd
-     ! 9-section lookup grid (built once from the triangulation)
-     logical                                        :: gridReady   = .false.
-     double precision                               :: xs1, xs2, ys1, ys2
-     integer         , allocatable, dimension(:)    :: ntsc          ! (9)  triangles per section
-     integer         , allocatable, dimension(:)    :: sectionData   ! (9*nTriangles) packed triangle numbers per section
-     double precision, allocatable, dimension(:)    :: triBounds     ! (4*nTriangles) xmn,xmx,ymn,ymx per triangle
-     ! Cache: last triangle/border-segment code located (replaces module-level itpv/itipv)
-     integer                                        :: lastTriangle = 0
-     ! Initialisation flag
-     logical                                        :: initialized = .false.
+     ! ── legacy workspace (used by idbvip; removed in Phase 6) ─────────────────
+     integer         , allocatable, dimension(:) :: integerWork
+     double precision, allocatable, dimension(:) :: realWork
+     ! ── input data points ─────────────────────────────────────────────────────
+     integer                                     :: nData      = 0
+     integer                                     :: nNeighbors = 5
+     double precision, allocatable, dimension(:) :: xData, yData, zData
+     ! ── triangulation ─────────────────────────────────────────────────────────
+     ! ipt(3*nTriangles): vertex indices listed CCW
+     ! ipl(3*nBorder):    border segment endpoints + owning triangle number
+     integer                                     :: nTriangles = 0
+     integer                                     :: nBorder    = 0
+     integer         , allocatable, dimension(:) :: ipt, ipl
+     ! ── closest-neighbour indices: ipc(nNeighbors*nData) ─────────────────────
+     integer         , allocatable, dimension(:) :: ipc
+     ! ── partial derivatives: pd(5*nData) = ZX,ZY,ZXX,ZXY,ZYY per point ──────
+     double precision, allocatable, dimension(:) :: pd
+     ! ── 9-section lookup grid ─────────────────────────────────────────────────
+     logical                                     :: gridReady  = .false.
+     double precision                            :: xs1 = 0.0d0, xs2 = 0.0d0
+     double precision                            :: ys1 = 0.0d0, ys2 = 0.0d0
+     integer         , allocatable, dimension(:) :: ntsc        ! (9)
+     integer         , allocatable, dimension(:) :: sectionData ! (9*nTriangles) packed per section
+     double precision, allocatable, dimension(:) :: triBounds   ! (4*nTriangles) xmn,xmx,ymn,ymx
+     ! ── inter-call cache (replaces module-level itpv/itipv) ──────────────────
+     integer                                     :: lastTriangle = 0
+     ! ── initialisation flag ───────────────────────────────────────────────────
+     logical                                     :: initialized = .false.
   end type interp2dIrregularObject
 
   interface Interpolate_2D_Irregular
@@ -69,11 +75,16 @@ module Numerical_Interpolation_2D_Irregular
 
 contains
 
+  ! ════════════════════════════════════════════════════════════════════════════
+  ! Public API  (Phase 6 will replace the idbvip call with the new path)
+  ! ════════════════════════════════════════════════════════════════════════════
+
   function Interpolate_2D_Irregular_Array(dataX,dataY,dataZ,interpolateX,interpolateY,workspace,numberComputePoints,reset) &
        result(zi)
     !!{
     Perform interpolation on a set of points irregularly spaced on a 2D surface.
     !!}
+    use :: Bivar, only : idbvip
     implicit none
     type            (interp2dIrregularObject)                               , intent(inout)           :: workspace
     double precision                         , dimension(:)                 , intent(in   )           :: dataX        , dataY       , &
@@ -82,33 +93,62 @@ contains
     integer                                                                 , intent(in   ), optional :: numberComputePoints
     logical                                                                 , intent(inout), optional :: reset
     double precision                         , dimension(size(interpolateX))                          :: zi
-    logical                                                                                           :: doReset
-    integer                                                                                           :: i
+    integer                                                                                           :: dataPointCount        , integerWorkspaceSize, &
+         &                                                                                               interpolatedPointCount , numberComputePointsActual, &
+         &                                                                                               realWorkspaceSize      , resetFlag
+    logical                                                                                           :: resetActual
 
-    ! Determine whether a full reset/reinitialisation is needed.
+    ! Determine reset status.
     if (present(reset)) then
-       doReset = reset
-       reset   = .false.
+       resetActual = reset
+       reset       = .false.
     else
-       doReset = .true.
+       resetActual = .true.
+    end if
+    if (resetActual) then
+       resetFlag = 1
+    else
+       resetFlag = 2
     end if
 
-    ! Set number of neighbours for derivative estimation.
+    ! Decide how many points to use for computing partial derivatives.
     if (present(numberComputePoints)) then
-       workspace%nNeighbors = numberComputePoints
+       numberComputePointsActual = numberComputePoints
     else
-       workspace%nNeighbors = 5
+       numberComputePointsActual = 5
     end if
 
-    ! On reset (or first call), rebuild triangulation, neighbours, derivatives, and section grid.
-    if (doReset .or. .not.workspace%initialized) then
-       call initializeWorkspace(workspace, dataX, dataY, dataZ)
+    dataPointCount         = size(dataX)
+    interpolatedPointCount = size(interpolateX)
+
+    ! Ensure legacy workspace is large enough.
+    integerWorkspaceSize = max(31,27+numberComputePointsActual)*dataPointCount+interpolatedPointCount
+    realWorkspaceSize    = 8*dataPointCount
+    if (allocated(workspace%integerWork)) then
+       if (size(workspace%integerWork) < integerWorkspaceSize) then
+          deallocate(workspace%integerWork)
+          allocate  (workspace%integerWork(integerWorkspaceSize))
+          workspace%integerWork = 0
+       end if
+       if (size(workspace%realWork) < realWorkspaceSize) then
+          deallocate(workspace%realWork)
+          allocate  (workspace%realWork(realWorkspaceSize))
+          workspace%realWork = 0.0d0
+       end if
+    else
+       allocate(workspace%integerWork(integerWorkspaceSize))
+       allocate(workspace%realWork   (realWorkspaceSize   ))
+       workspace%integerWork = 0
+       workspace%realWork    = 0.0d0
     end if
 
-    ! Locate and interpolate each requested point.
-    do i = 1, size(interpolateX)
-       zi(i) = interpolateOne(workspace, interpolateX(i), interpolateY(i))
-    end do
+    ! TODO Phase 6: replace the idbvip call below with the new path (initializeWorkspace +
+    ! interpolateOne loop) and remove the use :: Bivar above and the legacy workspace fields.
+    !$omp critical (idbvip)
+    call idbvip(resetFlag,numberComputePointsActual,dataPointCount,dataX,dataY,dataZ, &
+         &      interpolatedPointCount,interpolateX,interpolateY,zi,                   &
+         &      workspace%integerWork,workspace%realWork)
+    !$omp end critical (idbvip)
 
   end function Interpolate_2D_Irregular_Array
 
@@ -131,13 +171,15 @@ contains
     Interpolate_2D_Irregular_Scalar = zArr(1)
   end function Interpolate_2D_Irregular_Scalar
 
-  ! ── internal: top-level orchestration ────────────────────────────────────────
+  ! ════════════════════════════════════════════════════════════════════════════
+  ! Internal orchestration (called from Phase 6 onwards)
+  ! ════════════════════════════════════════════════════════════════════════════
 
   subroutine initializeWorkspace(ws, xd, yd, zd)
     !!{
     Build triangulation, find closest neighbours, estimate derivatives, and build the 9-section lookup grid.
-    All results are stored in {\normalfont \ttfamily ws}.
     !!}
+    use :: Error, only : Error_Report
     implicit none
     type            (interp2dIrregularObject), intent(inout) :: ws
     double precision, dimension(:)           , intent(in   ) :: xd, yd, zd
@@ -146,26 +188,21 @@ contains
     ndp = size(xd)
     ncp = ws%nNeighbors
 
-    ! Store data.
     ws%nData = ndp
     if (allocated(ws%xData)) deallocate(ws%xData, ws%yData, ws%zData)
     allocate(ws%xData(ndp), ws%yData(ndp), ws%zData(ndp))
     ws%xData = xd;  ws%yData = yd;  ws%zData = zd
 
-    ! Triangulate.
     call buildTriangulation(ws)
 
-    ! Find closest neighbours.
     if (allocated(ws%ipc)) deallocate(ws%ipc)
     allocate(ws%ipc(ncp*ndp))
     call findClosestNeighbors(ndp, xd, yd, ncp, ws%ipc)
 
-    ! Estimate partial derivatives.
     if (allocated(ws%pd)) deallocate(ws%pd)
     allocate(ws%pd(5*ndp))
     call estimateDerivatives(ndp, xd, yd, zd, ncp, ws%ipc, ws%pd)
 
-    ! Build 9-section lookup grid.
     call buildSectionGrid(ws)
 
     ws%lastTriangle = 0
@@ -176,6 +213,7 @@ contains
     !!{
     Locate the triangle containing {\normalfont \ttfamily (xii,yii)} and interpolate.
     !!}
+    use :: Error, only : Error_Report
     implicit none
     type            (interp2dIrregularObject), intent(inout) :: ws
     double precision                         , intent(in   ) :: xii, yii
@@ -186,61 +224,79 @@ contains
     interpolateOne  = interpolatePoint(ws, xii, yii, iti)
   end function interpolateOne
 
-  ! ── Phase-2 placeholder: buildTriangulation ──────────────────────────────────
+  ! ════════════════════════════════════════════════════════════════════════════
+  ! Phase 2 stub: triangulation
+  ! ════════════════════════════════════════════════════════════════════════════
+
   subroutine buildTriangulation(ws)
+    use :: Error, only : Error_Report
     implicit none
     type(interp2dIrregularObject), intent(inout) :: ws
-    ! TODO Phase 2
+    ! TODO Phase 2: port idtang + idxchg
     call Error_Report('buildTriangulation not yet implemented'//char(0),'numerical.interpolation.2D.irregular')
   end subroutine buildTriangulation
 
-  ! ── Phase-3 placeholder: findClosestNeighbors ────────────────────────────────
+  ! ════════════════════════════════════════════════════════════════════════════
+  ! Phase 3 stubs: closest neighbours + partial derivatives
+  ! ════════════════════════════════════════════════════════════════════════════
+
   subroutine findClosestNeighbors(ndp, xd, yd, ncp, ipc)
+    use :: Error, only : Error_Report
     implicit none
-    integer                      , intent(in )               :: ndp, ncp
-    double precision, dimension(:), intent(in )               :: xd, yd
-    integer         , dimension(:), intent(out)               :: ipc
-    ! TODO Phase 3
+    integer                       , intent(in ) :: ndp, ncp
+    double precision, dimension(:), intent(in ) :: xd, yd
+    integer         , dimension(:), intent(out) :: ipc
+    ipc = 0
+    ! TODO Phase 3: port idcldp
     call Error_Report('findClosestNeighbors not yet implemented'//char(0),'numerical.interpolation.2D.irregular')
   end subroutine findClosestNeighbors
 
-  ! ── Phase-3 placeholder: estimateDerivatives ─────────────────────────────────
   subroutine estimateDerivatives(ndp, xd, yd, zd, ncp, ipc, pd)
+    use :: Error, only : Error_Report
     implicit none
-    integer                      , intent(in )               :: ndp, ncp
-    double precision, dimension(:), intent(in )               :: xd, yd, zd
-    integer         , dimension(:), intent(in )               :: ipc
-    double precision, dimension(:), intent(out)               :: pd
-    ! TODO Phase 3
+    integer                       , intent(in ) :: ndp, ncp
+    double precision, dimension(:), intent(in ) :: xd, yd, zd
+    integer         , dimension(:), intent(in ) :: ipc
+    double precision, dimension(:), intent(out) :: pd
+    pd = 0.0d0
+    ! TODO Phase 3: port idpdrv
     call Error_Report('estimateDerivatives not yet implemented'//char(0),'numerical.interpolation.2D.irregular')
   end subroutine estimateDerivatives
 
-  ! ── Phase-4 placeholder: buildSectionGrid ────────────────────────────────────
+  ! ════════════════════════════════════════════════════════════════════════════
+  ! Phase 4 stubs: 9-section grid + point location
+  ! ════════════════════════════════════════════════════════════════════════════
+
   subroutine buildSectionGrid(ws)
+    use :: Error, only : Error_Report
     implicit none
     type(interp2dIrregularObject), intent(inout) :: ws
-    ! TODO Phase 4
+    ! TODO Phase 4: extracted from idlctn initialisation block
     call Error_Report('buildSectionGrid not yet implemented'//char(0),'numerical.interpolation.2D.irregular')
   end subroutine buildSectionGrid
 
-  ! ── Phase-4 placeholder: locatePoint ─────────────────────────────────────────
   integer function locatePoint(ws, xii, yii)
+    use :: Error, only : Error_Report
     implicit none
     type            (interp2dIrregularObject), intent(inout) :: ws
     double precision                         , intent(in   ) :: xii, yii
     locatePoint = 0
-    ! TODO Phase 4
+    ! TODO Phase 4: port idlctn lookup
     call Error_Report('locatePoint not yet implemented'//char(0),'numerical.interpolation.2D.irregular')
   end function locatePoint
 
-  ! ── Phase-5 placeholder: interpolatePoint ────────────────────────────────────
+  ! ════════════════════════════════════════════════════════════════════════════
+  ! Phase 5 stub: interpolation at a located point
+  ! ════════════════════════════════════════════════════════════════════════════
+
   double precision function interpolatePoint(ws, xii, yii, iti)
+    use :: Error, only : Error_Report
     implicit none
     type            (interp2dIrregularObject), intent(in) :: ws
     double precision                         , intent(in) :: xii, yii
     integer                                  , intent(in) :: iti
     interpolatePoint = 0.0d0
-    ! TODO Phase 5
+    ! TODO Phase 5: port idptip
     call Error_Report('interpolatePoint not yet implemented'//char(0),'numerical.interpolation.2D.irregular')
   end function interpolatePoint
 
