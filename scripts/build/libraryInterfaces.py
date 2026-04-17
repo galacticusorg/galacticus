@@ -485,7 +485,9 @@ def interfaces_destructor(code, python, func_class):
   class({class_name}Class), pointer :: self_, {class_name}GetPtr
 
   self_ => {class_name}GetPtr(self,classID)
-  !![ <objectDestructor name="self_"/> !!]
+  !![
+  <objectDestructor name="self_"/>
+  !!]
   return
 end subroutine {class_name}DestructorL
 '''
