@@ -549,9 +549,11 @@ contains
     !$omp end critical(evolveForestsDeepCopy)
     !$omp barrier
     ! Call routines to perform initialization which must occur for all threads if run in parallel.
+    !$omp critical(evolveForestsInitialize)
     allocate(parameters)
     parameters=inputParameters(self%parameters)
     call Node_Components_Thread_Initialize(parameters)
+    !$omp end critical(evolveForestsInitialize)
     ! Allow events to be attached to the universe.
     !$omp masked
     self%universeWaiting%event => null()
