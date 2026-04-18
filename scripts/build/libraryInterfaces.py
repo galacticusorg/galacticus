@@ -986,11 +986,52 @@ def fortran_module_uses(argument_list):
 
 
 def fortran_call_code(argument_list, pre_arguments, post_arguments, continuation):
-    """Generate Fortran call code."""
-    args = [f"{arg['name']}={arg.get('fortran', {}).get('passAs', arg['name'])}"
-           for arg in argument_list
-           if arg.get('galacticus', {}).get('isPresent')]
-    return f"{pre_arguments}{continuation} {','.join(args)} {continuation}\n{post_arguments}"
+    """Generate Fortran call code, with optional-argument branching.
+
+    Mirrors Perl fortranCallCode().  When N optional args are present, emits
+    2^N if/else-if branches using present() intrinsic, plus an unconditional
+    else fallback to suppress compiler warnings about unset function results.
+    """
+    def make_call(present_set):
+        # present_set=None → all galacticus-present args included
+        # otherwise only include optionals whose name is in present_set
+        args = []
+        for arg in argument_list:
+            if not arg.get('galacticus', {}).get('isPresent'):
+                continue
+            if (arg.get('isOptional') and present_set is not None
+                    and arg['name'] not in present_set):
+                continue
+            pass_name = arg.get('fortran', {}).get('passAs', arg['name'])
+            args.append(f"{arg['name']}={pass_name}")
+        return (f"{pre_arguments}{continuation} {(',' + continuation + chr(10) + '  ' + continuation + ' ').join(args)} {continuation}\n"
+                f"{post_arguments}")
+
+    optional_names = sorted(
+        arg['name'] for arg in argument_list
+        if arg.get('isOptional') and arg.get('galacticus', {}).get('isPresent')
+    )
+
+    if not optional_names:
+        return make_call(None)
+
+    code = ''
+    first = True
+    for subset in _powerset(optional_names):
+        present_set = set(subset)
+        conditions = [
+            (f'present({n})' if n in present_set else f'.not.present({n})')
+            for n in optional_names
+        ]
+        prefix = '' if first else 'else '
+        code += f'{prefix}if ({" .and. ".join(conditions)}) then\n'
+        code += make_call(present_set)
+        first = False
+    # Unconditional else avoids compiler warnings about unset function results.
+    code += 'else\n'
+    code += make_call(None)
+    code += 'end if\n'
+    return code
 
 
 def iso_c_binding_import(argument_list, *extra_symbols):
@@ -1045,11 +1086,62 @@ def python_reassignments(argument_list):
 
 
 def python_call_code(argument_list, call):
-    """Generate Python call code."""
-    args = [arg.get('python', {}).get('passAs', arg['name'])
-           for arg in argument_list
-           if arg.get('fortran', {}).get('isPresent')]
-    return f"    {call}({','.join(args)})\n"
+    """Generate Python call code, with optional-argument branching.
+
+    Mirrors Perl pythonCallCode().  When N optional args are present, emits
+    2^N if/elif branches.  Once the first optional arg is encountered, ALL
+    subsequent args need explicit ctype wrapping (ctypes cannot infer types
+    when some args may be None).  Absent optional args are passed as None.
+    """
+    def make_py_call(present_set, indent='        '):
+        # present_set=None → all present; else set of presence-variable names
+        args = []
+        first_optional = False
+        for arg in argument_list:
+            if not arg.get('fortran', {}).get('isPresent'):
+                continue
+            is_opt = arg.get('isOptional', False)
+            pv     = arg.get('python', {}).get('present', arg['name'])
+            pa     = arg.get('python', {}).get('passAs', arg['name'])
+            if is_opt:
+                first_optional = True
+            if first_optional:
+                if is_opt and present_set is not None and pv not in present_set:
+                    args.append('None')
+                else:
+                    ctype = arg.get('ctypes', {}).get('type', 'c_void_p')
+                    args.append(f'{ctype}({pa})')
+            else:
+                args.append(pa)
+        return f"{indent}{call}({','.join(args)})\n"
+
+    # Collect the unique presence-variable names for optional fortran-present args.
+    pv_seen = {}
+    for arg in argument_list:
+        if not arg.get('isOptional'):
+            continue
+        if not arg.get('fortran', {}).get('isPresent'):
+            continue
+        pv = arg.get('python', {}).get('present', arg['name'])
+        pv_seen[pv] = True
+    optional_pvs = sorted(pv_seen.keys())
+
+    if not optional_pvs:
+        return make_py_call(None, indent='    ')
+
+    code = ''
+    first = True
+    for subset in _powerset(optional_pvs):
+        present_set = set(subset)
+        conditions = [
+            (f'{pv} is not None' if pv in present_set else f'{pv} is None')
+            for pv in optional_pvs
+        ]
+        prefix = '' if first else 'el'
+        code += f"    {prefix}if {' and '.join(conditions)}:\n"
+        code += make_py_call(present_set)
+        first = False
+    return code
 
 
 def _write_python_interface(python):
