@@ -8,12 +8,13 @@
 
 import sys
 import os
+import re
 
 sys.path.insert(0, os.path.join(os.environ.get('GALACTICUS_EXEC_PATH', '.'), 'python'))
 
 from Sort.Topo import sort as topo_sort
 from List.ExtraUtils import as_array, smart_push, hash_list, sorted_keys
-from Fortran.Utils import extract_variables
+from Fortran.Utils import extract_variables, UNIT_OPENERS
 from Galacticus.Build.SourceTree.Parse.Declarations import parse_declaration
 
 # ============================================================================
@@ -244,6 +245,52 @@ def test_parse_declaration():
     decl = parse_declaration('! this is a comment')
     assert_equal(decl, None, "Comment line returns None")
 
+# ============================================================================
+# Fortran.Utils.UNIT_OPENERS
+# ============================================================================
+
+def test_unit_openers():
+    print("\n=== Testing Fortran.Utils.UNIT_OPENERS ===")
+
+    # Interface declarations
+    m = re.match(UNIT_OPENERS['interface']['regex'],'interface myInterface')
+    assert_equal(m is not None, True, "Interface matched")
+    if m:
+        groups = m.groups()
+        assert_equal(groups[UNIT_OPENERS['interface']['unit_name']], 'myInterface', "Interface name correctly extracted")
+
+    m = re.match(UNIT_OPENERS['interface']['regex'],'abstract interface myInterface_34')
+    assert_equal(m is not None, True, "Abstract interface matched")
+    if m:
+        groups = m.groups()
+        assert_equal(groups[UNIT_OPENERS['interface']['unit_name']], 'myInterface_34', "Abstract interface name correctly extracted")
+
+    # Function declarations
+    m = re.match(UNIT_OPENERS['function']['regex'],'double precision function myFunc(a,b,c) result(d)')
+    assert_equal(m is not None, True, "Function opener matched")
+    if m:
+        groups = m.groups()
+        assert_equal(groups[UNIT_OPENERS['function']['unit_name']], 'myFunc', "Function name correctly extracted")
+
+    # Derived type declarations
+    m = re.match(UNIT_OPENERS['type']['regex'],'type :: myType')
+    assert_equal(m is not None, True, "Simple derived type declaration matched")
+    if m:
+        groups = m.groups()
+        assert_equal(groups[UNIT_OPENERS['type']['unit_name']], 'myType', "Type name correctly extracted")
+
+    m = re.match(UNIT_OPENERS['type']['regex'],'type, abstract :: myType1')
+    assert_equal(m is not None, True, "Abstract derived type declaration matched")
+    if m:
+        groups = m.groups()
+        assert_equal(groups[UNIT_OPENERS['type']['unit_name']], 'myType1', "Type name correctly extracted")
+
+    m = re.match(UNIT_OPENERS['type']['regex'],'type, extends(parentType) :: myType_2')
+    assert_equal(m is not None, True, "Extended derived type declaration matched")
+    if m:
+        groups = m.groups()
+        assert_equal(groups[UNIT_OPENERS['type']['unit_name']], 'myType_2', "Type name correctly extracted")
+
 
 # ============================================================================
 # Main
@@ -258,6 +305,7 @@ def main():
     test_list_extra_utils()
     test_extract_variables()
     test_parse_declaration()
+    test_unit_openers()
 
     print("\n" + "=" * 70)
     print(f"Results: {PASS_COUNT} passed, {FAIL_COUNT} failed")
