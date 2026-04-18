@@ -57,7 +57,6 @@ UNIT_OPENERS = {
         ),
     },
     # Function (with optional type prefix)
-    # Function (with optional type prefix)
     # Capture groups (0-based): 0=intrinsic, 1=kind, 2=function_name, 3=args_with_parens, 4=args_content
     'function': {
         'unit_name': 2,
@@ -83,7 +82,7 @@ UNIT_OPENERS = {
     },
     # Interface block
     'interface': {
-        'unit_name': 1,
+        'unit_name': 0,
         'regex': re.compile(
             r'^\s*(?:abstract\s+)?interface\s*([a-zA-Z0-9_()/+\-*.=]*)',
             re.IGNORECASE,
@@ -91,7 +90,7 @@ UNIT_OPENERS = {
     },
     # Derived type
     'type': {
-        'unit_name': 2,
+        'unit_name': 0,
         'regex': re.compile(
             r'^\s*type\s*'
             r'(?:,\s*(?:abstract|public|private|extends\s*\(' + LABEL + r'\))\s*)*'
@@ -104,14 +103,14 @@ UNIT_OPENERS = {
 # Note: The function regex group numbering needs verification against actual patterns.
 
 UNIT_CLOSERS = {
-    'module':          re.compile(r'^\s*end\s+module\s+('          + LABEL + r')', re.IGNORECASE),
-    'submodule':       re.compile(r'^\s*end\s+submodule\s+('        + LABEL + r')', re.IGNORECASE),
-    'program':         re.compile(r'^\s*end\s+program\s+('          + LABEL + r')', re.IGNORECASE),
-    'subroutine':      re.compile(r'^\s*end\s+subroutine\s+('       + LABEL + r')', re.IGNORECASE),
-    'function':        re.compile(r'^\s*end\s+function\s+('         + LABEL + r')', re.IGNORECASE),
-    'moduleProcedure': re.compile(r'^\s*end\s+procedure\s+('        + LABEL + r')', re.IGNORECASE),
+    'module':          re.compile(r'^\s*end\s+module\s+('           + LABEL + r')' , re.IGNORECASE),
+    'submodule':       re.compile(r'^\s*end\s+submodule\s+('        + LABEL + r')' , re.IGNORECASE),
+    'program':         re.compile(r'^\s*end\s+program\s+('          + LABEL + r')' , re.IGNORECASE),
+    'subroutine':      re.compile(r'^\s*end\s+subroutine\s+('       + LABEL + r')' , re.IGNORECASE),
+    'function':        re.compile(r'^\s*end\s+function\s+('         + LABEL + r')' , re.IGNORECASE),
+    'moduleProcedure': re.compile(r'^\s*end\s+procedure\s+('        + LABEL + r')' , re.IGNORECASE),
     'interface':       re.compile(r'^\s*end\s+interface\s*([a-zA-Z0-9_()/+\-*.=]*)', re.IGNORECASE),
-    'type':            re.compile(r'^\s*end\s+type\s+('             + LABEL + r')', re.IGNORECASE),
+    'type':            re.compile(r'^\s*end\s+type\s+('             + LABEL + r')' , re.IGNORECASE),
 }
 
 # ---------------------------------------------------------------------------
