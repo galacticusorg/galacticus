@@ -85,16 +85,46 @@ def _build_tree(root):
     Mirrors Perl Build_Children + Parse_Unit + the directive/moduleUse/
     declaration parse hooks.
     """
-    # Step 1: split raw content into structural units.
+    # Step 1: comment out LaTeX and XML blocks.
+    root['content'] = _comment_embedded(root['content'])
+    
+    # Step 2: split raw content into structural units.
     unit_children = _parse_units(root)
     _link_children(root, unit_children)
 
-    # Step 2: run the three parse passes over the whole tree.
+    # Step 3: run the three parse passes over the whole tree.
     _pass_directives(root)
     _pass_module_uses(root)
     _pass_declarations(root)
 
+def _comment_embedded(content):
+    """Comment out embedded LaTeX and XML blocks so that they are not processed as Fortran code"""
 
+    import io
+    fh = io.StringIO(content)
+
+    code_commented = ""
+    in_LaTeX = False
+    in_XML = False
+    for line in fh:
+        # Detect the end of a LaTeX section and change state.
+        if re.match(r'^\s*!!\}',line):
+            in_LaTeX = False
+        # Detect the end of an XML section and change state.
+        if re.match(r'^\s*!!\]',line):
+            in_XML = False
+        # Comment out LaTeX and XML, unless it is already commented out.
+        if ( in_LaTeX or in_XML ) and not re.match(r'^\s*\!<',line):
+            line = "!< "+line
+        code_commented = code_commented + line
+        # Detect the start of a LaTeX section and change state.
+        if re.match(r'^\s*!!\{',line):
+            in_LaTeX = True
+        # Detect the start of an XML section and change state.
+        if re.match(r'^\s*!!\[',line):
+            in_XML = True
+    return code_commented
+        
 def _make_code_node(content, source, line, parent=None):
     return {
         'type':       'code',
@@ -108,172 +138,6 @@ def _make_code_node(content, source, line, parent=None):
 
 
 def _parse_units(parent):
-    """Split parent['content'] into a list of child nodes.
-
-    Handles nested Fortran units (module, subroutine, function, type,
-    interface) by maintaining a stack.  Raw code between units becomes
-    'code' nodes.  Returns a flat list of top-level children.
-    """
-    content = parent.get('content', '')
-    source  = parent.get('source', 'unknown')
-    base_line = parent.get('line', 0)
-
-    # Stack entry: (node_dict, accumulated_raw_content_lines)
-    stack        = []        # stack of (node, raw_content_buffer)
-    top_children = []        # top-level children to return
-    raw_code_buf = ''        # accumulates raw code before/between units
-    raw_code_line = base_line
-    current_line  = base_line
-
-    import io
-    fh = io.StringIO(content)
-
-    while True:
-        raw_line, processed_line, _ = get_fortran_line(fh)
-        if not raw_line and not processed_line:
-            break  # EOF
-
-        n_newlines = raw_line.count('\n')
-
-        # ---- test for unit closers first (deepest match wins) ----
-        closed = False
-        if stack:
-            current_unit_type = stack[-1][0]['type']
-            closer_re = UNIT_CLOSERS.get(current_unit_type)
-            if closer_re and closer_re.match(processed_line):
-                # Close the current unit.
-                node, inner_buf = stack.pop()
-                node['closer']  = raw_line
-                # Parse inner content recursively.
-                if inner_buf:
-                    node['content'] = inner_buf
-                    inner_children = _parse_units(node)
-                    _link_children(node, inner_children)
-                    del node['content']
-                # Attach to parent scope.
-                if stack:
-                    # Flush any pending raw code into parent scope.
-                    if raw_code_buf:
-                        code_node = _make_code_node(raw_code_buf, source, raw_code_line)
-                        stack[-1][1]  # inner_buf of outer unit — but we
-                        # actually append to the outer unit's inner buf.
-                        # Reconsider: raw_code_buf belongs to the *inner* scope.
-                        pass
-                    stack[-1][1]  # touch (no-op; handled below via append)
-                    # Append accumulated raw code then the closed node to outer buf.
-                    # Nothing to do — raw_code_buf was already appended per-line below.
-                    pass
-                else:
-                    # This is a top-level close.
-                    if raw_code_buf:
-                        top_children.append(
-                            _make_code_node(raw_code_buf, source, raw_code_line))
-                        raw_code_buf  = ''
-                        raw_code_line = current_line + n_newlines
-                    top_children.append(node)
-                closed = True
-                current_line += n_newlines
-                continue
-
-        # ---- test for unit openers ----
-        matched_opener = False
-        for unit_type, spec in UNIT_OPENERS.items():
-            m = spec['regex'].match(processed_line)
-            if not m:
-                continue
-            # Extract unit name from the designated capture group.
-            name_idx = spec.get('unit_name', 0)
-            groups   = m.groups()
-            unit_name = groups[name_idx] if name_idx < len(groups) and groups[name_idx] else ''
-
-            # Special case: "module procedure" is a moduleProcedure, not a module.
-            if unit_type == 'module' and re.match(
-                    r'^\s*module\s+(?:procedure|function|subroutine)\b',
-                    processed_line, re.IGNORECASE):
-                continue
-
-            # Flush pending raw code.
-            if stack:
-                if raw_code_buf:
-                    stack[-1][1].append(raw_code_buf)
-                    raw_code_buf  = ''
-                    raw_code_line = current_line + n_newlines
-            else:
-                if raw_code_buf:
-                    top_children.append(
-                        _make_code_node(raw_code_buf, source, raw_code_line))
-                    raw_code_buf  = ''
-                    raw_code_line = current_line + n_newlines
-
-            # Create the new unit node.
-            node = {
-                'type':       unit_type,
-                'name':       unit_name.strip(),
-                'opener':     raw_line,
-                'parent':     None,
-                'firstChild': None,
-                'sibling':    None,
-                'source':     source,
-                'line':       current_line,
-            }
-            # moduleProcedure is self-closing (no end statement).
-            if unit_type == 'moduleProcedure':
-                names = [n.strip() for n in
-                         re.split(r'\s*,\s*', unit_name) if n.strip()]
-                node['names'] = names
-                if stack:
-                    pass  # will be flushed via raw_code_buf below
-                else:
-                    top_children.append(node)
-            else:
-                stack.append((node, []))
-
-            matched_opener = True
-            current_line  += n_newlines
-            break
-
-        if matched_opener:
-            continue
-
-        # ---- plain code line ----
-        if stack:
-            # Accumulate into current unit's inner buffer list.
-            stack[-1][1].append(raw_line)
-        else:
-            raw_code_buf += raw_line
-
-        current_line += n_newlines
-
-    # EOF — close any unclosed units (shouldn't happen in well-formed files).
-    while stack:
-        node, inner_buf_list = stack.pop()
-        inner_buf = ''.join(inner_buf_list)
-        if inner_buf:
-            node['content'] = inner_buf
-            inner_children = _parse_units(node)
-            _link_children(node, inner_children)
-            del node['content']
-        if stack:
-            stack[-1][1].append(node.get('opener', ''))
-        else:
-            if raw_code_buf:
-                top_children.append(
-                    _make_code_node(raw_code_buf, source, raw_code_line))
-                raw_code_buf = ''
-            top_children.append(node)
-
-    if raw_code_buf:
-        top_children.append(_make_code_node(raw_code_buf, source, raw_code_line))
-
-    return top_children
-
-
-# ---------------------------------------------------------------------------
-# The _parse_units above has a subtle issue with inner buffers being lists
-# vs strings.  Re-implement cleanly.
-# ---------------------------------------------------------------------------
-
-def _parse_units(parent):  # noqa: F811  (intentional redefinition)
     """Split parent['content'] into child nodes (clean implementation)."""
     content   = parent.get('content', '')
     source    = parent.get('source', 'unknown')
@@ -301,7 +165,7 @@ def _parse_units(parent):  # noqa: F811  (intentional redefinition)
         raw_line, processed_line, _ = get_fortran_line(fh)
         if not raw_line and not processed_line:
             break
-
+        
         n_newlines    = raw_line.count('\n')
         line_after    = current_line + n_newlines
 
@@ -531,7 +395,7 @@ def _pass_directives(tree):
         in_directive = False
         directive_root = None
         raw_opener   = None
-
+ 
         for raw_line in content.splitlines(keepends=True):
             stripped = re.sub(r'^\s*!<\s*', '', raw_line)
 
