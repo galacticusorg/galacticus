@@ -665,7 +665,8 @@ contains
     type     (varying_string )                                        :: message                    , inputPathC
     type     (node           ), pointer                               :: lastModifiedNode           , revisionNode       , &
          &                                                               strictNode
-    logical                                                           :: hasRevision                , hasStrict
+    logical                                                           :: hasRevision                , hasStrict          , &
+         &                                                               hasLastModified
     character(len=41         )                                        :: commitHashParameters
 #ifdef GIT2AVAIL
     integer  (c_int          ), dimension(:), allocatable             :: isAncestorOfParameters
@@ -791,7 +792,10 @@ contains
          & call knownParameterNames(allowedParameterNamesGlobal)
     ! Check for migration information.
     if (present(fileName)) then
-       if (XML_Path_Exists(self%rootNode,"lastModified")) then
+       !$omp critical (FoX_DOM_Access)
+       hasLastModified=XML_Path_Exists(self%rootNode,"lastModified")
+       !$omp end critical (FoX_DOM_Access)
+       if (hasLastModified) then
           ! Look for a "lastModified" element in the parameter file.
           !$omp critical (FoX_DOM_Access)
           lastModifiedNode => XML_Get_First_Element_By_Tag_Name(self%rootNode        ,'lastModified')
@@ -1000,7 +1004,8 @@ contains
     character(len=1                     )                             :: bracket_
     character(len=2                     )                             :: operator_
     logical                                                           :: operatorEquals  , matches          , &
-         &                                                               allEvaluated    , didEvaluate
+         &                                                               allEvaluated    , didEvaluate      , &
+         &                                                               isActive
     integer                                                           :: countNames      , i
 
     ! Iterate until all parameters are evaluated.
@@ -1012,14 +1017,17 @@ contains
        currentParameter => inputParametersWalkTree(self%parameters)
        do while (associated(currentParameter))
           ! Find parameters with conditionals.
-          if     (                                                                 &
-               &   getNodeType (currentParameter%content         ) == ELEMENT_NODE &
-               &  .and.                                                            &
-               &   hasAttribute(currentParameter%content,'active')                 &
-               & ) then
+          !$omp critical (FoX_DOM_Access)
+          isActive= getNodeType (currentParameter%content         ) == ELEMENT_NODE &
+               &   .and.                                                            &
+               &    hasAttribute(currentParameter%content,'active')
+          !$omp end critical (FoX_DOM_Access)
+          if (isActive) then
              ! Extract the condition.
+             !$omp critical (FoX_DOM_Access)
              conditionNode => getAttributeNode(currentParameter%content,   'active' )
              condition     =  getTextContent  (conditionNode           ,ex=exception)
+             !$omp end critical (FoX_DOM_Access)
              if (inException(exception)) call Error_Report('unable to parse conditional'//{introspection:location})
              ! Parse the condition.
              !! Extract the name of the parameter being conditioned upon.
@@ -1645,7 +1653,7 @@ contains
                    if (.not.warningsFound.and.verbose) call displayIndent(displayMagenta()//'WARNING:'//displayReset()//' problems found with input parameters:')
                    warningsFound=.true.
                    if (verbose) then
-                      message='multiple copies of parameter ['//getNodeName(node_)//'] present - only the first will be utilized'
+                      message='multiple copies of parameter ['//unknownName//'] present - only the first will be utilized'
                       call displayMessage(message)
                    end if
                 end if
@@ -1744,7 +1752,7 @@ contains
     integer                   , intent(in   ), optional :: copyInstance
     type     (node           ), pointer                 :: node_              , identifierNode
     integer                                             :: skipInstances
-    type     (varying_string )                          :: attributeName
+    type     (varying_string )                          :: attributeName      , attributeContent
     !![
     <optionalArgument name="requireValue" defaultsTo=".true."/>
     <optionalArgument name="writeOutput"  defaultsTo=".true."/>
@@ -1790,7 +1798,10 @@ contains
           !$ call hdf5Access%set()
           if (self%outputParameters%isOpen()) then
              if (.not.self%outputParameters%hasAttribute(char(attributeName))) then
-                call self%outputParameters%writeAttribute("{idRef:"//getTextContent(identifierNode)//"}",char(attributeName))
+                !$omp critical (FoX_DOM_Access)
+                attributeContent="{idRef:"//getTextContent(identifierNode)//"}"
+                !$omp end critical (FoX_DOM_Access)
+               call self%outputParameters%writeAttribute(char(attributeContent),char(attributeName))
              end if
           end if
           !$ call hdf5Access%unset()
