@@ -6,6 +6,7 @@ import sys
 import os
 import re
 from pathlib import Path
+from itertools import chain, combinations
 
 # Set up path for imports from python/
 sys.path.insert(0, os.path.join(os.environ['GALACTICUS_EXEC_PATH'], 'python'))
@@ -51,7 +52,7 @@ def main():
         fc = val if isinstance(val, dict) else {}
         fc['name'] = name
         lib_function_classes[name] = fc
-
+        
     # Augment with module information from stateStorables.
     for name, fc in lib_function_classes.items():
         class_key = name + 'Class'
@@ -74,6 +75,10 @@ def main():
     _write_fortran_code(code, build_path)
     _write_python_interface(python)
 
+def _powerset(iterable):
+    """powerset([1,2,3]) --> () (1,) (2,) (3,) (1,2) (1,3) (2,3) (1,2,3)"""
+    s = list(iterable)
+    return chain.from_iterable(combinations(s, r) for r in range(len(s)+1))
 
 def _load_xml(path):
     """Load and parse XML file into nested dict structure."""
@@ -137,12 +142,15 @@ def _process_function_class_file(file_name, code, python, lib_function_classes,
 
         # Augment methods
         methods = directive.get('method', {})
+
         if isinstance(methods, dict) and 'name' in methods:
             # Single method
             func_class['methods'] = {methods['name']: methods}
-        else:
+        elif isinstance(methods, list):
             # Multiple methods
-            func_class['methods'] = methods if isinstance(methods, dict) else {}
+            func_class['methods'] = {methods[i]['name']: method for i, method in enumerate(methods)}
+        else:
+            raise ValueError("incomprehensible methods")
 
         func_class['moduleUses'] = module_uses
 
@@ -346,16 +354,31 @@ def interfaces_constructors(code, python, func_class, lib_function_classes,
             arg_list, func_class, impl, extensions, module_uses_impls,
             lib_function_classes)
 
+	# Construct pre- and post-arguments content for the call from Fortran to Galacticus.
+        preArguments = f'''  !![
+  <referenceConstruct object="self">
+   <constructor>
+    {impl.get('name', [])}( &amp;
+'''
+        postArguments = '''     &amp;                     )
+   </constructor>
+  </referenceConstruct>
+  !!]
+'''
+
         # Generate Fortran constructor
         iso_imports = iso_c_binding_import(arg_list, 'c_ptr', 'c_loc')
         fort_args = fortran_arg_list(arg_list)
         declarations = fortran_declarations(arg_list)
         reassignments = fortran_reassignments(arg_list)
-        call_code = fortran_call_code(arg_list, '', '', '&amp;')
+        module_uses = fortran_module_uses(arg_list)
+        call_code = fortran_call_code(arg_list, preArguments, postArguments, '&amp;')
 
         fort_constructor = f'''function {impl["name"]}L({','.join(fort_args)}) bind(c,name='{impl["name"]}L')
   use :: {func_class.get('module')}, only : {impl["name"]}
-{iso_imports}  implicit none
+{iso_imports}
+{module_uses}
+  implicit none
   type(c_ptr) :: {impl["name"]}L
   type({impl["name"]}), pointer :: self
 {declarations}
@@ -395,6 +418,7 @@ def interfaces_methods(code, python, func_class, extensions, module_uses_impls,
     """Generate method wrappers."""
     class_name = func_class['name']
 
+    methods_to_delete = []
     for method_name, method_spec in func_class.get('methods', {}).items():
         method_type = method_spec.get('type', 'void')
 
@@ -407,6 +431,27 @@ def interfaces_methods(code, python, func_class, extensions, module_uses_impls,
                 'name': 'self',
             }
         ]
+
+        # Determine any ISO_C_Binding imports needed.
+        isoImports = {}
+        result_conversion_open = ""
+        result_conversion_close = ""
+        if method_type == "double precision":
+            method_type_c                        = "real(c_double)"
+            clib_res_type                        = "c_double";
+            isoImports['c_double'] = 1
+        elif method_type == "logical":
+            method_type_c                        = "logical(c_bool)"
+            clib_res_type                        = "c_bool";
+            result_conversion_open               = "logical(";
+            result_conversion_close              = ",kind=c_bool)";
+            isoImports['c_bool'] = 1
+        elif method_type == "void":
+            pass
+        else:
+            print(f"unsupported type '{method_type}'")
+            methods_to_delete.append(method_name)
+            continue
 
         # Add method arguments
         for arg_spec in as_array(method_spec.get('argument', [])):
@@ -433,17 +478,21 @@ def interfaces_methods(code, python, func_class, extensions, module_uses_impls,
 
         # Generate Fortran method
         procedure = 'subroutine' if method_type == 'void' else 'function'
-        func_decl = '' if method_type == 'void' else f'{method_type} :: {method_name_c}\n'
+        func_decl = '' if method_type == 'void' else f'{method_type_c} :: {method_name_c}\n'
 
+        iso_imports = iso_c_binding_import(arg_list, *isoImports.keys())
         fort_args = fortran_arg_list(arg_list)
         declarations = fortran_declarations(arg_list)
         reassignments = fortran_reassignments(arg_list)
+        module_uses = fortran_module_uses(arg_list)
         call_code = fortran_call_code(arg_list,
-                                     f'{"call" if method_type == "void" else method_name_c + "="} self_%{method_name}( &\n',
-                                     '&)\n', '&')
+                                     f'{"call" if method_type == "void" else method_name_c + "="} {result_conversion_open} self_%{method_name}( &\n',
+                                     f'&){result_conversion_close}\n', '&')
 
         fort_method = f'''{procedure} {method_name_c}({','.join(fort_args)}) bind(c,name='{method_name_c}')
   use :: {func_class.get('module')}, only : {class_name}Class
+{module_uses}
+{iso_imports}
   implicit none
 {func_decl}{declarations}
 {reassignments}{call_code}  return
@@ -453,7 +502,7 @@ end {procedure} {method_name_c}
 
         # Add c_lib interface
         arg_types = ctypes_arg_types(arg_list)
-        restype = None if method_type == 'void' else method_type
+        restype = None if method_type == 'void' else clib_res_type
         python['c_lib'].append({
             'name': method_name_c,
             'restype': restype,
@@ -471,6 +520,9 @@ end {procedure} {method_name_c}
             'content': py_method,
         })
 
+    # Delete any unsupported methods.
+    for key in methods_to_delete:
+        del func_class['methods'][key]
 
 def interfaces_destructor(code, python, func_class):
     """Generate destructor wrapper for a function class."""
@@ -1039,8 +1091,13 @@ c_lib.libGalacticusInitL()
 
     # Write galacticus.py
     with open('galacticus.py', 'w') as fh:
-        for unit_name in sorted_names:
-            unit = python['units'][unit_name]
+        stack = [python['units'][name] for name in sorted_names]
+        while stack:
+            unit = stack.pop(0)
+            if 'subUnits' in unit:
+                for subUnit in unit['subUnits']:
+                    subUnit['indent'] = unit['indent']+1
+                stack = unit['subUnits'] + stack
             indent = '    ' * unit.get('indent', 0)
             content = unit['content']
             for line in content.splitlines():
