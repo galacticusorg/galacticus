@@ -477,7 +477,7 @@ contains
 
     subroutine evaluationCounterPing(self,node,uniqueID)
       !!{
-      Return the number of the next forest to process.
+      Ping the evaluation counter to force it to respond to requests.
       !!}
       use :: Galacticus_Nodes, only : treeNode
       use :: Kind_Numbers    , only : kind_int8
