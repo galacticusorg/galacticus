@@ -18,21 +18,20 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
 !!{
-Contains a module which implements bivariate interpolation on irregularly distributed points using the Akima algorithm
-(Algorithm 526, ACM Transactions on Mathematical Software, 1978).
+Contains a module which implements bivariate interpolation on irregularly distributed points using the Akima algorithm \citep{akima_algorithm_1978}.
 !!}
 
 module Numerical_Interpolation_2D_Irregular
   !!{
-  Implements bivariate interpolation on irregularly distributed points (Akima 1978).  All state is encapsulated in
-  \reftype{interp2dIrregularObject} so that separate instances are fully independent and thread-safe without any critical
+  Implements bivariate interpolation on irregularly distributed points \citep{akima_algorithm_1978}.  All state is encapsulated in
+  \mono{interpolator2DIrregular} so that separate instances are fully independent and thread-safe without any critical
   sections.
   !!}
   implicit none
   private
-  public :: Interpolate_2D_Irregular, interp2dIrregularObject
+  public :: Interpolate_2D_Irregular, interpolator2DIrregular
 
-  type :: interp2dIrregularObject
+  type :: interpolator2DIrregular
      !!{
      Type encapsulating all state for a 2-D irregular-grid interpolation.  Each instance is self-contained; operations on
      different instances have no shared mutable state and are therefore safe to call from concurrent OpenMP threads.
@@ -63,7 +62,7 @@ module Numerical_Interpolation_2D_Irregular
      integer                                     :: lastTriangle = 0
      ! ── initialisation flag ───────────────────────────────────────────────────
      logical                                     :: initialized = .false.
-  end type interp2dIrregularObject
+  end type interpolator2DIrregular
 
   interface Interpolate_2D_Irregular
      module procedure Interpolate_2D_Irregular_Array
@@ -89,7 +88,7 @@ contains
     no global or module-level variables are accessed.
     !!}
     implicit none
-    type            (interp2dIrregularObject)                               , intent(inout)           :: workspace
+    type            (interpolator2DIrregular)                               , intent(inout)           :: workspace
     double precision                         , dimension(:)                 , intent(in   )           :: dataX        , dataY       , &
          &                                                                                               dataZ        , interpolateX, &
          &                                                                                               interpolateY
@@ -133,7 +132,7 @@ contains
     Scalar wrapper: interpolate at a single point.
     !!}
     implicit none
-    type            (interp2dIrregularObject)              , intent(inout)           :: workspace
+    type            (interpolator2DIrregular)              , intent(inout)           :: workspace
     double precision                         , dimension(:), intent(in   )           :: dataX, dataY, dataZ
     double precision                                       , intent(in   )           :: interpolateX, interpolateY
     integer                                                , intent(in   ), optional :: numberComputePoints
@@ -155,7 +154,7 @@ contains
     Build triangulation, find closest neighbours, estimate derivatives, and build the 9-section lookup grid.
     !!}
     implicit none
-    type            (interp2dIrregularObject), intent(inout) :: ws
+    type            (interpolator2DIrregular), intent(inout) :: ws
     double precision, dimension(:)           , intent(in   ) :: xd, yd, zd
     integer                                                  :: ndp, ncp
 
@@ -188,7 +187,7 @@ contains
     Locate the triangle containing {\normalfont \ttfamily (xii,yii)} and interpolate.
     !!}
     implicit none
-    type            (interp2dIrregularObject), intent(inout) :: ws
+    type            (interpolator2DIrregular), intent(inout) :: ws
     double precision                         , intent(in   ) :: xii, yii
     integer                                                  :: iti
 
@@ -205,10 +204,10 @@ contains
     Triangulate the data points stored in {\normalfont \ttfamily ws}.  Produces a Delaunay-like triangulation using
     the max-min-angle criterion (Lawson).  On return, {\normalfont \ttfamily ws\%ipt}, {\normalfont \ttfamily ws\%ipl},
     {\normalfont \ttfamily ws\%nTriangles} and {\normalfont \ttfamily ws\%nBorder} are set.
-    Port of {\normalfont \ttfamily idtang} from the original BIVAR package (Akima 1978).
+    Port of {\normalfont \ttfamily idtang} from the original BIVAR package \citep{akima_algorithm_1978}.
     !!}
     implicit none
-    type(interp2dIrregularObject), intent(inout) :: ws
+    type(interpolator2DIrregular), intent(inout) :: ws
     integer                                      :: ndp, ndpm1
     integer                                      :: ip, ip1, ip1p1, ip2, ip3
     integer                                      :: ipmn1, ipmn2
@@ -506,7 +505,7 @@ contains
     !!{
     Determine whether swapping the shared diagonal of the quadrilateral formed by points {\normalfont \ttfamily i1}--{\normalfont
     \ttfamily i4} improves the minimum angle (Lawson max-min-angle criterion).  Returns 1 if a swap is recommended, 0 otherwise.
-    Port of {\normalfont \ttfamily idxchg} from the original BIVAR package (Akima 1978).
+    Port of {\normalfont \ttfamily idxchg} from the original BIVAR package \citep{akima_algorithm_1978}.
     !!}
     implicit none
     double precision, dimension(:), intent(in) :: x, y
@@ -550,7 +549,7 @@ contains
     ensuring they are not all collinear.  Output is stored in {\normalfont \ttfamily ipc(ncp*ndp)}, with the {\normalfont
     \ttfamily ncp} neighbours of point {\normalfont \ttfamily ip1} at indices {\normalfont \ttfamily (ip1-1)*ncp+1 ..
     ip1*ncp}.  On error {\normalfont \ttfamily ipc(1)} is set to 0.
-    Port of {\normalfont \ttfamily idcldp} from the original BIVAR package (Akima 1978).
+    Port of {\normalfont \ttfamily idcldp} from the original BIVAR package \citep{akima_algorithm_1978}.
     !!}
     implicit none
     integer                       , intent(in ) :: ndp, ncp
@@ -660,7 +659,7 @@ contains
     Estimate first- and second-order partial derivatives at each data point using the {\normalfont \ttfamily ncp} closest
     neighbours.  Output {\normalfont \ttfamily pd(5*ndp)} stores ZX, ZY, ZXX, ZXY, ZYY for point {\normalfont \ttfamily ip0}
     at indices {\normalfont \ttfamily 5*ip0-4 .. 5*ip0}.
-    Port of {\normalfont \ttfamily idpdrv} from the original BIVAR package (Akima 1978).
+    Port of {\normalfont \ttfamily idpdrv} from the original BIVAR package \citep{akima_algorithm_1978}.
     !!}
     implicit none
     integer                       , intent(in ) :: ndp, ncp
@@ -670,7 +669,7 @@ contains
     double precision :: dnmx, dnmy, dnmz, nmx, nmy, nmz
     double precision :: dnmxx, dnmxy, dnmyx, dnmyy
     double precision :: nmxx, nmxy, nmyx, nmyy
-    double precision :: dx1, dy1, dz1, dx2, dy2, dzx1, dzy1, dzx2, dzy2
+    double precision :: dx1, dy1, dz1, dx2, dy2, dz2, dzx1, dzy1, dzx2, dzy2
     double precision :: x0, y0, z0, zx0, zy0
     integer          :: ip0, ic1, ic2, ic2mn, ipi
     integer          :: jipc0, jipc, jpd0, jpd
@@ -754,10 +753,10 @@ contains
     {\normalfont \ttfamily ws\%ys2}, {\normalfont \ttfamily ws\%ntsc}, {\normalfont \ttfamily ws\%sectionData},
     and {\normalfont \ttfamily ws\%triBounds} are populated and {\normalfont \ttfamily ws\%gridReady} is set to
     {\normalfont \ttfamily .true.}.
-    Port of the initialisation block of {\normalfont \ttfamily idlctn} from the original BIVAR package (Akima 1978).
+    Port of the initialisation block of {\normalfont \ttfamily idlctn} from the original BIVAR package \citep{akima_algorithm_1978}.
     !!}
     implicit none
-    type            (interp2dIrregularObject), intent(inout) :: ws
+    type            (interpolator2DIrregular), intent(inout) :: ws
     integer                                                  :: ndp, nt, idp, it0, it0t3, isc, jwk, jiwk
     integer                                                  :: i1, i2, i3
     integer                                                  :: idsc(9)
@@ -840,10 +839,10 @@ contains
     Returns {\normalfont \ttfamily iti} in {\normalfont \ttfamily 1..nTriangles} for interior points;
     returns {\normalfont \ttfamily il1*(nTriangles+nBorder)+il2} for exterior points, encoding the
     nearest border-segment pair.  Updates {\normalfont \ttfamily ws\%lastTriangle} for subsequent calls.
-    Port of the lookup block of {\normalfont \ttfamily idlctn} from the original BIVAR package (Akima 1978).
+    Port of the lookup block of {\normalfont \ttfamily idlctn} from the original BIVAR package \citep{akima_algorithm_1978}.
     !!}
     implicit none
-    type            (interp2dIrregularObject), intent(inout) :: ws
+    type            (interpolator2DIrregular), intent(inout) :: ws
     double precision                         , intent(in   ) :: xii, yii
     integer          :: nt, nl, ntl, it0, it0t3, isc, ntsci, jiwk, itsc, jwk
     integer          :: il1, il1t3, il2, ip1, ip2, ip3
@@ -969,18 +968,18 @@ contains
     Three cases are handled:
     \begin{description}
       \item[Interior triangle {\normalfont \ttfamily (iti <= nTriangles+nBorder)}]
-        5th-degree quintic Bézier surface in barycentric UV coordinates (Akima 1978).
+        5th-degree quintic Bézier surface in barycentric UV coordinates \citep{akima_algorithm_1978}.
       \item[Border segment {\normalfont \ttfamily (il1==il2)}]
         Quadratic extrapolation perpendicular to the segment, 5th-degree along it.
       \item[Exterior corner {\normalfont \ttfamily (il1/=il2)}]
         2nd-degree Taylor expansion centred on the shared corner vertex.
     \end{description}
-    Port of {\normalfont \ttfamily idptip} from the original BIVAR package (Akima 1978).
+    Port of {\normalfont \ttfamily idptip} from the original BIVAR package \citep{akima_algorithm_1978}.
     Coefficient caching (the original {\normalfont \ttfamily itpv} flag) is omitted since in
     Galacticus usage the cache was never effective.
     !!}
     implicit none
-    type            (interp2dIrregularObject), intent(in) :: ws
+    type            (interpolator2DIrregular), intent(in) :: ws
     double precision                         , intent(in) :: xii, yii
     integer                                  , intent(in) :: iti
     integer          :: nt, nl, ntl, it0, il1, il2, i, idp, jipl, jipt, jpd, jpdd, kpd
