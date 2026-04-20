@@ -28,8 +28,8 @@ def file_matcher() -> None:
                                 continue
                             pr = match.group(1)
                             if pr not in WORKAROUNDS:
-                                WORKAROUNDS[pr] = {"files": {}, "status": "UNKNOWN"}
-                            WORKAROUNDS[pr]["files"][full_name] = 1
+                                WORKAROUNDS[pr] = {"files": set(), "status": "UNKNOWN"}
+                            WORKAROUNDS[pr]["files"].add(full_name)
                 except OSError:
                     continue
 
@@ -40,7 +40,7 @@ def check_links() -> None:
         url = f"https://gcc.gnu.org/bugzilla/show_bug.cgi?id={pr}"
         time.sleep(1)
         result = subprocess.run(
-            ["curl", "--silent", "--insecure", "--location", "--fail", url],
+            ["curl", "--silent", "--location", "--fail", url],
             capture_output=True,
             text=True,
             check=False,
