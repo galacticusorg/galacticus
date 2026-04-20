@@ -619,6 +619,7 @@ contains
        if (j3 > ncp) then
           ! All ncp neighbours are collinear — search for closest non-collinear point.
           nclpt = 0
+          dsqmn = 0
           do ip3 = 1, ndp
              if (ip3 == ip1) cycle
                 inList = .false.
@@ -672,7 +673,7 @@ contains
     double precision :: dx1, dy1, dz1, dx2, dy2, dz2, dzx1, dzy1, dzx2, dzy2
     double precision :: x0, y0, z0, zx0, zy0
     integer          :: ip0, ic1, ic2, ic2mn, ipi
-    integer          :: jipc0, jipc, jpd0, jpd
+    integer          :: jipc0, jpd0, jpd
     integer          :: ncpm1
 
     ncpm1 = ncp - 1
