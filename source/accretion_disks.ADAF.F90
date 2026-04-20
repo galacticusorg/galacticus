@@ -446,25 +446,31 @@ contains
     return
   end function adafConstructorInternal
 
-  double precision function adafEfficiencyRadiative(self,blackHole,accretionRateMass)
+  double precision function adafEfficiencyRadiative(self,blackHole,accretionRateMass,accretionDiskType) result(efficiencyRadiative)
     !!{
     Computes the radiative efficiency for an ADAF.
     !!}
     use :: Error, only : Error_Report
     implicit none
-    class           (accretionDisksADAF    ), intent(inout) :: self
-    class           (nodeComponentBlackHole), intent(inout) :: blackHole
-    double precision                        , intent(in   ) :: accretionRateMass
+    class           (accretionDisksADAF              ), intent(inout)           :: self
+    class           (nodeComponentBlackHole          ), intent(inout)           :: blackHole
+    double precision                                  , intent(in   )           :: accretionRateMass
+    type            (enumerationAccretionDiskTypeType), intent(in   ), optional :: accretionDiskType
+    !![
+    <optionalArgument name="accretionDiskType" defaultsTo="accretionDiskTypeAny"/>
+    !!]
 
-    select case (self%efficiencyRadiationType%ID)
-    case (adafRadiativeEfficiencyTypeFixed   %ID)
-       adafEfficiencyRadiative=self%efficiencyRadiation
-    case (adafRadiativeEfficiencyTypeThinDisk%ID)
-       adafEfficiencyRadiative=self%thinDisk%efficiencyRadiative(blackHole,accretionRateMass)
-    case default
-       adafEfficiencyRadiative=0.0d0
-       call Error_Report('unknown radiative efficiency type'//{introspection:location})
-    end select
+    efficiencyRadiative=0.0d0
+    if (accretionDiskType_ == accretionDiskTypeAny .or. accretionDiskType_ == accretionDiskTypeADAF) then
+       select case (self%efficiencyRadiationType%ID)
+       case (adafRadiativeEfficiencyTypeFixed   %ID)
+          efficiencyRadiative=self%efficiencyRadiation
+       case (adafRadiativeEfficiencyTypeThinDisk%ID)
+          efficiencyRadiative=self%thinDisk%efficiencyRadiative(blackHole,accretionRateMass)
+       case default
+          call Error_Report('unknown radiative efficiency type'//{introspection:location})
+       end select
+    end if
     return
   end function adafEfficiencyRadiative
 

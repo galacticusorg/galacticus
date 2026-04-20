@@ -1347,7 +1347,8 @@ jobs:
                 test-soliton-coremass.py,
                 test-promptCuspNFW.py,
                 test-postprocessing.py,
-                test-merger-tree-export.sh ]
+                test-merger-tree-export.sh,
+                test-AGNSED.py ]
     uses: ./.github/workflows/testModel.yml
     with:
       file: ${{ matrix.file }}
