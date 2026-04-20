@@ -2,7 +2,6 @@
 use strict;
 use warnings;
 use Cwd;
-use lib $ENV{'GALACTICUS_EXEC_PATH'}."/perl";
 use XML::Simple;
 use PDL;
 use PDL::NiceSlice;
@@ -10,33 +9,37 @@ use PDL::LinearAlgebra;
 use PDL::IO::Misc;
 use PDL::MatrixOps;
 use Data::Dumper;
+use File::Temp qw(tempdir);
 
 # Generates a configuration for cosmological parameters based on the Planck covariance matrix and suitable for use with the
-# Galacticus+MCMC constraints architecture. Parameters are expressed as linear combiantions of six independent normal deviates
-# (labelled "cosmology0" through "cosmology5"). The output of this script can be dropped into the "parameters" section of a
-# Galacticus+MCMC config file.
+# Galacticus MCMC constraints architecture. Parameters are expressed as linear combiantions of six independent normal deviates
+# (labelled "cosmology0" through "cosmology5"). The output of this script can be included into the base parameter file for a
+# Galacticus MCMC run, and actual cosmological parameters set by referencing those created in this file.
 # Andrew Benson (16-October-2014)
+ 
+# Get a temporary directory.
+my $dir = tempdir( CLEANUP => 1 );
 
 # Download Planck MCMC chains data set.
-system("wget \"http://pla.esac.esa.int/pla-sl/data-action?COSMOLOGY.COSMOLOGY_OID=1200\" -O ".&galacticusPath()."aux/COM_CosmoParams_base-plikHM-TT-lowTEB_R2.00.tar.gz")
-    unless ( -e &galacticusPath()."aux/COM_CosmoParams_base-plikHM-TT-lowTEB_R2.00.tar.gz" );
+system("wget \"http://pla.esac.esa.int/pla-sl/data-action?COSMOLOGY.COSMOLOGY_OID=1200\" -O ".$dir."/COM_CosmoParams_base-plikHM-TT-lowTEB_R2.00.tar.gz")
+    unless ( -e $dir."/COM_CosmoParams_base-plikHM-TT-lowTEB_R2.00.tar.gz" );
 
 # Unpack Planck MCMC chains data set.
-system("cd ".&galacticusPath()."aux; tar xvfz COM_CosmoParams_base-plikHM-TT-lowTEB_R2.00.tar.gz")
-    unless ( -e &galacticusPath()."aux/base/plikHM_TT_lowTEB_lensing" );
+system("cd ".$dir."; tar xvfz COM_CosmoParams_base-plikHM-TT-lowTEB_R2.00.tar.gz")
+    unless ( -e $dir."/base/plikHM_TT_lowTEB_lensing" );
 
 # Specify Planck directory.
-my $planckDirectoryName = &galacticusPath()."aux/base/plikHM_TT_lowTEB_lensing/";
+my $planckDirectoryName = $dir."/base/plikHM_TT_lowTEB_lensing/";
 
 # Specify parameter names of interest.
 my %parameterMap = 
     (
-     "omegabh2"  => "cosmologyParametersMethod->OmegaBaryon",
-     "omegamh2*" => "cosmologyParametersMethod->OmegaMatter",
-     "tau"       => "reionizationSuppressionOpticalDepth",
-     "ns"        => "powerSpectrumPrimordialMethod->index",
-     "H0*"       => "cosmologyParametersMethod->HubbleConstant",
-     "sigma8*"   => "sigma_8"
+     "omegabh2"  => "planckCosmologyOmegaBaryon",
+     "omegamh2*" => "planckCosmologyOmegaMatter",
+     "tau"       => "planckCosmologyReionizationSuppressionOpticalDepth",
+     "ns"        => "planckCosmologyPowerSpectrumIndex",
+     "H0*"       => "planckCosmologyHubbleConstant",
+     "sigma8*"   => "planckCosmologySigma8"
     );
 
 # Read Planck parameter names.
@@ -112,13 +115,13 @@ foreach my $parameter ( sort(keys(%parameterMap)) ) {
     # Find the index of this parameter in the vectors.
     ++$index;
     # Begin by setting the parameter equal to its mean value.
-    my $value = $mean->(($index))->string();
+    my $value = "=".$mean->(($index))->string();
     # Loop over all independent normal deviates.
      for(my $i=0;$i<$parameterCount;++$i) {
 	 # Extract the coefficient for this random deviate and (if it is non-zero) add it multiplied by the appropriate random
 	 # deviate.
 	 my $coefficient = $choleskyDecomposed->(($index),($i));
-	 $value .= "+\%[cosmology".$i."]*".$coefficient
+	 $value .= "+[cosmology".$i."]*".$coefficient
 	     if ( $coefficient != 0.0 );
      }
     # Extract the parameter name, mapping to the Galacticus name if necessary.
@@ -126,25 +129,19 @@ foreach my $parameter ( sort(keys(%parameterMap)) ) {
     $parameterName = $parameterMap{$parameter}
           unless ( $parameterMap{$parameter} eq "" );
     # If the parameter is a density parameter then it has been multiplied by h^2 in the Planck analysis. Undo this.
-    $value = "(".$value.")/(%[cosmologyParametersMethod->HubbleConstant]/100.0)**2"
+    $value = "(".$value.")/(%[planckCosmologyHubbleConstant]/100.0)**2"
  	if ( $parameter =~ m/omega/ );
     # Add limits.
-    $value = "&List::Util::min(".$value.",1.0)"
+    $value = "min(".$value.",1.0)"
 	if ( $parameter eq "omegamh2*" );
-    $value = "&List::Util::max(".$value.",0.0)"
+    $value = "max(".$value.",0.0)"
 	if ( $parameter eq "tau" );    
     # Store the parameter config in our array.
-    push(
- 	@{$parameterConfig->{'parameter'}},
- 	{
- 	    name   => $parameterName,
- 	    define => $value
- 	}
- 	);
+    $parameterConfig->{$parameterName} = {"value" => $value};
 }
 
 # Output the configuration.
-my $xmlOut = new XML::Simple (NoAttr=>1, RootName=>"parameters");
+my $xmlOut = new XML::Simple (RootName=>"parameters");
 print $xmlOut->XMLout($parameterConfig);
 
 exit;

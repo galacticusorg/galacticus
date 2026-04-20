@@ -12,23 +12,25 @@ use Scalar::Util qw(reftype);
 use Data::Dumper;
 
 # Generates a configuration for cosmological parameters based on the WMAP-9 covariance matrix and suitable for use with the
-# Galacticus+BIE constraints architecture. Parameters are expressed as linear combiantions of six independent normal deviates
-# (labelled "cosmology0" through "cosmology5"). The output of this script can be dropped into the "parameters" section of a
-# Galacticus+BIE config file.
+# Galacticus MCMC constraints architecture. Parameters are expressed as linear combiantions of six independent normal deviates
+# (labelled "cosmology0" through "cosmology5"). The output of this script can be included into the base parameter file for a
+# Galacticus MCMC run, and actual cosmological parameters set by referencing those created in this file.
 # Andrew Benson (25-May-2012)
 
-# Mapping of WMAP-9 parameter names to Galacticus input parameter names.
+# Mapping of WMAP-9 parameter names to more descriptive parameter names.
 my %parameterNameMapping = 
     (
-     omega_M => "Omega_Matter",
-     omega_B => "Omega_b",
-     n_s     => "powerSpectrumIndex",
-     tau     => "reionizationSuppressionOpticalDepth"
+     H_0     => "wmap9HubbleConstant",
+     sigma_8 => "wmap9Sigma8",
+     omega_M => "wmap9OmegaMatter",
+     omega_B => "wmap9OmegaBaryon",
+     n_s     => "wmap9PowerSpectrumIndex",
+     tau     => "wmap9ReionizationSuppressionOpticalDepth"
     );
 
 # Read the parameters and their covariances.
 my $xml = new XML::Simple;
-my $data = $xml->XMLin(&galacticusPath()."/data/cosmology/Cosmological_Parameters_WMAP-9.xml");
+my $data = $xml->XMLin($ENV{'GALACTICUS_DATA_PATH'}."/static/cosmology/Cosmological_Parameters_WMAP-9.xml");
 my $parameterCount = 0;
 my %parameterMap;
 foreach my $parameter ( @{$data->{'parameter'}} ) {
@@ -64,13 +66,13 @@ foreach my $parameter ( keys(%parameterMap) ) {
     # Find the index of this parameter in the vectors.
     my $index = $parameterMap{$parameter};
     # Begin by setting the parameter equal to its mean value.
-    my $value = $mean->(($index))->string();
+    my $value = "=".$mean->(($index))->string();
     # Loop over all independent normal deviates.
     for(my $i=0;$i<$parameterCount;++$i) {
 	# Extract the coefficient for this random deviate and (if it is non-zero) add it multiplied by the appropriate random
 	# deviate.
 	my $coefficient = $choleskyDecomposed->(($index),($i));
-	$value .= "+\%cosmology".$i."*".$coefficient
+	$value .= "+[cosmology".$i."]*".$coefficient
 	    if ( $coefficient != 0.0 );
     }
     # Extract the parameter name, mapping to the Galacticus name if necessary.
@@ -78,20 +80,14 @@ foreach my $parameter ( keys(%parameterMap) ) {
     $parameterName = $parameterNameMapping{$parameter}
          if ( exists($parameterNameMapping{$parameter}) );
     # If the parameter is a density parameter then it has been multiplied by h^2 in the WMAP-9 analysis. Undo this.
-    $value = "(".$value.")/(%H_0/100.0)**2"
+    $value = "(".$value.")/([wmap9OmegaMatterHubbleConstant]/100.0)**2"
 	if ( $parameter =~ m/omega/ );
     # Store the parameter config in our array.
-    push(
-	@{$parameterConfig->{'parameter'}},
-	{
-	    name   => $parameterName,
-	    define => $value
-	}
-	);
+    $parameterConfig->{$parameterName} = {"value" => $value};
 }
 
 # Output the configuration.
-my $xmlOut = new XML::Simple (NoAttr=>1, RootName=>"parameters");
+my $xmlOut = new XML::Simple (RootName=>"parameters");
 print $xmlOut->XMLout($parameterConfig);
 
 exit;
