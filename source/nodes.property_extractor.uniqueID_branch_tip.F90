@@ -36,6 +36,7 @@ Implements a node branch tip index property extractor.
      procedure :: extract     => uniqueIDBranchTipExtract
      procedure :: name        => uniqueIDBranchTipName
      procedure :: description => uniqueIDBranchTipDescription
+     procedure :: units       => uniqueIDBranchTipUnits
   end type nodePropertyExtractorUniqueIDBranchTip
 
   interface nodePropertyExtractorUniqueIDBranchTip
@@ -123,3 +124,16 @@ contains
     return
   end function uniqueIDBranchTipDescription
 
+  function uniqueIDBranchTipUnits(self) result(units)
+    !!{
+    Return the units of the uniqueIDBranchTip property.
+    !!}
+    use :: Units_MetaData, only : unitType
+    implicit none
+    type (unitType                              )                :: units
+    class(nodePropertyExtractorUniqueIDBranchTip), intent(inout) :: self
+    !$GLC attributes unused :: self
+
+    units=unitType(1.0d0)
+    return
+  end function uniqueIDBranchTipUnits

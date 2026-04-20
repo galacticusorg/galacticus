@@ -46,6 +46,7 @@ Implements a cooling rate property extractor class.
      procedure :: name        => velocityMaximumName
      procedure :: description => velocityMaximumDescription
      procedure :: unitsInSI   => velocityMaximumUnitsInSI
+     procedure :: units       => velocityMaximumUnits
   end type nodePropertyExtractorVelocityMaximum
 
   interface nodePropertyExtractorVelocityMaximum
@@ -174,4 +175,16 @@ contains
     return
   end function velocityMaximumUnitsInSI
 
+  function velocityMaximumUnits(self) result(units)
+    !!{
+    Return the units of the velocityMaximum property.
+    !!}
+    use :: Units_MetaData, only : unitType
+    implicit none
+    type (unitType                            )                :: units
+    class(nodePropertyExtractorVelocityMaximum), intent(inout) :: self
+    !$GLC attributes unused :: self
 
+    units=unitType(self%unitsInSI(),description='km/s',quantity='km/s')
+    return
+  end function velocityMaximumUnits

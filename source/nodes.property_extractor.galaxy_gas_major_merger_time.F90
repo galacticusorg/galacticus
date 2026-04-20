@@ -34,6 +34,7 @@
      procedure :: names        => galaxyGasMajorMergerTimeNames
      procedure :: descriptions => galaxyGasMajorMergerTimeDescriptions
      procedure :: unitsInSI    => galaxyGasMajorMergerTimeUnitsInSI
+     procedure :: units        => galaxyGasMajorMergerTimeUnits
   end type nodePropertyExtractorGalaxyGasMajorMergerTime
 
   interface nodePropertyExtractorGalaxyGasMajorMergerTime
@@ -150,3 +151,19 @@ contains
     unitsInSI(1)=gigaYear
     return
   end function galaxyGasMajorMergerTimeUnitsInSI
+
+  function galaxyGasMajorMergerTimeUnits(self) result(units)
+    !!{
+    Return the units of the galaxyGasMajorMergerTime properties.
+    !!}
+    use :: Numerical_Constants_Astronomical, only : gigaYear
+    use :: Units_MetaData                  , only : unitType
+    implicit none
+    type (unitType                                     ), dimension(:), allocatable :: units
+    class(nodePropertyExtractorGalaxyGasMajorMergerTime), intent(inout)             :: self
+    !$GLC attributes unused :: self
+
+    allocate(units(1))
+    units(1)=unitType(gigaYear,description='Gyr',quantity='Gyr')
+    return
+  end function galaxyGasMajorMergerTimeUnits

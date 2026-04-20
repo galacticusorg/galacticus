@@ -38,7 +38,7 @@
      integer  :: radiusNuclearStarClustersID          , blackHoleSeedMassID              , &
          &       velocityNuclearStarClustersID        , ageNuclearStarClustersID         , &
          &       gasMassNuclearStarClustersID         , criticalMassNuclearStarClustersID, &
-         &       redshiftBlackHoleSeedFormationID     , stellarMassNuclearStarClustersID , &                                                                    
+         &       redshiftBlackHoleSeedFormationID     , stellarMassNuclearStarClustersID , &
          &       mergerTreeWeightNuclearStarClustersID   
    contains
      procedure :: elementCount       => blackHoleSeedingVergara2023ElementCount
@@ -46,6 +46,7 @@
      procedure :: names              => blackHoleSeedingVergara2023Names
      procedure :: descriptions       => blackHoleSeedingVergara2023Descriptions
      procedure :: unitsInSI          => blackHoleSeedingVergara2023UnitsInSI
+     procedure :: units       => blackHoleSeedingVergara2023Units
   end type nodePropertyExtractorBlackHoleSeedingVergara2023
 
   interface nodePropertyExtractorBlackHoleSeedingVergara2023
@@ -221,3 +222,29 @@ contains
      &                                     ]
     return
   end function blackHoleSeedingVergara2023UnitsInSI
+
+  function blackHoleSeedingVergara2023Units(self,time) result(units)
+    !!{
+    Return the units of the blackHoleSeedingVergara2023 properties.
+    !!}
+    use :: Numerical_Constants_Astronomical, only : massSolar, megaParsec, gigayear
+    use :: Numerical_Constants_Prefixes    , only : kilo
+    use :: Units_MetaData                  , only : unitType
+    implicit none
+    type            (unitType                                        ), dimension(:) , allocatable :: units
+    class           (nodePropertyExtractorBlackHoleSeedingVergara2023), intent(inout)              :: self
+    double precision                                                  , intent(in   )              :: time
+    double precision                                                  , dimension(:) , allocatable :: siValues
+
+    siValues=self%unitsInSI(time)
+    allocate(units(8))
+    units(1)=unitType(1.0d0                                                   )
+    units(2)=unitType(massSolar ,description='Solar masses',quantity='solMass')
+    units(3)=unitType(gigayear  ,description='Gyr'         ,quantity='Gyr'    )
+    units(4)=unitType(megaParsec,description='Mpc'         ,quantity='Mpc'    )
+    units(5)=unitType(kilo      ,description='km/s'        ,quantity='km/s'   )
+    units(6)=unitType(massSolar ,description='Solar masses',quantity='solMass')
+    units(7)=unitType(massSolar ,description='Solar masses',quantity='solMass')
+    units(8)=unitType(massSolar ,description='Solar masses',quantity='solMass')
+    return
+  end function blackHoleSeedingVergara2023Units

@@ -52,6 +52,7 @@ Implements a node property extractor that fits for a tidal truncation radius for
      procedure :: names        => tidallyTruncatedNFWFitNames
      procedure :: descriptions => tidallyTruncatedNFWFitDescriptions
      procedure :: unitsInSI    => tidallyTruncatedNFWFitUnitsInSI
+     procedure :: units       => tidallyTruncatedNFWFitUnits
   end type nodePropertyExtractorTidallyTruncatedNFWFit
 
   interface nodePropertyExtractorTidallyTruncatedNFWFit
@@ -330,3 +331,23 @@ contains
          &                             /megaParsec**3
     return
   end function tidallyTruncatedNFWFitUnitsInSI
+
+  function tidallyTruncatedNFWFitUnits(self,time) result(units)
+    !!{
+    Return the units of the tidallyTruncatedNFWFit properties.
+    !!}
+    use :: Units_MetaData, only : unitType
+    implicit none
+    type            (unitType                                   ), dimension(:), allocatable :: units
+    class           (nodePropertyExtractorTidallyTruncatedNFWFit), intent(inout)             :: self
+    double precision                                             , intent(in   )             :: time
+    double precision                                             , dimension(:), allocatable :: siValues
+    !$GLC attributes unused :: self
+
+    siValues=self%unitsInSI(time)
+    allocate(units(3))
+    units(1)=unitType(siValues(1),description='Mpc'    ,quantity='Mpc'          )
+    units(2)=unitType(siValues(2)                                               )
+    units(3)=unitType(siValues(3),description='M☉/Mpc³',quantity='solMass/Mpc^3')
+    return
+  end function tidallyTruncatedNFWFitUnits

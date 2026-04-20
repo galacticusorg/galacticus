@@ -48,6 +48,7 @@ Implements a property extractor class for the orbital adiabatic ratio of disks.
      procedure :: name        => adiabaticRatioOrbitalDiskName
      procedure :: description => adiabaticRatioOrbitalDiskDescription
      procedure :: unitsInSI   => adiabaticRatioOrbitalDiskUnitsInSI
+     procedure :: units       => adiabaticRatioOrbitalDiskUnits
   end type nodePropertyExtractorAdiabaticRatioOrbitalDisk
 
   interface nodePropertyExtractorAdiabaticRatioOrbitalDisk
@@ -186,4 +187,15 @@ contains
     return
   end function adiabaticRatioOrbitalDiskUnitsInSI
 
+  function adiabaticRatioOrbitalDiskUnits(self) result(units)
+    !!{
+    Return the units of the adiabaticRatioOrbitalDisk property.
+    !!}
+    use :: Units_MetaData, only : unitType
+    implicit none
+    type (unitType                                      )                :: units
+    class(nodePropertyExtractorAdiabaticRatioOrbitalDisk), intent(inout) :: self
 
+    units=unitType(1.0d0)
+    return
+  end function adiabaticRatioOrbitalDiskUnits

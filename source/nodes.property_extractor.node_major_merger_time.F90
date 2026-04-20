@@ -33,6 +33,7 @@
      procedure :: name        => nodeMajorMergerTimeName
      procedure :: description => nodeMajorMergerTimeDescription
      procedure :: unitsInSI   => nodeMajorMergerTimeUnitsInSI
+     procedure :: units       => nodeMajorMergerTimeUnits
   end type nodePropertyExtractorNodeMajorMergerTime
 
   interface nodePropertyExtractorNodeMajorMergerTime
@@ -129,3 +130,17 @@ contains
     nodeMajorMergerTimeUnitsInSI=gigaYear
     return
   end function nodeMajorMergerTimeUnitsInSI
+
+  function nodeMajorMergerTimeUnits(self) result(units)
+    !!{
+    Return the units of the node major merger time property.
+    !!}
+    use :: Units_MetaData, only : unitType
+    implicit none
+    type (unitType                                )                :: units
+    class(nodePropertyExtractorNodeMajorMergerTime), intent(inout) :: self
+    !$GLC attributes unused :: self
+
+    units=unitType(self%unitsInSI(),description='Gyr',quantity='Gyr')
+    return
+  end function nodeMajorMergerTimeUnits

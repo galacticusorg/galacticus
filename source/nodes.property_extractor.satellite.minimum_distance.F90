@@ -34,6 +34,7 @@
      procedure :: name        => satelliteMinimumDistanceName
      procedure :: description => satelliteMinimumDistanceDescription
      procedure :: unitsInSI   => satelliteMinimumDistanceUnitsInSI
+     procedure :: units       => satelliteMinimumDistanceUnits
   end type nodePropertyExtractorSatelliteMinimumDistance
 
   interface nodePropertyExtractorSatelliteMinimumDistance
@@ -134,3 +135,17 @@ contains
     satelliteMinimumDistanceUnitsInSI=megaParsec
     return
   end function satelliteMinimumDistanceUnitsInSI
+
+  function satelliteMinimumDistanceUnits(self) result(units)
+    !!{
+    Return the units of the satelliteMinimumDistance property.
+    !!}
+    use :: Units_MetaData, only : unitType
+    implicit none
+    type (unitType                                     )                :: units
+    class(nodePropertyExtractorSatelliteMinimumDistance), intent(inout) :: self
+    !$GLC attributes unused :: self
+
+    units=unitType(self%unitsInSI(),description='Mpc',quantity='Mpc')
+    return
+  end function satelliteMinimumDistanceUnits

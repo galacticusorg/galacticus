@@ -121,4 +121,3 @@ contains
     indexLastHostDescription=var_str('Index of the node in whcih this node was last a satellite.')
     return
   end function indexLastHostDescription
-

@@ -40,6 +40,7 @@ Implements a spin parameter output analysis property extractor class.
      procedure :: name        => spinName
      procedure :: description => spinDescription
      procedure :: unitsInSI   => spinUnitsInSI
+     procedure :: units       => spinUnits
   end type nodePropertyExtractorSpin
 
   interface nodePropertyExtractorSpin
@@ -155,6 +156,20 @@ contains
     class(nodePropertyExtractorSpin), intent(inout) :: self
     !$GLC attributes unused :: self
 
-    spinUnitsInSI=0.0d0
+    spinUnitsInSI=1.0d0
     return
   end function spinUnitsInSI
+
+  function spinUnits(self) result(units)
+    !!{
+    Return the units of the spin property.
+    !!}
+    use :: Units_MetaData, only : unitType
+    implicit none
+    type (unitType                 )                :: units
+    class(nodePropertyExtractorSpin), intent(inout) :: self
+    !$GLC attributes unused :: self
+
+    units=unitType(self%unitsInSI())
+    return
+  end function spinUnits

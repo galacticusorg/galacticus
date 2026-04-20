@@ -36,6 +36,7 @@ Implements an orbital radius output analysis property extractor class.
      procedure :: name        => radiusOrbitalName
      procedure :: description => radiusOrbitalDescription
      procedure :: unitsInSI   => radiusOrbitalUnitsInSI
+     procedure :: units       => radiusOrbitalUnits
   end type nodePropertyExtractorRadiusOrbital
 
   interface nodePropertyExtractorRadiusOrbital
@@ -134,3 +135,16 @@ contains
     radiusOrbitalUnitsInSI=megaParsec
     return
   end function radiusOrbitalUnitsInSI
+
+  function radiusOrbitalUnits(self) result(units)
+    !!{
+    Return the units of the radiusOrbital property.
+    !!}
+    use :: Units_MetaData, only : unitType
+    implicit none
+    type (unitType                          )                :: units
+    class(nodePropertyExtractorRadiusOrbital), intent(inout) :: self
+
+    units=unitType(self%unitsInSI(),description='Mpc',quantity='Mpc')
+    return
+  end function radiusOrbitalUnits

@@ -190,7 +190,6 @@ contains
     return
   end function descendantsExtract
 
-
   function descendantsName(self)
     !!{
     Return the name of the descendants property.

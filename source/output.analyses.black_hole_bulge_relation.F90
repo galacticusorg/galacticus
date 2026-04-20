@@ -291,10 +291,14 @@ contains
          &                                                         var_str('massStellarSpheroid'                                   ), &
          &                                                         var_str('Stellar mass of spheroid'                              ), &
          &                                                         var_str('M☉'                                                    ), &
+         &                                                         var_str('solMass'                                               ), &
+         &                                                         .false.                                                          , &
          &                                                         massSolar                                                        , &
          &                                                         var_str('massBlackHole'                                         ), &
          &                                                         var_str('Mean logarithmic (base-10) mass of central black hole' ), &
          &                                                         var_str('M☉'                                                    ), &
+         &                                                         var_str('solMass'                                               ), &
+         &                                                         .false.                                                          , &
          &                                                         massSolar                                                        , &
          &                                                         masses                                                           , &
          &                                                         bufferCount                                                      , &

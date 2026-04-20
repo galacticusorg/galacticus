@@ -78,12 +78,14 @@
 		    </xs:element>
 		    <xs:element name="output"                minOccurs="0" >
 		      <xs:complexType>
-			<xs:attribute name="unitsInSI" type="xs:string"               />
-			<xs:attribute name="comment"   type="xs:string" use="required"/>
-			<xs:attribute name="condition" type="xs:string"               />
-			<xs:attribute name="labels"    type="xs:string"               />
-			<xs:attribute name="count"     type="xs:string"               />
-			<xs:attribute name="modules"   type="xs:string"               />
+			<xs:attribute name="unitsInSI"        type="xs:string"               />
+			<xs:attribute name="unitsDescription" type="xs:string"               />
+			<xs:attribute name="unitsQuantity"    type="xs:string"               />
+			<xs:attribute name="comment"          type="xs:string" use="required"/>
+			<xs:attribute name="condition"        type="xs:string"               />
+			<xs:attribute name="labels"           type="xs:string"               />
+			<xs:attribute name="count"            type="xs:string"               />
+			<xs:attribute name="modules"          type="xs:string"               />
 		      </xs:complexType>
 		    </xs:element>
 		    <xs:element name="classDefault"                   minOccurs="0" >

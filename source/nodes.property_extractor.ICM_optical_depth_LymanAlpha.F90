@@ -43,6 +43,7 @@
      procedure :: name        => icmOpticalDepthLymanAlphaName
      procedure :: description => icmOpticalDepthLymanAlphaDescription
      procedure :: unitsInSI   => icmOpticalDepthLymanAlphaUnitsInSI
+     procedure :: units       => iCMOpticalDepthLymanAlphaUnits
   end type nodePropertyExtractorICMOpticalDepthLymanAlpha
 
   interface nodePropertyExtractorICMOpticalDepthLymanAlpha
@@ -293,4 +294,16 @@ contains
     return
   end function icmOpticalDepthLymanAlphaUnitsInSI
 
+  function icmOpticalDepthLymanAlphaUnits(self) result(units)
+    !!{
+    Return the units of the ICMOpticalDepthLymanAlpha property.
+    !!}
+    use :: Units_MetaData, only : unitType
+    implicit none
+    type (unitType                                      )                :: units
+    class(nodePropertyExtractorICMOpticalDepthLymanAlpha), intent(inout) :: self
+    !$GLC attributes unused :: self
 
+    units=unitType(1.0d0)
+    return
+  end function icmOpticalDepthLymanAlphaUnits

@@ -47,6 +47,7 @@
      procedure :: names        => agesStellarMassWeightedNames
      procedure :: descriptions => agesStellarMassWeightedDescriptions
      procedure :: unitsInSI    => agesStellarMassWeightedUnitsInSI
+     procedure :: units       => agesStellarMassWeightedUnits
   end type nodePropertyExtractorAgesStellarMassWeighted
 
   interface nodePropertyExtractorAgesStellarMassWeighted
@@ -248,3 +249,22 @@ contains
     return
   end function agesStellarMassWeightedUnitsInSI
 
+  function agesStellarMassWeightedUnits(self,time) result(units)
+    !!{
+    Return the units of the agesStellarMassWeighted properties.
+    !!}
+    use :: Numerical_Constants_Astronomical, only : gigaYear
+    use :: Units_MetaData                  , only : unitType
+    implicit none
+    type            (unitType                                    ), dimension(:), allocatable :: units
+    class           (nodePropertyExtractorAgesStellarMassWeighted), intent(inout)             :: self
+    double precision                                              , intent(in   )             :: time
+    integer                                                                                   :: i
+    !$GLC attributes unused :: self
+
+    allocate(units(3))
+    do i=1,3
+       units(i)=unitType(gigaYear,description='Gyr',quantity='Gyr')
+    end do
+    return
+  end function agesStellarMassWeightedUnits

@@ -275,6 +275,7 @@ contains
     use, intrinsic :: ISO_C_Binding                   , only : c_size_t
     use            :: Numerical_Constants_Astronomical, only : massSolar         , megaParsec
     use            :: Numerical_Constants_Math        , only : Pi
+    use            :: Units_MetaData                  , only : unitType
     use            :: Numerical_Integration           , only : GSL_Integ_Gauss15 , integrator
     use            :: Numerical_Ranges                , only : Make_Range        , rangeTypeLogarithmic, rangeTypeLinear
     use            :: String_Handling                 , only : operator(//)
@@ -403,19 +404,19 @@ contains
        call outputGroup   %writeAttribute(epochRedshift            (  iOutput),'outputRedshift'                                                                                                                            )
        call outputGroup   %writeAttribute(epochTime                (  iOutput),'outputTime'                                                                                                                                )
        call outputGroup   %writeDataset  (wavenumber                          ,'wavenumber'               ,'The wavenumber.'                                                                       ,datasetReturned=dataset)
-       call dataset       %writeAttribute(1.0d0/megaParsec                    ,'unitsInSI'                                                                                                                                 )
+       call dataset       %writeAttribute(unitType(1.0d0/megaParsec,"Mpc⁻¹"       ,"Mpc^-1" ,.true.),'units')
        call outputGroup   %writeDataset  (massScale                           ,'mass'                     ,'The corresponding mass scale.'                                                         ,datasetReturned=dataset)
-       call dataset       %writeAttribute(massSolar                           ,'unitsInSI'                                                                                                                                 )
+       call dataset       %writeAttribute(unitType(massSolar       ,"Solar masses","solMass"       ),'units')
        call outputGroup   %writeDataset  (growthFactor             (:,iOutput),'growthFactor'             ,'Linear theory growth factor, D(t).'                                                                            )
        call outputGroup   %writeDataset  (growthFactorLogDerivative(:,iOutput),'growthFactorLogDerivative','Logarithmic derivative of growth factor with respect to expansion factor, dlogD/dloga.'                        )
        call outputGroup   %writeDataset  (powerSpectrumLinear      (:,iOutput),'powerSpectrum'            ,'The power spectrum.'                                                                   ,datasetReturned=dataset)
-       call dataset       %writeAttribute(megaParsec**3                       ,'unitsInSI'                                                                                                                                 )
+       call dataset       %writeAttribute(unitType(megaParsec**3   ,"Mpc³"        ,"Mpc^3"  ,.true.),'units')
        call outputGroup   %writeDataset  (transferFunction         (:,iOutput),'transferFunction'         ,'The transfer function.'                                                                                        )
        call outputGroup   %writeDataset  (sigma                    (:,iOutput),'sigma'                    ,'The mass fluctuation on this scale.'                                                                           )
        call outputGroup   %writeDataset  (sigmaGradient            (:,iOutput),'alpha'                    ,'Logarithmic deriative of the mass flucation with respect to mass.'                                             )
        if (self%includeNonLinear) then
           call outputGroup%writeDataset  (powerSpectrumNonLinear   (:,iOutput),'powerSpectrumNonlinear'   ,'The non-linear power spectrum.'                                                        ,datasetReturned=dataset)
-          call dataset    %writeAttribute(megaParsec**3                       ,'unitsInSI'                                                                                                                                 )
+          call dataset    %writeAttribute(unitType(megaParsec**3   ,"Mpc³"        ,"Mpc^3"  ,.true.),'units')
           call outputGroup%writeDataset  (sigmaNonLinear           (:,iOutput),'sigmaNonlinear'           ,'The non-linear mass fluctuation on this scale.'                                                                )
        end if
        if (self%massSmoothingWindowFunction > 0.0d0) then

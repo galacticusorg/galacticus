@@ -39,6 +39,7 @@ Implements an output analysis property extractor class that scalarizes one eleme
      procedure :: name        => scalarizerName
      procedure :: description => scalarizerDescription
      procedure :: unitsInSI   => scalarizerUnitsInSI
+     procedure :: units       => scalarizerUnits
   end type nodePropertyExtractorScalarizer
 
   interface nodePropertyExtractorScalarizer
@@ -228,3 +229,27 @@ contains
     end select
     return
   end function scalarizerUnitsInSI
+
+  function scalarizerUnits(self) result(units)
+    !!{
+    Return the units of the scalarizer property.
+    !!}
+    use :: Units_MetaData, only : unitType
+    implicit none
+    type (unitType                       )                              :: units
+    class(nodePropertyExtractorScalarizer), intent(inout)               :: self
+    type (unitType                       ), allocatable  , dimension(:) :: units_
+
+    select type (nodePropertyExtractor__ => self%nodePropertyExtractor_)
+    class is (nodePropertyExtractorArray)
+       units_=nodePropertyExtractor__%units(            )
+       units =units_                       (self%element)
+    class is (nodePropertyExtractorTuple)
+       units_=nodePropertyExtractor__%units(-huge(0.0d0))
+       units =units_                       (self%element)
+    class default
+       units=unitType(1.0d0)
+       call Error_Report('class must be nodePropertyExtractorArray'//{introspection:location})
+    end select
+    return
+  end function scalarizerUnits

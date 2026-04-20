@@ -171,6 +171,7 @@ contains
     use, intrinsic :: ISO_C_Binding                   , only : c_size_t
     use            :: ISO_Varying_String              , only : varying_string
     use            :: Numerical_Constants_Astronomical, only : gigaYear                               , massSolar
+    use            :: Units_MetaData                  , only : unitType
     use            :: String_Handling                 , only : operator(//)                           , stringXMLFormat
     implicit none
     class           (mergerTreeOperatorMassAccretionHistory), intent(inout), target         :: self
@@ -246,9 +247,9 @@ contains
        treeGroup=self%outputGroup%openGroup(char(groupName),'Mass accretion history for main branch of merger tree.')
        call                             treeGroup       %writeDataset  (nodeIndex          ,'nodeIndex'          ,'Index of the node.'                                            )
        call                             treeGroup       %writeDataset  (nodeTime           ,'nodeTime'           ,'Time at node [Gyr].'          ,datasetReturned=accretionDataset)
-       call                             accretionDataset%writeAttribute(gigaYear                                 ,'unitsInSI'                                                     )
+       call                             accretionDataset%writeAttribute(unitType(gigaYear  ,"Gyr"        ,"Gyr"    ),'units')
        call                             treeGroup       %writeDataset  (nodeMass           ,'nodeMass'           ,'Mass of the node [M⊙].'       ,datasetReturned=accretionDataset)
-       call                             accretionDataset%writeAttribute(massSolar                                ,"unitsInSI"                                                     )
+       call                             accretionDataset%writeAttribute(unitType(massSolar,"Solar masses","solMass"),"units")
        call                             treeGroup       %writeDataset  (nodeExpansionFactor,'nodeExpansionFactor','Expansion factor of the node.'                                 )
        if (self%includeSpin      ) call treeGroup       %writeDataset  (nodeSpin           ,'nodeSpin','Spin parameter of the node.'                                              )
        if (self%includeSpinVector) call treeGroup       %writeDataset  (nodeSpinVector     ,'nodeSpinVector','Spin parameter vector of the node.'                                 )

@@ -43,6 +43,7 @@ Implements a tidal field property extractor class.
      procedure :: name        => tidalFieldName
      procedure :: description => tidalFieldDescription
      procedure :: unitsInSI   => tidalFieldUnitsInSI
+     procedure :: units       => tidalFieldUnits
   end type nodePropertyExtractorTidalField
 
   interface nodePropertyExtractorTidalField
@@ -167,4 +168,16 @@ contains
     return
   end function tidalFieldUnitsInSI
 
+  function tidalFieldUnits(self) result(units)
+    !!{
+    Return the units of the tidalField property.
+    !!}
+    use :: Units_MetaData, only : unitType
+    implicit none
+    type (unitType                       )                :: units
+    class(nodePropertyExtractorTidalField), intent(inout) :: self
+    !$GLC attributes unused :: self
 
+    units=unitType(self%unitsInSI(),description='Gyr⁻²',quantity='Gyr^-2')
+    return
+  end function tidalFieldUnits

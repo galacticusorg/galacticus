@@ -332,11 +332,15 @@ contains
          &                                                                              var_str('Subhalo mean maximum velocity vs. bound mass relation'), &
          &                                                                              var_str('massBound'                                            ), &
          &                                                                              var_str('Halo bound mass'                                      ), &
-         &                                                                              var_str('M☉'                                                  ), &
+         &                                                                              var_str('M☉'                                                   ), &
+         &                                                                              var_str('solMass'                                              ), &
+         &                                                                              .false.                                                         , &
          &                                                                              massSolar                                                       , &
          &                                                                              var_str('velocityMaximumMean'                                  ), &
          &                                                                              var_str('Mean velocity maximum'                                ), &
          &                                                                              var_str('km/s'                                                 ), &
+         &                                                                              var_str('km/s'                                                 ), &
+         &                                                                              .false.                                                         , &
          &                                                                              kilo                                                            , &
          &                                                                              masses                                                          , &
          &                                                                              0_c_size_t                                                      , &

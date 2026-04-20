@@ -43,7 +43,7 @@ module Node_Component_Black_Hole_Simple
       <type>double</type>
       <rank>0</rank>
       <attributes isSettable="true" isGettable="true" isEvolvable="true" />
-      <output unitsInSI="massSolar" comment="Mass of the black hole."/>
+      <output unitsInSI="massSolar" unitsDescription="Solar masses" unitsQuantity="solMass" comment="Mass of the black hole."/>
     </property>
    </properties>
    <bindings>

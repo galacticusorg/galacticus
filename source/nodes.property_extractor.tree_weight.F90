@@ -36,6 +36,7 @@ Implements a merger tree weight property extractor class.
      procedure :: name        => treeWeightName
      procedure :: description => treeWeightDescription
      procedure :: unitsInSI   => treeWeightUnitsInSI
+     procedure :: units       => treeWeightUnits
   end type nodePropertyExtractorTreeWeight
 
   interface nodePropertyExtractorTreeWeight
@@ -116,3 +117,16 @@ contains
     return
   end function treeWeightUnitsInSI
 
+  function treeWeightUnits(self) result(units)
+    !!{
+    Return the units of the treeWeight property.
+    !!}
+    use :: Units_MetaData, only : unitType
+    implicit none
+    type (unitType                       )                :: units
+    class(nodePropertyExtractorTreeWeight), intent(inout) :: self
+    !$GLC attributes unused :: self
+
+    units=unitType(self%unitsInSI(),description='Mpc⁻³',quantity='Mpc^-3',isComoving=.true.)
+    return
+  end function treeWeightUnits

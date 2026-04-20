@@ -931,32 +931,34 @@ contains
     return
   end subroutine Abundances_Output_Count
 
-  subroutine Abundances_Output_Names(self,integerProperty,integerProperties,doubleProperty,doubleProperties,time,prefix,comment,unitsInSI)
+  subroutine Abundances_Output_Names(self,integerProperty,integerProperties,doubleProperty,doubleProperties,time,prefix,comment,unitsInSI,unitsDescription,unitsQuantity)
     !!{
     Assign names to output buffers for an abundances object.
     !!}
     use :: Merger_Tree_Outputter_Buffer_Types, only : outputPropertyInteger, outputPropertyDouble
+    use :: Units_MetaData                    , only : unitType
     implicit none
     class           (abundances           )              , intent(in   ) :: self
     double precision                                     , intent(in   ) :: time
     integer                                              , intent(inout) :: doubleProperty    , integerProperty
     type            (outputPropertyInteger), dimension(:), intent(inout) :: integerProperties
     type            (outputPropertyDouble ), dimension(:), intent(inout) :: doubleProperties
-    character       (len=*                )              , intent(in   ) :: comment           , prefix
+    character       (len=*                )              , intent(in   ) :: comment           , prefix         , &
+         &                                                                  unitsDescription  , unitsQuantity
     double precision                                     , intent(in   ) :: unitsInSI
     integer                                                              :: iElement
     !$GLC attributes unused :: self, time, integerProperty, integerProperties
 
     doubleProperty=doubleProperty+1
-    doubleProperties(doubleProperty)%name     =trim(prefix )//  'Metals'
-    doubleProperties(doubleProperty)%comment  =trim(comment)//' [Metals]'
-    doubleProperties(doubleProperty)%unitsInSI=unitsInSI
+    doubleProperties(doubleProperty)%name   =trim(prefix )//  'Metals'
+    doubleProperties(doubleProperty)%comment=trim(comment)//' [Metals]'
+    doubleProperties(doubleProperty)%units  =unitType(unitsInSI,unitsDescription,unitsQuantity)
     if (elementsCount > 0) then
        do iElement=1,elementsCount
           doubleProperty=doubleProperty+1
-          doubleProperties(doubleProperty)%name     =trim(prefix )//      trim(elementsToTrack(iElement))
-          doubleProperties(doubleProperty)%comment  =trim(comment)//' ['//trim(elementsToTrack(iElement))//']'
-          doubleProperties(doubleProperty)%unitsInSI=unitsInSI
+          doubleProperties(doubleProperty)%name   =trim(prefix )//      trim(elementsToTrack(iElement))
+          doubleProperties(doubleProperty)%comment=trim(comment)//' ['//trim(elementsToTrack(iElement))//']'
+          doubleProperties(doubleProperty)%units  =unitType(unitsInSI,unitsDescription,unitsQuantity)
        end do
     end if
     return

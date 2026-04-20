@@ -406,11 +406,15 @@ contains
          &                                                         var_str('massStellar'                                 ), &
          &                                                         var_str('Stellar mass'                                ), &
          &                                                         var_str('M☉'                                          ), &
+         &                                                         var_str('solMass'                                     ), &
+         &                                                         .false.                                                , &
          &                                                         massSolar                                              , &
          &                                                         var_str('metallicityMean'                             ), &
          &                                                         var_str('Mean metallicity'                            ), &
          &                                                         var_str('dimensionless'                               ), &
-         &                                                         0.0d0                                                  , &
+         &                                                         var_str(' '                                           ), &
+         &                                                         .false.                                                , &
+         &                                                         1.0d0                                                  , &
          &                                                         log10(masses)                                          , &
          &                                                         bufferCount                                            , &
          &                                                         outputWeight                                           , &

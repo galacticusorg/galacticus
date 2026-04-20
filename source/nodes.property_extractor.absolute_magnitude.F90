@@ -47,6 +47,7 @@ Implements a node property extractor class for absolute magnitudes.
      procedure :: names        => magnitudesAbsoluteNames
      procedure :: descriptions => magnitudesAbsoluteDescriptions
      procedure :: unitsInSI    => magnitudesAbsoluteUnitsInSI
+     procedure :: units       => magnitudesAbsoluteUnits
   end type nodePropertyExtractorMagnitudesAbsolute
 
   interface nodePropertyExtractorMagnitudesAbsolute
@@ -216,7 +217,26 @@ contains
     !$GLC attributes unused :: self
 
     allocate(unitsInSI(unitStellarLuminosities%luminosityOutputCount(time)))
-    unitsInSI=0.0d0
+    unitsInSI=1.0d0
     return
   end function magnitudesAbsoluteUnitsInSI
 
+  function magnitudesAbsoluteUnits(self,time) result(units)
+    !!{
+    Return the units of the magnitudesAbsolute properties.
+    !!}
+    use :: Stellar_Luminosities_Structure, only : unitStellarLuminosities
+    use :: Units_MetaData                , only : unitType
+    implicit none
+    type            (unitType                               ), dimension(:), allocatable :: units
+    class           (nodePropertyExtractorMagnitudesAbsolute), intent(inout)             :: self
+    double precision                                         , intent(in   )             :: time
+    integer                                                                              :: i
+    !$GLC attributes unused :: self
+
+    allocate(units(unitStellarLuminosities%luminosityOutputCount(time)))
+    do i=1,size(units)
+       units(i)=unitType(1.0d0)
+    end do
+    return
+  end function magnitudesAbsoluteUnits

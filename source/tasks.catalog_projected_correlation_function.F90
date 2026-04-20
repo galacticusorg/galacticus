@@ -292,6 +292,7 @@ contains
     use :: ISO_Varying_String              , only : varying_string
     use :: Node_Components                 , only : Node_Components_Thread_Initialize, Node_Components_Thread_Uninitialize
     use :: Numerical_Constants_Astronomical, only : megaParsec
+    use :: Units_MetaData                  , only : unitType
     use :: Points                          , only : Points_Prune                     , Points_Replicate                   , Points_Rotate  , Points_Survey_Geometry, &
           &                                         Points_Translate
     use :: Statistics_Points_Correlations  , only : Statistics_Points_Correlation
@@ -443,11 +444,11 @@ contains
     !$ call hdf5Access%set()
     correlationFunctionGroup=outputFile%openGroup('projectedCorrelationFunction')
     call correlationFunctionGroup%writeDataset(separation       ,'separation'                ,comment='Galaxy separation.'                                ,datasetReturned=dataset)
-    call dataset%writeAttribute(megaParsec,'unitsInSI')
+    call dataset%writeAttribute(unitType(megaParsec,"Mpc","Mpc"),'units')
     call correlationFunctionGroup%writeDataset(correlation      ,'projectedCorrelation'      ,comment='Projected correlation function from the full mock.',datasetReturned=dataset)
-    call dataset%writeAttribute(megaParsec,'unitsInSI')
+    call dataset%writeAttribute(unitType(megaParsec,"Mpc","Mpc"),'units')
     call correlationFunctionGroup%writeDataset(correlationSurvey,'projectedCorrelationSurvey',comment='Projected correlation function from survey region.',datasetReturned=dataset)
-    call dataset%writeAttribute(megaParsec,'unitsInSI')
+    call dataset%writeAttribute(unitType(megaParsec,"Mpc","Mpc"),'units')
     !$ call hdf5Access%unset()
     ! Clean up.
     deallocate(galaxyPosition)

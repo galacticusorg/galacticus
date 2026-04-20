@@ -370,11 +370,15 @@ contains
          &                                comment                                                         , &
          &                                var_str('massHI'                                               ), &
          &                                var_str('HI mass at the bin center'                            ), &
-         &                                var_str('M☉'                                                  ), &
+         &                                var_str('M☉'                                                   ), &
+         &                                var_str('solMass'                                              ), &
+         &                                .false.                                                         , &
          &                                massSolar                                                       , &
          &                                var_str('massFunction'                                         ), &
          &                                var_str('HI mass function averaged over each bin'              ), &
          &                                var_str('ᵪMpc⁻³'                                               ), &
+         &                                var_str('Mpc^-3'                                               ), &
+         &                                .true.                                                          , &
          &                                megaParsec**(-3)                                                , &
          &                                log10(masses)                                                   , &
          &                                bufferCount                                                     , &

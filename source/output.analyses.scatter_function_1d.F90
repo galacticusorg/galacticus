@@ -54,10 +54,12 @@
           &                                                                                         propertyLabel                                  , propertyComment                                 , &
           &                                                                                         scatterLabel                                   , scatterComment                                  , &
           &                                                                                         propertyUnits                                  , scatterUnits                                    , &
+          &                                                                                         propertyQuantity                               , scatterQuantity                                 , &
           &                                                                                         xAxisLabel                                     , yAxisLabel                                      , &
           &                                                                                         targetLabel
      double precision                                                                            :: propertyUnitsInSI                              , scatterUnitsInSI                                , &
           &                                                                                         covarianceBinomialMassHaloMinimum              , covarianceBinomialMassHaloMaximum
+     logical                                                                                     :: propertyIsComoving                             , scatterIsComoving
      type            (outputAnalysisMeanFunction1D                ), pointer                     :: meanFunction                          => null(), meanSquaredFunction                    => null()
      double precision                                              , allocatable, dimension(:  ) :: binCenter                                      , scatterValue                                    , &
           &                                                                                         scatterValueTarget                             , scatterCovarianceTarget1D                       , &
@@ -116,6 +118,7 @@ contains
          &                                                                                    propertyLabel                        , propertyComment                       , &
          &                                                                                    scatterLabel                         , scatterComment                        , &
          &                                                                                    propertyUnits                        , scatterUnits                          , &
+         &                                                                                    propertyQuantity                     , scatterQuantity                       , &
          &                                                                                    covarianceModel                      , xAxisLabel                            , &
          &                                                                                    yAxisLabel                           , targetLabel
     integer                                                                                :: covarianceBinomialBinsPerDecade
@@ -123,8 +126,9 @@ contains
     type            (inputParameters                        )                              :: weightParameters
     double precision                                                                       :: propertyUnitsInSI                    , scatterUnitsInSI                      , &
          &                                                                                    covarianceBinomialMassHaloMinimum    , covarianceBinomialMassHaloMaximum
-    logical                                                                                :: likelihoodNormalize                  , xAxisIsLog                            , &
-         &                                                                                    yAxisIsLog
+    logical                                                                                :: xAxisIsLog                           , yAxisIsLog                            , &
+         &                                                                                    propertyIsComoving                   , scatterIsComoving                     , &
+         &                                                                                    likelihoodNormalize
 
     !![
     <objectBuilder class="nodePropertyExtractor"    name="nodePropertyExtractor_"       source="parameters"          />
@@ -195,6 +199,18 @@ contains
       <description>A human-readable description of the units for the property.</description>
     </inputParameter>
     <inputParameter>
+      <name>propertyQuantity</name>
+      <source>parameters</source>
+      <variable>propertyQuantity</variable>
+      <description>An \mono{astropy.units}-parseable units string for the property.</description>
+    </inputParameter>
+    <inputParameter>
+      <name>propertyIsComoving</name>
+      <source>parameters</source>
+      <variable>propertyIsComoving</variable>
+      <description>If true, the property is in comoving units.</description>
+    </inputParameter>
+    <inputParameter>
       <name>propertyUnitsInSI</name>
       <source>parameters</source>
       <variable>propertyUnitsInSI</variable>
@@ -217,6 +233,18 @@ contains
       <source>parameters</source>
       <variable>scatterUnits</variable>
       <description>A human-readable description of the units for the scatter.</description>
+    </inputParameter>
+    <inputParameter>
+      <name>scatterQuantity</name>
+      <source>parameters</source>
+      <variable>scatterQuantity</variable>
+      <description>An \mono{astropy.units}-parseable units string for the scatter.</description>
+    </inputParameter>
+    <inputParameter>
+      <name>scatterIsComoving</name>
+      <source>parameters</source>
+      <variable>scatterIsComoving</variable>
+      <description>If true, the scatter is in comoving units.</description>
     </inputParameter>
     <inputParameter>
       <name>scatterUnitsInSI</name>
@@ -318,15 +346,19 @@ contains
            &amp;                        propertyLabel                                                                                , &amp;
            &amp;                        propertyComment                                                                              , &amp;
            &amp;                        propertyUnits                                                                                , &amp;
+           &amp;                        propertyQuantity                                                                             , &amp;
+           &amp;                        propertyIsComoving                                                                           , &amp;
            &amp;                        propertyUnitsInSI                                                                            , &amp;
            &amp;                        scatterLabel                                                                                 , &amp;
            &amp;                        scatterComment                                                                               , &amp;
            &amp;                        scatterUnits                                                                                 , &amp;
+           &amp;                        scatterQuantity                                                                              , &amp;
+           &amp;                        scatterIsComoving                                                                            , &amp;
            &amp;                        scatterUnitsInSI                                                                             , &amp;
            &amp;                        binCenter                                                                                    , &amp;
            &amp;                        bufferCount                                                                                  , &amp;
            &amp;                        reshape(outputWeight,[int(parameters%count('binCenter'),kind=c_size_t),outputTimes_%count()]), &amp;
-           &amp;                        nodePropertyExtractor_                                                             , &amp;
+           &amp;                        nodePropertyExtractor_                                                                       , &amp;
            &amp;                        outputAnalysisWeightPropertyExtractor_                                                       , &amp;
            &amp;                        outputAnalysisPropertyOperator_                                                              , &amp;
            &amp;                        outputAnalysisWeightPropertyOperator_                                                        , &amp;
@@ -365,7 +397,7 @@ contains
     return
   end function scatterFunction1DConstructorParameters
 
-  function scatterFunction1DConstructorInternal(label,comment,propertyLabel,propertyComment,propertyUnits,propertyUnitsInSI,scatterLabel,scatterComment,scatterUnits,scatterUnitsInSI,binCenter,bufferCount,outputWeight,nodePropertyExtractor_,outputAnalysisWeightPropertyExtractor_,outputAnalysisPropertyOperator_,outputAnalysisWeightPropertyOperator_,outputAnalysisPropertyUnoperator_,outputAnalysisWeightOperator_,outputAnalysisDistributionOperator_,galacticFilter_,outputTimes_,covarianceModel,covarianceBinomialBinsPerDecade,covarianceBinomialMassHaloMinimum,covarianceBinomialMassHaloMaximum,likelihoodNormalize,xAxisLabel,yAxisLabel,xAxisIsLog,yAxisIsLog,targetLabel,scatterValueTarget,scatterCovarianceTarget) result (self)
+  function scatterFunction1DConstructorInternal(label,comment,propertyLabel,propertyComment,propertyUnits,propertyQuantity,propertyIsComoving,propertyUnitsInSI,scatterLabel,scatterComment,scatterUnits,scatterQuantity,scatterIsComoving,scatterUnitsInSI,binCenter,bufferCount,outputWeight,nodePropertyExtractor_,outputAnalysisWeightPropertyExtractor_,outputAnalysisPropertyOperator_,outputAnalysisWeightPropertyOperator_,outputAnalysisPropertyUnoperator_,outputAnalysisWeightOperator_,outputAnalysisDistributionOperator_,galacticFilter_,outputTimes_,covarianceModel,covarianceBinomialBinsPerDecade,covarianceBinomialMassHaloMinimum,covarianceBinomialMassHaloMaximum,likelihoodNormalize,xAxisLabel,yAxisLabel,xAxisIsLog,yAxisIsLog,targetLabel,scatterValueTarget,scatterCovarianceTarget) result (self)
     !!{
     Constructor for the \refClass{outputAnalysisScatterFunction1D} output analysis class for internal use.
     !!}
@@ -377,7 +409,8 @@ contains
     type            (varying_string                              ), intent(in   )                           :: label                                       , comment                                      , &
          &                                                                                                     propertyLabel                               , propertyComment                              , &
          &                                                                                                     scatterLabel                                , scatterComment                               , &
-         &                                                                                                     propertyUnits                               , scatterUnits
+         &                                                                                                     propertyUnits                               , scatterUnits                                 , &
+         &                                                                                                     propertyQuantity                            , scatterQuantity
     type            (varying_string                              ), intent(in   ), optional                 :: xAxisLabel                                  , yAxisLabel                                   , &
          &                                                                                                     targetLabel
     double precision                                              , intent(in   )                           :: propertyUnitsInSI                           , scatterUnitsInSI
@@ -385,8 +418,9 @@ contains
     integer         (c_size_t                                    ), intent(in   )                           :: bufferCount
     double precision                                              , intent(in   )          , dimension(:,:) :: outputWeight
     logical                                                       , intent(in   ), optional                 :: xAxisIsLog                                  , yAxisIsLog                                   , &
+         &                                                                                                     propertyIsComoving                          , scatterIsComoving                            , &
          &                                                                                                     likelihoodNormalize
-    class           (nodePropertyExtractorClass                  ), intent(inout), target                   :: nodePropertyExtractor_            , outputAnalysisWeightPropertyExtractor_
+    class           (nodePropertyExtractorClass                  ), intent(inout), target                   :: nodePropertyExtractor_                      , outputAnalysisWeightPropertyExtractor_
     class           (outputAnalysisPropertyOperatorClass         ), intent(inout), target                   :: outputAnalysisPropertyOperator_             , outputAnalysisPropertyUnoperator_            , &
          &                                                                                                     outputAnalysisWeightPropertyOperator_
     class           (outputAnalysisWeightOperatorClass           ), intent(inout), target                   :: outputAnalysisWeightOperator_
@@ -403,7 +437,7 @@ contains
     type            (outputAnalysisPropertyOperatorSequence      ), pointer                                 :: outputAnalysisWeightPropertyOperatorSquaring_
     type            (outputAnalysisPropertyOperatorSquare        ), pointer                                 :: outputAnalysisWeightPropertyOperatorSquare_
     !![
-    <constructorAssign variables="label, comment, propertyLabel, propertyComment, propertyUnits, propertyUnitsInSI, scatterLabel, scatterComment, scatterUnits, scatterUnitsInSI, xAxisLabel, yAxisLabel, xAxisIsLog, yAxisIsLog, targetLabel, scatterValueTarget, scatterCovarianceTarget, *nodePropertyExtractor_, *outputAnalysisWeightPropertyExtractor_, *outputAnalysisPropertyOperator_, *outputAnalysisWeightPropertyOperator_, *outputAnalysisPropertyUnoperator_, *outputAnalysisWeightOperator_, *outputAnalysisDistributionOperator_, *galacticFilter_, *outputTimes_, bufferCount, covarianceModel, covarianceBinomialBinsPerDecade, covarianceBinomialMassHaloMinimum, covarianceBinomialMassHaloMaximum"/>
+    <constructorAssign variables="label, comment, propertyLabel, propertyComment, propertyUnits, propertyQuantity, propertyIsComoving, propertyUnitsInSI, scatterLabel, scatterComment, scatterUnits, scatterQuantity, scatterIsComoving, scatterUnitsInSI, xAxisLabel, yAxisLabel, xAxisIsLog, yAxisIsLog, targetLabel, scatterValueTarget, scatterCovarianceTarget, *nodePropertyExtractor_, *outputAnalysisWeightPropertyExtractor_, *outputAnalysisPropertyOperator_, *outputAnalysisWeightPropertyOperator_, *outputAnalysisPropertyUnoperator_, *outputAnalysisWeightOperator_, *outputAnalysisDistributionOperator_, *galacticFilter_, *outputTimes_, bufferCount, covarianceModel, covarianceBinomialBinsPerDecade, covarianceBinomialMassHaloMinimum, covarianceBinomialMassHaloMaximum"/>
     !!]
 
     ! Set properties needed for descriptor.
@@ -440,15 +474,19 @@ contains
        &amp;                       propertyLabel                                , &amp;
        &amp;                       propertyComment                              , &amp;
        &amp;                       propertyUnits                                , &amp;
+       &amp;                       propertyQuantity                             , &amp;
+       &amp;                       propertyIsComoving                           , &amp;
        &amp;                       propertyUnitsInSI                            , &amp;
        &amp;                       scatterLabel                                 , &amp;
        &amp;                       scatterComment                               , &amp;
        &amp;                       scatterUnits                                 , &amp;
+       &amp;                       scatterQuantity                              , &amp;
+       &amp;                       scatterIsComoving                            , &amp;
        &amp;                       scatterUnitsInSI                             , &amp;
        &amp;                       binCenter                                    , &amp;
        &amp;                       bufferCount                                  , &amp;
        &amp;                       outputWeight                                 , &amp;
-       &amp;                       nodePropertyExtractor_             , &amp;
+       &amp;                       nodePropertyExtractor_                       , &amp;
        &amp;                       outputAnalysisWeightPropertyExtractor_       , &amp;
        &amp;                       outputAnalysisPropertyOperator_              , &amp;
        &amp;                       outputAnalysisWeightPropertyOperator_        , &amp;
@@ -472,15 +510,19 @@ contains
        &amp;                       propertyLabel                                , &amp;
        &amp;                       propertyComment                              , &amp;
        &amp;                       propertyUnits                                , &amp;
+       &amp;                       propertyQuantity                             , &amp;
+       &amp;                       propertyIsComoving                           , &amp;
        &amp;                       propertyUnitsInSI                            , &amp;
        &amp;                       scatterLabel                                 , &amp;
        &amp;                       scatterComment                               , &amp;
        &amp;                       scatterUnits                                 , &amp;
+       &amp;                       scatterQuantity                              , &amp;
+       &amp;                       scatterIsComoving                            , &amp;
        &amp;                       scatterUnitsInSI                             , &amp;
        &amp;                       binCenter                                    , &amp;
        &amp;                       bufferCount                                  , &amp;
        &amp;                       outputWeight                                 , &amp;
-       &amp;                       nodePropertyExtractor_             , &amp;
+       &amp;                       nodePropertyExtractor_                       , &amp;
        &amp;                       outputAnalysisWeightPropertyExtractor_       , &amp;
        &amp;                       outputAnalysisPropertyOperator_              , &amp;
        &amp;                       outputAnalysisWeightPropertyOperatorSquaring_, &amp;
@@ -606,9 +648,10 @@ contains
     !!{
     Implement a \mono{scatterFunction1D} output analysis finalization.
     !!}
-    use :: Output_HDF5, only : outputFile
-    use :: HDF5_Access, only : hdf5Access
-    use :: IO_HDF5    , only : hdf5Object
+    use :: Output_HDF5   , only : outputFile
+    use :: HDF5_Access   , only : hdf5Access
+    use :: IO_HDF5       , only : hdf5Object
+    use :: Units_MetaData, only : unitType
     implicit none
     class(outputAnalysisScatterFunction1D), intent(inout)           :: self
     type (varying_string                 ), intent(in   ), optional :: groupName
@@ -641,24 +684,19 @@ contains
     call    analysisGroup%writeAttribute(     char(self% scatterLabel)//"CovarianceTarget",'yCovarianceTarget'                                                                                                )
     ! Write computed datasets.
     call    analysisGroup%writeDataset  (          self%binCenter                         ,char(self%propertyLabel)                       ,char(self%propertyComment)                 ,datasetReturned=dataset)
-    call    dataset      %writeAttribute(     char(self%propertyUnits       )             ,'units'                                                                                                            )
-    call    dataset      %writeAttribute(          self%propertyUnitsInSI                 ,'unitsInSI'                                                                                                        )
+    call    dataset      %writeAttribute(unitType(self%propertyUnitsInSI  ,description=     char(self%propertyUnits)      ,quantity=     char(self%propertyQuantity)       ,isComoving=self%propertyIsComoving),'units')
     call    analysisGroup%writeDataset  (          self%scatterValue                      ,char(self% scatterLabel)                       ,char(self% scatterComment)                 ,datasetReturned=dataset)
-    call    dataset      %writeAttribute(     char(self%    scatterUnits    )             ,'units'                                                                                                            )
-    call    dataset      %writeAttribute(          self%scatterUnitsInSI                  ,'unitsInSI'                                                                                                        )
+    call    dataset      %writeAttribute(unitType(self%scatterUnitsInSI   ,description=     char(self%scatterUnits )      ,quantity=     char(self%scatterQuantity )       ,isComoving=self%scatterIsComoving ),'units')
     call    analysisGroup%writeDataset  (          self%scatterCovariance                 ,char(self% scatterLabel)//"Covariance"         ,char(self% scatterComment)//" [covariance]",datasetReturned=dataset)
-    call    dataset      %writeAttribute("["//char(self%    scatterUnits    )//"]²"       ,'units'                                                                                                            )
-    call    dataset      %writeAttribute(          self%    scatterUnitsInSI   **2        ,'unitsInSI'                                                                                                        )
+    call    dataset      %writeAttribute(unitType(self%scatterUnitsInSI**2,description="["//char(self%scatterUnits )//"]²",quantity="("//char(self%scatterQuantity )//")^2",isComoving=self%scatterIsComoving ),'units')
     ! If available, include the log-likelihood and target dataset.
     if (allocated(self%scatterValueTarget)) then
        call analysisGroup%writeAttribute(          self%logLikelihood()                   ,'logLikelihood'                                                                                                    )
        call analysisGroup%writeAttribute(     char(self%targetLabel         )             ,'targetLabel'                                                                                                      )
        call analysisGroup%writeDataset  (          self%scatterValueTarget                ,char(self%    scatterLabel)//"Target"          ,char(self% scatterComment)                 ,datasetReturned=dataset)
-       call dataset      %writeAttribute(     char(self%    scatterUnits    )             ,'units'                                                                                                            )
-       call dataset      %writeAttribute(          self%scatterUnitsInSI                  ,'unitsInSI'                                                                                                        )
+       call dataset      %writeAttribute(unitType(self%scatterUnitsInSI   ,description=     char(self%scatterUnits )      ,quantity=     char(self%scatterQuantity )       ,isComoving=self%scatterIsComoving ),'units')
        call analysisGroup%writeDataset  (          self%scatterCovarianceTarget           ,char(self%    scatterLabel)//"CovarianceTarget",char(self% scatterComment)//" [covariance]",datasetReturned=dataset)
-       call dataset      %writeAttribute("["//char(self%    scatterUnits    )//"]²"       ,'units'                                                                                                            )
-       call dataset      %writeAttribute(          self%    scatterUnitsInSI   **2        ,'unitsInSI'                                                                                                        )
+       call dataset      %writeAttribute(unitType(self%scatterUnitsInSI**2,description="["//char(self%scatterUnits )//"]²",quantity="("//char(self%scatterQuantity )//")^2",isComoving=self%scatterIsComoving ),'units')
     end if
     !$ call hdf5Access%unset()
     return

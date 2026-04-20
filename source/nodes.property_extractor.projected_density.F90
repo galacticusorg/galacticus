@@ -20,7 +20,7 @@
   !!{
   Implements a property extractor class for the projected density at a set of radii.
   !!}
-  use :: Dark_Matter_Halo_Scales             , only : darkMatterHaloScale   , darkMatterHaloScaleClass
+  use :: Dark_Matter_Halo_Scales             , only : darkMatterHaloScale, darkMatterHaloScaleClass
   use :: Galactic_Structure_Radii_Definitions, only : radiusSpecifier
 
   !![
@@ -57,6 +57,7 @@
      procedure :: names              => projectedDensityNames
      procedure :: descriptions       => projectedDensityDescriptions
      procedure :: unitsInSI          => projectedDensityUnitsInSI
+     procedure :: units       => projectedDensityUnits
   end type nodePropertyExtractorProjectedDensity
 
   interface nodePropertyExtractorProjectedDensity
@@ -392,23 +393,25 @@ contains
     return
   end subroutine projectedDensityDescriptions
 
-  subroutine projectedDensityColumnDescriptions(self,descriptions,values,valuesDescription,valuesUnitsInSI,time)
+  subroutine projectedDensityColumnDescriptions(self,descriptions,values,valuesDescription,valuesUnits,time)
     !!{
     Return column descriptions of the \mono{projectedDensity} property.
     !!}
+    use            :: Units_MetaData, only : unitType
+    use, intrinsic :: ISO_C_Binding , only : c_int
     implicit none
     class           (nodePropertyExtractorProjectedDensity), intent(inout)                            :: self
     double precision                                       , intent(in   ), optional                  :: time
     type            (varying_string                       ), intent(inout), dimension(:), allocatable :: descriptions
     double precision                                       , intent(inout), dimension(:), allocatable :: values
-    type            (varying_string                         ), intent(  out)                            :: valuesDescription
-    double precision                                         , intent(  out)                            :: valuesUnitsInSI
+    type            (varying_string                       ), intent(  out)                            :: valuesDescription
+    type            (unitType                             ), intent(  out)                            :: valuesUnits
     !$GLC attributes unused :: time
 
     allocate(descriptions(self%radiiCount))
     allocate(values      (              0))
     valuesDescription=var_str('')
-    valuesUnitsInSI  =0.0d0
+    valuesUnits      =unitType(1.0d0)
     descriptions     =self%radii%name
     return
   end subroutine projectedDensityColumnDescriptions
@@ -431,3 +434,22 @@ contains
     return
   end function projectedDensityUnitsInSI
 
+  function projectedDensityUnits(self,time) result(units)
+    !!{
+    Return the units of the projectedDensity properties.
+    !!}
+    use :: Units_MetaData, only : unitType
+    implicit none
+    type            (unitType                             ), dimension(:), allocatable :: units
+    class           (nodePropertyExtractorProjectedDensity), intent(inout)             :: self
+    double precision                                       , intent(in   ), optional   :: time
+    double precision                                       , dimension(:), allocatable :: siValues
+    integer                                                                            :: i
+
+    siValues=self%unitsInSI(time)
+    allocate(units(size(siValues)))
+    do i=1,size(siValues)
+       units(i)=unitType(siValues(i),description='M☉/Mpc²',quantity='solMass/Mpc**2')
+    end do
+    return
+  end function projectedDensityUnits

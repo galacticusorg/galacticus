@@ -37,6 +37,7 @@ Implements an ISM mass output analysis property extractor class.
      procedure :: name        => massISMName
      procedure :: description => massISMDescription
      procedure :: unitsInSI   => massISMUnitsInSI
+     procedure :: units       => massISMUnits
   end type nodePropertyExtractorMassISM
 
   interface nodePropertyExtractorMassISM
@@ -142,3 +143,17 @@ contains
     massISMUnitsInSI=massSolar
     return
   end function massISMUnitsInSI
+
+  function massISMUnits(self) result(units)
+    !!{
+    Return the units of the massISM property.
+    !!}
+    use :: Units_MetaData, only : unitType
+    implicit none
+    type (unitType                    )                :: units
+    class(nodePropertyExtractorMassISM), intent(inout) :: self
+    !$GLC attributes unused :: self
+
+    units=unitType(self%unitsInSI(),description='Solar masses',quantity='solMass')
+    return
+  end function massISMUnits

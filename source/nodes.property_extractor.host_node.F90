@@ -38,6 +38,7 @@ Implements an output analysis property extractor class that extracts a property 
      procedure :: name        => hostNodeName
      procedure :: description => hostNodeDescription
      procedure :: unitsInSI   => hostNodeUnitsInSI
+     procedure :: units       => hostNodeUnits
   end type nodePropertyExtractorHostNode
 
   interface nodePropertyExtractorHostNode
@@ -157,3 +158,16 @@ contains
     hostNodeUnitsInSI=self%nodePropertyExtractor_%unitsInSI()
     return
   end function hostNodeUnitsInSI
+
+  function hostNodeUnits(self) result(units)
+    !!{
+    Return the units of the hostNode property.
+    !!}
+    use :: Units_MetaData, only : unitType
+    implicit none
+    type (unitType                     )                :: units
+    class(nodePropertyExtractorHostNode), intent(inout) :: self
+
+    units=self%nodePropertyExtractor_%units()
+    return
+  end function hostNodeUnits

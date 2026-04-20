@@ -43,6 +43,7 @@
      procedure :: names        => starFormationHistoryTimesNames
      procedure :: descriptions => starFormationHistoryTimesDescriptions
      procedure :: unitsInSI    => starFormationHistoryTimesUnitsInSI
+     procedure :: units       => starFormationHistoryTimesUnits
   end type nodePropertyExtractorStarFormationHistoryTimes
   
   interface nodePropertyExtractorStarFormationHistoryTimes
@@ -213,3 +214,23 @@ contains
     starFormationHistoryTimesUnitsInSI(1)=gigaYear
     return
   end function starFormationHistoryTimesUnitsInSI
+
+  function starFormationHistoryTimesUnits(self) result(units)
+    !!{
+    Return the units of the starFormationHistoryTimes properties.
+    !!}
+    use :: Units_MetaData, only : unitType
+    implicit none
+    type            (unitType                                      ), dimension(:) , allocatable :: units
+    class           (nodePropertyExtractorStarFormationHistoryTimes), intent(inout)              :: self
+    double precision                                                , dimension(:) , allocatable :: siValues
+    integer                                                                                      :: i
+    !$GLC attributes unused :: self
+
+    siValues=self%unitsInSI()
+    allocate(units(size(siValues)))
+    do i=1,size(siValues)
+       units(i)=unitType(siValues(i),description='Gyr',quantity='Gyr')
+    end do
+    return
+  end function starFormationHistoryTimesUnits

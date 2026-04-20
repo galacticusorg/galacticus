@@ -36,6 +36,7 @@
      procedure :: name        => massCooledName
      procedure :: description => massCooledDescription
      procedure :: unitsInSI   => massCooledUnitsInSI
+     procedure :: units       => massCooledUnits
   end type nodePropertyExtractorMassCooled
 
   interface nodePropertyExtractorMassCooled
@@ -152,3 +153,17 @@ contains
     massCooledUnitsInSI=massSolar
     return
   end function massCooledUnitsInSI
+
+  function massCooledUnits(self) result(units)
+    !!{
+    Return the units of the massCooled property.
+    !!}
+    use :: Units_MetaData, only : unitType
+    implicit none
+    type (unitType                       )                :: units
+    class(nodePropertyExtractorMassCooled), intent(inout) :: self
+    !$GLC attributes unused :: self
+
+    units=unitType(self%unitsInSI(),description='Solar masses',quantity='solMass')
+    return
+  end function massCooledUnits

@@ -33,6 +33,7 @@
      procedure :: name        => massBertschingerName
      procedure :: description => massBertschingerDescription
      procedure :: unitsInSI   => massBertschingerUnitsInSI
+     procedure :: units       => massBertschingerUnits
   end type nodePropertyExtractorMassBertschinger
 
   interface nodePropertyExtractorMassBertschinger
@@ -129,3 +130,17 @@ contains
     massBertschingerUnitsInSI=massSolar
     return
   end function massBertschingerUnitsInSI
+
+  function massBertschingerUnits(self) result(units)
+    !!{
+    Return the units of the massBertschinger property.
+    !!}
+    use :: Units_MetaData, only : unitType
+    implicit none
+    type (unitType                             )                :: units
+    class(nodePropertyExtractorMassBertschinger), intent(inout) :: self
+    !$GLC attributes unused :: self
+
+    units=unitType(self%unitsInSI(),description='Solar masses',quantity='solMass')
+    return
+  end function massBertschingerUnits

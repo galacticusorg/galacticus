@@ -40,6 +40,7 @@ Implements a cold mode infall rate property extractor class.
      procedure :: name        => rateInfallColdModeName
      procedure :: description => rateInfallColdModeDescription
      procedure :: unitsInSI   => rateInfallColdModeUnitsInSI
+     procedure :: units       => rateInfallColdModeUnits
   end type nodePropertyExtractorRateInfallColdMode
 
   interface nodePropertyExtractorRateInfallColdMode
@@ -154,4 +155,15 @@ contains
     return
   end function rateInfallColdModeUnitsInSI
 
+  function rateInfallColdModeUnits(self) result(units)
+    !!{
+    Return the units of the rateInfallColdMode property.
+    !!}
+    use :: Units_MetaData, only : unitType
+    implicit none
+    type (unitType                               )                :: units
+    class(nodePropertyExtractorRateInfallColdMode), intent(inout) :: self
 
+    units=unitType(self%unitsInSI(),description='M☉/Gyr',quantity='solMass/Gyr')
+    return
+  end function rateInfallColdModeUnits

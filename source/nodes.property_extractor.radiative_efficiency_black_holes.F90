@@ -39,6 +39,7 @@
      procedure :: names        => radiativeEfficiencyBlackHolesNames
      procedure :: descriptions => radiativeEfficiencyBlackHolesDescriptions
      procedure :: unitsInSI    => radiativeEfficiencyBlackHolesUnitsInSI
+     procedure :: units       => radiativeEfficiencyBlackHolesUnits
   end type nodePropertyExtractorRadiativeEfficiencyBlackHoles
 
   interface nodePropertyExtractorRadiativeEfficiencyBlackHoles
@@ -182,3 +183,22 @@ contains
     unitsInSI(1)=1.0d0
     return
   end function radiativeEfficiencyBlackHolesUnitsInSI
+
+  function radiativeEfficiencyBlackHolesUnits(self) result(units)
+    !!{
+    Return the units of the black hole radiative efficiency properties.
+    !!}
+    use :: Units_MetaData, only : unitType
+    implicit none
+    type            (unitType                                          ), dimension(:) , allocatable :: units
+    class           (nodePropertyExtractorRadiativeEfficiencyBlackHoles), intent(inout)              :: self
+    double precision                                                    , dimension(:) , allocatable :: siValues
+    integer                                                                                          :: i
+
+    siValues=self%unitsInSI()
+    allocate(units(size(siValues)))
+    do i=1,size(siValues)
+       units(i)=unitType(1.0d0)
+    end do
+    return
+  end function radiativeEfficiencyBlackHolesUnits

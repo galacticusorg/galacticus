@@ -312,10 +312,14 @@ contains
          &                                                         var_str('velocityDispersion'                                    ), &
          &                                                         var_str('Velocity dispersion of spheroid'                       ), &
          &                                                         var_str('km/s'                                                  ), &
+         &                                                         var_str('km/s'                                                  ), &
+         &                                                         .false.                                                          , &
          &                                                         kilo                                                             , &
          &                                                         var_str('massBlackHole'                                         ), &
          &                                                         var_str('Mean logarithmic (base-10) mass of central black hole' ), &
          &                                                         var_str('M☉'                                                    ), &
+         &                                                         var_str('solMass'                                               ), &
+         &                                                         .false.                                                          , &
          &                                                         massSolar                                                        , &
          &                                                         velocities                                                       , &
          &                                                         bufferCount                                                      , &

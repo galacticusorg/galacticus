@@ -122,4 +122,3 @@ contains
     indexBranchTipDescription=var_str('Index of the node at the tip of this branch.')
     return
   end function indexBranchTipDescription
-

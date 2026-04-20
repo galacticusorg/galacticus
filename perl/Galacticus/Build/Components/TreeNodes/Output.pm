@@ -31,10 +31,13 @@ use Galacticus::Build::Components::DataTypes;
 my @nodePropertiesOutputList =
     (
      {
-	 type        => "double",
-	 name        => "subsamplingWeight",
-	 description => "Weight of node in the subsample.",
-	 unitsInSI   => "0.0d0"
+	 type             => "double",
+	 name             => "subsamplingWeight",
+	 description      => "Weight of node in the subsample.",
+	 unitsInSI        => "1.0d0",
+	 unitsDescription => "",
+	 unitsQuantity    => "",
+	 isComoving       => ".false."
      }
     );
 
@@ -120,7 +123,8 @@ sub Tree_Node_Output_Names {
 	content     => "",
 	modules     =>
 	    [
-	     "Merger_Tree_Outputter_Buffer_Types"
+	     "Merger_Tree_Outputter_Buffer_Types",
+	     "Units_MetaData"
 	    ],
 	variables   =>
 	    [
@@ -171,7 +175,7 @@ sub Tree_Node_Output_Names {
 integerProperty=integerProperty+1
 integerProperties(integerProperty)%name     ="node{ucfirst($_->{'name'})}"
 integerProperties(integerProperty)%comment  ="{$_->{'description'}}"
-integerProperties(integerProperty)%unitsInSI={$_->{'unitsInSI'}}
+integerProperties(integerProperty)%units    =unitType(unitsInSI={$_->{'unitsInSI'}},description='{$_->{'unitsDescription'} // ""}',quantity='{$_->{'unitsQuantity'} // ""}',isComoving={$_->{'isComoving'} // '.false.'})
 CODE
 	}
 	elsif ( $_->{'type'} eq "double"  )
@@ -180,7 +184,7 @@ CODE
 doubleProperty=doubleProperty+1
 doubleProperties(doubleProperty)%name     ="node{ucfirst($_->{'name'})}"
 doubleProperties(doubleProperty)%comment  ="{$_->{'description'}}"
-doubleProperties(doubleProperty)%unitsInSI={$_->{'unitsInSI'}}
+doubleProperties(doubleProperty)%units    =unitType(unitsInSI={$_->{'unitsInSI'}},description='{$_->{'unitsDescription'} // ""}',quantity='{$_->{'unitsQuantity'} // ""}',isComoving={$_->{'isComoving'} // '.false.'})
 CODE
 	}
     };

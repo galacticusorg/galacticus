@@ -143,4 +143,3 @@ contains
     indicesHostDescription=var_str('ID of the node which hosts this node (or -1 is there is no host).')
     return
   end function indicesHostDescription
-

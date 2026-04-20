@@ -353,10 +353,14 @@ contains
          &                                var_str('magnitudeAbsolute'                            ), &
          &                                var_str('absolute magnitude at the bin center'         ), &
          &                                var_str(' '                                            ), &
-         &                                0.0d0                                                   , &
+         &                                var_str(' '                                            ), &
+         &                                .false.                                                 , &
+         &                                1.0d0                                                   , &
          &                                var_str('luminosityFunction'                           ), &
          &                                var_str('luminosity function averaged over each bin'   ), &
          &                                var_str('ᵪMpc⁻³'                                       ), &
+         &                                var_str('Mpc^-3'                                       ), &
+         &                                .true.                                                  , &
          &                                megaParsec**(-3)                                        , &
          &                                magnitudesAbsolute                                      , &
          &                                bufferCount                                             , &

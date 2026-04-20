@@ -67,6 +67,7 @@ Implements an intracluster medium Sunyaev-Zeldovich Compton-y parameter property
      procedure :: name        => icmSZName
      procedure :: description => icmSZDescription
      procedure :: unitsInSI   => icmSZUnitsInSI
+     procedure :: units       => iCMSZUnits
   end type nodePropertyExtractorICMSZ
 
   interface nodePropertyExtractorICMSZ
@@ -363,8 +364,20 @@ contains
     class(nodePropertyExtractorICMSZ), intent(inout) :: self
     !$GLC attributes unused :: self
 
-    icmSZUnitsInSI=0.0d0
+    icmSZUnitsInSI=1.0d0
     return
   end function icmSZUnitsInSI
 
+  function icmSZUnits(self) result(units)
+    !!{
+    Return the units of the ICMSZ property.
+    !!}
+    use :: Units_MetaData, only : unitType
+    implicit none
+    type (unitType                  )                :: units
+    class(nodePropertyExtractorICMSZ), intent(inout) :: self
+    !$GLC attributes unused :: self
 
+    units=unitType(1.0d0)
+    return
+  end function icmSZUnits

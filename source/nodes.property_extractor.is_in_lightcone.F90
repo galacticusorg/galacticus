@@ -145,5 +145,3 @@ contains
     isInLightconeDescription=var_str('Node is within the lightcone (1 if true, 0 otherwise).')
     return
   end function isInLightconeDescription
-
-

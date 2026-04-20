@@ -65,7 +65,7 @@ module Node_Component_NSC_Standard
       <type>double</type>
       <rank>0</rank>
       <attributes isSettable="true" isGettable="true" isEvolvable="true" />
-      <output unitsInSI="massSolar" comment="Mass of stars in the standard nuclear star cluster."/>
+      <output unitsInSI="massSolar" unitsDescription="Solar masses" unitsQuantity="solMass" comment="Mass of stars in the standard nuclear star cluster."/>
     </property>
     <property>
       <name>massStellarFormed</name>
@@ -78,28 +78,28 @@ module Node_Component_NSC_Standard
       <type>abundances</type>
       <rank>0</rank>
       <attributes isSettable="true" isGettable="true" isEvolvable="true" />
-      <output unitsInSI="massSolar" comment="Mass of metals in the stellar phase of the standard nuclear star cluster."/>
+      <output unitsInSI="massSolar" unitsDescription="Solar masses" unitsQuantity="solMass" comment="Mass of metals in the stellar phase of the standard nuclear star cluster."/>
     </property>
     <property>
       <name>massGas</name>
       <type>double</type>
       <rank>0</rank>
       <attributes isSettable="true" isGettable="true" isEvolvable="true" createIfNeeded="true" />
-      <output unitsInSI="massSolar" comment="Mass of gas in the standard nuclear star cluster."/>
+      <output unitsInSI="massSolar" unitsDescription="Solar masses" unitsQuantity="solMass" comment="Mass of gas in the standard nuclear star cluster."/>
     </property>
     <property>
       <name>abundancesGas</name>
       <type>abundances</type>
       <rank>0</rank>
       <attributes isSettable="true" isGettable="true" isEvolvable="true" createIfNeeded="true" />
-      <output unitsInSI="massSolar" comment="Mass of metals in the gas phase of the standard nuclear star cluster."/>
+      <output unitsInSI="massSolar" unitsDescription="Solar masses" unitsQuantity="solMass" comment="Mass of metals in the gas phase of the standard nuclear star cluster."/>
     </property>
     <property>
       <name>angularMomentum</name>
       <type>double</type>
       <rank>0</rank>
       <attributes isSettable="true" isGettable="true" isEvolvable="true" createIfNeeded="true" />
-      <output unitsInSI="massSolar*megaParsec*kilo" comment="Angular momentum of the standard nuclear star cluster."/>
+      <output unitsInSI="massSolar*megaParsec*kilo" unitsDescription="Msun Mpc km/s" unitsQuantity="solMass Mpc km/s" comment="Angular momentum of the standard nuclear star cluster."/>
       <getFunction>Node_Component_NSC_Standard_Angular_Momentum</getFunction>
     </property>
     <property>
@@ -107,7 +107,7 @@ module Node_Component_NSC_Standard
       <type>double</type>
       <rank>0</rank>
       <attributes isSettable="true" isGettable="true" isEvolvable="false" />
-      <output unitsInSI="megaParsec" comment="Radial scale length in the standard nuclear star cluster."/>
+      <output unitsInSI="megaParsec" unitsDescription="Mpc" unitsQuantity="Mpc" comment="Radial scale length in the standard nuclear star cluster."/>
       <getFunction>Node_Component_NSC_Standard_Radius</getFunction>
     </property>
     <property>
@@ -115,7 +115,7 @@ module Node_Component_NSC_Standard
       <attributes isSettable="false" isGettable="true" isEvolvable="false" isVirtual="true" />
       <type>double</type>
       <rank>0</rank>
-      <output unitsInSI="megaParsec" comment="Radial scale length in the standard nuclear star cluster."/>
+      <output unitsInSI="megaParsec" unitsDescription="Mpc" unitsQuantity="Mpc" comment="Radial scale length in the standard nuclear star cluster."/>
       <getFunction>Node_Component_NSC_Standard_Half_Mass_Radius</getFunction>
     </property>
     <property>
@@ -124,14 +124,14 @@ module Node_Component_NSC_Standard
       <rank>0</rank>
       <attributes isSettable="true" isGettable="true" isEvolvable="false" />
       <getFunction>Node_Component_NSC_Standard_Velocity</getFunction>
-      <output unitsInSI="kilo" comment="Circular velocity of the standard nuclear star cluster at scale length."/>
+      <output unitsInSI="kilo" unitsDescription="km/s" unitsQuantity="km/s" comment="Circular velocity of the standard nuclear star cluster at scale length."/>
     </property>
     <property>
       <name>luminositiesStellar</name>
       <type>stellarLuminosities</type>
       <rank>0</rank>
       <attributes isSettable="true" isGettable="true" isEvolvable="true" />
-      <output unitsInSI="luminosityZeroPointAB" comment="Luminosity of nuclear star cluster stars."/>
+      <output unitsInSI="luminosityZeroPointAB" unitsDescription="AB-magnitude zero point" unitsQuantity="4.465920e17 W/Hz" comment="Luminosity of nuclear star cluster stars."/>
     </property>
     <property>
       <name>stellarPropertiesHistory</name>

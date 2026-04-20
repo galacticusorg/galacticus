@@ -322,11 +322,15 @@ contains
          &                                                         var_str('massStellar'                                             ), &
          &                                                         var_str('Stellar mass'                                            ), &
          &                                                         var_str('M☉'                                                      ), &
+         &                                                         var_str('solMass'                                                 ), &
+         &                                                         .false.                                                            , &
          &                                                         massSolar                                                          , &
          &                                                         var_str('thermalSZ'                                               ), &
-         &                                                         var_str('Thermal S-Z signal (̃Y₅₀₀)'                              ), &
+         &                                                         var_str('Thermal S-Z signal (̃Y₅₀₀)'                               ), &
          &                                                         var_str(' '                                                       ), &
-         &                                                         0.0d0                                                              , &
+         &                                                         var_str(' '                                                       ), &
+         &                                                         .false.                                                            , &
+         &                                                         1.0d0                                                              , &
          &                                                         log10(masses)                                                      , &
          &                                                         bufferCount                                                        , &
          &                                                         outputWeight                                                       , &

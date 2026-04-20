@@ -56,6 +56,7 @@ Implements a halo mass output analysis property extractor class.
      procedure :: name        => massHaloName
      procedure :: description => massHaloDescription
      procedure :: unitsInSI   => massHaloUnitsInSI
+     procedure :: units       => massHaloUnits
   end type nodePropertyExtractorMassHalo
 
   interface nodePropertyExtractorMassHalo
@@ -202,7 +203,7 @@ contains
 
   double precision function massHaloUnitsInSI(self)
     !!{
-    Return the units of the massHalo property in the SI system.
+    Return the units of the halo mass property in the SI system.
     !!}
     use :: Numerical_Constants_Astronomical, only : massSolar
     implicit none
@@ -212,3 +213,16 @@ contains
     massHaloUnitsInSI=massSolar
     return
   end function massHaloUnitsInSI
+
+  function massHaloUnits(self) result(units)
+    !!{
+    Return the units of the halo mass property.
+    !!}
+    use :: Units_MetaData, only : unitType
+    implicit none
+    type (unitType                     )                :: units
+    class(nodePropertyExtractorMassHalo), intent(inout) :: self
+
+    units=unitType(self%unitsInSI(),description='Solar masses',quantity='solMass')
+    return
+  end function massHaloUnits

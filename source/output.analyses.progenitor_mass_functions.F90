@@ -706,11 +706,15 @@ contains
          &                                var_str('massRatio'                                      ), &
          &                                var_str('Mass ratio at the bin center'                   ), &
          &                                var_str('dimensionless'                                  ), &
-         &                                0.0d0                                                     , &
+         &                                var_str(' '                                              ), &
+         &                                .false.                                                   , &
+         &                                1.0d0                                                     , &
          &                                var_str('progenitorMassFunction'                         ), &
          &                                var_str('Progenitor mass function averaged over each bin'), &
          &                                var_str('dimensionless'                                  ), &
-         &                                0.0d0                                                     , &
+         &                                var_str(' '                                              ), &
+         &                                .false.                                                   , &
+         &                                1.0d0                                                     , &
          &                                log10(self%massRatios)                                    , &
          &                                bufferCount                                               , &
          &                                outputWeight                                              , &

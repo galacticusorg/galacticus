@@ -50,6 +50,7 @@ Implements a node property extractor class for apparent magnitudes.
      procedure :: names        => magnitudesApparentNames
      procedure :: descriptions => magnitudesApparentDescriptions
      procedure :: unitsInSI    => magnitudesApparentUnitsInSI
+     procedure :: units       => magnitudesApparentUnits
   end type nodePropertyExtractorMagnitudesApparent
 
   interface nodePropertyExtractorMagnitudesApparent
@@ -248,7 +249,26 @@ contains
     !$GLC attributes unused :: self
 
     allocate(unitsInSI(unitStellarLuminosities%luminosityOutputCount(time)))
-    unitsInSI=0.0d0
+    unitsInSI=1.0d0
     return
   end function magnitudesApparentUnitsInSI
 
+  function magnitudesApparentUnits(self,time) result(units)
+    !!{
+    Return the units of the magnitudesApparent properties.
+    !!}
+    use :: Stellar_Luminosities_Structure, only : unitStellarLuminosities
+    use :: Units_MetaData                , only : unitType
+    implicit none
+    type            (unitType                               ), dimension(:), allocatable :: units
+    class           (nodePropertyExtractorMagnitudesApparent), intent(inout)             :: self
+    double precision                                         , intent(in   )             :: time
+    integer                                                                              :: i
+    !$GLC attributes unused :: self
+
+    allocate(units(unitStellarLuminosities%luminosityOutputCount(time)))
+    do i=1,size(units)
+       units(i)=unitType(1.0d0)
+    end do
+    return
+  end function magnitudesApparentUnits

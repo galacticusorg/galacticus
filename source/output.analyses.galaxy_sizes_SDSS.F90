@@ -423,11 +423,15 @@ contains
          &                                var_str('radius'                                     ), &
          &                                var_str('Radius at the bin center'                   ), &
          &                                var_str('kpc'                                        ), &
+         &                                var_str('kpc'                                        ), &
+         &                                .false.                                               , &
          &                                milli*megaParsec                                      , &
          &                                var_str('galaxySizesSDSSFunction'                    ), &
          &                                var_str('Galaxy size function averaged over each bin'), &
          &                                var_str('dimensionless'                              ), &
-         &                                0.0d0                                                 , &
+         &                                var_str(' '                                          ), &
+         &                                .false.                                               , &
+         &                                1.0d0                                                 , &
          &                                log10(radii)                                          , &
          &                                0_c_size_t                                            , &
          &                                outputWeight                                          , &

@@ -37,6 +37,7 @@ Implements a cosmic time output analysis property extractor class.
      procedure :: name        => timeFirstInfallName
      procedure :: description => timeFirstInfallDescription
      procedure :: unitsInSI   => timeFirstInfallUnitsInSI
+     procedure :: units       => timeFirstInfallUnits
   end type nodePropertyExtractorTimeFirstInfall
 
   interface nodePropertyExtractorTimeFirstInfall
@@ -133,3 +134,17 @@ contains
     timeFirstInfallUnitsInSI=gigaYear
     return
   end function timeFirstInfallUnitsInSI
+
+  function timeFirstInfallUnits(self) result(units)
+    !!{
+    Return the units of the timeFirstInfall property.
+    !!}
+    use :: Units_MetaData, only : unitType
+    implicit none
+    type (unitType                            )                :: units
+    class(nodePropertyExtractorTimeFirstInfall), intent(inout) :: self
+    !$GLC attributes unused :: self
+
+    units=unitType(self%unitsInSI(),description='Gyr',quantity='Gyr')
+    return
+  end function timeFirstInfallUnits

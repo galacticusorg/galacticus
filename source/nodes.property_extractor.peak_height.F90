@@ -40,6 +40,7 @@
      procedure :: names        => peakHeightNames
      procedure :: descriptions => peakHeightDescriptions
      procedure :: unitsInSI    => peakHeightUnitsInSI
+     procedure :: units       => peakHeightUnits
   end type nodePropertyExtractorPeakHeight
 
   interface nodePropertyExtractorPeakHeight
@@ -202,6 +203,24 @@ contains
     !$GLC attributes unused :: self, time
 
     allocate(peakHeightUnitsInSI(4))
-    peakHeightUnitsInSI=[0.0d0,0.0d0,0.0d0,0.0d0]
+    peakHeightUnitsInSI=[1.0d0,1.0d0,1.0d0,1.0d0]
     return
   end function peakHeightUnitsInSI
+
+  function peakHeightUnits(self,time) result(units)
+    !!{
+    Return the units of the peakHeight properties.
+    !!}
+    use :: Units_MetaData, only : unitType
+    implicit none
+    type            (unitType                       ), dimension(:), allocatable :: units
+    class           (nodePropertyExtractorPeakHeight), intent(inout)             :: self
+    double precision                                 , intent(in   )             :: time
+    integer                                                                      :: i
+
+    allocate(units(4))
+    do i=1,4
+       units(i)=unitType(1.0d0)
+    end do
+    return
+  end function peakHeightUnits

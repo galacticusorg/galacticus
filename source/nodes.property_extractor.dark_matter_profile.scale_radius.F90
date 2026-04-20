@@ -36,6 +36,7 @@ Implements a dark matter profile scale radius output analysis property extractor
      procedure :: name        => darkMatterProfileScaleRadiusName
      procedure :: description => darkMatterProfileScaleRadiusDescription
      procedure :: unitsInSI   => darkMatterProfileScaleRadiusUnitsInSI
+     procedure :: units       => darkMatterProfileScaleRadiusUnits
   end type nodePropertyExtractorDarkMatterProfileScaleRadius
 
   interface nodePropertyExtractorDarkMatterProfileScaleRadius
@@ -119,3 +120,16 @@ contains
     darkMatterProfileScaleRadiusUnitsInSI=megaParsec
     return
   end function darkMatterProfileScaleRadiusUnitsInSI
+
+  function darkMatterProfileScaleRadiusUnits(self) result(units)
+    !!{
+    Return the units of the darkMatterProfileScaleRadius property.
+    !!}
+    use :: Units_MetaData, only : unitType
+    implicit none
+    type (unitType                                         )                :: units
+    class(nodePropertyExtractorDarkMatterProfileScaleRadius), intent(inout) :: self
+
+    units=unitType(self%unitsInSI(),description='Mpc',quantity='Mpc')
+    return
+  end function darkMatterProfileScaleRadiusUnits

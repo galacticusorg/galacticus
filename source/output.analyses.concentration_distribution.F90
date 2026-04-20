@@ -549,11 +549,15 @@ contains
          &                                var_str('concentration'                                    ), &
          &                                var_str('Concentration at the bin center'                  ), &
          &                                var_str('dimensionless'                                    ), &
-         &                                0.0d0                                                       , &
+         &                                var_str(' '                                                ), &
+         &                                .false.                                                     , &
+         &                                1.0d0                                                       , &
          &                                var_str('concentrationFunction'                            ), &
          &                                var_str('Concentration distribution averaged over each bin'), &
          &                                var_str('dimensionless'                                    ), &
-         &                                0.0d0                                                       , &
+         &                                var_str(' '                                                ), &
+         &                                .false.                                                     , &
+         &                                1.0d0                                                       , &
          &                                log10(concentrations)                                       , &
          &                                bufferCount                                                 , &
          &                                outputWeight                                                , &

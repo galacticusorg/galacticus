@@ -397,7 +397,7 @@ Output is controlled by parameters given within the \mono{mergerTreeOutput} sect
 
 \subsubsection{nodeData group}\label{sec:nodeDataGroup}\hyperdef{sec}{nodeDataGroup}{}
 
-The \mono{nodeData} group contains all data from nodes in all merger trees. The group consists of a collection of datasets each of which lists a property of all nodes in the trees which exist at the output time. Where relevant, each dataset contains an attribute, \mono{unitsInSI}, which gives the units\index{units} of the dataset in the SI system.
+The \mono{nodeData} group contains all data from nodes in all merger trees. The group consists of a collection of datasets each of which lists a property of all nodes in the trees which exist at the output time. Where relevant, each dataset contains an attribute, \mono{units}, which is a composite HDF5 data-type containing the units\index{units} of the dataset in the SI system as \mono{unitsInSI}, a human-readable description of the units as \mono{description}, an \mono{astropy.units}-parseable description of the units as \mono{quantity}, and \mono{isComoving} which is \mono{1} if the units are in comoving coordinates, and \mono{0} otherwise.
 
 \subsubsection{mergerTree datasets}\label{sec:mergerTreeDatasets}
 
@@ -405,7 +405,7 @@ To allow locating of nodes belonging to a given merger tree in the datasets in t
 
 \subsubsection{mergerTree subgroups}\label{sec:mergerTreeSubgroups}
 
-These subgroups will be present if the \mono{[mergerTreeOutputReferences]} parameter is set to true. Each \mono{mergerTree} subgroup contains HDF5 references to all data on a single merger tree. The group consists of a collection of scalar references each of which points to the appropriate region of the corresponding dataset in the \mono{nodeData} group. Additionally, the \mono{volumeWeight} attribute of this group gives the weight (in Mpc$^{-3}$) which should be assigned to this tree (and all nodes in it) to create a volume-averaged sample. (A second attribute, \mono{volumeWeightUnitsInSI}, gives the units of \mono{volumeWeight} in the SI system.)
+These subgroups will be present if the \mono{[mergerTreeOutputReferences]} parameter is set to true. Each \mono{mergerTree} subgroup contains HDF5 references to all data on a single merger tree. The group consists of a collection of scalar references each of which points to the appropriate region of the corresponding dataset in the \mono{nodeData} group. Additionally, the \mono{volumeWeight} attribute of this group gives the weight (in Mpc$^{-3}$) which should be assigned to this tree (and all nodes in it) to create a volume-averaged sample. (A second attribute, \mono{units}, gives the units of \mono{volumeWeight} in the SI system, along with human-readable, \mono{astropy.units}-parseable descriptions, and a boolean indicating that these are in comoving coordinates.)
 
 \section{On-the-fly Analyses}\label{sec:onTheFlyAnalyses}\index{analyis!on-the-fly}
 

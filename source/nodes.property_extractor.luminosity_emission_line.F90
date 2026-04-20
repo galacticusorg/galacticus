@@ -99,6 +99,7 @@
      procedure :: luminosityMean          => emissionLineLuminosityMean
      procedure :: indexTemplateTime       => emissionLineLuminosityIndexTemplateTime
      procedure :: indexTemplateNode       => emissionLineLuminosityIndexTemplateNode 
+     procedure :: units       => luminosityEmissionLineUnits
   end type nodePropertyExtractorLuminosityEmissionLine
   
   interface nodePropertyExtractorLuminosityEmissionLine
@@ -1006,4 +1007,22 @@ contains
     return
   end function emissionLineLuminosityHistoryHashedDescriptor
 
+  function luminosityEmissionLineUnits(self,time) result(units)
+    !!{
+    Return the units of the luminosityEmissionLine properties.
+    !!}
+    use :: Units_MetaData, only : unitType
+    implicit none
+    type            (unitType                                   ), dimension(:), allocatable :: units
+    class           (nodePropertyExtractorLuminosityEmissionLine), intent(inout)             :: self
+    double precision                                             , intent(in   )             :: time
+    double precision                                             , dimension(:), allocatable :: siValues
+    integer                                                                                  :: i
 
+    siValues=self%unitsInSI(time)
+    allocate(units(size(siValues)))
+    do i=1,size(siValues)
+       units(i)=unitType(siValues(i),description='ergs',quantity='erg')
+    end do
+    return
+  end function luminosityEmissionLineUnits

@@ -34,6 +34,7 @@
      procedure :: names        => massAccretionHistoryNames
      procedure :: descriptions => massAccretionHistoryDescriptions
      procedure :: unitsInSI    => massAccretionHistoryUnitsInSI
+     procedure :: units       => massAccretionHistoryUnits
   end type nodePropertyExtractorMassAccretionHistory
 
   interface nodePropertyExtractorMassAccretionHistory
@@ -156,3 +157,20 @@ contains
     unitsInSI(2)=massSolar    
     return
   end function massAccretionHistoryUnitsInSI
+
+  function massAccretionHistoryUnits(self) result(units)
+    !!{
+    Return the units of the massAccretionHistory properties.
+    !!}
+    use :: Units_MetaData, only : unitType
+    implicit none
+    type            (unitType                                 ), dimension(:), allocatable :: units
+    class           (nodePropertyExtractorMassAccretionHistory), intent(inout)             :: self
+    double precision                                           , dimension(:), allocatable :: siValues
+
+    siValues=self%unitsInSI()
+    allocate(units(2))
+    units(1)=unitType(siValues(1),description='Gyr'         ,quantity='Gyr'    )
+    units(2)=unitType(siValues(2),description='Solar masses',quantity='solMass')
+    return
+  end function massAccretionHistoryUnits

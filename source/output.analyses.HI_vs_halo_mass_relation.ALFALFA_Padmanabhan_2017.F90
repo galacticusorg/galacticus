@@ -408,12 +408,16 @@ contains
          &                                                         var_str('HI vs. halo mass relation'                  ), &
          &                                                         var_str('massHalo'                                   ), &
          &                                                         var_str('Halo mass'                                  ), &
-         &                                                         var_str('M☉'                                        ), &
+         &                                                         var_str('M☉'                                         ), &
+         &                                                         var_str('solMass'                                    ), &
+         &                                                         .false.                                               , &
          &                                                         massSolar                                             , &
          &                                                         var_str('massHILog10'                                ), &
          &                                                         var_str('⟨log₁₀(HI mass/M☉)⟩'                        ), &
          &                                                         var_str(' '                                          ), &
-         &                                                         0.0d0                                                 , &
+         &                                                         var_str(' '                                          ), &
+         &                                                         .false.                                               , &
+         &                                                         1.0d0                                                 , &
          &                                                         massHaloLogarithmic                                   , &
          &                                                         0_c_size_t                                            , &
          &                                                         outputWeight                                          , &

@@ -40,21 +40,21 @@ module Node_Component_Hot_Halo_Very_Simple
       <type>double</type>
       <rank>0</rank>
       <attributes isSettable="true" isGettable="true" isEvolvable="true" createIfNeeded="true" />
-      <output unitsInSI="massSolar" comment="Mass of gas in the hot halo."/>
+      <output unitsInSI="massSolar" unitsDescription="Solar masses" unitsQuantity="solMass" comment="Mass of gas in the hot halo."/>
     </property>
     <property>
       <name>abundances</name>
       <type>abundances</type>
       <rank>0</rank>
       <attributes isSettable="true" isGettable="true" isEvolvable="true" />
-      <output unitsInSI="massSolar" comment="Mass of metals in the hot halo."/>
+      <output unitsInSI="massSolar" unitsDescription="Solar masses" unitsQuantity="solMass" comment="Mass of metals in the hot halo."/>
     </property>
     <property>
       <name>unaccretedMass</name>
       <type>double</type>
       <rank>0</rank>
       <attributes isSettable="true" isGettable="true" isEvolvable="true" createIfNeeded="true" />
-      <output unitsInSI="massSolar" comment="Mass of gas that failed to accrete into the hot halo."/>
+      <output unitsInSI="massSolar" unitsDescription="Solar masses" unitsQuantity="solMass" comment="Mass of gas that failed to accrete into the hot halo."/>
     </property>
     <property>
       <name>outflowingMass</name>
@@ -73,7 +73,7 @@ module Node_Component_Hot_Halo_Very_Simple
       <type>double</type>
       <rank>0</rank>
       <attributes isSettable="true" isGettable="true" isEvolvable="true" isNonNegative="true" />
-      <output unitsInSI="megaParsec" comment="Outer radius of the hot halo."/>
+      <output unitsInSI="megaParsec" unitsDescription="Mpc" unitsQuantity="Mpc" comment="Outer radius of the hot halo."/>
     </property>
    </properties>
    <bindings>

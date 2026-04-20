@@ -40,6 +40,7 @@ Implements a redshift property extractor class.
      procedure :: name        => redshiftName
      procedure :: description => redshiftDescription
      procedure :: unitsInSI   => redshiftUnitsInSI
+     procedure :: units       => redshiftUnits
   end type nodePropertyExtractorRedshift
 
   interface nodePropertyExtractorRedshift
@@ -155,7 +156,20 @@ contains
     class(nodePropertyExtractorRedshift), intent(inout) :: self
     !$GLC attributes unused :: self
 
-    redshiftUnitsInSI=0.0d0
+    redshiftUnitsInSI=1.0d0
     return
   end function redshiftUnitsInSI
 
+  function redshiftUnits(self) result(units)
+    !!{
+    Return the units of the redshift property.
+    !!}
+    use :: Units_MetaData, only : unitType
+    implicit none
+    type (unitType                     )                :: units
+    class(nodePropertyExtractorRedshift), intent(inout) :: self
+    !$GLC attributes unused :: self
+
+    units=unitType(1.0d0)
+    return
+  end function redshiftUnits

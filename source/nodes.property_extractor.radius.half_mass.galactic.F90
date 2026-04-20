@@ -36,6 +36,7 @@ Implements a half-galactic mass radius output analysis property extractor class.
      procedure :: name        => radiusHalfMassGalacticName
      procedure :: description => radiusHalfMassGalacticDescription
      procedure :: unitsInSI   => radiusHalfMassGalacticUnitsInSI
+     procedure :: units       => radiusHalfMassGalacticUnits
   end type nodePropertyExtractorRadiusHalfMassGalactic
 
   interface nodePropertyExtractorRadiusHalfMassGalactic
@@ -122,3 +123,16 @@ contains
     radiusHalfMassGalacticUnitsInSI=megaParsec
     return
   end function radiusHalfMassGalacticUnitsInSI
+
+  function radiusHalfMassGalacticUnits(self) result(units)
+    !!{
+    Return the units of the radiusHalfMassGalactic property.
+    !!}
+    use :: Units_MetaData, only : unitType
+    implicit none
+    type (unitType                                   )                :: units
+    class(nodePropertyExtractorRadiusHalfMassGalactic), intent(inout) :: self
+
+    units=unitType(self%unitsInSI(),description='Mpc',quantity='Mpc')
+    return
+  end function radiusHalfMassGalacticUnits

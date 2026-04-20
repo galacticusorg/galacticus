@@ -87,7 +87,6 @@ contains
     return
   end function finalDescendantExtract
 
-
   function finalDescendantName(self)
     !!{
     Return the name of the finalDescendant property.
@@ -113,6 +112,3 @@ contains
     finalDescendantDescription=var_str('ID of the node which this node will have descended into at the base of the tree.')
     return
   end function finalDescendantDescription
-
-
-

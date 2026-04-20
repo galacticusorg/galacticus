@@ -55,6 +55,7 @@ Implements a virial radius output analysis property extractor class.
      procedure :: name        => radiusVirialName
      procedure :: description => radiusVirialDescription
      procedure :: unitsInSI   => radiusVirialUnitsInSI
+     procedure :: units       => radiusVirialUnits
   end type nodePropertyExtractorRadiusVirial
 
   interface nodePropertyExtractorRadiusVirial
@@ -213,3 +214,17 @@ contains
     radiusVirialUnitsInSI=megaParsec
     return
   end function radiusVirialUnitsInSI
+
+  function radiusVirialUnits(self) result(units)
+    !!{
+    Return the units of the radiusVirial property.
+    !!}
+    use :: Units_MetaData, only : unitType
+    implicit none
+    type (unitType                         )                :: units
+    class(nodePropertyExtractorRadiusVirial), intent(inout) :: self
+    !$GLC attributes unused :: self
+
+    units=unitType(self%unitsInSI(),description='Mpc',quantity='Mpc')
+    return
+  end function radiusVirialUnits

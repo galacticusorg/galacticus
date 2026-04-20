@@ -56,6 +56,7 @@ Implements a concentration output analysis property extractor class.
      procedure :: name        => concentrationName
      procedure :: description => concentrationDescription
      procedure :: unitsInSI   => concentrationUnitsInSI
+     procedure :: units       => concentrationUnits
   end type nodePropertyExtractorConcentration
 
   interface nodePropertyExtractorConcentration
@@ -214,7 +215,20 @@ contains
     class(nodePropertyExtractorConcentration), intent(inout) :: self
     !$GLC attributes unused :: self
 
-    concentrationUnitsInSI=0.0d0
+    concentrationUnitsInSI=1.0d0
     return
   end function concentrationUnitsInSI
 
+  function concentrationUnits(self) result(units)
+    !!{
+    Return the units of the concentration property.
+    !!}
+    use :: Units_MetaData, only : unitType
+    implicit none
+    type (unitType                          )                :: units
+    class(nodePropertyExtractorConcentration), intent(inout) :: self
+    !$GLC attributes unused :: self
+
+    units=unitType(1.0d0)
+    return
+  end function concentrationUnits

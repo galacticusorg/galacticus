@@ -69,6 +69,7 @@
      procedure :: descriptions => lmnstyEmssnLineAGNDescriptions
      procedure :: unitsInSI    => lmnstyEmssnLineAGNUnitsInSI
      procedure :: metaData     => lmnstyEmssnLineAGNMetaData
+     procedure :: units       => lmnstyEmssnLineAGNUnits
   end type nodePropertyExtractorLmnstyEmssnLineAGN
 
   interface nodePropertyExtractorLmnstyEmssnLineAGN
@@ -588,3 +589,23 @@ contains
     call metaDataRank0%set('wavelength',self%wavelengths(indexProperty))
     return
   end subroutine lmnstyEmssnLineAGNMetaData
+
+  function lmnstyEmssnLineAGNUnits(self,time) result(units)
+    !!{
+    Return the units of the lmnstyEmssnLineAGN properties.
+    !!}
+    use :: Units_MetaData, only : unitType
+    implicit none
+    type            (unitType                               ), dimension(:), allocatable :: units
+    class           (nodePropertyExtractorLmnstyEmssnLineAGN), intent(inout)             :: self
+    double precision                                         , intent(in   )             :: time
+    double precision                                         , dimension(:), allocatable :: siValues
+    integer                                                                              :: i
+
+    siValues=self%unitsInSI(time)
+    allocate(units(size(siValues)))
+    do i=1,size(siValues)
+       units(i)=unitType(siValues(i),description='ergs',quantity='erg')
+    end do
+    return
+  end function lmnstyEmssnLineAGNUnits

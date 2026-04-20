@@ -32,6 +32,7 @@ module IO_HDF5
   use, intrinsic :: ISO_C_Binding     , only : c_char         , c_int  , c_ptr , c_size_t
   use            :: ISO_Varying_String, only : varying_string
   use            :: Kind_Numbers      , only : kind_int8
+  use            :: Units_MetaData    , only : unitType
   use            :: Resource_Manager  , only : resourceManager
   implicit none
   private
@@ -165,6 +166,7 @@ module IO_HDF5
      procedure :: IO_HDF5_Write_Attribute_VarString_Scalar
      procedure :: IO_HDF5_Write_Attribute_VarString_1D
      procedure :: IO_HDF5_Write_Attribute_Logical_Scalar
+     procedure :: IO_HDF5_Write_Attribute_Units_Scalar
      generic   :: writeAttribute      => IO_HDF5_Write_Attribute_Integer_Scalar  , &
           &                              IO_HDF5_Write_Attribute_Integer_1D      , &
           &                              IO_HDF5_Write_Attribute_Integer8_Scalar , &
@@ -176,7 +178,8 @@ module IO_HDF5
           &                              IO_HDF5_Write_Attribute_Character_1D    , &
           &                              IO_HDF5_Write_Attribute_VarString_Scalar, &
           &                              IO_HDF5_Write_Attribute_VarString_1D    , &
-          &                              IO_HDF5_Write_Attribute_Logical_Scalar
+          &                              IO_HDF5_Write_Attribute_Logical_Scalar  , &
+          &                              IO_HDF5_Write_Attribute_Units_Scalar
      procedure :: IO_HDF5_Write_Dataset_Integer_1D
      procedure :: IO_HDF5_Write_Dataset_Integer_2D
      procedure :: IO_HDF5_Write_Dataset_Integer_3D
@@ -397,6 +400,13 @@ module IO_HDF5
        import
        integer(kind=size_t) :: H5T_Variable_Get
      end function H5T_Variable_Get
+     function HDF5_Unit_Type_Create() bind(c,name='HDF5_Unit_Type_Create')
+       !!{
+       Template for the C function that creates the HDF5 compound datatype matching \mono{unitType}.
+       !!}
+       import
+       integer(kind=hid_t) :: HDF5_Unit_Type_Create
+     end function HDF5_Unit_Type_Create
      function H5Awrite(attr_id,mem_type_id,buf) bind(c, name='H5Awrite')
        !!{
        Template for the HDF5 C API attribute write function.
@@ -18268,5 +18278,81 @@ attributeValue=trim(attributeValue)
     end if
     return
   end subroutine IO_HDF5_Deep_Copy
+
+  subroutine IO_HDF5_Write_Attribute_Units_Scalar(self,attributeValue,attributeName)
+    !!{
+    Write a \mono{unitType} compound scalar attribute to \mono{self}. The attribute is written using a custom HDF5 compound
+    datatype whose layout is defined in \mono{hdf5\_cTypes.c} via \mono{HDF5\_Unit\_Type\_Create()}.
+    !!}
+    use            :: Error             , only : Error_Report
+    use            :: HDF5              , only : HID_T          , h5aclose_f    , h5acreate_f , &
+         &                                       h5aopen_f      , h5screate_f   , h5sclose_f  , &
+         &                                       h5tclose_f     , H5S_SCALAR_F
+    use, intrinsic :: ISO_C_Binding     , only : c_loc
+    use            :: ISO_Varying_String, only : assignment(=)  , operator(//)  , trim, char
+    implicit none
+    class    (hdf5Object    ), intent(inout)           :: self
+    type     (unitType      ), intent(in   ), target   :: attributeValue
+    character(len=*         ), intent(in   ), optional :: attributeName
+    integer  (kind=HID_T    )                          :: compoundTypeID     , dataspaceID, &
+         &                                                attributeID
+    integer                                            :: errorCode
+    type     (varying_string)                          :: attributeNameActual, message
+
+    ! Check that this module is initialized.
+    call IO_HDF_Assert_Is_Initialized()
+    ! Determine attribute name.
+    if (present(attributeName)) then
+       attributeNameActual=trim(attributeName)
+    else
+       attributeNameActual=self%objectName
+    end if
+    ! Ensure the object is open.
+    if (.not.self%isOpenValue) then
+       message="attempt to write units attribute '"//trim(attributeNameActual)//"' in unopen object '"//self%objectName//"'"
+       call Error_Report(message//self%locationReport()//{introspection:location})
+    end if
+    ! Build the compound HDF5 type from the C helper.
+    compoundTypeID=HDF5_Unit_Type_Create()
+    ! If the attribute already exists, open it; otherwise create it.
+    if (IO_HDF5_Has_Attribute(self,char(attributeNameActual))) then
+       call h5aopen_f(self%objectID,char(attributeNameActual),attributeID,errorCode)
+       if (errorCode /= 0) then
+          message="unable to open existing units attribute '"//char(attributeNameActual)//"'"
+          call Error_Report(message//self%locationReport()//{introspection:location})
+       end if
+    else
+       ! Create a scalar dataspace and then the attribute.
+       call h5screate_f(H5S_SCALAR_F,dataspaceID,errorCode)
+       if (errorCode /= 0) then
+          message="unable to create scalar dataspace for units attribute '"//char(attributeNameActual)//"'"
+          call Error_Report(message//self%locationReport()//{introspection:location})
+       end if
+       call h5acreate_f(self%objectID,char(attributeNameActual),compoundTypeID,dataspaceID,attributeID,errorCode)
+       if (errorCode /= 0) then
+          message="unable to create units attribute '"//char(attributeNameActual)//"'"
+          call Error_Report(message//self%locationReport()//{introspection:location})
+       end if
+       call h5sclose_f(dataspaceID,errorCode)
+    end if
+    ! Write using the C-level H5Awrite so compound data passes through c_loc correctly.
+    errorCode=int(H5Awrite(attributeID,compoundTypeID,c_loc(attributeValue)))
+    if (errorCode /= 0) then
+       message="unable to write units attribute '"//trim(attributeNameActual)//"'"
+       call Error_Report(message//self%locationReport()//{introspection:location})
+    end if
+    ! Cleanup.
+    call h5aclose_f(attributeID   ,errorCode)
+    if (errorCode /= 0) then
+       message="failed to close units attribute '"//trim(attributeNameActual)//"'"
+       call Error_Report(message//self%locationReport()//{introspection:location})
+    end if
+    call h5tclose_f(compoundTypeID,errorCode)
+    if (errorCode /= 0) then
+       message="failed to close datatype for units attribute '"//trim(attributeNameActual)//"'"
+       call Error_Report(message//self%locationReport()//{introspection:location})
+    end if
+    return
+  end subroutine IO_HDF5_Write_Attribute_Units_Scalar
 
 end module IO_HDF5

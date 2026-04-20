@@ -44,10 +44,12 @@
           &                                                                                         propertyLabel                                  , propertyComment                                 , &
           &                                                                                         meanLabel                                      , meanComment                                     , &
           &                                                                                         propertyUnits                                  , meanUnits                                       , &
+          &                                                                                         propertyQuantity                               , meanQuantity                                    , &
           &                                                                                         xAxisLabel                                     , yAxisLabel                                      , &
           &                                                                                         targetLabel
      type            (enumerationOutputAnalysisCovarianceModelType)                              :: covarianceModel
      double precision                                                                            :: propertyUnitsInSI                              , meanUnitsInSI
+     logical                                                                                     :: propertyIsComoving                             , meanIsComoving
      class           (outputTimesClass                            ), pointer                     :: outputTimes_                          => null()
      class           (nodePropertyExtractorClass                  ), pointer                     :: nodePropertyExtractor_                => null(), outputAnalysisWeightPropertyExtractor_ => null()
      class           (outputAnalysisPropertyOperatorClass         ), pointer                     :: outputAnalysisPropertyOperator_       => null(), outputAnalysisPropertyUnoperator_      => null(), &
@@ -118,6 +120,7 @@ contains
          &                                                                                    propertyLabel                        , propertyComment                       , &
          &                                                                                    meanLabel                            , meanComment                           , &
          &                                                                                    propertyUnits                        , meanUnits                             , &
+         &                                                                                    propertyQuantity                     , meanQuantity                          , &
          &                                                                                    covarianceModel                      , xAxisLabel                            , &
          &                                                                                    yAxisLabel                           , targetLabel
     integer                                                                                :: covarianceBinomialBinsPerDecade
@@ -126,8 +129,9 @@ contains
     double precision                                                                       :: propertyUnitsInSI                    , meanUnitsInSI                         , &
          &                                                                                    covarianceBinomialMassHaloMinimum    , covarianceBinomialMassHaloMaximum     , &
          &                                                                                    binWidth
-    logical                                                                                :: likelihoodNormalize                  , xAxisIsLog                            , &
-         &                                                                                    yAxisIsLog
+    logical                                                                                :: xAxisIsLog                           , yAxisIsLog                            , &
+         &                                                                                    propertyIsComoving                   , meanIsComoving                        , &
+         &                                                                                    likelihoodNormalize
 
     !![
     <objectBuilder class="nodePropertyExtractor"                name="nodePropertyExtractor_"                 source="parameters"          />
@@ -198,6 +202,18 @@ contains
       <description>A human-readable description of the units for the property.</description>
     </inputParameter>
     <inputParameter>
+      <name>propertyQuantity</name>
+      <source>parameters</source>
+      <variable>propertyQuantity</variable>
+      <description>An \mono{astropy.units}-parseable units string for the property.</description>
+    </inputParameter>
+    <inputParameter>
+      <name>propertyIsComoving</name>
+      <source>parameters</source>
+      <variable>propertyIsComoving</variable>
+      <description>If true, the property is in comoving units.</description>
+    </inputParameter>
+    <inputParameter>
       <name>propertyUnitsInSI</name>
       <source>parameters</source>
       <variable>propertyUnitsInSI</variable>
@@ -220,6 +236,18 @@ contains
       <source>parameters</source>
       <variable>meanUnits</variable>
       <description>A human-readable description of the units for the mean.</description>
+    </inputParameter>
+    <inputParameter>
+      <name>meanQuantity</name>
+      <source>parameters</source>
+      <variable>meanQuantity</variable>
+      <description>An \mono{astropy.units}-parseable units string for the mean.</description>
+    </inputParameter>
+    <inputParameter>
+      <name>meanIsComoving</name>
+      <source>parameters</source>
+      <variable>meanIsComoving</variable>
+      <description>If true, the mean is in comoving units.</description>
     </inputParameter>
     <inputParameter>
       <name>meanUnitsInSI</name>
@@ -339,10 +367,14 @@ contains
            &amp;                        propertyLabel                                                                                , &amp;
            &amp;                        propertyComment                                                                              , &amp;
            &amp;                        propertyUnits                                                                                , &amp;
+           &amp;                        propertyQuantity                                                                             , &amp;
+           &amp;                        propertyIsComoving                                                                           , &amp;
            &amp;                        propertyUnitsInSI                                                                            , &amp;
            &amp;                        meanLabel                                                                                    , &amp;
            &amp;                        meanComment                                                                                  , &amp;
            &amp;                        meanUnits                                                                                    , &amp;
+           &amp;                        meanQuantity                                                                                 , &amp;
+           &amp;                        meanIsComoving                                                                               , &amp;
            &amp;                        meanUnitsInSI                                                                                , &amp;
            &amp;                        binCenter                                                                                    , &amp;
            &amp;                        bufferCount                                                                                  , &amp;
@@ -387,7 +419,7 @@ contains
     return
   end function meanFunction1DConstructorParameters
 
-  function meanFunction1DConstructorInternal(label,comment,propertyLabel,propertyComment,propertyUnits,propertyUnitsInSI,meanLabel,meanComment,meanUnits,meanUnitsInSI,binCenter,bufferCount,outputWeight,nodePropertyExtractor_,outputAnalysisWeightPropertyExtractor_,outputAnalysisPropertyOperator_,outputAnalysisWeightPropertyOperator_,outputAnalysisPropertyUnoperator_,outputAnalysisWeightOperator_,outputAnalysisDistributionOperator_,galacticFilter_,outputTimes_,covarianceModel,covarianceBinomialBinsPerDecade,covarianceBinomialMassHaloMinimum,covarianceBinomialMassHaloMaximum,likelihoodNormalize,xAxisLabel,yAxisLabel,xAxisIsLog,yAxisIsLog,targetLabel,meanValueTarget,meanCovarianceTarget,binWidth) result (self)
+  function meanFunction1DConstructorInternal(label,comment,propertyLabel,propertyComment,propertyUnits,propertyQuantity,propertyIsComoving,propertyUnitsInSI,meanLabel,meanComment,meanUnits,meanQuantity,meanIsComoving,meanUnitsInSI,binCenter,bufferCount,outputWeight,nodePropertyExtractor_,outputAnalysisWeightPropertyExtractor_,outputAnalysisPropertyOperator_,outputAnalysisWeightPropertyOperator_,outputAnalysisPropertyUnoperator_,outputAnalysisWeightOperator_,outputAnalysisDistributionOperator_,galacticFilter_,outputTimes_,covarianceModel,covarianceBinomialBinsPerDecade,covarianceBinomialMassHaloMinimum,covarianceBinomialMassHaloMaximum,likelihoodNormalize,xAxisLabel,yAxisLabel,xAxisIsLog,yAxisIsLog,targetLabel,meanValueTarget,meanCovarianceTarget,binWidth) result (self)
     !!{
     Constructor for the \refClass{outputAnalysisMeanFunction1D} output analysis class for internal use.
     !!}
@@ -399,7 +431,8 @@ contains
     type            (varying_string                              ), intent(in   )                           :: label                                    , comment                                , &
          &                                                                                                     propertyLabel                            , propertyComment                        , &
          &                                                                                                     meanLabel                                , meanComment                            , &
-         &                                                                                                     propertyUnits                            , meanUnits
+         &                                                                                                     propertyUnits                            , meanUnits                              , &
+         &                                                                                                     propertyQuantity                         , meanQuantity
     type            (varying_string                              ), intent(in   ), optional                 :: xAxisLabel                               , yAxisLabel                             , &
          &                                                                                                     targetLabel
     double precision                                              , intent(in   )                           :: propertyUnitsInSI                        , meanUnitsInSI
@@ -407,6 +440,7 @@ contains
     integer         (c_size_t                                    ), intent(in   )                           :: bufferCount
     double precision                                              , intent(in   )          , dimension(:,:) :: outputWeight
     logical                                                       , intent(in   ), optional                 :: xAxisIsLog                               , yAxisIsLog                             , &
+         &                                                                                                     propertyIsComoving                       , meanIsComoving                         , &
          &                                                                                                     likelihoodNormalize
     double precision                                              , intent(in   ), optional                 :: binWidth
     class           (nodePropertyExtractorClass                  ), intent(inout), target                   :: nodePropertyExtractor_                   , outputAnalysisWeightPropertyExtractor_
@@ -429,7 +463,7 @@ contains
     type            (outputAnalysisWeightOperatorProperty        ), pointer                                 :: weightOperatorUnweightedProperty_        , weightOperatorWeightProperty_
     type            (outputAnalysisPropertyOperatorBoolean       ), pointer                                 :: propertyOperatorUnweightedBoolean_
     !![
-    <constructorAssign variables="binWidth, bufferCount, covarianceModel, covarianceBinomialBinsPerDecade, covarianceBinomialMassHaloMinimum, covarianceBinomialMassHaloMaximum, label, comment, propertyLabel, propertyComment, propertyUnits, propertyUnitsInSI, meanLabel, meanComment, meanUnits, meanUnitsInSI, xAxisLabel, yAxisLabel, xAxisIsLog, yAxisIsLog, targetLabel, meanValueTarget, meanCovarianceTarget, *nodePropertyExtractor_, *outputAnalysisWeightPropertyExtractor_, *outputAnalysisPropertyOperator_, *outputAnalysisWeightPropertyOperator_, *outputAnalysisPropertyUnoperator_, *outputAnalysisWeightOperator_, *outputAnalysisDistributionOperator_, *galacticFilter_, *outputTimes_"/>
+    <constructorAssign variables="binWidth, bufferCount, covarianceModel, covarianceBinomialBinsPerDecade, covarianceBinomialMassHaloMinimum, covarianceBinomialMassHaloMaximum, label, comment, propertyLabel, propertyComment, propertyUnits, propertyQuantity, propertyIsComoving, propertyUnitsInSI, meanLabel, meanComment, meanUnits, meanQuantity, meanIsComoving, meanUnitsInSI, xAxisLabel, yAxisLabel, xAxisIsLog, yAxisIsLog, targetLabel, meanValueTarget, meanCovarianceTarget, *nodePropertyExtractor_, *outputAnalysisWeightPropertyExtractor_, *outputAnalysisPropertyOperator_, *outputAnalysisWeightPropertyOperator_, *outputAnalysisPropertyUnoperator_, *outputAnalysisWeightOperator_, *outputAnalysisDistributionOperator_, *galacticFilter_, *outputTimes_"/>
     !!]
 
     ! Set 1D covariance for descriptor.
@@ -503,10 +537,14 @@ contains
        &amp;                                   propertyLabel                          , &amp;
        &amp;                                   propertyComment                        , &amp;
        &amp;                                   propertyUnits                          , &amp;
+       &amp;                                   propertyQuantity                       , &amp;
+       &amp;                                   propertyIsComoving                     , &amp;
        &amp;                                   propertyUnitsInSI                      , &amp;
        &amp;                                   meanLabel                              , &amp;
        &amp;                                   meanComment                            , &amp;
        &amp;                                   meanUnits                              , &amp;
+       &amp;                                   meanQuantity                           , &amp;
+       &amp;                                   meanIsComoving                         , &amp;
        &amp;                                   meanUnitsInSI                          , &amp;
        &amp;                                   binCenter                              , &amp;
        &amp;                                   bufferCount                            , &amp;
@@ -535,10 +573,14 @@ contains
        &amp;                                   propertyLabel                          , &amp;
        &amp;                                   propertyComment                        , &amp;
        &amp;                                   propertyUnits                          , &amp;
+       &amp;                                   propertyQuantity                       , &amp;
+       &amp;                                   propertyIsComoving                     , &amp;
        &amp;                                   propertyUnitsInSI                      , &amp;
        &amp;                                   meanLabel                              , &amp;
        &amp;                                   meanComment                            , &amp;
        &amp;                                   meanUnits                              , &amp;
+       &amp;                                   meanQuantity                           , &amp;
+       &amp;                                   meanIsComoving                         , &amp;
        &amp;                                   meanUnitsInSI                          , &amp;
        &amp;                                   binCenter                              , &amp;
        &amp;                                   bufferCount                            , &amp;
@@ -706,9 +748,10 @@ contains
     !!{
     Implement a \mono{meanFunction1D} output analysis finalization.
     !!}
-    use :: Output_HDF5, only : outputFile
-    use :: HDF5_Access, only : hdf5Access
-    use :: IO_HDF5    , only : hdf5Object
+    use :: Output_HDF5   , only : outputFile
+    use :: HDF5_Access   , only : hdf5Access
+    use :: IO_HDF5       , only : hdf5Object
+    use :: Units_MetaData, only : unitType
     implicit none
     class(outputAnalysisMeanFunction1D), intent(inout)           :: self
     type (varying_string              ), intent(in   ), optional :: groupName
@@ -743,24 +786,19 @@ contains
     end if
     ! Write computed datasets.
     call    analysisGroup%writeDataset  (          self%binCenter                         ,char(self%propertyLabel)                    ,char(self%propertyComment)                 ,datasetReturned=dataset)
-    call    dataset      %writeAttribute(     char(self%propertyUnits    )                ,'units'                                                                                                         )
-    call    dataset      %writeAttribute(          self%propertyUnitsInSI                 ,'unitsInSI'                                                                                                     )
+    call    dataset      %writeAttribute(unitType(self%propertyUnitsInSI,description=     char(self%propertyUnits)  ,quantity=     char(self%propertyQuantity)       ,isComoving=self%propertyIsComoving),'units')
     call    analysisGroup%writeDataset  (          self%meanValue                         ,char(self%    meanLabel)                    ,char(self%    meanComment)                 ,datasetReturned=dataset)
-    call    dataset      %writeAttribute(     char(self%    meanUnits    )                ,'units'                                                                                                         )
-    call    dataset      %writeAttribute(          self%meanUnitsInSI                     ,'unitsInSI'                                                                                                     )
+    call    dataset      %writeAttribute(unitType(self%meanUnitsInSI    ,description=     char(self%meanUnits    )  ,quantity=     char(self%meanQuantity    )       ,isComoving=self%meanIsComoving    ),'units')
     call    analysisGroup%writeDataset  (          self%meanCovariance                    ,char(self%    meanLabel)//"Covariance"      ,char(self%    meanComment)//" [covariance]",datasetReturned=dataset)
-    call    dataset      %writeAttribute("["//char(self%    meanUnits    )//"]²"          ,'units'                                                                                                         )
-    call    dataset      %writeAttribute(          self%    meanUnitsInSI   **2           ,'unitsInSI'                                                                                                     )
+    call    dataset      %writeAttribute(unitType(self%meanUnitsInSI**2 ,description="["//char(self%meanUnits)//"]²",quantity="("//char(self%meanQuantity    )//")^2",isComoving=self%meanIsComoving    ),'units')
     ! If available, include the log-likelihood and target dataset.
     if (allocated(self%meanValueTarget)) then
        call analysisGroup%writeAttribute(          self%logLikelihood()                   ,'logLikelihood'                                                                                                 )
        call analysisGroup%writeAttribute(     char(self%targetLabel         )             ,'targetLabel'                                                                                                   )
        call analysisGroup%writeDataset  (          self%meanValueTarget                   ,char(self%    meanLabel)//"Target"          ,char(self%    meanComment)                 ,datasetReturned=dataset)
-       call dataset      %writeAttribute(     char(self%    meanUnits    )                ,'units'                                                                                                         )
-       call dataset      %writeAttribute(          self%meanUnitsInSI                     ,'unitsInSI'                                                                                                     )
+       call dataset      %writeAttribute(unitType(self%meanUnitsInSI    ,description=     char(self%meanUnits    )  ,quantity=     char(self%meanQuantity    )       ,isComoving=self%meanIsComoving    ),'units')
        call analysisGroup%writeDataset  (          self%meanCovarianceTarget              ,char(self%    meanLabel)//"CovarianceTarget",char(self%    meanComment)//" [covariance]",datasetReturned=dataset)
-       call dataset      %writeAttribute("["//char(self%    meanUnits    )//"]²"          ,'units'                                                                                                         )
-       call dataset      %writeAttribute(          self%    meanUnitsInSI   **2           ,'unitsInSI'                                                                                                     )
+       call dataset      %writeAttribute(unitType(self%meanUnitsInSI**2 ,description="["//char(self%meanUnits)//"]²",quantity="("//char(self%meanQuantity    )//")^2",isComoving=self%meanIsComoving    ),'units')
     end if
     !$ call hdf5Access%unset()
     return

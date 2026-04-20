@@ -34,6 +34,7 @@
      procedure :: names        => galaxyMergerTreePhysicalNames
      procedure :: descriptions => galaxyMergerTreePhysicalDescriptions
      procedure :: unitsInSI    => galaxyMergerTreePhysicalUnitsInSI
+     procedure :: units        => galaxyMergerTreePhysicalUnits
   end type nodePropertyExtractorGalaxyMergerTreePhysical
 
   interface nodePropertyExtractorGalaxyMergerTreePhysical
@@ -185,8 +186,8 @@ contains
     implicit none
     double precision                                               , dimension(:) , allocatable :: unitsInSI
     class           (nodePropertyExtractorGalaxyMergerTreePhysical), intent(inout)              :: self
-    integer                                                                                     :: i
     class           (*                                            )               , pointer     :: extractor_
+    integer                                                                                     :: i
     !$GLC attributes unused :: self
 
     allocate(unitsInSI(1+nodePropertyExtractorGalaxyMergerTreeCount))
@@ -203,3 +204,33 @@ contains
     end do
     return
   end function galaxyMergerTreePhysicalUnitsInSI
+
+  function galaxyMergerTreePhysicalUnits(self) result(units)
+    !!{
+    Return the units of the galaxyMergerTreePhysical properties.
+    !!}
+    use :: Error                                      , only : Error_Report
+    use :: Numerical_Constants_Astronomical           , only : gigaYear
+    use :: Units_MetaData                             , only : unitType
+    use :: Node_Property_Extractor_Galaxy_Merger_Trees, only : nodePropertyExtractorGalaxyMergerTreeCount, nodePropertyExtractorGalaxyMergerTree_
+    implicit none
+    type            (unitType                                     ), dimension(:) , allocatable :: units
+    class           (nodePropertyExtractorGalaxyMergerTreePhysical), intent(inout)              :: self
+    class           (*                                            )               , pointer     :: extractor_
+    integer                                                                                     :: i
+
+
+    allocate(units(1+nodePropertyExtractorGalaxyMergerTreeCount))
+    units(1)=unitType(gigaYear,'Gyr','Gyr')
+    do i=1,nodePropertyExtractorGalaxyMergerTreeCount
+       extractor_ => nodePropertyExtractorGalaxyMergerTree_(i)%extractor_ 
+       select type (extractor_)
+       class is (nodePropertyExtractorScalar)
+          units(1+i)=extractor_%units()
+       class default
+          units(1+i)=unitType(0.0d0)
+          call Error_Report("unexpected class"//{introspection:location})
+       end select
+    end do
+    return
+  end function galaxyMergerTreePhysicalUnits

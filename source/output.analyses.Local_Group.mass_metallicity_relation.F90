@@ -434,11 +434,15 @@ contains
 	   &amp;                        var_str('massStellar'                                        ), &amp;
 	   &amp;                        var_str('Stellar mass at the bin center'                     ), &amp;
 	   &amp;                        var_str('M☉'                                                 ), &amp;
+	   &amp;                        var_str('solMass'                                            ), &amp;
+	   &amp;                        .false.                                                       , &amp;
 	   &amp;                        massSolar                                                     , &amp;
 	   &amp;                        var_str('metallicityMean'                                    ), &amp;
            &amp;                        var_str('Mean stellar metallicity; ⟨[Fe/H]⟩'                 ), &amp;
            &amp;                        var_str('dimensionless'                                      ), &amp;
-           &amp;                        0.0d0                                                         , &amp;
+           &amp;                        var_str(' '                                                  ), &amp;
+           &amp;                        .false.                                                       , &amp;
+           &amp;                        1.0d0                                                         , &amp;
 	   &amp;                        massesNonZero                                                 , &amp;
 	   &amp;                        bufferCount                                                   , &amp;
 	   &amp;                        outputWeight                                                  , &amp;

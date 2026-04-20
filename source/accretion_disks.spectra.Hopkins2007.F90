@@ -142,6 +142,7 @@ contains
     use            :: Numerical_Constants_Astronomical, only : luminositySolar
     use            :: Numerical_Constants_Physical    , only : speedLight
     use            :: Numerical_Constants_Units       , only : metersToAngstroms
+    use            :: Units_MetaData                  , only : unitType
     use            :: Numerical_Ranges                , only : Make_Range             , rangeTypeLogarithmic
     use            :: String_Handling                 , only : operator(//)
     use            :: System_Command                  , only : System_Command_Do
@@ -233,14 +234,11 @@ contains
        !$ call hdf5Access%set()
        file=hdf5Object(char(self%fileName),overWrite=.true.)
        call file   %writeDataset  (wavelength               ,"wavelength"          ,datasetReturned=dataset)
-       call dataset%writeAttribute("Angstroms (Å)"          ,"units"                                       )
-       call dataset%writeAttribute(1.0d0/metersToAngstroms  ,"unitsInSI"                                   )
+       call dataset%writeAttribute(unitType(1.0d0/metersToAngstroms  ,"Angstroms (Å)"          ,"angstrom" ),"units")
        call file   %writeDataset  (luminosityBolometric     ,"bolometricLuminosity",datasetReturned=dataset)
-       call dataset%writeAttribute("Solar luminosities (L☉)","units"                                       )
-       call dataset%writeAttribute(luminositySolar          ,"unitsInSI"                                   )
+       call dataset%writeAttribute(unitType(luminositySolar          ,"Solar luminosities (L☉)","solLum"   ),"units")
        call file   %writeDataset  (SED                      ,"SED"                 ,datasetReturned=dataset)
-       call dataset%writeAttribute("L☉/Hz"                  ,"units"                                       )
-       call dataset%writeAttribute(luminositySolar          ,"unitsInSI"                                   )
+       call dataset%writeAttribute(unitType(luminositySolar          ,"L☉/Hz"                  ,"solLum/Hz"),"units")
        ! Add some metadata.
        call file%writeAttribute("Computed using agn_spectrum.c downloaded from  http://www.tapir.caltech.edu/~phopkins/Site/qlf.html","source"      )
        call file%writeAttribute("http://adsabs.harvard.edu/abs/2007ApJ...654..731H"                                                  ,"URL"         )

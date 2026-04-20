@@ -61,6 +61,7 @@ Implements a stellar mass output analysis property extractor class.
      procedure :: names        => luminosityStellarFromSEDNames
      procedure :: descriptions => luminosityStellarFromSEDDescriptions
      procedure :: unitsInSI    => luminosityStellarFromSEDUnitsInSI
+     procedure :: units        => luminosityStellarFromSEDUnits
   end type nodePropertyExtractorLuminosityStellarFromSED
 
   interface nodePropertyExtractorLuminosityStellarFromSED
@@ -296,3 +297,23 @@ contains
     unitsInSI=luminosityZeroPointAB
     return
   end function luminosityStellarFromSEDUnitsInSI
+
+  function luminosityStellarFromSEDUnits(self,time) result(units)
+    !!{
+    Return the units of the luminosityStellarFromSED properties.
+    !!}
+    use :: Units_MetaData, only : unitType
+    implicit none
+    type            (unitType                                     ), dimension(:), allocatable :: units
+    class           (nodePropertyExtractorLuminosityStellarFromSED), intent(inout)             :: self
+    double precision                                               , intent(in   )             :: time
+    double precision                                               , dimension(:), allocatable :: siValues
+    integer                                                                                    :: i
+
+    siValues=self%unitsInSI(time)
+    allocate(units(size(siValues)))
+    do i=1,size(siValues)
+       units(i)=unitType(siValues(i),description='AB-magnitude zero point',quantity='4.465920e17 W/Hz')
+    end do
+    return
+  end function luminosityStellarFromSEDUnits

@@ -94,6 +94,7 @@
      procedure :: luminosityMean          => sedLuminosityMean
      procedure :: indexTemplateTime       => sedIndexTemplateTime
      procedure :: indexTemplateNode       => sedIndexTemplateNode
+     procedure :: units       => sEDUnits
   end type nodePropertyExtractorSED
   
   interface nodePropertyExtractorSED
@@ -475,18 +476,20 @@ contains
     return
   end function sedWavelengths
 
-  subroutine sedColumnDescriptions(self,descriptions,values,valuesDescription,valuesUnitsInSI,time)
+  subroutine sedColumnDescriptions(self,descriptions,values,valuesDescription,valuesUnits,time)
     !!{
     Return column descriptions of the \mono{sed} property.
     !!}
-    use :: Numerical_Constants_Units, only : metersToAngstroms
+    use            :: Numerical_Constants_Units, only : metersToAngstroms
+    use            :: Units_MetaData           , only : unitType
+    use, intrinsic :: ISO_C_Binding            , only : c_int
     implicit none
     class           (nodePropertyExtractorSED), intent(inout)                            :: self
     double precision                          , intent(in   ), optional                  :: time
     type            (varying_string          ), intent(inout), dimension(:), allocatable :: descriptions
     double precision                          , intent(inout), dimension(:), allocatable :: values 
     type            (varying_string          ), intent(  out)                            :: valuesDescription
-    double precision                          , intent(  out)                            :: valuesUnitsInSI
+    type            (unitType                ), intent(  out)                            :: valuesUnits
     integer         (c_size_t                )                                           :: i
     character       (len=18                  )                                           :: label
     
@@ -498,7 +501,7 @@ contains
        descriptions(i)=trim(label)
     end do
     valuesDescription=var_str('Wavelengths at which the SED is tabulated [in units of Å].')
-    valuesUnitsInSI  =1.0d0/metersToAngstroms
+    valuesUnits      =unitType(1.0d0/metersToAngstroms,"Angstroms","angstrom")
     return
   end subroutine sedColumnDescriptions
 
@@ -511,12 +514,29 @@ contains
     double precision                          , allocatable  , dimension(:) :: sedUnitsInSI
     class           (nodePropertyExtractorSED), intent(inout)               :: self
     double precision                          , intent(in   ), optional     :: time
-    !$GLC attributes unused :: time
+    !$GLC attributes unused :: self, time
 
     allocate(sedUnitsInSI(1))
     sedUnitsInSI(1)=luminositySolar
     return
   end function sedUnitsInSI
+
+  function SEDUnits(self,time) result(units)
+    !!{
+    Return the units of the SED properties.
+    !!}
+    use :: Numerical_Constants_Astronomical, only : luminositySolar
+    use :: Units_MetaData                  , only : unitType
+    implicit none
+    type            (unitType                ), dimension(:), allocatable :: units
+    class           (nodePropertyExtractorSED), intent(inout)             :: self
+    double precision                          , intent(in   ), optional   :: time
+    !$GLC attributes unused :: self, time
+
+    allocate(units(1))
+    units(1)=unitType(luminositySolar,description='L☉',quantity='solLum')
+    return
+  end function SEDUnits
 
   integer function sedIndexTemplateTime(self,time,countTemplates) result(indexTemplate)
     !!{
