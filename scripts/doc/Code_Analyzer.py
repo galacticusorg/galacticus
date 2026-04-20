@@ -36,6 +36,9 @@ units = {}
 # moduleName → unitID  (filled by build_modules_hash)
 modules = {}
 
+# Directory searched for Fortran include files (set by main before os.walk).
+include_file_dir = ''
+
 # ---------------------------------------------------------------------------
 # Regex constants
 # ---------------------------------------------------------------------------
@@ -232,11 +235,72 @@ UNIT_CLOSERS = {
 # ---------------------------------------------------------------------------
 
 def process_file(file_path):
-    """Scan one source file and populate the global `units` dict.
+    """Scan one source file and populate the global `units` dict."""
+    global units
 
-    TODO: implementation added step by step in subsequent tasks.
-    """
-    pass  # stub
+    # File::Find delivers the bare filename; replicate that as the unit ID so
+    # that nested unit IDs (parent:child) stay short and LaTeX-friendly.
+    file_name = os.path.basename(file_path)
+
+    # Only process Fortran (.F90 / .f90) and C++ (.cpp) files; skip editor
+    # lock files (.\#...).
+    is_fortran = bool(re.search(r'\.[fF]90$', file_name))
+    is_cpp     = file_name.endswith('.cpp')
+    if not (is_fortran or is_cpp) or file_name.startswith('.#'):
+        return
+
+    # Root unit entry for this file.
+    unit_id_list = [file_name]
+    units[file_name] = {'unitType': 'file', 'unitName': file_name}
+
+    # C++ files get an entry but no further parsing.
+    if not is_fortran:
+        return
+
+    # File stack: each frame is {name, position, in_xml, in_latex}.
+    # position=None means "open from the beginning".
+    file_stack = [{'name': file_path, 'position': None,
+                   'in_xml': False, 'in_latex': False}]
+
+    while file_stack:
+        frame = file_stack[0]
+
+        with open(frame['name'], 'r', errors='replace') as fh:
+            if frame['position'] is not None:
+                fh.seek(frame['position'])
+
+            while True:
+                raw, processed, comments = get_fortran_line(fh)
+                if not raw:
+                    # EOF — remove this frame and resume the parent (if any).
+                    file_stack.pop(0)
+                    break
+
+                # Detect leaving LaTeX / XML documentation blocks.
+                if re.match(r'^\s*!!\]', raw):
+                    frame['in_xml']   = False
+                if re.match(r'^\s*!!\}', raw):
+                    frame['in_latex'] = False
+
+                # Every physical line counts toward code-line totals for all
+                # currently open units.
+                for uid in unit_id_list:
+                    units[uid]['codeLines'] = units[uid].get('codeLines', 0) + 1
+
+                # Detect Fortran include directives and recurse into the file.
+                m = re.match(r'''^\s*include\s*['"]([^'"]+)['"]\s*$''', processed)
+                if m:
+                    inc_path = os.path.join(include_file_dir, m.group(1))
+                    if os.path.exists(inc_path):
+                        # Save position so we resume after the include line
+                        # when we return to this file.
+                        frame['position'] = fh.tell()
+                        file_stack.insert(0, {'name': inc_path, 'position': None,
+                                              'in_xml': False, 'in_latex': False})
+                        break  # break inner loop; outer while opens the include
+
+                # TODO (next steps): unit open/close, use, call, declarations,
+                # function-call extraction, LaTeX/XML block entry detection.
 
 
 def build_modules_hash():
@@ -271,6 +335,12 @@ def main():
     if not build_path:
         print('Error: BUILDPATH environment variable is not set.', file=sys.stderr)
         sys.exit(1)
+
+    # Replicates Perl: $currentDirectory/$sourceDir/../$BUILDPATH
+    global include_file_dir
+    include_file_dir = os.path.normpath(
+        os.path.join(os.getcwd(), source_dir, '..', build_path)
+    )
 
     # Walk the source tree and process every eligible file.
     for root, _dirs, files in os.walk(source_dir):
