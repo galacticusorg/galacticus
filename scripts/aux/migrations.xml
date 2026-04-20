@@ -273,6 +273,9 @@
   <migration commit="551c092c6cfb98a955ac3631fb6dfbff1a5364f5">
     <translation function="hot_halo_standard_ram_pressure_stripping"/>
   </migration>
+  <migration commit="212e406d158bef30e0d62f78445334f7547b50e8">
+    <translation function="satellite_bound_mass_initializor"/>
+  </migration>
 
   <!-- Known default values for parameters -->
   <default parameter="componentBlackHole"             value="standard"        />

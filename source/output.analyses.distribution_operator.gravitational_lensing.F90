@@ -205,6 +205,7 @@ contains
        <deepCopyFinalize variables="gravitationalLensing_"/>
        !!]
        !$omp end critical(analysesGravitationalLensingDeepCopy)
+       !$omp barrier
        allocate(integrator_)
        integrator_=integrator(magnificationCDFIntegrand,toleranceRelative=1.0d-3)
        !$omp do schedule(dynamic)

@@ -1100,6 +1100,33 @@ def hot_halo_standard_inflow_outflow(input_doc, parameters, is_grid):
         extractors[0].append(node_extractor)
 
 
+def satellite_bound_mass_initializor(input_doc, parameters, is_grid):
+    """Convert initializationTypeMassBound parameter to satelliteMassBoundInitializor class."""
+    init_type_nodes = parameters.xpath(".//componentSatellite/initializationTypeMassBound[@value]")
+    if len(init_type_nodes) == 0:
+        return
+    for init_type in init_type_nodes:
+        parent = init_type.getparent()
+        value = init_type.get("value")
+        print(f"   translate special './/componentSatellite/initializationTypeMassBound[@value=\"{value}\"]'")
+        # Create new satelliteMassBoundInitializor element.
+        new_elem = etree.Element("satelliteMassBoundInitializor")
+        new_elem.set("value", value)
+        if value == "maximumRadius":
+            # Move radiusMaximumOverRadiusVirial inside the new element.
+            for radius_elem in parent.findall("radiusMaximumOverRadiusVirial"):
+                parent.remove(radius_elem)
+                new_elem.append(radius_elem)
+        elif value == "densityContrast":
+            # Move virialDensityContrastDefinition inside the new element.
+            for vdc_elem in parent.findall("virialDensityContrastDefinition"):
+                parent.remove(vdc_elem)
+                new_elem.append(vdc_elem)
+        # Insert new element and remove old one.
+        parent.append(new_elem)
+        parent.remove(init_type)
+
+
 # ---------------------------------------------------------------------------
 # Dispatch table for special migration functions
 # ---------------------------------------------------------------------------
@@ -1117,6 +1144,7 @@ SPECIAL_FUNCTIONS = {
     "hot_halo_standard_accretion": hot_halo_standard_accretion,
     "hot_halo_standard_inflow_outflow": hot_halo_standard_inflow_outflow,
     "hot_halo_standard_ram_pressure_stripping": hot_halo_standard_ram_pressure_stripping,
+    "satellite_bound_mass_initializor": satellite_bound_mass_initializor,
 }
 
 

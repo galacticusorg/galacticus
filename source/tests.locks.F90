@@ -77,7 +77,7 @@ program Test_Locks
   call Assert('OpenMP read/write lock [write]',lockFailed,.false.)
   lockFailed=.false.
   i         =0
-  !$omp parallel
+  !$omp parallel private(message)
   call readWriteLock%setRead()
   message=var_str("thread ")//OMP_Get_Thread_Num()//' has read lock'
   call displayMessage(message)

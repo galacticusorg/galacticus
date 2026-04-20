@@ -807,6 +807,7 @@ contains
        <deepCopyFinalize variables="stellarPopulationSpectra_ stellarPopulationSpectraPostprocessor_ cosmologyFunctions_"/>
        !!]
        !$omp end critical(nodePropertyExtractSEDDeepCopy)
+       !$omp barrier
     end if
     !$omp masked
     if (parallelize_) then

@@ -10,8 +10,8 @@ import shutil
 # Run models.
 subprocess.run(
     "cd ..; mkdir -p testSuite/outputs/test-merger-tree-write; "
-    "scripts/aux/launch.pl testSuite/parameters/test-merger-tree-write.xml --launchMethod local --threadMaximum 1 --ompThreads 4; "
-    "scripts/aux/launch.pl testSuite/parameters/test-merger-tree-write-secondary.xml --launchMethod local --threadMaximum 1 --ompThreads 4",
+    "./scripts/aux/launch.py testSuite/parameters/test-merger-tree-write.xml --launchMethod local --threadMaximum 1 --ompThreads 4; "
+    "./scripts/aux/launch.py testSuite/parameters/test-merger-tree-write-secondary.xml --launchMethod local --threadMaximum 1 --ompThreads 4",
     shell=True
 )
 

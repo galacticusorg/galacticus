@@ -34,6 +34,9 @@ module Output_HDF5_Open
   ! Output file name.
   type   (varying_string) :: outputFileName                     , outputScratchFileName
 
+  ! Options.
+  logical                 :: outputPathCreate
+  
   ! Completion status.
   integer                 :: statusCompletion=errorStatusSuccess
  
@@ -46,6 +49,7 @@ contains
     use :: Output_HDF5       , only : hdf5SieveBufferSize , hdf5UseLatestFormat, hdf5CompressionLevel  , hdf5CacheElementsCount, &
          &                            outputFileIsOpen    , outputFile         , hdf5CacheSizeBytes    , hdf5ChunkSize         , &
          &                            outputGroup
+    use :: File_Utilities    , only : Directory_Make      , File_Name_Expand   , File_Path
     use :: HDF5              , only : hsize_t             , size_t
     use :: HDF5_Access       , only : hdf5Access
     use :: IO_HDF5           , only : IO_HDF5_Set_Defaults, hdf5Object          , ioHDF5AccessInitialize
@@ -82,6 +86,12 @@ contains
          <variable>outputScratchFileName_</variable>
          <defaultValue>outputFileName_</defaultValue>
          <description>The name of the file to which \glc\ results will be written temporarily during runs.</description>
+         <source>parameters</source>
+       </inputParameter>
+       <inputParameter>
+         <name>outputPathCreate</name>
+         <defaultValue>.true.</defaultValue>
+         <description>If true, the output path will be created as needed.</description>
          <source>parameters</source>
        </inputParameter>
        <inputParameter>
@@ -141,6 +151,11 @@ contains
           outputScratchFileName=fileNamePrefix//':MPI'//mpiSelf%rankLabel()
        end if
 #endif
+       ! Create the output path.
+       if (outputPathCreate) then
+          call Directory_Make(File_Path(File_Name_Expand(outputScratchFileName)))
+          call Directory_Make(File_Path(File_Name_Expand(outputFileName       )))
+       end if
        ! Open the file.
        call ioHDF5AccessInitialize()
        allocate(outputFile )
