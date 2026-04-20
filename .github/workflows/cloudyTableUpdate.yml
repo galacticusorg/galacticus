@@ -1,0 +1,205 @@
+name: Update Cloudy CIE Tables
+on:
+  push:
+    branches: [master]
+    paths:
+      - 'aux/dependencies.yml'
+  workflow_dispatch:
+    inputs:
+      old_cloudy_version:
+        description: 'Previous Cloudy version (for archiving old tables; leave empty to skip archive step)'
+        required: false
+        type: string
+defaults:
+  run:
+    shell: bash
+jobs:
+  # Detect whether the Cloudy version in aux/dependencies.yml actually changed
+  detect-cloudy-update:
+    runs-on: ubuntu-latest
+    outputs:
+      cloudy_updated: ${{ steps.check.outputs.updated }}
+      old_version: ${{ steps.check.outputs.old_version }}
+      new_version: ${{ steps.check.outputs.new_version }}
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+      - name: Check if Cloudy version changed
+        id: check
+        run: |
+          newVersion=$(awk '{if ($1 == "cloudy:") print $2}' aux/dependencies.yml)
+          if [ "${{ github.event_name }}" == "workflow_dispatch" ]; then
+            oldVersion="${{ inputs.old_cloudy_version }}"
+            echo "updated=true" >> "$GITHUB_OUTPUT"
+          else
+            oldVersion=$(git diff ${{ github.event.before }} ${{ github.sha }} -- aux/dependencies.yml | grep '^-cloudy:' | awk '{print $2}')
+            if [ -n "${oldVersion}" ] && [ "${oldVersion}" != "${newVersion}" ]; then
+              echo "updated=true" >> "$GITHUB_OUTPUT"
+            else
+              echo "updated=false" >> "$GITHUB_OUTPUT"
+            fi
+          fi
+          echo "old_version=${oldVersion}" >> "$GITHUB_OUTPUT"
+          echo "new_version=${newVersion}" >> "$GITHUB_OUTPUT"
+
+  # Build tables, update datasets repo, open PRs
+  build-and-update:
+    needs: detect-cloudy-update
+    if: needs.detect-cloudy-update.outputs.cloudy_updated == 'true'
+    runs-on: ubuntu-latest
+    container: ghcr.io/galacticusorg/buildenv:latest
+    env:
+      appid: ${{ secrets.DEPLOY_APP_ID }}
+      CLOUDY_VERSION: ${{ needs.detect-cloudy-update.outputs.new_version }}
+      OLD_CLOUDY_VERSION: ${{ needs.detect-cloudy-update.outputs.old_version }}
+    steps:
+      - name: Check out galacticus repository
+        uses: actions/checkout@v6
+      - name: Generate app token
+        if: ${{ env.appid != '' }}
+        id: generate-token
+        uses: actions/create-github-app-token@v3
+        with:
+          app-id: ${{ secrets.DEPLOY_APP_ID }}
+          private-key: ${{ secrets.DEPLOY_APP_PRIVATE_KEY }}
+          owner: galacticusorg
+      - name: Check out datasets repository
+        if: ${{ env.appid != '' }}
+        uses: actions/checkout@v6
+        with:
+          repository: galacticusorg/datasets
+          path: datasets
+          token: ${{ steps.generate-token.outputs.token }}
+      - name: Set environmental variables
+        run: |
+          echo "GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
+          echo "GALACTICUS_DATA_PATH=$GITHUB_WORKSPACE/datasets" >> $GITHUB_ENV
+          echo "DEBIAN_FRONTEND=noninteractive" >> $GITHUB_ENV
+      - name: Mark directories safe
+        run: |
+          git config --global --add safe.directory $GITHUB_WORKSPACE
+          git config --global --add safe.directory $GITHUB_WORKSPACE/datasets
+      - name: Install tools
+        run: |
+          apt -y update
+          apt -y install python3-h5py python3-matplotlib gh
+      - name: Build Galacticus and cooling test executable
+        run: |
+          cd $GALACTICUS_EXEC_PATH
+          make -j4 Galacticus.exe tests.cooling_functions.exe
+      - name: Generate CIE tables
+        run: |
+          cd $GALACTICUS_EXEC_PATH
+          mkdir -p datasets/dynamic
+          ./Galacticus.exe parameters/buildCloudyCIETables.xml
+      - name: Archive old static tables
+        if: ${{ env.OLD_CLOUDY_VERSION != '' && env.appid != '' }}
+        run: |
+          COOLING_STATIC="$GALACTICUS_DATA_PATH/static/cooling"
+          CHEM_STATIC="$GALACTICUS_DATA_PATH/static/chemicalState"
+          COOLING_ARCHIVE="${COOLING_STATIC}/cooling_function_Atomic_CIE_Cloudy_c${OLD_CLOUDY_VERSION}.hdf5"
+          CHEM_ARCHIVE="${CHEM_STATIC}/chemical_state_Atomic_CIE_Cloudy_c${OLD_CLOUDY_VERSION}.hdf5"
+          if [ -f "${COOLING_STATIC}/cooling_function_Atomic_CIE_Cloudy.hdf5" ]; then
+            if [ -e "${COOLING_ARCHIVE}" ]; then
+              echo "Archive destination already exists: ${COOLING_ARCHIVE}" >&2
+              exit 1
+            fi
+            mv "${COOLING_STATIC}/cooling_function_Atomic_CIE_Cloudy.hdf5" \
+               "${COOLING_ARCHIVE}"
+          fi
+          if [ -f "${CHEM_STATIC}/chemical_state_Atomic_CIE_Cloudy.hdf5" ]; then
+            if [ -e "${CHEM_ARCHIVE}" ]; then
+              echo "Archive destination already exists: ${CHEM_ARCHIVE}" >&2
+              exit 1
+            fi
+            mv "${CHEM_STATIC}/chemical_state_Atomic_CIE_Cloudy.hdf5" \
+               "${CHEM_ARCHIVE}"
+          fi
+      - name: Promote new tables to static
+        if: ${{ env.appid != '' }}
+        run: |
+          COOLING_DYN="$GALACTICUS_DATA_PATH/dynamic/cooling"
+          CHEM_DYN="$GALACTICUS_DATA_PATH/dynamic/chemicalState"
+          cp "${COOLING_DYN}/cooling_function_Atomic_CIE_Cloudy.hdf5" \
+             "$GALACTICUS_DATA_PATH/static/cooling/cooling_function_Atomic_CIE_Cloudy.hdf5"
+          cp "${CHEM_DYN}/chemical_state_Atomic_CIE_Cloudy.hdf5" \
+             "$GALACTICUS_DATA_PATH/static/chemicalState/chemical_state_Atomic_CIE_Cloudy.hdf5"
+      - name: Generate cooling function plot
+        run: |
+          cd $GALACTICUS_EXEC_PATH
+          # Use static table (after promotion) if available; fall back to dynamic
+          COOLING_FILE="$GALACTICUS_DATA_PATH/static/cooling/cooling_function_Atomic_CIE_Cloudy.hdf5"
+          [ -f "$COOLING_FILE" ] || COOLING_FILE="$GALACTICUS_DATA_PATH/dynamic/cooling/cooling_function_Atomic_CIE_Cloudy.hdf5"
+          python3 plots/cooling_function.py \
+            "$COOLING_FILE" \
+            plots/cooling_function_Atomic_CIE_Cloudy.pdf
+      - name: Run cooling function test
+        run: |
+          cd $GALACTICUS_EXEC_PATH
+          ./tests.cooling_functions.exe 2>&1 | tee test.log
+      - name: Update cooling test expected value if tables changed
+        run: |
+          cd $GALACTICUS_EXEC_PATH
+          # Galacticus test codes always return exit status 0; detect failure via log
+          if grep -q "FAILED: Cloudy CIE cooling function" test.log; then
+            python3 scripts/aux/updateCoolingFunctionTestValue.py test.log source/tests.cooling_functions.F90
+          fi
+      - name: Create datasets branch and open PR
+        if: ${{ env.appid != '' }}
+        env:
+          GH_TOKEN: ${{ steps.generate-token.outputs.token }}
+        run: |
+          cd "$GALACTICUS_DATA_PATH"
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          BRANCH="cloudy-cie-tables-c${CLOUDY_VERSION}"
+          git checkout -b "${BRANCH}"
+          git add static/cooling/ static/chemicalState/
+          if git diff --cached --quiet; then
+            echo "No changes to commit for datasets repo; skipping PR creation"
+            exit 0
+          fi
+          git commit -m "feat: update Atomic CIE Cloudy tables for Cloudy v${CLOUDY_VERSION}"
+          git remote set-url origin "https://x-access-token:${GH_TOKEN}@github.com/galacticusorg/datasets.git"
+          git push origin "${BRANCH}"
+          # Substitute environment variables in PR template
+          sed -e "s|\${CLOUDY_VERSION}|${CLOUDY_VERSION}|g" \
+              -e "s|\${OLD_CLOUDY_VERSION}|${OLD_CLOUDY_VERSION}|g" \
+              "$GITHUB_WORKSPACE/.github/templates/pr-datasets-cloudy-tables.md" > /tmp/datasets-pr-body.md
+          gh pr create \
+            --repo galacticusorg/datasets \
+            --head "${BRANCH}" \
+            --base master \
+            --title "feat: update Atomic CIE Cloudy tables for Cloudy v${CLOUDY_VERSION}" \
+            --body-file /tmp/datasets-pr-body.md \
+            --assignee abensonca
+      - name: Create galacticus draft PR
+        if: ${{ env.appid != '' }}
+        env:
+          GH_TOKEN: ${{ steps.generate-token.outputs.token }}
+        run: |
+          cd $GALACTICUS_EXEC_PATH
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          BRANCH="cloudy-cie-update-c${CLOUDY_VERSION}"
+          git checkout -b "${BRANCH}"
+          git add plots/cooling_function_Atomic_CIE_Cloudy.pdf source/tests.cooling_functions.F90
+          if git diff --cached --quiet; then
+            echo "No changes to commit for galacticus repo; skipping PR creation"
+            exit 0
+          fi
+          git commit -m "feat: update cooling function plot and tests for Cloudy v${CLOUDY_VERSION}"
+          git remote set-url origin "https://x-access-token:${GH_TOKEN}@github.com/galacticusorg/galacticus.git"
+          git push origin "${BRANCH}"
+          # Substitute environment variables in PR template
+          sed -e "s|\${CLOUDY_VERSION}|${CLOUDY_VERSION}|g" \
+              "$GITHUB_WORKSPACE/.github/templates/pr-galacticus-cloudy-update.md" > /tmp/galacticus-pr-body.md
+          gh pr create \
+            --draft \
+            --repo galacticusorg/galacticus \
+            --head "${BRANCH}" \
+            --base master \
+            --title "feat: update cooling function plot and tests for Cloudy v${CLOUDY_VERSION}" \
+            --body-file /tmp/galacticus-pr-body.md \
+            --assignee abensonca

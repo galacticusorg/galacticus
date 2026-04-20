@@ -2,7 +2,7 @@ name: 'PR-Checks'
 on:
   workflow_dispatch:
   pull_request:
-    types: [opened, reopened, synchronize]
+    types: [opened, reopened, synchronize, ready_for_review]
     branches:
       - master
 concurrency:
@@ -14,6 +14,7 @@ defaults:
 jobs:
   # Validate YAML
   Validate-YAML:
+    if: ${{ github.event_name != 'pull_request' || !github.event.pull_request.draft }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
@@ -47,6 +48,7 @@ jobs:
           exit $status
   # Validate XML
   Validate-XML:
+    if: ${{ github.event_name != 'pull_request' || !github.event.pull_request.draft }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
@@ -81,6 +83,7 @@ jobs:
           exit $status
   # Validate Perl scripts
   Validate-Perl-Scripts:
+    if: ${{ github.event_name != 'pull_request' || !github.event.pull_request.draft }}
     runs-on: ubuntu-latest
     container: ghcr.io/galacticusorg/buildenv:latest
     steps:
@@ -127,6 +130,7 @@ jobs:
           exit $status
   # Validate Perl modules
   Validate-Perl-Modules:
+    if: ${{ github.event_name != 'pull_request' || !github.event.pull_request.draft }}
     runs-on: ubuntu-latest
     container: ghcr.io/galacticusorg/buildenv:latest
     steps:
@@ -161,6 +165,7 @@ jobs:
           exit $status
   # Fortran static analysis
   Fortran-Static-Analysis:
+    if: ${{ github.event_name != 'pull_request' || !github.event.pull_request.draft }}
     runs-on: ubuntu-latest
     container: ghcr.io/galacticusorg/buildenv:latest
     steps:
@@ -191,6 +196,7 @@ jobs:
           exit $status
   # Embedded XML and LaTeX checks
   Embedded-XML-LaTeX:
+    if: ${{ github.event_name != 'pull_request' || !github.event.pull_request.draft }}
     runs-on: ubuntu-latest
     container: ghcr.io/galacticusorg/buildenv:latest
     steps:
@@ -254,6 +260,7 @@ jobs:
           file-path: warnings-collapsible.md
   # Spell check LaTeX files
   Spell-Check-LaTeX:
+    if: ${{ github.event_name != 'pull_request' || !github.event.pull_request.draft }}
     runs-on: ubuntu-latest
     container: ghcr.io/galacticusorg/buildenv:latest
     steps:
