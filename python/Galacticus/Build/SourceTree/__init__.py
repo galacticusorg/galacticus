@@ -1,0 +1,697 @@
+# Provides a tree-based parser for Galacticus Fortran source files.
+# Andrew Benson (ported to Python 2026)
+#
+# Mirrors the subset of perl/Galacticus/Build/SourceTree.pm used by the
+# Galacticus build scripts, together with the Parse::Directives and
+# Parse::ModuleUses parsers that libraryInterfaces.py requires.
+
+import re
+import os
+import sys
+import xml.etree.ElementTree as ET
+
+sys.path.insert(0, os.path.join(os.environ.get('GALACTICUS_EXEC_PATH', ''), 'python'))
+
+from build.fortran_utils import get_fortran_line
+from Fortran.Utils import UNIT_OPENERS, UNIT_CLOSERS
+from Galacticus.Build.SourceTree.Parse.Declarations import parse_declaration
+
+# ---------------------------------------------------------------------------
+# Public API
+# ---------------------------------------------------------------------------
+
+def parse_file(filename):
+    """Read a Fortran source file and return the root AST node.
+
+    Mirrors Perl Galacticus::Build::SourceTree::ParseFile().
+    """
+    with open(filename, 'r', errors='replace') as fh:
+        content = fh.read()
+    root = {
+        'type':       'file',
+        'name':       os.path.basename(filename),
+        'content':    content,
+        'parent':     None,
+        'firstChild': None,
+        'sibling':    None,
+        'source':     filename,
+        'line':       0,
+    }
+    _build_tree(root)
+    return root
+
+
+def walk_tree(node):
+    """Depth-first generator over all nodes in the tree.
+
+    Mirrors the Perl Walk_Tree loop idiom.  Yields every node exactly once
+    in pre-order (parent before children).
+    """
+    yield node
+    child = node.get('firstChild')
+    while child:
+        yield from walk_tree(child)
+        child = child.get('sibling')
+
+
+def children(node):
+    """Return a list of direct child nodes.
+
+    Mirrors Perl Galacticus::Build::SourceTree::Children().
+    """
+    result = []
+    child = node.get('firstChild')
+    while child:
+        result.append(child)
+        child = child.get('sibling')
+    return result
+
+
+# ---------------------------------------------------------------------------
+# Internal helpers — tree construction
+# ---------------------------------------------------------------------------
+
+def _link_children(parent, child_list):
+    """Attach child_list nodes as children of parent, linking siblings."""
+    for i, child in enumerate(child_list):
+        child['parent'] = parent
+        child['sibling'] = child_list[i + 1] if i + 1 < len(child_list) else None
+    parent['firstChild'] = child_list[0] if child_list else None
+
+
+def _build_tree(root):
+    """Parse root['content'] into child AST nodes, then recurse.
+
+    Mirrors Perl Build_Children + Parse_Unit + the directive/moduleUse/
+    declaration parse hooks.
+    """
+    # Step 1: comment out LaTeX and XML blocks.
+    root['content'] = _comment_embedded(root['content'])
+    
+    # Step 2: split raw content into structural units.
+    unit_children = _parse_units(root)
+    _link_children(root, unit_children)
+
+    # Step 3: run the three parse passes over the whole tree.
+    _pass_directives(root)
+    _pass_module_uses(root)
+    _pass_declarations(root)
+
+def _comment_embedded(content):
+    """Comment out embedded LaTeX and XML blocks so that they are not processed as Fortran code"""
+
+    import io
+    fh = io.StringIO(content)
+
+    code_commented = ""
+    in_LaTeX = False
+    in_XML = False
+    for line in fh:
+        # Detect the end of a LaTeX section and change state.
+        if re.match(r'^\s*!!\}',line):
+            in_LaTeX = False
+        # Detect the end of an XML section and change state.
+        if re.match(r'^\s*!!\]',line):
+            in_XML = False
+        # Comment out LaTeX and XML, unless it is already commented out.
+        if ( in_LaTeX or in_XML ) and not re.match(r'^\s*\!<',line):
+            line = "!< "+line
+        code_commented = code_commented + line
+        # Detect the start of a LaTeX section and change state.
+        if re.match(r'^\s*!!\{',line):
+            in_LaTeX = True
+        # Detect the start of an XML section and change state.
+        if re.match(r'^\s*!!\[',line):
+            in_XML = True
+    return code_commented
+        
+def _make_code_node(content, source, line, parent=None):
+    return {
+        'type':       'code',
+        'content':    content,
+        'parent':     parent,
+        'firstChild': None,
+        'sibling':    None,
+        'source':     source,
+        'line':       line,
+    }
+
+
+def _parse_units(parent):
+    """Split parent['content'] into child nodes (clean implementation)."""
+    content   = parent.get('content', '')
+    source    = parent.get('source', 'unknown')
+    base_line = parent.get('line',   0)
+
+    import io
+    fh = io.StringIO(content)
+
+    # Each stack entry: [node_dict, inner_lines_list]
+    stack         = []
+    top_children  = []
+    raw_code_buf  = []
+    raw_code_line = base_line
+    current_line  = base_line
+
+    def flush_code(destination_list):
+        nonlocal raw_code_buf, raw_code_line
+        if raw_code_buf:
+            destination_list.append(
+                _make_code_node(''.join(raw_code_buf), source, raw_code_line))
+            raw_code_buf  = []
+            raw_code_line = current_line
+
+    while True:
+        raw_line, processed_line, _ = get_fortran_line(fh)
+        if not raw_line and not processed_line:
+            break
+        
+        n_newlines    = raw_line.count('\n')
+        line_after    = current_line + n_newlines
+
+        # ---- check for a closer matching the innermost open unit ----
+        if stack:
+            top_node = stack[-1][0]
+            closer_re = UNIT_CLOSERS.get(top_node['type'])
+            if closer_re and closer_re.match(processed_line):
+                top_node['closer'] = raw_line
+                # Recurse into the accumulated inner content.
+                # inner_lines may contain pre-built sentinel nodes interspersed
+                # with raw string chunks, so use _children_from_mixed_lines.
+                inner_lines = stack[-1][1]
+                if inner_lines:
+                    inner_children = _children_from_mixed_lines(inner_lines, top_node)
+                    _link_children(top_node, inner_children)
+                stack.pop()
+                # Deliver the closed node to the new top scope.
+                if stack:
+                    # Flush raw code inside outer unit, then add closed node.
+                    if raw_code_buf:
+                        stack[-1][1].append(''.join(raw_code_buf))
+                        raw_code_buf  = []
+                        raw_code_line = line_after
+                    # The closed node goes into the outer unit's inner lines as
+                    # a pre-built node object (we mark it with a sentinel key).
+                    stack[-1][1].append(('\x00NODE\x00', top_node))
+                else:
+                    flush_code(top_children)
+                    top_children.append(top_node)
+                current_line = line_after
+                continue
+
+        # ---- check for an opener ----
+        matched_opener = False
+        for unit_type, spec in UNIT_OPENERS.items():
+            m = spec['regex'].match(processed_line)
+            if not m:
+                continue
+
+            # Disambiguate: "module procedure/function/subroutine" is NOT a module.
+            if unit_type == 'module' and re.match(
+                    r'^\s*module\s+(?:procedure|function|subroutine)\b',
+                    processed_line, re.IGNORECASE):
+                continue
+
+            # Extract the unit name.
+            name_idx  = spec.get('unit_name', 0)
+            groups    = m.groups()
+            unit_name = (groups[name_idx].strip()
+                         if name_idx < len(groups) and groups[name_idx]
+                         else '')
+
+            # Flush pending raw code to the appropriate destination.
+            if stack:
+                if raw_code_buf:
+                    stack[-1][1].append(''.join(raw_code_buf))
+                    raw_code_buf  = []
+                    raw_code_line = line_after
+            else:
+                flush_code(top_children)
+
+            # Build the new node.
+            node = {
+                'type':       unit_type,
+                'name':       unit_name,
+                'opener':     raw_line,
+                'parent':     None,
+                'firstChild': None,
+                'sibling':    None,
+                'source':     source,
+                'line':       current_line,
+            }
+
+            # moduleProcedure is self-closing (no "end procedure" counterpart
+            # in the files we parse).
+            if unit_type == 'moduleProcedure':
+                names = [n.strip() for n in re.split(r'\s*,\s*', unit_name) if n.strip()]
+                node['names'] = names
+                if stack:
+                    stack[-1][1].append(('\x00NODE\x00', node))
+                else:
+                    top_children.append(node)
+            else:
+                stack.append((node, []))
+
+            matched_opener = True
+            current_line   = line_after
+            break
+
+        if matched_opener:
+            continue
+
+        # ---- plain code line ----
+        if stack:
+            stack[-1][1].append(raw_line)
+        else:
+            raw_code_buf.append(raw_line)
+
+        current_line = line_after
+
+    # Close any units left open (e.g. partial files, included fragments).
+    while stack:
+        top_node   = stack[-1][0]
+        inner_lines = stack[-1][1]
+        if inner_lines:
+            inner_children = _children_from_mixed_lines(inner_lines, top_node)
+            _link_children(top_node, inner_children)
+        stack.pop()
+        flush_code(top_children)
+        top_children.append(top_node)
+
+    flush_code(top_children)
+
+    # Second pass: resolve sentinel NODE entries inside inner_lines and rebuild
+    # children lists that contain pre-built nodes.
+    # (These were injected when a sub-unit was closed while an outer unit was open.)
+    _resolve_sentinels(top_children)
+
+    return top_children
+
+
+def _resolve_sentinels(node_list):
+    """Walk node_list and fix up any inner buffers that contain sentinel nodes."""
+    # No-op: sentinel resolution is handled inline by _children_from_mixed_lines.
+    pass
+
+
+def _children_from_mixed_lines(inner_lines, parent):
+    """Build child node list from inner_lines (mixed strings and sentinel tuples).
+
+    inner_lines is a list where each element is either:
+      - a str  (raw Fortran source chunk), or
+      - a ('\x00NODE\x00', node) tuple  (a pre-built child node).
+
+    String runs are joined and parsed via _parse_units; sentinel nodes are
+    spliced in at the correct position so ordering is preserved.
+    """
+    children = []
+    str_buf  = []
+    source   = parent.get('source', 'unknown')
+    line     = parent.get('line',   0)
+
+    def _flush():
+        if not str_buf:
+            return
+        text  = ''.join(str_buf)
+        dummy = {'content': text, 'source': source, 'line': line}
+        children.extend(_parse_units(dummy))
+        str_buf.clear()
+
+    for item in inner_lines:
+        if isinstance(item, str):
+            str_buf.append(item)
+        else:
+            _flush()
+            children.append(item[1])  # pre-built node
+    _flush()
+    return children
+
+
+# ---------------------------------------------------------------------------
+# Parse pass 1: directives  (mirrors Parse::Directives)
+# ---------------------------------------------------------------------------
+
+def _xml_to_dict(elem):
+    """Convert an xml.etree.ElementTree.Element to a nested dict.
+
+    Mirrors XML::Simple's output conventions used by the Perl code:
+    - Attributes are merged into the dict at the same level as children.
+    - Multiple children with the same tag become a list.
+    - A single child stays as a dict.
+    - Text content is stored under the key 'content' if present.
+    """
+    result = {}
+
+    # Collect attributes.
+    result.update(elem.attrib)
+
+    # Collect text.
+    text = (elem.text or '').strip()
+    if text:
+        result['content'] = text
+
+    # Collect children.
+    for child in elem:
+        tag  = child.tag
+        val  = _xml_to_dict(child)
+        # If the child has no sub-children and no attributes, use text only.
+        child_text = (child.text or '').strip()
+        if not child.attrib and len(child) == 0 and child_text:
+            val = child_text
+
+        if tag in result:
+            existing = result[tag]
+            if isinstance(existing, list):
+                existing.append(val)
+            else:
+                result[tag] = [existing, val]
+        else:
+            result[tag] = val
+
+    return result
+
+
+def _pass_directives(tree):
+    """Walk the tree replacing XML directive comment blocks with directive nodes.
+
+    Mirrors Perl Galacticus::Build::SourceTree::Parse::Directives::Parse_Directives().
+
+    Directives are delimited by:
+      !![          (opening marker)
+      !< <tagname ...>  (XML content lines — '!<' prefix stripped)
+      !!]          (closing marker)
+    """
+    nodes_to_replace = []  # list of (code_node, new_nodes_list)
+
+    for node in walk_tree(tree):
+        if node['type'] != 'code':
+            continue
+
+        content = node.get('content', '')
+        new_nodes   = []
+        raw_code_buf = []
+        raw_dir_buf  = []
+        in_xml       = False
+        in_directive = False
+        directive_root = None
+        raw_opener   = None
+ 
+        for raw_line in content.splitlines(keepends=True):
+            stripped = re.sub(r'^\s*!<\s*', '', raw_line)
+
+            if re.match(r'^\s*!!\]', raw_line):
+                # End of XML block.  Flush any directive not yet flushed
+                # (safety catch; normally flushed at end-tag detection below).
+                if raw_dir_buf:
+                    xml_text = ''.join(raw_dir_buf)
+                    dir_node = _parse_directive_xml(xml_text, node)
+                    if dir_node:
+                        if raw_code_buf:
+                            new_nodes.append(_make_code_node(
+                                ''.join(raw_code_buf), node['source'], node['line']))
+                            raw_code_buf = []
+                        new_nodes.append(dir_node)
+                    raw_dir_buf    = []
+                    in_directive   = False
+                    directive_root = None
+                in_xml = False
+                continue
+
+            if re.match(r'^\s*!!\[', raw_line):
+                in_xml     = True
+                raw_opener = raw_line
+                continue
+
+            if in_xml:
+                # Detect start of a directive tag.
+                m = re.match(r'^\s*<([^\s>/]+)', stripped)
+                if m and not in_directive:
+                    directive_root = m.group(1)
+                    in_directive   = True
+                if in_directive:
+                    stripped = stripped.replace('&nbsp;', ' ')
+                    raw_dir_buf.append(stripped)
+                    # Detect end of directive.
+                    end1 = re.search(r'</\s*' + re.escape(directive_root) + r'\s*>', stripped)
+                    end2 = re.match(
+                        r'^\s*<' + re.escape(directive_root) + r'(\s[^/]*)?\s*/>', stripped)
+                    end3 = (re.match(
+                        r'^\s*<' + re.escape(directive_root) + r'\s*/>', stripped)
+                            if directive_root else False)
+                    if end1 or end2 or end3:
+                        # Mirrors Perl $endDirective: flush immediately so that
+                        # the !!] handler sees an empty raw_dir_buf.
+                        xml_text = ''.join(raw_dir_buf)
+                        dir_node = _parse_directive_xml(xml_text, node)
+                        if dir_node:
+                            if raw_code_buf:
+                                new_nodes.append(_make_code_node(
+                                    ''.join(raw_code_buf), node['source'], node['line']))
+                                raw_code_buf = []
+                            new_nodes.append(dir_node)
+                        raw_dir_buf    = []
+                        in_directive   = False
+                        directive_root = None
+                continue
+
+            raw_code_buf.append(raw_line)
+
+        if raw_code_buf:
+            new_nodes.append(_make_code_node(
+                ''.join(raw_code_buf), node['source'], node['line']))
+
+        if len(new_nodes) != 1 or new_nodes[0] is not node:
+            nodes_to_replace.append((node, new_nodes))
+
+    for old_node, new_nodes in nodes_to_replace:
+        _replace_node(old_node, new_nodes)
+
+
+def _parse_directive_xml(xml_text, context_node):
+    """Parse accumulated XML text into a directive node dict."""
+    try:
+        elem = ET.fromstring(xml_text)
+    except ET.ParseError:
+        # Wrap in a root element and try again (handles bare fragments).
+        try:
+            elem = ET.fromstring('<root>' + xml_text + '</root>')
+            # If wrapped, the real root is the first child.
+            if len(elem) == 1:
+                elem = list(elem)[0]
+        except ET.ParseError:
+            return None
+
+    directive_dict = _xml_to_dict(elem)
+    return {
+        'type':       elem.tag,
+        'directive':  directive_dict,
+        'parent':     None,
+        'firstChild': None,
+        'sibling':    None,
+        'source':     context_node.get('source', 'unknown'),
+        'line':       context_node.get('line',   0),
+    }
+
+
+def _replace_node(old_node, new_nodes):
+    """Replace old_node in the tree with new_nodes."""
+    if not new_nodes:
+        return
+    parent = old_node.get('parent')
+    if parent is None:
+        return
+
+    # Find old_node in parent's child list.
+    prev = None
+    child = parent.get('firstChild')
+    while child:
+        if child is old_node:
+            break
+        prev  = child
+        child = child.get('sibling')
+
+    if child is None:
+        return  # old_node not found
+
+    # Wire new_nodes into the sibling chain.
+    for i, n in enumerate(new_nodes):
+        n['parent'] = parent
+        n['sibling'] = new_nodes[i + 1] if i + 1 < len(new_nodes) else old_node.get('sibling')
+
+    if prev is None:
+        parent['firstChild'] = new_nodes[0]
+    else:
+        prev['sibling'] = new_nodes[0]
+
+
+# ---------------------------------------------------------------------------
+# Parse pass 2: module uses  (mirrors Parse::ModuleUses)
+# ---------------------------------------------------------------------------
+
+_MODULE_USE_RE = re.compile(
+    r'^\s*(?:!\$)?\s*use\s*(?:\s+|,\s*(?:intrinsic))\s*(?:::)?\s*'
+    r'([a-zA-Z0-9_]+)\s*(?:,\s*only\s*:)?\s*([a-zA-Z0-9_()/=*\-+.,\s]+)?\s*$',
+    re.IGNORECASE,
+)
+_MODULE_USE_RE2 = re.compile(
+    r'^\s*(!\$)?\s*use\s*(,\s*(intrinsic))?\s*(::)?\s*([a-zA-Z0-9_]+)'
+    r'\s*(,\s*only\s*:)?\s*([a-zA-Z0-9_()/=*\-+.,\s]+)?\s*$',
+    re.IGNORECASE,
+)
+
+
+def _pass_module_uses(tree):
+    """Walk code nodes extracting 'use' statements into moduleUse nodes."""
+    nodes_to_replace = []
+
+    for node in walk_tree(tree):
+        if node['type'] != 'code':
+            continue
+
+        content    = node.get('content', '')
+        new_nodes  = []
+        code_buf   = []
+        module_buf = []
+        module_uses = {}  # {name: {'only': {sym: True}, 'intrinsic': bool}}
+
+        def flush_code():
+            if code_buf:
+                new_nodes.append(_make_code_node(
+                    ''.join(code_buf), node['source'], node['line']))
+                code_buf.clear()
+
+        def flush_uses():
+            if module_uses:
+                mu_node = {
+                    'type':       'moduleUse',
+                    'moduleUse':  dict(module_uses),
+                    'parent':     None,
+                    'firstChild': None,
+                    'sibling':    None,
+                    'source':     node['source'],
+                    'line':       node['line'],
+                }
+                new_nodes.append(mu_node)
+                module_uses.clear()
+
+        import io
+        fh = io.StringIO(content)
+        while True:
+            raw_line, processed_line, _ = get_fortran_line(fh)
+            if not raw_line and not processed_line:
+                break
+
+            m = _MODULE_USE_RE2.match(processed_line)
+            if m:
+                # Flush any pending code before starting a module-use block.
+                flush_code()
+                is_intrinsic = bool(m.group(3))
+                module_name  = m.group(5)
+                only_text    = m.group(7)
+
+                if module_name not in module_uses:
+                    module_uses[module_name] = {
+                        'intrinsic': is_intrinsic,
+                        'only':      {},
+                    }
+
+                if only_text:
+                    only_text = only_text.strip()
+                    for sym in re.split(r'\s*,\s*', only_text):
+                        sym = re.sub(r'\s', '', sym)
+                        if sym:
+                            module_uses[module_name]['only'][sym] = True
+                else:
+                    module_uses[module_name]['all'] = True
+            else:
+                flush_uses()
+                code_buf.append(raw_line)
+
+        flush_uses()
+        flush_code()
+
+        if not (len(new_nodes) == 1 and new_nodes[0].get('type') == 'code'
+                and new_nodes[0].get('content') == content):
+            nodes_to_replace.append((node, new_nodes))
+
+    for old_node, new_nodes in nodes_to_replace:
+        _replace_node(old_node, new_nodes)
+
+
+# ---------------------------------------------------------------------------
+# Parse pass 3: declarations  (mirrors Parse::Declarations)
+# ---------------------------------------------------------------------------
+
+def _pass_declarations(tree):
+    """Walk code nodes extracting declaration lines into declaration nodes."""
+    nodes_to_replace = []
+
+    for node in walk_tree(tree):
+        if node['type'] != 'code':
+            continue
+
+        content   = node.get('content', '')
+        new_nodes = []
+        code_buf  = []
+        decl_buf  = []
+        decls     = []
+        implicit_none = False
+
+        def flush_code():
+            if code_buf:
+                new_nodes.append(_make_code_node(
+                    ''.join(code_buf), node['source'], node['line']))
+                code_buf.clear()
+
+        def flush_decls():
+            nonlocal implicit_none
+            if decl_buf or decls:
+                dn = {
+                    'type':         'declaration',
+                    'implicitNone': implicit_none,
+                    'declarations': list(decls),
+                    'parent':       None,
+                    'firstChild':   None,
+                    'sibling':      None,
+                    'source':       node['source'],
+                    'line':         node['line'],
+                }
+                new_nodes.append(dn)
+                decl_buf.clear()
+                decls.clear()
+                implicit_none = False
+
+        import io
+        fh = io.StringIO(content)
+        while True:
+            raw_line, processed_line, _ = get_fortran_line(fh)
+            if not raw_line and not processed_line:
+                break
+
+            is_decl = False
+            if re.match(r'^\s*implicit\s+none\s*$', processed_line, re.IGNORECASE):
+                is_decl       = True
+                implicit_none = True
+
+            decl = parse_declaration(processed_line)
+            if decl:
+                is_decl = True
+
+            if is_decl:
+                flush_code()
+                decl_buf.append(raw_line)
+                if decl:
+                    decls.append(decl)
+            else:
+                flush_decls()
+                code_buf.append(raw_line)
+
+        flush_decls()
+        flush_code()
+
+        if not (len(new_nodes) == 1 and new_nodes[0].get('type') == 'code'
+                and new_nodes[0].get('content') == content):
+            nodes_to_replace.append((node, new_nodes))
+
+    for old_node, new_nodes in nodes_to_replace:
+        _replace_node(old_node, new_nodes)

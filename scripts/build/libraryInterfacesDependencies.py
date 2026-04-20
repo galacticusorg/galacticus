@@ -34,7 +34,7 @@ rules = []
 for name in class_names:
     rules.append(
         f"{build_path}libgalacticus/{name}.F90:\n"
-        f"\t./scripts/build/libraryInterfaces.pl\n"
+        f"\t./scripts/build/libraryInterfaces.py\n"
         f"{build_path}libgalacticus/{name}.p.F90.up:"
         f" {build_path}libgalacticus/{name}.F90"
         f" {build_path}hdf5FCInterop.dat"

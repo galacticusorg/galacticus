@@ -566,7 +566,7 @@ $(BUILDPATH)/%.m : ./source/%.F90
 $(BUILDPATH)/Makefile_Library_Dependencies:
 	./scripts/build/libraryInterfacesDependencies.py
 $(BUILDPATH)/libgalacticus.Inc: $(BUILDPATH)/directiveLocations.xml $(BUILDPATH)/stateStorables.xml
-	./scripts/build/libraryInterfaces.pl
+	./scripts/build/libraryInterfaces.py
 $(BUILDPATH)/libgalacticus.p.Inc.up : $(BUILDPATH)/libgalacticus.Inc $(BUILDPATH)/hdf5FCInterop.dat $(BUILDPATH)/openMPCriticalSections.xml
 	./scripts/build/preprocess.pl $(BUILDPATH)/libgalacticus.Inc $(BUILDPATH)/libgalacticus.p.Inc
 $(BUILDPATH)/libgalacticus.p.Inc : $(BUILDPATH)/libgalacticus.p.Inc.up
