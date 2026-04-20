@@ -22,10 +22,10 @@ jobs:
       - name: Install tools
         run: |
           sudo apt -y update
-          sudo apt install -y perl perl-doc curl
+          sudo apt install -y curl
       - name: Check for workaround fixes
         run: |
           cd $GALACTICUS_EXEC_PATH
           git config --global --add safe.directory $GALACTICUS_EXEC_PATH
-          ./scripts/aux/workaroundChecker.pl
+          ./scripts/aux/workaroundChecker.py
       - run: echo "This job's status is ${{ job.status }}."
