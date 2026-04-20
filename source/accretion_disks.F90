@@ -28,6 +28,18 @@ module Accretion_Disks
   use :: Galacticus_Nodes, only : nodeComponentBlackHole
   private
 
+  ! Enumeration of accretion disk types.
+  !![
+  <enumeration>
+   <name>accretionDiskType</name>
+   <description>Enumerates accretion disk types.</description>
+   <visibility>public</visibility>
+   <entry label="any" />
+   <entry label="thin"/>
+   <entry label="ADAF"/>
+  </enumeration>
+  !!]
+
   !![
   <functionClass>
    <name>accretionDisks</name>
@@ -43,8 +55,9 @@ module Accretion_Disks
     <description>Returns the radiative efficiency of the accretion disk, defined as the fraction of accreted rest-mass energy $\dot{M}\mathrm{c}^2$ that is emitted as radiation, given the black hole properties and accretion rate.</description>
     <type>double precision</type>
     <pass>yes</pass>
-    <argument>class           (nodeComponentBlackHole), intent(inout) :: blackHole</argument>
-    <argument>double precision                        , intent(in   ) :: accretionRateMass</argument>
+    <argument>class           (nodeComponentBlackHole          ), intent(inout)           :: blackHole        </argument>
+    <argument>double precision                                  , intent(in   )           :: accretionRateMass</argument>
+    <argument>type            (enumerationAccretionDiskTypeType), intent(in   ), optional :: accretionDiskType</argument>
    </method>
    <method name="powerJet" >
     <description>Returns the power of the jet launched by the accretion disk in units of $\mathrm{M}_\odot$ (km/s)$^2$ Gyr$^{-1}$.</description>

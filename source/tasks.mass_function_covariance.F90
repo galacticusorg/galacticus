@@ -1072,6 +1072,7 @@ contains
           <deepCopyFinalize variables="selfCopy"/>
           !!]
           !$omp end critical(massFunctionCovarianceDeepCopy)
+          !$omp barrier
           allocate(selfCopy%volumeNormalizationI(countFields))
           allocate(selfCopy%volumeNormalizationJ(countFields))
           allocate(selfCopy%timeMinimumI        (countFields))
@@ -1208,6 +1209,7 @@ contains
     <deepCopyFinalize variables="selfCopy"/>
     !!]
     !$omp end critical(massFunctionCovarianceDeepCopy)
+    !$omp barrier
     allocate(selfCopy%volumeNormalizationI(countFields))
     allocate(selfCopy%volumeNormalizationJ(countFields))
     allocate(selfCopy%timeMinimumI        (countFields))

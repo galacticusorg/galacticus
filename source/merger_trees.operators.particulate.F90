@@ -524,6 +524,7 @@ contains
           <deepCopyFinalize variables="self_"/>
           !!]
           !$omp end critical(mergerTreeOperatorsParticulateDeepCopy)
+          !$omp barrier
           massDistribution__ => node_%massDistribution(massType=massTypeDark)
           !$omp do reduction(+: positionRandomOffset, velocityRandomOffset)
           do i=1,particleCountActual

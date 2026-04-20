@@ -66,7 +66,7 @@ contains
     if (.not.debugFileInitialized) then
        write    (fileName,'(a)'       ) 'debug.log'
        !$ write (fileName,'(a,i4.4,a)') 'debug_thread',OMP_Get_Thread_Num(),'.log'
-       open(newUnit=debugFile,file='debug_thread.log',status='unknown',form='formatted')
+       open(newUnit=debugFile,file=trim(fileName),status='unknown',form='formatted')
        debugFileInitialized=.true.
     end if
     return

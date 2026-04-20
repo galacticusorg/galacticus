@@ -4,8 +4,8 @@
 <!-- 02-December-2025                                                              -->
 
 <parameters>
+  <lastModified revision="262562000c251ee5b935019673f606a8a8c47c10" time="2026-04-14T18:10:17"/>
   <formatVersion>2</formatVersion>
-  <lastModifieds revision="262562000c251ee5b935019673f606a8a8c47c10" time="2026-04-02T18:27:58" strict="false"/>
 
   <!-- Component selection -->
   <componentBasic value="standard"/>
