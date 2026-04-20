@@ -93,20 +93,22 @@ with tempfile.TemporaryDirectory() as tmpdir:
     # Build XML output.
     root = ET.Element("parameters")
     for index, parameter in enumerate(sorted_keys):
-        value = f"={mean[index]}"
+        value = f"{mean[index]}"
         for i in range(param_count):
             coeff = L[index, i]
             if coeff != 0.0:
                 value += f"+[cosmology{i}]*{coeff}"
         param_name = parameter_map[parameter]
-        # Density parameters are stored as Omega*h^2 in Planck chains; convert to Omega.
+        # Density parameters are stored as ω=Ωh² in Planck chains; convert to Omega.
         if "omega" in parameter:
-            value = f"({value})/(%[planckCosmologyHubbleConstant]/100.0)**2"
+            value = f"({value})/([planckCosmologyHubbleConstant]/100.0)**2"
         # Apply physical bounds.
         if parameter == "omegamh2*":
             value = f"min({value},1.0)"
         if parameter == "tau":
             value = f"max({value},0.0)"
+        # Add an initial "=" so that Galacticus evaluates this parameter.
+        value = "=" + value
         ET.SubElement(root, param_name, attrib={"value": value})
 
 print(minidom.parseString(ET.tostring(root)).toprettyxml(indent="  "))

@@ -54,15 +54,17 @@ L = np.linalg.cholesky(covariance)
 root = ET.Element("parameters")
 for parameter in param_labels:
     index = param_index[parameter]
-    value = f"={mean[index]}"
+    value = f"{mean[index]}"
     for i in range(param_count):
         coeff = L[index, i]
         if coeff != 0.0:
             value += f"+[cosmology{i}]*{coeff}"
     param_name = parameter_name_mapping.get(parameter, parameter)
-    # Density parameters are stored as Omega*h^2; convert to Omega.
+    # Density parameters are stored as ω=Ωh²; convert to Omega.
     if "omega" in parameter:
         value = f"({value})/([wmap9OmegaMatterHubbleConstant]/100.0)**2"
+    # Add an initial "=" so that Galacticus evaluates this parameter.
+    value = "=" + value
     ET.SubElement(root, param_name, attrib={"value": value})
 
 print(minidom.parseString(ET.tostring(root)).toprettyxml(indent="  "))
