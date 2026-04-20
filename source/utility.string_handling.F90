@@ -484,37 +484,39 @@ contains
 
   integer function String_Levenshtein_Distance(s,t)
     !!{
-    Compute the \href{http://en.wikipedia.org/wiki/Levenshtein_distance}{Levenshtein distance} between strings \mono{a} and \mono{b}.
+    Compute the \href{http://en.wikipedia.org/wiki/Levenshtein_distance}{Levenshtein distance} between strings \mono{a} and
+    \mono{b}. Requires only \mono{len(t)}$\times$\mono{2} storage as the Levenshtein algorithm only ever needs to refer to the
+    immediately previous row of the transformation. Rows are alternated by using a modulo-2 operation to determine to which row
+    reads/writes should be made.
     !!}
     implicit none
-    character(len=*), intent(in   )                :: s, t
-    integer         , dimension(0:len(s),0:len(t)) :: d
-    integer                                        :: i, j, m, n
+    character(len=*), intent(in   )           :: s    , t
+    integer         , dimension(0:len(t),0:1) :: d
+    integer                                   :: i    , j    , &
+         &                                       m    , n    , &
+         &                                       iCurr, iPrev
 
     m=len(s)
     n=len(t)
-    do i=0,m
-       d(i,0)=i ! The distance of any first string to an empty second string.
-    end do
+    ! Initialize row 0 as the cost of transforming an empty string into t(1..j).
     do j=0,n
-       d(0,j)=j ! The distance of any second string to an empty first string.
+       d(j,0)=j
     end do
-    do j=1,n
-       do i=1,m
+    do i=1,m
+       iCurr=mod(i  ,2)
+       iPrev=mod(i-1,2)
+       d(0,iCurr)=i ! Cost of transforming s(1..i) into an empty string.
+       do j=1,n
           if (s(i:i) == t(j:j)) then
-             d(i,j)=d(i-1,j-1)       ! No operation required.
+             d(j,iCurr)=d(j-1,iPrev)          ! No operation required.
           else
-             d(i,j)=minval(               &
-                  &        [              &
-                  &         d(i-1,j  )+1, & ! A deletion.
-                  &         d(i  ,j-1)+1, & ! An insertion.
-                  &         d(i-1,j-1)+1  & ! A substitution.
-                  &        ]              &
-                  &       )
-                end if
-             end do
-          end do
-          String_Levenshtein_Distance=d(m,n)
+             d(j,iCurr)=min(d(j  ,iPrev)+1, & ! A deletion.
+                  &         d(j-1,iCurr)+1, & ! An insertion.
+                  &         d(j-1,iPrev)+1)   ! A substitution.
+          end if
+       end do
+    end do
+    String_Levenshtein_Distance=d(n,mod(m,2))
     return
   end function String_Levenshtein_Distance
   
