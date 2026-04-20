@@ -103,6 +103,7 @@ jobs:
           echo "GALACTICUS_DATA_PATH=$GITHUB_WORKSPACE/datasets" >> $GITHUB_ENV
           echo "GALACTICUS_ANALYSIS_PERL_PATH=$GITHUB_WORKSPACE/analysis-perl" >> $GITHUB_ENV
           echo "PYTHONPATH=$GITHUB_WORKSPACE/python" >> $GITHUB_ENV
+          echo "DEBIAN_FRONTEND=noninteractive" >> $GITHUB_ENV
       - name: "Set number of OpenMP threads"
         if: inputs.ompNumThreads != '0'
         run: |
@@ -175,13 +176,18 @@ jobs:
             echo Python tests not supported on MacOS
             false
            fi
+           echo Preparing for Python installing...
            apt -y update && apt -y upgrade
-           apt -y install python3-numpy python3-h5py python3-lxml python3-blessings python3-matplotlib
+           echo Installing Python...
+           apt -y --no-install-recommends install python3-numpy python3-h5py python3-lxml python3-blessings python3-matplotlib
+           echo "   ...done Python installation"
            cd ${{ inputs.runPath }}
            chmod u=wrx ./${{ inputs.file }}
            # Preload libstdc++ from the system installation - needed by SciPy etc. This avoids attempts to use the older
            # (incompatible) version used by our custom GCC install.
+           echo Running test model script...
            LD_PRELOAD=/usr/lib/x86_64-linux-gnu/libstdc++.so.6 ./${{ inputs.file }} ${{ inputs.options }} 2>&1 | tee test.log
+           echo "   ...done running test model script"
           else
            echo Unrecognized file extension
            false

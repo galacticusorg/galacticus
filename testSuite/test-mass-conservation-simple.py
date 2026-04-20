@@ -10,7 +10,7 @@ import numpy as np
 
 # Run the model.
 subprocess.run(
-    "cd ..; scripts/aux/launch.pl testSuite/parameters/test-mass-conservation-simple.xml --launchMethod local --threadMaximum 1 --ompThreads 4",
+    "cd ..; ./scripts/aux/launch.py testSuite/parameters/test-mass-conservation-simple.xml --launchMethod local --threadMaximum 1 --ompThreads 4",
     shell=True
 )
 

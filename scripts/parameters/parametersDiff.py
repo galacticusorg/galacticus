@@ -32,7 +32,7 @@ if not xdiff.is_file():
     tarball.extractall(dynamicPath)
     tarball.close() 
 
-# Create list of filwnames to compare.
+# Create list of file names to compare.
 fileNames    = [ args.parameterFile1, args.parameterFile2 ]
 fileNamesTmp = [ ]
 
@@ -79,7 +79,9 @@ if args.canonicalizeValues:
         fileNamesTmp.append(fileOut.name)    
             
 # Run `xdiff` to compare the files.
+print(f"Comparing files '{args.parameterFile1}' and '{args.parameterFile2}'")
 status = subprocess.run("python3 "+str(xdiff)+" "+" ".join(fileNames),shell=True)
+print()
 
 # Remove any temporary files.
 if not args.respectOrder:

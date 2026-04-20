@@ -20,7 +20,7 @@ if args.instance:
     launchOptions += f" --instance {args.instance}"
 
 # Simply run the models.
-subprocess.run(f"cd ..; scripts/aux/launch.pl testSuite/test-methods_MPI.xml {launchOptions}", shell=True)
+subprocess.run(f"cd ..; ./scripts/aux/launch.py testSuite/test-methods_MPI.xml {launchOptions}", shell=True)
 
 # Check for failed models.
 logFiles = glob.glob("outputs/test-methods_MPI/galacticus_*/galacticus.log")

@@ -236,7 +236,7 @@ sub AddUses {
 		$usesNode->{'moduleUse'}->{$moduleName}->{'all'} = 1;
 		delete($usesNode->{'moduleUse'}->{$moduleName}->{'only'});
 	    } else {
-		$usesNode->{'moduleUse'}->{$moduleName}->{'only'}->{$_} = 1x2
+		$usesNode->{'moduleUse'}->{$moduleName}->{'only'}->{$_} = 1
 		    foreach ( sort(keys(%{$moduleUses->{'moduleUse'}->{$moduleName}->{'only'}})) );
 	    }
 	}

@@ -58,6 +58,7 @@ jobs:
           echo "GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
           echo "GALACTICUS_DATA_PATH=$GITHUB_WORKSPACE/datasets" >> $GITHUB_ENV
           echo "PARAM_PATH=/home/galacticus/super/secret/stuff" >> $GITHUB_ENV
+          echo "DEBIAN_FRONTEND=noninteractive" >> $GITHUB_ENV
       - name: Download executables
         uses: actions/download-artifact@v8
         with:

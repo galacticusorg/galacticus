@@ -76,7 +76,7 @@ launchOptions = f"--launchMethod {args.launchMethod} --threadMaximum {args.threa
 if args.instance:
     launchOptions += f" --instance {args.instance}"
 
-# Build parameterGrid XML and run via launch.pl.
+# Build parameterGrid XML and run via launch.py.
 with open("outputs/test-merger-tree-builder.xml", "w") as f:
     f.write("<parameterGrid>\n")
     f.write("  <emailReport>no</emailReport>\n")
@@ -89,7 +89,7 @@ with open("outputs/test-merger-tree-builder.xml", "w") as f:
     f.write("</parameterGrid>\n")
 
 subprocess.run(
-    f"cd ..; mkdir -p testSuite/outputs/test-merger-tree-builder; scripts/aux/launch.pl testSuite/outputs/test-merger-tree-builder.xml {launchOptions}",
+    f"cd ..; mkdir -p testSuite/outputs/test-merger-tree-builder; ./scripts/aux/launch.py testSuite/outputs/test-merger-tree-builder.xml {launchOptions}",
     shell=True
 )
 

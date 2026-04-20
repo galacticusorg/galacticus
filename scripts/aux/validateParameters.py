@@ -132,10 +132,11 @@ elif format_version == 2:
 
         for elem in elements:
             has_value_attr     = 'value' in elem.attrib
+            has_idref_attr     = 'idRef' in elem.attrib
             has_children       = len(elem) > 0
             value_child_elems  = elem.findall('value')
 
-            if not has_value_attr and not has_children:
+            if not has_value_attr and not has_idref_attr and not has_children:
                 # Empty element - missing value.
                 valid = 1
                 print(f"Parameter '{tag_name}' has no value")

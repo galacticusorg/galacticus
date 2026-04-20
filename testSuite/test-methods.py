@@ -39,7 +39,7 @@ if dataDynamicPath != "":
     subprocess.run(f"find {dataDynamicPath}/dynamic/largeScaleStructure -name 'transfer_function_CAMB_*.xml' -ctime +14 -exec rm {{}} \\;", shell=True)
 
 # Simply run the models.
-subprocess.run(f"cd ..; scripts/aux/launch.pl testSuite/test-methods.xml {launchOptions}", shell=True)
+subprocess.run(f"cd ..; ./scripts/aux/launch.py testSuite/test-methods.xml {launchOptions}", shell=True)
 
 # Check for failed models.
 logFiles = glob.glob("outputs/test-methods/galacticus_*/galacticus.log")

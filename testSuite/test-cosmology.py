@@ -21,7 +21,7 @@ if args.instance:
     launchOptions += f" --instance {args.instance}"
 
 # Simply run the models.
-subprocess.run(f"cd ..; scripts/aux/launch.pl testSuite/test-cosmology.xml {launchOptions}", shell=True)
+subprocess.run(f"cd ..; ./scripts/aux/launch.py testSuite/test-cosmology.xml {launchOptions}", shell=True)
 
 # Check for failed models.
 logFiles = glob.glob("outputs/test-cosmology/galacticus_*/galacticus.log")

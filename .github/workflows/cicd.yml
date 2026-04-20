@@ -2,6 +2,7 @@ name: 'CI/CD'
 on:
   workflow_dispatch:
   pull_request:
+    types: [opened, synchronize, reopened, ready_for_review]
   push:
     branches:
       - 'master'
@@ -53,6 +54,7 @@ jobs:
   ## Linux
   ### Static executable and test codes
   Build-Executable-Linux:
+    if: ${{ github.event_name != 'pull_request' || !github.event.pull_request.draft }}
     runs-on: ubuntu-latest
     container: ghcr.io/galacticusorg/buildenv:gfortranFinalization
     steps:
@@ -66,6 +68,7 @@ jobs:
         run: |
           echo "GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
           echo "GALACTICUS_FCFLAGS=$GALACTICUS_FCFLAGS -static" >> $GITHUB_ENV
+          echo "DEBIAN_FRONTEND=noninteractive" >> $GITHUB_ENV
       - name: Build the code
         run: |
           cd $GALACTICUS_EXEC_PATH
@@ -101,6 +104,7 @@ jobs:
       - run: echo "This job's status is ${{ job.status }}."
   ### Non-static executable
   Build-Executable-Linux-Non-Static:
+    if: ${{ github.event_name != 'pull_request' || !github.event.pull_request.draft }}
     runs-on: ubuntu-latest
     container: ghcr.io/galacticusorg/buildenv:gfortranFinalization
     steps:
@@ -113,6 +117,7 @@ jobs:
       - name: "Set environmental variables"
         run: |
           echo "GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
+          echo "DEBIAN_FRONTEND=noninteractive" >> $GITHUB_ENV
       - name: Build the code
         run: |
           cd $GALACTICUS_EXEC_PATH
@@ -137,6 +142,7 @@ jobs:
       - run: echo "This job's status is ${{ job.status }}."
   ### Executable instrumented
   Build-Executables-Instrumented-Linux:
+    if: ${{ github.event_name != 'pull_request' || !github.event.pull_request.draft }}
     runs-on: ubuntu-latest
     container: ghcr.io/galacticusorg/buildenv:gfortranFinalization
     steps:
@@ -150,6 +156,7 @@ jobs:
         run: |
           echo "GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
           echo "GALACTICUS_DATA_PATH=$GITHUB_WORKSPACE/datasets" >> $GITHUB_ENV
+          echo "DEBIAN_FRONTEND=noninteractive" >> $GITHUB_ENV
       - name: Build the code
         run: |
           cd $GALACTICUS_EXEC_PATH
@@ -166,6 +173,7 @@ jobs:
       - run: echo "This job's status is ${{ job.status }}."
   ### Executable with dark matter only components
   Build-Executable-DMO-Linux:
+    if: ${{ github.event_name != 'pull_request' || !github.event.pull_request.draft }}
     runs-on: ubuntu-latest
     container: ghcr.io/galacticusorg/buildenv:gfortranFinalization
     steps:
@@ -180,6 +188,7 @@ jobs:
           echo "GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
           echo "GALACTICUS_DATA_PATH=$GITHUB_WORKSPACE/datasets" >> $GITHUB_ENV
           echo "GALACTICUS_ACTIVE_COMPONENTS=basic darkMatterProfile satellite spin" >> $GITHUB_ENV
+          echo "DEBIAN_FRONTEND=noninteractive" >> $GITHUB_ENV
       - name: Build the code
         run: |
           cd $GALACTICUS_EXEC_PATH
@@ -193,6 +202,7 @@ jobs:
       - run: echo "This job's status is ${{ job.status }}."
   ### Executable MPI
   Build-Executables-MPI-Linux:
+    if: ${{ github.event_name != 'pull_request' || !github.event.pull_request.draft }}
     runs-on: ubuntu-latest
     container: ghcr.io/galacticusorg/buildenv:gfortranFinalization
     steps:
@@ -206,6 +216,7 @@ jobs:
         run: |
           echo "GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
           echo "GALACTICUS_DATA_PATH=$GITHUB_WORKSPACE/datasets" >> $GITHUB_ENV
+          echo "DEBIAN_FRONTEND=noninteractive" >> $GITHUB_ENV
       - name: Build the code
         run: |
           cd $GALACTICUS_EXEC_PATH
@@ -224,6 +235,7 @@ jobs:
       - run: echo "This job's status is ${{ job.status }}."
   ### Executable debugging
   Build-Executables-Debugging-Linux:
+    if: ${{ github.event_name != 'pull_request' || !github.event.pull_request.draft }}
     runs-on: ubuntu-latest
     container: ghcr.io/galacticusorg/buildenv:gfortranFinalization
     steps:
@@ -238,6 +250,7 @@ jobs:
           echo "GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
           echo "GALACTICUS_DATA_PATH=$GITHUB_WORKSPACE/datasets" >> $GITHUB_ENV
           echo "GALACTICUS_FCFLAGS+=\ -DDEBUGGING" >> $GITHUB_ENV
+          echo "DEBIAN_FRONTEND=noninteractive" >> $GITHUB_ENV
       - name: Build the code
         run: |
           cd $GALACTICUS_EXEC_PATH
@@ -251,6 +264,7 @@ jobs:
       - run: echo "This job's status is ${{ job.status }}."
   ### Library
   Build-Library-Linux:
+    if: ${{ github.event_name != 'pull_request' || !github.event.pull_request.draft }}
     runs-on: ubuntu-latest
     container: ghcr.io/galacticusorg/buildenv:gfortranFinalization
     steps:
@@ -263,6 +277,7 @@ jobs:
       - name: "Set environmental variables"
         run: |
           echo "GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
+          echo "DEBIAN_FRONTEND=noninteractive" >> $GITHUB_ENV
       - name: Build the code
         run: |
           cd $GALACTICUS_EXEC_PATH
@@ -288,6 +303,7 @@ jobs:
       - run: echo "This job's status is ${{ job.status }}."
   ### Docker image
   Build-Docker-Linux:
+    if: ${{ github.event_name != 'pull_request' || !github.event.pull_request.draft }}
     runs-on: ubuntu-latest
     permissions:
       packages: write
@@ -324,6 +340,7 @@ jobs:
             BRANCH=${{ github.head_ref || github.ref_name }}          
   ### Documentation
   Build-Documentation-Linux:
+    if: ${{ github.event_name != 'pull_request' || !github.event.pull_request.draft }}
     runs-on: ubuntu-latest
     container: ghcr.io/galacticusorg/buildenv:gfortranFinalization
     steps:
@@ -336,6 +353,7 @@ jobs:
       - name: "Set environmental variables"
         run: |
           echo "GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
+          echo "DEBIAN_FRONTEND=noninteractive" >> $GITHUB_ENV
       - name: Build the docs
         run: |
           cd $GALACTICUS_EXEC_PATH
@@ -374,6 +392,7 @@ jobs:
           echo "GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
           echo "GALACTICUS_DATA_PATH=$GITHUB_WORKSPACE/datasets" >> $GITHUB_ENV
           echo "GALACTICUS_FCFLAGS+=\ -static" >> $GITHUB_ENV
+          echo "DEBIAN_FRONTEND=noninteractive" >> $GITHUB_ENV
       - name: Download executables
         uses: actions/download-artifact@v8
         with:
@@ -424,6 +443,7 @@ jobs:
   ## MacOS
   ### Static executable
   Build-Executable-MacOS:
+    if: ${{ github.event_name != 'pull_request' || !github.event.pull_request.draft }}
     runs-on: macos-15-intel
     steps:
       - run: echo "The job was automatically triggered by a ${{ github.event_name }} event."
@@ -468,6 +488,7 @@ jobs:
           path: 'debugSymbolsMacOS.zip'
   ### Apple Silicon build  
   Build-Executable-MacOS-M1:
+    if: ${{ github.event_name != 'pull_request' || !github.event.pull_request.draft }}
     runs-on: macos-15
     steps:
       - run: echo "The job was automatically triggered by a ${{ github.event_name }} event."
@@ -506,6 +527,7 @@ jobs:
           path: 'debugSymbolsMacOS-M1.zip'
   ## Library
   Build-Library-MacOS:
+    if: ${{ github.event_name != 'pull_request' || !github.event.pull_request.draft }}
     runs-on: macos-15-intel
     steps:
       - run: echo "The job was automatically triggered by a ${{ github.event_name }} event."
@@ -538,6 +560,7 @@ jobs:
           path: 'libgalacticusMacOS.zip'
   ### Tools
   Build-Tools-MacOS:
+    if: ${{ github.event_name != 'pull_request' || !github.event.pull_request.draft }}
     runs-on: macos-15-intel
     steps:
       - run: echo "The job was automatically triggered by a ${{ github.event_name }} event."
@@ -627,6 +650,7 @@ jobs:
           path: './datasets/toolsMacOS.zip'
       - run: echo "This job's status is ${{ job.status }}."
   Build-Tools-MacOS-M1:
+    if: ${{ github.event_name != 'pull_request' || !github.event.pull_request.draft }}
     runs-on: macos-15
     steps:
       - run: echo "The job was automatically triggered by a ${{ github.event_name }} event."
@@ -805,6 +829,7 @@ jobs:
       - name: "Set environmental variables"
         run: |
           echo "GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
+          echo "DEBIAN_FRONTEND=noninteractive" >> $GITHUB_ENV
       - name: Mark directory safe        
         run: |
           git config --global --add safe.directory $GALACTICUS_EXEC_PATH
@@ -1310,7 +1335,8 @@ jobs:
                 test-soliton-coremass.py,
                 test-promptCuspNFW.py,
                 test-postprocessing.py,
-                test-merger-tree-export.sh ]
+                test-merger-tree-export.sh,
+                test-AGNSED.py ]
     uses: ./.github/workflows/testModel.yml
     with:
       file: ${{ matrix.file }}
@@ -1570,6 +1596,7 @@ jobs:
           echo "GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
           echo "GALACTICUS_DATA_PATH=$GITHUB_WORKSPACE/datasets" >> $GITHUB_ENV
           echo "PYTHONPATH=$GITHUB_WORKSPACE/python" >> $GITHUB_ENV
+          echo "DEBIAN_FRONTEND=noninteractive" >> $GITHUB_ENV
       - name: Download executables
         uses: actions/download-artifact@v8
         with:
@@ -1629,6 +1656,7 @@ jobs:
         run: |
           echo "GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
           echo "PYTHONPATH=$GITHUB_WORKSPACE/galacticus/python" >> $GITHUB_ENV
+          echo "DEBIAN_FRONTEND=noninteractive" >> $GITHUB_ENV
       - name: Install Python
         run: |
           apt -y update && apt -y upgrade
@@ -1672,6 +1700,7 @@ jobs:
         run: |
           echo "GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
           echo "PYTHONPATH=$GITHUB_WORKSPACE/galacticus/python" >> $GITHUB_ENV
+          echo "DEBIAN_FRONTEND=noninteractive" >> $GITHUB_ENV
       - name: Install Python
         run: |
           sudo port install python312

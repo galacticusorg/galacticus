@@ -73,8 +73,8 @@
    contains
      !![
      <methods>
-       <method description="Return the fraction of the accretion flow to be represented as an ADAF." method="fractionADAF" />
-       <method description="Return the scaling of radiative efficiency of the ADAF component in a switched accretion disk." method="efficiencyRadiativeScalingADAF" />
+       <method description="Return the fraction of the accretion flow to be represented as an ADAF."                        method="fractionADAF"                  />
+       <method description="Return the scaling of radiative efficiency of the ADAF component in a switched accretion disk." method="efficiencyRadiativeScalingADAF"/>
      </methods>
      !!]
      final     ::                                   switchedDestructor
@@ -195,16 +195,20 @@ contains
     return
   end subroutine switchedDestructor
 
-  double precision function switchedEfficiencyRadiative(self,blackHole,accretionRateMass)
+  double precision function switchedEfficiencyRadiative(self,blackHole,accretionRateMass,accretionDiskType) result(efficiencyRadiative)
     !!{
     Return the radiative efficiency of a switched (ADAF/thin) accretion disk.
     !!}
     implicit none
-    class           (accretionDisksSwitched), intent(inout) :: self
-    class           (nodeComponentBlackHole), intent(inout) :: blackHole
-    double precision                        , intent(in   ) :: accretionRateMass
-    double precision                                        :: fractionADAF               , efficiencyRadiativeADAF, &
-         &                                                     efficiencyRadiativeThinDisk
+    class           (accretionDisksSwitched          ), intent(inout)           :: self
+    class           (nodeComponentBlackHole          ), intent(inout)           :: blackHole
+    double precision                                  , intent(in   )           :: accretionRateMass
+    type            (enumerationAccretionDiskTypeType), intent(in   ), optional :: accretionDiskType
+    double precision                                                            :: fractionADAF               , efficiencyRadiativeADAF, &
+         &                                                                         efficiencyRadiativeThinDisk
+    !![
+    <optionalArgument name="accretionDiskType" defaultsTo="accretionDiskTypeAny"/>
+    !!]
 
     fractionADAF               =self                              %fractionADAF       (blackHole,accretionRateMass)
     efficiencyRadiativeThinDisk=self%accretionDisksShakuraSunyaev_%efficiencyRadiative(blackHole,accretionRateMass)
@@ -212,8 +216,13 @@ contains
     if (self%scaleADAFRadiativeEfficiency                     )                                      &
          & efficiencyRadiativeADAF=+efficiencyRadiativeADAF                                          &
          &                         *self%efficiencyRadiativeScalingADAF(blackHole,accretionRateMass)
-    switchedEfficiencyRadiative=+(+1.0d0-fractionADAF)*efficiencyRadiativeThinDisk &
-         &                      +        fractionADAF *efficiencyRadiativeADAF
+    efficiencyRadiative=+0.0d0
+    if (accretionDiskType_ == accretionDiskTypeAny .or. accretionDiskType_ == accretionDiskTypeADAF) &
+         & efficiencyRadiative=+                      efficiencyRadiative                            &
+         &                     +        fractionADAF *efficiencyRadiativeADAF
+    if (accretionDiskType_ == accretionDiskTypeAny .or. accretionDiskType_ == accretionDiskTypeThin) &
+         & efficiencyRadiative=+                      efficiencyRadiative                            &
+         &                     +(+1.0d0-fractionADAF)*efficiencyRadiativeThinDisk
     return
   end function switchedEfficiencyRadiative
 

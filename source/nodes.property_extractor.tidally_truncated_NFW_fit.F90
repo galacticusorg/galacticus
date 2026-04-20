@@ -216,20 +216,26 @@ contains
           fractionDensity(i)=+massDistribution_  %density(coordinates) &
                &             /massDistributionNFW%density(coordinates)
        end do
-       ! Optimize the fit.
-       allocate(minimizer_)
-       minimizer_=multiDMinimizer(1_c_size_t,fitMetric)
-       call minimizer_%set(x=[log(radiusVirial)],stepSize=[fractionStep])
-       iteration=0
-       converged=.false.
-       do while (.not.converged .and. iteration < 100)
-          call minimizer_%iterate()
-          iteration=iteration+1
-          converged=minimizer_%testSize(toleranceAbsolute=1.0d-3*radiusScale)
-       end do
-       locationMinimum                 =minimizer_%x()
-       tidallyTruncatedNFWFitExtract(1)=exp      (locationMinimum(1))
-       tidallyTruncatedNFWFitExtract(2)=fitMetric(locationMinimum   )
+       ! Check for the case of no truncation.
+       if (all(fractionDensity == 1.0d0)) then
+          tidallyTruncatedNFWFitExtract(1)=huge(0.0d0)
+          tidallyTruncatedNFWFitExtract(2)=0.0d0
+       else
+          ! Optimize the fit.
+          allocate(minimizer_)
+          minimizer_=multiDMinimizer(1_c_size_t,fitMetric)
+          call minimizer_%set(x=[log(radiusVirial)],stepSize=[fractionStep])
+          iteration=0
+          converged=.false.
+          do while (.not.converged .and. iteration < 100)
+             call minimizer_%iterate()
+             iteration=iteration+1
+             converged=minimizer_%testSize(toleranceAbsolute=1.0d-3*radiusScale)
+          end do
+          locationMinimum                 =minimizer_%x()
+          tidallyTruncatedNFWFitExtract(1)=exp      (locationMinimum(1))
+          tidallyTruncatedNFWFitExtract(2)=fitMetric(locationMinimum   )
+       end if
     else
        tidallyTruncatedNFWFitExtract(1)=huge(0.0d0)
        tidallyTruncatedNFWFitExtract(2)=     0.0d0
