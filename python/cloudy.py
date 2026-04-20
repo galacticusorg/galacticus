@@ -1,5 +1,12 @@
 # Provides functions for working with Cloudy
 # Andrew Benson (22-April-2025)
+"""Functions for downloading, building, and managing the Cloudy photoionization code.
+
+This module provides utilities for obtaining and compiling the
+`Cloudy <https://trac.nublado.org/>`_ spectral synthesis and photoionization
+code, which is used by Galacticus to compute cooling rates and other
+thermodynamic quantities.
+"""
 import os
 import re
 import sys
@@ -8,6 +15,57 @@ import urllib.request
 from urllib.error import HTTPError
 
 def initialize(options):
+    """Download, unpack, and compile the Cloudy photoionization code.
+
+    Fetches the requested version of Cloudy from the official distribution
+    server, unpacks the tarball, and builds the ``cloudy.exe`` binary.  If any
+    of these steps have already been completed, they are skipped so the
+    function is safe to call multiple times.
+
+    The Cloudy version is determined in the following order of precedence:
+
+    1. ``options['version']`` if already set by the caller.
+    2. The version listed in ``$GALACTICUS_EXEC_PATH/aux/dependencies.yml``,
+       when the ``GALACTICUS_EXEC_PATH`` environment variable is set.
+    3. The hard-coded fallback ``"23.01"``.
+
+    Parameters
+    ----------
+    options : dict
+        Configuration dictionary.  The following keys are recognised:
+
+        ``'version'`` : str, optional
+            Cloudy release string, e.g. ``"23.01"``.  Populated automatically
+            from ``dependencies.yml`` when not provided.
+
+    Returns
+    -------
+    tuple[str, str]
+        A 2-tuple ``(cloudy_path, cloudy_version)`` where *cloudy_path* is the
+        absolute path to the directory containing ``cloudy.exe`` (with a
+        trailing slash) and *cloudy_version* is the version string that was
+        used.
+
+    Notes
+    -----
+    The following environment variables are used:
+
+    ``GALACTICUS_DATA_PATH``
+        Root path under which Cloudy is installed (in a ``dynamic/`` sub-
+        directory).  Must be set.
+    ``GALACTICUS_EXEC_PATH``
+        Path to the Galacticus executable tree.  Optional; used to locate
+        ``aux/dependencies.yml``.
+    ``CLOUDY_COMPILER_PATH``
+        If set, prepended to ``PATH`` before invoking the Cloudy build system.
+    ``CLOUDY_STATIC_BUILD``
+        Set to ``"yes"`` to request a statically linked Cloudy binary.
+
+    Raises
+    ------
+    SystemExit
+        If any of the download, unpack, or build steps fail.
+    """
     # Initialize Cloudy by downloading and compiling.
     # Determine Cloudy version.
     if os.environ.get('GALACTICUS_EXEC_PATH') is not None and not 'version' in options:

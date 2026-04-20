@@ -20,10 +20,15 @@
 ! Exclude from "make all".
 !/ exclude
 
-! Contains a test code used to see if FFTW3 is available.
+!!{
+! Contains a program used to test whether the FFTW3 library is available on the current system.
+!!}
 
 program fftw3_config
-  ! Test code used to see if FFTW3 is available.
+  !!{
+  Test program used to check whether the FFTW3 library is available. This program is compiled as part of the
+  configuration process: a successful compile and link indicates that FFTW3 is present and usable.
+  !!}
   use, intrinsic :: ISO_C_Binding, only : c_ptr           , c_int     , c_funptr, c_float        , &
        &                                  c_double        , c_int32_t , c_size_t, c_float_complex, &
        &                                  c_double_complex, c_intptr_t, c_char
