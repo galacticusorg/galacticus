@@ -263,11 +263,11 @@ def main():
                         arg_groups = as_array(method.get('arguments'))
                         for i, arg_list in enumerate(arg_lists):
                             fh.write('\\item Interface: ')
-                            if isinstance(arg_list, dict):
+                            if isinstance(arg_list, dict) or not arg_list:
                                 fh.write('\\mono{()}\\\\\n')
                             else:
                                 fh.write(f'\\mono{{({latex_encode(arg_list)})}}\\\\\n')
-                                if i < len(arg_groups):
+                                if i < len(arg_groups) and isinstance(arg_groups[i], dict):
                                     for arg in as_array(arg_groups[i].get('argument')):
                                         fh.write(declaration_builder(arg) + '\\\\\n')
                         fh.write('\\end{itemize}\n')
