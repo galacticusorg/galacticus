@@ -495,19 +495,147 @@ def process_file(file_path):
 
 
 def build_modules_hash():
-    """Build `modules` dict and record usedBy back-references in `units`.
+    """Build `modules` dict and record usedBy back-references in `units`."""
+    global modules
+    # Map each module name to its unit ID.
+    for unit_id, unit in units.items():
+        if unit.get('unitType') == 'module':
+            modules[unit['unitName']] = unit_id
+    # Record which units each module is used by.
+    for unit_id, unit in units.items():
+        for mod_name in unit.get('modulesUsed', {}):
+            if mod_name in modules:
+                mod_unit_id = modules[mod_name]
+                units[mod_unit_id].setdefault('usedBy', {})[unit_id] = True
 
-    TODO: implementation added in a later task.
-    """
-    pass  # stub
+
+def print_two_column(fh, items):
+    """Write items in a two-column supertabular layout."""
+    col = 0
+    for item in items:
+        fh.write(f' & \\RaggedRight {item}')
+        if col == 1:
+            fh.write('\\\\\n')
+        col = 1 - col
+    if col == 1:
+        fh.write(' & \\\\\n')
 
 
 def output_data(output_file):
-    """Write the LaTeX output file.
+    """Write the LaTeX output file."""
+    table_open_str = '\\begin{supertabular}{lp{70mm}p{70mm}}\n'
 
-    TODO: implementation added in a later task.
-    """
-    pass  # stub
+    with open(output_file, 'w', encoding='utf-8') as fh:
+        fh.write('\\section{Program units}\n')
+
+        for unit_id in sorted(units):
+            unit      = units[unit_id]
+            unit_type = unit.get('unitType', '')
+
+            # Encode the unit name for LaTeX; add soft hyphen before each
+            # escaped underscore so long identifiers can line-wrap.
+            unit_name = latex_encode(unit.get('unitName', ''))
+            unit_name = unit_name.replace('\\_', '\\-\\_')
+            unit_name = unit_name.replace('¦', '\\textbrokenbar')
+
+            parent_id = unit.get('belongsTo')
+
+            # Skip abstract interfaces (unnamed interface units) and their
+            # direct children.
+            is_abstract = (unit_type == 'interface' and unit_name == '')
+            parent_is_abstract = False
+            if parent_id:
+                p = units.get(parent_id, {})
+                parent_is_abstract = (p.get('unitType') == 'interface'
+                                      and latex_encode(p.get('unitName', '')) == '')
+            if is_abstract or parent_is_abstract:
+                continue
+
+            # Header line.
+            hyperdef_target = unit_id.replace('.', '_')
+            fh.write(
+                f'\\noindent{{\\normalfont \\bfseries {unit_type}:}}'
+                f' \\hypertarget{{{unit_id}}}{{\\mono{{{unit_name}}}}}'
+                f'\\hyperdef{{source}}{{{hyperdef_target}}}{{}}'
+                f'\\index[code]{{{unit_name}\\@\\mono{{{unit_name}}} ({unit_type})}}\n\n'
+            )
+
+            table_is_open = False
+
+            def open_table():
+                nonlocal table_is_open
+                if not table_is_open:
+                    fh.write(table_open_str)
+                    table_is_open = True
+
+            # Description (from !!{ ... !!} comment blocks).
+            if 'comments' in unit:
+                comments = unit['comments']
+                if '{verbatim}' not in comments:
+                    open_table()
+                    fh.write(
+                        '\\emph{Description:} & \\multicolumn{2}{l}{\n'
+                        '\\begin{minipage}[t]{140mm}\n'
+                        f'{comments}\\end{{minipage}}\n}}\\\\\n'
+                    )
+                else:
+                    fh.write(f'\\emph{{Description:}} {comments}')
+                    if not re.search(r'\}\s*$', comments):
+                        fh.write('\\\\')
+                    fh.write('\n')
+
+            # Code line count.
+            open_table()
+            if 'codeLines' in unit:
+                fh.write(f'\\emph{{Code lines:}} & \\multicolumn{{2}}{{l}}{{{unit["codeLines"]}}} \\\\\n')
+
+            # Parent unit.
+            if parent_id:
+                open_table()
+                p = units.get(parent_id, {})
+                p_type = p.get('unitType', '')
+                p_name = latex_encode(p.get('unitName', ''))
+                fh.write(
+                    f'\\emph{{Contained by:}} & \\multicolumn{{2}}{{l}}'
+                    f'{{{p_type} \\hyperlink{{{parent_id}}}{{\\mono{{{p_name}}}}}}}'
+                    f' \\\\ \n'
+                )
+
+            # Modules used.
+            if unit.get('modulesUsed'):
+                open_table()
+                fh.write('\\emph{Modules used:} ')
+                mod_items = []
+                for mod_name in sorted(unit['modulesUsed']):
+                    enc = latex_encode(mod_name)
+                    if mod_name in modules and modules[mod_name]:
+                        mod_items.append(f'\\hyperlink{{{modules[mod_name]}}}{{\\mono{{{enc}}}}}')
+                    else:
+                        mod_items.append(f'\\mono{{{enc}}}')
+                print_two_column(fh, mod_items)
+
+            # Units that use this one.
+            if unit.get('usedBy'):
+                open_table()
+                fh.write('\\emph{Used by:} ')
+                used_items = []
+                for uid in sorted(unit['usedBy']):
+                    u2 = units.get(uid, {})
+                    u2_type = u2.get('unitType', '')
+                    u2_name = latex_encode(u2.get('unitName', ''))
+                    if uid:
+                        used_items.append(
+                            f'{u2_type} \\hyperlink{{{uid}}}{{\\mono{{{u2_name}}}}}'
+                        )
+                    else:
+                        used_items.append(f'{u2_type} \\mono{{{u2_name}}}')
+                print_two_column(fh, used_items)
+
+            # Close table or emit blank line.
+            if table_is_open:
+                fh.write(' & & \\\\\n\\end{supertabular}\n\\\\\n')
+            else:
+                fh.write('\n')
 
 
 # ---------------------------------------------------------------------------

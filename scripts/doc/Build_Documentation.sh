@@ -50,7 +50,7 @@ if [ "$OPTIMIZE" = "yes" ]; then
 fi
 
 # Extract source code data.
-./scripts/doc/extractData.pl source doc/data
+python3 scripts/doc/extractData.py source doc/data
 if [ $? -ne 0 ]; then
  echo Failed to extract source code data
  exit 1
@@ -64,7 +64,7 @@ if [ $? -ne 0 ]; then
 fi
 
 # Analyze source code.
-./scripts/doc/Code_Analyzer.pl source doc/source_documentation.tex
+python3 scripts/doc/Code_Analyzer.py source doc/source_documentation.tex
 if [ $? -ne 0 ]; then
  echo Failed to analyze source code
  exit 1
