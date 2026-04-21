@@ -6,7 +6,7 @@
 
 import sys
 import os
-import shutil
+import tempfile
 import argparse
 
 sys.path.insert(0, os.path.join(os.environ.get('GALACTICUS_EXEC_PATH', ''), 'python'))
@@ -24,6 +24,22 @@ for node in walk_tree(tree):
     if node.get('type') == 'moduleUse':
         update_uses(node)
 
-shutil.move(args.infile, args.infile + args.suffix)
-with open(args.infile, 'w') as fh:
-    fh.write(serialize(tree['firstChild']))
+content  = serialize(tree['firstChild'])
+dirpath  = os.path.dirname(os.path.abspath(args.infile))
+tmp_path = None
+try:
+    fd, tmp_path = tempfile.mkstemp(dir=dirpath)
+    with os.fdopen(fd, 'w') as fh:
+        fh.write(content)
+        fh.flush()
+        os.fsync(fh.fileno())
+    os.replace(args.infile, args.infile + args.suffix)
+    os.replace(tmp_path, args.infile)
+    tmp_path = None
+except Exception:
+    if tmp_path is not None:
+        try:
+            os.unlink(tmp_path)
+        except OSError:
+            pass
+    raise
