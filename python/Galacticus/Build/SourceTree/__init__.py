@@ -350,7 +350,18 @@ def _children_from_mixed_lines(inner_lines, parent):
             _flush()
             children.append(item[1])  # pre-built node
         else:
-            # (modified_str, orig_str) pair
+            # Must be a (modified_str, orig_str) 2-tuple; plain strings are not
+            # accepted — they would silently index as character sequences.
+            if (
+                not isinstance(item, tuple)
+                or len(item) != 2
+                or not isinstance(item[0], str)
+                or not isinstance(item[1], str)
+            ):
+                raise TypeError(
+                    f"_children_from_mixed_lines: expected a (modified_str, orig_str) "
+                    f"2-tuple, got {type(item).__name__!r}: {item!r}"
+                )
             mod_buf.append(item[0])
             orig_buf.append(item[1])
     _flush()
