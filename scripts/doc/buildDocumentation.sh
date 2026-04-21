@@ -57,14 +57,14 @@ if [ $? -ne 0 ]; then
 fi
 
 # Extract contributor data.
-python3 scripts/doc/Extract_Contributors.py . doc/contributions.tex
+python3 scripts/doc/extractContributors.py . doc/contributions.tex
 if [ $? -ne 0 ]; then
  echo Failed to extract contributor data
  exit 1
 fi
 
 # Analyze source code.
-python3 scripts/doc/Code_Analyzer.py source doc/source_documentation.tex
+python3 scripts/doc/codeAnalyzer.py source doc/source_documentation.tex
 if [ $? -ne 0 ]; then
  echo Failed to analyze source code
  exit 1
@@ -81,7 +81,7 @@ fi
 cd doc
 
 # Demangle the bibliography.
-./bibliographyDemangle.py
+python3 bibliographyDemangle.py
 if [ $? -ne 0 ]; then
  echo Failed to demangle bibliography
  exit 1
