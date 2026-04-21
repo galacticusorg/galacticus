@@ -272,8 +272,12 @@ def update_uses(uses_node):
                     if j == 3:
                         use_line += "&\n"
                         if entry.get('openMP'):
-                            use_line += "!$"
-                        use_line += "          &" + " " * (offset_len - 11)
+                            cont_prefix = indent + "!$ "
+                        elif openmp_any:
+                            cont_prefix = indent + "   "
+                        else:
+                            cont_prefix = indent
+                        use_line += cont_prefix + "&" + " " * (offset_len - len(cont_prefix) - 1)
 
         use_line += "\n"
         content += use_line
