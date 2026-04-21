@@ -471,11 +471,16 @@ jobs:
           macos_certificate_password: ${{ secrets.MACOS_CERTIFICATE_PASSWORD }}
           macos_keychain_password: ${{ secrets.MACOS_KEYCHAIN_PASSWORD }}
           macos_developer_id: ${{ secrets.MACOS_DEVELOPER_ID }}
+      - name: Package notarization ZIP
+        run: |
+          zip Galacticus_MacOS.zip Galacticus_MacOS.exe
       - name: Upload Galacticus executable
         uses: actions/upload-artifact@v7
         with:
           name: galacticus-exec-MacOS
-          path: 'Galacticus_MacOS.exe'
+          path: |
+            Galacticus_MacOS.exe
+            Galacticus_MacOS.zip
       - name: Upload test code executables
         uses: actions/upload-artifact@v7
         with:
@@ -515,11 +520,16 @@ jobs:
           macos_certificate_password: ${{ secrets.MACOS_CERTIFICATE_PASSWORD }}
           macos_keychain_password: ${{ secrets.MACOS_KEYCHAIN_PASSWORD }}
           macos_developer_id: ${{ secrets.MACOS_DEVELOPER_ID }}
+      - name: Package notarization ZIP
+        run: |
+          zip Galacticus_MacOS-M1.zip Galacticus_MacOS-M1.exe
       - name: Upload Galacticus executable
         uses: actions/upload-artifact@v7
         with:
           name: galacticus-exec-MacOS-M1
-          path: 'Galacticus_MacOS-M1.exe'
+          path: |
+            Galacticus_MacOS-M1.exe
+            Galacticus_MacOS-M1.zip
       - name: Upload Galacticus debug symbols
         uses: actions/upload-artifact@v7
         with:
@@ -751,6 +761,100 @@ jobs:
         with:
           name: galacticus-tools-MacOS-M1
           path: './datasets/toolsMacOSM1.zip'
+      - run: echo "This job's status is ${{ job.status }}."
+  Submit-Notarization-MacOS:
+    runs-on: macos-15-intel
+    if: github.ref == 'refs/heads/master'
+    needs: [ Build-Executable-MacOS, Build-Executable-MacOS-M1, Build-Tools-MacOS, Build-Tools-MacOS-M1 ]
+    steps:
+      - name: Download artifacts (executable-macos)
+        uses: actions/download-artifact@v8
+        with:
+          name: galacticus-exec-MacOS
+      - name: Download artifacts (executable-macos-m1)
+        uses: actions/download-artifact@v8
+        with:
+          name: galacticus-exec-MacOS-M1
+      - name: Download artifacts (tools-macos)
+        uses: actions/download-artifact@v8
+        with:
+          name: galacticus-tools-MacOS
+      - name: Download artifacts (tools-macos-m1)
+        uses: actions/download-artifact@v8
+        with:
+          name: galacticus-tools-MacOS-M1
+      - name: Submit macOS artifacts for notarization
+        env:
+          APPLE_ID: ${{ secrets.APPLE_ID }}
+          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+          APPLE_APP_SPECIFIC_PASSWORD: ${{ secrets.APPLE_APP_SPECIFIC_PASSWORD }}
+        run: |
+          python3 - <<'PY'
+          import datetime
+          import json
+          import os
+          import subprocess
+          import sys
+
+          files = [
+              "Galacticus_MacOS.zip",
+              "Galacticus_MacOS-M1.zip",
+              "toolsMacOS.zip",
+              "toolsMacOSM1.zip"
+          ]
+          for required in ("APPLE_ID", "APPLE_TEAM_ID", "APPLE_APP_SPECIFIC_PASSWORD"):
+              if not os.environ.get(required):
+                  print(f"Error: missing required secret '{required}' for notarization submit.", file=sys.stderr)
+                  raise SystemExit(1)
+          requests = []
+          for file_name in files:
+              if not os.path.exists(file_name):
+                  print(f"Error: notarization input '{file_name}' was not found.", file=sys.stderr)
+                  raise SystemExit(1)
+              result = subprocess.run(
+                  [
+                      "xcrun", "notarytool", "submit", file_name,
+                      "--apple-id", os.environ["APPLE_ID"],
+                      "--password", os.environ["APPLE_APP_SPECIFIC_PASSWORD"],
+                      "--team-id", os.environ["APPLE_TEAM_ID"],
+                      "--output-format", "json"
+                  ],
+                  capture_output=True,
+                  text=True
+              )
+              if result.returncode != 0:
+                  print(result.stdout)
+                  print(result.stderr, file=sys.stderr)
+                  raise SystemExit(result.returncode)
+              data = json.loads(result.stdout)
+              requests.append(
+                  {
+                      "asset": file_name,
+                      "submissionId": data.get("id"),
+                      "status": data.get("status"),
+                  }
+              )
+          output = {
+              "repository": os.environ["GITHUB_REPOSITORY"],
+              "commitSha": os.environ["GITHUB_SHA"],
+              "submittedAtUtc": datetime.datetime.now(datetime.timezone.utc).isoformat(),
+              "workflowRunUrl": (
+                  f"{os.environ['GITHUB_SERVER_URL']}/"
+                  f"{os.environ['GITHUB_REPOSITORY']}/actions/runs/{os.environ['GITHUB_RUN_ID']}"
+              ),
+              "requests": requests,
+          }
+          output_file = f"notarization-requests-{os.environ['GITHUB_SHA']}.json"
+          with open(output_file, "w", encoding="utf-8") as handle:
+              json.dump(output, handle, indent=2)
+              handle.write("\n")
+          print(f"Wrote {output_file}")
+          PY
+      - name: Upload notarization request metadata
+        uses: actions/upload-artifact@v7
+        with:
+          name: notarization-requests
+          path: 'notarization-requests-${{ github.sha }}.json'
       - run: echo "This job's status is ${{ job.status }}."
   # Benchmarks
   Benchmark-Dark-Matter-Only-Subhalos:
@@ -2105,6 +2209,7 @@ jobs:
              Build-Library-MacOS,
              Build-Tools-MacOS,
              Build-Tools-MacOS-M1,
+             Submit-Notarization-MacOS,
              Profile-Dark-Matter-Only-Subhalos,
              Profile-Milky-Way-Model,
              Profile-Milky-Way-SIDM-Model,
@@ -2193,12 +2298,16 @@ jobs:
         uses: actions/download-artifact@v8
         with:
           name: galacticus-tools-MacOS-M1
+      - name: Download artifacts (notarization metadata)
+        uses: actions/download-artifact@v8
+        with:
+          name: notarization-requests
       - name: Upload assets to release
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          gh release upload bleeding-edge ./Galacticus_MacOS.exe ./Galacticus_MacOS-M1.exe ./libgalacticusMacOS.zip ./toolsMacOS.zip ./toolsMacOSM1.zip ./debugSymbolsMacOS.zip ./debugSymbolsMacOS-M1.zip --clobber
-          rm ./Galacticus_MacOS.exe ./libgalacticusMacOS.zip ./toolsMacOS.zip ./toolsMacOSM1.zip ./debugSymbolsMacOS.zip
+          gh release upload bleeding-edge ./Galacticus_MacOS.exe ./Galacticus_MacOS.zip ./Galacticus_MacOS-M1.exe ./Galacticus_MacOS-M1.zip ./libgalacticusMacOS.zip ./toolsMacOS.zip ./toolsMacOSM1.zip ./debugSymbolsMacOS.zip ./debugSymbolsMacOS-M1.zip ./notarization-requests-*.json --clobber
+          rm ./Galacticus_MacOS.exe ./Galacticus_MacOS.zip ./Galacticus_MacOS-M1.exe ./Galacticus_MacOS-M1.zip ./libgalacticusMacOS.zip ./toolsMacOS.zip ./toolsMacOSM1.zip ./debugSymbolsMacOS.zip ./debugSymbolsMacOS-M1.zip ./notarization-requests-*.json
       - name: Download artifacts (perf-darkMatterOnlySubHalos)
         uses: actions/download-artifact@v8
         with:
