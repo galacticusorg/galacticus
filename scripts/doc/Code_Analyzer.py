@@ -421,8 +421,70 @@ def process_file(file_path):
                         units.setdefault(uid, {}).setdefault('moduleProcedures', {})[proc_name] = True
                         line_processed = True
 
-                # TODO (next step): intrinsic/derived-type variable
-                # declarations and function-call extraction.
+                # ---- Intrinsic variable declarations --------------------
+                if not line_processed and not frame['in_xml'] and not frame['in_latex']:
+                    for intr_type, intr in INTRINSIC_DECLARATIONS.items():
+                        m = intr['regex'].match(processed)
+                        if m:
+                            vars_grp = intr['vars_grp']
+                            vars_str = m.group(vars_grp) if m.lastindex and m.lastindex >= vars_grp else None
+                            if vars_str:
+                                uid = unit_id_list[-1]
+                                variables = extract_variables(vars_str.lower())
+                                units.setdefault(uid, {}).setdefault(intr_type, []).extend(variables)
+                            line_processed = True
+                            break
+
+                # ---- Derived-type variable declarations ------------------
+                if not line_processed and not frame['in_xml'] and not frame['in_latex']:
+                    m = DERIVED_TYPE_RE.match(processed)
+                    if m:
+                        derived_type = m.group(1).lower()
+                        vars_str     = m.group(3)
+                        if vars_str:
+                            uid = unit_id_list[-1]
+                            variables = extract_variables(vars_str.lower())
+                            (units.setdefault(uid, {})
+                                  .setdefault('derivedTypesUsed', {})
+                                  .setdefault(derived_type, [])
+                                  .extend(variables))
+                        line_processed = True
+
+                # ---- Function call extraction ----------------------------
+                # Not mutually exclusive with the checks above: does NOT set
+                # line_processed (matching the Perl behaviour).
+                if not line_processed and not frame['in_xml'] and not frame['in_latex']:
+                    func_seek = processed.lower()
+                    # Strip string literals to avoid false matches inside them.
+                    func_seek = re.sub(r"''", '', func_seek)
+                    func_seek = re.sub(r'""', '', func_seek)
+                    func_seek = re.sub(r"'[^']+'", '', func_seek)
+                    func_seek = re.sub(r'"[^"]+"', '', func_seek)
+                    count_iters = 0
+                    while '(' in func_seek:
+                        count_iters += 1
+                        if count_iters > 1000:
+                            print('Code_Analyzer.py: exceeded 1000 iterations '
+                                  'extracting function calls — possible parse failure',
+                                  file=sys.stderr)
+                            sys.exit(1)
+                        extracted, remainder, prefix = extract_bracketed(func_seek, "()")
+                        if prefix is None:
+                            print('failed to find function name:')
+                            print(f'\traw line: {raw}')
+                            print(f'\tprocessed line: {processed}')
+                            print(f'\tbuffered comments: {comments}')
+                            print(f'\tremaining line: {func_seek}')
+                            sys.exit(1)
+                        m = re.search(r'(([a-z0-9_]+)\s*%\s*)([a-z0-9_]+)$', prefix)
+                        if m:
+                            func_name    = m.group(3)
+                            derived_type = re.sub(r'%\s*$', '', m.group(1))
+                            if not derived_type:
+                                derived_type = -1
+                            uid = unit_id_list[-1]
+                            units.setdefault(uid, {}).setdefault('functionCalls', {})[func_name] = derived_type
+                        func_seek = remainder
 
                 # ---- Detect entering XML / LaTeX documentation blocks -----
                 # (must run after all other checks so line_processed is final)
