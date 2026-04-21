@@ -536,7 +536,7 @@ def output_data(output_file):
             # escaped underscore so long identifiers can line-wrap.
             unit_name = latex_encode(unit.get('unitName', ''))
             unit_name = unit_name.replace('\\_', '\\-\\_')
-            unit_name = unit_name.replace('¦', '\\textbrokenbar')
+            unit_name = unit_name.replace('¦', '\\textbrokenbar{}')
 
             parent_id = unit.get('belongsTo')
 
@@ -557,7 +557,7 @@ def output_data(output_file):
                 f'\\noindent{{\\normalfont \\bfseries {unit_type}:}}'
                 f' \\hypertarget{{{unit_id}}}{{\\mono{{{unit_name}}}}}'
                 f'\\hyperdef{{source}}{{{hyperdef_target}}}{{}}'
-                f'\\index[code]{{{unit_name}\\@\\mono{{{unit_name}}} ({unit_type})}}\n\n'
+                f'\\index[code]{{{unit_name}@\\mono{{{unit_name}}} ({unit_type})}}\n\n'
             )
 
             table_is_open = False
