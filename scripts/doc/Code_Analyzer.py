@@ -299,8 +299,86 @@ def process_file(file_path):
                                               'in_xml': False, 'in_latex': False})
                         break  # break inner loop; outer while opens the include
 
-                # TODO (next steps): unit open/close, use, call, declarations,
-                # function-call extraction, LaTeX/XML block entry detection.
+                line_processed = False
+
+                # ---- Unit opening ----------------------------------------
+                if not line_processed and not frame['in_xml'] and not frame['in_latex']:
+                    for unit_type, opener in UNIT_OPENERS.items():
+                        m = opener['regex'].match(processed)
+                        if m:
+                            grp = opener['unit_name_grp']
+                            unit_name = (m.group(grp).lower()
+                                         if grp > 0 and m.lastindex and m.lastindex >= grp
+                                         else '')
+                            parent_id = unit_id_list[-1]
+                            unit_id   = f'{parent_id}:{unit_name}'
+                            # Strip placeholder chars used in generated names.
+                            unit_id = re.sub(r'[¦{}]', '', unit_id)
+                            units.setdefault(parent_id, {}).setdefault('contains', {})[unit_id] = True
+                            unit_id_list.append(unit_id)
+                            units[unit_id] = {
+                                'unitType':  unit_type,
+                                'unitName':  unit_name,
+                                'belongsTo': parent_id,
+                            }
+                            line_processed = True
+                            break
+
+                # ---- Unit closing ----------------------------------------
+                if not line_processed and not frame['in_xml'] and not frame['in_latex']:
+                    for unit_type, closer in UNIT_CLOSERS.items():
+                        m = closer['regex'].match(processed)
+                        if m:
+                            grp = closer['unit_name_grp']
+                            unit_name   = (m.group(grp).lower()
+                                           if grp > 0 and m.lastindex and m.lastindex >= grp
+                                           else '')
+                            opener_id   = unit_id_list[-1]
+                            opener_type = units.get(opener_id, {}).get('unitType', '')
+                            opener_name = units.get(opener_id, {}).get('unitName', '')
+                            if not (unit_type == opener_type
+                                    and (unit_name == opener_name
+                                         or 'interface' in unit_type.lower())):
+                                print('Unit close does not match unit open:')
+                                print(f' Closing with: {unit_type} {unit_name}')
+                                print(f'  Opened with: {opener_type} {opener_name}')
+                                print(f'      In file: {file_name}')
+                                sys.exit(1)
+                            unit_id_list.pop()
+                            line_processed = True
+                            break
+
+                # ---- Description comment block  !!{ ... !!} ---------------
+                # buffered_comments starts with '!{' when the current line is
+                # '!!{...': the comment content (everything after the first '!')
+                # begins with another '!' followed by '{'.
+                if not line_processed and not frame['in_xml']:
+                    if re.match(r'^!\{', comments):
+                        uid = unit_id_list[-1]
+                        units.setdefault(uid, {})
+                        while True:
+                            comment_line = fh.readline()
+                            if not comment_line:
+                                break
+                            if re.match(r'^\s*!!\}', comment_line):
+                                break
+                            comment_line = re.sub(r'^\s*!', '', comment_line)
+                            units[uid]['comments'] = (
+                                units[uid].get('comments', '') + comment_line
+                            )
+                        frame['in_latex'] = False
+                        line_processed = True
+
+                # TODO (next steps): use, call, type-bound call, type-bound
+                # procedure, module-procedure, variable declarations, and
+                # function-call extraction.
+
+                # ---- Detect entering XML / LaTeX documentation blocks -----
+                # (must run after all other checks so line_processed is final)
+                if re.match(r'^\s*!!\[', raw):
+                    frame['in_xml'] = True
+                if not line_processed and re.match(r'^\s*!!\{', raw):
+                    frame['in_latex'] = True
 
 
 def build_modules_hash():
