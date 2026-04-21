@@ -99,8 +99,8 @@ def parse_module_uses(tree):
                 _flush_uses()
                 break
 
-            n_newlines   = raw_line.count('\n')
-            current_line = current_line + n_newlines
+            n_newlines  = raw_line.count('\n')
+            line_after  = current_line + n_newlines
 
             m = _MODULE_USE_RE.match(processed_line)
             is_use = bool(m)
@@ -176,6 +176,8 @@ def parse_module_uses(tree):
                     raw_code_buf.extend(raw_pp_buf)
                     raw_pp_buf.clear()
                 raw_code_buf.append(raw_line)
+
+            current_line = line_after
 
         # Only replace if the node actually changed.
         single_code = (
