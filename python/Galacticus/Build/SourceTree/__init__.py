@@ -454,6 +454,13 @@ def _pass_directives(tree):
                             ''.join(raw_code_buf), node['source'], node['line']))
                         raw_code_buf = []
                     new_nodes.append(pending_dir)
+                else:
+                    if raw_code_buf:
+                        new_nodes.append(_make_code_node(
+                            ''.join(raw_code_buf), node['source'], node['line']))
+                        raw_code_buf = []
+                    new_nodes.append(_make_code_node(
+                        ''.join(raw_dir_lines), node['source'], node['line']))
                 raw_dir_lines  = []
                 pending_dir    = None
                 in_directive   = False

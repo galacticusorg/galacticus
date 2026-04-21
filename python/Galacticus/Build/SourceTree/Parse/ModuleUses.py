@@ -336,7 +336,13 @@ def add_uses(node, module_uses_node):
             'source':     uses_node['source'],
             'line':       1,
         }
-        insert_before_node(node['firstChild'], [uses_node])
+        first_child = node.get('firstChild')
+        if first_child is None:
+            uses_node['parent'] = node
+            uses_node['sibling'] = None
+            node['firstChild'] = uses_node
+        else:
+            insert_before_node(first_child, [uses_node])
 
     # Merge module uses.
     new_module_use   = module_uses_node.get('moduleUse', {})
