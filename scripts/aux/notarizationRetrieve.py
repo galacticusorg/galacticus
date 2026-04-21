@@ -17,13 +17,13 @@ download = subprocess.run(
 )
 if download.returncode != 0:
     details = f"No notarization request metadata found for master SHA {master_sha}."
-    result = {"status": "pending", "details": details}
+    result = {"status": "no-request", "details": details}
     with open("notarization-poll-result.json", "w", encoding="utf-8") as handle:
         json.dump(result, handle, indent=2)
         handle.write("\n")
     with open(os.environ["GITHUB_STEP_SUMMARY"], "a", encoding="utf-8") as summary:
         summary.write("## Notarization (macOS)\n")
-        summary.write(f"- Status: pending\n- Details: {details}\n")
+        summary.write(f"- Status: no-request\n- Details: {details}\n")
     raise SystemExit(0)
 
 with open(metadata_file, "r", encoding="utf-8") as handle:
@@ -86,6 +86,19 @@ elif "pending" in statuses:
 else:
     overall = "success"
     details = "All notarization requests were accepted."
+
+# If notarization has finished, check whether we already sent the Slack notification
+# for this result. If so, return "done" to suppress a duplicate notification.
+if overall in ("success", "failure"):
+    marker = f"notarization-complete-{master_sha}.json"
+    check = subprocess.run(
+        ["gh", "release", "download", "bleeding-edge",
+         "--pattern", marker, "--dir", "."],
+        capture_output=True, text=True
+    )
+    if check.returncode == 0:
+        overall = "done"
+        details = "Notarization result already reported."
 
 result = {"status": overall, "details": details}
 with open("notarization-poll-result.json", "w", encoding="utf-8") as handle:

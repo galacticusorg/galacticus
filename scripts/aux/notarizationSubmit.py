@@ -37,24 +37,24 @@ for file_name in files:
         raise SystemExit(result.returncode)
     data = json.loads(result.stdout)
     requests.append(
-            {
-                "asset": file_name,
-                "submissionId": data.get("id"),
-                "status": data.get("status"),
-            }
-        )
-    output = {
-        "repository": os.environ["GITHUB_REPOSITORY"],
-        "commitSha": os.environ["GITHUB_SHA"],
-        "submittedAtUtc": datetime.datetime.now(datetime.timezone.utc).isoformat(),
-        "workflowRunUrl": (
-            f"{os.environ['GITHUB_SERVER_URL']}/"
-            f"{os.environ['GITHUB_REPOSITORY']}/actions/runs/{os.environ['GITHUB_RUN_ID']}"
-        ),
-        "requests": requests,
-    }
-    output_file = f"notarization-requests-{os.environ['GITHUB_SHA']}.json"
-    with open(output_file, "w", encoding="utf-8") as handle:
-        json.dump(output, handle, indent=2)
-        handle.write("\n")
-    print(f"Wrote {output_file}")
+        {
+            "asset": file_name,
+            "submissionId": data.get("id"),
+            "status": data.get("status"),
+        }
+    )
+output = {
+    "repository": os.environ["GITHUB_REPOSITORY"],
+    "commitSha": os.environ["GITHUB_SHA"],
+    "submittedAtUtc": datetime.datetime.now(datetime.timezone.utc).isoformat(),
+    "workflowRunUrl": (
+        f"{os.environ['GITHUB_SERVER_URL']}/"
+        f"{os.environ['GITHUB_REPOSITORY']}/actions/runs/{os.environ['GITHUB_RUN_ID']}"
+    ),
+    "requests": requests,
+}
+output_file = f"notarization-requests-{os.environ['GITHUB_SHA']}.json"
+with open(output_file, "w", encoding="utf-8") as handle:
+    json.dump(output, handle, indent=2)
+    handle.write("\n")
+print(f"Wrote {output_file}")

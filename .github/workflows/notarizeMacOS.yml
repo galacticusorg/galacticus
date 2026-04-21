@@ -2,12 +2,12 @@ name: Notarize-MacOS
 on:
   workflow_dispatch:
   schedule:
-    - cron: '*/30 * * * *'
+    - cron: '0 15,17,19,21,23 * * 1-5'
 jobs:
   Poll-Notarization:
     runs-on: macos-15-intel
     permissions:
-      contents: read
+      contents: write
     concurrency:
       group: notarizeMacOS-${{ github.ref }}
       cancel-in-progress: true
@@ -33,6 +33,10 @@ jobs:
             echo "EOF"
           } >> "$GITHUB_OUTPUT"
       - name: Report notarization status to Slack
+        if: >
+          steps.poll.outputs.overall_status == 'pending' ||
+          steps.poll.outputs.overall_status == 'success' ||
+          steps.poll.outputs.overall_status == 'failure'
         env:
           SLACK_WEBHOOK_STATUS_URL: ${{ secrets.SLACK_WEBHOOK_STATUS_URL }}
           NOTARIZATION_STATUS: ${{ steps.poll.outputs.overall_status }}
@@ -41,6 +45,16 @@ jobs:
           NOTARIZATION_REPOSITORY: ${{ github.repository }}
         run: |
           python3 scripts/aux/notarizationStatus.py
+      - name: Mark notarization as reported
+        if: >
+          steps.poll.outputs.overall_status == 'success' ||
+          steps.poll.outputs.overall_status == 'failure'
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          SHA=$(git rev-parse HEAD)
+          echo '{"reported": true}' > "notarization-complete-${SHA}.json"
+          gh release upload bleeding-edge "notarization-complete-${SHA}.json" --clobber
       - name: Fail on notarization failure
         if: steps.poll.outputs.overall_status == 'failure'
         run: |
