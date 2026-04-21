@@ -85,11 +85,17 @@ def _build_tree(root):
     Mirrors Perl Build_Children + Parse_Unit + the directive/moduleUse/
     declaration parse hooks.
     """
-    # Step 1: comment out LaTeX and XML blocks.
-    root['content'] = _comment_embedded(root['content'])
-    
+    # Step 1: comment out LaTeX and XML blocks so that _parse_units() is not confused
+    # by documentation text that could look like structural Fortran keywords.  Keep the
+    # original content so _parse_units() can store unmodified raw lines in code nodes,
+    # which is required for correct round-trip serialization.
+    original_content   = root['content']
+    root['content']    = _comment_embedded(original_content)
+    root['_orig_content'] = original_content   # parallel reader used by _parse_units
+
     # Step 2: split raw content into structural units.
     unit_children = _parse_units(root)
+    del root['_orig_content']
     _link_children(root, unit_children)
 
     # Step 3: run the three parse passes over the whole tree.
@@ -139,12 +145,17 @@ def _make_code_node(content, source, line, parent=None):
 
 def _parse_units(parent):
     """Split parent['content'] into child nodes (clean implementation)."""
-    content   = parent.get('content', '')
-    source    = parent.get('source', 'unknown')
-    base_line = parent.get('line',   0)
+    content          = parent.get('content', '')
+    # _orig_content is set by _build_tree() before calling _comment_embedded(); for
+    # recursively-created dummy parents (from _children_from_mixed_lines), the content
+    # is already the original because we accumulate from fh_orig below.
+    original_content = parent.get('_orig_content', content)
+    source           = parent.get('source', 'unknown')
+    base_line        = parent.get('line',   0)
 
     import io
-    fh = io.StringIO(content)
+    fh      = io.StringIO(content)           # processed (possibly commented) — for detection
+    fh_orig = io.StringIO(original_content)  # original — for raw line storage
 
     # Each stack entry: [node_dict, inner_lines_list]
     stack         = []
@@ -162,10 +173,11 @@ def _parse_units(parent):
             raw_code_line = current_line
 
     while True:
-        raw_line, processed_line, _ = get_fortran_line(fh)
+        raw_line,      processed_line, _ = get_fortran_line(fh)
+        raw_orig_line, _,              _ = get_fortran_line(fh_orig)
         if not raw_line and not processed_line:
             break
-        
+
         n_newlines    = raw_line.count('\n')
         line_after    = current_line + n_newlines
 
@@ -174,7 +186,7 @@ def _parse_units(parent):
             top_node = stack[-1][0]
             closer_re = UNIT_CLOSERS.get(top_node['type'])
             if closer_re and closer_re.match(processed_line):
-                top_node['closer'] = raw_line
+                top_node['closer'] = raw_orig_line   # store original
                 # Recurse into the accumulated inner content.
                 # inner_lines may contain pre-built sentinel nodes interspersed
                 # with raw string chunks, so use _children_from_mixed_lines.
@@ -186,8 +198,11 @@ def _parse_units(parent):
                 # Deliver the closed node to the new top scope.
                 if stack:
                     # Flush raw code inside outer unit, then add closed node.
+                    # (raw_code_buf is accumulates top-level code; it would be
+                    # empty here in practice, but handle defensively.)
                     if raw_code_buf:
-                        stack[-1][1].append(''.join(raw_code_buf))
+                        s = ''.join(raw_code_buf)
+                        stack[-1][1].append((s, s))   # same for modified/original
                         raw_code_buf  = []
                         raw_code_line = line_after
                     # The closed node goes into the outer unit's inner lines as
@@ -232,7 +247,7 @@ def _parse_units(parent):
             node = {
                 'type':       unit_type,
                 'name':       unit_name,
-                'opener':     raw_line,
+                'opener':     raw_orig_line,   # store original (unmodified) opener
                 'parent':     None,
                 'firstChild': None,
                 'sibling':    None,
@@ -260,10 +275,13 @@ def _parse_units(parent):
             continue
 
         # ---- plain code line ----
+        # Store (modified, original) pair so that _children_from_mixed_lines can
+        # pass modified content to _parse_units for structural detection while
+        # keeping original content for code-node storage.
         if stack:
-            stack[-1][1].append(raw_line)
+            stack[-1][1].append((raw_line, raw_orig_line))
         else:
-            raw_code_buf.append(raw_line)
+            raw_code_buf.append(raw_orig_line)
 
         current_line = line_after
 
@@ -295,34 +313,46 @@ def _resolve_sentinels(node_list):
 
 
 def _children_from_mixed_lines(inner_lines, parent):
-    """Build child node list from inner_lines (mixed strings and sentinel tuples).
+    """Build child node list from inner_lines (mixed line-pairs and sentinel tuples).
 
     inner_lines is a list where each element is either:
-      - a str  (raw Fortran source chunk), or
-      - a ('\x00NODE\x00', node) tuple  (a pre-built child node).
+      - a (modified_str, orig_str) 2-tuple — a raw Fortran source pair, or
+      - a ('\x00NODE\x00', node)   2-tuple — a pre-built child node.
 
-    String runs are joined and parsed via _parse_units; sentinel nodes are
-    spliced in at the correct position so ordering is preserved.
+    Line-pair runs are joined separately: modified content is passed as 'content'
+    (used for structural unit detection) and original content as '_orig_content'
+    (used for code-node raw-text storage).  This mirrors the parallel-reader
+    approach in _parse_units at the top level.
     """
     children = []
-    str_buf  = []
+    mod_buf  = []
+    orig_buf = []
     source   = parent.get('source', 'unknown')
     line     = parent.get('line',   0)
 
     def _flush():
-        if not str_buf:
+        if not mod_buf:
             return
-        text  = ''.join(str_buf)
-        dummy = {'content': text, 'source': source, 'line': line}
+        mod_text  = ''.join(mod_buf)
+        orig_text = ''.join(orig_buf)
+        dummy = {
+            'content':       mod_text,
+            '_orig_content': orig_text,
+            'source':        source,
+            'line':          line,
+        }
         children.extend(_parse_units(dummy))
-        str_buf.clear()
+        mod_buf.clear()
+        orig_buf.clear()
 
     for item in inner_lines:
-        if isinstance(item, str):
-            str_buf.append(item)
-        else:
+        if isinstance(item, tuple) and item[0] == '\x00NODE\x00':
             _flush()
             children.append(item[1])  # pre-built node
+        else:
+            # (modified_str, orig_str) pair
+            mod_buf.append(item[0])
+            orig_buf.append(item[1])
     _flush()
     return children
 
@@ -388,41 +418,56 @@ def _pass_directives(tree):
             continue
 
         content = node.get('content', '')
-        new_nodes   = []
-        raw_code_buf = []
-        raw_dir_buf  = []
-        in_xml       = False
-        in_directive = False
+        new_nodes      = []
+        raw_code_buf   = []
+        raw_dir_buf    = []
+        raw_dir_lines  = []   # raw lines from !![  to  !!] inclusive (for firstChild)
+        in_xml         = False
+        in_directive   = False
         directive_root = None
-        raw_opener   = None
- 
+        pending_dir    = None  # parsed directive node, waiting for !!] to be emitted
+
         for raw_line in content.splitlines(keepends=True):
             stripped = re.sub(r'^\s*!<\s*', '', raw_line)
 
             if re.match(r'^\s*!!\]', raw_line):
-                # End of XML block.  Flush any directive not yet flushed
-                # (safety catch; normally flushed at end-tag detection below).
+                # End of XML block.  Always include !!] in the raw content, then emit.
+                raw_dir_lines.append(raw_line)
                 if raw_dir_buf:
-                    xml_text = ''.join(raw_dir_buf)
-                    dir_node = _parse_directive_xml(xml_text, node)
-                    if dir_node:
-                        if raw_code_buf:
-                            new_nodes.append(_make_code_node(
-                                ''.join(raw_code_buf), node['source'], node['line']))
-                            raw_code_buf = []
-                        new_nodes.append(dir_node)
-                    raw_dir_buf    = []
-                    in_directive   = False
-                    directive_root = None
-                in_xml = False
+                    # End tag not yet detected — parse the accumulated XML now.
+                    xml_text     = ''.join(raw_dir_buf)
+                    pending_dir  = _parse_directive_xml(xml_text, node)
+                    raw_dir_buf  = []
+                if pending_dir:
+                    # Attach raw text (including !![  ...  !!]) as firstChild.
+                    pending_dir['firstChild'] = {
+                        'type':       'code',
+                        'content':    ''.join(raw_dir_lines),
+                        'parent':     pending_dir,
+                        'sibling':    None,
+                        'firstChild': None,
+                        'source':     node['source'],
+                        'line':       node['line'],
+                    }
+                    if raw_code_buf:
+                        new_nodes.append(_make_code_node(
+                            ''.join(raw_code_buf), node['source'], node['line']))
+                        raw_code_buf = []
+                    new_nodes.append(pending_dir)
+                raw_dir_lines  = []
+                pending_dir    = None
+                in_directive   = False
+                directive_root = None
+                in_xml         = False
                 continue
 
             if re.match(r'^\s*!!\[', raw_line):
-                in_xml     = True
-                raw_opener = raw_line
+                in_xml        = True
+                raw_dir_lines = [raw_line]  # start accumulating from !![
                 continue
 
             if in_xml:
+                raw_dir_lines.append(raw_line)
                 # Detect start of a directive tag.
                 m = re.match(r'^\s*<([^\s>/]+)', stripped)
                 if m and not in_directive:
@@ -431,7 +476,7 @@ def _pass_directives(tree):
                 if in_directive:
                     stripped = stripped.replace('&nbsp;', ' ')
                     raw_dir_buf.append(stripped)
-                    # Detect end of directive.
+                    # Detect end of directive tag.
                     end1 = re.search(r'</\s*' + re.escape(directive_root) + r'\s*>', stripped)
                     end2 = re.match(
                         r'^\s*<' + re.escape(directive_root) + r'(\s[^/]*)?\s*/>', stripped)
@@ -439,18 +484,11 @@ def _pass_directives(tree):
                         r'^\s*<' + re.escape(directive_root) + r'\s*/>', stripped)
                             if directive_root else False)
                     if end1 or end2 or end3:
-                        # Mirrors Perl $endDirective: flush immediately so that
-                        # the !!] handler sees an empty raw_dir_buf.
-                        xml_text = ''.join(raw_dir_buf)
-                        dir_node = _parse_directive_xml(xml_text, node)
-                        if dir_node:
-                            if raw_code_buf:
-                                new_nodes.append(_make_code_node(
-                                    ''.join(raw_code_buf), node['source'], node['line']))
-                                raw_code_buf = []
-                            new_nodes.append(dir_node)
-                        raw_dir_buf    = []
-                        in_directive   = False
+                        # End tag found — parse XML now but defer emitting until !!].
+                        xml_text     = ''.join(raw_dir_buf)
+                        pending_dir  = _parse_directive_xml(xml_text, node)
+                        raw_dir_buf  = []
+                        in_directive = False
                         directive_root = None
                 continue
 
@@ -464,7 +502,7 @@ def _pass_directives(tree):
             nodes_to_replace.append((node, new_nodes))
 
     for old_node, new_nodes in nodes_to_replace:
-        _replace_node(old_node, new_nodes)
+        replace_node(old_node, new_nodes)
 
 
 def _parse_directive_xml(xml_text, context_node):
@@ -493,8 +531,11 @@ def _parse_directive_xml(xml_text, context_node):
     }
 
 
-def _replace_node(old_node, new_nodes):
-    """Replace old_node in the tree with new_nodes."""
+def replace_node(old_node, new_nodes):
+    """Replace old_node in the tree with new_nodes.
+
+    Mirrors Perl Galacticus::Build::SourceTree::ReplaceNode().
+    """
     if not new_nodes:
         return
     parent = old_node.get('parent')
@@ -524,98 +565,40 @@ def _replace_node(old_node, new_nodes):
         prev['sibling'] = new_nodes[0]
 
 
+def insert_before_node(node, new_nodes):
+    """Insert new_nodes as siblings immediately before node in the parent's child list.
+
+    Mirrors Perl Galacticus::Build::SourceTree::InsertBeforeNode().
+    """
+    parent = node.get('parent')
+    if parent is None:
+        raise ValueError("insert_before_node: cannot insert before a root node")
+    for i, n in enumerate(new_nodes):
+        n['parent']  = parent
+        n['sibling'] = new_nodes[i + 1] if i + 1 < len(new_nodes) else node
+    if parent.get('firstChild') is node:
+        parent['firstChild'] = new_nodes[0]
+    else:
+        prev = parent['firstChild']
+        while prev.get('sibling') is not node:
+            prev = prev['sibling']
+        prev['sibling'] = new_nodes[0]
+
+
 # ---------------------------------------------------------------------------
 # Parse pass 2: module uses  (mirrors Parse::ModuleUses)
 # ---------------------------------------------------------------------------
 
-_MODULE_USE_RE = re.compile(
-    r'^\s*(?:!\$)?\s*use\s*(?:\s+|,\s*(?:intrinsic))\s*(?:::)?\s*'
-    r'([a-zA-Z0-9_]+)\s*(?:,\s*only\s*:)?\s*([a-zA-Z0-9_()/=*\-+.,\s]+)?\s*$',
-    re.IGNORECASE,
-)
-_MODULE_USE_RE2 = re.compile(
-    r'^\s*(!\$)?\s*use\s*(,\s*(intrinsic))?\s*(::)?\s*([a-zA-Z0-9_]+)'
-    r'\s*(,\s*only\s*:)?\s*([a-zA-Z0-9_()/=*\-+.,\s]+)?\s*$',
-    re.IGNORECASE,
-)
-
-
 def _pass_module_uses(tree):
-    """Walk code nodes extracting 'use' statements into moduleUse nodes."""
-    nodes_to_replace = []
+    """Walk code nodes extracting 'use' statements into moduleUse nodes.
 
-    for node in walk_tree(tree):
-        if node['type'] != 'code':
-            continue
-
-        content    = node.get('content', '')
-        new_nodes  = []
-        code_buf   = []
-        module_buf = []
-        module_uses = {}  # {name: {'only': {sym: True}, 'intrinsic': bool}}
-
-        def flush_code():
-            if code_buf:
-                new_nodes.append(_make_code_node(
-                    ''.join(code_buf), node['source'], node['line']))
-                code_buf.clear()
-
-        def flush_uses():
-            if module_uses:
-                mu_node = {
-                    'type':       'moduleUse',
-                    'moduleUse':  dict(module_uses),
-                    'parent':     None,
-                    'firstChild': None,
-                    'sibling':    None,
-                    'source':     node['source'],
-                    'line':       node['line'],
-                }
-                new_nodes.append(mu_node)
-                module_uses.clear()
-
-        import io
-        fh = io.StringIO(content)
-        while True:
-            raw_line, processed_line, _ = get_fortran_line(fh)
-            if not raw_line and not processed_line:
-                break
-
-            m = _MODULE_USE_RE2.match(processed_line)
-            if m:
-                # Flush any pending code before starting a module-use block.
-                flush_code()
-                is_intrinsic = bool(m.group(3))
-                module_name  = m.group(5)
-                only_text    = m.group(7)
-
-                if module_name not in module_uses:
-                    module_uses[module_name] = {
-                        'intrinsic': is_intrinsic,
-                        'only':      {},
-                    }
-
-                if only_text:
-                    only_text = only_text.strip()
-                    for sym in re.split(r'\s*,\s*', only_text):
-                        sym = re.sub(r'\s', '', sym)
-                        if sym:
-                            module_uses[module_name]['only'][sym] = True
-                else:
-                    module_uses[module_name]['all'] = True
-            else:
-                flush_uses()
-                code_buf.append(raw_line)
-
-        flush_uses()
-        flush_code()
-
-        if not (len(new_nodes) == 1 and new_nodes[0].get('type') == 'code'
-                and new_nodes[0].get('content') == content):
-            nodes_to_replace.append((node, new_nodes))
-
-    for old_node, new_nodes in nodes_to_replace:
-        _replace_node(old_node, new_nodes)
+    Delegates to Galacticus.Build.SourceTree.Parse.ModuleUses.parse_module_uses(),
+    which produces the full-featured node structure (moduleOrder, openMP,
+    conditions, firstChild with raw text).  The lazy import avoids a circular
+    dependency at module-load time.
+    """
+    from Galacticus.Build.SourceTree.Parse.ModuleUses import parse_module_uses
+    parse_module_uses(tree)
 
 
 # ---------------------------------------------------------------------------
@@ -656,6 +639,17 @@ def _pass_declarations(tree):
                     'source':       node['source'],
                     'line':         node['line'],
                 }
+                # Store raw text in firstChild so serialize() can reconstruct
+                # the original source — mirrors Perl Parse_Declarations behaviour.
+                dn['firstChild'] = {
+                    'type':       'code',
+                    'content':    ''.join(decl_buf),
+                    'parent':     dn,
+                    'sibling':    None,
+                    'firstChild': None,
+                    'source':     node['source'],
+                    'line':       node['line'],
+                }
                 new_nodes.append(dn)
                 decl_buf.clear()
                 decls.clear()
@@ -694,4 +688,38 @@ def _pass_declarations(tree):
             nodes_to_replace.append((node, new_nodes))
 
     for old_node, new_nodes in nodes_to_replace:
-        _replace_node(old_node, new_nodes)
+        replace_node(old_node, new_nodes)
+
+
+# ---------------------------------------------------------------------------
+# Serialization  (mirrors Perl Galacticus::Build::SourceTree::Serialize)
+# ---------------------------------------------------------------------------
+
+def serialize(node):
+    """Reconstruct Fortran source text from an AST node and its siblings.
+
+    Mirrors Perl Galacticus::Build::SourceTree::Serialize(node, annotate => 0).
+
+    The algorithm is a sibling-chain walk that recurses into firstChild:
+      - code nodes      → emit content directly
+      - all other nodes → emit opener (if any) + serialize(firstChild) + closer (if any)
+
+    This works for every node type produced by the parser:
+      - structural units (module, subroutine, …): have opener/closer
+      - moduleUse nodes: firstChild holds the raw/reformatted use text
+      - declaration nodes: firstChild holds the raw declaration text
+      - directive nodes: firstChild holds the raw !![…!!] block text
+    """
+    result  = ""
+    current = node
+    while current:
+        if current.get('type') == 'code':
+            result += current.get('content') or ''
+        else:
+            result += current.get('opener') or ''
+            child = current.get('firstChild')
+            if child:
+                result += serialize(child)
+            result += current.get('closer') or ''
+        current = current.get('sibling')
+    return result
