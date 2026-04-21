@@ -369,9 +369,60 @@ def process_file(file_path):
                         frame['in_latex'] = False
                         line_processed = True
 
-                # TODO (next steps): use, call, type-bound call, type-bound
-                # procedure, module-procedure, variable declarations, and
-                # function-call extraction.
+                # ---- use statement ---------------------------------------
+                if not line_processed and not frame['in_xml'] and not frame['in_latex']:
+                    m = USE_RE.match(processed)
+                    if m:
+                        module_name = m.group(3).lower()
+                        uid = unit_id_list[-1]
+                        units.setdefault(uid, {}).setdefault('modulesUsed', {})[module_name] = True
+                        line_processed = True
+
+                # ---- Direct subroutine call ------------------------------
+                # CALL_RE is not anchored so use search(); must come before
+                # type-bound check (the two are mutually exclusive by regex
+                # design — CALL_RE requires name followed by '(' or EOL).
+                if not line_processed and not frame['in_xml'] and not frame['in_latex']:
+                    m = CALL_RE.search(processed)
+                    if m:
+                        sub_name = m.group(2).lower()
+                        uid = unit_id_list[-1]
+                        units.setdefault(uid, {}).setdefault('subroutinesCalled', {})[sub_name] = -1
+                        line_processed = True
+
+                # ---- Type-bound subroutine call --------------------------
+                if not line_processed and not frame['in_xml'] and not frame['in_latex']:
+                    m = CALL_TYPE_BOUND_RE.search(processed)
+                    if m:
+                        sub_name  = m.group(3).lower()
+                        var_name  = m.group(2).lower()
+                        uid = unit_id_list[-1]
+                        units.setdefault(uid, {}).setdefault('subroutinesCalled', {})[sub_name] = var_name
+                        line_processed = True
+
+                # ---- Type-bound procedure declaration --------------------
+                if not line_processed and not frame['in_xml'] and not frame['in_latex']:
+                    if units.get(unit_id_list[-1], {}).get('unitType') == 'type':
+                        m = TYPE_BOUND_RE.match(processed)
+                        if m:
+                            method_name    = m.group(2).lower()
+                            procedure_list = re.sub(r'\s', '', m.group(3).lower())
+                            procedures     = procedure_list.split(',')
+                            uid = unit_id_list[-1]
+                            units.setdefault(uid, {}).setdefault('methods', {})[method_name] = procedures
+                            line_processed = True
+
+                # ---- Module procedure ------------------------------------
+                if not line_processed and not frame['in_xml'] and not frame['in_latex']:
+                    m = MODULE_PROCEDURE_RE.match(processed)
+                    if m:
+                        proc_name = m.group(1).lower()
+                        uid = unit_id_list[-1]
+                        units.setdefault(uid, {}).setdefault('moduleProcedures', {})[proc_name] = True
+                        line_processed = True
+
+                # TODO (next step): intrinsic/derived-type variable
+                # declarations and function-call extraction.
 
                 # ---- Detect entering XML / LaTeX documentation blocks -----
                 # (must run after all other checks so line_processed is final)
