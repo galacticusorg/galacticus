@@ -253,27 +253,357 @@ SUITES['COZMIC'] = SUITES['Symphony']
 
 
 # ---------------------------------------------------------------------------
-# Step function stubs  (implemented in later steps)
+# Step functions
 # ---------------------------------------------------------------------------
 
 def step_identify_always_isolated(entries, suites_cfg, active_steps, manager, options, omp_threads):
-    raise NotImplementedError
+    """Identify always-isolated halos for each simulation subvolume."""
+    active_analyses = set(options['analyses'].split(','))
+    jobs = []
+    for entry in entries:
+        suite_name   = entry['suite']['name']
+        suite_cfg    = suites_cfg.get(suite_name, {})
+        suite_analyses = suite_cfg.get('analyses', [])
+        if not any(a in active_analyses for a in suite_analyses):
+            continue
+
+        # Build epoch list (expansionFactor, redshift, redshiftLabel) for this resolution.
+        entry['resolution']['epochs'] = [
+            {
+                'expansionFactor': a,
+                'redshift':        z,
+                'redshiftLabel':   f'z{z:.3f}',
+            }
+            for a, z in zip(
+                entry['resolution']['expansionFactors'],
+                entry['resolution']['redshifts'],
+            )
+        ]
+
+        # Halo mass limits: minimum is two decades above particle mass.
+        entry['massMinimum'] = 10.0 ** (int(math.log10(entry['resolution']['massParticle'])) + 2)
+        entry['massMaximum'] = 1.0e16
+
+        # Canonical path for this simulation / realization.
+        entry['path'] = (
+            options['simulationDataPath']
+            + suite_name                      + '/'
+            + entry['group'     ]['name']     + '/'
+            + entry['resolution']['name']     + '/'
+            + entry['simulation']['name']     + '/'
+            + entry['realization']            + '/'
+        )
+
+        n_sub = int(entry['resolution']['subvolumes'])
+        proc  = suite_cfg.get('steps', {}).get('identifyAlwaysIsolated', {}).get('processParameters')
+
+        for i in range(n_sub):
+            for j in range(n_sub):
+                for k in range(n_sub):
+                    if not os.path.exists(entry['path'] + f'tree_{i}_{j}_{k}.dat'):
+                        continue
+
+                    root = _parse_param_xml(options['pipelinePath'] + 'identifyAlwaysIsolated.xml')
+                    root.find('outputFileName').set(
+                        'value', entry['path'] + f'identifyAlwaysIsolatedGLC_{i}_{j}_{k}.hdf5')
+                    root.find('nbodyImporter/fileName').set(
+                        'value', entry['path'] + f'tree_{i}_{j}_{k}.dat')
+                    nb_ops = root.find('nbodyOperator').findall('nbodyOperator')
+                    nb_ops[4].find('fileName').set(
+                        'value', entry['path'] + f'alwaysIsolated_subVolume{i}_{j}_{k}.hdf5')
+                    cosmo = root.find('cosmologyParameters')
+                    for key in ('HubbleConstant', 'OmegaMatter', 'OmegaDarkEnergy', 'OmegaBaryon'):
+                        cosmo.find(key).set('value', str(entry['suite']['cosmology'][key]))
+                    if proc:
+                        proc(entry, None, root, options)
+
+                    param_file = entry['path'] + f'identifyAlwaysIsolated_{i}_{j}_{k}.xml'
+                    _write_param_xml(root, param_file)
+
+                    if os.path.exists(entry['path'] + f'alwaysIsolated_subVolume{i}_{j}_{k}.hdf5'):
+                        continue
+
+                    mem = '64G' if entry['resolution']['name'] == 'resolutionX64' else '8G'
+                    jobs.append({
+                        'command':    os.environ['GALACTICUS_EXEC_PATH'] + '/Galacticus.exe ' + param_file,
+                        'launchFile': entry['path'] + f'identifyAlwaysIsolated_{i}_{j}_{k}.sh',
+                        'logFile':    entry['path'] + f'identifyAlwaysIsolated_{i}_{j}_{k}.log',
+                        'label':                      f'identifyAlwaysIsolated_{i}_{j}_{k}',
+                        'ppn':        omp_threads,
+                        'ompThreads': omp_threads,
+                        'nodes':      1,
+                        'mem':        mem,
+                        'walltime':   '8:00:00',
+                        'mpi':        'no',
+                    })
+
+    _submit_jobs(manager, jobs)
 
 
 def step_extract_halos(entries, suites_cfg, active_steps, manager, options, omp_threads):
-    raise NotImplementedError
+    """Extract non-flyby halo snapshots at each expansion factor."""
+    jobs = []
+    for entry in entries:
+        suite_name = entry['suite']['name']
+        n_sub      = int(entry['resolution']['subvolumes'])
+        proc       = suites_cfg.get(suite_name, {}).get('steps', {}).get('extractHalos', {}).get('processParameters')
+
+        for i in range(n_sub):
+            for j in range(n_sub):
+                for k in range(n_sub):
+                    if not os.path.exists(entry['path'] + f'tree_{i}_{j}_{k}.dat'):
+                        continue
+
+                    for epoch in entry['resolution']['epochs']:
+                        a       = epoch['expansionFactor']
+                        af_low  = (1.0 - 5.0e-4) * a
+                        af_high = (1.0 + 5.0e-4) * a
+                        rl      = epoch['redshiftLabel']
+
+                        root = _parse_param_xml(options['pipelinePath'] + 'extractHalosSnapshot.xml')
+                        root.find('outputFileName').set(
+                            'value', entry['path'] + f'alwaysIsolated_subVolumeGLC{i}_{j}_{k}.hdf5')
+                        root.find('nbodyImporter/fileName').set(
+                            'value', entry['path'] + f'alwaysIsolated_subVolume{i}_{j}_{k}.hdf5')
+                        root.find('nbodyImporter/properties').set(
+                            'value', 'particleID isFlyby expansionFactor massVirial hostedRootID')
+                        nb_ops = root.find('nbodyOperator').findall('nbodyOperator')
+                        nb_ops[0].find('propertyNames').set('value', 'isFlyby expansionFactor')
+                        nb_ops[0].find('rangeLow' ).set('value', f'0 {af_low}')
+                        nb_ops[0].find('rangeHigh').set('value', f'0 {af_high}')
+                        nb_ops[1].find('propertyNames').set('value', 'isFlyby expansionFactor')
+                        nb_ops[2].find('fileName').set(
+                            'value', entry['path'] + f'nonFlyby_{rl}_subVolume{i}_{j}_{k}.hdf5')
+                        nb_ops[2].find('redshift').set('value', str(epoch['redshift']))
+                        if proc:
+                            proc(entry, a, root, options)
+
+                        param_file = entry['path'] + f'identifyNonFlyby_{rl}_{i}_{j}_{k}.xml'
+                        _write_param_xml(root, param_file)
+
+                        if os.path.exists(entry['path'] + f'nonFlyby_{rl}_subVolume{i}_{j}_{k}.hdf5'):
+                            continue
+
+                        mem = '64G' if entry['resolution']['name'] == 'resolutionX64' else '8G'
+                        jobs.append({
+                            'command':    os.environ['GALACTICUS_EXEC_PATH'] + '/Galacticus.exe ' + param_file,
+                            'launchFile': entry['path'] + f'identifyNonFlyby_{rl}_{i}_{j}_{k}.sh',
+                            'logFile':    entry['path'] + f'identifyNonFlyby_{rl}_{i}_{j}_{k}.log',
+                            'label':                      f'identifyNonFlyby_{rl}_{i}_{j}_{k}',
+                            'ppn':        1,
+                            'ompThreads': 1,
+                            'nodes':      1,
+                            'mem':        mem,
+                            'walltime':   '8:00:00',
+                            'mpi':        'no',
+                        })
+
+    _submit_jobs(manager, jobs)
 
 
 def step_extract_subhalos(entries, suites_cfg, active_steps, manager, options, omp_threads):
-    raise NotImplementedError
+    """Extract subhalo snapshots (halos with a parent) at each expansion factor."""
+    jobs = []
+    for entry in entries:
+        suite_name = entry['suite']['name']
+        n_sub      = int(entry['resolution']['subvolumes'])
+        proc       = suites_cfg.get(suite_name, {}).get('steps', {}).get('extractSubhalos', {}).get('processParameters')
+
+        for i in range(n_sub):
+            for j in range(n_sub):
+                for k in range(n_sub):
+                    if not os.path.exists(entry['path'] + f'tree_{i}_{j}_{k}.dat'):
+                        continue
+
+                    for epoch in entry['resolution']['epochs']:
+                        a       = epoch['expansionFactor']
+                        af_low  = (1.0 - 5.0e-4) * a
+                        af_high = (1.0 + 5.0e-4) * a
+                        rl      = epoch['redshiftLabel']
+
+                        root = _parse_param_xml(options['pipelinePath'] + 'extractSubhalosSnapshot.xml')
+                        root.find('outputFileName').set(
+                            'value', entry['path'] + f'subhalos_subVolumeGLC{i}_{j}_{k}.hdf5')
+                        root.find('nbodyImporter/fileName').set(
+                            'value', entry['path'] + f'alwaysIsolated_subVolume{i}_{j}_{k}.hdf5')
+                        root.find('nbodyImporter/properties').set(
+                            'value', 'particleID isFlyby expansionFactor massVirial velocityMaximum')
+                        nb_ops = root.find('nbodyOperator').findall('nbodyOperator')
+                        nb_ops[0].find('propertyNames').set('value', 'isFlyby expansionFactor')
+                        nb_ops[0].find('rangeLow' ).set('value', f'1 {af_low}')
+                        nb_ops[0].find('rangeHigh').set('value', f'1 {af_high}')
+                        nb_ops[1].find('propertyNames').set('value', 'isFlyby expansionFactor')
+                        nb_ops[2].find('fileName').set(
+                            'value', entry['path'] + f'subhalos_{rl}_subVolume{i}_{j}_{k}.hdf5')
+                        nb_ops[2].find('redshift').set('value', str(epoch['redshift']))
+                        if proc:
+                            proc(entry, a, root, options)
+
+                        param_file = entry['path'] + f'identifySubhalos_{rl}_{i}_{j}_{k}.xml'
+                        _write_param_xml(root, param_file)
+
+                        if os.path.exists(entry['path'] + f'subhalos_{rl}_subVolume{i}_{j}_{k}.hdf5'):
+                            continue
+
+                        mem = '64G' if entry['resolution']['name'] == 'resolutionX64' else '8G'
+                        jobs.append({
+                            'command':    os.environ['GALACTICUS_EXEC_PATH'] + '/Galacticus.exe ' + param_file,
+                            'launchFile': entry['path'] + f'identifySubhalos_{rl}_{i}_{j}_{k}.sh',
+                            'logFile':    entry['path'] + f'identifySubhalos_{rl}_{i}_{j}_{k}.log',
+                            'label':                      f'identifySubhalos_{rl}_{i}_{j}_{k}',
+                            'ppn':        1,
+                            'ompThreads': 1,
+                            'nodes':      1,
+                            'mem':        mem,
+                            'walltime':   '8:00:00',
+                            'mpi':        'no',
+                        })
+
+    _submit_jobs(manager, jobs)
 
 
 def step_mass_functions(entries, suites_cfg, active_steps, manager, options, omp_threads):
-    raise NotImplementedError
+    """Compute halo mass functions by combining all subvolumes for each epoch."""
+    jobs = []
+    for entry in entries:
+        suite_name = entry['suite']['name']
+        n_sub      = int(entry['resolution']['subvolumes'])
+        proc       = suites_cfg.get(suite_name, {}).get('steps', {}).get('massFunctions', {}).get('processParameters')
+
+        for epoch in entry['resolution']['epochs']:
+            rl = epoch['redshiftLabel']
+
+            # Collect importers for each subvolume that has a tree file.
+            importers = [
+                entry['path'] + f'nonFlyby_{rl}_subVolume{i}_{j}_{k}.hdf5'
+                for i in range(n_sub)
+                for j in range(n_sub)
+                for k in range(n_sub)
+                if os.path.exists(entry['path'] + f'tree_{i}_{j}_{k}.dat')
+            ]
+
+            if os.path.exists(entry['path'] + f'haloMassFunction_{rl}:MPI0000.hdf5'):
+                continue
+
+            root = _parse_param_xml(options['pipelinePath'] + 'haloMassFunctionCompute.xml')
+
+            # Replace the merge importer's children with one child per subvolume.
+            merge_el = root.find('nbodyImporter')
+            for child in merge_el.findall('nbodyImporter'):
+                merge_el.remove(child)
+            for fname in importers:
+                imp_el = ET.SubElement(merge_el, 'nbodyImporter', value='IRATE')
+                ET.SubElement(imp_el, 'fileName',   value=fname)
+                ET.SubElement(imp_el, 'snapshot',   value='1')
+                ET.SubElement(imp_el, 'properties', value='massVirial')
+
+            root.find('outputFileName').set(
+                'value', entry['path'] + f'haloMassFunction_{rl}.hdf5')
+            nb_ops = root.find('nbodyOperator').findall('nbodyOperator')
+            nb_ops[0].find('values').set('value', str(entry['resolution']['massParticle']))
+            nb_ops[1].find('simulationReference').set('value', entry['group']['metaData']['reference'])
+            nb_ops[1].find('simulationURL'      ).set('value', entry['group']['metaData']['url'      ])
+            nb_ops[1].find('massMinimum'        ).set('value', str(entry['massMinimum']))
+            nb_ops[1].find('massMaximum'        ).set('value', str(entry['massMaximum']))
+            nb_ops[1].find('description'        ).set('value',
+                f'Halo mass function of non-flyby halos for the '
+                f'{entry["suite"]["name"]} {entry["group"]["name"]} '
+                f'{entry["simulation"]["name"]} {rl} simulation')
+            if proc:
+                proc(entry, epoch['expansionFactor'], root, options)
+
+            param_file = entry['path'] + f'haloMassFunction_{rl}.xml'
+            _write_param_xml(root, param_file)
+            jobs.append({
+                'command':    os.environ['GALACTICUS_EXEC_PATH'] + '/Galacticus.exe ' + param_file,
+                'launchFile': entry['path'] + f'haloMassFunction_{rl}.sh',
+                'logFile':    entry['path'] + f'haloMassFunction_{rl}.log',
+                'label':                      f'haloMassFunction_{rl}',
+                'ppn':        omp_threads,
+                'ompThreads': omp_threads,
+                'nodes':      1,
+                'mem':        '8G',
+                'walltime':   '8:00:00',
+                'mpi':        'no',
+            })
+
+    _submit_jobs(manager, jobs)
 
 
 def step_subhalo_functions(entries, suites_cfg, active_steps, manager, options, omp_threads):
-    raise NotImplementedError
+    """Compute subhalo mass, radial, and velocity-maximum functions for each epoch."""
+    jobs = []
+    for entry in entries:
+        suite_name = entry['suite']['name']
+        n_sub      = int(entry['resolution']['subvolumes'])
+        proc       = suites_cfg.get(suite_name, {}).get('steps', {}).get('subhaloFunctions', {}).get('processParameters')
+
+        for epoch in entry['resolution']['epochs']:
+            rl = epoch['redshiftLabel']
+
+            # Collect importers for each subvolume that has a tree file.
+            importers = [
+                entry['path'] + f'subhalos_{rl}_subVolume{i}_{j}_{k}.hdf5'
+                for i in range(n_sub)
+                for j in range(n_sub)
+                for k in range(n_sub)
+                if os.path.exists(entry['path'] + f'tree_{i}_{j}_{k}.dat')
+            ]
+
+            if os.path.exists(entry['path'] + f'subhaloFunctions_{rl}:MPI0000.hdf5'):
+                continue
+
+            root = _parse_param_xml(options['pipelinePath'] + 'subhaloFunctionsCompute.xml')
+
+            # Replace the merge importer's children with one child per subvolume.
+            merge_el = root.find('nbodyImporter')
+            for child in merge_el.findall('nbodyImporter'):
+                merge_el.remove(child)
+            for fname in importers:
+                imp_el = ET.SubElement(merge_el, 'nbodyImporter', value='IRATE')
+                ET.SubElement(imp_el, 'fileName',   value=fname)
+                ET.SubElement(imp_el, 'snapshot',   value='1')
+                ET.SubElement(imp_el, 'properties', value='position massVirial velocityMaximum')
+
+            root.find('outputFileName').set(
+                'value', entry['path'] + f'subhaloFunctions_{rl}.hdf5')
+            nb_ops = root.find('nbodyOperator').findall('nbodyOperator')
+            nb_ops[0].find('values').set('value', str(entry['resolution']['massParticle']))
+            ref = entry['group']['metaData']['reference']
+            url = entry['group']['metaData']['url']
+            suite_grp_sim = (f'{entry["suite"]["name"]} {entry["group"]["name"]} '
+                             f'{entry["simulation"]["name"]} {rl} simulation')
+            nb_ops[2].find('simulationReference').set('value', ref)
+            nb_ops[2].find('simulationURL'      ).set('value', url)
+            nb_ops[2].find('description'        ).set('value',
+                f'Subhalo mass function of non-flyby halos for the {suite_grp_sim}')
+            nb_ops[3].find('simulationReference').set('value', ref)
+            nb_ops[3].find('simulationURL'      ).set('value', url)
+            nb_ops[3].find('description'        ).set('value',
+                f'Subhalo radial distribution function of non-flyby halos for the {suite_grp_sim}')
+            nb_ops[4].find('simulationReference').set('value', ref)
+            nb_ops[4].find('simulationURL'      ).set('value', url)
+            nb_ops[4].find('description'        ).set('value',
+                r'Subhalo $V_\mathrm{max}$ function of non-flyby halos for the ' + suite_grp_sim)
+            if proc:
+                proc(entry, epoch['expansionFactor'], root, options)
+
+            param_file = entry['path'] + f'subhaloFunctions_{rl}.xml'
+            _write_param_xml(root, param_file)
+            jobs.append({
+                'command':    os.environ['GALACTICUS_EXEC_PATH'] + '/Galacticus.exe ' + param_file,
+                'launchFile': entry['path'] + f'subhaloFunctions_{rl}.sh',
+                'logFile':    entry['path'] + f'subhaloFunctions_{rl}.log',
+                'label':                      f'subhaloFunctions_{rl}',
+                'ppn':        omp_threads,
+                'ompThreads': omp_threads,
+                'nodes':      1,
+                'mem':        '8G',
+                'walltime':   '8:00:00',
+                'mpi':        'no',
+            })
+
+    _submit_jobs(manager, jobs)
 
 
 STEP_FUNCTIONS = {
