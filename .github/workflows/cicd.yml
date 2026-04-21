@@ -765,6 +765,8 @@ jobs:
   Submit-Notarization-MacOS:
     runs-on: macos-15-intel
     if: github.ref == 'refs/heads/master'
+    permissions:
+      contents: read
     needs: [ Build-Executable-MacOS, Build-Executable-MacOS-M1, Build-Tools-MacOS, Build-Tools-MacOS-M1 ]
     steps:
       - name: Download artifacts (executable-macos)
@@ -804,7 +806,7 @@ jobs:
           ]
           for required in ("APPLE_ID", "APPLE_TEAM_ID", "APPLE_APP_SPECIFIC_PASSWORD"):
               if not os.environ.get(required):
-                  print(f"Error: missing required secret '{required}' for notarization submit.", file=sys.stderr)
+                  print(f"Error: missing required environment variable '{required}' for notarization submit.", file=sys.stderr)
                   raise SystemExit(1)
           requests = []
           for file_name in files:
@@ -2307,7 +2309,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           gh release upload bleeding-edge ./Galacticus_MacOS.exe ./Galacticus_MacOS.zip ./Galacticus_MacOS-M1.exe ./Galacticus_MacOS-M1.zip ./libgalacticusMacOS.zip ./toolsMacOS.zip ./toolsMacOSM1.zip ./debugSymbolsMacOS.zip ./debugSymbolsMacOS-M1.zip ./notarization-requests-*.json --clobber
-          rm ./Galacticus_MacOS.exe ./Galacticus_MacOS.zip ./Galacticus_MacOS-M1.exe ./Galacticus_MacOS-M1.zip ./libgalacticusMacOS.zip ./toolsMacOS.zip ./toolsMacOSM1.zip ./debugSymbolsMacOS.zip ./debugSymbolsMacOS-M1.zip ./notarization-requests-*.json
+          rm -f ./Galacticus_MacOS.exe ./Galacticus_MacOS.zip ./Galacticus_MacOS-M1.exe ./Galacticus_MacOS-M1.zip ./libgalacticusMacOS.zip ./toolsMacOS.zip ./toolsMacOSM1.zip ./debugSymbolsMacOS.zip ./debugSymbolsMacOS-M1.zip ./notarization-requests-*.json
       - name: Download artifacts (perf-darkMatterOnlySubHalos)
         uses: actions/download-artifact@v8
         with:

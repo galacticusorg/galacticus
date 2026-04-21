@@ -6,6 +6,8 @@ on:
 jobs:
   Poll-Notarization:
     runs-on: macos-15-intel
+    permissions:
+      contents: read
     concurrency:
       group: notarizeMacOS-${{ github.ref }}
       cancel-in-progress: true
@@ -98,10 +100,9 @@ jobs:
                   if log_result.returncode == 0:
                       log_data = json.loads(log_result.stdout)
                       issues = log_data.get("issues", [])
-                      if issues:
-                          message = issues[0].get("message")
-                          if message:
-                              failure_details.append(f"{asset}: {message}")
+                      issue_messages = [issue.get("message") for issue in issues if issue.get("message")]
+                      for message in issue_messages:
+                          failure_details.append(f"{asset}: {message}")
 
           if "failure" in statuses:
               overall = "failure"
