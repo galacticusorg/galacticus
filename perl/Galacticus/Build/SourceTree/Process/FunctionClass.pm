@@ -79,31 +79,27 @@ sub Process_FunctionClass {
 	    my %classes            = %{$classesRef};
 	    my @classes            = @{$classesArrRef};
 	    my @nonAbstractClasses = @{$nonAbstractClassesRef};
-	    &buildBaseMethodStubs($directive, \%methods);
-	    &buildDescriptorMethods($directive, \@nonAbstractClasses, \%classes, \%methods, $tree);
-	    &buildObjectTypeMethod($directive, \@nonAbstractClasses, \%methods);
-	    &buildAllowedParametersMethod($directive, \@classes, \%methods);
-	    &buildAssignmentMethod($directive, \@nonAbstractClasses, \%classes, \%methods);
-	    &buildDeepCopyMethods($directive, \@nonAbstractClasses, \%classes, $lineNumber, \%methods);
-	    &buildStateStoreMethods($directive, \@nonAbstractClasses, \%classes, \%methods);
+	    &buildBaseMethodStubs        ($directive, \%methods);
+	    &buildDescriptorMethods      ($directive, \@nonAbstractClasses, \%classes, \%methods  , $tree    );
+	    &buildObjectTypeMethod       ($directive, \@nonAbstractClasses           , \%methods             );
+	    &buildAllowedParametersMethod($directive                      , \@classes, \%methods             );
+	    &buildAssignmentMethod       ($directive, \@nonAbstractClasses, \%classes, \%methods             );
+	    &buildDeepCopyMethods        ($directive, \@nonAbstractClasses, \%classes, $lineNumber, \%methods);
+	    &buildStateStoreMethods      ($directive, \@nonAbstractClasses, \%classes, \%methods             );
 	    # Initialize structure that will hold all generated code.
 	    (my $codeContent, my $modulePreContains, my $modulePostContains) = &initCodeContent();
 
-	    &generateTypeDefinition($directive, \%methods, $modulePreContains, $node, $xml);
-
-	    &generateConstructor($directive, \@classes, \@nonAbstractClasses, $modulePreContains, $modulePostContains, $node, $tree);
-
-	    &generateClassSubmodules($directive, \@classes, \@nonAbstractClasses, $modulePreContains, $codeContent, $node);
-	    &generateMethodFunctions($directive, \%methods, $modulePostContains, $node);
-
-	    &generateDocumentation($directive, \%classes, \@nonAbstractClasses);
+	    &generateTypeDefinition ($directive, \%methods, $modulePreContains                                           , $node, $xml );
+	    &generateConstructor    ($directive, \@classes, \@nonAbstractClasses, $modulePreContains, $modulePostContains, $node, $tree);
+	    &generateClassSubmodules($directive, \@classes, \@nonAbstractClasses, $modulePreContains, $codeContent       , $node       );
+	    &generateMethodFunctions($directive, \%methods, $modulePostContains                                          , $node       );
+	    &generateDocumentation  ($directive, \%classes, \@nonAbstractClasses                                                       );
+	    
 	    &insertAndWriteOutput($node, $codeContent, $modulePreContains, $modulePostContains, \%classes, $directive);
 	}
 	$node = &Galacticus::Build::SourceTree::Walk_Tree($node,\$depth);
     }
 }
-
-
 
 sub loadAndSortClasses {
     my $directive          = shift();
@@ -607,44 +603,44 @@ sub generateClassSubmodules {
     my @nonAbstractClasses = @{$nonAbstractClasses};
     # Insert class code. Each class goes into its own submodule, so we build this code inside a separate part of the code
     # structure for each class. This is initialized below.
-            foreach my $class ( @classes ) {		  
-                &Galacticus::Build::SourceTree::SetVisibility($node->{'parent'},$class->{'type'},"public");
-                ($codeContent->{'submodule'}->{$class->{'type'}}->{'fileName'   } = $class->{'file'}) =~ s/^.*\/(.*)\.F90$/$1.p.F90/;
-                $codeContent ->{'submodule'}->{$class->{'type'}}->{'fileName'   } = $ENV{'BUILDPATH'}."/".$codeContent->{'submodule'}->{$class->{'type'}}->{'fileName'};
-                $codeContent ->{'submodule'}->{$class->{'type'}}->{'preContains'} =
- 	         [
-	  {
-	      type       => "code" ,
-	      content    => ""     ,
-	      firstChild => undef(),
-	      sibling    => undef(),
-	      parent     => undef(),
-	      source     => "Galacticus::Build::SourceTree::Process::FunctionClass::Process_FunctionClass()",
-	      line       => 1
-	  }
-	 ];
-                $codeContent->{'submodule'}->{$class->{'type'}}->{'postContains'} =
- 	         [
-	  {
-	      type       => "code" ,
-	      content    => ""     ,
-	      firstChild => undef(),
-	      sibling    => undef(),
-	      parent     => undef(),
-	      source     => "Galacticus::Build::SourceTree::Process::FunctionClass::Process_FunctionClass()",
-	      line       => 1
-	  }
-	 ];
-                @{$codeContent->{'submodule'}->{$class->{'type'}}->{'interfaces'}} = ();
-                my $submodulePreContains  = $codeContent->{'submodule'}->{$class->{'type'}}->{'preContains' };
-                my $submodulePostContains = $codeContent->{'submodule'}->{$class->{'type'}}->{'postContains'};
-                my @moduleScoped;
+    foreach my $class ( @classes ) {		  
+	&Galacticus::Build::SourceTree::SetVisibility($node->{'parent'},$class->{'type'},"public");
+	($codeContent->{'submodule'}->{$class->{'type'}}->{'fileName'   } = $class->{'file'}) =~ s/^.*\/(.*)\.F90$/$1.p.F90/;
+	$codeContent ->{'submodule'}->{$class->{'type'}}->{'fileName'   } = $ENV{'BUILDPATH'}."/".$codeContent->{'submodule'}->{$class->{'type'}}->{'fileName'};
+	$codeContent ->{'submodule'}->{$class->{'type'}}->{'preContains'} =
+	    [
+	     {
+		 type       => "code" ,
+		 content    => ""     ,
+		 firstChild => undef(),
+		 sibling    => undef(),
+		 parent     => undef(),
+		 source     => "Galacticus::Build::SourceTree::Process::FunctionClass::Process_FunctionClass()",
+		 line       => 1
+	     }
+	    ];
+	$codeContent->{'submodule'}->{$class->{'type'}}->{'postContains'} =
+	    [
+	     {
+		 type       => "code" ,
+		 content    => ""     ,
+		 firstChild => undef(),
+		 sibling    => undef(),
+		 parent     => undef(),
+		 source     => "Galacticus::Build::SourceTree::Process::FunctionClass::Process_FunctionClass()",
+		 line       => 1
+	     }
+	    ];
+	@{$codeContent->{'submodule'}->{$class->{'type'}}->{'interfaces'}} = ();
+	my $submodulePreContains  = $codeContent->{'submodule'}->{$class->{'type'}}->{'preContains' };
+	my $submodulePostContains = $codeContent->{'submodule'}->{$class->{'type'}}->{'postContains'};
+	my @moduleScoped;
 	my @moduleSymbols;
 	my @moduleUseNodes;
 	my $classTree = $class    ->{'tree'      };
 	my $classNode = $classTree->{'firstChild'};
 	my $contained = 0;
-                # Walk the tree containing the class node.
+	# Walk the tree containing the class node.
 	while ( $classNode ) {
 	    if ( $classNode->{'type'} eq "contains" ) {
 		# Record that we've found the "contains" divider, and move to the contained content.
@@ -1035,9 +1031,9 @@ sub generateMethodFunctions {
     my %methods            = %{$methods};
     # Create functions.
     foreach my $methodName ( sort(keys(%methods)) ) {
-                my $method = $methods{$methodName};
-                next
-                    if ( exists($method->{'function'}) );
+	my $method = $methods{$methodName};
+	next
+	    if ( exists($method->{'function'}) );
 	# Insert arguments.
 	my @arguments;
 	if ( exists($method->{'argument'}) ) {
@@ -1177,7 +1173,7 @@ sub generateDocumentation {
     my %classes            = %{$classes};
     my @nonAbstractClasses = @{$nonAbstractClasses};
     # Generate documentation. We construct two sets of documentation, one describing the physics models, and one describing the code implementation.
-            my $documentationPhysics = "\\section{"      .$directive->{'descriptiveName'}."}\\label{phys:".$directive->{'name'}."}\\hyperdef{physics}{".$directive->{'name'}."}{}\n\n";
+    my $documentationPhysics = "\\section{"      .$directive->{'descriptiveName'}."}\\label{phys:".$directive->{'name'}."}\\hyperdef{physics}{".$directive->{'name'}."}{}\n\n";
     $documentationPhysics .= $directive->{'description'}."\n\n"
         if ( exists($directive->{'description'}) );
     if ( exists($directive->{'default'}) ) {
@@ -1187,14 +1183,14 @@ sub generateDocumentation {
     }
     foreach my $className ( sort {lc($a) cmp lc($b)} keys(%classes) ) {
 	my $class = $classes{$className};
-                (my $suffix = $class->{'name'}) =~ s/^$directive->{'name'}//;
-                $suffix = lcfirst($suffix)
-                    unless ( $suffix =~ m/^[A-Z]{2}/ );
-                $documentationPhysics .= "\\subsection{\\mono{".$suffix."}}\\label{phys:".$class->{'name'}."}\\hyperdef{physics}{".$class->{'name'}."}{}\n\n";
-                $documentationPhysics .= $class->{'description'}."\n\n";
+	(my $suffix = $class->{'name'}) =~ s/^$directive->{'name'}//;
+	$suffix = lcfirst($suffix)
+	    unless ( $suffix =~ m/^[A-Z]{2}/ );
+	$documentationPhysics .= "\\subsection{\\mono{".$suffix."}}\\label{phys:".$class->{'name'}."}\\hyperdef{physics}{".$class->{'name'}."}{}\n\n";
+	$documentationPhysics .= $class->{'description'}."\n\n";
 	$documentationPhysics .= "\\noindent \\textbf{(Default)}\n\n"
 	    if ( exists($directive->{'default'}) && $directive->{'name'}.ucfirst($directive->{'default'}) eq $class->{'name'} );
-                $documentationPhysics .= "\\noindent \\emph{Implemented by} \\refClass{".$class->{'name'}."}\n";
+	$documentationPhysics .= "\\noindent \\emph{Implemented by} \\refClass{".$class->{'name'}."}\n";
 	# Search the tree for this class to find the interface to the parameters constructor.
 	my $node = $classes{$className}->{'tree'}->{'firstChild'};
 	$node = $node->{'sibling'}
@@ -1411,7 +1407,7 @@ sub insertAndWriteOutput {
     my $directive          = shift();
     my %classes            = %{$classes};
     # Insert into tree.	  
-            ## To allow processing of directives by our preprocessor, we parse and process our generated code here.
+    ## To allow processing of directives by our preprocessor, we parse and process our generated code here.
     my $treePrecontainsTmp  = &Galacticus::Build::SourceTree::ParseCode($modulePreContains ->{'content'},'Galacticus::Build::SourceTree::Process::FunctionClass::Process_FunctionClass()');
     my $treePostcontainsTmp = &Galacticus::Build::SourceTree::ParseCode($modulePostContains->{'content'},'Galacticus::Build::SourceTree::Process::FunctionClass::Process_FunctionClass()');
     &Galacticus::Build::SourceTree::ProcessTree       (                   $treePrecontainsTmp                              );
@@ -1421,32 +1417,32 @@ sub insertAndWriteOutput {
     &Galacticus::Build::SourceTree::InsertPostContains($node->{'parent'},[$treePostcontainsTmp                            ]);	   
     # Generate submodule files.
     foreach my $className ( sort(keys(%{$codeContent->{'submodule'}})) ) {
-                # Submodule names are just the class name with an underscore appended.
-                my $submoduleName = $className."_";
+	# Submodule names are just the class name with an underscore appended.
+	my $submoduleName = $className."_";
 	# Build a file node.
-                my $file =
-                 {
-	     type       => "file" ,
-	     parent     => undef(),
-	     firstChild => undef(),
-	     sibling    => undef(),
-	     source     => "Galacticus::Build::SourceTree::Process::FunctionClass::Process_FunctionClass()",
-	     line       => 1
-	 };
-                # The parent (sub)module is either the main module, or the submodule associated with whatever class this class extends.
-                my $parentName = $node->{'parent'}->{'name'}.($classes{$className}->{'extends'} eq $directive->{'name'}."Class" ? "" : ":".$classes{$className}->{'extends'}."_");
-                # Build a submodule node.
-                my $submodule =
-                 {
-	     type       => "submodule"                                       ,
-	     opener     => "submodule (".$parentName.") ".$submoduleName."\n",
-	     closer     => "end submodule "              .$submoduleName."\n",
-	     parent     => undef(),
-	     firstChild => undef(),
-	     sibling    => undef(),
-	     source     => "Galacticus::Build::SourceTree::Process::FunctionClass::Process_FunctionClass()",
-	     line       => 1
-	 };
+	my $file =
+	{
+	    type       => "file" ,
+	    parent     => undef(),
+	    firstChild => undef(),
+	    sibling    => undef(),
+	    source     => "Galacticus::Build::SourceTree::Process::FunctionClass::Process_FunctionClass()",
+	    line       => 1
+	};
+	# The parent (sub)module is either the main module, or the submodule associated with whatever class this class extends.
+	my $parentName = $node->{'parent'}->{'name'}.($classes{$className}->{'extends'} eq $directive->{'name'}."Class" ? "" : ":".$classes{$className}->{'extends'}."_");
+	# Build a submodule node.
+	my $submodule =
+	{
+	    type       => "submodule"                                       ,
+	    opener     => "submodule (".$parentName.") ".$submoduleName."\n",
+	    closer     => "end submodule "              .$submoduleName."\n",
+	    parent     => undef(),
+	    firstChild => undef(),
+	    sibling    => undef(),
+	    source     => "Galacticus::Build::SourceTree::Process::FunctionClass::Process_FunctionClass()",
+	    line       => 1
+	};
 	&Galacticus::Build::SourceTree::PrependChildToNode ($file,[$submodule]);
 	# Remove existing links from all submodule nodes.
 	foreach ( @{$codeContent->{'submodule'}->{$className}->{'preContains' }}, @{$codeContent->{'submodule'}->{$className}->{'postContains' }} ) {
@@ -1588,10 +1584,6 @@ CODE
 	code        => $objectTypeCode
     };
 }
-
-
-
-
 
 sub buildDescriptorMethods {
     my $directive          = shift();
@@ -2542,7 +2534,6 @@ sub buildAllowedParametersMethod {
     
 }
 
-
 sub buildAssignmentMethod {
     my $directive          = shift();
     my $nonAbstractClasses = shift();
@@ -2557,7 +2548,7 @@ sub buildAssignmentMethod {
     my %assignerModules = ( "Error" => 1 );
     my $assignerLinkedListVariables;
     @{$assignerLinkedListVariables} = ();
-            $assignment->{'code'        } .= "select type (self)\n";
+    $assignment->{'code'} .= "select type (self)\n";
     foreach my $nonAbstractClass ( @nonAbstractClasses ) {
 	# Add type guards.
 	$assignment->{'code'} .= "type is (".$nonAbstractClass->{'name'}.")\n";
@@ -2691,7 +2682,6 @@ sub buildAssignmentMethod {
     
 }
 
-
 sub buildDeepCopyMethods {
     my $directive          = shift();
     my $nonAbstractClasses = shift();
@@ -2705,17 +2695,17 @@ sub buildDeepCopyMethods {
     my $deepCopy;
     $deepCopy->{'rankMaximum'       } = 0;
     $deepCopy->{'needReferenceCount'} = 0;
-            my $linkedListVariables;
-            my $linkedListResetVariables;
-            my $linkedListFinalizeVariables;
-            @{$linkedListVariables        } = ();
-            @{$linkedListResetVariables   } = ();
-            @{$linkedListFinalizeVariables} = ();
-            $deepCopy->{'resetCode'   } .= "self%copiedSelf => null()\n";
-            $deepCopy->{'resetCode'   } .= "select type (self)\n";
+    my $linkedListVariables;
+    my $linkedListResetVariables;
+    my $linkedListFinalizeVariables;
+    @{$linkedListVariables        } = ();
+    @{$linkedListResetVariables   } = ();
+    @{$linkedListFinalizeVariables} = ();
+    $deepCopy->{'resetCode'   } .= "self%copiedSelf => null()\n";
+    $deepCopy->{'resetCode'   } .= "select type (self)\n";
     $deepCopy->{'finalizeCode'} .= "self%copiedSelf => null()\n";
-            $deepCopy->{'finalizeCode'} .= "select type (self)\n";
-            $deepCopy->{'code'        } .= "select type (self)\n";
+    $deepCopy->{'finalizeCode'} .= "select type (self)\n";
+    $deepCopy->{'code'        } .= "select type (self)\n";
     foreach my $nonAbstractClass ( @nonAbstractClasses ) {
 	# Search the tree for this class.
 	my $class = $nonAbstractClass;
@@ -2795,7 +2785,7 @@ sub buildDeepCopyMethods {
 	    }
 	}
     }
-            $deepCopy->{'code'        } .= "end select\n";
+    $deepCopy->{'code'        } .= "end select\n";
     $deepCopy->{'resetCode'   } .= "end select\n";
     $deepCopy->{'finalizeCode'} .= "end select\n";
             # Reset the reference count to this newly created object.
@@ -2853,7 +2843,6 @@ sub buildDeepCopyMethods {
     $methods->{'deepCopyFinalize'}->{'modules'} = join(" ",sort(keys(%{$deepCopy->{'finalizeModules'}})))
 	if ( scalar(keys(%{$deepCopy->{'finalizeModules'}})) > 0 );
 }
-
 
 sub buildStateStoreMethods {
     my $directive          = shift();
