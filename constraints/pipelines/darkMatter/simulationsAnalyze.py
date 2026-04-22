@@ -77,7 +77,7 @@ def _write_param_xml(root, path):
     """Serialise a Galacticus parameter XML element tree to file."""
     ET.indent(root)
     tree = ET.ElementTree(root)
-    tree.write(path, xml_declaration=True, encoding='unicode')
+    tree.write(path, xml_declaration=True, encoding='utf-8')
 
 
 def _find_or_create(parent, tag):
