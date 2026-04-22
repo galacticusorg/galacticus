@@ -1,38 +1,8 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1776116222908,
+  "lastUpdate": 1776890860388,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Dark matter-only subhalos benchmarks": [
-      {
-        "commit": {
-          "author": {
-            "email": "abensonca@gmail.com",
-            "name": "Andrew Benson",
-            "username": "abensonca"
-          },
-          "committer": {
-            "email": "noreply@github.com",
-            "name": "GitHub",
-            "username": "web-flow"
-          },
-          "distinct": true,
-          "id": "17b13094735a8519a2ec43375dc1fe9d39303090",
-          "message": "Merge pull request #808 from galacticusorg/featSizeMassConstraint\n\nAdd an output analysis class which implements a pointwise likelihood based on the [Shen et al. (2003)](https://ui.adsabs.harvard.edu/abs/2003MNRAS.343..978S) SDSS galaxy size-mass relation",
-          "timestamp": "2025-03-05T15:32:17Z",
-          "tree_id": "85feaf7d8e062020515bc6849a6c40e8a525926c",
-          "url": "https://github.com/galacticusorg/galacticus/commit/17b13094735a8519a2ec43375dc1fe9d39303090"
-        },
-        "date": 1741220646939,
-        "tool": "customSmallerIsBetter",
-        "benches": [
-          {
-            "name": "Dark Matter Only Subhalos - Wall Time",
-            "value": 54.493,
-            "unit": "seconds",
-            "range": 0.112196702268394
-          }
-        ]
-      },
       {
         "commit": {
           "author": {
@@ -8792,6 +8762,36 @@ window.BENCHMARK_DATA = {
             "name": "Dark Matter Only Subhalos - Likelihood - subhaloVelocityMaximumMean",
             "value": 10526.393173766317,
             "unit": "-logℒ"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abenson@obs.carnegiescience.edu",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "abenson@obs.carnegiescience.edu",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "distinct": true,
+          "id": "b7a9e3228e0641d6ac649d3c86680de36f730793",
+          "message": "fix: Remove obsoleted Perl modules",
+          "timestamp": "2026-04-21T09:22:24-07:00",
+          "tree_id": "eda9a0713cb42cf0fad1f528d07bd585def03410",
+          "url": "https://github.com/galacticusorg/galacticus/commit/b7a9e3228e0641d6ac649d3c86680de36f730793"
+        },
+        "date": 1776890856371,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Dark Matter Only Subhalos - Wall Time",
+            "value": 50.531,
+            "range": "0.055685725280362454",
+            "unit": "seconds"
           }
         ]
       }
