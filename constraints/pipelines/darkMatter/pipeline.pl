@@ -55,44 +55,7 @@ my @tasks =
 	 ppn         => $options{'haloMassFunction:ppn'  },
 	 nodes       => $options{'haloMassFunction:nodes'},
 	 postprocess => 1
-     },
-     # {
-     # 	 label        => "progenitorMassFunction"                            ,
-     # 	 config       => "progenitorMassFunctionConfig.xml"                  ,
-     # 	 base         =>
-     # 	     [
-     # 	      "progenitorMassFunctionBaseHugeMDPL.xml"        ,
-     # 	      "progenitorMassFunctionBaseBigMDPL.xml"         ,
-     # 	      "progenitorMassFunctionBaseMDPL2.xml"           ,
-     # 	      "progenitorMassFunctionBaseSMDPL.xml"           ,
-     # 	      "progenitorMassFunctionBaseVSMDPL.xml"          ,
-     # 	      "progenitorMassFunctionBaseCaterpillar_LX12.xml",
-     # 	      "progenitorMassFunctionBaseCaterpillar_LX13.xml",
-     # 	      "progenitorMassFunctionBaseCaterpillar_LX14.xml"
-     # 	     ],
-     # 	 ppn          => 16                                                  ,
-     # 	 nodes        =>  1                                                  ,
-     # 	 postProcess  => $pipelinePath."progenitorMassFunctionPostProcess.pl"
-     # },
-     # {
-     # 	 label        => "spinConcentration"          ,
-     # 	 config       => "spinConcentrationConfig.xml",
-     # 	 base         =>
-     # 	     [
-     # 	      "spinConcentrationBaseHugeMDPL.xml",
-     # 	      "spinConcentrationBaseBigMDPL.xml" ,
-     # 	      "spinConcentrationBaseMDPL2.xml"   ,
-     # 	      "spinConcentrationBaseSMDPL.xml"   ,
-     # 	      "spinConcentrationBaseVSMDPL.xml"
-     # 	     ],
-     # 	 ppn          => 16                                             ,
-     # 	 nodes        =>  1                                             ,
-     # 	 postProcess  => $pipelinePath."spinConcentrationPostProcess.pl"
-     # },
-     # {
-     # 	 label       => "final"    ,
-     # 	 base        => [ "final.xml" ]
-     # }
+     }
     );
 
 # Initialize the list of parameters whose values have been determined.
