@@ -750,7 +750,10 @@ contains
     integer(c_int)                :: status
     
     status=pthread_mutex_unlock(self%mutex)
-    if (status /= 0) stop 'failed to unlock mutex'
+    if (status /= 0) then
+       call backtrace()
+       stop 'failed to unlock mutex'
+    end if
     return
   end subroutine mutexUnset
   
