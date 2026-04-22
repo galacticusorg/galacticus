@@ -147,1470 +147,12 @@ sub Process_FunctionClass {
 		}
 	    }
 	    &buildBaseMethodStubs($directive, \%methods);
-	    # Add "descriptor" method.
-	    my $descriptorCode;
-	    my %descriptorModules = ( "Input_Parameters" => 1 );
-	    my %addSubParameters;
-	    my $addLabel                  = 0;
-	    my $rankMaximum               = 0;
-	    my $descriptorUsed            = 0;
-	    my $fileModificationCodeAdded = 0;
-	    my $descriptorLinkedListVariables;
-	    @{$descriptorLinkedListVariables} = ();
-	    $descriptorCode .= "logical :: includeFileModificationTimes_\n";
-	    $descriptorCode .= "if (present(includeFileModificationTimes)) then\n";
-	    $descriptorCode .= " includeFileModificationTimes_=includeFileModificationTimes\n";
-	    $descriptorCode .= "else\n";
-	    $descriptorCode .= " includeFileModificationTimes_=.false.\n";
-	    $descriptorCode .= "end if\n";
-	    $descriptorCode .= "select type (self)\n";
-	    foreach my $nonAbstractClass ( @nonAbstractClasses ) {
-		(my $label = $nonAbstractClass->{'name'}) =~ s/^$directive->{'name'}//;
-		$label = lcfirst($label)
-		    unless ( $label =~ m/^[A-Z]{2,}/ );
-		$nonAbstractClass->{'hasCustomDescriptor'} = 0;
-		my $extensionOf;
-		# Build lists of all potential parameter and object names for this class, including any from parent classes.
-		my $potentialNames = {};
-		my $class          = $nonAbstractClass;
-		while ( $class ) {
-		    my $node = $class->{'tree'}->{'firstChild'};
-		    $node = $node->{'sibling'}
-		        while ( $node && ( $node->{'type'} ne "type" || ( ! exists($node->{'name'}) || $node->{'name'} ne $class->{'name'} ) ) );
-		    last
-			unless ( $node );
-		    # Find the parent class.
-		    if ( $class == $nonAbstractClass && $node->{'opener'} =~ m/,\s*extends\s*\(\s*([a-zA-Z0-9_]+)\s*\)/ ) {
-			$extensionOf = $1;
-		    }
-		    # Search the node for declarations.
-		    $node = $node->{'firstChild'};
-		    while ( $node ) {
-			&potentialDescriptorParameters($node->{'declarations'},$nonAbstractClass,$class,$potentialNames)
-			    if ( $node->{'type'} eq "declaration" );
-			$node = $node->{'type'} eq "contains" ? $node->{'firstChild'} : $node->{'sibling'};
-		    }
-		    # Move to the parent class.
-		    $class = ($class->{'extends'} eq $directive->{'name'}) ? undef() : $classes{$class->{'extends'}};
-		}
-		# Add any names declared in the base class.
-		foreach my $data ( &List::ExtraUtils::as_array($directive->{'data'}) ) {
-		    my $declarationSource;
-		    if ( reftype($data) ) {
-			$declarationSource = $data->{'content'}
-			    if ( $data->{'scope'} eq "self" );
-		    } else {
-			$declarationSource = $data;
-		    }
-		    next
-			unless ( defined($declarationSource) );
-		    my $declaration = &Fortran::Utils::Unformat_Variables($declarationSource);
-		    die("Galacticus::Build::SourceTree::Process::FunctionClass::Process_FunctionClass(): unable to parse variable declaration")
-			unless ( defined($declaration) );
-		    &potentialDescriptorParameters($declaration,$nonAbstractClass,undef(),$potentialNames);
-		}
-		# Search the tree for this class to find the interface to the parameters constructor.
-		my $node = $nonAbstractClass->{'tree'}->{'firstChild'};
-		$node = $node->{'sibling'}
-		    while ( $node && ( $node->{'type'} ne "interface" || ( ! exists($node->{'name'}) || $node->{'name'} ne $nonAbstractClass->{'name'} ) ) );
-		next
-		    unless ( $node );
-		# Find all constructor names.
-		$node = $node->{'firstChild'};
-		my @constructors;
-		while ( $node ) {
-		    push(@constructors,@{$node->{'names'}})
-			if ( $node->{'type'} eq "moduleProcedure" );
-		    $node = $node->{'sibling'};
-		}
-		# Search for constructors.
-		$node = $nonAbstractClass->{'tree'}->{'firstChild'};
-		my $descriptorParameters;
-		my %subParameters;
-		my $declarationMatches    = 0;
-		my $supported             = 1;
-		my $parentConstructorUsed = 0;
-		my @failureMessage;
-		while ( $node ) {
-		    if ( $node->{'type'} eq "function" && (grep {$_ eq $node->{'name'}} @constructors) && $node->{'opener'} =~ m/^\s*(recursive\s+)??function\s+$node->{'name'}\s*\(\s*parameters\s*(,\s*recursiveConstruct\s*,\s*recursiveSelf\s*)??\)/ ) {
-			# Extract the name of the return variable in this function.
-			my $result = ($node->{'opener'} =~ m/result\s*\(\s*([a-zA-Z0-9_]+)\s*\)\s*$/) ? $1 : $node->{'name'};
-			# Check if this is the parameters constructor.
-			my $constructorNode    = $node->{'firstChild'};
-			my $depth = 0;
-			while ( $constructorNode ) {
-			    # Process node.
-			    if ( $constructorNode->{'type'} eq "declaration" ) {
-				# Declaration node found - check if we have a parameters argument of the correct type.
-				foreach my $declaration ( @{$constructorNode->{'declarations'}} ) {
-				    $declarationMatches = 1
-					if (
-					    $declaration->{'intrinsic'}  eq "type"
-					    &&
-					    trimlc($declaration->{'type'     }) eq "inputparameters"
-					    &&
-					    grep {$_ eq "parameters"} @{$declaration->{'variables'}}
-					);
-				}
-			    }
-			    if ( $constructorNode->{'type'} eq "code" ) {
-				# Locate any use of sub-parameters and of the parent class constructor.
-				open(my $code,"<",\$constructorNode->{'content'});
-				do {
-				    # Get a line.
-				    &Fortran::Utils::Get_Fortran_Line($code,my $rawLine, my $processedLine, my $bufferedComments);
-				    # Identify subparameter usages.
-				    if ( $processedLine =~ m/^\s*([a-zA-Z0-9_]+)\s*=\s*([a-zA-Z0-9_]+)\s*\%\s*subParameters\s*\(/ ) {
-					$subParameters{$1} =
-					{
-					    parent => $2,
-					    source => $processedLine
-					};
-				    }
-				    # Identify use of parent constructor.
-				    $parentConstructorUsed = 1
-					if ( $processedLine =~ m/^\s*$result\s*\%\s*$extensionOf\s*=/ );
-				} until ( eof($code) );
-				close($code);
-			    }
-			    if ( $constructorNode->{'type'} eq "inputParameter" ) {
-				if ( exists($constructorNode->{'directive'}->{'source'}) ) {
-				    if      ( exists($constructorNode->{'directive'}->{'name'    }) ) {
-					# A regular parameter, defined by its name.
-					my $name;
-					if ( exists($constructorNode->{'directive'}->{'variable'}) ) {
-					    if ( $constructorNode->{'directive'}->{'variable'} =~ m/(.*)\%(.*)/ ) {
-						my $object  = $1;
-						my $element = $2;
-						if ( lc($object) eq lc($result) ) {
-						    # Direct read into an element of the object being constructed.
-						    $name = $element;
-						} else {
-						    # Read of some other derived-type component. Use the name of the derived type
-						    # variable in case it is of a type that we can handle.
-						    $name = $object;
-						}
-					    } else {
-						# Use the name given, removing any array element specifiers.
-						($name = $constructorNode->{'directive'}->{'variable'}) =~ s/\(.+\)$//;
-					    }
-					} else {
-					    $name = $constructorNode->{'directive'}->{'name'};
-					}
-					if ( grep {lc($_) eq lc($name)} (map {@{$_->{'variableNames'}}} @{$potentialNames->{'parameters'}}) ) {
-					    push(@{$descriptorParameters->{'parameters'}},{name => $name, inputName => $constructorNode->{'directive'}->{'name'}, source => $constructorNode->{'directive'}->{'source'}});
-					    # Find the matched variable.
-					    my $descriptor;
-					    foreach my $potentialDescriptor ( @{$potentialNames->{'parameters'}} ) {
-						$descriptor = $potentialDescriptor
-						    if ( grep {lc($_) eq lc($name)} @{$potentialDescriptor->{'variableNames'}} );
-					    }
-					} elsif ( grep {lc($_) eq lc($name)."_"} (map {@{$_->{'variableNames'}}} @{$potentialNames->{'parameters'}}) ) {
-					    push(@{$descriptorParameters->{'parameters'}},{name => $name."_", inputName => $constructorNode->{'directive'}->{'name'}, source => $constructorNode->{'directive'}->{'source'}});
-					    # Find the matched variable.
-					    my $descriptor;
-					    foreach my $potentialDescriptor ( @{$potentialNames->{'parameters'}} ) {
-						$descriptor = $potentialDescriptor
-						    if ( grep {lc($_) eq lc($name)."_"} @{$potentialDescriptor->{'variableNames'}} );
-					    }
-					} elsif ( grep {lc($_) eq lc($name)} (map {@{$_->{'variableNames'}}} @{$potentialNames->{'enumerations'}}) ) {
-					    push(@{$descriptorParameters->{'enumerations'}},{name => $name, inputName => $constructorNode->{'directive'}->{'name'}, source => $constructorNode->{'directive'}->{'source'}});
-					    # Find the matched variable.
-					    my $descriptor;
-					    foreach my $potentialDescriptor ( @{$potentialNames->{'enumerations'}} ) {
-						$descriptor = $potentialDescriptor
-						    if ( grep {lc($_) eq lc($name)} @{$potentialDescriptor->{'variableNames'}} );
-					    }
-					} elsif ( grep {$_ eq lc($name)} (map {@{$_->{'variables'}}} @{$potentialNames->{'statefulTypes'}}) ) {
-					    push(@{$descriptorParameters->{'statefulTypes'}},{name => $name, inputName => $constructorNode->{'directive'}->{'name'}, source => $constructorNode->{'directive'}->{'source'}});
-					    # Find the matched variable.
-					    my $descriptor;
-					    foreach my $potentialDescriptor ( @{$potentialNames->{'statefulTypes'}} ) {
-						$descriptor = $potentialDescriptor
-						    if ( grep {$_ eq lc($name)} @{$potentialDescriptor->{'variables'}} );
-					    }
-					} else {
-					    $supported = -1;
-					    my $message = "could not find a matching internal variable for parameter [".$name."]";
-					    my @potentialNames = map {@{$_->{'variableNames'}}} @{$potentialNames->{'parameters'}};
-					    if ( scalar(@potentialNames) > 0 ) {
-						my @distances      = &Text::Levenshtein::distance(lc($name),map {lc($_)} @potentialNames);
-						my $indexMinimum   = first_index {$_ == &List::Util::min(@distances)} @distances;
-						unless ( $indexMinimum == -1 ) {
-						    (my $nameGuess = $potentialNames[$indexMinimum]) =~ s/_//;
-						    $message .= " - did you mean [".$nameGuess."]";
-						}
-					    }
-					    push(@failureMessage,$message);
-					}
-				    }
-				} else {
-				    $supported = -4;
-				    push(@failureMessage,"unsourced parameters not supported");
-				}
-			    }
-			    if ( $constructorNode->{'type'} eq "objectBuilder"  ) {
-				if ( exists($constructorNode->{'directive'}->{'source'}) ) {
-				    (my $name = $constructorNode->{'directive'}->{'name'}) =~ s/([a-zA-Z0-9_]+\s*\%\s*)?([a-zA-Z0-9_]+).*/$2/;
-				    $name =~ s/\s//g;
-				    if ( grep {$_ eq lc($name)} @{$potentialNames->{'objects'}} ) {
-					push(@{$descriptorParameters->{'objects'}},{name => $name, source => $constructorNode->{'directive'}->{'source'}});
-				    } elsif ( grep {$_ eq $name} @{$potentialNames->{'linkedListObjects'}} ) {
-					push(@{$descriptorParameters->{'linkedLists'}},$potentialNames->{'linkedLists'}->{$name});
-				    } else {
-					$supported = -5;
-					push(@failureMessage,"could not find a matching internal object for object [".$name."]");
-				    }
-				} else {
-				    $supported = -6;
-				    push(@failureMessage,"unsourced objects not supported");
-				}
-			    }
-			    $constructorNode = &Galacticus::Build::SourceTree::Walk_Tree($constructorNode,\$depth);
-			    last
-				if ( $depth < 0 );
-			}
-		    }
-		    $node = $node->{'type'} eq "contains" ? $node->{'firstChild'} : $node->{'sibling'};
-		}
-		# Validate sub-parameters.
-		foreach my $subParameterName ( sort(keys(%subParameters)) ) {
-		    unless ( exists($subParameters{$subParameters{$subParameterName}->{'parent'}}) || $subParameters{$subParameterName}->{'parent'} eq "parameters" ) {
-			$supported = -7;
-			push(@failureMessage,"subparameter hierarchy failure");
-		    }
-		}
-		# Build the code.
-		$descriptorCode .= "type is (".$nonAbstractClass->{'name'}.")\n";
-		if ( $nonAbstractClass->{'hasCustomDescriptor'} ) {
-		    # The class has its own descriptor function, so we should never arrive at this point in the code.
-		    $descriptorCode .= " call Error_Report('custom descriptor exists - this should not happen'//".&Galacticus::Build::SourceTree::Process::SourceIntrospection::Location($nonAbstractClass->{'node'},$nonAbstractClass->{'node'}->{'line'}).")\n";
-		    $descriptorModules{'Error'} = 1;
-		} else{
-		    # Build an auto-descriptor function.
-		    if ( $declarationMatches && ( $supported == 1 || exists($nonAbstractClass->{'descriptorSpecial'}) ) ) {
-			$descriptorUsed = 1;
-			$descriptorCode .= " if (present(includeClass)) then\n";
-			$descriptorCode .= "  includeClass_=includeClass\n";
-			$descriptorCode .= " else\n";
-			$descriptorCode .= "  includeClass_=.true.\n";
-			$descriptorCode .= " end if\n";
-			$descriptorCode .= " if (includeClass_) call descriptor%addParameter('".$directive->{'name'}."','".$label."')\n";
-			if ( defined($descriptorParameters) ) {
-			    # Get subparameters.
-			    $addSubParameters{'parameters'} = 1;
-			    $descriptorCode   .= "parameters=descriptor%subparameters('".$directive->{'name'}."')\n";
-			    foreach my $subParameterName ( sort(keys(%subParameters)) ) {
-				$addSubParameters{$subParameterName} = 1;
-				$descriptorCode .= $subParameters{$subParameterName}->{'source'};
-			    }
-			    # Handle parameters set via inputParameter directives.
-			    if ( defined($descriptorParameters->{'parameters'}) ) {
-				foreach my $parameter ( @{$descriptorParameters->{'parameters'}} ) {
-				    foreach my $declaration ( @{$potentialNames->{'parameters'}} ) {
-					if ( grep {$_ eq lc($parameter->{'name'})} @{$declaration->{'variables'}} ) {
-					    my $format;
-					    my $function;
-					    my $isLogical = 0;
-					    if      ( $declaration->{'intrinsic'} eq "type"             ) {
-						# Varying string type.
-						$function  = "char";
-					    } elsif ( $declaration->{'intrinsic'} eq "logical"          ) {
-						# Logical.
-						$addLabel  = 1;
-						$isLogical = 1;
-					    } elsif ( $declaration->{'intrinsic'} eq "double precision" ) {
-						$addLabel  = 1;
-						$format    = "e17.10";
-					    } elsif ( $declaration->{'intrinsic'} eq "integer"          ) {
-						$addLabel  = 1;
-						$format    = "i17";
-					    } elsif ( $declaration->{'intrinsic'} eq "character"        ) {
-						$function  = "trim";
-					    }
-					    my $rank = &declarationRank($declaration);
-					    if ( $rank > 0 ) {
-						# Non-scalar parameter - values must be concatenated.
-						$rankMaximum = $rank
-						    if ( $rank > $rankMaximum );
-						$descriptorCode .= "parameterValues=''\n";
-						for(my $i=1;$i<=$rank;++$i) {
-						    $descriptorCode .= " parameterValues=parameterValues//'['\n";
-						    $descriptorCode .= "do i".$i."=lbound(self%".$parameter->{'name'}.",dim=".$i."),ubound(self%".$parameter->{'name'}.",dim=".$i.")\n";
-						}
-						if ( $function ) {
-						    $descriptorCode .= " parameterValues=parameterValues//".$function."(self%".$parameter->{'name'}."(".join(",",map {"i".$_} 1..$rank)."))\n";
-						} else {
-						    if ( $isLogical ) {
-							$descriptorCode .= "if (self%".$parameter->{'name'}."(".join(",",map {"i".$_} 1..$rank).") then\n";
-							$descriptorCode .= "  parameterLabel='true'\n";
-							$descriptorCode .= "else\n";
-							$descriptorCode .= "  parameterLabel='false'\n";
-							$descriptorCode .= "end if\n";
-						    } else {
-							$descriptorCode .= "write (parameterLabel,'(".$format.")') self%".$parameter->{'name'}."(".join(",",map {"i".$_} 1..$rank).")\n";
-						    }
-						    $descriptorCode .= " parameterValues=parameterValues//trim(adjustl(parameterLabel))\n";
-						}
-						$descriptorCode .= " if (i".$rank." /= size(self%".$parameter->{'name'}.",dim=".$rank.")) parameterValues=parameterValues//','\n";
-						for(my $i=1;$i<=$rank;++$i) {
-						    $descriptorCode .= "end do\n";
-						    $descriptorCode .= " parameterValues=parameterValues//']'\n";
-						    $descriptorCode .= " if (i".($i-1)." /= size(self%".$parameter->{'name'}.",dim=".($i-1).")) parameterValues=parameterValues//','\n"
-							unless ( $i == 1 );
-						}
-						$descriptorCode .= "call ".$parameter->{'source'}."%addParameter('".$parameter->{'inputName'}."',char(parameterValues))\n";
-					    } else {
-						# Scalar parameter.
-						if ( $function ) {
-						    $descriptorCode .= "call ".$parameter->{'source'}."%addParameter('".$parameter->{'inputName'}."',".$function."(self%".$parameter->{'name'}."))\n";
-						} else {
-						    if ( $isLogical ) {
-							$descriptorCode .= "if (self%".$parameter->{'name'}.") then\n";
-							$descriptorCode .= "  parameterLabel='true'\n";
-							$descriptorCode .= "else\n";
-							$descriptorCode .= "  parameterLabel='false'\n";
-							$descriptorCode .= "end if\n";
-						    } else {
-							$descriptorCode .= "write (parameterLabel,'(".$format.")') self%".$parameter->{'name'}."\n";
-						    }
-						    $descriptorCode .= "call ".$parameter->{'source'}."%addParameter('".$parameter->{'inputName'}."',trim(adjustl(parameterLabel)))\n";
-						}
-					    }
-					}
-				    }
-				}
-			    }
-			    # Enumerations.
-			    if ( defined($descriptorParameters->{'enumerations'}) ) {
-				foreach my $parameter ( @{$descriptorParameters->{'enumerations'}} ) {
-				    foreach my $declaration ( @{$potentialNames->{'enumerations'}} ) {
-					if ( grep {$_ eq lc($parameter->{'name'})} @{$declaration->{'variables'}} ) {
-					    my $format = "i17";
-					    my $isLogical = 0;
-					    $addLabel  = 1;
-					    my $rank = &declarationRank($declaration);
-					    if ( $rank > 0 ) {
-						# Non-scalar parameter - values must be concatenated.
-						$rankMaximum = $rank
-						    if ( $rank > $rankMaximum );
-						$descriptorCode .= "parameterValues=''\n";
-						for(my $i=1;$i<=$rank;++$i) {
-						    $descriptorCode .= " parameterValues=parameterValues//'['\n";
-						    $descriptorCode .= "do i".$i."=lbound(self%".$parameter->{'name'}.",dim=".$i."),ubound(self%".$parameter->{'name'}.",dim=".$i.")\n";
-						}
-						$descriptorCode .= "write (parameterLabel,'(".$format.")') self%".$parameter->{'name'}."(".join(",",map {"i".$_} 1..$rank).")%ID\n";
-						$descriptorCode .= " parameterValues=parameterValues//trim(adjustl(parameterLabel))\n";
-						$descriptorCode .= " if (i".$rank." /= size(self%".$parameter->{'name'}.",dim=".$rank.")) parameterValues=parameterValues//','\n";
-						for(my $i=1;$i<=$rank;++$i) {
-						    $descriptorCode .= "end do\n";
-						    $descriptorCode .= " parameterValues=parameterValues//']'\n";
-						    $descriptorCode .= " if (i".($i-1)." /= size(self%".$parameter->{'name'}.",dim=".($i-1).")) parameterValues=parameterValues//','\n"
-							unless ( $i == 1 );
-						}
-						$descriptorCode .= "call ".$parameter->{'source'}."%addParameter('".$parameter->{'inputName'}."',char(parameterValues))\n";
-					    } else {
-						# Scalar parameter.
-						$descriptorCode .= "write (parameterLabel,'(".$format.")') self%".$parameter->{'name'}."%ID\n";
-						$descriptorCode .= "call ".$parameter->{'source'}."%addParameter('".$parameter->{'inputName'}."',trim(adjustl(parameterLabel)))\n";
-					    }
-					}
-				    }
-				}
-			    }
-			    # Stateful types.
-			    if ( defined($descriptorParameters->{'statefulTypes'}) ) {
-				foreach my $parameter ( @{$descriptorParameters->{'statefulTypes'}} ) {
-				    foreach my $declaration ( @{$potentialNames->{'statefulTypes'}} ) {
-					if ( grep {$_ eq lc($parameter->{'name'})} @{$declaration->{'variables'}} ) {
-					    my $format;
-					    my $isLogical = 0;
-					    if      ( $declaration->{'type'} eq "statefulInteger" ) {
-						$format     = "i17";
-					    } elsif ( $declaration->{'type'} eq "statefulDouble"  ) {
-						$format     = "e17.10";
-					    } elsif ( $declaration->{'type'} eq "statefulLogical" ) {
-						$isLogical = 1;
-					    } else {
-						die("unknown stateful-type");
-					    }
-					    $addLabel  = 1;
-					    my $rank = &declarationRank($declaration);
-					    if ( $rank > 0 ) {
-						# Non-scalar parameter - values must be concatenated.
-						$rankMaximum = $rank
-						    if ( $rank > $rankMaximum );
-						$descriptorCode .= "parameterValues=''\n";
-						for(my $i=1;$i<=$rank;++$i) {
-						    $descriptorCode .= " parameterValues=parameterValues//'['\n";
-						    $descriptorCode .= "do i".$i."=lbound(self%".$parameter->{'name'}.",dim=".$i."),ubound(self%".$parameter->{'name'}.",dim=".$i.")\n";
-						}
-						$descriptorCode .= "if (self%".$parameter->{'name'}."(".join(",",map {"i".$_} 1..$rank).")%isSet) then\n";
-						if ( $isLogical ) {
-						    $descriptorCode .= "if (self%".$parameter->{'name'}."(".join(",",map {"i".$_} 1..$rank)."%value) then\n";
-						    $descriptorCode .= "  parameterLabel='true'\n";
-						    $descriptorCode .= "else\n";
-						    $descriptorCode .= "  parameterLabel='false'\n";
-						    $descriptorCode .= "end if\n";
-						} else {
-						    $descriptorCode .= "write (parameterLabel,'(".$format.")') self%".$parameter->{'name'}."(".join(",",map {"i".$_} 1..$rank).")%value\n";
-						}
-						$descriptorCode .= " else\n";
-						$descriptorCode .= "  parameterLabel='?'\n";
-						$descriptorCode .= " end if\n";
-						$descriptorCode .= " parameterValues=parameterValues//trim(adjustl(parameterLabel))\n";
-						$descriptorCode .= " if (i".$rank." /= size(self%".$parameter->{'name'}.",dim=".$rank.")) parameterValues=parameterValues//','\n";
-						for(my $i=1;$i<=$rank;++$i) {
-						    $descriptorCode .= "end do\n";
-						    $descriptorCode .= " parameterValues=parameterValues//']'\n";
-						    $descriptorCode .= " if (i".($i-1)." /= size(self%".$parameter->{'name'}.",dim=".($i-1).")) parameterValues=parameterValues//','\n"
-							unless ( $i == 1 );
-						}
-						$descriptorCode .= "call ".$parameter->{'source'}."%addParameter('".$parameter->{'inputName'}."',char(parameterValues))\n";
-					    } else {
-						# Scalar parameter.
-						$descriptorCode .= "if (self%".$parameter->{'name'}."%isSet) then\n";
-						if ( $isLogical ) {
-						    $descriptorCode .= "if (self%".$parameter->{'name'}."%value) then\n";
-						    $descriptorCode .= "  parameterLabel='true'\n";
-						    $descriptorCode .= "else\n";
-						    $descriptorCode .= "  parameterLabel='false'\n";
-						    $descriptorCode .= "end if\n";
-						} else {
-						    $descriptorCode .= "write (parameterLabel,'(".$format.")') self%".$parameter->{'name'}."%value\n";
-						}
-						$descriptorCode .= " else\n";
-						$descriptorCode .= "  parameterLabel='?'\n";
-						$descriptorCode .= " end if\n";
-						$descriptorCode .= "call ".$parameter->{'source'}."%addParameter('".$parameter->{'inputName'}."',trim(adjustl(parameterLabel)))\n";
-					    }
-					 }
-				    }
-				}
-			    }
-			    # Handle objects built via objectBuilder directives.
-			    if ( defined($descriptorParameters->{'objects'}) ) {
-				foreach ( @{$descriptorParameters->{'objects'}} ) {
-                                    # Always include the class for composited objects - this ensures that the object is actually created.
-				    $descriptorCode .= "if (associated(self%".$_->{'name'}.")) call self%".$_->{'name'}."%descriptor(parameters,includeClass=.true.,includeFileModificationTimes=includeFileModificationTimes)\n";
-				}
-			    }
-			    # Handle linked lists.
-			    if ( defined($descriptorParameters->{'linkedLists'}) ) {
-				foreach ( @{$descriptorParameters->{'linkedLists'}} ) {
-				    (my $linkedListCode, my $linkedListModule) = &autoDescriptorLinkedList($_,$descriptorLinkedListVariables);
-				    $descriptorCode .= $linkedListCode;
-				    $descriptorModules{$linkedListModule} = 1
-					if ( $linkedListModule );
-				}
-			    }
-			}
-			# If the parent constructor was used, call its descriptor method.
-			if ( $parentConstructorUsed ) {
-			    $descriptorCode .= "call self%".$extensionOf."%descriptor(descriptor,includeClass=.false.,includeFileModificationTimes=includeFileModificationTimes)\n";
-			}
-		    } elsif ( ! $declarationMatches     && ! exists($nonAbstractClass->{'descriptorSpecial'}) ) {
-			die("Automatic descriptor can not be built for class '".$nonAbstractClass->{'name'}."': parameter-based constructor not found");
-		    } elsif (   $supported         != 1 && ! exists($nonAbstractClass->{'descriptorSpecial'}) ) {
-			die("Automatic descriptor can not be built for class '".$nonAbstractClass->{'name'}."' because:\n   ".join("\n   ",@failureMessage));
-		    }
-		}
-		# Add run-time file dependency modification times if needed.
-		{
-		    $code::type = $nonAbstractClass->{'name'};
-		    my $class = $nonAbstractClass;
-		    my $rankMaximum = 0;
-		    while ( $class ) {
-			if ( exists($class->{'runTimeFileDependencies'}) ) {
-			    unless ( $fileModificationCodeAdded ) {
-				$descriptorCode                      = "integer :: status\ncharacter(len=30) :: timeModification\ninteger :: countRunTimeFileDependency\ntype(varying_string) :: fileDependencyParameterName\n".$descriptorCode;
-				$descriptorModules{'File_Utilities' } = 1;
-				$descriptorModules{'String_Handling'} = 1;
-				$descriptorModules{'Error'          } = 1;
-				$fileModificationCodeAdded            = 1;
-			    }
-			    $descriptorCode .= "if (includeFileModificationTimes_) then\ncountRunTimeFileDependency=0\n";
-			    my @paths = split(" ",$class->{'runTimeFileDependencies'}->{'paths'});
-			    my $rankMaximum = 0;
-			    foreach $code::path ( @paths ) {
-				# Find the named path variable.
-				my $rank = 0;
-				foreach my $declaration ( @{$potentialNames->{'parameters'}} ) {
-				    if ( grep {$_ eq lc($code::path)} @{$declaration->{'variables'}} ) {
-					$rank = &declarationRank($declaration);
-				    }
-				}
-				$rankMaximum            = $rank
-				    if ( $rank > $rankMaximum );
-				$code::introspection = &Galacticus::Build::SourceTree::Process::SourceIntrospection::Location($nonAbstractClass->{'node'},$nonAbstractClass->{'node'}->{'line'});
-				if ( $rank > 0 ) {
-				    $code::selector = "(".join(",",map {"i".$_} 1..$rank).")";
-				    for(my $i=0;$i<$rank;++$i) {
-					$code::dim = $i+1;
-					$descriptorCode .= fill_in_string(<<'CODE', PACKAGE => 'code');
-do i{$dim}=lbound(self%{$path},dim={$dim}),ubound(self%{$path},dim={$dim})
-CODE
-				    }
-				}
-				$descriptorCode .= fill_in_string(<<'CODE', PACKAGE => 'code');
-timeModification=File_Modification_Time(self%{$path}{$selector},status)
-if (status == errorStatusSuccess) then
- countRunTimeFileDependency=countRunTimeFileDependency+1
- fileDependencyParameterName=var_str("runTimeFileDependency")//countRunTimeFileDependency
- call descriptor%addParameter(char(fileDependencyParameterName),char(self%{$path}{$selector}//": "//trim(timeModification)))
-else if (status /= errorStatusNotExist) then
- call Error_Report('unable to get file modification time'//{$introspection})
-end if
-CODE
-				if ( $rank > 0 ) {
-				    for(my $i=0;$i<$rank;++$i) {
-					$code::dim = $i;
-					$descriptorCode .= fill_in_string(<<'CODE', PACKAGE => 'code');
-end do
-CODE
-				    }
-				}
-			    }
-			    $descriptorCode .= "end if\n";
-			}
-			$class = ($class->{'extends'} eq $directive->{'name'}) ? undef() : $classes{$class->{'extends'}};
-		    }
-		    $descriptorCode = "integer :: ".join(", ",map {"i".$_} 1..$rankMaximum)."\n".$descriptorCode
-			if ( $rankMaximum > 0 );
-		}
-		# Call any special descriptor function.
-		$descriptorCode .= " call self%".$nonAbstractClass->{'descriptorSpecial'}."(parameters)\n"
-		    if ( exists($nonAbstractClass->{'descriptorSpecial'}) );
-	    }
-	    $descriptorCode .= "end select\n";
-	    if ( scalar(@{$descriptorLinkedListVariables}) > 0 ) {
-           	$descriptorCode = &Fortran::Utils::Format_Variable_Definitions($descriptorLinkedListVariables).$descriptorCode;
-	    }
-	    if ( $descriptorUsed ) {
-		$descriptorCode = "logical :: includeClass_\n".$descriptorCode;
-	    } else {
-		$descriptorCode  = " !\$GLC attributes unused :: descriptor, includeClass\n".$descriptorCode;
-	    }
- 	    $descriptorCode  = "type(inputParameters) :: ".join(",",sort(keys(%addSubParameters)))."\n".$descriptorCode
-		if ( %addSubParameters );
- 	    $descriptorCode  = "character(len=18) :: parameterLabel\n".$descriptorCode
-		if ( $addLabel );
-	    if ( $rankMaximum > 0 ) {
-		$descriptorCode  = "integer :: ".join(",",map {"i".$_} 1..$rankMaximum)."\ntype(varying_string) :: parameterValues\n".$descriptorCode
-	    }
-	    $methods{'descriptor'} =
-	    {
-		description => "Return an input parameter list descriptor which could be used to recreate this object.",
-		type        => "void",
-		pass        => "yes",
-		modules     => join(" ",sort(keys(%descriptorModules))),
-		argument    => [ "type(inputParameters), intent(inout) :: descriptor", "logical, intent(in   ), optional :: includeClass, includeFileModificationTimes" ],
-		code        => $descriptorCode
-	    };
-	    # Add a "hashedDescriptor" method.
-	    $code::directiveName = $directive->{'name'};
-	    # <workaround type="gfortran" PR="102845" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=102845">
-	    #  <description>
-	    #   Nested parallelism results in memory leaks.
-	    #  </description>
-	    # </workaround>
-	    my $hashedDescriptorCode = fill_in_string(<<'CODE', PACKAGE => 'code');
-logical                        :: includeSourceDigest_
-type   (inputParameters)       :: descriptor
-type   (varying_string )       :: descriptorString
-!   Workaround starts here.
-! type   (varying_string ), save :: descriptorStringPrevious, hashedDescriptorPrevious
-! !$omp threadprivate(descriptorStringPrevious,hashedDescriptorPrevious)
-! Workaround ends here.
-descriptor=inputParameters()
-! Disable live nodeLists in FoX as updating these nodeLists leads to memory leaks.
-call setLiveNodeLists(descriptor%document%document,.false.)
-call self%descriptor(descriptor,includeClass=.true.,includeFileModificationTimes=includeFileModificationTimes)
-descriptorString=descriptor%serializeToString()
-call descriptor%destroy()
-if (present(includeSourceDigest)) then
- includeSourceDigest_=includeSourceDigest
-else
- includeSourceDigest_=.false.
-end if
-if (includeSourceDigest_) then
-select type (self)
-CODE
-	    foreach my $nonAbstractClass ( @nonAbstractClasses ) {
-		$code::type = $nonAbstractClass->{'name'};
-		(my $classFile = $tree->{'source'}) =~ s/^.*\/([^\/]+)$/$1/;
-		my @sourceFiles = ( $classFile );
-		my $class = $nonAbstractClass;
-		while ( $class ) {
-		    (my $sourceFile = $class->{'file'}) =~ s/^.*\/([^\/]+)$/$1/;
-		    push(@sourceFiles,$sourceFile);
-		    $class = ($class->{'extends'} eq $directive->{'name'}) ? undef() : $classes{$class->{'extends'}};
-		}
-		$hashedDescriptorCode .= fill_in_string(<<'CODE', PACKAGE => 'code');
-type is ({$type})
-descriptorString=descriptorString//":sourceDigest\{"//String_C_To_Fortran({$type}5)//"\}"
-CODE
-	    }
-	    # <workaround type="gfortran" PR="102845" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=102845">
-	    #  <description>
-	    #   Nested parallelism results in memory leaks.
-	    #  </description>
-	    # </workaround>
-	    $hashedDescriptorCode .= fill_in_string(<<'CODE', PACKAGE => 'code');
-end select
-end if
-!   Workaround starts here.
-!   if (descriptorString /= descriptorStringPrevious) then
-!      descriptorStringPrevious=         descriptorString
-!      hashedDescriptorPrevious=Hash_MD5(descriptorString)
-!   end if
-!   {$directiveName}HashedDescriptor=hashedDescriptorPrevious
-   {$directiveName}HashedDescriptor=Hash_MD5(descriptorString)
-! Workaround ends here.
-CODE
-	    $methods{'hashedDescriptor'} =
-	    {
-		description => "Return a hash of the descriptor for this object, optionally include the source code digest in the hash.",
-		type        => "type(varying_string)",
-		pass        => "yes",
-		modules     => "ISO_Varying_String String_Handling Input_Parameters Hashes_Cryptographic FoX_DOM",
-		argument    => [ "logical, intent(in   ), optional :: includeSourceDigest, includeFileModificationTimes" ],
-		code        => $hashedDescriptorCode
-	    };
+	    &buildDescriptorMethods($directive, \@nonAbstractClasses, \%classes, \%methods, $tree);
 	    &buildObjectTypeMethod($directive, \@nonAbstractClasses, \%methods);
-	    # Add "allowedParameters" method.
-	    my $allowedParametersCode;
-	    my $allowedParameters;
-	    my $parametersPresent = 0;
-	    foreach my $class ( @classes ) {
-		(my $label = $class->{'name'}) =~ s/^$directive->{'name'}//;
-		$label = lcfirst($label)
-		    unless ( $label =~ m/^[A-Z]{2,}/ );
-		# Search the tree for this class to find the interface to the parameters constructor.
-		my $node = $class->{'tree'}->{'firstChild'};
-		$node = $node->{'sibling'}
-		    while ( $node && ( $node->{'type'} ne "interface" || ( ! exists($node->{'name'}) || $node->{'name'} ne $class->{'name'} ) ) );
-		next
-		    unless ( $node );
-		# Find all constructor names.
-		$node = $node->{'firstChild'};
-		my @constructors;
-		while ( $node ) {
-		    push(@constructors,@{$node->{'names'}})
-			if ( $node->{'type'} eq "moduleProcedure" );
-		    $node = $node->{'sibling'};
-		}
-		# Search for constructors.
-		$node = $class->{'tree'}->{'firstChild'};
-		$allowedParameters->{$class->{'name'}}->{'declarationMatches'} = 0;
-		while ( $node ) {
-		    if ( $node->{'type'} eq "function" && (grep {$_ eq $node->{'name'}} @constructors) && $node->{'opener'} =~ m/^\s*(recursive)??\s+function\s+$node->{'name'}\s*\(\s*parameters\s*(\s*,\s*recursiveConstruct\s*,\s*recursiveSelf\s*)??\)/ ) {
-			# Extract the name of the return variable in this function.
-			my $result = ($node->{'opener'} =~ m/result\s*\(\s*([a-zA-Z0-9_]+)\s*\)\s*$/) ? $1 : $node->{'name'};
-			# Check if this is the parameters constructor.
-			my $constructorNode    = $node->{'firstChild'};
-			my $depth = 0;
-			while ( $constructorNode ) {
-			    # Process node.
-			    if ( $constructorNode->{'type'} eq "declaration" ) {
-				# Declaration node found - check if we have a parameters argument of the correct type.
-				foreach my $declaration ( @{$constructorNode->{'declarations'}} ) {
-				    $allowedParameters->{$class->{'name'}}->{'declarationMatches'} = 1
-					if (
-					           $declaration->{'intrinsic'}  eq "type"
-					    &&
-					    trimlc($declaration->{'type'     }) eq "inputparameters"
-					    &&
-					    grep {$_ eq "parameters"} @{$declaration->{'variables'}}
-					);
-				}
-			    }
-			    if ( $constructorNode->{'type'} eq "code" ) {
-				# Look for calls to a parent class' parameter constructor.
-				my $newContent;
-				my $modified = 0;
-				open(my $code,"<",\$constructorNode->{'content'});
-				do {
-				    # Get a line.
-				    &Fortran::Utils::Get_Fortran_Line($code, my $rawLine, my $processedLine, my $bufferedComments);
-				    if ( $processedLine =~ m/^\s*$result%([a-zA-Z0-9_]+)\s*=([a-zA-Z0-9_]+)\(\s*parameters\s*\)/ ) {
-					$allowedParameters->{$class->{'name'}}->{'classParent'} = $1;
-					$newContent .= $directive->{'name'}."DsblVldtn=".$directive->{'name'}."DsblVldtn+1\n";
-					$newContent .= $rawLine;
-					$newContent .= $directive->{'name'}."DsblVldtn=".$directive->{'name'}."DsblVldtn-1\n";
-					$modified    = 1;
-				    } else {
-					$newContent .= $rawLine;
-				    }
-				} until ( eof($code) );
-				close($code);
-				$constructorNode->{'content'} = $newContent
-				    if ( $modified );
-			    }			    
-			    if ( $constructorNode->{'type'} eq "inputParameter" ) {
-				my $source = $constructorNode->{'directive'}->{'source'};
-				if ( exists($constructorNode->{'directive'}->{'name'}) ) {
-				    # A regular parameter, defined by its name.
-				    push(@{$allowedParameters->{$class->{'name'}}->{'parameters'}->{$source}->{'all'}},$constructorNode->{'directive'}->{'name' });
-				}
-			    }
-			    if ( $constructorNode->{'type'} eq "objectBuilder"  ) {
-				my $source = $constructorNode->{'directive'}->{'source'};
-				push(@{$allowedParameters->{$class->{'name'}}->{'parameters'}->{$source}->{'all'    }},exists($constructorNode->{'directive'}->{'parameterName'}) ? $constructorNode->{'directive'}->{'parameterName'} : $constructorNode->{'directive'}->{'class'});
-				push(@{$allowedParameters->{$class->{'name'}}->{'parameters'}->{$source}->{'classes'}},exists($constructorNode->{'directive'}->{'parameterName'}) ? $constructorNode->{'directive'}->{'parameterName'} : $constructorNode->{'directive'}->{'class'});
-				# Check if the class contains a pointer of the expected type and name for this object.
-				my $typeNode = $class->{'tree'}->{'firstChild'};
-				while ( $typeNode ) {
-				    if ( $typeNode->{'type'} eq "type" && lc($typeNode->{'name'}) eq lc($class->{'name'}) ) {
-					$typeNode = $typeNode->{'firstChild'};
-					while ( $typeNode ) {
-					    if ( $typeNode->{'type'} eq "declaration" ) {
-						foreach my $declaration ( @{$typeNode->{'declarations'}} ) {
-						    if (
-							$declaration->{'intrinsic'} eq "class"
-							&&
-							trimlc($declaration->{'type'}) eq trimlc($constructorNode->{'directive'}->{'class'})."class"
-							) {
-							push(
-							     @{$allowedParameters->{$class->{'name'}}->{'parameters'}->{$source}->{'objects'}},
-							     map {
-								  (
-								   lc(            $_) eq striplc($constructorNode->{'directive'}->{'name'})
-								   ||
-								   lc($result."%".$_) eq striplc($constructorNode->{'directive'}->{'name'})
-								  )
-								  ?
-								  $_
-								  :
-								  ()
-							    } @{$declaration->{'variables'}}
-							    );
-						    }
-						}
-					    }
-					    $typeNode = $typeNode->{'sibling'};
-					}
-					last;
-				    }
-				    $typeNode = $typeNode->{'sibling'};
-				}
-			    }
-			    $constructorNode = &Galacticus::Build::SourceTree::Walk_Tree($constructorNode,\$depth);
-			    last
-				if ( $depth < 0 );
-			}
-		    }
-		    $node = $node->{'type'} eq "contains" ? $node->{'firstChild'} : $node->{'sibling'};
-		}
-	    }
-	    my $allowedParametersLinkedListVariables;
-	    @{$allowedParametersLinkedListVariables} = ();
-	    $allowedParametersCode .= "select type (self)\n";
-	    my %allowedParametersModules;
-	    $allowedParametersModules{'ISO_Varying_String'} = 1;
-	    foreach my $class ( @classes ) {
-		if ( $allowedParameters->{$class->{'name'}}->{'declarationMatches'} ) {
-		    my $className = $class->{'name'};
-		    $allowedParametersCode .= "type is (".$className.")\n";
-		    # Include the class and all parent classes for which the parent class parameter constructor is called.
-		    while ( defined($className) ) {
-			foreach my $source ( sort(keys(%{$allowedParameters->{$className}->{'parameters'}})) ) {
-			    $allowedParametersCode .= "  if (objectsOnly) then\n";
-			    {
-				my $parameterCount = exists($allowedParameters->{$className}->{'parameters'}->{$source}->{'classes'}) ? scalar(@{$allowedParameters->{$className}->{'parameters'}->{$source}->{'classes'}}) : 0;
-				if ( $parameterCount > 0 ) {
-				    $parametersPresent          = 1;
-				    $allowedParametersCode     .= "   if (sourceName == '".$source."') then\n";
-				    $allowedParametersCode     .= "     countNew=0\n";
-				    $allowedParametersCode     .= "     if (allocated(allowedParameters)) then\n";
-				    for(my $i=0;$i<$parameterCount;++$i) {
-					# <workaround type="gfortran" PR="37336" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=37336">
-					#   <description>
-					#     Array constructors are not correctly finalized. So, avoid using them.
-					#   </description>
-					# $allowedParametersCode .= "       if (.not.any(trim(allowedParameters) == '".$allowedParameters->{$className}->{'parameters'}->{$source}->{'classes'}->[$i]."')) countNew=countNew+1\n";
-					$allowedParametersCode .= "       isNew=.true.\n";
-					$allowedParametersCode .= "       do j=1,size(allowedParameters)\n";
-					$allowedParametersCode .= "          if (allowedParameters(j) == '".$allowedParameters->{$className}->{'parameters'}->{$source}->{'classes'}->[$i]."') then\n";
-					$allowedParametersCode .= "             isNew=.false.\n";
-					$allowedParametersCode .= "             exit\n";
-					$allowedParametersCode .= "          end if\n";
-					$allowedParametersCode .= "       end do\n";
-					$allowedParametersCode .= "       if (isNew) countNew=countNew+1\n";
-					# </workaround>
-				    }
-				    $allowedParametersCode     .= "       if (countNew > 0) then\n";
-				    $allowedParametersCode     .= "         call move_alloc(allowedParameters,allowedParametersTmp)\n";
-				    $allowedParametersCode     .= "         allocate(allowedParameters(size(allowedParametersTmp)+countNew))\n";
-				    $allowedParametersCode     .= "         allowedParameters(1:size(allowedParametersTmp))=allowedParametersTmp\n";
-				    $allowedParametersCode     .= "         deallocate(allowedParametersTmp)\n";
-				    for(my $i=0;$i<$parameterCount;++$i) {
-					# <workaround type="gfortran" PR="37336" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=37336">
-					#   <description>
-					#     Array constructors are not correctly finalized. So, avoid using them.
-					#   </description>
-					# $allowedParametersCode .= "         if (.not.any(trim(allowedParameters(1:size(allowedParameters)-countNew)) == '".$allowedParameters->{$className}->{'parameters'}->{$source}->{'classes'}->[$i]."')) then\n";
-					$allowedParametersCode .= "       isNew=.true.\n";
-					$allowedParametersCode .= "       do j=1,size(allowedParameters)-countNew\n";
-					$allowedParametersCode .= "          if (allowedParameters(j) == '".$allowedParameters->{$className}->{'parameters'}->{$source}->{'classes'}->[$i]."') then\n";
-					$allowedParametersCode .= "             isNew=.false.\n";
-					$allowedParametersCode .= "             exit\n";
-					$allowedParametersCode .= "          end if\n";
-					$allowedParametersCode .= "       end do\n";
-					$allowedParametersCode .= "       if (isNew) then\n";
-					# </workaround>
-					$allowedParametersCode .= "           countNew=countNew-1\n";
-					$allowedParametersCode .= "           allowedParameters(size(allowedParameters)-countNew)='".$allowedParameters->{$className}->{'parameters'}->{$source}->{'classes'}->[$i]."'\n";
-					$allowedParametersCode .= "         end if\n";
-				    }
-				    $allowedParametersCode     .= "       end if\n";
-				    $allowedParametersCode     .= "     else\n";
-				    $allowedParametersCode     .= "       allocate(allowedParameters(".$parameterCount."))\n";
-				    for(my $i=0;$i<$parameterCount;++$i) {
-					$allowedParametersCode .= "       allowedParameters(".($i+1).")='".$allowedParameters->{$className}->{'parameters'}->{$source}->{'classes'}->[$i]."'\n";
-				    }
-				    $allowedParametersCode     .= "     end if\n";
-				    $allowedParametersCode     .= "   end if\n";
-				}
-			    }
-			    $allowedParametersCode .= "  else\n";
-			    {
-				my $parameterCount = scalar(@{$allowedParameters->{$className}->{'parameters'}->{$source}->{'all'}});
-				if ( $parameterCount > 0 ) {
-				    $parametersPresent          = 1;
-				    $allowedParametersCode     .= "   if (sourceName == '".$source."') then\n";
-				    $allowedParametersCode     .= "     countNew=0\n";
-				    $allowedParametersCode     .= "     if (allocated(allowedParameters)) then\n";
-				    for(my $i=0;$i<$parameterCount;++$i) {
-					# <workaround type="gfortran" PR="37336" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=37336">
-					#   <description>
-					#     Array constructors are not correctly finalized. So, avoid using them.
-					#   </description>
-					# $allowedParametersCode .= "       if (.not.any(trim(allowedParameters) == '".$allowedParameters->{$className}->{'parameters'}->{$source}->{'all'}->[$i]."')) countNew=countNew+1\n";
-					$allowedParametersCode .= "       isNew=.true.\n";
-					$allowedParametersCode .= "       do j=1,size(allowedParameters)\n";
-					$allowedParametersCode .= "          if (allowedParameters(j) == '".$allowedParameters->{$className}->{'parameters'}->{$source}->{'all'}->[$i]."') then\n";
-					$allowedParametersCode .= "             isNew=.false.\n";
-					$allowedParametersCode .= "             exit\n";
-					$allowedParametersCode .= "          end if\n";
-					$allowedParametersCode .= "       end do\n";
-					$allowedParametersCode .= "       if (isNew) countNew=countNew+1\n";
-				    }	
-				    $allowedParametersCode     .= "       if (countNew > 0) then\n";
-				    $allowedParametersCode     .= "         call move_alloc(allowedParameters,allowedParametersTmp)\n";
-				    $allowedParametersCode     .= "         allocate(allowedParameters(size(allowedParametersTmp)+countNew))\n";
-				    $allowedParametersCode     .= "         allowedParameters(1:size(allowedParametersTmp))=allowedParametersTmp\n";
-				    $allowedParametersCode     .= "         deallocate(allowedParametersTmp)\n";
-				    for(my $i=0;$i<$parameterCount;++$i) {
-					# <workaround type="gfortran" PR="37336" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=37336">
-					#   <description>
-					#     Array constructors are not correctly finalized. So, avoid using them.
-					#   </description>
-					# $allowedParametersCode .= "         if (.not.any(trim(allowedParameters(1:size(allowedParameters)-countNew)) == '".$allowedParameters->{$className}->{'parameters'}->{$source}->{'all'}->[$i]."')) then\n";
-					$allowedParametersCode .= "       isNew=.true.\n";
-					$allowedParametersCode .= "       do j=1,size(allowedParameters)-countNew\n";
-					$allowedParametersCode .= "          if (allowedParameters(j) == '".$allowedParameters->{$className}->{'parameters'}->{$source}->{'all'}->[$i]."') then\n";
-					$allowedParametersCode .= "             isNew=.false.\n";
-					$allowedParametersCode .= "             exit\n";
-					$allowedParametersCode .= "          end if\n";
-					$allowedParametersCode .= "       end do\n";
-					$allowedParametersCode .= "       if (isNew) then\n";
-					# </workaround>
-					$allowedParametersCode .= "           countNew=countNew-1\n";
-					$allowedParametersCode .= "           allowedParameters(size(allowedParameters)-countNew)='".$allowedParameters->{$className}->{'parameters'}->{$source}->{'all'}->[$i]."'\n";
-					$allowedParametersCode .= "         end if\n";
-				    }
-				    $allowedParametersCode     .= "       end if\n";
-				    $allowedParametersCode     .= "     else\n";
-				    $allowedParametersCode     .= "       allocate(allowedParameters(".$parameterCount."))\n";
-				    for(my $i=0;$i<$parameterCount;++$i) {
-					$allowedParametersCode .= "       allowedParameters(".($i+1).")='".$allowedParameters->{$className}->{'parameters'}->{$source}->{'all'}->[$i]."'\n";
-				    }
-				    $allowedParametersCode     .= "     end if\n";
-				    $allowedParametersCode     .= "   end if\n";
-				}
-			    }
-			    $allowedParametersCode .= "  end if\n";
-			    # Call the allowedParameters() method of any stored obejcts.
-			    if ( $className eq $class->{'name'} ) {
-				$parametersPresent      = 1
-				    if ( exists($allowedParameters->{$className}->{'parameters'}->{$source}->{'objects'}) );
-				foreach ( @{$allowedParameters->{$className}->{'parameters'}->{$source}->{'objects'}} ) {
-				    $allowedParametersCode .= "  if (associated(self%".$_.")) call self%".$_."%allowedParameters(allowedParameters,'".$source."',.true.)\n";
-				}
-				# Handle any linked lists.
-				(my $linkedListCode, my $linkedListModule) = &allowedParametersLinkedList($class,$allowedParametersLinkedListVariables,$source);
-				$allowedParametersCode .= $linkedListCode;
-				$allowedParametersModules{$linkedListModule} = 1
-				    if ( $linkedListModule );
-			    }
-			}
-			if ( defined($allowedParameters->{$className}->{'classParent'}) ) {
-			    $className = $allowedParameters->{$className}->{'classParent'};
-			} else {
-			    undef($className);
-			}
-		    }
-		}
-	    }
-	    $allowedParametersCode .= "end select\n";
-	    if ( $parametersPresent ) {
-		$allowedParametersCode = "type   (varying_string), allocatable, dimension(:) :: allowedParametersTmp\n".$allowedParametersCode;
-		$allowedParametersCode = "integer                                            :: countNew, j\n"                                                                              .$allowedParametersCode;
-		$allowedParametersCode = "logical                                            :: isNew\n"                                                                                    .$allowedParametersCode;
-	    } else {
-		$allowedParametersCode = "!\$GLC attributes unused :: self, allowedParameters, sourceName\n";
-	    }
-            $allowedParametersCode  = &Fortran::Utils::Format_Variable_Definitions($allowedParametersLinkedListVariables).$allowedParametersCode;
-	    $methods{'allowedParameters'} =
-	    {
-		description => "Return a list of parameter names allowed for this object.",
-		type        => "void",
-		recursive   => "yes",
-		pass        => "yes",
-		modules     => join(" ",keys(%allowedParametersModules)),
-		argument    => [
-		    "type     (varying_string), dimension(:), allocatable, intent(inout) :: allowedParameters",
-		    "character(len=*         )                           , intent(in   ) :: sourceName"       ,
-		    "logical                                             , intent(in   ) :: objectsOnly"
-		    ],
-		code        => $allowedParametersCode
-	    };
-	    
-	    # Add "assignment(=)" operator.
-	    my $assignment;
-	    my $rankMaximumAssigner = 0;
-	    my %assignerModules = ( "Error" => 1 );
-	    my $assignerLinkedListVariables;
-	    @{$assignerLinkedListVariables} = ();
-            $assignment->{'code'        } .= "select type (self)\n";
-	    foreach my $nonAbstractClass ( @nonAbstractClasses ) {
-		# Add type guards.
-		$assignment->{'code'} .= "type is (".$nonAbstractClass->{'name'}.")\n";
-		$assignment->{'code'} .= "  select type (from)\n";
-		$assignment->{'code'} .= "  type is (".$nonAbstractClass->{'name'}.")\n";
-		# Search the tree for this class.
-		my $class = $nonAbstractClass;
-		while ( $class ) {
-		    my $node = $class->{'tree'}->{'firstChild'};
-		    $node = $node->{'sibling'}
-		        while ( $node && ( $node->{'type'} ne "type" || ( ! exists($node->{'name'}) || $node->{'name'} ne $class->{'name'} ) ) );
-		    last
-			unless ( $node );
-		    # Search the node for declarations.
-		    $node = $node->{'firstChild'};
-		    while ( $node ) {
-			# Process declarations.
-			if ( $node->{'type'} eq "declaration" ) {
-			    foreach my $declaration ( &List::ExtraUtils::as_array($node->{'declarations'}) ) {
-				my $isPointer   = grep {$_ eq "pointer"} @{$declaration->{'attributes'}};
-				my $assigner    = $isPointer ? "=>" : "=";
-				my $allocatable = grep {$_ eq "allocatable"} @{$declaration->{'attributes'}};
-				(my $type = $declaration->{'type'}) =~ s/(^\s*|\s*$)//g
-				    if ( $declaration->{'intrinsic'} eq "class" || $declaration->{'intrinsic'} eq "type" );
-				my $referenceCount = &isFunctionClassPointer($declaration,$type);
-				foreach my $object ( @{$declaration->{'variables'}} ) {
-				    my $name = &stripVariableName($object);
-				    my $allocatableThis = $allocatable;
-				    my $allocated       = "allocated";
-				    if ( exists($class->{'assignment'}) && exists($class->{'assignment'}->{'forceArrayAssign'}) && grep {$_ eq $name} split(" ",$class->{'assignment'}->{'forceArrayAssign'}) ) {
-					$allocatableThis = 1;
-					$allocated       = "associated";
-				    }
-				    if ( $allocatableThis ) {
-					# Use `mold=` to get the correct type. Then include a direct assignment after the `allocate`
-					# as this will trigger any defined assignment which is necessary for reference counting.
-					&generateAssignmentAllocatableCode($assignment,$declaration,$name,$allocated,\$rankMaximumAssigner);
-				    } elsif ( exists($class->{'linkedList'}) && grep {$_ eq $name} split(" ",$class->{'linkedList'}->{'variable'}) ) {
-					# Linked list - will be handled later.
-				    } else {
-					$assignment->{'code'} .= "    self%".$name.$assigner."from%".$name."\n";
-
-					my $forceReferenceCount =      exists(    $class->{'assignment'}                                  )
-					    &&
-					                               exists(    $class->{'assignment'}->{'functionClass'}               )
-					    &&
-					    grep {lc($_) eq lc($name)} split (" ",$class->{'assignment'}->{'functionClass'}->{'variables'});
-					if ( $forceReferenceCount ) {
-					    $assignment->{'code'} .= "    select type (object_ => self%".$name.")\n";
-					    $assignment->{'code'} .= "    class is (functionClass)\n";
-					    $assignment->{'code'} .= "    ".($isPointer ? "if (associated(object_)) " : "")."call object_%referenceCountIncrement()\n";
-					    $assignment->{'code'} .= "    end select\n";
-					} elsif ( $referenceCount ) {
-					    $assignment->{'code'} .= "    ".($isPointer ? "if (associated(self%".$name.")) " : "")."call self%".$name."%referenceCountIncrement()\n";
-					}
-				    }
-				}
-			    }
-			}
-			$node = $node->{'sibling'};
-		    }
-		    # Handle any linked lists.
-		    if ( exists($class->{'linkedList'}) ) {
-			(my $linkedListCode, my $linkedListModule) = &assignerLinkedList($class->{'linkedList'},$assignerLinkedListVariables);
-			$assignment->{'code'} .= $linkedListCode;
-			$assignerModules{$linkedListModule} = 1
-			    if ( $linkedListModule );
-		    }
-		    # Move to the parent class.
-		    $class = ($class->{'extends'} eq $directive->{'name'}) ? undef() : $classes{$class->{'extends'}};
-		}
-		$assignment->{'code'} .= "  class default\n";
-		$assignment->{'code'} .= "    call Error_Report('self and from types do not match'//".&Galacticus::Build::SourceTree::Process::SourceIntrospection::Location($nonAbstractClass->{'node'},$nonAbstractClass->{'node'}->{'line'}).")\n";
-		$assignment->{'code'} .= "  end select\n";
-	    }
-	    $assignment->{'code'} .= "end select\n";
-	    # Add any objects declared in the base class.
-	    foreach my $data ( &List::ExtraUtils::as_array($directive->{'data'}) ) {
-		my $declarationSource;
-		if ( reftype($data) ) {
-		    $declarationSource = $data->{'content'}
-		    if ( $data->{'scope'} eq "self" );
-		} else {
-		    $declarationSource = $data;
-		}
-		next
-		    unless ( defined($declarationSource) );
-		my $declaration = &Fortran::Utils::Unformat_Variables($declarationSource);
-		my $isPointer   = grep {$_ eq "pointer"} @{$declaration->{'attributes'}};
-		my $assigner    = $isPointer ? "=>" : "=";
-		my $allocatable = grep {$_ eq "allocatable"} @{$declaration->{'attributes'}};
-		(my $type = $declaration->{'type'}) =~ s/(^\s*|\s*$)//g
-		    if ( $declaration->{'intrinsic'} eq "class" || $declaration->{'intrinsic'} eq "type" );
-		my $referenceCount = &isFunctionClassPointer($declaration,$type);
-		foreach my $object ( @{$declaration->{'variables'}} ) {
-		    my $name = &stripVariableName($object);
-		    if ( $allocatable ) {
-			# Use `mold=` to get the correct type. Then include a direct assignment after the `allocate` as this will
-			# trigger any defined assignment which is necessary for reference counting.
-			&generateAssignmentAllocatableCode($assignment,$declaration,$name,"allocated",\$rankMaximumAssigner);
-		    } else {
-			$assignment->{'code'} .= "    self%".$name.$assigner."from%".$name."\n";
-		    }
-		    $assignment->{'code'} .= "    ".($isPointer ? "if (associated(self%".$name.")) " : "")."call self%".$name."%referenceCountIncrement()\n"
-			if ( $referenceCount );
-		}
-	    }
-	    # Add objects from the functionClass class.
-	    $assignment->{'code'} .= "self%isDefaultOfClass=from%isDefaultOfClass\n";
-	    $assignment->{'code'} .= "self%referenceCount=from%referenceCount\n";
-	    $assignment->{'code'} .= "return\n";
-	    # Insert any variables required.
-	    if ( $rankMaximumAssigner > 0 ) {
-		$assignment->{'code'} = "integer :: ".join(",",map {"i".$_."__"} 1..$rankMaximumAssigner)."\n".$assignment->{'code'}
-	    }
-	    if ( scalar(@{$assignerLinkedListVariables}) > 0 ) {
-           	$assignment->{'code'} = &Fortran::Utils::Format_Variable_Definitions($assignerLinkedListVariables).$assignment->{'code'};
-	    }
-	    # Construct the method.
-	    $methods{'assignment(=)'} =
-	    {
-		description => "Assign the object.",
-		type        => "void",
-		recursive   => "yes",
-		pass        => "yes",
-		selfIntent  => "out",
-		modules     => join(" ",sort(keys(%assignerModules))),
-		argument    => [ "class(".$directive->{'name'}."Class), intent(in   ) :: from" ],
-		code        => $assignment->{'code'}
-	    };
-	    
-	    # Add "deepCopy" method.
-	    my $deepCopy;
-	    $deepCopy->{'rankMaximum'       } = 0;
-	    $deepCopy->{'needReferenceCount'} = 0;
-            my $linkedListVariables;
-            my $linkedListResetVariables;
-            my $linkedListFinalizeVariables;
-            @{$linkedListVariables        } = ();
-            @{$linkedListResetVariables   } = ();
-            @{$linkedListFinalizeVariables} = ();
-            $deepCopy->{'resetCode'   } .= "self%copiedSelf => null()\n";
-            $deepCopy->{'resetCode'   } .= "select type (self)\n";
-	    $deepCopy->{'finalizeCode'} .= "self%copiedSelf => null()\n";
-            $deepCopy->{'finalizeCode'} .= "select type (self)\n";
-            $deepCopy->{'code'        } .= "select type (self)\n";
-	    foreach my $nonAbstractClass ( @nonAbstractClasses ) {
-		# Search the tree for this class.
-		my $class = $nonAbstractClass;
-		undef($deepCopy->{'assignments'});
-		# Add a class guard for resets.
-		$deepCopy->{'resetCode'   } .= "type is (".$nonAbstractClass->{'name'}.")\n";
-		$deepCopy->{'finalizeCode'} .= "type is (".$nonAbstractClass->{'name'}.")\n";
-		# Initialize a list of explicity-deep-copied variables that have been found.
-		my $foundDeepCopyNames;
-		@{$foundDeepCopyNames} = ();
-		while ( $class ) {
-		    my $node = $class->{'tree'}->{'firstChild'};
-		    $node = $node->{'sibling'}
-		        while ( $node && ( $node->{'type'} ne "type" || ( ! exists($node->{'name'}) || $node->{'name'} ne $class->{'name'} ) ) );
-		    last
-			unless ( $node );
-		    # Handle linked lists.
-		    (my $linkedListCode, my $linkedListResetCode, my $linkedListFinalizeCode, my $linkedListModule) = &deepCopyLinkedList($class,$nonAbstractClass,$linkedListVariables,$linkedListResetVariables,$linkedListFinalizeVariables);
-		    $deepCopy->{'assignments' } .= $linkedListCode;
-		    $deepCopy->{'resetCode'   } .= $linkedListResetCode;
-		    $deepCopy->{'finalizeCode'} .= $linkedListFinalizeCode;
-		    if ( $linkedListModule ) {
-			$deepCopy->{'modules'        }->{$linkedListModule} = 1;
-			$deepCopy->{'resetModules'   }->{$linkedListModule} = 1;
-			$deepCopy->{'finalizeModules'}->{$linkedListModule} = 1;
-		    }
-		    # Search the node for declarations.
-		    my @ignore = exists($class->{'deepCopy'}->{'ignore'}) ? split(/\s*,\s*/,$class->{'deepCopy'}->{'ignore'}->{'variables'}) : ();
-		    $node = $node->{'firstChild'};
-		    while ( $node ) {
-			&deepCopyDeclarations($class,$nonAbstractClass,$node,$node->{'declarations'},\@ignore,$lineNumber,$deepCopy,$foundDeepCopyNames)
-			    if ( $node->{'type'} eq "declaration" );
-			$node = $node->{'sibling'};
-		    }
-		    # Move to the parent class.
-		    $class = ($class->{'extends'} eq $directive->{'name'}) ? undef() : $classes{$class->{'extends'}};
-		}
-		# Add any objects declared in the base class.
-		foreach my $data ( &List::ExtraUtils::as_array($directive->{'data'}) ) {
-		    my $declarationSource;
-		    if ( reftype($data) ) {
-			$declarationSource = $data->{'content'}
-			    if ( $data->{'scope'} eq "self" );
-		    } else {
-			$declarationSource = $data;
-		    }
-		    next
-			unless ( defined($declarationSource) );
-		    my $declaration = &Fortran::Utils::Unformat_Variables($declarationSource);
-		    my @ignore      = ();
-		    &deepCopyDeclarations($class,$nonAbstractClass,$node,$declaration,\@ignore,$lineNumber,$deepCopy,$foundDeepCopyNames);
-		}
-		# Check that the type of the destination matches, and perform the copy. Reset the reference count to the copy.
-		$deepCopy->{'code'} .= "type is (".$nonAbstractClass->{'name'}.")\n";
-		$deepCopy->{'code'} .= "select type (destination)\n";
-		$deepCopy->{'code'} .= "type is (".$nonAbstractClass->{'name'}.")\n";
-		$deepCopy->{'code'} .= "destination=self\n";
-		$deepCopy->{'code'} .= $deepCopy->{'assignments'}
-		    if ( defined($deepCopy->{'assignments'}) );
-		$deepCopy->{'code'} .= "class default\n";
-		$deepCopy->{'code'} .= "call Error_Report('destination and source types do not match'//".&Galacticus::Build::SourceTree::Process::SourceIntrospection::Location($nonAbstractClass->{'node'},$nonAbstractClass->{'node'}->{'line'}).")\n";
-		$deepCopy->{'code'} .= "end select\n";
-		# Specify required modules.
-		$deepCopy->{'modules'}->{'Error'} = 1;
-		# Check that all explicit variables were found.
-		{
-		    my $class = $nonAbstractClass;
-		    while ( $class ) {
-			if ( exists($class->{'deepCopy'}->{'functionClass'}) ) {
-			    foreach my $variable ( split(/\s*,\s*/,$class->{'deepCopy'}->{'functionClass'}->{'variables'}) ) {				
-				die("Error: unable to find variable '".$variable."' marked for deep copy in class '".$class->{'name'}."'")
-				    unless ( grep {$_ eq lc($variable)} @{$foundDeepCopyNames} );
-			    }
-			}
-			$class = ($class->{'extends'} eq $directive->{'name'}) ? undef() : $classes{$class->{'extends'}};
-		    }
-		}
-	    }
-            $deepCopy->{'code'        } .= "end select\n";
-	    $deepCopy->{'resetCode'   } .= "end select\n";
-	    $deepCopy->{'finalizeCode'} .= "end select\n";
-            # Reset the reference count to this newly created object.
-            $deepCopy->{'code'} .= "call destination%referenceCountReset()\n";
-            # Reset the state operation ID if necessary.
-            $deepCopy->{'code'} .= "destination%stateOperationID=0_c_size_t\n";
-            # Insert variables declarations.
-            $deepCopy->{'code'        } = &Fortran::Utils::Format_Variable_Definitions($linkedListVariables        ).$deepCopy->{'code'}        ;
-            $deepCopy->{'resetCode'   } = &Fortran::Utils::Format_Variable_Definitions($linkedListResetVariables   ).$deepCopy->{'resetCode'}   ;
-            $deepCopy->{'finalizeCode'} = &Fortran::Utils::Format_Variable_Definitions($linkedListFinalizeVariables).$deepCopy->{'finalizeCode'};
-            # Insert any iterator variables needed.
-            $deepCopy->{'code'} = "integer :: ".join(",",map {"i".$_} 1..$deepCopy->{'rankMaximum'})."\n".$deepCopy->{'code'}
-                if ( $deepCopy->{'rankMaximum'} > 0 );
-	    # Insert any reference count variable needed.
-	    $deepCopy->{'code'} = "integer :: referenceCount__\n".$deepCopy->{'code'}
-                if ( $deepCopy->{'needReferenceCount'} );
-	    $methods{'deepCopy'} =
-	    {
-		description => "Perform a deep copy of the object. This is a wrapper around the actual deep-copy code.",
-		type        => "void",
-		recursive   => "yes",
-		pass        => "yes",
-		selfTarget  => "yes",
-		argument    => [ "class(".$directive->{'name'}."Class), intent(inout) :: destination" ],
-		code        => "call self%deepCopy_(destination)"
-	    };
-	    $methods{'deepCopy_'} =
-	    {
-		description => "Perform a deep copy of the object.",
-		type        => "void",
-		recursive   => "yes",
-		pass        => "yes",
-		modules     => join(" ",sort(keys(%{$deepCopy->{'modules'}}))),
-		argument    => [ "class(".$directive->{'name'}."Class), intent(inout) :: destination" ],
-		code        => $deepCopy->{'code'}
-	    };
-	    $methods{'deepCopyReset'} =
-	    {
-		description => "Reset deep copy pointers in this object and any objects that it uses.",
-		type        => "void",
-		recursive   => "yes",
-		pass        => "yes",
-		code        => $deepCopy->{'resetCode'}
-	    };
-	    $methods{'deepCopyFinalize'} =
-	    {
-		description => "Finalize a deep copy in this object and any objects that it uses.",
-		type        => "void",
-		recursive   => "yes",
-		pass        => "yes",
-		code        => $deepCopy->{'finalizeCode'}
-	    };
-	    $methods{'deepCopyReset'   }->{'modules'} = join(" ",sort(keys(%{$deepCopy->{'resetModules'   }})))
-		if ( scalar(keys(%{$deepCopy->{'resetModules'   }})) > 0 );
-	    $methods{'deepCopyFinalize'}->{'modules'} = join(" ",sort(keys(%{$deepCopy->{'finalizeModules'}})))
-		if ( scalar(keys(%{$deepCopy->{'finalizeModules'}})) > 0 );
-	    # Add "stateStore" and "stateRestore" method.
-	    my $stateStores =
-	    {
-		stateFileUsed          => 0,
-		gslStateFileUsed       => 0,
-		rankMaximum            => 0,
-		allocatablesFound      => 0,
-		explicitFunctionsFound => 0,
-		dimensionalsFound      => 0,
-		labelUsed              => 0		
-	    };
-	    my $stateStoreCode;
-	    my $stateRestoreCode;
-	    my $stateLinkedListVariables;
-            @{$stateLinkedListVariables} = ();
-	    %{$stateStores->{'stateStoreModules'  }} = ( "Display" => 1, "ISO_Varying_String" => 1, "String_Handling" => 1, "ISO_C_Binding" => 1 );
-	    %{$stateStores->{'stateRestoreModules'}} = ( "Display" => 1, "ISO_Varying_String" => 1, "String_Handling" => 1, "ISO_C_Binding" => 1 );
-	    my @outputUnusedVariables;
-	    my @inputUnusedVariables;
-	    $stateStoreCode   .= "position=FTell(stateFile)\n";
-	    $stateRestoreCode .= "position=FTell(stateFile)\n";
-	    $stateStoreCode   .= "call displayIndent(var_str('storing state for \""  .$directive->{'name'}."\" [position: ')//position//']',verbosity=verbosityLevelWorking)\n";
-	    $stateRestoreCode .= "call displayIndent(var_str('restoring state for \"".$directive->{'name'}."\" [position: ')//position//']',verbosity=verbosityLevelWorking)\n";
-	    $stateStoreCode   .= "select type (self)\n";
-	    $stateRestoreCode .= "select type (self)\n";
-	    foreach my $nonAbstractClass ( @nonAbstractClasses ) {
-		# Build the code.
-		my $stateStore = $stateStores->{$nonAbstractClass->{'name'}};
-		$stateStoreCode   .= "type is (".$nonAbstractClass->{'name'}.")\n";
-		$stateRestoreCode .= "type is (".$nonAbstractClass->{'name'}.")\n";
-		if ( exists($nonAbstractClass->{'recursive'}) && $nonAbstractClass->{'recursive'} eq "yes" ) {
-		    # Object allows recursion. If this object is a recursive copy, call the state store/restore functions on the actual copy.
-		    $stateStoreCode   .= "if (self%isRecursive) then\n";
-		    $stateStoreCode   .= " call displayUnindent('recursive copy - moving to actual',verbosity=verbosityLevelWorking)\n";
-		    $stateStoreCode   .= " call self%recursiveSelf%stateStore  (stateFile,gslStateFile,stateOperationID)\n";
-		    $stateStoreCode   .= " return\n";
-		    $stateStoreCode   .= "end if\n";
-		    $stateRestoreCode .= "if (self%isRecursive) then\n";
-		    $stateRestoreCode .= " call displayUnindent('recursive copy - moving to actual',verbosity=verbosityLevelWorking)\n";
-		    $stateRestoreCode .= " call self%recursiveSelf%stateRestore(stateFile,gslStateFile,stateOperationID)\n";
-		    $stateRestoreCode .= " return\n";
-		    $stateRestoreCode .= "end if\n";
-		}
-		$stateStoreCode   .= "if (self%stateOperationID == stateOperationID) then\n"; # If this object was already stored, don't do it again.
-		$stateStoreCode   .= " call displayUnindent('skipping - already stored',verbosity=verbosityLevelWorking)\n";
-		$stateStoreCode   .= " return\n";
-		$stateStoreCode   .= "end if\n";
-		$stateStoreCode   .= "self%stateOperationID=stateOperationID\n";
-		$stateRestoreCode .= "if (self%stateOperationID == stateOperationID) then\n"; # If this object was already restored, don't do it again.
-		$stateRestoreCode .= " call displayUnindent('skipping - already restored',verbosity=verbosityLevelWorking)\n";
-		$stateRestoreCode .= " return\n";
-		$stateRestoreCode .= "end if\n";
-		$stateRestoreCode .= "self%stateOperationID=stateOperationID\n";
-		$stateStoreCode   .= " call displayMessage('object type \"".$nonAbstractClass->{'name'}."\"',verbosity=verbosityLevelWorking)\n";
-		$stateRestoreCode .= " call displayMessage('object type \"".$nonAbstractClass->{'name'}."\"',verbosity=verbosityLevelWorking)\n";
-		(my $label = $nonAbstractClass->{'name'}) =~ s/^$directive->{'name'}//;
-		$label = lcfirst($label)
-		    unless ( $label =~ m/^[A-Z]{2,}/ );
-		$stateStore->{'hasCustomStateStore'  } = 0;
-		$stateStore->{'hasCustomStateRestore'} = 0;
-		my $extensionOf;
-		# Generate code to output all variables from this class (and any parent class).
-		@{$stateStore->{'staticVariables'}} = ();
-		my $explicitNamesFound;
-		@{$explicitNamesFound} = ();
-		my $class = $nonAbstractClass;
-		while ( $class ) {
-		    my $node = $class->{'tree'}->{'firstChild'};
-		    $node = $node->{'sibling'}
-		        while ( $node && ( $node->{'type'} ne "type" || ( ! exists($node->{'name'}) || $node->{'name'} ne $class->{'name'} ) ) );
-		    last
-			unless ( $node );
-		    # Find the parent class.
-		    if ( $class == $nonAbstractClass && $node->{'opener'} =~ m/,\s*extends\s*\(\s*([a-zA-Z0-9_]+)\s*\)/ ) {
-			$extensionOf = $1;
-		    }
-		    # Find any variables to be excluded from state store/restore.
-		    @{$stateStore->{'excludes'}} = exists($class->{'stateStorable'}->{'exclude'}->{'variables'}) ? split(/\s*,\s*/,$class->{'stateStorable'}->{'exclude'}->{'variables'}) : ();
-		    # Search the node for declarations.
-		    $node = $node->{'firstChild'};
-		    while ( $node ) {
-			&stateStoreVariables($stateStores,$stateStore,$class,$node->{'declarations'},$explicitNamesFound)
-			    if ( $node->{'type'} eq "declaration" );
-			$node = $node->{'type'} eq "contains" ? $node->{'firstChild'} : $node->{'sibling'};
-		    }
-		    # Handle linked lists.
-		    (my $linkedListInputCode, my $linkedListOutputCode, my $linkedListModule) = &stateStoreLinkedList($class,$nonAbstractClass,$stateLinkedListVariables);
-		    $stateStore->{'inputCode' } .= $linkedListInputCode;
-		    $stateStore->{'outputCode'} .= $linkedListOutputCode;
-		    $stateStores->{'stateStoreModules'}->{$linkedListModule} = 1
-			if ( $linkedListModule );
-		    # Handle explicit state store functions.
-		    $stateStores->{'explicitFunctionsFound'} = 1
-			if ( exists($nonAbstractClass->{'stateStore'}->{'stateStore'}->{'restore'}) );
-		    (my $stateStoreExplicitInputCode, my $stateStoreExplicitOutputCode, my %stateStoreExplicitModules) = &stateStoreExplicitFunction($nonAbstractClass);
-		    $stateStore->{'inputCode'}  .= $stateStoreExplicitInputCode;
-		    $stateStore->{'outputCode'} .= $stateStoreExplicitOutputCode;
-		    foreach my $module ( sort(keys(%stateStoreExplicitModules)) ) {
-			$stateStores->{'stateStoreModules'  }->{$module} = 1;
-			$stateStores->{'stateRestoreModules'}->{$module} = 1;
-		    }
-		    # Move to the parent class.
-		    $class = ($class->{'extends'} eq $directive->{'name'}) ? undef() : $classes{$class->{'extends'}};
-		}
-		# Find any variables to be excluded from state store/restore.
-		@{$stateStore->{'excludes'}} = exists($directive->{'stateStorable'}->{'exclude'}->{'variables'}) ? split(/\s*,\s*/,$directive->{'stateStorable'}->{'exclude'}->{'variables'}) : ();
-		# Add any variables declared in the base class.
-		foreach my $data ( &List::ExtraUtils::as_array($directive->{'data'}) ) {
-		    my $declarationSource;
-		    if ( reftype($data) ) {
-			$declarationSource = $data->{'content'}
-			if ( $data->{'scope'} eq "self" );
-		    } else {
-			$declarationSource = $data;
-		    }
-		    next
-			unless ( defined($declarationSource) );
-		    my $declaration = &Fortran::Utils::Unformat_Variables($declarationSource);
-		    die("Galacticus::Build::SourceTree::Process::FunctionClass::Process_FunctionClass(): unable to parse variable declaration")
-			unless ( defined($declaration) );
-		    &stateStoreVariables($stateStores,$stateStore,undef(),$declaration,$explicitNamesFound);
-		}
-		# Check that all explicit variables were found.
-		{
-		    my $class = $nonAbstractClass;
-		    while ( $class ) {
-			if ( exists($class->{'stateStorable'}->{'functionClass'}) && exists($class->{'stateStorable'}->{'functionClass'}->{'variables'}) ) {
-			    foreach my $variable ( split(/\s*,\s*/,$class->{'stateStorable'}->{'functionClass'}->{'variables'}) ) {
-				die("Error: unable to find variable '".$variable."' marked as state storable in class '".$class->{'name'}."'")
-				    unless ( grep {$_ eq lc($variable)} @{$explicitNamesFound} );
-			    }
-			}
-			# Move to the parent class.
-			$class = ($class->{'extends'} eq $directive->{'name'}) ? undef() : $classes{$class->{'extends'}};
-		    }
-		}
-		# Add code to method.
-		$stateStores->{'stateFileUsed'} = 1
-		    if ( scalar(@{$stateStore->{'staticVariables'}}) > 0 );
-		if ( $stateStore->{'hasCustomStateStore'  } ) {
-		    # The class has its own state store function, so we should never arrive at this point in the code.
-		    $stateStoreCode .= " call Error_Report('custom state store function exists - this should not happen'//".&Galacticus::Build::SourceTree::Process::SourceIntrospection::Location($nonAbstractClass->{'node'},$nonAbstractClass->{'node'}->{'line'}).")\n";
-		    $stateStores->{'stateStoreModules'}->{'Error'} = 1;
-		} else {
-		    foreach ( @{$stateStore->{'staticVariables'}} ) {
-			$stateStores->{'labelUsed'}       = 1;
-			$stateStoreCode .= " if (displayVerbosity() >= verbosityLevelWorking) then\n";
-			# <workaround type="gfortran" PR="94446" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=94446">
-			#  <description>
-			#   Using the sizeof() intrinsic on a treeNode object causes a bogus "type mismatch" error when this module is used.
-			#  </description>
-			# </workaround>
-			$stateStoreCode .= "   write (label,'(i16)') 0\n";
-			#$stateStoreCode .= "  write (label,'(i16)') sizeof(self%".$_.")\n";
-			$stateStoreCode .= "  call displayMessage('storing \"".$_."\" with size '//trim(adjustl(label))//' bytes')\n";
-			$stateStoreCode .= " end if\n";
-		    }
-		    $stateStoreCode .= " write (stateFile) ".join(", &\n  & ",map {"self%".$_} @{$stateStore->{'staticVariables'}})."\n"
-			if ( scalar(@{$stateStore->{'staticVariables'}}) > 0 );
-		    $stateStoreCode .= $stateStore->{'outputCode'}
-			if ( defined($stateStore->{'outputCode'}) );
-		}
-		if ( $stateStore->{'hasCustomStateRestore'} ) {
-		    # The class has its own state store function, so we should never arrive at this point in the code.
-		    $stateRestoreCode .= " call Error_Report('custom state restore function exists - this should not happen'//".&Galacticus::Build::SourceTree::Process::SourceIntrospection::Location($nonAbstractClass->{'node'},$nonAbstractClass->{'node'}->{'line'}).")\n";
-		    $stateStores->{'stateRestoreModules'}->{'Error'} = 1;
-		} else {
-		    foreach ( @{$stateStore->{'staticVariables'}} ) {
-			$stateRestoreCode .= " call displayMessage('restoring \"".$_."\"',verbosity=verbosityLevelWorking)\n";
-		    }
-		    $stateRestoreCode .= " read (stateFile) ".join(", &\n  & ",map {"self%".$_} @{$stateStore->{'staticVariables'}})."\n"
-			if ( scalar(@{$stateStore->{'staticVariables'}}) > 0 );
-		    $stateRestoreCode .= $stateStore->{'inputCode'}
-			if ( defined($stateStore->{'inputCode'}) );
-		}
-	    }
-	    $stateStoreCode   .= "end select\n";
-	    $stateStoreCode   .= "call displayUnindent('done',verbosity=verbosityLevelWorking)\n";
-	    $stateStoreCode   .= "return\n";
-	    $stateRestoreCode .= "end select\n";
-	    $stateRestoreCode .= "call displayUnindent('done',verbosity=verbosityLevelWorking)\n";
-	    $stateRestoreCode .= "return\n";
-	    unless ( $stateStores->{'gslStateFileUsed'} ) {
-		push(@outputUnusedVariables,"gslStateFile");
-		push(@inputUnusedVariables ,"gslStateFile");
-	    }
-	    unless ( $stateStores->{'stateFileUsed'}     ) {
-		push(@outputUnusedVariables,"stateFile"    );
-		push(@inputUnusedVariables ,"stateFile"    );
-	    }
-	    $stateStoreCode   =
-		($stateStores->{'rankMaximum'} > 0 ? " integer :: ".join(", ",map {"i".$_} 1..$stateStores->{'rankMaximum'})."\n" : "").
-		(@outputUnusedVariables ? " !\$GLC attributes unused :: ".join(", ",@outputUnusedVariables)."\n" : "").
-		$stateStoreCode  ;
-	    $stateRestoreCode =
-		($stateStores->{'rankMaximum'} > 0 ? " integer :: ".join(", ",map {"i".$_} 1..$stateStores->{'rankMaximum'})."\n" : "").
-		(@inputUnusedVariables ? " !\$GLC attributes unused :: ".join(", ",@inputUnusedVariables)."\n" : "").
-		$stateRestoreCode;
-	    if ( $stateStores->{'allocatablesFound'} ) {
-		$stateRestoreCode = ($stateStores->{'dimensionalsFound'} ? "integer(c_size_t), allocatable, dimension(:) :: storedShape\n"  : "").
-		    ($stateStores->{'allocatablesFound'} ? "logical                                      :: wasAllocated\n" : "").
-		    $stateRestoreCode;
-	    }
-	    if ( $stateStores->{'explicitFunctionsFound'} ) {
-		$stateRestoreCode = "logical :: wasAssociated\n".$stateRestoreCode;
-	    }
-	    $stateStoreCode   = " character(len=16) :: label\n".$stateStoreCode
-                 if ( $stateStores->{'labelUsed'} );
-            $stateStoreCode   = " integer(c_size_t) :: position\n".$stateStoreCode;
-            $stateRestoreCode = " integer(c_size_t) :: position\n".$stateRestoreCode;
-	    $stateStoreCode   = &Fortran::Utils::Format_Variable_Definitions($stateLinkedListVariables).$stateStoreCode;
-	    $stateRestoreCode = &Fortran::Utils::Format_Variable_Definitions($stateLinkedListVariables).$stateRestoreCode;
-	    $methods{'stateStore'} =
-	    {
-		description => "Store the state of this object to file.",
-		type        => "void",
-		pass        => "yes",
-		argument    => [ "integer, intent(in   ) :: stateFile", "type(c_ptr), intent(in   ) :: gslStateFile", "integer(c_size_t), intent(in   ) :: stateOperationID"  ],
-		code        => "call self%stateStore_(stateFile,gslStateFile,stateOperationID)"
-	    };
-	    $methods{'stateStore_'} =
-	    {
-		description => "Store the state of this object to file.",
-		type        => "void",
-		pass        => "yes",
-		modules     => join(" ",sort(keys(%{$stateStores->{'stateStoreModules'}}))),
-		argument    => [ "integer, intent(in   ) :: stateFile", "type(c_ptr), intent(in   ) :: gslStateFile", "integer(c_size_t), intent(in   ) :: stateOperationID"  ],
-		code        => $stateStoreCode
-	    };
-	    $methods{'stateRestore'} =
-	    {
-		description => "Restore the state of this object from file.",
-		type        => "void",
-		pass        => "yes",
-		argument    => [ "integer, intent(in   ) :: stateFile", "type(c_ptr), intent(in   ) :: gslStateFile", "integer(c_size_t), intent(in   ) :: stateOperationID"  ],
-		code        => "call self%stateRestore_(stateFile,gslStateFile,stateOperationID)"
-	    };
-	    $methods{'stateRestore_'} =
-	    {
-		description => "Restore the state of this object from file.",
-		type        => "void",
-		pass        => "yes",
-		modules     => join(" ",sort(keys(%{$stateStores->{'stateRestoreModules'}}))),
-		argument    => [ "integer, intent(in   ) :: stateFile", "type(c_ptr), intent(in   ) :: gslStateFile", "integer(c_size_t), intent(in   ) :: stateOperationID"  ],
-		code        => $stateRestoreCode
-	    };
+	    &buildAllowedParametersMethod($directive, \@classes, \%methods);
+	    &buildAssignmentMethod($directive, \@nonAbstractClasses, \%classes, \%methods);
+	    &buildDeepCopyMethods($directive, \@nonAbstractClasses, \%classes, $lineNumber, \%methods);
+	    &buildStateStoreMethods($directive, \@nonAbstractClasses, \%classes, \%methods);
 	    # Initialize structure that will hold all generated code.
 	    my $codeContent;
 	    $codeContent->{'module'}->{'preContains'} =
@@ -2969,6 +1511,1525 @@ CODE
 
 
 
+
+
+sub buildDescriptorMethods {
+    my $directive          = shift();
+    my $nonAbstractClasses = shift();
+    my $classesHash        = shift();
+    my $methods            = shift();
+    my $tree               = shift();
+    my @nonAbstractClasses = @{$nonAbstractClasses};
+    my %classes            = %{$classesHash};
+
+    # Add "descriptor" method.
+    my $descriptorCode;
+    my %descriptorModules = ( "Input_Parameters" => 1 );
+    my %addSubParameters;
+    my $addLabel                  = 0;
+    my $rankMaximum               = 0;
+    my $descriptorUsed            = 0;
+    my $fileModificationCodeAdded = 0;
+    my $descriptorLinkedListVariables;
+    @{$descriptorLinkedListVariables} = ();
+    $descriptorCode .= "logical :: includeFileModificationTimes_\n";
+    $descriptorCode .= "if (present(includeFileModificationTimes)) then\n";
+    $descriptorCode .= " includeFileModificationTimes_=includeFileModificationTimes\n";
+    $descriptorCode .= "else\n";
+    $descriptorCode .= " includeFileModificationTimes_=.false.\n";
+    $descriptorCode .= "end if\n";
+    $descriptorCode .= "select type (self)\n";
+    foreach my $nonAbstractClass ( @nonAbstractClasses ) {
+	(my $label = $nonAbstractClass->{'name'}) =~ s/^$directive->{'name'}//;
+	$label = lcfirst($label)
+	    unless ( $label =~ m/^[A-Z]{2,}/ );
+	$nonAbstractClass->{'hasCustomDescriptor'} = 0;
+	my $extensionOf;
+	# Build lists of all potential parameter and object names for this class, including any from parent classes.
+	my $potentialNames = {};
+	my $class          = $nonAbstractClass;
+	while ( $class ) {
+	    my $node = $class->{'tree'}->{'firstChild'};
+	    $node = $node->{'sibling'}
+	        while ( $node && ( $node->{'type'} ne "type" || ( ! exists($node->{'name'}) || $node->{'name'} ne $class->{'name'} ) ) );
+	    last
+		unless ( $node );
+	    # Find the parent class.
+	    if ( $class == $nonAbstractClass && $node->{'opener'} =~ m/,\s*extends\s*\(\s*([a-zA-Z0-9_]+)\s*\)/ ) {
+		$extensionOf = $1;
+	    }
+	    # Search the node for declarations.
+	    $node = $node->{'firstChild'};
+	    while ( $node ) {
+		&potentialDescriptorParameters($node->{'declarations'},$nonAbstractClass,$class,$potentialNames)
+		    if ( $node->{'type'} eq "declaration" );
+		$node = $node->{'type'} eq "contains" ? $node->{'firstChild'} : $node->{'sibling'};
+	    }
+	    # Move to the parent class.
+	    $class = ($class->{'extends'} eq $directive->{'name'}) ? undef() : $classes{$class->{'extends'}};
+	}
+	# Add any names declared in the base class.
+	foreach my $data ( &List::ExtraUtils::as_array($directive->{'data'}) ) {
+	    my $declarationSource;
+	    if ( reftype($data) ) {
+		$declarationSource = $data->{'content'}
+		    if ( $data->{'scope'} eq "self" );
+	    } else {
+		$declarationSource = $data;
+	    }
+	    next
+		unless ( defined($declarationSource) );
+	    my $declaration = &Fortran::Utils::Unformat_Variables($declarationSource);
+	    die("Galacticus::Build::SourceTree::Process::FunctionClass::Process_FunctionClass(): unable to parse variable declaration")
+		unless ( defined($declaration) );
+	    &potentialDescriptorParameters($declaration,$nonAbstractClass,undef(),$potentialNames);
+	}
+	# Search the tree for this class to find the interface to the parameters constructor.
+	my $node = $nonAbstractClass->{'tree'}->{'firstChild'};
+	$node = $node->{'sibling'}
+	    while ( $node && ( $node->{'type'} ne "interface" || ( ! exists($node->{'name'}) || $node->{'name'} ne $nonAbstractClass->{'name'} ) ) );
+	next
+	    unless ( $node );
+	# Find all constructor names.
+	$node = $node->{'firstChild'};
+	my @constructors;
+	while ( $node ) {
+	    push(@constructors,@{$node->{'names'}})
+		if ( $node->{'type'} eq "moduleProcedure" );
+	    $node = $node->{'sibling'};
+	}
+	# Search for constructors.
+	$node = $nonAbstractClass->{'tree'}->{'firstChild'};
+	my $descriptorParameters;
+	my %subParameters;
+	my $declarationMatches    = 0;
+	my $supported             = 1;
+	my $parentConstructorUsed = 0;
+	my @failureMessage;
+	while ( $node ) {
+	    if ( $node->{'type'} eq "function" && (grep {$_ eq $node->{'name'}} @constructors) && $node->{'opener'} =~ m/^\s*(recursive\s+)??function\s+$node->{'name'}\s*\(\s*parameters\s*(,\s*recursiveConstruct\s*,\s*recursiveSelf\s*)??\)/ ) {
+		# Extract the name of the return variable in this function.
+		my $result = ($node->{'opener'} =~ m/result\s*\(\s*([a-zA-Z0-9_]+)\s*\)\s*$/) ? $1 : $node->{'name'};
+		# Check if this is the parameters constructor.
+		my $constructorNode    = $node->{'firstChild'};
+		my $depth = 0;
+		while ( $constructorNode ) {
+		    # Process node.
+		    if ( $constructorNode->{'type'} eq "declaration" ) {
+			# Declaration node found - check if we have a parameters argument of the correct type.
+			foreach my $declaration ( @{$constructorNode->{'declarations'}} ) {
+			    $declarationMatches = 1
+				if (
+				    $declaration->{'intrinsic'}  eq "type"
+				    &&
+				    trimlc($declaration->{'type'     }) eq "inputparameters"
+				    &&
+				    grep {$_ eq "parameters"} @{$declaration->{'variables'}}
+				);
+			}
+		    }
+		    if ( $constructorNode->{'type'} eq "code" ) {
+			# Locate any use of sub-parameters and of the parent class constructor.
+			open(my $code,"<",\$constructorNode->{'content'});
+			do {
+			    # Get a line.
+			    &Fortran::Utils::Get_Fortran_Line($code,my $rawLine, my $processedLine, my $bufferedComments);
+			    # Identify subparameter usages.
+			    if ( $processedLine =~ m/^\s*([a-zA-Z0-9_]+)\s*=\s*([a-zA-Z0-9_]+)\s*\%\s*subParameters\s*\(/ ) {
+				$subParameters{$1} =
+				{
+				    parent => $2,
+				    source => $processedLine
+				};
+			    }
+			    # Identify use of parent constructor.
+			    $parentConstructorUsed = 1
+				if ( $processedLine =~ m/^\s*$result\s*\%\s*$extensionOf\s*=/ );
+			} until ( eof($code) );
+			close($code);
+		    }
+		    if ( $constructorNode->{'type'} eq "inputParameter" ) {
+			if ( exists($constructorNode->{'directive'}->{'source'}) ) {
+			    if      ( exists($constructorNode->{'directive'}->{'name'    }) ) {
+				# A regular parameter, defined by its name.
+				my $name;
+				if ( exists($constructorNode->{'directive'}->{'variable'}) ) {
+				    if ( $constructorNode->{'directive'}->{'variable'} =~ m/(.*)\%(.*)/ ) {
+					my $object  = $1;
+					my $element = $2;
+					if ( lc($object) eq lc($result) ) {
+					    # Direct read into an element of the object being constructed.
+					    $name = $element;
+					} else {
+					    # Read of some other derived-type component. Use the name of the derived type
+					    # variable in case it is of a type that we can handle.
+					    $name = $object;
+					}
+				    } else {
+					# Use the name given, removing any array element specifiers.
+					($name = $constructorNode->{'directive'}->{'variable'}) =~ s/\(.+\)$//;
+				    }
+				} else {
+				    $name = $constructorNode->{'directive'}->{'name'};
+				}
+				if ( grep {lc($_) eq lc($name)} (map {@{$_->{'variableNames'}}} @{$potentialNames->{'parameters'}}) ) {
+				    push(@{$descriptorParameters->{'parameters'}},{name => $name, inputName => $constructorNode->{'directive'}->{'name'}, source => $constructorNode->{'directive'}->{'source'}});
+				    # Find the matched variable.
+				    my $descriptor;
+				    foreach my $potentialDescriptor ( @{$potentialNames->{'parameters'}} ) {
+					$descriptor = $potentialDescriptor
+					    if ( grep {lc($_) eq lc($name)} @{$potentialDescriptor->{'variableNames'}} );
+				    }
+				} elsif ( grep {lc($_) eq lc($name)."_"} (map {@{$_->{'variableNames'}}} @{$potentialNames->{'parameters'}}) ) {
+				    push(@{$descriptorParameters->{'parameters'}},{name => $name."_", inputName => $constructorNode->{'directive'}->{'name'}, source => $constructorNode->{'directive'}->{'source'}});
+				    # Find the matched variable.
+				    my $descriptor;
+				    foreach my $potentialDescriptor ( @{$potentialNames->{'parameters'}} ) {
+					$descriptor = $potentialDescriptor
+					    if ( grep {lc($_) eq lc($name)."_"} @{$potentialDescriptor->{'variableNames'}} );
+				    }
+				} elsif ( grep {lc($_) eq lc($name)} (map {@{$_->{'variableNames'}}} @{$potentialNames->{'enumerations'}}) ) {
+				    push(@{$descriptorParameters->{'enumerations'}},{name => $name, inputName => $constructorNode->{'directive'}->{'name'}, source => $constructorNode->{'directive'}->{'source'}});
+				    # Find the matched variable.
+				    my $descriptor;
+				    foreach my $potentialDescriptor ( @{$potentialNames->{'enumerations'}} ) {
+					$descriptor = $potentialDescriptor
+					    if ( grep {lc($_) eq lc($name)} @{$potentialDescriptor->{'variableNames'}} );
+				    }
+				} elsif ( grep {$_ eq lc($name)} (map {@{$_->{'variables'}}} @{$potentialNames->{'statefulTypes'}}) ) {
+				    push(@{$descriptorParameters->{'statefulTypes'}},{name => $name, inputName => $constructorNode->{'directive'}->{'name'}, source => $constructorNode->{'directive'}->{'source'}});
+				    # Find the matched variable.
+				    my $descriptor;
+				    foreach my $potentialDescriptor ( @{$potentialNames->{'statefulTypes'}} ) {
+					$descriptor = $potentialDescriptor
+					    if ( grep {$_ eq lc($name)} @{$potentialDescriptor->{'variables'}} );
+				    }
+				} else {
+				    $supported = -1;
+				    my $message = "could not find a matching internal variable for parameter [".$name."]";
+				    my @potentialNames = map {@{$_->{'variableNames'}}} @{$potentialNames->{'parameters'}};
+				    if ( scalar(@potentialNames) > 0 ) {
+					my @distances      = &Text::Levenshtein::distance(lc($name),map {lc($_)} @potentialNames);
+					my $indexMinimum   = first_index {$_ == &List::Util::min(@distances)} @distances;
+					unless ( $indexMinimum == -1 ) {
+					    (my $nameGuess = $potentialNames[$indexMinimum]) =~ s/_//;
+					    $message .= " - did you mean [".$nameGuess."]";
+					}
+				    }
+				    push(@failureMessage,$message);
+				}
+			    }
+			} else {
+			    $supported = -4;
+			    push(@failureMessage,"unsourced parameters not supported");
+			}
+		    }
+		    if ( $constructorNode->{'type'} eq "objectBuilder"  ) {
+			if ( exists($constructorNode->{'directive'}->{'source'}) ) {
+			    (my $name = $constructorNode->{'directive'}->{'name'}) =~ s/([a-zA-Z0-9_]+\s*\%\s*)?([a-zA-Z0-9_]+).*/$2/;
+			    $name =~ s/\s//g;
+			    if ( grep {$_ eq lc($name)} @{$potentialNames->{'objects'}} ) {
+				push(@{$descriptorParameters->{'objects'}},{name => $name, source => $constructorNode->{'directive'}->{'source'}});
+			    } elsif ( grep {$_ eq $name} @{$potentialNames->{'linkedListObjects'}} ) {
+				push(@{$descriptorParameters->{'linkedLists'}},$potentialNames->{'linkedLists'}->{$name});
+			    } else {
+				$supported = -5;
+				push(@failureMessage,"could not find a matching internal object for object [".$name."]");
+			    }
+			} else {
+			    $supported = -6;
+			    push(@failureMessage,"unsourced objects not supported");
+			}
+		    }
+		    $constructorNode = &Galacticus::Build::SourceTree::Walk_Tree($constructorNode,\$depth);
+		    last
+			if ( $depth < 0 );
+		}
+	    }
+	    $node = $node->{'type'} eq "contains" ? $node->{'firstChild'} : $node->{'sibling'};
+	}
+	# Validate sub-parameters.
+	foreach my $subParameterName ( sort(keys(%subParameters)) ) {
+	    unless ( exists($subParameters{$subParameters{$subParameterName}->{'parent'}}) || $subParameters{$subParameterName}->{'parent'} eq "parameters" ) {
+		$supported = -7;
+		push(@failureMessage,"subparameter hierarchy failure");
+	    }
+	}
+	# Build the code.
+	$descriptorCode .= "type is (".$nonAbstractClass->{'name'}.")\n";
+	if ( $nonAbstractClass->{'hasCustomDescriptor'} ) {
+	    # The class has its own descriptor function, so we should never arrive at this point in the code.
+	    $descriptorCode .= " call Error_Report('custom descriptor exists - this should not happen'//".&Galacticus::Build::SourceTree::Process::SourceIntrospection::Location($nonAbstractClass->{'node'},$nonAbstractClass->{'node'}->{'line'}).")\n";
+	    $descriptorModules{'Error'} = 1;
+	} else{
+	    # Build an auto-descriptor function.
+	    if ( $declarationMatches && ( $supported == 1 || exists($nonAbstractClass->{'descriptorSpecial'}) ) ) {
+		$descriptorUsed = 1;
+		$descriptorCode .= " if (present(includeClass)) then\n";
+		$descriptorCode .= "  includeClass_=includeClass\n";
+		$descriptorCode .= " else\n";
+		$descriptorCode .= "  includeClass_=.true.\n";
+		$descriptorCode .= " end if\n";
+		$descriptorCode .= " if (includeClass_) call descriptor%addParameter('".$directive->{'name'}."','".$label."')\n";
+		if ( defined($descriptorParameters) ) {
+		    # Get subparameters.
+		    $addSubParameters{'parameters'} = 1;
+		    $descriptorCode   .= "parameters=descriptor%subparameters('".$directive->{'name'}."')\n";
+		    foreach my $subParameterName ( sort(keys(%subParameters)) ) {
+			$addSubParameters{$subParameterName} = 1;
+			$descriptorCode .= $subParameters{$subParameterName}->{'source'};
+		    }
+		    # Handle parameters set via inputParameter directives.
+		    if ( defined($descriptorParameters->{'parameters'}) ) {
+			foreach my $parameter ( @{$descriptorParameters->{'parameters'}} ) {
+			    foreach my $declaration ( @{$potentialNames->{'parameters'}} ) {
+				if ( grep {$_ eq lc($parameter->{'name'})} @{$declaration->{'variables'}} ) {
+				    my $format;
+				    my $function;
+				    my $isLogical = 0;
+				    if      ( $declaration->{'intrinsic'} eq "type"             ) {
+					# Varying string type.
+					$function  = "char";
+				    } elsif ( $declaration->{'intrinsic'} eq "logical"          ) {
+					# Logical.
+					$addLabel  = 1;
+					$isLogical = 1;
+				    } elsif ( $declaration->{'intrinsic'} eq "double precision" ) {
+					$addLabel  = 1;
+					$format    = "e17.10";
+				    } elsif ( $declaration->{'intrinsic'} eq "integer"          ) {
+					$addLabel  = 1;
+					$format    = "i17";
+				    } elsif ( $declaration->{'intrinsic'} eq "character"        ) {
+					$function  = "trim";
+				    }
+				    my $rank = &declarationRank($declaration);
+				    if ( $rank > 0 ) {
+					# Non-scalar parameter - values must be concatenated.
+					$rankMaximum = $rank
+					    if ( $rank > $rankMaximum );
+					$descriptorCode .= "parameterValues=''\n";
+					for(my $i=1;$i<=$rank;++$i) {
+					    $descriptorCode .= " parameterValues=parameterValues//'['\n";
+					    $descriptorCode .= "do i".$i."=lbound(self%".$parameter->{'name'}.",dim=".$i."),ubound(self%".$parameter->{'name'}.",dim=".$i.")\n";
+					}
+					if ( $function ) {
+					    $descriptorCode .= " parameterValues=parameterValues//".$function."(self%".$parameter->{'name'}."(".join(",",map {"i".$_} 1..$rank)."))\n";
+					} else {
+					    if ( $isLogical ) {
+						$descriptorCode .= "if (self%".$parameter->{'name'}."(".join(",",map {"i".$_} 1..$rank).") then\n";
+						$descriptorCode .= "  parameterLabel='true'\n";
+						$descriptorCode .= "else\n";
+						$descriptorCode .= "  parameterLabel='false'\n";
+						$descriptorCode .= "end if\n";
+					    } else {
+						$descriptorCode .= "write (parameterLabel,'(".$format.")') self%".$parameter->{'name'}."(".join(",",map {"i".$_} 1..$rank).")\n";
+					    }
+					    $descriptorCode .= " parameterValues=parameterValues//trim(adjustl(parameterLabel))\n";
+					}
+					$descriptorCode .= " if (i".$rank." /= size(self%".$parameter->{'name'}.",dim=".$rank.")) parameterValues=parameterValues//','\n";
+					for(my $i=1;$i<=$rank;++$i) {
+					    $descriptorCode .= "end do\n";
+					    $descriptorCode .= " parameterValues=parameterValues//']'\n";
+					    $descriptorCode .= " if (i".($i-1)." /= size(self%".$parameter->{'name'}.",dim=".($i-1).")) parameterValues=parameterValues//','\n"
+						unless ( $i == 1 );
+					}
+					$descriptorCode .= "call ".$parameter->{'source'}."%addParameter('".$parameter->{'inputName'}."',char(parameterValues))\n";
+				    } else {
+					# Scalar parameter.
+					if ( $function ) {
+					    $descriptorCode .= "call ".$parameter->{'source'}."%addParameter('".$parameter->{'inputName'}."',".$function."(self%".$parameter->{'name'}."))\n";
+					} else {
+					    if ( $isLogical ) {
+						$descriptorCode .= "if (self%".$parameter->{'name'}.") then\n";
+						$descriptorCode .= "  parameterLabel='true'\n";
+						$descriptorCode .= "else\n";
+						$descriptorCode .= "  parameterLabel='false'\n";
+						$descriptorCode .= "end if\n";
+					    } else {
+						$descriptorCode .= "write (parameterLabel,'(".$format.")') self%".$parameter->{'name'}."\n";
+					    }
+					    $descriptorCode .= "call ".$parameter->{'source'}."%addParameter('".$parameter->{'inputName'}."',trim(adjustl(parameterLabel)))\n";
+					}
+				    }
+				}
+			    }
+			}
+		    }
+		    # Enumerations.
+		    if ( defined($descriptorParameters->{'enumerations'}) ) {
+			foreach my $parameter ( @{$descriptorParameters->{'enumerations'}} ) {
+			    foreach my $declaration ( @{$potentialNames->{'enumerations'}} ) {
+				if ( grep {$_ eq lc($parameter->{'name'})} @{$declaration->{'variables'}} ) {
+				    my $format = "i17";
+				    my $isLogical = 0;
+				    $addLabel  = 1;
+				    my $rank = &declarationRank($declaration);
+				    if ( $rank > 0 ) {
+					# Non-scalar parameter - values must be concatenated.
+					$rankMaximum = $rank
+					    if ( $rank > $rankMaximum );
+					$descriptorCode .= "parameterValues=''\n";
+					for(my $i=1;$i<=$rank;++$i) {
+					    $descriptorCode .= " parameterValues=parameterValues//'['\n";
+					    $descriptorCode .= "do i".$i."=lbound(self%".$parameter->{'name'}.",dim=".$i."),ubound(self%".$parameter->{'name'}.",dim=".$i.")\n";
+					}
+					$descriptorCode .= "write (parameterLabel,'(".$format.")') self%".$parameter->{'name'}."(".join(",",map {"i".$_} 1..$rank).")%ID\n";
+					$descriptorCode .= " parameterValues=parameterValues//trim(adjustl(parameterLabel))\n";
+					$descriptorCode .= " if (i".$rank." /= size(self%".$parameter->{'name'}.",dim=".$rank.")) parameterValues=parameterValues//','\n";
+					for(my $i=1;$i<=$rank;++$i) {
+					    $descriptorCode .= "end do\n";
+					    $descriptorCode .= " parameterValues=parameterValues//']'\n";
+					    $descriptorCode .= " if (i".($i-1)." /= size(self%".$parameter->{'name'}.",dim=".($i-1).")) parameterValues=parameterValues//','\n"
+						unless ( $i == 1 );
+					}
+					$descriptorCode .= "call ".$parameter->{'source'}."%addParameter('".$parameter->{'inputName'}."',char(parameterValues))\n";
+				    } else {
+					# Scalar parameter.
+					$descriptorCode .= "write (parameterLabel,'(".$format.")') self%".$parameter->{'name'}."%ID\n";
+					$descriptorCode .= "call ".$parameter->{'source'}."%addParameter('".$parameter->{'inputName'}."',trim(adjustl(parameterLabel)))\n";
+				    }
+				}
+			    }
+			}
+		    }
+		    # Stateful types.
+		    if ( defined($descriptorParameters->{'statefulTypes'}) ) {
+			foreach my $parameter ( @{$descriptorParameters->{'statefulTypes'}} ) {
+			    foreach my $declaration ( @{$potentialNames->{'statefulTypes'}} ) {
+				if ( grep {$_ eq lc($parameter->{'name'})} @{$declaration->{'variables'}} ) {
+				    my $format;
+				    my $isLogical = 0;
+				    if      ( $declaration->{'type'} eq "statefulInteger" ) {
+					$format     = "i17";
+				    } elsif ( $declaration->{'type'} eq "statefulDouble"  ) {
+					$format     = "e17.10";
+				    } elsif ( $declaration->{'type'} eq "statefulLogical" ) {
+					$isLogical = 1;
+				    } else {
+					die("unknown stateful-type");
+				    }
+				    $addLabel  = 1;
+				    my $rank = &declarationRank($declaration);
+				    if ( $rank > 0 ) {
+					# Non-scalar parameter - values must be concatenated.
+					$rankMaximum = $rank
+					    if ( $rank > $rankMaximum );
+					$descriptorCode .= "parameterValues=''\n";
+					for(my $i=1;$i<=$rank;++$i) {
+					    $descriptorCode .= " parameterValues=parameterValues//'['\n";
+					    $descriptorCode .= "do i".$i."=lbound(self%".$parameter->{'name'}.",dim=".$i."),ubound(self%".$parameter->{'name'}.",dim=".$i.")\n";
+					}
+					$descriptorCode .= "if (self%".$parameter->{'name'}."(".join(",",map {"i".$_} 1..$rank).")%isSet) then\n";
+					if ( $isLogical ) {
+					    $descriptorCode .= "if (self%".$parameter->{'name'}."(".join(",",map {"i".$_} 1..$rank)."%value) then\n";
+					    $descriptorCode .= "  parameterLabel='true'\n";
+					    $descriptorCode .= "else\n";
+					    $descriptorCode .= "  parameterLabel='false'\n";
+					    $descriptorCode .= "end if\n";
+					} else {
+					    $descriptorCode .= "write (parameterLabel,'(".$format.")') self%".$parameter->{'name'}."(".join(",",map {"i".$_} 1..$rank).")%value\n";
+					}
+					$descriptorCode .= " else\n";
+					$descriptorCode .= "  parameterLabel='?'\n";
+					$descriptorCode .= " end if\n";
+					$descriptorCode .= " parameterValues=parameterValues//trim(adjustl(parameterLabel))\n";
+					$descriptorCode .= " if (i".$rank." /= size(self%".$parameter->{'name'}.",dim=".$rank.")) parameterValues=parameterValues//','\n";
+					for(my $i=1;$i<=$rank;++$i) {
+					    $descriptorCode .= "end do\n";
+					    $descriptorCode .= " parameterValues=parameterValues//']'\n";
+					    $descriptorCode .= " if (i".($i-1)." /= size(self%".$parameter->{'name'}.",dim=".($i-1).")) parameterValues=parameterValues//','\n"
+						unless ( $i == 1 );
+					}
+					$descriptorCode .= "call ".$parameter->{'source'}."%addParameter('".$parameter->{'inputName'}."',char(parameterValues))\n";
+				    } else {
+					# Scalar parameter.
+					$descriptorCode .= "if (self%".$parameter->{'name'}."%isSet) then\n";
+					if ( $isLogical ) {
+					    $descriptorCode .= "if (self%".$parameter->{'name'}."%value) then\n";
+					    $descriptorCode .= "  parameterLabel='true'\n";
+					    $descriptorCode .= "else\n";
+					    $descriptorCode .= "  parameterLabel='false'\n";
+					    $descriptorCode .= "end if\n";
+					} else {
+					    $descriptorCode .= "write (parameterLabel,'(".$format.")') self%".$parameter->{'name'}."%value\n";
+					}
+					$descriptorCode .= " else\n";
+					$descriptorCode .= "  parameterLabel='?'\n";
+					$descriptorCode .= " end if\n";
+					$descriptorCode .= "call ".$parameter->{'source'}."%addParameter('".$parameter->{'inputName'}."',trim(adjustl(parameterLabel)))\n";
+				    }
+				 }
+			    }
+			}
+		    }
+		    # Handle objects built via objectBuilder directives.
+		    if ( defined($descriptorParameters->{'objects'}) ) {
+			foreach ( @{$descriptorParameters->{'objects'}} ) {
+                                    # Always include the class for composited objects - this ensures that the object is actually created.
+			    $descriptorCode .= "if (associated(self%".$_->{'name'}.")) call self%".$_->{'name'}."%descriptor(parameters,includeClass=.true.,includeFileModificationTimes=includeFileModificationTimes)\n";
+			}
+		    }
+		    # Handle linked lists.
+		    if ( defined($descriptorParameters->{'linkedLists'}) ) {
+			foreach ( @{$descriptorParameters->{'linkedLists'}} ) {
+			    (my $linkedListCode, my $linkedListModule) = &autoDescriptorLinkedList($_,$descriptorLinkedListVariables);
+			    $descriptorCode .= $linkedListCode;
+			    $descriptorModules{$linkedListModule} = 1
+				if ( $linkedListModule );
+			}
+		    }
+		}
+		# If the parent constructor was used, call its descriptor method.
+		if ( $parentConstructorUsed ) {
+		    $descriptorCode .= "call self%".$extensionOf."%descriptor(descriptor,includeClass=.false.,includeFileModificationTimes=includeFileModificationTimes)\n";
+		}
+	    } elsif ( ! $declarationMatches     && ! exists($nonAbstractClass->{'descriptorSpecial'}) ) {
+		die("Automatic descriptor can not be built for class '".$nonAbstractClass->{'name'}."': parameter-based constructor not found");
+	    } elsif (   $supported         != 1 && ! exists($nonAbstractClass->{'descriptorSpecial'}) ) {
+		die("Automatic descriptor can not be built for class '".$nonAbstractClass->{'name'}."' because:\n   ".join("\n   ",@failureMessage));
+	    }
+	}
+	# Add run-time file dependency modification times if needed.
+	{
+	    $code::type = $nonAbstractClass->{'name'};
+	    my $class = $nonAbstractClass;
+	    my $rankMaximum = 0;
+	    while ( $class ) {
+		if ( exists($class->{'runTimeFileDependencies'}) ) {
+		    unless ( $fileModificationCodeAdded ) {
+			$descriptorCode                      = "integer :: status\ncharacter(len=30) :: timeModification\ninteger :: countRunTimeFileDependency\ntype(varying_string) :: fileDependencyParameterName\n".$descriptorCode;
+			$descriptorModules{'File_Utilities' } = 1;
+			$descriptorModules{'String_Handling'} = 1;
+			$descriptorModules{'Error'          } = 1;
+			$fileModificationCodeAdded            = 1;
+		    }
+		    $descriptorCode .= "if (includeFileModificationTimes_) then\ncountRunTimeFileDependency=0\n";
+		    my @paths = split(" ",$class->{'runTimeFileDependencies'}->{'paths'});
+		    my $rankMaximum = 0;
+		    foreach $code::path ( @paths ) {
+			# Find the named path variable.
+			my $rank = 0;
+			foreach my $declaration ( @{$potentialNames->{'parameters'}} ) {
+			    if ( grep {$_ eq lc($code::path)} @{$declaration->{'variables'}} ) {
+				$rank = &declarationRank($declaration);
+			    }
+			}
+			$rankMaximum            = $rank
+			    if ( $rank > $rankMaximum );
+			$code::introspection = &Galacticus::Build::SourceTree::Process::SourceIntrospection::Location($nonAbstractClass->{'node'},$nonAbstractClass->{'node'}->{'line'});
+			if ( $rank > 0 ) {
+			    $code::selector = "(".join(",",map {"i".$_} 1..$rank).")";
+			    for(my $i=0;$i<$rank;++$i) {
+				$code::dim = $i+1;
+				$descriptorCode .= fill_in_string(<<'CODE', PACKAGE => 'code');
+do i{$dim}=lbound(self%{$path},dim={$dim}),ubound(self%{$path},dim={$dim})
+CODE
+			    }
+			}
+			$descriptorCode .= fill_in_string(<<'CODE', PACKAGE => 'code');
+timeModification=File_Modification_Time(self%{$path}{$selector},status)
+if (status == errorStatusSuccess) then
+ countRunTimeFileDependency=countRunTimeFileDependency+1
+ fileDependencyParameterName=var_str("runTimeFileDependency")//countRunTimeFileDependency
+ call descriptor%addParameter(char(fileDependencyParameterName),char(self%{$path}{$selector}//": "//trim(timeModification)))
+else if (status /= errorStatusNotExist) then
+ call Error_Report('unable to get file modification time'//{$introspection})
+end if
+CODE
+			if ( $rank > 0 ) {
+			    for(my $i=0;$i<$rank;++$i) {
+				$code::dim = $i;
+				$descriptorCode .= fill_in_string(<<'CODE', PACKAGE => 'code');
+end do
+CODE
+			    }
+			}
+		    }
+		    $descriptorCode .= "end if\n";
+		}
+		$class = ($class->{'extends'} eq $directive->{'name'}) ? undef() : $classes{$class->{'extends'}};
+	    }
+	    $descriptorCode = "integer :: ".join(", ",map {"i".$_} 1..$rankMaximum)."\n".$descriptorCode
+		if ( $rankMaximum > 0 );
+	}
+	# Call any special descriptor function.
+	$descriptorCode .= " call self%".$nonAbstractClass->{'descriptorSpecial'}."(parameters)\n"
+	    if ( exists($nonAbstractClass->{'descriptorSpecial'}) );
+    }
+    $descriptorCode .= "end select\n";
+    if ( scalar(@{$descriptorLinkedListVariables}) > 0 ) {
+           	$descriptorCode = &Fortran::Utils::Format_Variable_Definitions($descriptorLinkedListVariables).$descriptorCode;
+    }
+    if ( $descriptorUsed ) {
+	$descriptorCode = "logical :: includeClass_\n".$descriptorCode;
+    } else {
+	$descriptorCode  = " !\$GLC attributes unused :: descriptor, includeClass\n".$descriptorCode;
+    }
+ 	    $descriptorCode  = "type(inputParameters) :: ".join(",",sort(keys(%addSubParameters)))."\n".$descriptorCode
+	if ( %addSubParameters );
+ 	    $descriptorCode  = "character(len=18) :: parameterLabel\n".$descriptorCode
+	if ( $addLabel );
+    if ( $rankMaximum > 0 ) {
+	$descriptorCode  = "integer :: ".join(",",map {"i".$_} 1..$rankMaximum)."\ntype(varying_string) :: parameterValues\n".$descriptorCode
+    }
+    $methods->{'descriptor'} =
+    {
+	description => "Return an input parameter list descriptor which could be used to recreate this object.",
+	type        => "void",
+	pass        => "yes",
+	modules     => join(" ",sort(keys(%descriptorModules))),
+	argument    => [ "type(inputParameters), intent(inout) :: descriptor", "logical, intent(in   ), optional :: includeClass, includeFileModificationTimes" ],
+	code        => $descriptorCode
+    };
+    # Add a "hashedDescriptor" method.
+    $code::directiveName = $directive->{'name'};
+    # <workaround type="gfortran" PR="102845" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=102845">
+    #  <description>
+    #   Nested parallelism results in memory leaks.
+    #  </description>
+    # </workaround>
+    my $hashedDescriptorCode = fill_in_string(<<'CODE', PACKAGE => 'code');
+logical                        :: includeSourceDigest_
+type   (inputParameters)       :: descriptor
+type   (varying_string )       :: descriptorString
+!   Workaround starts here.
+! type   (varying_string ), save :: descriptorStringPrevious, hashedDescriptorPrevious
+! !$omp threadprivate(descriptorStringPrevious,hashedDescriptorPrevious)
+! Workaround ends here.
+descriptor=inputParameters()
+! Disable live nodeLists in FoX as updating these nodeLists leads to memory leaks.
+call setLiveNodeLists(descriptor%document%document,.false.)
+call self%descriptor(descriptor,includeClass=.true.,includeFileModificationTimes=includeFileModificationTimes)
+descriptorString=descriptor%serializeToString()
+call descriptor%destroy()
+if (present(includeSourceDigest)) then
+ includeSourceDigest_=includeSourceDigest
+else
+ includeSourceDigest_=.false.
+end if
+if (includeSourceDigest_) then
+select type (self)
+CODE
+    foreach my $nonAbstractClass ( @nonAbstractClasses ) {
+	$code::type = $nonAbstractClass->{'name'};
+	(my $classFile = $tree->{'source'}) =~ s/^.*\/([^\/]+)$/$1/;
+	my @sourceFiles = ( $classFile );
+	my $class = $nonAbstractClass;
+	while ( $class ) {
+	    (my $sourceFile = $class->{'file'}) =~ s/^.*\/([^\/]+)$/$1/;
+	    push(@sourceFiles,$sourceFile);
+	    $class = ($class->{'extends'} eq $directive->{'name'}) ? undef() : $classes{$class->{'extends'}};
+	}
+	$hashedDescriptorCode .= fill_in_string(<<'CODE', PACKAGE => 'code');
+type is ({$type})
+descriptorString=descriptorString//":sourceDigest\{"//String_C_To_Fortran({$type}5)//"\}"
+CODE
+    }
+    # <workaround type="gfortran" PR="102845" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=102845">
+    #  <description>
+    #   Nested parallelism results in memory leaks.
+    #  </description>
+    # </workaround>
+    $hashedDescriptorCode .= fill_in_string(<<'CODE', PACKAGE => 'code');
+end select
+end if
+!   Workaround starts here.
+!   if (descriptorString /= descriptorStringPrevious) then
+!      descriptorStringPrevious=         descriptorString
+!      hashedDescriptorPrevious=Hash_MD5(descriptorString)
+!   end if
+!   {$directiveName}HashedDescriptor=hashedDescriptorPrevious
+   {$directiveName}HashedDescriptor=Hash_MD5(descriptorString)
+! Workaround ends here.
+CODE
+    $methods->{'hashedDescriptor'} =
+    {
+	description => "Return a hash of the descriptor for this object, optionally include the source code digest in the hash.",
+	type        => "type(varying_string)",
+	pass        => "yes",
+	modules     => "ISO_Varying_String String_Handling Input_Parameters Hashes_Cryptographic FoX_DOM",
+	argument    => [ "logical, intent(in   ), optional :: includeSourceDigest, includeFileModificationTimes" ],
+	code        => $hashedDescriptorCode
+    };
+}
+
+
+sub buildAllowedParametersMethod {
+    my $directive    = shift();
+    my $classesArray = shift();
+    my $methods      = shift();
+    my @classes      = @{$classesArray};
+
+    # Add "allowedParameters" method.
+    my $allowedParametersCode;
+    my $allowedParameters;
+    my $parametersPresent = 0;
+    foreach my $class ( @classes ) {
+	(my $label = $class->{'name'}) =~ s/^$directive->{'name'}//;
+	$label = lcfirst($label)
+	    unless ( $label =~ m/^[A-Z]{2,}/ );
+	# Search the tree for this class to find the interface to the parameters constructor.
+	my $node = $class->{'tree'}->{'firstChild'};
+	$node = $node->{'sibling'}
+	    while ( $node && ( $node->{'type'} ne "interface" || ( ! exists($node->{'name'}) || $node->{'name'} ne $class->{'name'} ) ) );
+	next
+	    unless ( $node );
+	# Find all constructor names.
+	$node = $node->{'firstChild'};
+	my @constructors;
+	while ( $node ) {
+	    push(@constructors,@{$node->{'names'}})
+		if ( $node->{'type'} eq "moduleProcedure" );
+	    $node = $node->{'sibling'};
+	}
+	# Search for constructors.
+	$node = $class->{'tree'}->{'firstChild'};
+	$allowedParameters->{$class->{'name'}}->{'declarationMatches'} = 0;
+	while ( $node ) {
+	    if ( $node->{'type'} eq "function" && (grep {$_ eq $node->{'name'}} @constructors) && $node->{'opener'} =~ m/^\s*(recursive)??\s+function\s+$node->{'name'}\s*\(\s*parameters\s*(\s*,\s*recursiveConstruct\s*,\s*recursiveSelf\s*)??\)/ ) {
+		# Extract the name of the return variable in this function.
+		my $result = ($node->{'opener'} =~ m/result\s*\(\s*([a-zA-Z0-9_]+)\s*\)\s*$/) ? $1 : $node->{'name'};
+		# Check if this is the parameters constructor.
+		my $constructorNode    = $node->{'firstChild'};
+		my $depth = 0;
+		while ( $constructorNode ) {
+		    # Process node.
+		    if ( $constructorNode->{'type'} eq "declaration" ) {
+			# Declaration node found - check if we have a parameters argument of the correct type.
+			foreach my $declaration ( @{$constructorNode->{'declarations'}} ) {
+			    $allowedParameters->{$class->{'name'}}->{'declarationMatches'} = 1
+				if (
+				           $declaration->{'intrinsic'}  eq "type"
+				    &&
+				    trimlc($declaration->{'type'     }) eq "inputparameters"
+				    &&
+				    grep {$_ eq "parameters"} @{$declaration->{'variables'}}
+				);
+			}
+		    }
+		    if ( $constructorNode->{'type'} eq "code" ) {
+			# Look for calls to a parent class' parameter constructor.
+			my $newContent;
+			my $modified = 0;
+			open(my $code,"<",\$constructorNode->{'content'});
+			do {
+			    # Get a line.
+			    &Fortran::Utils::Get_Fortran_Line($code, my $rawLine, my $processedLine, my $bufferedComments);
+			    if ( $processedLine =~ m/^\s*$result%([a-zA-Z0-9_]+)\s*=([a-zA-Z0-9_]+)\(\s*parameters\s*\)/ ) {
+				$allowedParameters->{$class->{'name'}}->{'classParent'} = $1;
+				$newContent .= $directive->{'name'}."DsblVldtn=".$directive->{'name'}."DsblVldtn+1\n";
+				$newContent .= $rawLine;
+				$newContent .= $directive->{'name'}."DsblVldtn=".$directive->{'name'}."DsblVldtn-1\n";
+				$modified    = 1;
+			    } else {
+				$newContent .= $rawLine;
+			    }
+			} until ( eof($code) );
+			close($code);
+			$constructorNode->{'content'} = $newContent
+			    if ( $modified );
+		    }			    
+		    if ( $constructorNode->{'type'} eq "inputParameter" ) {
+			my $source = $constructorNode->{'directive'}->{'source'};
+			if ( exists($constructorNode->{'directive'}->{'name'}) ) {
+			    # A regular parameter, defined by its name.
+			    push(@{$allowedParameters->{$class->{'name'}}->{'parameters'}->{$source}->{'all'}},$constructorNode->{'directive'}->{'name' });
+			}
+		    }
+		    if ( $constructorNode->{'type'} eq "objectBuilder"  ) {
+			my $source = $constructorNode->{'directive'}->{'source'};
+			push(@{$allowedParameters->{$class->{'name'}}->{'parameters'}->{$source}->{'all'    }},exists($constructorNode->{'directive'}->{'parameterName'}) ? $constructorNode->{'directive'}->{'parameterName'} : $constructorNode->{'directive'}->{'class'});
+			push(@{$allowedParameters->{$class->{'name'}}->{'parameters'}->{$source}->{'classes'}},exists($constructorNode->{'directive'}->{'parameterName'}) ? $constructorNode->{'directive'}->{'parameterName'} : $constructorNode->{'directive'}->{'class'});
+			# Check if the class contains a pointer of the expected type and name for this object.
+			my $typeNode = $class->{'tree'}->{'firstChild'};
+			while ( $typeNode ) {
+			    if ( $typeNode->{'type'} eq "type" && lc($typeNode->{'name'}) eq lc($class->{'name'}) ) {
+				$typeNode = $typeNode->{'firstChild'};
+				while ( $typeNode ) {
+				    if ( $typeNode->{'type'} eq "declaration" ) {
+					foreach my $declaration ( @{$typeNode->{'declarations'}} ) {
+					    if (
+						$declaration->{'intrinsic'} eq "class"
+						&&
+						trimlc($declaration->{'type'}) eq trimlc($constructorNode->{'directive'}->{'class'})."class"
+						) {
+						push(
+						     @{$allowedParameters->{$class->{'name'}}->{'parameters'}->{$source}->{'objects'}},
+						     map {
+							  (
+							   lc(            $_) eq striplc($constructorNode->{'directive'}->{'name'})
+							   ||
+							   lc($result."%".$_) eq striplc($constructorNode->{'directive'}->{'name'})
+							  )
+							  ?
+							  $_
+							  :
+							  ()
+						    } @{$declaration->{'variables'}}
+						    );
+					    }
+					}
+				    }
+				    $typeNode = $typeNode->{'sibling'};
+				}
+				last;
+			    }
+			    $typeNode = $typeNode->{'sibling'};
+			}
+		    }
+		    $constructorNode = &Galacticus::Build::SourceTree::Walk_Tree($constructorNode,\$depth);
+		    last
+			if ( $depth < 0 );
+		}
+	    }
+	    $node = $node->{'type'} eq "contains" ? $node->{'firstChild'} : $node->{'sibling'};
+	}
+    }
+    my $allowedParametersLinkedListVariables;
+    @{$allowedParametersLinkedListVariables} = ();
+    $allowedParametersCode .= "select type (self)\n";
+    my %allowedParametersModules;
+    $allowedParametersModules{'ISO_Varying_String'} = 1;
+    foreach my $class ( @classes ) {
+	if ( $allowedParameters->{$class->{'name'}}->{'declarationMatches'} ) {
+	    my $className = $class->{'name'};
+	    $allowedParametersCode .= "type is (".$className.")\n";
+	    # Include the class and all parent classes for which the parent class parameter constructor is called.
+	    while ( defined($className) ) {
+		foreach my $source ( sort(keys(%{$allowedParameters->{$className}->{'parameters'}})) ) {
+		    $allowedParametersCode .= "  if (objectsOnly) then\n";
+		    {
+			my $parameterCount = exists($allowedParameters->{$className}->{'parameters'}->{$source}->{'classes'}) ? scalar(@{$allowedParameters->{$className}->{'parameters'}->{$source}->{'classes'}}) : 0;
+			if ( $parameterCount > 0 ) {
+			    $parametersPresent          = 1;
+			    $allowedParametersCode     .= "   if (sourceName == '".$source."') then\n";
+			    $allowedParametersCode     .= "     countNew=0\n";
+			    $allowedParametersCode     .= "     if (allocated(allowedParameters)) then\n";
+			    for(my $i=0;$i<$parameterCount;++$i) {
+				# <workaround type="gfortran" PR="37336" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=37336">
+				#   <description>
+				#     Array constructors are not correctly finalized. So, avoid using them.
+				#   </description>
+				# $allowedParametersCode .= "       if (.not.any(trim(allowedParameters) == '".$allowedParameters->{$className}->{'parameters'}->{$source}->{'classes'}->[$i]."')) countNew=countNew+1\n";
+				$allowedParametersCode .= "       isNew=.true.\n";
+				$allowedParametersCode .= "       do j=1,size(allowedParameters)\n";
+				$allowedParametersCode .= "          if (allowedParameters(j) == '".$allowedParameters->{$className}->{'parameters'}->{$source}->{'classes'}->[$i]."') then\n";
+				$allowedParametersCode .= "             isNew=.false.\n";
+				$allowedParametersCode .= "             exit\n";
+				$allowedParametersCode .= "          end if\n";
+				$allowedParametersCode .= "       end do\n";
+				$allowedParametersCode .= "       if (isNew) countNew=countNew+1\n";
+				# </workaround>
+			    }
+			    $allowedParametersCode     .= "       if (countNew > 0) then\n";
+			    $allowedParametersCode     .= "         call move_alloc(allowedParameters,allowedParametersTmp)\n";
+			    $allowedParametersCode     .= "         allocate(allowedParameters(size(allowedParametersTmp)+countNew))\n";
+			    $allowedParametersCode     .= "         allowedParameters(1:size(allowedParametersTmp))=allowedParametersTmp\n";
+			    $allowedParametersCode     .= "         deallocate(allowedParametersTmp)\n";
+			    for(my $i=0;$i<$parameterCount;++$i) {
+				# <workaround type="gfortran" PR="37336" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=37336">
+				#   <description>
+				#     Array constructors are not correctly finalized. So, avoid using them.
+				#   </description>
+				# $allowedParametersCode .= "         if (.not.any(trim(allowedParameters(1:size(allowedParameters)-countNew)) == '".$allowedParameters->{$className}->{'parameters'}->{$source}->{'classes'}->[$i]."')) then\n";
+				$allowedParametersCode .= "       isNew=.true.\n";
+				$allowedParametersCode .= "       do j=1,size(allowedParameters)-countNew\n";
+				$allowedParametersCode .= "          if (allowedParameters(j) == '".$allowedParameters->{$className}->{'parameters'}->{$source}->{'classes'}->[$i]."') then\n";
+				$allowedParametersCode .= "             isNew=.false.\n";
+				$allowedParametersCode .= "             exit\n";
+				$allowedParametersCode .= "          end if\n";
+				$allowedParametersCode .= "       end do\n";
+				$allowedParametersCode .= "       if (isNew) then\n";
+				# </workaround>
+				$allowedParametersCode .= "           countNew=countNew-1\n";
+				$allowedParametersCode .= "           allowedParameters(size(allowedParameters)-countNew)='".$allowedParameters->{$className}->{'parameters'}->{$source}->{'classes'}->[$i]."'\n";
+				$allowedParametersCode .= "         end if\n";
+			    }
+			    $allowedParametersCode     .= "       end if\n";
+			    $allowedParametersCode     .= "     else\n";
+			    $allowedParametersCode     .= "       allocate(allowedParameters(".$parameterCount."))\n";
+			    for(my $i=0;$i<$parameterCount;++$i) {
+				$allowedParametersCode .= "       allowedParameters(".($i+1).")='".$allowedParameters->{$className}->{'parameters'}->{$source}->{'classes'}->[$i]."'\n";
+			    }
+			    $allowedParametersCode     .= "     end if\n";
+			    $allowedParametersCode     .= "   end if\n";
+			}
+		    }
+		    $allowedParametersCode .= "  else\n";
+		    {
+			my $parameterCount = scalar(@{$allowedParameters->{$className}->{'parameters'}->{$source}->{'all'}});
+			if ( $parameterCount > 0 ) {
+			    $parametersPresent          = 1;
+			    $allowedParametersCode     .= "   if (sourceName == '".$source."') then\n";
+			    $allowedParametersCode     .= "     countNew=0\n";
+			    $allowedParametersCode     .= "     if (allocated(allowedParameters)) then\n";
+			    for(my $i=0;$i<$parameterCount;++$i) {
+				# <workaround type="gfortran" PR="37336" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=37336">
+				#   <description>
+				#     Array constructors are not correctly finalized. So, avoid using them.
+				#   </description>
+				# $allowedParametersCode .= "       if (.not.any(trim(allowedParameters) == '".$allowedParameters->{$className}->{'parameters'}->{$source}->{'all'}->[$i]."')) countNew=countNew+1\n";
+				$allowedParametersCode .= "       isNew=.true.\n";
+				$allowedParametersCode .= "       do j=1,size(allowedParameters)\n";
+				$allowedParametersCode .= "          if (allowedParameters(j) == '".$allowedParameters->{$className}->{'parameters'}->{$source}->{'all'}->[$i]."') then\n";
+				$allowedParametersCode .= "             isNew=.false.\n";
+				$allowedParametersCode .= "             exit\n";
+				$allowedParametersCode .= "          end if\n";
+				$allowedParametersCode .= "       end do\n";
+				$allowedParametersCode .= "       if (isNew) countNew=countNew+1\n";
+			    }	
+			    $allowedParametersCode     .= "       if (countNew > 0) then\n";
+			    $allowedParametersCode     .= "         call move_alloc(allowedParameters,allowedParametersTmp)\n";
+			    $allowedParametersCode     .= "         allocate(allowedParameters(size(allowedParametersTmp)+countNew))\n";
+			    $allowedParametersCode     .= "         allowedParameters(1:size(allowedParametersTmp))=allowedParametersTmp\n";
+			    $allowedParametersCode     .= "         deallocate(allowedParametersTmp)\n";
+			    for(my $i=0;$i<$parameterCount;++$i) {
+				# <workaround type="gfortran" PR="37336" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=37336">
+				#   <description>
+				#     Array constructors are not correctly finalized. So, avoid using them.
+				#   </description>
+				# $allowedParametersCode .= "         if (.not.any(trim(allowedParameters(1:size(allowedParameters)-countNew)) == '".$allowedParameters->{$className}->{'parameters'}->{$source}->{'all'}->[$i]."')) then\n";
+				$allowedParametersCode .= "       isNew=.true.\n";
+				$allowedParametersCode .= "       do j=1,size(allowedParameters)-countNew\n";
+				$allowedParametersCode .= "          if (allowedParameters(j) == '".$allowedParameters->{$className}->{'parameters'}->{$source}->{'all'}->[$i]."') then\n";
+				$allowedParametersCode .= "             isNew=.false.\n";
+				$allowedParametersCode .= "             exit\n";
+				$allowedParametersCode .= "          end if\n";
+				$allowedParametersCode .= "       end do\n";
+				$allowedParametersCode .= "       if (isNew) then\n";
+				# </workaround>
+				$allowedParametersCode .= "           countNew=countNew-1\n";
+				$allowedParametersCode .= "           allowedParameters(size(allowedParameters)-countNew)='".$allowedParameters->{$className}->{'parameters'}->{$source}->{'all'}->[$i]."'\n";
+				$allowedParametersCode .= "         end if\n";
+			    }
+			    $allowedParametersCode     .= "       end if\n";
+			    $allowedParametersCode     .= "     else\n";
+			    $allowedParametersCode     .= "       allocate(allowedParameters(".$parameterCount."))\n";
+			    for(my $i=0;$i<$parameterCount;++$i) {
+				$allowedParametersCode .= "       allowedParameters(".($i+1).")='".$allowedParameters->{$className}->{'parameters'}->{$source}->{'all'}->[$i]."'\n";
+			    }
+			    $allowedParametersCode     .= "     end if\n";
+			    $allowedParametersCode     .= "   end if\n";
+			}
+		    }
+		    $allowedParametersCode .= "  end if\n";
+		    # Call the allowedParameters() method of any stored obejcts.
+		    if ( $className eq $class->{'name'} ) {
+			$parametersPresent      = 1
+			    if ( exists($allowedParameters->{$className}->{'parameters'}->{$source}->{'objects'}) );
+			foreach ( @{$allowedParameters->{$className}->{'parameters'}->{$source}->{'objects'}} ) {
+			    $allowedParametersCode .= "  if (associated(self%".$_.")) call self%".$_."%allowedParameters(allowedParameters,'".$source."',.true.)\n";
+			}
+			# Handle any linked lists.
+			(my $linkedListCode, my $linkedListModule) = &allowedParametersLinkedList($class,$allowedParametersLinkedListVariables,$source);
+			$allowedParametersCode .= $linkedListCode;
+			$allowedParametersModules{$linkedListModule} = 1
+			    if ( $linkedListModule );
+		    }
+		}
+		if ( defined($allowedParameters->{$className}->{'classParent'}) ) {
+		    $className = $allowedParameters->{$className}->{'classParent'};
+		} else {
+		    undef($className);
+		}
+	    }
+	}
+    }
+    $allowedParametersCode .= "end select\n";
+    if ( $parametersPresent ) {
+	$allowedParametersCode = "type   (varying_string), allocatable, dimension(:) :: allowedParametersTmp\n".$allowedParametersCode;
+	$allowedParametersCode = "integer                                            :: countNew, j\n"                                                                              .$allowedParametersCode;
+	$allowedParametersCode = "logical                                            :: isNew\n"                                                                                    .$allowedParametersCode;
+    } else {
+	$allowedParametersCode = "!\$GLC attributes unused :: self, allowedParameters, sourceName\n";
+    }
+            $allowedParametersCode  = &Fortran::Utils::Format_Variable_Definitions($allowedParametersLinkedListVariables).$allowedParametersCode;
+    $methods->{'allowedParameters'} =
+    {
+	description => "Return a list of parameter names allowed for this object.",
+	type        => "void",
+	recursive   => "yes",
+	pass        => "yes",
+	modules     => join(" ",keys(%allowedParametersModules)),
+	argument    => [
+	    "type     (varying_string), dimension(:), allocatable, intent(inout) :: allowedParameters",
+	    "character(len=*         )                           , intent(in   ) :: sourceName"       ,
+	    "logical                                             , intent(in   ) :: objectsOnly"
+	    ],
+	code        => $allowedParametersCode
+    };
+    
+}
+
+
+sub buildAssignmentMethod {
+    my $directive          = shift();
+    my $nonAbstractClasses = shift();
+    my $classesHash        = shift();
+    my $methods            = shift();
+    my @nonAbstractClasses = @{$nonAbstractClasses};
+    my %classes            = %{$classesHash};
+
+    # Add "assignment(=)" operator.
+    my $assignment;
+    my $rankMaximumAssigner = 0;
+    my %assignerModules = ( "Error" => 1 );
+    my $assignerLinkedListVariables;
+    @{$assignerLinkedListVariables} = ();
+            $assignment->{'code'        } .= "select type (self)\n";
+    foreach my $nonAbstractClass ( @nonAbstractClasses ) {
+	# Add type guards.
+	$assignment->{'code'} .= "type is (".$nonAbstractClass->{'name'}.")\n";
+	$assignment->{'code'} .= "  select type (from)\n";
+	$assignment->{'code'} .= "  type is (".$nonAbstractClass->{'name'}.")\n";
+	# Search the tree for this class.
+	my $class = $nonAbstractClass;
+	while ( $class ) {
+	    my $node = $class->{'tree'}->{'firstChild'};
+	    $node = $node->{'sibling'}
+	        while ( $node && ( $node->{'type'} ne "type" || ( ! exists($node->{'name'}) || $node->{'name'} ne $class->{'name'} ) ) );
+	    last
+		unless ( $node );
+	    # Search the node for declarations.
+	    $node = $node->{'firstChild'};
+	    while ( $node ) {
+		# Process declarations.
+		if ( $node->{'type'} eq "declaration" ) {
+		    foreach my $declaration ( &List::ExtraUtils::as_array($node->{'declarations'}) ) {
+			my $isPointer   = grep {$_ eq "pointer"} @{$declaration->{'attributes'}};
+			my $assigner    = $isPointer ? "=>" : "=";
+			my $allocatable = grep {$_ eq "allocatable"} @{$declaration->{'attributes'}};
+			(my $type = $declaration->{'type'}) =~ s/(^\s*|\s*$)//g
+			    if ( $declaration->{'intrinsic'} eq "class" || $declaration->{'intrinsic'} eq "type" );
+			my $referenceCount = &isFunctionClassPointer($declaration,$type);
+			foreach my $object ( @{$declaration->{'variables'}} ) {
+			    my $name = &stripVariableName($object);
+			    my $allocatableThis = $allocatable;
+			    my $allocated       = "allocated";
+			    if ( exists($class->{'assignment'}) && exists($class->{'assignment'}->{'forceArrayAssign'}) && grep {$_ eq $name} split(" ",$class->{'assignment'}->{'forceArrayAssign'}) ) {
+				$allocatableThis = 1;
+				$allocated       = "associated";
+			    }
+			    if ( $allocatableThis ) {
+				# Use `mold=` to get the correct type. Then include a direct assignment after the `allocate`
+				# as this will trigger any defined assignment which is necessary for reference counting.
+				&generateAssignmentAllocatableCode($assignment,$declaration,$name,$allocated,\$rankMaximumAssigner);
+			    } elsif ( exists($class->{'linkedList'}) && grep {$_ eq $name} split(" ",$class->{'linkedList'}->{'variable'}) ) {
+				# Linked list - will be handled later.
+			    } else {
+				$assignment->{'code'} .= "    self%".$name.$assigner."from%".$name."\n";
+
+				my $forceReferenceCount =      exists(    $class->{'assignment'}                                  )
+				    &&
+				                               exists(    $class->{'assignment'}->{'functionClass'}               )
+				    &&
+				    grep {lc($_) eq lc($name)} split (" ",$class->{'assignment'}->{'functionClass'}->{'variables'});
+				if ( $forceReferenceCount ) {
+				    $assignment->{'code'} .= "    select type (object_ => self%".$name.")\n";
+				    $assignment->{'code'} .= "    class is (functionClass)\n";
+				    $assignment->{'code'} .= "    ".($isPointer ? "if (associated(object_)) " : "")."call object_%referenceCountIncrement()\n";
+				    $assignment->{'code'} .= "    end select\n";
+				} elsif ( $referenceCount ) {
+				    $assignment->{'code'} .= "    ".($isPointer ? "if (associated(self%".$name.")) " : "")."call self%".$name."%referenceCountIncrement()\n";
+				}
+			    }
+			}
+		    }
+		}
+		$node = $node->{'sibling'};
+	    }
+	    # Handle any linked lists.
+	    if ( exists($class->{'linkedList'}) ) {
+		(my $linkedListCode, my $linkedListModule) = &assignerLinkedList($class->{'linkedList'},$assignerLinkedListVariables);
+		$assignment->{'code'} .= $linkedListCode;
+		$assignerModules{$linkedListModule} = 1
+		    if ( $linkedListModule );
+	    }
+	    # Move to the parent class.
+	    $class = ($class->{'extends'} eq $directive->{'name'}) ? undef() : $classes{$class->{'extends'}};
+	}
+	$assignment->{'code'} .= "  class default\n";
+	$assignment->{'code'} .= "    call Error_Report('self and from types do not match'//".&Galacticus::Build::SourceTree::Process::SourceIntrospection::Location($nonAbstractClass->{'node'},$nonAbstractClass->{'node'}->{'line'}).")\n";
+	$assignment->{'code'} .= "  end select\n";
+    }
+    $assignment->{'code'} .= "end select\n";
+    # Add any objects declared in the base class.
+    foreach my $data ( &List::ExtraUtils::as_array($directive->{'data'}) ) {
+	my $declarationSource;
+	if ( reftype($data) ) {
+	    $declarationSource = $data->{'content'}
+	    if ( $data->{'scope'} eq "self" );
+	} else {
+	    $declarationSource = $data;
+	}
+	next
+	    unless ( defined($declarationSource) );
+	my $declaration = &Fortran::Utils::Unformat_Variables($declarationSource);
+	my $isPointer   = grep {$_ eq "pointer"} @{$declaration->{'attributes'}};
+	my $assigner    = $isPointer ? "=>" : "=";
+	my $allocatable = grep {$_ eq "allocatable"} @{$declaration->{'attributes'}};
+	(my $type = $declaration->{'type'}) =~ s/(^\s*|\s*$)//g
+	    if ( $declaration->{'intrinsic'} eq "class" || $declaration->{'intrinsic'} eq "type" );
+	my $referenceCount = &isFunctionClassPointer($declaration,$type);
+	foreach my $object ( @{$declaration->{'variables'}} ) {
+	    my $name = &stripVariableName($object);
+	    if ( $allocatable ) {
+		# Use `mold=` to get the correct type. Then include a direct assignment after the `allocate` as this will
+		# trigger any defined assignment which is necessary for reference counting.
+		&generateAssignmentAllocatableCode($assignment,$declaration,$name,"allocated",\$rankMaximumAssigner);
+	    } else {
+		$assignment->{'code'} .= "    self%".$name.$assigner."from%".$name."\n";
+	    }
+	    $assignment->{'code'} .= "    ".($isPointer ? "if (associated(self%".$name.")) " : "")."call self%".$name."%referenceCountIncrement()\n"
+		if ( $referenceCount );
+	}
+    }
+    # Add objects from the functionClass class.
+    $assignment->{'code'} .= "self%isDefaultOfClass=from%isDefaultOfClass\n";
+    $assignment->{'code'} .= "self%referenceCount=from%referenceCount\n";
+    $assignment->{'code'} .= "return\n";
+    # Insert any variables required.
+    if ( $rankMaximumAssigner > 0 ) {
+	$assignment->{'code'} = "integer :: ".join(",",map {"i".$_."__"} 1..$rankMaximumAssigner)."\n".$assignment->{'code'}
+    }
+    if ( scalar(@{$assignerLinkedListVariables}) > 0 ) {
+           	$assignment->{'code'} = &Fortran::Utils::Format_Variable_Definitions($assignerLinkedListVariables).$assignment->{'code'};
+    }
+    # Construct the method.
+    $methods->{'assignment(=)'} =
+    {
+	description => "Assign the object.",
+	type        => "void",
+	recursive   => "yes",
+	pass        => "yes",
+	selfIntent  => "out",
+	modules     => join(" ",sort(keys(%assignerModules))),
+	argument    => [ "class(".$directive->{'name'}."Class), intent(in   ) :: from" ],
+	code        => $assignment->{'code'}
+    };
+    
+}
+
+
+sub buildDeepCopyMethods {
+    my $directive          = shift();
+    my $nonAbstractClasses = shift();
+    my $classesHash        = shift();
+    my $lineNumber         = shift();
+    my $methods            = shift();
+    my @nonAbstractClasses = @{$nonAbstractClasses};
+    my %classes            = %{$classesHash};
+
+    # Add "deepCopy" method.
+    my $deepCopy;
+    $deepCopy->{'rankMaximum'       } = 0;
+    $deepCopy->{'needReferenceCount'} = 0;
+            my $linkedListVariables;
+            my $linkedListResetVariables;
+            my $linkedListFinalizeVariables;
+            @{$linkedListVariables        } = ();
+            @{$linkedListResetVariables   } = ();
+            @{$linkedListFinalizeVariables} = ();
+            $deepCopy->{'resetCode'   } .= "self%copiedSelf => null()\n";
+            $deepCopy->{'resetCode'   } .= "select type (self)\n";
+    $deepCopy->{'finalizeCode'} .= "self%copiedSelf => null()\n";
+            $deepCopy->{'finalizeCode'} .= "select type (self)\n";
+            $deepCopy->{'code'        } .= "select type (self)\n";
+    foreach my $nonAbstractClass ( @nonAbstractClasses ) {
+	# Search the tree for this class.
+	my $class = $nonAbstractClass;
+	undef($deepCopy->{'assignments'});
+	# Add a class guard for resets.
+	$deepCopy->{'resetCode'   } .= "type is (".$nonAbstractClass->{'name'}.")\n";
+	$deepCopy->{'finalizeCode'} .= "type is (".$nonAbstractClass->{'name'}.")\n";
+	# Initialize a list of explicity-deep-copied variables that have been found.
+	my $foundDeepCopyNames;
+	@{$foundDeepCopyNames} = ();
+	my $node;
+	while ( $class ) {
+	    $node = $class->{'tree'}->{'firstChild'};
+	    $node = $node->{'sibling'}
+	        while ( $node && ( $node->{'type'} ne "type" || ( ! exists($node->{'name'}) || $node->{'name'} ne $class->{'name'} ) ) );
+	    last
+		unless ( $node );
+	    # Handle linked lists.
+	    (my $linkedListCode, my $linkedListResetCode, my $linkedListFinalizeCode, my $linkedListModule) = &deepCopyLinkedList($class,$nonAbstractClass,$linkedListVariables,$linkedListResetVariables,$linkedListFinalizeVariables);
+	    $deepCopy->{'assignments' } .= $linkedListCode;
+	    $deepCopy->{'resetCode'   } .= $linkedListResetCode;
+	    $deepCopy->{'finalizeCode'} .= $linkedListFinalizeCode;
+	    if ( $linkedListModule ) {
+		$deepCopy->{'modules'        }->{$linkedListModule} = 1;
+		$deepCopy->{'resetModules'   }->{$linkedListModule} = 1;
+		$deepCopy->{'finalizeModules'}->{$linkedListModule} = 1;
+	    }
+	    # Search the node for declarations.
+	    my @ignore = exists($class->{'deepCopy'}->{'ignore'}) ? split(/\s*,\s*/,$class->{'deepCopy'}->{'ignore'}->{'variables'}) : ();
+	    $node = $node->{'firstChild'};
+	    while ( $node ) {
+		&deepCopyDeclarations($class,$nonAbstractClass,$node,$node->{'declarations'},\@ignore,$lineNumber,$deepCopy,$foundDeepCopyNames)
+		    if ( $node->{'type'} eq "declaration" );
+		$node = $node->{'sibling'};
+	    }
+	    # Move to the parent class.
+	    $class = ($class->{'extends'} eq $directive->{'name'}) ? undef() : $classes{$class->{'extends'}};
+	}
+	# Add any objects declared in the base class.
+	foreach my $data ( &List::ExtraUtils::as_array($directive->{'data'}) ) {
+	    my $declarationSource;
+	    if ( reftype($data) ) {
+		$declarationSource = $data->{'content'}
+		    if ( $data->{'scope'} eq "self" );
+	    } else {
+		$declarationSource = $data;
+	    }
+	    next
+		unless ( defined($declarationSource) );
+	    my $declaration = &Fortran::Utils::Unformat_Variables($declarationSource);
+	    my @ignore      = ();
+	    &deepCopyDeclarations($class,$nonAbstractClass,$node,$declaration,\@ignore,$lineNumber,$deepCopy,$foundDeepCopyNames);
+	}
+	# Check that the type of the destination matches, and perform the copy. Reset the reference count to the copy.
+	$deepCopy->{'code'} .= "type is (".$nonAbstractClass->{'name'}.")\n";
+	$deepCopy->{'code'} .= "select type (destination)\n";
+	$deepCopy->{'code'} .= "type is (".$nonAbstractClass->{'name'}.")\n";
+	$deepCopy->{'code'} .= "destination=self\n";
+	$deepCopy->{'code'} .= $deepCopy->{'assignments'}
+	    if ( defined($deepCopy->{'assignments'}) );
+	$deepCopy->{'code'} .= "class default\n";
+	$deepCopy->{'code'} .= "call Error_Report('destination and source types do not match'//".&Galacticus::Build::SourceTree::Process::SourceIntrospection::Location($nonAbstractClass->{'node'},$nonAbstractClass->{'node'}->{'line'}).")\n";
+	$deepCopy->{'code'} .= "end select\n";
+	# Specify required modules.
+	$deepCopy->{'modules'}->{'Error'} = 1;
+	# Check that all explicit variables were found.
+	{
+	    my $class = $nonAbstractClass;
+	    while ( $class ) {
+		if ( exists($class->{'deepCopy'}->{'functionClass'}) ) {
+		    foreach my $variable ( split(/\s*,\s*/,$class->{'deepCopy'}->{'functionClass'}->{'variables'}) ) {				
+			die("Error: unable to find variable '".$variable."' marked for deep copy in class '".$class->{'name'}."'")
+			    unless ( grep {$_ eq lc($variable)} @{$foundDeepCopyNames} );
+		    }
+		}
+		$class = ($class->{'extends'} eq $directive->{'name'}) ? undef() : $classes{$class->{'extends'}};
+	    }
+	}
+    }
+            $deepCopy->{'code'        } .= "end select\n";
+    $deepCopy->{'resetCode'   } .= "end select\n";
+    $deepCopy->{'finalizeCode'} .= "end select\n";
+            # Reset the reference count to this newly created object.
+            $deepCopy->{'code'} .= "call destination%referenceCountReset()\n";
+            # Reset the state operation ID if necessary.
+            $deepCopy->{'code'} .= "destination%stateOperationID=0_c_size_t\n";
+            # Insert variables declarations.
+            $deepCopy->{'code'        } = &Fortran::Utils::Format_Variable_Definitions($linkedListVariables        ).$deepCopy->{'code'}        ;
+            $deepCopy->{'resetCode'   } = &Fortran::Utils::Format_Variable_Definitions($linkedListResetVariables   ).$deepCopy->{'resetCode'}   ;
+            $deepCopy->{'finalizeCode'} = &Fortran::Utils::Format_Variable_Definitions($linkedListFinalizeVariables).$deepCopy->{'finalizeCode'};
+            # Insert any iterator variables needed.
+            $deepCopy->{'code'} = "integer :: ".join(",",map {"i".$_} 1..$deepCopy->{'rankMaximum'})."\n".$deepCopy->{'code'}
+                if ( $deepCopy->{'rankMaximum'} > 0 );
+    # Insert any reference count variable needed.
+    $deepCopy->{'code'} = "integer :: referenceCount__\n".$deepCopy->{'code'}
+                if ( $deepCopy->{'needReferenceCount'} );
+    $methods->{'deepCopy'} =
+    {
+	description => "Perform a deep copy of the object. This is a wrapper around the actual deep-copy code.",
+	type        => "void",
+	recursive   => "yes",
+	pass        => "yes",
+	selfTarget  => "yes",
+	argument    => [ "class(".$directive->{'name'}."Class), intent(inout) :: destination" ],
+	code        => "call self%deepCopy_(destination)"
+    };
+    $methods->{'deepCopy_'} =
+    {
+	description => "Perform a deep copy of the object.",
+	type        => "void",
+	recursive   => "yes",
+	pass        => "yes",
+	modules     => join(" ",sort(keys(%{$deepCopy->{'modules'}}))),
+	argument    => [ "class(".$directive->{'name'}."Class), intent(inout) :: destination" ],
+	code        => $deepCopy->{'code'}
+    };
+    $methods->{'deepCopyReset'} =
+    {
+	description => "Reset deep copy pointers in this object and any objects that it uses.",
+	type        => "void",
+	recursive   => "yes",
+	pass        => "yes",
+	code        => $deepCopy->{'resetCode'}
+    };
+    $methods->{'deepCopyFinalize'} =
+    {
+	description => "Finalize a deep copy in this object and any objects that it uses.",
+	type        => "void",
+	recursive   => "yes",
+	pass        => "yes",
+	code        => $deepCopy->{'finalizeCode'}
+    };
+    $methods->{'deepCopyReset'   }->{'modules'} = join(" ",sort(keys(%{$deepCopy->{'resetModules'   }})))
+	if ( scalar(keys(%{$deepCopy->{'resetModules'   }})) > 0 );
+    $methods->{'deepCopyFinalize'}->{'modules'} = join(" ",sort(keys(%{$deepCopy->{'finalizeModules'}})))
+	if ( scalar(keys(%{$deepCopy->{'finalizeModules'}})) > 0 );
+}
+
+
+sub buildStateStoreMethods {
+    my $directive          = shift();
+    my $nonAbstractClasses = shift();
+    my $classesHash        = shift();
+    my $methods            = shift();
+    my @nonAbstractClasses = @{$nonAbstractClasses};
+    my %classes            = %{$classesHash};
+
+    # Add "stateStore" and "stateRestore" method.
+    my $stateStores =
+    {
+	stateFileUsed          => 0,
+	gslStateFileUsed       => 0,
+	rankMaximum            => 0,
+	allocatablesFound      => 0,
+	explicitFunctionsFound => 0,
+	dimensionalsFound      => 0,
+	labelUsed              => 0		
+    };
+    my $stateStoreCode;
+    my $stateRestoreCode;
+    my $stateLinkedListVariables;
+            @{$stateLinkedListVariables} = ();
+    %{$stateStores->{'stateStoreModules'  }} = ( "Display" => 1, "ISO_Varying_String" => 1, "String_Handling" => 1, "ISO_C_Binding" => 1 );
+    %{$stateStores->{'stateRestoreModules'}} = ( "Display" => 1, "ISO_Varying_String" => 1, "String_Handling" => 1, "ISO_C_Binding" => 1 );
+    my @outputUnusedVariables;
+    my @inputUnusedVariables;
+    $stateStoreCode   .= "position=FTell(stateFile)\n";
+    $stateRestoreCode .= "position=FTell(stateFile)\n";
+    $stateStoreCode   .= "call displayIndent(var_str('storing state for \""  .$directive->{'name'}."\" [position: ')//position//']',verbosity=verbosityLevelWorking)\n";
+    $stateRestoreCode .= "call displayIndent(var_str('restoring state for \"".$directive->{'name'}."\" [position: ')//position//']',verbosity=verbosityLevelWorking)\n";
+    $stateStoreCode   .= "select type (self)\n";
+    $stateRestoreCode .= "select type (self)\n";
+    foreach my $nonAbstractClass ( @nonAbstractClasses ) {
+	# Build the code.
+	my $stateStore = $stateStores->{$nonAbstractClass->{'name'}};
+	$stateStoreCode   .= "type is (".$nonAbstractClass->{'name'}.")\n";
+	$stateRestoreCode .= "type is (".$nonAbstractClass->{'name'}.")\n";
+	if ( exists($nonAbstractClass->{'recursive'}) && $nonAbstractClass->{'recursive'} eq "yes" ) {
+	    # Object allows recursion. If this object is a recursive copy, call the state store/restore functions on the actual copy.
+	    $stateStoreCode   .= "if (self%isRecursive) then\n";
+	    $stateStoreCode   .= " call displayUnindent('recursive copy - moving to actual',verbosity=verbosityLevelWorking)\n";
+	    $stateStoreCode   .= " call self%recursiveSelf%stateStore  (stateFile,gslStateFile,stateOperationID)\n";
+	    $stateStoreCode   .= " return\n";
+	    $stateStoreCode   .= "end if\n";
+	    $stateRestoreCode .= "if (self%isRecursive) then\n";
+	    $stateRestoreCode .= " call displayUnindent('recursive copy - moving to actual',verbosity=verbosityLevelWorking)\n";
+	    $stateRestoreCode .= " call self%recursiveSelf%stateRestore(stateFile,gslStateFile,stateOperationID)\n";
+	    $stateRestoreCode .= " return\n";
+	    $stateRestoreCode .= "end if\n";
+	}
+	$stateStoreCode   .= "if (self%stateOperationID == stateOperationID) then\n"; # If this object was already stored, don't do it again.
+	$stateStoreCode   .= " call displayUnindent('skipping - already stored',verbosity=verbosityLevelWorking)\n";
+	$stateStoreCode   .= " return\n";
+	$stateStoreCode   .= "end if\n";
+	$stateStoreCode   .= "self%stateOperationID=stateOperationID\n";
+	$stateRestoreCode .= "if (self%stateOperationID == stateOperationID) then\n"; # If this object was already restored, don't do it again.
+	$stateRestoreCode .= " call displayUnindent('skipping - already restored',verbosity=verbosityLevelWorking)\n";
+	$stateRestoreCode .= " return\n";
+	$stateRestoreCode .= "end if\n";
+	$stateRestoreCode .= "self%stateOperationID=stateOperationID\n";
+	$stateStoreCode   .= " call displayMessage('object type \"".$nonAbstractClass->{'name'}."\"',verbosity=verbosityLevelWorking)\n";
+	$stateRestoreCode .= " call displayMessage('object type \"".$nonAbstractClass->{'name'}."\"',verbosity=verbosityLevelWorking)\n";
+	(my $label = $nonAbstractClass->{'name'}) =~ s/^$directive->{'name'}//;
+	$label = lcfirst($label)
+	    unless ( $label =~ m/^[A-Z]{2,}/ );
+	$stateStore->{'hasCustomStateStore'  } = 0;
+	$stateStore->{'hasCustomStateRestore'} = 0;
+	my $extensionOf;
+	# Generate code to output all variables from this class (and any parent class).
+	@{$stateStore->{'staticVariables'}} = ();
+	my $explicitNamesFound;
+	@{$explicitNamesFound} = ();
+	my $class = $nonAbstractClass;
+	while ( $class ) {
+	    my $node = $class->{'tree'}->{'firstChild'};
+	    $node = $node->{'sibling'}
+	        while ( $node && ( $node->{'type'} ne "type" || ( ! exists($node->{'name'}) || $node->{'name'} ne $class->{'name'} ) ) );
+	    last
+		unless ( $node );
+	    # Find the parent class.
+	    if ( $class == $nonAbstractClass && $node->{'opener'} =~ m/,\s*extends\s*\(\s*([a-zA-Z0-9_]+)\s*\)/ ) {
+		$extensionOf = $1;
+	    }
+	    # Find any variables to be excluded from state store/restore.
+	    @{$stateStore->{'excludes'}} = exists($class->{'stateStorable'}->{'exclude'}->{'variables'}) ? split(/\s*,\s*/,$class->{'stateStorable'}->{'exclude'}->{'variables'}) : ();
+	    # Search the node for declarations.
+	    $node = $node->{'firstChild'};
+	    while ( $node ) {
+		&stateStoreVariables($stateStores,$stateStore,$class,$node->{'declarations'},$explicitNamesFound)
+		    if ( $node->{'type'} eq "declaration" );
+		$node = $node->{'type'} eq "contains" ? $node->{'firstChild'} : $node->{'sibling'};
+	    }
+	    # Handle linked lists.
+	    (my $linkedListInputCode, my $linkedListOutputCode, my $linkedListModule) = &stateStoreLinkedList($class,$nonAbstractClass,$stateLinkedListVariables);
+	    $stateStore->{'inputCode' } .= $linkedListInputCode;
+	    $stateStore->{'outputCode'} .= $linkedListOutputCode;
+	    $stateStores->{'stateStoreModules'}->{$linkedListModule} = 1
+		if ( $linkedListModule );
+	    # Handle explicit state store functions.
+	    $stateStores->{'explicitFunctionsFound'} = 1
+		if ( exists($nonAbstractClass->{'stateStore'}->{'stateStore'}->{'restore'}) );
+	    (my $stateStoreExplicitInputCode, my $stateStoreExplicitOutputCode, my %stateStoreExplicitModules) = &stateStoreExplicitFunction($nonAbstractClass);
+	    $stateStore->{'inputCode'}  .= $stateStoreExplicitInputCode;
+	    $stateStore->{'outputCode'} .= $stateStoreExplicitOutputCode;
+	    foreach my $module ( sort(keys(%stateStoreExplicitModules)) ) {
+		$stateStores->{'stateStoreModules'  }->{$module} = 1;
+		$stateStores->{'stateRestoreModules'}->{$module} = 1;
+	    }
+	    # Move to the parent class.
+	    $class = ($class->{'extends'} eq $directive->{'name'}) ? undef() : $classes{$class->{'extends'}};
+	}
+	# Find any variables to be excluded from state store/restore.
+	@{$stateStore->{'excludes'}} = exists($directive->{'stateStorable'}->{'exclude'}->{'variables'}) ? split(/\s*,\s*/,$directive->{'stateStorable'}->{'exclude'}->{'variables'}) : ();
+	# Add any variables declared in the base class.
+	foreach my $data ( &List::ExtraUtils::as_array($directive->{'data'}) ) {
+	    my $declarationSource;
+	    if ( reftype($data) ) {
+		$declarationSource = $data->{'content'}
+		if ( $data->{'scope'} eq "self" );
+	    } else {
+		$declarationSource = $data;
+	    }
+	    next
+		unless ( defined($declarationSource) );
+	    my $declaration = &Fortran::Utils::Unformat_Variables($declarationSource);
+	    die("Galacticus::Build::SourceTree::Process::FunctionClass::Process_FunctionClass(): unable to parse variable declaration")
+		unless ( defined($declaration) );
+	    &stateStoreVariables($stateStores,$stateStore,undef(),$declaration,$explicitNamesFound);
+	}
+	# Check that all explicit variables were found.
+	{
+	    my $class = $nonAbstractClass;
+	    while ( $class ) {
+		if ( exists($class->{'stateStorable'}->{'functionClass'}) && exists($class->{'stateStorable'}->{'functionClass'}->{'variables'}) ) {
+		    foreach my $variable ( split(/\s*,\s*/,$class->{'stateStorable'}->{'functionClass'}->{'variables'}) ) {
+			die("Error: unable to find variable '".$variable."' marked as state storable in class '".$class->{'name'}."'")
+			    unless ( grep {$_ eq lc($variable)} @{$explicitNamesFound} );
+		    }
+		}
+		# Move to the parent class.
+		$class = ($class->{'extends'} eq $directive->{'name'}) ? undef() : $classes{$class->{'extends'}};
+	    }
+	}
+	# Add code to method.
+	$stateStores->{'stateFileUsed'} = 1
+	    if ( scalar(@{$stateStore->{'staticVariables'}}) > 0 );
+	if ( $stateStore->{'hasCustomStateStore'  } ) {
+	    # The class has its own state store function, so we should never arrive at this point in the code.
+	    $stateStoreCode .= " call Error_Report('custom state store function exists - this should not happen'//".&Galacticus::Build::SourceTree::Process::SourceIntrospection::Location($nonAbstractClass->{'node'},$nonAbstractClass->{'node'}->{'line'}).")\n";
+	    $stateStores->{'stateStoreModules'}->{'Error'} = 1;
+	} else {
+	    foreach ( @{$stateStore->{'staticVariables'}} ) {
+		$stateStores->{'labelUsed'}       = 1;
+		$stateStoreCode .= " if (displayVerbosity() >= verbosityLevelWorking) then\n";
+		# <workaround type="gfortran" PR="94446" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=94446">
+		#  <description>
+		#   Using the sizeof() intrinsic on a treeNode object causes a bogus "type mismatch" error when this module is used.
+		#  </description>
+		# </workaround>
+		$stateStoreCode .= "   write (label,'(i16)') 0\n";
+		#$stateStoreCode .= "  write (label,'(i16)') sizeof(self%".$_.")\n";
+		$stateStoreCode .= "  call displayMessage('storing \"".$_."\" with size '//trim(adjustl(label))//' bytes')\n";
+		$stateStoreCode .= " end if\n";
+	    }
+	    $stateStoreCode .= " write (stateFile) ".join(", &\n  & ",map {"self%".$_} @{$stateStore->{'staticVariables'}})."\n"
+		if ( scalar(@{$stateStore->{'staticVariables'}}) > 0 );
+	    $stateStoreCode .= $stateStore->{'outputCode'}
+		if ( defined($stateStore->{'outputCode'}) );
+	}
+	if ( $stateStore->{'hasCustomStateRestore'} ) {
+	    # The class has its own state store function, so we should never arrive at this point in the code.
+	    $stateRestoreCode .= " call Error_Report('custom state restore function exists - this should not happen'//".&Galacticus::Build::SourceTree::Process::SourceIntrospection::Location($nonAbstractClass->{'node'},$nonAbstractClass->{'node'}->{'line'}).")\n";
+	    $stateStores->{'stateRestoreModules'}->{'Error'} = 1;
+	} else {
+	    foreach ( @{$stateStore->{'staticVariables'}} ) {
+		$stateRestoreCode .= " call displayMessage('restoring \"".$_."\"',verbosity=verbosityLevelWorking)\n";
+	    }
+	    $stateRestoreCode .= " read (stateFile) ".join(", &\n  & ",map {"self%".$_} @{$stateStore->{'staticVariables'}})."\n"
+		if ( scalar(@{$stateStore->{'staticVariables'}}) > 0 );
+	    $stateRestoreCode .= $stateStore->{'inputCode'}
+		if ( defined($stateStore->{'inputCode'}) );
+	}
+    }
+    $stateStoreCode   .= "end select\n";
+    $stateStoreCode   .= "call displayUnindent('done',verbosity=verbosityLevelWorking)\n";
+    $stateStoreCode   .= "return\n";
+    $stateRestoreCode .= "end select\n";
+    $stateRestoreCode .= "call displayUnindent('done',verbosity=verbosityLevelWorking)\n";
+    $stateRestoreCode .= "return\n";
+    unless ( $stateStores->{'gslStateFileUsed'} ) {
+	push(@outputUnusedVariables,"gslStateFile");
+	push(@inputUnusedVariables ,"gslStateFile");
+    }
+    unless ( $stateStores->{'stateFileUsed'}     ) {
+	push(@outputUnusedVariables,"stateFile"    );
+	push(@inputUnusedVariables ,"stateFile"    );
+    }
+    $stateStoreCode   =
+	($stateStores->{'rankMaximum'} > 0 ? " integer :: ".join(", ",map {"i".$_} 1..$stateStores->{'rankMaximum'})."\n" : "").
+	(@outputUnusedVariables ? " !\$GLC attributes unused :: ".join(", ",@outputUnusedVariables)."\n" : "").
+	$stateStoreCode  ;
+    $stateRestoreCode =
+	($stateStores->{'rankMaximum'} > 0 ? " integer :: ".join(", ",map {"i".$_} 1..$stateStores->{'rankMaximum'})."\n" : "").
+	(@inputUnusedVariables ? " !\$GLC attributes unused :: ".join(", ",@inputUnusedVariables)."\n" : "").
+	$stateRestoreCode;
+    if ( $stateStores->{'allocatablesFound'} ) {
+	$stateRestoreCode = ($stateStores->{'dimensionalsFound'} ? "integer(c_size_t), allocatable, dimension(:) :: storedShape\n"  : "").
+	    ($stateStores->{'allocatablesFound'} ? "logical                                      :: wasAllocated\n" : "").
+	    $stateRestoreCode;
+    }
+    if ( $stateStores->{'explicitFunctionsFound'} ) {
+	$stateRestoreCode = "logical :: wasAssociated\n".$stateRestoreCode;
+    }
+    $stateStoreCode   = " character(len=16) :: label\n".$stateStoreCode
+                 if ( $stateStores->{'labelUsed'} );
+            $stateStoreCode   = " integer(c_size_t) :: position\n".$stateStoreCode;
+            $stateRestoreCode = " integer(c_size_t) :: position\n".$stateRestoreCode;
+    $stateStoreCode   = &Fortran::Utils::Format_Variable_Definitions($stateLinkedListVariables).$stateStoreCode;
+    $stateRestoreCode = &Fortran::Utils::Format_Variable_Definitions($stateLinkedListVariables).$stateRestoreCode;
+    $methods->{'stateStore'} =
+    {
+	description => "Store the state of this object to file.",
+	type        => "void",
+	pass        => "yes",
+	argument    => [ "integer, intent(in   ) :: stateFile", "type(c_ptr), intent(in   ) :: gslStateFile", "integer(c_size_t), intent(in   ) :: stateOperationID"  ],
+	code        => "call self%stateStore_(stateFile,gslStateFile,stateOperationID)"
+    };
+    $methods->{'stateStore_'} =
+    {
+	description => "Store the state of this object to file.",
+	type        => "void",
+	pass        => "yes",
+	modules     => join(" ",sort(keys(%{$stateStores->{'stateStoreModules'}}))),
+	argument    => [ "integer, intent(in   ) :: stateFile", "type(c_ptr), intent(in   ) :: gslStateFile", "integer(c_size_t), intent(in   ) :: stateOperationID"  ],
+	code        => $stateStoreCode
+    };
+    $methods->{'stateRestore'} =
+    {
+	description => "Restore the state of this object from file.",
+	type        => "void",
+	pass        => "yes",
+	argument    => [ "integer, intent(in   ) :: stateFile", "type(c_ptr), intent(in   ) :: gslStateFile", "integer(c_size_t), intent(in   ) :: stateOperationID"  ],
+	code        => "call self%stateRestore_(stateFile,gslStateFile,stateOperationID)"
+    };
+    $methods->{'stateRestore_'} =
+    {
+	description => "Restore the state of this object from file.",
+	type        => "void",
+	pass        => "yes",
+	modules     => join(" ",sort(keys(%{$stateStores->{'stateRestoreModules'}}))),
+	argument    => [ "integer, intent(in   ) :: stateFile", "type(c_ptr), intent(in   ) :: gslStateFile", "integer(c_size_t), intent(in   ) :: stateOperationID"  ],
+	code        => $stateRestoreCode
+    };
+}
 
 1;
 
