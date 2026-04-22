@@ -142,7 +142,7 @@ class SLURMManager(QueueManager):
                     # Get the next job.
                     job = jobs.pop()
                     # Set job defaults.
-                    if "partition" not in job:
+                    if "partition" not in job and "parition" in self.options:
                         job['partition'] = self.options['partition']
                     # Determine number of tasks such that we do not exceed the available memory.
                     if "memoryPerThread" in job and not "tasksPerNode" in job:
@@ -157,6 +157,12 @@ class SLURMManager(QueueManager):
                         # Specify the fraction of memory on a node we will use (i.e. allow some buffer so as not to use all memory).
                         memoryFraction = 0.8
                         # Get info on nodes in this partition.
+                        command = [ 'sinfo' ]
+                        if "partition" in job:
+                            command.extend(['--partition', job['partition']])
+                        command.append('--json')
+                        print(command)
+                        sys.exit()
                         sinfo = subprocess.run(['sinfo', '--partition', job['partition'], '--json'], capture_output=True, text=True)
                         if sinfo.returncode != 0:
                             raise Exception("`sinfo` failed")
