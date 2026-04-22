@@ -19,41 +19,15 @@ import threading
 import time
 from xml.etree import ElementTree as ET
 
+sys.path.insert(0, os.path.join(os.environ.get('GALACTICUS_EXEC_PATH', ''), 'python'))
+from XML.Utils import xml_to_dict
+
 # ---------------------------------------------------------------------------
 # XML utilities
 # ---------------------------------------------------------------------------
 
 # Element names that Perl XML::Simple ForceArray would always wrap in a list.
 _FORCE_ARRAY = frozenset({"modify", "value", "parameter", "parameters", "requirement"})
-
-
-def _xml_to_dict(element, force_array=_FORCE_ARRAY):
-    """Recursively convert an XML element to nested Python dicts/lists/strings.
-
-    Mirrors Perl XML::Simple with KeyAttr="" and the given force_array set:
-    - Elements with only text content  => plain string
-    - Elements with attributes/children => dict
-    - Multiple same-tag siblings       => list
-    - Tags in force_array              => always list (even if only one element)
-    """
-    result = dict(element.attrib)
-
-    children_by_tag: dict = {}
-    for child in element:
-        children_by_tag.setdefault(child.tag, []).append(child)
-
-    for tag, children in children_by_tag.items():
-        converted = [_xml_to_dict(child, force_array) for child in children]
-        result[tag] = converted if (tag in force_array or len(converted) > 1) else converted[0]
-
-    text = (element.text or "").strip()
-    if text:
-        if result:
-            result["content"] = text
-        else:
-            return text  # pure-text element
-
-    return result
 
 
 def _dict_to_xml_elem(tag: str, data, parent=None, _nested: bool = False):
@@ -158,7 +132,7 @@ def _load_config() -> dict:
         os.path.join(os.path.expanduser("~"), ".galacticusConfig.xml"),
     ):
         if os.path.isfile(path):
-            return _xml_to_dict(ET.parse(path).getroot())
+            return xml_to_dict(ET.parse(path).getroot())
     return {}
 
 
@@ -168,7 +142,7 @@ def _load_config() -> dict:
 
 def _parse_launch_script(filename: str) -> dict:
     """Parse the launch XML file and apply defaults."""
-    script = _xml_to_dict(ET.parse(filename).getroot(), force_array=_FORCE_ARRAY)
+    script = xml_to_dict(ET.parse(filename).getroot(), force_array=_FORCE_ARRAY)
     defaults: dict = {
         "verbosity":          0,
         "md5Names":           "no",
@@ -1014,7 +988,7 @@ def _construct_models(launch_script: dict) -> list:
                 parameters: dict = {}
                 base_file = launch_script.get("baseParameters", "")
                 if base_file:
-                    parameters = _xml_to_dict(
+                    parameters = xml_to_dict(
                         ET.parse(base_file).getroot(),
                         force_array=frozenset(),
                     )

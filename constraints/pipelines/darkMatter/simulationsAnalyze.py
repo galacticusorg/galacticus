@@ -17,55 +17,7 @@ import numpy as np
 
 sys.path.insert(0, os.path.join(os.environ.get('GALACTICUS_EXEC_PATH', ''), 'python'))
 import queueManager
-from Galacticus.Constraints.Simulations import iterate
-
-
-# ---------------------------------------------------------------------------
-# XML parsing helpers
-# ---------------------------------------------------------------------------
-
-def _element_to_dict_keyed(el, keyed_tags):
-    """Recursively convert an lxml element to a nested dict.
-
-    Elements whose tag is in keyed_tags are converted to dicts keyed by their
-    'name' attribute, matching XML::Simple's KeyAttr behaviour. All other
-    children with a unique tag become plain dict values; repeating tags become
-    lists. An element's own XML attributes are included in the result dict.
-    """
-    result = dict(el.attrib)
-    children_by_tag = {}
-    for child in el:
-        children_by_tag.setdefault(child.tag, []).append(child)
-    for tag, children in children_by_tag.items():
-        if tag in keyed_tags:
-            result[tag] = {
-                child.get('name'): _element_to_dict_keyed(child, keyed_tags)
-                for child in children
-            }
-        elif len(children) == 1:
-            result[tag] = _element_to_dict_keyed(children[0], keyed_tags)
-        else:
-            result[tag] = [_element_to_dict_keyed(c, keyed_tags) for c in children]
-    return result
-
-
-def parse_simulations_xml(path):
-    """Parse simulations.xml into a nested dict matching XML::Simple KeyAttr output.
-
-    suite, group, resolution, and simulation elements are keyed by their
-    'name' attribute in the result dict.
-    """
-    keyed_tags = {'suite', 'group', 'resolution', 'simulation'}
-    tree = ET.parse(path)
-    root = tree.getroot()
-    result = {}
-    suites = root.findall('suite')
-    if suites:
-        result['suite'] = {
-            el.get('name'): _element_to_dict_keyed(el, keyed_tags)
-            for el in suites
-        }
-    return result
+from Galacticus.Constraints.Simulations import iterate, parse_simulations_xml
 
 
 def _parse_param_xml(path):

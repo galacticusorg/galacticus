@@ -13,6 +13,7 @@ import h5py
 
 sys.path.insert(0, os.path.join(os.environ.get('GALACTICUS_EXEC_PATH', ''), 'python'))
 from List.ExtraUtils import hash_list, as_array
+from XML.Utils import xml_to_dict
 
 
 def select_simulations(options):
@@ -293,9 +294,28 @@ def iterate(simulations, options, stop_after='redshift'):
     return simulation_list
 
 
+def parse_simulations_xml(path):
+    """Parse simulations.xml into a nested dict matching XML::Simple KeyAttr output.
+
+    suite, group, resolution, and simulation elements are keyed by their
+    'name' attribute in the result dict.
+    """
+    keyed_tags = {'suite', 'group', 'resolution', 'simulation'}
+    root = ET.parse(path).getroot()
+    result = {}
+    suites = root.findall('suite')
+    if suites:
+        result['suite'] = {
+            el.get('name'): xml_to_dict(el, keyed_tags=keyed_tags)
+            for el in suites
+        }
+    return result
+
+
 # Perl-compatible camelCase aliases for public API.
-selectSimulations = select_simulations
-matchSelection    = match_selection
+selectSimulations    = select_simulations
+matchSelection       = match_selection
+parseSimulationsXml  = parse_simulations_xml
 
 
 # ---------------------------------------------------------------------------

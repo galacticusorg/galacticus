@@ -12,6 +12,7 @@ import xml.etree.ElementTree as ET
 
 sys.path.insert(0, os.path.join(os.environ.get('GALACTICUS_EXEC_PATH', ''), 'python'))
 
+from XML.Utils import xml_to_dict
 from build.fortran_utils import get_fortran_line
 from Fortran.Utils import UNIT_OPENERS, UNIT_CLOSERS
 from Galacticus.Build.SourceTree.Parse.Declarations import parse_declaration
@@ -331,44 +332,6 @@ def _children_from_mixed_lines(inner_lines, parent):
 # Parse pass 1: directives  (mirrors Parse::Directives)
 # ---------------------------------------------------------------------------
 
-def _xml_to_dict(elem):
-    """Convert an xml.etree.ElementTree.Element to a nested dict.
-
-    Mirrors XML::Simple's output conventions used by the Perl code:
-    - Attributes are merged into the dict at the same level as children.
-    - Multiple children with the same tag become a list.
-    - A single child stays as a dict.
-    - Text content is stored under the key 'content' if present.
-    """
-    result = {}
-
-    # Collect attributes.
-    result.update(elem.attrib)
-
-    # Collect text.
-    text = (elem.text or '').strip()
-    if text:
-        result['content'] = text
-
-    # Collect children.
-    for child in elem:
-        tag  = child.tag
-        val  = _xml_to_dict(child)
-        # If the child has no sub-children and no attributes, use text only.
-        child_text = (child.text or '').strip()
-        if not child.attrib and len(child) == 0 and child_text:
-            val = child_text
-
-        if tag in result:
-            existing = result[tag]
-            if isinstance(existing, list):
-                existing.append(val)
-            else:
-                result[tag] = [existing, val]
-        else:
-            result[tag] = val
-
-    return result
 
 
 def _pass_directives(tree):
@@ -481,7 +444,7 @@ def _parse_directive_xml(xml_text, context_node):
         except ET.ParseError:
             return None
 
-    directive_dict = _xml_to_dict(elem)
+    directive_dict = xml_to_dict(elem)
     return {
         'type':       elem.tag,
         'directive':  directive_dict,
