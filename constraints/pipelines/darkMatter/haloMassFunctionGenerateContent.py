@@ -74,6 +74,10 @@ def _parse_args():
                         help='Heat repeated realizations to account for correlations (default: true)')
     parser.add_argument('--countParticlesMinimum',       default=300, type=int,
                         help='Minimum particles per halo for constraints (default: 300)')
+    parser.add_argument('--convergeAfterCount',   default=-1, type=int,
+                        help='Number of steps after which to declare convergence (-1 to never stop; default: 1000)')
+    parser.add_argument('--correlationStopAfterCount',   default=1000, type=int,
+                        help='Number of correlation length after which to stop (default: 1000)')
     parser.add_argument('--select',            default=None, action='append',
                         help='Simulation selection filter (suite::group::resolution::...); may be repeated')
     parser.add_argument('--initializeToPosteriorMaximum', default=None,
@@ -651,10 +655,24 @@ def _step_f_config_strings(perturbations, isolation_biases,
         '      <acceptedStateCount value="100"/>\n'
         '    </posteriorSampleState>\n'
         '\n'
-        '    <posteriorSampleConvergence value="never"/>\n'
-        '    \n'
+        )
+    if options['convergeAfterCount'] == -1:
+        config_closer += (
+            '    <posteriorSampleConvergence value="never"/>\n'
+            '    \n'
+        )
+    elif options['convergeAfterCount'] > 0:
+        config_closer += (
+            '    <posteriorSampleConvergence value="stepCount">\n'
+            f'       <countSteps value="{options["convergeAfterCount"]}"/>\n'
+            '    </posteriorSampleConvergence>\n'
+            '    \n'
+        )
+    else:
+       raise RuntimeError('`convergeAfterCount` should be -1 or > 0')
+    config_closer += (
         '    <posteriorSampleStoppingCriterion value="correlationLength">\n'
-        '      <stopAfterCount value="1000"/>\n'
+        f'      <stopAfterCount value="{options["correlationStopAfterCount"]}"/>\n'
         '    </posteriorSampleStoppingCriterion>\n'
         '\n'
         '    <posteriorSampleDffrntlEvltnRandomJump   value="adaptive"/>\n'
