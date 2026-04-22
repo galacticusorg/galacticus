@@ -41,6 +41,10 @@ def _parse_args():
                         help='SLURM partition override')
     parser.add_argument('--jobMaximum',             default=None, type=int,
                         help='Maximum number of concurrent jobs')
+    parser.add_argument('--waitOnSubmit',       default=None, type=int,
+                        help='Time (in seconds) to wait after submitting')
+    parser.add_argument('--waitOnActive',       default=None, type=int,
+                        help='Time (in seconds) to wait between polling active jobs')
     args = parser.parse_args()
     for key in ('pipelinePath', 'outputDirectory'):
         val = getattr(args, key)
