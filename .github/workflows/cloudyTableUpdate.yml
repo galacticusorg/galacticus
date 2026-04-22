@@ -131,7 +131,7 @@ jobs:
           # Use static table (after promotion) if available; fall back to dynamic
           COOLING_FILE="$GALACTICUS_DATA_PATH/static/cooling/cooling_function_Atomic_CIE_Cloudy.hdf5"
           [ -f "$COOLING_FILE" ] || COOLING_FILE="$GALACTICUS_DATA_PATH/dynamic/cooling/cooling_function_Atomic_CIE_Cloudy.hdf5"
-          python3 plots/cooling_function.py \
+          python3-nolib plots/cooling_function.py \
             "$COOLING_FILE" \
             plots/cooling_function_Atomic_CIE_Cloudy.pdf
       - name: Run cooling function test
