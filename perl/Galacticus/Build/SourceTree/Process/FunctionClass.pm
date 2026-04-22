@@ -146,68 +146,7 @@ sub Process_FunctionClass {
 		    exit 1;
 		}
 	    }
-	    # Add methods to store and retrieve state.
-	    $methods{'stateStore'} =
-	    {
-		description => "Store the state of the object to file.",
-		type        => "void",
-		pass        => "yes",
-		modules     =>
-		    [
-		     {
-			 name      => "ISO_C_Binding",
-			 intrinsic => 1              ,
-			 only      => [ "c_ptr" ]
-		     }
-		    ],
-		argument    => [ "integer, intent(in   ) :: stateFile", "type(c_ptr), intent(in   ) :: gslStateFile" ],
-	    };
-	    $methods{'stateRestore'} =
-	    {
-		description => "Restore the state of the object to file.",
-		type        => "void",
-		pass        => "yes",
-		modules     =>
-		    [
-		     {
-			 name      => "ISO_C_Binding",
-			 intrinsic => 1              ,
-			 only      => [ "c_ptr" ]
-		     }
-		    ],
-		argument    => [ "integer, intent(in   ) :: stateFile", "type(c_ptr), intent(in   ) :: gslStateFile" ],
-	    };
-	    # Add auto-hook function.
-	    $methods{'autoHook'} =
-	    {
-		description => "Insert any event hooks required by this object.",
-		type        => "void",
-		pass        => "yes",
-		code        => "!\$GLC attributes unused :: self\n\n! Nothing to do by default.\n"
-	    };
-	    if ( exists($directive->{'autoHook'}) ) {
-		foreach my $module ( &List::ExtraUtils::as_array($directive->{'autoHook'}->{'modules'}) ) {
-		    my $moduleName = $module->{'name'};
-		    my @only       = split(/\s*,\s*/,$module->{'only'});
-		    push(@{$methods{'autoHook'}->{'modules'}},{name => $moduleName, only => \@only});
-		}
-		$methods{'autoHook'}->{'code'} = $directive->{'autoHook'}->{'code'};
-	    }
-	    # Add destructor function.
-	    if ( exists($directive->{'destructor'}) ) {
-		$methods{'destructor'} =
-		{
-		    description => "Destructor for this class.",
-		    type        => "void",
-		    pass        => "yes",
-		    code        => $directive->{'destructor'}->{'code'}
-		};
-		foreach my $module ( &List::ExtraUtils::as_array($directive->{'destructor'}->{'modules'}) ) {
-		    my $moduleName = $module->{'name'};
-		    my @only       = split(/\s*,\s*/,$module->{'only'});
-		    push(@{$methods{'destructor'}->{'modules'}},{name => $moduleName, only => \@only});
-		}
-	    }
+	    &buildBaseMethodStubs($directive, \%methods);
 	    # Add "descriptor" method.
 	    my $descriptorCode;
 	    my %descriptorModules = ( "Input_Parameters" => 1 );
@@ -838,40 +777,7 @@ CODE
 		argument    => [ "logical, intent(in   ), optional :: includeSourceDigest, includeFileModificationTimes" ],
 		code        => $hashedDescriptorCode
 	    };
-	    # Add a "objectType" method.
-	    $code::directiveName = $directive->{'name'};
-	    my $objectTypeCode = fill_in_string(<<'CODE', PACKAGE => 'code');
-logical :: short_
-short_=.false.
-if (present(short)) short_=short
-select type (self)
-CODE
-	    foreach my $nonAbstractClass ( @nonAbstractClasses ) {
-		$code::type       = $nonAbstractClass->{'name'};
-		($code::typeShort = $nonAbstractClass->{'name'}) =~ s/^$directive->{'name'}//;
-		$code::typeShort  = lcfirst($code::typeShort)
-		    unless ( $code::typeShort =~ m/^[A-Z]{2,}/ );
-		$objectTypeCode  .= fill_in_string(<<'CODE', PACKAGE => 'code');
-type is ({$type})
-if (short_) then
- {$directiveName}ObjectType='{$typeShort}'
-else
- {$directiveName}ObjectType='{$type}'
-end if
-CODE
-	    }
-	    $objectTypeCode .= fill_in_string(<<'CODE', PACKAGE => 'code');
-end select
-CODE
-	    $methods{'objectType'} =
-	    {
-		description => "Return the type of the object.",
-		type        => "type(varying_string)",
-		pass        => "yes",
-		modules     => "ISO_Varying_String",
-		argument    => [ "logical, intent(in   ), optional :: short" ],
-		code        => $objectTypeCode
-	    };
+	    &buildObjectTypeMethod($directive, \@nonAbstractClasses, \%methods);
 	    # Add "allowedParameters" method.
 	    my $allowedParametersCode;
 	    my $allowedParameters;
@@ -2951,6 +2857,114 @@ sub isFunctionClassPointer {
 	(grep {$_ eq $type} (keys(%{$stateStorables->{'functionClasses'}}),@{$stateStorables->{'functionClassInstances'}}))
 	&&
 	grep {$_ eq "pointer"} @{$declaration->{'attributes'}};
+}
+
+sub buildBaseMethodStubs {
+    # Populate %methods with stateStore, stateRestore, autoHook, and (optionally) destructor stubs.
+    my $directive = shift();
+    my $methods   = shift();
+    # Add methods to store and retrieve state.
+    $methods->{'stateStore'} =
+    {
+	description => "Store the state of the object to file.",
+	type        => "void",
+	pass        => "yes",
+	modules     =>
+	    [
+	     {
+		 name      => "ISO_C_Binding",
+		 intrinsic => 1              ,
+		 only      => [ "c_ptr" ]
+	     }
+	    ],
+	argument    => [ "integer, intent(in   ) :: stateFile", "type(c_ptr), intent(in   ) :: gslStateFile" ],
+    };
+    $methods->{'stateRestore'} =
+    {
+	description => "Restore the state of the object to file.",
+	type        => "void",
+	pass        => "yes",
+	modules     =>
+	    [
+	     {
+		 name      => "ISO_C_Binding",
+		 intrinsic => 1              ,
+		 only      => [ "c_ptr" ]
+	     }
+	    ],
+	argument    => [ "integer, intent(in   ) :: stateFile", "type(c_ptr), intent(in   ) :: gslStateFile" ],
+    };
+    # Add auto-hook function.
+    $methods->{'autoHook'} =
+    {
+	description => "Insert any event hooks required by this object.",
+	type        => "void",
+	pass        => "yes",
+	code        => "!\$GLC attributes unused :: self\n\n! Nothing to do by default.\n"
+    };
+    if ( exists($directive->{'autoHook'}) ) {
+	foreach my $module ( &List::ExtraUtils::as_array($directive->{'autoHook'}->{'modules'}) ) {
+	    my $moduleName = $module->{'name'};
+	    my @only       = split(/\s*,\s*/,$module->{'only'});
+	    push(@{$methods->{'autoHook'}->{'modules'}},{name => $moduleName, only => \@only});
+	}
+	$methods->{'autoHook'}->{'code'} = $directive->{'autoHook'}->{'code'};
+    }
+    # Add destructor function.
+    if ( exists($directive->{'destructor'}) ) {
+	$methods->{'destructor'} =
+	{
+	    description => "Destructor for this class.",
+	    type        => "void",
+	    pass        => "yes",
+	    code        => $directive->{'destructor'}->{'code'}
+	};
+	foreach my $module ( &List::ExtraUtils::as_array($directive->{'destructor'}->{'modules'}) ) {
+	    my $moduleName = $module->{'name'};
+	    my @only       = split(/\s*,\s*/,$module->{'only'});
+	    push(@{$methods->{'destructor'}->{'modules'}},{name => $moduleName, only => \@only});
+	}
+    }
+}
+
+sub buildObjectTypeMethod {
+    # Populate %methods with an objectType method that returns a string naming the concrete type.
+    my $directive          = shift();
+    my $nonAbstractClasses = shift();
+    my $methods            = shift();
+    $code::directiveName = $directive->{'name'};
+    my $objectTypeCode = fill_in_string(<<'CODE', PACKAGE => 'code');
+logical :: short_
+short_=.false.
+if (present(short)) short_=short
+select type (self)
+CODE
+    foreach my $nonAbstractClass ( @{$nonAbstractClasses} ) {
+	$code::type       = $nonAbstractClass->{'name'};
+	($code::typeShort = $nonAbstractClass->{'name'}) =~ s/^$directive->{'name'}//;
+	$code::typeShort  = lcfirst($code::typeShort)
+	    unless ( $code::typeShort =~ m/^[A-Z]{2,}/ );
+	$objectTypeCode  .= fill_in_string(<<'CODE', PACKAGE => 'code');
+type is ({$type})
+if (short_) then
+ {$directiveName}ObjectType='{$typeShort}'
+else
+ {$directiveName}ObjectType='{$type}'
+end if
+CODE
+    }
+    $objectTypeCode .= fill_in_string(<<'CODE', PACKAGE => 'code');
+end select
+CODE
+    $methods->{'objectType'} =
+    {
+	description => "Return the type of the object.",
+	type        => "type(varying_string)",
+	pass        => "yes",
+	modules     => "ISO_Varying_String",
+	argument    => [ "logical, intent(in   ), optional :: short" ],
+	code        => $objectTypeCode
+    };
 }
 
 
