@@ -504,3 +504,630 @@ def _step_e_base_files(entry_groups, options):
 
     print('...done')
     return config_likelihood, detection_efficiency_classes
+
+
+# ---------------------------------------------------------------------------
+# Step F — assemble MCMC config XML strings
+# ---------------------------------------------------------------------------
+
+def _step_f_config_strings(perturbations, isolation_biases,
+                           detection_efficiency_classes, options):
+    """Return (config_opener, config_initializer, config_resumer,
+               config_closer, parameters_opener, parameters_closer)."""
+    import math
+
+    output_dir   = options['outputDirectory']
+    pipeline_path = options['pipelinePath']
+
+    count_parameters = (16
+                        + len(perturbations)
+                        + 2 * len(isolation_biases)
+                        + 4 * len(detection_efficiency_classes))
+    gamma_initial   = 2.35 / math.sqrt(count_parameters)
+    recompute_count = ('<recomputeCount value="13"/>'
+                       if options.get('includeCorrelations') == 'true'
+                       else '')
+
+    # ------------------------------------------------------------------ opener
+    config_opener = (
+        '<?xml version="1.0" encoding="UTF-8"?>\n'
+        '<parameters>\n'
+        '  <!-- Posterior sampling simulation parameter file for constraining to dark matter halo mass functions. -->\n'
+        '  <!-- Andrew Benson (17-September-2020)                                                                 -->\n'
+        '  <formatVersion>2</formatVersion>\n'
+        '  <version>0.9.4</version>\n'
+        '\n'
+        '  <verbosityLevel value="standard"/>\n'
+        '\n'
+        '  <task value="posteriorSample">\n'
+        '    <initializeNodeClassHierarchy value="true"/>\n'
+        '  </task>\n'
+        '\n'
+        f'  <outputFileName value="{output_dir}haloMassFunction.hdf5"/>\n'
+        '\n'
+        '  <!-- Likelihood -->\n'
+        '  <posteriorSampleLikelihood value="independentLikelihoods">\n'
+        '    <orderRotation value="byRankOnNode"/> <!-- Rotate likelihoods by the on-node rank to ensure that each process begins with a different power spectrum class. -->\n'
+    )
+
+    # --------------------------------------------------------------- initializer
+    config_initializer = '  </posteriorSampleLikelihood>\n\n'
+
+    prior_log = options.get('initializeToPosteriorMaximum')
+    if prior_log is not None:
+        config_initializer += (
+            f'  <posteriorSampleStateInitialize value="posteriorMaximumGaussianSphere">\n'
+            f'     <logFileRoot      value="{prior_log}"/>\n'
+            f'     <radiusSphere     value="1.0e-6"/>\n'
+            f'     <radiusIsRelative value="true"  />\n'
+            f'     <posteriorSampleStateInitialize value="gaussianSphere">\n'
+            f'        <radiusSphere     value="1.0e-6"/>\n'
+            f'        <radiusIsRelative value="true"  />\n'
+            f'     </posteriorSampleStateInitialize>\n'
+            f'  </posteriorSampleStateInitialize>   \n\n'
+        )
+    else:
+        config_initializer += (
+            '  <posteriorSampleStateInitialize value="gaussianSphere">\n'
+            '     <radiusSphere     value="1.0e-6"/>\n'
+            '     <radiusIsRelative value="true"  />\n'
+            '  </posteriorSampleStateInitialize>   \n\n'
+        )
+
+    config_initializer += (
+        f'  <posteriorSampleDffrntlEvltnProposalSize value="adaptive" >\n'
+        f'    <gammaInitial          value="{gamma_initial:.5e}"/>\n'
+        f'    <gammaAdjustFactor     value="1.10e+0"/>\n'
+        f'    <gammaMinimum          value="1.00e-4"/>\n'
+        f'    <gammaMaximum          value="3.00e+0"/>\n'
+        f'    <acceptanceRateMinimum value="0.10e+0"/>\n'
+        f'    <acceptanceRateMaximum value="0.90e+0"/>\n'
+        f'    <updateCount           value="10"     />\n'
+        f'    <appendLog             value="false"  />\n'
+        f'    <flushLog              value="true"   />\n'
+        f'    <restoreFromLog        value="false"  />\n'
+        f'    <logFileName           value="{output_dir}haloMassFunctionGamma.log"/>\n'
+        f'  </posteriorSampleDffrntlEvltnProposalSize>\n'
+        f'\n'
+        f'  <!-- MCMC -->\n'
+        f'  <posteriorSampleSimulation value="differentialEvolution">\n'
+        f'    <stepsMaximum           value="100000"                                  />\n'
+        f'    <acceptanceAverageCount value="    10"                                  />\n'
+        f'    <stateSwapCount         value="    11"                                  /> <!-- Offset swaps from reporting, otherwise we only get reports for swap steps, which gives a biased view of progress. -->\n'
+        f'    <slowStepCount          value="    12"                                  />\n'
+        f'    {recompute_count}\n'
+        f'    <logFileRoot            value="{output_dir}haloMassFunctionChains"/>\n'
+        f'    <reportCount            value="    10"                                  />\n'
+        f'    <sampleOutliers         value="false"                                   />\n'
+        f'    <logFlushCount          value="     1"                                  />\n'
+        f'    <appendLogs             value="false"                                   />\n'
+        f'    <loadBalance            value="false"                                   />\n'
+    )
+
+    # ----------------------------------------------------------------- resumer
+    config_resumer = (
+        '  </posteriorSampleLikelihood>\n'
+        '\n'
+        f'  <posteriorSampleStateInitialize value="resume">\n'
+        f'    <logFileRoot  value="{output_dir}haloMassFunctionChains"/>\n'
+        f'    <restoreState value="true"                                    />\n'
+        f'  </posteriorSampleStateInitialize>   \n'
+        f'\n'
+        f'  <posteriorSampleDffrntlEvltnProposalSize value="adaptive" >\n'
+        f'    <gammaInitial          value="{gamma_initial:.5e}"/>\n'
+        f'    <gammaAdjustFactor     value="1.10e+0"/>\n'
+        f'    <gammaMinimum          value="1.00e-4"/>\n'
+        f'    <gammaMaximum          value="3.00e+0"/>\n'
+        f'    <acceptanceRateMinimum value="0.10e+0"/>\n'
+        f'    <acceptanceRateMaximum value="0.90e+0"/>\n'
+        f'    <updateCount           value="10"     />\n'
+        f'    <appendLog             value="true"   />\n'
+        f'    <flushLog              value="true"   />\n'
+        f'    <restoreFromLog        value="true"   />\n'
+        f'    <logFileName           value="{output_dir}haloMassFunctionGamma.log"/>\n'
+        f'  </posteriorSampleDffrntlEvltnProposalSize>\n'
+        f'\n'
+        f'  <!-- MCMC -->\n'
+        f'  <posteriorSampleSimulation value="differentialEvolution">\n'
+        f'    <stepsMaximum           value="100000"                                  />\n'
+        f'    <acceptanceAverageCount value="    10"                                  />\n'
+        f'    <stateSwapCount         value="    11"                                  /> <!-- Offset swaps from reporting, otherwise we only get reports for swap steps, which gives a biased view of progress. -->\n'
+        f'    <slowStepCount          value="    12"                                  />\n'
+        f'    <logFileRoot            value="{output_dir}haloMassFunctionChains"/>\n'
+        f'    <reportCount            value="    10"                                  />\n'
+        f'    <sampleOutliers         value="false"                                   />\n'
+        f'    <logFlushCount          value="     1"                                  />\n'
+        f'    <appendLogs             value="true"                                    />\n'
+        f'\n'
+    )
+
+    # ----------------------------------------------------------------- closer
+    config_closer = (
+        '    <posteriorSampleState value="correlation">\n'
+        '      <acceptedStateCount value="100"/>\n'
+        '    </posteriorSampleState>\n'
+        '\n'
+        '    <posteriorSampleConvergence value="never"/>\n'
+        '    \n'
+        '    <posteriorSampleStoppingCriterion value="correlationLength">\n'
+        '      <stopAfterCount value="1000"/>\n'
+        '    </posteriorSampleStoppingCriterion>\n'
+        '\n'
+        '    <posteriorSampleDffrntlEvltnRandomJump   value="adaptive"/>\n'
+        '\n'
+        '    <!-- Parameters of the dark matter halo mass function. -->\n'
+        '    <modelParameter value="active">\n'
+        '      <name value="haloMassFunctionParameters/a"/>\n'
+        '      <label value="a" ignoreWarnings="true"/>\n'
+        '      <distributionFunction1DPrior value="uniform">\n'
+        '\t<limitLower value=" 0.03"/>\n'
+        '\t<limitUpper value="10.00"/>\n'
+        '      </distributionFunction1DPrior>\n'
+        '      <operatorUnaryMapper value="identity"/>\n'
+        '      <distributionFunction1DPerturber value="cauchy">\n'
+        '\t<median value="0.0"/>\n'
+        '\t<scale value="1.0e-4"/>\n'
+        '      </distributionFunction1DPerturber>\n'
+        '    </modelParameter>\n'
+        '    <modelParameter value="active">\n'
+        '      <name value="haloMassFunctionParameters/b"/>\n'
+        '      <label value="b" ignoreWarnings="true"/>\n'
+        '      <distributionFunction1DPrior value="uniform">\n'
+        '\t<limitLower value="-3.00"/>\n'
+        '\t<limitUpper value="+3.00"/>\n'
+        '      </distributionFunction1DPrior>\n'
+        '      <operatorUnaryMapper value="identity"/>\n'
+        '      <distributionFunction1DPerturber value="cauchy">\n'
+        '\t<median value="0.0"/>\n'
+        '\t<scale value="1.0e-4"/>\n'
+        '      </distributionFunction1DPerturber>\n'
+        '    </modelParameter>\n'
+        '     <modelParameter value="active">\n'
+        '      <name value="haloMassFunctionParameters/c" />\n'
+        '      <label value="c" ignoreWarnings="true"/>\n'
+        '      <distributionFunction1DPerturber value="cauchy">\n'
+        '        <median value="0.0" />\n'
+        '        <scale value="1.0e-4" />\n'
+        '      </distributionFunction1DPerturber>\n'
+        '      <distributionFunction1DPrior value="uniform">\n'
+        '        <limitLower value="+0.10" />\n'
+        '        <limitUpper value="+5.00" />\n'
+        '      </distributionFunction1DPrior>\n'
+        '      <operatorUnaryMapper value="identity" />\n'
+        '    </modelParameter>\n'
+        '    <modelParameter value="active">\n'
+        '      <name value="haloMassFunctionParameters/p"/>\n'
+        '      <label value="p" ignoreWarnings="true"/>\n'
+        '      <distributionFunction1DPrior value="uniform">\n'
+        '\t<limitLower value="-3.0"/>\n'
+        '\t<limitUpper value="+3.0"/>\n'
+        '      </distributionFunction1DPrior>\n'
+        '      <operatorUnaryMapper value="identity"/>\n'
+        '      <distributionFunction1DPerturber value="cauchy">\n'
+        '\t<median value="0.0"/>\n'
+        '\t<scale value="1.0e-4"/>\n'
+        '      </distributionFunction1DPerturber>\n'
+        '    </modelParameter>\n'
+        '    <modelParameter value="active">\n'
+        '      <name value="haloMassFunctionParameters/q"/>\n'
+        '      <label value="q" ignoreWarnings="true"/>\n'
+        '      <distributionFunction1DPrior value="uniform">\n'
+        '\t<limitLower value="-3.00"/>\n'
+        '\t<limitUpper value="+3.00"/>\n'
+        '      </distributionFunction1DPrior>\n'
+        '      <operatorUnaryMapper value="identity"/>\n'
+        '      <distributionFunction1DPerturber value="cauchy">\n'
+        '\t<median value="0.0"/>\n'
+        '\t<scale value="1.0e-4"/>\n'
+        '      </distributionFunction1DPerturber>\n'
+        '    </modelParameter>\n'
+        '    <modelParameter value="active">\n'
+        '      <name value="haloMassFunctionParameters/normalization"/>\n'
+        '      <label value="A" ignoreWarnings="true"/>\n'
+        '      <distributionFunction1DPrior value="logUniform">\n'
+        '\t<limitLower value="1.0e-3"/>\n'
+        '\t<limitUpper value="1.0e+3"/>\n'
+        '      </distributionFunction1DPrior>\n'
+        '      <operatorUnaryMapper value="logarithm"/>\n'
+        '      <distributionFunction1DPerturber value="cauchy">\n'
+        '\t<median value="0.0"/>\n'
+        '\t<scale value="1.0e-4"/>\n'
+        '      </distributionFunction1DPerturber>\n'
+        '    </modelParameter>\n'
+        '\n'
+        '    <!-- Artificial halo model parameters -->\n'
+        '    <modelParameter value="active">\n'
+        '      <name value="haloMassFunctionParameters/artificialExponentMass"/>\n'
+        r'      <label value="\alpha" ignoreWarnings="true"/>' + '\n'
+        '      <distributionFunction1DPrior value="uniform">\n'
+        '\t<limitLower value="-3.0"/>\n'
+        '\t<limitUpper value="+0.0"/>\n'
+        '      </distributionFunction1DPrior>\n'
+        '      <operatorUnaryMapper value="identity"/>\n'
+        '      <distributionFunction1DPerturber value="cauchy">\n'
+        '\t<median value="0.0"/>\n'
+        '\t<scale value="1.0e-4"/>\n'
+        '      </distributionFunction1DPerturber>\n'
+        '    </modelParameter>\n'
+        '    <modelParameter value="active">\n'
+        '      <name value="haloMassFunctionParameters/artificialExponentGrowthFactor"/>\n'
+        r'      <label value="\beta" ignoreWarnings="true"/>' + '\n'
+        '      <distributionFunction1DPrior value="uniform">\n'
+        '\t<limitLower value="-3.0"/>\n'
+        '\t<limitUpper value="+3.0"/>\n'
+        '      </distributionFunction1DPrior>\n'
+        '      <operatorUnaryMapper value="identity"/>\n'
+        '      <distributionFunction1DPerturber value="cauchy">\n'
+        '\t<median value="0.0"/>\n'
+        '\t<scale value="1.0e-4"/>\n'
+        '      </distributionFunction1DPerturber>\n'
+        '    </modelParameter>\n'
+        '    <modelParameter value="active">\n'
+        '      <name value="haloMassFunctionParameters/artificialCountParticles"/>\n'
+        '      <label value="N" ignoreWarnings="true"/>\n'
+        '      <distributionFunction1DPrior value="logUniform">\n'
+        '\t<limitLower value="1.0e+0"/>\n'
+        '\t<limitUpper value="1.0e+3"/>\n'
+        '      </distributionFunction1DPrior>\n'
+        '      <operatorUnaryMapper value="logarithm"/>\n'
+        '      <distributionFunction1DPerturber value="cauchy">\n'
+        '\t<median value="0.0"/>\n'
+        '\t<scale value="1.0e-4"/>\n'
+        '      </distributionFunction1DPerturber>\n'
+        '    </modelParameter>\n'
+        '\n'
+        '    <!-- Window function parameters -->\n'
+        '    <modelParameter value="active">\n'
+        '      <name value="haloMassFunctionParameters/cW0" />\n'
+        r'      <label value="c_\mathrm\{W,0\}" ignoreWarnings="true"/>' + '\n'
+        '      <distributionFunction1DPerturber value="cauchy">\n'
+        '        <median value="0.0" />\n'
+        '        <scale value="1.0e-4" />\n'
+        '      </distributionFunction1DPerturber>\n'
+        '      <distributionFunction1DPrior value="uniform">\n'
+        '        <limitLower value="0.50" />\n'
+        '        <limitUpper value="6.00" />\n'
+        '      </distributionFunction1DPrior>\n'
+        '      <operatorUnaryMapper value="identity" />\n'
+        '      <slow value="false" />\n'
+        '    </modelParameter>\n'
+        '    <modelParameter value="active">\n'
+        '      <name value="haloMassFunctionParameters/beta0" />\n'
+        r'      <label value="\beta_0" ignoreWarnings="true"/>' + '\n'
+        '      <distributionFunction1DPerturber value="cauchy">\n'
+        '        <median value="0.0" />\n'
+        '        <scale value="1.0e-4" />\n'
+        '      </distributionFunction1DPerturber>\n'
+        '      <distributionFunction1DPrior value="uniform">\n'
+        '        <limitLower value=" 0.50" />\n'
+        '        <limitUpper value="10.00" />\n'
+        '      </distributionFunction1DPrior>\n'
+        '      <operatorUnaryMapper value="identity" />\n'
+        '      <slow value="false" />\n'
+        '    </modelParameter>\n'
+        '    <modelParameter value="active">\n'
+        '      <name value="haloMassFunctionParameters/cW1" />\n'
+        r'      <label value="c_\mathrm\{W,1\}" ignoreWarnings="true"/>' + '\n'
+        '      <distributionFunction1DPerturber value="cauchy">\n'
+        '        <median value="0.0" />\n'
+        '        <scale value="1.0e-4" />\n'
+        '      </distributionFunction1DPerturber>\n'
+        '      <distributionFunction1DPrior value="logUniform">\n'
+        '        <limitLower value="0.1" />\n'
+        '        <limitUpper value="5.0" />\n'
+        '      </distributionFunction1DPrior>\n'
+        '      <operatorUnaryMapper value="logarithm" />\n'
+        '      <slow value="false" />\n'
+        '    </modelParameter>\n'
+        '    <modelParameter value="active">\n'
+        '      <name value="haloMassFunctionParameters/beta1" />\n'
+        r'      <label value="\beta_1" ignoreWarnings="true"/>' + '\n'
+        '      <distributionFunction1DPerturber value="cauchy">\n'
+        '        <median value="0.0" />\n'
+        '        <scale value="1.0e-4" />\n'
+        '      </distributionFunction1DPerturber>\n'
+        '      <distributionFunction1DPrior value="logUniform">\n'
+        '        <limitLower value="0.1" />\n'
+        '        <limitUpper value="5.0" />\n'
+        '      </distributionFunction1DPrior>\n'
+        '      <operatorUnaryMapper value="logarithm" />\n'
+        '      <slow value="false" />\n'
+        '    </modelParameter>\n'
+        '    <modelParameter value="active">\n'
+        '      <name value="haloMassFunctionParameters/wavenumberScaledMinimum" />\n'
+        r'      <label value="x_\mathrm\{min\}" ignoreWarnings="true"/>' + '\n'
+        '      <distributionFunction1DPerturber value="cauchy">\n'
+        '        <median value="0.0" />\n'
+        '        <scale value="1.0e-4" />\n'
+        '      </distributionFunction1DPerturber>\n'
+        '      <distributionFunction1DPrior value="uniform">\n'
+        '        <limitLower value="0.0" />\n'
+        '        <limitUpper value="5.0" />\n'
+        '      </distributionFunction1DPrior>\n'
+        '      <operatorUnaryMapper value="identity" />\n'
+        '      <slow value="false" />\n'
+        '    </modelParameter>\n'
+        '    <modelParameter value="active">\n'
+        '      <name value="haloMassFunctionParameters/powerSpectrumSmoothingWidth" />\n'
+        r'      <label value="\log k_\mathrm\{width\}" ignoreWarnings="true"/>' + '\n'
+        '      <distributionFunction1DPerturber value="cauchy">\n'
+        '        <median value="0.0" />\n'
+        '        <scale value="1.0e-4" />\n'
+        '      </distributionFunction1DPerturber>\n'
+        '      <distributionFunction1DPrior value="logUniform">\n'
+        '        <limitLower value="0.01" />\n'
+        '        <limitUpper value="10.0" />\n'
+        '      </distributionFunction1DPrior>\n'
+        '      <operatorUnaryMapper value="logarithm" />\n'
+        '      <slow value="false" />\n'
+        '    </modelParameter>\n'
+        '\n'
+        '    <modelParameter value="active">\n'
+        '      <name value="varianceFractionalModelDiscrepancy"/>\n'
+        r'      <label value="\mathcal\{C\}_\mathrm\{disc\}" ignoreWarnings="true"/>' + '\n'
+        '      <distributionFunction1DPrior value="logUniform">\n'
+        '    \t<limitLower value="1.0e-6"/>\n'
+        '    \t<limitUpper value="1.0e+0"/>\n'
+        '      </distributionFunction1DPrior>\n'
+        '      <operatorUnaryMapper value="logarithm"/>\n'
+        '      <distributionFunction1DPerturber value="cauchy">\n'
+        '    \t<median value="0.0"/>\n'
+        '    \t<scale value="1.0e-4"/>\n'
+        '      </distributionFunction1DPerturber>\n'
+        '    </modelParameter>\n'
+    )
+
+    # Perturbation parameters
+    if perturbations:
+        config_closer += '\n    <!-- Perturbation model parameters -->\n'
+        for lbl in sorted(perturbations):
+            config_closer += (
+                f'    <modelParameter value="active">\n'
+                f'      <name value="haloMassFunctionParameters/perturbation{lbl}" />\n'
+                r'      <label value="\epsilon_\mathrm\{' + lbl + r'\}" ignoreWarnings="true"/>' + '\n'
+                f'      <distributionFunction1DPerturber value="cauchy">\n'
+                f'        <median value="0.0" />\n'
+                f'        <scale value="1.0e-4" />\n'
+                f'      </distributionFunction1DPerturber>\n'
+                f'      <distributionFunction1DPrior value="normal">\n'
+                f'        <limitLower value="-10.0" />\n'
+                f'        <limitUpper value="+10.0" />\n'
+                f'        <mean value="0.0" />\n'
+                f'        <variance value="1.0" />\n'
+                f'      </distributionFunction1DPrior>\n'
+                f'      <operatorUnaryMapper value="identity" />\n'
+                f'    </modelParameter>\n'
+            )
+
+    # Isolation bias parameters
+    if isolation_biases:
+        config_closer += '\n    <!-- Isolation bias model parameters -->\n'
+        for lbl in sorted(isolation_biases):
+            group_name = isolation_biases[lbl]['groupName']
+            config_closer += (
+                f'    <modelParameter value="active">\n'
+                f'      <name value="haloMassFunctionParameters/isolationBias{lbl}" />\n'
+                r'      <label value="\mathcal\{I\}_\mathrm\{' + group_name + r'\}" ignoreWarnings="true"/>' + '\n'
+                f'      <distributionFunction1DPerturber value="cauchy">\n'
+                f'        <median value="0.0" />\n'
+                f'        <scale value="1.0e-4" />\n'
+                f'      </distributionFunction1DPerturber>\n'
+                f'      <distributionFunction1DPrior value="logNormal">\n'
+                f'        <limitLower value="1.0e-3" />\n'
+                f'        <limitUpper value="1.0e+3" />\n'
+                f'        <mean value="1.0" />\n'
+                f'        <variance value="0.25" />\n'
+                f'      </distributionFunction1DPrior>\n'
+                f'      <operatorUnaryMapper value="identity" />\n'
+                f'    </modelParameter>    \n'
+                f'    <modelParameter value="active">\n'
+                f'      <name value="haloMassFunctionParameters/isolationBiasExponent{lbl}" />\n'
+                r'      <label value="\alpha_\mathrm\{iso,' + group_name + r'\}" ignoreWarnings="true"/>' + '\n'
+                f'      <distributionFunction1DPerturber value="cauchy">\n'
+                f'        <median value="0.0" />\n'
+                f'        <scale value="1.0e-4" />\n'
+                f'      </distributionFunction1DPerturber>\n'
+                f'      <distributionFunction1DPrior value="uniform">\n'
+                f'        <limitLower value="-3.0" />\n'
+                f'        <limitUpper value="+0.0" />\n'
+                f'      </distributionFunction1DPrior>\n'
+                f'      <operatorUnaryMapper value="identity" />\n'
+                f'    </modelParameter>\n'
+            )
+
+    # Detection efficiency parameters
+    if detection_efficiency_classes:
+        config_closer += '\n    <!-- Detection efficiency model parameters -->\n'
+    for cls in sorted(detection_efficiency_classes):
+        config_closer += (
+            f'    <modelParameter value="active">\n'
+            f'      <name value="haloMassFunctionParameters/massMinimumParticleCount{cls}" />\n'
+            r'      <label value="N_\mathrm\{min,' + cls + r'\}" ignoreWarnings="true"/>' + '\n'
+            f'      <distributionFunction1DPerturber value="cauchy">\n'
+            f'        <median value="0.0" />\n'
+            f'        <scale value="1.0e-4" />\n'
+            f'      </distributionFunction1DPerturber>\n'
+            f'      <distributionFunction1DPrior value="logUniform">\n'
+            f'        <limitLower value="  1.00" />\n'
+            f'        <limitUpper value="100.00" />\n'
+            f'      </distributionFunction1DPrior>\n'
+            f'      <operatorUnaryMapper value="logarithm" />\n'
+            f'    </modelParameter>\n'
+            f'    <modelParameter value="active">\n'
+            f'      <name value="haloMassFunctionParameters/efficiencyAtMassMinimum{cls}" />\n'
+            r'      <label value="\epsilon_\mathrm\{min,' + cls + r'\}" ignoreWarnings="true"/>' + '\n'
+            f'      <distributionFunction1DPerturber value="cauchy">\n'
+            f'        <median value="0.0" />\n'
+            f'        <scale value="1.0e-4" />\n'
+            f'      </distributionFunction1DPerturber>\n'
+            f'      <distributionFunction1DPrior value="uniform">\n'
+            f'        <limitLower value="+0.00" />\n'
+            f'        <limitUpper value="+1.00" />\n'
+            f'      </distributionFunction1DPrior>\n'
+            f'      <operatorUnaryMapper value="identity" />\n'
+            f'    </modelParameter>\n'
+            f'    <modelParameter value="active">\n'
+            f'      <name value="haloMassFunctionParameters/exponentMassDetection{cls}" />\n'
+            r'      <label value="\alpha_\mathrm\{det,' + cls + r'\}" ignoreWarnings="true"/>' + '\n'
+            f'      <distributionFunction1DPerturber value="cauchy">\n'
+            f'        <median value="0.0" />\n'
+            f'        <scale value="1.0e-4" />\n'
+            f'      </distributionFunction1DPerturber>\n'
+            f'      <distributionFunction1DPrior value="uniform">\n'
+            f'        <limitLower value="-3.00" />\n'
+            f'        <limitUpper value="+0.00" />\n'
+            f'      </distributionFunction1DPrior>\n'
+            f'      <operatorUnaryMapper value="identity" />\n'
+            f'    </modelParameter>\n'
+            f'    <modelParameter value="active">\n'
+            f'      <name value="haloMassFunctionParameters/exponentRedshiftDetection{cls}" />\n'
+            r'      <label value="\beta_\mathrm\{det,' + cls + r'\}" ignoreWarnings="true"/>' + '\n'
+            f'      <distributionFunction1DPerturber value="cauchy">\n'
+            f'        <median value="0.0" />\n'
+            f'        <scale value="1.0e-4" />\n'
+            f'      </distributionFunction1DPerturber>\n'
+            f'      <distributionFunction1DPrior value="uniform">\n'
+            f'        <limitLower value="-3.00" />\n'
+            f'        <limitUpper value="+3.00" />\n'
+            f'      </distributionFunction1DPrior>\n'
+            f'      <operatorUnaryMapper value="identity" />\n'
+            f'    </modelParameter>\n'
+        )
+
+    # Finish the closer
+    config_closer += (
+        '\n'
+        '  </posteriorSampleSimulation>\n'
+        '\n'
+        '  <!-- Random seed -->\n'
+        '  <randomNumberGenerator value="GSL">\n'
+        '    <seed          value="219" />\n'
+        '    <mpiRankOffset value="true"/>\n'
+        '  </randomNumberGenerator>\n'
+        '\n'
+        '</parameters>\n'
+    )
+
+    # -------------------------------------------------------- parameters_opener
+    parameters_opener = (
+        '<?xml version="1.0" encoding="UTF-8"?>\n'
+        '<parameters>\n'
+        '  <formatVersion>2</formatVersion>\n'
+        '  <version>0.9.4</version>\n'
+        '\n'
+        '  <!-- Controllable parameters of the halo mass function -->\n'
+        '  <haloMassFunctionParameters value="" ignoreWarnings="true">\n'
+        '    <!-- Halo mass function -->\n'
+        '    <a                                value="+0.75"/>\n'
+        '    <b                                value="+0.84"/>\n'
+        '    <c                                value="+2.26"/>\n'
+        '    <p                                value="-1.09"/>\n'
+        '    <q                                value="+0.51"/>\n'
+        '    <normalization                    value="+0.57"/>\n'
+        '    <!-- Artificial halo variance -->\n'
+        '    <artificialExponentMass           value="-0.50e+0"/>\n'
+        '    <artificialExponentGrowthFactor   value="+1.00e+0"/>\n'
+        '    <artificialCountParticles         value="+1.00e+2"/>\n'
+        '    <!-- ETHOS window function -->\n'
+        '    <cW0                              value="+2.59"/>\n'
+        '    <beta0                            value="+3.51"/>\n'
+        '    <cW1                              value="+0.74"/>\n'
+        '    <beta1                            value="+4.83"/>\n'
+        '    <wavenumberScaledMinimum          value="+0.00"/>\n'
+        '    <powerSpectrumSmoothingWidth      value="+1.00"/>\n'
+    )
+
+    # -------------------------------------------------------- parameters_closer
+    parameters_closer = ''
+    if perturbations:
+        parameters_closer += '    <!-- Perturbation model parameters -->\n'
+        for lbl in sorted(perturbations):
+            parameters_closer += f'    <perturbation{lbl} value="0.0"/>\n'
+
+    if isolation_biases:
+        parameters_closer += '    <!-- Isolation bias model parameters -->\n'
+        for lbl in sorted(isolation_biases):
+            parameters_closer += (
+                f'    <isolationBias{lbl}         value="1.0"/>\n'
+                f'    <isolationBiasExponent{lbl} value="0.0"/>\n'
+            )
+
+    if detection_efficiency_classes:
+        parameters_closer += '    <!-- Detection efficiency model parameters -->\n'
+    for cls in sorted(detection_efficiency_classes):
+        parameters_closer += (
+            f'    <massMinimumParticleCount{cls}  value="10.0"/>\n'
+            f'    <efficiencyAtMassMinimum{cls}   value=" 1.0"/>\n'
+            f'    <exponentMassDetection{cls}     value=" 0.0"/>\n'
+            f'    <exponentRedshiftDetection{cls} value=" 0.0"/>\n'
+        )
+
+    parameters_closer += (
+        '  </haloMassFunctionParameters>\n'
+        '\n'
+        '  <!-- Parameter controlling the fractional variance due to model discrepancy -->\n'
+        '  <varianceFractionalModelDiscrepancy value="0.0"/>\n'
+        '\n'
+        '</parameters>\n'
+    )
+
+    return (config_opener, config_initializer, config_resumer,
+            config_closer, parameters_opener, parameters_closer)
+
+
+# ---------------------------------------------------------------------------
+# main
+# ---------------------------------------------------------------------------
+
+def main():
+    options = _parse_args()
+    simulations = parse_simulations_xml(
+        options['pipelinePath'] + 'simulations.xml'
+    )
+
+    print('Creating parameters...')
+    isolation_biases, perturbations = _step_a_group_labels(simulations, options)
+
+    print('Modifying halo mass function XML files...')
+    _step_b_suite_hmf_xml(simulations, options)
+
+    print('Counting realizations...')
+    count_realizations = _step_c_count_realizations(simulations, options)
+
+    print('Building entry groups...')
+    entry_groups = _step_d_group_entries(simulations, options, count_realizations)
+
+    print('Generating base parameter files...')
+    config_likelihood, detection_efficiency_classes = _step_e_base_files(
+        entry_groups, options
+    )
+
+    print('Assembling MCMC config strings...')
+    (config_opener, config_initializer, config_resumer,
+     config_closer, parameters_opener, parameters_closer) = _step_f_config_strings(
+        perturbations, isolation_biases, detection_efficiency_classes, options
+    )
+
+    output_dir = options['outputDirectory']
+
+    with open(output_dir + 'haloMassFunctionConfig.xml', 'w') as fh:
+        fh.write(config_opener)
+        fh.write(config_likelihood)
+        fh.write(config_initializer)
+        fh.write(config_closer)
+
+    with open(output_dir + 'haloMassFunctionConfigResume.xml', 'w') as fh:
+        fh.write(config_opener)
+        fh.write(config_likelihood)
+        fh.write(config_resumer)
+        fh.write(config_closer)
+
+    with open(output_dir + 'haloMassFunctionParameters.xml', 'w') as fh:
+        fh.write(parameters_opener)
+        fh.write(parameters_closer)
+
+    print('Done.')
+
+
+if __name__ == '__main__':
+    main()
