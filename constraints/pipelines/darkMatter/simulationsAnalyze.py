@@ -80,6 +80,14 @@ def _write_param_xml(root, path):
     tree.write(path, xml_declaration=True, encoding='unicode')
 
 
+def _find_or_create(parent, tag):
+    """Return the child element with the given tag, creating it if absent."""
+    el = parent.find(tag)
+    if el is None:
+        el = ET.SubElement(parent, tag)
+    return el
+
+
 # ---------------------------------------------------------------------------
 # Job submission helpers
 # ---------------------------------------------------------------------------
@@ -291,7 +299,7 @@ def symphony_preprocess_extract_halos_uncontaminated(entry, jobs, options):
         nb_ops = root.find('nbodyOperator').findall('nbodyOperator')
         nb_ops[0].find('point'   ).set('value', entry[af_label])
         nb_ops[1].find('fileName').set('value', uncontaminated_file)
-        root.find('outputFileName').set(
+        _find_or_create(root, 'outputFileName').set(
             'value', entry['path'] + f'uncontaminatedExtract_{rl}.hdf5')
 
         param_file = entry['path'] + f'uncontaminated_{rl}.xml'
@@ -492,7 +500,7 @@ def symphony_postprocess_select_in_sphere(entry, jobs, options):
         )
         output_file = entry['path'] + f'selectedParticles_{rl}.hdf5'
 
-        root.find('outputFileName').set(
+        _find_or_create(root, 'outputFileName').set(
             'value', entry['path'] + f'selectInSphereGLC_{rl}.hdf5')
         root.find('nbodyImporter/fileName').set(
             'value', entry['path'] + f'snapshots/snapshot_{snapshot}')
@@ -555,7 +563,7 @@ def symphony_postprocess_select_in_ics(entry, jobs, options):
             'value', entry['path'] + f'selectedParticles_{rl}.hdf5')
         nb_ops[1].find('fileName').set('value', output_file)
         nb_ops[1].find('redshift').set('value', f'{entry["redshiftICs"]:.3f}')
-        root.find('outputFileName').set(
+        _find_or_create(root, 'outputFileName').set(
             'value', entry['path'] + f'selectInICs_{rl}.hdf5')
 
         param_file = entry['path'] + f'selectInICs_{rl}.xml'
@@ -597,7 +605,7 @@ def symphony_postprocess_analyze(entry, jobs, options):
     for epoch in entry['resolution']['epochs']:
         rl = epoch['redshiftLabel']
 
-        root.find('outputFileName').set(
+        _find_or_create(root, 'outputFileName').set(
             'value', entry['path'] + f'environment_{rl}.hdf5')
         importers[0].find('fileName').set(
             'value', entry['path'] + f'selectedParticles_{rl}_ICs.hdf5')
@@ -798,7 +806,7 @@ def step_identify_always_isolated(entries, suites_cfg, active_steps, manager, op
                         continue
 
                     root = _parse_param_xml(options['pipelinePath'] + 'identifyAlwaysIsolated.xml')
-                    root.find('outputFileName').set(
+                    _find_or_create(root, 'outputFileName').set(
                         'value', entry['path'] + f'identifyAlwaysIsolatedGLC_{i}_{j}_{k}.hdf5')
                     root.find('nbodyImporter/fileName').set(
                         'value', entry['path'] + f'tree_{i}_{j}_{k}.dat')
@@ -855,7 +863,7 @@ def step_extract_halos(entries, suites_cfg, active_steps, manager, options, omp_
                         rl      = epoch['redshiftLabel']
 
                         root = _parse_param_xml(options['pipelinePath'] + 'extractHalosSnapshot.xml')
-                        root.find('outputFileName').set(
+                        _find_or_create(root, 'outputFileName').set(
                             'value', entry['path'] + f'alwaysIsolated_subVolumeGLC{i}_{j}_{k}.hdf5')
                         root.find('nbodyImporter/fileName').set(
                             'value', entry['path'] + f'alwaysIsolated_subVolume{i}_{j}_{k}.hdf5')
@@ -916,7 +924,7 @@ def step_extract_subhalos(entries, suites_cfg, active_steps, manager, options, o
                         rl      = epoch['redshiftLabel']
 
                         root = _parse_param_xml(options['pipelinePath'] + 'extractSubhalosSnapshot.xml')
-                        root.find('outputFileName').set(
+                        _find_or_create(root, 'outputFileName').set(
                             'value', entry['path'] + f'subhalos_subVolumeGLC{i}_{j}_{k}.hdf5')
                         root.find('nbodyImporter/fileName').set(
                             'value', entry['path'] + f'alwaysIsolated_subVolume{i}_{j}_{k}.hdf5')
@@ -991,7 +999,7 @@ def step_mass_functions(entries, suites_cfg, active_steps, manager, options, omp
                 ET.SubElement(imp_el, 'snapshot',   value='1')
                 ET.SubElement(imp_el, 'properties', value='massVirial')
 
-            root.find('outputFileName').set(
+            _find_or_create(root, 'outputFileName').set(
                 'value', entry['path'] + f'haloMassFunction_{rl}.hdf5')
             nb_ops = root.find('nbodyOperator').findall('nbodyOperator')
             nb_ops[0].find('values').set('value', str(entry['resolution']['massParticle']))
@@ -1059,7 +1067,7 @@ def step_subhalo_functions(entries, suites_cfg, active_steps, manager, options, 
                 ET.SubElement(imp_el, 'snapshot',   value='1')
                 ET.SubElement(imp_el, 'properties', value='position massVirial velocityMaximum')
 
-            root.find('outputFileName').set(
+            _find_or_create(root, 'outputFileName').set(
                 'value', entry['path'] + f'subhaloFunctions_{rl}.hdf5')
             nb_ops = root.find('nbodyOperator').findall('nbodyOperator')
             nb_ops[0].find('values').set('value', str(entry['resolution']['massParticle']))
