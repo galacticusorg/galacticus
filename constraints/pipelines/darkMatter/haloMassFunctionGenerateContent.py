@@ -160,3 +160,57 @@ def _step_b_suite_hmf_xml(simulations, options):
                 _remove_hmf_nodes(root, removal_value)
         ET.indent(root)
         ET.ElementTree(root).write(dst, xml_declaration=True, encoding='utf-8')
+
+
+# ---------------------------------------------------------------------------
+# Steps C & D
+# ---------------------------------------------------------------------------
+
+def _step_c_count_realizations(simulations, options):
+    """Step C: count how many simulations share each (suite,group,res,realization,redshift) key."""
+    count_realizations = {}
+    for entry in iterate(simulations, options):
+        key = '::'.join([
+            entry['suite'     ]['name'],
+            entry['group'     ]['name'],
+            entry['resolution']['name'],
+            entry['realization'],
+            entry['redshift'],
+        ])
+        count_realizations[key] = count_realizations.get(key, 0) + 1
+    return count_realizations
+
+
+def _step_d_group_entries(simulations, options, count_realizations):
+    """Step D: group entries that differ only by redshift into ordered lists.
+
+    Returns a dict keyed by suite::group::res::sim::realization, each value
+    being a list of entry dicts (one per redshift, in iterate() order).
+    Each entry gets a 'countRealizations' key attached.
+    """
+    entry_groups = {}
+    have_models  = False
+
+    for entry in iterate(simulations, options):
+        have_models = True
+        group_key = '::'.join([
+            entry['suite'     ]['name'],
+            entry['group'     ]['name'],
+            entry['resolution']['name'],
+            entry['simulation']['name'],
+            entry['realization'],
+        ])
+        real_key = '::'.join([
+            entry['suite'     ]['name'],
+            entry['group'     ]['name'],
+            entry['resolution']['name'],
+            entry['realization'],
+            entry['redshift'],
+        ])
+        entry['countRealizations'] = count_realizations.get(real_key, 1)
+        entry_groups.setdefault(group_key, []).append(entry)
+
+    if not have_models:
+        raise RuntimeError('no models match this selection')
+
+    return entry_groups
