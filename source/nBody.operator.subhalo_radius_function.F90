@@ -273,6 +273,7 @@ contains
 #ifdef USEMPI
        if (mpiSelf%isMaster()) then
 #endif
+          !$ call hdf5Access%set()
           radialDistributionGroup=simulations(iSimulation)%analysis%openGroup('subhaloRadiusFunction')
           call radialDistributionGroup%writeDataset  (radiusRatioBin           ,'radiusRatio'       )
           call radialDistributionGroup%writeDataset  (countBin                 ,'count'             )

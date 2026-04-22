@@ -48,9 +48,13 @@ class SLURMManager(QueueManager):
         super().__init__("SLURM")
         self.options = {}
         for option in 'partition',:
-            self.options[option]  = config.find(option).text
+            optionElement = config.find(option)
+            if optionElement is not None:
+                self.options[option]  = config.find(option).text
         for option in 'jobMaximum', 'waitOnSubmit', 'waitOnActive':
-            self.options[option]  = int(config.find(option).text)
+            optionElement = config.find(option)
+            if optionElement is not None:
+                self.options[option]  = int(config.find(option).text)
         if 'partition'    in vars(args) and args.partition    is not None:
             self.options['partition'   ] = args.partition
         if 'jobMaximum'   in vars(args) and args.jobMaximum   is not None:
@@ -138,7 +142,7 @@ class SLURMManager(QueueManager):
                     # Get the next job.
                     job = jobs.pop()
                     # Set job defaults.
-                    if "partition" not in job:
+                    if "partition" not in job and "partition" in self.options:
                         job['partition'] = self.options['partition']
                     # Determine number of tasks such that we do not exceed the available memory.
                     if "memoryPerThread" in job and not "tasksPerNode" in job:
@@ -153,7 +157,11 @@ class SLURMManager(QueueManager):
                         # Specify the fraction of memory on a node we will use (i.e. allow some buffer so as not to use all memory).
                         memoryFraction = 0.8
                         # Get info on nodes in this partition.
-                        sinfo = subprocess.run(['sinfo', '--partition', job['partition'], '--json'], capture_output=True, text=True)
+                        command = [ 'sinfo' ]
+                        if "partition" in job:
+                            command.extend(['--partition', job['partition']])
+                        command.append('--json')
+                        sinfo = subprocess.run(command, capture_output=True, text=True)
                         if sinfo.returncode != 0:
                             raise Exception("`sinfo` failed")
                         partitionData = json.loads(sinfo.stdout)
@@ -219,3 +227,25 @@ class SLURMManager(QueueManager):
                 print(f"`squeue` command failed with return code: {squeue.returncode}")
                 print(squeue.stderr)
                 time.sleep(self.options['waitOnActive'])
+
+
+def translate_job(job):
+    """Translate Perl-style job dict keys to Python queueManager keys."""
+    j = dict(job)
+    if 'ompThreads' in j:
+        j['countOpenMPThreads'] = j.pop('ompThreads')
+    if 'mem' in j:
+        j['memory'] = j.pop('mem')
+    if 'logFile' in j:
+        log = j.pop('logFile')
+        j.setdefault('logOutput', log)
+        j.setdefault('logError',  log)
+    if 'ppn' in j:
+        j['tasksPerNode'] = j.pop('ppn')
+    return j
+
+
+def submit_jobs(manager, jobs):
+    """Submit a list of Perl-style job dicts via the Python queue manager."""
+    if jobs:
+        manager.submitJobs([translate_job(j) for j in jobs])
