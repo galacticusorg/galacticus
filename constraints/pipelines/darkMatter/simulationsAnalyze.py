@@ -428,7 +428,10 @@ def symphony_process_subhalo_functions(entry, expansion_factor, parameters, opti
     all_realizations     = entry['simulation'].get('realizations', {}).get('value', 'only').split()
     for realization in all_realizations:
         path         = entry['path'].replace(f'/{entry["realization"]}/', f'/{realization}/')
-        primary_root = ET.parse(path + f'primaryHalo_{rl}.xml').getroot()
+        primary_file = path + f'primaryHalo_{rl}.xml'
+        if not os.path.exists(primary_file):
+            continue
+        primary_root = ET.parse(primary_file).getroot()
         m            = float(primary_root.get('m'))
         if m > mass_primary_maximum:
             mass_primary_maximum = m

@@ -977,6 +977,8 @@ sub symphonyProcessSubhaloFunctions {
 	foreach my $realization ( @realizations ) {
 	    (my $path = $entry->{'path'}) =~ s/\/$entry->{'realization'}\//\/$realization\//;
 	    my $primaryHaloFileName = $path."primaryHalo_".$redshiftLabel.".xml";
+	    next
+		unless ( -e $primaryHaloFileName );
 	    my $primaryHaloData        = $xml->XMLin($primaryHaloFileName);
 	    $massPrimaryMaximum = $primaryHaloData->{'m'}
 	        if ( $primaryHaloData->{'m'} > $massPrimaryMaximum );
