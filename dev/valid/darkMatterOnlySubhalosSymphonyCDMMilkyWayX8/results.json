@@ -4,12 +4,12 @@ window.ANALYSES_DATA = {
     "commit": {
         "author": {
             "name": "Andrew Benson",
-            "email": "abensonca@gmail.com"
+            "email": "abenson@obs.carnegiescience.edu"
         },
-        "id": "5c441d11c9474971575f552d6974cf2b49d0eae6",
-        "message": "Merge pull request #1065 from galacticusorg/fixTidalTruncationRadii\n\nSet an infinite truncation radius for profiles that are precisely NFW (i.e. are not truncated)\n",
-        "timestamp": "2026-04-13 14:44:44+00:00",
-        "url": "https://github.com/galacticusorg/galacticus/commit/5c441d11c9474971575f552d6974cf2b49d0eae6"
+        "id": "b7a9e3228e0641d6ac649d3c86680de36f730793",
+        "message": "fix: Remove obsoleted Perl modules\n",
+        "timestamp": "2026-04-21 09:22:24-07:00",
+        "url": "https://github.com/galacticusorg/galacticus/commit/b7a9e3228e0641d6ac649d3c86680de36f730793"
     },
     "results": [
         {
@@ -199,7 +199,7 @@ window.ANALYSES_DATA = {
                 "targetLabel": "Symphony (Nadler et al. 2023)",
                 "comment": "Subhalo mean maximum velocity vs. bound mass relation",
                 "description": "Subhalo mean maximum velocity vs. bound mass relation",
-                "logLikelihood": "-42.537896846623916",
+                "logLikelihood": "-42.53789684662392",
                 "type": "function1D",
                 "xDataset": "massBound",
                 "yCovariance": "velocityMaximumMeanCovariance",
@@ -239,9 +239,9 @@ window.ANALYSES_DATA = {
                     22.811259740615068,
                     27.363124804000208,
                     31.278724533324933,
-                    36.23430211660395,
-                    43.21323990862219,
-                    39.93609046328783,
+                    36.23430211660394,
+                    43.2132399086222,
+                    39.936090463287826,
                     53.389639716368855,
                     65.36596520330569,
                     67.61178721298813,
@@ -289,9 +289,9 @@ window.ANALYSES_DATA = {
                     0.6545878838383198,
                     1.0287568504657336,
                     1.4130065348689802,
-                    1.7450415268093908,
-                    2.747095812629036,
-                    2.533473043284125,
+                    1.7450415268093964,
+                    2.7470958126290257,
+                    2.533473043284143,
                     3.442110493094019,
                     4.024439256426656,
                     3.7074171616180207,
