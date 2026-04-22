@@ -142,7 +142,7 @@ class SLURMManager(QueueManager):
                     # Get the next job.
                     job = jobs.pop()
                     # Set job defaults.
-                    if "partition" not in job and "parition" in self.options:
+                    if "partition" not in job and "partition" in self.options:
                         job['partition'] = self.options['partition']
                     # Determine number of tasks such that we do not exceed the available memory.
                     if "memoryPerThread" in job and not "tasksPerNode" in job:
