@@ -754,7 +754,7 @@ sub symphonyProcessIdentifyAlwaysIsolated {
 	    unless ( grep {$_ eq $property} @propertiesImport );
     }
     # Remove any delete of these properties.
-    my @propertiesDeleted = split(" ",$parameters->{'nbodyOperator'}->{'nbodyOperator'}->[2]->{'propertyNames'}->{'value'});
+    my @propertiesDeleted = split(" ",$parameters->{'nbodyOperator'}->{'nbodyOperator'}->[3]->{'propertyNames'}->{'value'});
     my @propertiesToDelete;
     foreach my $property ( @propertiesDeleted ) {
 	push(@propertiesToDelete,$property)
@@ -769,7 +769,7 @@ sub symphonyProcessIdentifyAlwaysIsolated {
 	     $property eq "velocityMaximum"
 	    );
     }
-    $parameters->{'nbodyOperator'}->{'nbodyOperator'}->[2]->{'propertyNames'}->{'value'} = join(" ",@propertiesToDelete);
+    $parameters->{'nbodyOperator'}->{'nbodyOperator'}->[3]->{'propertyNames'}->{'value'} = join(" ",@propertiesToDelete);
     # Add physical to comoving conversion.
     splice(
 	@{$parameters->{'nbodyOperator'}->{'nbodyOperator'}},

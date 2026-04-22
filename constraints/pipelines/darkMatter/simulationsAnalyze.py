@@ -184,9 +184,9 @@ def symphony_process_identify_always_isolated(entry, expansion_factor, parameter
     # (they must be kept so downstream operators can use them).
     nb_ops    = parameters.find('nbodyOperator').findall('nbodyOperator')
     keep_out  = {'position', 'radiusScale', 'radiusVirial', 'velocityMaximum'}
-    to_delete = [p for p in nb_ops[2].find('propertyNames').get('value', '').split()
+    to_delete = [p for p in nb_ops[3].find('propertyNames').get('value', '').split()
                  if p not in keep_out]
-    nb_ops[2].find('propertyNames').set('value', ' '.join(to_delete))
+    nb_ops[3].find('propertyNames').set('value', ' '.join(to_delete))
 
     # Splice a physicalToComoving operator at index 2 (before the former ops[2]).
     new_op = ET.Element('nbodyOperator', value='physicalToComoving')
