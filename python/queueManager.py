@@ -48,9 +48,13 @@ class SLURMManager(QueueManager):
         super().__init__("SLURM")
         self.options = {}
         for option in 'partition',:
-            self.options[option]  = config.find(option).text
+            optionElement = config.find(option)
+            if optionElement is not None:
+                self.options[option]  = config.find(option).text
         for option in 'jobMaximum', 'waitOnSubmit', 'waitOnActive':
-            self.options[option]  = int(config.find(option).text)
+            optionElement = config.find(option)
+            if optionElement is not None:
+                self.options[option]  = int(config.find(option).text)
         if 'partition'    in vars(args) and args.partition    is not None:
             self.options['partition'   ] = args.partition
         if 'jobMaximum'   in vars(args) and args.jobMaximum   is not None:
