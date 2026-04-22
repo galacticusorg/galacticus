@@ -78,7 +78,13 @@ def _parse_args():
                         help='Simulation selection filter (suite::group::resolution::...)')
     parser.add_argument('--initializeToPosteriorMaximum', default=None,
                         help='Log file root for initializing from a prior posterior maximum')
-    return parser.parse_args()
+    args = parser.parse_args()
+    # Normalise paths to end with '/'.
+    for key in ('pipelinePath', 'outputDirectory'):
+        val = getattr(args, key)
+        if val and not val.endswith('/'):
+            setattr(args, key, val + '/')
+    return vars(args)
 
 
 # ---------------------------------------------------------------------------
