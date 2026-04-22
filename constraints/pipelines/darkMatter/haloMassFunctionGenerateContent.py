@@ -242,8 +242,6 @@ def _step_e_base_files(entry_groups, options):
     config_likelihood          = ''
     detection_efficiency_classes = {}
 
-    print('Generating base parameter files...')
-
     for identifier in sorted(entry_groups):
         group   = entry_groups[identifier]
         entry   = group[0]
@@ -785,7 +783,7 @@ def _step_f_config_strings(perturbations, isolation_biases,
         '    <!-- Window function parameters -->\n'
         '    <modelParameter value="active">\n'
         '      <name value="haloMassFunctionParameters/cW0" />\n'
-        r'      <label value="c_\mathrm\{W,0\}" ignoreWarnings="true"/>' + '\n'
+        r'      <label value="c_\mathrm{W,0}" ignoreWarnings="true"/>' + '\n'
         '      <distributionFunction1DPerturber value="cauchy">\n'
         '        <median value="0.0" />\n'
         '        <scale value="1.0e-4" />\n'
@@ -813,7 +811,7 @@ def _step_f_config_strings(perturbations, isolation_biases,
         '    </modelParameter>\n'
         '    <modelParameter value="active">\n'
         '      <name value="haloMassFunctionParameters/cW1" />\n'
-        r'      <label value="c_\mathrm\{W,1\}" ignoreWarnings="true"/>' + '\n'
+        r'      <label value="c_\mathrm{W,1}" ignoreWarnings="true"/>' + '\n'
         '      <distributionFunction1DPerturber value="cauchy">\n'
         '        <median value="0.0" />\n'
         '        <scale value="1.0e-4" />\n'
@@ -841,7 +839,7 @@ def _step_f_config_strings(perturbations, isolation_biases,
         '    </modelParameter>\n'
         '    <modelParameter value="active">\n'
         '      <name value="haloMassFunctionParameters/wavenumberScaledMinimum" />\n'
-        r'      <label value="x_\mathrm\{min\}" ignoreWarnings="true"/>' + '\n'
+        r'      <label value="x_\mathrm{min}" ignoreWarnings="true"/>' + '\n'
         '      <distributionFunction1DPerturber value="cauchy">\n'
         '        <median value="0.0" />\n'
         '        <scale value="1.0e-4" />\n'
@@ -855,7 +853,7 @@ def _step_f_config_strings(perturbations, isolation_biases,
         '    </modelParameter>\n'
         '    <modelParameter value="active">\n'
         '      <name value="haloMassFunctionParameters/powerSpectrumSmoothingWidth" />\n'
-        r'      <label value="\log k_\mathrm\{width\}" ignoreWarnings="true"/>' + '\n'
+        r'      <label value="\log k_\mathrm{width}" ignoreWarnings="true"/>' + '\n'
         '      <distributionFunction1DPerturber value="cauchy">\n'
         '        <median value="0.0" />\n'
         '        <scale value="1.0e-4" />\n'
@@ -870,7 +868,7 @@ def _step_f_config_strings(perturbations, isolation_biases,
         '\n'
         '    <modelParameter value="active">\n'
         '      <name value="varianceFractionalModelDiscrepancy"/>\n'
-        r'      <label value="\mathcal\{C\}_\mathrm\{disc\}" ignoreWarnings="true"/>' + '\n'
+        r'      <label value="\mathcal{C}_\mathrm{disc}" ignoreWarnings="true"/>' + '\n'
         '      <distributionFunction1DPrior value="logUniform">\n'
         '    \t<limitLower value="1.0e-6"/>\n'
         '    \t<limitUpper value="1.0e+0"/>\n'
@@ -890,7 +888,7 @@ def _step_f_config_strings(perturbations, isolation_biases,
             config_closer += (
                 f'    <modelParameter value="active">\n'
                 f'      <name value="haloMassFunctionParameters/perturbation{lbl}" />\n'
-                r'      <label value="\epsilon_\mathrm\{' + lbl + r'\}" ignoreWarnings="true"/>' + '\n'
+                r'      <label value="\epsilon_\mathrm{' + lbl + r'}" ignoreWarnings="true"/>' + '\n'
                 f'      <distributionFunction1DPerturber value="cauchy">\n'
                 f'        <median value="0.0" />\n'
                 f'        <scale value="1.0e-4" />\n'
@@ -913,7 +911,7 @@ def _step_f_config_strings(perturbations, isolation_biases,
             config_closer += (
                 f'    <modelParameter value="active">\n'
                 f'      <name value="haloMassFunctionParameters/isolationBias{lbl}" />\n'
-                r'      <label value="\mathcal\{I\}_\mathrm\{' + group_name + r'\}" ignoreWarnings="true"/>' + '\n'
+                r'      <label value="\mathcal{I}_\mathrm{' + group_name + r'}" ignoreWarnings="true"/>' + '\n'
                 f'      <distributionFunction1DPerturber value="cauchy">\n'
                 f'        <median value="0.0" />\n'
                 f'        <scale value="1.0e-4" />\n'
@@ -928,7 +926,7 @@ def _step_f_config_strings(perturbations, isolation_biases,
                 f'    </modelParameter>    \n'
                 f'    <modelParameter value="active">\n'
                 f'      <name value="haloMassFunctionParameters/isolationBiasExponent{lbl}" />\n'
-                r'      <label value="\alpha_\mathrm\{iso,' + group_name + r'\}" ignoreWarnings="true"/>' + '\n'
+                r'      <label value="\alpha_\mathrm{iso,' + group_name + r'}" ignoreWarnings="true"/>' + '\n'
                 f'      <distributionFunction1DPerturber value="cauchy">\n'
                 f'        <median value="0.0" />\n'
                 f'        <scale value="1.0e-4" />\n'
@@ -948,7 +946,7 @@ def _step_f_config_strings(perturbations, isolation_biases,
         config_closer += (
             f'    <modelParameter value="active">\n'
             f'      <name value="haloMassFunctionParameters/massMinimumParticleCount{cls}" />\n'
-            r'      <label value="N_\mathrm\{min,' + cls + r'\}" ignoreWarnings="true"/>' + '\n'
+            r'      <label value="N_\mathrm{min,' + cls + r'}" ignoreWarnings="true"/>' + '\n'
             f'      <distributionFunction1DPerturber value="cauchy">\n'
             f'        <median value="0.0" />\n'
             f'        <scale value="1.0e-4" />\n'
@@ -961,7 +959,7 @@ def _step_f_config_strings(perturbations, isolation_biases,
             f'    </modelParameter>\n'
             f'    <modelParameter value="active">\n'
             f'      <name value="haloMassFunctionParameters/efficiencyAtMassMinimum{cls}" />\n'
-            r'      <label value="\epsilon_\mathrm\{min,' + cls + r'\}" ignoreWarnings="true"/>' + '\n'
+            r'      <label value="\epsilon_\mathrm{min,' + cls + r'}" ignoreWarnings="true"/>' + '\n'
             f'      <distributionFunction1DPerturber value="cauchy">\n'
             f'        <median value="0.0" />\n'
             f'        <scale value="1.0e-4" />\n'
@@ -974,7 +972,7 @@ def _step_f_config_strings(perturbations, isolation_biases,
             f'    </modelParameter>\n'
             f'    <modelParameter value="active">\n'
             f'      <name value="haloMassFunctionParameters/exponentMassDetection{cls}" />\n'
-            r'      <label value="\alpha_\mathrm\{det,' + cls + r'\}" ignoreWarnings="true"/>' + '\n'
+            r'      <label value="\alpha_\mathrm{det,' + cls + r'}" ignoreWarnings="true"/>' + '\n'
             f'      <distributionFunction1DPerturber value="cauchy">\n'
             f'        <median value="0.0" />\n'
             f'        <scale value="1.0e-4" />\n'
@@ -987,7 +985,7 @@ def _step_f_config_strings(perturbations, isolation_biases,
             f'    </modelParameter>\n'
             f'    <modelParameter value="active">\n'
             f'      <name value="haloMassFunctionParameters/exponentRedshiftDetection{cls}" />\n'
-            r'      <label value="\beta_\mathrm\{det,' + cls + r'\}" ignoreWarnings="true"/>' + '\n'
+            r'      <label value="\beta_\mathrm{det,' + cls + r'}" ignoreWarnings="true"/>' + '\n'
             f'      <distributionFunction1DPerturber value="cauchy">\n'
             f'        <median value="0.0" />\n'
             f'        <scale value="1.0e-4" />\n'
