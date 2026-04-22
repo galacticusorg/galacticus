@@ -53,7 +53,7 @@ def _parse_args():
                         help='Run GenerateContent script before MCMC (default: yes)')
     parser.add_argument('--haloMassFunctionNodes', default=16, type=int,
                         help='Number of nodes for the haloMassFunction MCMC job (default: 16)')
-    parser.add_argument('--haloMassFunctionPpn',   default=32, type=int,
+    parser.add_argument('--haloMassFunctionPPN',   default=32, type=int,
                         help='Processors per node for the haloMassFunction MCMC job (default: 32)')
     parser.add_argument('--countParticlesMinimum', default=300, type=int,
                         help='Minimum particles per halo (default: 300); forwarded to sub-scripts')
@@ -63,17 +63,21 @@ def _parse_args():
                         help='SLURM partition override; forwarded to PostProcess')
     parser.add_argument('--jobMaximum',         default=None, type=int,
                         help='Maximum concurrent jobs; forwarded to PostProcess')
+    parser.add_argument('--waitOnSubmit',       default=None, type=int,
+                        help='Time (in seconds) to wait after submitting; forwarded to PostProcess')
+    parser.add_argument('--waitOnActive',       default=None, type=int,
+                        help='Time (in seconds) to wait between polling active jobs; forwarded to PostProcess')
     parser.add_argument('--pipelinePath',       default=_default_pipeline,
                         help='Pipeline directory (default: $GALACTICUS_EXEC_PATH/constraints/pipelines/darkMatter/)')
     parser.add_argument('--initializeToPosteriorMaximum', default=None,
                         help='Log file root for initializing MCMC from prior posterior maximum; '
                              'forwarded to GenerateContent')
-    args = parser.parse_args()
+    args, args_extra = parser.parse_known_args()
     for attr in ('outputDirectory', 'pipelinePath'):
         val = getattr(args, attr)
         if val and not val.endswith('/'):
             setattr(args, attr, val + '/')
-    return args
+    return args, args_extra
 
 
 # ---------------------------------------------------------------------------
@@ -108,7 +112,7 @@ def _load_base_parameter_trees(config):
         pattern   = inner['baseParametersFileName']['value']
         trees = []
         for z in redshifts:
-            path = re.sub(r'_z[\d.]+', f'_z{z}', pattern)
+            path = re.sub(r'_z\d+\.\d+', f'_z{z}', pattern)
             tree = ET.parse(path)
             tree.xinclude()
             trees.append((path, tree.getroot()))
@@ -161,7 +165,7 @@ def _write_parameters(config):
         for path, elem_root in inner.get('_trees', []):
             ET.indent(elem_root)
             ET.ElementTree(elem_root).write(
-                path, xml_declaration=True, encoding='unicode'
+                path, xml_declaration=True, encoding='utf-8'
             )
 
 
@@ -192,11 +196,11 @@ def _call_subscript(script_path, flag_pairs):
 # ---------------------------------------------------------------------------
 
 def main():
-    args          = _parse_args()
-    options       = vars(args)
-    pipeline_path = options['pipelinePath']
-    output_dir    = options['outputDirectory']
-    galacticus    = os.path.join(
+    args, args_extra = _parse_args()
+    options          = vars(args)
+    pipeline_path    = options['pipelinePath']
+    output_dir       = options['outputDirectory']
+    galacticus       = os.path.join(
         os.environ.get('GALACTICUS_EXEC_PATH', ''), 'Galacticus.exe'
     )
 
@@ -208,7 +212,7 @@ def main():
     tasks = [
         {
             'label':       'haloMassFunction',
-            'ppn':         options['haloMassFunctionPpn'],
+            'ppn':         options['haloMassFunctionPPN'],
             'nodes':       options['haloMassFunctionNodes'],
             'postprocess': True,
         },
@@ -224,15 +228,20 @@ def main():
         # Step 1: generate config and base parameter XML files.
         if options['generateContent'] == 'yes':
             print('  Generating content...')
-            _call_subscript(
-                pipeline_path + f'{label}GenerateContent.py',
-                [
+            subscript_options = [
                     ('pipelinePath',                  pipeline_path),
                     ('outputDirectory',               output_dir),
                     ('countParticlesMinimum',         options['countParticlesMinimum']),
                     ('select',                        options['select']),
                     ('initializeToPosteriorMaximum',  options.get('initializeToPosteriorMaximum')),
-                ],
+                ]
+            for i in range(0, len(args_extra), 2):
+                m = re.match(r'\-\-'+label+r'_([a-zA-Z]+)',args_extra[i])
+                if m:
+                    subscript_options.append((m.group(1), args_extra[i+1]))
+            _call_subscript(
+                pipeline_path + f'{label}GenerateContent.py',
+                subscript_options
             )
             print('  ...done')
 
@@ -243,7 +252,7 @@ def main():
             '--pipelinePath',    pipeline_path,
             '--outputDirectory', output_dir,
         ]
-        for key in ('countParticlesMinimum', 'partition', 'jobMaximum'):
+        for key in ('countParticlesMinimum', 'partition', 'jobMaximum', 'waitOnActive', 'waitOnSubmit'):
             if options.get(key) is not None:
                 postprocess_cmd += [f'--{key}', str(options[key])]
         if options.get('select'):
@@ -270,19 +279,21 @@ def main():
         # Step 6: submit the MCMC job (skip if chain log already exists).
         chain_log_0 = log_file_root(config) + '_0000.log'
         if not os.path.exists(chain_log_0):
+            mpi_prefix = (
+                f'mpirun --n {task["ppn"]} '
+                )
             callgrind_prefix = (
                 f'--output-filename {output_dir}{label}.vlog '
                 f'valgrind --tool=callgrind '
                 if options['callgrind'] == 'yes' else ''
             )
             job = {
-                'command':    f'{callgrind_prefix}{galacticus} {config_file}',
+                'command':    f'{mpi_prefix}{callgrind_prefix}{galacticus} {config_file}',
                 'launchFile': f'{output_dir}{label}.sh',
                 'logFile':    f'{output_dir}{label}.log',
                 'label':      f'darkMatterPipeline{label[0].upper()}{label[1:]}',
                 'ppn':        task['ppn'],
                 'nodes':      task['nodes'],
-                'mpi':        'yes',
                 'walltime':   '24:00:00',
             }
             print(f"  Running MCMC for '{label}'  [{datetime.datetime.now()}]")
