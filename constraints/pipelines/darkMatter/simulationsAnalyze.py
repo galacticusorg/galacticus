@@ -1291,8 +1291,8 @@ def _parse_args():
                         help='Seconds to wait when polling active jobs')
     parser.add_argument('--partition', default=None,
                         help='SLURM partition override')
-    parser.add_argument('--select', default=None,
-                        help='Simulation selection filter (suite::group::resolution::...)')
+    parser.add_argument('--select', default=None, action='append',
+                        help='Simulation selection filter (suite::group::resolution::...); may be repeated')
     parser.add_argument('--reOrder', default='no',
                         help='Re-order simulations by power spectrum class ("yes"/"no")')
     return parser.parse_args()

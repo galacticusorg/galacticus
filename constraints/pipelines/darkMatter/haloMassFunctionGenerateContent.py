@@ -74,8 +74,8 @@ def _parse_args():
                         help='Heat repeated realizations to account for correlations (default: true)')
     parser.add_argument('--countParticlesMinimum',       default=300, type=int,
                         help='Minimum particles per halo for constraints (default: 300)')
-    parser.add_argument('--select',            default=None,
-                        help='Simulation selection filter (suite::group::resolution::...)')
+    parser.add_argument('--select',            default=None, action='append',
+                        help='Simulation selection filter (suite::group::resolution::...); may be repeated')
     parser.add_argument('--initializeToPosteriorMaximum', default=None,
                         help='Log file root for initializing from a prior posterior maximum')
     args = parser.parse_args()
