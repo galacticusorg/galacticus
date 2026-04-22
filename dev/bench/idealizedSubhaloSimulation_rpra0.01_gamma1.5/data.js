@@ -1,47 +1,8 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1776116304360,
+  "lastUpdate": 1776890959417,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Idealized subhalo simulations (rₚ/rₐ=0.01; γ=1.5)": [
-      {
-        "commit": {
-          "author": {
-            "email": "abensonca@gmail.com",
-            "name": "Andrew Benson",
-            "username": "abensonca"
-          },
-          "committer": {
-            "email": "noreply@github.com",
-            "name": "GitHub",
-            "username": "web-flow"
-          },
-          "distinct": true,
-          "id": "c658b260c3e293568db98bbbd90644f6cb1c74c5",
-          "message": "Merge pull request #616 from galacticusorg/fixCoolingRateDiscontinuous\n\nCatch cases where the cooling rate is discontinuous",
-          "timestamp": "2024-06-03T23:45:02Z",
-          "tree_id": "45e6b4783b3b3f038132d6cf4660485b7ad4f5ef",
-          "url": "https://github.com/galacticusorg/galacticus/commit/c658b260c3e293568db98bbbd90644f6cb1c74c5"
-        },
-        "date": 1717476354139,
-        "tool": "customSmallerIsBetter",
-        "benches": [
-          {
-            "name": "Idealized Subhalo Simulation (rₚ/rₐ=0.01; γ=1.5) - Likelihood - satelliteBoundMass",
-            "value": 57.2226085652273,
-            "unit": "-logℒ"
-          },
-          {
-            "name": "Idealized Subhalo Simulation (rₚ/rₐ=0.01; γ=1.5) - Likelihood - satelliteRadiusVelocityMaximum",
-            "value": 29.5560046299289,
-            "unit": "-logℒ"
-          },
-          {
-            "name": "Idealized Subhalo Simulation (rₚ/rₐ=0.01; γ=1.5) - Likelihood - satelliteVelocityMaximum",
-            "value": 23.0366044363298,
-            "unit": "-logℒ"
-          }
-        ]
-      },
       {
         "commit": {
           "author": {
@@ -9900,6 +9861,45 @@ window.BENCHMARK_DATA = {
           "url": "https://github.com/galacticusorg/galacticus/commit/5c441d11c9474971575f552d6974cf2b49d0eae6"
         },
         "date": 1776116303908,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Idealized Subhalo Simulation (rₚ/rₐ=0.01; γ=1.5) - Likelihood - satelliteBoundMass",
+            "value": 57.20229486294781,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Idealized Subhalo Simulation (rₚ/rₐ=0.01; γ=1.5) - Likelihood - satelliteRadiusVelocityMaximum",
+            "value": 29.56350148803499,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Idealized Subhalo Simulation (rₚ/rₐ=0.01; γ=1.5) - Likelihood - satelliteVelocityMaximum",
+            "value": 23.03754786395062,
+            "unit": "-logℒ"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abenson@obs.carnegiescience.edu",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "abenson@obs.carnegiescience.edu",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "distinct": true,
+          "id": "b7a9e3228e0641d6ac649d3c86680de36f730793",
+          "message": "fix: Remove obsoleted Perl modules",
+          "timestamp": "2026-04-21T09:22:24-07:00",
+          "tree_id": "eda9a0713cb42cf0fad1f528d07bd585def03410",
+          "url": "https://github.com/galacticusorg/galacticus/commit/b7a9e3228e0641d6ac649d3c86680de36f730793"
+        },
+        "date": 1776890958458,
         "tool": "customSmallerIsBetter",
         "benches": [
           {
