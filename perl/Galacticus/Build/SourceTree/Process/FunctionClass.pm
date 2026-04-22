@@ -21,7 +21,7 @@ use Text::Levenshtein;
 use Text::Template 'fill_in_string';
 use Storable qw(dclone);
 use Galacticus::Build::SourceTree::Process::SourceIntrospection;
-use Galacticus::Build::SourceTree::Process::FunctionClass::Utils;
+use Galacticus::Build::SourceTree::Process::FunctionClass::Utils qw(LaTeX_Breakable trimlc striplc lctrim stripVariableName declarationRank);
 use Galacticus::Build::SourceTree::Parse::Declarations;
 
 # Insert hooks for our functions.
@@ -2934,22 +2934,6 @@ CODE
     }
 }
 
-sub LaTeX_Breakable {
-    my $text = shift;
-    $text =~ s/([a-z])([A-Z])/$1\\-$2/g;
-    return $text;
-}
-
-sub trimlc {
-    (my $result = lc(shift())) =~ s/^\s+|\s+$//g;
-    return $result;
-}
-
-sub striplc {
-    (my $result = lc(shift())) =~ s/\s//g;
-    return $result;
-}
-
 sub deepCopyLinkedList {
     # Create deep-copy instructions for linked list objects.
     my $class                       = shift();
@@ -3720,28 +3704,6 @@ sub stateStoreVariables {
 	     $declaration->{'variables'}->[0] =~ m/^stateRestore=>/
 	    );
     }
-}
-
-sub lctrim {
-    # Trim trailing whitespace and return lowercased.
-    my $string = shift();
-    $string =~ s/\s*$//;
-    return lc($string);
-}
-
-sub stripVariableName {
-    # Strip away anything (e.g. array indices, assignment operators) after the variable name.
-    (my $name = shift()) =~ s/^([a-zA-Z0-9_]+).*/$1/;
-    return $name;
-}
-
-sub declarationRank {
-    # Return the rank (number of array dimensions) of a variable declaration.
-    my $declaration = shift();
-    return 0
-	unless ( grep {$_ =~ m/^dimension\s*\(/} @{$declaration->{'attributes'}} );
-    my $dimensionDeclarator = join(",",map {/^dimension\s*\(([a-zA-Z0-9_,:\s]+)\)/} @{$declaration->{'attributes'}});
-    return ($dimensionDeclarator =~ tr/,//)+1;
 }
 
 sub linkedListRegisterVariable {
