@@ -56,21 +56,12 @@ jobs:
     steps:
       - name: Check out galacticus repository
         uses: actions/checkout@v6
-      - name: Generate app token
-        if: ${{ env.appid != '' }}
-        id: generate-token
-        uses: actions/create-github-app-token@v3
-        with:
-          app-id: ${{ secrets.DEPLOY_APP_ID }}
-          private-key: ${{ secrets.DEPLOY_APP_PRIVATE_KEY }}
-          owner: galacticusorg
       - name: Check out datasets repository
         if: ${{ env.appid != '' }}
         uses: actions/checkout@v6
         with:
           repository: galacticusorg/datasets
           path: datasets
-          token: ${{ steps.generate-token.outputs.token }}
       - name: Set environmental variables
         run: |
           echo "GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
@@ -145,6 +136,14 @@ jobs:
           if grep -q "FAILED: Cloudy CIE cooling function" test.log; then
             python3 scripts/aux/updateCoolingFunctionTestValue.py test.log source/tests.cooling_functions.F90
           fi
+      - name: Generate app token
+        if: ${{ env.appid != '' }}
+        id: generate-token
+        uses: actions/create-github-app-token@v3
+        with:
+          app-id: ${{ secrets.DEPLOY_APP_ID }}
+          private-key: ${{ secrets.DEPLOY_APP_PRIVATE_KEY }}
+          owner: galacticusorg
       - name: Create datasets branch and open PR
         if: ${{ env.appid != '' }}
         env:
