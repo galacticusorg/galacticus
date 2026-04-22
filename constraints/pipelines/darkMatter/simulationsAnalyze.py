@@ -17,6 +17,7 @@ import numpy as np
 
 sys.path.insert(0, os.path.join(os.environ.get('GALACTICUS_EXEC_PATH', ''), 'python'))
 import queueManager
+from queueManager import translate_job, submit_jobs
 from Galacticus.Constraints.Simulations import iterate, parse_simulations_xml
 
 
@@ -43,32 +44,6 @@ def _find_or_create(parent, tag):
 # ---------------------------------------------------------------------------
 # Job submission helpers
 # ---------------------------------------------------------------------------
-
-def _translate_job(job):
-    """Translate Perl-style job dict keys to Python queueManager keys."""
-    j = dict(job)
-    # OMP thread count
-    if 'ompThreads' in j:
-        j['countOpenMPThreads'] = j.pop('ompThreads')
-    # Memory: Perl uses 'mem', Python manager uses 'memory'
-    if 'mem' in j:
-        j['memory'] = j.pop('mem')
-    # Log file: map to both output and error
-    if 'logFile' in j:
-        log = j.pop('logFile')
-        j.setdefault('logOutput', log)
-        j.setdefault('logError',  log)
-    # ppn maps to tasksPerNode
-    if 'ppn' in j:
-        j['tasksPerNode'] = j.pop('ppn')
-    return j
-
-
-def _submit_jobs(manager, jobs):
-    """Submit a list of Perl-style job dicts via the Python queue manager."""
-    if jobs:
-        manager.submitJobs([_translate_job(j) for j in jobs])
-
 
 # ---------------------------------------------------------------------------
 # Active-step resolution
@@ -110,7 +85,7 @@ def _run_hooks(hook_key, step_id, entries, suites_cfg, manager, options):
             if iteration < len(hooks):
                 work_done = True
                 hooks[iteration](entry, jobs, options)
-        _submit_jobs(manager, jobs)
+        submit_jobs(manager, jobs)
         if not work_done:
             break
         iteration += 1
@@ -794,7 +769,7 @@ def step_identify_always_isolated(entries, suites_cfg, active_steps, manager, op
                         'mpi':        'no',
                     })
 
-    _submit_jobs(manager, jobs)
+    submit_jobs(manager, jobs)
 
 
 def step_extract_halos(entries, suites_cfg, active_steps, manager, options, omp_threads):
@@ -855,7 +830,7 @@ def step_extract_halos(entries, suites_cfg, active_steps, manager, options, omp_
                             'mpi':        'no',
                         })
 
-    _submit_jobs(manager, jobs)
+    submit_jobs(manager, jobs)
 
 
 def step_extract_subhalos(entries, suites_cfg, active_steps, manager, options, omp_threads):
@@ -916,7 +891,7 @@ def step_extract_subhalos(entries, suites_cfg, active_steps, manager, options, o
                             'mpi':        'no',
                         })
 
-    _submit_jobs(manager, jobs)
+    submit_jobs(manager, jobs)
 
 
 def step_mass_functions(entries, suites_cfg, active_steps, manager, options, omp_threads):
@@ -984,7 +959,7 @@ def step_mass_functions(entries, suites_cfg, active_steps, manager, options, omp
                 'mpi':        'no',
             })
 
-    _submit_jobs(manager, jobs)
+    submit_jobs(manager, jobs)
 
 
 def step_subhalo_functions(entries, suites_cfg, active_steps, manager, options, omp_threads):
@@ -1060,7 +1035,7 @@ def step_subhalo_functions(entries, suites_cfg, active_steps, manager, options, 
                 'mpi':        'no',
             })
 
-    _submit_jobs(manager, jobs)
+    submit_jobs(manager, jobs)
 
 
 STEP_FUNCTIONS = {

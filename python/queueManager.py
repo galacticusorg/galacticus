@@ -161,9 +161,7 @@ class SLURMManager(QueueManager):
                         if "partition" in job:
                             command.extend(['--partition', job['partition']])
                         command.append('--json')
-                        print(command)
-                        sys.exit()
-                        sinfo = subprocess.run(['sinfo', '--partition', job['partition'], '--json'], capture_output=True, text=True)
+                        sinfo = subprocess.run(command, capture_output=True, text=True)
                         if sinfo.returncode != 0:
                             raise Exception("`sinfo` failed")
                         partitionData = json.loads(sinfo.stdout)
@@ -229,3 +227,25 @@ class SLURMManager(QueueManager):
                 print(f"`squeue` command failed with return code: {squeue.returncode}")
                 print(squeue.stderr)
                 time.sleep(self.options['waitOnActive'])
+
+
+def translate_job(job):
+    """Translate Perl-style job dict keys to Python queueManager keys."""
+    j = dict(job)
+    if 'ompThreads' in j:
+        j['countOpenMPThreads'] = j.pop('ompThreads')
+    if 'mem' in j:
+        j['memory'] = j.pop('mem')
+    if 'logFile' in j:
+        log = j.pop('logFile')
+        j.setdefault('logOutput', log)
+        j.setdefault('logError',  log)
+    if 'ppn' in j:
+        j['tasksPerNode'] = j.pop('ppn')
+    return j
+
+
+def submit_jobs(manager, jobs):
+    """Submit a list of Perl-style job dicts via the Python queue manager."""
+    if jobs:
+        manager.submitJobs([translate_job(j) for j in jobs])
