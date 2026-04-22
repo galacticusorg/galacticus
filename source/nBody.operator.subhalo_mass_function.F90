@@ -260,6 +260,7 @@ contains
 #ifdef USEMPI
        if (mpiSelf%isMaster()) then
 #endif
+          !$ call hdf5Access%set()
           massFunctionGroup=simulations(iSimulation)%analysis%openGroup('subhaloMassFunction')
           call massFunctionGroup%writeDataset  (massRatioBin             ,'massRatio'   )
           call massFunctionGroup%writeDataset  (countBin                 ,'count'       )
