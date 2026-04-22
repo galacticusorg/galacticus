@@ -828,10 +828,11 @@ CODE
     <!-- Isolation bias model parameters -->
 CODE
     foreach $content::isolationBiasLabel ( sort(keys(%isolationBiases)) ) {
+	$content::isolationBiasGroupName = $isolationBiases{$content::isolationBiasLabel}->{'groupName'};
 	$configCloser .= fill_in_string(<<'CODE', PACKAGE => 'content');
     <modelParameter value="active">
       <name value="haloMassFunctionParameters/isolationBias{$isolationBiasLabel}" />
-      <label value="\mathcal\{I\}_\mathrm\{{$isolationBiases{$isolationBiasLabel}}\}" ignoreWarnings="true"/>
+      <label value="\mathcal\{I\}_\mathrm\{{$isolationBiasGroupName}\}" ignoreWarnings="true"/>
       <distributionFunction1DPerturber value="cauchy">
         <median value="0.0" />
         <scale value="1.0e-4" />
@@ -846,7 +847,7 @@ CODE
     </modelParameter>    
     <modelParameter value="active">
       <name value="haloMassFunctionParameters/isolationBiasExponent{$isolationBiasLabel}" />
-      <label value="\alpha_\mathrm\{iso,{$isolationBiases{$isolationBiasLabel}\}" ignoreWarnings="true"/>
+      <label value="\alpha_\mathrm\{iso,{$isolationBiasGroupName}\}" ignoreWarnings="true"/>
       <distributionFunction1DPerturber value="cauchy">
         <median value="0.0" />
         <scale value="1.0e-4" />
