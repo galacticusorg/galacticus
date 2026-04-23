@@ -51,7 +51,7 @@ with open(os.path.join(build_path, "Makefile_All_Execs"), 'w') as out:
 
         rule = f"""\
 {file_name_root}.exe: {work_dir}{file_name_root}.o {work_dir}{file_name_root}.d $(MAKE_DEPS) $(UPDATE_DEPS)
-\t./scripts/build/parameterDependencies.pl `pwd` {file_name_root}.exe
+\t./scripts/build/parameterDependencies.py `pwd` {file_name_root}.exe
 \t$(FCCOMPILER) -c {work_dir}{file_name_root}.parameters.F90 -o {work_dir}{file_name_root}.parameters.o $(FCFLAGS)
 \t@if echo "$(MAKEFLAGS)" | grep -q -E -- ' -j1( |$$)'; then \\
 \t useLocks=no; \\
