@@ -769,6 +769,8 @@ jobs:
       contents: read
     needs: [ Build-Executable-MacOS, Build-Executable-MacOS-M1, Build-Tools-MacOS, Build-Tools-MacOS-M1 ]
     steps:
+      - name: Check out repository code
+        uses: actions/checkout@v6
       - name: Download artifacts (executable-macos)
         uses: actions/download-artifact@v8
         with:
