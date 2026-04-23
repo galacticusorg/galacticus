@@ -26,14 +26,14 @@ program Test_Interpolation_2D
   Tests that 2D interpolation routines work.
   !!}
   use :: Display                             , only : displayVerbositySet     , verbosityLevelStandard
-  use :: Numerical_Interpolation_2D_Irregular, only : Interpolate_2D_Irregular, interp2dIrregularObject
+  use :: Numerical_Interpolation_2D_Irregular, only : Interpolate_2D_Irregular, interpolator2DIrregular
   use :: Unit_Tests                          , only : Assert                  , Unit_Tests_Begin_Group , Unit_Tests_End_Group, Unit_Tests_Finish
   implicit none
   double precision                         , dimension(30) :: xTable                       , yTable    , &
        &                                                      zTable
   double precision                         , dimension(10) :: x                            , y         , &
        &                                                      z                            , zExpected
-  type            (interp2dIrregularObject)                :: interpolationWorkspace
+  type            (interpolator2DIrregular)                :: interpolationWorkspace
   logical                                                  :: resetInterpolation    =.true.
   integer                                                  :: i
 

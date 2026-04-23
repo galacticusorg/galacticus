@@ -56,21 +56,15 @@ jobs:
     steps:
       - name: Check out galacticus repository
         uses: actions/checkout@v6
-      - name: Generate app token
-        if: ${{ env.appid != '' }}
-        id: generate-token
-        uses: actions/create-github-app-token@v3
         with:
-          app-id: ${{ secrets.DEPLOY_APP_ID }}
-          private-key: ${{ secrets.DEPLOY_APP_PRIVATE_KEY }}
-          owner: galacticusorg
+          persist-credentials: false
       - name: Check out datasets repository
         if: ${{ env.appid != '' }}
         uses: actions/checkout@v6
         with:
           repository: galacticusorg/datasets
           path: datasets
-          token: ${{ steps.generate-token.outputs.token }}
+          persist-credentials: false
       - name: Set environmental variables
         run: |
           echo "GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
@@ -131,7 +125,7 @@ jobs:
           # Use static table (after promotion) if available; fall back to dynamic
           COOLING_FILE="$GALACTICUS_DATA_PATH/static/cooling/cooling_function_Atomic_CIE_Cloudy.hdf5"
           [ -f "$COOLING_FILE" ] || COOLING_FILE="$GALACTICUS_DATA_PATH/dynamic/cooling/cooling_function_Atomic_CIE_Cloudy.hdf5"
-          python3 plots/cooling_function.py \
+          python3-nolib plots/cooling_function.py \
             "$COOLING_FILE" \
             plots/cooling_function_Atomic_CIE_Cloudy.pdf
       - name: Run cooling function test
@@ -145,6 +139,14 @@ jobs:
           if grep -q "FAILED: Cloudy CIE cooling function" test.log; then
             python3 scripts/aux/updateCoolingFunctionTestValue.py test.log source/tests.cooling_functions.F90
           fi
+      - name: Generate app token
+        if: ${{ env.appid != '' }}
+        id: generate-token
+        uses: actions/create-github-app-token@v3
+        with:
+          app-id: ${{ secrets.DEPLOY_APP_ID }}
+          private-key: ${{ secrets.DEPLOY_APP_PRIVATE_KEY }}
+          owner: galacticusorg
       - name: Create datasets branch and open PR
         if: ${{ env.appid != '' }}
         env:
