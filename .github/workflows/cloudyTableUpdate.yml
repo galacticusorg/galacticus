@@ -56,12 +56,15 @@ jobs:
     steps:
       - name: Check out galacticus repository
         uses: actions/checkout@v6
+        with:
+          persist-credentials: false
       - name: Check out datasets repository
         if: ${{ env.appid != '' }}
         uses: actions/checkout@v6
         with:
           repository: galacticusorg/datasets
           path: datasets
+          persist-credentials: false
       - name: Set environmental variables
         run: |
           echo "GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
