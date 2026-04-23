@@ -9,7 +9,7 @@
 Building the Python library requires the same toolchain used to build the main \glc\ executable (a Fortran~95 compiler, a C compiler, and the \gls{gnu} Make build system) plus the following additional requirements:
 \begin{itemize}
   \item Python~3 (any recent version);
-  \item the Perl modules listed in the standard \glc\ build requirements (in particular those needed by \mono{scripts/build/libraryInterfaces.pl}).
+  \item the Perl modules listed in the standard \glc\ build requirements (needed by the preprocessing scripts such as \mono{scripts/build/preprocess.pl} that are invoked during the build).
 \end{itemize}
 
 No additional Python packages (e.g., \mono{numpy}) are required merely to \emph{use} the library---the generated module relies only on the Python standard library's \mono{ctypes} module.
@@ -22,7 +22,7 @@ make GALACTICUS_BUILD_OPTION=lib libgalacticus.so
 \end{verbatim}
 This build step performs the following actions:
 \begin{enumerate}
-  \item The Perl script \mono{scripts/build/libraryInterfaces.pl} is run. It reads the list of classes to be exposed from \mono{source/libraryClasses.xml}, generates C-binding Fortran wrapper code in \mono{\$\{BUILDPATH\}/libgalacticus/}, and writes the Python interface module to \mono{galacticus.py} in the \glc\ root directory.
+  \item The Python script \mono{scripts/build/libraryInterfaces.py} is run. It reads the list of classes to be exposed from \mono{source/libraryClasses.xml}, generates C-binding Fortran wrapper code in \mono{\$\{BUILDPATH\}/libgalacticus/}, and writes the Python interface module to \mono{galacticus.py} in the \glc\ root directory.
   \item The wrapper code is preprocessed and compiled.
   \item Everything is linked into the shared library \mono{libgalacticus.so} in the \glc\ root directory.
 \end{enumerate}

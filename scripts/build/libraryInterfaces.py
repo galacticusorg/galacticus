@@ -29,9 +29,9 @@ def main():
     build_path = os.environ.get('BUILDPATH', './work/build')
     exec_path = os.environ['GALACTICUS_EXEC_PATH']
 
-    directive_locations = _load_xml(os.path.join(build_path, 'directiveLocations.xml'))
-    state_storables = _load_xml(os.path.join(build_path, 'stateStorables.xml'))
-    library_classes = _load_xml(os.path.join(exec_path, 'source', 'libraryClasses.xml'))
+    directive_locations = _load_xml(os.path.join(build_path, 'directiveLocations.xml'), required=True)
+    state_storables = _load_xml(os.path.join(build_path, 'stateStorables.xml'), required=True)
+    library_classes = _load_xml(os.path.join(exec_path, 'source', 'libraryClasses.xml'), required=True)
 
     # stateStorables.xml stores functionClasses as a flat list of elements each
     # carrying name= and module= attributes.  XML::Simple re-keys these by name
@@ -80,14 +80,25 @@ def _powerset(iterable):
     s = list(iterable)
     return chain.from_iterable(combinations(s, r) for r in range(len(s)+1))
 
-def _load_xml(path):
-    """Load and parse XML file into nested dict structure."""
+def _load_xml(path, required=False):
+    """Load and parse XML file into nested dict structure.
+
+    If *required* is True, exits with a descriptive message when the file is
+    missing or cannot be parsed rather than silently returning an empty dict.
+    """
     if not os.path.exists(path):
+        if required:
+            sys.exit(f"libraryInterfaces.py: required XML file not found: {path}")
         return {}
     try:
         root = ET.parse(path).getroot()
         return _xml_elem_to_dict(root)
-    except ET.ParseError:
+    except ET.ParseError as exc:
+        if required:
+            sys.exit(
+                f"libraryInterfaces.py: failed to parse required XML file"
+                f" '{path}': {exc}"
+            )
         return {}
 
 
@@ -150,7 +161,12 @@ def _process_function_class_file(file_name, code, python, lib_function_classes,
             # Multiple methods
             func_class['methods'] = {methods[i]['name']: method for i, method in enumerate(methods)}
         else:
-            raise ValueError("incomprehensible methods")
+            raise ValueError(
+                f"incomprehensible 'method' field in '{file_name}' "
+                f"for functionClass '{class_name}': expected a dict with a "
+                f"'name' key or a list of such dicts, got "
+                f"{type(methods).__name__}: {methods!r}"
+            )
 
         func_class['moduleUses'] = module_uses
 
@@ -449,7 +465,11 @@ def interfaces_methods(code, python, func_class, extensions, module_uses_impls,
         elif method_type == "void":
             pass
         else:
-            print(f"unsupported type '{method_type}'")
+            sys.stderr.write(
+                f"libraryInterfaces.py: warning: unsupported method return type"
+                f" '{method_type}' in class '{class_name}', method"
+                f" '{method_name}' — skipping\n"
+            )
             methods_to_delete.append(method_name)
             continue
 
