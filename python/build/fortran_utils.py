@@ -1,6 +1,9 @@
 # Utility functions for reading and parsing Fortran source code.
 # Andrew Benson (ported to Python 2026)
 
+import re
+import sys
+
 def get_fortran_line(file_obj):
     """Read one logical Fortran line from file_obj, handling & continuation lines.
 
@@ -30,7 +33,6 @@ def get_fortran_line(file_obj):
             comment_position = -1
         elif _fast_comment_check(tmp_line):
             # The regex checks for '!' before any quote or brace, not followed by '$'.
-            import re
             m = re.match(r"^([^'\"{\n]+?)![^\$]", tmp_line)
             if m:
                 comment_position = len(m.group(1))
@@ -52,7 +54,6 @@ def get_fortran_line(file_obj):
             buffered_comments += comment_text.rstrip('\n')
 
         # Strip leading continuation marker from continuation lines.
-        import re
         code_part = re.sub(r'^\s*&\s*', '', code_part)
         code_part = re.sub(r'^\s*!\$\s+&\s*', '', code_part)
 
@@ -76,7 +77,6 @@ def get_fortran_line(file_obj):
 
 def _fast_comment_check(line):
     """Return True if the line may need the full comment-position scan."""
-    import re
     return bool(re.match(r"^([^'\"{\n]+?)![^\$]", line))
 
 
@@ -119,3 +119,115 @@ def _find_comment_position(line):
         else:
             i += 1
     return -1
+
+
+def extract_bracketed(text, brackets="()"):
+    """Find and extract the first balanced bracket pair in text.
+
+    Port of Perl Text::Balanced::extract_bracketed.
+
+    Returns (extracted, remainder, prefix) where extracted includes the bracket
+    chars themselves, or (None, text, None) if no balanced pair is found.
+
+    brackets: "()" for parentheses, "[]" for square brackets, "()[]" for either
+    (whichever opening char appears first in text is used).
+    """
+    close_map  = {'(': ')', '[': ']'}
+    open_chars = [brackets[i] for i in range(0, len(brackets), 2) if brackets[i] in close_map]
+
+    best_pos  = -1
+    best_open = None
+    for oc in open_chars:
+        pos = text.find(oc)
+        if pos != -1 and (best_pos == -1 or pos < best_pos):
+            best_pos  = pos
+            best_open = oc
+
+    if best_pos == -1:
+        return None, text, None
+
+    close_char = close_map[best_open]
+    prefix     = text[:best_pos]
+    depth      = 0
+    i          = best_pos
+    while i < len(text):
+        if text[i] == best_open:
+            depth += 1
+        elif text[i] == close_char:
+            depth -= 1
+            if depth == 0:
+                return text[best_pos:i + 1], text[i + 1:], prefix
+        i += 1
+
+    return None, text, None
+
+
+def extract_variables(variable_list, lower_case=True, keep_qualifiers=False, remove_spaces=True):
+    """Given the post-'::' section of a Fortran variable declaration, return a list of names.
+
+    Port of Fortran::Utils::Extract_Variables (perl/Fortran/Utils.pm).
+    """
+    if variable_list is None:
+        return []
+
+    if '::' in variable_list:
+        raise ValueError(
+            f"extract_variables: variable list '{variable_list}' contains '::'"
+            " — regex matching likely failed"
+        )
+
+    if lower_case:
+        variable_list = variable_list.lower()
+
+    if remove_spaces:
+        variable_list = re.sub(r'\s', '', variable_list)
+    else:
+        variable_list = variable_list.rstrip()
+
+    if keep_qualifiers:
+        variable_list = variable_list.replace('*', '%%ASTERISK%%')
+    else:
+        variable_list = variable_list.replace('*', '')
+
+    # Remove (or encode) text within balanced () and [] pairs.
+    iteration = 0
+    while '(' in variable_list or '[' in variable_list:
+        iteration += 1
+        if iteration > 10000:
+            print(
+                f"extract_variables: maximum iterations exceeded for input: '{variable_list}'",
+                file=sys.stderr,
+            )
+            sys.exit(1)
+        extracted, remainder, prefix = extract_bracketed(variable_list, "()[]")
+        if extracted is None:
+            break
+        if keep_qualifiers:
+            encoded = (extracted
+                       .replace('(', '%%OPEN%%').replace(')', '%%CLOSE%%')
+                       .replace('[', '%%OPENSQ%%').replace(']', '%%CLOSESQ%%')
+                       .replace(',', '%%COMMA%%'))
+            variable_list = prefix + encoded + remainder
+        else:
+            if prefix is None:
+                raise ValueError(
+                    f'extract_variables: failed to find prefix in "{variable_list}"'
+                )
+            variable_list = prefix + remainder
+
+    # Remove initialisation / association expressions.
+    if not keep_qualifiers:
+        variable_list = re.sub(r'=[^,]*(,|$)', lambda m: m.group(1), variable_list)
+
+    variables = [v.strip() for v in variable_list.split(',') if v.strip()]
+
+    if keep_qualifiers:
+        result = []
+        for v in variables:
+            v = (v.replace('%%OPEN%%', '(').replace('%%CLOSE%%', ')')
+                  .replace('%%OPENSQ%%', '[').replace('%%CLOSESQ%%', ']')
+                  .replace('%%COMMA%%', ',').replace('%%ASTERISK%%', '*'))
+            result.append(v)
+        return result
+
+    return variables
