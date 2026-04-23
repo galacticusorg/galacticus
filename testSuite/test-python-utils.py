@@ -26,6 +26,19 @@ from Galacticus.Build.SourceTree.Parse.Visibilities import parse_visibilities, u
 from Galacticus.Build.SourceTree.Parse.OpenMP       import parse_openmp, update as openmp_update, copyin as openmp_copyin
 from Galacticus.Build.SourceTree.Parse.Directives   import parse_directives, post_process_directives
 
+# Import Process submodules for side-effect registration; the orchestrator is
+# imported via `from ... import ...` after the submodules so they all appear
+# in PROCESS_HOOKS when process_tree() is invoked.
+import Galacticus.Build.SourceTree.Process.DeepCopyReset      # noqa: F401
+import Galacticus.Build.SourceTree.Process.DeepCopyFinalize   # noqa: F401
+import Galacticus.Build.SourceTree.Process.OptionalArgument   # noqa: F401
+import Galacticus.Build.SourceTree.Process.HDF5FCInterop      # noqa: F401
+import Galacticus.Build.SourceTree.Process.Dependencies       # noqa: F401
+from Galacticus.Build.SourceTree.Process import (
+    PROCESS_HOOKS, PROCESS_DEPENDENCIES, POSTPROCESS_HOOKS,
+    register_process, process_tree,
+)
+
 # ============================================================================
 # Test framework
 # ============================================================================
@@ -731,6 +744,233 @@ def test_post_process_directives():
 
 
 # ============================================================================
+# Process.* tests
+# ============================================================================
+
+def _make_directive_node(directive_type, directive, parent):
+    """Build a minimal directive node and link it as `parent`'s only child."""
+    node = {
+        'type':       directive_type,
+        'directive':  dict(directive),
+        'parent':     parent,
+        'firstChild': None,
+        'sibling':    None,
+        'source':     'test',
+        'line':       1,
+    }
+    node['firstChild'] = {
+        'type':       'code',
+        'content':    '',
+        'parent':     node,
+        'firstChild': None,
+        'sibling':    None,
+        'source':     'test',
+        'line':       1,
+    }
+    # Link into parent's child chain as the first child.
+    existing = parent.get('firstChild')
+    parent['firstChild'] = node
+    node['sibling'] = existing
+    return node
+
+
+def test_process_tree_orchestrator():
+    print("\n=== Testing Process.process_tree() orchestrator ===")
+
+    # Snapshot current registrations and install two throw-away hooks with
+    # a dependency edge, then verify execution order respects it.
+    saved_hooks = dict(PROCESS_HOOKS)
+    saved_deps  = dict(PROCESS_DEPENDENCIES)
+    saved_post  = dict(POSTPROCESS_HOOKS)
+    PROCESS_HOOKS.clear()
+    PROCESS_DEPENDENCIES.clear()
+    POSTPROCESS_HOOKS.clear()
+    try:
+        call_order = []
+        def hook_a(tree, options): call_order.append('a')
+        def hook_b(tree, options): call_order.append('b')
+        # Perl convention: `before=['b']` means b runs AFTER a.
+        register_process('a', hook_a, before=['b'])
+        register_process('b', hook_b)
+        dummy_tree = {'type': 'file', 'firstChild': None, 'parent': None, 'sibling': None}
+        process_tree(dummy_tree)
+        assert_equal(call_order, ['a', 'b'],
+                     "process_tree respects `before` dependency")
+    finally:
+        PROCESS_HOOKS.clear();        PROCESS_HOOKS.update(saved_hooks)
+        PROCESS_DEPENDENCIES.clear(); PROCESS_DEPENDENCIES.update(saved_deps)
+        POSTPROCESS_HOOKS.clear();    POSTPROCESS_HOOKS.update(saved_post)
+
+
+def test_process_deep_copy_reset():
+    print("\n=== Testing Process.DeepCopyReset ===")
+
+    root = {'type': 'file', 'firstChild': None, 'parent': None, 'sibling': None,
+            'source': 'test', 'line': 0}
+    sub = {'type': 'subroutine', 'name': 's', 'parent': root,
+           'firstChild': None, 'sibling': None, 'source': 'test', 'line': 0}
+    root['firstChild'] = sub
+
+    directive = _make_directive_node(
+        'deepCopyReset', {'variables': 'objA objB', 'processed': False}, sub)
+
+    from Galacticus.Build.SourceTree.Process.DeepCopyReset import process_deep_copy_reset
+    process_deep_copy_reset(root, {})
+
+    assert_equal(directive['directive']['processed'], True,
+                 "deepCopyReset directive marked processed")
+    emitted = directive.get('sibling')
+    assert_equal(emitted is not None and emitted.get('type') == 'code', True,
+                 "code node inserted after deepCopyReset directive")
+    assert_equal(emitted['content'],
+                 "call objA%deepCopyReset()\ncall objB%deepCopyReset()\n",
+                 "emitted code calls deepCopyReset on each named object")
+
+
+def test_process_deep_copy_finalize():
+    print("\n=== Testing Process.DeepCopyFinalize ===")
+
+    root = {'type': 'file', 'firstChild': None, 'parent': None, 'sibling': None,
+            'source': 'test', 'line': 0}
+    sub = {'type': 'subroutine', 'name': 's', 'parent': root,
+           'firstChild': None, 'sibling': None, 'source': 'test', 'line': 0}
+    root['firstChild'] = sub
+
+    directive = _make_directive_node(
+        'deepCopyFinalize', {'variables': 'only_one', 'processed': False}, sub)
+
+    from Galacticus.Build.SourceTree.Process.DeepCopyFinalize import process_deep_copy_finalize
+    process_deep_copy_finalize(root, {})
+
+    assert_equal(directive['directive']['processed'], True,
+                 "deepCopyFinalize directive marked processed")
+    emitted = directive.get('sibling')
+    assert_equal(emitted['content'], "call only_one%deepCopyFinalize()\n",
+                 "emitted code calls deepCopyFinalize on the named object")
+
+
+def test_process_optional_argument():
+    print("\n=== Testing Process.OptionalArgument ===")
+
+    # Parse a subroutine with a real, optional, intent(in) declaration,
+    # then hand-inject an optionalArgument directive as the first child.
+    root = _parse_text(
+        "subroutine s(foo)\n"
+        "real, optional, intent(in) :: foo\n"
+        "foo = 0.0\n"
+        "end subroutine s\n"
+    )
+    sub = _find_node(root, 'subroutine')
+    directive = _make_directive_node(
+        'optionalArgument',
+        {'name': 'foo', 'defaultsTo': '1.5', 'processed': False},
+        sub,
+    )
+
+    from Galacticus.Build.SourceTree.Process.OptionalArgument import process_optional_arguments
+    process_optional_arguments(root, {})
+
+    assert_equal(directive['directive']['processed'], True,
+                 "optionalArgument directive marked processed")
+    assert_equal(declaration_exists(sub, 'foo_'), True,
+                 "new `_` declaration added for the optional argument")
+    # The new declaration should have neither `optional` nor any `intent(...)` attribute.
+    new_decl = get_declaration(sub, 'foo_')
+    assert_equal(any(a == 'optional' or a.startswith('intent(')
+                     for a in new_decl.get('attributes') or []), False,
+                 "new declaration strips `optional` and `intent(...)` attributes")
+
+    out = serialize(root)
+    assert_equal("foo_=1.5" in out, True,
+                 "setter assigns defaultsTo value to the underscore variable")
+    assert_equal("if (present(foo)) foo_=foo" in out, True,
+                 "setter copies caller-supplied value when present")
+
+
+def test_process_hdf5_fc_interop():
+    print("\n=== Testing Process.HDF5FCInterop ===")
+
+    tmpdir = tempfile.mkdtemp()
+    try:
+        # Minimal hdf5FCInterop.dat mapping one HDF5 kind to a C kind.
+        with open(os.path.join(tmpdir, 'hdf5FCInterop.dat'), 'w') as fh:
+            fh.write("h5s_t = c_size_t\n")
+        saved_build = os.environ.get('BUILDPATH')
+        os.environ['BUILDPATH'] = tmpdir
+        try:
+            root = _parse_text(
+                "module m\n"
+                "use foo\n"
+                "integer(kind=h5s_t) :: n\n"
+                "end module m\n"
+            )
+            from Galacticus.Build.SourceTree.Process.HDF5FCInterop import process_hdf5_fc_interop
+            process_hdf5_fc_interop(root, {})
+
+            out = serialize(root)
+            assert_equal('c_size_t' in out,
+                         True, "declaration kind rewritten to C-interop kind")
+            assert_equal('h5s_t' not in out,
+                         True, "original HDF5 kind replaced")
+            assert_equal('ISO_C_Binding' in out,
+                         True, "ISO_C_Binding use statement injected")
+            assert_equal('c_size_t' in out.split('only :')[-1] if 'only :' in out else False,
+                         True, "imported symbol listed in `only :` clause")
+        finally:
+            if saved_build is None:
+                del os.environ['BUILDPATH']
+            else:
+                os.environ['BUILDPATH'] = saved_build
+    finally:
+        import shutil
+        shutil.rmtree(tmpdir)
+
+
+def test_process_dependencies():
+    print("\n=== Testing Process.Dependencies ===")
+
+    tmpdir = tempfile.mkdtemp()
+    try:
+        aux = os.path.join(tmpdir, 'aux')
+        os.makedirs(aux)
+        with open(os.path.join(aux, 'dependencies.yml'), 'w') as fh:
+            fh.write("libfoo: 1.2.3\n")
+            fh.write("libbar: 4.5\n")
+
+        saved_exec = os.environ.get('GALACTICUS_EXEC_PATH')
+        os.environ['GALACTICUS_EXEC_PATH'] = tmpdir
+        try:
+            root = {'type': 'file', 'firstChild': None, 'parent': None,
+                    'sibling': None, 'source': 'test', 'line': 0}
+            directive = _make_directive_node(
+                'dependenciesInitialize', {'processed': False}, root)
+
+            from Galacticus.Build.SourceTree.Process.Dependencies import process_dependencies
+            process_dependencies(root, {})
+
+            assert_equal(directive['directive']['processed'], True,
+                         "dependenciesInitialize directive marked processed")
+            emitted = directive.get('sibling')
+            assert_equal(emitted is not None and emitted.get('type') == 'code', True,
+                         "code node inserted after directive")
+            lines = emitted['content'].strip().split('\n')
+            assert_equal(len(lines), 2, "one line per dependency")
+            # Dependencies are emitted in sorted order.
+            assert_equal("call dependencies_%set(var_str('libbar'),var_str('4.5'))"     in lines[0], True,
+                         "first line initializes alphabetically-first dependency")
+            assert_equal("call dependencies_%set(var_str('libfoo'),var_str('1.2.3'))"   in lines[1], True,
+                         "second line initializes alphabetically-second dependency")
+        finally:
+            if saved_exec is None:
+                del os.environ['GALACTICUS_EXEC_PATH']
+            else:
+                os.environ['GALACTICUS_EXEC_PATH'] = saved_exec
+    finally:
+        import shutil
+        shutil.rmtree(tmpdir)
+
+
+# ============================================================================
 # Main
 # ============================================================================
 
@@ -762,6 +1002,14 @@ def main():
     test_openmp_copyin()
     test_parse_directives()
     test_post_process_directives()
+
+    # Process module tests
+    test_process_tree_orchestrator()
+    test_process_deep_copy_reset()
+    test_process_deep_copy_finalize()
+    test_process_optional_argument()
+    test_process_hdf5_fc_interop()
+    test_process_dependencies()
 
     print("\n" + "=" * 70)
     print(f"Results: {PASS_COUNT} passed, {FAIL_COUNT} failed")
