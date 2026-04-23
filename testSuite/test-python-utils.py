@@ -34,6 +34,10 @@ import Galacticus.Build.SourceTree.Process.DeepCopyFinalize   # noqa: F401
 import Galacticus.Build.SourceTree.Process.OptionalArgument   # noqa: F401
 import Galacticus.Build.SourceTree.Process.HDF5FCInterop      # noqa: F401
 import Galacticus.Build.SourceTree.Process.Dependencies       # noqa: F401
+import Galacticus.Build.SourceTree.Process.Generics           # noqa: F401
+import Galacticus.Build.SourceTree.Process.NonProcessed       # noqa: F401
+import Galacticus.Build.SourceTree.Process.Allocate           # noqa: F401
+import Galacticus.Build.SourceTree.Process.ForEach            # noqa: F401
 from Galacticus.Build.SourceTree.Process import (
     PROCESS_HOOKS, PROCESS_DEPENDENCIES, POSTPROCESS_HOOKS,
     register_process, process_tree,
@@ -971,6 +975,222 @@ def test_process_dependencies():
 
 
 # ============================================================================
+# Process.Generics tests (and its Generics-dependent siblings)
+# ============================================================================
+
+def test_process_generics_subtree_expansion():
+    print("\n=== Testing Process.Generics subtree expansion ===")
+
+    src = (
+        "module m\n"
+        "  !![\n"
+        "  <generic identifier=\"cType\">\n"
+        "   <instance label=\"Double\" intrinsic=\"real(kind=c_double)\" />\n"
+        "   <instance label=\"Long\"   intrinsic=\"integer(kind=c_long)\" />\n"
+        "  </generic>\n"
+        "  !!]\n"
+        "  subroutine worker_{cType¦label}(x)\n"
+        "    {cType¦intrinsic}, intent(in) :: x\n"
+        "    print *, x, \" as {cType¦label}\"\n"
+        "  end subroutine worker_{cType¦label}\n"
+        "end module m\n"
+    )
+    root = _parse_text(src)
+
+    from Galacticus.Build.SourceTree.Process.Generics import process_generics
+    process_generics(root, {})
+
+    out = serialize(root)
+    assert_equal('subroutine worker_Double' in out, True,
+                 "Double-labeled subroutine generated")
+    assert_equal('subroutine worker_Long'   in out, True,
+                 "Long-labeled subroutine generated")
+    assert_equal('{cType¦label}' not in out, True,
+                 "{cType¦label} placeholders fully substituted")
+    assert_equal('real(kind=c_double), intent(in) :: x'    in out, True,
+                 "Double instance's `intrinsic` inlined into the type")
+    assert_equal('integer(kind=c_long), intent(in) :: x'   in out, True,
+                 "Long instance's `intrinsic` inlined into the type")
+    assert_equal('\" as Double\"' in out and '\" as Long\"' in out, True,
+                 "string-literal placeholders substituted per instance")
+
+
+def test_process_generics_regex_form():
+    print("\n=== Testing Process.Generics regEx¦FROM¦TO¦ form ===")
+
+    src = (
+        "module m\n"
+        "  !![\n"
+        "  <generic identifier=\"Type\">\n"
+        "   <instance label=\"Logical\" outputConverter=\"regEx¦(.*)¦char($1)¦\"/>\n"
+        "   <instance label=\"Integer\" outputConverter=\"regEx¦(.*)¦$1¦\"/>\n"
+        "  </generic>\n"
+        "  !!]\n"
+        "  subroutine s\n"
+        "    print *, {Type¦outputConverter¦myFlag}\n"
+        "  end subroutine s\n"
+        "end module m\n"
+    )
+    root = _parse_text(src)
+    from Galacticus.Build.SourceTree.Process.Generics import process_generics
+    process_generics(root, {})
+    out = serialize(root)
+    assert_equal('print *, char(myFlag)' in out, True,
+                 "Logical instance wraps the tag body in char(...)")
+    assert_equal('print *, myFlag' in out,       True,
+                 "Integer instance emits the tag body verbatim")
+
+
+def test_process_generics_conditional():
+    print("\n=== Testing Process.Generics match-conditional form ===")
+
+    src = (
+        "module m\n"
+        "  !![\n"
+        "  <generic identifier=\"Type\">\n"
+        "   <instance label=\"Array\"  />\n"
+        "   <instance label=\"Scalar\" />\n"
+        "  </generic>\n"
+        "  !!]\n"
+        "  subroutine s_{Type¦label}\n"
+        "    print *, {Type¦match¦Array¦is array¦is scalar}\n"
+        "  end subroutine s_{Type¦label}\n"
+        "end module m\n"
+    )
+    root = _parse_text(src)
+    from Galacticus.Build.SourceTree.Process.Generics import process_generics
+    process_generics(root, {})
+    out = serialize(root)
+    assert_equal('is array'  in out, True, "Array instance picked MATCH branch")
+    assert_equal('is scalar' in out, True, "Scalar instance picked NO-MATCH branch")
+
+
+def test_process_non_processed():
+    print("\n=== Testing Process.NonProcessed ===")
+
+    root = {'type': 'file', 'firstChild': None, 'parent': None, 'sibling': None,
+            'source': 'test', 'line': 0}
+    # Build a few directive-like nodes directly — NonProcessed walks the raw tree.
+    d1 = _make_directive_node('methods',        {'processed': False}, root)
+    d2 = _make_directive_node('someCustomTask', {'processed': False}, root)
+    d3 = _make_directive_node('notListed',      {'processed': False}, root)
+
+    from Galacticus.Build.SourceTree.Process.NonProcessed import process_non_processed
+    process_non_processed(root, {})
+
+    assert_equal(d1['directive']['processed'], True,
+                 "listed directive ('methods') marked processed")
+    assert_equal(d2['directive']['processed'], True,
+                 "*Task-suffixed directive marked processed")
+    assert_equal(d3['directive']['processed'], False,
+                 "unrelated directive left alone")
+
+
+def test_process_allocate():
+    print("\n=== Testing Process.Allocate ===")
+
+    # Rank-2 array: declaration provides `dimension(:,:)`, directive uses `shape`.
+    root = _parse_text(
+        "subroutine s\n"
+        "real, allocatable, dimension(:,:) :: arr\n"
+        "end subroutine s\n"
+    )
+    sub = _find_node(root, 'subroutine')
+    directive = _make_directive_node(
+        'allocate', {'variable': 'arr', 'shape': 'myShape', 'processed': False}, sub)
+
+    from Galacticus.Build.SourceTree.Process.Allocate import process_allocate
+    process_allocate(root, {})
+
+    out = serialize(root)
+    assert_equal('allocate(arr(myShape(1),myShape(2)))' in out, True,
+                 "rank-2 allocation with shape() references emitted")
+    assert_equal(directive['directive']['processed'], True,
+                 "allocate directive marked processed")
+
+    # Rank-1 via `size` directive attribute.
+    root = _parse_text(
+        "subroutine s\n"
+        "real, allocatable, dimension(:) :: v\n"
+        "end subroutine s\n"
+    )
+    sub = _find_node(root, 'subroutine')
+    _make_directive_node(
+        'allocate', {'variable': 'v', 'size': 'src', 'processed': False}, sub)
+    process_allocate(root, {})
+    assert_equal('allocate(v(size(src,dim=1)))' in serialize(root), True,
+                 "rank-1 allocation via size(src,dim=i) emitted")
+
+    # Scalar (rank=0): no indices emitted.
+    root = _parse_text(
+        "subroutine s\n"
+        "integer :: scalar_var\n"
+        "end subroutine s\n"
+    )
+    sub = _find_node(root, 'subroutine')
+    _make_directive_node(
+        'allocate', {'variable': 'scalar_var', 'shape': 'anything', 'processed': False}, sub)
+    process_allocate(root, {})
+    assert_equal('allocate(scalar_var)' in serialize(root), True,
+                 "rank-0 allocation has no index list")
+
+
+def test_process_for_each_rank1():
+    print("\n=== Testing Process.ForEach (rank-1) ===")
+
+    root = _parse_text(
+        "subroutine s\n"
+        "real, dimension(:) :: v\n"
+        "end subroutine s\n"
+    )
+    sub = _find_node(root, 'subroutine')
+    directive = _make_directive_node(
+        'forEach',
+        {'variable': 'v', 'content': '  v{index}=0.0\n', 'processed': False},
+        sub,
+    )
+
+    from Galacticus.Build.SourceTree.Process.ForEach import process_for_each
+    process_for_each(root, {})
+
+    assert_equal(directive['directive']['processed'], True,
+                 "forEach directive marked processed")
+    out = serialize(root)
+    assert_equal('do foreach__1=1,size(v,dim=1)' in out, True,
+                 "do loop generated with size(v,dim=1)")
+    assert_equal('v(foreach__1)=0.0' in out, True,
+                 "{index} expanded to parenthesized index list")
+    assert_equal('end do' in out, True, "loop closer emitted")
+    assert_equal(declaration_exists(sub, 'foreach__1'), True,
+                 "foreach__1 index variable declared")
+
+
+def test_process_for_each_rank0():
+    print("\n=== Testing Process.ForEach (scalar / rank-0) ===")
+
+    root = _parse_text(
+        "subroutine s\n"
+        "real :: scalar_var\n"
+        "end subroutine s\n"
+    )
+    sub = _find_node(root, 'subroutine')
+    _make_directive_node(
+        'forEach',
+        {'variable': 'scalar_var',
+         'content': "  write(*,'(a1)') '.'\n",
+         'processed': False},
+        sub,
+    )
+    from Galacticus.Build.SourceTree.Process.ForEach import process_for_each
+    process_for_each(root, {})
+    out = serialize(root)
+    # Rank-0 should emit no `do`/`end do` statements.
+    assert_equal('do foreach__' in out, False, "no do loop for rank-0 variable")
+    assert_equal(declaration_exists(sub, 'foreach__1'), False,
+                 "no index variable declared for rank-0")
+
+
+# ============================================================================
 # Main
 # ============================================================================
 
@@ -1010,6 +1230,13 @@ def main():
     test_process_optional_argument()
     test_process_hdf5_fc_interop()
     test_process_dependencies()
+    test_process_generics_subtree_expansion()
+    test_process_generics_regex_form()
+    test_process_generics_conditional()
+    test_process_non_processed()
+    test_process_allocate()
+    test_process_for_each_rank1()
+    test_process_for_each_rank0()
 
     print("\n" + "=" * 70)
     print(f"Results: {PASS_COUNT} passed, {FAIL_COUNT} failed")

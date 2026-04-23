@@ -26,14 +26,24 @@ def parse_file(filename):
     """
     with open(filename, 'r', errors='replace') as fh:
         content = fh.read()
+    return parse_code(content, name=os.path.basename(filename), source=filename)
+
+
+def parse_code(code, name='<string>', source=None):
+    """Build an AST from a Fortran source string.
+
+    Mirrors Perl Galacticus::Build::SourceTree::ParseCode(code, fileName).
+    Used by Process/Generics when it serializes a macro-expanded subtree and
+    needs to re-parse it from its textual form.
+    """
     root = {
         'type':       'file',
-        'name':       os.path.basename(filename),
-        'content':    content,
+        'name':       name,
+        'content':    code,
         'parent':     None,
         'firstChild': None,
         'sibling':    None,
-        'source':     filename,
+        'source':     source if source is not None else name,
         'line':       0,
     }
     _build_tree(root)
