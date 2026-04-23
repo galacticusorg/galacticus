@@ -37,7 +37,7 @@ for line in musicFile:
         regionExtent = np.array(list(map(lambda x: float(x),re.split(r'\s*,\s*',match.group(1)))))
 musicFile.close()
 boxSizeOriginal /= hubbleConstant
-boxSize          = boxSizeOriginal*np.product(regionExtent)**(1.0/3.0)
+boxSize          = boxSizeOriginal*np.prod(regionExtent)**(1.0/3.0)
 # Sleep while joint processing is underway.
 while os.path.exists(pathName+"tree.lock"):
     time.sleep(5)

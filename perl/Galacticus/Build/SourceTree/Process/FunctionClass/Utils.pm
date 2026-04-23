@@ -6,6 +6,16 @@ use warnings;
 use utf8;
 use lib $ENV{'GALACTICUS_EXEC_PATH'}."/perl";
 use List::Uniq ':all';
+use Exporter 'import';
+
+our @EXPORT_OK = qw(
+    LaTeX_Breakable
+    trimlc
+    striplc
+    lctrim
+    stripVariableName
+    declarationRank
+);
 
 sub Class_Dependencies {
     # Find which type a functionClass implementation extends.
@@ -49,6 +59,44 @@ sub Class_Dependencies {
     }
     @dependencies = uniq(sort(@dependencies));
     return ($class, @dependencies);
+}
+
+sub LaTeX_Breakable {
+    my $text = shift;
+    $text =~ s/([a-z])([A-Z])/$1\\-$2/g;
+    return $text;
+}
+
+sub trimlc {
+    (my $result = lc(shift())) =~ s/^\s+|\s+$//g;
+    return $result;
+}
+
+sub striplc {
+    (my $result = lc(shift())) =~ s/\s//g;
+    return $result;
+}
+
+sub lctrim {
+    # Trim trailing whitespace and return lowercased.
+    my $string = shift();
+    $string =~ s/\s*$//;
+    return lc($string);
+}
+
+sub stripVariableName {
+    # Strip away anything (e.g. array indices, assignment operators) after the variable name.
+    (my $name = shift()) =~ s/^([a-zA-Z0-9_]+).*/$1/;
+    return $name;
+}
+
+sub declarationRank {
+    # Return the rank (number of array dimensions) of a variable declaration.
+    my $declaration = shift();
+    return 0
+	unless ( grep {$_ =~ m/^dimension\s*\(/} @{$declaration->{'attributes'}} );
+    my $dimensionDeclarator = join(",",map {/^dimension\s*\(([a-zA-Z0-9_,:\s]+)\)/} @{$declaration->{'attributes'}});
+    return ($dimensionDeclarator =~ tr/,//)+1;
 }
 
 1;

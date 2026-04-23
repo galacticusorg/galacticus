@@ -277,6 +277,7 @@ contains
 #ifdef USEMPI
        if (mpiSelf%isMaster()) then
 #endif
+          !$ call hdf5Access%set()
           velocityMaximumFunctionGroup=simulations(iSimulation)%analysis%openGroup('subhaloVelocityMaximumMeanFunction')
           call velocityMaximumFunctionGroup%writeDataset  (massBin                  ,'mass'                    )
           call velocityMaximumFunctionGroup%writeDataset  (countBin                 ,'count'                   )

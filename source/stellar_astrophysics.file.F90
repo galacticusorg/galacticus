@@ -21,7 +21,7 @@
   Implements a stellar astrophysics class in which the stellar properties are read from file and interpolated.
   !!}
 
-  use :: Numerical_Interpolation_2D_Irregular, only : interp2dIrregularObject
+  use :: Numerical_Interpolation_2D_Irregular, only : interpolator2DIrregular
 
   !![
   <stellarAstrophysics name="stellarAstrophysicsFile">
@@ -80,7 +80,7 @@
           &                                                                    yieldElementRangeMetallicity
      integer                                  , allocatable, dimension(:  ) :: atomIndexMap                     , countYieldElement
      integer                                                                :: countElement
-     type            (interp2dIrregularObject)                              :: interpolationWorkspaceMassInitial, interpolationWorkspaceLifetime , &
+     type            (interpolator2DIrregular)                              :: interpolationWorkspaceMassInitial, interpolationWorkspaceLifetime , &
           &                                                                    interpolationWorkspaceMassEjected, interpolationWorkspaceMassYield
      logical                                                                :: interpolationResetMassInitial    , interpolationResetLifetime     , &
           &                                                                    interpolationResetMassEjected    , interpolationResetMassYield    , &

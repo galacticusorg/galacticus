@@ -15,6 +15,7 @@ from Galacticus.Build import SourceTree
 from Galacticus.Build.SourceTree.Parse import Declarations
 from List.ExtraUtils import as_array, hash_list, sorted_keys
 from Sort.Topo import sort as topo_sort
+from XML.Utils import xml_to_dict
 
 from LibraryInterfaces.ArgSpec import ArgSpec
 from LibraryInterfaces.Pipeline import (
@@ -105,7 +106,7 @@ def _load_xml(path, required=False):
         return {}
     try:
         root = ET.parse(path).getroot()
-        return _xml_elem_to_dict(root)
+        return xml_to_dict(root)
     except ET.ParseError as exc:
         if required:
             sys.exit(
@@ -115,31 +116,6 @@ def _load_xml(path, required=False):
         return {}
 
 
-def _xml_elem_to_dict(elem):
-    """Convert XML element to nested dict (mirrors XML::Simple behaviour).
-
-    Text-only elements (no attributes, no children) return the text string
-    directly, matching XML::Simple's default behaviour.
-    """
-    result = dict(elem.attrib)
-    children_by_tag = {}
-
-    for child in elem:
-        tag = child.tag
-        val = _xml_elem_to_dict(child)
-        if tag in children_by_tag:
-            if not isinstance(children_by_tag[tag], list):
-                children_by_tag[tag] = [children_by_tag[tag]]
-            children_by_tag[tag].append(val)
-        else:
-            children_by_tag[tag] = val
-
-    result.update(children_by_tag)
-    # If element has no attributes and no children, return text content directly.
-    # This mirrors XML::Simple which returns the text string for such elements.
-    if not result:
-        return (elem.text or '').strip()
-    return result
 
 
 def _process_function_class_file(file_name, code, python, lib_function_classes,
