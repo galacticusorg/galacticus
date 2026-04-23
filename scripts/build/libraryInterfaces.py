@@ -7,6 +7,7 @@ import os
 import re
 from pathlib import Path
 from itertools import chain, combinations
+from dataclasses import dataclass, field
 
 # Set up path for imports from python/
 sys.path.insert(0, os.path.join(os.environ['GALACTICUS_EXEC_PATH'], 'python'))
@@ -16,6 +17,87 @@ from Galacticus.Build import SourceTree
 from Galacticus.Build.SourceTree.Parse import Declarations
 from List.ExtraUtils import as_array, hash_list, sorted_keys
 from Sort.Topo import sort as topo_sort
+
+
+@dataclass
+class ArgSpec:
+    """Intermediate representation for a single argument in the cross-language pipeline.
+
+    Instances are built from raw Fortran-declaration dicts by ``assign_c_types()``
+    and then progressively enriched by ``assign_c_attributes()``,
+    ``build_python_reassignments()``, and ``build_fortran_reassignments()``
+    before the emitter functions (``fortran_arg_list``, ``python_call_code``,
+    etc.) consume them.
+
+    Field layout mirrors the nested-dict structure it replaces::
+
+        arg['ctypes']['type']       →  arg.ctype
+        arg['ctypes']['pointer']    →  arg.ctype_pointer
+        arg['fortran']['type']      →  arg.fort_type
+        arg['fortran']['isPresent'] →  arg.fort_is_present
+        arg['python']['isPresent']  →  arg.py_is_present
+        arg['galacticus']['isPresent'] → arg.galacticus_is_present
+        arg['isOptional']           →  arg.is_optional
+        arg['isFunctionClass']      →  arg.is_function_class
+        arg['passBy']               →  arg.pass_by
+    """
+
+    # -------------------------------------------------------------------------
+    # Source-level (from parsed Fortran declaration)
+    # -------------------------------------------------------------------------
+    name:       str
+    intrinsic:  str = ''
+    type_spec:  str = ''            # kind/type spec, e.g. 'treeNode', 'varying_string'
+    attributes: list = field(default_factory=list)  # e.g. ['intent(in)', 'optional']
+
+    # -------------------------------------------------------------------------
+    # Set by assign_c_types
+    # -------------------------------------------------------------------------
+    is_optional:       bool = False
+    is_function_class: bool = False
+
+    # ctypes
+    ctype:         str  = ''    # e.g. 'c_double', 'c_void_p', 'c_char_p', 'c_int'
+    ctype_pointer: bool = False  # wrap as POINTER(ctype) — set by assign_c_attributes
+
+    # Fortran ABI
+    fort_type:           str  = ''    # e.g. 'real(c_double)', 'type(c_ptr)'
+    fort_is_present:     bool = True  # include in the bind(C) Fortran argument list
+    fort_attributes:     list = field(default_factory=list)  # 'optional', 'value', …
+    fort_pass_as:        str  = ''    # expression passed to Galacticus (default: name)
+    fort_reassignment:   str  = ''    # Fortran code to run before the call
+    fort_declarations:   str  = ''    # extra Fortran local-variable declarations
+    fort_iso_c_symbols:  list = field(default_factory=list)  # extra ISO_C_Binding symbols
+    fort_modules:        dict = field(default_factory=dict)  # {module: {symbol: 1}}
+    fort_function_class: str  = ''    # class name for GetPtr interface blocks
+
+    # Python ctypes
+    py_is_present:   bool = True   # include in the Python argument list
+    py_pass_as:      str  = ''     # expression to pass to c_lib (default: name)
+    py_reassignment: str  = ''     # Python code before the call (optional FC args)
+    py_present:      str  = ''     # presence-variable name for optional _ID companions
+
+    # Galacticus constructor call
+    galacticus_is_present: bool = True  # include in the Galacticus constructor call
+
+    # -------------------------------------------------------------------------
+    # Set by assign_c_attributes
+    # -------------------------------------------------------------------------
+    pass_by: str = ''    # 'value' or 'reference'
+
+    @classmethod
+    def from_raw(cls, d):
+        """Build an ArgSpec from a raw Fortran-declaration dict.
+
+        The dict must have a ``'name'`` key; ``'intrinsic'``, ``'type'``, and
+        ``'attributes'`` are optional and default to empty values when absent.
+        """
+        return cls(
+            name       = d['name'],
+            intrinsic  = d.get('intrinsic') or '',
+            type_spec  = d.get('type') or '',
+            attributes = list(d.get('attributes') or []),
+        )
 
 
 def main():
@@ -619,78 +701,77 @@ def _write_fortran_code(code, build_path):
 def assign_c_types(argument_list, lib_function_classes):
     """Assign appropriate C types for each argument.
 
-    Mirrors Perl assignCTypes().  Processes the list in reverse and builds a
-    new one so that the _ID companion argument for functionClass parameters
+    Mirrors Perl assignCTypes().  Accepts a list of raw Fortran-declaration
+    dicts and returns a new list of :class:`ArgSpec` objects.  Processes in
+    reverse so that the ``_ID`` companion argument for functionClass parameters
     can be inserted immediately after its parent without disturbing the rest
     of the list.
     """
     new_list = []
-    for arg in reversed(argument_list):
-        arg.setdefault('ctypes', {})
-        arg.setdefault('fortran', {})
-        arg.setdefault('python', {})
-        arg.setdefault('galacticus', {})
+    for raw in reversed(argument_list):
+        arg = ArgSpec.from_raw(raw) if isinstance(raw, dict) else raw
 
-        arg['isOptional'] = bool('optional' in arg.get('attributes', []))
-        arg['fortran']['isPresent'] = 1
-        arg['python']['isPresent'] = 1
-        arg['galacticus']['isPresent'] = 1
-        arg['isFunctionClass'] = 0
+        # Initialise presence flags (mirrors the original explicit reset).
+        arg.fort_is_present       = True
+        arg.py_is_present         = True
+        arg.galacticus_is_present = True
+        arg.is_function_class     = False
+        arg.is_optional           = bool('optional' in arg.attributes)
 
-        intrinsic  = arg.get('intrinsic', '')
-        type_spec  = arg.get('type') or ''
+        intrinsic     = arg.intrinsic
+        type_spec_val = arg.type_spec
 
         if intrinsic == 'double precision':
-            arg['ctypes']['type'] = 'c_double'
-            arg['fortran']['type'] = 'real(c_double)'
+            arg.ctype     = 'c_double'
+            arg.fort_type = 'real(c_double)'
         elif intrinsic == 'integer':
-            arg['ctypes']['type'] = 'c_int'
-            arg['fortran']['type'] = 'integer(c_int)'
+            arg.ctype     = 'c_int'
+            arg.fort_type = 'integer(c_int)'
         elif intrinsic == 'logical':
-            arg['ctypes']['type'] = 'c_bool'
-            arg['fortran']['type'] = 'logical(c_bool)'
+            arg.ctype     = 'c_bool'
+            arg.fort_type = 'logical(c_bool)'
         elif intrinsic == 'character':
-            arg['ctypes']['type'] = 'c_char_p'
-            arg['fortran']['type'] = 'character(c_char)'
+            arg.ctype     = 'c_char_p'
+            arg.fort_type = 'character(c_char)'
         elif intrinsic == 'type':
-            if type_spec == 'varying_string':
-                arg['ctypes']['type'] = 'c_char_p'
-                arg['fortran']['type'] = 'character(c_char)'
-            elif re.match(r'^enumeration[a-z0-9_]+type$', type_spec, re.IGNORECASE):
+            if type_spec_val == 'varying_string':
+                arg.ctype     = 'c_char_p'
+                arg.fort_type = 'character(c_char)'
+            elif re.match(r'^enumeration[a-z0-9_]+type$', type_spec_val, re.IGNORECASE):
                 # Enumeration types map to C int.
-                arg['ctypes']['type'] = 'c_int'
-                arg['fortran']['type'] = 'integer(c_int)'
+                arg.ctype     = 'c_int'
+                arg.fort_type = 'integer(c_int)'
             else:
-                arg['ctypes']['type'] = 'c_void_p'
-                arg['fortran']['type'] = 'type(c_ptr)'
+                arg.ctype     = 'c_void_p'
+                arg.fort_type = 'type(c_ptr)'
         elif intrinsic == 'class':
-            arg['ctypes']['type'] = 'c_void_p'
-            arg['fortran']['type'] = 'type(c_ptr)'
+            arg.ctype     = 'c_void_p'
+            arg.fort_type = 'type(c_ptr)'
             # Check whether this is a functionClass argument.
-            if type_spec.endswith('Class'):
-                class_key = type_spec[:-5]  # strip trailing 'Class'
+            if type_spec_val.endswith('Class'):
+                class_key = type_spec_val[:-5]  # strip trailing 'Class'
                 if class_key in lib_function_classes:
-                    arg['isFunctionClass'] = 1
+                    arg.is_function_class = True
                     # 'self' is dispatched via the method binding, not passed directly.
-                    if arg['name'] == 'self':
-                        arg['galacticus']['isPresent'] = 0
+                    if arg.name == 'self':
+                        arg.galacticus_is_present = False
                     # Insert a companion _ID argument (carries the concrete class ID).
-                    arg_id = {
-                        'name':       arg['name'] + '_ID',
-                        'intrinsic':  'integer',
-                        'type':       None,
-                        'attributes': ['intent(in)'],
-                        'ctypes':     {'type': 'c_int'},
-                        'fortran':    {'type': 'integer(c_int)', 'isPresent': 1},
-                        'python':     {'isPresent': 0},
-                        'galacticus': {'isPresent': 0},
-                        'isOptional': False,
-                        'isFunctionClass': False,
-                    }
-                    if arg['isOptional']:
-                        arg_id['attributes'].append('optional')
-                        arg_id['isOptional'] = True
-                        arg_id['python']['present'] = arg['name']
+                    arg_id = ArgSpec(
+                        name                  = arg.name + '_ID',
+                        intrinsic             = 'integer',
+                        attributes            = ['intent(in)'],
+                        ctype                 = 'c_int',
+                        fort_type             = 'integer(c_int)',
+                        fort_is_present       = True,
+                        py_is_present         = False,
+                        galacticus_is_present = False,
+                        is_optional           = False,
+                        is_function_class     = False,
+                    )
+                    if arg.is_optional:
+                        arg_id.attributes.append('optional')
+                        arg_id.is_optional = True
+                        arg_id.py_present  = arg.name
                     # Insert _ID before the current front, then arg before that.
                     new_list.insert(0, arg_id)
 
@@ -702,60 +783,58 @@ def assign_c_types(argument_list, lib_function_classes):
 def assign_c_attributes(argument_list):
     """Assign C attributes to arguments."""
     for arg in argument_list:
-        arg.setdefault('fortran', {})
-        arg['fortran']['attributes'] = []
+        arg.fort_attributes = []
 
-        if arg.get('isOptional'):
-            arg['fortran']['attributes'].append('optional')
+        if arg.is_optional:
+            arg.fort_attributes.append('optional')
 
-        attr_filters = [a for a in arg.get('attributes', [])
+        attr_filters = [a for a in arg.attributes
                        if a.startswith('dimension') or a == 'allocatable']
-        arg['fortran']['attributes'].extend(attr_filters)
+        arg.fort_attributes.extend(attr_filters)
 
-        if arg.get('ctypes', {}).get('type') == 'c_char_p':
-            arg['fortran']['attributes'].append('dimension(*)')
+        if arg.ctype == 'c_char_p':
+            arg.fort_attributes.append('dimension(*)')
 
         # Determine pass-by method
-        is_ptr_type = arg.get('ctypes', {}).get('type', '').endswith('_p')
-        is_intent_in = any('intent(in)' in a for a in arg.get('attributes', []))
-        is_non_scalar = any(a.startswith('dimension') for a in arg.get('fortran', {}).get('attributes', []))
+        is_ptr_type   = arg.ctype.endswith('_p')
+        is_intent_in  = any('intent(in)' in a for a in arg.attributes)
+        is_non_scalar = any(a.startswith('dimension') for a in arg.fort_attributes)
 
-        if (is_ptr_type or is_intent_in) and not arg.get('isOptional') and not is_non_scalar:
-            arg['passBy'] = 'value'
+        if (is_ptr_type or is_intent_in) and not arg.is_optional and not is_non_scalar:
+            arg.pass_by = 'value'
         else:
-            arg['passBy'] = 'reference'
+            arg.pass_by = 'reference'
 
-        if arg['passBy'] == 'value':
-            arg['fortran']['attributes'].append('value')
+        if arg.pass_by == 'value':
+            arg.fort_attributes.append('value')
 
-        arg['ctypes']['pointer'] = (arg['passBy'] == 'reference' and
-                                   arg.get('ctypes', {}).get('type') != 'c_char_p')
+        arg.ctype_pointer = (arg.pass_by == 'reference' and arg.ctype != 'c_char_p')
 
     return argument_list
 
 
 def build_python_reassignments(argument_list):
-    """Set python['passAs'] and python['reassignment'] for functionClass args.
+    """Set py_pass_as and py_reassignment for functionClass args.
 
     Mirrors Perl buildPythonReassignments().  Processes in reverse so that when
     a functionClass arg is encountered, its _ID companion is already sitting at
     the front of new_list (it was the immediately preceding arg in forward
     order, so the last one pushed in reverse order).
 
-    Non-optional:  passAs = 'name._glcObj' / 'name._classID'
-    Optional:      passAs = 'name_glcObj'  / 'name_classID' plus an
-                   if/else reassignment block that extracts the values or
-                   sets them to None when the argument is absent.
+    Non-optional:  py_pass_as = 'name._glcObj' / 'name._classID'
+    Optional:      py_pass_as = 'name_glcObj'  / 'name_classID' plus a
+                   py_reassignment block that extracts the values or sets them
+                   to None when the argument is absent.
     """
     new_list = []
     for arg in reversed(argument_list):
-        if arg.get('isFunctionClass'):
+        if arg.is_function_class:
             arg_id = new_list.pop(0)          # shift _ID off front of new list
-            name = arg['name']
-            if arg.get('isOptional'):
-                arg['python']['passAs']        = name + '_glcObj'
-                arg_id['python']['passAs']     = name + '_classID'
-                arg['python']['reassignment']  = (
+            name = arg.name
+            if arg.is_optional:
+                arg.py_pass_as       = name + '_glcObj'
+                arg_id.py_pass_as    = name + '_classID'
+                arg.py_reassignment  = (
                     f'    if {name}:\n'
                     f'        {name}_glcObj ={name}._glcObj\n'
                     f'        {name}_classID={name}._classID\n'
@@ -764,8 +843,8 @@ def build_python_reassignments(argument_list):
                     f'        {name}_classID=None\n'
                 )
             else:
-                arg['python']['passAs']    = name + '._glcObj'
-                arg_id['python']['passAs'] = name + '._classID'
+                arg.py_pass_as    = name + '._glcObj'
+                arg_id.py_pass_as = name + '._classID'
             new_list.insert(0, arg_id)        # unshift _ID back
         new_list.insert(0, arg)               # unshift current arg
     return new_list
@@ -796,38 +875,35 @@ def build_fortran_reassignments(argument_list, func_class, implementation,
 
     new_list = []
     for arg in reversed(argument_list):
-        arg.setdefault('fortran', {})
-        intrinsic  = arg.get('intrinsic', '')
-        type_spec  = arg.get('type') or ''
-        name       = arg['name']
-        is_optional = arg.get('isOptional', False)
-        opt_prefix  = f'if (present({name})) ' if is_optional else ''
+        intrinsic     = arg.intrinsic
+        type_spec_val = arg.type_spec
+        name          = arg.name
+        is_optional   = arg.is_optional
+        opt_prefix    = f'if (present({name})) ' if is_optional else ''
 
         if intrinsic == 'logical':
             # c_bool must be recast to a plain Fortran logical.
-            arg['fortran']['reassignment'] = f'{opt_prefix}{name}_=logical({name})\n'
-            arg['fortran']['declarations'] = f'logical :: {name}_\n'
-            arg['fortran']['passAs']       = name + '_'
+            arg.fort_reassignment = f'{opt_prefix}{name}_=logical({name})\n'
+            arg.fort_declarations = f'logical :: {name}_\n'
+            arg.fort_pass_as      = name + '_'
 
         elif intrinsic == 'character':
-            # c_char_p → character via String_C_to_Fortran then char()
-            arg['fortran'].setdefault('modules', {})
-            arg['fortran']['modules'].setdefault('String_Handling',    {})['String_C_to_Fortran'] = 1
-            arg['fortran']['modules'].setdefault('ISO_Varying_String', {})['char']                = 1
-            arg['fortran']['passAs'] = f'char(String_C_to_Fortran({name}))'
+            # c_char_p -> character via String_C_to_Fortran then char()
+            arg.fort_modules.setdefault('String_Handling',    {})['String_C_to_Fortran'] = 1
+            arg.fort_modules.setdefault('ISO_Varying_String', {})['char']                = 1
+            arg.fort_pass_as = f'char(String_C_to_Fortran({name}))'
 
         elif intrinsic == 'type':
-            if type_spec == 'varying_string':
-                # c_char_p → varying_string via String_C_to_Fortran
-                arg['fortran'].setdefault('modules', {})
-                arg['fortran']['modules'].setdefault('String_Handling', {})['String_C_to_Fortran'] = 1
-                arg['fortran']['passAs'] = f'String_C_to_Fortran({name})'
+            if type_spec_val == 'varying_string':
+                # c_char_p -> varying_string via String_C_to_Fortran
+                arg.fort_modules.setdefault('String_Handling', {})['String_C_to_Fortran'] = 1
+                arg.fort_pass_as = f'String_C_to_Fortran({name})'
 
-            elif re.match(r'^enumeration[a-z0-9_]+type$', type_spec, re.IGNORECASE):
-                # c_int → type(enumXxx) via %ID assignment.
-                arg['fortran']['declarations'] = f'type({type_spec}) :: {name}_\n'
-                arg['fortran']['passAs']       = name + '_'
-                arg['fortran']['reassignment'] = f'{opt_prefix}{name}_%ID={name}\n'
+            elif re.match(r'^enumeration[a-z0-9_]+type$', type_spec_val, re.IGNORECASE):
+                # c_int -> type(enumXxx) via %ID assignment.
+                arg.fort_declarations = f'type({type_spec_val}) :: {name}_\n'
+                arg.fort_pass_as      = name + '_'
+                arg.fort_reassignment = f'{opt_prefix}{name}_%ID={name}\n'
                 # Locate the module that imports this enumeration type:
                 # 1. walk implementation's module uses, following the extends chain.
                 import_module = None
@@ -837,7 +913,7 @@ def build_fortran_reassignments(argument_list, func_class, implementation,
                         for use_block in module_uses_impls.get(cls, []):
                             for mod_name, mod_data in use_block.items():
                                 if (isinstance(mod_data, dict)
-                                        and type_spec in mod_data.get('only', {})):
+                                        and type_spec_val in mod_data.get('only', {})):
                                     import_module = mod_name
                                     break
                             if import_module:
@@ -848,7 +924,7 @@ def build_fortran_reassignments(argument_list, func_class, implementation,
                     for use_block in func_class.get('moduleUses', []):
                         for mod_name, mod_data in use_block.items():
                             if (isinstance(mod_data, dict)
-                                    and type_spec in mod_data.get('only', {})):
+                                    and type_spec_val in mod_data.get('only', {})):
                                 import_module = mod_name
                                 break
                         if import_module:
@@ -857,51 +933,47 @@ def build_fortran_reassignments(argument_list, func_class, implementation,
                 if not import_module:
                     import_module = func_class.get('module')
                 if import_module:
-                    arg['fortran'].setdefault('modules', {})
-                    arg['fortran']['modules'].setdefault(import_module, {})[type_spec] = 1
+                    arg.fort_modules.setdefault(import_module, {})[type_spec_val] = 1
 
-            elif type_spec == 'treeNode':
-                # c_ptr → type(treeNode) via c_f_pointer.
-                arg['fortran']['declarations'] = f'type({type_spec}), pointer :: {name}_\n'
-                arg['fortran']['passAs']       = name + '_'
+            elif type_spec_val == 'treeNode':
+                # c_ptr -> type(treeNode) via c_f_pointer.
+                arg.fort_declarations = f'type({type_spec_val}), pointer :: {name}_\n'
+                arg.fort_pass_as      = name + '_'
                 reassign = f'call c_f_pointer({name},{name}_)\n'
                 if is_optional:
                     reassign = (f'if (present({name})) then\n '
                                 f'{reassign}else\n {name}_ => null()\nend if\n')
-                arg['fortran']['reassignment']       = reassign
-                arg['fortran']['isoCBindingSymbols'] = ['c_f_pointer']
-                arg['fortran'].setdefault('modules', {})
-                arg['fortran']['modules'].setdefault('Galacticus_Nodes', {})['treeNode'] = 1
+                arg.fort_reassignment   = reassign
+                arg.fort_iso_c_symbols  = ['c_f_pointer']
+                arg.fort_modules.setdefault('Galacticus_Nodes', {})['treeNode'] = 1
 
             else:
-                # Other derived types: c_ptr → type(X) via c_f_pointer.
-                arg['fortran']['declarations'] = f'type({type_spec}), pointer :: {name}_\n'
-                arg['fortran']['passAs']       = name + '_'
-                arg['fortran']['reassignment'] = f'{opt_prefix}call c_f_pointer({name},{name}_)\n'
-                arg['fortran']['isoCBindingSymbols'] = ['c_f_pointer']
-                arg['fortran'].setdefault('modules', {})
-                if type_spec == 'inputParameters':
-                    arg['fortran']['modules'].setdefault('Input_Parameters', {})['inputParameters'] = 1
+                # Other derived types: c_ptr -> type(X) via c_f_pointer.
+                arg.fort_declarations  = f'type({type_spec_val}), pointer :: {name}_\n'
+                arg.fort_pass_as       = name + '_'
+                arg.fort_reassignment  = f'{opt_prefix}call c_f_pointer({name},{name}_)\n'
+                arg.fort_iso_c_symbols = ['c_f_pointer']
+                if type_spec_val == 'inputParameters':
+                    arg.fort_modules.setdefault('Input_Parameters', {})['inputParameters'] = 1
                 else:
                     mod = func_class.get('module', '')
                     if mod:
-                        arg['fortran']['modules'].setdefault(mod, {})[type_spec] = 1
+                        arg.fort_modules.setdefault(mod, {})[type_spec_val] = 1
 
-        elif arg.get('isFunctionClass'):
-            # class(FooClass) → class(FooClass) pointer via FooGetPtr(ptr, ID).
-            class_key = type_spec[:-5] if type_spec.endswith('Class') else type_spec
+        elif arg.is_function_class:
+            # class(FooClass) -> class(FooClass) pointer via FooGetPtr(ptr, ID).
+            class_key = type_spec_val[:-5] if type_spec_val.endswith('Class') else type_spec_val
             mod_name  = lib_function_classes.get(class_key, {}).get('module', '')
-            arg['fortran']['declarations'] = f'class({type_spec}), pointer :: {name}_\n'
-            arg['fortran']['passAs']       = name + '_'
-            arg['fortran']['reassignment'] = (
+            arg.fort_declarations  = f'class({type_spec_val}), pointer :: {name}_\n'
+            arg.fort_pass_as       = name + '_'
+            arg.fort_reassignment  = (
                 f'{opt_prefix}{name}_ => {class_key}GetPtr({name},{name}_ID)\n'
             )
-            arg['fortran']['functionClass'] = class_key
+            arg.fort_function_class = class_key
             if mod_name:
-                arg['fortran'].setdefault('modules', {})
-                arg['fortran']['modules'].setdefault(mod_name, {})[type_spec] = 1
+                arg.fort_modules.setdefault(mod_name, {})[type_spec_val] = 1
 
-        elif intrinsic == 'class' and type_spec == '*':
+        elif intrinsic == 'class' and type_spec_val == '*':
             # Unlimited polymorphic: look up the concrete type in libraryClasses config.
             impl_name = implementation['name'] if implementation else None
             fc_name   = func_class.get('name', '')
@@ -914,25 +986,23 @@ def build_fortran_reassignments(argument_list, func_class, implementation,
                 ct      = concrete[0]
                 ct_type = ct.get('type', '')
                 ct_mod  = ct.get('module', '')
-                arg['fortran']['declarations']       = f'type({ct_type}), pointer :: {name}_\n'
-                arg['fortran']['passAs']             = name + '_'
-                arg['fortran']['reassignment']       = f'{opt_prefix}call c_f_pointer({name},{name}_)\n'
-                arg['fortran']['isoCBindingSymbols'] = ['c_f_pointer']
+                arg.fort_declarations  = f'type({ct_type}), pointer :: {name}_\n'
+                arg.fort_pass_as       = name + '_'
+                arg.fort_reassignment  = f'{opt_prefix}call c_f_pointer({name},{name}_)\n'
+                arg.fort_iso_c_symbols = ['c_f_pointer']
                 if ct_mod and ct_type:
-                    arg['fortran'].setdefault('modules', {})
-                    arg['fortran']['modules'].setdefault(ct_mod, {})[ct_type] = 1
+                    arg.fort_modules.setdefault(ct_mod, {})[ct_type] = 1
 
         new_list.insert(0, arg)
 
     return new_list
 
-
 def ctypes_arg_types(argument_list):
     """Generate ctypes argument type list."""
     types = []
     for arg in argument_list:
-        ctype = arg.get('ctypes', {}).get('type', 'c_int')
-        if arg.get('ctypes', {}).get('pointer'):
+        ctype = arg.ctype or 'c_int'
+        if arg.ctype_pointer:
             ctype = f'POINTER({ctype})'
         types.append(ctype)
     return types
@@ -940,8 +1010,7 @@ def ctypes_arg_types(argument_list):
 
 def fortran_arg_list(argument_list):
     """Generate Fortran argument list."""
-    return [arg['name'] for arg in argument_list
-            if arg.get('fortran', {}).get('isPresent')]
+    return [arg.name for arg in argument_list if arg.fort_is_present]
 
 
 def fortran_declarations(argument_list):
@@ -956,14 +1025,13 @@ def fortran_declarations(argument_list):
     function_classes = {}   # {className: True}  — deduplicates interface blocks
 
     for arg in argument_list:
-        attrs    = arg.get('fortran', {}).get('attributes', [])
-        attr_str = (', ' + ', '.join(attrs)) if attrs else ''
-        fort_type = arg.get('fortran', {}).get('type', 'integer(c_int)')
-        code += f'  {fort_type}{attr_str} :: {arg["name"]}\n'
-        if arg.get('fortran', {}).get('declarations'):
-            code += arg['fortran']['declarations']
-        if arg.get('fortran', {}).get('functionClass'):
-            function_classes[arg['fortran']['functionClass']] = True
+        attr_str  = (', ' + ', '.join(arg.fort_attributes)) if arg.fort_attributes else ''
+        fort_type = arg.fort_type or 'integer(c_int)'
+        code += f'  {fort_type}{attr_str} :: {arg.name}\n'
+        if arg.fort_declarations:
+            code += arg.fort_declarations
+        if arg.fort_function_class:
+            function_classes[arg.fort_function_class] = True
 
     # Emit interface blocks so the compiler knows the GetPtr signatures.
     for fc in sorted(function_classes):
@@ -982,20 +1050,19 @@ def fortran_declarations(argument_list):
 
 def fortran_reassignments(argument_list):
     """Generate Fortran reassignments."""
-    return ''.join(arg.get('fortran', {}).get('reassignment', '')
-                  for arg in argument_list)
+    return ''.join(arg.fort_reassignment for arg in argument_list)
 
 
 def fortran_module_uses(argument_list):
     """Generate Fortran module use statements.
 
     Mirrors Perl fortranModuleUses(): accumulates {module: {symbol: 1}} dicts
-    from every arg's fortran['modules'] field, then emits one 'use' line per
+    from every arg's fort_modules field, then emits one 'use' line per
     module with a sorted 'only' list.
     """
     modules = {}
     for arg in argument_list:
-        for mod_name, symbols in arg.get('fortran', {}).get('modules', {}).items():
+        for mod_name, symbols in arg.fort_modules.items():
             modules.setdefault(mod_name, {}).update(symbols)
 
     code = ''
@@ -1017,19 +1084,19 @@ def fortran_call_code(argument_list, pre_arguments, post_arguments, continuation
         # otherwise only include optionals whose name is in present_set
         args = []
         for arg in argument_list:
-            if not arg.get('galacticus', {}).get('isPresent'):
+            if not arg.galacticus_is_present:
                 continue
-            if (arg.get('isOptional') and present_set is not None
-                    and arg['name'] not in present_set):
+            if (arg.is_optional and present_set is not None
+                    and arg.name not in present_set):
                 continue
-            pass_name = arg.get('fortran', {}).get('passAs', arg['name'])
-            args.append(f"{arg['name']}={pass_name}")
+            pass_name = arg.fort_pass_as if arg.fort_pass_as else arg.name
+            args.append(f"{arg.name}={pass_name}")
         return (f"{pre_arguments}{continuation} {(',' + continuation + chr(10) + '  ' + continuation + ' ').join(args)} {continuation}\n"
                 f"{post_arguments}")
 
     optional_names = sorted(
-        arg['name'] for arg in argument_list
-        if arg.get('isOptional') and arg.get('galacticus', {}).get('isPresent')
+        arg.name for arg in argument_list
+        if arg.is_optional and arg.galacticus_is_present
     )
 
     if not optional_names:
@@ -1064,11 +1131,10 @@ def iso_c_binding_import(argument_list, *extra_symbols):
     """
     symbols = set(extra_symbols)
     for arg in argument_list:
-        fort_type = arg.get('fortran', {}).get('type', '')
-        m = re.search(r'\(([a-z_]+)\)', fort_type)
+        m = re.search(r'\(([a-z_]+)\)', arg.fort_type)
         if m:
             symbols.add(m.group(1))
-        for sym in arg.get('fortran', {}).get('isoCBindingSymbols', []):
+        for sym in arg.fort_iso_c_symbols:
             symbols.add(sym)
     return f"  use, intrinsic :: ISO_C_Binding, only : {', '.join(sorted(symbols))}\n"
 
@@ -1081,15 +1147,15 @@ def python_arg_list(argument_list):
     argument already is 'self' (python.isPresent=1) so the loop adds it and
     no explicit prepend is needed.
     """
-    first_name = argument_list[0]['name'] if argument_list else None
+    first_name = argument_list[0].name if argument_list else None
     args = [] if first_name == 'self' else ['self']
 
     first_optional = False
     for arg in argument_list:
-        if not arg.get('python', {}).get('isPresent'):
+        if not arg.py_is_present:
             continue
-        name = arg['name']
-        if arg.get('isOptional') or first_optional:
+        name = arg.name
+        if arg.is_optional or first_optional:
             name += '=None'
             first_optional = True
         args.append(name)
@@ -1098,11 +1164,7 @@ def python_arg_list(argument_list):
 
 def python_reassignments(argument_list):
     """Generate Python argument reassignments."""
-    lines = []
-    for arg in argument_list:
-        if arg.get('python', {}).get('reassignment'):
-            lines.append(arg['python']['reassignment'])
-    return ''.join(lines)
+    return ''.join(arg.py_reassignment for arg in argument_list)
 
 
 def python_call_code(argument_list, call):
@@ -1118,18 +1180,18 @@ def python_call_code(argument_list, call):
         args = []
         first_optional = False
         for arg in argument_list:
-            if not arg.get('fortran', {}).get('isPresent'):
+            if not arg.fort_is_present:
                 continue
-            is_opt = arg.get('isOptional', False)
-            pv     = arg.get('python', {}).get('present', arg['name'])
-            pa     = arg.get('python', {}).get('passAs', arg['name'])
+            is_opt = arg.is_optional
+            pv     = arg.py_present if arg.py_present else arg.name
+            pa     = arg.py_pass_as if arg.py_pass_as else arg.name
             if is_opt:
                 first_optional = True
             if first_optional:
                 if is_opt and present_set is not None and pv not in present_set:
                     args.append('None')
                 else:
-                    ctype = arg.get('ctypes', {}).get('type', 'c_void_p')
+                    ctype = arg.ctype or 'c_void_p'
                     args.append(f'{ctype}({pa})')
             else:
                 args.append(pa)
@@ -1138,11 +1200,11 @@ def python_call_code(argument_list, call):
     # Collect the unique presence-variable names for optional fortran-present args.
     pv_seen = {}
     for arg in argument_list:
-        if not arg.get('isOptional'):
+        if not arg.is_optional:
             continue
-        if not arg.get('fortran', {}).get('isPresent'):
+        if not arg.fort_is_present:
             continue
-        pv = arg.get('python', {}).get('present', arg['name'])
+        pv = arg.py_present if arg.py_present else arg.name
         pv_seen[pv] = True
     optional_pvs = sorted(pv_seen.keys())
 
