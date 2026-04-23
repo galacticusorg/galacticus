@@ -8,11 +8,9 @@
 import re
 import os
 import sys
-import xml.etree.ElementTree as ET
 
 sys.path.insert(0, os.path.join(os.environ.get('GALACTICUS_EXEC_PATH', ''), 'python'))
 
-from XML.Utils import xml_to_dict
 from build.fortran_utils import get_fortran_line
 from Fortran.Utils import UNIT_OPENERS, UNIT_CLOSERS
 from Galacticus.Build.SourceTree.Parse.Declarations import parse_declaration
@@ -99,10 +97,13 @@ def _build_tree(root):
     del root['_orig_content']
     _link_children(root, unit_children)
 
-    # Step 3: run the three parse passes over the whole tree.
+    # Step 3: run the parse passes over the whole tree (matches the set of
+    # parseHooks registered in perl/Galacticus/Build/SourceTree.pm).
     _pass_directives(root)
     _pass_module_uses(root)
     _pass_declarations(root)
+    _pass_visibilities(root)
+    _pass_openmp(root)
 
 def _comment_embedded(content):
     """Comment out embedded LaTeX and XML blocks so that they are not processed as Fortran code"""
@@ -376,140 +377,13 @@ def _children_from_mixed_lines(inner_lines, parent):
 
 
 def _pass_directives(tree):
-    """Walk the tree replacing XML directive comment blocks with directive nodes.
+    """Walk code nodes extracting `!![…!!]` XML directive blocks into directive nodes.
 
-    Mirrors Perl Galacticus::Build::SourceTree::Parse::Directives::Parse_Directives().
-
-    Directives are delimited by:
-      !![          (opening marker)
-      !< <tagname ...>  (XML content lines — '!<' prefix stripped)
-      !!]          (closing marker)
+    Delegates to Galacticus.Build.SourceTree.Parse.Directives.parse_directives().
+    Lazy import avoids a circular dependency at module-load time.
     """
-    nodes_to_replace = []  # list of (code_node, new_nodes_list)
-
-    for node in walk_tree(tree):
-        if node['type'] != 'code':
-            continue
-
-        content = node.get('content', '')
-        new_nodes      = []
-        raw_code_buf   = []
-        raw_dir_buf    = []
-        raw_dir_lines  = []   # raw lines from !![  to  !!] inclusive (for firstChild)
-        in_xml         = False
-        in_directive   = False
-        directive_root = None
-        pending_dir    = None  # parsed directive node, waiting for !!] to be emitted
-
-        for raw_line in content.splitlines(keepends=True):
-            stripped = re.sub(r'^\s*!<\s*', '', raw_line)
-
-            if re.match(r'^\s*!!\]', raw_line):
-                # End of XML block.  Always include !!] in the raw content, then emit.
-                raw_dir_lines.append(raw_line)
-                if raw_dir_buf:
-                    # End tag not yet detected — parse the accumulated XML now.
-                    xml_text     = ''.join(raw_dir_buf)
-                    pending_dir  = _parse_directive_xml(xml_text, node)
-                    raw_dir_buf  = []
-                if pending_dir:
-                    # Attach raw text (including !![  ...  !!]) as firstChild.
-                    pending_dir['firstChild'] = {
-                        'type':       'code',
-                        'content':    ''.join(raw_dir_lines),
-                        'parent':     pending_dir,
-                        'sibling':    None,
-                        'firstChild': None,
-                        'source':     node['source'],
-                        'line':       node['line'],
-                    }
-                    if raw_code_buf:
-                        new_nodes.append(_make_code_node(
-                            ''.join(raw_code_buf), node['source'], node['line']))
-                        raw_code_buf = []
-                    new_nodes.append(pending_dir)
-                else:
-                    if raw_code_buf:
-                        new_nodes.append(_make_code_node(
-                            ''.join(raw_code_buf), node['source'], node['line']))
-                        raw_code_buf = []
-                    new_nodes.append(_make_code_node(
-                        ''.join(raw_dir_lines), node['source'], node['line']))
-                raw_dir_lines  = []
-                pending_dir    = None
-                in_directive   = False
-                directive_root = None
-                in_xml         = False
-                continue
-
-            if re.match(r'^\s*!!\[', raw_line):
-                in_xml        = True
-                raw_dir_lines = [raw_line]  # start accumulating from !![
-                continue
-
-            if in_xml:
-                raw_dir_lines.append(raw_line)
-                # Detect start of a directive tag.
-                m = re.match(r'^\s*<([^\s>/]+)', stripped)
-                if m and not in_directive:
-                    directive_root = m.group(1)
-                    in_directive   = True
-                if in_directive:
-                    stripped = stripped.replace('&nbsp;', ' ')
-                    raw_dir_buf.append(stripped)
-                    # Detect end of directive tag.
-                    end1 = re.search(r'</\s*' + re.escape(directive_root) + r'\s*>', stripped)
-                    end2 = re.match(
-                        r'^\s*<' + re.escape(directive_root) + r'(\s[^/]*)?\s*/>', stripped)
-                    end3 = (re.match(
-                        r'^\s*<' + re.escape(directive_root) + r'\s*/>', stripped)
-                            if directive_root else False)
-                    if end1 or end2 or end3:
-                        # End tag found — parse XML now but defer emitting until !!].
-                        xml_text     = ''.join(raw_dir_buf)
-                        pending_dir  = _parse_directive_xml(xml_text, node)
-                        raw_dir_buf  = []
-                        in_directive = False
-                        directive_root = None
-                continue
-
-            raw_code_buf.append(raw_line)
-
-        if raw_code_buf:
-            new_nodes.append(_make_code_node(
-                ''.join(raw_code_buf), node['source'], node['line']))
-
-        if len(new_nodes) != 1 or new_nodes[0] is not node:
-            nodes_to_replace.append((node, new_nodes))
-
-    for old_node, new_nodes in nodes_to_replace:
-        replace_node(old_node, new_nodes)
-
-
-def _parse_directive_xml(xml_text, context_node):
-    """Parse accumulated XML text into a directive node dict."""
-    try:
-        elem = ET.fromstring(xml_text)
-    except ET.ParseError:
-        # Wrap in a root element and try again (handles bare fragments).
-        try:
-            elem = ET.fromstring('<root>' + xml_text + '</root>')
-            # If wrapped, the real root is the first child.
-            if len(elem) == 1:
-                elem = list(elem)[0]
-        except ET.ParseError:
-            return None
-
-    directive_dict = xml_to_dict(elem)
-    return {
-        'type':       elem.tag,
-        'directive':  directive_dict,
-        'parent':     None,
-        'firstChild': None,
-        'sibling':    None,
-        'source':     context_node.get('source', 'unknown'),
-        'line':       context_node.get('line',   0),
-    }
+    from Galacticus.Build.SourceTree.Parse.Directives import parse_directives
+    parse_directives(tree)
 
 
 def replace_node(old_node, new_nodes):
@@ -564,6 +438,21 @@ def insert_before_node(node, new_nodes):
         while prev.get('sibling') is not node:
             prev = prev['sibling']
         prev['sibling'] = new_nodes[0]
+
+
+def insert_after_node(node, new_nodes):
+    """Insert new_nodes as siblings immediately after node in the parent's child list.
+
+    Mirrors Perl Galacticus::Build::SourceTree::InsertAfterNode().
+    """
+    parent = node.get('parent')
+    if parent is None:
+        raise ValueError("insert_after_node: cannot insert after a root node")
+    tail = node.get('sibling')
+    for i, n in enumerate(new_nodes):
+        n['parent']  = parent
+        n['sibling'] = new_nodes[i + 1] if i + 1 < len(new_nodes) else tail
+    node['sibling'] = new_nodes[0]
 
 
 # ---------------------------------------------------------------------------
@@ -670,6 +559,34 @@ def _pass_declarations(tree):
 
     for old_node, new_nodes in nodes_to_replace:
         replace_node(old_node, new_nodes)
+
+
+# ---------------------------------------------------------------------------
+# Parse pass 4: visibilities  (mirrors Parse::Visibilities)
+# ---------------------------------------------------------------------------
+
+def _pass_visibilities(tree):
+    """Walk code nodes extracting public/private statements into visibility nodes.
+
+    Delegates to Galacticus.Build.SourceTree.Parse.Visibilities.parse_visibilities().
+    Lazy import avoids a circular dependency at module-load time.
+    """
+    from Galacticus.Build.SourceTree.Parse.Visibilities import parse_visibilities
+    parse_visibilities(tree)
+
+
+# ---------------------------------------------------------------------------
+# Parse pass 5: OpenMP  (mirrors Parse::OpenMP)
+# ---------------------------------------------------------------------------
+
+def _pass_openmp(tree):
+    """Walk code nodes extracting !$omp parallel directives into openMP nodes.
+
+    Delegates to Galacticus.Build.SourceTree.Parse.OpenMP.parse_openmp().
+    Lazy import avoids a circular dependency at module-load time.
+    """
+    from Galacticus.Build.SourceTree.Parse.OpenMP import parse_openmp
+    parse_openmp(tree)
 
 
 # ---------------------------------------------------------------------------

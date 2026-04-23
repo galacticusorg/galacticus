@@ -9,13 +9,22 @@
 import sys
 import os
 import re
+import tempfile
 
 sys.path.insert(0, os.path.join(os.environ.get('GALACTICUS_EXEC_PATH', '.'), 'python'))
 
 from Sort.Topo import sort as topo_sort
 from List.ExtraUtils import as_array, smart_push, hash_list, sorted_keys
 from Fortran.Utils import extract_variables, UNIT_OPENERS
-from Galacticus.Build.SourceTree.Parse.Declarations import parse_declaration
+from Galacticus.Build.SourceTree import parse_file, serialize, walk_tree
+from Galacticus.Build.SourceTree.Parse.Declarations import (
+    parse_declaration, build_declarations, add_declarations, add_attributes,
+    get_declaration, declaration_exists,
+)
+from Galacticus.Build.SourceTree.Parse.ModuleUses   import parse_module_uses, update_uses, add_uses
+from Galacticus.Build.SourceTree.Parse.Visibilities import parse_visibilities, update_visibilities
+from Galacticus.Build.SourceTree.Parse.OpenMP       import parse_openmp, update as openmp_update, copyin as openmp_copyin
+from Galacticus.Build.SourceTree.Parse.Directives   import parse_directives, post_process_directives
 
 # ============================================================================
 # Test framework
@@ -293,6 +302,435 @@ def test_unit_openers():
 
 
 # ============================================================================
+# Helper: parse inline Fortran text via a tempfile
+# ============================================================================
+
+def _parse_text(text):
+    """Write text to a temp .F90 file, parse it, and return the root node."""
+    fh = tempfile.NamedTemporaryFile(
+        mode='w', suffix='.F90', delete=False, encoding='utf-8')
+    try:
+        fh.write(text)
+        fh.close()
+        return parse_file(fh.name)
+    finally:
+        os.unlink(fh.name)
+
+
+def _find_node(root, node_type):
+    """Return the first descendant of root with node['type'] == node_type."""
+    for n in walk_tree(root):
+        if n.get('type') == node_type:
+            return n
+    return None
+
+
+def _find_nodes(root, node_type):
+    return [n for n in walk_tree(root) if n.get('type') == node_type]
+
+
+# ============================================================================
+# Parse.ModuleUses tests
+# ============================================================================
+
+def test_parse_module_uses():
+    print("\n=== Testing Parse.ModuleUses.parse_module_uses() ===")
+
+    text = (
+        "module m\n"
+        "use foo\n"
+        "use, intrinsic :: iso_c_binding\n"
+        "!$ use omp_lib\n"
+        "use bar, only : baz, qux\n"
+        "x = 1\n"
+        "end module m\n"
+    )
+    root = _parse_text(text)
+    uses = _find_node(root, 'moduleUse')
+    assert_equal(uses is not None, True, "moduleUse node created")
+    if uses:
+        order = uses.get('moduleOrder', [])
+        assert_equal(order[0], 'iso_c_binding', "intrinsic module placed first")
+        assert_equal(set(order), {'foo', 'iso_c_binding', 'omp_lib', 'bar'}, "all modules captured")
+        mu = uses.get('moduleUse', {})
+        assert_equal(mu['iso_c_binding']['intrinsic'], True, "intrinsic flag set")
+        assert_equal(mu['omp_lib']['openMP'], True, "openMP flag set for !$ use")
+        assert_equal(set(mu['bar'].get('only', {}).keys()), {'baz', 'qux'}, "only symbols captured")
+
+    # Round-trip: serializing the original text should reproduce it.
+    assert_equal(serialize(root), text, "moduleUses round-trip preserves source")
+
+
+def test_parse_module_uses_preprocessor():
+    print("\n=== Testing Parse.ModuleUses preprocessor conditions ===")
+
+    text = (
+        "module m\n"
+        "#ifdef GUARDED\n"
+        "use conditional_mod\n"
+        "#endif\n"
+        "x = 1\n"
+        "end module m\n"
+    )
+    root = _parse_text(text)
+    uses = _find_node(root, 'moduleUse')
+    assert_equal(uses is not None, True, "moduleUse node created under preprocessor")
+    if uses:
+        conds = uses['moduleUse']['conditional_mod'].get('conditions')
+        assert_equal(isinstance(conds, list) and len(conds) == 1, True,
+                     "conditions list captured")
+        if conds:
+            assert_equal(conds[0]['name'], 'GUARDED', "condition name captured")
+            assert_equal(conds[0]['invert'], False, "ifdef not inverted")
+
+
+def test_update_uses():
+    print("\n=== Testing Parse.ModuleUses.update_uses() ===")
+
+    uses_node = {
+        'type':        'moduleUse',
+        'moduleUse':   {
+            'iso_c_binding': {'openMP': False, 'intrinsic': True,  'all': True},
+            'foo':           {'openMP': False, 'intrinsic': False, 'only': {'bar': True, 'baz': True}},
+        },
+        'moduleOrder': ['iso_c_binding', 'foo'],
+        'firstChild':  {'type': 'code', 'content': '  use foo\n',
+                        'parent': None, 'sibling': None, 'firstChild': None,
+                        'source': 'x', 'line': 0},
+        'source': 'x', 'line': 0, 'parent': None, 'sibling': None,
+    }
+    uses_node['firstChild']['parent'] = uses_node
+
+    update_uses(uses_node)
+    out = uses_node['firstChild']['content']
+    assert_equal('use, intrinsic :: iso_c_binding' in out, True,
+                 "intrinsic use line regenerated")
+    assert_equal('use            :: foo' in out, True,
+                 "non-intrinsic use padded to column")
+    assert_equal(', only :' in out, True, "only clause emitted")
+    assert_equal('bar' in out and 'baz' in out, True, "only symbols present")
+
+
+def test_add_uses():
+    print("\n=== Testing Parse.ModuleUses.add_uses() ===")
+
+    root = _parse_text(
+        "module m\n"
+        "use foo\n"
+        "x = 1\n"
+        "end module m\n"
+    )
+    module_node = _find_node(root, 'module')
+    new = {
+        'moduleUse':   {'added_mod': {'openMP': False, 'intrinsic': False, 'all': True}},
+        'moduleOrder': ['added_mod'],
+    }
+    add_uses(module_node, new)
+    uses = _find_node(module_node, 'moduleUse')
+    assert_equal('added_mod' in uses['moduleOrder'], True,
+                 "new module appended to moduleOrder")
+    assert_equal('added_mod' in uses['moduleUse'], True,
+                 "new module in moduleUse dict")
+    assert_equal('use :: added_mod' in serialize(root), True,
+                 "new use line appears in serialized output")
+
+
+# ============================================================================
+# Parse.Declarations pass + helpers tests
+# ============================================================================
+
+def test_parse_declarations_pass():
+    print("\n=== Testing declarations pass (via parse_file) ===")
+
+    text = (
+        "subroutine s\n"
+        "implicit none\n"
+        "integer :: i\n"
+        "real, intent(in) :: x, y\n"
+        "i = 1\n"
+        "end subroutine s\n"
+    )
+    root = _parse_text(text)
+    decl = _find_node(root, 'declaration')
+    assert_equal(decl is not None, True, "declaration node created")
+    if decl:
+        assert_equal(decl.get('implicitNone'), True, "implicitNone captured")
+        decls = decl.get('declarations', [])
+        intrinsics = [d['intrinsic'] for d in decls]
+        assert_equal('integer' in intrinsics and 'real' in intrinsics, True,
+                     "both integer and real declarations parsed")
+    assert_equal(serialize(root), text, "declaration round-trip preserves source")
+
+
+def test_build_declarations():
+    print("\n=== Testing Parse.Declarations.build_declarations() ===")
+
+    decl_node = {
+        'type':         'declaration',
+        'implicitNone': True,
+        'declarations': [
+            {'intrinsic': 'integer', 'type': None, 'openMP': False,
+             'attributes': ['intent(in)'], 'variables': ['i'], 'variableNames': ['i']},
+            {'intrinsic': 'real', 'type': 'kind=8', 'openMP': True,
+             'attributes': [], 'variables': ['x'], 'variableNames': ['x'],
+             'threadprivate': True},
+            {'intrinsic': 'integer', 'type': None, 'openMP': False,
+             'attributes': [], 'variables': ['g'], 'variableNames': ['g'],
+             'preprocessor': 'FOO'},
+        ],
+        'firstChild':  None,
+        'source': 'x', 'line': 0, 'parent': None, 'sibling': None,
+    }
+    build_declarations(decl_node)
+    content = decl_node['firstChild']['content']
+    assert_equal(content.startswith('implicit none\n'), True, "implicit none emitted first")
+    assert_equal('integer, intent(in) :: i' in content, True, "attributes rendered")
+    assert_equal('!$ real(kind=8) :: x' in content, True, "openMP + type parenthesized")
+    assert_equal('!$omp threadprivate(x)' in content, True, "threadprivate footer emitted")
+    assert_equal('#ifdef FOO' in content and '#endif' in content, True,
+                 "preprocessor guards emitted")
+
+
+def test_add_declarations():
+    print("\n=== Testing Parse.Declarations.add_declarations() ===")
+
+    root = _parse_text(
+        "subroutine s\n"
+        "use foo\n"
+        "integer :: existing\n"
+        "existing = 0\n"
+        "end subroutine s\n"
+    )
+    sub = _find_node(root, 'subroutine')
+    new_decl = {
+        'intrinsic': 'logical', 'type': None, 'openMP': False,
+        'attributes': [], 'variables': ['flag'], 'variableNames': ['flag'],
+    }
+    add_declarations(sub, [new_decl])
+    assert_equal(declaration_exists(sub, 'flag'), True, "new declaration visible via declaration_exists")
+    out = serialize(root)
+    assert_equal('logical :: flag' in out, True, "new logical declaration appears in output")
+
+
+def test_add_attributes():
+    print("\n=== Testing Parse.Declarations.add_attributes() ===")
+
+    root = _parse_text(
+        "subroutine s\n"
+        "real :: a, b, c\n"
+        "a = 1.0\n"
+        "end subroutine s\n"
+    )
+    sub = _find_node(root, 'subroutine')
+    add_attributes(sub, 'b', ['allocatable'])
+    out = serialize(root)
+    # 'b' should now have allocatable; a and c should remain in a non-allocatable declaration.
+    assert_equal('real, allocatable :: b' in out, True,
+                 "target variable 'b' split out with new attribute")
+    assert_equal('real :: a, c' in out, True,
+                 "other variables remain in a separate declaration")
+
+
+def test_get_declaration_and_declaration_exists():
+    print("\n=== Testing get_declaration() / declaration_exists() ===")
+
+    root = _parse_text(
+        "subroutine s\n"
+        "integer :: i, j=5\n"
+        "real :: x\n"
+        "i = 0\n"
+        "end subroutine s\n"
+    )
+    sub = _find_node(root, 'subroutine')
+    assert_equal(declaration_exists(sub, 'i'), True,  "declaration_exists: i present")
+    assert_equal(declaration_exists(sub, 'I'), True,  "declaration_exists is case-insensitive")
+    assert_equal(declaration_exists(sub, 'k'), False, "declaration_exists: k absent")
+
+    d = get_declaration(sub, 'x')
+    assert_equal(d['intrinsic'], 'real',  "get_declaration returns correct intrinsic")
+    assert_equal(d['variables'], ['x'],   "get_declaration reduces variables to target")
+
+    # Initializer stripping: j has `=5` — still findable.
+    d = get_declaration(sub, 'j')
+    assert_equal(d['intrinsic'], 'integer', "get_declaration strips initializer")
+
+    assert_raises(lambda: get_declaration(sub, 'missing'), RuntimeError,
+                  "get_declaration raises on missing variable")
+
+
+# ============================================================================
+# Parse.Visibilities tests
+# ============================================================================
+
+def test_parse_visibilities():
+    print("\n=== Testing Parse.Visibilities.parse_visibilities() ===")
+
+    text = (
+        "module m\n"
+        "public :: alpha, beta\n"
+        "private :: gamma\n"
+        "x = 1\n"
+        "end module m\n"
+    )
+    root = _parse_text(text)
+    vis = _find_node(root, 'visibility')
+    assert_equal(vis is not None, True, "visibility node created")
+    if vis:
+        v = vis['visibility']
+        assert_equal(set(v.get('public',  {}).keys()), {'alpha', 'beta'}, "public symbols captured")
+        assert_equal(set(v.get('private', {}).keys()), {'gamma'},         "private symbols captured")
+    assert_equal(serialize(root), text, "visibility round-trip preserves source")
+
+
+def test_update_visibilities():
+    print("\n=== Testing Parse.Visibilities.update_visibilities() ===")
+
+    vis_node = {
+        'type':       'visibility',
+        'visibility': {'public': {'beta': True, 'alpha': True}, 'private': {'z': True}},
+        'firstChild': None,
+        'source': 'x', 'line': 0, 'parent': None, 'sibling': None,
+    }
+    update_visibilities(vis_node)
+    content = vis_node['firstChild']['content']
+    assert_equal('! Galacticus::Build::SourceTree::Parse::Visibilities(): updated' in content,
+                 True, "comment header emitted")
+    assert_equal('public :: alpha, beta' in content,  True, "public list sorted")
+    assert_equal('private :: z' in content,           True, "private list emitted")
+
+
+# ============================================================================
+# Parse.OpenMP tests
+# ============================================================================
+
+def test_parse_openmp():
+    print("\n=== Testing Parse.OpenMP.parse_openmp() ===")
+
+    text = (
+        "subroutine s\n"
+        "!$omp parallel do schedule(static) private(i)\n"
+        "do i=1,10\n"
+        "end do\n"
+        "!$omp end parallel do\n"
+        "end subroutine s\n"
+    )
+    root = _parse_text(text)
+    omp_nodes = _find_nodes(root, 'openMP')
+    assert_equal(len(omp_nodes), 4,
+                 "four openMP nodes (parallel + do + end do + end parallel)")
+    names = [n['name'] for n in omp_nodes]
+    assert_equal('parallel' in names and 'do' in names, True,
+                 "parallel and composite 'do' both present")
+
+    # schedule should attach to the composite 'do' node, private to parallel.
+    for n in omp_nodes:
+        opt_names = [o['name'] for o in n.get('options', [])]
+        if n['name'] == 'do' and not n.get('isCloser'):
+            assert_equal('schedule' in opt_names, True,
+                         "schedule attached to composite 'do'")
+        if n['name'] == 'parallel' and not n.get('isCloser'):
+            assert_equal('private' in opt_names, True,
+                         "private attached to 'parallel'")
+
+
+def test_openmp_update():
+    print("\n=== Testing Parse.OpenMP.update() ===")
+
+    node = {
+        'type':       'openMP',
+        'name':       'parallel',
+        'isCloser':   False,
+        'options':    [{'name': 'private', 'content': '(i,j)'}],
+        'firstChild': None,
+        'source': 'x', 'line': 0, 'parent': None, 'sibling': None,
+    }
+    openmp_update(node)
+    assert_equal(node['firstChild']['content'], "!$omp parallel private(i,j)\n",
+                 "update() reconstructs !$omp line")
+
+    node['isCloser'] = True
+    node['options'] = []
+    openmp_update(node)
+    assert_equal(node['firstChild']['content'], "!$omp end parallel\n",
+                 "update() handles isCloser with no options")
+
+
+def test_openmp_copyin():
+    print("\n=== Testing Parse.OpenMP.copyin() ===")
+
+    node = {
+        'type':       'openMP',
+        'name':       'parallel',
+        'isCloser':   False,
+        'options':    [],
+        'firstChild': None,
+        'source': 'x', 'line': 0, 'parent': None, 'sibling': None,
+    }
+    openmp_copyin(node, ['a', 'b'])
+    openmp_copyin(node, ['b', 'c'])  # 'b' should not duplicate
+
+    copyin_opts = [o for o in node['options'] if o['name'] == 'copyin']
+    assert_equal(len(copyin_opts), 1, "single copyin option after repeated calls")
+    assert_equal(copyin_opts[0]['content'], '(a,b,c)',
+                 "copyin content deduplicated and comma-joined")
+    assert_equal(node['firstChild']['content'], "!$omp parallel copyin(a,b,c)\n",
+                 "code content regenerated by copyin()")
+
+
+# ============================================================================
+# Parse.Directives tests
+# ============================================================================
+
+def test_parse_directives():
+    print("\n=== Testing Parse.Directives.parse_directives() ===")
+
+    text = (
+        "subroutine s\n"
+        "  !![\n"
+        "  <foo bar=\"baz\"/>\n"
+        "  !!]\n"
+        "x = 1\n"
+        "end subroutine s\n"
+    )
+    root = _parse_text(text)
+    foo = _find_node(root, 'foo')
+    assert_equal(foo is not None, True, "directive node with directive name as type")
+    if foo:
+        assert_equal(foo['directive'].get('bar'), 'baz',
+                     "directive attribute parsed into dict")
+    assert_equal(serialize(root), text, "directive round-trip preserves raw text")
+
+
+def test_post_process_directives():
+    print("\n=== Testing Parse.Directives.post_process_directives() ===")
+
+    text = (
+        "subroutine s\n"
+        "  !![\n"
+        "  <foo bar=\"baz\"/>\n"
+        "  !!]\n"
+        "end subroutine s\n"
+    )
+    root = _parse_text(text)
+    foo = _find_node(root, 'foo')
+    assert_equal(foo is not None, True, "directive node located")
+
+    # Unprocessed → should raise.
+    assert_raises(lambda: post_process_directives(root), RuntimeError,
+                  "post_process_directives raises on unprocessed directive")
+
+    # Mark processed → should pass silently.
+    foo['directive']['processed'] = True
+    raised = False
+    try:
+        post_process_directives(root)
+    except Exception:
+        raised = True
+    assert_equal(raised, False,
+                 "post_process_directives passes when all directives are processed")
+
+
+# ============================================================================
 # Main
 # ============================================================================
 
@@ -306,6 +744,24 @@ def main():
     test_extract_variables()
     test_parse_declaration()
     test_unit_openers()
+
+    # Parser module tests
+    test_parse_module_uses()
+    test_parse_module_uses_preprocessor()
+    test_update_uses()
+    test_add_uses()
+    test_parse_declarations_pass()
+    test_build_declarations()
+    test_add_declarations()
+    test_add_attributes()
+    test_get_declaration_and_declaration_exists()
+    test_parse_visibilities()
+    test_update_visibilities()
+    test_parse_openmp()
+    test_openmp_update()
+    test_openmp_copyin()
+    test_parse_directives()
+    test_post_process_directives()
 
     print("\n" + "=" * 70)
     print(f"Results: {PASS_COUNT} passed, {FAIL_COUNT} failed")
