@@ -34,10 +34,18 @@ import Galacticus.Build.SourceTree.Process.DeepCopyFinalize   # noqa: F401
 import Galacticus.Build.SourceTree.Process.OptionalArgument   # noqa: F401
 import Galacticus.Build.SourceTree.Process.HDF5FCInterop      # noqa: F401
 import Galacticus.Build.SourceTree.Process.Dependencies       # noqa: F401
-import Galacticus.Build.SourceTree.Process.Generics           # noqa: F401
-import Galacticus.Build.SourceTree.Process.NonProcessed       # noqa: F401
-import Galacticus.Build.SourceTree.Process.Allocate           # noqa: F401
-import Galacticus.Build.SourceTree.Process.ForEach            # noqa: F401
+import Galacticus.Build.SourceTree.Process.Generics                  # noqa: F401
+import Galacticus.Build.SourceTree.Process.NonProcessed              # noqa: F401
+import Galacticus.Build.SourceTree.Process.Allocate                  # noqa: F401
+import Galacticus.Build.SourceTree.Process.ForEach                   # noqa: F401
+import Galacticus.Build.SourceTree.Process.SourceIntrospection       # noqa: F401
+import Galacticus.Build.SourceTree.Process.ParameterMigration        # noqa: F401
+import Galacticus.Build.SourceTree.Process.DebugMPI                  # noqa: F401
+import Galacticus.Build.SourceTree.Process.DebugHDF5                 # noqa: F401
+import Galacticus.Build.SourceTree.Process.ProfileOpenMP             # noqa: F401
+import Galacticus.Build.SourceTree.Process.Constants                 # noqa: F401
+import Galacticus.Build.SourceTree.Process.ConditionalCall           # noqa: F401
+import Galacticus.Build.SourceTree.Process.InputParametersValidate   # noqa: F401
 from Galacticus.Build.SourceTree.Process import (
     PROCESS_HOOKS, PROCESS_DEPENDENCIES, POSTPROCESS_HOOKS,
     register_process, process_tree,
@@ -1191,6 +1199,462 @@ def test_process_for_each_rank0():
 
 
 # ============================================================================
+# Process.SourceIntrospection tests
+# ============================================================================
+
+def test_source_introspection_instrument():
+    print("\n=== Testing Process.SourceIntrospection.instrument() ===")
+
+    from Galacticus.Build.SourceTree.Process.SourceIntrospection import instrument
+
+    src = (
+        "line 1 without placeholder\n"
+        "line 2 has {introspection:location} here\n"
+        "line 3 with compact {introspection:location:compact}\n"
+        "line 4 without\n"
+    )
+    out = instrument(src)
+    assert_equal('{introspection:location:2}' in out, True,
+                 "plain placeholder tagged with line 2")
+    assert_equal('{introspection:location:compact:3}' in out, True,
+                 "compact placeholder tagged with line 3")
+    # Lines that had no placeholder must be preserved byte-for-byte.
+    assert_equal(out.splitlines(keepends=True)[0], "line 1 without placeholder\n",
+                 "lines without placeholder unchanged")
+
+
+def test_source_introspection_location():
+    print("\n=== Testing Process.SourceIntrospection.location() ===")
+
+    from Galacticus.Build.SourceTree.Process.SourceIntrospection import location
+
+    # Build a nested file > module > subroutine chain.
+    root = {'type': 'file', 'name': 'thing.F90', 'firstChild': None,
+            'parent': None, 'sibling': None}
+    mod  = {'type': 'module', 'name': 'mThing', 'firstChild': None,
+            'parent': root, 'sibling': None}
+    sub  = {'type': 'subroutine', 'name': 'doIt', 'firstChild': None,
+            'parent': mod, 'sibling': None}
+    root['firstChild'] = mod
+    mod['firstChild']  = sub
+
+    expr = location(sub, 42)
+    # Non-compact form names every ancestor, ends with line info.
+    assert_equal("subroutine:doIt"   in expr, True, "subroutine name in location")
+    assert_equal("module:mThing"     in expr, True, "module name in location")
+    assert_equal("file:thing.F90"    in expr, True, "file name in location")
+    assert_equal("[line 42]"         in expr, True, "line number in location")
+
+    expr = location(sub, 7, compact=True)
+    assert_equal("subroutine(doIt)"  in expr, True, "compact form uses parenthesized name")
+    assert_equal("':7'"              in expr, True, "compact form appends :line")
+
+
+def test_source_introspection_process():
+    print("\n=== Testing Process.SourceIntrospection.process_source_introspection() ===")
+
+    # Synthetic tree with a code node containing a pre-tagged placeholder.
+    root = {'type': 'file', 'name': 'x.F90', 'firstChild': None,
+            'parent': None, 'sibling': None, 'source': 'x.F90', 'line': 0}
+    sub  = {'type': 'subroutine', 'name': 's', 'parent': root,
+            'firstChild': None, 'sibling': None, 'source': 'x.F90', 'line': 0}
+    root['firstChild'] = sub
+    code = {'type': 'code', 'content': 'err("x"//{introspection:location:5})\n',
+            'parent': sub, 'firstChild': None, 'sibling': None,
+            'source': 'x.F90', 'line': 0}
+    sub['firstChild'] = code
+
+    from Galacticus.Build.SourceTree.Process.SourceIntrospection import \
+        process_source_introspection
+    process_source_introspection(root, {})
+
+    assert_equal('{introspection:location' not in code['content'], True,
+                 "placeholder fully expanded")
+    assert_equal("file:x.F90"       in code['content'], True, "expansion names file")
+    assert_equal("subroutine:s"     in code['content'], True, "expansion names subroutine")
+    assert_equal("[line 5]"         in code['content'], True, "expansion includes line number")
+
+
+# ============================================================================
+# Process.ParameterMigration tests
+# ============================================================================
+
+def test_process_parameter_migration():
+    print("\n=== Testing Process.ParameterMigration ===")
+
+    tmpdir = tempfile.mkdtemp()
+    try:
+        aux = os.path.join(tmpdir, 'scripts', 'aux')
+        os.makedirs(aux)
+        with open(os.path.join(aux, 'migrations.xml'), 'w') as fh:
+            fh.write('<migrations>\n'
+                     '  <migration commit="aaaa"/>\n'
+                     '  <migration commit="bbbb"/>\n'
+                     '</migrations>\n')
+        saved = os.environ.get('GALACTICUS_EXEC_PATH')
+        os.environ['GALACTICUS_EXEC_PATH'] = tmpdir
+        try:
+            root = _parse_text(
+                "subroutine s\n"
+                "integer :: placeholder\n"
+                "end subroutine s\n"
+            )
+            sub = _find_node(root, 'subroutine')
+            directive = _make_directive_node(
+                'parameterMigration', {'processed': False}, sub)
+
+            from Galacticus.Build.SourceTree.Process.ParameterMigration import \
+                process_parameter_migration
+            process_parameter_migration(root, {})
+
+            assert_equal(directive['directive']['processed'], True,
+                         "parameterMigration directive marked processed")
+            out = serialize(root)
+            assert_equal('commitHash(1)="aaaa"//c_null_char' in out, True,
+                         "first commit emitted")
+            assert_equal('commitHash(2)="bbbb"//c_null_char' in out, True,
+                         "second commit emitted")
+            assert_equal(declaration_exists(sub, 'commitHash'), True,
+                         "commitHash array declared")
+        finally:
+            if saved is None:
+                del os.environ['GALACTICUS_EXEC_PATH']
+            else:
+                os.environ['GALACTICUS_EXEC_PATH'] = saved
+    finally:
+        import shutil
+        shutil.rmtree(tmpdir)
+
+
+# ============================================================================
+# Process.DebugMPI tests
+# ============================================================================
+
+def test_process_debug_mpi():
+    print("\n=== Testing Process.DebugMPI ===")
+
+    saved = os.environ.get('GALACTICUS_FCFLAGS')
+    os.environ['GALACTICUS_FCFLAGS'] = '-DDEBUGMPI -O2'
+    try:
+        root = _parse_text(
+            "subroutine s\n"
+            "call mpiSelf%broadcast(x)\n"
+            "call mpiBarrier()\n"
+            "end subroutine s\n"
+        )
+        from Galacticus.Build.SourceTree.Process.DebugMPI import process_debug_mpi
+        process_debug_mpi(root, {})
+
+        out = serialize(root)
+        assert_equal("mpiSelf call to method \"broadcast\"" in out, True,
+                     "debug write emitted for mpiSelf call")
+        assert_equal("']: mpiBarrier'" in out, True,
+                     "debug write emitted for mpiBarrier")
+        # Location expression fragments should appear too.
+        assert_equal("subroutine:s" in out, True,
+                     "location expression embedded in debug writes")
+    finally:
+        if saved is None:
+            del os.environ['GALACTICUS_FCFLAGS']
+        else:
+            os.environ['GALACTICUS_FCFLAGS'] = saved
+
+
+def test_process_debug_mpi_disabled():
+    print("\n=== Testing Process.DebugMPI (disabled, no flag) ===")
+
+    saved = os.environ.pop('GALACTICUS_FCFLAGS', None)
+    try:
+        root = _parse_text(
+            "subroutine s\n"
+            "call mpiSelf%broadcast(x)\n"
+            "end subroutine s\n"
+        )
+        original_out = serialize(root)
+        from Galacticus.Build.SourceTree.Process.DebugMPI import process_debug_mpi
+        process_debug_mpi(root, {})
+        assert_equal(serialize(root), original_out,
+                     "DebugMPI is a no-op when -DDEBUGMPI is not set")
+    finally:
+        if saved is not None:
+            os.environ['GALACTICUS_FCFLAGS'] = saved
+
+
+# ============================================================================
+# Process.DebugHDF5 tests
+# ============================================================================
+
+def test_process_debug_hdf5():
+    print("\n=== Testing Process.DebugHDF5 ===")
+
+    saved = os.environ.get('GALACTICUS_FCFLAGS')
+    os.environ['GALACTICUS_FCFLAGS'] = '-DDEBUGHDF5'
+    try:
+        root = _parse_text(
+            "module someModule\n"
+            "subroutine s\n"
+            "use foo\n"
+            "call hdf5Access%set()\n"
+            "call hdf5Access%unset()\n"
+            "end subroutine s\n"
+            "end module someModule\n"
+        )
+        from Galacticus.Build.SourceTree.Process.DebugHDF5 import process_debug_hdf5
+        process_debug_hdf5(root, {})
+
+        out = serialize(root)
+        assert_equal('call IO_HDF5_Start_Locked()' in out, True,
+                     "hdf5Access%set() replaced with IO_HDF5_Start_Locked()")
+        assert_equal('call IO_HDF5_End_Locked()' in out, True,
+                     "hdf5Access%unset() replaced with IO_HDF5_End_Locked()")
+        assert_equal('IO_HDF5_Start_Locked' in out and 'IO_HDF5_End_Locked' in out, True,
+                     "use IO_HDF5 with only clause injected")
+
+        # Inside the IO_HDF5 module itself, the substitution must be suppressed.
+        root = _parse_text(
+            "module IO_HDF5\n"
+            "subroutine s\n"
+            "call hdf5Access%set()\n"
+            "end subroutine s\n"
+            "end module IO_HDF5\n"
+        )
+        process_debug_hdf5(root, {})
+        out = serialize(root)
+        assert_equal('call hdf5Access%set()' in out, True,
+                     "inside IO_HDF5 module the original call is preserved")
+    finally:
+        if saved is None:
+            del os.environ['GALACTICUS_FCFLAGS']
+        else:
+            os.environ['GALACTICUS_FCFLAGS'] = saved
+
+
+# ============================================================================
+# Process.ProfileOpenMP tests
+# ============================================================================
+
+def test_process_profile_openmp():
+    print("\n=== Testing Process.ProfileOpenMP ===")
+
+    tmpdir = tempfile.mkdtemp()
+    try:
+        with open(os.path.join(tmpdir, 'openMPCriticalSections.xml'), 'w') as fh:
+            fh.write('<sections>\n'
+                     '  <critical name="my_section" id="7"/>\n'
+                     '</sections>\n')
+        saved_flags = os.environ.get('GALACTICUS_FCFLAGS')
+        saved_build = os.environ.get('BUILDPATH')
+        os.environ['GALACTICUS_FCFLAGS'] = '-DOMPPROFILE'
+        os.environ['BUILDPATH']           = tmpdir
+        try:
+            root = _parse_text(
+                "subroutine s\n"
+                "  !$omp critical(my_section)\n"
+                "  x = 1\n"
+                "  !$omp end critical\n"
+                "end subroutine s\n"
+            )
+            from Galacticus.Build.SourceTree.Process.ProfileOpenMP import process_profile_openmp
+            process_profile_openmp(root, {})
+
+            out = serialize(root)
+            assert_equal('ompProfileTimeWaitStart=OMP_Get_WTime()' in out, True,
+                         "wait-start timing emitted")
+            assert_equal('ompProfileTimeWaitEnd=OMP_Get_WTime()'   in out, True,
+                         "wait-end timing emitted")
+            assert_equal('criticalSectionWaitTime(7)'              in out, True,
+                         "accumulator uses id from XML")
+        finally:
+            if saved_flags is None:
+                del os.environ['GALACTICUS_FCFLAGS']
+            else:
+                os.environ['GALACTICUS_FCFLAGS'] = saved_flags
+            if saved_build is None:
+                del os.environ['BUILDPATH']
+            else:
+                os.environ['BUILDPATH'] = saved_build
+    finally:
+        import shutil
+        shutil.rmtree(tmpdir)
+
+
+# ============================================================================
+# Process.Constants tests (inline-value path only — GSL/kernel paths need a C compiler)
+# ============================================================================
+
+def test_process_constant_inline():
+    print("\n=== Testing Process.Constants (inline value) ===")
+
+    root = _parse_text(
+        "module m\n"
+        "  integer :: placeholder\n"
+        "end module m\n"
+    )
+    mod = _find_node(root, 'module')
+    directive = _make_directive_node(
+        'constant',
+        {
+            'type':     'double precision',
+            'variable': 'my_pi',
+            'value':    '3.1415926535897932d0',
+            'processed': False,
+        },
+        mod,
+    )
+
+    from Galacticus.Build.SourceTree.Process.Constants import process_constant
+    process_constant(root, {})
+
+    out = serialize(root)
+    assert_equal(directive['directive']['processed'], True,
+                 "constant directive marked processed")
+    assert_equal('double precision, parameter, public :: my_pi=3.1415926535897932d0' in out,
+                 True, "inline value rendered as a `parameter` declaration")
+
+
+# ============================================================================
+# Process.ConditionalCall tests
+# ============================================================================
+
+def test_process_conditional_call():
+    print("\n=== Testing Process.ConditionalCall ===")
+
+    root = _parse_text(
+        "subroutine s\n"
+        "integer :: x\n"
+        "end subroutine s\n"
+    )
+    sub = _find_node(root, 'subroutine')
+    directive = _make_directive_node(
+        'conditionalCall',
+        {
+            'argument': [
+                {'name': 'a', 'value': '1.0', 'condition': 'haveA'},
+                {'name': 'b', 'value': '2.0', 'condition': 'haveB'},
+            ],
+            'call': 'call target({conditions})\n',
+            'processed': False,
+        },
+        sub,
+    )
+
+    from Galacticus.Build.SourceTree.Process.ConditionalCall import process_conditional_call
+    process_conditional_call(root, {})
+
+    assert_equal(directive['directive']['processed'], True,
+                 "conditionalCall directive marked processed")
+    out = serialize(root)
+    # 2^2 = 4 if-blocks, one per boolean combination.
+    assert_equal(out.count('end if'), 4, "four if-then blocks emitted (2^N, N=2)")
+    # Condition variables should be declared.
+    assert_equal(declaration_exists(sub, 'condition1__'), True,
+                 "condition1__ declared")
+    assert_equal(declaration_exists(sub, 'condition2__'), True,
+                 "condition2__ declared")
+    # Both-present state: call target(a=1.0,b=2.0)
+    assert_equal('call target(a=1.0,b=2.0)' in out, True,
+                 "both-present state emits both arguments")
+    # Both-absent state: call target()
+    assert_equal('call target()' in out, True,
+                 "both-absent state emits the empty-argument call")
+
+
+def test_process_conditional_call_parameter_present():
+    print("\n=== Testing Process.ConditionalCall (parameterPresent form) ===")
+
+    root = _parse_text(
+        "subroutine s\n"
+        "integer :: x\n"
+        "end subroutine s\n"
+    )
+    sub = _find_node(root, 'subroutine')
+    _make_directive_node(
+        'conditionalCall',
+        {
+            'argument': {'name': 'foo', 'value': '3.14',
+                         'parameterPresent': 'parameters',
+                         'parameterName': 'fooParam'},
+            'call': 'call doStuff(base,{conditions})\n',
+            'processed': False,
+        },
+        sub,
+    )
+    from Galacticus.Build.SourceTree.Process.ConditionalCall import process_conditional_call
+    process_conditional_call(root, {})
+    out = serialize(root)
+    assert_equal("condition1__=parameters%isPresent('fooParam')" in out, True,
+                 "parameterPresent form emits isPresent() call")
+
+
+# ============================================================================
+# Process.InputParametersValidate tests
+# ============================================================================
+
+def test_process_input_parameters_validate():
+    print("\n=== Testing Process.InputParametersValidate ===")
+
+    tmpdir = tempfile.mkdtemp()
+    try:
+        # Provide a stateStorables.xml with one functionClass whose name is
+        # "myThingClass" — the walk will then tag nodes of type "myThing" as
+        # the enclosing function class.
+        with open(os.path.join(tmpdir, 'stateStorables.xml'), 'w') as fh:
+            fh.write('<stateStorables>\n'
+                     '  <functionClasses>\n'
+                     '    <functionClass name="myThingClass"/>\n'
+                     '  </functionClasses>\n'
+                     '</stateStorables>\n')
+        saved = os.environ.get('BUILDPATH')
+        os.environ['BUILDPATH'] = tmpdir
+        try:
+            # Parse a function inside a module, and hand-wrap the function in
+            # a `myThing` type node (as the Process pipeline would after
+            # FunctionClass-expansion) so the walk finds the class marker
+            # before the validate directive.
+            root = _parse_text(
+                "function f(params)\n"
+                "use dummy\n"
+                "end function f\n"
+            )
+            func = _find_node(root, 'function')
+            # Artificially wrap the function in a "myThing" type node.
+            mything = {'type': 'myThing', 'name': 'instance',
+                       'parent': root, 'firstChild': func,
+                       'sibling': None, 'source': 'x', 'line': 0}
+            func['parent'] = mything
+            root['firstChild'] = mything
+
+            directive = _make_directive_node(
+                'inputParametersValidate', {'source': 'params', 'processed': False},
+                func,
+            )
+
+            from Galacticus.Build.SourceTree.Process.InputParametersValidate import \
+                process_input_parameters_validate
+            process_input_parameters_validate(root, {})
+
+            assert_equal(directive['directive']['processed'], True,
+                         "inputParametersValidate directive marked processed")
+            out = serialize(root)
+            assert_equal('allocatable' in out and 'allowedParameterNames_' in out, True,
+                         "allowedParameterNames_ allocatable declaration added")
+            assert_equal("call f%allowedParameters(allowedParameterNames_,'params',.false.)" in out, True,
+                         "allowedParameters call emitted with result name")
+            assert_equal("myThingDsblVldtn == 0" in out, True,
+                         "function-class name prefix used in the disable check")
+            assert_equal("params%checkParameters(allowedParameterNames=allowedParameterNames_)" in out,
+                         True, "checkParameters invoked on the named source")
+        finally:
+            if saved is None:
+                del os.environ['BUILDPATH']
+            else:
+                os.environ['BUILDPATH'] = saved
+    finally:
+        import shutil
+        shutil.rmtree(tmpdir)
+
+
+# ============================================================================
 # Main
 # ============================================================================
 
@@ -1237,6 +1701,18 @@ def main():
     test_process_allocate()
     test_process_for_each_rank1()
     test_process_for_each_rank0()
+    test_source_introspection_instrument()
+    test_source_introspection_location()
+    test_source_introspection_process()
+    test_process_parameter_migration()
+    test_process_debug_mpi()
+    test_process_debug_mpi_disabled()
+    test_process_debug_hdf5()
+    test_process_profile_openmp()
+    test_process_constant_inline()
+    test_process_conditional_call()
+    test_process_conditional_call_parameter_present()
+    test_process_input_parameters_validate()
 
     print("\n" + "=" * 70)
     print(f"Results: {PASS_COUNT} passed, {FAIL_COUNT} failed")

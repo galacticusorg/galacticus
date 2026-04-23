@@ -45,10 +45,11 @@ UNIT_OPENERS = {
             re.IGNORECASE,
         ),
     },
-    # Subroutine (pure/elemental/recursive/impure/module prefix allowed)
+    # Subroutine (pure/elemental/recursive/impure/module prefix allowed).
+    # Groups: 0=name, 1=arg-parens (optional), 2=arg-list (optional).
     'subroutine': {
-        'unit_name': 1,
-        'arguments': 3,
+        'unit_name': 0,
+        'arguments': 2,
         'regex': re.compile(
             r'^\s*(?:impure\s+|pure\s+|elemental\s+|recursive\s+|module\s+)*'
             r'\s*subroutine\s+(' + LABEL + r')'
