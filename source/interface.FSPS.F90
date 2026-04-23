@@ -63,13 +63,15 @@ contains
     use :: System_Command    , only : System_Command_Do
     use :: System_Download   , only : download
     use :: System_Compilers  , only : compiler         , compilerOptions      , languageFortran
+    use :: System_Which      , only : which
     implicit none
     type     (varying_string), intent(  out)           :: fspsPath, fspsVersion
     logical                  , intent(in   ), optional :: static
-    integer                                            :: status
+    integer                                            :: status  , statusUnit
     type     (varying_string)                          :: lockPath, execPath   , &
          &                                                tarPath , patchPath  , &
-         &                                                url     , command
+         &                                                url     , command    , &
+         &                                                patch
     !![
     <optionalArgument name="static" defaultsTo=".false." />
     !!]
@@ -98,24 +100,25 @@ contains
           if (status /= 0 .or. .not.File_Exists(fspsPath)) call Error_Report('failed to unpack FSPS code'//{introspection:location})
        end if
        ! Patch the code if not already patched.
-       patchPath=fspsPath//"/src/galacticus_IMF.f90"
+       patchPath=fspsPath//"/src/patched.status"
        if (.not.File_Exists(patchPath)) then
+          patch=which('patch')
           command="cp "//inputPath(pathTypeDataStatic)//"patches/FSPS/galacticus_IMF.f90 "//fspsPath//"/src/"
           call System_Command_Do(command,status)
           if (status /= 0) call Error_Report("failed to copy FSPS patch 'galacticus_IMF.f90'"//{introspection:location})
-          command="cp "//inputPath(pathTypeDataStatic)//"patches/FSPS/imf.f90.patch "     //fspsPath//"/src/; cd "//fspsPath//"/src/; patch < imf.f90.patch" 
+          command="cp "//inputPath(pathTypeDataStatic)//"patches/FSPS/imf.f90.patch "     //fspsPath//"/src/; cd "//fspsPath//"/src/; "//patch//" < imf.f90.patch" 
           call System_Command_Do(command,status)
           if (status /= 0) call Error_Report("failed to patch FSPS file 'imf.f90'"           //{introspection:location})
-          command="cp "//inputPath(pathTypeDataStatic)//"patches/FSPS/ssp_gen.f90.patch " //fspsPath//"/src/; cd "//fspsPath//"/src/; patch < ssp_gen.f90.patch"
+          command="cp "//inputPath(pathTypeDataStatic)//"patches/FSPS/ssp_gen.f90.patch " //fspsPath//"/src/; cd "//fspsPath//"/src/; "//patch//" < ssp_gen.f90.patch"
           call System_Command_Do(command,status)
           if (status /= 0) call Error_Report("failed to patch FSPS file 'ssp_gen.f90'"       //{introspection:location})
-          command="cp "//inputPath(pathTypeDataStatic)//"patches/FSPS/sps_vars.f90.patch "//fspsPath//"/src/; cd "//fspsPath//"/src/; patch < sps_vars.f90.patch"
+          command="cp "//inputPath(pathTypeDataStatic)//"patches/FSPS/sps_vars.f90.patch "//fspsPath//"/src/; cd "//fspsPath//"/src/; "//patch//" < sps_vars.f90.patch"
           call System_Command_Do(command,status)
           if (status /= 0) call Error_Report("failed to patch FSPS file 'sps_vars.f90'"      //{introspection:location})
-          command="cp "//inputPath(pathTypeDataStatic)//"patches/FSPS/autosps.f90.patch " //fspsPath//"/src/; cd "//fspsPath//"/src/; patch < autosps.f90.patch"
+          command="cp "//inputPath(pathTypeDataStatic)//"patches/FSPS/autosps.f90.patch " //fspsPath//"/src/; cd "//fspsPath//"/src/; "//patch//" < autosps.f90.patch"
           call System_Command_Do(command,status)
           if (status /= 0) call Error_Report("failed to patch FSPS file 'autosps.f90'"       //{introspection:location})
-          command="cp "//inputPath(pathTypeDataStatic)//"patches/FSPS/Makefile.patch "    //fspsPath//"/src/; cd "//fspsPath//"/src/; patch < Makefile.patch"
+          command="cp "//inputPath(pathTypeDataStatic)//"patches/FSPS/Makefile.patch "    //fspsPath//"/src/; cd "//fspsPath//"/src/; "//patch//" < Makefile.patch"
           call System_Command_Do(command,status)
           if (status /= 0) call Error_Report("failed to patch FSPS file 'Makefile'"          //{introspection:location})
           call File_Remove(execPath)

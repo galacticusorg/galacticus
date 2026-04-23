@@ -405,19 +405,6 @@ $(BUILDPATH)/%.o : %.f $(BUILDPATH)/%.d $(BUILDPATH)/%.fl Makefile
 	$(FCCOMPILER) -c $< -o $(BUILDPATH)/$*.o $(F77FLAGS)
 
 # Special rules required for building some sources (unfortunate, but necessary....)
-# bivar.F90 doesn't like to be compiled with any optimization:
-$(BUILDPATH)/Bivar/bivar.o : ./source/Bivar/bivar.F90 Makefile
-	@mkdir -p $(BUILDPATH)/moduleBuild
-	$(FCCOMPILER) -c $< -o $(BUILDPATH)/Bivar/bivar.o $(FCFLAGS_NOOPT)
-	@if [ -f $(BUILDPATH)/bivar.mod ] ; then \
-	 if cmp -s $(BUILDPATH)/bivar.mod $(BUILDPATH)/moduleBuild/bivar.mod; then \
-	  rm $(BUILDPATH)/moduleBuild/bivar.mod; \
-	 else \
-	  mv $(BUILDPATH)/moduleBuild/bivar.mod $(BUILDPATH); \
-	 fi \
-        else \
-	 mv $(BUILDPATH)/moduleBuild/bivar.mod $(BUILDPATH); \
-        fi \
 # pfq.new.f
 $(BUILDPATH)/pFq/pfq.new.o : ./source/pFq/pfq.new.f Makefile
 	@mkdir -p $(BUILDPATH)/moduleBuild

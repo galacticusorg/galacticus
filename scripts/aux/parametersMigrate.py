@@ -10,6 +10,10 @@ import tempfile
 from datetime import datetime, timezone
 from lxml import etree
 
+_exec_path = os.environ.get('GALACTICUS_EXEC_PATH', os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..')))
+sys.path.insert(0, os.path.join(_exec_path, 'python'))
+from list_utils import as_array  # noqa: E402
+
 
 def parse_arguments():
     """Parse command-line arguments."""
@@ -102,15 +106,6 @@ def parse_migrations(path):
             }
         )
     return migrations
-
-
-def as_array(item):
-    """Normalize a value to a list (like Perl's List::ExtraUtils::as_array)."""
-    if item is None:
-        return []
-    if isinstance(item, list):
-        return item
-    return [item]
 
 
 def insert_after(parent, new_node, ref_node):

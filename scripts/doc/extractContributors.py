@@ -12,6 +12,10 @@ import sys
 from collections import defaultdict
 from pathlib import Path
 
+_exec_path = os.environ.get('GALACTICUS_EXEC_PATH', os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..')))
+sys.path.insert(0, os.path.join(_exec_path, 'python'))
+from latex_utils import latex_encode  # noqa: E402
+
 # Mapping of accented/special characters to their LaTeX equivalents.
 ACCENT_MAP = {
     'Ç': r'\c{C}',
@@ -45,35 +49,6 @@ ACCENT_MAP = {
     'ñ': r'\~n',
     'Ñ': r'\~N',
 }
-
-# Special LaTeX characters that must be escaped in arbitrary text (e.g. filenames).
-_LATEX_SPECIAL = [
-    ('\\', r'\textbackslash{}'),
-    ('{',  r'\{'),
-    ('}',  r'\}'),
-    ('$',  r'\$'),
-    ('&',  r'\&'),
-    ('%',  r'\%'),
-    ('#',  r'\#'),
-    ('^',  r'\^{}'),
-    ('_',  r'\_'),
-    ('~',  r'\~{}'),
-]
-
-# Precomputed mapping and regex for efficient, single-pass LaTeX escaping.
-_LATEX_SPECIAL_MAP = dict(_LATEX_SPECIAL)
-_LATEX_SPECIAL_RE = re.compile(r'[\\{}$&%#^_~]')
-
-
-def latex_encode(text):
-    """Escape special LaTeX characters in *text* (equivalent to LaTeX::Encode)."""
-    # Use a single-pass regex substitution so that replacement strings are not
-    # re-escaped by subsequent replacements.
-    return _LATEX_SPECIAL_RE.sub(
-        lambda m: _LATEX_SPECIAL_MAP[m.group(0)],
-        text,
-    )
-
 
 def encode_name_for_latex(name):
     """Replace accented characters in a contributor name with LaTeX accent commands."""
