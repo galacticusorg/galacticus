@@ -455,7 +455,7 @@ def interfaces_methods(code, python, func_class, extensions, module_uses_impls,
             pass
         else:
             sys.stderr.write(
-                f"libraryInterfaces.py: warning: unsupported method return type"
+                f"libraryInterfaces.py: caution: unsupported method return type"
                 f" '{method_type}' in class '{class_name}', method"
                 f" '{method_name}' — skipping\n"
             )
