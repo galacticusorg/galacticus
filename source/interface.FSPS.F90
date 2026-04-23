@@ -121,6 +121,9 @@ contains
           command="cp "//inputPath(pathTypeDataStatic)//"patches/FSPS/Makefile.patch "    //fspsPath//"/src/; cd "//fspsPath//"/src/; "//patch//" < Makefile.patch"
           call System_Command_Do(command,status)
           if (status /= 0) call Error_Report("failed to patch FSPS file 'Makefile'"          //{introspection:location})
+          open(newUnit=statusUnit,file=char(fspsPath//"/src/patched.status"),status='unknown',form='formatted')
+          write (statusUnit,'(a)') "success"
+          close(statusUnit)
           call File_Remove(execPath)
        end if
        call displayMessage("compiling autosps.exe code",verbosityLevelWorking)
