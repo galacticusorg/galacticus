@@ -4,6 +4,7 @@
 
 import sys
 import os
+import re
 from pathlib import Path
 
 # Set up path for imports from python/
