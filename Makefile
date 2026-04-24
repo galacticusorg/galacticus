@@ -192,7 +192,7 @@ ALLSOURCESINC = $(wildcard source/*.[fF]90 source/*.Inc source/*.h source/*.c so
 # build the module file.
 vpath %.F90 source
 $(BUILDPATH)/%.p.F90.up : source/%.F90 $(BUILDPATH)/hdf5FCInterop.dat $(BUILDPATH)/openMPCriticalSections.xml
-	./scripts/build/preprocess.pl source/$*.F90 $(BUILDPATH)/$*.p.F90
+	./scripts/build/preprocess.py source/$*.F90 $(BUILDPATH)/$*.p.F90
 $(BUILDPATH)/%.p.F90 : $(BUILDPATH)/%.p.F90.up
 	@true
 $(BUILDPATH)/%.o : $(BUILDPATH)/%.p.F90 $(BUILDPATH)/%.m $(BUILDPATH)/%.d $(BUILDPATH)/%.fl Makefile
@@ -419,7 +419,7 @@ $(BUILDPATH)/pFq/pfq.new.o : ./source/pFq/pfq.new.f Makefile
 # Rule for running *.Inc files through the preprocessor. We strip out single quote characters in comment lines to avoid spurious
 # complaints from the preprocessor.
 $(BUILDPATH)/%.Inc.up : ./source/%.Inc $(BUILDPATH)/hdf5FCInterop.dat $(BUILDPATH)/openMPCriticalSections.xml
-	./scripts/build/preprocess.pl ./source/$*.Inc $(BUILDPATH)/$*.Inc
+	./scripts/build/preprocess.py ./source/$*.Inc $(BUILDPATH)/$*.Inc
 $(BUILDPATH)/%.Inc : $(BUILDPATH)/%.Inc.up
 	@true
 $(BUILDPATH)/%.inc : $(BUILDPATH)/%.Inc Makefile
@@ -555,7 +555,7 @@ $(BUILDPATH)/Makefile_Library_Dependencies:
 $(BUILDPATH)/libgalacticus.Inc: $(BUILDPATH)/directiveLocations.xml $(BUILDPATH)/stateStorables.xml
 	./scripts/build/libraryInterfaces.py
 $(BUILDPATH)/libgalacticus.p.Inc.up : $(BUILDPATH)/libgalacticus.Inc $(BUILDPATH)/hdf5FCInterop.dat $(BUILDPATH)/openMPCriticalSections.xml
-	./scripts/build/preprocess.pl $(BUILDPATH)/libgalacticus.Inc $(BUILDPATH)/libgalacticus.p.Inc
+	./scripts/build/preprocess.py $(BUILDPATH)/libgalacticus.Inc $(BUILDPATH)/libgalacticus.p.Inc
 $(BUILDPATH)/libgalacticus.p.Inc : $(BUILDPATH)/libgalacticus.p.Inc.up
 	@true
 $(BUILDPATH)/libgalacticus.inc : $(BUILDPATH)/libgalacticus.p.Inc Makefile

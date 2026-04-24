@@ -18,6 +18,16 @@ from Sort.Topo import sort as topo_sort
 PROCESS_HOOKS       = {}   # name -> callable(tree, options)
 PROCESS_DEPENDENCIES = {}  # name -> list of hook names that should run AFTER name
 POSTPROCESS_HOOKS   = {}   # name -> callable(tree, options)
+ANALYZE_HOOKS       = {}   # name -> callable(tree, options)
+
+
+def register_analyze(name, fn):
+    """Register an analyze hook.
+
+    Mirrors `$Hooks::analyzeHooks{name} = \\&fn`.  Analyze hooks run in
+    alphabetical order after process_tree() when analyze_tree() is invoked.
+    """
+    ANALYZE_HOOKS[name] = fn
 
 
 def register_process(name, fn, before=()):

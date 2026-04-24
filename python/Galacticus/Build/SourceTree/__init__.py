@@ -754,31 +754,103 @@ def _pass_openmp(tree):
 # Serialization  (mirrors Perl Galacticus::Build::SourceTree::Serialize)
 # ---------------------------------------------------------------------------
 
-def serialize(node):
+def serialize(node, annotate=False, strip_mappings=False):
     """Reconstruct Fortran source text from an AST node and its siblings.
 
-    Mirrors Perl Galacticus::Build::SourceTree::Serialize(node, annotate => 0).
+    Mirrors Perl Galacticus::Build::SourceTree::Serialize().
+
+    Parameters
+    ----------
+    node : dict
+        Root AST node.
+    annotate : bool, default False
+        When True, emit `!--> <origLine> <outLine> "<source>"` line-number
+        mapping comments ahead of each node's serialized content.  When
+        False, the serialized output is pure Fortran.  (Perl defaults to
+        True; we default to False so existing callers that just want source
+        text are unaffected.)
+    strip_mappings : bool, default False
+        When True, the annotations are removed from the returned source and
+        collected into a second string.  In that mode the function returns a
+        `(source, mappings)` 2-tuple.  When False (the default), the function
+        returns a single `source` string — matching the behaviour used by
+        `Generics` / `FunctionClass` callers that do not need mappings.
 
     The algorithm is a sibling-chain walk that recurses into firstChild:
       - code nodes      → emit content directly
       - all other nodes → emit opener (if any) + serialize(firstChild) + closer (if any)
-
-    This works for every node type produced by the parser:
-      - structural units (module, subroutine, …): have opener/closer
-      - moduleUse nodes: firstChild holds the raw/reformatted use text
-      - declaration nodes: firstChild holds the raw declaration text
-      - directive nodes: firstChild holds the raw !![…!!] block text
     """
-    result  = ""
-    current = node
-    while current:
-        if current.get('type') == 'code':
-            result += current.get('content') or ''
-        else:
-            result += current.get('opener') or ''
-            child = current.get('firstChild')
-            if child:
-                result += serialize(child)
-            result += current.get('closer') or ''
-        current = current.get('sibling')
+    result, mappings = _serialize(node, annotate=annotate, strip_mappings=strip_mappings)
+    if strip_mappings:
+        return result, mappings
     return result
+
+
+_MAPPING_RE = re.compile(r'^!-->\s+(\d+)\s+(\d+)\s+"(.+)"')
+
+
+def _serialize(node, annotate, strip_mappings):
+    """Internal helper: always returns (source, mappings) and tracks the
+    cumulative output line number across the sibling chain.
+    """
+    serialization = ''
+    mappings      = ''
+    line_number   = 0
+    current       = node
+
+    while current:
+        # Emit line-mapping annotation for this node.
+        if annotate and 'source' in current and 'line' in current:
+            mapping_line = f'!--> {current["line"]} {line_number} "{current["source"]}"\n'
+            if strip_mappings:
+                mappings += mapping_line
+            else:
+                line_number   += 1
+                serialization += mapping_line
+
+        # Serialize this node's own content.
+        if current.get('type') == 'code':
+            node_text = current.get('content') or ''
+        else:
+            node_text = current.get('opener') or ''
+            child     = current.get('firstChild')
+            if child:
+                # Children never strip mappings themselves — we do that at the
+                # outermost level as we fold their text back in.
+                child_text, _ = _serialize(child, annotate=annotate, strip_mappings=False)
+                node_text += child_text
+            node_text += current.get('closer') or ''
+
+        if strip_mappings:
+            stripped = ''
+            for line in node_text.splitlines(keepends=True):
+                m = _MAPPING_RE.match(line)
+                if m:
+                    mappings += f'!--> {m.group(1)} {line_number + 1} "{m.group(3)}"\n'
+                else:
+                    line_number += 1
+                    stripped    += line
+            node_text = stripped
+        else:
+            line_number += node_text.count('\n')
+
+        serialization += node_text
+        current        = current.get('sibling')
+
+    return serialization, mappings
+
+
+def analyze_tree(tree, options=None):
+    """Run every registered analyze hook on the tree.
+
+    Mirrors Perl Galacticus::Build::SourceTree::AnalyzeTree().  The analyze
+    hook registry lives in Galacticus.Build.SourceTree.Process so that Analyze
+    submodules can register themselves at import time; if no analyze modules
+    have been imported, this is a no-op.
+    """
+    from Galacticus.Build.SourceTree.Process import ANALYZE_HOOKS
+    if options is None:
+        options = {}
+    for name in sorted(ANALYZE_HOOKS.keys()):
+        ANALYZE_HOOKS[name](tree, options)
+    return tree
