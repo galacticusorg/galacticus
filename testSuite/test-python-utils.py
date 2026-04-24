@@ -55,6 +55,7 @@ import Galacticus.Build.SourceTree.Process.Enumeration               # noqa: F40
 import Galacticus.Build.SourceTree.Process.DeepCopyActions           # noqa: F401
 import Galacticus.Build.SourceTree.Process.StateStorable             # noqa: F401
 import Galacticus.Build.SourceTree.Process.EventHooksStatic          # noqa: F401
+import Galacticus.Build.SourceTree.Process.EventHooks                # noqa: F401
 from Galacticus.Build.SourceTree.Process import (
     PROCESS_HOOKS, PROCESS_DEPENDENCIES, POSTPROCESS_HOOKS,
     register_process, process_tree,
@@ -2992,6 +2993,194 @@ def test_process_event_hooks_static_ordering():
 
 
 # ============================================================================
+# Process.EventHooks tests
+# ============================================================================
+
+def _write_event_hooks_build_dir(source_files=()):
+    """Minimal BUILDPATH for EventHooks: directiveLocations.xml pointing at
+    the given source files (each containing `<eventHook>` directives), plus
+    all the other stubs eager loaders read."""
+    tmpdir = tempfile.mkdtemp()
+    files_xml = "\n".join(f"    <file>{f}</file>" for f in source_files)
+    with open(os.path.join(tmpdir, 'directiveLocations.xml'), 'w') as fh:
+        fh.write(
+            "<directiveLocations>\n"
+            "  <eventHook>\n"
+            f"{files_xml}\n"
+            "  </eventHook>\n"
+            "</directiveLocations>\n"
+        )
+    with open(os.path.join(tmpdir, 'stateStorables.xml'), 'w') as fh:
+        fh.write("<stateStorables></stateStorables>\n")
+    open(os.path.join(tmpdir, 'hdf5FCInterop.dat'), 'w').close()
+    open(os.path.join(tmpdir, 'deepCopyActions.xml'), 'w').close()
+    with open(os.path.join(tmpdir, 'Makefile_All_Execs'), 'w') as fh:
+        fh.write("all_exes =\n")
+    return tmpdir
+
+
+def test_event_hooks_interface_type_get():
+    print("\n=== Testing EventHooks interface_type_get ===")
+    from Galacticus.Build.SourceTree.Process.EventHooks import _interface_type_get
+    assert_equal(_interface_type_get({'name': 'foo'}), 'Unspecified',
+                 "hook without <interface> → 'Unspecified'")
+    # md5("foo") in hex.
+    import hashlib
+    assert_equal(
+        _interface_type_get({'name': 'foo', 'interface': 'x'}),
+        hashlib.md5(b'foo').hexdigest(),
+        "hook with <interface> → md5_hex of the hook name")
+
+
+def test_process_event_hook_call_site():
+    print("\n=== Testing Process.EventHooks (call-site dispatch) ===")
+
+    tmpdir = _write_event_hooks_build_dir([])
+    import Galacticus.Build.SourceTree.Process.EventHooks as EH
+    EH._DIRECTIVE_LOCATIONS = None
+    saved = os.environ.get('BUILDPATH')
+    os.environ['BUILDPATH'] = tmpdir
+    try:
+        root = _parse_text(
+            "subroutine driver\n"
+            "end subroutine driver\n"
+        )
+        sub = _find_node(root, 'subroutine')
+        directive = _make_directive_node(
+            'eventHook',
+            {'name': 'tick', 'callWith': 'a,b', 'processed': False},
+            sub,
+        )
+        from Galacticus.Build.SourceTree.Process.EventHooks import \
+            process_event_hooks
+        process_event_hooks(root, {})
+        out = serialize(root)
+        assert_equal('tickEventGlobal%count()' in out, True,
+                     "global dispatch emitted for hook 'tick'")
+        assert_equal('call hook_%function_(hook_%object_,a,b)' in out, True,
+                     "hook callsite uses the callWith argument list")
+        assert_equal(declaration_exists(sub, 'tickIterator'), True,
+                     "iterator declaration added to enclosing scope")
+    finally:
+        if saved is None:
+            del os.environ['BUILDPATH']
+        else:
+            os.environ['BUILDPATH'] = saved
+        EH._DIRECTIVE_LOCATIONS = None
+        import shutil
+        shutil.rmtree(tmpdir)
+
+
+def test_process_event_hook_openmp_wrappers():
+    print("\n=== Testing Process.EventHooks (OpenMP parallel wrappers) ===")
+
+    tmpdir = _write_event_hooks_build_dir([])
+    import Galacticus.Build.SourceTree.Process.EventHooks as EH
+    EH._DIRECTIVE_LOCATIONS = None
+    saved = os.environ.get('BUILDPATH')
+    os.environ['BUILDPATH'] = tmpdir
+    try:
+        root = _parse_text(
+            "subroutine s\n"
+            "!$omp parallel\n"
+            "x = 1\n"
+            "!$omp end parallel\n"
+            "end subroutine s\n"
+        )
+        from Galacticus.Build.SourceTree.Process.EventHooks import \
+            process_event_hooks
+        process_event_hooks(root, {})
+        out = serialize(root)
+        assert_equal('call eventsHooksFilterCopyOut()' in out, True,
+                     "copy-out injected before !$omp parallel")
+        assert_equal('call eventsHooksFilterCopyIn()' in out, True,
+                     "copy-in injected after !$omp parallel")
+        assert_equal('call eventsHooksFilterRestore()' in out, True,
+                     "restore injected before !$omp end parallel")
+    finally:
+        if saved is None:
+            del os.environ['BUILDPATH']
+        else:
+            os.environ['BUILDPATH'] = saved
+        EH._DIRECTIVE_LOCATIONS = None
+        import shutil
+        shutil.rmtree(tmpdir)
+
+
+def test_process_event_hook_manager():
+    print("\n=== Testing Process.EventHooks (manager directive) ===")
+
+    # Build the BUILDPATH first, then drop the hook file in it and list it.
+    tmpdir = _write_event_hooks_build_dir([])
+    hook_file = os.path.join(tmpdir, 'hook.F90')
+    with open(hook_file, 'w') as fh:
+        fh.write(
+            "  !![\n"
+            "  <eventHook name=\"tick\">\n"
+            "   <interface>\n"
+            "    integer, intent(in) :: i\n"
+            "   </interface>\n"
+            "  </eventHook>\n"
+            "  !!]\n"
+        )
+    with open(os.path.join(tmpdir, 'directiveLocations.xml'), 'w') as fh:
+        fh.write(
+            "<directiveLocations>\n"
+            f"  <eventHook><file>{hook_file}</file></eventHook>\n"
+            "</directiveLocations>\n"
+        )
+
+    import shutil
+    import Galacticus.Build.SourceTree.Process.EventHooks as EH
+    EH._DIRECTIVE_LOCATIONS = None
+
+    saved = os.environ.get('BUILDPATH')
+    os.environ['BUILDPATH'] = tmpdir
+    try:
+        root = _parse_text(
+            "module m\n"
+            "end module m\n"
+        )
+        mod = _find_node(root, 'module')
+        _make_directive_node(
+            'eventHookManager', {'processed': False}, mod,
+        )
+        from Galacticus.Build.SourceTree.Process.EventHooks import \
+            process_event_hooks
+        process_event_hooks(root, {})
+        out = serialize(root)
+        import hashlib
+        iface = hashlib.md5(b'tick').hexdigest()
+        assert_equal(f'type, extends(hook) :: hook{iface}' in out, True,
+                     "per-interface hook type emitted")
+        assert_equal(f'type, extends(eventHook) :: eventHook{iface}' in out, True,
+                     "per-interface eventHook type emitted")
+        assert_equal(f'subroutine eventHook{iface}Attach' in out, True,
+                     "attach subroutine emitted for the interface")
+        assert_equal(f'subroutine eventHook{iface}Detach' in out, True,
+                     "detach subroutine emitted for the interface")
+        assert_equal(f'function eventHook{iface}IsAttached' in out, True,
+                     "isAttached function emitted for the interface")
+        assert_equal('subroutine eventsHooksInitialize' in out, True,
+                     "initializer subroutine emitted")
+        assert_equal('subroutine eventsHooksFilterCopyOut_' in out, True,
+                     "copy-out subroutine emitted")
+        assert_equal('subroutine eventsHooksFilterRestore_' in out, True,
+                     "restore subroutine emitted")
+        assert_equal('subroutine eventsHooksWaitTimes' in out, True,
+                     "wait-times subroutine emitted (OMPPROFILE-gated)")
+        assert_equal(f'type(eventHook{iface}), public  :: tickEvent' in out, True,
+                     "module-level event variable declared")
+    finally:
+        if saved is None:
+            del os.environ['BUILDPATH']
+        else:
+            os.environ['BUILDPATH'] = saved
+        EH._DIRECTIVE_LOCATIONS = None
+        shutil.rmtree(tmpdir)
+
+
+# ============================================================================
 # Main
 # ============================================================================
 
@@ -3078,6 +3267,10 @@ def main():
     test_dependency_sort_after_and_before()
     test_process_event_hooks_static_single_hook()
     test_process_event_hooks_static_ordering()
+    test_event_hooks_interface_type_get()
+    test_process_event_hook_call_site()
+    test_process_event_hook_openmp_wrappers()
+    test_process_event_hook_manager()
 
     print("\n" + "=" * 70)
     print(f"Results: {PASS_COUNT} passed, {FAIL_COUNT} failed")
