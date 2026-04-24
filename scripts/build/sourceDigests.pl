@@ -27,7 +27,7 @@ my $useLocks            = $ARGV[2];
 #  fftw3.f03 is part of the FFTW3 library, so not relevant to us;
 #  galacticus.output.build.environment.inc - contains compiler information so can change depending on, e.g. MPI vs. non-MPI build
 #  galacticus.output.version.revision.inc - contains revision number and build time
-my @includeFilesExcluded = ( "fftw3.f03", "galacticus.output.build.environment.inc", "galacticus.output.version.revision.inc" );
+my @includeFilesExcluded = ( "fftw3.f03", "output.build.environment.inc", "output.version.revision.inc" );
 # Specify a work directory.
 my $workDirectoryName = $ENV{'BUILDPATH'}."/";
 # Get an XML parser.
