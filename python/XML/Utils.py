@@ -2,6 +2,8 @@
 # Mirrors Perl XML::Simple default behaviour, with optional KeyAttr and ForceArray support.
 # Andrew Benson (2026)
 
+import xml.etree.ElementTree as ET
+
 
 def xml_to_dict(element, keyed_tags=None, force_array=None):
     """Recursively convert an XML element to nested Python dicts/lists/strings.
@@ -38,3 +40,54 @@ def xml_to_dict(element, keyed_tags=None, force_array=None):
         else:
             return text
     return result
+
+
+def dict_to_xml_string(root_name, data):
+    """Serialise `data` to a pretty-printed XML string, XML::Simple-style.
+
+    Mirrors Perl `XML::Simple::XMLout($data, RootName => root_name, NoAttr => 1)`:
+    every dict key becomes a child element (no attributes); list values are
+    rendered as repeated sibling elements; scalars become the element text.
+    Dict keys are emitted in sorted order for deterministic output.
+    """
+    root = ET.Element(root_name)
+    _fill_element(root, data)
+    _indent(root)
+    return ET.tostring(root, encoding='unicode') + "\n"
+
+
+def _fill_element(elem, data):
+    if isinstance(data, dict):
+        for key in sorted(data.keys()):
+            value = data[key]
+            if isinstance(value, list):
+                for item in value:
+                    child = ET.SubElement(elem, key)
+                    _fill_element(child, item)
+            elif isinstance(value, dict):
+                child = ET.SubElement(elem, key)
+                _fill_element(child, value)
+            else:
+                child = ET.SubElement(elem, key)
+                if value is not None:
+                    child.text = str(value)
+    elif isinstance(data, list):
+        for item in data:
+            child = ET.SubElement(elem, 'item')
+            _fill_element(child, item)
+    else:
+        if data is not None:
+            elem.text = str(data)
+
+
+def _indent(elem, level=0):
+    """In-place two-space pretty-printer."""
+    pad = "\n" + "  " * level
+    if len(elem):
+        if not (elem.text and elem.text.strip()):
+            elem.text = pad + "  "
+        for i, child in enumerate(elem):
+            _indent(child, level + 1)
+            child.tail = (pad + "  ") if (i + 1 < len(elem)) else pad
+    elif level and (not elem.tail or not elem.tail.strip()):
+        elem.tail = pad

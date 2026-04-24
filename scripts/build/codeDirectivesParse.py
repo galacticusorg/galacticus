@@ -20,12 +20,12 @@ import os
 import pickle
 import re
 import sys
-import xml.etree.ElementTree as ET
 
 sys.path.insert(0, os.path.join(os.environ.get('GALACTICUS_EXEC_PATH', ''), 'python'))
 
 from build.file_changes               import update as file_changes_update
 from Galacticus.Build.Directives      import extract_directives
+from XML.Utils                        import dict_to_xml_string
 
 
 # ---------------------------------------------------------------------------
@@ -67,63 +67,6 @@ def _save_cache(blob_path, cache):
     with open(tmp_path, 'wb') as fh:
         pickle.dump(cache, fh, protocol=pickle.HIGHEST_PROTOCOL)
     file_changes_update(blob_path, tmp_path)
-
-
-# ---------------------------------------------------------------------------
-# Minimal XML::Simple-compatible emitter (NoAttr => 1, sorted keys)
-# ---------------------------------------------------------------------------
-
-def _build_xml_tree(root_name, data):
-    """Render `data` as an XML element tree rooted at `root_name`, in the style
-    of Perl XML::Simple with `NoAttr => 1`: every key becomes a child element,
-    list values become repeated child elements, scalar values become text.
-    """
-    root = ET.Element(root_name)
-    _fill_element(root, data)
-    return root
-
-
-def _fill_element(elem, data):
-    if isinstance(data, dict):
-        for key in sorted(data.keys()):
-            value = data[key]
-            if isinstance(value, list):
-                for item in value:
-                    child = ET.SubElement(elem, key)
-                    _fill_element(child, item)
-            elif isinstance(value, dict):
-                child = ET.SubElement(elem, key)
-                _fill_element(child, value)
-            else:
-                child = ET.SubElement(elem, key)
-                if value is not None:
-                    child.text = str(value)
-    elif isinstance(data, list):
-        for item in data:
-            child = ET.SubElement(elem, 'item')
-            _fill_element(child, item)
-    else:
-        if data is not None:
-            elem.text = str(data)
-
-
-def _indent(elem, level=0):
-    """In-place two-space pretty-printer."""
-    pad = "\n" + "  " * level
-    if len(elem):
-        if not (elem.text and elem.text.strip()):
-            elem.text = pad + "  "
-        for i, child in enumerate(elem):
-            _indent(child, level + 1)
-            child.tail = (pad + "  ") if (i + 1 < len(elem)) else pad
-    elif level and (not elem.tail or not elem.tail.strip()):
-        elem.tail = pad
-
-
-def _serialize_xml(root):
-    """Return a pretty-printed XML string for `root` (no XML declaration)."""
-    _indent(root)
-    return ET.tostring(root, encoding='unicode') + "\n"
 
 
 # ---------------------------------------------------------------------------
@@ -284,11 +227,10 @@ def main(argv):
                         or directive.get('directive')
                     )
                     key = f"{directive_name}.{directive.get('type')}"
-                    xml_root = _build_xml_tree(root_type, directive)
                     entry.setdefault('includeDirectives', {})[key] = {
                         'source':   current,
                         'fileName': directive.get('fileName'),
-                        'xml':      _serialize_xml(xml_root),
+                        'xml':      dict_to_xml_string(root_type, directive),
                     }
                 else:
                     # Non-include directive: remember the source file.
@@ -342,10 +284,9 @@ def main(argv):
         name: {'file': data['files']}
         for name, data in non_include_directives.items()
     }
-    root = _build_xml_tree('directives', output)
     locations_tmp = os.path.join(build_path, 'directiveLocations.xml.tmp')
     with open(locations_tmp, 'w') as fh:
-        fh.write(_serialize_xml(root))
+        fh.write(dict_to_xml_string('directives', output))
     file_changes_update(
         os.path.join(build_path, 'directiveLocations.xml'),
         locations_tmp,
