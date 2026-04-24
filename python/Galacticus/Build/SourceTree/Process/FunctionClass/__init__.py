@@ -802,8 +802,225 @@ def _build_assignment_method(directive, non_abstract_classes, classes,
     }
 
 
-def _build_deep_copy_methods(*args, **kwargs):
-    _not_implemented('buildDeepCopyMethods')
+def _build_deep_copy_methods(directive, non_abstract_classes, classes,
+                             line_number, methods,
+                             state_storables, deep_copy_actions):
+    """Populate `methods` with `deepCopy`, `deepCopy_`, `deepCopyReset`,
+    `deepCopyFinalize`.
+
+    Mirrors buildDeepCopyMethods() at FunctionClass.pm:2685-2845.
+    """
+    from Galacticus.Build.SourceTree.Process.FunctionClass.DeepCopy   import (
+        deep_copy_declarations,
+    )
+    from Galacticus.Build.SourceTree.Process.FunctionClass.LinkedList import (
+        deep_copy_linked_list,
+    )
+    from Galacticus.Build.SourceTree.Parse.Declarations import parse_declaration
+
+    deep_copy = {
+        'rankMaximum':        0,
+        'needReferenceCount': 0,
+        'code':               '',
+        'resetCode':          '',
+        'finalizeCode':       '',
+        'assignments':        '',
+        'modules':            {},
+        'resetModules':       {},
+        'finalizeModules':    {},
+    }
+    linked_list_variables          = []
+    linked_list_reset_variables    = []
+    linked_list_finalize_variables = []
+
+    deep_copy['resetCode']    += "self%copiedSelf => null()\n"
+    deep_copy['resetCode']    += "select type (self)\n"
+    deep_copy['finalizeCode'] += "self%copiedSelf => null()\n"
+    deep_copy['finalizeCode'] += "select type (self)\n"
+    deep_copy['code']         += "select type (self)\n"
+
+    for non_abstract in non_abstract_classes:
+        cls = non_abstract
+        deep_copy['assignments'] = ''
+        deep_copy['resetCode']    += f"type is ({non_abstract['name']})\n"
+        deep_copy['finalizeCode'] += f"type is ({non_abstract['name']})\n"
+        found_deep_copy_names = []
+
+        node = None
+        while cls is not None:
+            node = (cls.get('tree') or {}).get('firstChild')
+            while node is not None and (
+                    node.get('type') != 'type'
+                    or node.get('name') != cls.get('name')):
+                node = node.get('sibling')
+            if node is None:
+                break
+
+            linked_code, linked_reset, linked_finalize, linked_module = (
+                deep_copy_linked_list(
+                    cls, non_abstract, linked_list_variables,
+                    linked_list_reset_variables,
+                    linked_list_finalize_variables))
+            deep_copy['assignments']  += linked_code
+            deep_copy['resetCode']    += linked_reset
+            deep_copy['finalizeCode'] += linked_finalize
+            if linked_module:
+                deep_copy['modules'][linked_module]         = True
+                deep_copy['resetModules'][linked_module]    = True
+                deep_copy['finalizeModules'][linked_module] = True
+
+            dc = cls.get('deepCopy') or {}
+            ignore_block = dc.get('ignore') if isinstance(dc, dict) else None
+            ignore = []
+            if isinstance(ignore_block, dict) and 'variables' in ignore_block:
+                ignore = [
+                    v.strip() for v in re.split(
+                        r'\s*,\s*', ignore_block['variables'])
+                    if v.strip()
+                ]
+
+            child = node.get('firstChild')
+            while child is not None:
+                if child.get('type') == 'declaration':
+                    deep_copy_declarations(
+                        cls, non_abstract, child,
+                        child.get('declarations'),
+                        ignore, line_number, deep_copy,
+                        found_deep_copy_names,
+                        state_storables, deep_copy_actions)
+                child = child.get('sibling')
+
+            cls = (None if cls.get('extends') == directive['name']
+                   else classes.get(cls.get('extends')))
+
+        # Base-class <data> declarations.
+        for data in as_array(directive.get('data')):
+            declaration_source = None
+            if isinstance(data, dict):
+                if data.get('scope') == 'self':
+                    declaration_source = data.get('content')
+            else:
+                declaration_source = data
+            if declaration_source is None:
+                continue
+            declaration = parse_declaration(declaration_source)
+            if declaration is None:
+                continue
+            deep_copy_declarations(
+                cls, non_abstract, node, [declaration], [],
+                line_number, deep_copy, found_deep_copy_names,
+                state_storables, deep_copy_actions)
+
+        deep_copy['code'] += f"type is ({non_abstract['name']})\n"
+        deep_copy['code'] += "select type (destination)\n"
+        deep_copy['code'] += f"type is ({non_abstract['name']})\n"
+        deep_copy['code'] += "destination=self\n"
+        deep_copy['code'] += deep_copy['assignments']
+        deep_copy['code'] += "class default\n"
+        loc_node = non_abstract.get('node') or {}
+        loc_expr = location(loc_node, loc_node.get('line', 0))
+        deep_copy['code'] += (
+            f"call Error_Report('destination and source types do not match'//"
+            f"{loc_expr})\n"
+        )
+        deep_copy['code'] += "end select\n"
+
+        deep_copy['modules']['Error'] = True
+
+        # Validate explicit deepCopy functionClass variables.
+        cls = non_abstract
+        while cls is not None:
+            dc = cls.get('deepCopy') or {}
+            fc_block = dc.get('functionClass') if isinstance(dc, dict) else None
+            if isinstance(fc_block, dict) and 'variables' in fc_block:
+                for variable in re.split(r'\s*,\s*',
+                                          fc_block['variables']):
+                    variable = variable.strip()
+                    if not variable:
+                        continue
+                    if variable.lower() not in {
+                            v.lower() for v in found_deep_copy_names}:
+                        raise RuntimeError(
+                            f"Error: unable to find variable '{variable}' "
+                            f"marked for deep copy in class '{cls['name']}'"
+                        )
+            cls = (None if cls.get('extends') == directive['name']
+                   else classes.get(cls.get('extends')))
+
+    deep_copy['code']         += "end select\n"
+    deep_copy['resetCode']    += "end select\n"
+    deep_copy['finalizeCode'] += "end select\n"
+    deep_copy['code']         += "call destination%referenceCountReset()\n"
+    deep_copy['code']         += (
+        "destination%stateOperationID=0_c_size_t\n")
+
+    # Prepend variable declarations.
+    deep_copy['code']         = (
+        _format_variable_definitions(linked_list_variables)
+        + deep_copy['code'])
+    deep_copy['resetCode']    = (
+        _format_variable_definitions(linked_list_reset_variables)
+        + deep_copy['resetCode'])
+    deep_copy['finalizeCode'] = (
+        _format_variable_definitions(linked_list_finalize_variables)
+        + deep_copy['finalizeCode'])
+    if deep_copy['rankMaximum'] > 0:
+        deep_copy['code'] = (
+            'integer :: '
+            + ','.join(f"i{i}" for i in range(1, deep_copy['rankMaximum'] + 1))
+            + '\n' + deep_copy['code']
+        )
+    if deep_copy['needReferenceCount']:
+        deep_copy['code'] = (
+            'integer :: referenceCount__\n' + deep_copy['code']
+        )
+
+    directive_name = directive['name']
+    methods['deepCopy'] = {
+        'description': ('Perform a deep copy of the object. This is a wrapper '
+                        'around the actual deep-copy code.'),
+        'type':        'void',
+        'recursive':   'yes',
+        'pass':        'yes',
+        'selfTarget':  'yes',
+        'argument':    [
+            f"class({directive_name}Class), intent(inout) :: destination"
+        ],
+        'code':        "call self%deepCopy_(destination)",
+    }
+    methods['deepCopy_'] = {
+        'description': 'Perform a deep copy of the object.',
+        'type':        'void',
+        'recursive':   'yes',
+        'pass':        'yes',
+        'modules':     ' '.join(sorted(deep_copy['modules'].keys())),
+        'argument':    [
+            f"class({directive_name}Class), intent(inout) :: destination"
+        ],
+        'code':        deep_copy['code'],
+    }
+    methods['deepCopyReset'] = {
+        'description': ('Reset deep copy pointers in this object and any '
+                        'objects that it uses.'),
+        'type':        'void',
+        'recursive':   'yes',
+        'pass':        'yes',
+        'code':        deep_copy['resetCode'],
+    }
+    methods['deepCopyFinalize'] = {
+        'description': ('Finalize a deep copy in this object and any '
+                        'objects that it uses.'),
+        'type':        'void',
+        'recursive':   'yes',
+        'pass':        'yes',
+        'code':        deep_copy['finalizeCode'],
+    }
+    if deep_copy['resetModules']:
+        methods['deepCopyReset']['modules'] = ' '.join(
+            sorted(deep_copy['resetModules'].keys()))
+    if deep_copy['finalizeModules']:
+        methods['deepCopyFinalize']['modules'] = ' '.join(
+            sorted(deep_copy['finalizeModules'].keys()))
 
 
 def _build_state_store_methods(*args, **kwargs):
@@ -2252,7 +2469,8 @@ def process_function_class(tree, options):
             state_storables)
         _build_deep_copy_methods(
             directive, non_abstract_classes, classes,
-            node.get('line', 0), methods)
+            node.get('line', 0), methods,
+            state_storables, deep_copy_actions)
         _build_state_store_methods(
             directive, non_abstract_classes, classes, methods)
 
