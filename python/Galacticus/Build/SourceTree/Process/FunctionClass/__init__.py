@@ -589,8 +589,404 @@ def _not_implemented(name):
     )
 
 
-def _build_descriptor_methods(*args, **kwargs):
-    _not_implemented('buildDescriptorMethods')
+def _levenshtein(a, b):
+    """Iterative Wagner-Fischer edit distance.  Stand-in for Perl
+    Text::Levenshtein::distance used by buildDescriptorMethods when it
+    suggests a "did you mean" alternative for mis-matched parameter
+    names.
+    """
+    if a == b:
+        return 0
+    if len(a) < len(b):
+        a, b = b, a
+    prev = list(range(len(b) + 1))
+    for i, ca in enumerate(a, 1):
+        curr = [i] + [0] * len(b)
+        for j, cb in enumerate(b, 1):
+            curr[j] = min(
+                prev[j] + 1,
+                curr[j - 1] + 1,
+                prev[j - 1] + (0 if ca == cb else 1),
+            )
+        prev = curr
+    return prev[-1]
+
+
+def _descriptor_discover_class(non_abstract_class, directive, classes,
+                               state_storables):
+    """Walk one class's tree (and its parent classes, and the directive's
+    base-class `<data>` declarations) to collect:
+      - `potential_names`: classification of every declared member into
+                           `parameters`, `enumerations`, `statefulTypes`,
+                           `objects`, `linkedListObjects`, `linkedLists`
+                           (delegated to `potential_descriptor_parameters`).
+      - `descriptor_parameters`: the actual parameter/enumeration/
+                                 statefulType/object/linkedList references
+                                 found inside the matching parameters-
+                                 constructor function via
+                                 `<inputParameter>` / `<objectBuilder>`
+                                 directives.
+      - `sub_parameters`: dict of `name → {parent, source}` for every
+                          `X = Y%subParameters(...)` line in constructor
+                          code bodies.
+      - `declaration_matches` (bool): the constructor has
+                           `type(inputParameters) :: parameters`.
+      - `parent_constructor_used` (bool): the constructor assigns
+                           `result%extensionOf = …`.
+      - `extension_of`: the parent-class type extracted from the type's
+                           `extends(...)` opener.
+      - `failure_message`: list of human-readable reasons the auto
+                           descriptor can't be built.
+      - `supported` (int): 1 OK, <1 an explicit failure code per Perl.
+
+    Mirrors the discovery half of buildDescriptorMethods() at
+    FunctionClass.pm:1620-1829.
+    """
+    from Galacticus.Build.SourceTree.Process.FunctionClass.Descriptor import (
+        potential_descriptor_parameters,
+    )
+    from Galacticus.Build.SourceTree.Process.FunctionClass.Utils import (
+        trimlc, striplc, strip_variable_name,
+    )
+    from Galacticus.Build.SourceTree.Parse.Declarations import parse_declaration
+    from build.fortran_utils import get_fortran_line
+    import io
+
+    potential_names        = {}
+    descriptor_parameters  = {}
+    sub_parameters         = {}
+    declaration_matches    = False
+    parent_constructor_used = False
+    extension_of           = None
+    failure_message        = []
+    supported              = 1
+
+    non_abstract_class['hasCustomDescriptor'] = False
+
+    # --- potentialNames pass: walk the class and parent-class type bodies.
+    cls = non_abstract_class
+    while cls is not None:
+        node = (cls.get('tree') or {}).get('firstChild')
+        while node is not None and (
+                node.get('type') != 'type'
+                or node.get('name') != cls.get('name')):
+            node = node.get('sibling')
+        if node is None:
+            break
+        if cls is non_abstract_class:
+            m = re.search(
+                r',\s*extends\s*\(\s*([a-zA-Z0-9_]+)\s*\)',
+                node.get('opener') or '')
+            if m:
+                extension_of = m.group(1)
+
+        walker = node.get('firstChild')
+        while walker is not None:
+            if walker.get('type') == 'declaration':
+                potential_descriptor_parameters(
+                    walker.get('declarations'),
+                    non_abstract_class, cls, state_storables, potential_names)
+            walker = (walker.get('firstChild')
+                      if walker.get('type') == 'contains'
+                      else walker.get('sibling'))
+
+        cls = (None if cls.get('extends') == directive['name']
+               else classes.get(cls.get('extends')))
+
+    # Directive-level `<data>` declarations.
+    for data in as_array(directive.get('data')):
+        declaration_source = None
+        if isinstance(data, dict):
+            if data.get('scope') == 'self':
+                declaration_source = data.get('content')
+        else:
+            declaration_source = data
+        if declaration_source is None:
+            continue
+        declaration = parse_declaration(declaration_source)
+        if declaration is None:
+            raise RuntimeError(
+                "process_function_class: unable to parse variable declaration")
+        potential_descriptor_parameters(
+            declaration, non_abstract_class, None, state_storables,
+            potential_names)
+
+    # --- Locate the parameters constructor.
+    node = (non_abstract_class.get('tree') or {}).get('firstChild')
+    while node is not None and (
+            node.get('type') != 'interface'
+            or node.get('name') != non_abstract_class['name']):
+        node = node.get('sibling')
+    if node is None:
+        return (potential_names, descriptor_parameters, sub_parameters,
+                declaration_matches, parent_constructor_used,
+                extension_of, failure_message, supported)
+
+    constructors = []
+    inner = node.get('firstChild')
+    while inner is not None:
+        if inner.get('type') == 'moduleProcedure':
+            constructors.extend(inner.get('names') or [])
+        inner = inner.get('sibling')
+
+    # --- Walk the class tree looking for each constructor function.
+    node = (non_abstract_class.get('tree') or {}).get('firstChild')
+    while node is not None:
+        if (node.get('type') == 'function'
+                and node.get('name') in constructors):
+            opener = node.get('opener') or ''
+            name   = node['name']
+            sig_re = (
+                r'^\s*(recursive\s+)??function\s+' + re.escape(name)
+                + r'\s*\(\s*parameters\s*'
+                + r'(,\s*recursiveConstruct\s*,\s*recursiveSelf\s*)??\)'
+            )
+            if re.match(sig_re, opener):
+                result_m = re.search(
+                    r'result\s*\(\s*([a-zA-Z0-9_]+)\s*\)\s*$', opener)
+                result = result_m.group(1) if result_m else name
+
+                sub_iter = walk_tree(node)
+                next(sub_iter)
+                for cnode in sub_iter:
+                    ctype = cnode.get('type')
+                    if ctype == 'declaration':
+                        for declaration in cnode.get('declarations') or []:
+                            if (declaration.get('intrinsic') == 'type'
+                                    and trimlc(declaration.get('type'))
+                                        == 'inputparameters'
+                                    and 'parameters'
+                                        in (declaration.get('variables')
+                                            or [])):
+                                declaration_matches = True
+                    elif ctype == 'code':
+                        code_stream = io.StringIO(cnode.get('content') or '')
+                        while True:
+                            line_data = get_fortran_line(code_stream)
+                            if line_data is None:
+                                break
+                            _, processed_line, _ = line_data
+                            # Subparameter sources.
+                            sm = re.match(
+                                r'^\s*([a-zA-Z0-9_]+)\s*=\s*([a-zA-Z0-9_]+)'
+                                r'\s*%\s*subParameters\s*\(',
+                                processed_line)
+                            if sm:
+                                sub_parameters[sm.group(1)] = {
+                                    'parent': sm.group(2),
+                                    'source': processed_line,
+                                }
+                            # Parent constructor usage.
+                            if extension_of and re.match(
+                                    r'^\s*' + re.escape(result)
+                                    + r'\s*%\s*' + re.escape(extension_of)
+                                    + r'\s*=',
+                                    processed_line):
+                                parent_constructor_used = True
+                    elif ctype == 'inputParameter':
+                        d = cnode.get('directive') or {}
+                        if 'source' not in d:
+                            supported = -4
+                            failure_message.append(
+                                "unsourced parameters not supported")
+                            continue
+                        if 'name' not in d:
+                            continue
+                        # Resolve the internal name.
+                        if 'variable' in d:
+                            vm = re.match(r'(.*)%(.*)', d['variable'])
+                            if vm:
+                                obj  = vm.group(1)
+                                elem = vm.group(2)
+                                if obj.lower() == result.lower():
+                                    raw_name = elem
+                                else:
+                                    raw_name = obj
+                            else:
+                                raw_name = re.sub(r'\(.+\)$', '',
+                                                   d['variable'])
+                        else:
+                            raw_name = d['name']
+                        name_lc    = raw_name.lower()
+                        # Try parameters.
+                        param_vars = [
+                            v for decl in potential_names.get(
+                                'parameters', [])
+                            for v in decl.get('variableNames') or []]
+                        if any(v.lower() == name_lc for v in param_vars):
+                            descriptor_parameters.setdefault(
+                                'parameters', []).append({
+                                    'name':      raw_name,
+                                    'inputName': d['name'],
+                                    'source':    d['source'],
+                                })
+                        elif any(v.lower() == name_lc + '_'
+                                 for v in param_vars):
+                            descriptor_parameters.setdefault(
+                                'parameters', []).append({
+                                    'name':      raw_name + '_',
+                                    'inputName': d['name'],
+                                    'source':    d['source'],
+                                })
+                        elif any(
+                                v.lower() == name_lc
+                                for decl in potential_names.get(
+                                    'enumerations', [])
+                                for v in decl.get('variableNames') or []):
+                            descriptor_parameters.setdefault(
+                                'enumerations', []).append({
+                                    'name':      raw_name,
+                                    'inputName': d['name'],
+                                    'source':    d['source'],
+                                })
+                        elif any(
+                                v == name_lc
+                                for decl in potential_names.get(
+                                    'statefulTypes', [])
+                                for v in decl.get('variables') or []):
+                            descriptor_parameters.setdefault(
+                                'statefulTypes', []).append({
+                                    'name':      raw_name,
+                                    'inputName': d['name'],
+                                    'source':    d['source'],
+                                })
+                        else:
+                            supported = -1
+                            msg = (f"could not find a matching internal "
+                                   f"variable for parameter [{raw_name}]")
+                            if param_vars:
+                                distances = [
+                                    _levenshtein(name_lc, p.lower())
+                                    for p in param_vars]
+                                best = min(distances)
+                                idx  = distances.index(best)
+                                guess = re.sub(r'_', '', param_vars[idx])
+                                msg += f" - did you mean [{guess}]"
+                            failure_message.append(msg)
+                    elif ctype == 'objectBuilder':
+                        d = cnode.get('directive') or {}
+                        if 'source' not in d:
+                            supported = -6
+                            failure_message.append(
+                                "unsourced objects not supported")
+                            continue
+                        obj_name = re.sub(
+                            r'([a-zA-Z0-9_]+\s*%\s*)?([a-zA-Z0-9_]+).*',
+                            r'\2', d.get('name') or '')
+                        obj_name = re.sub(r'\s', '', obj_name)
+                        if any(o == obj_name.lower()
+                               for o in potential_names.get('objects', [])):
+                            descriptor_parameters.setdefault(
+                                'objects', []).append({
+                                    'name':   obj_name,
+                                    'source': d['source'],
+                                })
+                        elif obj_name in potential_names.get(
+                                'linkedListObjects', []):
+                            descriptor_parameters.setdefault(
+                                'linkedLists', []).append(
+                                potential_names.get('linkedLists', {})
+                                .get(obj_name))
+                        else:
+                            supported = -5
+                            failure_message.append(
+                                f"could not find a matching internal object "
+                                f"for object [{obj_name}]")
+        node = (node.get('firstChild')
+                if node.get('type') == 'contains'
+                else node.get('sibling'))
+
+    # --- Validate sub-parameter hierarchy.
+    for sp_name in sorted(sub_parameters.keys()):
+        parent = sub_parameters[sp_name]['parent']
+        if parent not in sub_parameters and parent != 'parameters':
+            supported = -7
+            failure_message.append("subparameter hierarchy failure")
+
+    return (potential_names, descriptor_parameters, sub_parameters,
+            declaration_matches, parent_constructor_used,
+            extension_of, failure_message, supported)
+
+
+def _build_descriptor_methods(directive, non_abstract_classes, classes,
+                              methods, tree, state_storables):
+    """Populate `methods['descriptor']` (and in step 5c `hashedDescriptor`)
+    with the auto-descriptor code that serialises the class's parameter
+    constructor into an inputParameters tree.
+
+    Mirrors buildDescriptorMethods() at FunctionClass.pm:1588-2227.  This
+    sub-step (5a) implements the discovery pass and registers a skeleton
+    descriptor method with the outer select-type frame; the per-class
+    descriptor body (5b) and the hashedDescriptor companion (5c) follow.
+    """
+    descriptor_code             = ''
+    descriptor_modules          = {'Input_Parameters': True}
+    add_sub_parameters          = {}
+    add_label                   = False
+    rank_maximum                = 0
+    descriptor_used             = False
+    file_modification_added     = False
+    descriptor_linked_list_vars = []
+
+    descriptor_code += "logical :: includeFileModificationTimes_\n"
+    descriptor_code += "if (present(includeFileModificationTimes)) then\n"
+    descriptor_code += (
+        " includeFileModificationTimes_=includeFileModificationTimes\n")
+    descriptor_code += "else\n"
+    descriptor_code += " includeFileModificationTimes_=.false.\n"
+    descriptor_code += "end if\n"
+    descriptor_code += "select type (self)\n"
+
+    for non_abstract in non_abstract_classes:
+        (potential_names, descriptor_parameters, sub_parameters,
+         declaration_matches, parent_constructor_used, extension_of,
+         failure_message, supported) = _descriptor_discover_class(
+             non_abstract, directive, classes, state_storables)
+
+        descriptor_code += f"type is ({non_abstract['name']})\n"
+        # Per-class descriptor body (parameters/enumerations/statefulTypes/
+        # objects/linkedLists/runTimeFileDependencies) emitted in PR
+        # D.7.3c step 5b.
+
+    descriptor_code += "end select\n"
+
+    if descriptor_used:
+        descriptor_code = "logical :: includeClass_\n" + descriptor_code
+    else:
+        descriptor_code = (
+            " !$GLC attributes unused :: descriptor, includeClass\n"
+            + descriptor_code
+        )
+    if add_sub_parameters:
+        descriptor_code = (
+            "type(inputParameters) :: "
+            + ",".join(sorted(add_sub_parameters.keys())) + "\n"
+            + descriptor_code
+        )
+    if add_label:
+        descriptor_code = (
+            "character(len=18) :: parameterLabel\n" + descriptor_code)
+    if rank_maximum > 0:
+        descriptor_code = (
+            "integer :: "
+            + ",".join(f"i{i}" for i in range(1, rank_maximum + 1))
+            + "\ntype(varying_string) :: parameterValues\n"
+            + descriptor_code
+        )
+
+    methods['descriptor'] = {
+        'description': ('Return an input parameter list descriptor which '
+                        'could be used to recreate this object.'),
+        'type':        'void',
+        'pass':        'yes',
+        'modules':     ' '.join(sorted(descriptor_modules.keys())),
+        'argument':    [
+            'type(inputParameters), intent(inout) :: descriptor',
+            'logical, intent(in   ), optional :: includeClass, '
+            'includeFileModificationTimes',
+        ],
+        'code':        descriptor_code,
+    }
 
 
 def _build_allowed_parameters_method(directive, classes_ordered, methods):
@@ -3224,7 +3620,8 @@ def process_function_class(tree, options):
         # already processed and marked — those pass through the guard at
         # the top of the loop.
         _build_descriptor_methods(
-            directive, non_abstract_classes, classes, methods, tree)
+            directive, non_abstract_classes, classes, methods, tree,
+            state_storables)
         _build_object_type_method(directive, non_abstract_classes, methods)
         _build_allowed_parameters_method(
             directive, classes_ordered, methods)
