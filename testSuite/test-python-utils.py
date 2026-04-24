@@ -81,6 +81,15 @@ from Galacticus.Build.SourceTree.Process.FunctionClass.StateStore import (
     state_store_explicit_function, generate_allocatable_state_store_code,
     state_store_variables,
 )
+from Galacticus.Build.SourceTree.Process.FunctionClass import (
+    process_function_class as _fc_process_function_class,
+    _is_function_class_pointer, _init_code_content,
+    _build_base_method_stubs, _build_object_type_method,
+    _load_and_sort_classes,
+    _STATE_STORABLES_HOLDER     as _fc_state_storables_holder,
+    _DEEP_COPY_ACTIONS_HOLDER   as _fc_deep_copy_actions_holder,
+    _DIRECTIVE_LOCATIONS_HOLDER as _fc_directive_locations_holder,
+)
 from Galacticus.Build.SourceTree.Process import (
     PROCESS_HOOKS, PROCESS_DEPENDENCIES, POSTPROCESS_HOOKS,
     register_process, process_tree,
@@ -3930,6 +3939,323 @@ def test_functionclass_statestore_variables_allocatable_intrinsic():
 
 
 # ============================================================================
+# Process.FunctionClass scaffolding tests (PR D.7.3a)
+# ============================================================================
+
+def _reset_fc_caches():
+    _fc_state_storables_holder['value']     = None
+    _fc_deep_copy_actions_holder['value']   = None
+    _fc_directive_locations_holder['value'] = None
+
+
+def test_functionclass_is_function_class_pointer():
+    print("\n=== Testing FunctionClass._is_function_class_pointer ===")
+    state_storables = {
+        'functionClasses': {'functionClass': [{'name': 'myFooClass'}]},
+        'functionClassInstances': ['myFooCore'],
+    }
+    # `class(myFooClass), pointer` → True
+    assert_equal(_is_function_class_pointer(
+        {'intrinsic': 'class', 'type': 'myFooClass', 'attributes': ['pointer']},
+        'myFooClass', state_storables,
+    ), True, "class + pointer + registered → True")
+    # instance match
+    assert_equal(_is_function_class_pointer(
+        {'intrinsic': 'type', 'type': 'myFooCore', 'attributes': ['pointer']},
+        'myFooCore', state_storables,
+    ), True, "type + pointer + functionClassInstance → True")
+    # missing pointer attribute
+    assert_equal(_is_function_class_pointer(
+        {'intrinsic': 'class', 'type': 'myFooClass', 'attributes': []},
+        'myFooClass', state_storables,
+    ), False, "no pointer attribute → False")
+    # wrong intrinsic
+    assert_equal(_is_function_class_pointer(
+        {'intrinsic': 'integer', 'type': 'myFooClass',
+         'attributes': ['pointer']},
+        'myFooClass', state_storables,
+    ), False, "non-class/type intrinsic → False")
+    # type unknown
+    assert_equal(_is_function_class_pointer(
+        {'intrinsic': 'class', 'type': 'elsewhere',
+         'attributes': ['pointer']},
+        'elsewhere', state_storables,
+    ), False, "type not in state storables → False")
+
+
+def test_functionclass_init_code_content():
+    print("\n=== Testing FunctionClass._init_code_content ===")
+    code, pre, post = _init_code_content()
+    assert_equal(isinstance(code['module']['preContains'],  list),  True,
+                 "preContains is a list")
+    assert_equal(isinstance(code['module']['postContains'], list),  True,
+                 "postContains is a list")
+    assert_equal(code['module']['preContains'][0]  is pre,           True,
+                 "first preContains entry is the returned pre-node")
+    assert_equal(code['module']['postContains'][0] is post,          True,
+                 "first postContains entry is the returned post-node")
+    assert_equal(code['submodule'], {},
+                 "submodule container starts empty")
+
+
+def test_functionclass_build_base_method_stubs():
+    print("\n=== Testing FunctionClass._build_base_method_stubs ===")
+    methods = {}
+    # Directive with autoHook override + destructor.
+    directive = {
+        'autoHook': {
+            'modules': [{'name': 'MyMod', 'only': 'foo, bar'}],
+            'code':    '! custom autoHook body\n',
+        },
+        'destructor': {
+            'modules': [{'name': 'DMod', 'only': 'baz'}],
+            'code':    '! custom destructor body\n',
+        },
+    }
+    _build_base_method_stubs(directive, methods)
+    assert_equal('stateStore' in methods and 'stateRestore' in methods, True,
+                 "stateStore + stateRestore stubs populated")
+    assert_equal(methods['stateStore']['modules'][0]['name'], 'ISO_C_Binding',
+                 "stateStore imports ISO_C_Binding, only : c_ptr")
+    assert_equal(methods['autoHook']['code'], '! custom autoHook body\n',
+                 "directive autoHook code overrides default stub")
+    mod = next(m for m in methods['autoHook']['modules']
+               if m['name'] == 'MyMod')
+    assert_equal(mod['only'], ['foo', 'bar'],
+                 "autoHook `only` list comma-split correctly")
+    assert_equal('destructor' in methods, True,
+                 "destructor added when directive requests it")
+    assert_equal(methods['destructor']['code'], '! custom destructor body\n',
+                 "destructor carries the directive-supplied code")
+
+
+def test_functionclass_build_object_type_method():
+    print("\n=== Testing FunctionClass._build_object_type_method ===")
+    methods = {}
+    _build_object_type_method(
+        {'name': 'myFoo'},
+        [
+            {'name': 'myFooCore',    'shortName': 'core'},
+            {'name': 'myFooAdvanced','shortName': 'advanced'},
+            {'name': 'myFooXYZ',     'shortName': 'XYZ'},
+        ],
+        methods,
+    )
+    code = methods['objectType']['code']
+    assert_equal('type is (myFooCore)' in code, True,
+                 "select-type branch emitted per non-abstract class")
+    assert_equal("myFooObjectType='core'" in code, True,
+                 "short-name branch uses lcfirst for typical names")
+    assert_equal("myFooObjectType='XYZ'" in code, True,
+                 "short-name keeps acronyms with 2+ caps intact")
+    assert_equal("myFooObjectType='myFooAdvanced'" in code, True,
+                 "long-name branch returns full class name")
+    assert_equal(methods['objectType']['modules'], 'ISO_Varying_String',
+                 "objectType method imports ISO_Varying_String")
+
+
+def test_functionclass_load_and_sort_classes(tmp_source_write=None):
+    print("\n=== Testing FunctionClass._load_and_sort_classes ===")
+    tmpdir = tempfile.mkdtemp()
+    try:
+        # Two classes: base myFooCore extends myFoo; derived myFooAdv extends
+        # myFooCore.  Alphabetical sort would be [Adv, Core] but the topo
+        # sort must place Core first.  We write two source files.
+        core_path = os.path.join(tmpdir, 'core.F90')
+        adv_path  = os.path.join(tmpdir, 'adv.F90')
+        with open(core_path, 'w') as fh:
+            fh.write(
+                "module core_mod\n"
+                "  !![\n"
+                "  <myFoo>\n"
+                "   <name>myFooCore</name>\n"
+                "  </myFoo>\n"
+                "  !!]\n"
+                "  type, extends(myFooClass) :: myFooCore\n"
+                "  end type myFooCore\n"
+                "end module core_mod\n"
+            )
+        with open(adv_path, 'w') as fh:
+            fh.write(
+                "module adv_mod\n"
+                "  !![\n"
+                "  <myFoo>\n"
+                "   <name>myFooAdv</name>\n"
+                "  </myFoo>\n"
+                "  !!]\n"
+                "  type, extends(myFooCore) :: myFooAdv\n"
+                "  end type myFooAdv\n"
+                "end module adv_mod\n"
+            )
+        # stateStorables + deepCopyActions stubs so process_tree doesn't fail.
+        # The stateStorables entry for `myFooClass` causes the functionClass
+        # hook's early pass to mark each `<myFoo>` directive as processed
+        # (mirroring what happens in a real Galacticus build where
+        # stateStorables.xml is populated before FunctionClass runs).
+        with open(os.path.join(tmpdir, 'stateStorables.xml'), 'w') as fh:
+            fh.write(
+                "<stateStorables>\n"
+                "  <functionClasses>\n"
+                "    <functionClass name=\"myFooClass\"/>\n"
+                "  </functionClasses>\n"
+                "</stateStorables>\n"
+            )
+        with open(os.path.join(tmpdir, 'directiveLocations.xml'), 'w') as fh:
+            fh.write("<directiveLocations></directiveLocations>\n")
+        open(os.path.join(tmpdir, 'deepCopyActions.xml'), 'w').close()
+        open(os.path.join(tmpdir, 'hdf5FCInterop.dat'), 'w').close()
+        with open(os.path.join(tmpdir, 'Makefile_All_Execs'), 'w') as fh:
+            fh.write("all_exes =\n")
+
+        saved = os.environ.get('BUILDPATH')
+        os.environ['BUILDPATH'] = tmpdir
+        try:
+            _reset_fc_caches()
+            directive = {'name': 'myFoo'}
+            directive_locations = {
+                'myFoo': {'file': [adv_path, core_path]},
+            }
+            classes, ordered, non_abstract = _load_and_sort_classes(
+                directive, directive_locations)
+            assert_equal(set(classes.keys()), {'myFooCore', 'myFooAdv'},
+                         "all classes discovered")
+            # Perl's loadAndSortClasses builds `dep[parent] += [child]` and
+            # feeds that to Sort::Topo, whose docstring says `dep[X]` is
+            # "things X depends on".  The emitted order therefore puts the
+            # extending (child) class BEFORE its parent — a deliberate
+            # (and Perl-matching) consequence of that edge direction.
+            assert_equal([c['type'] for c in ordered],
+                         ['myFooAdv', 'myFooCore'],
+                         "topo-sort matches Perl: Adv before Core")
+            assert_equal(
+                [c['shortName'] for c in non_abstract],
+                ['adv', 'core'],
+                "short names derived with lcfirst, same order as classes",
+            )
+        finally:
+            if saved is None:
+                del os.environ['BUILDPATH']
+            else:
+                os.environ['BUILDPATH'] = saved
+            _reset_fc_caches()
+    finally:
+        import shutil
+        shutil.rmtree(tmpdir)
+
+
+def test_functionclass_load_and_sort_classes_default_validation():
+    print("\n=== Testing FunctionClass._load_and_sort_classes (invalid default) ===")
+    tmpdir = tempfile.mkdtemp()
+    core_path = os.path.join(tmpdir, 'core.F90')
+    with open(core_path, 'w') as fh:
+        fh.write(
+            "module core_mod\n"
+            "  !![\n"
+            "  <myFoo><name>myFooCore</name></myFoo>\n"
+            "  !!]\n"
+            "  type, extends(myFooClass) :: myFooCore\n"
+            "  end type myFooCore\n"
+            "end module core_mod\n"
+        )
+    for f in ('stateStorables.xml', 'directiveLocations.xml',
+              'deepCopyActions.xml', 'hdf5FCInterop.dat'):
+        open(os.path.join(tmpdir, f), 'w').close()
+    with open(os.path.join(tmpdir, 'stateStorables.xml'), 'w') as fh:
+        fh.write("<stateStorables></stateStorables>\n")
+    with open(os.path.join(tmpdir, 'directiveLocations.xml'), 'w') as fh:
+        fh.write("<directiveLocations></directiveLocations>\n")
+    with open(os.path.join(tmpdir, 'Makefile_All_Execs'), 'w') as fh:
+        fh.write("all_exes =\n")
+
+    saved = os.environ.get('BUILDPATH')
+    os.environ['BUILDPATH'] = tmpdir
+    try:
+        _reset_fc_caches()
+        directive_locations = {'myFoo': {'file': core_path}}
+        assert_raises(
+            lambda: _load_and_sort_classes(
+                {'name': 'myFoo', 'default': 'nonexistent'},
+                directive_locations,
+            ),
+            RuntimeError,
+            "invalid default value raises RuntimeError")
+    finally:
+        if saved is None:
+            del os.environ['BUILDPATH']
+        else:
+            os.environ['BUILDPATH'] = saved
+        _reset_fc_caches()
+        import shutil
+        shutil.rmtree(tmpdir)
+
+
+def test_functionclass_process_hook_is_no_op_when_no_directive():
+    print("\n=== Testing process_function_class is a no-op on trees without functionClass ===")
+    root = _parse_text(
+        "subroutine s\n"
+        "integer :: counter\n"
+        "end subroutine s\n"
+    )
+    before = serialize(root)
+    tmpdir = tempfile.mkdtemp()
+    with open(os.path.join(tmpdir, 'stateStorables.xml'), 'w') as fh:
+        fh.write("<stateStorables></stateStorables>\n")
+    saved = os.environ.get('BUILDPATH')
+    os.environ['BUILDPATH'] = tmpdir
+    try:
+        _reset_fc_caches()
+        _fc_process_function_class(root, {})
+        assert_equal(serialize(root), before,
+                     "tree without <functionClass> unchanged by the hook")
+    finally:
+        if saved is None:
+            del os.environ['BUILDPATH']
+        else:
+            os.environ['BUILDPATH'] = saved
+        _reset_fc_caches()
+        import shutil
+        shutil.rmtree(tmpdir)
+
+
+def test_functionclass_process_hook_marks_class_nodes():
+    print("\n=== Testing process_function_class early pass marks <class> directive nodes ===")
+    # Synthesise a tree with a node of type 'myFoo' whose parent is a
+    # module, AND make sure `myFooClass` is registered as a functionClass
+    # in stateStorables.xml.  The hook's early pass should flip the
+    # directive's `processed` flag without requiring a <functionClass>
+    # directive elsewhere in the tree.
+    root = _parse_text("module m\nend module m\n")
+    mod = _find_node(root, 'module')
+    directive_node = _make_directive_node(
+        'myFoo', {'processed': False}, mod,
+    )
+    tmpdir = tempfile.mkdtemp()
+    with open(os.path.join(tmpdir, 'stateStorables.xml'), 'w') as fh:
+        fh.write(
+            "<stateStorables>\n"
+            "  <functionClasses>\n"
+            "    <functionClass name=\"myFooClass\"/>\n"
+            "  </functionClasses>\n"
+            "</stateStorables>\n"
+        )
+    saved = os.environ.get('BUILDPATH')
+    os.environ['BUILDPATH'] = tmpdir
+    try:
+        _reset_fc_caches()
+        _fc_process_function_class(root, {})
+        assert_equal(directive_node['directive']['processed'], True,
+                     "early pass flips processed=True on class-instance nodes")
+    finally:
+        if saved is None:
+            del os.environ['BUILDPATH']
+        else:
+            os.environ['BUILDPATH'] = saved
+        _reset_fc_caches()
+        import shutil
+        shutil.rmtree(tmpdir)
+
+
+# ============================================================================
 # Main
 # ============================================================================
 
@@ -4045,6 +4371,14 @@ def main():
     test_functionclass_statestore_variables_static_and_restore()
     test_functionclass_statestore_custom_hooks_flag()
     test_functionclass_statestore_variables_allocatable_intrinsic()
+    test_functionclass_is_function_class_pointer()
+    test_functionclass_init_code_content()
+    test_functionclass_build_base_method_stubs()
+    test_functionclass_build_object_type_method()
+    test_functionclass_load_and_sort_classes()
+    test_functionclass_load_and_sort_classes_default_validation()
+    test_functionclass_process_hook_is_no_op_when_no_directive()
+    test_functionclass_process_hook_marks_class_nodes()
 
     print("\n" + "=" * 70)
     print(f"Results: {PASS_COUNT} passed, {FAIL_COUNT} failed")
