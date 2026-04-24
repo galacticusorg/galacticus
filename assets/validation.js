@@ -2,6 +2,8 @@
 
 window.Validation = (function () {
 
+  const charts = [];
+
   function renderHeader(data) {
     document.getElementById('last-update').textContent = new Date(data.commit.timestamp).toString();
 
@@ -34,6 +36,47 @@ window.Validation = (function () {
       a.download = filename || 'analyses_data.json';
       a.click();
     };
+  }
+
+  function setupControls() {
+    const main = document.getElementById('main');
+    if (!main) return;
+
+    const controls = document.createElement('div');
+    controls.className = 'plot-controls';
+    controls.style.cssText = 'padding: 15px; background: #f4f4f4; border-radius: 8px; margin-bottom: 20px; display: flex; gap: 30px; align-items: center; border: 1px solid #ddd;';
+    
+    controls.innerHTML = `
+      <div style="display: flex; flex-direction: column; gap: 5px;">
+        <label style="font-weight: bold; font-size: 0.9em;">Point Size</label>
+        <input type="range" id="point-size-slider" min="1" max="15" value="4" style="cursor: pointer;">
+      </div>
+      <div style="display: flex; flex-direction: column; gap: 5px;">
+        <label style="font-weight: bold; font-size: 0.9em;">Line/Error Thickness</label>
+        <input type="range" id="line-thickness-slider" min="1" max="8" value="2" style="cursor: pointer;">
+      </div>
+    `;
+    main.prepend(controls);
+
+    document.getElementById('point-size-slider').addEventListener('input', (e) => {
+      const val = parseInt(e.target.value);
+      charts.forEach(chart => {
+        chart.data.datasets.forEach(ds => {
+          ds.pointRadius = val;
+          ds.radius = val;
+          ds.pointHoverRadius = val + 2;
+        });
+        chart.update('none');
+      });
+    });
+
+    document.getElementById('line-thickness-slider').addEventListener('input', (e) => {
+      const val = parseInt(e.target.value);
+      charts.forEach(chart => {
+        chart.data.datasets.forEach(ds => ds.borderWidth = val);
+        chart.update('none');
+      });
+    });
   }
 
   function renderGraph(parent, dataset) {
@@ -74,22 +117,45 @@ window.Validation = (function () {
     }
 
     const options = {
+      responsive: true,
+      maintainAspectRatio: true,
+      aspectRatio: 1.5,
+      plugins: {
+        legend: {
+          position: 'top',
+          labels: {
+            usePointStyle: true,
+            padding: 20,
+            font: { size: 12 }
+          }
+        }
+      },
       scales: {
         x: {
+          grid: { color: 'rgba(0, 0, 0, 0.05)' },
           ticks: {
             beginAtZero: false,
-            callback: (val) => val.toExponential(2),
-            maxRotation: 45,
-            minRotation: 45
+            callback: (val) => {
+              const absVal = Math.abs(val);
+              if (absVal === 0) return '0';
+              if (absVal < 1e-3 || absVal >= 1e4) return val.toExponential(1);
+              return val.toLocaleString();
+            }
           },
-          title: { display: true, text: dataset.attributes.xAxisLabel }
+          title: { display: true, text: dataset.attributes.xAxisLabel, font: { weight: 'bold' } }
         },
         y: {
+          grid: { color: 'rgba(0, 0, 0, 0.05)' },
           ticks: {
             beginAtZero: false,
-            callback: (val) => val.toExponential(2)
+            callback: (val) => {
+              const absVal = Math.abs(val);
+              if (absVal === 0) return '0';
+              if (absVal < 1e-3 || absVal >= 1e4) return val.toExponential(1);
+              return val.toLocaleString();
+            }
           },
-          title: { display: true, text: dataset.attributes.yAxisLabel },
+          title: { display: true, text: dataset.attributes.yAxisLabel, font: { weight: 'bold' } },
           min: yMin,
           max: yMax
         }
@@ -98,26 +164,35 @@ window.Validation = (function () {
     if (xIsLog) options.scales.x.type = 'logarithmic';
     if (yIsLog) options.scales.y.type = 'logarithmic';
 
-    new Chart(canvas, {
+    const chart = new Chart(canvas, {
       type: 'scatterWithErrorBars',
       data: {
         datasets: [
           {
             label: 'Galacticus',
             data: data,
-            borderColor: '#ff0000',
-            backgroundColor: '#ffff00'
+            borderColor: '#0072B2',
+            backgroundColor: 'rgba(0, 114, 178, 0.3)',
+            pointStyle: 'circle',
+            radius: 4,
+            pointRadius: 4,
+            borderWidth: 2
           },
           {
             label: dataset.attributes.targetLabel,
             data: dataTarget,
-            borderColor: '#483D8B',
-            backgroundColor: '#6495ED'
+            borderColor: '#000000',
+            backgroundColor: 'rgba(0, 0, 0, 0.1)',
+            pointStyle: 'rectRot',
+            radius: 5,
+            pointRadius: 5,
+            borderWidth: 2
           }
         ]
       },
       options: options
     });
+    charts.push(chart);
   }
 
   function renderAnalyses(dataSets, parent) {
@@ -143,6 +218,7 @@ window.Validation = (function () {
   function renderStandard(data) {
     renderHeader(data);
     attachDownloadButton(data);
+    setupControls();
     renderAnalyses(data.results);
   }
 
