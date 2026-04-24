@@ -51,13 +51,15 @@ import Galacticus.Build.SourceTree.Process.MetaPropertyDatabase      # noqa: F40
 import Galacticus.Build.SourceTree.Process.InputParameter            # noqa: F401
 import Galacticus.Build.SourceTree.Process.Constructors              # noqa: F401
 import Galacticus.Build.SourceTree.Process.FunctionsGlobal           # noqa: F401
+import Galacticus.Build.SourceTree.Process.Enumeration               # noqa: F401
+import Galacticus.Build.SourceTree.Process.DeepCopyActions           # noqa: F401
 from Galacticus.Build.SourceTree.Process import (
     PROCESS_HOOKS, PROCESS_DEPENDENCIES, POSTPROCESS_HOOKS,
     register_process, process_tree,
 )
 from Galacticus.Build.Directives import extract_directives, extract_directive
 from Galacticus.Build.SourceTree import (
-    insert_pre_contains, insert_post_contains,
+    insert_pre_contains, insert_post_contains, set_visibility,
 )
 
 # ============================================================================
@@ -2395,6 +2397,251 @@ def test_process_functions_global_establish():
 
 
 # ============================================================================
+# set_visibility tests
+# ============================================================================
+
+def test_set_visibility():
+    print("\n=== Testing set_visibility ===")
+
+    root = _parse_text(
+        "module m\n"
+        "use foo\n"
+        "integer :: x\n"
+        "end module m\n"
+    )
+    mod = _find_node(root, 'module')
+    set_visibility(mod, 'doStuff', 'public')
+    set_visibility(mod, 'secretVar', 'private')
+    set_visibility(mod, 'alsoDo',  'public')
+    out = serialize(root)
+    assert_equal('public :: alsoDo, doStuff' in out, True,
+                 "public list sorted and joined")
+    assert_equal('private :: secretVar' in out, True,
+                 "private list emitted")
+    # Visibility block must come AFTER the `use foo` (matches Perl ordering).
+    use_pos = out.index('use foo')
+    vis_pos = out.index('public')
+    assert_equal(vis_pos > use_pos, True,
+                 "visibility block placed after moduleUse sibling")
+
+
+# ============================================================================
+# Process.Enumeration tests
+# ============================================================================
+
+def _build_enumeration_tree(directive):
+    """Build a minimal module→enumeration-directive tree and return (root, mod, dir)."""
+    root = _parse_text(
+        "module m\n"
+        "end module m\n"
+    )
+    mod = _find_node(root, 'module')
+    dir_node = _make_directive_node('enumeration', directive, mod)
+    return root, mod, dir_node
+
+
+def test_process_enumeration_basic():
+    print("\n=== Testing Process.Enumeration (basic type + equality) ===")
+
+    root, mod, _ = _build_enumeration_tree({
+        'name':  'color',
+        'entry': [
+            {'label': 'red',   'description': 'the red member'},
+            {'label': 'green', 'description': 'the green member'},
+        ],
+        'processed': False,
+    })
+    from Galacticus.Build.SourceTree.Process.Enumeration import \
+        process_enumerations
+    process_enumerations(root, {})
+
+    out = serialize(root)
+    assert_equal('type, extends(enumerationType) :: enumerationcolorType' in out,
+                 True, "enumeration type declared")
+    assert_equal('colorRed=enumerationcolorType(0)' in out, True,
+                 "first member uses indexing=0 by default")
+    assert_equal('colorGreen=enumerationcolorType(1)' in out, True,
+                 "second member increments")
+    assert_equal('enumerationColorIsEqual' in out, True,
+                 "equality function emitted (name ucfirst'd per Perl)")
+    assert_equal('enumerationColorDescribe' in out, True,
+                 "describe function always emitted")
+
+
+def test_process_enumeration_validator():
+    print("\n=== Testing Process.Enumeration (validator=yes + Min/Max/Count) ===")
+
+    root, mod, _ = _build_enumeration_tree({
+        'name':      'mode',
+        'validator': 'yes',
+        'indexing':  '1',
+        'entry': [
+            {'label': 'slow'},
+            {'label': 'fast'},
+        ],
+        'processed': False,
+    })
+    from Galacticus.Build.SourceTree.Process.Enumeration import \
+        process_enumerations
+    process_enumerations(root, {})
+    out = serialize(root)
+    assert_equal('modeMin  =1' in out, True, "Min param emitted")
+    assert_equal('modeMax  =2' in out, True, "Max param emitted")
+    assert_equal('modeCount=2' in out, True, "Count param emitted")
+    assert_equal('enumerationModeIsValid' in out, True,
+                 "validator function emitted")
+
+
+def test_process_enumeration_encode_decode():
+    print("\n=== Testing Process.Enumeration (encode/decode function families) ===")
+
+    root, mod, _ = _build_enumeration_tree({
+        'name':           'kind',
+        'encodeFunction': 'yes',
+        'decodeFunction': 'yes',
+        'entry': [
+            {'label': 'flat', 'description': 'flat geometry'},
+            {'label': 'open', 'description': 'open geometry'},
+        ],
+        'processed': False,
+    })
+    from Galacticus.Build.SourceTree.Process.Enumeration import \
+        process_enumerations
+    process_enumerations(root, {})
+    out = serialize(root)
+    assert_equal('interface enumerationKindEncode' in out, True,
+                 "encode interface emitted")
+    assert_equal('enumerationKindEncodeCharchar' not in out, True,
+                 "function names not accidentally concatenated")
+    assert_equal('interface enumerationKindDecode' in out, True,
+                 "decode interface emitted")
+    assert_equal('interface enumerationKindDescription' in out, True,
+                 "description interface emitted alongside decode")
+    assert_equal("case ('kindFlat')" in out, True,
+                 "encode case emitted with prefix")
+    assert_equal("case ('flat')" in out, True,
+                 "encode case emitted without prefix")
+
+
+# ============================================================================
+# Process.DeepCopyActions tests
+# ============================================================================
+
+def test_process_deep_copy_actions_setto():
+    print("\n=== Testing Process.DeepCopyActions (setTo action) ===")
+
+    # A base class + one derived non-abstract class, with a directive
+    # requesting a setTo on the derived class's `counter` variable.
+    root = _parse_text(
+        "module m\n"
+        "type, abstract :: baseT\n"
+        "end type baseT\n"
+        "type, extends(baseT) :: subT\n"
+        "integer :: counter\n"
+        "end type subT\n"
+        "end module m\n"
+    )
+    mod = _find_node(root, 'module')
+    _make_directive_node(
+        'deepCopyActions',
+        {
+            'class':    'baseT',
+            'subT':     {'setTo': {'variables': 'counter', 'state': '0'}},
+            'processed': False,
+        },
+        mod,
+    )
+
+    # deepCopyActions reads $BUILDPATH/deepCopyActions.xml eagerly in Perl;
+    # the Python port delays the read until it's needed, but process_tree()
+    # fires every registered hook, so provide empty stub XML for the others.
+    tmpdir = tempfile.mkdtemp()
+    open(os.path.join(tmpdir, 'deepCopyActions.xml'), 'w').close()
+    with open(os.path.join(tmpdir, 'stateStorables.xml'), 'w') as fh:
+        fh.write("<stateStorables></stateStorables>\n")
+    with open(os.path.join(tmpdir, 'directiveLocations.xml'), 'w') as fh:
+        fh.write("<directiveLocations></directiveLocations>\n")
+    open(os.path.join(tmpdir, 'hdf5FCInterop.dat'), 'w').close()
+    with open(os.path.join(tmpdir, 'Makefile_All_Execs'), 'w') as fh:
+        fh.write("all_exes =\n")
+
+    saved = os.environ.get('BUILDPATH')
+    os.environ['BUILDPATH'] = tmpdir
+    try:
+        from Galacticus.Build.SourceTree.Process.DeepCopyActions import \
+            process_deep_copy_actions
+        process_deep_copy_actions(root, {})
+
+        out = serialize(root)
+        assert_equal('subroutine baseTDeepCopyActions(self)' in out, True,
+                     "generated subroutine named after target class")
+        assert_equal('type is (subT)' in out, True,
+                     "select-type branch emitted for non-abstract descendant")
+        assert_equal('self%counter=0' in out, True,
+                     "setTo action emits self%var=state")
+        assert_equal('procedure :: deepCopyActions => baseTDeepCopyActions' in out,
+                     True, "type-binding inserted into base class")
+    finally:
+        if saved is None:
+            del os.environ['BUILDPATH']
+        else:
+            os.environ['BUILDPATH'] = saved
+        import shutil
+        shutil.rmtree(tmpdir)
+
+
+def test_process_deep_copy_actions_method_call():
+    print("\n=== Testing Process.DeepCopyActions (methodCall action) ===")
+
+    root = _parse_text(
+        "module m\n"
+        "type, abstract :: baseT\n"
+        "end type baseT\n"
+        "type, extends(baseT) :: subT\n"
+        "integer :: counter\n"
+        "end type subT\n"
+        "end module m\n"
+    )
+    mod = _find_node(root, 'module')
+    _make_directive_node(
+        'deepCopyActions',
+        {
+            'class':    'baseT',
+            'subT':     {'methodCall': {'method': 'reset', 'arguments': '42'}},
+            'processed': False,
+        },
+        mod,
+    )
+
+    tmpdir = tempfile.mkdtemp()
+    for f in ('deepCopyActions.xml', 'hdf5FCInterop.dat'):
+        open(os.path.join(tmpdir, f), 'w').close()
+    with open(os.path.join(tmpdir, 'stateStorables.xml'), 'w') as fh:
+        fh.write("<stateStorables></stateStorables>\n")
+    with open(os.path.join(tmpdir, 'directiveLocations.xml'), 'w') as fh:
+        fh.write("<directiveLocations></directiveLocations>\n")
+    with open(os.path.join(tmpdir, 'Makefile_All_Execs'), 'w') as fh:
+        fh.write("all_exes =\n")
+
+    saved = os.environ.get('BUILDPATH')
+    os.environ['BUILDPATH'] = tmpdir
+    try:
+        from Galacticus.Build.SourceTree.Process.DeepCopyActions import \
+            process_deep_copy_actions
+        process_deep_copy_actions(root, {})
+        out = serialize(root)
+        assert_equal('call self%reset(42)' in out, True,
+                     "methodCall action emits `call self%method(args)`")
+    finally:
+        if saved is None:
+            del os.environ['BUILDPATH']
+        else:
+            os.environ['BUILDPATH'] = saved
+        import shutil
+        shutil.rmtree(tmpdir)
+
+
+# ============================================================================
 # Main
 # ============================================================================
 
@@ -2469,6 +2716,12 @@ def main():
     test_process_constructors_slash_suppresses_count()
     test_process_functions_global_pointers()
     test_process_functions_global_establish()
+    test_set_visibility()
+    test_process_enumeration_basic()
+    test_process_enumeration_validator()
+    test_process_enumeration_encode_decode()
+    test_process_deep_copy_actions_setto()
+    test_process_deep_copy_actions_method_call()
 
     print("\n" + "=" * 70)
     print(f"Results: {PASS_COUNT} passed, {FAIL_COUNT} failed")
