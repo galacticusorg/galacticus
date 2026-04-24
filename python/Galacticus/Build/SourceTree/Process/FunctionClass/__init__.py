@@ -1496,6 +1496,67 @@ def _build_descriptor_methods(directive, non_abstract_classes, classes,
         'code':        descriptor_code,
     }
 
+    # --- hashedDescriptor (mirrors FunctionClass.pm:2157-2227) ---
+    directive_name = directive['name']
+    hashed = (
+        "logical                        :: includeSourceDigest_\n"
+        "type   (inputParameters)       :: descriptor\n"
+        "type   (varying_string )       :: descriptorString\n"
+        "!   Workaround starts here.\n"
+        "! type   (varying_string ), save :: descriptorStringPrevious, "
+        "hashedDescriptorPrevious\n"
+        "! !$omp threadprivate(descriptorStringPrevious,"
+        "hashedDescriptorPrevious)\n"
+        "! Workaround ends here.\n"
+        "descriptor=inputParameters()\n"
+        "! Disable live nodeLists in FoX as updating these nodeLists leads "
+        "to memory leaks.\n"
+        "call setLiveNodeLists(descriptor%document%document,.false.)\n"
+        "call self%descriptor(descriptor,includeClass=.true.,"
+        "includeFileModificationTimes=includeFileModificationTimes)\n"
+        "descriptorString=descriptor%serializeToString()\n"
+        "call descriptor%destroy()\n"
+        "if (present(includeSourceDigest)) then\n"
+        " includeSourceDigest_=includeSourceDigest\n"
+        "else\n"
+        " includeSourceDigest_=.false.\n"
+        "end if\n"
+        "if (includeSourceDigest_) then\n"
+        "select type (self)\n"
+    )
+    for non_abstract in non_abstract_classes:
+        hashed += (
+            f"type is ({non_abstract['name']})\n"
+            f"descriptorString=descriptorString//\":sourceDigest\\{{\"//"
+            f"String_C_To_Fortran({non_abstract['name']}5)//\"\\}}\"\n"
+        )
+    hashed += (
+        "end select\n"
+        "end if\n"
+        "!   Workaround starts here.\n"
+        "!   if (descriptorString /= descriptorStringPrevious) then\n"
+        "!      descriptorStringPrevious=         descriptorString\n"
+        "!      hashedDescriptorPrevious=Hash_MD5(descriptorString)\n"
+        "!   end if\n"
+        f"!   {directive_name}HashedDescriptor=hashedDescriptorPrevious\n"
+        f"   {directive_name}HashedDescriptor=Hash_MD5(descriptorString)\n"
+        "! Workaround ends here.\n"
+    )
+    methods['hashedDescriptor'] = {
+        'description': ('Return a hash of the descriptor for this object, '
+                        'optionally include the source code digest in the '
+                        'hash.'),
+        'type':        'type(varying_string)',
+        'pass':        'yes',
+        'modules':     ('ISO_Varying_String String_Handling Input_Parameters '
+                        'Hashes_Cryptographic FoX_DOM'),
+        'argument':    [
+            'logical, intent(in   ), optional :: includeSourceDigest, '
+            'includeFileModificationTimes'
+        ],
+        'code':        hashed,
+    }
+
 
 def _build_allowed_parameters_method(directive, classes_ordered, methods):
     """Populate `methods['allowedParameters']` with the nested
