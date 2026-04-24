@@ -53,6 +53,7 @@ import Galacticus.Build.SourceTree.Process.Constructors              # noqa: F40
 import Galacticus.Build.SourceTree.Process.FunctionsGlobal           # noqa: F401
 import Galacticus.Build.SourceTree.Process.Enumeration               # noqa: F401
 import Galacticus.Build.SourceTree.Process.DeepCopyActions           # noqa: F401
+import Galacticus.Build.SourceTree.Process.StateStorable             # noqa: F401
 from Galacticus.Build.SourceTree.Process import (
     PROCESS_HOOKS, PROCESS_DEPENDENCIES, POSTPROCESS_HOOKS,
     register_process, process_tree,
@@ -2642,6 +2643,176 @@ def test_process_deep_copy_actions_method_call():
 
 
 # ============================================================================
+# Process.StateStorable tests
+# ============================================================================
+
+def _write_state_storable_build_dir(storable_type_names):
+    """Create a BUILDPATH tempdir with a stateStorables.xml listing the given
+    type names and the other stub files every hook eagerly opens.  Returns
+    the tempdir.
+    """
+    tmpdir = tempfile.mkdtemp()
+    lines = ['<stateStorables>']
+    for name in storable_type_names:
+        lines.append(f'  <stateStorables type="{name}"/>')
+    lines.append('</stateStorables>\n')
+    with open(os.path.join(tmpdir, 'stateStorables.xml'), 'w') as fh:
+        fh.write("\n".join(lines))
+    # Stubs used by OTHER hooks' eager loads if anything ever triggers
+    # process_tree() alongside this test.
+    with open(os.path.join(tmpdir, 'directiveLocations.xml'), 'w') as fh:
+        fh.write("<directiveLocations></directiveLocations>\n")
+    open(os.path.join(tmpdir, 'hdf5FCInterop.dat'), 'w').close()
+    open(os.path.join(tmpdir, 'deepCopyActions.xml'), 'w').close()
+    with open(os.path.join(tmpdir, 'Makefile_All_Execs'), 'w') as fh:
+        fh.write("all_exes =\n")
+    return tmpdir
+
+
+def test_process_state_storable_basic():
+    print("\n=== Testing Process.StateStorable (scalar stateStorable class) ===")
+
+    tmpdir = _write_state_storable_build_dir(['subT'])
+    saved = os.environ.get('BUILDPATH')
+    os.environ['BUILDPATH'] = tmpdir
+    try:
+        root = _parse_text(
+            "module m\n"
+            "type, abstract :: baseT\n"
+            "end type baseT\n"
+            "type, extends(baseT) :: subT\n"
+            "integer :: counter\n"
+            "real    :: weight\n"
+            "end type subT\n"
+            "end module m\n"
+        )
+        mod = _find_node(root, 'module')
+        _make_directive_node(
+            'stateStorable',
+            {'class': 'baseT', 'processed': False},
+            mod,
+        )
+        from Galacticus.Build.SourceTree.Process.StateStorable import \
+            process_state_storable
+        process_state_storable(root, {})
+
+        out = serialize(root)
+        assert_equal('subroutine baseTStateStore' in out, True,
+                     "StateStore subroutine synthesized")
+        assert_equal('subroutine baseTStateRestore' in out, True,
+                     "StateRestore subroutine synthesized")
+        assert_equal('type is (subT)' in out, True,
+                     "non-abstract descendant gets a select-type branch")
+        assert_equal('procedure :: stateStore   => baseTStateStore' in out, True,
+                     "stateStore type-binding emitted on base class")
+        assert_equal('procedure :: stateRestore => baseTStateRestore' in out, True,
+                     "stateRestore type-binding emitted on base class")
+        assert_equal('write (stateFile) self%counter, &' in out
+                     or 'write (stateFile) self%counter,' in out, True,
+                     "static intrinsic members batched into a single write")
+    finally:
+        if saved is None:
+            del os.environ['BUILDPATH']
+        else:
+            os.environ['BUILDPATH'] = saved
+        import shutil
+        shutil.rmtree(tmpdir)
+
+
+def test_process_state_storable_excludes_and_restore_to():
+    print("\n=== Testing Process.StateStorable (exclude + restoreTo) ===")
+
+    tmpdir = _write_state_storable_build_dir([])
+    saved = os.environ.get('BUILDPATH')
+    os.environ['BUILDPATH'] = tmpdir
+    try:
+        root = _parse_text(
+            "module m\n"
+            "type :: baseT\n"
+            "integer :: keep\n"
+            "integer :: skip_me\n"
+            "integer :: reset_me\n"
+            "end type baseT\n"
+            "end module m\n"
+        )
+        mod = _find_node(root, 'module')
+        _make_directive_node(
+            'stateStorable',
+            {
+                'class': 'baseT',
+                'baseT': {
+                    'exclude':   {'variables': 'skip_me'},
+                    'restoreTo': {'variables': 'reset_me', 'state': '42'},
+                },
+                'processed': False,
+            },
+            mod,
+        )
+        from Galacticus.Build.SourceTree.Process.StateStorable import \
+            process_state_storable
+        process_state_storable(root, {})
+        out = serialize(root)
+        assert_equal('self%keep' in out, True,
+                     "non-excluded variable present in generated code")
+        assert_equal('self%skip_me' not in out, True,
+                     "excluded variable absent from generated code")
+        assert_equal('self%reset_me=42' in out, True,
+                     "restoreTo directive emits a state assignment rather than a read")
+    finally:
+        if saved is None:
+            del os.environ['BUILDPATH']
+        else:
+            os.environ['BUILDPATH'] = saved
+        import shutil
+        shutil.rmtree(tmpdir)
+
+
+def test_process_state_storable_class_restore():
+    print("\n=== Testing Process.StateStorable (class-restore dispatchers) ===")
+
+    tmpdir = _write_state_storable_build_dir([])
+    saved = os.environ.get('BUILDPATH')
+    os.environ['BUILDPATH'] = tmpdir
+    try:
+        root = _parse_text(
+            "module m\n"
+            "type, abstract :: baseT\n"
+            "end type baseT\n"
+            "type, extends(baseT) :: subT\n"
+            "integer :: n\n"
+            "end type subT\n"
+            "end module m\n"
+        )
+        mod = _find_node(root, 'module')
+        _make_directive_node(
+            'stateStorable',
+            {'class': 'baseT', 'processed': False},
+            mod,
+        )
+        from Galacticus.Build.SourceTree.Process.StateStorable import \
+            process_state_storable
+        process_state_storable(root, {})
+
+        out = serialize(root)
+        assert_equal('subroutine baseTClassRestore(self,stateFile)' in out, True,
+                     "rank-0 class-restore dispatcher emitted")
+        assert_equal('subroutine baseTClassRestore1D(self,stateFile,storedShape)'
+                     in out, True,
+                     "rank-1 class-restore dispatcher emitted")
+        assert_equal('allocate(subT :: self' in out, True,
+                     "dispatcher allocates the concrete subclass")
+        assert_equal('baseTClassRestore' in out and 'public' in out, True,
+                     "ClassRestore symbol made public via set_visibility")
+    finally:
+        if saved is None:
+            del os.environ['BUILDPATH']
+        else:
+            os.environ['BUILDPATH'] = saved
+        import shutil
+        shutil.rmtree(tmpdir)
+
+
+# ============================================================================
 # Main
 # ============================================================================
 
@@ -2722,6 +2893,9 @@ def main():
     test_process_enumeration_encode_decode()
     test_process_deep_copy_actions_setto()
     test_process_deep_copy_actions_method_call()
+    test_process_state_storable_basic()
+    test_process_state_storable_excludes_and_restore_to()
+    test_process_state_storable_class_restore()
 
     print("\n" + "=" * 70)
     print(f"Results: {PASS_COUNT} passed, {FAIL_COUNT} failed")
