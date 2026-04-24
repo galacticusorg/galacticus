@@ -14,6 +14,10 @@ import xml.etree.ElementTree as ET
 sys.path.insert(0, os.path.join(os.environ.get('GALACTICUS_EXEC_PATH', ''), 'python'))
 
 from XML.Utils                                      import xml_to_dict
+from Galacticus.Build.StateStorables                import (
+    function_class_names    as _shared_function_class_names,
+    function_class_instances as _shared_function_class_instances,
+)
 from Galacticus.Build.SourceTree                    import walk_tree, insert_after_node
 from Galacticus.Build.SourceTree.Process            import register_process
 from Galacticus.Build.SourceTree.Parse.Declarations import get_declaration
@@ -46,33 +50,12 @@ def _function_class_type_set(state_storables):
     """Return the set of lowercased type names considered functionClasses.
 
     Mirrors `keys(%{$stateStorables->{'functionClasses'}})` plus the
-    `functionClassInstances` list in Constructors.pm:106.  Both Perl sources
-    produce lowercased type names; we lowercase to match.
+    `functionClassInstances` list in Constructors.pm:106.
     """
-    names = set()
-    fc = (state_storables or {}).get('functionClasses') or {}
-    if isinstance(fc, dict):
-        entries = fc.get('functionClass')
-        if entries is None:
-            names |= {k.lower() for k in fc.keys()}
-        else:
-            if isinstance(entries, dict):
-                entries = [entries]
-            for e in entries:
-                if isinstance(e, dict) and 'name' in e:
-                    names.add(e['name'].lower())
-    instances = (state_storables or {}).get('functionClassInstances') or []
-    # Perl: `@{$stateStorables->{'functionClassInstances'}}` is a list of
-    # scalar class names; our xml_to_dict gives either a list of strings or a
-    # single string depending on multiplicity.
-    if isinstance(instances, str):
-        instances = [instances]
-    elif isinstance(instances, dict):
-        instances = [instances.get('content') or instances.get('name') or '']
-    for name in instances:
-        if isinstance(name, str) and name:
-            names.add(name.lower())
-    return names
+    return (
+        {n.lower() for n in _shared_function_class_names(state_storables)}
+        | {n.lower() for n in _shared_function_class_instances(state_storables)}
+    )
 
 
 def _return_value_label(parent):

@@ -17,6 +17,9 @@ sys.path.insert(0, os.path.join(os.environ.get('GALACTICUS_EXEC_PATH', ''), 'pyt
 from List.ExtraUtils                                 import as_array
 from XML.Utils                                       import xml_to_dict
 from Fortran.Utils                                   import extract_variables
+from Galacticus.Build.StateStorables                 import (
+    function_class_module_map as _shared_function_class_module_map,
+)
 from Galacticus.Build.Directives                     import extract_directives
 from Galacticus.Build.SourceTree                     import (
     walk_tree, parse_file, parse_code,
@@ -68,24 +71,8 @@ def _collect_function_globals(directive_locations):
 def _class_module_map(state_storables):
     """Return `{<root>+'Class': <module>}` for every functionClass entry so the
     establish path can look up which module provides the named class.
-
-    Our xml_to_dict produces `{'functionClass': [{...}, ...]}` where Perl's
-    XML::Simple (with its default KeyAttr) would group by the `name` attribute
-    — this helper bridges the shape difference.
     """
-    out = {}
-    fc = (state_storables or {}).get('functionClasses') or {}
-    if not isinstance(fc, dict):
-        return out
-    entries = fc.get('functionClass')
-    if entries is None:
-        return {k: (v or {}).get('module') for k, v in fc.items() if isinstance(v, dict)}
-    if isinstance(entries, dict):
-        entries = [entries]
-    for e in entries:
-        if isinstance(e, dict) and 'name' in e:
-            out[e['name']] = e.get('module')
-    return out
+    return _shared_function_class_module_map(state_storables)
 
 
 def _argument_names(arguments):

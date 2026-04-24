@@ -16,6 +16,7 @@ sys.path.insert(0, os.path.join(os.environ.get('GALACTICUS_EXEC_PATH', ''), 'pyt
 
 from List.ExtraUtils                              import as_array
 from XML.Utils                                    import xml_to_dict
+from Galacticus.Build.StateStorables              import function_class_entry as _shared_function_class_entry
 from Galacticus.Build.Directives                  import extract_directives
 from Galacticus.Build.Dependencies                import dependency_sort
 from Galacticus.Build.SourceTree                  import (
@@ -99,24 +100,9 @@ def _function_class_entry_for(type_name, state_storables):
     """Return the functionClass entry (dict) for `<type>+'Class'` or None.
 
     Matches the lookup `$stateStorables->{'functionClasses'}{$type.'Class'}`
-    from EventHooksStatic.pm:84 / :90 / :157.  Our xml_to_dict produces a
-    list of entries where the Perl KeyAttr grouping would have produced a
-    name-keyed dict; bridge accordingly.
+    from EventHooksStatic.pm:84 / :90 / :157.
     """
-    fc = (state_storables or {}).get('functionClasses') or {}
-    target = type_name + 'Class'
-    if not isinstance(fc, dict):
-        return None
-    entries = fc.get('functionClass')
-    if entries is None:
-        val = fc.get(target)
-        return val if isinstance(val, dict) else None
-    if isinstance(entries, dict):
-        entries = [entries]
-    for e in entries:
-        if isinstance(e, dict) and e.get('name') == target:
-            return e
-    return None
+    return _shared_function_class_entry(state_storables, type_name + 'Class')
 
 
 def _resolve_hooked_function(source_file, target_directive_name, state_storables):

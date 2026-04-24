@@ -28,6 +28,11 @@ sys.path.insert(0, os.path.join(os.environ.get('GALACTICUS_EXEC_PATH', ''), 'pyt
 from List.ExtraUtils                                         import as_array
 from Sort.Topo                                               import sort as topo_sort
 from XML.Utils                                               import xml_to_dict
+from Galacticus.Build.StateStorables                         import (
+    function_class_entries  as _shared_function_class_entries,
+    function_class_names    as _shared_function_class_names,
+    function_class_instances as _shared_function_class_instances,
+)
 from Galacticus.Build.SourceTree                             import (
     walk_tree, parse_code, parse_file, insert_after_node,
     insert_pre_contains, insert_post_contains, prepend_child_to_node,
@@ -177,36 +182,11 @@ _DIRECTIVE_LOCATIONS_HOLDER = {'value': None}
 
 
 def _function_class_names(state_storables):
-    """Set of functionClass name keys."""
-    fc = (state_storables or {}).get('functionClasses') or {}
-    if not isinstance(fc, dict):
-        return set()
-    entries = fc.get('functionClass')
-    if entries is None:
-        return set(fc.keys())
-    if isinstance(entries, dict):
-        entries = [entries]
-    return {e.get('name') for e in entries
-            if isinstance(e, dict) and 'name' in e}
+    return _shared_function_class_names(state_storables)
 
 
 def _function_class_instances(state_storables):
-    """List of functionClassInstances names."""
-    raw = (state_storables or {}).get('functionClassInstances') or []
-    if isinstance(raw, str):
-        return [raw] if raw else []
-    if isinstance(raw, dict):
-        name = raw.get('content') or raw.get('name')
-        return [name] if name else []
-    out = []
-    for item in raw:
-        if isinstance(item, str):
-            out.append(item)
-        elif isinstance(item, dict):
-            name = item.get('content') or item.get('name')
-            if name:
-                out.append(name)
-    return out
+    return _shared_function_class_instances(state_storables)
 
 
 # ---------------------------------------------------------------------------

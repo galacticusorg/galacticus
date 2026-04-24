@@ -233,12 +233,14 @@ def _validate_directive(directive_name, xml_text, context_node):
     state_storables = _load_state_storables()
     schema_xml = None
 
-    function_classes = (state_storables or {}).get('functionClasses') or {}
-    event_hook_statics = (state_storables or {}).get('eventHookStatics') or []
-    if isinstance(event_hook_statics, dict):
-        event_hook_statics = [event_hook_statics]
+    from Galacticus.Build.StateStorables import (
+        function_class_names    as _fcn_names,
+        event_hook_static_names as _ehs_names,
+    )
+    function_class_names = _fcn_names(state_storables)
+    event_hook_statics   = _ehs_names(state_storables)
 
-    if state_storables and (directive_name + "Class") in function_classes:
+    if state_storables and (directive_name + "Class") in function_class_names:
         schema_xml = _FUNCTION_CLASS_SCHEMA.format(name=directive_name)
     elif state_storables and directive_name in event_hook_statics:
         schema_xml = _EVENT_HOOK_STATIC_SCHEMA.format(name=directive_name)
