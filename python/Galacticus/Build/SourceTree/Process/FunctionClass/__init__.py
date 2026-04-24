@@ -31,14 +31,119 @@ from XML.Utils                                               import xml_to_dict
 from Galacticus.Build.SourceTree                             import (
     walk_tree, parse_code, parse_file, insert_after_node,
     insert_pre_contains, insert_post_contains, prepend_child_to_node,
-    serialize,
+    serialize, set_visibility,
 )
 from Galacticus.Build.SourceTree.Process                     import (
     register_process, process_tree,
 )
+from Galacticus.Build.SourceTree.Parse.Declarations          import (
+    parse_declaration, build_declarations, declaration_exists, get_declaration,
+)
+from Galacticus.Build.SourceTree.Parse.ModuleUses            import add_uses
+from Galacticus.Build.SourceTree.Parse.Visibilities          import update_visibilities
 from Galacticus.Build.SourceTree.Process.FunctionClass.Utils import (
     class_dependencies,
 )
+from Galacticus.Build.SourceTree.Process.SourceIntrospection import location
+
+
+# ---------------------------------------------------------------------------
+# Small formatting helpers (local equivalents of tiny Perl utilities)
+# ---------------------------------------------------------------------------
+
+def _format_variable_definitions(declarations):
+    """Render a list of declaration dicts into Fortran declaration lines.
+
+    Lightweight stand-in for Perl `Fortran::Utils::Format_Variable_Definitions`,
+    whose output is a Text::Table-aligned column layout.  We only need
+    functional equivalence here — a simple
+        `<intrinsic>(<type>), <attr>, <attr> :: <var>, <var>\\n`
+    per declaration is enough to keep the downstream Fortran parser /
+    compiler happy.  Matches the subset of features
+    generateClassSubmodules actually passes through
+    (intrinsic, type, attributes, variables).
+    """
+    out = ''
+    for decl in declarations:
+        if not isinstance(decl, dict):
+            continue
+        intrinsic  = decl.get('intrinsic') or ''
+        type_text  = decl.get('type')
+        attributes = decl.get('attributes') or []
+        variables  = decl.get('variables') or []
+        line = intrinsic
+        if type_text is not None:
+            # type in declarations is stored with parens stripped; re-wrap.
+            has_parens = type_text.startswith('(') and type_text.endswith(')')
+            line += type_text if has_parens else f'({type_text})'
+        for attr in attributes:
+            line += f', {attr}'
+        line += ' :: ' + ', '.join(variables) + '\n'
+        out += line
+    return out
+
+
+def _source_digest_binding(name):
+    """Return the C-binding declaration for the per-class MD5 symbol.
+
+    Mirrors SourceDigest::Binding() at SourceDigest.pm:60-65.
+    """
+    return (
+        f'   character(C_Char), dimension(23), bind(C, name="{name}MD5") '
+        f':: {name}5\n'
+    )
+
+
+def _ucfirst(s):
+    return s[:1].upper() + s[1:] if s else s
+
+
+def _lcfirst(s):
+    return s[:1].lower() + s[1:] if s else s
+
+
+def _short_name(full_name, directive_name):
+    """Strip the directive's name prefix and apply the same `lcfirst-unless-
+    all-caps` convention as loadAndSortClasses / buildObjectTypeMethod /
+    generateDocumentation."""
+    short = full_name
+    if short.startswith(directive_name):
+        short = short[len(directive_name):]
+    if not re.match(r'^[A-Z]{2,}', short):
+        short = _lcfirst(short)
+    return short
+
+
+def _xml_escape(s):
+    """Escape `&`, `<`, `>`, `"` for XML attribute / text contexts."""
+    return (
+        str(s)
+        .replace('&', '&amp;')
+        .replace('<', '&lt;')
+        .replace('>', '&gt;')
+        .replace('"', '&quot;')
+    )
+
+
+_LATEX_ESCAPES = {
+    '\\': r'\textbackslash{}',
+    '_':  r'\_',
+    '&':  r'\&',
+    '%':  r'\%',
+    '$':  r'\$',
+    '#':  r'\#',
+    '{':  r'\{',
+    '}':  r'\}',
+    '~':  r'\textasciitilde{}',
+    '^':  r'\textasciicircum{}',
+}
+
+
+def _latex_encode(s):
+    """Minimal LaTeX special-character escape.  Matches the subset of
+    Perl `LaTeX::Encode::latex_encode` that FunctionClass.pm relies on.
+    """
+    return ''.join(_LATEX_ESCAPES.get(c, c) for c in str(s))
 
 
 # Module-level caches.  Perl declares both with `our` so subroutines that
@@ -504,24 +609,1358 @@ def _build_state_store_methods(*args, **kwargs):
     _not_implemented('buildStateStoreMethods')
 
 
-def _generate_type_definition(*args, **kwargs):
-    _not_implemented('generateTypeDefinition')
+def _generate_type_definition(directive, methods, pre, node):
+    """Emit the `type, extends(...) :: <name>Class` block with methods
+    table, generic interfaces, destructor binding, and the module-level
+    data declarations.
+
+    Mirrors generateTypeDefinition() at FunctionClass.pm:216-417.
+    """
+    parent = node['parent']
+    directive_name = directive['name']
+
+    set_visibility(parent, directive_name + 'Class', 'public')
+    set_visibility(parent, directive_name,           'public')
+
+    extends = directive.get('extends', 'functionClass')
+
+    pre['content'] += f'   type, extends({extends}) :: {directive_name}Class\n'
+    pre['content'] += '    private\n'
+    pre['content'] += '    integer(c_size_t) :: stateOperationID=0\n'
+    pre['content'] += (
+        f'    class({directive_name}Class), public, pointer :: '
+        'copiedSelf => null()\n'
+    )
+    add_uses(parent, {
+        'moduleUse': {
+            'Function_Classes': {'intrinsic': False, 'all': True},
+            'ISO_C_Binding':    {'intrinsic': True,  'all': True},
+        },
+        'moduleOrder': ['Function_Classes', 'ISO_C_Binding'],
+    })
+
+    # Per-directive `<data>` entries (self-scope go in the type, module-
+    # scope deferred until after `end type`).
+    for data in as_array(directive.get('data')):
+        if isinstance(data, dict):
+            if data.get('scope', 'self') == 'self':
+                pre['content'] += (data.get('content') or '') + '\n'
+        else:
+            pre['content'] += str(data) + '\n'
+
+    # contains + methods metadata.
+    pre['content'] += '    contains\n'
+    pre['content'] += '    !![\n'
+    pre['content'] += '    <methods>\n'
+
+    generics = {}
+    for method_name in sorted(methods):
+        if method_name == 'destructor':
+            continue
+        method = methods[method_name]
+        argument_list = _method_arguments_to_latex(method)
+
+        pre['content'] += f'     <method method="{method_name}">\n'
+        pre['content'] += '      <description>\n'
+        description = method.get('description') or ''
+        for line in description.split('\n'):
+            pre['content'] += '       ' + _xml_escape(line) + '\n'
+        pre['content'] += '      </description>\n'
+        pre['content'] += '     </method>\n'
+
+        for generic in as_array(directive.get('generic')):
+            if not isinstance(generic, dict):
+                continue
+            generic_methods = list(as_array(generic.get('method')))
+            if method_name in generic_methods:
+                g_entry = generics.setdefault(generic['name'], {
+                    'name':         generic['name'],
+                    'description':  [],
+                    'argumentList': [],
+                })
+                g_entry['type'] = method.get('type')
+                g_entry['description'].append(description)
+                g_entry['argumentList'].append(argument_list)
+
+    for gname in sorted(generics):
+        g = generics[gname]
+        pre['content'] += f'    <method method="{g["name"]}">\n'
+        pre['content'] += '       <description>\n'
+        pre['content'] += '        ' + ' | '.join(g['description']) + '\n'
+        pre['content'] += '       </description>\n'
+        pre['content'] += '    </method>\n'
+
+    pre['content'] += '    </methods>\n'
+    pre['content'] += '    !!]\n'
+
+    # Type-bound procedure bindings (skip destructor, assignment(=)).
+    for method_name in sorted(methods):
+        if method_name in ('destructor', 'assignment(=)'):
+            continue
+        method = methods[method_name]
+        if 'function' in method:
+            function_name = method['function']
+        else:
+            function_name = (directive_name + _ucfirst(method_name)
+                             + ('' if 'code' in method else '__'))
+        pre['content'] += (
+            f'    procedure :: {method_name} => {function_name}\n'
+        )
+    pre['content'] += f'procedure :: {directive_name}Assignment\n'
+
+    # Generic interfaces.
+    for generic in as_array(directive.get('generic')):
+        if not isinstance(generic, dict):
+            continue
+        gmethods = list(as_array(generic.get('method')))
+        pre['content'] += (
+            f'    generic :: {generic["name"]} => {", ".join(gmethods)}\n'
+        )
+    pre['content'] += (
+        f'    generic :: assignment(=) => {directive_name}Assignment\n'
+    )
+
+    if 'destructor' in methods:
+        pre['content'] += f'   final :: {directive_name}Destructor\n'
+    pre['content'] += f'   end type {directive_name}Class\n\n'
+
+    # Module-scope `<data scope="module">` entries (after `end type`).
+    for data in as_array(directive.get('data')):
+        if isinstance(data, dict) and data.get('scope') == 'module':
+            content = data.get('content') or ''
+            pre['content'] += content + '\n'
+            if data.get('threadprivate') == 'yes':
+                m = re.search(r'::\s*(.*)$', content)
+                if m:
+                    vars_text = m.group(1)
+                    names = [re.sub(r'\s*=.*$', '', v).strip()
+                             for v in re.split(r'\s*,\s*', vars_text)
+                             if v.strip()]
+                    pre['content'] += (
+                        f'   !$omp threadprivate({",".join(names)})\n'
+                    )
+
+    # State variable for input-parameter validation.
+    pre['content'] += f'   integer :: {directive_name}DsblVldtn=0\n'
+    pre['content'] += f'   !$omp threadprivate({directive_name}DsblVldtn)\n'
+    pre['content'] += (
+        f'   !$GLC ignore unused :: {directive_name}DsblVldtn\n'
+    )
 
 
-def _generate_constructor(*args, **kwargs):
-    _not_implemented('generateConstructor')
+def _method_arguments_to_latex(method):
+    """Render each of a method's argument declarations to the LaTeX
+    notation FunctionClass embeds into the <methods>/<description>
+    metadata.  Mirrors the nested-regex loop at lines 267-308 of
+    generateTypeDefinition; we lean on our existing `parse_declaration`
+    rather than the Perl-style INTRINSIC_DECLARATIONS indices.
+    """
+    args = list(as_array(method.get('argument') or []))
+    if not args:
+        return ''
+    parts = []
+    for arg in args:
+        decl = parse_declaration(arg)
+        if decl is None:
+            continue
+        intrinsic = decl['intrinsic']
+        type_val  = decl.get('type')
+        attrs     = decl.get('attributes') or []
+        for variable in decl.get('variables') or []:
+            piece = (
+                r'\textcolor{red}{\textless ' + _latex_encode(intrinsic)
+            )
+            if type_val is not None:
+                piece += _latex_encode(type_val)
+            piece += r'\textgreater} ' + _latex_encode(variable)
+            for attr in attrs:
+                if attr == 'intent(in)':
+                    piece += r'\argin'
+                elif attr == 'intent(out)':
+                    piece += r'\argout'
+                elif attr == 'intent(inout)':
+                    piece += r'\arginout'
+            parts.append(piece)
+    return ','.join(parts)
 
 
-def _generate_class_submodules(*args, **kwargs):
-    _not_implemented('generateClassSubmodules')
+def _generate_constructor(directive, classes_ordered, non_abstract_classes,
+                          pre, post, node, tree):
+    """Emit the `<name>CnstrctrPrmtrs` parameter-driven constructor +
+    associated interface + the recursive-build state variables when any
+    class opts into recursion.
+
+    Mirrors generateConstructor() at FunctionClass.pm:419-593.
+    """
+    directive_name = directive['name']
+    parent = node['parent']
+    loc_expr = location(node, node.get('line', 0))
+
+    pre['content'] += f'   interface {directive_name}\n'
+    pre['content'] += f'    module procedure {directive_name}CnstrctrPrmtrs\n'
+    pre['content'] += f'   end interface {directive_name}\n'
+
+    allow_recursion = any(
+        c.get('recursive') == 'yes' for c in classes_ordered
+    )
+    if allow_recursion:
+        pre['content'] += (
+            f'   type(inputParameter), pointer :: '
+            f'{directive_name}RecursiveBuildNode => null()\n'
+            f'   class({directive_name}Class), pointer :: '
+            f'{directive_name}RecursiveBuildObject => null()\n'
+            f'   !$omp threadprivate({directive_name}RecursiveBuildNode,'
+            f'{directive_name}RecursiveBuildObject)\n\n'
+        )
+        add_uses(parent, {
+            'moduleUse': {
+                'Input_Parameters': {'intrinsic': False, 'all': True},
+            },
+            'moduleOrder': ['Input_Parameters'],
+        })
+
+    # Append directive name to the per-file `.p` parameter-names file.
+    if tree.get('type') == 'file':
+        build_path = os.environ.get('BUILDPATH')
+        tree_name = tree.get('name', '')
+        m = re.match(r'(.+)\.F90$', tree_name)
+        if build_path and m:
+            with open(os.path.join(build_path, m.group(1) + '.p'), 'a') as fh:
+                fh.write(directive_name + '\n')
+
+    recursive_prefix = 'recursive ' if allow_recursion else ''
+    post['content'] += (
+        f'   {recursive_prefix}function '
+        f'{directive_name}CnstrctrPrmtrs'
+        '(parameters,copyInstance,parameterName) result(self)\n'
+    )
+    post['content'] += '      !!{\n'
+    post['content'] += (
+        f'      Return a pointer to a newly created \\mono{{{directive_name}}} '
+        'object as specified by the provided parameters.\n'
+    )
+    post['content'] += '      !!}\n'
+    post['content'] += (
+        '      use :: Input_Parameters  , only : inputParameter         , '
+        'inputParameters\n'
+        '      use :: Locks  , only : ompLock\n'
+        '      use :: Error  , only : Error_Report\n'
+        '      use :: ISO_Varying_String, only : varying_string         , '
+        'char           , trim, operator(//), operator(==), assignment(=)\n'
+        '      implicit none\n'
+        f'      class    ({directive_name}Class), pointer :: self\n'
+        '      type     (inputParameters), intent(inout)           :: parameters\n'
+        '      integer                   , intent(in   ), optional :: copyInstance\n'
+        '      character(len=*          ), intent(in   ), optional :: parameterName\n'
+        '      type     (inputParameters)                          :: subParameters\n'
+    )
+    if 'default' in directive:
+        post['content'] += (
+            '      type     (inputParameter ), pointer                 :: parameterNode\n'
+            '      type     (ompLock        ), save                    :: addLock\n'
+            '      logical                   , save                    :: addLockInitialized=.false.\n'
+            '      logical                                             :: needLock\n'
+        )
+    post['content'] += (
+        '      type     (varying_string )                          '
+        ':: message      , instanceName, parameterName_\n'
+        '      integer                                             '
+        ':: copyInstance_\n\n'
+        '      if (present(parameterName)) then\n'
+        '        parameterName_=parameterName\n'
+        '      else\n'
+        f"        parameterName_='{directive_name}'\n"
+        '      end if\n'
+        '      if (present(copyInstance)) then\n'
+        '        copyInstance_=copyInstance\n'
+        '      else\n'
+        '        copyInstance_=1\n'
+        '      end if\n'
+    )
+
+    if 'default' in directive:
+        default = directive['default']
+        default_uc = _ucfirst(default)
+        # Find the matching default class entry.
+        target_name = directive_name + default_uc
+        match = next(
+            (c for c in non_abstract_classes if c['name'] == target_name),
+            None,
+        )
+        post['content'] += (
+            '      if (.not.addLockInitialized) then\n'
+            f'      !$omp critical (addLockInitialize{default_uc})\n'
+            '          if (.not.addLockInitialized) then\n'
+            '          addLock=ompLock()\n'
+            '          addLockInitialized=.true.\n'
+            '      end if\n'
+            f'      !$omp end critical (addLockInitialize{default_uc})\n'
+            '      end if\n'
+            '      needLock=.not.addLock%ownedByThread()\n'
+            '      if (needLock) call addLock%set()\n'
+        )
+        post['content'] += (
+            f"      if (parameterName_ == '{directive_name}' "
+            f".and. copyInstance_ == 1 "
+            f".and. .not.parameters%isPresent(char(parameterName_))) then\n"
+            f"        call parameters%addParameter"
+            f"('{directive_name}','{default}')\n"
+            f"        parameterNode => parameters%node"
+            f"('{directive_name}',requireValue=.true.)\n"
+        )
+        post['content'] += (
+            '        subParameters=parameters%subParameters(char(parameterName_))\n'
+            f'        allocate({target_name} :: self)\n'
+        )
+        if match is not None and match.get('recursive') == 'yes':
+            post['content'] += (
+                f'        {directive_name}RecursiveBuildNode   => parameterNode\n'
+                f'        {directive_name}RecursiveBuildObject => self\n'
+            )
+        post['content'] += (
+            '        select type (self)\n'
+            f'          type is ({target_name})\n'
+            f'            self={target_name}(subParameters)\n'
+            '         end select\n'
+        )
+        if match is not None and match.get('recursive') == 'yes':
+            post['content'] += (
+                f'        {directive_name}RecursiveBuildNode   => null()\n'
+                f'        {directive_name}RecursiveBuildObject => null()\n'
+            )
+        post['content'] += '         call parameterNode%objectSet(self)\n'
+        post['content'] += '      else\n'
+
+    if allow_recursion:
+        post['content'] += (
+            '        parameterNode => parameters%node'
+            '(char(parameterName_),requireValue=.true.)\n'
+            f'        if (associated(parameterNode,'
+            f'{directive_name}RecursiveBuildNode)) then\n'
+        )
+        for c in non_abstract_classes:
+            if c.get('recursive') != 'yes':
+                continue
+            class_name = c['name']
+            post['content'] += (
+                f'           select type ({directive_name}RecursiveBuildObject)\n'
+                f'              type is ({class_name})\n'
+                f'              allocate({class_name} :: self)\n'
+                '              select type (self)\n'
+                f'              type is ({class_name})\n'
+                '                 self%isRecursive=.true.\n'
+                f'                 self%recursiveSelf => '
+                f'{directive_name}RecursiveBuildObject\n'
+                '              end select\n'
+                '           end select\n'
+            )
+        post['content'] += (
+            '           if (needLock) call addLock%unset()\n'
+            '           return\n'
+            '        end if\n'
+        )
+
+    # Main build ladder.
+    post['content'] += (
+        '      call parameters%value(char(parameterName_),'
+        'instanceName,copyInstance=copyInstance_)\n'
+        '      subParameters=parameters%subParameters'
+        '(char(parameterName_),copyInstance=copyInstance_)\n'
+        '      select case (char(instanceName))\n'
+    )
+    for c in non_abstract_classes:
+        name = _short_name(c['name'], directive_name)
+        post['content'] += f"     case ('{name}')\n"
+        post['content'] += f"        allocate({c['name']} :: self)\n"
+        if c.get('recursive') == 'yes':
+            post['content'] += (
+                f"        {directive_name}RecursiveBuildNode   => parameterNode\n"
+                f"        {directive_name}RecursiveBuildObject => self\n"
+            )
+        post['content'] += (
+            '        select type (self)\n'
+            f"          type is ({c['name']})\n"
+            f"            self={c['name']}(subParameters)\n"
+            '         end select\n'
+        )
+        if c.get('recursive') == 'yes':
+            post['content'] += (
+                f"        {directive_name}RecursiveBuildNode   => null()\n"
+                f"        {directive_name}RecursiveBuildObject => null()\n"
+            )
+    post['content'] += '      case default\n'
+    post['content'] += (
+        "         message='Unrecognized type \"'//trim(instanceName)//'\" "
+        "Available options are:'\n"
+    )
+    class_names = sorted([c['name'] for c in non_abstract_classes])
+    for cn in class_names:
+        sn = _short_name(cn, directive_name)
+        post['content'] += (
+            f"         message=message//char(10)//'   -> {sn}'\n"
+        )
+    post['content'] += (
+        f'         call Error_Report(message//{loc_expr})\n'
+        '      end select\n'
+    )
+    if 'default' in directive:
+        post['content'] += '      end if\n'
+        post['content'] += '      if (needLock) call addLock%unset()\n'
+    post['content'] += '      return\n'
+    post['content'] += (
+        f'   end function {directive_name}CnstrctrPrmtrs\n\n'
+    )
 
 
-def _generate_method_functions(*args, **kwargs):
-    _not_implemented('generateMethodFunctions')
+def _generate_class_submodules(directive, classes_ordered, non_abstract_classes,
+                               pre, code_content, node):
+    """Populate `code_content['submodule'][<class>]` and append module-level
+    interfaces/declarations for every class in the hierarchy.
+
+    Mirrors generateClassSubmodules() at FunctionClass.pm:595-1024.  Walks
+    each class's parsed tree, partitioning its content between:
+      - the per-class submodule (interior functions, private declarations,
+        submodule-scoped variables),
+      - the parent module's interface list (type definitions, type-bound
+        procedure interfaces, visibility statements, public declarations,
+        module-scoped variables),
+      - module-level module-use statements (forwarded via `add_uses`).
+    """
+    directive_name = directive['name']
+    parent = node['parent']
+    build_path = os.environ.get('BUILDPATH') or ''
+
+    for class_record in classes_ordered:
+        set_visibility(parent, class_record['type'], 'public')
+
+        # Submodule output path: swap the source file's basename `.F90`
+        # for `.p.F90` and place it under BUILDPATH.
+        class_file = class_record.get('file') or ''
+        base = os.path.basename(class_file)
+        base = re.sub(r'\.F90$', '.p.F90', base)
+        fn = os.path.join(build_path, base) if build_path else base
+
+        block = {
+            'fileName':    fn,
+            'preContains':  [_code_node_submodule()],
+            'postContains': [_code_node_submodule()],
+            'interfaces':   [],
+        }
+        code_content['submodule'][class_record['type']] = block
+
+        submodule_pre  = block['preContains']
+        submodule_post = block['postContains']
+
+        module_scoped     = []
+        module_symbols    = []
+        module_use_nodes  = []
+
+        class_tree = class_record.get('tree')
+        if class_tree is None:
+            continue
+
+        class_node = class_tree.get('firstChild')
+        contained = False
+        while class_node is not None:
+            if class_node.get('type') == 'contains':
+                class_node = class_node.get('firstChild')
+                contained = True
+                if class_node is None:
+                    break
+            if contained:
+                submodule_post.append(class_node)
+                if class_node.get('type') in ('function', 'subroutine'):
+                    # Only emit an interface if this function's lowercased
+                    # name is in the interfaces list we accumulated from
+                    # the pre-contains walk.
+                    name_lc = (class_node.get('name') or '').lower()
+                    if name_lc in block['interfaces']:
+                        _emit_submodule_function_interface(
+                            class_node, code_content, module_symbols,
+                            module_use_nodes,
+                        )
+            else:
+                _handle_pre_contains_node(
+                    class_node, directive, code_content, block, parent,
+                    module_scoped, module_symbols, module_use_nodes,
+                    submodule_pre,
+                )
+            class_node = class_node.get('sibling')
+
+        # Filter imported symbols on each captured moduleUse to just those
+        # required for module-scope interfaces, then hand them to add_uses.
+        module_symbols = sorted({s.lower() for s in module_symbols})
+        for mu_node in module_use_nodes:
+            uses = mu_node.get('moduleUse') or {}
+            for module_name in sorted(uses.keys()):
+                entry = uses[module_name]
+                if entry.get('all'):
+                    continue
+                only = entry.get('only', {}) or {}
+                kept = {
+                    sym: flag for sym, flag in only.items()
+                    if sym.lower() in module_symbols
+                }
+                entry['only'] = kept
+                if not kept:
+                    del uses[module_name]
+            if uses:
+                add_uses(parent, {
+                    'moduleUse':   uses,
+                    'moduleOrder': sorted(uses.keys()),
+                })
+
+    # Emit source-digest bindings for every non-abstract class.
+    for nac in non_abstract_classes:
+        pre['content'] += _source_digest_binding(nac['name'])
+
+    # ISO_C_Binding is required for those bindings.
+    add_uses(parent, {
+        'moduleUse': {
+            'ISO_C_Binding': {
+                'intrinsic': True,
+                'only':      {'C_Char': True},
+            },
+        },
+        'moduleOrder': ['ISO_C_Binding'],
+    })
 
 
-def _generate_documentation(*args, **kwargs):
-    _not_implemented('generateDocumentation')
+def _code_node_submodule():
+    """Code node factory used specifically by generate_class_submodules's
+    per-class pre/postContains slots (source attribution differs slightly
+    from the top-level one).
+    """
+    return {
+        'type':       'code',
+        'content':    '',
+        'parent':     None,
+        'firstChild': None,
+        'sibling':    None,
+        'source':
+            'Galacticus.Build.SourceTree.Process.FunctionClass'
+            '.process_function_class()',
+        'line':       1,
+    }
+
+
+def _emit_submodule_function_interface(class_node, code_content,
+                                       module_symbols, module_use_nodes):
+    """For a contained function/subroutine whose name needs a module
+    interface, build the interface nodes and append them to
+    `code_content['module']['interfaces']`.  Also capture the type names
+    used in the interface into `module_symbols` so add_uses can later
+    import them.
+
+    Mirrors the branch at FunctionClass.pm:657-813.
+    """
+    interface_opener = _code_node_submodule()
+    interface_opener['content'] = 'interface\n'
+    interface_opener['content'] += 'module ' + (class_node.get('opener') or '')
+    interface_nodes = [interface_opener]
+
+    opener = class_node.get('opener') or ''
+    m = re.search(r'result\s*\(\s*([a-zA-Z0-9_]+)\s*\)', opener)
+    return_name = m.group(1) if m else class_node.get('name')
+
+    function_node = class_node.get('firstChild')
+    while function_node is not None:
+        if function_node.get('type') == 'declaration':
+            local_declarations = []
+            for declaration in function_node.get('declarations') or []:
+                variables_lc = [
+                    v.lower() for v in (declaration.get('variables') or [])
+                ]
+                attributes = declaration.get('attributes') or []
+                has_intent = any(
+                    re.match(r'intent\s*\(\s*(in|out|inout)\s*\)', a,
+                             re.IGNORECASE)
+                    for a in attributes
+                )
+                external = any(
+                    re.match(r'external', a, re.IGNORECASE)
+                    for a in attributes
+                )
+                if ((return_name or '').lower() in variables_lc
+                        or has_intent):
+                    # Function-result + intent() declarations always go into
+                    # the interface.
+                    if (function_node.get('firstChild') is None
+                            or function_node['firstChild'].get('type') != 'code'):
+                        raise RuntimeError(
+                            'process_function_class: expected a "code" '
+                            'node as first child of function declaration'
+                        )
+                    iface_decl = _code_node_submodule()
+                    iface_decl['source'] = function_node['firstChild'].get('source')
+                    iface_decl['line']   = declaration.get('line', 1)
+                    iface_decl['content'] = _format_variable_definitions(
+                        [declaration])
+                    interface_nodes.append(iface_decl)
+                    _capture_declaration_type(declaration, module_symbols)
+                elif external or declaration.get('intrinsic') == 'procedure':
+                    # External/procedure declarations split into module
+                    # vs submodule scope based on whether the variable is
+                    # a dummy argument of the enclosing unit.
+                    _split_external_or_procedure(
+                        declaration, function_node, local_declarations,
+                        interface_nodes, module_symbols,
+                    )
+                else:
+                    local_declarations.append(declaration)
+
+            function_node['declarations'] = local_declarations
+            build_declarations(function_node)
+        elif function_node.get('type') == 'moduleUse':
+            first_child = function_node.get('firstChild') or {}
+            content_node = _code_node_submodule()
+            content_node['content'] = first_child.get('content') or ''
+            from copy import deepcopy
+            module_use_node = {
+                'type':       'moduleUse',
+                'parent':     None,
+                'sibling':    None,
+                'firstChild': content_node,
+                'source':
+                    'Galacticus.Build.SourceTree.Process.FunctionClass'
+                    '.process_function_class()',
+                'line':       1,
+                'moduleUse':  deepcopy(function_node.get('moduleUse') or {}),
+            }
+            content_node['parent'] = module_use_node
+            module_use_nodes.append(module_use_node)
+        function_node = function_node.get('sibling')
+
+    interface_closer = _code_node_submodule()
+    interface_closer['content'] = (
+        (class_node.get('closer') or '') + 'end interface\n'
+    )
+    class_node['opener'] = (
+        f'module procedure {class_node.get("name")}\n'
+    )
+    class_node['closer'] = (
+        f'end procedure {class_node.get("name")}\n'
+    )
+    interface_nodes.append(interface_closer)
+    code_content['module']['interfaces'].extend(interface_nodes)
+
+
+def _capture_declaration_type(declaration, module_symbols):
+    """Extract the type name from a declaration (stripping `len=…=` prefixes)
+    and append it to module_symbols unless purely numeric.
+    """
+    t = declaration.get('type')
+    if t is None:
+        return
+    t = re.sub(r'^.+=', '', t)
+    t = re.sub(r'\s', '', t)
+    if re.match(r'^\d+$', t):
+        return
+    module_symbols.append(t)
+
+
+def _split_external_or_procedure(declaration, function_node,
+                                 local_declarations, interface_nodes,
+                                 module_symbols):
+    """Split an `external` or `procedure` declaration between module scope
+    (dummy-argument matches → interface) and submodule scope (every other
+    variable → local declarations).  Mirrors lines 706-759 of
+    generateClassSubmodules.
+    """
+    from Fortran.Utils import UNIT_OPENERS
+    from copy import deepcopy
+    parent_unit = function_node.get('parent') or {}
+    parent_type = parent_unit.get('type')
+    spec        = UNIT_OPENERS.get(parent_type) or {}
+    regex       = spec.get('regex')
+    arg_idx     = spec.get('arguments')
+    arguments = []
+    if regex is not None and arg_idx is not None:
+        m = regex.match(parent_unit.get('opener') or '')
+        if m is not None:
+            groups = m.groups()
+            if arg_idx < len(groups) and groups[arg_idx]:
+                arguments = [a.strip().lower()
+                             for a in re.split(r'\s*,\s*', groups[arg_idx])
+                             if a.strip()]
+
+    module_scope    = deepcopy(declaration)
+    submodule_scope = deepcopy(declaration)
+    module_scope['variables']     = []
+    module_scope['variableNames'] = []
+    submodule_scope['variables']     = []
+    submodule_scope['variableNames'] = []
+
+    variables      = declaration.get('variables')      or []
+    variable_names = declaration.get('variableNames')  or []
+    for i, var_name in enumerate(variable_names):
+        if var_name.lower() in arguments:
+            module_scope['variables'].append(variables[i])
+            module_scope['variableNames'].append(var_name)
+        else:
+            submodule_scope['variables'].append(variables[i])
+            submodule_scope['variableNames'].append(var_name)
+
+    if submodule_scope['variables']:
+        local_declarations.append(submodule_scope)
+    if module_scope['variables']:
+        iface_decl = _code_node_submodule()
+        iface_decl['content'] = _format_variable_definitions([module_scope])
+        interface_nodes.append(iface_decl)
+        _capture_declaration_type(declaration, module_symbols)
+
+
+def _handle_pre_contains_node(class_node, directive, code_content, block,
+                              parent, module_scoped, module_symbols,
+                              module_use_nodes, submodule_pre):
+    """Dispatch a single pre-contains class-tree node to the right output
+    partition.  Mirrors the large if/elif ladder at lines 815-985 of
+    generateClassSubmodules.
+    """
+    ntype = class_node.get('type')
+    directive_name = directive['name']
+
+    if ntype == 'scoping':
+        d = class_node.get('directive') or {}
+        inner = d.get('module') if isinstance(d, dict) else None
+        if isinstance(inner, dict) and 'variables' in inner:
+            module_scoped.extend(
+                v.strip()
+                for v in re.split(r'\s*,\s*', inner['variables'])
+                if v.strip()
+            )
+    elif ntype == 'moduleUse':
+        add_uses(parent, class_node)
+    elif ntype in ('type', 'interface', directive_name):
+        code_content['module']['interfaces'].append(class_node)
+        if ntype == 'interface':
+            inode = class_node.get('firstChild')
+            while inode is not None:
+                if inode.get('type') == 'moduleProcedure':
+                    block['interfaces'].extend(
+                        n.lower() for n in inode.get('names') or []
+                    )
+                inode = inode.get('sibling')
+        elif ntype == 'type':
+            _collect_type_bindings_and_module_symbols(
+                class_node, block, module_symbols)
+    elif ntype == 'visibility':
+        vis = class_node.get('visibility') or {}
+        public_names = sorted((vis.get('public') or {}).keys())
+        block['interfaces'].extend(n.lower() for n in public_names)
+        if 'private' in vis:
+            del vis['private']
+        update_visibilities(class_node)
+        code_content['module']['interfaces'].append(class_node)
+    elif ntype == 'declaration':
+        _partition_declaration(class_node, code_content, module_scoped,
+                               module_symbols, submodule_pre)
+    else:
+        submodule_pre.append(class_node)
+
+
+def _collect_type_bindings_and_module_symbols(class_node, block,
+                                              module_symbols):
+    """For a `type` node, accumulate the names of bound procedures (→
+    block['interfaces']) and the types referenced pre-contains
+    (→ module_symbols).  Mirrors lines 843-880 of generateClassSubmodules.
+    """
+    post_contains = False
+    type_node = class_node.get('firstChild')
+    while type_node is not None:
+        if type_node.get('type') == 'contains':
+            post_contains = True
+            type_node = type_node.get('firstChild')
+            if type_node is None:
+                break
+        if post_contains:
+            if type_node.get('type') == 'declaration':
+                for declaration in type_node.get('declarations') or []:
+                    for variable in declaration.get('variables') or []:
+                        m = re.search(r'=>([a-z0-9_]+)', variable)
+                        if m:
+                            block['interfaces'].append(m.group(1))
+                        else:
+                            block['interfaces'].append(variable)
+            elif type_node.get('type') == 'code':
+                content = type_node.get('content') or ''
+                m = re.search(r'final\s*::\s*([a-zA-Z0-9_]+)', content)
+                if m:
+                    block['interfaces'].append(m.group(1).lower())
+        else:
+            if type_node.get('type') == 'declaration':
+                for declaration in type_node.get('declarations') or []:
+                    _capture_declaration_type(declaration, module_symbols)
+        type_node = type_node.get('sibling')
+
+
+def _partition_declaration(class_node, code_content, module_scoped,
+                           module_symbols, submodule_pre):
+    """Split a `declaration` node's variables into module-scope (public or
+    listed in `<scoping>`) vs submodule-scope, rebuilding both sides.
+
+    Mirrors lines 889-980 of generateClassSubmodules.
+    """
+    from copy import deepcopy
+    submodule_declarations = []
+    for declaration in class_node.get('declarations') or []:
+        module_scope_used = False
+        attributes = declaration.get('attributes') or []
+        is_public = any(a.lower() == 'public' for a in attributes)
+
+        if is_public:
+            new_node = _new_declaration_node([declaration])
+            code_content['module']['interfaces'].append(new_node)
+            build_declarations(new_node)
+            module_scope_used = True
+        else:
+            module_variables = []
+            submodule_variables = []
+            variables = declaration.get('variables') or []
+            variable_names = declaration.get('variableNames') or []
+            for i, var in enumerate(variables):
+                vname = variable_names[i] if i < len(variable_names) else ''
+                if any(s.lower() == vname.lower() for s in module_scoped):
+                    module_variables.append((var, vname))
+                else:
+                    submodule_variables.append((var, vname))
+
+            if module_variables:
+                module_decl = deepcopy(declaration)
+                module_decl['variables']     = [v[0] for v in module_variables]
+                module_decl['variableNames'] = [v[1] for v in module_variables]
+                new_node = _new_declaration_node([module_decl])
+                code_content['module']['interfaces'].append(new_node)
+                build_declarations(new_node)
+                module_scope_used = True
+
+            if submodule_variables:
+                submodule_decl = deepcopy(declaration)
+                submodule_decl['variables']     = [v[0] for v in submodule_variables]
+                submodule_decl['variableNames'] = [v[1] for v in submodule_variables]
+                # Strip public/private from submodule decls — submodule vars
+                # are private by definition and can't carry such attributes.
+                submodule_decl['attributes'] = [
+                    a for a in submodule_decl.get('attributes') or []
+                    if a not in ('public', 'private')
+                ]
+                submodule_declarations.append(submodule_decl)
+
+        if module_scope_used:
+            _capture_declaration_type(declaration, module_symbols)
+
+    class_node['declarations'] = submodule_declarations
+    build_declarations(class_node)
+    submodule_pre.append(class_node)
+
+
+def _new_declaration_node(declarations):
+    """Build a fresh declaration node with a code firstChild ready for
+    build_declarations to populate.
+    """
+    new_node = {
+        'type':       'declaration',
+        'sibling':    None,
+        'parent':     None,
+        'source':
+            'Galacticus.Build.SourceTree.Process.FunctionClass'
+            '.process_function_class()',
+        'line':       1,
+        'declarations': list(declarations),
+    }
+    new_node['firstChild'] = {
+        'type':       'code',
+        'content':    '',
+        'sibling':    None,
+        'parent':     new_node,
+        'firstChild': None,
+        'source':     new_node['source'],
+        'line':       new_node['line'],
+    }
+    return new_node
+
+
+def _generate_method_functions(directive, methods, post, node):
+    """Emit the default-implementation body for every method that has no
+    explicit `function=` override.  Each stub either runs the
+    directive-supplied `<code>` block, or calls Error_Report with a
+    "null method" message that names the object's concrete class at
+    runtime.
+
+    Mirrors generateMethodFunctions() at FunctionClass.pm:1026-1167.
+    """
+    directive_name = directive['name']
+    loc_expr = location(node, node.get('line', 0))
+
+    for method_name in sorted(methods):
+        method = methods[method_name]
+        if 'function' in method:
+            continue
+
+        arguments = list(as_array(method.get('argument') or []))
+        pass_self = method.get('pass', 'yes') == 'yes'
+
+        argument_list = ''
+        argument_code = ''
+        unused_variables = ['self']
+        if pass_self:
+            intrinsic = 'type' if method_name == 'destructor' else 'class'
+            intent    = method.get('selfIntent', 'inout')
+            piece = f'      {intrinsic}({directive_name}Class), intent({intent})'
+            if method.get('selfTarget') == 'yes':
+                piece += ', target'
+            piece += ' :: self\n'
+            argument_code += piece
+
+        separator = ''
+        for arg in arguments:
+            # Extract variable list after `::`.
+            parts = arg.split('::', 1)
+            variables = parts[1].strip() if len(parts) == 2 else ''
+            is_openmp = re.match(r'^\s*!\$', arg) is not None
+            if is_openmp:
+                argument_list += ' &\n!$ & ' + separator + variables + ' &\n& '
+            else:
+                argument_list += separator + variables
+            argument_code += '      ' + arg + '\n'
+            separator = ','
+            decl = parse_declaration(arg)
+            if decl is not None:
+                unused_variables.extend(decl.get('variables') or [])
+
+        if method_name == 'assignment(=)':
+            non_operator_name = 'assignment'
+        else:
+            non_operator_name = method_name
+        extension = '' if 'code' in method else '__'
+        function_name = directive_name + _ucfirst(non_operator_name) + extension
+        recursive_prefix = (
+            'recursive ' if method.get('recursive') == 'yes' else ''
+        )
+        elemental_prefix = (
+            'elemental ' if method.get('elemental') == 'yes' else ''
+        )
+
+        method_type = method.get('type', 'void')
+        self_line = ''
+        type_prefix = ''
+        if method_type == 'void':
+            category = 'subroutine'
+        elif method_type.startswith('class'):
+            category = 'function'
+            self_line = (
+                f'      {method_type}, pointer :: {function_name}\n'
+            )
+        elif method_type.startswith('type') or ',' in method_type:
+            category = 'function'
+            self_line = f'      {method_type} :: {function_name}\n'
+        else:
+            category = 'function'
+            type_prefix = method_type + ' '
+
+        post['content'] += (
+            f'   {recursive_prefix}{elemental_prefix}{type_prefix}{category} '
+            f'{function_name}(self'
+        )
+        if argument_list:
+            post['content'] += ',' + argument_list
+        post['content'] += ')\n'
+        post['content'] += '      !!{\n'
+        post['content'] += (
+            f'      Default implementation of the \\mono{{{method_name}}} '
+            f'method for the \\mono{{{directive_name}}} class.\n'
+        )
+        post['content'] += '      !!}\n'
+
+        if 'code' in method:
+            modules = method.get('modules')
+            if modules is not None:
+                module_list = _normalise_modules(modules)
+                for mod in module_list:
+                    prefix = '!$ ' if 'OMP_Lib' in mod['name'] else ''
+                    only_clause = ''
+                    if mod.get('only'):
+                        only_clause = (
+                            ', only : ' + ','.join(as_array(mod['only']))
+                        )
+                    post['content'] += (
+                        f'      {prefix}use {mod["name"]}{only_clause}\n'
+                    )
+        else:
+            post['content'] += '      use Error             , only : Error_Report\n'
+            post['content'] += '      use ISO_Varying_String, only : char\n'
+        post['content'] += '      implicit none\n'
+        post['content'] += argument_code
+        post['content'] += self_line
+        post['content'] += (
+            f'!$GLC attributes unused :: {", ".join(unused_variables)}\n'
+        )
+
+        if 'code' in method:
+            body = method['code']
+            body = '      ' + body.replace('\n', '\n      ')
+            post['content'] += body + '\n'
+        else:
+            post['content'] += (
+                f"      call Error_Report('this is a null method - initialize the "
+                f"{directive_name} object before use and/or check that the \"'//"
+                f"char(self%objectType())//'\" class implements this method'//"
+                f'{loc_expr})\n'
+            )
+            if category == 'function':
+                # Avoid warnings about unset function values.
+                post['content'] += f'      {function_name}='
+                set_value = None
+                if method_type.startswith('class'):
+                    set_value = '> null()'
+                elif re.match(r'^type\s*\(\s*(.*)\s*\)', method_type):
+                    m = re.match(r'^type\s*\(\s*(.*)\s*\)', method_type)
+                    if ',pointer' in method_type.replace(' ', '') \
+                            or ', pointer' in method_type.lower():
+                        set_value = '>null()'
+                    else:
+                        set_value = (m.group(1) if m else '') + '()'
+                elif method_type.startswith('integer'):
+                    set_value = '0'
+                elif method_type.startswith('double precision'):
+                    set_value = '0.0d0'
+                elif method_type.startswith('logical'):
+                    set_value = '.false.'
+                if set_value is None:
+                    raise RuntimeError(
+                        f"generate_method_functions: do not know how to set "
+                        f"'{method_type}'"
+                    )
+                post['content'] += set_value + '\n'
+            post['content'] += '      return\n'
+        post['content'] += f'   end {category} {function_name}\n\n'
+
+
+def _normalise_modules(modules):
+    """Normalise the `modules` entry on a method dict into a list of
+    `{name, only}` shapes.  Mirrors the `reftype($method->{'modules'})`
+    branch at generateMethodFunctions.pm:1109-1124.
+    """
+    if isinstance(modules, list):
+        return [m for m in modules if isinstance(m, dict) and 'name' in m]
+    if isinstance(modules, dict):
+        if 'name' in modules and all(not isinstance(v, dict)
+                                     for v in modules.values()):
+            return [modules]
+        return [
+            dict(attrs, name=name) if isinstance(attrs, dict)
+            else {'name': name}
+            for name, attrs in modules.items()
+        ]
+    if isinstance(modules, str):
+        return [{'name': tok} for tok in modules.split() if tok]
+    return []
+
+
+def _generate_documentation(directive, classes, non_abstract_classes):
+    """Write a LaTeX `doc/physics/<descriptive>.tex` file describing every
+    class in the functionClass hierarchy.
+
+    Mirrors generateDocumentation() at FunctionClass.pm:1169-1399.  The
+    Perl version uses `system("mkdir -p doc/physics")` + a hard-coded
+    write; we do the same, relative to the current working directory,
+    which matches the Perl build-system assumption.
+    """
+    directive_name   = directive['name']
+    descriptive_name = directive.get('descriptiveName', directive_name)
+
+    doc = (
+        f'\\section{{{descriptive_name}}}\\label{{phys:{directive_name}}}'
+        f'\\hyperdef{{physics}}{{{directive_name}}}{{}}\n\n'
+    )
+    if 'description' in directive:
+        doc += directive['description'] + '\n\n'
+    if 'default' in directive:
+        default_target = directive_name + _ucfirst(directive['default'])
+        doc += (
+            f'Default implementation: \\refPhysics{{{default_target}}}\n\n'
+        )
+    else:
+        doc += 'No default implementation\n\n'
+
+    for class_name in sorted(classes.keys(), key=str.lower):
+        class_record = classes[class_name]
+        suffix = class_record['name']
+        if suffix.startswith(directive_name):
+            suffix = suffix[len(directive_name):]
+        if not re.match(r'^[A-Z]{2}', suffix):
+            suffix = _lcfirst(suffix)
+        doc += (
+            f'\\subsection{{\\mono{{{suffix}}}}}'
+            f'\\label{{phys:{class_record["name"]}}}'
+            f'\\hyperdef{{physics}}{{{class_record["name"]}}}{{}}\n\n'
+        )
+        doc += (class_record.get('description') or '') + '\n\n'
+        if ('default' in directive
+                and directive_name + _ucfirst(directive['default'])
+                    == class_record['name']):
+            doc += '\\noindent \\textbf{(Default)}\n\n'
+        doc += (
+            f'\\noindent \\emph{{Implemented by}} '
+            f'\\refClass{{{class_record["name"]}}}\n'
+        )
+
+        # Walk the tree for this class to extract constructor parameter /
+        # objectBuilder information.  The level of detail here matches
+        # Perl's: we walk interface/moduleProcedure pairs, then hunt for
+        # matching function nodes to find inputParameter / objectBuilder
+        # directives inside.
+        tree = class_record.get('tree')
+        if tree is None:
+            continue
+
+        constructors = _collect_constructor_names(tree, class_name)
+        parameters, objects = _collect_doc_parameters_and_objects(
+            tree, constructors, class_name, class_record, classes, directive,
+        )
+        if parameters:
+            doc += (
+                '\n\n\\noindent\\emph{Parameters}\n'
+                '\\begin{description}\n'
+                + '\n'.join(parameters)
+                + '\n\\end{description}\n'
+            )
+        if objects:
+            sorted_objects = sorted(objects)
+            doc += (
+                '\n\\noindent\\emph{Classes used}\n\n'
+                '\\begin{tabular}{ll}\n'
+            )
+            for i in range(0, len(sorted_objects), 2):
+                doc += f'\\refPhysics{{{sorted_objects[i]}}}'
+                if i + 1 < len(sorted_objects):
+                    doc += f' & \\refPhysics{{{sorted_objects[i + 1]}}}'
+                doc += '\\\\\n'
+            doc += '\\end{tabular}\n\n'
+
+    out_dir = os.path.join('doc', 'physics')
+    os.makedirs(out_dir, exist_ok=True)
+    file_base = re.sub(r'\s+', '_', descriptive_name.lower())
+    out_path = os.path.join(out_dir, f'{file_base}.tex')
+    with open(out_path, 'w') as fh:
+        fh.write(doc)
+
+
+def _collect_constructor_names(tree, class_name):
+    """Find the `interface <class>` block in the class tree and return the
+    list of module-procedure names it declares.  Mirrors the first walk
+    inside generateDocumentation() at lines 1196-1207.
+    """
+    node = tree.get('firstChild')
+    while node is not None and not (
+            node.get('type') == 'interface'
+            and node.get('name') == class_name):
+        node = node.get('sibling')
+    if node is None:
+        return []
+    constructors = []
+    child = node.get('firstChild')
+    while child is not None:
+        if child.get('type') == 'moduleProcedure':
+            constructors.extend(child.get('names') or [])
+        child = child.get('sibling')
+    return constructors
+
+
+def _collect_doc_parameters_and_objects(
+        tree, constructors, class_name, class_record, classes, directive):
+    """For each constructor function in `tree`, walk its body collecting
+    inputParameter directives (→ `parameters` list, as LaTeX-encoded
+    `\\item` strings) and objectBuilder directives (→ `objects` list of
+    class names).  Mirrors lines 1209-1376 of generateDocumentation().
+    """
+    parameters = []
+    objects    = []
+    directive_name = directive['name']
+
+    node = tree.get('firstChild')
+    while node is not None:
+        if (node.get('type') == 'function'
+                and node.get('name') in constructors):
+            for cnode in walk_tree(node):
+                if cnode is node:
+                    continue
+                if cnode.get('type') == 'inputParameter':
+                    entry = _format_input_parameter_doc(
+                        cnode, node, class_record, classes,
+                        directive_name,
+                    )
+                    if entry is not None:
+                        parameters.append(entry)
+                elif cnode.get('type') == 'objectBuilder':
+                    objects.append(
+                        (cnode.get('directive') or {}).get('class'))
+        # Descend into `contains` blocks — the Perl idiom
+        # `$node = $node->{'type'} eq "contains" ? $node->{'firstChild'}
+        #                                         : $node->{'sibling'};`
+        if node.get('type') == 'contains':
+            node = node.get('firstChild')
+        else:
+            node = node.get('sibling')
+    return parameters, [o for o in objects if o]
+
+
+def _format_input_parameter_doc(cnode, function_node, class_record,
+                                classes, directive_name):
+    """Render one inputParameter directive into a LaTeX `\\item[...]` line
+    for the class's documentation entry.
+    """
+    cdir = cnode.get('directive') or {}
+    variable_name = cdir.get('variable') or cdir.get('name') or ''
+    variable_name = re.sub(r'\(.+\)$', '', variable_name)
+
+    declaration = None
+    m = re.match(
+        r'([a-zA-Z0-9_]+)(\s*\(\s*[a-zA-Z0-9_:,]\s*\)\s*)??'
+        r'%([a-zA-Z0-9_]+)',
+        variable_name,
+    )
+    if m:
+        object_name = m.group(1)
+        member      = m.group(3)
+        if object_name in ('self', function_node.get('name')):
+            # Walk up the extends chain looking for the member declaration.
+            cursor = class_record
+            while cursor is not None:
+                type_node = _find_type_node_named(cursor.get('tree'),
+                                                  cursor.get('name'))
+                if type_node is not None and declaration_exists(
+                        type_node, member):
+                    declaration = get_declaration(type_node, member)
+                if declaration is not None:
+                    break
+                extends = cursor.get('extends')
+                if extends is None or extends == directive_name:
+                    break
+                cursor = classes.get(extends)
+        else:
+            # Non-self object — handle stateful{Double,Integer,Logical}.
+            if declaration_exists(function_node, object_name):
+                d_tmp = get_declaration(function_node, object_name)
+                if (d_tmp.get('intrinsic') == 'type'
+                        and d_tmp.get('type') in (
+                            'statefulDouble', 'statefulInteger',
+                            'statefulLogical')):
+                    declaration = dict(d_tmp)
+                    if d_tmp['type'] == 'statefulDouble':
+                        declaration['intrinsic'] = 'double precision'
+                    elif d_tmp['type'] == 'statefulInteger':
+                        declaration['intrinsic'] = 'integer'
+                    else:
+                        declaration['intrinsic'] = 'logical'
+                    declaration['type'] = None
+    else:
+        if declaration_exists(function_node, variable_name):
+            declaration = get_declaration(function_node, variable_name)
+
+    if declaration is None:
+        if 'type' in cdir and 'cardinality' in cdir:
+            declaration = {
+                'parameterType':        cdir['type'],
+                'parameterCardinality': cdir['cardinality'],
+            }
+        else:
+            # Bail out with a clear message — matches Perl's `die('abort')`.
+            raise RuntimeError(
+                f"generate_documentation: unable to find parameter variable "
+                f"declaration for \"{cdir.get('name')}\" in class "
+                f"\"{class_record.get('name')}\""
+            )
+
+    # Determine type + cardinality.
+    if 'parameterType' in declaration:
+        type_name = declaration['parameterType']
+    else:
+        intrinsic = declaration.get('intrinsic')
+        if intrinsic == 'double precision':
+            type_name = 'real'
+        elif intrinsic == 'integer':
+            type_name = 'integer'
+        elif intrinsic == 'logical':
+            type_name = 'boolean'
+        elif intrinsic == 'character':
+            type_name = 'string'
+        elif (intrinsic == 'type'
+              and declaration.get('type') == 'varying_string'):
+            type_name = 'string'
+        else:
+            raise RuntimeError(
+                'generate_documentation: unable to determine parameter type')
+
+    if 'parameterCardinality' in declaration:
+        cardinality = declaration['parameterCardinality']
+    else:
+        attrs = declaration.get('attributes') or []
+        dims = [a for a in attrs if a.startswith('dimension')]
+        if dims:
+            d = re.match(r'^dimension\s*\(\s*(.+?)\s*\)', dims[0])
+            if not d:
+                raise RuntimeError(
+                    'generate_documentation: unable to parse dimension attribute')
+            shape_parts = [s.strip() for s in d.group(1).split(',')]
+            cardinality_max = 1
+            for part in shape_parts:
+                if part.isdigit():
+                    cardinality_max *= int(part)
+                else:
+                    cardinality_max = '*'
+                    break
+        else:
+            cardinality_max = 1
+        if cardinality_max == '*':
+            cardinality = ('0..*' if 'defaultValue' in cdir else '1..*')
+        else:
+            if 'defaultValue' in cdir:
+                cardinality = f'0,{cardinality_max}'
+            else:
+                cardinality = cardinality_max
+
+    description = (
+        f'\\item[\\mono{{[{_latex_encode(cdir.get("name", ""))}]}}] '
+        f'({type_name}; {cardinality}) '
+    )
+    if 'defaultValue' in cdir:
+        value = _latex_encode(cdir['defaultValue'])
+        if value == '.true.':
+            value = 'true'
+        elif value == '.false.':
+            value = 'false'
+        if type_name == 'real':
+            value = re.sub(r'(\d)d([\+\-0-9])', r'\1e\2', value)
+        if type_name == 'integer':
+            value = value.replace(r'\_c\_size\_t', '')
+        if type_name == 'string':
+            m2 = re.match(r"^var\\_str\(['\"](.*)['\"]\)$", value)
+            if m2:
+                value = m2.group(1)
+        default_source = (
+            '; ' + cdir['defaultSource']
+            if 'defaultSource' in cdir else ''
+        )
+        description += (
+            f' \\{{\\mono{{{value}}}{default_source}\\}} '
+        )
+    description += cdir.get('description', '')
+    return description
+
+
+def _find_type_node_named(tree, class_name):
+    """Walk `tree` looking for a `type` node with the given name.  Used by
+    _format_input_parameter_doc to crawl up the extends chain."""
+    if tree is None:
+        return None
+    node = tree.get('firstChild')
+    while node is not None:
+        if (node.get('type') == 'type'
+                and node.get('name') == class_name):
+            return node
+        node = node.get('sibling')
+    return None
 
 
 # ---------------------------------------------------------------------------

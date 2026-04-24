@@ -86,6 +86,10 @@ from Galacticus.Build.SourceTree.Process.FunctionClass import (
     _is_function_class_pointer, _init_code_content,
     _build_base_method_stubs, _build_object_type_method,
     _load_and_sort_classes,
+    _generate_type_definition, _generate_constructor,
+    _generate_method_functions, _generate_documentation,
+    _generate_class_submodules,
+    _format_variable_definitions, _source_digest_binding,
     _STATE_STORABLES_HOLDER     as _fc_state_storables_holder,
     _DEEP_COPY_ACTIONS_HOLDER   as _fc_deep_copy_actions_holder,
     _DIRECTIVE_LOCATIONS_HOLDER as _fc_directive_locations_holder,
@@ -4256,6 +4260,234 @@ def test_functionclass_process_hook_marks_class_nodes():
 
 
 # ============================================================================
+# Process.FunctionClass body-emitter tests (PR D.7.3b)
+# ============================================================================
+
+def test_functionclass_format_variable_definitions():
+    print("\n=== Testing FunctionClass._format_variable_definitions ===")
+    text = _format_variable_definitions([
+        {'intrinsic': 'integer', 'type': None,
+         'attributes': ['intent(in)'],
+         'variables': ['n']},
+        {'intrinsic': 'real', 'type': 'kind=8',
+         'attributes': ['intent(inout)', 'dimension(:)'],
+         'variables': ['x', 'y']},
+    ])
+    assert_equal('integer, intent(in) :: n' in text, True,
+                 "simple integer declaration rendered")
+    assert_equal(
+        'real(kind=8), intent(inout), dimension(:) :: x, y' in text,
+        True, "real with kind + multi-attr + multi-var rendered")
+
+
+def test_functionclass_source_digest_binding():
+    print("\n=== Testing FunctionClass._source_digest_binding ===")
+    out = _source_digest_binding('myClass')
+    assert_equal(
+        'character(C_Char), dimension(23), bind(C, name="myClassMD5") '
+        ':: myClass5' in out, True,
+        "C-binding declaration matches Perl SourceDigest::Binding format")
+
+
+def test_functionclass_generate_type_definition():
+    print("\n=== Testing FunctionClass._generate_type_definition ===")
+    root = _parse_text("module m\nend module m\n")
+    mod = _find_node(root, 'module')
+    # Create a fake node+pre; we don't go through process_function_class()
+    # here, we just invoke the generator directly.
+    pre = {'type': 'code', 'content': '', 'parent': None,
+           'firstChild': None, 'sibling': None, 'source': 'x', 'line': 1}
+    fc_directive = {
+        'name':        'myFoo',
+        'description': 'Just a test class.',
+        'data': [
+            {'scope': 'self',   'content': '    integer :: counter=0'},
+            {'scope': 'module', 'content': '    integer :: globalFlag=0',
+             'threadprivate': 'yes'},
+        ],
+        'generic': [
+            {'name': 'evaluate', 'method': ['evaluateRank0']},
+        ],
+    }
+    methods = {
+        'evaluateRank0': {
+            'type':        'double precision',
+            'description': 'Evaluate at a single point.',
+            'argument':    ['double precision, intent(in   ) :: x'],
+        },
+        'destructor': {'type': 'void'},
+    }
+    directive_node = _make_directive_node('myFoo', fc_directive, mod)
+    _generate_type_definition(fc_directive, methods, pre, directive_node)
+    text = pre['content']
+    assert_equal('type, extends(functionClass) :: myFooClass' in text, True,
+                 "type declaration emitted with default functionClass parent")
+    assert_equal("stateOperationID=0" in text, True,
+                 "stateOperationID declaration emitted")
+    assert_equal('integer :: counter=0' in text, True,
+                 "self-scope <data> entry inlined inside type")
+    assert_equal('integer :: globalFlag=0' in text, True,
+                 "module-scope <data> entry emitted after end type")
+    assert_equal('!$omp threadprivate(globalFlag)' in text, True,
+                 "threadprivate entry emitted for module-scope <data>")
+    assert_equal('procedure :: evaluateRank0 => myFooEvaluateRank0__' in text,
+                 True, "method binding line emitted with __ (no code given)")
+    assert_equal('generic :: evaluate => evaluateRank0' in text, True,
+                 "generic interface binding emitted")
+    assert_equal('final :: myFooDestructor' in text, True,
+                 "final binding emitted when destructor is present")
+    assert_equal('integer :: myFooDsblVldtn=0' in text, True,
+                 "disable-validation state variable emitted")
+
+
+def test_functionclass_generate_constructor_with_default_and_recursion():
+    print("\n=== Testing FunctionClass._generate_constructor (default + recursion) ===")
+    root = _parse_text("module m\nend module m\n")
+    mod = _find_node(root, 'module')
+    pre = {'type': 'code', 'content': '', 'parent': None,
+           'firstChild': None, 'sibling': None, 'source': 'x', 'line': 1}
+    post = {'type': 'code', 'content': '', 'parent': None,
+            'firstChild': None, 'sibling': None, 'source': 'x', 'line': 1}
+    fc_directive = {'name': 'myFoo', 'default': 'core'}
+    classes_ordered = [
+        {'name': 'myFooCore', 'shortName': 'core', 'recursive': 'yes'},
+        {'name': 'myFooAdv',  'shortName': 'adv'},
+    ]
+    non_abstract = classes_ordered
+    directive_node = _make_directive_node('myFoo', fc_directive, mod)
+    # Top-level tree is the fake root; pretend it's a file-typed node.
+    fake_tree = {'type': 'file', 'name': 'test.F90'}
+    tmpdir = tempfile.mkdtemp()
+    saved = os.environ.get('BUILDPATH')
+    os.environ['BUILDPATH'] = tmpdir
+    try:
+        _generate_constructor(fc_directive, classes_ordered, non_abstract,
+                              pre, post, directive_node, fake_tree)
+    finally:
+        if saved is None:
+            del os.environ['BUILDPATH']
+        else:
+            os.environ['BUILDPATH'] = saved
+        import shutil
+        shutil.rmtree(tmpdir)
+
+    assert_equal('interface myFoo' in pre['content'], True,
+                 "constructor interface declared")
+    assert_equal('RecursiveBuildNode' in pre['content'], True,
+                 "recursive-build state variable declared when any class is recursive")
+    body = post['content']
+    assert_equal('function myFooCnstrctrPrmtrs(parameters,copyInstance,'
+                 'parameterName) result(self)' in body, True,
+                 "constructor function declared with all expected parameters")
+    assert_equal("parameterName_='myFoo'" in body, True,
+                 "default parameterName falls back to directive name")
+    assert_equal("case ('core')" in body, True,
+                 "select case branch emitted per non-abstract class")
+    assert_equal('self=myFooCore(subParameters)' in body, True,
+                 "per-class self-construction emitted")
+    assert_equal('message=message//char(10)' in body, True,
+                 "case-default error message lists alternatives")
+
+
+def test_functionclass_generate_method_functions():
+    print("\n=== Testing FunctionClass._generate_method_functions ===")
+    post = {'type': 'code', 'content': '', 'parent': None,
+            'firstChild': None, 'sibling': None, 'source': 'x', 'line': 1}
+    node = {'type': 'functionClass', 'line': 0, 'source': 't.F90',
+            'parent': None}
+    fc_directive = {'name': 'myFoo'}
+    methods = {
+        # void method with explicit code
+        'tick': {
+            'type': 'void',
+            'pass': 'yes',
+            'code': 'call advance(self)',
+            'argument': ['integer, intent(in) :: steps'],
+        },
+        # function stub — no code provided; method returns integer
+        'count': {
+            'type': 'integer',
+            'pass': 'yes',
+        },
+        # function stub returning class pointer
+        'child': {
+            'type':        'class(myFooClass)',
+            'pass':        'yes',
+            'description': 'Return a child pointer.',
+        },
+        # skip — has explicit function override
+        'overridden': {'type': 'void', 'function': 'myImpl'},
+    }
+    _generate_method_functions(fc_directive, methods, post, node)
+    body = post['content']
+    assert_equal('subroutine myFooTick(self,steps)' in body, True,
+                 "subroutine stub emitted for void method with code")
+    assert_equal('call advance(self)' in body, True,
+                 "explicit <code> block spliced into body")
+    assert_equal('integer function myFooCount__' in body, True,
+                 "function stub uses __ suffix when no code is given")
+    assert_equal('myFooCount__=0' in body, True,
+                 "default initial return value emitted for integer")
+    assert_equal('function myFooChild__' in body, True,
+                 "function stub for class-pointer return type emitted")
+    assert_equal('myFooChild__=> null()' in body, True,
+                 "class-pointer default is => null()")
+    assert_equal('overridden' not in body, True,
+                 "methods with explicit function= are skipped")
+
+
+def test_functionclass_generate_documentation_basic():
+    print("\n=== Testing FunctionClass._generate_documentation (basic write) ===")
+    # Set up a minimal tree for one class that has an interface block naming
+    # a module-procedure constructor — the walker needs both to emit the
+    # class's `\\subsection{}` header without parameter details.
+    class_src = (
+        "module m\n"
+        "  interface myFooCore\n"
+        "    module procedure myFooCoreConstructor\n"
+        "  end interface myFooCore\n"
+        "end module m\n"
+    )
+    tree = _parse_text(class_src)
+    classes = {
+        'myFooCore': {
+            'name':        'myFooCore',
+            'description': 'The core implementation.',
+            'tree':        tree,
+            'extends':     'myFoo',
+        },
+    }
+    non_abstract_classes = [classes['myFooCore']]
+    directive = {
+        'name':            'myFoo',
+        'descriptiveName': 'My Foo Example',
+        'description':     'A toy functionClass for unit tests.',
+    }
+
+    cwd = os.getcwd()
+    tmpdir = tempfile.mkdtemp()
+    try:
+        os.chdir(tmpdir)
+        _generate_documentation(directive, classes, non_abstract_classes)
+        out_path = os.path.join(
+            tmpdir, 'doc', 'physics', 'my_foo_example.tex')
+        assert_equal(os.path.exists(out_path), True,
+                     "documentation file written at expected path")
+        with open(out_path, 'r') as fh:
+            payload = fh.read()
+        assert_equal('\\section{My Foo Example}' in payload, True,
+                     "\\section header with descriptive name")
+        assert_equal('\\refClass{myFooCore}' in payload, True,
+                     "\\refClass reference to the implementation emitted")
+        assert_equal('The core implementation.' in payload, True,
+                     "class description spliced into subsection body")
+    finally:
+        os.chdir(cwd)
+        import shutil
+        shutil.rmtree(tmpdir)
+
+
+# ============================================================================
 # Main
 # ============================================================================
 
@@ -4379,6 +4611,12 @@ def main():
     test_functionclass_load_and_sort_classes_default_validation()
     test_functionclass_process_hook_is_no_op_when_no_directive()
     test_functionclass_process_hook_marks_class_nodes()
+    test_functionclass_format_variable_definitions()
+    test_functionclass_source_digest_binding()
+    test_functionclass_generate_type_definition()
+    test_functionclass_generate_constructor_with_default_and_recursion()
+    test_functionclass_generate_method_functions()
+    test_functionclass_generate_documentation_basic()
 
     print("\n" + "=" * 70)
     print(f"Results: {PASS_COUNT} passed, {FAIL_COUNT} failed")
