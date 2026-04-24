@@ -1040,13 +1040,9 @@ def _build_descriptor_methods(directive, non_abstract_classes, classes,
                                     )
                                 else:
                                     if is_logical:
-                                        # Perl emits a malformed line here
-                                        # ("if (self%X(i1,i2) then") — we
-                                        # preserve it verbatim for byte
-                                        # identity with the Perl port.
                                         descriptor_code += (
                                             f"if (self%{parameter['name']}"
-                                            f"({idx}) then\n"
+                                            f"({idx})) then\n"
                                         )
                                         descriptor_code += (
                                             "  parameterLabel='true'\n")
@@ -1237,11 +1233,9 @@ def _build_descriptor_methods(directive, non_abstract_classes, classes,
                                     f"({idx})%isSet) then\n"
                                 )
                                 if is_logical:
-                                    # Perl emits a malformed line; preserve
-                                    # it verbatim.
                                     descriptor_code += (
                                         f"if (self%{parameter['name']}"
-                                        f"({idx}%value) then\n"
+                                        f"({idx})%value) then\n"
                                     )
                                     descriptor_code += (
                                         "  parameterLabel='true'\n")

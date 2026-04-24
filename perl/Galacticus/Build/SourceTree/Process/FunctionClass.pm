@@ -1889,7 +1889,7 @@ sub buildDescriptorMethods {
 					    $descriptorCode .= " parameterValues=parameterValues//".$function."(self%".$parameter->{'name'}."(".join(",",map {"i".$_} 1..$rank)."))\n";
 					} else {
 					    if ( $isLogical ) {
-						$descriptorCode .= "if (self%".$parameter->{'name'}."(".join(",",map {"i".$_} 1..$rank).") then\n";
+						$descriptorCode .= "if (self%".$parameter->{'name'}."(".join(",",map {"i".$_} 1..$rank).")) then\n";
 						$descriptorCode .= "  parameterLabel='true'\n";
 						$descriptorCode .= "else\n";
 						$descriptorCode .= "  parameterLabel='false'\n";
@@ -1994,7 +1994,7 @@ sub buildDescriptorMethods {
 					}
 					$descriptorCode .= "if (self%".$parameter->{'name'}."(".join(",",map {"i".$_} 1..$rank).")%isSet) then\n";
 					if ( $isLogical ) {
-					    $descriptorCode .= "if (self%".$parameter->{'name'}."(".join(",",map {"i".$_} 1..$rank)."%value) then\n";
+					    $descriptorCode .= "if (self%".$parameter->{'name'}."(".join(",",map {"i".$_} 1..$rank).")%value) then\n";
 					    $descriptorCode .= "  parameterLabel='true'\n";
 					    $descriptorCode .= "else\n";
 					    $descriptorCode .= "  parameterLabel='false'\n";
