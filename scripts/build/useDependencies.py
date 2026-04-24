@@ -620,8 +620,15 @@ def _scan_source_file(sources_entry, file_names_to_process, source_file,
                     if m:
                         module_name = m.group(1)
                         if module_name != 'procedure':
+                            # Store in the same `<build>/<lower>.mod` form
+                            # that `modulesUsed` uses, so the self-reference
+                            # filter in _write_makefile can actually match.
+                            # The Perl original stored `ModuleName.mod`
+                            # here -- case preserved, no path -- which
+                            # meant the filter was a no-op; fixed in the
+                            # Python port.
                             sources_entry['modulesProvided'][
-                                module_name + '.mod'
+                                work_dir + module_name.lower() + '.mod'
                             ] = True
                             if directives['functionClass']:
                                 for fc in directives['functionClass']:
@@ -768,7 +775,10 @@ def _build_submodule_map(uses_per_file, work_dir):
                 f"useDependencies.py: submodules [{', '.join(subs)}] "
                 f"associated with multiple modules [{', '.join(provided)}]"
             )
-        submodules[work_dir + provided[0].lower()] = list(subs)
+        # `modulesProvided` keys are already stored in `<build>/<lower>.mod`
+        # form, so use directly (this is the format the submodule-map
+        # consumers look up against `modulesUsed`).
+        submodules[provided[0]] = list(subs)
 
     for file_id, entry in uses_per_file.items():
         if file_id == 'eventHooksManager':
