@@ -1,0 +1,367 @@
+#!/usr/bin/env python3
+"""Compute MD5 source digests for every `functionClass` / `sourceDigest`
+type that participates in a given executable, and emit a C source file
+binding each type's composite digest to a `<type>MD5` character array.
+
+Walks every source file whose `.o` appears in `<target>.d`, extracts
+`<sourceDigest>` / `<functionClass>` directives, and parses every
+functionClass instance file's source tree to collect the derived-type
+dependency graph.  For each type, `Find_Hash` (ported Phase-0) computes
+an MD5 over the file and every source it `include`s, skipping a small
+set of non-deterministic inputs (`fftw3.f03`, build-environment / version
+includes).  Composite digests are then resolved by iteratively combining
+each type's source digest with those of its declared dependencies.
+
+Outputs:
+  * `$BUILDPATH/<target>.md5s.c`  -- one `char <type>MD5[] = "..."` per type
+                                     (slashes in b64 digests replaced by `@`
+                                     so the identifier is valid in C).
+  * `$BUILDPATH/<target>.md5.blob` -- pickle cache of per-file digest data.
+
+Mirrors scripts/build/sourceDigests.pl.
+Andrew Benson (ported to Python 2026).
+"""
+
+import base64
+import hashlib
+import os
+import pickle
+import re
+import sys
+import xml.etree.ElementTree as ET
+
+sys.path.insert(0, os.path.join(os.environ.get('GALACTICUS_EXEC_PATH', ''), 'python'))
+
+from Galacticus.Build.Directives                             import extract_directives
+from Galacticus.Build.SourceTree                             import parse_file, walk_tree
+from Galacticus.Build.SourceTree.Process.FunctionClass.Utils import class_dependencies
+from Galacticus.Build.SourceTree.Process.SourceDigest        import find_hash
+from List.ExtraUtils                                         import as_array
+from XML.Utils                                               import xml_to_dict
+
+
+_EXCLUDED_INCLUDES = [
+    'fftw3.f03',
+    'output.build.environment.inc',
+    'output.version.revision.inc',
+]
+
+
+def _file_identifier(path):
+    """Perl `(my $id = $path) =~ s/\\//_/g; $id =~ s/^\\._??//;`."""
+    return re.sub(r'^\._?', '', path.replace('/', '_'))
+
+
+def _load_cache(blob_path):
+    if not os.path.exists(blob_path):
+        return {}, None
+    try:
+        with open(blob_path, 'rb') as fh:
+            cache = pickle.load(fh)
+    except (pickle.UnpicklingError, EOFError, AttributeError, ValueError,
+            ImportError, ModuleNotFoundError):
+        return {}, None
+    if not isinstance(cache, dict):
+        return {}, None
+    return cache, os.stat(blob_path).st_mtime
+
+
+def _load_xml(path):
+    if not os.path.exists(path):
+        return None
+    return xml_to_dict(ET.parse(path).getroot())
+
+
+def _object_files_from_dep(dependency_file_name, build_path):
+    """Extract bare `<name>.o` entries from `<target>.d`."""
+    if not os.path.exists(dependency_file_name):
+        return []
+    prefix_re = re.compile(r'^' + re.escape(build_path) + r'/(.+\.o)$')
+    out = []
+    with open(dependency_file_name, 'r') as fh:
+        for line in fh:
+            m = prefix_re.match(line.rstrip('\n'))
+            if m:
+                out.append(m.group(1))
+    return out
+
+
+def _functionclass_names_and_modules(state_storables):
+    """Return a list of functionClass *directive* names (i.e. the
+    `<functionClass>Class` entries from `stateStorables.xml`, with the
+    trailing `Class` stripped) plus the `functionClassInstances` names.
+
+    Mirrors sourceDigests.pl:42-47.
+    """
+    fcs = (state_storables or {}).get('functionClasses') or {}
+    if isinstance(fcs, dict):
+        fc_keys = sorted(fcs.keys())
+    elif isinstance(fcs, list):
+        fc_keys = sorted(
+            d['name'] for d in fcs if isinstance(d, dict) and 'name' in d
+        )
+    else:
+        fc_keys = []
+    function_class_names = [re.sub(r'Class$', '', k) for k in fc_keys]
+
+    instances = (state_storables or {}).get('functionClassInstances') or []
+    if isinstance(instances, str):
+        instances = [instances]
+    return function_class_names, list(instances)
+
+
+def _append_dep_files(entry_files, file_to_process, build_path):
+    """Read the `.d` sidecar for `file_to_process` and record every
+    source file (`.F90`/`.Inc`/`.cpp`/`.c`/`.h`) those entries reference.
+
+    Mirrors sourceDigests.pl:93-105.
+    """
+    m = re.search(r'/([^/]+)\.F90$', file_to_process)
+    if not m:
+        return
+    dep_file = os.path.join(build_path, m.group(1) + '.d')
+    if not os.path.exists(dep_file):
+        return
+    with open(dep_file, 'r') as fh:
+        for dep_line in fh:
+            dep = dep_line.rstrip('\n')
+            m2 = re.search(r'/([^/]+)\.o$', dep)
+            if not m2:
+                continue
+            root = 'source/' + m2.group(1) + '.'
+            for suffix in ('F90', 'Inc', 'cpp', 'c', 'h'):
+                candidate = root + suffix
+                if os.path.exists(candidate):
+                    entry_files.append(candidate)
+                    break
+
+
+def _b64digest_no_pad(hasher):
+    return base64.b64encode(hasher.digest()).rstrip(b'=').decode('ascii')
+
+
+def main(argv):
+    if len(argv) != 4:
+        print("Usage: sourceDigests.py <sourceDirectory> <target> <useLocks>",
+              file=sys.stderr)
+        sys.exit(1)
+    source_directory_name = argv[1]
+    target_name           = argv[2]
+    use_locks_arg         = argv[3]
+    use_locks             = use_locks_arg == 'yes' or use_locks_arg == '1'
+    build_path            = os.environ['BUILDPATH']
+
+    state_storables = _load_xml(
+        os.path.join(build_path, 'stateStorables.xml'),
+    )
+    locations_path = os.path.join(build_path, 'directiveLocations.xml')
+    if not os.path.exists(locations_path):
+        sys.exit("Error: directiveLocations.xml not found")
+    locations = xml_to_dict(ET.parse(locations_path).getroot())
+
+    function_class_names, instance_names = _functionclass_names_and_modules(
+        state_storables,
+    )
+
+    function_class_files = []
+    for name in function_class_names:
+        function_class_files.extend(
+            as_array((locations.get(name) or {}).get('file'))
+        )
+    function_class_file_set = set(function_class_files)
+
+    allowed_names = ['functionClass'] + function_class_names + instance_names
+
+    dep_name = re.sub(r'\.(exe|o)$', '.d', target_name)
+    blob_name = re.sub(r'\.(exe|o)$', '.md5.blob', target_name)
+    out_name = re.sub(r'\.(exe|o)$', '.md5s.c', target_name)
+    dependency_file_name = os.path.join(build_path, dep_name)
+    blob_path            = os.path.join(build_path, blob_name)
+    output_path          = os.path.join(build_path, out_name)
+
+    object_files = set(_object_files_from_dep(dependency_file_name,
+                                              build_path))
+
+    digests_per_file, cache_mtime = _load_cache(blob_path)
+    have_per_file = cache_mtime is not None
+    digests_per_file.setdefault('types', {})
+
+    updated_types = {}
+
+    source_root = os.path.join(source_directory_name, 'source')
+    try:
+        source_names = sorted(os.listdir(source_root))
+    except OSError:
+        sys.exit("sourceDigests.py: can not open the source directory: "
+                 + source_root)
+
+    for file_name in source_names:
+        if file_name.startswith('.#'):
+            continue
+        if not re.search(r'\.(F90|cpp)$', file_name):
+            continue
+        object_file_name = re.sub(r'\.(F90|cpp)$', '.o', file_name)
+        if object_file_name not in object_files:
+            continue
+
+        file_to_process = os.path.join(source_root, file_name)
+        file_identifier = _file_identifier(file_to_process)
+
+        rescan = True
+        if have_per_file and file_identifier in digests_per_file:
+            tracked = digests_per_file[file_identifier].get('files') or []
+            stale = any(
+                os.path.exists(t) and os.stat(t).st_mtime > cache_mtime
+                for t in tracked
+            )
+            rescan = bool(stale)
+        if not rescan:
+            continue
+
+        digests_per_file.pop(file_identifier, None)
+        entry = digests_per_file.setdefault(
+            file_identifier, {'files': [file_to_process]},
+        )
+        _append_dep_files(entry['files'], file_to_process, build_path)
+
+        # sourceDigest directives -> per-type source MD5 (no dependencies).
+        sd_files = as_array((locations.get('sourceDigest') or {}).get('file'))
+        if file_to_process in sd_files:
+            for sd in extract_directives(file_to_process, 'sourceDigest'):
+                hash_name = sd['name']
+                digests_per_file['types'][hash_name] = {
+                    'sourceMD5': find_hash(
+                        [file_name],
+                        include_files_excluded=_EXCLUDED_INCLUDES,
+                        use_locks=use_locks,
+                    ),
+                    'dependencies': [],
+                }
+                updated_types[hash_name] = 1
+
+        # functionClass directives -> per-type source MD5 + explicit base.
+        fc_files = as_array((locations.get('functionClass') or {}).get('file'))
+        if file_to_process in fc_files:
+            for fc in extract_directives(file_to_process, 'functionClass'):
+                hash_name = fc['name'] + 'Class'
+                digests_per_file['types'][hash_name] = {
+                    'sourceMD5': find_hash(
+                        [file_name],
+                        include_files_excluded=_EXCLUDED_INCLUDES,
+                        use_locks=use_locks,
+                    ),
+                    'dependencies':
+                        [fc['extends']] if 'extends' in fc else
+                        ['functionClass'],
+                }
+                updated_types[hash_name] = 1
+
+        # For functionClass instance files: walk the AST and record a
+        # per-derived-class hash + its inheritance dependencies.
+        if file_to_process in function_class_file_set:
+            tree = parse_file(file_to_process)
+            for node in walk_tree(tree):
+                ntype = node.get('type')
+                if ntype not in function_class_names:
+                    continue
+                hash_name = (node.get('directive') or {}).get('name')
+                if not hash_name:
+                    continue
+                class_record, deps = class_dependencies(node, ntype)
+                class_type = (class_record or {}).get('type')
+                deps = [d for d in deps if d != class_type]
+                digests_per_file['types'][hash_name] = {
+                    'sourceMD5': find_hash(
+                        [file_name],
+                        include_files_excluded=_EXCLUDED_INCLUDES,
+                        use_locks=use_locks,
+                    ),
+                    'dependencies': list(deps),
+                }
+                updated_types[hash_name] = 1
+
+    # Manually add the base `functionClass` type (no dependencies).
+    fc_base = 'objects.function_class.F90'
+    fc_base_path = os.path.join('source', fc_base)
+    if (cache_mtime is None or
+            (os.path.exists(fc_base_path)
+             and os.stat(fc_base_path).st_mtime > cache_mtime)):
+        digests_per_file['types']['functionClass'] = {
+            'sourceMD5': find_hash(
+                [fc_base],
+                include_files_excluded=_EXCLUDED_INCLUDES,
+                use_locks=use_locks,
+            ),
+            'dependencies': [],
+        }
+        digests_per_file['types']['functionClass'].pop('compositeMD5', None)
+        updated_types['functionClass'] = 1
+
+    # Invert the dependency graph so we can transitively clear composite
+    # hashes for every type depending on an updated one.
+    dependencies_inverted = {}
+    for hash_name, info in digests_per_file['types'].items():
+        for dep in info.get('dependencies') or []:
+            dependencies_inverted.setdefault(dep, []).append(hash_name)
+
+    # Breadth-first invalidation of composite hashes.
+    queue = dict(updated_types)
+    while queue:
+        reset_name, _ = queue.popitem()
+        for dependent in dependencies_inverted.get(reset_name, []):
+            queue[dependent] = 1
+        info = digests_per_file['types'].get(reset_name)
+        if info is not None:
+            info.pop('compositeMD5', None)
+
+    # Iteratively resolve composite hashes.
+    allowed_set = set(allowed_names)
+    resolved = False
+    while not resolved:
+        resolved = True
+        updated  = False
+        for hash_name in sorted(digests_per_file['types']):
+            info = digests_per_file['types'][hash_name]
+            if 'compositeMD5' in info:
+                continue
+            deps = info.get('dependencies') or []
+            # Blocked if any dependency exists in the types table but
+            # has no compositeMD5 yet.
+            blocked = any(
+                dep in digests_per_file['types']
+                and 'compositeMD5' not in digests_per_file['types'][dep]
+                for dep in deps
+            )
+            if blocked:
+                resolved = False
+                continue
+
+            updated = True
+            hasher  = hashlib.md5()
+            hasher.update(info['sourceMD5'].encode('ascii'))
+            for dep in deps:
+                if dep not in allowed_set:
+                    continue
+                dep_info = digests_per_file['types'].get(dep)
+                if dep_info is None:
+                    continue
+                hasher.update(dep_info['compositeMD5'].encode('ascii'))
+            info['compositeMD5'] = _b64digest_no_pad(hasher)
+        if not resolved and not updated:
+            sys.exit("sourceDigest.py: failed to resolve dependencies")
+
+    with open(blob_path, 'wb') as fh:
+        pickle.dump(digests_per_file, fh, protocol=pickle.HIGHEST_PROTOCOL)
+
+    with open(output_path, 'w') as fh:
+        for hash_name in sorted(digests_per_file['types']):
+            info = digests_per_file['types'][hash_name]
+            digest = info.get('compositeMD5', '')
+            # Replace `/` with `@` so the b64 digest is a valid C string
+            # literal in a header-less context (mirrors Perl line 213).
+            digest = digest.replace('/', '@')
+            fh.write(f'char {hash_name}MD5[]="{digest}";\n')
+
+
+if __name__ == '__main__':
+    main(sys.argv)

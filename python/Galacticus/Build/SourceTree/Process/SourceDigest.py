@@ -91,19 +91,28 @@ def _b64digest(hasher):
 def modification_time(file_name):
     """Return the mtime of `file_name`, caching repeated lookups.
 
-    Mirrors `modificationTime()` at SourceDigest.pm:287-293.
+    Mirrors `modificationTime()` at SourceDigest.pm:287-293.  Perl's
+    `stat()` on a missing file returns an empty list, quietly caching
+    `undef`; do the same here by caching `None`.
     """
     if file_name not in _modification_times:
-        _modification_times[file_name] = os.stat(file_name).st_mtime
+        try:
+            _modification_times[file_name] = os.stat(file_name).st_mtime
+        except FileNotFoundError:
+            _modification_times[file_name] = None
     return _modification_times[file_name]
 
 
 def update_modification_time(file_name):
-    """Overwrite the cached mtime of `file_name` with the current on-disk value.
+    """Overwrite the cached mtime of `file_name` with the current on-disk
+    value, or `None` if the path does not exist.
 
     Mirrors `updateModificationTime()` at SourceDigest.pm:295-299.
     """
-    _modification_times[file_name] = os.stat(file_name).st_mtime
+    try:
+        _modification_times[file_name] = os.stat(file_name).st_mtime
+    except FileNotFoundError:
+        _modification_times[file_name] = None
 
 
 def hash_data_files(hasher, files):
