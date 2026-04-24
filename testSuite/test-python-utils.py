@@ -56,6 +56,10 @@ import Galacticus.Build.SourceTree.Process.DeepCopyActions           # noqa: F40
 import Galacticus.Build.SourceTree.Process.StateStorable             # noqa: F401
 import Galacticus.Build.SourceTree.Process.EventHooksStatic          # noqa: F401
 import Galacticus.Build.SourceTree.Process.EventHooks                # noqa: F401
+import Galacticus.Build.SourceTree.Process.ThreadSafeIO              # noqa: F401
+import Galacticus.Build.SourceTree.Process.SourceDigest              # noqa: F401
+import Galacticus.Build.SourceTree.Process.ObjectBuilder             # noqa: F401
+import Galacticus.Build.SourceTree.Process.ClassDocumentation        # noqa: F401
 from Galacticus.Build.SourceTree.Process import (
     PROCESS_HOOKS, PROCESS_DEPENDENCIES, POSTPROCESS_HOOKS,
     register_process, process_tree,
@@ -3181,6 +3185,312 @@ def test_process_event_hook_manager():
 
 
 # ============================================================================
+# Process.ThreadSafeIO tests
+# ============================================================================
+
+def test_process_thread_safe_io_enabled():
+    print("\n=== Testing Process.ThreadSafeIO (enabled, wraps I/O) ===")
+
+    saved = os.environ.get('GALACTICUS_FCFLAGS')
+    os.environ['GALACTICUS_FCFLAGS'] = '-DTHREADSAFEIO'
+    try:
+        root = _parse_text(
+            "subroutine s\n"
+            "write (unit,*) 'hello'\n"
+            "x = 1\n"
+            "read (unit,*) y\n"
+            "end subroutine s\n"
+        )
+        from Galacticus.Build.SourceTree.Process.ThreadSafeIO import \
+            process_thread_safe_io
+        process_thread_safe_io(root, {})
+        out = serialize(root)
+        assert_equal('!$omp critical(gfortranInternalIO_)' in out, True,
+                     "I/O block opened with gfortranInternalIO_ critical")
+        assert_equal('!$omp end critical(gfortranInternalIO_)' in out, True,
+                     "I/O block closed with matching end critical")
+        # The write/read lines must still appear verbatim.
+        assert_equal("write (unit,*) 'hello'" in out, True,
+                     "original write statement preserved")
+    finally:
+        if saved is None:
+            del os.environ['GALACTICUS_FCFLAGS']
+        else:
+            os.environ['GALACTICUS_FCFLAGS'] = saved
+
+
+def test_process_thread_safe_io_disabled():
+    print("\n=== Testing Process.ThreadSafeIO (disabled) ===")
+    saved = os.environ.pop('GALACTICUS_FCFLAGS', None)
+    try:
+        root = _parse_text(
+            "subroutine s\n"
+            "write (unit,*) 'hi'\n"
+            "end subroutine s\n"
+        )
+        before = serialize(root)
+        from Galacticus.Build.SourceTree.Process.ThreadSafeIO import \
+            process_thread_safe_io
+        process_thread_safe_io(root, {})
+        assert_equal(serialize(root), before,
+                     "no changes when -DTHREADSAFEIO is absent")
+    finally:
+        if saved is not None:
+            os.environ['GALACTICUS_FCFLAGS'] = saved
+
+
+def test_process_thread_safe_io_skips_error_module():
+    print("\n=== Testing Process.ThreadSafeIO (skips Error module) ===")
+    saved = os.environ.get('GALACTICUS_FCFLAGS')
+    os.environ['GALACTICUS_FCFLAGS'] = '-DTHREADSAFEIO'
+    try:
+        root = _parse_text(
+            "module Error\n"
+            "subroutine r\n"
+            "write (unit,*) 'err'\n"
+            "end subroutine r\n"
+            "end module Error\n"
+        )
+        before = serialize(root)
+        from Galacticus.Build.SourceTree.Process.ThreadSafeIO import \
+            process_thread_safe_io
+        process_thread_safe_io(root, {})
+        assert_equal(serialize(root), before,
+                     "Error module is left untouched (no deadlock risk)")
+    finally:
+        if saved is None:
+            del os.environ['GALACTICUS_FCFLAGS']
+        else:
+            os.environ['GALACTICUS_FCFLAGS'] = saved
+
+
+# ============================================================================
+# Process.SourceDigest tests
+# ============================================================================
+
+def test_process_source_digest():
+    print("\n=== Testing Process.SourceDigest ===")
+
+    root = _parse_text(
+        "module m\n"
+        "end module m\n"
+    )
+    mod = _find_node(root, 'module')
+    _make_directive_node(
+        'sourceDigest',
+        {'name': 'someFile', 'processed': False},
+        mod,
+    )
+    from Galacticus.Build.SourceTree.Process.SourceDigest import \
+        process_source_digests
+    process_source_digests(root, {})
+    out = serialize(root)
+    assert_equal('character(C_Char)' in out and 'dimension(23)' in out, True,
+                 "MD5 character array declaration emitted")
+    assert_equal('bind(C, name="someFileMD5")' in out, True,
+                 "C binding tag matches Perl-generated symbol name")
+    assert_equal('use' in out and 'ISO_C_Binding' in out and 'C_Char' in out,
+                 True, "ISO_C_Binding, only : C_Char imported")
+
+
+# ============================================================================
+# Process.ObjectBuilder tests (lighter directives only; objectBuilder proper
+# is exercised by real Galacticus sources and requires stateStorables.xml)
+# ============================================================================
+
+def test_process_object_destructor():
+    print("\n=== Testing Process.ObjectBuilder (objectDestructor) ===")
+
+    root = _parse_text(
+        "subroutine s\n"
+        "end subroutine s\n"
+    )
+    sub = _find_node(root, 'subroutine')
+    _make_directive_node(
+        'objectDestructor',
+        {'name': 'obj_', 'processed': False},
+        sub,
+    )
+    from Galacticus.Build.SourceTree.Process.ObjectBuilder import \
+        process_object_builder
+
+    # Provide a minimal BUILDPATH with an empty stateStorables.xml so the
+    # lazy load inside process_object_builder doesn't raise.
+    tmpdir = tempfile.mkdtemp()
+    with open(os.path.join(tmpdir, 'stateStorables.xml'), 'w') as fh:
+        fh.write("<stateStorables></stateStorables>\n")
+    import Galacticus.Build.SourceTree.Process.ObjectBuilder as OB
+    OB._STATE_STORABLES = None
+    saved = os.environ.get('BUILDPATH')
+    os.environ['BUILDPATH'] = tmpdir
+    try:
+        process_object_builder(root, {})
+        out = serialize(root)
+        assert_equal('if (associated(obj_)) then' in out, True,
+                     "associated() guard emitted")
+        assert_equal('referenceCount_=obj_%referenceCountDecrement()' in out, True,
+                     "reference count decrement call emitted")
+        assert_equal('deallocate(obj_)' in out, True,
+                     "deallocate emitted on zero-count branch")
+        assert_equal('nullify(obj_)' in out, True,
+                     "nullify emitted on nonzero-count branch")
+        assert_equal(declaration_exists(sub, 'referenceCount_'), True,
+                     "referenceCount_ local declared")
+    finally:
+        if saved is None:
+            del os.environ['BUILDPATH']
+        else:
+            os.environ['BUILDPATH'] = saved
+        OB._STATE_STORABLES = None
+        import shutil; shutil.rmtree(tmpdir)
+
+
+def test_process_reference_increment_acquire_construct():
+    print("\n=== Testing Process.ObjectBuilder (reference* and deepCopy) ===")
+
+    root = _parse_text("subroutine s\nend subroutine s\n")
+    sub = _find_node(root, 'subroutine')
+    _make_directive_node(
+        'referenceCountIncrement',
+        {'object': 'ptr_', 'owner': 'self', 'processed': False},
+        sub,
+    )
+    _make_directive_node(
+        'referenceAcquire',
+        {'owner': 'self', 'target': 'dst_', 'source': 'src_', 'processed': False},
+        sub,
+    )
+    _make_directive_node(
+        'referenceConstruct',
+        {'object': 'thing_', 'constructor': 'thingType(args)', 'processed': False},
+        sub,
+    )
+    _make_directive_node(
+        'deepCopy',
+        {'source': 'a_', 'destination': 'b_', 'processed': False},
+        sub,
+    )
+
+    tmpdir = tempfile.mkdtemp()
+    with open(os.path.join(tmpdir, 'stateStorables.xml'), 'w') as fh:
+        fh.write("<stateStorables></stateStorables>\n")
+    import Galacticus.Build.SourceTree.Process.ObjectBuilder as OB
+    OB._STATE_STORABLES = None
+    saved = os.environ.get('BUILDPATH')
+    os.environ['BUILDPATH'] = tmpdir
+    try:
+        from Galacticus.Build.SourceTree.Process.ObjectBuilder import \
+            process_object_builder
+        process_object_builder(root, {})
+        out = serialize(root)
+        assert_equal('call self%ptr_%referenceCountIncrement()' in out, True,
+                     "referenceCountIncrement emits owner-prefixed call")
+        assert_equal('self%dst_ => src_' in out
+                     and 'call self%dst_%referenceCountIncrement()' in out,
+                     True,
+                     "referenceAcquire emits pointer assignment + increment")
+        assert_equal('thing_=thingType(args)' in out
+                     and 'call thing_%autoHook()' in out,
+                     True,
+                     "referenceConstruct emits assignment + autoHook")
+        assert_equal('call a_%deepCopy(b_)' in out
+                     and 'a_%copiedSelf => b_' in out
+                     and 'call b_%autoHook()' in out,
+                     True,
+                     "deepCopy emits deepCopy + copiedSelf + autoHook lines")
+    finally:
+        if saved is None:
+            del os.environ['BUILDPATH']
+        else:
+            os.environ['BUILDPATH'] = saved
+        OB._STATE_STORABLES = None
+        import shutil; shutil.rmtree(tmpdir)
+
+
+# ============================================================================
+# Process.ClassDocumentation tests
+# ============================================================================
+
+def test_process_class_documentation_disabled():
+    print("\n=== Testing Process.ClassDocumentation (disabled by default) ===")
+
+    saved = os.environ.pop('GALACTICUS_BUILD_DOCS', None)
+    try:
+        root = _parse_text(
+            "module m\n"
+            "type :: aT\n"
+            "end type aT\n"
+            "end module m\n"
+        )
+        before = serialize(root)
+        from Galacticus.Build.SourceTree.Process.ClassDocumentation import \
+            process_class_documentation
+        process_class_documentation(root, {})
+        assert_equal(serialize(root), before,
+                     "no changes when GALACTICUS_BUILD_DOCS is not 'yes'")
+    finally:
+        if saved is not None:
+            os.environ['GALACTICUS_BUILD_DOCS'] = saved
+
+
+def test_process_class_documentation_enabled():
+    print("\n=== Testing Process.ClassDocumentation (enabled, writes XML) ===")
+
+    tmpdir = tempfile.mkdtemp()
+    saved_build = os.environ.get('BUILDPATH')
+    saved_docs  = os.environ.get('GALACTICUS_BUILD_DOCS')
+    os.environ['BUILDPATH']             = tmpdir
+    os.environ['GALACTICUS_BUILD_DOCS'] = 'yes'
+
+    # Write the source to a real file so `tree.get('name')` matches the
+    # `<base>.F90` shape that triggers the XML dump.
+    src_path = os.path.join(tmpdir, 'driver.F90')
+    with open(src_path, 'w') as fh:
+        fh.write(
+            "module m\n"
+            "type :: aT\n"
+            "contains\n"
+            "  procedure :: doIt => aT_doIt\n"
+            "end type aT\n"
+            "contains\n"
+            "subroutine aT_doIt(self, x)\n"
+            "class(aT), intent(inout) :: self\n"
+            "real,       intent(in   ) :: x\n"
+            "end subroutine aT_doIt\n"
+            "end module m\n"
+        )
+    try:
+        # Reset module-level output-previous tracker so we get a fresh write.
+        import Galacticus.Build.SourceTree.Process.ClassDocumentation as CD
+        CD._OUTPUT_PREVIOUS.clear()
+
+        tree = parse_file(src_path)
+        from Galacticus.Build.SourceTree.Process.ClassDocumentation import \
+            process_class_documentation
+        process_class_documentation(tree, {})
+
+        out_xml = os.path.join(tmpdir, 'driver.classes.xml')
+        assert_equal(os.path.exists(out_xml), True,
+                     "<basename>.classes.xml written to BUILDPATH")
+        with open(out_xml, 'r') as fh:
+            payload = fh.read()
+        assert_equal('<classes>' in payload, True, "root element is <classes>")
+        assert_equal('<aT>' in payload or '<aT/>' in payload, True,
+                     "class 'aT' recorded in the XML")
+    finally:
+        if saved_build is None:
+            del os.environ['BUILDPATH']
+        else:
+            os.environ['BUILDPATH'] = saved_build
+        if saved_docs is None:
+            del os.environ['GALACTICUS_BUILD_DOCS']
+        else:
+            os.environ['GALACTICUS_BUILD_DOCS'] = saved_docs
+        import shutil
+        shutil.rmtree(tmpdir)
+
+
+# ============================================================================
 # Main
 # ============================================================================
 
@@ -3271,6 +3581,14 @@ def main():
     test_process_event_hook_call_site()
     test_process_event_hook_openmp_wrappers()
     test_process_event_hook_manager()
+    test_process_thread_safe_io_enabled()
+    test_process_thread_safe_io_disabled()
+    test_process_thread_safe_io_skips_error_module()
+    test_process_source_digest()
+    test_process_object_destructor()
+    test_process_reference_increment_acquire_construct()
+    test_process_class_documentation_disabled()
+    test_process_class_documentation_enabled()
 
     print("\n" + "=" * 70)
     print(f"Results: {PASS_COUNT} passed, {FAIL_COUNT} failed")
