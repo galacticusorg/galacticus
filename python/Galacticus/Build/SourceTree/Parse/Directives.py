@@ -23,6 +23,28 @@ except ImportError:
 _state_storables = None
 _state_storables_loaded = False
 
+# Define the directory where schemas are stored
+EXEC_PATH = os.environ.get('GALACTICUS_EXEC_PATH')
+if EXEC_PATH:
+    SCHEMAS_DIR = os.path.abspath(os.path.join(EXEC_PATH,"/schemas"))
+else:
+    SCHEMAS_DIR = None
+
+if _HAS_LXML:
+    class SchemaResolver(_lxml_etree.Resolver):
+        """Custom resolver to set the absolute path for schema imports.
+
+        This is needed as we have schemas that are constructed internally from
+        text, so contain no path information when parsed.
+        """
+        def resolve(self, system_url, public_id, context):
+            # Check if the import path refers to the file we want to redirect
+            if 'commonTypes.xsd' in system_url:
+                # Construct the absolute path to the file
+                full_path = os.path.join(SCHEMAS_DIR, 'commonTypes.xsd')
+                # Return the resolved file path to lxml
+                return self.resolve_filename(full_path, context)
+            return None
 
 def _load_state_storables():
     """Load $BUILDPATH/stateStorables.xml once and cache it.
@@ -221,9 +243,8 @@ def _validate_directive(directive_name, xml_text, context_node):
     elif state_storables and directive_name in event_hook_statics:
         schema_xml = _EVENT_HOOK_STATIC_SCHEMA.format(name=directive_name)
     else:
-        exec_path = os.environ.get('GALACTICUS_EXEC_PATH')
-        if exec_path:
-            candidate = os.path.join(exec_path, 'schema', directive_name + '.xsd')
+        if SCHEMAS_DIR:
+            candidate = os.path.join(SCHEMAS_DIR, directive_name + '.xsd')
             if os.path.exists(candidate):
                 with open(candidate, 'r') as fh:
                     schema_xml = fh.read()
@@ -232,7 +253,9 @@ def _validate_directive(directive_name, xml_text, context_node):
         return
 
     try:
-        schema_doc = _lxml_etree.fromstring(schema_xml.encode('utf-8'))
+        parser = _lxml_etree.XMLParser(remove_blank_text=True)
+        parser.resolvers.add(SchemaResolver())
+        schema_doc = _lxml_etree.fromstring(schema_xml.encode('utf-8'), parser=parser)
         schema = _lxml_etree.XMLSchema(schema_doc)
         document = _lxml_etree.fromstring(xml_text.encode('utf-8'))
     except _lxml_etree.XMLSyntaxError as exc:
