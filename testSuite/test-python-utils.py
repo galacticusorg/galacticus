@@ -49,11 +49,16 @@ import Galacticus.Build.SourceTree.Process.InputParametersValidate   # noqa: F40
 import Galacticus.Build.SourceTree.Process.StateStore                # noqa: F401
 import Galacticus.Build.SourceTree.Process.MetaPropertyDatabase      # noqa: F401
 import Galacticus.Build.SourceTree.Process.InputParameter            # noqa: F401
+import Galacticus.Build.SourceTree.Process.Constructors              # noqa: F401
+import Galacticus.Build.SourceTree.Process.FunctionsGlobal           # noqa: F401
 from Galacticus.Build.SourceTree.Process import (
     PROCESS_HOOKS, PROCESS_DEPENDENCIES, POSTPROCESS_HOOKS,
     register_process, process_tree,
 )
 from Galacticus.Build.Directives import extract_directives, extract_directive
+from Galacticus.Build.SourceTree import (
+    insert_pre_contains, insert_post_contains,
+)
 
 # ============================================================================
 # Test framework
@@ -2000,6 +2005,396 @@ def test_process_input_parameter_with_default_and_no_output():
 
 
 # ============================================================================
+# SourceTree insert_pre_contains / insert_post_contains tests
+# ============================================================================
+
+def test_insert_pre_post_contains():
+    print("\n=== Testing insert_pre_contains / insert_post_contains ===")
+
+    # Module that already has a `contains` marker.
+    root = _parse_text(
+        "module m\n"
+        "integer :: x\n"
+        "contains\n"
+        "subroutine s\n"
+        "end subroutine s\n"
+        "end module m\n"
+    )
+    mod = _find_node(root, 'module')
+    insert_pre_contains(mod, [{
+        'type': 'code', 'content': 'real :: injected\n',
+        'parent': None, 'firstChild': None, 'sibling': None,
+        'source': 'test', 'line': 0,
+    }])
+    insert_post_contains(mod, [{
+        'type': 'code', 'content': '! injected post\n',
+        'parent': None, 'firstChild': None, 'sibling': None,
+        'source': 'test', 'line': 0,
+    }])
+    out = serialize(root)
+    assert_equal('real :: injected' in out.split('contains')[0], True,
+                 "pre-contains insertion lands before the contains marker")
+    assert_equal('! injected post' in out.split('contains')[1], True,
+                 "post-contains insertion lands after the contains marker")
+
+    # Module without a contains marker: insert_post_contains should create one.
+    root = _parse_text(
+        "module m\n"
+        "integer :: x\n"
+        "end module m\n"
+    )
+    mod = _find_node(root, 'module')
+    insert_post_contains(mod, [{
+        'type': 'code', 'content': '! added sub\n',
+        'parent': None, 'firstChild': None, 'sibling': None,
+        'source': 'test', 'line': 0,
+    }])
+    out = serialize(root)
+    assert_equal('contains' in out, True,
+                 "contains marker auto-created when absent")
+    assert_equal('! added sub' in out.split('contains')[-1], True,
+                 "new code appears after the auto-created contains")
+
+
+# ============================================================================
+# Process.Constructors tests
+# ============================================================================
+
+def _write_state_storables(dir_path,
+                           function_classes=(),
+                           function_class_instances=()):
+    """Write a minimal stateStorables.xml exposing the given class / instance names."""
+    lines = ["<stateStorables>"]
+    if function_classes:
+        lines.append("  <functionClasses>")
+        for name in function_classes:
+            lines.append(f"    <functionClass name=\"{name}\"/>")
+        lines.append("  </functionClasses>")
+    for inst in function_class_instances:
+        lines.append(f"  <functionClassInstances>{inst}</functionClassInstances>")
+    lines.append("</stateStorables>\n")
+    with open(os.path.join(dir_path, 'stateStorables.xml'), 'w') as fh:
+        fh.write("\n".join(lines))
+
+
+def test_process_constructors_basic_assignment():
+    print("\n=== Testing Process.Constructors (scalar + optional) ===")
+
+    tmpdir = tempfile.mkdtemp()
+    try:
+        _write_state_storables(tmpdir)
+        # Invalidate module cache so the test uses our fresh stateStorables.xml.
+        import Galacticus.Build.SourceTree.Process.Constructors as C
+        C._STATE_STORABLES = None
+        saved = os.environ.get('BUILDPATH')
+        os.environ['BUILDPATH'] = tmpdir
+        try:
+            root = _parse_text(
+                "function s(a, b) result(self)\n"
+                "integer, intent(in) :: a\n"
+                "real, intent(in), optional :: b\n"
+                "end function s\n"
+            )
+            func = _find_node(root, 'function')
+            _make_directive_node(
+                'constructorAssign',
+                {'variables': 'a, b', 'processed': False},
+                func,
+            )
+            from Galacticus.Build.SourceTree.Process.Constructors import \
+                process_constructors
+            process_constructors(root, {})
+
+            out = serialize(root)
+            assert_equal('self%a=a' in out, True,
+                         "mandatory scalar argument assigned to self")
+            assert_equal('if (present(b)) self%b=b' in out, True,
+                         "optional argument wrapped in present() guard")
+        finally:
+            if saved is None:
+                del os.environ['BUILDPATH']
+            else:
+                os.environ['BUILDPATH'] = saved
+            C._STATE_STORABLES = None
+    finally:
+        import shutil; shutil.rmtree(tmpdir)
+
+
+def test_process_constructors_pointer_refcount():
+    print("\n=== Testing Process.Constructors (pointer + refcount) ===")
+
+    tmpdir = tempfile.mkdtemp()
+    try:
+        _write_state_storables(tmpdir, function_classes=['myfuncclass'])
+        import Galacticus.Build.SourceTree.Process.Constructors as C
+        C._STATE_STORABLES = None
+        saved = os.environ.get('BUILDPATH')
+        os.environ['BUILDPATH'] = tmpdir
+        try:
+            root = _parse_text(
+                "function s(obj) result(self)\n"
+                "type(myFuncClass), intent(in), target :: obj\n"
+                "end function s\n"
+            )
+            func = _find_node(root, 'function')
+            _make_directive_node(
+                'constructorAssign',
+                {'variables': '*obj', 'processed': False},
+                func,
+            )
+            from Galacticus.Build.SourceTree.Process.Constructors import \
+                process_constructors
+            process_constructors(root, {})
+
+            out = serialize(root)
+            assert_equal('self%obj => obj' in out, True,
+                         "pointer assignment uses => operator")
+            assert_equal('call self%obj%referenceCountIncrement()' in out, True,
+                         "functionClass pointer triggers referenceCountIncrement call")
+        finally:
+            if saved is None:
+                del os.environ['BUILDPATH']
+            else:
+                os.environ['BUILDPATH'] = saved
+            C._STATE_STORABLES = None
+    finally:
+        import shutil; shutil.rmtree(tmpdir)
+
+
+def test_process_constructors_wildcard_type():
+    print("\n=== Testing Process.Constructors (class(*) polymorphic pointer) ===")
+
+    tmpdir = tempfile.mkdtemp()
+    try:
+        _write_state_storables(tmpdir)
+        import Galacticus.Build.SourceTree.Process.Constructors as C
+        C._STATE_STORABLES = None
+        saved = os.environ.get('BUILDPATH')
+        os.environ['BUILDPATH'] = tmpdir
+        try:
+            root = _parse_text(
+                "function s(obj) result(self)\n"
+                "class(*), intent(in), target :: obj\n"
+                "end function s\n"
+            )
+            func = _find_node(root, 'function')
+            _make_directive_node(
+                'constructorAssign',
+                {'variables': '*obj', 'processed': False},
+                func,
+            )
+            from Galacticus.Build.SourceTree.Process.Constructors import \
+                process_constructors
+            process_constructors(root, {})
+            out = serialize(root)
+            assert_equal('select type(s__ => self%obj)' in out, True,
+                         "wildcard class pointer emits select-type block")
+            assert_equal('class is (functionClass)' in out, True,
+                         "select-type narrows to functionClass branch")
+            assert_equal('call s__%referenceCountIncrement()' in out, True,
+                         "referenceCountIncrement called via the type-guarded alias")
+        finally:
+            if saved is None:
+                del os.environ['BUILDPATH']
+            else:
+                os.environ['BUILDPATH'] = saved
+            C._STATE_STORABLES = None
+    finally:
+        import shutil; shutil.rmtree(tmpdir)
+
+
+def test_process_constructors_slash_suppresses_count():
+    print("\n=== Testing Process.Constructors (*/ suppresses referenceCountIncrement) ===")
+
+    tmpdir = tempfile.mkdtemp()
+    try:
+        _write_state_storables(tmpdir, function_classes=['myfuncclass'])
+        import Galacticus.Build.SourceTree.Process.Constructors as C
+        C._STATE_STORABLES = None
+        saved = os.environ.get('BUILDPATH')
+        os.environ['BUILDPATH'] = tmpdir
+        try:
+            root = _parse_text(
+                "function s(obj) result(self)\n"
+                "type(myFuncClass), intent(in), target :: obj\n"
+                "end function s\n"
+            )
+            func = _find_node(root, 'function')
+            _make_directive_node(
+                'constructorAssign',
+                {'variables': '*/obj', 'processed': False},
+                func,
+            )
+            from Galacticus.Build.SourceTree.Process.Constructors import \
+                process_constructors
+            process_constructors(root, {})
+            out = serialize(root)
+            assert_equal('self%obj => obj' in out, True,
+                         "pointer assignment still emitted for `*/obj`")
+            assert_equal('referenceCountIncrement' not in out, True,
+                         "*/prefix suppresses referenceCountIncrement call")
+        finally:
+            if saved is None:
+                del os.environ['BUILDPATH']
+            else:
+                os.environ['BUILDPATH'] = saved
+            C._STATE_STORABLES = None
+    finally:
+        import shutil; shutil.rmtree(tmpdir)
+
+
+# ============================================================================
+# Process.FunctionsGlobal tests
+# ============================================================================
+
+def _write_functions_global_build_dir(source_files):
+    """Set up a BUILDPATH tempdir whose directiveLocations.xml points at the
+    given source files (each already containing <functionGlobal> directives).
+    Returns the tempdir path.
+    """
+    tmpdir = tempfile.mkdtemp()
+    file_lines = "\n".join(f"    <file>{f}</file>" for f in source_files)
+    with open(os.path.join(tmpdir, 'directiveLocations.xml'), 'w') as fh:
+        fh.write(
+            "<directiveLocations>\n"
+            "  <functionGlobal>\n"
+            f"{file_lines}\n"
+            "  </functionGlobal>\n"
+            "</directiveLocations>\n"
+        )
+    with open(os.path.join(tmpdir, 'stateStorables.xml'), 'w') as fh:
+        fh.write("<stateStorables></stateStorables>\n")
+    # FunctionsGlobal's pointers path reparses the generated code via
+    # process_tree(); that invocation runs every registered Process hook, so
+    # provide empty versions of the artifacts the other hooks read eagerly
+    # (HDF5FCInterop, InputParameter, …) to keep the test hermetic.
+    open(os.path.join(tmpdir, 'hdf5FCInterop.dat'), 'w').close()
+    with open(os.path.join(tmpdir, 'Makefile_All_Execs'), 'w') as fh:
+        fh.write("all_exes =\n")
+    return tmpdir
+
+
+def test_process_functions_global_pointers():
+    print("\n=== Testing Process.FunctionsGlobal (type='pointers') ===")
+
+    # Write a source file with two functionGlobal directives.
+    src_file = _write_temp_f90(
+        "  !![\n"
+        "  <functionGlobal>\n"
+        "   <unitName>alpha</unitName>\n"
+        "   <type>double precision</type>\n"
+        "   <arguments>integer, intent(in) :: i</arguments>\n"
+        "  </functionGlobal>\n"
+        "  !!]\n"
+        "  !![\n"
+        "  <functionGlobal>\n"
+        "   <unitName>beta</unitName>\n"
+        "   <type>void</type>\n"
+        "   <arguments>integer, intent(in) :: j</arguments>\n"
+        "  </functionGlobal>\n"
+        "  !!]\n"
+    )
+    tmpdir = _write_functions_global_build_dir([src_file])
+
+    # Invalidate module caches.
+    import Galacticus.Build.SourceTree.Process.FunctionsGlobal as FG
+    FG._DIRECTIVE_LOCATIONS = None
+    FG._STATE_STORABLES     = None
+
+    saved = os.environ.get('BUILDPATH')
+    os.environ['BUILDPATH'] = tmpdir
+    try:
+        root = _parse_text(
+            "module m\n"
+            "public\n"
+            "end module m\n"
+        )
+        mod = _find_node(root, 'module')
+        _make_directive_node(
+            'functionsGlobal', {'type': 'pointers', 'processed': False}, mod,
+        )
+        from Galacticus.Build.SourceTree.Process.FunctionsGlobal import \
+            process_functions_global
+        process_functions_global(root, {})
+
+        out = serialize(root)
+        assert_equal('procedure(alpha_Null), pointer :: alpha_ => alpha_Null' in out,
+                     True, "pointer declaration emitted for alpha")
+        assert_equal('procedure(beta_Null), pointer :: beta_ => beta_Null' in out,
+                     True, "pointer declaration emitted for beta")
+        assert_equal('function alpha_Null' in out, True,
+                     "alpha_Null function definition emitted")
+        assert_equal('subroutine beta_Null' in out, True,
+                     "beta_Null subroutine emitted for void return type")
+        assert_equal('alpha_Null=0.0d0' in out, True,
+                     "double-precision default return initialized to 0.0d0")
+        assert_equal('contains' in out, True,
+                     "contains marker present (auto-inserted when missing)")
+    finally:
+        os.unlink(src_file)
+        if saved is None:
+            del os.environ['BUILDPATH']
+        else:
+            os.environ['BUILDPATH'] = saved
+        FG._DIRECTIVE_LOCATIONS = None
+        FG._STATE_STORABLES     = None
+        import shutil; shutil.rmtree(tmpdir)
+
+
+def test_process_functions_global_establish():
+    print("\n=== Testing Process.FunctionsGlobal (type='establish') ===")
+
+    src_file = _write_temp_f90(
+        "module provider\n"
+        "contains\n"
+        "  subroutine alpha\n"
+        "  end subroutine alpha\n"
+        "end module provider\n"
+        "  !![\n"
+        "  <functionGlobal>\n"
+        "   <unitName>alpha</unitName>\n"
+        "   <type>void</type>\n"
+        "  </functionGlobal>\n"
+        "  !!]\n"
+    )
+    tmpdir = _write_functions_global_build_dir([src_file])
+
+    import Galacticus.Build.SourceTree.Process.FunctionsGlobal as FG
+    FG._DIRECTIVE_LOCATIONS = None
+    FG._STATE_STORABLES     = None
+
+    saved = os.environ.get('BUILDPATH')
+    os.environ['BUILDPATH'] = tmpdir
+    try:
+        root = _parse_text(
+            "subroutine wireup\n"
+            "end subroutine wireup\n"
+        )
+        sub = _find_node(root, 'subroutine')
+        _make_directive_node(
+            'functionsGlobal', {'type': 'establish', 'processed': False}, sub,
+        )
+        from Galacticus.Build.SourceTree.Process.FunctionsGlobal import \
+            process_functions_global
+        process_functions_global(root, {})
+
+        out = serialize(root)
+        assert_equal('alpha_ => alpha' in out, True,
+                     "establish path emits the pointer assignment")
+        assert_equal('use' in out and 'provider' in out and 'alpha' in out, True,
+                     "use statement for the providing module injected")
+    finally:
+        os.unlink(src_file)
+        if saved is None:
+            del os.environ['BUILDPATH']
+        else:
+            os.environ['BUILDPATH'] = saved
+        FG._DIRECTIVE_LOCATIONS = None
+        FG._STATE_STORABLES     = None
+        import shutil; shutil.rmtree(tmpdir)
+
+
+# ============================================================================
 # Main
 # ============================================================================
 
@@ -2067,6 +2462,13 @@ def main():
     test_process_meta_property_database()
     test_process_input_parameter_simple()
     test_process_input_parameter_with_default_and_no_output()
+    test_insert_pre_post_contains()
+    test_process_constructors_basic_assignment()
+    test_process_constructors_pointer_refcount()
+    test_process_constructors_wildcard_type()
+    test_process_constructors_slash_suppresses_count()
+    test_process_functions_global_pointers()
+    test_process_functions_global_establish()
 
     print("\n" + "=" * 70)
     print(f"Results: {PASS_COUNT} passed, {FAIL_COUNT} failed")

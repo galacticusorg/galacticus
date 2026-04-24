@@ -239,12 +239,14 @@ def _parse_units(parent):
                     processed_line, re.IGNORECASE):
                 continue
 
-            # Extract the unit name.
+            # Extract the unit name.  A negative `name_idx` means "no name"
+            # (used by self-closing markers like `contains`).
             name_idx  = spec.get('unit_name', 0)
             groups    = m.groups()
-            unit_name = (groups[name_idx].strip()
-                         if name_idx < len(groups) and groups[name_idx]
-                         else '')
+            if name_idx < 0 or name_idx >= len(groups) or not groups[name_idx]:
+                unit_name = ''
+            else:
+                unit_name = groups[name_idx].strip()
 
             # Flush pending raw code to the appropriate destination.
             if stack:
@@ -267,11 +269,17 @@ def _parse_units(parent):
                 'line':       current_line,
             }
 
-            # moduleProcedure is self-closing (no "end procedure" counterpart
-            # in the files we parse).
-            if unit_type == 'moduleProcedure':
-                names = [n.strip() for n in re.split(r'\s*,\s*', unit_name) if n.strip()]
-                node['names'] = names
+            # moduleProcedure and `contains` are self-closing: the former has
+            # no `end procedure` counterpart in the files we parse, and the
+            # latter marks the transition from declarations to subprograms
+            # inside a module/function/subroutine (its scope closes with the
+            # enclosing unit, which we do not need to model structurally —
+            # treating `contains` as a sibling marker keeps parsing simple and
+            # serializes identically).
+            if unit_type in ('moduleProcedure', 'contains'):
+                if unit_type == 'moduleProcedure':
+                    names = [n.strip() for n in re.split(r'\s*,\s*', unit_name) if n.strip()]
+                    node['names'] = names
                 if stack:
                     stack[-1][1].append(('\x00NODE\x00', node))
                 else:
@@ -463,6 +471,74 @@ def insert_after_node(node, new_nodes):
         n['parent']  = parent
         n['sibling'] = new_nodes[i + 1] if i + 1 < len(new_nodes) else tail
     node['sibling'] = new_nodes[0]
+
+
+def _find_child_by_type(node, child_type):
+    """Return the first direct child of `node` with the given type, or None."""
+    child = node.get('firstChild')
+    while child is not None:
+        if child.get('type') == child_type:
+            return child
+        child = child.get('sibling')
+    return None
+
+
+def _last_child(node):
+    """Return the last direct child of `node`, or None if it has none."""
+    child = node.get('firstChild')
+    if child is None:
+        return None
+    while child.get('sibling') is not None:
+        child = child['sibling']
+    return child
+
+
+def insert_pre_contains(node, new_nodes):
+    """Insert new_nodes before the `contains` child of node.
+
+    Mirrors Perl Galacticus::Build::SourceTree::InsertPreContains().  If no
+    `contains` exists, the new nodes are appended at the end of node's
+    children — matching Perl's `InsertAfterNode($lastChild, ...)` fallback.
+    """
+    contains_node = _find_child_by_type(node, 'contains')
+    if contains_node is not None:
+        insert_before_node(contains_node, new_nodes)
+        return
+    last = _last_child(node)
+    if last is None:
+        _link_children(node, new_nodes)
+    else:
+        insert_after_node(last, new_nodes)
+
+
+def insert_post_contains(node, new_nodes):
+    """Insert new_nodes as the first children placed after the `contains`
+    marker of node.
+
+    Mirrors Perl Galacticus::Build::SourceTree::InsertPostContains(), which
+    auto-creates a `contains` node if the parent does not already have one,
+    then prepends the new nodes into its child list.  In our representation
+    `contains` is a self-closing sibling marker, so "prepend as children of
+    contains" becomes "insert immediately after contains" — the serialized
+    output is identical.
+    """
+    contains_node = _find_child_by_type(node, 'contains')
+    if contains_node is None:
+        contains_node = {
+            'type':       'contains',
+            'opener':     'contains\n',
+            'parent':     None,
+            'firstChild': None,
+            'sibling':    None,
+            'source':     node.get('source', 'unknown'),
+            'line':       node.get('line', 0),
+        }
+        last = _last_child(node)
+        if last is None:
+            _link_children(node, [contains_node])
+        else:
+            insert_after_node(last, [contains_node])
+    insert_after_node(contains_node, new_nodes)
 
 
 # ---------------------------------------------------------------------------

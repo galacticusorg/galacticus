@@ -99,6 +99,14 @@ UNIT_OPENERS = {
             re.IGNORECASE,
         ),
     },
+    # `contains` marker — self-closing.  Perl's parser makes `contains` a
+    # container whose children are the post-contains subprograms; here it
+    # stays a sibling marker which keeps the parser logic simple, yet lets
+    # `insert_pre_contains` / `insert_post_contains` anchor on it.
+    'contains': {
+        'unit_name': -1,
+        'regex': re.compile(r'^\s*contains\s*$', re.IGNORECASE),
+    },
 }
 
 # Note: The function regex group numbering needs verification against actual patterns.
