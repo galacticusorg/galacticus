@@ -85,10 +85,10 @@ with open(args.buildLogFile) as f:
         elif len(elements) > 4 and elements[0] == "gfortran":
             elements[4] = elements[4].replace("./work/build/", "")
             command = elements[4] + " (compile)"
-        elif len(elements) > 2 and elements[0] == "./scripts/build/sourceDigests.pl":
+        elif len(elements) > 2 and elements[0] == "./scripts/build/sourceDigests.py":
             elements[2] = elements[2].replace("./work/build/", "").replace("'", "")
             command = elements[2] + " (source digests)"
-        elif len(elements) > 2 and elements[0] == "./scripts/build/parameterDependencies.pl":
+        elif len(elements) > 2 and elements[0] == "./scripts/build/parameterDependencies.py":
             elements[2] = elements[2].replace("./work/build/", "").replace("'", "")
             command = elements[2] + " (parameter dependencies)"
         elif len(elements) > 2 and elements[0] == "./scripts/build/buildCode.pl":
