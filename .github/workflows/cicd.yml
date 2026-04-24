@@ -787,9 +787,9 @@ jobs:
           name: galacticus-tools-MacOS-M1
       - name: Submit macOS artifacts for notarization
         env:
-          APPLE_ID: ${{ secrets.APPLE_ID }}
-          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
-          APPLE_APP_SPECIFIC_PASSWORD: ${{ secrets.APPLE_APP_SPECIFIC_PASSWORD }}
+          APPLE_ID: ${{ secrets.MACOS_DEVELOPER_ID }}
+          APPLE_TEAM_ID: ${{ secrets.MACOS_TEAM_ID }}
+          APPLE_APP_SPECIFIC_PASSWORD: ${{ secrets.MACOS_APP_SPECIFIC_PASSWORD }}
         run: python3 ./scripts/aux/notarizationSubmit.py
       - name: Upload notarization request metadata
         uses: actions/upload-artifact@v7
