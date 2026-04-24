@@ -541,6 +541,81 @@ def insert_post_contains(node, new_nodes):
     insert_after_node(contains_node, new_nodes)
 
 
+def prepend_child_to_node(node, new_nodes):
+    """Insert new_nodes as the first children of node.
+
+    Mirrors Perl Galacticus::Build::SourceTree::PrependChildToNode().
+    """
+    first_child = node.get('firstChild')
+    if first_child is None:
+        _link_children(node, new_nodes)
+    else:
+        insert_before_node(first_child, new_nodes)
+
+
+def set_visibility(node, unit_name, visibility):
+    """Ensure `unit_name` is listed in node's `public` or `private` visibility.
+
+    Mirrors Perl Galacticus::Build::SourceTree::SetVisibility().  Auto-creates
+    a `visibility` child node if one does not exist, placing it after any
+    existing `moduleUse` child (matching the Perl ordering requirement), and
+    regenerates its `firstChild` code content with the sorted `public` /
+    `private` lists.
+    """
+    if visibility not in ('public', 'private'):
+        raise ValueError(
+            f"set_visibility: visibility must be 'public' or 'private', "
+            f"got {visibility!r}")
+
+    visibility_node = _find_child_by_type(node, 'visibility')
+    if visibility_node is None:
+        visibility_node = {
+            'type':       'visibility',
+            'visibility': {},
+            'parent':     None,
+            'firstChild': None,
+            'sibling':    None,
+            'source':     node.get('source', 'unknown'),
+            'line':       node.get('line', 0),
+        }
+        visibility_node['firstChild'] = {
+            'type':       'code',
+            'content':    '',
+            'parent':     visibility_node,
+            'firstChild': None,
+            'sibling':    None,
+            'source':     visibility_node['source'],
+            'line':       visibility_node['line'],
+        }
+        # Find the last moduleUse child; visibilities must come after it.
+        child = node.get('firstChild')
+        module_use_node = None
+        while child is not None:
+            if child.get('type') == 'moduleUse':
+                module_use_node = child
+            child = child.get('sibling')
+        if module_use_node is not None:
+            insert_after_node(module_use_node, [visibility_node])
+        else:
+            prepend_child_to_node(node, [visibility_node])
+
+    vis_dict = visibility_node.setdefault('visibility', {})
+    vis_dict.setdefault(visibility, {})[unit_name] = True
+
+    # Rebuild the visibility code, matching Perl's iteration order
+    # `foreach ('private', 'public')`.
+    content = ''
+    for level in ('private', 'public'):
+        entries = vis_dict.get(level)
+        if entries is None:
+            continue
+        content += "  " + level
+        if entries:
+            content += " :: " + ", ".join(sorted(entries.keys()))
+        content += "\n"
+    visibility_node['firstChild']['content'] = content + "\n"
+
+
 # ---------------------------------------------------------------------------
 # Parse pass 2: module uses  (mirrors Parse::ModuleUses)
 # ---------------------------------------------------------------------------
