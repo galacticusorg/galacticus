@@ -48,6 +48,7 @@ import Galacticus.Build.SourceTree.Process.ConditionalCall           # noqa: F40
 import Galacticus.Build.SourceTree.Process.InputParametersValidate   # noqa: F401
 import Galacticus.Build.SourceTree.Process.StateStore                # noqa: F401
 import Galacticus.Build.SourceTree.Process.MetaPropertyDatabase      # noqa: F401
+import Galacticus.Build.SourceTree.Process.AddMetaProperty           # noqa: F401
 import Galacticus.Build.SourceTree.Process.InputParameter            # noqa: F401
 import Galacticus.Build.SourceTree.Process.Constructors              # noqa: F401
 import Galacticus.Build.SourceTree.Process.FunctionsGlobal           # noqa: F401
@@ -1870,6 +1871,121 @@ def test_process_state_restore():
 # ============================================================================
 # Process.MetaPropertyDatabase tests
 # ============================================================================
+
+def test_process_add_meta_property():
+    print("\n=== Testing Process.AddMetaProperty ===")
+    from Galacticus.Build.SourceTree.Process.AddMetaProperty import (
+        process_add_meta_property,
+    )
+
+    # Happy path: float rank-0, isCreator=yes, isEvolvable=yes.
+    root = {'type': 'file', 'name': 'x.F90', 'firstChild': None,
+            'parent': None, 'sibling': None, 'source': 'x', 'line': 0}
+    sub  = {'type': 'subroutine', 'name': 's', 'parent': root,
+            'firstChild': None, 'sibling': None, 'source': 'x', 'line': 0}
+    root['firstChild'] = sub
+    directive = _make_directive_node(
+        'addMetaProperty',
+        {
+            'id':        'mpID',
+            'component': 'darkMatter',
+            'name':      'spin',
+            'type':      'float',
+            'rank':      0,
+            'isCreator': 'yes',
+            'isEvolvable': 'yes',
+        },
+        sub,
+    )
+    process_add_meta_property(root, {})
+    assert_equal(directive['directive']['processed'], True,
+                 "addMetaProperty directive marked processed")
+    emitted = directive.get('sibling')
+    assert_equal(emitted is not None and emitted.get('type') == 'code', True,
+                 "code node inserted after directive")
+    content = emitted['content']
+    assert_equal(
+        "mpID=defaultDarkMatterComponent%addFloatRank0MetaProperty"
+        "(var_str('spin'),'darkMatter:spin',isCreator=.true.,"
+        "isEvolvable=.true.)" in content, True,
+        "float rank-0 emission includes isEvolvable and prefixed name")
+
+    # Happy path: integer rank-1 (omits isEvolvable; only float rank-0 carries it).
+    root2 = {'type': 'file', 'name': 'y.F90', 'firstChild': None,
+             'parent': None, 'sibling': None, 'source': 'y', 'line': 0}
+    sub2  = {'type': 'subroutine', 'name': 's', 'parent': root2,
+             'firstChild': None, 'sibling': None, 'source': 'y', 'line': 0}
+    root2['firstChild'] = sub2
+    d2 = _make_directive_node(
+        'addMetaProperty',
+        {
+            'id':        'mpID2',
+            'component': 'basic',
+            'name':      'indices',
+            'type':      'integer',
+            'rank':      1,
+            'isCreator': 'no',
+        },
+        sub2,
+    )
+    process_add_meta_property(root2, {})
+    c2 = d2['sibling']['content']
+    assert_equal(
+        "mpID2=defaultBasicComponent%addIntegerRank1MetaProperty"
+        "(var_str('indices'),'basic:indices',isCreator=.false.)" in c2, True,
+        "integer rank-1 emission omits isEvolvable, uses .false. isCreator")
+
+    # Raw-string name starting with a quote is passed through untouched.
+    root3 = {'type': 'file', 'name': 'z.F90', 'firstChild': None,
+             'parent': None, 'sibling': None, 'source': 'z', 'line': 0}
+    sub3  = {'type': 'subroutine', 'name': 's', 'parent': root3,
+             'firstChild': None, 'sibling': None, 'source': 'z', 'line': 0}
+    root3['firstChild'] = sub3
+    d3 = _make_directive_node(
+        'addMetaProperty',
+        {
+            'id':        'mpID3',
+            'component': 'basic',
+            'name':      "'dynamicName'",
+            'type':      'float',
+            'rank':      0,
+            'isCreator': 'no',
+            'isEvolvable': 'no',
+        },
+        sub3,
+    )
+    process_add_meta_property(root3, {})
+    c3 = d3['sibling']['content']
+    assert_equal(
+        "var_str('dynamicName')" in c3 and
+        "'basic:'//'dynamicName'" in c3, True,
+        "quoted name is passed through var_str(...) with // concatenation")
+
+    # Validation: rank > 1 is rejected.
+    root4 = {'type': 'file', 'name': 'w.F90', 'firstChild': None,
+             'parent': None, 'sibling': None, 'source': 'w', 'line': 0}
+    sub4  = {'type': 'subroutine', 'name': 's', 'parent': root4,
+             'firstChild': None, 'sibling': None, 'source': 'w', 'line': 0}
+    root4['firstChild'] = sub4
+    _make_directive_node(
+        'addMetaProperty',
+        {
+            'id':        'mpID4',
+            'component': 'basic',
+            'name':      'tensor',
+            'type':      'float',
+            'rank':      2,
+        },
+        sub4,
+    )
+    try:
+        process_add_meta_property(root4, {})
+        raised = False
+    except RuntimeError as e:
+        raised = 'rank > 1' in str(e)
+    assert_equal(raised, True,
+                 "rank > 1 meta-property raises a RuntimeError")
+
 
 def test_process_meta_property_database():
     print("\n=== Testing Process.MetaPropertyDatabase ===")
@@ -4864,6 +4980,7 @@ def main():
     test_extract_directives_missing_file()
     test_process_state_store()
     test_process_state_restore()
+    test_process_add_meta_property()
     test_process_meta_property_database()
     test_process_input_parameter_simple()
     test_process_input_parameter_with_default_and_no_output()
