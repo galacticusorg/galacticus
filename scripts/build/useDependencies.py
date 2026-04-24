@@ -279,19 +279,40 @@ def _method_module_names(method):
     """Return the list of module names referenced by a single method.
 
     Mirrors useDependencies.pl:298-321.  `modules` can be:
-      * a dict keyed by module name (when XML had multiple <module>
-        children);
-      * a string (space-separated names).
+      * an attribute-form scalar `modules="A B C"` -- space-separated names;
+      * a dict from one `<modules>` block with `<name>` (+ `<only>`) children
+        -- Python xml_to_dict representation;
+      * a list of such dicts when the method has multiple `<modules>` blocks;
+      * an XML::Simple-style dict keyed by module name (legacy Perl
+        representation preserved for compatibility).
     """
     mods = method.get('modules')
     if mods is None:
         return []
-    if isinstance(mods, dict):
-        return [name.lower() for name in sorted(mods.keys())]
+    # Attribute-form scalar.
     if isinstance(mods, str):
         return [tok.lower() for tok in mods.split()]
+    # One `<modules>` block -> dict.  If it describes one module directly
+    # (has a `name` key) extract that name; otherwise fall back to
+    # XML::Simple auto-keyed-by-name form.
+    if isinstance(mods, dict):
+        if 'name' in mods:
+            name = mods['name']
+            if isinstance(name, str):
+                return [name.lower()]
+            return []
+        return [name.lower() for name in sorted(mods.keys())]
+    # Multiple `<modules>` siblings -> list of dicts (each with a `name` key).
     if isinstance(mods, list):
-        return [str(x).lower() for x in mods]
+        names = []
+        for item in mods:
+            if isinstance(item, dict):
+                name = item.get('name')
+                if isinstance(name, str):
+                    names.append(name.lower())
+            elif isinstance(item, str):
+                names.append(item.lower())
+        return names
     return []
 
 
