@@ -1023,8 +1023,404 @@ def _build_deep_copy_methods(directive, non_abstract_classes, classes,
             sorted(deep_copy['finalizeModules'].keys()))
 
 
-def _build_state_store_methods(*args, **kwargs):
-    _not_implemented('buildStateStoreMethods')
+def _build_state_store_methods(directive, non_abstract_classes, classes,
+                               methods, state_storables):
+    """Populate `methods` with `stateStore`, `stateStore_`, `stateRestore`,
+    `stateRestore_`.
+
+    Mirrors buildStateStoreMethods() at FunctionClass.pm:2847-3101.
+    """
+    from Galacticus.Build.SourceTree.Process.FunctionClass.StateStore  import (
+        state_store_variables, state_store_explicit_function,
+    )
+    from Galacticus.Build.SourceTree.Process.FunctionClass.LinkedList  import (
+        state_store_linked_list,
+    )
+    from Galacticus.Build.SourceTree.Parse.Declarations import parse_declaration
+
+    state_stores = {
+        'stateFileUsed':          False,
+        'gslStateFileUsed':       False,
+        'rankMaximum':            0,
+        'allocatablesFound':      False,
+        'explicitFunctionsFound': False,
+        'dimensionalsFound':      False,
+        'labelUsed':              False,
+        'stateStoreModules':      {
+            'Display':            True,
+            'ISO_Varying_String': True,
+            'String_Handling':    True,
+            'ISO_C_Binding':      True,
+        },
+        'stateRestoreModules':    {
+            'Display':            True,
+            'ISO_Varying_String': True,
+            'String_Handling':    True,
+            'ISO_C_Binding':      True,
+        },
+    }
+    state_store_code   = ''
+    state_restore_code = ''
+    state_linked_list_variables = []
+    output_unused_variables = []
+    input_unused_variables  = []
+
+    state_store_code   += "position=FTell(stateFile)\n"
+    state_restore_code += "position=FTell(stateFile)\n"
+    directive_name = directive['name']
+    state_store_code += (
+        f"call displayIndent(var_str('storing state for \"{directive_name}\" "
+        f"[position: ')//position//']',verbosity=verbosityLevelWorking)\n"
+    )
+    state_restore_code += (
+        f"call displayIndent(var_str('restoring state for \"{directive_name}\" "
+        f"[position: ')//position//']',verbosity=verbosityLevelWorking)\n"
+    )
+    state_store_code   += "select type (self)\n"
+    state_restore_code += "select type (self)\n"
+
+    for non_abstract in non_abstract_classes:
+        state_store = {
+            'staticVariables':      [],
+            'outputCode':           '',
+            'inputCode':            '',
+            'excludes':             [],
+            'hasCustomStateStore':  False,
+            'hasCustomStateRestore': False,
+        }
+        state_store_code   += f"type is ({non_abstract['name']})\n"
+        state_restore_code += f"type is ({non_abstract['name']})\n"
+
+        if non_abstract.get('recursive') == 'yes':
+            state_store_code   += "if (self%isRecursive) then\n"
+            state_store_code   += (
+                " call displayUnindent('recursive copy - moving to actual',"
+                "verbosity=verbosityLevelWorking)\n"
+            )
+            state_store_code   += (
+                " call self%recursiveSelf%stateStore  "
+                "(stateFile,gslStateFile,stateOperationID)\n"
+            )
+            state_store_code   += " return\n"
+            state_store_code   += "end if\n"
+            state_restore_code += "if (self%isRecursive) then\n"
+            state_restore_code += (
+                " call displayUnindent('recursive copy - moving to actual',"
+                "verbosity=verbosityLevelWorking)\n"
+            )
+            state_restore_code += (
+                " call self%recursiveSelf%stateRestore"
+                "(stateFile,gslStateFile,stateOperationID)\n"
+            )
+            state_restore_code += " return\n"
+            state_restore_code += "end if\n"
+
+        state_store_code   += (
+            "if (self%stateOperationID == stateOperationID) then\n")
+        state_store_code   += (
+            " call displayUnindent('skipping - already stored',"
+            "verbosity=verbosityLevelWorking)\n")
+        state_store_code   += " return\n"
+        state_store_code   += "end if\n"
+        state_store_code   += "self%stateOperationID=stateOperationID\n"
+        state_restore_code += (
+            "if (self%stateOperationID == stateOperationID) then\n")
+        state_restore_code += (
+            " call displayUnindent('skipping - already restored',"
+            "verbosity=verbosityLevelWorking)\n")
+        state_restore_code += " return\n"
+        state_restore_code += "end if\n"
+        state_restore_code += "self%stateOperationID=stateOperationID\n"
+        state_store_code   += (
+            f" call displayMessage('object type \"{non_abstract['name']}\"',"
+            "verbosity=verbosityLevelWorking)\n")
+        state_restore_code += (
+            f" call displayMessage('object type \"{non_abstract['name']}\"',"
+            "verbosity=verbosityLevelWorking)\n")
+
+        explicit_names_found = []
+
+        cls = non_abstract
+        while cls is not None:
+            node = (cls.get('tree') or {}).get('firstChild')
+            while node is not None and (
+                    node.get('type') != 'type'
+                    or node.get('name') != cls.get('name')):
+                node = node.get('sibling')
+            if node is None:
+                break
+
+            # Variables to exclude from state store/restore.
+            exclude_block = (
+                (cls.get('stateStorable') or {}).get('exclude')
+                if isinstance(cls.get('stateStorable'), dict) else None)
+            if isinstance(exclude_block, dict) \
+                    and 'variables' in exclude_block:
+                state_store['excludes'] = [
+                    v.strip() for v in re.split(
+                        r'\s*,\s*', exclude_block['variables'])
+                    if v.strip()
+                ]
+            else:
+                state_store['excludes'] = []
+
+            # Walk declarations (descending into `contains` blocks).
+            walker = node.get('firstChild')
+            while walker is not None:
+                if walker.get('type') == 'declaration':
+                    state_store_variables(
+                        state_stores, state_store, cls,
+                        walker.get('declarations'),
+                        explicit_names_found, state_storables)
+                walker = (walker.get('firstChild')
+                          if walker.get('type') == 'contains'
+                          else walker.get('sibling'))
+
+            # Linked-list store/restore.
+            ll_input, ll_output, ll_module = state_store_linked_list(
+                cls, non_abstract, state_linked_list_variables)
+            state_store['inputCode']  += ll_input
+            state_store['outputCode'] += ll_output
+            if ll_module:
+                state_stores['stateStoreModules'][ll_module] = True
+
+            # Explicit stateStore function (at class level, per Perl).
+            ss_block = non_abstract.get('stateStore') or {}
+            if (isinstance(ss_block, dict)
+                    and isinstance(ss_block.get('stateStore'), dict)
+                    and 'restore' in ss_block['stateStore']):
+                state_stores['explicitFunctionsFound'] = True
+            explicit_in, explicit_out, explicit_modules = (
+                state_store_explicit_function(non_abstract))
+            state_store['inputCode']  += explicit_in
+            state_store['outputCode'] += explicit_out
+            for module in sorted(explicit_modules.keys()):
+                state_stores['stateStoreModules'][module]   = True
+                state_stores['stateRestoreModules'][module] = True
+
+            cls = (None if cls.get('extends') == directive['name']
+                   else classes.get(cls.get('extends')))
+
+        # Directive-level excludes (NB: per the Perl, this resets excludes
+        # AFTER the per-class walk — so any base-class <data> processed below
+        # uses the directive-level excludes list).
+        ss_block = directive.get('stateStorable') or {}
+        if isinstance(ss_block, dict) \
+                and isinstance(ss_block.get('exclude'), dict) \
+                and 'variables' in ss_block['exclude']:
+            state_store['excludes'] = [
+                v.strip() for v in re.split(
+                    r'\s*,\s*', ss_block['exclude']['variables'])
+                if v.strip()
+            ]
+        else:
+            state_store['excludes'] = []
+
+        # Base-class <data> declarations.
+        for data in as_array(directive.get('data')):
+            declaration_source = None
+            if isinstance(data, dict):
+                if data.get('scope') == 'self':
+                    declaration_source = data.get('content')
+            else:
+                declaration_source = data
+            if declaration_source is None:
+                continue
+            declaration = parse_declaration(declaration_source)
+            if declaration is None:
+                raise RuntimeError(
+                    "process_function_class: unable to parse variable "
+                    "declaration")
+            state_store_variables(
+                state_stores, state_store, None,
+                [declaration], explicit_names_found, state_storables)
+
+        # Validate every variable named in <stateStorable><functionClass
+        # variables="..."/> was found.
+        cls = non_abstract
+        while cls is not None:
+            ss = cls.get('stateStorable') or {}
+            fc_block = ss.get('functionClass') if isinstance(ss, dict) else None
+            if isinstance(fc_block, dict) and 'variables' in fc_block:
+                explicit_lc = {v.lower() for v in explicit_names_found}
+                for variable in re.split(
+                        r'\s*,\s*', fc_block['variables']):
+                    variable = variable.strip()
+                    if not variable:
+                        continue
+                    if variable.lower() not in explicit_lc:
+                        raise RuntimeError(
+                            f"Error: unable to find variable "
+                            f"'{variable}' marked as state storable in "
+                            f"class '{cls['name']}'"
+                        )
+            cls = (None if cls.get('extends') == directive['name']
+                   else classes.get(cls.get('extends')))
+
+        if state_store['staticVariables']:
+            state_stores['stateFileUsed'] = True
+
+        if state_store['hasCustomStateStore']:
+            loc_node = non_abstract.get('node') or {}
+            loc_expr = location(loc_node, loc_node.get('line', 0))
+            state_store_code += (
+                " call Error_Report('custom state store function exists - "
+                f"this should not happen'//{loc_expr})\n"
+            )
+            state_stores['stateStoreModules']['Error'] = True
+        else:
+            for v in state_store['staticVariables']:
+                state_stores['labelUsed'] = True
+                state_store_code += (
+                    " if (displayVerbosity() >= verbosityLevelWorking) then\n"
+                )
+                state_store_code += "   write (label,'(i16)') 0\n"
+                state_store_code += (
+                    f"  call displayMessage('storing \"{v}\" with size '//"
+                    "trim(adjustl(label))//' bytes')\n"
+                )
+                state_store_code += " end if\n"
+            if state_store['staticVariables']:
+                state_store_code += (
+                    " write (stateFile) "
+                    + ", &\n  & ".join(
+                        f"self%{v}" for v in state_store['staticVariables'])
+                    + "\n"
+                )
+            state_store_code += state_store['outputCode']
+
+        if state_store['hasCustomStateRestore']:
+            loc_node = non_abstract.get('node') or {}
+            loc_expr = location(loc_node, loc_node.get('line', 0))
+            state_restore_code += (
+                " call Error_Report('custom state restore function exists - "
+                f"this should not happen'//{loc_expr})\n"
+            )
+            state_stores['stateRestoreModules']['Error'] = True
+        else:
+            for v in state_store['staticVariables']:
+                state_restore_code += (
+                    f" call displayMessage('restoring \"{v}\"',"
+                    "verbosity=verbosityLevelWorking)\n"
+                )
+            if state_store['staticVariables']:
+                state_restore_code += (
+                    " read (stateFile) "
+                    + ", &\n  & ".join(
+                        f"self%{v}" for v in state_store['staticVariables'])
+                    + "\n"
+                )
+            state_restore_code += state_store['inputCode']
+
+    state_store_code   += "end select\n"
+    state_store_code   += (
+        "call displayUnindent('done',verbosity=verbosityLevelWorking)\n")
+    state_store_code   += "return\n"
+    state_restore_code += "end select\n"
+    state_restore_code += (
+        "call displayUnindent('done',verbosity=verbosityLevelWorking)\n")
+    state_restore_code += "return\n"
+
+    if not state_stores['gslStateFileUsed']:
+        output_unused_variables.append('gslStateFile')
+        input_unused_variables .append('gslStateFile')
+    if not state_stores['stateFileUsed']:
+        output_unused_variables.append('stateFile')
+        input_unused_variables .append('stateFile')
+
+    prefix_store = ''
+    if state_stores['rankMaximum'] > 0:
+        prefix_store = (
+            ' integer :: '
+            + ', '.join(
+                f"i{i}" for i in range(1, state_stores['rankMaximum'] + 1))
+            + '\n'
+        )
+    if output_unused_variables:
+        prefix_store += (
+            ' !$GLC attributes unused :: '
+            + ', '.join(output_unused_variables) + '\n'
+        )
+    state_store_code = prefix_store + state_store_code
+
+    prefix_restore = ''
+    if state_stores['rankMaximum'] > 0:
+        prefix_restore = (
+            ' integer :: '
+            + ', '.join(
+                f"i{i}" for i in range(1, state_stores['rankMaximum'] + 1))
+            + '\n'
+        )
+    if input_unused_variables:
+        prefix_restore += (
+            ' !$GLC attributes unused :: '
+            + ', '.join(input_unused_variables) + '\n'
+        )
+    state_restore_code = prefix_restore + state_restore_code
+
+    if state_stores['allocatablesFound']:
+        prefix = ''
+        if state_stores['dimensionalsFound']:
+            prefix += (
+                'integer(c_size_t), allocatable, dimension(:) '
+                ':: storedShape\n')
+        prefix += ('logical                                      '
+                   ':: wasAllocated\n')
+        state_restore_code = prefix + state_restore_code
+    if state_stores['explicitFunctionsFound']:
+        state_restore_code = 'logical :: wasAssociated\n' + state_restore_code
+
+    if state_stores['labelUsed']:
+        state_store_code = ' character(len=16) :: label\n' + state_store_code
+
+    state_store_code   = ' integer(c_size_t) :: position\n' + state_store_code
+    state_restore_code = ' integer(c_size_t) :: position\n' + state_restore_code
+    state_store_code   = (
+        _format_variable_definitions(state_linked_list_variables)
+        + state_store_code)
+    state_restore_code = (
+        _format_variable_definitions(state_linked_list_variables)
+        + state_restore_code)
+
+    args = [
+        'integer, intent(in   ) :: stateFile',
+        'type(c_ptr), intent(in   ) :: gslStateFile',
+        'integer(c_size_t), intent(in   ) :: stateOperationID',
+    ]
+    methods['stateStore'] = {
+        'description': 'Store the state of this object to file.',
+        'type':        'void',
+        'pass':        'yes',
+        'argument':    list(args),
+        'code':        "call self%stateStore_(stateFile,gslStateFile,"
+                       "stateOperationID)",
+    }
+    methods['stateStore_'] = {
+        'description': 'Store the state of this object to file.',
+        'type':        'void',
+        'pass':        'yes',
+        'modules':     ' '.join(
+            sorted(state_stores['stateStoreModules'].keys())),
+        'argument':    list(args),
+        'code':        state_store_code,
+    }
+    methods['stateRestore'] = {
+        'description': 'Restore the state of this object from file.',
+        'type':        'void',
+        'pass':        'yes',
+        'argument':    list(args),
+        'code':        "call self%stateRestore_(stateFile,gslStateFile,"
+                       "stateOperationID)",
+    }
+    methods['stateRestore_'] = {
+        'description': 'Restore the state of this object from file.',
+        'type':        'void',
+        'pass':        'yes',
+        'modules':     ' '.join(
+            sorted(state_stores['stateRestoreModules'].keys())),
+        'argument':    list(args),
+        'code':        state_restore_code,
+    }
 
 
 def _generate_type_definition(directive, methods, pre, node):
@@ -2472,7 +2868,8 @@ def process_function_class(tree, options):
             node.get('line', 0), methods,
             state_storables, deep_copy_actions)
         _build_state_store_methods(
-            directive, non_abstract_classes, classes, methods)
+            directive, non_abstract_classes, classes, methods,
+            state_storables)
 
         code_content, pre, post = _init_code_content()
 
