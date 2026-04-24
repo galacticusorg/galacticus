@@ -597,8 +597,209 @@ def _build_allowed_parameters_method(*args, **kwargs):
     _not_implemented('buildAllowedParametersMethod')
 
 
-def _build_assignment_method(*args, **kwargs):
-    _not_implemented('buildAssignmentMethod')
+def _build_assignment_method(directive, non_abstract_classes, classes,
+                             methods, state_storables):
+    """Populate `methods['assignment(=)']` with the defined-assignment
+    operator overload.
+
+    Mirrors buildAssignmentMethod() at FunctionClass.pm:2537-2683.
+    """
+    from Galacticus.Build.SourceTree.Process.FunctionClass.DeepCopy import (
+        generate_assignment_allocatable_code,
+    )
+    from Galacticus.Build.SourceTree.Process.FunctionClass.LinkedList import (
+        assigner_linked_list,
+    )
+    from Galacticus.Build.SourceTree.Parse.Declarations import parse_declaration
+
+    assignment = {'code': ''}
+    rank_maximum_ref = [0]
+    assigner_modules = {'Error': True}
+    assigner_linked_list_variables = []
+
+    assignment['code'] += "select type (self)\n"
+    for non_abstract in non_abstract_classes:
+        assignment['code'] += f"type is ({non_abstract['name']})\n"
+        assignment['code'] += "  select type (from)\n"
+        assignment['code'] += f"  type is ({non_abstract['name']})\n"
+
+        cls = non_abstract
+        while cls is not None:
+            node = (cls.get('tree') or {}).get('firstChild')
+            while node is not None and (
+                    node.get('type') != 'type'
+                    or node.get('name') != cls.get('name')):
+                node = node.get('sibling')
+            if node is None:
+                break
+
+            child = node.get('firstChild')
+            while child is not None:
+                if child.get('type') == 'declaration':
+                    for declaration in as_array(child.get('declarations')):
+                        if not isinstance(declaration, dict):
+                            continue
+                        attributes = declaration.get('attributes') or []
+                        is_pointer     = any(a == 'pointer'     for a in attributes)
+                        is_allocatable = any(a == 'allocatable' for a in attributes)
+                        assigner = '=>' if is_pointer else '='
+                        type_text = declaration.get('type') or ''
+                        intrinsic = declaration.get('intrinsic') or ''
+                        if intrinsic in ('class', 'type'):
+                            type_text = type_text.strip()
+                        reference_count = _is_function_class_pointer(
+                            declaration, type_text, state_storables)
+                        variables = declaration.get('variables') or []
+                        for obj in variables:
+                            from Galacticus.Build.SourceTree.Process.\
+                                FunctionClass.Utils import strip_variable_name
+                            name = strip_variable_name(obj)
+                            allocatable_this = is_allocatable
+                            allocated = 'allocated'
+                            if ('assignment' in cls
+                                    and isinstance(cls.get('assignment'), dict)
+                                    and 'forceArrayAssign'
+                                        in cls['assignment']
+                                    and name in cls['assignment']
+                                        ['forceArrayAssign'].split()):
+                                allocatable_this = True
+                                allocated = 'associated'
+                            if allocatable_this:
+                                generate_assignment_allocatable_code(
+                                    assignment, declaration, name, allocated,
+                                    rank_maximum_ref)
+                            elif ('linkedList' in cls
+                                    and name in (
+                                        cls['linkedList'].get('variable')
+                                        or '').split()):
+                                pass  # handled later via assigner_linked_list
+                            else:
+                                assignment['code'] += (
+                                    f"    self%{name}{assigner}from%{name}\n"
+                                )
+                                force_reference_count = (
+                                    isinstance(cls.get('assignment'), dict)
+                                    and isinstance(
+                                        cls['assignment'].get('functionClass'),
+                                        dict)
+                                    and any(
+                                        v.lower() == name.lower()
+                                        for v in (cls['assignment']
+                                                  ['functionClass']
+                                                  .get('variables') or '')
+                                        .split()
+                                    )
+                                )
+                                if force_reference_count:
+                                    assignment['code'] += (
+                                        f"    select type (object_ => "
+                                        f"self%{name})\n"
+                                        f"    class is (functionClass)\n"
+                                        f"    "
+                                        f"{'if (associated(object_)) ' if is_pointer else ''}"
+                                        f"call object_%referenceCountIncrement()\n"
+                                        f"    end select\n"
+                                    )
+                                elif reference_count:
+                                    assignment['code'] += (
+                                        f"    "
+                                        f"{'if (associated(self%'+name+')) ' if is_pointer else ''}"
+                                        f"call self%{name}%referenceCountIncrement()\n"
+                                    )
+                child = child.get('sibling')
+
+            if 'linkedList' in cls:
+                linked_code, linked_module = assigner_linked_list(
+                    cls['linkedList'], assigner_linked_list_variables)
+                assignment['code'] += linked_code
+                if linked_module:
+                    assigner_modules[linked_module] = True
+
+            cls = (None if cls.get('extends') == directive['name']
+                   else classes.get(cls.get('extends')))
+
+        assignment['code'] += "  class default\n"
+        loc_node = non_abstract.get('node') or {}
+        loc_expr = location(loc_node, loc_node.get('line', 0))
+        assignment['code'] += (
+            f"    call Error_Report('self and from types do not match'//"
+            f"{loc_expr})\n"
+        )
+        assignment['code'] += "  end select\n"
+    assignment['code'] += "end select\n"
+
+    # Base-class `<data>` declarations.
+    for data in as_array(directive.get('data')):
+        declaration_source = None
+        if isinstance(data, dict):
+            if data.get('scope') == 'self':
+                declaration_source = data.get('content')
+        else:
+            declaration_source = data
+        if declaration_source is None:
+            continue
+        declaration = parse_declaration(declaration_source)
+        if declaration is None:
+            continue
+        attributes = declaration.get('attributes') or []
+        is_pointer     = any(a == 'pointer'     for a in attributes)
+        is_allocatable = any(a == 'allocatable' for a in attributes)
+        assigner = '=>' if is_pointer else '='
+        type_text = declaration.get('type') or ''
+        intrinsic = declaration.get('intrinsic') or ''
+        if intrinsic in ('class', 'type'):
+            type_text = type_text.strip()
+        reference_count = _is_function_class_pointer(
+            declaration, type_text, state_storables)
+        for obj in declaration.get('variables') or []:
+            from Galacticus.Build.SourceTree.Process.FunctionClass.Utils \
+                import strip_variable_name
+            name = strip_variable_name(obj)
+            if is_allocatable:
+                generate_assignment_allocatable_code(
+                    assignment, declaration, name, 'allocated',
+                    rank_maximum_ref)
+            else:
+                assignment['code'] += (
+                    f"    self%{name}{assigner}from%{name}\n"
+                )
+            if reference_count:
+                assignment['code'] += (
+                    f"    "
+                    f"{'if (associated(self%'+name+')) ' if is_pointer else ''}"
+                    f"call self%{name}%referenceCountIncrement()\n"
+                )
+
+    # functionClass base-class fields.
+    assignment['code'] += "self%isDefaultOfClass=from%isDefaultOfClass\n"
+    assignment['code'] += "self%referenceCount=from%referenceCount\n"
+    assignment['code'] += "return\n"
+
+    # Prepend required variable declarations.
+    if rank_maximum_ref[0] > 0:
+        assignment['code'] = (
+            'integer :: '
+            + ','.join(f"i{i}__" for i in range(1, rank_maximum_ref[0] + 1))
+            + '\n' + assignment['code']
+        )
+    if assigner_linked_list_variables:
+        assignment['code'] = (
+            _format_variable_definitions(assigner_linked_list_variables)
+            + assignment['code']
+        )
+
+    methods['assignment(=)'] = {
+        'description': 'Assign the object.',
+        'type':        'void',
+        'recursive':   'yes',
+        'pass':        'yes',
+        'selfIntent':  'out',
+        'modules':     ' '.join(sorted(assigner_modules.keys())),
+        'argument':    [
+            f"class({directive['name']}Class), intent(in   ) :: from"
+        ],
+        'code':        assignment['code'],
+    }
 
 
 def _build_deep_copy_methods(*args, **kwargs):
@@ -2047,7 +2248,8 @@ def process_function_class(tree, options):
         _build_allowed_parameters_method(
             directive, classes_ordered, methods)
         _build_assignment_method(
-            directive, non_abstract_classes, classes, methods)
+            directive, non_abstract_classes, classes, methods,
+            state_storables)
         _build_deep_copy_methods(
             directive, non_abstract_classes, classes,
             node.get('line', 0), methods)
