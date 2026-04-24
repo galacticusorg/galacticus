@@ -85,6 +85,9 @@ from Galacticus.Build.SourceTree.Process.FunctionClass import (
     process_function_class as _fc_process_function_class,
     _is_function_class_pointer, _init_code_content,
     _build_base_method_stubs, _build_object_type_method,
+    _build_assignment_method, _build_deep_copy_methods,
+    _build_state_store_methods, _build_allowed_parameters_method,
+    _build_descriptor_methods, _descriptor_discover_class,
     _load_and_sort_classes,
     _generate_type_definition, _generate_constructor,
     _generate_method_functions, _generate_documentation,
@@ -4491,6 +4494,315 @@ def test_functionclass_generate_documentation_basic():
 # Main
 # ============================================================================
 
+# ---------------------------------------------------------------------------
+# D.7.3c build_* method tests
+# ---------------------------------------------------------------------------
+
+def _make_simple_class(name, extends, member_declarations=None,
+                       constructor_children=None, opener=None):
+    """Helper: build a minimal class_record tree with a type block and
+    an optional interface+constructor function.
+
+    `member_declarations` populates the type body; `constructor_children`
+    are siblings attached after a type(inputParameters) :: parameters
+    declaration inside a function named <name>Constructor.
+    """
+    type_body_sibling = None
+    if member_declarations:
+        type_body_sibling = {
+            'type': 'declaration',
+            'declarations': member_declarations,
+            'sibling':    None,
+            'firstChild': None,
+        }
+    type_node = {
+        'type':       'type',
+        'name':       name,
+        'opener':     opener or f'type, extends({extends}) :: {name}',
+        'firstChild': type_body_sibling,
+        'sibling':    None,
+    }
+    if constructor_children is not None:
+        first = {
+            'type':         'declaration',
+            'declarations': [{
+                'intrinsic':  'type',
+                'type':       'inputParameters',
+                'variables':  ['parameters'],
+                'attributes': [],
+            }],
+            'sibling':   None,
+            'firstChild': None,
+        }
+        prev = first
+        for child in constructor_children:
+            prev['sibling'] = child
+            prev = child
+            prev['sibling'] = None
+        func = {
+            'type':       'function',
+            'name':       name + 'Constructor',
+            'opener':     f'  function {name}Constructor(parameters)',
+            'firstChild': first,
+            'sibling':    None,
+        }
+        iface_body = {
+            'type':       'moduleProcedure',
+            'names':      [name + 'Constructor'],
+            'firstChild': None,
+            'sibling':    None,
+        }
+        iface = {
+            'type':       'interface',
+            'name':       name,
+            'firstChild': iface_body,
+            'sibling':    func,
+        }
+        type_node['sibling'] = iface
+    return {
+        'name':    name,
+        'extends': extends,
+        'node':    {'line': 1, 'source': f'{name}.F90'},
+        'tree':    {'firstChild': type_node},
+    }
+
+
+def test_functionclass_build_assignment_method():
+    print("\n=== Testing FunctionClass._build_assignment_method ===")
+    directive = {'name': 'testFoo', 'data': []}
+    cls = _make_simple_class(
+        'testFooSimple', 'testFoo',
+        member_declarations=[
+            {'intrinsic':  'integer', 'type': None, 'attributes': [],
+             'variables': ['x']},
+            {'intrinsic':  'class', 'type': 'testFoo',
+             'attributes': ['pointer'], 'variables': ['obj']},
+        ])
+    methods = {}
+    state_storables = {
+        'functionClasses':        {'functionClass': [{'name': 'testFoo'}]},
+        'functionClassInstances': [],
+    }
+    _build_assignment_method(
+        directive, [cls], {'testFooSimple': cls}, methods, state_storables)
+    code = methods['assignment(=)']['code']
+    assert_equal('select type (self)' in code, True,
+                 "outer select-type frame emitted")
+    assert_equal('type is (testFooSimple)' in code, True,
+                 "per-class type guard emitted")
+    assert_equal('self%x=from%x' in code, True,
+                 "scalar member direct-assigned with =")
+    assert_equal('self%obj=>from%obj' in code, True,
+                 "pointer member associated with =>")
+    assert_equal(
+        'if (associated(self%obj)) call self%obj%referenceCountIncrement()'
+        in code, True,
+        "reference-count increment guarded by associated()")
+    assert_equal("class default" in code and
+                 "call Error_Report('self and from types do not match'" in code,
+                 True, "class-default branch emits Error_Report")
+    assert_equal('self%isDefaultOfClass=from%isDefaultOfClass' in code, True,
+                 "functionClass base-class fields assigned")
+    assert_equal(methods['assignment(=)']['selfIntent'], 'out',
+                 "assignment operator uses selfIntent=out")
+
+
+def test_functionclass_build_deep_copy_methods():
+    print("\n=== Testing FunctionClass._build_deep_copy_methods ===")
+    directive = {'name': 'testFoo', 'data': []}
+    cls = _make_simple_class(
+        'testFooSimple', 'testFoo',
+        member_declarations=[
+            {'intrinsic':  'integer', 'type': None, 'attributes': [],
+             'variables': ['x']},
+            {'intrinsic':  'class', 'type': 'testFoo',
+             'attributes': ['pointer'], 'variables': ['obj']},
+        ])
+    methods = {}
+    state_storables = {
+        'functionClasses':        {'functionClass': [{'name': 'testFoo'}]},
+        'functionClassInstances': [],
+    }
+    _build_deep_copy_methods(
+        directive, [cls], {'testFooSimple': cls}, 42, methods,
+        state_storables, {})
+    assert_equal(methods['deepCopy']['code'],
+                 'call self%deepCopy_(destination)',
+                 "deepCopy wrapper delegates to deepCopy_")
+    assert_equal('integer :: referenceCount__' in methods['deepCopy_']['code'],
+                 True, "referenceCount__ declared when pointer member present")
+    assert_equal('nullify(destination%obj)'
+                 in methods['deepCopy_']['code'], True,
+                 "deep-copy nullifies destination pointer member")
+    assert_equal('call self%obj%deepCopy(destination%obj)'
+                 in methods['deepCopy_']['code'], True,
+                 "deep-copy invokes inner deepCopy on pointer member")
+    assert_equal('self%copiedSelf => null()'
+                 in methods['deepCopyReset']['code'], True,
+                 "deepCopyReset starts with copiedSelf nullification")
+    assert_equal(
+        'call self%obj%deepCopyReset   ()' in methods['deepCopyReset']['code'],
+        True, "deepCopyReset delegates to pointer member")
+    assert_equal(
+        'call self%obj%deepCopyFinalize()'
+        in methods['deepCopyFinalize']['code'], True,
+        "deepCopyFinalize delegates to pointer member")
+    assert_equal('Error' in methods['deepCopy_']['modules'].split(), True,
+                 "deepCopy_ modules include Error")
+
+
+def test_functionclass_build_state_store_methods():
+    print("\n=== Testing FunctionClass._build_state_store_methods ===")
+    directive = {'name': 'testFoo', 'data': []}
+    cls = _make_simple_class(
+        'testFooSimple', 'testFoo',
+        member_declarations=[
+            {'intrinsic':  'integer', 'type': None, 'attributes': [],
+             'variables': ['x'], 'variableNames': ['x']},
+            {'intrinsic':  'double precision', 'type': None,
+             'attributes': [], 'variables': ['y'], 'variableNames': ['y']},
+        ])
+    methods = {}
+    state_storables = {
+        'functionClasses':        {'functionClass': [{'name': 'testFoo'}]},
+        'functionClassInstances': [],
+        'stateStorables':         [],
+    }
+    _build_state_store_methods(
+        directive, [cls], {'testFooSimple': cls}, methods, state_storables)
+    assert_equal(methods['stateStore']['code'],
+                 'call self%stateStore_(stateFile,gslStateFile,'
+                 'stateOperationID)',
+                 "stateStore wrapper delegates to stateStore_")
+    ss_code = methods['stateStore_']['code']
+    assert_equal('position=FTell(stateFile)' in ss_code, True,
+                 "stateStore_ tracks stream position via FTell")
+    assert_equal("call displayIndent(var_str('storing state for " in ss_code,
+                 True, "stateStore_ emits displayIndent log line")
+    assert_equal('if (self%stateOperationID == stateOperationID)' in ss_code,
+                 True, "stateStore_ guards on stateOperationID dedup")
+    assert_equal('write (stateFile) self%x, &\n  & self%y' in ss_code, True,
+                 "stateStore_ batches static variables in one write")
+    assert_equal('!$GLC attributes unused :: gslStateFile' in ss_code, True,
+                 "stateStore_ emits unused-attributes for gslStateFile")
+    sr_code = methods['stateRestore_']['code']
+    assert_equal('read (stateFile) self%x, &\n  & self%y' in sr_code, True,
+                 "stateRestore_ batches reads symmetrically")
+    assert_equal(
+        "call displayMessage('restoring \"x\"',"
+        "verbosity=verbosityLevelWorking)" in sr_code, True,
+        "stateRestore_ emits a displayMessage per static variable")
+
+
+def test_functionclass_build_allowed_parameters_method():
+    print("\n=== Testing FunctionClass._build_allowed_parameters_method ===")
+    directive = {'name': 'testFoo'}
+
+    # Positive path: constructor declares `type(inputParameters) ::
+    # parameters` and has two inputParameter directives.
+    ip_a = {'type': 'inputParameter',
+            'directive': {'source': 'parameters', 'name': 'paramA'},
+            'firstChild': None, 'sibling': None}
+    ip_b = {'type': 'inputParameter',
+            'directive': {'source': 'parameters', 'name': 'paramB'},
+            'firstChild': None, 'sibling': None}
+    cls = _make_simple_class(
+        'testFooSimple', 'testFoo',
+        constructor_children=[ip_a, ip_b])
+    methods = {}
+    _build_allowed_parameters_method(directive, [cls], methods)
+    code = methods['allowedParameters']['code']
+    assert_equal('logical                                            '
+                 ':: isNew' in code, True,
+                 "positive path prepends logical isNew decl")
+    assert_equal("if (sourceName == 'parameters')" in code, True,
+                 "source-guard conditional emitted")
+    assert_equal("allowedParameters(1)='paramA'" in code, True,
+                 "paramA listed in the else-branch allocate")
+    assert_equal("allowedParameters(2)='paramB'" in code, True,
+                 "paramB listed second in the else-branch allocate")
+    assert_equal('call move_alloc(allowedParameters,allowedParametersTmp)'
+                 in code, True,
+                 "reallocation uses move_alloc (gfortran PR 37336 workaround)")
+    assert_equal('recursive' in methods['allowedParameters'], True,
+                 "method flagged recursive")
+
+    # Unused-attributes fallback: no constructor found -> no params found.
+    empty_cls = _make_simple_class('testFooEmpty', 'testFoo')
+    methods2 = {}
+    _build_allowed_parameters_method(directive, [empty_cls], methods2)
+    assert_equal(methods2['allowedParameters']['code'].strip(),
+                 '!$GLC attributes unused :: self, allowedParameters, '
+                 'sourceName',
+                 "empty path collapses to GLC unused-attributes stub")
+
+
+def test_functionclass_build_descriptor_methods():
+    print("\n=== Testing FunctionClass._build_descriptor_methods ===")
+    directive = {'name': 'testFoo', 'data': []}
+
+    # Single class with one scalar double-precision parameter reached via
+    # the parameters constructor -> inputParameter directive.
+    ip = {'type': 'inputParameter',
+          'directive': {'source': 'parameters', 'name': 'paramA'},
+          'firstChild': None, 'sibling': None}
+    cls = _make_simple_class(
+        'testFooSimple', 'testFoo',
+        member_declarations=[{
+            'intrinsic':     'double precision', 'type': None,
+            'attributes':    [],
+            'variables':     ['parama'],
+            'variableNames': ['paramA'],
+        }],
+        constructor_children=[ip])
+    methods = {}
+    state_storables = {
+        'functionClasses':        {'functionClass': [{'name': 'testFoo'}]},
+        'functionClassInstances': [],
+    }
+    _build_descriptor_methods(
+        directive, [cls], {'testFooSimple': cls}, methods,
+        {'source': 'mod.F90'}, state_storables)
+    d_code = methods['descriptor']['code']
+    assert_equal('logical :: includeFileModificationTimes_' in d_code, True,
+                 "descriptor emits includeFileModificationTimes_ decl")
+    assert_equal("if (includeClass_) call descriptor%addParameter"
+                 "('testFoo','simple')" in d_code, True,
+                 "descriptor class header emitted under includeClass_")
+    assert_equal("write (parameterLabel,'(e17.10)') self%paramA" in d_code,
+                 True, "double-precision param written with e17.10")
+    assert_equal("call parameters%addParameter('paramA',"
+                 "trim(adjustl(parameterLabel)))" in d_code, True,
+                 "addParameter call follows the write for scalar numeric")
+
+    # Discovery-only probe: parameter classified into 'parameters' bucket.
+    pn, dp, sp, dm, pcu, eo, fm, su = _descriptor_discover_class(
+        cls, directive, {'testFooSimple': cls}, state_storables)
+    assert_equal(dm, True, "discovery sets declaration_matches on inputParameters")
+    assert_equal(eo, 'testFoo', "discovery extracts extension_of from type opener")
+    assert_equal(su, 1, "discovery marks supported=1 on clean path")
+    assert_equal(len(dp.get('parameters') or []), 1,
+                 "one descriptor_parameters entry captured")
+
+    # hashedDescriptor companion.
+    h_code = methods['hashedDescriptor']['code']
+    assert_equal('descriptor=inputParameters()' in h_code, True,
+                 "hashedDescriptor builds a fresh inputParameters tree")
+    assert_equal('call self%descriptor(descriptor,includeClass=.true.,'
+                 'includeFileModificationTimes=includeFileModificationTimes)'
+                 in h_code, True,
+                 "hashedDescriptor delegates to descriptor method")
+    assert_equal('type is (testFooSimple)' in h_code, True,
+                 "hashedDescriptor select-type arm per class")
+    assert_equal('String_C_To_Fortran(testFooSimple5)' in h_code, True,
+                 "hashedDescriptor references per-class MD5 symbol <name>5")
+    assert_equal(
+        'testFooHashedDescriptor=Hash_MD5(descriptorString)' in h_code, True,
+        "hashedDescriptor finalises via Hash_MD5 assignment")
+    assert_equal(methods['hashedDescriptor']['type'], 'type(varying_string)',
+                 "hashedDescriptor returns a varying_string")
+
+
 def main():
     print("=" * 70)
     print("Python Utils Unit Tests")
@@ -4617,6 +4929,11 @@ def main():
     test_functionclass_generate_constructor_with_default_and_recursion()
     test_functionclass_generate_method_functions()
     test_functionclass_generate_documentation_basic()
+    test_functionclass_build_assignment_method()
+    test_functionclass_build_deep_copy_methods()
+    test_functionclass_build_state_store_methods()
+    test_functionclass_build_allowed_parameters_method()
+    test_functionclass_build_descriptor_methods()
 
     print("\n" + "=" * 70)
     print(f"Results: {PASS_COUNT} passed, {FAIL_COUNT} failed")
