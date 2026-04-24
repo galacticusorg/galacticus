@@ -593,8 +593,376 @@ def _build_descriptor_methods(*args, **kwargs):
     _not_implemented('buildDescriptorMethods')
 
 
-def _build_allowed_parameters_method(*args, **kwargs):
-    _not_implemented('buildAllowedParametersMethod')
+def _build_allowed_parameters_method(directive, classes_ordered, methods):
+    """Populate `methods['allowedParameters']` with the nested
+    select-type ladder that announces every parameter name a class
+    accepts via its inputParameter / objectBuilder directives.
+
+    Mirrors buildAllowedParametersMethod() at FunctionClass.pm:2230-2535.
+    """
+    from Galacticus.Build.SourceTree.Process.FunctionClass.LinkedList import (
+        allowed_parameters_linked_list,
+    )
+    from Galacticus.Build.SourceTree.Process.FunctionClass.Utils import (
+        trimlc, striplc,
+    )
+    from build.fortran_utils import get_fortran_line
+    import io
+
+    directive_name = directive['name']
+    allowed_parameters = {}
+    parameters_present = False
+
+    # --- Discovery pass: walk every class's constructors. ---
+    for class_rec in classes_ordered:
+        class_name = class_rec['name']
+        allowed_parameters[class_name] = {
+            'declarationMatches': False,
+            'parameters':         {},
+        }
+
+        # Find the interface node named after the class.
+        node = (class_rec.get('tree') or {}).get('firstChild')
+        while node is not None and (
+                node.get('type') != 'interface'
+                or node.get('name') != class_name):
+            node = node.get('sibling')
+        if node is None:
+            continue
+
+        # Collect constructor names (from moduleProcedure children).
+        constructors = []
+        inner = node.get('firstChild')
+        while inner is not None:
+            if inner.get('type') == 'moduleProcedure':
+                constructors.extend(inner.get('names') or [])
+            inner = inner.get('sibling')
+
+        # Walk the whole class tree looking for a function named
+        # <constructor>(parameters [, recursiveConstruct, recursiveSelf]).
+        node = (class_rec.get('tree') or {}).get('firstChild')
+        while node is not None:
+            if (node.get('type') == 'function'
+                    and node.get('name') in constructors):
+                opener = node.get('opener') or ''
+                name   = node['name']
+                sig_re = (
+                    r'^\s*(recursive)??\s+function\s+' + re.escape(name)
+                    + r'\s*\(\s*parameters\s*'
+                    + r'(\s*,\s*recursiveConstruct\s*,\s*recursiveSelf\s*)??\)'
+                )
+                if re.match(sig_re, opener):
+                    result_m = re.search(
+                        r'result\s*\(\s*([a-zA-Z0-9_]+)\s*\)\s*$', opener)
+                    result = result_m.group(1) if result_m else name
+
+                    # Walk the function subtree.
+                    sub_iter = walk_tree(node)
+                    next(sub_iter)  # skip the function node itself
+                    for cnode in sub_iter:
+                        ctype = cnode.get('type')
+                        if ctype == 'declaration':
+                            for declaration in (
+                                    cnode.get('declarations') or []):
+                                if (declaration.get('intrinsic') == 'type'
+                                        and trimlc(declaration.get('type'))
+                                            == 'inputparameters'
+                                        and 'parameters'
+                                            in (declaration.get('variables')
+                                                or [])):
+                                    allowed_parameters[class_name][
+                                        'declarationMatches'] = True
+                        elif ctype == 'code':
+                            # Rewrite `result%X=Y(parameters)` lines to
+                            # bracket them with DsblVldtn increments.
+                            new_content = ''
+                            modified = False
+                            code = io.StringIO(cnode.get('content') or '')
+                            while True:
+                                line_data = get_fortran_line(code)
+                                if line_data is None:
+                                    break
+                                raw_line, processed_line, _ = line_data
+                                pm = re.match(
+                                    r'^\s*' + re.escape(result)
+                                    + r'%([a-zA-Z0-9_]+)\s*=([a-zA-Z0-9_]+)'
+                                    + r'\(\s*parameters\s*\)',
+                                    processed_line)
+                                if pm:
+                                    allowed_parameters[class_name][
+                                        'classParent'] = pm.group(1)
+                                    new_content += (
+                                        f"{directive_name}DsblVldtn="
+                                        f"{directive_name}DsblVldtn+1\n"
+                                    )
+                                    new_content += raw_line
+                                    new_content += (
+                                        f"{directive_name}DsblVldtn="
+                                        f"{directive_name}DsblVldtn-1\n"
+                                    )
+                                    modified = True
+                                else:
+                                    new_content += raw_line
+                            if modified:
+                                cnode['content'] = new_content
+                        elif ctype == 'inputParameter':
+                            src = (cnode.get('directive') or {}).get('source')
+                            iname = (cnode.get('directive') or {}).get('name')
+                            if src is not None and iname is not None:
+                                slot = (allowed_parameters[class_name]
+                                        ['parameters']
+                                        .setdefault(src, {})
+                                        .setdefault('all', []))
+                                slot.append(iname)
+                        elif ctype == 'objectBuilder':
+                            src = (cnode.get('directive') or {}).get('source')
+                            if src is None:
+                                continue
+                            d = cnode.get('directive') or {}
+                            param_name = d.get('parameterName') or d.get('class')
+                            slot_src = (allowed_parameters[class_name]
+                                        ['parameters']
+                                        .setdefault(src, {}))
+                            slot_src.setdefault('all',     []).append(param_name)
+                            slot_src.setdefault('classes', []).append(param_name)
+                            # Scan the class's type block for a matching
+                            # pointer member and collect its variable name.
+                            type_node = (class_rec.get('tree') or {}).get(
+                                'firstChild')
+                            while type_node is not None:
+                                if (type_node.get('type') == 'type'
+                                        and (type_node.get('name') or '').lower()
+                                            == class_name.lower()):
+                                    child = type_node.get('firstChild')
+                                    while child is not None:
+                                        if child.get('type') == 'declaration':
+                                            for dec in (
+                                                    child.get('declarations')
+                                                    or []):
+                                                if (dec.get('intrinsic') == 'class'
+                                                        and trimlc(dec.get('type'))
+                                                            == trimlc(
+                                                                d.get('class'))
+                                                            + 'class'):
+                                                    slot_objects = (
+                                                        slot_src.setdefault(
+                                                            'objects', []))
+                                                    for v in (
+                                                            dec.get('variables')
+                                                            or []):
+                                                        cmp_direct = (
+                                                            v.lower()
+                                                            == striplc(
+                                                                d.get('name')))
+                                                        cmp_qual = (
+                                                            (result
+                                                             + '%' + v).lower()
+                                                            == striplc(
+                                                                d.get('name')))
+                                                        if cmp_direct or cmp_qual:
+                                                            slot_objects.append(v)
+                                        child = child.get('sibling')
+                                    break
+                                type_node = type_node.get('sibling')
+
+            # Descend into contains blocks; else move to sibling.
+            node = (node.get('firstChild')
+                    if node.get('type') == 'contains'
+                    else node.get('sibling'))
+
+    # --- Emission pass. ---
+    allowed_parameters_linked_list_variables = []
+    code = "select type (self)\n"
+    modules = {'ISO_Varying_String': True}
+
+    for class_rec in classes_ordered:
+        class_name = class_rec['name']
+        if not allowed_parameters[class_name]['declarationMatches']:
+            continue
+        code += f"type is ({class_name})\n"
+        climb_name = class_name
+        while climb_name is not None:
+            entry = allowed_parameters.get(climb_name) or {}
+            for src in sorted((entry.get('parameters') or {}).keys()):
+                slot = entry['parameters'][src]
+                code += "  if (objectsOnly) then\n"
+                classes_list = slot.get('classes') or []
+                if classes_list:
+                    parameters_present = True
+                    code += f"   if (sourceName == '{src}') then\n"
+                    code += "     countNew=0\n"
+                    code += "     if (allocated(allowedParameters)) then\n"
+                    for entry_name in classes_list:
+                        code += "       isNew=.true.\n"
+                        code += "       do j=1,size(allowedParameters)\n"
+                        code += (
+                            f"          if (allowedParameters(j) "
+                            f"== '{entry_name}') then\n")
+                        code += "             isNew=.false.\n"
+                        code += "             exit\n"
+                        code += "          end if\n"
+                        code += "       end do\n"
+                        code += "       if (isNew) countNew=countNew+1\n"
+                    code += "       if (countNew > 0) then\n"
+                    code += (
+                        "         call move_alloc("
+                        "allowedParameters,allowedParametersTmp)\n")
+                    code += (
+                        "         allocate(allowedParameters("
+                        "size(allowedParametersTmp)+countNew))\n")
+                    code += (
+                        "         allowedParameters("
+                        "1:size(allowedParametersTmp))=allowedParametersTmp\n")
+                    code += "         deallocate(allowedParametersTmp)\n"
+                    for entry_name in classes_list:
+                        code += "       isNew=.true.\n"
+                        code += (
+                            "       do j=1,"
+                            "size(allowedParameters)-countNew\n")
+                        code += (
+                            f"          if (allowedParameters(j) "
+                            f"== '{entry_name}') then\n")
+                        code += "             isNew=.false.\n"
+                        code += "             exit\n"
+                        code += "          end if\n"
+                        code += "       end do\n"
+                        code += "       if (isNew) then\n"
+                        code += "           countNew=countNew-1\n"
+                        code += (
+                            f"           allowedParameters("
+                            f"size(allowedParameters)-countNew)"
+                            f"='{entry_name}'\n")
+                        code += "         end if\n"
+                    code += "       end if\n"
+                    code += "     else\n"
+                    code += (
+                        f"       allocate(allowedParameters("
+                        f"{len(classes_list)}))\n")
+                    for i, entry_name in enumerate(classes_list):
+                        code += (
+                            f"       allowedParameters({i + 1})"
+                            f"='{entry_name}'\n")
+                    code += "     end if\n"
+                    code += "   end if\n"
+                code += "  else\n"
+                all_list = slot.get('all') or []
+                if all_list:
+                    parameters_present = True
+                    code += f"   if (sourceName == '{src}') then\n"
+                    code += "     countNew=0\n"
+                    code += "     if (allocated(allowedParameters)) then\n"
+                    for entry_name in all_list:
+                        code += "       isNew=.true.\n"
+                        code += "       do j=1,size(allowedParameters)\n"
+                        code += (
+                            f"          if (allowedParameters(j) "
+                            f"== '{entry_name}') then\n")
+                        code += "             isNew=.false.\n"
+                        code += "             exit\n"
+                        code += "          end if\n"
+                        code += "       end do\n"
+                        code += "       if (isNew) countNew=countNew+1\n"
+                    code += "       if (countNew > 0) then\n"
+                    code += (
+                        "         call move_alloc("
+                        "allowedParameters,allowedParametersTmp)\n")
+                    code += (
+                        "         allocate(allowedParameters("
+                        "size(allowedParametersTmp)+countNew))\n")
+                    code += (
+                        "         allowedParameters("
+                        "1:size(allowedParametersTmp))=allowedParametersTmp\n")
+                    code += "         deallocate(allowedParametersTmp)\n"
+                    for entry_name in all_list:
+                        code += "       isNew=.true.\n"
+                        code += (
+                            "       do j=1,"
+                            "size(allowedParameters)-countNew\n")
+                        code += (
+                            f"          if (allowedParameters(j) "
+                            f"== '{entry_name}') then\n")
+                        code += "             isNew=.false.\n"
+                        code += "             exit\n"
+                        code += "          end if\n"
+                        code += "       end do\n"
+                        code += "       if (isNew) then\n"
+                        code += "           countNew=countNew-1\n"
+                        code += (
+                            f"           allowedParameters("
+                            f"size(allowedParameters)-countNew)"
+                            f"='{entry_name}'\n")
+                        code += "         end if\n"
+                    code += "       end if\n"
+                    code += "     else\n"
+                    code += (
+                        f"       allocate(allowedParameters("
+                        f"{len(all_list)}))\n")
+                    for i, entry_name in enumerate(all_list):
+                        code += (
+                            f"       allowedParameters({i + 1})"
+                            f"='{entry_name}'\n")
+                    code += "     end if\n"
+                    code += "   end if\n"
+                code += "  end if\n"
+
+                # Only emit objects/linked-list for the starting class.
+                if climb_name == class_name:
+                    if slot.get('objects'):
+                        parameters_present = True
+                    for obj_name in slot.get('objects') or []:
+                        code += (
+                            f"  if (associated(self%{obj_name})) "
+                            f"call self%{obj_name}%allowedParameters"
+                            f"(allowedParameters,'{src}',.true.)\n"
+                        )
+                    linked_code, linked_module = (
+                        allowed_parameters_linked_list(
+                            class_rec,
+                            allowed_parameters_linked_list_variables, src))
+                    code += linked_code
+                    if linked_module:
+                        modules[linked_module] = True
+            climb_name = entry.get('classParent')
+    code += "end select\n"
+
+    if parameters_present:
+        code = (
+            "type   (varying_string), allocatable, dimension(:) :: "
+            "allowedParametersTmp\n"
+            + code)
+        code = (
+            "integer                                            :: "
+            "countNew, j\n"
+            + code)
+        code = (
+            "logical                                            :: isNew\n"
+            + code)
+    else:
+        code = (
+            "!$GLC attributes unused :: self, allowedParameters, "
+            "sourceName\n"
+        )
+    code = (_format_variable_definitions(
+                allowed_parameters_linked_list_variables)
+            + code)
+
+    methods['allowedParameters'] = {
+        'description': (
+            'Return a list of parameter names allowed for this object.'),
+        'type':        'void',
+        'recursive':   'yes',
+        'pass':        'yes',
+        'modules':     ' '.join(modules.keys()),
+        'argument':    [
+            'type     (varying_string), dimension(:), allocatable, '
+            'intent(inout) :: allowedParameters',
+            'character(len=*         )                           , '
+            'intent(in   ) :: sourceName',
+            'logical                                             , '
+            'intent(in   ) :: objectsOnly',
+        ],
+        'code':        code,
+    }
 
 
 def _build_assignment_method(directive, non_abstract_classes, classes,
