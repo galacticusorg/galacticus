@@ -652,9 +652,9 @@ $(BUILDPATH)/Makefile_Use_Dependencies: ./scripts/build/useDependencies.pl $(BUI
 	@mkdir -p $(BUILDPATH)
 	./scripts/build/useDependencies.pl `pwd`
 
-$(BUILDPATH)/Makefile_Directives: ./scripts/build/codeDirectivesParse.pl $(ALLSOURCES)
+$(BUILDPATH)/Makefile_Directives: ./scripts/build/codeDirectivesParse.py $(ALLSOURCES)
 	@mkdir -p $(BUILDPATH)
-	./scripts/build/codeDirectivesParse.pl `pwd`
+	./scripts/build/codeDirectivesParse.py `pwd`
 	./scripts/build/stateStorables.pl `pwd`
 	./scripts/build/deepCopyActions.pl `pwd`
 
