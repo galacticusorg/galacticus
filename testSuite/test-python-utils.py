@@ -54,6 +54,7 @@ import Galacticus.Build.SourceTree.Process.FunctionsGlobal           # noqa: F40
 import Galacticus.Build.SourceTree.Process.Enumeration               # noqa: F401
 import Galacticus.Build.SourceTree.Process.DeepCopyActions           # noqa: F401
 import Galacticus.Build.SourceTree.Process.StateStorable             # noqa: F401
+import Galacticus.Build.SourceTree.Process.EventHooksStatic          # noqa: F401
 from Galacticus.Build.SourceTree.Process import (
     PROCESS_HOOKS, PROCESS_DEPENDENCIES, POSTPROCESS_HOOKS,
     register_process, process_tree,
@@ -2813,6 +2814,184 @@ def test_process_state_storable_class_restore():
 
 
 # ============================================================================
+# Galacticus.Build.Dependencies.dependency_sort tests
+# ============================================================================
+
+def test_dependency_sort_after_and_before():
+    print("\n=== Testing Galacticus.Build.Dependencies.dependency_sort ===")
+
+    from Galacticus.Build.Dependencies import dependency_sort
+
+    # `X.after = Y` means Perl puts X before Y (inverted English reading —
+    # this is the semantics the callers rely on).
+    order = dependency_sort({'X': {'after': 'Y'}, 'Y': {}})
+    assert_equal(order, ['X', 'Y'],
+                 "`after` edge places the tagged name before its reference")
+
+    # `X.before = Y` means Perl puts Y before X.
+    order = dependency_sort({'X': {'before': 'Y'}, 'Y': {}})
+    assert_equal(order, ['Y', 'X'],
+                 "`before` edge places the tagged name after its reference")
+
+    # No constraints → alphabetical.
+    order = dependency_sort({'c': {}, 'a': {}, 'b': {}})
+    assert_equal(order, ['a', 'b', 'c'],
+                 "constraint-free tasks fall back to alphabetical order")
+
+
+# ============================================================================
+# Process.EventHooksStatic tests
+# ============================================================================
+
+def test_process_event_hooks_static_single_hook():
+    print("\n=== Testing Process.EventHooksStatic (single hook) ===")
+
+    tmpdir = tempfile.mkdtemp()
+    # File containing the hooked function (sub `foo_hook` inside module `mFoo`).
+    hooked_file = os.path.join(tmpdir, 'hooked.F90')
+    with open(hooked_file, 'w') as fh:
+        fh.write(
+            "module mFoo\n"
+            "contains\n"
+            "  subroutine foo_hook\n"
+            "  end subroutine foo_hook\n"
+            "  !![\n"
+            "  <myHook function=\"foo_hook\"/>\n"
+            "  !!]\n"
+            "end module mFoo\n"
+        )
+    # directiveLocations.xml announces both `myHook` locations and
+    # eventHookStatic locations.
+    with open(os.path.join(tmpdir, 'directiveLocations.xml'), 'w') as fh:
+        fh.write(
+            "<directiveLocations>\n"
+            f"  <myHook><file>{hooked_file}</file></myHook>\n"
+            f"  <eventHookStatic><file>{hooked_file}</file></eventHookStatic>\n"
+            "</directiveLocations>\n"
+        )
+    with open(os.path.join(tmpdir, 'stateStorables.xml'), 'w') as fh:
+        fh.write("<stateStorables></stateStorables>\n")
+
+    # Invalidate caches so the test sees our temp XMLs.
+    import Galacticus.Build.SourceTree.Process.EventHooksStatic as EHS
+    EHS._DIRECTIVE_LOCATIONS = None
+    EHS._STATE_STORABLES     = None
+    EHS._EVENT_HOOK_NAMES    = None
+
+    saved = os.environ.get('BUILDPATH')
+    os.environ['BUILDPATH'] = tmpdir
+    try:
+        root = _parse_text(
+            "subroutine driver\n"
+            "end subroutine driver\n"
+        )
+        sub = _find_node(root, 'subroutine')
+        _make_directive_node(
+            'eventHookStatic',
+            {'name': 'myHook', 'processed': False},
+            sub,
+        )
+        from Galacticus.Build.SourceTree.Process.EventHooksStatic import \
+            process_event_hooks_static
+        process_event_hooks_static(root, {})
+
+        out = serialize(root)
+        assert_equal('call foo_hook()' in out, True,
+                     "call to hooked function emitted at directive site")
+        assert_equal('mFoo' in out and 'foo_hook' in out, True,
+                     "providing module imported alongside the hooked function")
+    finally:
+        if saved is None:
+            del os.environ['BUILDPATH']
+        else:
+            os.environ['BUILDPATH'] = saved
+        EHS._DIRECTIVE_LOCATIONS = None
+        EHS._STATE_STORABLES     = None
+        EHS._EVENT_HOOK_NAMES    = None
+        import shutil
+        shutil.rmtree(tmpdir)
+
+
+def test_process_event_hooks_static_ordering():
+    print("\n=== Testing Process.EventHooksStatic (after/before ordering) ===")
+
+    tmpdir = tempfile.mkdtemp()
+    first_file  = os.path.join(tmpdir, 'first.F90')
+    second_file = os.path.join(tmpdir, 'second.F90')
+    with open(first_file, 'w') as fh:
+        fh.write(
+            "module mFirst\n"
+            "contains\n"
+            "  subroutine first_hook\n"
+            "  end subroutine first_hook\n"
+            "  !![\n"
+            "  <myHook function=\"first_hook\" after=\"second_hook\"/>\n"
+            "  !!]\n"
+            "end module mFirst\n"
+        )
+    with open(second_file, 'w') as fh:
+        fh.write(
+            "module mSecond\n"
+            "contains\n"
+            "  subroutine second_hook\n"
+            "  end subroutine second_hook\n"
+            "  !![\n"
+            "  <myHook function=\"second_hook\"/>\n"
+            "  !!]\n"
+            "end module mSecond\n"
+        )
+    with open(os.path.join(tmpdir, 'directiveLocations.xml'), 'w') as fh:
+        fh.write(
+            "<directiveLocations>\n"
+            f"  <myHook><file>{first_file}</file><file>{second_file}</file></myHook>\n"
+            f"  <eventHookStatic><file>{first_file}</file><file>{second_file}</file></eventHookStatic>\n"
+            "</directiveLocations>\n"
+        )
+    with open(os.path.join(tmpdir, 'stateStorables.xml'), 'w') as fh:
+        fh.write("<stateStorables></stateStorables>\n")
+
+    import Galacticus.Build.SourceTree.Process.EventHooksStatic as EHS
+    EHS._DIRECTIVE_LOCATIONS = None
+    EHS._STATE_STORABLES     = None
+    EHS._EVENT_HOOK_NAMES    = None
+
+    saved = os.environ.get('BUILDPATH')
+    os.environ['BUILDPATH'] = tmpdir
+    try:
+        root = _parse_text(
+            "subroutine driver\n"
+            "end subroutine driver\n"
+        )
+        sub = _find_node(root, 'subroutine')
+        _make_directive_node(
+            'eventHookStatic',
+            {'name': 'myHook', 'processed': False},
+            sub,
+        )
+        from Galacticus.Build.SourceTree.Process.EventHooksStatic import \
+            process_event_hooks_static
+        process_event_hooks_static(root, {})
+        out = serialize(root)
+
+        # Perl's `after` inversion: first_hook (which has after=second_hook)
+        # is emitted BEFORE second_hook.
+        first_pos  = out.index('call first_hook')
+        second_pos = out.index('call second_hook')
+        assert_equal(first_pos < second_pos, True,
+                     "after=other places the tagged call before `other`")
+    finally:
+        if saved is None:
+            del os.environ['BUILDPATH']
+        else:
+            os.environ['BUILDPATH'] = saved
+        EHS._DIRECTIVE_LOCATIONS = None
+        EHS._STATE_STORABLES     = None
+        EHS._EVENT_HOOK_NAMES    = None
+        import shutil
+        shutil.rmtree(tmpdir)
+
+
+# ============================================================================
 # Main
 # ============================================================================
 
@@ -2896,6 +3075,9 @@ def main():
     test_process_state_storable_basic()
     test_process_state_storable_excludes_and_restore_to()
     test_process_state_storable_class_restore()
+    test_dependency_sort_after_and_before()
+    test_process_event_hooks_static_single_hook()
+    test_process_event_hooks_static_ordering()
 
     print("\n" + "=" * 70)
     print(f"Results: {PASS_COUNT} passed, {FAIL_COUNT} failed")
