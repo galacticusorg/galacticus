@@ -73,6 +73,14 @@ from Galacticus.Build.SourceTree.Process.FunctionClass.LinkedList import (
     allowed_parameters_linked_list, auto_descriptor_linked_list,
     assigner_linked_list,
 )
+from Galacticus.Build.SourceTree.Process.FunctionClass.DeepCopy import (
+    deep_copy_copied_self_block, generate_assignment_allocatable_code,
+    deep_copy_declarations,
+)
+from Galacticus.Build.SourceTree.Process.FunctionClass.StateStore import (
+    state_store_explicit_function, generate_allocatable_state_store_code,
+    state_store_variables,
+)
 from Galacticus.Build.SourceTree.Process import (
     PROCESS_HOOKS, PROCESS_DEPENDENCIES, POSTPROCESS_HOOKS,
     register_process, process_tree,
@@ -3691,6 +3699,237 @@ def test_functionclass_linkedlist_allowed_and_descriptor_and_assigner():
 
 
 # ============================================================================
+# Process.FunctionClass.DeepCopy tests
+# ============================================================================
+
+def test_functionclass_deepcopy_copied_self_block():
+    print("\n=== Testing FunctionClass.DeepCopy.deep_copy_copied_self_block ===")
+    dc = {}
+    deep_copy_copied_self_block(
+        dc, 'obj',
+        {'intrinsic': 'class', 'type': 'myType'},
+        {'node': {'line': 5}},
+        indent='  ',
+    )
+    code = dc['assignments']
+    assert_equal('  if (associated(self%obj%copiedSelf)) then' in code, True,
+                 "indent applied to all lines")
+    assert_equal('class is (myType)' in code, True,
+                 "intrinsic + type spliced into class-is clause")
+    assert_equal('call self%obj%copiedSelf%referenceCountIncrement()' in code,
+                 True, "reference-count increment call emitted")
+    assert_equal('allocate(destination%obj,mold=self%obj)' in code, True,
+                 "mold-based allocate on else branch emitted")
+
+
+def test_functionclass_deepcopy_generate_assignment_allocatable():
+    print("\n=== Testing FunctionClass.DeepCopy.generate_assignment_allocatable_code ===")
+    asn = {}
+    rank_max = [0]
+    generate_assignment_allocatable_code(
+        asn,
+        {'intrinsic': 'integer', 'attributes': []},
+        'v', 'allocated', rank_max)
+    assert_equal('if (allocated(self%v)) deallocate(self%v)' in asn['code'], True,
+                 "allocated self guarded deallocate")
+    assert_equal('self%v=from%v' in asn['code'], True,
+                 "simple scalar assignment for non-type")
+
+    asn = {}
+    rank_max = [0]
+    generate_assignment_allocatable_code(
+        asn,
+        {'intrinsic': 'type', 'type': 'thing',
+         'attributes': ['dimension(:,:)']},
+        'v', 'allocated', rank_max)
+    assert_equal('do i1__=lbound(from%v,dim=1)' in asn['code'], True,
+                 "rank-2 type assignment uses lbound/ubound loop")
+    assert_equal('self%v(i1__,i2__)=from%v(i1__,i2__)' in asn['code'], True,
+                 "element-wise assignment body emitted")
+    assert_equal(rank_max[0], 2,
+                 "rank-maximum-ref updated when rank exceeds previous max")
+
+
+def test_functionclass_deepcopy_declarations_functionclass_pointer():
+    print("\n=== Testing FunctionClass.DeepCopy.deep_copy_declarations (functionClass pointer) ===")
+    state_storables = {
+        'functionClasses': {'functionClass': [{'name': 'myType'}]},
+        'functionClassInstances': [],
+    }
+    declarations = [
+        {'intrinsic': 'class', 'type': 'myType',
+         'attributes': ['pointer'],
+         'variables': ['obj'], 'variableNames': ['obj']},
+    ]
+    deep_copy = {}
+    found = []
+    deep_copy_declarations(
+        {},                           # class_record
+        {'node': {'line': 1}},       # non_abstract_class
+        None,                        # node (unused by this path)
+        declarations, [], 1,
+        deep_copy, found,
+        state_storables, {},
+    )
+    assert_equal(deep_copy.get('needReferenceCount'), 1,
+                 "needReferenceCount flag set for functionClass pointer")
+    assert_equal('call self%obj%deepCopy(destination%obj)' in deep_copy['assignments'],
+                 True, "deepCopy call emitted for the pointer member")
+    assert_equal('call self%obj%deepCopyReset   ()' in deep_copy['resetCode'],
+                 True, "reset code emitted")
+    assert_equal('call self%obj%deepCopyFinalize()' in deep_copy['finalizeCode'],
+                 True, "finalize code emitted")
+
+
+def test_functionclass_deepcopy_declarations_explicit_actions():
+    print("\n=== Testing FunctionClass.DeepCopy.deep_copy_declarations (explicit deepCopyActions) ===")
+    actions = {'deepCopyActions': [{'type': 'myThing'}]}
+    declarations = [
+        {'intrinsic': 'type', 'type': 'myThing',
+         'attributes': ['dimension(:)', 'allocatable'],
+         'variables': ['items'], 'variableNames': ['items']},
+    ]
+    deep_copy = {}
+    deep_copy_declarations(
+        {}, {'node': {'line': 1}}, None,
+        declarations, [], 1, deep_copy, [], {}, actions,
+    )
+    code = deep_copy['assignments']
+    assert_equal('if (allocated(self%items)) then' in code, True,
+                 "allocatable guard emitted for type with deepCopyActions")
+    assert_equal('do i1=lbound(self%items,dim=1)' in code, True,
+                 "rank-1 do-loop emitted")
+    assert_equal('call destination%items(i1)%deepCopyActions()' in code, True,
+                 "deepCopyActions call emitted per element")
+
+
+def test_functionclass_deepcopy_declarations_hdf5_and_setto():
+    print("\n=== Testing FunctionClass.DeepCopy.deep_copy_declarations (HDF5 + setTo) ===")
+    state_storables = {'functionClasses': {}, 'functionClassInstances': []}
+    declarations = [
+        {'intrinsic': 'type', 'type': 'hdf5Object',
+         'attributes': [],
+         'variables': ['obj'], 'variableNames': ['obj']},
+        {'intrinsic': 'integer', 'type': None, 'attributes': [],
+         'variables': ['host'], 'variableNames': ['host']},
+    ]
+    class_record = {
+        'deepCopy': {
+            'setTo': {'variables': 'host%counter', 'value': '0'},
+        },
+    }
+    deep_copy = {}
+    deep_copy_declarations(
+        class_record, {'node': {'line': 1}}, None,
+        declarations, [], 1, deep_copy, [], state_storables, {},
+    )
+    code = deep_copy['assignments']
+    assert_equal('HDF5_Access' in deep_copy['modules'], True,
+                 "HDF5_Access module recorded for hdf5object member")
+    assert_equal('call self%obj%deepCopy(destination%obj)' in code, True,
+                 "hdf5 member deep-copy call emitted")
+    assert_equal('destination%host%counter=0' in code, True,
+                 "setTo directive emits destination assignment")
+
+
+# ============================================================================
+# Process.FunctionClass.StateStore tests
+# ============================================================================
+
+def test_functionclass_statestore_explicit_function():
+    print("\n=== Testing FunctionClass.StateStore.state_store_explicit_function ===")
+    inp, out, mods = state_store_explicit_function({
+        'stateStore': {'stateStore': {
+            'variables': 'p q',
+            'store':     'myStore',
+            'restore':   'myRestore',
+            'module':    'myMod',
+        }},
+    })
+    assert_equal('call myStore(self%p,stateFile,gslStateFile,stateOperationID)'
+                 in out, True, "output code uses explicit store function")
+    assert_equal('call myRestore(self%p,stateFile,gslStateFile,stateOperationID)'
+                 in inp, True, "input code uses explicit restore function")
+    assert_equal('nullify(self%q)' in inp, True,
+                 "input code nullifies on not-associated branch")
+    assert_equal('myMod' in mods, True, "module recorded in modules dict")
+
+
+def test_functionclass_statestore_generate_allocatable():
+    print("\n=== Testing FunctionClass.StateStore.generate_allocatable_state_store_code ===")
+    ss = {}
+    sss = {}
+    generate_allocatable_state_store_code(
+        ss, sss, 'arr', 3, 'self%arr', 'self%arr')
+    assert_equal(sss['allocatablesFound'], True, "allocatablesFound flipped")
+    assert_equal(sss['dimensionalsFound'], True, "dimensionalsFound flipped")
+    assert_equal(sss['stateFileUsed'],     True, "stateFileUsed flipped")
+    assert_equal(sss['labelUsed'],         True, "labelUsed flipped")
+    assert_equal('shape(self%arr,kind=c_size_t)' in ss['outputCode'], True,
+                 "shape() line emitted")
+    assert_equal('allocate(storedShape(3))' in ss['inputCode'], True,
+                 "rank-3 storedShape allocation emitted")
+    assert_equal('allocate(self%arr(storedShape(1),storedShape(2),storedShape(3)))'
+                 in ss['inputCode'], True,
+                 "rank-3 shaped allocate emitted on restore")
+
+
+def test_functionclass_statestore_variables_static_and_restore():
+    print("\n=== Testing FunctionClass.StateStore.state_store_variables (static + restoreTo) ===")
+    declarations = [
+        {'intrinsic': 'integer', 'type': None, 'attributes': [],
+         'variables': ['a'], 'variableNames': ['a']},
+        {'intrinsic': 'real', 'type': None, 'attributes': [],
+         'variables': ['b'], 'variableNames': ['b']},
+    ]
+    class_record = {
+        'stateStorable': {
+            'restoreTo': {'variables': 'b', 'state': '0.0'},
+        },
+    }
+    state_store = {}
+    state_stores = {}
+    state_store_variables(state_stores, state_store, class_record,
+                          declarations, [], {})
+    assert_equal(state_store['staticVariables'], ['a'],
+                 "non-restoreTo static variables collected in order")
+    assert_equal('self%b=0.0' in state_store.get('inputCode', ''), True,
+                 "restoreTo directive writes state into inputCode")
+
+
+def test_functionclass_statestore_custom_hooks_flag():
+    print("\n=== Testing FunctionClass.StateStore.state_store_variables (custom hooks) ===")
+    declarations = [
+        {'intrinsic': 'procedure',
+         'variables': ['stateStore=>myStore']},
+        {'intrinsic': 'procedure',
+         'variables': ['stateRestore=>myRestore']},
+    ]
+    state_store = {}
+    state_store_variables({}, state_store, {}, declarations, [], {})
+    assert_equal(state_store.get('hasCustomStateStore'),   True,
+                 "hasCustomStateStore flag set on stateStore=>… binding")
+    assert_equal(state_store.get('hasCustomStateRestore'), True,
+                 "hasCustomStateRestore flag set on stateRestore=>… binding")
+
+
+def test_functionclass_statestore_variables_allocatable_intrinsic():
+    print("\n=== Testing FunctionClass.StateStore.state_store_variables (allocatable intrinsic) ===")
+    declarations = [
+        {'intrinsic': 'integer', 'type': None,
+         'attributes': ['allocatable', 'dimension(:)'],
+         'variables': ['items'], 'variableNames': ['items']},
+    ]
+    ss = {}
+    sss = {}
+    state_store_variables(sss, ss, None, declarations, [], {})
+    assert_equal('allocate(storedShape(1))' in ss['inputCode'], True,
+                 "allocatable intrinsic triggers storedShape(1) allocation")
+    assert_equal(sss.get('allocatablesFound'), True,
+                 "allocatablesFound flag set")
+
+
+# ============================================================================
 # Main
 # ============================================================================
 
@@ -3796,6 +4035,16 @@ def main():
     test_functionclass_linkedlist_deep_copy()
     test_functionclass_linkedlist_state_store()
     test_functionclass_linkedlist_allowed_and_descriptor_and_assigner()
+    test_functionclass_deepcopy_copied_self_block()
+    test_functionclass_deepcopy_generate_assignment_allocatable()
+    test_functionclass_deepcopy_declarations_functionclass_pointer()
+    test_functionclass_deepcopy_declarations_explicit_actions()
+    test_functionclass_deepcopy_declarations_hdf5_and_setto()
+    test_functionclass_statestore_explicit_function()
+    test_functionclass_statestore_generate_allocatable()
+    test_functionclass_statestore_variables_static_and_restore()
+    test_functionclass_statestore_custom_hooks_flag()
+    test_functionclass_statestore_variables_allocatable_intrinsic()
 
     print("\n" + "=" * 70)
     print(f"Results: {PASS_COUNT} passed, {FAIL_COUNT} failed")
