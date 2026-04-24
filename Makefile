@@ -388,7 +388,7 @@ source/FFTlog/fftlog.f:
 	 patch < ../drfftf.f.patch; \
 	 patch < ../drffti.f.patch; \
 	 cd -; \
-	 ./scripts/build/useDependencies.pl `pwd`; \
+	 ./scripts/build/useDependencies.py `pwd`; \
 	fi
 	echo $(BUILDPATH)/FFTlog/cdgamma.o > $(BUILDPATH)/FFTlog/cdgamma.d
 	echo $(BUILDPATH)/FFTlog/drfftb.o  > $(BUILDPATH)/FFTlog/drfftb.d
@@ -533,7 +533,7 @@ $(BUILDPATH)/%.m : ./source/%.F90
 # Executables (*.exe) are built by linking together all of the object files (*.o) specified in the associated dependency (*.d)
 # file.
 %.exe: $(BUILDPATH)/%.o $(BUILDPATH)/%.d `cat $(BUILDPATH)/$*.d` $(MAKE_DEPS)
-	./scripts/build/parameterDependencies.pl `pwd` $*.exe
+	./scripts/build/parameterDependencies.py `pwd` $*.exe
 	$(FCCOMPILER) -c $(BUILDPATH)/$*.parameters.F90 -o $(BUILDPATH)/$*.parameters.o $(FCFLAGS)
 	@if echo "$(MAKEFLAGS)" | grep -q -E -- ' -j1( |$$)'; then \
 	 useLocks=no; \
@@ -562,7 +562,7 @@ $(BUILDPATH)/libgalacticus.inc : $(BUILDPATH)/libgalacticus.p.Inc Makefile
 	perl -MRegexp::Common -ne '$$l=$$_;$$l =~ s/($$RE{comment}{Fortran}{-keep})/\/\*$$4\*\/$$5/; print $$l' $(BUILDPATH)/libgalacticus.p.Inc | cpp -nostdinc -C | perl -MRegexp::Common -ne '$$l=$$_;$$l =~ s/($$RE{comment}{C}{-keep})/!$$4/; print $$l' > $(BUILDPATH)/libgalacticus.tmp
 	mv -f $(BUILDPATH)/libgalacticus.tmp $(BUILDPATH)/libgalacticus.inc
 libgalacticus.so: $(BUILDPATH)/libgalacticus.o $(BUILDPATH)/libgalacticus_classes.d
-	./scripts/build/parameterDependencies.pl `pwd` libgalacticus.o
+	./scripts/build/parameterDependencies.py `pwd` libgalacticus.o
 	$(FCCOMPILER) -c $(BUILDPATH)/libgalacticus.parameters.F90 -o $(BUILDPATH)/libgalacticus.parameters.o $(FCFLAGS)
 	@if echo "$(MAKEFLAGS)" | grep -q -E -- ' -j1( |$$)'; then \
 	 useLocks=no; \
@@ -648,13 +648,13 @@ $(BUILDPATH)/Makefile_Module_Dependencies: ./scripts/build/moduleDependencies.pl
 	@mkdir -p $(BUILDPATH)
 	./scripts/build/moduleDependencies.pl `pwd`
 
-$(BUILDPATH)/Makefile_Use_Dependencies: ./scripts/build/useDependencies.pl $(BUILDPATH)/directiveLocations.xml $(BUILDPATH)/Makefile_Directives $(BUILDPATH)/Makefile_Include_Dependencies $(BUILDPATH)/Makefile_Library_Dependencies $(BUILDPATH)/libgalacticus.Inc $(ALLSOURCESINC)
+$(BUILDPATH)/Makefile_Use_Dependencies: ./scripts/build/useDependencies.py $(BUILDPATH)/directiveLocations.xml $(BUILDPATH)/Makefile_Directives $(BUILDPATH)/Makefile_Include_Dependencies $(BUILDPATH)/Makefile_Library_Dependencies $(BUILDPATH)/libgalacticus.Inc $(ALLSOURCESINC)
 	@mkdir -p $(BUILDPATH)
-	./scripts/build/useDependencies.pl `pwd`
+	./scripts/build/useDependencies.py `pwd`
 
-$(BUILDPATH)/Makefile_Directives: ./scripts/build/codeDirectivesParse.pl $(ALLSOURCES)
+$(BUILDPATH)/Makefile_Directives: ./scripts/build/codeDirectivesParse.py $(ALLSOURCES)
 	@mkdir -p $(BUILDPATH)
-	./scripts/build/codeDirectivesParse.pl `pwd`
+	./scripts/build/codeDirectivesParse.py `pwd`
 	./scripts/build/stateStorables.pl `pwd`
 	./scripts/build/deepCopyActions.pl `pwd`
 
