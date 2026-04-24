@@ -46,10 +46,14 @@ import Galacticus.Build.SourceTree.Process.ProfileOpenMP             # noqa: F40
 import Galacticus.Build.SourceTree.Process.Constants                 # noqa: F401
 import Galacticus.Build.SourceTree.Process.ConditionalCall           # noqa: F401
 import Galacticus.Build.SourceTree.Process.InputParametersValidate   # noqa: F401
+import Galacticus.Build.SourceTree.Process.StateStore                # noqa: F401
+import Galacticus.Build.SourceTree.Process.MetaPropertyDatabase      # noqa: F401
+import Galacticus.Build.SourceTree.Process.InputParameter            # noqa: F401
 from Galacticus.Build.SourceTree.Process import (
     PROCESS_HOOKS, PROCESS_DEPENDENCIES, POSTPROCESS_HOOKS,
     register_process, process_tree,
 )
+from Galacticus.Build.Directives import extract_directives, extract_directive
 
 # ============================================================================
 # Test framework
@@ -1655,6 +1659,347 @@ def test_process_input_parameters_validate():
 
 
 # ============================================================================
+# Galacticus.Build.Directives.extract_directives tests
+# ============================================================================
+
+def _write_temp_f90(text):
+    fh = tempfile.NamedTemporaryFile(
+        mode='w', suffix='.F90', delete=False, encoding='utf-8')
+    fh.write(text)
+    fh.close()
+    return fh.name
+
+
+def test_extract_directives_basic():
+    print("\n=== Testing Galacticus.Build.Directives.extract_directives (basic) ===")
+
+    path = _write_temp_f90(
+        "module m\n"
+        "  !![\n"
+        "  <addMetaProperty name=\"foo\" type=\"float\" isCreator=\"yes\"/>\n"
+        "  !!]\n"
+        "  integer :: x\n"
+        "  !![\n"
+        "  <addMetaProperty name=\"bar\" type=\"int\" isCreator=\"no\"/>\n"
+        "  !!]\n"
+        "end module m\n"
+    )
+    try:
+        found = extract_directives(path, 'addMetaProperty')
+        assert_equal(len(found), 2, "both addMetaProperty directives returned")
+        names = sorted(d.get('name') for d in found)
+        assert_equal(names, ['bar', 'foo'], "directive names captured")
+        first = extract_directive(path, 'addMetaProperty')
+        assert_equal(first.get('name'), 'foo',
+                     "extract_directive returns only the first match")
+    finally:
+        os.unlink(path)
+
+
+def test_extract_directives_multiline_and_wildcard():
+    print("\n=== Testing extract_directives (multi-line + wildcard + rootElementType) ===")
+
+    path = _write_temp_f90(
+        "  !![\n"
+        "  <functionClass>\n"
+        "    <name>fooImpl</name>\n"
+        "  </functionClass>\n"
+        "  !!]\n"
+        "  !![\n"
+        "  <addMetaProperty name=\"x\" isCreator=\"yes\"/>\n"
+        "  !!]\n"
+    )
+    try:
+        all_ = extract_directives(path, '*', set_root_element_type=True)
+        assert_equal(len(all_), 2, "two directives across wildcards found")
+        roots = sorted(d['rootElementType'] for d in all_)
+        assert_equal(roots, ['addMetaProperty', 'functionClass'],
+                     "rootElementType tagged on every returned dict")
+        # Multi-line <functionClass>...</functionClass> inner <name> captured.
+        fc = next(d for d in all_ if d['rootElementType'] == 'functionClass')
+        assert_equal(fc.get('name'), 'fooImpl',
+                     "multi-line directive body parsed into fields")
+    finally:
+        os.unlink(path)
+
+
+def test_extract_directives_conditions():
+    print("\n=== Testing extract_directives (conditions filter) ===")
+
+    path = _write_temp_f90(
+        "  !![\n"
+        "  <addMetaProperty name=\"a\" isCreator=\"yes\"/>\n"
+        "  !!]\n"
+        "  !![\n"
+        "  <addMetaProperty name=\"b\" isCreator=\"no\"/>\n"
+        "  !!]\n"
+        "  !![\n"
+        "  <addMetaProperty name=\"c\" isCreator=\"yes\"/>\n"
+        "  !!]\n"
+    )
+    try:
+        creators = extract_directives(
+            path, 'addMetaProperty', conditions={'isCreator': 'yes'})
+        names = sorted(d.get('name') for d in creators)
+        assert_equal(names, ['a', 'c'],
+                     "conditions={isCreator:yes} filters non-creators out")
+    finally:
+        os.unlink(path)
+
+
+def test_extract_directives_missing_file():
+    print("\n=== Testing extract_directives (missing file) ===")
+
+    result = extract_directives('/nonexistent/path/does.not.exist.F90', 'foo')
+    assert_equal(result, [], "missing file yields an empty list, not an error")
+
+
+# ============================================================================
+# Process.StateStore tests (stateStore + stateRestore)
+# ============================================================================
+
+def test_process_state_store():
+    print("\n=== Testing Process.StateStore (stateStore directive) ===")
+
+    root = {'type': 'file', 'name': 'x.F90', 'firstChild': None,
+            'parent': None, 'sibling': None, 'source': 'x', 'line': 0}
+    sub  = {'type': 'subroutine', 'name': 's', 'parent': root,
+            'firstChild': None, 'sibling': None, 'source': 'x', 'line': 0}
+    root['firstChild'] = sub
+    directive = _make_directive_node(
+        'stateStore', {'variables': 'alpha beta', 'processed': False}, sub)
+
+    from Galacticus.Build.SourceTree.Process.StateStore import process_state_store
+    process_state_store(root, {})
+
+    assert_equal(directive['directive']['processed'], True,
+                 "stateStore directive marked processed")
+    emitted = directive.get('sibling')
+    assert_equal(emitted is not None and emitted.get('type') == 'code', True,
+                 "code node inserted after stateStore directive")
+    content = emitted['content']
+    assert_equal('write (stateFile) associated(alpha)' in content, True,
+                 "associated() write emitted for alpha")
+    assert_equal('call alpha%stateStore(stateFile,gslStateFile,stateOperationID)'
+                 in content, True,
+                 "conditional stateStore call emitted for alpha")
+    assert_equal('write (stateFile) associated(beta)' in content, True,
+                 "associated() write emitted for beta")
+
+
+def test_process_state_restore():
+    print("\n=== Testing Process.StateStore (stateRestore directive) ===")
+
+    root = {'type': 'file', 'name': 'x.F90', 'firstChild': None,
+            'parent': None, 'sibling': None, 'source': 'x', 'line': 0}
+    sub  = {'type': 'subroutine', 'name': 's', 'parent': root,
+            'firstChild': None, 'sibling': None, 'source': 'x', 'line': 0}
+    root['firstChild'] = sub
+    directive = _make_directive_node(
+        'stateRestore', {'variables': 'alpha', 'processed': False}, sub)
+
+    from Galacticus.Build.SourceTree.Process.StateStore import process_state_store
+    process_state_store(root, {})
+
+    out = serialize(root)
+    assert_equal(directive['directive']['processed'], True,
+                 "stateRestore directive marked processed")
+    assert_equal('read (stateFile) wasAllocated_' in out, True,
+                 "read wasAllocated_ emitted")
+    assert_equal("'alpha' was stored, but is now not allocated" in out, True,
+                 "error message references the variable name")
+    assert_equal('call alpha%stateRestore(stateFile,gslStateFile,stateOperationID)'
+                 in out, True, "stateRestore call emitted")
+    assert_equal(declaration_exists(sub, 'wasAllocated_'), True,
+                 "wasAllocated_ added as a logical declaration")
+    assert_equal('use :: Error' in out or 'use Error' in out or 'Error' in out, True,
+                 "Error module imported for Error_Report")
+
+
+# ============================================================================
+# Process.MetaPropertyDatabase tests
+# ============================================================================
+
+def test_process_meta_property_database():
+    print("\n=== Testing Process.MetaPropertyDatabase ===")
+
+    tmpdir = tempfile.mkdtemp()
+    try:
+        # One source file containing a functionClass definition plus a creator
+        # addMetaProperty directive.  The creator's name is the implementation
+        # name with the functionClass prefix; the stripped, lcfirst'd remainder
+        # is what the generated code records as implementationName.
+        src_file = os.path.join(tmpdir, 'dummy.F90')
+        with open(src_file, 'w') as fh:
+            fh.write(
+                "  !![\n"
+                "  <myFunc>\n"
+                "    <name>myFuncImpl1</name>\n"
+                "  </myFunc>\n"
+                "  !!]\n"
+                "  !![\n"
+                '  <addMetaProperty component="node" name="mass" type="float" rank="0" isCreator="yes"/>\n'
+                "  !!]\n"
+            )
+        with open(os.path.join(tmpdir, 'directiveLocations.xml'), 'w') as fh:
+            fh.write(
+                "<directiveLocations>\n"
+                "  <addMetaProperty>\n"
+                f"    <file>{src_file}</file>\n"
+                "  </addMetaProperty>\n"
+                "</directiveLocations>\n"
+            )
+        with open(os.path.join(tmpdir, 'stateStorables.xml'), 'w') as fh:
+            fh.write(
+                "<stateStorables>\n"
+                "  <functionClasses>\n"
+                "    <functionClass name=\"myFuncClass\"/>\n"
+                "  </functionClasses>\n"
+                "</stateStorables>\n"
+            )
+        saved = os.environ.get('BUILDPATH')
+        os.environ['BUILDPATH'] = tmpdir
+        try:
+            root = {'type': 'file', 'name': 'driver.F90', 'firstChild': None,
+                    'parent': None, 'sibling': None, 'source': 'driver.F90', 'line': 0}
+            mod = {'type': 'module', 'name': 'driver', 'parent': root,
+                   'firstChild': None, 'sibling': None,
+                   'source': 'driver.F90', 'line': 0}
+            root['firstChild'] = mod
+            directive = _make_directive_node(
+                'metaPropertyDatabase', {'processed': False}, mod)
+
+            from Galacticus.Build.SourceTree.Process.MetaPropertyDatabase \
+                import process_meta_property_database
+            process_meta_property_database(root, {})
+
+            assert_equal(directive['directive']['processed'], True,
+                         "metaPropertyDatabase directive marked processed")
+            emitted = directive.get('sibling')
+            assert_equal(emitted is not None and emitted.get('type') == 'code',
+                         True, "code node inserted after directive")
+            content = emitted['content']
+            assert_equal(
+                'subroutine metaPropertyNoCreator' in content,
+                True, "metaPropertyNoCreator subroutine synthesized",
+            )
+            assert_equal(
+                "if (component_ == 'node'"
+                " .and. name_ == 'mass'"
+                " .and. type_ == 'float'"
+                " .and. rank_ == 0) then"
+                in content,
+                True, "if-branch emitted for the registered creator",
+            )
+            assert_equal("className='myFunc'" in content, True,
+                         "className populated with functionClass name")
+            assert_equal("implementationName='impl1'" in content, True,
+                         "implementationName is the lcfirst-stripped suffix")
+        finally:
+            if saved is None:
+                del os.environ['BUILDPATH']
+            else:
+                os.environ['BUILDPATH'] = saved
+    finally:
+        import shutil
+        shutil.rmtree(tmpdir)
+
+
+# ============================================================================
+# Process.InputParameter tests
+# ============================================================================
+
+def _write_input_parameter_build_dir():
+    """Create a minimal BUILDPATH with stub Makefile_All_Execs and
+    directiveLocations.xml for InputParameter tests.  Returns the path.
+    """
+    tmpdir = tempfile.mkdtemp()
+    with open(os.path.join(tmpdir, 'Makefile_All_Execs'), 'w') as fh:
+        fh.write("all_exes = Galacticus.exe tests.foo.exe\n")
+    with open(os.path.join(tmpdir, 'directiveLocations.xml'), 'w') as fh:
+        fh.write("<directiveLocations></directiveLocations>\n")
+    return tmpdir
+
+
+def test_process_input_parameter_simple():
+    print("\n=== Testing Process.InputParameter (simple form) ===")
+
+    tmpdir = _write_input_parameter_build_dir()
+    saved = os.environ.get('BUILDPATH')
+    os.environ['BUILDPATH'] = tmpdir
+    try:
+        root = _parse_text(
+            "subroutine s\n"
+            "integer :: counter\n"
+            "end subroutine s\n"
+        )
+        sub = _find_node(root, 'subroutine')
+        _make_directive_node(
+            'inputParameter',
+            {'source': 'parameters', 'name': 'counter', 'processed': False},
+            sub,
+        )
+
+        from Galacticus.Build.SourceTree.Process.InputParameter \
+            import process_input_parameters
+        process_input_parameters(root, {})
+
+        out = serialize(root)
+        assert_equal("call parameters%value('counter',counter)" in out, True,
+                     "value() call emitted with quoted parameter name")
+        assert_equal('use :: Input_Parameters' in out or 'use Input_Parameters' in out,
+                     True, "Input_Parameters module imported")
+    finally:
+        if saved is None:
+            del os.environ['BUILDPATH']
+        else:
+            os.environ['BUILDPATH'] = saved
+        import shutil
+        shutil.rmtree(tmpdir)
+
+
+def test_process_input_parameter_with_default_and_no_output():
+    print("\n=== Testing Process.InputParameter (defaultValue + writeOutput=no) ===")
+
+    tmpdir = _write_input_parameter_build_dir()
+    saved = os.environ.get('BUILDPATH')
+    os.environ['BUILDPATH'] = tmpdir
+    try:
+        root = _parse_text(
+            "subroutine s\n"
+            "real :: tolerance\n"
+            "end subroutine s\n"
+        )
+        sub = _find_node(root, 'subroutine')
+        _make_directive_node(
+            'inputParameter',
+            {
+                'source':        'parameters',
+                'name':          'tolerance',
+                'variable':      'tolerance',
+                'defaultValue':  '1.0d-6',
+                'writeOutput':   'no',
+                'processed':     False,
+            },
+            sub,
+        )
+        from Galacticus.Build.SourceTree.Process.InputParameter \
+            import process_input_parameters
+        process_input_parameters(root, {})
+        out = serialize(root)
+        assert_equal('defaultValue=1.0d-6' in out, True, "defaultValue passed through")
+        assert_equal('writeOutput=.false.' in out, True,
+                     "writeOutput='no' renders as .false.")
+    finally:
+        if saved is None:
+            del os.environ['BUILDPATH']
+        else:
+            os.environ['BUILDPATH'] = saved
+        import shutil
+        shutil.rmtree(tmpdir)
+
+
+# ============================================================================
 # Main
 # ============================================================================
 
@@ -1713,6 +2058,15 @@ def main():
     test_process_conditional_call()
     test_process_conditional_call_parameter_present()
     test_process_input_parameters_validate()
+    test_extract_directives_basic()
+    test_extract_directives_multiline_and_wildcard()
+    test_extract_directives_conditions()
+    test_extract_directives_missing_file()
+    test_process_state_store()
+    test_process_state_restore()
+    test_process_meta_property_database()
+    test_process_input_parameter_simple()
+    test_process_input_parameter_with_default_and_no_output()
 
     print("\n" + "=" * 70)
     print(f"Results: {PASS_COUNT} passed, {FAIL_COUNT} failed")
