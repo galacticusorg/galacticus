@@ -57,7 +57,7 @@ def class_dependencies(class_node, directive_name):
         # Directive node — copy every attribute.
         if node.get('type') == directive_name:
             class_record['node'] = node
-            for key, value in sorted((node.get('directive') or {}).items()):
+            for key, value in sorted((node.setdefault('directive', {})).items()):
                 class_record[key] = value
             continue
 

@@ -419,18 +419,30 @@ def post_process_directives(tree):
     Mirrors PostProcess_Directives() at Directives.pm:347-361.  Called after
     the Process/* passes complete; raises RuntimeError on the first unprocessed
     directive encountered.
+
+    Directives whose type is in the `NonProcessed` exemption list are
+    forgiven even if they have no `processed` flag — code-generating hooks
+    (DeepCopyActions, StateStorable, Enumeration, FunctionClass, …) inject
+    fresh `<methods>` blocks late in the pipeline, after `nonProcessed`
+    has already walked the tree, so those directives never get marked.
     """
     from Galacticus.Build.SourceTree import walk_tree
+    from Galacticus.Build.SourceTree.Process.NonProcessed import (
+        is_non_processed_type,
+    )
 
     for node in walk_tree(tree):
         if 'directive' not in node:
             continue
-        directive = node.get('directive') or {}
-        if not directive.get('processed'):
-            file_node = node
-            while file_node is not None and file_node.get('type') != 'file':
-                file_node = file_node.get('parent')
-            file_name = file_node.get('name') if file_node else 'unknown'
-            raise RuntimeError(
-                f"directive '{node.get('type')}' was not processed at line "
-                f"{node.get('line', 0)} in {file_name}")
+        directive = node.setdefault('directive', {})
+        if directive.get('processed'):
+            continue
+        if is_non_processed_type(node.get('type')):
+            continue
+        file_node = node
+        while file_node is not None and file_node.get('type') != 'file':
+            file_node = file_node.get('parent')
+        file_name = file_node.get('name') if file_node else 'unknown'
+        raise RuntimeError(
+            f"directive '{node.get('type')}' was not processed at line "
+            f"{node.get('line', 0)} in {file_name}")

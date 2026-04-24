@@ -65,7 +65,7 @@ def process_input_parameters_validate(tree, options):
 
         if ntype != 'inputParametersValidate':
             continue
-        directive = node.get('directive') or {}
+        directive = node.setdefault('directive', {})
         if directive.get('processed'):
             continue
         directive['processed'] = True

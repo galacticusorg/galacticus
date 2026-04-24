@@ -161,7 +161,7 @@ def process_functions_global(tree, options):
     for node in walk_tree(tree):
         if node.get('type') != 'functionsGlobal':
             continue
-        directive = node.get('directive') or {}
+        directive = node.setdefault('directive', {})
         if directive.get('processed'):
             continue
         directive['processed'] = True

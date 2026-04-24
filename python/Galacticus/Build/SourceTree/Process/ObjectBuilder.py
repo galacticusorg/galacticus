@@ -515,9 +515,15 @@ def process_object_builder(tree, options):
     state_storables  = _load_state_storables()
     function_classes = _function_classes_by_name(state_storables)
 
+    handled_types = (
+        'objectBuilder', 'objectDestructor', 'referenceCountIncrement',
+        'referenceAcquire', 'referenceConstruct', 'deepCopy',
+    )
     for node in list(walk_tree(tree)):
         ntype = node.get('type')
-        directive = node.get('directive') or {}
+        if ntype not in handled_types:
+            continue
+        directive = node.setdefault('directive', {})
         if directive.get('processed'):
             continue
 
@@ -533,8 +539,6 @@ def process_object_builder(tree, options):
             _handle_reference_construct(node)
         elif ntype == 'deepCopy':
             _handle_deep_copy(node)
-        else:
-            continue
 
         directive['processed'] = True
 

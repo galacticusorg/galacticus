@@ -415,7 +415,7 @@ def process_state_storable(tree, options):
     for node in walk_tree(tree):
         ntype = node.get('type')
         if ntype == 'stateStorable':
-            directive = node.get('directive') or {}
+            directive = node.setdefault('directive', {})
             if directive.get('processed'):
                 continue
             parent = node.get('parent')

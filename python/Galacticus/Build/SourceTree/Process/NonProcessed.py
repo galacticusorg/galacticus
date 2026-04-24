@@ -29,11 +29,26 @@ _NON_PROCESSED_DIRECTIVES = frozenset((
 ))
 
 
+def is_non_processed_type(node_type):
+    """Return True if `node_type` is a directive that does not require any
+    Process hook to handle it (mirrors the NonProcessed.pm exemption list,
+    plus any `*Task` type).
+
+    Used both by `process_non_processed` (to mark such directives as
+    processed early in the pipeline) and by `post_process_directives` (to
+    forgive any later-injected directive of the same type — e.g. a
+    `<methods>` block emitted by a code-generating Process hook into the
+    tree after `nonProcessed` has already run).
+    """
+    return bool(node_type) and (
+        node_type.endswith('Task') or node_type in _NON_PROCESSED_DIRECTIVES
+    )
+
+
 def process_non_processed(tree, options):
     """Mirrors Process_NonProcessed() from NonProcessed.pm."""
     for node in walk_tree(tree):
-        node_type = node.get('type', '')
-        if node_type.endswith('Task') or node_type in _NON_PROCESSED_DIRECTIVES:
+        if is_non_processed_type(node.get('type', '')):
             directive = node.get('directive')
             if directive is not None:
                 directive['processed'] = True

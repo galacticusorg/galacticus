@@ -202,7 +202,7 @@ def process_event_hooks_static(tree, options):
             module_node = node
 
         if ntype == 'eventHookStatic':
-            directive = node.get('directive') or {}
+            directive = node.setdefault('directive', {})
             if directive.get('processed'):
                 continue
             directive['processed'] = True
@@ -251,7 +251,7 @@ def process_event_hooks_static(tree, options):
 
         # Collect function names declared via any registered static hook.
         if ntype and ntype in event_hook_names:
-            directive = node.get('directive') or {}
+            directive = node.setdefault('directive', {})
             if not directive.get('processed'):
                 directive['processed'] = True
                 fn = directive.get('function')

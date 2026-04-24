@@ -18,7 +18,7 @@ from List.ExtraUtils                                  import as_array
 from Galacticus.Build.SourceTree                      import (
     walk_tree, replace_node, parse_code, serialize,
 )
-from Galacticus.Build.SourceTree.Process              import register_process
+from Galacticus.Build.SourceTree.Process              import register_process, process_tree
 
 # The broken-bar character used as field separator in generic placeholders.
 # Defined as a constant to make the intent obvious at call sites.
@@ -195,7 +195,7 @@ def process_generics(tree, options):
     for node in list(walk_tree(tree)):
         if node.get('type') != 'generic':
             continue
-        directive = node.get('directive') or {}
+        directive = node.setdefault('directive', {})
         directive['processed'] = True
         identifier = directive['identifier']
         generic_re = re.compile(
@@ -252,8 +252,14 @@ def _expand_subtree(sub_node, identifier, instances, tree_name):
                 _reparse_declaration(cn)
 
         # Re-parse the serialized copy so generic-expanded declarations /
-        # directives are re-discovered.
+        # directives are re-discovered, then run the full process pipeline on
+        # the isolated subtree so any directive types that were already
+        # handled in the outer tree (e.g. `optionalArgument`, `inputParameter`)
+        # also get processed in the new copy.  Hooks are idempotent — they
+        # check `directive.get('processed')` and skip — so re-running them is
+        # safe.  Mirrors `_insert_parsed(..., run_process_tree=True)`.
         reparsed = parse_code(serialize(copied), name=tree_name)
+        process_tree(reparsed)
         copies.append(reparsed)
     return copies
 

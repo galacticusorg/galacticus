@@ -65,7 +65,7 @@ def process_conditional_call(tree, options):
     for node in walk_tree(tree):
         if node.get('type') != 'conditionalCall':
             continue
-        directive = node.get('directive') or {}
+        directive = node.setdefault('directive', {})
         if directive.get('processed'):
             continue
         directive['processed'] = True

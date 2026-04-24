@@ -132,7 +132,7 @@ def _process_event_hook_call_site(node):
 
     Mirrors EventHooks.pm:562-631.
     """
-    directive = node.get('directive') or {}
+    directive = node.setdefault('directive', {})
     directive['processed'] = True
 
     add_uses(node['parent'], {
@@ -798,7 +798,7 @@ def _process_event_hook_manager(node):
     Then synthesize the module-level helper subroutines (copy-out/in/done,
     restore, filter, initializer, wait-times).
     """
-    directive = node.get('directive') or {}
+    directive = node.setdefault('directive', {})
     directive['processed'] = True
     manager_parent = node['parent']
 
@@ -835,6 +835,10 @@ def process_event_hooks(tree, options):
     # Materialise the walk up front because we mutate the tree as we go.
     for node in list(walk_tree(tree)):
         ntype = node.get('type')
+        # Read-only access to `directive` here; we only call setdefault inside
+        # the per-type handlers that *will* write back to it, so we don't
+        # accidentally add an empty `'directive': {}` key to every node in the
+        # tree (which would later trip post_process_directives).
         directive = node.get('directive') or {}
 
         if ntype == 'eventHookManager' and not directive.get('processed'):

@@ -764,7 +764,7 @@ def _descriptor_discover_class(non_abstract_class, directive, classes,
                                     processed_line):
                                 parent_constructor_used = True
                     elif ctype == 'inputParameter':
-                        d = cnode.get('directive') or {}
+                        d = cnode.setdefault('directive', {})
                         if 'source' not in d:
                             supported = -4
                             failure_message.append(
@@ -844,7 +844,7 @@ def _descriptor_discover_class(non_abstract_class, directive, classes,
                                 msg += f" - did you mean [{guess}]"
                             failure_message.append(msg)
                     elif ctype == 'objectBuilder':
-                        d = cnode.get('directive') or {}
+                        d = cnode.setdefault('directive', {})
                         if 'source' not in d:
                             supported = -6
                             failure_message.append(
@@ -1645,8 +1645,8 @@ def _build_allowed_parameters_method(directive, classes_ordered, methods):
                             if modified:
                                 cnode['content'] = new_content
                         elif ctype == 'inputParameter':
-                            src = (cnode.get('directive') or {}).get('source')
-                            iname = (cnode.get('directive') or {}).get('name')
+                            src = (cnode.setdefault('directive', {})).get('source')
+                            iname = (cnode.setdefault('directive', {})).get('name')
                             if src is not None and iname is not None:
                                 slot = (allowed_parameters[class_name]
                                         ['parameters']
@@ -1654,10 +1654,10 @@ def _build_allowed_parameters_method(directive, classes_ordered, methods):
                                         .setdefault('all', []))
                                 slot.append(iname)
                         elif ctype == 'objectBuilder':
-                            src = (cnode.get('directive') or {}).get('source')
+                            src = (cnode.setdefault('directive', {})).get('source')
                             if src is None:
                                 continue
-                            d = cnode.get('directive') or {}
+                            d = cnode.setdefault('directive', {})
                             param_name = d.get('parameterName') or d.get('class')
                             slot_src = (allowed_parameters[class_name]
                                         ['parameters']
@@ -3442,7 +3442,7 @@ def _handle_pre_contains_node(class_node, directive, code_content, block,
     directive_name = directive['name']
 
     if ntype == 'scoping':
-        d = class_node.get('directive') or {}
+        d = class_node.setdefault('directive', {})
         inner = d.get('module') if isinstance(d, dict) else None
         if isinstance(inner, dict) and 'variables' in inner:
             module_scoped.extend(
@@ -3915,7 +3915,7 @@ def _collect_doc_parameters_and_objects(
                         parameters.append(entry)
                 elif cnode.get('type') == 'objectBuilder':
                     objects.append(
-                        (cnode.get('directive') or {}).get('class'))
+                        (cnode.setdefault('directive', {})).get('class'))
         # Descend into `contains` blocks — the Perl idiom
         # `$node = $node->{'type'} eq "contains" ? $node->{'firstChild'}
         #                                         : $node->{'sibling'};`
@@ -3931,7 +3931,7 @@ def _format_input_parameter_doc(cnode, function_node, class_record,
     """Render one inputParameter directive into a LaTeX `\\item[...]` line
     for the class's documentation entry.
     """
-    cdir = cnode.get('directive') or {}
+    cdir = cnode.setdefault('directive', {})
     variable_name = cdir.get('variable') or cdir.get('name') or ''
     variable_name = re.sub(r'\(.+\)$', '', variable_name)
 
@@ -4113,12 +4113,12 @@ def process_function_class(tree, options):
         # post_process_directives.
         nclass = (node.get('type') or '') + 'Class'
         if nclass in _function_class_names(state_storables):
-            directive = node.get('directive') or {}
+            directive = node.setdefault('directive', {})
             directive['processed'] = True
 
         if node.get('type') != 'functionClass':
             continue
-        directive = node.get('directive') or {}
+        directive = node.setdefault('directive', {})
         if directive.get('processed'):
             continue
 
