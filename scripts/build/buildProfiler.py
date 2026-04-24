@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 import argparse
 import colorsys
+import json
 import re
 import sys
 from datetime import datetime
@@ -39,18 +40,6 @@ def gradient_color(fraction, gradient):
     b = int(round(b * 255))
     a = 255
     return f"#{r:02x}{g:02x}{b:02x}{a:02x}"
-
-
-def create_cell(cell, out):
-    """Emit JavaScript for a run of accumulated identical cells."""
-    if cell['count'] == 0:
-        return
-    if cell['type'] == 'empty':
-        out.write(f"    chartContent += '<td/>'.repeat({cell['count']})\n")
-    else:
-        out.write(f"    chartContent += '<td style=\"background: {cell['type']}\"/>'.repeat({cell['count']})\n")
-    cell['type']  = None
-    cell['count'] = 0
 
 
 # Parse profiling information from the file.
@@ -229,35 +218,38 @@ with open(args.profileFile, 'w') as out:
             f"<td>({100.0 * task['cost'] / time_maximum:5.2f}%)</td></tr>\n"
         )
     out.write("</table>\n")
+    # One color per second of the build; shared across all task rows.
+    colors = [
+        gradient_color(thread_count[i] / thread_count_maximum, gradient)
+        for i in range(time_maximum + 1)
+    ]
+    chart_tasks = [
+        {
+            'description':   task['description'],
+            'isMaximumCost': task['isMaximumCost'],
+            'start':         task['start'],
+            'end':           task['end'],
+        }
+        for task in tasks
+    ]
     out.write("  <script type=\"text/javascript\">\n")
+    out.write(f"   var colors = {json.dumps(colors)};\n")
+    out.write(f"   var tasks = {json.dumps(chart_tasks)};\n")
     out.write("   function makeChart() {\n")
-    out.write("    var chartContent = ''\n")
-    for task in tasks:
-        cls = "bold" if task['isMaximumCost'] else ""
-        description = task['description'].replace("'", "\\'")
-        out.write(f"    chartContent += '<tr><th class=\"headcol{cls}\">{description}</th>'\n")
-        cell = {'count': 0, 'type': None}
-        for i in range(time_maximum + 1):
-            if i < task['start']:
-                if cell['type'] != 'empty':
-                    create_cell(cell, out)
-                cell['type'] = 'empty'
-                cell['count'] += 1
-            elif i > task['end']:
-                # Missing columns at the end of the table row are ignored.
-                create_cell(cell, out)
-            else:
-                fraction = thread_count[i] / thread_count_maximum
-                color    = gradient_color(fraction, gradient)
-                if cell['type'] != color:
-                    create_cell(cell, out)
-                cell['type'] = color
-                cell['count'] += 1
-        create_cell(cell, out)
-        out.write("     chartContent += '</tr>'\n")
-    out.write("    document.getElementById('chart').innerHTML = chartContent\n")
+    out.write("    var rows = [];\n")
+    out.write("    for (var t of tasks) {\n")
+    out.write("     var cls = t.isMaximumCost ? 'headcolbold' : 'headcol';\n")
+    out.write("     var row = '<tr><th class=\"' + cls + '\">' + t.description + '</th>';\n")
+    out.write("     for (var i = 0; i < t.start; i++) row += '<td/>';\n")
+    out.write("     for (var i = t.start; i <= t.end; i++) {\n")
+    out.write("      row += '<td style=\"background: ' + colors[i] + '\"/>';\n")
+    out.write("     }\n")
+    out.write("     row += '</tr>';\n")
+    out.write("     rows.push(row);\n")
+    out.write("    }\n")
+    out.write("    document.getElementById('chart').innerHTML = rows.join('');\n")
     out.write("   }\n")
-    out.write("   window.onLoad = makeChart()\n")
+    out.write("   window.onload = makeChart;\n")
     out.write("  </script>\n")
     out.write("</body>\n")
     out.write("</html>\n")
