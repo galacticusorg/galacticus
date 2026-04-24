@@ -60,6 +60,19 @@ import Galacticus.Build.SourceTree.Process.ThreadSafeIO              # noqa: F40
 import Galacticus.Build.SourceTree.Process.SourceDigest              # noqa: F401
 import Galacticus.Build.SourceTree.Process.ObjectBuilder             # noqa: F401
 import Galacticus.Build.SourceTree.Process.ClassDocumentation        # noqa: F401
+from Galacticus.Build.SourceTree.Process.FunctionClass.Utils import (
+    latex_breakable, trimlc, striplc, lctrim, strip_variable_name,
+    declaration_rank, class_dependencies,
+)
+from Galacticus.Build.SourceTree.Process.FunctionClass.Descriptor import (
+    potential_descriptor_parameters,
+)
+from Galacticus.Build.SourceTree.Process.FunctionClass.LinkedList import (
+    linked_list_register_variable, linked_list_module,
+    deep_copy_linked_list, state_store_linked_list,
+    allowed_parameters_linked_list, auto_descriptor_linked_list,
+    assigner_linked_list,
+)
 from Galacticus.Build.SourceTree.Process import (
     PROCESS_HOOKS, PROCESS_DEPENDENCIES, POSTPROCESS_HOOKS,
     register_process, process_tree,
@@ -3491,6 +3504,193 @@ def test_process_class_documentation_enabled():
 
 
 # ============================================================================
+# Process.FunctionClass.Utils tests
+# ============================================================================
+
+def test_functionclass_utils_small_helpers():
+    print("\n=== Testing FunctionClass.Utils (small helpers) ===")
+    assert_equal(latex_breakable('fooBarBaz'), r'foo\-Bar\-Baz',
+                 "latex_breakable inserts `\\-` on lower→upper transitions")
+    assert_equal(trimlc('  Hello  '), 'hello',
+                 "trimlc lowercases + trims leading/trailing whitespace")
+    assert_equal(striplc('Hello World'), 'helloworld',
+                 "striplc lowercases + removes ALL whitespace")
+    assert_equal(lctrim('Hello   '), 'hello',
+                 "lctrim strips trailing whitespace + lowercases")
+    assert_equal(strip_variable_name('foo(1,2)=5'), 'foo',
+                 "strip_variable_name returns leading identifier only")
+    assert_equal(declaration_rank({'attributes': ['intent(in)']}), 0,
+                 "declaration_rank returns 0 for scalars")
+    assert_equal(declaration_rank({'attributes': ['dimension(:,:,:)']}), 3,
+                 "declaration_rank returns dim-count for arrays")
+
+
+def test_functionclass_utils_class_dependencies():
+    print("\n=== Testing FunctionClass.Utils.class_dependencies ===")
+    root = _parse_text(
+        "module m\n"
+        "  type, extends(myFoo) :: myFooBar\n"
+        "    class(myFooBaz), pointer :: related\n"
+        "    class(myFooClass), pointer :: abstract_class_ref\n"
+        "  end type myFooBar\n"
+        "end module m\n"
+    )
+    mod = _find_node(root, 'module')
+    # Inject a directive node of type `myFoo` on the module's child chain
+    # so class_dependencies has a directive to capture attributes from.
+    # The walk starts at the directive itself (or before the type node) and
+    # finds the first matching `type myFoo<suffix>` node.
+    type_node = _find_node(root, 'type')
+    directive = _make_directive_node(
+        'myFoo',
+        {'name': 'myFoo', 'processed': False,
+         'node': 'foo', 'foo_attr': 'bar'},
+        mod,
+    )
+    # Run class_dependencies starting at the directive.
+    class_record, deps = class_dependencies(directive, 'myFoo')
+    assert_equal(class_record.get('extends'), 'myFoo',
+                 "extends parent name captured")
+    assert_equal(class_record.get('type'), 'myFooBar',
+                 "class type = directive + suffix captured")
+    assert_equal('myFoo' in deps, True,
+                 "parent type recorded as dependency")
+    assert_equal('myFooBaz' in deps, True,
+                 "cross-referenced non-Class member type recorded")
+    # ...but the `myFooClass` abstract class reference is excluded because
+    # its name ends with 'Class'.
+    assert_equal('myFooClass' not in deps, True,
+                 "abstract `…Class` references excluded from dependencies")
+
+
+# ============================================================================
+# Process.FunctionClass.Descriptor tests
+# ============================================================================
+
+def test_functionclass_descriptor_classification():
+    print("\n=== Testing FunctionClass.Descriptor.potential_descriptor_parameters ===")
+    state_storables = {
+        'functionClasses': {'functionClass': [
+            {'name': 'myFooClass'}, {'name': 'myBarClass'},
+        ]},
+        'functionClassInstances': ['myFoo', 'myBar'],
+    }
+    declarations = [
+        # pointer to functionClass → object
+        {'intrinsic': 'class', 'type': 'myFooClass',
+         'attributes': ['pointer'], 'variables': ['obj']},
+        # stateful type
+        {'intrinsic': 'type', 'type': 'statefulDouble',
+         'attributes': [], 'variables': ['sDbl']},
+        # enumeration type
+        {'intrinsic': 'type', 'type': 'enumerationKindType',
+         'attributes': [], 'variables': ['ek']},
+        # intrinsic integer → parameter
+        {'intrinsic': 'integer', 'type': None,
+         'attributes': [], 'variables': ['counter']},
+        # varying_string type → parameter
+        {'intrinsic': 'type', 'type': 'varying_string',
+         'attributes': [], 'variables': ['name']},
+        # custom descriptor procedure
+        {'intrinsic': 'procedure', 'type': 'customD',
+         'attributes': [], 'variables': ['descriptor=>customD']},
+    ]
+    non_abstract_class = {}
+    names = {}
+    potential_descriptor_parameters(
+        declarations, non_abstract_class,
+        {'linkedList': {'object': 'alpha beta'}},
+        state_storables, names)
+    assert_equal(names.get('objects'), ['obj'],
+                 "pointer-to-functionClass classified as object")
+    assert_equal(len(names.get('statefulTypes') or []), 1,
+                 "stateful type captured")
+    assert_equal(len(names.get('enumerations') or []), 1,
+                 "enumeration type captured")
+    assert_equal(len(names.get('parameters') or []), 2,
+                 "intrinsic + varying_string captured as parameters")
+    assert_equal(names.get('linkedListObjects'), ['alpha', 'beta'],
+                 "linkedList objects extracted from class metadata")
+    assert_equal(non_abstract_class.get('hasCustomDescriptor'), True,
+                 "procedure :: descriptor=>... flips hasCustomDescriptor")
+
+
+# ============================================================================
+# Process.FunctionClass.LinkedList tests
+# ============================================================================
+
+def _linked_list_spec():
+    return {
+        'type':       'myItem',
+        'variable':   'first',
+        'next':       'next',
+        'object':     'foo bar',
+        'objectType': 'fooType barType',
+        'module':     'myMod',
+    }
+
+
+def test_functionclass_linkedlist_register_and_module():
+    print("\n=== Testing FunctionClass.LinkedList (register + module helpers) ===")
+    ll = _linked_list_spec()
+    assert_equal(linked_list_module(ll), 'myMod',
+                 "linked_list_module returns the `module` attr")
+    vars_ = []
+    linked_list_register_variable(ll, vars_, 'x')
+    linked_list_register_variable(ll, vars_, 'x')
+    assert_equal(len(vars_), 1,
+                 "linked_list_register_variable is idempotent on identical type")
+    assert_equal(vars_[0]['attributes'], ['pointer'],
+                 "registered variable carries `pointer` attribute")
+
+
+def test_functionclass_linkedlist_deep_copy():
+    print("\n=== Testing FunctionClass.LinkedList.deep_copy_linked_list ===")
+    ll = _linked_list_spec()
+    dc, dcr, dcf, mod = deep_copy_linked_list(
+        {'linkedList': ll, 'node': {'line': 1}}, {}, [], [], [])
+    assert_equal('do while (associated(myItemitem))' in dc, True,
+                 "deepCopy body iterates over myItemitem")
+    assert_equal('deepCopy(myItemitemNew%foo)' in dc, True,
+                 "deepCopy body invokes %deepCopy() on each object")
+    assert_equal('deepCopyReset' in dcr, True,
+                 "reset code calls deepCopyReset")
+    assert_equal('deepCopyFinalize' in dcf, True,
+                 "finalize code calls deepCopyFinalize")
+    assert_equal(mod, 'myMod',
+                 "module attribute returned as the 4th tuple element")
+
+
+def test_functionclass_linkedlist_state_store():
+    print("\n=== Testing FunctionClass.LinkedList.state_store_linked_list ===")
+    ll = _linked_list_spec()
+    inp, out, mod = state_store_linked_list(
+        {'linkedList': ll}, {}, [])
+    assert_equal('stateRestore(stateFile,gslStateFile,stateOperationID)' in inp,
+                 True, "input (restore) code calls %stateRestore(…)")
+    assert_equal('stateStore(stateFile,gslStateFile,stateOperationID)' in out,
+                 True, "output (store) code calls %stateStore(…)")
+    assert_equal(mod, 'myMod', "module passed through")
+
+
+def test_functionclass_linkedlist_allowed_and_descriptor_and_assigner():
+    print("\n=== Testing FunctionClass.LinkedList (allowed / descriptor / assigner) ===")
+    ll = _linked_list_spec()
+    iter_allowed, _ = allowed_parameters_linked_list(
+        {'linkedList': ll}, [], 'mySrc')
+    assert_equal("'mySrc'" in iter_allowed, True,
+                 "allowed_parameters passes source string literal")
+    iter_desc, _ = auto_descriptor_linked_list(ll, [])
+    assert_equal('descriptor(parameters)' in iter_desc, True,
+                 "auto_descriptor calls %descriptor(parameters)")
+    iter_asn, _ = assigner_linked_list(ll, [])
+    assert_equal('referenceCountIncrement()' in iter_asn, True,
+                 "assigner bumps reference count per member")
+    assert_equal('nullify(self%first)' in iter_asn, True,
+                 "assigner nullifies the destination list head first")
+
+
+# ============================================================================
 # Main
 # ============================================================================
 
@@ -3589,6 +3789,13 @@ def main():
     test_process_reference_increment_acquire_construct()
     test_process_class_documentation_disabled()
     test_process_class_documentation_enabled()
+    test_functionclass_utils_small_helpers()
+    test_functionclass_utils_class_dependencies()
+    test_functionclass_descriptor_classification()
+    test_functionclass_linkedlist_register_and_module()
+    test_functionclass_linkedlist_deep_copy()
+    test_functionclass_linkedlist_state_store()
+    test_functionclass_linkedlist_allowed_and_descriptor_and_assigner()
 
     print("\n" + "=" * 70)
     print(f"Results: {PASS_COUNT} passed, {FAIL_COUNT} failed")
