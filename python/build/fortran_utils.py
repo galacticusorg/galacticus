@@ -8,6 +8,7 @@ inline comments, including correct treatment of string literals and
 OpenMP sentinels.
 """
 
+import os
 import re
 import sys
 
@@ -238,3 +239,137 @@ def extract_variables(variable_list, lower_case=True, keep_qualifiers=False, rem
         return result
 
     return variables
+
+
+# ---------------------------------------------------------------------------
+# Whole-file readers
+# ---------------------------------------------------------------------------
+
+_processed_files_cache = {}
+
+
+def get_matching_lines(file_name, regex):
+    """Return every processed Fortran line in `file_name` that matches `regex`.
+
+    Mirrors Perl Fortran::Utils::Get_Matching_Lines.  Each returned entry is
+    a dict with keys 'line' (the processed line) and 'submatches' (the list
+    of capture groups from the match).  Processed-line lists are cached per
+    file across calls, matching the Perl module's `%processedFiles` cache.
+    """
+    if isinstance(regex, str):
+        regex = re.compile(regex)
+
+    if file_name not in _processed_files_cache:
+        lines = []
+        with open(file_name, 'r', errors='replace') as fh:
+            while True:
+                raw, processed, _ = get_fortran_line(fh)
+                if not raw and not processed:
+                    break
+                lines.append(processed)
+        _processed_files_cache[file_name] = lines
+
+    matches = []
+    for processed in _processed_files_cache[file_name]:
+        m = regex.search(processed)
+        if m:
+            matches.append({'line': processed, 'submatches': list(m.groups())})
+    return matches
+
+
+def read_file(file_name, *, state='raw', follow_includes=False,
+              include_locations=None, include_files_excluded=None,
+              strip_regex=None, strip_leading=False, strip_trailing=False,
+              strip_empty=False):
+    """Return the (optionally preprocessed) text of `file_name`.
+
+    Mirrors Perl Fortran::Utils::read_file.  Follows `include '…'` statements
+    when `follow_includes=True`, searching `include_locations` with `.inc` /
+    `.Inc` suffixes.  `state` is one of `'raw'`, `'processed'`, `'comments'`.
+    """
+    if include_locations is None:
+        include_locations = []
+    if include_files_excluded is None:
+        include_files_excluded = []
+    if strip_regex is not None and isinstance(strip_regex, str):
+        strip_regex = re.compile(strip_regex)
+
+    # Perl prepends an empty string to the list of include locations so that
+    # the bare `<dir>/<name>` path is tried first.
+    all_include_locations = [''] + list(include_locations)
+
+    file_names     = [file_name]
+    file_positions = [-1]
+    code_buffer    = []
+
+    while file_names:
+        fh = open(file_names[0], 'r', errors='replace')
+        if file_positions[0] != -1:
+            fh.seek(file_positions[0])
+
+        include_pushed = False
+        while True:
+            raw_line, processed_line, buffered_comments = get_fortran_line(fh)
+            if not raw_line and not processed_line:
+                break  # EOF
+
+            # Detect `include '<name>'` and recurse.
+            if follow_includes:
+                m = re.match(r"^\s*include\s*['\"]([^'\"]+)['\"]\s*$",
+                             processed_line)
+                if m:
+                    include_leaf = m.group(1)
+                    if include_leaf not in include_files_excluded:
+                        # Perl: `$fileNames[0] =~ s/\/[^\/]+$/\//` — strip basename,
+                        # leaving the directory with a trailing slash (or the
+                        # original path unchanged if there was no slash).
+                        cur_dir = re.sub(r'/[^/]+$', '/', file_names[0])
+                        if cur_dir == file_names[0]:
+                            cur_dir = ''
+                        include_file = None
+                        for suffix in ('.inc', '.Inc'):
+                            for loc in all_include_locations:
+                                candidate = re.sub(
+                                    r'\.inc$',
+                                    suffix,
+                                    cur_dir + loc + '/' + include_leaf,
+                                )
+                                if os.path.exists(candidate):
+                                    include_file = candidate
+                                    break
+                            if include_file is not None:
+                                break
+                        if include_file is not None:
+                            file_positions[0] = fh.tell()
+                            file_names.insert(0, include_file)
+                            file_positions.insert(0, -1)
+                            include_pushed = True
+                            break
+
+            if state == 'raw':
+                line = raw_line
+            elif state == 'processed':
+                line = processed_line
+            elif state == 'comments':
+                line = buffered_comments
+            else:
+                raise ValueError(f"read_file: invalid state '{state}'")
+
+            if strip_regex is not None:
+                line = strip_regex.sub('', line)
+            if strip_leading:
+                line = re.sub(r'^\s*', '', line)
+            if strip_trailing:
+                line = re.sub(r'\s*$', '', line)
+            if line.endswith('\n'):
+                line = line[:-1]
+
+            if not (strip_empty and re.match(r'^\s*$', line)):
+                code_buffer.append(line + '\n')
+
+        fh.close()
+        if not include_pushed:
+            file_names.pop(0)
+            file_positions.pop(0)
+
+    return ''.join(code_buffer)
