@@ -943,12 +943,520 @@ def _build_descriptor_methods(directive, non_abstract_classes, classes,
          failure_message, supported) = _descriptor_discover_class(
              non_abstract, directive, classes, state_storables)
 
+        from Galacticus.Build.SourceTree.Process.FunctionClass.LinkedList \
+            import auto_descriptor_linked_list
+        from Galacticus.Build.SourceTree.Process.FunctionClass.Utils \
+            import declaration_rank
+
+        short = non_abstract['name']
+        if short.startswith(directive['name']):
+            short = short[len(directive['name']):]
+        if not re.match(r'^[A-Z]{2,}', short):
+            short = short[:1].lower() + short[1:]
+        label = short
+
         descriptor_code += f"type is ({non_abstract['name']})\n"
-        # Per-class descriptor body (parameters/enumerations/statefulTypes/
-        # objects/linkedLists/runTimeFileDependencies) emitted in PR
-        # D.7.3c step 5b.
+
+        if non_abstract.get('hasCustomDescriptor'):
+            loc_node = non_abstract.get('node') or {}
+            loc_expr = location(loc_node, loc_node.get('line', 0))
+            descriptor_code += (
+                f" call Error_Report('custom descriptor exists - "
+                f"this should not happen'//{loc_expr})\n"
+            )
+            descriptor_modules['Error'] = True
+        else:
+            if (declaration_matches
+                    and (supported == 1
+                         or 'descriptorSpecial' in non_abstract)):
+                descriptor_used = True
+                descriptor_code += " if (present(includeClass)) then\n"
+                descriptor_code += "  includeClass_=includeClass\n"
+                descriptor_code += " else\n"
+                descriptor_code += "  includeClass_=.true.\n"
+                descriptor_code += " end if\n"
+                descriptor_code += (
+                    f" if (includeClass_) call descriptor%addParameter"
+                    f"('{directive['name']}','{label}')\n"
+                )
+                if descriptor_parameters:
+                    add_sub_parameters['parameters'] = True
+                    descriptor_code += (
+                        f"parameters=descriptor%subparameters"
+                        f"('{directive['name']}')\n"
+                    )
+                    for sp_name in sorted(sub_parameters.keys()):
+                        add_sub_parameters[sp_name] = True
+                        descriptor_code += sub_parameters[sp_name]['source']
+
+                    for parameter in descriptor_parameters.get(
+                            'parameters') or []:
+                        for declaration in potential_names.get(
+                                'parameters', []):
+                            if parameter['name'].lower() not in (
+                                    declaration.get('variables') or []):
+                                continue
+                            intrinsic = declaration.get('intrinsic') or ''
+                            fmt       = None
+                            function  = None
+                            is_logical = False
+                            if intrinsic == 'type':
+                                function  = 'char'
+                            elif intrinsic == 'logical':
+                                add_label  = True
+                                is_logical = True
+                            elif intrinsic == 'double precision':
+                                add_label  = True
+                                fmt = 'e17.10'
+                            elif intrinsic == 'integer':
+                                add_label  = True
+                                fmt = 'i17'
+                            elif intrinsic == 'character':
+                                function  = 'trim'
+                            rank = declaration_rank(declaration)
+                            if rank > 0:
+                                if rank > rank_maximum:
+                                    rank_maximum = rank
+                                descriptor_code += "parameterValues=''\n"
+                                for i in range(1, rank + 1):
+                                    descriptor_code += (
+                                        " parameterValues=parameterValues"
+                                        "//'['\n"
+                                    )
+                                    descriptor_code += (
+                                        f"do i{i}=lbound(self%"
+                                        f"{parameter['name']},dim={i}),"
+                                        f"ubound(self%{parameter['name']},"
+                                        f"dim={i})\n"
+                                    )
+                                idx = ",".join(
+                                    f"i{i}" for i in range(1, rank + 1))
+                                if function:
+                                    descriptor_code += (
+                                        f" parameterValues="
+                                        f"parameterValues//{function}"
+                                        f"(self%{parameter['name']}"
+                                        f"({idx}))\n"
+                                    )
+                                else:
+                                    if is_logical:
+                                        # Perl emits a malformed line here
+                                        # ("if (self%X(i1,i2) then") — we
+                                        # preserve it verbatim for byte
+                                        # identity with the Perl port.
+                                        descriptor_code += (
+                                            f"if (self%{parameter['name']}"
+                                            f"({idx}) then\n"
+                                        )
+                                        descriptor_code += (
+                                            "  parameterLabel='true'\n")
+                                        descriptor_code += "else\n"
+                                        descriptor_code += (
+                                            "  parameterLabel='false'\n")
+                                        descriptor_code += "end if\n"
+                                    else:
+                                        descriptor_code += (
+                                            f"write (parameterLabel,"
+                                            f"'({fmt})') self%"
+                                            f"{parameter['name']}({idx})\n"
+                                        )
+                                    descriptor_code += (
+                                        " parameterValues=parameterValues"
+                                        "//trim(adjustl(parameterLabel))\n"
+                                    )
+                                descriptor_code += (
+                                    f" if (i{rank} /= size(self%"
+                                    f"{parameter['name']},dim={rank})) "
+                                    f"parameterValues=parameterValues//','\n"
+                                )
+                                for i in range(1, rank + 1):
+                                    descriptor_code += "end do\n"
+                                    descriptor_code += (
+                                        " parameterValues=parameterValues"
+                                        "//']'\n"
+                                    )
+                                    if i != 1:
+                                        descriptor_code += (
+                                            f" if (i{i - 1} /= size(self%"
+                                            f"{parameter['name']},"
+                                            f"dim={i - 1})) "
+                                            f"parameterValues="
+                                            f"parameterValues//','\n"
+                                        )
+                                descriptor_code += (
+                                    f"call {parameter['source']}"
+                                    f"%addParameter('"
+                                    f"{parameter['inputName']}',"
+                                    f"char(parameterValues))\n"
+                                )
+                            else:
+                                if function:
+                                    descriptor_code += (
+                                        f"call {parameter['source']}"
+                                        f"%addParameter('"
+                                        f"{parameter['inputName']}',"
+                                        f"{function}(self%"
+                                        f"{parameter['name']}))\n"
+                                    )
+                                else:
+                                    if is_logical:
+                                        descriptor_code += (
+                                            f"if (self%{parameter['name']})"
+                                            f" then\n"
+                                        )
+                                        descriptor_code += (
+                                            "  parameterLabel='true'\n")
+                                        descriptor_code += "else\n"
+                                        descriptor_code += (
+                                            "  parameterLabel='false'\n")
+                                        descriptor_code += "end if\n"
+                                    else:
+                                        descriptor_code += (
+                                            f"write (parameterLabel,"
+                                            f"'({fmt})') self%"
+                                            f"{parameter['name']}\n"
+                                        )
+                                    descriptor_code += (
+                                        f"call {parameter['source']}"
+                                        f"%addParameter('"
+                                        f"{parameter['inputName']}',"
+                                        f"trim(adjustl(parameterLabel)))\n"
+                                    )
+
+                    for parameter in descriptor_parameters.get(
+                            'enumerations') or []:
+                        for declaration in potential_names.get(
+                                'enumerations', []):
+                            if parameter['name'].lower() not in (
+                                    declaration.get('variables') or []):
+                                continue
+                            fmt = 'i17'
+                            add_label = True
+                            rank = declaration_rank(declaration)
+                            if rank > 0:
+                                if rank > rank_maximum:
+                                    rank_maximum = rank
+                                descriptor_code += "parameterValues=''\n"
+                                for i in range(1, rank + 1):
+                                    descriptor_code += (
+                                        " parameterValues=parameterValues"
+                                        "//'['\n"
+                                    )
+                                    descriptor_code += (
+                                        f"do i{i}=lbound(self%"
+                                        f"{parameter['name']},dim={i}),"
+                                        f"ubound(self%{parameter['name']},"
+                                        f"dim={i})\n"
+                                    )
+                                idx = ",".join(
+                                    f"i{i}" for i in range(1, rank + 1))
+                                descriptor_code += (
+                                    f"write (parameterLabel,'({fmt})') "
+                                    f"self%{parameter['name']}({idx})%ID\n"
+                                )
+                                descriptor_code += (
+                                    " parameterValues=parameterValues"
+                                    "//trim(adjustl(parameterLabel))\n"
+                                )
+                                descriptor_code += (
+                                    f" if (i{rank} /= size(self%"
+                                    f"{parameter['name']},dim={rank})) "
+                                    f"parameterValues=parameterValues//','\n"
+                                )
+                                for i in range(1, rank + 1):
+                                    descriptor_code += "end do\n"
+                                    descriptor_code += (
+                                        " parameterValues=parameterValues"
+                                        "//']'\n"
+                                    )
+                                    if i != 1:
+                                        descriptor_code += (
+                                            f" if (i{i - 1} /= size(self%"
+                                            f"{parameter['name']},"
+                                            f"dim={i - 1})) "
+                                            f"parameterValues="
+                                            f"parameterValues//','\n"
+                                        )
+                                descriptor_code += (
+                                    f"call {parameter['source']}"
+                                    f"%addParameter('"
+                                    f"{parameter['inputName']}',"
+                                    f"char(parameterValues))\n"
+                                )
+                            else:
+                                descriptor_code += (
+                                    f"write (parameterLabel,'({fmt})') "
+                                    f"self%{parameter['name']}%ID\n"
+                                )
+                                descriptor_code += (
+                                    f"call {parameter['source']}"
+                                    f"%addParameter('"
+                                    f"{parameter['inputName']}',"
+                                    f"trim(adjustl(parameterLabel)))\n"
+                                )
+
+                    for parameter in descriptor_parameters.get(
+                            'statefulTypes') or []:
+                        for declaration in potential_names.get(
+                                'statefulTypes', []):
+                            if parameter['name'].lower() not in (
+                                    declaration.get('variables') or []):
+                                continue
+                            t = declaration.get('type') or ''
+                            fmt = None
+                            is_logical = False
+                            if t == 'statefulInteger':
+                                fmt = 'i17'
+                            elif t == 'statefulDouble':
+                                fmt = 'e17.10'
+                            elif t == 'statefulLogical':
+                                is_logical = True
+                            else:
+                                raise RuntimeError("unknown stateful-type")
+                            add_label = True
+                            rank = declaration_rank(declaration)
+                            if rank > 0:
+                                if rank > rank_maximum:
+                                    rank_maximum = rank
+                                descriptor_code += "parameterValues=''\n"
+                                for i in range(1, rank + 1):
+                                    descriptor_code += (
+                                        " parameterValues=parameterValues"
+                                        "//'['\n"
+                                    )
+                                    descriptor_code += (
+                                        f"do i{i}=lbound(self%"
+                                        f"{parameter['name']},dim={i}),"
+                                        f"ubound(self%{parameter['name']},"
+                                        f"dim={i})\n"
+                                    )
+                                idx = ",".join(
+                                    f"i{i}" for i in range(1, rank + 1))
+                                descriptor_code += (
+                                    f"if (self%{parameter['name']}"
+                                    f"({idx})%isSet) then\n"
+                                )
+                                if is_logical:
+                                    # Perl emits a malformed line; preserve
+                                    # it verbatim.
+                                    descriptor_code += (
+                                        f"if (self%{parameter['name']}"
+                                        f"({idx}%value) then\n"
+                                    )
+                                    descriptor_code += (
+                                        "  parameterLabel='true'\n")
+                                    descriptor_code += "else\n"
+                                    descriptor_code += (
+                                        "  parameterLabel='false'\n")
+                                    descriptor_code += "end if\n"
+                                else:
+                                    descriptor_code += (
+                                        f"write (parameterLabel,"
+                                        f"'({fmt})') self%"
+                                        f"{parameter['name']}({idx})"
+                                        f"%value\n"
+                                    )
+                                descriptor_code += " else\n"
+                                descriptor_code += (
+                                    "  parameterLabel='?'\n")
+                                descriptor_code += " end if\n"
+                                descriptor_code += (
+                                    " parameterValues=parameterValues//"
+                                    "trim(adjustl(parameterLabel))\n"
+                                )
+                                descriptor_code += (
+                                    f" if (i{rank} /= size(self%"
+                                    f"{parameter['name']},dim={rank})) "
+                                    f"parameterValues=parameterValues//','\n"
+                                )
+                                for i in range(1, rank + 1):
+                                    descriptor_code += "end do\n"
+                                    descriptor_code += (
+                                        " parameterValues=parameterValues"
+                                        "//']'\n"
+                                    )
+                                    if i != 1:
+                                        descriptor_code += (
+                                            f" if (i{i - 1} /= size(self%"
+                                            f"{parameter['name']},"
+                                            f"dim={i - 1})) "
+                                            f"parameterValues="
+                                            f"parameterValues//','\n"
+                                        )
+                                descriptor_code += (
+                                    f"call {parameter['source']}"
+                                    f"%addParameter('"
+                                    f"{parameter['inputName']}',"
+                                    f"char(parameterValues))\n"
+                                )
+                            else:
+                                descriptor_code += (
+                                    f"if (self%{parameter['name']}%isSet) "
+                                    f"then\n"
+                                )
+                                if is_logical:
+                                    descriptor_code += (
+                                        f"if (self%{parameter['name']}"
+                                        f"%value) then\n"
+                                    )
+                                    descriptor_code += (
+                                        "  parameterLabel='true'\n")
+                                    descriptor_code += "else\n"
+                                    descriptor_code += (
+                                        "  parameterLabel='false'\n")
+                                    descriptor_code += "end if\n"
+                                else:
+                                    descriptor_code += (
+                                        f"write (parameterLabel,"
+                                        f"'({fmt})') self%"
+                                        f"{parameter['name']}%value\n"
+                                    )
+                                descriptor_code += " else\n"
+                                descriptor_code += (
+                                    "  parameterLabel='?'\n")
+                                descriptor_code += " end if\n"
+                                descriptor_code += (
+                                    f"call {parameter['source']}"
+                                    f"%addParameter('"
+                                    f"{parameter['inputName']}',"
+                                    f"trim(adjustl(parameterLabel)))\n"
+                                )
+
+                    for obj in descriptor_parameters.get('objects') or []:
+                        descriptor_code += (
+                            f"if (associated(self%{obj['name']})) "
+                            f"call self%{obj['name']}%descriptor"
+                            f"(parameters,includeClass=.true.,"
+                            f"includeFileModificationTimes="
+                            f"includeFileModificationTimes)\n"
+                        )
+                    for linked in descriptor_parameters.get(
+                            'linkedLists') or []:
+                        linked_code, linked_module = (
+                            auto_descriptor_linked_list(
+                                linked, descriptor_linked_list_vars))
+                        descriptor_code += linked_code
+                        if linked_module:
+                            descriptor_modules[linked_module] = True
+
+                if parent_constructor_used:
+                    descriptor_code += (
+                        f"call self%{extension_of}%descriptor"
+                        f"(descriptor,includeClass=.false.,"
+                        f"includeFileModificationTimes="
+                        f"includeFileModificationTimes)\n"
+                    )
+            elif (not declaration_matches
+                    and 'descriptorSpecial' not in non_abstract):
+                raise RuntimeError(
+                    f"Automatic descriptor can not be built for class "
+                    f"'{non_abstract['name']}': "
+                    f"parameter-based constructor not found"
+                )
+            elif (supported != 1
+                    and 'descriptorSpecial' not in non_abstract):
+                raise RuntimeError(
+                    f"Automatic descriptor can not be built for class "
+                    f"'{non_abstract['name']}' because:\n   "
+                    + "\n   ".join(failure_message)
+                )
+
+        # Run-time file dependencies.
+        class_chain_rank_max = 0
+        cls = non_abstract
+        while cls is not None:
+            if 'runTimeFileDependencies' in cls:
+                if not file_modification_added:
+                    descriptor_code = (
+                        "integer :: status\n"
+                        "character(len=30) :: timeModification\n"
+                        "integer :: countRunTimeFileDependency\n"
+                        "type(varying_string) :: "
+                        "fileDependencyParameterName\n"
+                        + descriptor_code
+                    )
+                    descriptor_modules['File_Utilities']  = True
+                    descriptor_modules['String_Handling'] = True
+                    descriptor_modules['Error']           = True
+                    file_modification_added = True
+                descriptor_code += (
+                    "if (includeFileModificationTimes_) then\n"
+                    "countRunTimeFileDependency=0\n"
+                )
+                paths = (
+                    cls['runTimeFileDependencies']
+                    .get('paths', '')).split()
+                for path in paths:
+                    rank = 0
+                    for declaration in potential_names.get(
+                            'parameters', []):
+                        if path.lower() in (
+                                declaration.get('variables') or []):
+                            rank = declaration_rank(declaration)
+                    if rank > class_chain_rank_max:
+                        class_chain_rank_max = rank
+                    loc_node = non_abstract.get('node') or {}
+                    introspection = location(loc_node,
+                                             loc_node.get('line', 0))
+                    if rank > 0:
+                        selector = ('('
+                                    + ",".join(
+                                        f"i{i}"
+                                        for i in range(1, rank + 1))
+                                    + ')')
+                        for i in range(1, rank + 1):
+                            descriptor_code += (
+                                f"do i{i}=lbound(self%{path},dim={i}),"
+                                f"ubound(self%{path},dim={i})\n"
+                            )
+                    else:
+                        selector = ''
+                    descriptor_code += (
+                        f"timeModification="
+                        f"File_Modification_Time(self%{path}{selector},"
+                        f"status)\n"
+                        f"if (status == errorStatusSuccess) then\n"
+                        f" countRunTimeFileDependency="
+                        f"countRunTimeFileDependency+1\n"
+                        f" fileDependencyParameterName="
+                        f"var_str(\"runTimeFileDependency\")//"
+                        f"countRunTimeFileDependency\n"
+                        f" call descriptor%addParameter("
+                        f"char(fileDependencyParameterName),"
+                        f"char(self%{path}{selector}//\": \"//"
+                        f"trim(timeModification)))\n"
+                        f"else if (status /= errorStatusNotExist) then\n"
+                        f" call Error_Report('unable to get file "
+                        f"modification time'//{introspection})\n"
+                        f"end if\n"
+                    )
+                    if rank > 0:
+                        for _ in range(rank):
+                            descriptor_code += "end do\n"
+                descriptor_code += "end if\n"
+            cls = (None if cls.get('extends') == directive['name']
+                   else classes.get(cls.get('extends')))
+        if class_chain_rank_max > 0:
+            descriptor_code = (
+                "integer :: "
+                + ", ".join(
+                    f"i{i}"
+                    for i in range(1, class_chain_rank_max + 1))
+                + "\n" + descriptor_code
+            )
+
+        if 'descriptorSpecial' in non_abstract:
+            descriptor_code += (
+                f" call self%{non_abstract['descriptorSpecial']}"
+                f"(parameters)\n"
+            )
 
     descriptor_code += "end select\n"
+    if descriptor_linked_list_vars:
+        descriptor_code = (
+            _format_variable_definitions(descriptor_linked_list_vars)
+            + descriptor_code
+        )
 
     if descriptor_used:
         descriptor_code = "logical :: includeClass_\n" + descriptor_code
