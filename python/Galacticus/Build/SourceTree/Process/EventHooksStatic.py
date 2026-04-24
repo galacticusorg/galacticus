@@ -62,9 +62,14 @@ def _load_event_hook_names(directive_locations):
     blob_path = (os.path.join(build_path, 'eventHooksStatic.blob')
                  if build_path else None)
     if blob_path and os.path.exists(blob_path):
-        with open(blob_path, 'rb') as fh:
-            _EVENT_HOOK_NAMES = list(pickle.load(fh))
-        return _EVENT_HOOK_NAMES
+        try:
+            with open(blob_path, 'rb') as fh:
+                _EVENT_HOOK_NAMES = list(pickle.load(fh))
+            return _EVENT_HOOK_NAMES
+        except (pickle.UnpicklingError, EOFError):
+            # Truncated / corrupt cache (e.g. an earlier run was interrupted
+            # mid-write).  Fall through and rebuild it.
+            pass
 
     block = (directive_locations.get('eventHookStatic') or {})
     files = list(as_array(block.get('file')))
@@ -75,11 +80,18 @@ def _load_event_hook_names(directive_locations):
                 names.append(d['name'])
     _EVENT_HOOK_NAMES = names
     if blob_path:
+        # Atomic write: dump to a sibling tmp file then rename, so concurrent
+        # readers (parallel make jobs) never observe a half-written blob.
+        tmp_path = blob_path + '.tmp'
         try:
-            with open(blob_path, 'wb') as fh:
+            with open(tmp_path, 'wb') as fh:
                 pickle.dump(names, fh)
+            os.replace(tmp_path, blob_path)
         except OSError:
-            pass
+            try:
+                os.unlink(tmp_path)
+            except OSError:
+                pass
     return _EVENT_HOOK_NAMES
 
 
