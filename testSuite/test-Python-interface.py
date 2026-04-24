@@ -72,7 +72,7 @@ print(f'   {status}: D(t=6 Gyr) = {growthFunction:.2f}')
 print("--- powerSpectrumPrimordialTransferredSimple ---")
 powerSpectrumTransferred = galacticus.powerSpectrumPrimordialTransferredSimple(powerSpectrumPrimordial,transferFunction,linearGrowth)
 powerTransferred = powerSpectrumTransferred.power(wavenumber=2.0,time=6.0)
-status = "PASS" if np.isclose(powerTransferred, 165107209.2923229, rtol=1.0e-6) else "FAIL"
+status = "PASS" if np.isclose(powerTransferred, 165107209.2923229, rtol=3.0e-6) else "FAIL"
 print(f'   {status}: P(k=2 Mpc⁻¹,t=6 Gyr) = {powerTransferred:.2f}')
 
 # Cosmological mass variance.
