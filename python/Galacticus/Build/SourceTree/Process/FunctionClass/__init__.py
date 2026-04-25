@@ -388,7 +388,16 @@ def _load_and_sort_classes(directive, directive_locations):
         for dep in class_deps:
             type_name = class_record.get('type')
             if type_name and dep != type_name:
-                dependencies.setdefault(dep, []).append(type_name)
+                # Sort.Topo's predecessor convention: `dependencies[X] = [Y, …]`
+                # means X must come *after* Y — i.e. Y is X's predecessor.
+                # `class_dependencies` returns the parents that this class
+                # extends (and any cross-referenced sibling types), so each
+                # `dep` must be emitted *before* `type_name`.  Earlier this
+                # appended `type_name` under `dep`, which produced the
+                # opposite order: a child (e.g. cosmologyFunctionsMatterDarkEnergy)
+                # would be emitted before its parent
+                # (cosmologyFunctionsMatterLambda), which gfortran rejects.
+                dependencies.setdefault(type_name, []).append(dep)
 
         class_record['file'] = class_location
         class_record['tree'] = class_tree
