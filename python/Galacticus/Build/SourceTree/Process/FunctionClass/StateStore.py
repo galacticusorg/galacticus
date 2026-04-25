@@ -190,8 +190,11 @@ def state_store_variables(state_stores, state_store, class_record,
         has_pointer    = any(a == 'pointer' for a in attributes)
         is_allocatable = any(a == 'allocatable' for a in attributes)
 
-        # ---- Skip type-bound procedures and finalisers ----
-        if intrinsic in ('procedure', 'final'):
+        # ---- Skip type-bound procedures, finalisers, and generic operator
+        # bindings.  None declare data members, and `generic :: assignment(=)
+        # => …` parses as a "variable" named `assignment(=)=>…` that would
+        # otherwise be emitted as `self%assignment(=)…` — invalid Fortran.
+        if intrinsic in ('procedure', 'final', 'generic'):
             _maybe_flag_custom_hooks(state_store, declaration)
             continue
 

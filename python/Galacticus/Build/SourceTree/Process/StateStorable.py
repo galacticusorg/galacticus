@@ -611,7 +611,12 @@ def _emit_store_restore(directive, classes, storable_types):
                 if child.get('type') == 'declaration':
                     for declaration in child.get('declarations', []):
                         intr = declaration.get('intrinsic')
-                        if intr == 'procedure':
+                        # Skip type-bound markers (`procedure`/`generic`/
+                        # `final`).  None of these declare data members;
+                        # treating them as data emits invalid Fortran like
+                        # `sizeof(self%assignment(=)=>integratorAssign)` for
+                        # generic-operator bindings.
+                        if intr in ('procedure', 'generic', 'final'):
                             continue
                         if intr in ('class', 'type'):
                             frag = _process_derived_declaration(
