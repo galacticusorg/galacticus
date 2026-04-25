@@ -62,14 +62,25 @@ def _load_event_hook_names(directive_locations):
     build_path = os.environ.get('BUILDPATH')
     blob_path = (os.path.join(build_path, 'eventHooksStatic.blob')
                  if build_path else None)
-    if blob_path and os.path.exists(blob_path):
+    locations_path = (os.path.join(build_path, 'directiveLocations.xml')
+                      if build_path else None)
+    blob_is_fresh = (
+        blob_path
+        and os.path.exists(blob_path)
+        and (
+            not (locations_path and os.path.exists(locations_path))
+            or os.path.getmtime(blob_path) >= os.path.getmtime(locations_path)
+        )
+    )
+    if blob_is_fresh:
         try:
             with open(blob_path, 'rb') as fh:
                 _EVENT_HOOK_NAMES = list(pickle.load(fh))
             return _EVENT_HOOK_NAMES
         except (pickle.UnpicklingError, EOFError):
             # Truncated / corrupt cache (e.g. an earlier run was interrupted
-            # mid-write).  Fall through and rebuild it.
+            # mid-write, or written by Perl's Storable rather than pickle).
+            # Fall through and rebuild it.
             pass
 
     block = (directive_locations.get('eventHookStatic') or {})

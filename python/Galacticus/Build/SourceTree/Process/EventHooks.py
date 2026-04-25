@@ -27,7 +27,7 @@ from Galacticus.Build.SourceTree                   import (
     walk_tree, parse_code, children, set_visibility,
     insert_after_node, insert_before_node, insert_post_contains,
 )
-from Galacticus.Build.SourceTree.Process           import register_process
+from Galacticus.Build.SourceTree.Process           import register_process, process_tree
 from Galacticus.Build.SourceTree.Parse.Declarations import add_declarations
 from Galacticus.Build.SourceTree.Parse.ModuleUses   import add_uses
 from Galacticus.Build.SourceTree.Process.SourceIntrospection import location
@@ -544,12 +544,16 @@ def _emit_typed_hook_block(hook, parent_node, manager_parent):
     type_block = _substitute(_HOOK_TYPE_TEMPLATE, subs)
 
     # The subroutine bodies go after the `contains` marker of the manager's
-    # parent module.
+    # parent module.  Run process_tree on each parsed sub_tree so directives
+    # embedded in the templates (e.g. `<optionalArgument>` in `_ATTACH_TEMPLATE`)
+    # are expanded and marked processed — the dispatchers for those directive
+    # types have already run by the time eventHooks executes.
     for template in (_ATTACH_TEMPLATE, _DETACH_TEMPLATE, _ISATTACHED_TEMPLATE):
         sub_tree = parse_code(
             _substitute(template, subs),
             name='EventHooks',
         )
+        process_tree(sub_tree)
         kids = children(sub_tree)
         for k in kids:
             k['parent'] = None
