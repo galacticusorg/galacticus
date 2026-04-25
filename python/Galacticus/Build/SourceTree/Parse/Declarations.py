@@ -81,16 +81,24 @@ def parse_declaration(line):
 
         # Check if first part has parentheses (type specification)
         m_type = re.search(r'\(\s*([^)]+)\s*\)', first_part)
+        consumed_as_type = False
         if m_type and ('kind' in first_part.lower() or 'len' in first_part.lower() or
                        intrinsic in ['type', 'class']):
             type_val = m_type.group(1).strip()
+            consumed_as_type = True
 
-        # Attributes come after comma or are everything else
+        # Attributes come after the comma; if there is no comma, anything in
+        # `first_part` is an attribute *unless* we already consumed it as the
+        # type-spec parens.
         if rest:
             attributes = extract_variables(rest, keep_qualifiers=True)
-        elif not m_type or not ('kind' in first_part.lower() or 'len' in first_part.lower()):
-            # No comma but has parens - might be attributes without type
+        elif not consumed_as_type and m_type is not None:
+            # `first_part` carries parens that aren't a type-spec — must be
+            # attributes (e.g. `dimension(:)` written without a leading comma).
             attributes = extract_variables(first_part, keep_qualifiers=True)
+        elif not m_type:
+            # No parens in `first_part` and no comma — nothing to extract.
+            attributes = []
 
     variables = extract_variables(variables_raw, keep_qualifiers=True, lower_case=True)
     variable_names = extract_variables(variables_raw, keep_qualifiers=False, lower_case=False)
