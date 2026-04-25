@@ -205,28 +205,50 @@ def process_generics(tree, options):
         sibling = node.get('sibling')
         tree_name = tree.get('name', '<generic>')
         while sibling is not None:
-            stack = _stack_it(sibling)
-            while stack:
-                sub_node, sub_depth = stack.pop()
-
-                if _opener_matches_generic(sub_node, generic_re):
-                    # Branch A: clone the whole subtree per instance.
-                    copies = _expand_subtree(
-                        sub_node, identifier, instances, tree_name)
-                    replace_node(sub_node, copies)
-                    # Drop any remaining stack entries that belonged to this
-                    # subtree — i.e. everything at depth > sub_depth that we
-                    # haven't already popped.
-                    while stack and stack[-1][1] > sub_depth:
-                        stack.pop()
-
-                elif 'content' in sub_node:
-                    if _has_generic_ancestor(sub_node, generic_re):
-                        continue
-                    _expand_content_lines(
-                        sub_node, identifier, instances, generic_re)
-
+            # Walk the sibling's subtree top-down (parent before children) so
+            # that an *outer* opener with a generic placeholder is expanded as
+            # a single unit — its descendants are cloned once-per-instance via
+            # the per-clone substitution walk inside `_expand_subtree`, and
+            # the descendants must NOT be expanded a second time afterwards.
+            #
+            # The bottom-up stack pop order would expand inner placeholders
+            # first (e.g. the `module procedure {Type¦…}` *inside* an
+            # `interface {Type¦…}`), and then the outer expansion would clone
+            # the interface — now containing 13 already-expanded modprocs —
+            # 13 times, giving every interface a copy of every constructor.
+            _expand_top_down(sibling, generic_re, identifier, instances,
+                             tree_name)
             sibling = sibling.get('sibling')
+
+
+def _expand_top_down(node, generic_re, identifier, instances, tree_name):
+    """Walk `node` and its subtree top-down, expanding every opener that
+    matches `generic_re`.  When an opener matches, the entire subtree at that
+    point is cloned once per instance; descendants of the matched node are
+    NOT visited a second time (they were already cloned-and-substituted as
+    part of the parent's `_expand_subtree`).
+
+    Code-content nodes (no `opener`) are visited unconditionally so inline
+    `{Type¦…}` placeholders inside raw Fortran lines still get substituted.
+    """
+    if _opener_matches_generic(node, generic_re):
+        copies = _expand_subtree(node, identifier, instances, tree_name)
+        replace_node(node, copies)
+        return
+
+    if 'content' in node:
+        if not _has_generic_ancestor(node, generic_re):
+            _expand_content_lines(node, identifier, instances, generic_re)
+
+    # Recurse into children.  Materialise the child list first because each
+    # child may rewrite the parent's child chain via replace_node above.
+    children_list = []
+    child = node.get('firstChild')
+    while child is not None:
+        children_list.append(child)
+        child = child.get('sibling')
+    for c in children_list:
+        _expand_top_down(c, generic_re, identifier, instances, tree_name)
 
 
 def _expand_subtree(sub_node, identifier, instances, tree_name):
