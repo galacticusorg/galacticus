@@ -162,11 +162,17 @@ def _reparse_declaration(code_node):
     }
     node_copy['parent'] = tree_tmp
     # Delegate to the (already-ported) declarations parse pass.
-    from Galacticus.Build.SourceTree import _pass_declarations
+    from Galacticus.Build.SourceTree import _pass_declarations, children
     _pass_declarations(tree_tmp)
-    # Replace the original declaration parent (which contained the old code
-    # node) with whatever the re-parse produced.
-    replace_node(parent, [tree_tmp['firstChild']])
+    # Replace the original declaration parent with EVERY child the parse
+    # pass produced — `_pass_declarations` may split the input into a
+    # sequence (declaration + code + declaration + …) when preprocessor
+    # directives like `#ifdef` separate runs of declarations.  Passing only
+    # the first child to `replace_node` (which overwrites the new node's
+    # sibling pointer) silently dropped any preprocessor-wrapped
+    # declarations such as the `commitHash` array added by
+    # ParameterMigration.
+    replace_node(parent, children(tree_tmp))
 
 
 def _opener_matches_generic(node, generic_re):
