@@ -666,9 +666,10 @@ def _descriptor_discover_class(non_abstract_class, directive, classes,
                 potential_descriptor_parameters(
                     walker.get('declarations'),
                     non_abstract_class, cls, state_storables, potential_names)
-            walker = (walker.get('firstChild')
-                      if walker.get('type') == 'contains'
-                      else walker.get('sibling'))
+            # See note at line 877: in our parse `contains` has no children;
+            # post-contains members are siblings, so a sibling-walk reaches
+            # them naturally.
+            walker = walker.get('sibling')
 
         cls = (None if cls.get('extends') == directive['name']
                else classes.get(cls.get('extends')))
@@ -742,10 +743,12 @@ def _descriptor_discover_class(non_abstract_class, directive, classes,
                     elif ctype == 'code':
                         code_stream = io.StringIO(cnode.get('content') or '')
                         while True:
-                            line_data = get_fortran_line(code_stream)
-                            if line_data is None:
+                            raw_line, processed_line, _ = get_fortran_line(
+                                code_stream)
+                            # get_fortran_line returns ('','','') at EOF
+                            # rather than None, so detect that explicitly.
+                            if not raw_line and not processed_line:
                                 break
-                            _, processed_line, _ = line_data
                             # Subparameter sources.
                             sm = re.match(
                                 r'^\s*([a-zA-Z0-9_]+)\s*=\s*([a-zA-Z0-9_]+)'
@@ -872,9 +875,11 @@ def _descriptor_discover_class(non_abstract_class, directive, classes,
                             failure_message.append(
                                 f"could not find a matching internal object "
                                 f"for object [{obj_name}]")
-        node = (node.get('firstChild')
-                if node.get('type') == 'contains'
-                else node.get('sibling'))
+        # Perl iterates by descending into `contains` (which holds the
+        # post-contains procedures as children).  In our parse `contains`
+        # is a self-closing sibling marker — every post-contains procedure
+        # is its sibling, so a plain sibling-walk visits them naturally.
+        node = node.get('sibling')
 
     # --- Validate sub-parameter hierarchy.
     for sp_name in sorted(sub_parameters.keys()):
@@ -1618,10 +1623,11 @@ def _build_allowed_parameters_method(directive, classes_ordered, methods):
                             modified = False
                             code = io.StringIO(cnode.get('content') or '')
                             while True:
-                                line_data = get_fortran_line(code)
-                                if line_data is None:
+                                raw_line, processed_line, _ = get_fortran_line(code)
+                                # get_fortran_line returns ('','','') at EOF,
+                                # not None.
+                                if not raw_line and not processed_line:
                                     break
-                                raw_line, processed_line, _ = line_data
                                 pm = re.match(
                                     r'^\s*' + re.escape(result)
                                     + r'%([a-zA-Z0-9_]+)\s*=([a-zA-Z0-9_]+)'
@@ -1704,10 +1710,10 @@ def _build_allowed_parameters_method(directive, classes_ordered, methods):
                                     break
                                 type_node = type_node.get('sibling')
 
-            # Descend into contains blocks; else move to sibling.
-            node = (node.get('firstChild')
-                    if node.get('type') == 'contains'
-                    else node.get('sibling'))
+            # Same `contains` walk as in `_descriptor_discover_class`: in
+            # our parse `contains` has no children, so just walk siblings —
+            # the post-contains procedures are siblings of the marker.
+            node = node.get('sibling')
 
     # --- Emission pass. ---
     allowed_parameters_linked_list_variables = []
@@ -3184,10 +3190,11 @@ def _generate_class_submodules(directive, classes_ordered, non_abstract_classes,
         contained = False
         while class_node is not None:
             if class_node.get('type') == 'contains':
-                class_node = class_node.get('firstChild')
+                # `contains` is a self-closing sibling marker in our parse —
+                # post-contains procedures are siblings of it, not children.
                 contained = True
-                if class_node is None:
-                    break
+                class_node = class_node.get('sibling')
+                continue
             if contained:
                 submodule_post.append(class_node)
                 if class_node.get('type') in ('function', 'subroutine'):
@@ -3490,10 +3497,10 @@ def _collect_type_bindings_and_module_symbols(class_node, block,
     type_node = class_node.get('firstChild')
     while type_node is not None:
         if type_node.get('type') == 'contains':
+            # Self-closing sibling marker — set the flag and skip past.
             post_contains = True
-            type_node = type_node.get('firstChild')
-            if type_node is None:
-                break
+            type_node = type_node.get('sibling')
+            continue
         if post_contains:
             if type_node.get('type') == 'declaration':
                 for declaration in type_node.get('declarations') or []:
@@ -3916,13 +3923,10 @@ def _collect_doc_parameters_and_objects(
                 elif cnode.get('type') == 'objectBuilder':
                     objects.append(
                         (cnode.setdefault('directive', {})).get('class'))
-        # Descend into `contains` blocks — the Perl idiom
-        # `$node = $node->{'type'} eq "contains" ? $node->{'firstChild'}
-        #                                         : $node->{'sibling'};`
-        if node.get('type') == 'contains':
-            node = node.get('firstChild')
-        else:
-            node = node.get('sibling')
+        # In Perl, `contains` holds the post-contains procedures as
+        # children; in our parse it is a self-closing sibling marker, so a
+        # plain sibling-walk reaches everything that comes after it.
+        node = node.get('sibling')
     return parameters, [o for o in objects if o]
 
 
