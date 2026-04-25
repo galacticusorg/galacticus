@@ -258,7 +258,13 @@ def _expand_subtree(sub_node, identifier, instances, tree_name):
         # also get processed in the new copy.  Hooks are idempotent — they
         # check `directive.get('processed')` and skip — so re-running them is
         # safe.  Mirrors `_insert_parsed(..., run_process_tree=True)`.
-        reparsed = parse_code(serialize(copied), name=tree_name)
+        # `instrument=False`: the original tree was already source-introspection-
+        # instrumented when first parsed, so its serialised form already
+        # contains `{introspection:location:NNN}` tags.  Re-instrumenting
+        # would re-tag those, replacing baked-in line numbers with the line
+        # number of the position they happen to land on in the synthesised
+        # text — matches Perl ParseCode's `instrument => 0` option.
+        reparsed = parse_code(serialize(copied), name=tree_name, instrument=False)
         process_tree(reparsed)
         copies.append(reparsed)
     return copies

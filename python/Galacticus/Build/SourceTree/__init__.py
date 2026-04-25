@@ -29,13 +29,26 @@ def parse_file(filename):
     return parse_code(content, name=os.path.basename(filename), source=filename)
 
 
-def parse_code(code, name='<string>', source=None):
+def parse_code(code, name='<string>', source=None, instrument=True):
     """Build an AST from a Fortran source string.
 
     Mirrors Perl Galacticus::Build::SourceTree::ParseCode(code, fileName).
     Used by Process/Generics when it serializes a macro-expanded subtree and
     needs to re-parse it from its textual form.
+
+    `instrument=True` (the default) tags every `{introspection:location}`
+    placeholder with the line number on which it appears; downstream
+    `process_source_introspection` then expands those into a full Fortran
+    expression naming the surrounding scope.  Re-parses of generic-expanded
+    or otherwise synthesised content should pass `instrument=False` so the
+    line numbers aren't tagged a second time — matching Perl ParseCode's
+    `instrument => 0` option.
     """
+    if instrument:
+        from Galacticus.Build.SourceTree.Process.SourceIntrospection import (
+            instrument as _instrument,
+        )
+        code = _instrument(code)
     root = {
         'type':       'file',
         'name':       name,
