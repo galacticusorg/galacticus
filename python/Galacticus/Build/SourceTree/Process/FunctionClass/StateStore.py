@@ -419,6 +419,17 @@ def state_store_variables(state_stores, state_store, class_record,
                 _maybe_flag_custom_hooks(state_store, declaration)
                 continue
 
+            # Unrecognised derived type — Perl simply does nothing with it
+            # (the `class`/`type` arm has no fall-through into the intrinsic
+            # branch).  Without this explicit continue our walk dropped into
+            # the `is_allocatable` intrinsic path below and emitted, e.g.,
+            # `write (stateFile) self%postprocessors` for a
+            # `type(stellarPopulationSpectraPostprocessorList), allocatable,
+            # dimension(:)` member whose element type carries pointer
+            # components — invalid Fortran I/O.
+            _maybe_flag_custom_hooks(state_store, declaration)
+            continue
+
         # ---- Intrinsic types ----
         if has_pointer:
             # Pointers to intrinsics are not handled.
