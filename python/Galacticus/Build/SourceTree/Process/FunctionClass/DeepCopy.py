@@ -287,6 +287,12 @@ def deep_copy_declarations(class_record, non_abstract_class, node,
                         f"call destination%{name}%autoHook()\n"
                     )
                     if has_pointer:
+                        # Close the inner `if (associated(…%copiedSelf)) then …
+                        # else …` block opened by deep_copy_copied_self_block.
+                        # Without this, the outer `end if` below closes the
+                        # inner block and the outer `if (associated(self%X))`
+                        # is left open.
+                        deep_copy['assignments']  += "end if\n"
                         deep_copy['assignments']  += "end if\n"
                         deep_copy['resetCode']    += "end if\n"
                         deep_copy['finalizeCode'] += "end if\n"
