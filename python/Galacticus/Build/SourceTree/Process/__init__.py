@@ -24,7 +24,7 @@ def register_process(name, fn, before=()):
     """Register a process hook.
 
     Mirrors the Perl idiom
-        $Hooks::processHooks{name}        = \&fn;
+        $Hooks::processHooks{name}        = \\&fn;
         $Hooks::processDependencies{name} = [before, ...];
 
     Parameters
@@ -46,7 +46,7 @@ def register_process(name, fn, before=()):
 def register_postprocess(name, fn):
     """Register a post-process hook.
 
-    Mirrors `$Hooks::postprocessHooks{name} = \&fn`.  Post-process hooks run
+    Mirrors `$Hooks::postprocessHooks{name} = \\&fn`.  Post-process hooks run
     in alphabetical order after every process hook has completed.
     """
     POSTPROCESS_HOOKS[name] = fn
