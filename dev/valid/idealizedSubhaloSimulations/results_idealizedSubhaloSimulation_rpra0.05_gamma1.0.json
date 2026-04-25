@@ -6,10 +6,10 @@ window.ANALYSES_DATA = {
             "name": "Andrew Benson",
             "email": "abenson@obs.carnegiescience.edu"
         },
-        "id": "b7a9e3228e0641d6ac649d3c86680de36f730793",
-        "message": "fix: Remove obsoleted Perl modules\n",
-        "timestamp": "2026-04-21 09:22:24-07:00",
-        "url": "https://github.com/galacticusorg/galacticus/commit/b7a9e3228e0641d6ac649d3c86680de36f730793"
+        "id": "b61d7087fd808659956cee81e17422f4f8991b3a",
+        "message": "fix: Merge branch 'master' of github.com:galacticusorg/galacticus\n",
+        "timestamp": "2026-04-24 09:09:58-07:00",
+        "url": "https://github.com/galacticusorg/galacticus/commit/b61d7087fd808659956cee81e17422f4f8991b3a"
     },
     "results": [
         {
