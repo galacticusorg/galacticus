@@ -82,8 +82,17 @@ def parse_declaration(line):
         # Check if first part has parentheses (type specification)
         m_type = re.search(r'\(\s*([^)]+)\s*\)', first_part)
         consumed_as_type = False
-        if m_type and ('kind' in first_part.lower() or 'len' in first_part.lower() or
-                       intrinsic in ('type', 'class', 'procedure')):
+        # If `first_part` *starts* with `(`, the parens always form the
+        # type-spec — `integer(c_size_t) :: …`, `type(varying_string) :: …`,
+        # `procedure(template), nopass, pointer :: …`, etc.  The original
+        # carve-out (only `type`/`class`/`procedure` plus explicit
+        # `kind=`/`len=`) missed bare-kind forms like `integer(c_size_t)` and
+        # `real(c_double)`, dropping the kind into the attributes list.
+        if m_type and (
+                first_part.startswith('(')
+                or 'kind' in first_part.lower()
+                or 'len'  in first_part.lower()
+                or intrinsic in ('type', 'class', 'procedure')):
             type_val = m_type.group(1).strip()
             consumed_as_type = True
 
