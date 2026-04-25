@@ -83,7 +83,7 @@ def parse_declaration(line):
         m_type = re.search(r'\(\s*([^)]+)\s*\)', first_part)
         consumed_as_type = False
         if m_type and ('kind' in first_part.lower() or 'len' in first_part.lower() or
-                       intrinsic in ['type', 'class']):
+                       intrinsic in ('type', 'class', 'procedure')):
             type_val = m_type.group(1).strip()
             consumed_as_type = True
 
