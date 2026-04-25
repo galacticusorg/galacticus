@@ -162,6 +162,13 @@ def _render_call(call_template, arguments, bits, condition_id):
     if not found:
         raise RuntimeError(
             "conditionalCall: syntax error in call element (missing `{conditions}`)")
+    # The XML parser strips trailing whitespace from the `<call>` text body,
+    # so a template that ends with `)` (no trailing newline) leaves `out`
+    # without one too — the caller then appends `end if\n` directly to the
+    # closing parenthesis: `…)end if`.  Make sure rendered call text always
+    # ends with a newline.
+    if not out.endswith('\n'):
+        out += '\n'
     return out
 
 
