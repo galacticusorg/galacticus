@@ -450,25 +450,35 @@ def _parse_interface_arguments(interface_text):
 
     Mirrors EventHooks.pm:46-59 in spirit: iterate each Fortran line, match
     against the intrinsic-type patterns, and extract the variable list after
-    the `::` separator.  Uses a simple `::` split rather than indexing into
-    INTRINSIC_DECLARATIONS groups, because the group indices in the shared
-    spec do not line up cleanly across all intrinsics (harmless elsewhere —
-    `parse_declaration` has its own regex — but it would trip us up here).
+    the `::` separator.
+
+    Note that an attribute list may contain `dimension(:)` (with a colon
+    inside the parens), so the line cannot be split on the first `::` found
+    by `[^:]*::` — that pattern would lock onto the colon inside `(:)` and
+    then fail to match the real `::` that follows.  Use a leading-intrinsic
+    check, then split on the *last* `::` to isolate the trailing variable
+    list.
     """
     arguments = []
+    intrinsic_re = re.compile(
+        r'^\s*(?:integer|real|double\s+precision|double\s+complex|'
+        r'logical|character|type|class)\b',
+        re.IGNORECASE,
+    )
+
     fh = io.StringIO(interface_text)
     while True:
         raw_line, processed_line, _ = get_fortran_line(fh)
         if not raw_line and not processed_line:
             break
-        m = re.match(
-            r'^\s*(?:integer|real|double\s+precision|double\s+complex|'
-            r'logical|character|type|class)\b[^:]*::\s*(.+?)\s*$',
-            processed_line,
-            re.IGNORECASE,
-        )
-        if m:
-            arguments.extend(extract_variables(m.group(1), keep_qualifiers=False))
+        if not intrinsic_re.match(processed_line):
+            continue
+        sep = processed_line.rfind('::')
+        if sep < 0:
+            continue
+        var_list = processed_line[sep + 2:].strip()
+        if var_list:
+            arguments.extend(extract_variables(var_list, keep_qualifiers=False))
     return arguments
 
 
