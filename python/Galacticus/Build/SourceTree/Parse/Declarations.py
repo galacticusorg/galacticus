@@ -320,14 +320,23 @@ def declaration_exists(node, variable_name):
     """Return True if the named variable has a declaration in node.
 
     Mirrors DeclarationExists() from Parse/Declarations.pm.  Case-insensitive.
+    Strips any `=…` initializer off each stored variable name before
+    comparing — declarations are stored as raw `name=value` tokens (e.g.
+    `warnObjectBuilder0__=.false.`) but callers query by bare name.  Also
+    falls back to `variableNames` (the parser's already-stripped list)
+    when present.
     """
     target = variable_name.lower()
     child = node.get('firstChild')
     while child:
         if child.get('type') == 'declaration':
             for declaration in child.get('declarations', []):
-                for v in declaration.get('variables', []):
+                for v in declaration.get('variableNames') or []:
                     if v.lower() == target:
+                        return True
+                for v in declaration.get('variables', []):
+                    bare = re.match(r'^([^=\s]+)', v)
+                    if bare and bare.group(1).lower() == target:
                         return True
         child = child.get('sibling')
     return False
