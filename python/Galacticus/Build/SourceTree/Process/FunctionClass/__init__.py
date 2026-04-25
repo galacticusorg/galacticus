@@ -1952,6 +1952,14 @@ def _build_assignment_method(directive, non_abstract_classes, classes,
                     for declaration in as_array(child.get('declarations')):
                         if not isinstance(declaration, dict):
                             continue
+                        # Skip type-bound markers (`procedure`/`generic`/
+                        # `final`).  None declare data members; treating
+                        # them as data emits invalid assignments like
+                        # `self%omegaMatter=from%omegaMatter` for
+                        # `procedure :: omegaMatter => …` type bindings.
+                        if declaration.get('intrinsic') in (
+                                'procedure', 'generic', 'final'):
+                            continue
                         attributes = declaration.get('attributes') or []
                         is_pointer     = any(a == 'pointer'     for a in attributes)
                         is_allocatable = any(a == 'allocatable' for a in attributes)
