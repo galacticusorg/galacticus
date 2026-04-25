@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1776890935029,
+  "lastUpdate": 1777090040460,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Dark matter-only subhalos benchmarks (COZMIC Milky Way WDM 6keV resolutionX8)": [
@@ -1865,6 +1865,43 @@ window.BENCHMARK_DATA = {
           {
             "name": "Dark Matter Only Subhalos (COZMIC WDM:6keV resolution X8 Milky Way) - Likelihood - subhaloVelocityMaximumMean",
             "value": 67.47076509337423,
+            "unit": "-logℒ"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "name": "Andrew Benson",
+            "username": "abensonca",
+            "email": "abenson@obs.carnegiescience.edu"
+          },
+          "committer": {
+            "name": "Andrew Benson",
+            "username": "abensonca",
+            "email": "abenson@obs.carnegiescience.edu"
+          },
+          "id": "b61d7087fd808659956cee81e17422f4f8991b3a",
+          "message": "fix: Merge branch 'master' of github.com:galacticusorg/galacticus",
+          "timestamp": "2026-04-24T16:09:58Z",
+          "url": "https://github.com/galacticusorg/galacticus/commit/b61d7087fd808659956cee81e17422f4f8991b3a"
+        },
+        "date": 1777090039626,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Dark Matter Only Subhalos (COZMIC WDM:6keV resolution X8 Milky Way) - Likelihood - subhaloMassFunction",
+            "value": 11.389251836671924,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Dark Matter Only Subhalos (COZMIC WDM:6keV resolution X8 Milky Way) - Likelihood - subhaloRadialDistribution",
+            "value": 37.216453800640586,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Dark Matter Only Subhalos (COZMIC WDM:6keV resolution X8 Milky Way) - Likelihood - subhaloVelocityMaximumMean",
+            "value": 73.11579677918223,
             "unit": "-logℒ"
           }
         ]
