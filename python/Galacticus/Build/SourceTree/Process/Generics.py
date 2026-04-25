@@ -273,6 +273,22 @@ def _expand_subtree(sub_node, identifier, instances, tree_name):
                     cn['content'], identifier, instance)
                 _reparse_declaration(cn)
 
+        # Strip the `!![…!!]` XML markers from every directive that the
+        # outer process pipeline has already handled.  Without this, the
+        # reparse below recreates a fresh directive node from the still-
+        # present XML block; the inner process_tree then re-runs the
+        # directive's hook on it and emits the generated code (e.g. the
+        # `<optionalArgument>` setter) a second time — producing duplicate
+        # variable declarations and duplicate setter blocks.  The hook's
+        # original emission is a *sibling* code node and survives reparse
+        # verbatim, so dropping the directive's own content is safe.
+        for cn in walk_tree(copied):
+            directive = cn.get('directive')
+            if directive and directive.get('processed'):
+                first = cn.get('firstChild')
+                if first is not None:
+                    first['content'] = ''
+
         # Re-parse the serialized copy so generic-expanded declarations /
         # directives are re-discovered, then run the full process pipeline on
         # the isolated subtree so any directive types that were already
