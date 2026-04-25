@@ -38,8 +38,13 @@ _EXTENDS_ATTR_RE = re.compile(r'extends\(([a-zA-Z0-9_]+)\)', re.IGNORECASE)
 
 def _parse_type_opener(opener):
     """Return `(name, extends_or_None, abstract_bool)` for a `type … :: name`
-    opener line, or raise if it can't be parsed.
+    opener line, or None for openers carrying unexpanded `{Type¦…}` generic
+    placeholders (StateStorable doesn't support generics, so those types are
+    silently skipped — DeepCopyActions makes the same carve-out at
+    DeepCopyActions.pm:62).  Raises only on genuinely unparseable openers.
     """
+    if '{' in opener:
+        return None
     m = _TYPE_OPENER_RE.match(opener)
     if not m:
         raise RuntimeError(
@@ -425,7 +430,13 @@ def process_state_storable(tree, options):
             directive_nodes.append(node)
             continue
         if ntype == 'type':
-            name, extends, abstract = _parse_type_opener(node.get('opener', ''))
+            parsed = _parse_type_opener(node.get('opener', ''))
+            if parsed is None:
+                # Generic-templated opener (e.g. `type :: {Type¦label}Foo`) —
+                # ignore it; the expanded copies will be re-processed after
+                # generics runs.
+                continue
+            name, extends, abstract = parsed
             classes[name] = {
                 'node':     node,
                 'extends':  extends,
