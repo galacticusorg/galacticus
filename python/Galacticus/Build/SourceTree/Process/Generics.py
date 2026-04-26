@@ -257,6 +257,30 @@ def _expand_top_down(node, generic_re, identifier, instances, tree_name):
         _expand_top_down(c, generic_re, identifier, instances, tree_name)
 
 
+def _strip_processed_directive_content(root):
+    """Blank the firstChild content of every already-processed directive
+    in the subtree at `root`, EXCEPT those whose type is in the
+    `is_non_processed_type` exemption list (`<methods>`, `<workaround>`,
+    …) — those carry data rather than generating code, so their content
+    must survive into the cloned subtree for the inner `process_tree`'s
+    classDocumentation pass to find them.
+
+    See `_expand_subtree` for why we strip in the first place.
+    """
+    from Galacticus.Build.SourceTree.Process.NonProcessed import (
+        is_non_processed_type,
+    )
+    for cn in walk_tree(root):
+        directive = cn.get('directive')
+        if not (directive and directive.get('processed')):
+            continue
+        if is_non_processed_type(cn.get('type')):
+            continue
+        first = cn.get('firstChild')
+        if first is not None:
+            first['content'] = ''
+
+
 def _expand_subtree(sub_node, identifier, instances, tree_name):
     """Clone sub_node per instance, apply substitutions, serialize each clone,
     and re-parse it so the resulting subtree has fresh directive / declaration
@@ -279,21 +303,10 @@ def _expand_subtree(sub_node, identifier, instances, tree_name):
                     cn['content'], identifier, instance)
                 _reparse_declaration(cn)
 
-        # Strip the `!![…!!]` XML markers from every directive that the
-        # outer process pipeline has already handled.  Without this, the
-        # reparse below recreates a fresh directive node from the still-
-        # present XML block; the inner process_tree then re-runs the
-        # directive's hook on it and emits the generated code (e.g. the
-        # `<optionalArgument>` setter) a second time — producing duplicate
-        # variable declarations and duplicate setter blocks.  The hook's
-        # original emission is a *sibling* code node and survives reparse
-        # verbatim, so dropping the directive's own content is safe.
-        for cn in walk_tree(copied):
-            directive = cn.get('directive')
-            if directive and directive.get('processed'):
-                first = cn.get('firstChild')
-                if first is not None:
-                    first['content'] = ''
+        # Strip the `!![…!!]` XML markers from every already-processed
+        # directive — see `_strip_processed_directive_content` for the
+        # exemption rules and rationale.
+        _strip_processed_directive_content(copied)
 
         # Re-parse the serialized copy so generic-expanded declarations /
         # directives are re-discovered, then run the full process pipeline on
