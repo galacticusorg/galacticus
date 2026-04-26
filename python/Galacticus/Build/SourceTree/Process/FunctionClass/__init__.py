@@ -1424,14 +1424,20 @@ def _build_descriptor_methods(directive, non_abstract_classes, classes,
                 descriptor_code += "end if\n"
             cls = (None if cls.get('extends') == directive['name']
                    else classes.get(cls.get('extends')))
-        if class_chain_rank_max > 0:
-            descriptor_code = (
-                "integer :: "
-                + ", ".join(
-                    f"i{i}"
-                    for i in range(1, class_chain_rank_max + 1))
-                + "\n" + descriptor_code
-            )
+        # Remember whether the parameter-loop section needs `parameterValues`
+        # before merging the file-dependency rank into `rank_maximum` —
+        # parameterValues is only used for parameter loops.
+        parameter_values_used = rank_maximum > 0
+        # Loop indices for the runtime-file-dependency section and the
+        # parameter-loop section share the names i1, i2, …, so we want a
+        # single `integer :: i1, …, iN` declaration covering the larger of
+        # the two ranks.  Emitting both separately (matching Perl literally,
+        # which has the same two-emission flaw) produces duplicate
+        # `integer :: i1` declarations and gfortran rejects with "Symbol
+        # 'i1' at (1) already has basic type of INTEGER".  Fold the
+        # file-dependency rank into the running max so the parameter-loop
+        # block below emits the combined declaration.
+        rank_maximum = max(rank_maximum, class_chain_rank_max)
 
         if 'descriptorSpecial' in non_abstract:
             descriptor_code += (
@@ -1463,12 +1469,14 @@ def _build_descriptor_methods(directive, non_abstract_classes, classes,
         descriptor_code = (
             "character(len=18) :: parameterLabel\n" + descriptor_code)
     if rank_maximum > 0:
-        descriptor_code = (
+        prefix = (
             "integer :: "
             + ",".join(f"i{i}" for i in range(1, rank_maximum + 1))
-            + "\ntype(varying_string) :: parameterValues\n"
-            + descriptor_code
+            + "\n"
         )
+        if parameter_values_used:
+            prefix += "type(varying_string) :: parameterValues\n"
+        descriptor_code = prefix + descriptor_code
 
     methods['descriptor'] = {
         'description': ('Return an input parameter list descriptor which '
