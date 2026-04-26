@@ -134,6 +134,41 @@ def _populate_class_descriptions(type_node, class_record):
             )
 
 
+def _populate_class_from_function_class_directive(node, classes):
+    """Synthesise a class record for the abstract `<name>Class` type that
+    FunctionClass auto-generates from a `<functionClass>` directive.
+
+    The `<functionClass>` directive at module scope carries the parent
+    class's methods directly as `<method name="…">` children.  Promote the
+    `name` attribute on each method to a `method` key (so the rest of the
+    pipeline — including the doc consumer at
+    `scripts/doc/extractData.py`'s inheritance walk — can find them by
+    method name), assemble them into a `<descriptions>` list, and stash
+    the synthesised class under `<base_name>Class` in the classes dict.
+    """
+    directive = node.get('directive') or {}
+    base_name = directive.get('name')
+    if not base_name:
+        return
+    class_name = base_name + 'Class'
+    class_record = classes.setdefault(class_name, {'name': class_name})
+
+    methods = list(as_array(directive.get('method')))
+    for m in methods:
+        if isinstance(m, dict) and 'method' not in m and 'name' in m:
+            m['method'] = m['name']
+    class_record.setdefault('descriptions', []).extend(methods)
+
+    # Abstract base classes have no procedure bindings to resolve and no
+    # missing methods of their own.  Initialise the fields explicitly so
+    # `_dict_to_xml_element` emits an empty `<missingMethods/>` /
+    # `<genericUses/>` rather than silently omitting them — extractData.py
+    # tolerates either, but matching the shape of `<type>`-derived class
+    # records keeps the consumer's logic uniform.
+    class_record.setdefault('missingMethods', '')
+    class_record.setdefault('genericUses',    '')
+
+
 def _resolve_method_bindings(class_record):
     """For each method description, resolve the bound Fortran function name(s)
     by scanning the class's collected function declarations.
@@ -426,6 +461,20 @@ def process_class_documentation(tree, options):
                     class_record['extends'] = m.group(1)
                 _resolve_method_bindings(class_record)
                 _compute_missing_and_generic(class_record)
+            elif ntype == 'functionClass':
+                # Synthesise a class record for the abstract `*Class` type
+                # that FunctionClass auto-generates from this directive.
+                # ClassDocumentation runs before FunctionClass in the topo
+                # order, so the generated `type, abstract :: virialOrbitClass`
+                # never reaches a `type` node walk in this pass — but the
+                # `<functionClass>` directive carries every method we'd need
+                # in its `<method name="…">` children, so we can populate the
+                # parent class's `descriptions` directly.  Without this
+                # entry the doc consumer's inheritance walk
+                # (`scripts/doc/extractData.py`) cannot resolve the parent's
+                # methods, and EVERY derived class lists them in
+                # `<missingMethods>`.
+                _populate_class_from_function_class_directive(node, classes)
             elif ntype in ('subroutine', 'function'):
                 function_list.append(node)
 

@@ -112,3 +112,97 @@ def test_method_with_both_attributes_keeps_method():
     _populate_class_descriptions(type_node, cls)
     method = (cls['descriptions'][0]).get('method')
     assert method == 'foo', cls['descriptions']
+
+
+# ---------------------------------------------------------------------------
+# functionClass directive synthesis
+# ---------------------------------------------------------------------------
+#
+# Bug: ClassDocumentation runs BEFORE FunctionClass in the topo order, so
+# the abstract `<name>Class` type that FunctionClass auto-generates from
+# a `<functionClass>` directive is never present in the tree at the time
+# ClassDocumentation walks it.  The parent's methods (declared inline as
+# `<method name="…">` children of the `<functionClass>` directive) never
+# reach any `<descriptions>` block, so the doc consumer's inheritance
+# walk in `scripts/doc/extractData.py` cannot resolve them — and EVERY
+# derived class winds up listing them in `<missingMethods>`.
+#
+# Fix: harvest the directive directly when classDocumentation walks the
+# tree.
+
+from Galacticus.Build.SourceTree.Process.ClassDocumentation import (
+    _populate_class_from_function_class_directive,
+)
+
+
+def test_function_class_directive_creates_parent_class_record():
+    """A `<functionClass><name>virialOrbit</name>...</functionClass>` directive
+    becomes a `virialOrbitClass` entry whose `descriptions` lists every
+    `<method name="…">` child."""
+    directive_node = {
+        'type':      'functionClass',
+        'directive': {
+            'name': 'virialOrbit',
+            'method': [
+                {'name': 'orbit',                       'description': 'Return orbit.'},
+                {'name': 'velocityDistributionFunction', 'description': 'Distribution.'},
+                {'name': 'energyMean',                  'description': 'Mean energy.'},
+            ],
+        },
+    }
+    classes = {}
+    _populate_class_from_function_class_directive(directive_node, classes)
+
+    assert 'virialOrbitClass' in classes
+    record = classes['virialOrbitClass']
+    assert record['name'] == 'virialOrbitClass'
+    method_names = [d.get('method') for d in record.get('descriptions') or []]
+    assert method_names == ['orbit', 'velocityDistributionFunction', 'energyMean']
+
+
+def test_function_class_directive_with_single_method():
+    """A `<functionClass>` with a single `<method>` child arrives as a dict
+    rather than a list — both the directive synthesis AND the
+    `name`-to-`method` promotion must work in that case too."""
+    directive_node = {
+        'type':      'functionClass',
+        'directive': {
+            'name': 'oneMethod',
+            'method': {'name': 'soloMethod', 'description': 'Just one.'},
+        },
+    }
+    classes = {}
+    _populate_class_from_function_class_directive(directive_node, classes)
+
+    record = classes.get('oneMethodClass')
+    assert record is not None
+    assert [d.get('method') for d in record['descriptions']] == ['soloMethod']
+
+
+def test_function_class_directive_without_name_is_ignored():
+    """A malformed directive lacking `<name>` is silently skipped (the
+    rest of the pipeline already errors on this — we don't crash on it)."""
+    classes = {}
+    _populate_class_from_function_class_directive(
+        {'type': 'functionClass', 'directive': {}}, classes)
+    assert classes == {}
+
+
+def test_function_class_directive_method_dict_already_has_method_key():
+    """If a `<functionClass>` directive author wrote
+    `<method method="x" description="…"/>` (the child-class form, rare for
+    parents but valid), that `method` key is honoured as-is."""
+    directive_node = {
+        'type':      'functionClass',
+        'directive': {
+            'name': 'mixed',
+            'method': [
+                {'method': 'preNamedX', 'description': '…'},
+                {'name':   'fromName',  'description': '…'},
+            ],
+        },
+    }
+    classes = {}
+    _populate_class_from_function_class_directive(directive_node, classes)
+    method_names = [d.get('method') for d in classes['mixedClass']['descriptions']]
+    assert method_names == ['preNamedX', 'fromName']
