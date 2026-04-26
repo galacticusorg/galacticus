@@ -28,6 +28,20 @@ def _rank_from_declaration(parent, variable):
     return 0
 
 
+def _declaration_has_generic_placeholder(parent, variable):
+    """Return True if `variable`'s declaration carries an unresolved generic-
+    template placeholder (e.g. `{Type¦rank}`).  See the matching helper in
+    Process/Allocate.py for the rationale: forEach also runs before generics
+    and so must defer when it can't yet see the resolved rank.
+    """
+    declaration = get_declaration(parent, variable)
+    fields = list(declaration.get('attributes') or [])
+    if declaration.get('type'):
+        fields.append(declaration['type'])
+    fields.extend(declaration.get('variables') or [])
+    return any(isinstance(f, str) and '¦' in f for f in fields)
+
+
 def process_for_each(tree, options):
     """Mirrors Process_ForEach() from ForEach.pm."""
     for node in walk_tree(tree):
@@ -36,9 +50,19 @@ def process_for_each(tree, options):
         directive = node.setdefault('directive', {})
         if directive.get('processed'):
             continue
-        directive['processed'] = True
 
         variable = directive['variable']
+        # Defer if the variable's declaration is still a generic template —
+        # `{Type¦rank}` becomes `, dimension(:)` (or empty) only after
+        # generics expansion clones the surrounding subroutine.  Leaving
+        # the directive un-flagged means generics' clone-then-reparse step
+        # preserves its `!![…!!]` markers, and the inner `process_tree` on
+        # each cloned subtree re-invokes us with a fully-resolved rank.
+        if _declaration_has_generic_placeholder(node['parent'], variable):
+            continue
+
+        directive['processed'] = True
+
         rank = _rank_from_declaration(node['parent'], variable)
 
         # Index variables: foreach__1, foreach__2, ..., foreach__rank.
