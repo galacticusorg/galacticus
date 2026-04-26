@@ -22,7 +22,9 @@ from Fortran.Utils                       import UNIT_OPENERS
 from Galacticus.Build.Directives         import extract_directives
 from Galacticus.Build.SourceTree         import walk_tree, parse_file
 from Galacticus.Build.SourceTree.Parse.Declarations import parse_declaration
-from Galacticus.Build.SourceTree.Process import register_process
+from Galacticus.Build.SourceTree.Process import (
+    register_postprocess, is_inner_process_tree_call,
+)
 
 
 # Classes already emitted across prior hook invocations — matches Perl's
@@ -547,6 +549,19 @@ def process_class_documentation(tree, options):
     if os.environ.get('GALACTICUS_BUILD_DOCS') != 'yes':
         return
 
+    # Skip when called from a nested `process_tree` invocation — those are
+    # `Generics._expand_subtree` and `FunctionClass._insert_and_write_output`
+    # processing isolated subtrees that contain only PART of what we need
+    # for documentation extraction (e.g. a generic-cloned `polyRankdouble`
+    # type without its associated `doubleRank` / `doubleShape` function
+    # nodes — those land in *separate* sibling clones).  Running here would
+    # write a `<basename>.classes.xml` containing each clone's incomplete
+    # record, only to be overwritten by the next clone's incomplete record;
+    # waiting for the OUTER call lets us walk the fully-assembled tree and
+    # match every method to its bound function in a single sweep.
+    if is_inner_process_tree_call():
+        return
+
     trees = _build_tree_list(tree)
 
     classes = {}
@@ -597,9 +612,14 @@ def process_class_documentation(tree, options):
     _write_classes_xml(tree, classes)
 
 
-register_process(
-    'classDocumentation',
-    process_class_documentation,
-    before=['functionClass', 'eventHooks', 'stateStorable',
-            'deepCopyActions', 'generics'],
-)
+# Register as a POSTPROCESS hook so we run AFTER every process hook
+# (functionClass, generics, eventHooks, stateStorable, deepCopyActions, …)
+# has finished expanding the tree.  Generic templates clone each sibling
+# subtree independently, and FunctionClass inserts its auto-generated
+# `<base>Class` type via `insert_after_node` — both expansions only become
+# visible together in the OUTER tree once their respective process hooks
+# have completed, so a process-time hook running in topo order would walk
+# an incomplete tree.  The `is_inner_process_tree_call()` guard above
+# additionally suppresses the postprocess pass during the nested
+# `process_tree` calls those hooks make on isolated subtrees.
+register_postprocess('classDocumentation', process_class_documentation)

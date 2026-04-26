@@ -414,6 +414,96 @@ def test_resolve_method_bindings_skips_method_with_no_arrow():
     assert 'boundFunctions' not in class_record['descriptions'][0]
 
 
+def test_class_documentation_skips_inner_process_tree_calls(tmp_path,
+                                                              monkeypatch):
+    """ClassDocumentation must skip when invoked from a nested
+    `process_tree` call (Generics' clone reparse, FunctionClass'
+    insert-and-write-output).  Without the skip, each generic-cloned
+    subtree wrote a partial `<basename>.classes.xml` that was then
+    overwritten by the next clone — the OUTER pass on the fully-
+    expanded tree never got a chance to populate `<descriptions>` and
+    `_process_function`-derived `type` fields side by side."""
+    import Galacticus.Build.SourceTree.Process as proc_pkg
+    from Galacticus.Build.SourceTree.Process.ClassDocumentation import (
+        process_class_documentation,
+    )
+
+    monkeypatch.setenv('GALACTICUS_BUILD_DOCS', 'yes')
+    monkeypatch.setenv('BUILDPATH', str(tmp_path))
+
+    # Build the same `<functionClass>`-bearing tree as
+    # `test_class_documentation_runs_at_outer_depth` — at outer depth
+    # this writes `utility.foo.classes.xml`; at inner depth (the
+    # generics / functionClass clone-reparse case) the function must
+    # bail out before opening that file.
+    fc_node = {
+        'type':       'functionClass',
+        'directive':  {
+            'name':   'foo',
+            'method': [{'name': 'bar', 'description': '…'}],
+        },
+        'firstChild': None, 'sibling': None, 'parent': None,
+    }
+    tree = {
+        'name':       'utility.foo.F90',
+        'firstChild': fc_node,
+        'sibling':    None,
+        'parent':     None,
+        'type':       'file',
+    }
+    fc_node['parent'] = tree
+
+    # Force the depth flag to "we are nested" — exactly what generics'
+    # `_expand_subtree` would do via its own `process_tree(reparsed)`
+    # call from within an outer `process_tree`.
+    monkeypatch.setattr(proc_pkg, '_PROCESS_TREE_DEPTH', 2)
+
+    process_class_documentation(tree, {})
+
+    # No `<basename>.classes.xml` should have been emitted.
+    assert list(tmp_path.iterdir()) == [], list(tmp_path.iterdir())
+
+
+def test_class_documentation_runs_at_outer_depth(tmp_path, monkeypatch):
+    """At the outer level (`_PROCESS_TREE_DEPTH == 1`) classDocumentation
+    runs as normal."""
+    import Galacticus.Build.SourceTree.Process as proc_pkg
+    from Galacticus.Build.SourceTree.Process.ClassDocumentation import (
+        process_class_documentation,
+    )
+
+    monkeypatch.setenv('GALACTICUS_BUILD_DOCS', 'yes')
+    monkeypatch.setenv('BUILDPATH', str(tmp_path))
+
+    # Build a minimal tree with a single `<functionClass>` directive so
+    # there's something to write.
+    fc_node = {
+        'type':       'functionClass',
+        'directive':  {
+            'name':   'foo',
+            'method': [{'name': 'bar', 'description': '…'}],
+        },
+        'firstChild': None, 'sibling': None, 'parent': None,
+    }
+    tree = {
+        'name':       'utility.foo.F90',
+        'firstChild': fc_node,
+        'sibling':    None,
+        'parent':     None,
+        'type':       'file',
+    }
+    fc_node['parent'] = tree
+
+    monkeypatch.setattr(proc_pkg, '_PROCESS_TREE_DEPTH', 1)
+    process_class_documentation(tree, {})
+
+    # The synthesised parent class record was written out.
+    out = tmp_path / 'utility.foo.classes.xml'
+    assert out.exists(), list(tmp_path.iterdir())
+    content = out.read_text()
+    assert '<fooClass>' in content
+
+
 def test_synthesised_class_extends_functionClass():
     """The abstract base record synthesised from a `<functionClass>`
     directive must advertise `extends: 'functionClass'` so the doc
