@@ -129,3 +129,54 @@ def test_resolved_rank1_emits_loop_and_index():
     assert 'do foreach__1=1,size(passed,dim=1)' in body
     assert ' x=passed(foreach__1)\n' in body, body
     assert 'end do' in body
+
+
+def test_format_meta_write_paren_count():
+    """The auto-generated `write (indexesFormatMeta_,…) v1, v2` line must
+    have balanced parentheses.  An earlier draft had an extra `)` that
+    gfortran rejected with `Syntax error in WRITE statement`."""
+    from Galacticus.Build.SourceTree.Process.ForEach import process_for_each
+
+    parent, fe = _wrap_in_parent(
+        declaration_attrs=['allocatable', 'dimension(:)'],
+        forEach_directive_kwargs={
+            'variable': 'passed',
+            'content':  ' x=passed%index%\n',   # `%index%` triggers the format setup
+        })
+    process_for_each(parent, options={})
+
+    body = _emitted_iteration(parent)
+    assert body is not None
+    for line in body.splitlines():
+        if line.startswith('write (indexesFormatMeta_,'):
+            opens  = sum(1 for ch in line if ch == '(')
+            closes = sum(1 for ch in line if ch == ')')
+            assert opens == closes, (
+                f"unbalanced parens ({opens} ( vs {closes} )): {line!r}")
+            break
+    else:
+        raise AssertionError("expected a write(indexesFormatMeta_,…) line, got:\n"
+                             + body)
+
+
+def test_trailing_end_if_in_body_is_separated_from_end_do():
+    """If the directive's body ends with `end if\\n`, the emitted iterator
+    must put `end do` on its OWN line — not concatenate `end ifend do`."""
+    from Galacticus.Build.SourceTree.Process.ForEach import process_for_each
+
+    parent, fe = _wrap_in_parent(
+        declaration_attrs=['allocatable', 'dimension(:)'],
+        forEach_directive_kwargs={
+            'variable': 'passed',
+            'content':  (
+                ' if (.not.passed{index}) then\n'
+                ' x=1\n'
+                ' end if\n'
+            ),
+        })
+    process_for_each(parent, options={})
+
+    body = _emitted_iteration(parent)
+    assert body is not None
+    assert 'end ifend do' not in body, body
+    assert 'end if\nend do' in body, body

@@ -140,7 +140,7 @@ def process_for_each(tree, options):
             fmt  = (
                 "write (indexesFormatMeta_,'(\"(\"\"i\"\",i\",i2.2,\".\",i2.2,\")\")') "
                 "1+int(log10(dble(huge(0_c_size_t)))),"
-                "1+int(log10(dble(huge(0_c_size_t)))))\n"
+                "1+int(log10(dble(huge(0_c_size_t))))\n"
             )
             fmt += "indexesFormat__='(\"[\",'\n"
             for i in range(1, rank + 1):
