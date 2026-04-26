@@ -227,6 +227,16 @@ def _populate_class_from_function_class_directive(node, classes):
     class_name = base_name + 'Class'
     class_record = classes.setdefault(class_name, {'name': class_name})
 
+    # FunctionClass auto-generates `type, abstract, extends(functionClass) ::
+    # <name>Class`, so the synthesised record needs to advertise that
+    # parentage too.  The doc consumer walks the `extends` chain to set
+    # `isFunctionClass = True` on every descendant, which gates the
+    # filtering of auto-generated methods (autoHook, descriptor, deepCopy,
+    # …) from the "missing method descriptions" warning.  Without this,
+    # every concrete child class shows the full set of auto-generated
+    # method names in the docs build's warning output.
+    class_record.setdefault('extends', 'functionClass')
+
     # Deep-copy each method dict before mutating it.  These dicts live in
     # the original `<functionClass>` directive and are consumed later by
     # FunctionClass — which expects `method['type']` to remain the raw

@@ -414,6 +414,28 @@ def test_resolve_method_bindings_skips_method_with_no_arrow():
     assert 'boundFunctions' not in class_record['descriptions'][0]
 
 
+def test_synthesised_class_extends_functionClass():
+    """The abstract base record synthesised from a `<functionClass>`
+    directive must advertise `extends: 'functionClass'` so the doc
+    consumer's `isFunctionClass` chain walk reaches `functionClass`
+    when starting from any concrete derived class.  Without this,
+    `isFunctionClass` stays False on every descendant and the
+    `FUNCTION_CLASS_EXCLUDES` filter at the consumer side never
+    triggers — every concrete child class then warns "missing method
+    descriptions" for every auto-generated method (autoHook,
+    descriptor, deepCopy, …)."""
+    directive_node = {
+        'type':      'functionClass',
+        'directive': {
+            'name':   'foo',
+            'method': [{'name': 'bar', 'description': '…'}],
+        },
+    }
+    classes = {}
+    _populate_class_from_function_class_directive(directive_node, classes)
+    assert classes['fooClass'].get('extends') == 'functionClass'
+
+
 def test_directive_method_with_void_type_translated_to_subroutine():
     """FunctionClass auto-generated method stubs (autoHook, descriptor, …)
     arrive with `<type>void</type>`.  The doc consumer's
