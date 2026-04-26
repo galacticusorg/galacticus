@@ -4,12 +4,12 @@ window.ANALYSES_DATA = {
     "commit": {
         "author": {
             "name": "Andrew Benson",
-            "email": "abenson@obs.carnegiescience.edu"
+            "email": "abenson@carnegiescience.edu"
         },
-        "id": "b61d7087fd808659956cee81e17422f4f8991b3a",
-        "message": "fix: Merge branch 'master' of github.com:galacticusorg/galacticus\n",
-        "timestamp": "2026-04-24 09:09:58-07:00",
-        "url": "https://github.com/galacticusorg/galacticus/commit/b61d7087fd808659956cee81e17422f4f8991b3a"
+        "id": "9f7df648a657236db5e92398fd99fee11219d843",
+        "message": "fix: Use Apple ID in notarization workflow\n",
+        "timestamp": "2026-04-25 12:45:55-07:00",
+        "url": "https://github.com/galacticusorg/galacticus/commit/9f7df648a657236db5e92398fd99fee11219d843"
     },
     "results": [
         {
@@ -22,7 +22,7 @@ window.ANALYSES_DATA = {
                 "targetLabel": "Mau et al. (DES), 2022",
                 "comment": "Analysis of subhalo bound mass cumulative distribution function",
                 "description": "Subhalo bound mass cumulative distribution function (τ=40.0 Gyr; vₖ=20.0 km/s)",
-                "logLikelihood": "3.911329297627126",
+                "logLikelihood": "4.293715662422688",
                 "type": "function1D"
             },
             "data": {
@@ -38,9 +38,9 @@ window.ANALYSES_DATA = {
                     7742636826.811277
                 ],
                 "yDataset": [
-                    43.686354160885195,
-                    41.05455352151542,
-                    25.43374321767779,
+                    44.72928521133474,
+                    41.53074608474932,
+                    25.45695284074327,
                     11.11120428839134,
                     10.01048837233524,
                     5.907469358167266,
@@ -82,7 +82,7 @@ window.ANALYSES_DATA = {
                 "targetLabel": "Mau et al. (DES), 2022",
                 "comment": "Analysis of subhalo orbital radius cumulative distribution function",
                 "description": "Subhalo orbital radius cumulative distribution function (τ=40.0 Gyr; vₖ=20.0 km/s)",
-                "logLikelihood": "50.700227896646346",
+                "logLikelihood": "47.18400262601939",
                 "type": "function1D"
             },
             "data": {
@@ -99,14 +99,14 @@ window.ANALYSES_DATA = {
                 ],
                 "yDataset": [
                     0.0,
-                    0.16666666666666666,
-                    0.8810737940979051,
-                    2.6821529123545353,
-                    12.756510490833199,
-                    25.128750002854517,
-                    44.92031029426914,
-                    44.92031029426914,
-                    44.92031029426914
+                    0.25,
+                    1.8034281400591887,
+                    3.2488913995702196,
+                    13.323248978048879,
+                    26.378107318639767,
+                    45.96324134471873,
+                    45.96324134471873,
+                    45.96324134471873
                 ],
                 "yDatasetTarget": [
                     1.0,
