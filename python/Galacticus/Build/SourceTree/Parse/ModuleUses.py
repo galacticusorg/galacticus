@@ -54,9 +54,16 @@ def parse_module_uses(tree):
 
         def _flush_code():
             nonlocal raw_code_buf, raw_code_line, raw_use_line
-            if raw_pp_buf:
-                raw_code_buf.extend(raw_pp_buf)
-                raw_pp_buf.clear()
+            # NB: deliberately leaves `raw_pp_buf` alone — preprocessor lines
+            # immediately preceding a `use` belong with the moduleUse block
+            # (they record the directive's condition in `entry['conditions']`
+            # and `_build_module_uses` re-emits a matching `#ifdef … #endif`
+            # wrapper).  Absorbing them into the code node here would cause
+            # the wrapper to be emitted twice — once by the surrounding code
+            # node, once by the rebuild — leaving the output with one extra
+            # `#ifdef` and an unmatched preprocessor block.  The plain-code
+            # `else` branch and the EOF handler still absorb any pp lines
+            # that were *not* followed by a `use`.
             if raw_code_buf:
                 new_nodes.append(_make_code_node(
                     ''.join(raw_code_buf), source, raw_code_line))
