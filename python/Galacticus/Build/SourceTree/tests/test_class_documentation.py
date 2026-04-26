@@ -338,3 +338,30 @@ def test_directive_method_single_argument_string_handled():
     parsed = method['arguments'][0]['argument'][0]
     assert parsed['intrinsic']     == 'integer'
     assert parsed['variableNames'] == ['x']
+
+
+def test_synthesis_does_not_mutate_directive_method_dicts():
+    """ClassDocumentation must NOT mutate the original method dicts in the
+    `<functionClass>` directive — FunctionClass reads them later and
+    expects `method['type']` to remain the raw Fortran-source string
+    (`type(keplerOrbit)`, etc.) so it can do its own `.startswith(…)`
+    checks.  An earlier draft that mutated in place crashed FunctionClass
+    with `AttributeError: 'dict' object has no attribute 'startswith'`."""
+    raw_method = {'name': 'orbit', 'type': 'type(keplerOrbit)'}
+    directive_node = {
+        'type':      'functionClass',
+        'directive': {
+            'name':   'virialOrbit',
+            'method': [raw_method],
+        },
+    }
+    classes = {}
+    _populate_class_from_function_class_directive(directive_node, classes)
+
+    # Synthesised class record gets the parsed-dict form.
+    synthesised_type = classes['virialOrbitClass']['descriptions'][0]['type']
+    assert isinstance(synthesised_type, dict)
+
+    # Original directive's method dict still has its raw string type.
+    assert raw_method['type'] == 'type(keplerOrbit)'
+    assert 'method' not in raw_method   # name→method promotion didn't leak

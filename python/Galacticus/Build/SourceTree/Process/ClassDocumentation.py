@@ -218,7 +218,17 @@ def _populate_class_from_function_class_directive(node, classes):
     class_name = base_name + 'Class'
     class_record = classes.setdefault(class_name, {'name': class_name})
 
-    methods = list(as_array(directive.get('method')))
+    # Deep-copy each method dict before mutating it.  These dicts live in
+    # the original `<functionClass>` directive and are consumed later by
+    # FunctionClass — which expects `method['type']` to remain the raw
+    # Fortran-source string (`type(keplerOrbit)`, `double precision`, …)
+    # so it can do its own startswith/string checks.  The doc-side
+    # normalisation (`_normalise_directive_method`) replaces that string
+    # with a parsed declaration dict, so without the deep-copy
+    # FunctionClass crashes with
+    # `AttributeError: 'dict' object has no attribute 'startswith'`.
+    methods = [copy.deepcopy(m) if isinstance(m, dict) else m
+               for m in as_array(directive.get('method'))]
     for m in methods:
         if isinstance(m, dict) and 'method' not in m and 'name' in m:
             m['method'] = m['name']
