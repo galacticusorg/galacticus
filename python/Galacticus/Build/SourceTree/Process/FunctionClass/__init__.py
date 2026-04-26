@@ -1969,15 +1969,21 @@ def _build_assignment_method(directive, non_abstract_classes, classes,
                     for declaration in as_array(child.get('declarations')):
                         if not isinstance(declaration, dict):
                             continue
-                        # Skip type-bound markers (`procedure`/`generic`/
-                        # `final`).  None declare data members; treating
-                        # them as data emits invalid assignments like
-                        # `self%omegaMatter=from%omegaMatter` for
-                        # `procedure :: omegaMatter => …` type bindings.
-                        if declaration.get('intrinsic') in (
-                                'procedure', 'generic', 'final'):
+                        # Skip type-bound markers — `generic`/`final` and
+                        # bare `procedure ::` bindings — none of which are
+                        # data members.  A `procedure(intf), pointer ::
+                        # foo` is *also* an `intrinsic == 'procedure'`
+                        # declaration but IS a data member that must be
+                        # copied (with `=>`); that case falls through to
+                        # the assignment loop below.
+                        intrinsic_decl = declaration.get('intrinsic')
+                        decl_attrs     = declaration.get('attributes') or []
+                        if intrinsic_decl in ('generic', 'final'):
                             continue
-                        attributes = declaration.get('attributes') or []
+                        if (intrinsic_decl == 'procedure'
+                                and not any(a == 'pointer' for a in decl_attrs)):
+                            continue
+                        attributes = decl_attrs
                         is_pointer     = any(a == 'pointer'     for a in attributes)
                         is_allocatable = any(a == 'allocatable' for a in attributes)
                         assigner = '=>' if is_pointer else '='
