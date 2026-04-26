@@ -339,6 +339,31 @@ def extract_variables(variable_list, keep_qualifiers=False, lower_case=True, rem
             "most likely regex matching failed"
         )
 
+    # Stash Fortran string literals before lowercasing or whitespace removal.
+    # Strings inside `=...` initializers (filenames, descriptions, …) MUST
+    # keep their original case — Fortran is case-insensitive for identifiers
+    # but the bytes inside a string literal are not, and a lowercased
+    # filename like `'cooling/cooling_function_atomic_cie_cloudy.hdf5'`
+    # won't open on a case-sensitive filesystem when the original was
+    # `'cooling/cooling_function_Atomic_CIE_Cloudy.hdf5'`.  Strings can
+    # also contain commas, parens, and asterisks that the downstream
+    # bracket-walk and comma-split would otherwise mishandle — stashing
+    # them as opaque tokens fixes that too.  We support both single- and
+    # double-quoted forms and Fortran's doubled-quote escape (`''` inside
+    # `'…'`).
+    string_literals = []
+
+    def _stash(m):
+        idx = len(string_literals)
+        string_literals.append(m.group(0))
+        # Lowercase placeholder so the subsequent `.lower()` is a no-op on
+        # it — otherwise the placeholder mutates and the restore regex
+        # below can't find it.
+        return f'%%strlit{idx}%%'
+
+    variable_list = re.sub(
+        r"'(?:[^']|'')*'|\"(?:[^\"]|\"\")*\"", _stash, variable_list)
+
     if lower_case:
         variable_list = variable_list.lower()
 
@@ -414,5 +439,14 @@ def extract_variables(variable_list, keep_qualifiers=False, lower_case=True, rem
             v = v.replace('%%ASTERISK%%','*')
             unescaped.append(v)
         variables = unescaped
+
+    # Restore stashed string literals (preserving original case).
+    if string_literals:
+        def _restore(token):
+            return re.sub(
+                r'%%strlit(\d+)%%',
+                lambda m: string_literals[int(m.group(1))],
+                token)
+        variables = [_restore(v) for v in variables]
 
     return variables
