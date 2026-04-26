@@ -340,6 +340,80 @@ def test_directive_method_single_argument_string_handled():
     assert parsed['variableNames'] == ['x']
 
 
+# ---------------------------------------------------------------------------
+# _resolve_method_bindings — `=>` lookup must be unanchored
+# ---------------------------------------------------------------------------
+#
+# Bug: `_resolve_method_bindings` used `re.match` (anchored at the start
+# of the string) to detect a `=>boundFunction` binding in
+# `variables[0]`.  But after `parse_declaration` runs on
+# `procedure :: parametersSelect => jiang2014ParametersSelect`,
+# `variables[0]` is `parametersselect=>jiang2014parametersselect` —
+# it starts with the method name, not with `=>`.  So `re.match` always
+# returned None, the function never made it into the method's
+# `boundFunctions` list, and `_process_function` couldn't attach a
+# type.  The doc consumer then printed "missing function type" for
+# EVERY type-bound method in EVERY child class.
+#
+# Fix: switch to `re.search` (unanchored, matching Perl's `m//`).
+
+from Galacticus.Build.SourceTree.Process.ClassDocumentation import (
+    _resolve_method_bindings,
+)
+
+
+def test_resolve_method_bindings_finds_arrow_anywhere():
+    """A type-bound `procedure :: methodName => boundImpl` lands in the
+    parsed `variables[0]` as `methodname=>boundimpl` — `_resolve_method_bindings`
+    must find the `=>` even though it's not at the start of the string."""
+    class_record = {
+        'descriptions': [{'method': 'parametersSelect'}],
+        'functions':    [[{
+            'intrinsic':  'procedure',
+            'attributes': [],
+            'variables':  ['parametersselect=>jiang2014parametersselect'],
+        }]],
+    }
+    _resolve_method_bindings(class_record)
+    assert class_record['descriptions'][0].get('boundFunctions') \
+        == ['jiang2014parametersselect']
+
+
+def test_resolve_method_bindings_handles_multiple_bindings():
+    """`procedure :: foo => a, bar => b` expands to a multi-element
+    `variables` list; each `<name>=>` binding should be resolved
+    independently for the matching method."""
+    class_record = {
+        'descriptions': [{'method': 'foo'}, {'method': 'bar'}],
+        'functions':    [[
+            {'intrinsic': 'procedure', 'attributes': [],
+             'variables': ['foo=>fooimpl']},
+            {'intrinsic': 'procedure', 'attributes': [],
+             'variables': ['bar=>barimpl']},
+        ]],
+    }
+    _resolve_method_bindings(class_record)
+    foo_bound = class_record['descriptions'][0].get('boundFunctions')
+    bar_bound = class_record['descriptions'][1].get('boundFunctions')
+    assert foo_bound == ['fooimpl']
+    assert bar_bound == ['barimpl']
+
+
+def test_resolve_method_bindings_skips_method_with_no_arrow():
+    """A `procedure :: name` (no `=>`, deferred-style without a binding)
+    leaves `boundFunctions` unset — used by `_compute_missing_and_generic`
+    to flag the method as missing."""
+    class_record = {
+        'descriptions': [{'method': 'foo'}],
+        'functions':    [[
+            {'intrinsic': 'procedure', 'attributes': [],
+             'variables': ['foo']},
+        ]],
+    }
+    _resolve_method_bindings(class_record)
+    assert 'boundFunctions' not in class_record['descriptions'][0]
+
+
 def test_directive_method_with_void_type_translated_to_subroutine():
     """FunctionClass auto-generated method stubs (autoHook, descriptor, …)
     arrive with `<type>void</type>`.  The doc consumer's

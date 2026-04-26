@@ -280,7 +280,18 @@ def _resolve_method_bindings(class_record):
                 if 'deferred' in (function.get('attributes') or []):
                     method['interface'] = function.get('type')
                     continue
-                m = re.match(r'\s*=>\s*([a-zA-Z0-9_,]+)', variables[0])
+                # Look for `=>boundFunction[,…]` ANYWHERE in the variable
+                # text — `variables[0]` is something like
+                # `parametersselect=>jiang2014parametersselect`, not a string
+                # that starts with `=>`, so `re.match` (anchored) would
+                # always miss.  The Perl original used `m//` which is
+                # unanchored; mirror that with `re.search`.  When this
+                # check fails the method's `boundFunctions` never gets
+                # populated, and later `_process_function` can't attach a
+                # type — leaving `extractData.py` to print
+                # "missing function type" warnings for every type-bound
+                # method in the class.
+                m = re.search(r'=>\s*([a-zA-Z0-9_,]+)', variables[0])
                 if not m:
                     continue
                 for variable in variables:
