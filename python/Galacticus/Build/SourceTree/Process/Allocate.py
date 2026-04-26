@@ -27,6 +27,25 @@ def _declaration_rank(parent, variable):
     return 0
 
 
+def _declaration_has_generic_placeholder(parent, variable):
+    """Return True if `variable`'s declaration carries an unresolved generic-
+    template placeholder (e.g. `{Type¦rank}`) — in which case the rank can
+    not yet be determined and we must defer allocate processing until the
+    post-generics rerun on the cloned subtree.
+
+    Galacticus's generic templates use the broken-pipe character `¦`
+    (U+00A6) as their separator, which never appears naturally in Fortran
+    source — its presence anywhere in the declaration's structured fields
+    means a placeholder hasn't been substituted yet.
+    """
+    declaration = get_declaration(parent, variable)
+    fields = list(declaration.get('attributes') or [])
+    if declaration.get('type'):
+        fields.append(declaration['type'])
+    fields.extend(declaration.get('variables') or [])
+    return any(isinstance(f, str) and '¦' in f for f in fields)
+
+
 def process_allocate(tree, options):
     """Mirrors Process_Allocate() from Allocate.pm."""
     for node in walk_tree(tree):
@@ -35,13 +54,24 @@ def process_allocate(tree, options):
         directive = node.setdefault('directive', {})
         if directive.get('processed'):
             continue
-        directive['processed'] = True
 
         variable = directive['variable']
         if 'rank' in directive:
             rank = int(directive['rank'])
         else:
+            # Defer if the declaration is still a generic template — the
+            # `{Type¦rank}` placeholder will become a literal `, dimension(:)`
+            # (or an empty string) when generics expansion clones the
+            # subroutine into one copy per instance.  Leaving the directive
+            # un-flagged means generics' clone-then-reparse step preserves
+            # its `!![…!!]` markers, and the inner `process_tree` call on
+            # each cloned subtree re-invokes us with a fully-resolved
+            # declaration.
+            if _declaration_has_generic_placeholder(node['parent'], variable):
+                continue
             rank = _declaration_rank(node['parent'], variable)
+
+        directive['processed'] = True
 
         if 'shape' in directive:
             source = directive['shape']
