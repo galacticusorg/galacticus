@@ -50,6 +50,29 @@ defaults:
   run:
     shell: bash
 jobs:
+  # Preprocessor regression tests
+  ## Fast pure-Python checks that the preprocessor stack still emits the
+  ## fixes we have committed regression tests for.  Runs in parallel with
+  ## the build jobs and gives an early signal if any change to
+  ## `python/Galacticus/Build/SourceTree/**` regresses a known bug.
+  Test-Preprocessor:
+    if: ${{ github.event_name != 'pull_request' || !github.event.pull_request.draft }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository code
+        uses: actions/checkout@v6
+      - name: Set up Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: '3.x'
+      - name: Install pytest
+        run: python -m pip install --upgrade pip pytest
+      - name: Run preprocessor regression tests
+        run: |
+          cd $GITHUB_WORKSPACE
+          export GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE
+          python -m pytest python/Galacticus/Build/SourceTree/tests/ -v
+      - run: echo "This job's status is ${{ job.status }}."
   # Build and deploy
   ## Linux
   ### Static executable and test codes
