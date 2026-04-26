@@ -375,6 +375,15 @@ def add_uses(node, module_uses_node):
         existing['intrinsic'] = new_entry.get('intrinsic', False)
         if 'conditions' in new_entry:
             existing['conditions'] = copy.deepcopy(new_entry['conditions'])
+        else:
+            # The caller wants to use this module unconditionally — if the
+            # existing entry was wrapped in `#ifdef …`, drop the conditions
+            # so the wrapper is removed.  Otherwise the merged `use` ends up
+            # only imported in builds where the original (e.g. MPI-only)
+            # condition holds, and the new caller's symbol is undefined in
+            # other builds.  This mirrors the intuitive read of "merge in
+            # an unconditional use of mod_name".
+            existing.pop('conditions', None)
 
         if 'all' not in existing:
             if new_entry.get('all'):
