@@ -275,7 +275,14 @@ def _process_allocatable_intrinsic(declaration, exclude):
     }
     attributes = declaration.get('attributes') or []
     rank = _attribute_rank(attributes)
-    fragments['rank_seen'] = rank
+    # NB: deliberately do NOT propagate `rank` into `fragments['rank_seen']`.
+    # The output/input bodies below use Fortran whole-array I/O
+    # (`write (stateFile) self%name`) and never emit a `do iN=...` loop, so
+    # the caller's `rank_maximum` (which gates the `integer(c_size_t) :: i1
+    # … iN` declaration) must not be bumped on our account — otherwise the
+    # compiler emits "Unused variable" warnings for `i2`, `i3`, … in the
+    # generated stateStore subroutine when the only multi-rank field in
+    # the type is an allocatable intrinsic.
     for name in declaration.get('variables', []):
         if any(x.lower() == name.lower() for x in exclude):
             continue
