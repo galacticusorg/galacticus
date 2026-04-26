@@ -21,6 +21,7 @@ from XML.Utils                           import xml_to_dict
 from Fortran.Utils                       import UNIT_OPENERS
 from Galacticus.Build.Directives         import extract_directives
 from Galacticus.Build.SourceTree         import walk_tree, parse_file
+from Galacticus.Build.SourceTree.Parse.Declarations import parse_declaration
 from Galacticus.Build.SourceTree.Process import register_process
 
 
@@ -134,6 +135,67 @@ def _populate_class_descriptions(type_node, class_record):
             )
 
 
+def _normalise_directive_method(method):
+    """Reshape a `<method>` directive dict so its `type` and `arguments`
+    fields match the structure the doc consumer expects.
+
+    The `<functionClass>` directive's children carry their type/argument
+    information as raw Fortran-source strings (e.g.
+    `type(keplerOrbit)`, `type(treeNode), intent(inout) :: node, host`),
+    while `extractData.py`'s `declaration_builder` requires a parsed
+    declaration dict (`{intrinsic, type, attributes, variables}`) — the
+    same shape `_process_function` produces for `<type>`-derived
+    methods.  Convert the strings here so both code paths feed the
+    consumer the same dict shape.
+
+    * `method['type']` (string): wrap in `:: __dummy__`, parse as a
+      declaration, return the dict.  When the directive has no `<type>`
+      (i.e. the method is subroutine-like), set the literal string
+      `'subroutine'` — the consumer recognises that form.
+    * `method['argument']` (list of strings, each a declaration line):
+      parse each, then re-package as
+      `arguments=[{'argument': [parsed, ...]}]` plus a parallel
+      `argumentList=['name1, name2, ...']` of just the variable names —
+      again matching the shape `_process_function` produces.
+    """
+    if not isinstance(method, dict):
+        return
+
+    raw_type = method.get('type')
+    if isinstance(raw_type, str) and raw_type.strip():
+        # `parse_declaration` requires a `::` separator and at least one
+        # variable name.  Append a synthetic name we discard afterwards.
+        parsed = parse_declaration(raw_type.strip() + ' :: __dummy__')
+        if parsed is not None:
+            parsed['variables']     = []
+            parsed['variableNames'] = []
+            method['type'] = parsed
+        # else: leave the raw string in place — the consumer will raise,
+        # but at least we've not actively lost information.
+    elif raw_type is None:
+        method['type'] = 'subroutine'
+
+    raw_args = method.get('argument')
+    if raw_args is not None:
+        arg_strings = list(as_array(raw_args)) if not isinstance(raw_args, list) \
+            else list(raw_args)
+        parsed_args = []
+        names_collected = []
+        for arg in arg_strings:
+            if not isinstance(arg, str):
+                continue
+            parsed = parse_declaration(arg.strip())
+            if parsed is None:
+                continue
+            parsed_args.append(parsed)
+            names_collected.extend(parsed.get('variableNames') or [])
+        if parsed_args:
+            method.setdefault('arguments',
+                              []).append({'argument': parsed_args})
+            method.setdefault('argumentList',
+                              []).append(', '.join(names_collected))
+
+
 def _populate_class_from_function_class_directive(node, classes):
     """Synthesise a class record for the abstract `<name>Class` type that
     FunctionClass auto-generates from a `<functionClass>` directive.
@@ -143,8 +205,11 @@ def _populate_class_from_function_class_directive(node, classes):
     `name` attribute on each method to a `method` key (so the rest of the
     pipeline — including the doc consumer at
     `scripts/doc/extractData.py`'s inheritance walk — can find them by
-    method name), assemble them into a `<descriptions>` list, and stash
-    the synthesised class under `<base_name>Class` in the classes dict.
+    method name), parse each method's `<type>` / `<argument>` strings
+    into the declaration-dict shape the consumer expects (see
+    `_normalise_directive_method`), assemble them into a `<descriptions>`
+    list, and stash the synthesised class under `<base_name>Class` in
+    the classes dict.
     """
     directive = node.get('directive') or {}
     base_name = directive.get('name')
@@ -157,6 +222,7 @@ def _populate_class_from_function_class_directive(node, classes):
     for m in methods:
         if isinstance(m, dict) and 'method' not in m and 'name' in m:
             m['method'] = m['name']
+        _normalise_directive_method(m)
     class_record.setdefault('descriptions', []).extend(methods)
 
     # Abstract base classes have no procedure bindings to resolve and no

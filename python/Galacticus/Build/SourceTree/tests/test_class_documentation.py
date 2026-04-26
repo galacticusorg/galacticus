@@ -206,3 +206,135 @@ def test_function_class_directive_method_dict_already_has_method_key():
     _populate_class_from_function_class_directive(directive_node, classes)
     method_names = [d.get('method') for d in classes['mixedClass']['descriptions']]
     assert method_names == ['preNamedX', 'fromName']
+
+
+# ---------------------------------------------------------------------------
+# Method type / argument normalisation
+# ---------------------------------------------------------------------------
+#
+# Bug: the synthesised parent class records produced
+# `<descriptions><type>double precision</type>…</descriptions>` — i.e. raw
+# Fortran-source strings carried straight through from the directive XML.
+# `scripts/doc/extractData.py`'s `declaration_builder` expects either a
+# parsed declaration dict (`{intrinsic, type, attributes, …}`) or the
+# literal string `'subroutine'`, and crashed on the bare `'double precision'`
+# with `ValueError: declaration_builder: unknown type 'double precision'`.
+#
+# Fix: parse `<type>` / `<argument>` strings into declaration dicts at
+# synthesis time so the consumer sees the same shape it gets for type-
+# derived methods.
+
+
+def test_directive_method_type_string_parsed_to_dict():
+    """A `<type>type(keplerOrbit)</type>` child becomes
+    `{intrinsic: 'type', type: 'keplerOrbit', …}` after synthesis."""
+    directive_node = {
+        'type':      'functionClass',
+        'directive': {
+            'name': 'virialOrbit',
+            'method': [
+                {'name': 'orbit', 'type': 'type(keplerOrbit)',
+                 'description': '…'},
+            ],
+        },
+    }
+    classes = {}
+    _populate_class_from_function_class_directive(directive_node, classes)
+    method_type = classes['virialOrbitClass']['descriptions'][0]['type']
+    assert isinstance(method_type, dict), method_type
+    assert method_type.get('intrinsic') == 'type'
+    assert method_type.get('type')      == 'keplerOrbit'
+
+
+def test_directive_method_double_precision_type_parsed():
+    """`double precision` is two-word intrinsic with no kind/type spec."""
+    directive_node = {
+        'type':      'functionClass',
+        'directive': {
+            'name': 'orbit',
+            'method': [
+                {'name': 'energyMean', 'type': 'double precision',
+                 'description': '…'},
+            ],
+        },
+    }
+    classes = {}
+    _populate_class_from_function_class_directive(directive_node, classes)
+    method_type = classes['orbitClass']['descriptions'][0]['type']
+    assert isinstance(method_type, dict)
+    assert method_type.get('intrinsic') == 'double precision'
+
+
+def test_directive_method_with_no_type_becomes_subroutine():
+    """A method with no `<type>` is subroutine-like — the consumer's
+    `declaration_builder` handles the literal `'subroutine'` string."""
+    directive_node = {
+        'type':      'functionClass',
+        'directive': {
+            'name': 'foo',
+            'method': [{'name': 'doSomething', 'description': '…'}],
+        },
+    }
+    classes = {}
+    _populate_class_from_function_class_directive(directive_node, classes)
+    method_type = classes['fooClass']['descriptions'][0]['type']
+    assert method_type == 'subroutine'
+
+
+def test_directive_method_arguments_parsed_to_declarations():
+    """`<argument>type(treeNode), intent(inout) :: node, host</argument>`
+    becomes `{argument: [{intrinsic: 'type', type: 'treeNode', ...,
+    variableNames: ['node', 'host']}]}`, with a parallel
+    `argumentList=['node, host']`."""
+    directive_node = {
+        'type':      'functionClass',
+        'directive': {
+            'name': 'orbit',
+            'method': [{
+                'name':     'orbit',
+                'type':     'type(keplerOrbit)',
+                'argument': [
+                    'type(treeNode), intent(inout) :: node, host',
+                    'logical, intent(in) :: acceptUnboundOrbits',
+                ],
+            }],
+        },
+    }
+    classes = {}
+    _populate_class_from_function_class_directive(directive_node, classes)
+    method = classes['orbitClass']['descriptions'][0]
+
+    arg_groups = method.get('arguments') or []
+    assert len(arg_groups) == 1
+    parsed_args = arg_groups[0]['argument']
+    assert len(parsed_args) == 2
+    assert parsed_args[0]['intrinsic']     == 'type'
+    assert parsed_args[0]['type']          == 'treeNode'
+    assert parsed_args[0]['variableNames'] == ['node', 'host']
+    assert parsed_args[1]['intrinsic']     == 'logical'
+    assert parsed_args[1]['variableNames'] == ['acceptUnboundOrbits']
+
+    # And the parallel name list joins all parsed names.
+    arg_lists = method.get('argumentList') or []
+    assert arg_lists == ['node, host, acceptUnboundOrbits']
+
+
+def test_directive_method_single_argument_string_handled():
+    """`as_array` handles both the list and the scalar-string forms — the
+    single-argument case must produce the same output shape."""
+    directive_node = {
+        'type':      'functionClass',
+        'directive': {
+            'name': 'foo',
+            'method': [{
+                'name':     'doIt',
+                'argument': 'integer, intent(in) :: x',
+            }],
+        },
+    }
+    classes = {}
+    _populate_class_from_function_class_directive(directive_node, classes)
+    method = classes['fooClass']['descriptions'][0]
+    parsed = method['arguments'][0]['argument'][0]
+    assert parsed['intrinsic']     == 'integer'
+    assert parsed['variableNames'] == ['x']
