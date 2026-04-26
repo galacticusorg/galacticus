@@ -114,6 +114,19 @@ def _populate_class_descriptions(type_node, class_record):
         if ntype == 'methods':
             directive = child.get('directive') or {}
             methods = list(as_array(directive.get('method')))
+            # Normalise the method-name key.  `<method name="…">` (used by
+            # most parent classes) and `<method method="…">` (used by most
+            # child classes) both need to surface as `method:` for the
+            # downstream consumer (`scripts/doc/extractData.py`) to find
+            # the method when it walks the inheritance chain to remove
+            # already-described "missing" methods.  Perl's XML::Simple
+            # would collapse multiple `<method name="…">` children into a
+            # name-keyed hash — our `xml_to_dict` keeps them as a list of
+            # `{'name': ..., ...}` dicts, so we explicitly promote `name`
+            # to `method` here to give both forms the same shape.
+            for m in methods:
+                if isinstance(m, dict) and 'method' not in m and 'name' in m:
+                    m['method'] = m['name']
             class_record.setdefault('descriptions', []).extend(methods)
         elif ntype == 'declaration':
             class_record.setdefault('functions', []).append(
