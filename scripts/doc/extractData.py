@@ -76,7 +76,11 @@ def declaration_builder(type_val, variables=True):
     """Build a \\mono{...} LaTeX string for a Fortran type declaration.
 
     Port of Perl declarationBuilder().  type_val is either a dict (complex type)
-    or the string 'subroutine'.
+    or one of the literal strings 'subroutine' / 'void' for the void-return
+    case.  Both string forms appear in the wild — `_process_function` emits
+    `'subroutine'` (the AST node type) for type-bound subroutine bindings,
+    and FunctionClass auto-generated method stubs (autoHook, descriptor,
+    deepCopy, …) carry `'void'` straight from the directive.
     """
     if isinstance(type_val, dict):
         inner = type_val.get('intrinsic', '')
@@ -90,7 +94,7 @@ def declaration_builder(type_val, variables=True):
             vs = as_array(type_val.get('variables'))
             if vs:
                 inner += ' :: ' + ', '.join(latex_encode(v) for v in vs)
-    elif type_val == 'subroutine':
+    elif type_val in ('subroutine', 'void'):
         inner = 'void'
     else:
         raise ValueError(f'declaration_builder: unknown type {type_val!r}')

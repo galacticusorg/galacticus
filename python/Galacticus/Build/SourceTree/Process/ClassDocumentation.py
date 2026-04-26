@@ -163,15 +163,24 @@ def _normalise_directive_method(method):
 
     raw_type = method.get('type')
     if isinstance(raw_type, str) and raw_type.strip():
-        # `parse_declaration` requires a `::` separator and at least one
-        # variable name.  Append a synthetic name we discard afterwards.
-        parsed = parse_declaration(raw_type.strip() + ' :: __dummy__')
-        if parsed is not None:
-            parsed['variables']     = []
-            parsed['variableNames'] = []
-            method['type'] = parsed
-        # else: leave the raw string in place — the consumer will raise,
-        # but at least we've not actively lost information.
+        stripped = raw_type.strip()
+        if stripped.lower() == 'void':
+            # FunctionClass auto-generates void-return method stubs
+            # (autoHook, descriptor, deepCopy, …) with `type: 'void'` —
+            # the doc consumer's `declaration_builder` only recognises
+            # the literal string `'subroutine'` for the void-return
+            # case, so translate.
+            method['type'] = 'subroutine'
+        else:
+            # `parse_declaration` requires a `::` separator and at least one
+            # variable name.  Append a synthetic name we discard afterwards.
+            parsed = parse_declaration(stripped + ' :: __dummy__')
+            if parsed is not None:
+                parsed['variables']     = []
+                parsed['variableNames'] = []
+                method['type'] = parsed
+            # else: leave the raw string in place — the consumer will raise,
+            # but at least we've not actively lost information.
     elif raw_type is None:
         method['type'] = 'subroutine'
 

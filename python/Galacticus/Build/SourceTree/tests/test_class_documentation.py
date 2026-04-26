@@ -340,6 +340,29 @@ def test_directive_method_single_argument_string_handled():
     assert parsed['variableNames'] == ['x']
 
 
+def test_directive_method_with_void_type_translated_to_subroutine():
+    """FunctionClass auto-generated method stubs (autoHook, descriptor, …)
+    arrive with `<type>void</type>`.  The doc consumer's
+    `declaration_builder` only recognises the literal string `'subroutine'`
+    for the void-return case, so the synthesiser must translate.
+
+    Without this translation, `parse_declaration` would fail to parse
+    `void` as an intrinsic and we'd leave the raw string `'void'` in
+    place — `extractData.py` then crashed with
+    `ValueError: declaration_builder: unknown type 'void'`."""
+    directive_node = {
+        'type':      'functionClass',
+        'directive': {
+            'name': 'myThing',
+            'method': [{'name': 'autoHook', 'type': 'void'}],
+        },
+    }
+    classes = {}
+    _populate_class_from_function_class_directive(directive_node, classes)
+    method_type = classes['myThingClass']['descriptions'][0]['type']
+    assert method_type == 'subroutine'
+
+
 def test_synthesis_does_not_mutate_directive_method_dicts():
     """ClassDocumentation must NOT mutate the original method dicts in the
     `<functionClass>` directive — FunctionClass reads them later and
