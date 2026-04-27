@@ -504,6 +504,146 @@ def test_class_documentation_runs_at_outer_depth(tmp_path, monkeypatch):
     assert '<fooClass>' in content
 
 
+def test_class_documentation_skips_types_from_other_source_files(tmp_path,
+                                                                   monkeypatch):
+    """FunctionClass inserts each child class's `<type>` node into the
+    parent's tree (via `insert_pre_contains` of the
+    `code_content['module']['interfaces']` list).  The inserted nodes
+    keep the CHILD source filename in their `source` field.  Walking
+    them in the parent's outer postprocess pass would emit a
+    `<virialOrbitJiang2014>` record under
+    `satellites.merging.virial_orbits.classes.xml` — but the
+    associated `jiang2014ParametersSelect` function lives in a
+    submodule file, never gets walked here, so `_process_function`
+    can't attach a type.  Each child file's own preprocess.py
+    invocation already produces a complete record in
+    `<child>.classes.xml`; let that own the documentation."""
+    import Galacticus.Build.SourceTree.Process as proc_pkg
+    from Galacticus.Build.SourceTree.Process.ClassDocumentation import (
+        process_class_documentation,
+    )
+
+    monkeypatch.setenv('GALACTICUS_BUILD_DOCS', 'yes')
+    monkeypatch.setenv('BUILDPATH', str(tmp_path))
+    monkeypatch.setattr(proc_pkg, '_PROCESS_TREE_DEPTH', 1)
+    # Reset the cross-invocation `_OUTPUT_PREVIOUS` accumulator to avoid
+    # state leaking from earlier tests in the same pytest session.
+    from Galacticus.Build.SourceTree.Process import ClassDocumentation as cd
+    monkeypatch.setattr(cd, '_OUTPUT_PREVIOUS', [])
+
+    # A type node whose `source` is a different real source file —
+    # exactly the shape FunctionClass produces when it parses each child
+    # class file and threads its `<type>` node into the parent tree.
+    inserted_child_type = {
+        'type':       'type',
+        'name':       'virialOrbitJiang2014',
+        'opener':     'type, extends(virialOrbitClass) :: virialOrbitJiang2014',
+        'source':     'satellites.merging.virial_orbits.Jiang2014.F90',
+        'firstChild': None, 'sibling': None, 'parent': None,
+    }
+    tree = {
+        'name':       'satellites.merging.virial_orbits.F90',
+        'source':     'satellites.merging.virial_orbits.F90',
+        'firstChild': inserted_child_type,
+        'sibling':    None,
+        'parent':     None,
+        'type':       'file',
+    }
+    inserted_child_type['parent'] = tree
+
+    process_class_documentation(tree, {})
+
+    # The classes.xml file should NOT contain a <virialOrbitJiang2014>
+    # entry — that ownership belongs to the child file's own pass.
+    out = tmp_path / 'satellites.merging.virial_orbits.classes.xml'
+    if out.exists():
+        content = out.read_text()
+        assert 'virialOrbitJiang2014' not in content, content
+
+
+def test_class_documentation_keeps_native_types(tmp_path, monkeypatch):
+    """A type whose `source` matches the outer tree IS processed."""
+    import Galacticus.Build.SourceTree.Process as proc_pkg
+    from Galacticus.Build.SourceTree.Process.ClassDocumentation import (
+        process_class_documentation,
+    )
+
+    monkeypatch.setenv('GALACTICUS_BUILD_DOCS', 'yes')
+    monkeypatch.setenv('BUILDPATH', str(tmp_path))
+    monkeypatch.setattr(proc_pkg, '_PROCESS_TREE_DEPTH', 1)
+    # Reset the cross-invocation `_OUTPUT_PREVIOUS` accumulator to avoid
+    # state leaking from earlier tests in the same pytest session.
+    from Galacticus.Build.SourceTree.Process import ClassDocumentation as cd
+    monkeypatch.setattr(cd, '_OUTPUT_PREVIOUS', [])
+
+    native_type = {
+        'type':       'type',
+        'name':       'nativeType',
+        'opener':     'type :: nativeType',
+        'source':     'utility.foo.F90',
+        'firstChild': None, 'sibling': None, 'parent': None,
+    }
+    tree = {
+        'name':       'utility.foo.F90',
+        'source':     'utility.foo.F90',
+        'firstChild': native_type,
+        'sibling':    None,
+        'parent':     None,
+        'type':       'file',
+    }
+    native_type['parent'] = tree
+
+    process_class_documentation(tree, {})
+
+    out = tmp_path / 'utility.foo.classes.xml'
+    assert out.exists()
+    assert '<nativeType>' in out.read_text()
+
+
+def test_class_documentation_keeps_synthetic_source_types(tmp_path,
+                                                           monkeypatch):
+    """The auto-generated `<base>Class` type that FunctionClass injects
+    has source = 'Galacticus.Build.SourceTree.Process.FunctionClass.…'
+    — those must STILL be processed, since their function bodies are
+    in the same outer tree (FunctionClass also inserts `tree_post`)."""
+    import Galacticus.Build.SourceTree.Process as proc_pkg
+    from Galacticus.Build.SourceTree.Process.ClassDocumentation import (
+        process_class_documentation,
+    )
+
+    monkeypatch.setenv('GALACTICUS_BUILD_DOCS', 'yes')
+    monkeypatch.setenv('BUILDPATH', str(tmp_path))
+    monkeypatch.setattr(proc_pkg, '_PROCESS_TREE_DEPTH', 1)
+    # Reset the cross-invocation `_OUTPUT_PREVIOUS` accumulator to avoid
+    # state leaking from earlier tests in the same pytest session.
+    from Galacticus.Build.SourceTree.Process import ClassDocumentation as cd
+    monkeypatch.setattr(cd, '_OUTPUT_PREVIOUS', [])
+
+    autogen_type = {
+        'type':       'type',
+        'name':       'fooClass',
+        'opener':     'type, abstract :: fooClass',
+        'source':     'Galacticus.Build.SourceTree.Process.FunctionClass'
+                      '.process_function_class()',
+        'firstChild': None, 'sibling': None, 'parent': None,
+    }
+    tree = {
+        'name':       'foo.F90',
+        'source':     'foo.F90',
+        'firstChild': autogen_type,
+        'sibling':    None,
+        'parent':     None,
+        'type':       'file',
+    }
+    autogen_type['parent'] = tree
+
+    process_class_documentation(tree, {})
+
+    out = tmp_path / 'foo.classes.xml'
+    assert out.exists()
+    assert '<fooClass>' in out.read_text()
+
+
 def test_synthesised_class_extends_functionClass():
     """The abstract base record synthesised from a `<functionClass>`
     directive must advertise `extends: 'functionClass'` so the doc
