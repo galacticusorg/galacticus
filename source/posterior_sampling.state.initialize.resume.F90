@@ -106,7 +106,7 @@ contains
     use :: MPI_Utilities               , only : mpiSelf
     use :: Models_Likelihoods_Constants, only : logImpossible
     use :: Posterior_Sampling_State    , only : posteriorSampleStateClass
-    use :: String_Handling             , only : operator(//)
+    use :: String_Handling             , only : operator(//)             , String_Count_Words
     implicit none
     class           (posteriorSampleStateInitializeResume), intent(inout)               :: self
     class           (posteriorSampleStateClass           ), intent(inout)               :: simulationState
@@ -153,7 +153,7 @@ contains
             & stateVector
        if (ioStatus /= 0) then
           write (labelValue,*) lineNumber
-          call Error_Report("failed to read chain file '"//char(logFileName)//"' [line: "//trim(adjustl(labelValue))//"]"//{introspection:location})
+          call Error_Report(var_str("failed to read chain file '")//char(logFileName)//"' [line: "//trim(adjustl(labelValue))//"] - expected "//int(6+size(stateVector))//"columns, found "//String_Count_Words(line)//{introspection:location})
        end if
        ! Map the state.
        do i=1,size(stateVector)
