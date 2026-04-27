@@ -779,7 +779,23 @@ def test_parse_directives():
     if foo:
         assert_equal(foo['directive'].get('bar'), 'baz',
                      "directive attribute parsed into dict")
-    assert_equal(serialize(root), text, "directive round-trip preserves raw text")
+
+    # `parse_code` runs `Comment_Embedded` over the source content, so every
+    # body line of an `!![ … !!]` block (or `!!{ … !!}` LaTeX block) is
+    # prefixed with `!< ` to make the serialised output compilable Fortran
+    # — the compiler choked on the raw `<foo .../>` text otherwise.  The
+    # `!![` / `!!]` markers themselves stay as they were because they are
+    # already valid Fortran comments (they start with `!!`).
+    expected_serialized = (
+        "subroutine s\n"
+        "  !![\n"
+        "!<   <foo bar=\"baz\"/>\n"
+        "  !!]\n"
+        "x = 1\n"
+        "end subroutine s\n"
+    )
+    assert_equal(serialize(root), expected_serialized,
+                 "directive round-trip emits compilable (commented) body")
 
 
 def test_post_process_directives():
@@ -4242,17 +4258,25 @@ def test_functionclass_load_and_sort_classes(tmp_source_write=None):
                 directive, directive_locations)
             assert_equal(set(classes.keys()), {'myFooCore', 'myFooAdv'},
                          "all classes discovered")
-            # Perl's loadAndSortClasses builds `dep[parent] += [child]` and
-            # feeds that to Sort::Topo, whose docstring says `dep[X]` is
-            # "things X depends on".  The emitted order therefore puts the
-            # extending (child) class BEFORE its parent — a deliberate
-            # (and Perl-matching) consequence of that edge direction.
+            # Sort.Topo's predecessor convention: `dependencies[X] = [Y, …]`
+            # means X must come *after* Y.  `class_dependencies` returns
+            # the parents that this class extends, so we record each
+            # `dependencies[child] = [parent]` — the topological sort
+            # then emits parent BEFORE child.  This is required for
+            # gfortran: when each child class's `type` node is later
+            # threaded into the parent module's interfaces list, the
+            # child's `extends(parent)` clause needs the parent type to
+            # have been declared earlier in the source.  The Perl
+            # original built `dep[parent] += [child]` which puts the
+            # child first; that ordering only happens to compile when
+            # nothing extends another non-abstract child (the cosmology
+            # case demonstrably did, and broke).
             assert_equal([c['type'] for c in ordered],
-                         ['myFooAdv', 'myFooCore'],
-                         "topo-sort matches Perl: Adv before Core")
+                         ['myFooCore', 'myFooAdv'],
+                         "topo-sort emits Core (parent) before Adv (child)")
             assert_equal(
                 [c['shortName'] for c in non_abstract],
-                ['adv', 'core'],
+                ['core', 'adv'],
                 "short names derived with lcfirst, same order as classes",
             )
         finally:

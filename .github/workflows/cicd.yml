@@ -1719,7 +1719,24 @@ jobs:
       - name: Check out repository code
         uses: actions/checkout@v6
       - name: "Set environmental variables"
-        run: echo "GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
+        run: |
+          echo "GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
+          # `test-python-utils.py` exercises a handful of sub-tests
+          # (`process_generics_subtree_expansion`, `process_event_hooks`,
+          # …) that internally call `process_tree(...)` on a synthetic
+          # subtree.  `process_tree` runs every registered process hook,
+          # including ones that read fixed files out of `$BUILDPATH`
+          # (`directiveLocations.xml`, `stateStorables.xml`,
+          # `hdf5FCInterop.dat`, `Makefile_All_Execs`).  Stub those into
+          # an otherwise-empty BUILDPATH so the tests can run without a
+          # full Galacticus build.
+          BP="$GITHUB_WORKSPACE/work/build"
+          mkdir -p "$BP"
+          echo '<directiveLocations></directiveLocations>' > "$BP/directiveLocations.xml"
+          echo '<storables></storables>'                   > "$BP/stateStorables.xml"
+          : > "$BP/hdf5FCInterop.dat"
+          echo 'all_exes ='                                > "$BP/Makefile_All_Execs"
+          echo "BUILDPATH=$BP" >> $GITHUB_ENV
       - name: Install Python
         run: |
           apt -y update && apt -y upgrade
