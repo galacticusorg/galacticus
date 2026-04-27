@@ -519,10 +519,10 @@ def emit_group_pages(gh_root, records, groups):
             parts.append("| Metric | Status | Validation | Benchmark | Last commit |")
             parts.append("|--------|--------|------------|-----------|-------------|")
             for r in items:
-                valid_link = f"[plots]({{ '/{r['valid_path']}' | relative_url }})" if r["valid_path"] else "—"
-                bench_link = f"[trend]({{ '/{r['bench_path']}' | relative_url }})" if r["bench_path"] else "—"
+                valid_link = f"[plots]({{{{ '/{r['valid_path']}' | relative_url }}}})" if r["valid_path"] else "—"
+                bench_link = f"[trend]({{{{ '/{r['bench_path']}' | relative_url }}}})" if r["bench_path"] else "—"
                 if not r["valid_path"] and not r["bench_path"] and r["direct_path"]:
-                    valid_link = f"[open]({{ '/{r['direct_path']}' | relative_url }})"
+                    valid_link = f"[open]({{{{ '/{r['direct_path']}' | relative_url }}}})"
                 commit = (
                     f"[`{r['last_commit_short']}`]({r['last_commit_url']})"
                     if r["last_commit_short"] else "—"
