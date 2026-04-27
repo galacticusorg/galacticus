@@ -1,0 +1,340 @@
+# Manifest of benchmark and validation metrics published to the gh-pages site.
+#
+# Used by scripts/build/buildGhPagesIndex.py to (re)generate the landing page,
+# the per-group navigation, and the status dashboard on the gh-pages branch.
+# Adding a new metric: add an entry under `metrics:` keyed by the directory
+# suffix used in `dev/bench/<suffix>/` and/or `dev/valid/<suffix>/`. The
+# indexer auto-discovers data and timestamps from the published files.
+#
+# `aggregator` selects how the dashboard derives a pass/warn/fail status:
+#   standardLogLikelihood : reads results.json `ANALYSES_DATA.results[].attributes.logLikelihood`
+#                           and aggregates as the minimum across analyses.
+#   ponosVPercentile      : reads PONOSV_DATA, fails if any percentageBelow/Above < 5.
+#   none                  : data shape is bespoke; status is reported as "unknown".
+#
+# Per-metric `threshold_warn` / `threshold_fail` override the group/global
+# defaults in `defaults:` below.
+
+defaults:
+  status:
+    standardLogLikelihood:
+      threshold_warn: -100.0
+      threshold_fail: -1000.0
+
+groups:
+  dmoSubhalos:
+    title: "Dark matter-only subhalos"
+    description: "Generic dark matter-only subhalo benchmarks and validations."
+    nav_order: 10
+  symphonyCDM:
+    title: "Symphony CDM Milky Way"
+    description: "Dark matter-only subhalos calibrated against the Symphony Milky Way zoom-in suite."
+    citation: "Nadler et al. (2023)"
+    citation_url: "https://ui.adsabs.harvard.edu/abs/2023ApJ...945..159N"
+    nav_order: 20
+  cozmicWDM:
+    title: "COZMIC WDM Milky Way"
+    description: "Dark matter-only subhalos in warm dark matter cosmologies, calibrated against the COZMIC suite."
+    citation: "Nadler et al. (2025); An et al. (2025)"
+    citation_url: "https://ui.adsabs.harvard.edu/abs/2025ApJ...986..127N"
+    nav_order: 30
+  decayingDM:
+    title: "Decaying dark matter subhalos"
+    description: "Dark matter-only subhalos in two-body decaying dark matter cosmologies."
+    citation: "Nadler & Benson (2025)"
+    citation_url: "https://ui.adsabs.harvard.edu/abs/2025arXiv250112636N"
+    nav_order: 40
+  idealizedSubhalos:
+    title: "Idealized subhalo simulations"
+    description: "Idealized subhalo evolution under controlled tidal stripping."
+    citation: "Du et al. (2024)"
+    citation_url: "https://ui.adsabs.harvard.edu/abs/2024arXiv240309597D"
+    nav_order: 50
+  milkyWayModel:
+    title: "Milky Way model"
+    description: "Full Milky Way galaxy formation model."
+    nav_order: 60
+  convergence:
+    title: "Convergence tests"
+    description: "Numerical convergence checks of internal Galacticus algorithms."
+    nav_order: 70
+  strongLensing:
+    title: "Strong lensing"
+    description: "Subhalo populations relevant to strong gravitational lensing measurements."
+    nav_order: 80
+  baryonicSuppression:
+    title: "Baryonic suppression"
+    description: "Suppression of structure growth by baryonic physics."
+    nav_order: 90
+  meta:
+    title: "Build metrics"
+    description: "Compilation profiling and other build-time diagnostics."
+    nav_order: 100
+
+metrics:
+
+  # --- Dark matter-only subhalos ----------------------------------------
+  darkMatterOnlySubhalos:
+    group: dmoSubhalos
+    display_name: "Generic Milky Way analog"
+    has_bench: true
+    has_valid: true
+    aggregator: standardLogLikelihood
+
+  # --- Symphony CDM Milky Way ------------------------------------------
+  darkMatterOnlySubhalosSymphonyCDMMilkyWayX1:
+    group: symphonyCDM
+    display_name: "Resolution X1"
+    has_bench: true
+    has_valid: true
+    aggregator: standardLogLikelihood
+  darkMatterOnlySubhalosSymphonyCDMMilkyWayX8:
+    group: symphonyCDM
+    display_name: "Resolution X8"
+    has_bench: true
+    has_valid: true
+    aggregator: standardLogLikelihood
+  darkMatterOnlySubhalosSymphonyCDMMilkyWayX64:
+    group: symphonyCDM
+    display_name: "Resolution X64"
+    has_bench: true
+    has_valid: true
+    aggregator: standardLogLikelihood
+
+  # --- COZMIC WDM Milky Way (resolution X1) -----------------------------
+  darkMatterOnlySubhalosCOZMICWDM3keVMilkyWayX1:
+    group: cozmicWDM
+    display_name: "mᵪ = 3 keV, X1"
+    sort_key: "X1-3"
+    has_bench: true
+    has_valid: true
+    aggregator: standardLogLikelihood
+  darkMatterOnlySubhalosCOZMICWDM4keVMilkyWayX1:
+    group: cozmicWDM
+    display_name: "mᵪ = 4 keV, X1"
+    sort_key: "X1-4"
+    has_bench: true
+    has_valid: true
+    aggregator: standardLogLikelihood
+  darkMatterOnlySubhalosCOZMICWDM5keVMilkyWayX1:
+    group: cozmicWDM
+    display_name: "mᵪ = 5 keV, X1"
+    sort_key: "X1-5"
+    has_bench: true
+    has_valid: true
+    aggregator: standardLogLikelihood
+  darkMatterOnlySubhalosCOZMICWDM6keVMilkyWayX1:
+    group: cozmicWDM
+    display_name: "mᵪ = 6 keV, X1"
+    sort_key: "X1-6"
+    has_bench: true
+    has_valid: true
+    aggregator: standardLogLikelihood
+  darkMatterOnlySubhalosCOZMICWDM6.5keVMilkyWayX1:
+    group: cozmicWDM
+    display_name: "mᵪ = 6.5 keV, X1"
+    sort_key: "X1-6.5"
+    has_bench: true
+    has_valid: true
+    aggregator: standardLogLikelihood
+  darkMatterOnlySubhalosCOZMICWDM10keVMilkyWayX1:
+    group: cozmicWDM
+    display_name: "mᵪ = 10 keV, X1"
+    sort_key: "X1-10"
+    has_bench: true
+    has_valid: true
+    aggregator: standardLogLikelihood
+
+  # --- COZMIC WDM Milky Way (resolution X8) -----------------------------
+  darkMatterOnlySubhalosCOZMICWDM3keVMilkyWayX8:
+    group: cozmicWDM
+    display_name: "mᵪ = 3 keV, X8"
+    sort_key: "X8-3"
+    has_bench: true
+    has_valid: true
+    aggregator: standardLogLikelihood
+  darkMatterOnlySubhalosCOZMICWDM4keVMilkyWayX8:
+    group: cozmicWDM
+    display_name: "mᵪ = 4 keV, X8"
+    sort_key: "X8-4"
+    has_bench: true
+    has_valid: true
+    aggregator: standardLogLikelihood
+  darkMatterOnlySubhalosCOZMICWDM5keVMilkyWayX8:
+    group: cozmicWDM
+    display_name: "mᵪ = 5 keV, X8"
+    sort_key: "X8-5"
+    has_bench: true
+    has_valid: true
+    aggregator: standardLogLikelihood
+  darkMatterOnlySubhalosCOZMICWDM6keVMilkyWayX8:
+    group: cozmicWDM
+    display_name: "mᵪ = 6 keV, X8"
+    sort_key: "X8-6"
+    has_bench: true
+    has_valid: true
+    aggregator: standardLogLikelihood
+  darkMatterOnlySubhalosCOZMICWDM6.5keVMilkyWayX8:
+    group: cozmicWDM
+    display_name: "mᵪ = 6.5 keV, X8"
+    sort_key: "X8-6.5"
+    has_bench: true
+    has_valid: true
+    aggregator: standardLogLikelihood
+  darkMatterOnlySubhalosCOZMICWDM10keVMilkyWayX8:
+    group: cozmicWDM
+    display_name: "mᵪ = 10 keV, X8"
+    sort_key: "X8-10"
+    has_bench: true
+    has_valid: true
+    aggregator: standardLogLikelihood
+
+  # --- Decaying dark matter -------------------------------------------
+  darkMatterOnlySubhalos_decayingDarkMatter_lifetime10.0_velocityKick20.0:
+    group: decayingDM
+    display_name: "τ = 10 Gyr, vₖ = 20 km/s"
+    sort_key: "010-20"
+    has_bench: true
+    has_valid: true
+    aggregator: standardLogLikelihood
+  darkMatterOnlySubhalos_decayingDarkMatter_lifetime20.0_velocityKick20.0:
+    group: decayingDM
+    display_name: "τ = 20 Gyr, vₖ = 20 km/s"
+    sort_key: "020-20"
+    has_bench: true
+    has_valid: true
+    aggregator: standardLogLikelihood
+  darkMatterOnlySubhalos_decayingDarkMatter_lifetime20.0_velocityKick40.0:
+    group: decayingDM
+    display_name: "τ = 20 Gyr, vₖ = 40 km/s"
+    sort_key: "020-40"
+    has_bench: true
+    has_valid: true
+    aggregator: standardLogLikelihood
+  darkMatterOnlySubhalos_decayingDarkMatter_lifetime40.0_velocityKick20.0:
+    group: decayingDM
+    display_name: "τ = 40 Gyr, vₖ = 20 km/s"
+    sort_key: "040-20"
+    has_bench: true
+    has_valid: true
+    aggregator: standardLogLikelihood
+  darkMatterOnlySubhalos_decayingDarkMatter_lifetime40.0_velocityKick40.0:
+    group: decayingDM
+    display_name: "τ = 40 Gyr, vₖ = 40 km/s"
+    sort_key: "040-40"
+    has_bench: true
+    has_valid: true
+    aggregator: standardLogLikelihood
+  darkMatterOnlySubhalos_decayingDarkMatter_lifetime80.0_velocityKick40.0:
+    group: decayingDM
+    display_name: "τ = 80 Gyr, vₖ = 40 km/s"
+    sort_key: "080-40"
+    has_bench: true
+    has_valid: true
+    aggregator: standardLogLikelihood
+
+  # --- Idealized subhalo simulations -----------------------------------
+  idealizedSubhaloSimulation_rpra0.005_gamma1.5:
+    group: idealizedSubhalos
+    display_name: "rₚ/rₐ = 0.005, γ = 1.5"
+    has_bench: true
+    has_valid: true
+    aggregator: standardLogLikelihood
+  idealizedSubhaloSimulation_rpra0.01_gamma1.5:
+    group: idealizedSubhalos
+    display_name: "rₚ/rₐ = 0.01, γ = 1.5"
+    has_bench: true
+    has_valid: true
+    aggregator: standardLogLikelihood
+  idealizedSubhaloSimulation_rpra0.05_gamma0.5:
+    group: idealizedSubhalos
+    display_name: "rₚ/rₐ = 0.05, γ = 0.5"
+    has_bench: true
+    has_valid: true
+    aggregator: standardLogLikelihood
+  idealizedSubhaloSimulation_rpra0.05_gamma1.0:
+    group: idealizedSubhalos
+    display_name: "rₚ/rₐ = 0.05, γ = 1.0"
+    has_bench: true
+    has_valid: true
+    aggregator: standardLogLikelihood
+  idealizedSubhaloSimulation_rpra0.2_gamma0.0:
+    group: idealizedSubhalos
+    display_name: "rₚ/rₐ = 0.2, γ = 0.0"
+    has_bench: true
+    has_valid: true
+    aggregator: standardLogLikelihood
+  idealizedSubhaloSimulation_rpra0.2_gamma0.5:
+    group: idealizedSubhalos
+    display_name: "rₚ/rₐ = 0.2, γ = 0.5"
+    has_bench: true
+    has_valid: true
+    aggregator: standardLogLikelihood
+  idealizedSubhaloSimulation_rpra0.2_gamma1.0:
+    group: idealizedSubhalos
+    display_name: "rₚ/rₐ = 0.2, γ = 1.0"
+    has_bench: true
+    has_valid: true
+    aggregator: standardLogLikelihood
+  idealizedSubhaloSimulation_rpra0.4_gamma0.0:
+    group: idealizedSubhalos
+    display_name: "rₚ/rₐ = 0.4, γ = 0.0"
+    has_bench: true
+    has_valid: true
+    aggregator: standardLogLikelihood
+
+  # --- Milky Way model -------------------------------------------------
+  milkyWayModel:
+    group: milkyWayModel
+    display_name: "Local Group satellites"
+    has_bench: true
+    has_valid: true
+    aggregator: standardLogLikelihood
+
+  # --- Convergence tests (bespoke) -------------------------------------
+  concentrationConvergence:
+    group: convergence
+    display_name: "Halo concentration convergence"
+    has_bench: false
+    has_valid: true
+    valid_results_file: results.json
+    valid_data_var: VALIDATION_DATA
+    aggregator: none
+
+  mergerTreeConvergence:
+    group: convergence
+    display_name: "Merger tree builder convergence"
+    has_bench: false
+    has_valid: true
+    valid_results_file: results.json
+    valid_data_var: VALIDATION_DATA
+    aggregator: none
+
+  # --- Strong lensing (bespoke) ---------------------------------------
+  strongLensing:
+    group: strongLensing
+    display_name: "PonosV projected subhalo MF"
+    has_bench: false
+    has_valid: true
+    valid_results_file: results_PonosV.json
+    valid_data_var: PONOSV_DATA
+    aggregator: ponosVPercentile
+
+  # --- Baryonic suppression (bespoke) ---------------------------------
+  baryonicSuppression:
+    group: baryonicSuppression
+    display_name: "Halo mass function ratio"
+    has_bench: false
+    has_valid: true
+    valid_results_file: results_baryonicSuppression.json
+    valid_data_var: BARYONICSUPPRESSION_DATA
+    aggregator: none
+
+  # --- Build metrics --------------------------------------------------
+  buildProfile:
+    group: meta
+    display_name: "Build profile"
+    has_bench: false
+    has_valid: false
+    direct_path: dev/bench/meta/buildProfile.html
+    aggregator: none
