@@ -88,3 +88,126 @@ class _inserted_holder:
     """Module-level container so the test's `inserter` callback can
     stash its `kids` argument for the assert step."""
     kids = ()
+
+
+# ---------------------------------------------------------------------------
+# Documentation fragment emission
+# ---------------------------------------------------------------------------
+#
+# The Perl original wrote a `doc/enumerations/definitions/<name>.tex`
+# fragment for every `<enumeration>` directive — assembled later by
+# `buildDocumentation.sh`'s `ls enumerations/definitions/*.tex` sweep
+# into the docs build.  The Python port had a TODO comment but no
+# emission, so the docs build assembled an empty list.
+
+import os
+from Galacticus.Build.SourceTree.Process.Enumeration import (
+    _emit_enumeration_definition_tex,
+)
+
+
+def _enclosed_directive_node(name, description, entries, module_name='Foo',
+                              file_name='utility.foo.F90'):
+    """Build a tiny `file > module > <enumeration>` chain so the helper
+    can find the enclosing module and file via parent walks."""
+    file_node = {
+        'type': 'file', 'name': file_name, 'parent': None,
+        'firstChild': None, 'sibling': None, 'source': file_name,
+    }
+    module_node = {
+        'type': 'module', 'name': module_name, 'parent': file_node,
+        'firstChild': None, 'sibling': None, 'source': file_name,
+    }
+    file_node['firstChild'] = module_node
+    enum_node = {
+        'type':       'enumeration',
+        'directive':  {'name': name, 'description': description,
+                       'entry': entries},
+        'parent':     module_node,
+        'firstChild': None, 'sibling': None,
+        'source':     file_name,
+    }
+    module_node['firstChild'] = enum_node
+    return enum_node
+
+
+def test_enumeration_definition_tex_written(tmp_path, monkeypatch):
+    """Each `<enumeration>` directive produces a
+    `doc/enumerations/definitions/<name>.tex` fragment with a
+    description line and a per-member table."""
+    monkeypatch.chdir(tmp_path)
+
+    enum_node = _enclosed_directive_node(
+        name='treeStatistic',
+        description='Enumeration of tree-walk statistics.',
+        entries=[{'label': 'nodeCount'}, {'label': 'endNodeCount'}],
+        module_name='Merger_Trees_Operators_Augment',
+        file_name='merger_trees.operators.augment.F90',
+    )
+
+    _emit_enumeration_definition_tex(
+        enum_node, 'treeStatistic',
+        'Enumeration of tree-walk statistics.',
+        [{'label': 'nodeCount'}, {'label': 'endNodeCount'}])
+
+    out_path = tmp_path / 'doc' / 'enumerations' / 'definitions' \
+        / 'treeStatistic.tex'
+    assert out_path.exists(), list((tmp_path / 'doc').rglob('*'))
+
+    body = out_path.read_text()
+    assert '\\subsection{\\large \\mono{treeStatistic}}' in body
+    assert 'Description: & Enumeration of tree-walk statistics.' in body
+    assert '\\mono{treeStatisticNodeCount}' in body
+    assert '\\mono{treeStatisticEndNodeCount}' in body
+    # The cross-reference line is present when an enclosing module is found.
+    assert 'Provided by:' in body
+    assert 'merger_trees_operators_augment' in body   # encoded basename
+    assert 'Merger\\_Trees\\_Operators\\_Augment' in body   # encoded module name
+
+
+def test_enumeration_definition_tex_without_module(tmp_path, monkeypatch):
+    """Enumeration declared at file scope (no enclosing `module`)
+    still gets a fragment, just without the cross-reference line."""
+    monkeypatch.chdir(tmp_path)
+
+    file_node = {
+        'type': 'file', 'name': 'foo.F90', 'parent': None,
+        'firstChild': None, 'sibling': None,
+    }
+    enum_node = {
+        'type':       'enumeration',
+        'directive':  {'name': 'top', 'entry': [{'label': 'a'}]},
+        'parent':     file_node,
+        'firstChild': None, 'sibling': None,
+    }
+    file_node['firstChild'] = enum_node
+
+    _emit_enumeration_definition_tex(
+        enum_node, 'top', 'A top-level enum.', [{'label': 'a'}])
+
+    out = (tmp_path / 'doc' / 'enumerations' / 'definitions' / 'top.tex'
+           ).read_text()
+    assert 'Description: & A top-level enum.' in out
+    assert 'Provided by:' not in out
+    assert '\\mono{topA}' in out
+
+
+def test_enumeration_latex_special_characters_escaped(tmp_path, monkeypatch):
+    """The label is run through `latex_encode` before substitution so
+    underscores and other LaTeX specials don't corrupt the output."""
+    monkeypatch.chdir(tmp_path)
+
+    enum_node = _enclosed_directive_node(
+        name='underscores',
+        description='An & test_with_underscores.',
+        entries=[{'label': 'foo_bar'}],
+    )
+    _emit_enumeration_definition_tex(
+        enum_node, 'underscores',
+        'An & test_with_underscores.',
+        [{'label': 'foo_bar'}])
+
+    body = (tmp_path / 'doc' / 'enumerations' / 'definitions'
+            / 'underscores.tex').read_text()
+    # The LABEL goes through latex_encode (escapes `_` → `\_`).
+    assert '\\mono{underscoresFoo\\_bar}' in body

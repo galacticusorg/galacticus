@@ -18,6 +18,7 @@ from Galacticus.Build.SourceTree                             import (
 from Galacticus.Build.SourceTree.Process                     import register_process
 from Galacticus.Build.SourceTree.Parse.ModuleUses            import add_uses
 from Galacticus.Build.SourceTree.Process.SourceIntrospection import location
+from latex_utils                                             import latex_encode
 
 
 def _ucfirst(s):
@@ -468,14 +469,87 @@ def _emit_describe_function(name, entries):
 # Main pass
 # ---------------------------------------------------------------------------
 
+def _enclosing_module_name(node):
+    """Walk up `node`'s ancestor chain looking for the enclosing
+    `module` node and return its `name`, or None if there isn't one
+    (the enumeration lives at file scope or in some other unit type)."""
+    cur = node.get('parent')
+    while cur is not None and cur.get('type') != 'module':
+        cur = cur.get('parent')
+    return cur.get('name') if cur is not None else None
+
+
+def _emit_enumeration_definition_tex(node, name, description, entries):
+    """Write `doc/enumerations/definitions/<name>.tex` for one
+    enumeration directive.  Mirrors Enumeration.pm:432-455.
+
+    Each fragment is a self-contained LaTeX subsection picked up later
+    by `doc/autoEnumerationDefinitions.tex` (assembled by
+    `buildDocumentation.sh`'s `ls enumerations/definitions/*.tex`
+    sweep).  The Perl original wrote unconditionally — i.e. on every
+    preprocess pass, not gated on `GALACTICUS_BUILD_DOCS` — so we mirror
+    that here too: keeping the fragments fresh on a normal build means
+    a subsequent `make GALACTICUS_BUILD_DOCS=yes` doesn't have to
+    rerun the preprocessor just to get the docs.
+    """
+    out_dir = os.path.join('doc', 'enumerations', 'definitions')
+    try:
+        os.makedirs(out_dir, exist_ok=True)
+    except OSError:
+        return                                 # read-only tree, build dir, …
+
+    name_uc = _ucfirst(name)
+    lines  = (
+        f'\\subsection{{\\large \\mono{{{name}}}}}'
+        f'\\hypertarget{{ht:AutoEnumerations{name_uc}}}{{}}'
+        f'\\label{{sec:AutoEnumerations{name_uc}}}'
+        f'\\index{{enumerations!{name}@\\mono{{{name}}}}}\n\n'
+    )
+    lines += '\\begin{tabular}{rp{130mm}}\n'
+    lines += f'Description: & {description} \\\\\n'
+
+    module_name = _enclosing_module_name(node)
+    if module_name:
+        # The cross-reference target follows the same `<file>:<module>`
+        # encoding used by `codeAnalyzer.py` and the auto-generated
+        # source PDF — see Enumeration.pm:441-446.
+        file_node = node
+        while file_node is not None and file_node.get('type') != 'file':
+            file_node = file_node.get('parent')
+        file_basename = (file_node.get('name') if file_node else '') or ''
+        file_basename = file_basename.replace('.', '_')
+        lines += (
+            'Provided by: & \\mono{module} '
+            '\\href{https://github.com/galacticusorg/galacticus/releases/'
+            'download/masterRelease/Galacticus_Source.pdf'
+            f'\\#source.{file_basename}:{module_name.lower()}}}'
+            f'\\mono{{{latex_encode(module_name)}}} \\\\\n'
+        )
+
+    first = True
+    for entry in entries:
+        if first:
+            lines += 'Members:'
+            first = False
+        label   = entry.get('label', '') or ''
+        encoded = latex_encode(_ucfirst(label))
+        lines += f' & \\mono{{{name}{encoded}}}\\\\\n'
+    lines += '\\end{tabular}\n'
+
+    out_path = os.path.join(out_dir, f'{name}.tex')
+    try:
+        with open(out_path, 'w', encoding='utf-8') as fh:
+            fh.write(lines)
+    except OSError:
+        pass
+
+
 def process_enumerations(tree, options):
     """Mirrors Process_Enumerations() from Enumeration.pm.
 
-    Note on omissions relative to the Perl version: the Perl module also
-    writes a per-enumeration LaTeX fragment under `doc/enumerations/
-    definitions/` as a side effect.  That is a documentation-build
-    artifact and is not replicated here; it should be provided by a
-    separate doc-generation step if and when one is ported.
+    Side effect: each `<enumeration>` directive also produces a
+    per-enumeration LaTeX fragment in `doc/enumerations/definitions/`
+    consumed by the docs build (see `_emit_enumeration_definition_tex`).
     """
     for node in walk_tree(tree):
         if node.get('type') != 'enumeration':
@@ -549,6 +623,10 @@ def process_enumerations(tree, options):
         desc_text, desc_name = _emit_describe_function(name, entries)
         _insert_code_tree(parent, desc_text, inserter=insert_post_contains)
         set_visibility(parent, desc_name, visibility)
+
+        # --- Documentation fragment ---
+        _emit_enumeration_definition_tex(
+            node, name, directive.get('description') or '', entries)
 
 
 register_process('enumerations', process_enumerations)
