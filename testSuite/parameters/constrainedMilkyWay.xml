@@ -125,13 +125,13 @@
       <label            value="GSE"/>
       <labelDescription value="Label indicating if this node is on the GSE branch."/>
       <labelBranch      value="true"/>
-      <!-- Apply all LMC conditions -->
+      <!-- Apply all GSE conditions -->
       <galacticFilter value="all">
         <!-- Consider halos not on the main branch. -->
         <galacticFilter value="not">
           <galacticFilter value="mainBranch"/>
 	</galacticFilter>
-        <!-- Consider only halos in the LMC mass range. -->
+        <!-- Consider only halos in the GSE mass range. -->
         <galacticFilter value="intervalPass">
           <nodePropertyExtractor value="massBasic"/>
           <thresholdLow  value="1.3e11"/>
