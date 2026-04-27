@@ -87,11 +87,7 @@ else
  call self%indexSet(-1_kind_int8)
 end if
 ! Assign a unique ID.
-!$omp critical(UniqueID_Assign)
-uniqueIDCount=uniqueIDCount+1
-if (uniqueIDCount <= 0) call Error_Report('ran out of unique ID numbers'//\{introspection:location\})
-self%uniqueIdValue=uniqueIDCount
-!$omp end critical(UniqueID_Assign)
+call self%uniqueIDSet()
 ! Assign a timestep and subsampling weight.
 self%timeStepValue         =-1.0d0
 self%subsamplingWeightValue= 1.0d0
