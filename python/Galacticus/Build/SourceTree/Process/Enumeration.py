@@ -34,8 +34,22 @@ def _insert_code_tree(parent, source_text, inserter):
         my @kids = Children($sub);
         Insert…($target, \\@kids);
     used throughout Enumeration.pm.
+
+    The synthetic sub-tree is parsed with the OUTER source's name as its
+    `source` attribution.  Keeping the outer file's name on every node
+    means that when FunctionClass later threads a child class file's
+    enumerations into a parent's `<module>` interfaces list, the parent's
+    `classDocumentation` postprocess pass sees `source != outer_source`
+    on those nodes and correctly skips them — letting the child file's
+    own preprocess.py invocation own its enumeration's documentation.
+    A bare `'Enumeration'` placeholder source would always count as
+    "not a real .F90 file" and so always get processed in the parent's
+    pass — leading to "missing function type for method 'operator(==)'"
+    warnings for every enumeration declared in a functionClass child
+    file (treeStatistic, wagner2016*, …).
     """
-    sub_tree = parse_code(source_text, name='Enumeration')
+    src_name = parent.get('source') or 'Enumeration'
+    sub_tree = parse_code(source_text, name=src_name)
     kids = children(sub_tree)
     for k in kids:
         k['parent'] = None
