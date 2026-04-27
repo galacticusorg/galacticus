@@ -781,6 +781,31 @@ def test_parse_directives():
                      "directive attribute parsed into dict")
     assert_equal(serialize(root), text, "directive round-trip preserves raw text")
 
+    # Multiple directives in a single !![ ... !!] block must each be emitted
+    # as their own node (regression test for stateStorables.xml losing the
+    # `class="table"` entry, which manifested as a segfault on state restore).
+    multi_text = (
+        "subroutine s\n"
+        "  !![\n"
+        "  <foo class=\"a\">\n"
+        "   <child/>\n"
+        "  </foo>\n"
+        "  <bar class=\"b\"/>\n"
+        "  !!]\n"
+        "end subroutine s\n"
+    )
+    multi_root = _parse_text(multi_text)
+    foos = _find_nodes(multi_root, 'foo')
+    bars = _find_nodes(multi_root, 'bar')
+    assert_equal(len(foos), 1, "first of two directives in one block is parsed")
+    assert_equal(len(bars), 1, "second of two directives in one block is parsed")
+    if foos:
+        assert_equal(foos[0]['directive'].get('class'), 'a',
+                     "first directive's attributes preserved")
+    if bars:
+        assert_equal(bars[0]['directive'].get('class'), 'b',
+                     "second directive's attributes preserved")
+
 
 def test_post_process_directives():
     print("\n=== Testing Parse.Directives.post_process_directives() ===")

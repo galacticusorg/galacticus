@@ -313,6 +313,9 @@ def parse_directives(tree):
       !![          (opening marker)
       !< <tagname ...>  (XML content lines — '!<' prefix stripped)
       !!]          (closing marker)
+
+    A single `!![ ... !!]` block may contain multiple directives back-to-back;
+    each is emitted as its own node (the Perl flushes on every closing tag).
     """
     from Galacticus.Build.SourceTree import walk_tree, replace_node, _make_code_node
 
@@ -325,77 +328,80 @@ def parse_directives(tree):
         content = node.get('content', '')
         new_nodes      = []
         raw_code_buf   = []
-        raw_dir_buf    = []
-        raw_dir_lines  = []
+        raw_dir_buf    = []   # XML text for the directive currently being assembled.
+        raw_dir_lines  = []   # raw source lines for the directive currently being assembled.
         in_xml         = False
         in_directive   = False
         directive_root = None
-        pending_dir    = None
+        raw_opener     = None  # the actual `!![` line that opened the current block.
+
+        def _emit(directive_node):
+            """Attach a synthesized firstChild raw-text block, flush any
+            pending plain-code buffer, and append the directive to new_nodes."""
+            raw_closer = re.sub(r'\[', ']', raw_opener) if raw_opener else '!!]\n'
+            directive_node['firstChild'] = {
+                'type':       'code',
+                'content':    (raw_opener or '') + ''.join(raw_dir_lines) + raw_closer,
+                'parent':     directive_node,
+                'sibling':    None,
+                'firstChild': None,
+                'source':     node['source'],
+                'line':       node['line'],
+            }
+            if raw_code_buf:
+                new_nodes.append(_make_code_node(
+                    ''.join(raw_code_buf), node['source'], node['line']))
+                raw_code_buf.clear()
+            new_nodes.append(directive_node)
 
         for raw_line in content.splitlines(keepends=True):
             stripped = re.sub(r'^\s*!<\s*', '', raw_line)
 
             if re.match(r'^\s*!!\]', raw_line):
-                raw_dir_lines.append(raw_line)
+                # End of XML block.  If a directive is mid-assembly (malformed
+                # source missing a closing tag), parse what we have.
                 if raw_dir_buf:
-                    xml_text    = ''.join(raw_dir_buf)
-                    pending_dir = _parse_directive_xml(xml_text, node)
+                    pending_dir = _parse_directive_xml(''.join(raw_dir_buf), node)
                     raw_dir_buf = []
-                if pending_dir:
-                    pending_dir['firstChild'] = {
-                        'type':       'code',
-                        'content':    ''.join(raw_dir_lines),
-                        'parent':     pending_dir,
-                        'sibling':    None,
-                        'firstChild': None,
-                        'source':     node['source'],
-                        'line':       node['line'],
-                    }
-                    if raw_code_buf:
-                        new_nodes.append(_make_code_node(
-                            ''.join(raw_code_buf), node['source'], node['line']))
-                        raw_code_buf = []
-                    new_nodes.append(pending_dir)
-                else:
-                    if raw_code_buf:
-                        new_nodes.append(_make_code_node(
-                            ''.join(raw_code_buf), node['source'], node['line']))
-                        raw_code_buf = []
-                    new_nodes.append(_make_code_node(
-                        ''.join(raw_dir_lines), node['source'], node['line']))
-                raw_dir_lines  = []
-                pending_dir    = None
+                    if pending_dir:
+                        _emit(pending_dir)
+                in_xml         = False
                 in_directive   = False
                 directive_root = None
-                in_xml         = False
+                raw_opener     = None
+                raw_dir_lines  = []
                 continue
 
             if re.match(r'^\s*!!\[', raw_line):
                 in_xml        = True
-                raw_dir_lines = [raw_line]
+                raw_opener    = raw_line
+                raw_dir_lines = []
                 continue
 
             if in_xml:
-                raw_dir_lines.append(raw_line)
                 m = re.match(r'^\s*<([^\s>/]+)', stripped)
                 if m and not in_directive:
                     directive_root = m.group(1)
                     in_directive   = True
+                    raw_dir_lines  = []
                 if in_directive:
+                    raw_dir_lines.append(raw_line)
                     stripped = stripped.replace('&nbsp;', ' ')
                     raw_dir_buf.append(stripped)
-                    end1 = re.search(r'</\s*' + re.escape(directive_root) + r'\s*>', stripped)
+                    end1 = re.search(
+                        r'</\s*' + re.escape(directive_root) + r'\s*>', stripped)
                     end2 = re.match(
-                        r'^\s*<' + re.escape(directive_root) + r'(\s[^/]*)?\s*/>', stripped)
-                    end3 = (re.match(
-                        r'^\s*<' + re.escape(directive_root) + r'\s*/>', stripped)
-                            if directive_root else False)
-                    if end1 or end2 or end3:
-                        xml_text     = ''.join(raw_dir_buf)
-                        pending_dir  = _parse_directive_xml(xml_text, node)
+                        r'^\s*<' + re.escape(directive_root) + r'(\s[^/]*)?\s*/>',
+                        stripped)
+                    if end1 or end2:
+                        pending_dir  = _parse_directive_xml(
+                            ''.join(raw_dir_buf), node)
                         raw_dir_buf  = []
-                        in_directive = False
+                        if pending_dir:
+                            _emit(pending_dir)
+                        in_directive   = False
                         directive_root = None
+                        raw_dir_lines  = []
                 continue
 
             raw_code_buf.append(raw_line)
