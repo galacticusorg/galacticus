@@ -199,33 +199,59 @@ def inspect_valid(gh_root, suffix, results_filename="results.json"):
 # --- Aggregators ---------------------------------------------------------
 
 def _agg_standard_log_likelihood(valid, defaults, metric):
-    """Aggregate ``ANALYSES_DATA.results[].attributes.logLikelihood`` as the
-    minimum across analyses, then apply (per-metric or default) thresholds
-    to bucket as ok/warn/fail."""
+    """Classify each analysis individually against its per-analysis
+    ``threshold_warn`` / ``threshold_fail`` (sourced from
+    ``ghPagesAnalysisThresholds.yml`` and injected into ``metric["analyses"]``
+    by ``build_records``). Aggregate by reporting the worst status across
+    analyses, so a single bad analysis can't be hidden by another that
+    happens to be much worse on an absolute scale.
+
+    A metric whose analyses all lack thresholds reports as ``unknown``;
+    individual analyses without thresholds are noted in the detail string
+    but don't influence the overall status as long as at least one
+    analysis is thresholded."""
     results = valid["data"].get("results") or []
-    lls = []
+    analyses_thresh = metric.get("analyses") or {}
+    statuses = []  # list of (status, analysis_name, logL)
     for r in results:
-        v = (r.get("attributes") or {}).get("logLikelihood")
+        attrs = r.get("attributes") or {}
+        name = attrs.get("name", "?")
+        v = attrs.get("logLikelihood")
         if v is None:
             continue
         try:
-            lls.append(float(v))
+            ll = float(v)
         except (TypeError, ValueError):
             continue
-    if not lls:
+        th = analyses_thresh.get(name) or {}
+        warn = th.get("threshold_warn")
+        fail = th.get("threshold_fail")
+        if warn is None or fail is None:
+            statuses.append(("unknown", name, ll))
+        elif ll >= warn:
+            statuses.append(("ok", name, ll))
+        elif ll >= fail:
+            statuses.append(("warn", name, ll))
+        else:
+            statuses.append(("fail", name, ll))
+    if not statuses:
         return "unknown", "no logLikelihood found", None
-    worst = min(lls)
-    th = (defaults or {}).get("standardLogLikelihood") or {}
-    warn = float(metric.get("threshold_warn", th.get("threshold_warn", -100.0)))
-    fail = float(metric.get("threshold_fail", th.get("threshold_fail", -1000.0)))
-    if worst >= warn:
-        status = "ok"
-    elif worst >= fail:
-        status = "warn"
+    thresholded = [s for s in statuses if s[0] != "unknown"]
+    n_total = len(statuses)
+    n_unk = n_total - len(thresholded)
+    if not thresholded:
+        return "unknown", f"no thresholds set for {n_total} analyses", None
+    rank = {"ok": 0, "warn": 1, "fail": 2}
+    overall = max((s[0] for s in thresholded), key=lambda s: rank[s])
+    if overall in ("warn", "fail"):
+        offenders = [n for s, n, _ in statuses if s == overall]
+        head = ", ".join(offenders[:2]) + ("…" if len(offenders) > 2 else "")
+        detail = f"{len(offenders)}/{n_total} {overall}: {head}"
     else:
-        status = "fail"
-    detail = f"min logL = {worst:.2f} across {len(lls)} analyses"
-    return status, detail, worst
+        detail = f"all {len(thresholded)} thresholded analyses pass"
+    if n_unk:
+        detail += f" ({n_unk} without thresholds)"
+    return overall, detail, None
 
 
 def _agg_ponosv(valid, defaults, metric):
@@ -256,14 +282,68 @@ AGGREGATORS = {
 }
 
 
+# --- Threshold sidecar ---------------------------------------------------
+
+def load_thresholds(thresholds_path):
+    """Load the per-analysis logLikelihood thresholds emitted by
+    ``--bootstrap-thresholds``. Returns a ``{metric_suffix: {analysis_name:
+    {threshold_warn, threshold_fail, current}}}`` map, or an empty dict
+    when the sidecar is missing."""
+    p = Path(thresholds_path) if thresholds_path else None
+    if p is None or not p.is_file():
+        return {}
+    with open(p, "r", encoding="utf-8") as f:
+        data = yaml.safe_load(f) or {}
+    return data.get("thresholds", {}) or {}
+
+
+def bootstrap_thresholds(gh_root, manifest, fraction_warn=0.10, fraction_fail=0.20):
+    """Read each ``standardLogLikelihood`` metric's currently-published
+    logL values and derive per-analysis warn/fail thresholds at
+    ``current - fraction * |current|``. Returns a nested dict keyed by
+    metric suffix, then analysis name."""
+    out = {}
+    for suffix, m in (manifest.get("metrics") or {}).items():
+        if m.get("aggregator") != "standardLogLikelihood":
+            continue
+        if not m.get("has_valid"):
+            continue
+        results_file = m.get("valid_results_file", "results.json")
+        valid = inspect_valid(gh_root, suffix, results_file)
+        if not valid:
+            continue
+        analyses = {}
+        for r in (valid["data"].get("results") or []):
+            attrs = r.get("attributes") or {}
+            name = attrs.get("name")
+            ll = attrs.get("logLikelihood")
+            if name is None or ll is None:
+                continue
+            try:
+                current = float(ll)
+            except (TypeError, ValueError):
+                continue
+            warn = current - fraction_warn * abs(current)
+            fail = current - fraction_fail * abs(current)
+            analyses[name] = {
+                "current":         round(current, 4),
+                "threshold_warn":  round(warn,    4),
+                "threshold_fail":  round(fail,    4),
+            }
+        if analyses:
+            out[suffix] = analyses
+    return out
+
+
 # --- Record building -----------------------------------------------------
 
-def build_records(gh_root, manifest):
+def build_records(gh_root, manifest, thresholds_map=None):
     """Return a list of metric records (dicts) ready to dump as Jekyll
     data, plus the group definitions in declaration order."""
     defaults = (manifest.get("defaults") or {}).get("status") or {}
     groups = manifest.get("groups") or {}
     metrics = manifest.get("metrics") or {}
+    thresholds_map = thresholds_map or {}
     records = []
     for suffix, m in metrics.items():
         rec = {
@@ -307,7 +387,9 @@ def build_records(gh_root, manifest):
                     rec["last_ts"]           = valid["last_ts"]
                     rec["last_ts_iso"]       = valid["last_ts_iso"]
                 agg = AGGREGATORS.get(m.get("aggregator", "none"), AGGREGATORS["none"])
-                status, detail, value = agg(valid, defaults, m)
+                m_with_thresh = dict(m)
+                m_with_thresh["analyses"] = thresholds_map.get(suffix, {})
+                status, detail, value = agg(valid, defaults, m_with_thresh)
                 rec["status"]        = status
                 rec["status_detail"] = detail
                 rec["status_value"]  = value
@@ -546,12 +628,64 @@ def main(argv=None):
         default=str(Path(__file__).with_name("ghPagesMetricsManifest.yml")),
         help="Path to the metrics manifest YAML (default: alongside this script).",
     )
+    p.add_argument(
+        "--thresholds",
+        default=str(Path(__file__).with_name("ghPagesAnalysisThresholds.yml")),
+        help="Path to the per-analysis logL threshold sidecar YAML.",
+    )
+    p.add_argument(
+        "--bootstrap-thresholds",
+        action="store_true",
+        help=(
+            "Read each metric's currently-published logL values, write a "
+            "fresh per-analysis threshold sidecar at --thresholds, and exit "
+            "without emitting any site files. Existing entries in the "
+            "sidecar are overwritten."
+        ),
+    )
+    p.add_argument(
+        "--bootstrap-fraction-warn", type=float, default=0.10,
+        help="Bootstrap warn threshold = current - fraction*|current| (default 0.10).",
+    )
+    p.add_argument(
+        "--bootstrap-fraction-fail", type=float, default=0.20,
+        help="Bootstrap fail threshold = current - fraction*|current| (default 0.20).",
+    )
     args = p.parse_args(argv)
     gh_root = Path(args.gh_pages_dir).resolve()
     if not gh_root.is_dir():
         print(f"error: {gh_root} is not a directory", file=sys.stderr)
         return 2
     manifest = load_manifest(args.manifest)
+    if args.bootstrap_thresholds:
+        out = bootstrap_thresholds(
+            gh_root, manifest,
+            fraction_warn=args.bootstrap_fraction_warn,
+            fraction_fail=args.bootstrap_fraction_fail,
+        )
+        target = Path(args.thresholds)
+        payload = {
+            "generated_at":   datetime.now(tz=timezone.utc).isoformat(),
+            "fraction_warn":  args.bootstrap_fraction_warn,
+            "fraction_fail":  args.bootstrap_fraction_fail,
+            "thresholds":     out,
+        }
+        target.parent.mkdir(parents=True, exist_ok=True)
+        with open(target, "w", encoding="utf-8") as f:
+            f.write(
+                "# Per-analysis logLikelihood warn/fail thresholds.\n"
+                "# Generated by buildGhPagesIndex.py --bootstrap-thresholds; safe to hand-edit\n"
+                "# values to taste. ``current`` records the logL at bootstrap time as a hint\n"
+                "# for tuning. The standardLogLikelihood aggregator classifies each analysis\n"
+                "# individually and reports the worst status across all of a metric's\n"
+                "# analyses, so any single failing analysis surfaces as a failing metric.\n\n"
+            )
+            yaml.safe_dump(
+                payload, f, sort_keys=True, allow_unicode=True, default_flow_style=False,
+            )
+        n = sum(len(v) for v in out.values())
+        print(f"wrote {n} analysis thresholds for {len(out)} metrics to {target}")
+        return 0
     # Migrate legacy shared-dir layouts to per-variant directories.
     moved_id = migrate_legacy_shared_dir(
         gh_root, "dev/valid/idealizedSubhaloSimulations", _idealized_extractor,
@@ -564,7 +698,8 @@ def main(argv=None):
     if moved_dd:
         print(f"migrated {len(moved_dd)} decaying-DM variants")
     # Build records and emit Jekyll site files.
-    records, groups = build_records(gh_root, manifest)
+    thresholds_map = load_thresholds(args.thresholds)
+    records, groups = build_records(gh_root, manifest, thresholds_map=thresholds_map)
     write_if_changed(gh_root / "_config.yml", CONFIG_YML)
     write_if_changed(gh_root / "Gemfile", GEMFILE)
     emit_metrics_data(gh_root, records, groups)

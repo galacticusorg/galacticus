@@ -7,19 +7,12 @@
 # indexer auto-discovers data and timestamps from the published files.
 #
 # `aggregator` selects how the dashboard derives a pass/warn/fail status:
-#   standardLogLikelihood : reads results.json `ANALYSES_DATA.results[].attributes.logLikelihood`
-#                           and aggregates as the minimum across analyses.
+#   standardLogLikelihood : reads results.json `ANALYSES_DATA.results[].attributes.logLikelihood`,
+#                           classifies each analysis individually against its per-analysis
+#                           thresholds in ``ghPagesAnalysisThresholds.yml``, and reports
+#                           the worst status across analyses for the metric.
 #   ponosVPercentile      : reads PONOSV_DATA, fails if any percentageBelow/Above < 5.
 #   none                  : data shape is bespoke; status is reported as "unknown".
-#
-# Per-metric `threshold_warn` / `threshold_fail` override the group/global
-# defaults in `defaults:` below.
-
-defaults:
-  status:
-    standardLogLikelihood:
-      threshold_warn: -100.0
-      threshold_fail: -1000.0
 
 groups:
   dmoSubhalos:

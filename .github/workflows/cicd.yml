@@ -2145,16 +2145,23 @@ jobs:
         if: github.event_name != 'pull_request' && github.ref == 'refs/heads/master'
       - name: Regenerate gh-pages index
         run: |
-          # Stash the indexer + manifest from master while we switch branches.
+          # Stash the indexer + manifest + thresholds from master while we
+          # switch branches. The thresholds sidecar is optional: the indexer
+          # treats a missing file as "no thresholds set" and reports those
+          # metrics as unknown, but the standard CI flow ships it.
           tmp=$(mktemp -d)
           cp scripts/build/buildGhPagesIndex.py "$tmp/"
           cp scripts/build/ghPagesMetricsManifest.yml "$tmp/"
+          cp scripts/build/ghPagesAnalysisThresholds.yml "$tmp/" 2>/dev/null || true
           pip install --quiet pyyaml
           git fetch origin gh-pages
           git checkout gh-pages
           # Pull any commits the previous push steps just made.
           git pull --rebase origin gh-pages
-          python3 "$tmp/buildGhPagesIndex.py" --manifest "$tmp/ghPagesMetricsManifest.yml" .
+          python3 "$tmp/buildGhPagesIndex.py" \
+            --manifest   "$tmp/ghPagesMetricsManifest.yml" \
+            --thresholds "$tmp/ghPagesAnalysisThresholds.yml" \
+            .
           git config --local user.email "github@users.noreply.github.com"
           git config --local user.name "github-action-validate"
           git add -A _config.yml Gemfile index.md dashboard.md _data groups dev/valid
