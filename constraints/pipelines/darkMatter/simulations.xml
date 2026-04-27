@@ -266,7 +266,7 @@
     <matchedICs       suite="Symphony" simulation="CDM"/>
     <matchedIsolation suite="Symphony"                 />
     <matchedDetection suite="Symphony"                 />
-    <group name="MilkyWay">
+    <group name="MilkyWay" shortName="MW">
       <resolution name="resolutionX1">
 	<simulation name="WDM:3keV">
 	  <powerSpectrumClass value="COZMIC:WDM:3keV"             />

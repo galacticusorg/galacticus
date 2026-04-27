@@ -52,11 +52,12 @@
      logical                                                                        :: likelihoodPoisson                           , includeDiscrepancyChecked, &
           &                                                                            report                                      , binAverage               , &
           &                                                                            includeCorrelations                         , allowEmptyMassFunction   , &
-          &                                                                            isEmptyMassFunction
+          &                                                                            isEmptyMassFunction                         , appendSamples
      integer                                                                        :: binCountMinimum                             , indexDiscrepancy
      type            (matrix                       ), dimension(:    ), allocatable :: covariance
-     type            (varying_string               ), dimension(:    ), allocatable :: fileNames
+     type            (varying_string               ), dimension(:    ), allocatable :: fileNames                                   , sampleFileNames
      double precision                               , dimension(:    ), allocatable :: redshifts                                   , times
+     type            (varying_string               )                                :: pathSamples
    contains
      final     ::                    haloMassFunctionDestructor
      procedure :: evaluate        => haloMassFunctionEvaluate
@@ -90,13 +91,13 @@ contains
     class           (randomNumberGeneratorClass               ), pointer                     :: randomNumberGenerator_
     type            (varying_string                           ), allocatable  , dimension(:) :: changeParametersFileNames         , fileNames
     double precision                                           , allocatable  , dimension(:) :: redshifts
-    type            (varying_string                           )                              :: baseParametersFileName
+    type            (varying_string                           )                              :: baseParametersFileName            , pathSamples
     double precision                                                                         :: massRangeMinimum                  , massRangeMaximum   , &
          &                                                                                      varianceFractionalModelDiscrepancy
     integer                                                                                  :: binCountMinimum
     logical                                                                                  :: likelihoodPoisson                 , report             , &
          &                                                                                      binAverage                        , includeCorrelations, &
-         &                                                                                      allowEmptyMassFunction
+         &                                                                                      allowEmptyMassFunction            , appendSamples
 
     if (.not.parameters%isPresent('fileNames')) call Error_Report('`fileNames` parameter is not present'//{introspection:location})
     if (.not.parameters%isPresent('redshifts')) call Error_Report('`redshifts` parameter is not present'//{introspection:location})
@@ -107,6 +108,18 @@ contains
       <name>baseParametersFileName</name>
       <description>The path to the XML parameter file that provides the base configuration for each model evaluation, to which parameter changes from the posterior sampler are then applied.</description>
       <source>parameters</source>
+    </inputParameter>
+    <inputParameter>
+      <name>pathSamples</name>
+      <description>The path into which the sampled mass functions should be written. If \mono{none}, then samples are not written.</description>
+      <source>parameters</source>
+      <defaultValue>var_str('none')</defaultValue>
+    </inputParameter>
+    <inputParameter>
+      <name>appendSamples</name>
+      <description>If true, samples will be appended to the file. Otherwise, the file is overwritten.</description>
+      <source>parameters</source>
+      <defaultValue>.false.</defaultValue>
     </inputParameter>
     <inputParameter>
       <name>fileNames</name>
@@ -190,7 +203,7 @@ contains
     <objectBuilder class="linearGrowth"             name="linearGrowth_"             source="parametersModel"/>
     <objectBuilder class="randomNumberGenerator"    name="randomNumberGenerator_"    source="parameters"     />
     !!]
-    self=posteriorSampleLikelihoodHaloMassFunction(fileNames,redshifts,massRangeMinimum,massRangeMaximum,binCountMinimum,likelihoodPoisson,varianceFractionalModelDiscrepancy,binAverage,includeCorrelations,allowEmptyMassFunction,report,parametersModel,changeParametersFileNames,cosmologyFunctions_,criticalOverdensity_,cosmologicalMassVariance_,linearGrowth_,randomNumberGenerator_)
+    self=posteriorSampleLikelihoodHaloMassFunction(fileNames,redshifts,pathSamples,appendSamples,massRangeMinimum,massRangeMaximum,binCountMinimum,likelihoodPoisson,varianceFractionalModelDiscrepancy,binAverage,includeCorrelations,allowEmptyMassFunction,report,parametersModel,changeParametersFileNames,cosmologyFunctions_,criticalOverdensity_,cosmologicalMassVariance_,linearGrowth_,randomNumberGenerator_)
     !![
     <inputParametersValidate source="parameters"/>
     <objectDestructor name="cosmologyFunctions_"      />
@@ -204,27 +217,30 @@ contains
     return
   end function haloMassFunctionConstructorParameters
 
-  function haloMassFunctionConstructorInternal(fileNames,redshifts,massRangeMinimum,massRangeMaximum,binCountMinimum,likelihoodPoisson,varianceFractionalModelDiscrepancy,binAverage,includeCorrelations,allowEmptyMassFunction,report,parametersModel,changeParametersFileNames,cosmologyFunctions_,criticalOverdensity_,cosmologicalMassVariance_,linearGrowth_,randomNumberGenerator_) result(self)
+  function haloMassFunctionConstructorInternal(fileNames,redshifts,pathSamples,appendSamples,massRangeMinimum,massRangeMaximum,binCountMinimum,likelihoodPoisson,varianceFractionalModelDiscrepancy,binAverage,includeCorrelations,allowEmptyMassFunction,report,parametersModel,changeParametersFileNames,cosmologyFunctions_,criticalOverdensity_,cosmologicalMassVariance_,linearGrowth_,randomNumberGenerator_) result(self)
     !!{
     Constructor for the \refClass{posteriorSampleLikelihoodHaloMassFunction} posterior sampling likelihood class.
     !!}
-    use :: Display                 , only : displayMessage  , displayMagenta, displayReset
+    use :: Display                 , only : displayMessage, displayMagenta, displayReset
     use :: Error                   , only : Error_Report
     use :: HDF5_Access             , only : hdf5Access
     use :: IO_HDF5                 , only : hdf5Object
-    use :: ISO_Varying_String      , only : char
+    use :: ISO_Varying_String      , only : char          , extract       , index       , operator(//)
     use :: Linear_Algebra          , only : assignment(=)
     use :: Numerical_Constants_Math, only : Pi
+    use :: File_Utilities          , only : Directory_Make, File_Name
+    use :: MPI_Utilities           , only : mpiSelf
     implicit none
     type            (posteriorSampleLikelihoodHaloMassFunction)                                :: self
     type            (varying_string                           ), intent(in   ), dimension(:  ) :: fileNames
     double precision                                           , intent(in   ), dimension(:  ) :: redshifts
+    type            (varying_string                           ), intent(in   )                 :: pathSamples
     double precision                                           , intent(in   )                 :: massRangeMinimum                  , massRangeMaximum   , &
          &                                                                                        varianceFractionalModelDiscrepancy
     integer                                                    , intent(in   )                 :: binCountMinimum
     logical                                                    , intent(in   )                 :: likelihoodPoisson                 , report             , &
          &                                                                                        binAverage                        , includeCorrelations, &
-         &                                                                                        allowEmptyMassFunction
+         &                                                                                        allowEmptyMassFunction            , appendSamples
     type            (inputParameters                          ), intent(inout), target         :: parametersModel
     class           (cosmologyFunctionsClass                  ), intent(inout), target         :: cosmologyFunctions_
     class           (criticalOverdensityClass                 ), intent(inout), target         :: criticalOverdensity_
@@ -241,12 +257,14 @@ contains
     type            (hdf5Object                               )                                :: massFunctionFile                  , simulationGroup
     integer                                                                                    :: i                                 , j                  , &
          &                                                                                        ii                                , jj                 , &
-         &                                                                                        massCountReduced                  , iRedshift
+         &                                                                                        massCountReduced                  , iRedshift          , &
+         &                                                                                        unitSample
     double precision                                                                           :: massIntervalLogarithmic
     type            (matrix                                   )                                :: eigenVectors
     type            (vector                                   )                                :: eigenValues
+    type            (varying_string                           )                                :: sampleFileName
     !![
-    <constructorAssign variables="fileNames, redshifts, binCountMinimum, massRangeMinimum, massRangeMaximum, likelihoodPoisson, varianceFractionalModelDiscrepancy, binAverage, includeCorrelations, allowEmptyMassFunction, report, changeParametersFileNames, *cosmologyFunctions_, *criticalOverdensity_, *cosmologicalMassVariance_, *linearGrowth_, *randomNumberGenerator_"/>
+    <constructorAssign variables="fileNames, redshifts, pathSamples, appendSamples, binCountMinimum, massRangeMinimum, massRangeMaximum, likelihoodPoisson, varianceFractionalModelDiscrepancy, binAverage, includeCorrelations, allowEmptyMassFunction, report, changeParametersFileNames, *cosmologyFunctions_, *criticalOverdensity_, *cosmologicalMassVariance_, *linearGrowth_, *randomNumberGenerator_"/>
     !!]
 
     ! Put the parameters object under resource management.
@@ -406,6 +424,23 @@ contains
           end do
        end if
     end do
+    ! Initialize sample files if needed.
+    if (self%pathSamples /= "none") then
+       ! Ensure that the directory exists.
+       call Directory_Make(self%pathSamples)
+       ! Open all files.
+       allocate(self%sampleFileNames(size(redshifts)))
+       do iRedshift=1,size(redshifts)
+          self%sampleFileNames(iRedshift)=self%pathSamples//"/"//File_Name(fileNames(iRedshift))
+          self%sampleFileNames(iRedshift)=extract(self%sampleFileNames(iRedshift),1,index(self%sampleFileNames(iRedshift),".hdf5")-1)//"_"//mpiSelf%rankLabel()//".txt"
+          if (.not.self%appendSamples) then
+             open(newUnit=unitSample,file=char(self%sampleFileNames(iRedshift)),form='formatted',status='unknown')
+             write (unitSample,'(a,a)') '# Sampled halo mass functions for chain ',char(mpiSelf%rankLabel())
+             write (unitSample,*      ) '# Masses: ',self%mass
+             close(unitSample)
+          end if
+       end do
+    end if
     return
   end function haloMassFunctionConstructorInternal
 
@@ -471,7 +506,8 @@ contains
     integer                                                                                    :: i                                             , status                              , &
          &                                                                                        iTime                                         , jTime                               , &
          &                                                                                        iCopula                                       , jCopula                             , &
-         &                                                                                        dimensionCopula                               , j
+         &                                                                                        dimensionCopula                               , j                                   , &
+         &                                                                                        unitSample
     double precision                                                                           :: countHalosMean                                , stoppingTimeParameter               , &
          &                                                                                        varianceFractionalModelDiscrepancy            , logLikelihood_                      , &
          &                                                                                        deviationMaximum                              , logLikelihoodUncorrelated           , &
@@ -578,6 +614,14 @@ contains
     end do
     call node%destroy()
     deallocate(node)
+    ! Write sampled data to file if needed.
+    if (self%pathSamples /= "none") then
+       do iTime=1,size(self%times)
+          open(newUnit=unitSample,file=char(self%sampleFileNames(iTime)),form='formatted',status='unknown',position='append')
+          write (unitSample,*) simulationState%count(),massFunction(:,iTime)
+          close(unitSample)
+       end do
+    end if
     ! Allocate array for per bin likelihood if needed.
     if (self%report) then
        allocate(likelihoodPerBin    (size(self%mass),size(self%times)))

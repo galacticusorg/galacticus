@@ -1404,7 +1404,8 @@ jobs:
                 test-promptCuspNFW.py,
                 test-postprocessing.py,
                 test-merger-tree-export.sh,
-                test-AGNSED.py ]
+                test-AGNSED.py,
+                test-library-interfaces.py ]
     uses: ./.github/workflows/testModel.yml
     with:
       file: ${{ matrix.file }}
@@ -1757,7 +1758,8 @@ jobs:
       - name: Test interface
         run: |
           tar xvfj libgalacticus.tar.bz2
-          python3 testSuite/test-Python-interface.py
+          python3 testSuite/test-Python-interface.py 2>&1 | tee pythonTest.log
+          ! grep -q -e FAIL pythonTest.log
       - run: echo "This job's status is ${{ job.status }}."
   ## MacOS
   ### Test Codes
@@ -1805,7 +1807,8 @@ jobs:
           mv libgalacticus.so galacticus/lib/
       - name: Test interface
         run: |
-          python3 testSuite/test-Python-interface.py
+          python3 testSuite/test-Python-interface.py 2>&1 | tee pythonTest.log
+          ! grep -q -e FAIL pythonTest.log
       - run: echo "This job's status is ${{ job.status }}."
   # Validate, deploy and update
   Validate:
