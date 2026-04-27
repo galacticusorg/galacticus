@@ -83,23 +83,29 @@
       <label            value="LMC"/>
       <labelDescription value="Label indicating if this node is on the LMC branch."/>
       <labelBranch      value="true"/>
-       <!-- Apply all LMC conditions -->
+      <!-- Apply all LMC conditions -->
       <galacticFilter value="all">
-	<!-- Consider the main branch (i.e. Milky Way halo) of the tree only -->
-	<galacticFilter value="mainBranch"/>
-	<!-- Consider only halos infalling at the right time. -->
-	<galacticFilter value="intervalPass">
-          <nodePropertyExtractor value="time"/>
-          <thresholdLow  value="11.6"/>
-          <thresholdHigh value="12.0"/>
- 	</galacticFilter>
-	<!-- Consider only halos with a rank-2 child with a mass above 1.0e11 -->
-	<galacticFilter value="childNode">
-          <childRank value="2"/>
-          <galacticFilter value="intervalPass">
-            <nodePropertyExtractor value="massBasic"/>
-            <thresholdLow  value="1.2e11"/>
-            <thresholdHigh value="1.4e11"/>
+        <!-- Consider halos not on the main branch. -->
+        <galacticFilter value="not">
+          <galacticFilter value="mainBranch"/>
+	</galacticFilter>
+        <!-- Consider only halos in the LMC mass range. -->
+        <galacticFilter value="intervalPass">
+          <nodePropertyExtractor value="massBasic"/>
+          <thresholdLow  value="1.2e11"/>
+          <thresholdHigh value="1.4e11"/>
+        </galacticFilter>
+	<!-- Restrict on parent halos. -->
+        <galacticFilter value="parentNode">
+	  <galacticFilter value="all">
+	    <!-- Parent halo must be on the main branch. -->
+            <galacticFilter value="mainBranch"/>
+            <!-- Consider only halos infalling at the right time. -->
+            <galacticFilter value="intervalPass">
+              <nodePropertyExtractor value="time"/>
+              <thresholdLow  value="11.6"/>
+              <thresholdHigh value="12.0"/>
+            </galacticFilter>
           </galacticFilter>
 	</galacticFilter>
       </galacticFilter>
@@ -119,23 +125,29 @@
       <label            value="GSE"/>
       <labelDescription value="Label indicating if this node is on the GSE branch."/>
       <labelBranch      value="true"/>
-      <!-- Apply all GSE conditions -->
+      <!-- Apply all LMC conditions -->
       <galacticFilter value="all">
-	<!-- Consider the main branch (i.e. Milky Way halo) of the tree only -->
-	<galacticFilter value="mainBranch"/>
-	<!-- Consider only halos infalling at the right time. -->
-	<galacticFilter value="intervalPass">
-          <nodePropertyExtractor value="time"/>
-          <thresholdLow  value="2.8"/>
-          <thresholdHigh value="5.8"/>
- 	</galacticFilter>
-	<!-- Consider only halos with a rank-2 child with a mass above 1.0e11 -->
-	<galacticFilter value="childNode">
-          <childRank value="2"/>
-          <galacticFilter value="intervalPass">
-            <nodePropertyExtractor value="massBasic"/>
-            <thresholdLow  value="1.3e11"/>
-            <thresholdHigh value="2.5e11"/>
+        <!-- Consider halos not on the main branch. -->
+        <galacticFilter value="not">
+          <galacticFilter value="mainBranch"/>
+	</galacticFilter>
+        <!-- Consider only halos in the LMC mass range. -->
+        <galacticFilter value="intervalPass">
+          <nodePropertyExtractor value="massBasic"/>
+          <thresholdLow  value="1.3e11"/>
+          <thresholdHigh value="2.5e11"/>
+        </galacticFilter>
+	<!-- Restrict on parent halos. -->
+        <galacticFilter value="parentNode">
+	  <galacticFilter value="all">
+	    <!-- Parent halo must be on the main branch. -->
+            <galacticFilter value="mainBranch"/>
+            <!-- Consider only halos infalling at the right time. -->
+            <galacticFilter value="intervalPass">
+              <nodePropertyExtractor value="time"/>
+              <thresholdLow  value="2.8"/>
+              <thresholdHigh value="5.8"/>
+            </galacticFilter>
           </galacticFilter>
 	</galacticFilter>
       </galacticFilter>
