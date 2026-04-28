@@ -1565,7 +1565,7 @@ def _build_allowed_parameters_method(directive, classes_ordered, methods):
         allowed_parameters_linked_list,
     )
     from Galacticus.Build.SourceTree.Process.FunctionClass.Utils import (
-        trimlc, striplc,
+        trimlc, striplc, strip_variable_name,
     )
     from build.fortran_utils import get_fortran_line
     import io
@@ -1725,17 +1725,45 @@ def _build_allowed_parameters_method(directive, classes_ordered, methods):
                                                     for v in (
                                                             dec.get('variables')
                                                             or []):
+                                                        # `v` arrives from
+                                                        # `parse_declaration`'s
+                                                        # `keep_qualifiers=True`
+                                                        # mode and so still
+                                                        # carries any
+                                                        # `=>null()` or
+                                                        # `=initial` tail
+                                                        # (e.g.
+                                                        # `galacticfilter_=>null()`).
+                                                        # `strip_variable_name`
+                                                        # removes that tail
+                                                        # so the comparison
+                                                        # against the
+                                                        # directive's `name`
+                                                        # attribute (which is
+                                                        # the bare member
+                                                        # name) actually
+                                                        # matches — without
+                                                        # this strip, every
+                                                        # `<objectBuilder>`
+                                                        # falls through and
+                                                        # `objects` stays
+                                                        # empty, dropping the
+                                                        # nested
+                                                        # `if (associated(self%X_))
+                                                        # call self%X_%allowedParameters(…)`
+                                                        # forwarding lines.
+                                                        bare = strip_variable_name(v)
                                                         cmp_direct = (
-                                                            v.lower()
+                                                            bare.lower()
                                                             == striplc(
                                                                 d.get('name')))
                                                         cmp_qual = (
                                                             (result
-                                                             + '%' + v).lower()
+                                                             + '%' + bare).lower()
                                                             == striplc(
                                                                 d.get('name')))
                                                         if cmp_direct or cmp_qual:
-                                                            slot_objects.append(v)
+                                                            slot_objects.append(bare)
                                         child = child.get('sibling')
                                     break
                                 type_node = type_node.get('sibling')
