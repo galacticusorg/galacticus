@@ -2996,16 +2996,17 @@ def test_dependency_sort_after_and_before():
 
     from Galacticus.Build.Dependencies import dependency_sort
 
-    # `X.after = Y` means Perl puts X before Y (inverted English reading —
-    # this is the semantics the callers rely on).
+    # `X.after = Y` means X is placed AFTER Y in the output (the natural
+    # English reading; see the long Implementation note in
+    # `Dependencies.py` for why our edge direction differs from Perl's).
     order = dependency_sort({'X': {'after': 'Y'}, 'Y': {}})
-    assert_equal(order, ['X', 'Y'],
-                 "`after` edge places the tagged name before its reference")
-
-    # `X.before = Y` means Perl puts Y before X.
-    order = dependency_sort({'X': {'before': 'Y'}, 'Y': {}})
     assert_equal(order, ['Y', 'X'],
-                 "`before` edge places the tagged name after its reference")
+                 "`after` edge places the tagged name after its reference")
+
+    # `X.before = Y` means X is placed BEFORE Y in the output.
+    order = dependency_sort({'X': {'before': 'Y'}, 'Y': {}})
+    assert_equal(order, ['X', 'Y'],
+                 "`before` edge places the tagged name before its reference")
 
     # No constraints → alphabetical.
     order = dependency_sort({'c': {}, 'a': {}, 'b': {}})
@@ -3147,12 +3148,14 @@ def test_process_event_hooks_static_ordering():
         process_event_hooks_static(root, {})
         out = serialize(root)
 
-        # Perl's `after` inversion: first_hook (which has after=second_hook)
-        # is emitted BEFORE second_hook.
+        # Natural-English reading: first_hook has `after="second_hook"`, so
+        # the emitted `call first_hook` comes AFTER `call second_hook`.
+        # (See `Dependencies.dependency_sort`'s Implementation note for
+        # why our edge direction differs from the Perl original.)
         first_pos  = out.index('call first_hook')
         second_pos = out.index('call second_hook')
-        assert_equal(first_pos < second_pos, True,
-                     "after=other places the tagged call before `other`")
+        assert_equal(second_pos < first_pos, True,
+                     "after=other places the tagged call after `other`")
     finally:
         if saved is None:
             del os.environ['BUILDPATH']
