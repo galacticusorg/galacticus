@@ -454,7 +454,6 @@ def parse_directives(tree):
     for old_node, new_node_list in nodes_to_replace:
         replace_node(old_node, new_node_list)
 
-
 def post_process_directives(tree):
     """Verify that every directive node has been processed.
 
