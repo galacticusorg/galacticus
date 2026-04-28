@@ -99,7 +99,7 @@ def _step_a_group_labels(simulations, options):
     """Step A: build isolation-bias and perturbation label dicts (stop_after='group').
 
     Returns (isolation_biases, perturbations) and mutates each entry['group']
-    to carry 'labelIsolationBias', 'isolationBias', 'labelPerturbation',
+    to carry 'labelIsolationBias', 'isolationBias', 'labelPerturbation', 'parameterPerturbation;
     and 'perturbation' keys used downstream.
     """
     isolation_biases = {}
@@ -135,12 +135,15 @@ def _step_a_group_labels(simulations, options):
         if (suite.get('includePerturbation', {}).get('value') == 'true'
                 and options.get('removeSimulationVariance') != 'true'):
             label = 'cube,' + group['name']
-            group['labelPerturbation'] = label
-            group['perturbation']      = f'haloMassFunctionParameters/perturbation{label}'
-            perturbations[label]       = perturbations.get(label, 0) + 1
+            labelParameter = 'Cube' + group['name']
+            group['labelPerturbation']     = label
+            group['parameterPerturbation'] = labelParameter
+            group['perturbation']          = f'haloMassFunctionParameters/perturbation{label}'
+            perturbations[labelParameter]  = perturbations.get(label, 0) + 1
         else:
-            group['labelPerturbation'] = ''
-            group['perturbation']      = ''
+            group['labelPerturbation']     = ''
+            group['parameterPerturbation'] = ''
+            group['perturbation']          = ''
 
     if not have_groups:
         raise RuntimeError('no groups match this selection')
@@ -400,6 +403,8 @@ def _step_e_base_files(entry_groups, options):
             f' https://ui.adsabs.harvard.edu/abs/2017MNRAS.467.3454B) -->\n'
             f'      <baseParametersFileName value="{file_names_base[0]}"/>\n'
             f'      <fileNames              value="{" ".join(file_names_target)}"/>\n'
+            f'      <pathSamples            value="{output_dir}samples"/>\n'
+            f'      <appendSamples          value="false"/>\n'
             f'      <redshifts              value="{" ".join(redshifts)}"/>\n'
             f'      <allowEmptyMassFunction value="true"                           />\n'
             f'      <massRangeMinimum       value="{mass_halo_minimum}"'
@@ -474,7 +479,7 @@ def _step_e_base_files(entry_groups, options):
             )
             if (suite.get('includePerturbation', {}).get('value') == 'true'
                     and options.get('removeSimulationVariance') != 'true'):
-                lbl = grp['labelPerturbation']
+                lbl = grp['parameterPerturbation']
                 base += (
                     f'\n'
                     f'  <!-- Use the simulation variance perturbation relevant to this simulation -->\n'
@@ -646,6 +651,7 @@ def _step_f_config_strings(perturbations, isolation_biases,
         f'    <sampleOutliers         value="false"                                   />\n'
         f'    <logFlushCount          value="     1"                                  />\n'
         f'    <appendLogs             value="true"                                    />\n'
+        f'    <loadBalance            value="false"                                   />\n'
         f'\n'
     )
 
@@ -1139,8 +1145,9 @@ def main():
         fh.write(config_closer)
 
     with open(output_dir + 'haloMassFunctionConfigResume.xml', 'w') as fh:
+        config_likelihood_resume = res.sub(r'(<appendSamples\s+value=")false("\/>)',r'\1true\2',config_likelihood)
         fh.write(config_opener)
-        fh.write(config_likelihood)
+        fh.write(config_likelihood_resume)
         fh.write(config_resumer)
         fh.write(config_closer)
 
