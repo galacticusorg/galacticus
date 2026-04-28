@@ -1607,8 +1607,21 @@ def _build_allowed_parameters_method(directive, classes_ordered, methods):
                     and node.get('name') in constructors):
                 opener = node.get('opener') or ''
                 name   = node['name']
+                # Match `function NAME(parameters [, recursiveConstruct,
+                # recursiveSelf])` with an optional `recursive` prefix.
+                # The mandatory whitespace lives INSIDE the
+                # `(recursive\s+)?` group so non-recursive openers (which
+                # have no leading word and no whitespace) match too —
+                # the previous form `(recursive)??\s+function` required
+                # whitespace before `function` unconditionally and
+                # therefore missed every non-recursive constructor,
+                # leaving the `objects` accumulator empty and the
+                # generated `allowedParameters` method without its
+                # `if (associated(self%X_)) call self%X_%allowedParameters
+                # (allowedParameters,'parameters',.true.)` lines for
+                # nested object pointers.
                 sig_re = (
-                    r'^\s*(recursive)??\s+function\s+' + re.escape(name)
+                    r'^\s*(recursive\s+)?function\s+' + re.escape(name)
                     + r'\s*\(\s*parameters\s*'
                     + r'(\s*,\s*recursiveConstruct\s*,\s*recursiveSelf\s*)??\)'
                 )
