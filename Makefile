@@ -2,6 +2,15 @@
 #
 # Andrew Benson (06-Feb-2010)
 
+# Detect Operating System
+UNAME_S := $(shell uname -s)
+
+# Conditional assignment for macOS
+ifeq ($(UNAME_S),Darwin)
+    # For MacOS we must set LC_ALL=C to avoid problems with non-UTF8 characters and sed.
+    export LC_ALL=C
+endif
+
 # Build option.
 GALACTICUS_BUILD_OPTION ?= default
 ifdef  BUILDPATH
