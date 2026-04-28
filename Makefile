@@ -423,7 +423,7 @@ $(BUILDPATH)/%.Inc.up : ./source/%.Inc $(BUILDPATH)/hdf5FCInterop.dat $(BUILDPAT
 $(BUILDPATH)/%.Inc : $(BUILDPATH)/%.Inc.up
 	@true
 $(BUILDPATH)/%.inc : $(BUILDPATH)/%.Inc Makefile
-	sed -r s/'^(\s*)!(.*)'/'\1\/\*\2\*\/'/ $< | cpp -nostdinc -C | sed -r s/'^(\s*)\/\*(.*)\*\/'/'\1!\2'/ > $(BUILDPATH)/$*.tmp
+	sed -E s/'^([[:space:]]*)!(.*)'/'\1\/\*\2\*\/'/ $< | cpp -nostdinc -C | sed -E s/'^([[:space:]]*)\/\*(.*)\*\/'/'\1!\2'/ > $(BUILDPATH)/$*.tmp
 	mv -f $(BUILDPATH)/$*.tmp $(BUILDPATH)/$*.inc
 
 # Dependency files (*.d) are created as empty files by default. Normally this rule is overruled by a specific set of rules in the
@@ -559,7 +559,7 @@ $(BUILDPATH)/libgalacticus.p.Inc.up : $(BUILDPATH)/libgalacticus.Inc $(BUILDPATH
 $(BUILDPATH)/libgalacticus.p.Inc : $(BUILDPATH)/libgalacticus.p.Inc.up
 	@true
 $(BUILDPATH)/libgalacticus.inc : $(BUILDPATH)/libgalacticus.p.Inc Makefile
-	sed -r s/'^(\s*)!(.*)'/'\1\/\*\2\*\/'/ $(BUILDPATH)/libgalacticus.p.Inc | cpp -nostdinc -C | sed -r s/'^(\s*)\/\*(.*)\*\/'/'\1!\2'/ > $(BUILDPATH)/libgalacticus.tmp
+	sed -E s/'^([[:space:]]*)!(.*)'/'\1\/\*\2\*\/'/ $(BUILDPATH)/libgalacticus.p.Inc | cpp -nostdinc -C | sed -E s/'^([[:space:]]*)\/\*(.*)\*\/'/'\1!\2'/ > $(BUILDPATH)/libgalacticus.tmp
 	mv -f $(BUILDPATH)/libgalacticus.tmp $(BUILDPATH)/libgalacticus.inc
 libgalacticus.so: $(BUILDPATH)/libgalacticus.o $(BUILDPATH)/libgalacticus_classes.d
 	./scripts/build/parameterDependencies.py `pwd` libgalacticus.o
