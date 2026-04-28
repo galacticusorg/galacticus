@@ -4,21 +4,21 @@ window.PONOSV_DATA = {
     "commit": {
         "author": {
             "name": "Andrew Benson",
-            "email": "abenson@carnegiescience.edu"
+            "email": "abensonca@gmail.com"
         },
-        "id": "9f7df648a657236db5e92398fd99fee11219d843",
-        "message": "fix: Use Apple ID in notarization workflow\n",
-        "timestamp": "2026-04-25 12:45:55-07:00",
-        "url": "https://github.com/galacticusorg/galacticus/commit/9f7df648a657236db5e92398fd99fee11219d843"
+        "id": "e3727aa117f9afecb9008ea052a90e9d26255ced",
+        "message": "Merge pull request #1088 from galacticusorg/claude/mpi-unique-node-ids-mUbcE\n\nAdd MPI-aware unique ID assignment for tree nodes\n",
+        "timestamp": "2026-04-27 14:19:53+00:00",
+        "url": "https://github.com/galacticusorg/galacticus/commit/e3727aa117f9afecb9008ea052a90e9d26255ced"
     },
     "surfaceDensity": {
-        "percentageBelow": 32.14285714285714,
-        "percentageAbove": 67.85714285714286,
+        "percentageBelow": 42.857142857142854,
+        "percentageAbove": 57.142857142857146,
         "target": 0.006
     },
     "slope": {
-        "percentageBelow": 44.44444444444444,
-        "percentageAbove": 55.55555555555556,
+        "percentageBelow": 72.72727272727272,
+        "percentageAbove": 27.272727272727273,
         "target": 0.85
     }
 }
