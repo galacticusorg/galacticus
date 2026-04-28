@@ -1,47 +1,8 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1777177979589,
+  "lastUpdate": 1777338642988,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Idealized subhalo simulations (rₚ/rₐ=0.05; γ=1.0)": [
-      {
-        "commit": {
-          "author": {
-            "email": "abensonca@gmail.com",
-            "name": "Andrew Benson",
-            "username": "abensonca"
-          },
-          "committer": {
-            "email": "noreply@github.com",
-            "name": "GitHub",
-            "username": "web-flow"
-          },
-          "distinct": true,
-          "id": "fc98facd1513465b2925b8e36246e7152c33f85c",
-          "message": "Merge pull request #622 from galacticusorg/featMergedSubhaloProperties\n\nAdd functionality to record (and output) the orbital properties of merged subhalos",
-          "timestamp": "2024-06-08T19:03:10Z",
-          "tree_id": "cca1bc9592549df715ef175bf476b2169b5170c7",
-          "url": "https://github.com/galacticusorg/galacticus/commit/fc98facd1513465b2925b8e36246e7152c33f85c"
-        },
-        "date": 1717891354711,
-        "tool": "customSmallerIsBetter",
-        "benches": [
-          {
-            "name": "Idealized Subhalo Simulation (rₚ/rₐ=0.05; γ=1.0) - Likelihood - satelliteBoundMass",
-            "value": 69.3673728525223,
-            "unit": "-logℒ"
-          },
-          {
-            "name": "Idealized Subhalo Simulation (rₚ/rₐ=0.05; γ=1.0) - Likelihood - satelliteRadiusVelocityMaximum",
-            "value": 39.2457292533056,
-            "unit": "-logℒ"
-          },
-          {
-            "name": "Idealized Subhalo Simulation (rₚ/rₐ=0.05; γ=1.0) - Likelihood - satelliteVelocityMaximum",
-            "value": 32.2364935065929,
-            "unit": "-logℒ"
-          }
-        ]
-      },
       {
         "commit": {
           "author": {
@@ -9896,6 +9857,45 @@ window.BENCHMARK_DATA = {
           "url": "https://github.com/galacticusorg/galacticus/commit/c1a5bddef352f69f112bacd1b3d5707f451c115c"
         },
         "date": 1777177978708,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Idealized Subhalo Simulation (rₚ/rₐ=0.05; γ=1.0) - Likelihood - satelliteBoundMass",
+            "value": 69.36737238164966,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Idealized Subhalo Simulation (rₚ/rₐ=0.05; γ=1.0) - Likelihood - satelliteRadiusVelocityMaximum",
+            "value": 39.245724709232604,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Idealized Subhalo Simulation (rₚ/rₐ=0.05; γ=1.0) - Likelihood - satelliteVelocityMaximum",
+            "value": 32.2364954240548,
+            "unit": "-logℒ"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abensonca@gmail.com",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "e3727aa117f9afecb9008ea052a90e9d26255ced",
+          "message": "Merge pull request #1088 from galacticusorg/claude/mpi-unique-node-ids-mUbcE\n\nAdd MPI-aware unique ID assignment for tree nodes",
+          "timestamp": "2026-04-27T14:19:53Z",
+          "tree_id": "0212181d39ece2f3617244d4e61fd9e6ba103fa5",
+          "url": "https://github.com/galacticusorg/galacticus/commit/e3727aa117f9afecb9008ea052a90e9d26255ced"
+        },
+        "date": 1777338641861,
         "tool": "customSmallerIsBetter",
         "benches": [
           {
