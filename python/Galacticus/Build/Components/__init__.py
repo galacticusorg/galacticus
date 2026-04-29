@@ -33,6 +33,16 @@ from Galacticus.Build.Components.CodeGeneration import (
     importables,
 )
 
+# Import sister modules eagerly so they register their own hooks at the
+# same time the framework itself registers `component` with `Hooks`.
+# Mirrors the chain of `use Galacticus::Build::Components::*;` lines in
+# perl/Galacticus/Build/Components.pm.
+from Galacticus.Build.Components import (  # noqa: F401
+    DataTypes,
+    NullFunctions,
+    Attributes,
+)
+
 
 # ---------------------------------------------------------------------------
 # Hook registration
