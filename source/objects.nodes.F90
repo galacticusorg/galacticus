@@ -228,6 +228,10 @@ module Galacticus_Nodes
 
   ! Unique ID counter.
   integer         (kind=kind_int8)                                  :: uniqueIdCount       =0
+#ifdef USEMPI
+  integer         (kind=kind_int8)                                  :: uniqueIdIncrement   =1_kind_int8
+  logical                                                           :: uniqueIdInitialized =.false.
+#endif
 
   ! Event ID counter.
   integer         (kind=kind_int8)                                  :: eventID             =0
@@ -374,6 +378,9 @@ module Galacticus_Nodes
     Sets the index of a \mono{treeNode}.
     !!}
     use :: Error, only : Error_Report
+#ifdef USEMPI
+    use :: MPI_Utilities, only : mpiSelf
+#endif
     implicit none
     class  (treeNode      ), intent(inout)           :: self
     integer(kind=kind_int8), intent(in   ), optional :: uniqueID
@@ -382,7 +389,16 @@ module Galacticus_Nodes
        self%uniqueIdValue=uniqueID
     else
        !$omp critical(UniqueID_Assign)
+#ifdef USEMPI
+       if (.not.uniqueIdInitialized) then
+          uniqueIdCount      =int(mpiSelf%rank (),kind=kind_int8)
+          uniqueIdIncrement  =int(mpiSelf%count(),kind=kind_int8)
+          uniqueIdInitialized=.true.
+       end if
+       uniqueIDCount=uniqueIDCount+uniqueIdIncrement
+#else
        uniqueIDCount=uniqueIDCount+1
+#endif
        if (uniqueIDCount <= 0) call Error_Report('ran out of unique ID numbers'//{introspection:location})
        self%uniqueIdValue=uniqueIDCount
        !$omp end critical(UniqueID_Assign)
