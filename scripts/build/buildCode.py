@@ -180,10 +180,19 @@ def main(argv=None):
     tmp_path = build['fileName'] + '.tmp'
     with open(tmp_path, 'w') as out:
         if build['fileName'].endswith('.Inc'):
+            # `annotate=True` emits the `!--> <origLine> <outLine> "<source>"`
+            # line-number mapping comments that the rest of the Galacticus
+            # build pipeline expects ahead of each node's serialised content.
+            # Perl's Serialize() defaults to annotated; the Python port
+            # defaults to off so existing in-process callers (Generics,
+            # FunctionClass, …) get pure Fortran back, but `buildCode.py`
+            # is producing an `.Inc` for downstream stages and needs the
+            # markers.
             out.write(SourceTree.serialize(
                 process_tree(
                     SourceTree.parse_code(build['content'], build['fileName'])
-                )
+                ),
+                annotate=True,
             ))
         else:
             out.write(build['content'])
