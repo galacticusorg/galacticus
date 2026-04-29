@@ -181,11 +181,12 @@ contains
     !$GLC attributes unused :: instance
 
     allocate(tidallyTruncatedNFWFitExtract(3))
-    darkMatterProfile                => node                                        %darkMatterProfile(            )
-    massDistribution_                => self               %darkMatterProfileDMO_   %get              (node        )
-    massDistributionNFW              => self               %darkMatterProfileDMONFW_%get              (node        )
-    coordinates                      = [darkMatterProfile%scale(),0.0d0,0.0d0]
-    tidallyTruncatedNFWFitExtract(3) =  massDistributionNFW                         %density          (coordinates)
+    darkMatterProfile                =>  node                                        %darkMatterProfile(           )
+    massDistribution_                =>  self               %darkMatterProfileDMO_   %get              (node       )
+    massDistributionNFW              =>  self               %darkMatterProfileDMONFW_%get              (node       )
+    coordinates                      =  [darkMatterProfile%scale(),0.0d0,0.0d0]
+    tidallyTruncatedNFWFitExtract(3) =  +4.0d0                                                                       & ! ρ(rₛ)=ρₛ/4, so multiply by 4 to recover ρₛ.
+         &                              *massDistributionNFW                         %density          (coordinates)
     if (node%isSatellite()) then
        ! Extract required properties.
        radiusVirial =  self             %darkMatterHaloScale_%radiusVirial        (       node                                )
