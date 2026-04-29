@@ -80,7 +80,7 @@ with open(args.buildLogFile) as f:
         elif len(elements) > 2 and elements[0] == "./scripts/build/parameterDependencies.py":
             elements[2] = elements[2].replace("./work/build/", "").replace("'", "")
             command = elements[2] + " (parameter dependencies)"
-        elif len(elements) > 2 and elements[0] == "./scripts/build/buildCode.pl":
+        elif len(elements) > 2 and elements[0] == "./scripts/build/buildCode.py":
             elements[2] = elements[2].replace("./work/build/", "").replace("'", "")
             command = elements[2] + " (build)"
         elif len(elements) > 8 and elements[1] == "-MRegexp::Common":
