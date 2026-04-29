@@ -549,19 +549,21 @@ def bound_function_table(object_name, bindings):
 def format_variable_definitions(declarations, indent=2):
     """Return Fortran declaration lines for every dict in `declarations`.
 
-    Honours the keys actually used by the components pipeline: `intrinsic`,
-    `type`, `attributes`, `variables`, plus an optional `comment` field for
-    a trailing `! …` comment.
+    Honors the keys actually used by the components pipeline: `intrinsic`,
+    `type`, `attributes`, `variables`, `ompPrivate` plus an optional `comment`
+    field for a trailing `! …` comment.
+
     """
     lines = []
     pad   = ' ' * indent
     for decl in declarations or []:
         if not isinstance(decl, dict):
             continue
-        intrinsic = decl.get('intrinsic') or ''
-        type_text = decl.get('type')
-        attrs     = decl.get('attributes') or []
-        variables = decl.get('variables')  or []
+        intrinsic  = decl.get('intrinsic') or ''
+        type_text  = decl.get('type')
+        attrs      = decl.get('attributes') or []
+        variables  = decl.get('variables')  or []
+        ompPrivate = decl.get('ompPrivate')  or False
 
         line = pad + intrinsic
         if type_text is not None:
@@ -577,6 +579,9 @@ def format_variable_definitions(declarations, indent=2):
         if decl.get('comment'):
             line += f' ! {decl["comment"]}'
         lines.append(line + '\n')
+        if ompPrivate:
+            for variable in variables:
+                lines.append(f'{pad}!$omp threadprivate({variable})\n')
     return ''.join(lines)
 
 
