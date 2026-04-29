@@ -70,6 +70,7 @@ from Galacticus.Build.Components.Properties      import Get           as _Proper
 from Galacticus.Build.Components.Properties      import Set           as _PropertiesSet                # noqa: F401
 from Galacticus.Build.Components.Properties      import Deferred      as _PropertiesDeferred           # noqa: F401
 from Galacticus.Build.Components.Properties      import Evolve        as _PropertiesEvolve             # noqa: F401
+from Galacticus.Build.Components             import NodeEvents       as _NodeEvents                   # noqa: F401
 from Galacticus.Build.Components.Hierarchy import State        as _HierarchyState        # noqa: F401
 from Galacticus.Build.Components.Hierarchy import ODESolver    as _HierarchyODESolver    # noqa: F401
 from Galacticus.Build.Components.Hierarchy import Utils        as _HierarchyUtils        # noqa: F401
