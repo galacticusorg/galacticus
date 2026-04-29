@@ -53,6 +53,8 @@ from Galacticus.Build.Components.Classes import Serialization as _ClassesSeriali
 from Galacticus.Build.Components.Classes import MetaProperties as _ClassesMetaProperties # noqa: F401
 from Galacticus.Build.Components.Classes import State          as _ClassesState           # noqa: F401
 from Galacticus.Build.Components.Classes import Defaults       as _ClassesDefaults        # noqa: F401
+from Galacticus.Build.Components.Classes import CreateDestroy  as _ClassesCreateDestroy   # noqa: F401
+from Galacticus.Build.Components.Classes import Evolve         as _ClassesEvolve          # noqa: F401
 from Galacticus.Build.Components.Hierarchy import State        as _HierarchyState        # noqa: F401
 from Galacticus.Build.Components.Hierarchy import ODESolver    as _HierarchyODESolver    # noqa: F401
 from Galacticus.Build.Components.Hierarchy import Utils        as _HierarchyUtils        # noqa: F401
