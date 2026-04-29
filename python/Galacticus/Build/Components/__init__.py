@@ -53,6 +53,7 @@ from Galacticus.Build.Components.TreeNodes import Map            as _TreeNodesMa
 from Galacticus.Build.Components.TreeNodes import Output         as _TreeNodesOutput          # noqa: F401
 from Galacticus.Build.Components.TreeNodes import Serialization  as _TreeNodesSerialization   # noqa: F401
 from Galacticus.Build.Components.TreeNodes import Utils          as _TreeNodesUtils           # noqa: F401
+from Galacticus.Build.Components.TreeNodes import ODESolver      as _TreeNodesODESolver       # noqa: F401
 
 
 # ---------------------------------------------------------------------------
