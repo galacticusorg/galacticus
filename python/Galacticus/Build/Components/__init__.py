@@ -41,6 +41,7 @@ from Galacticus.Build.Components import (  # noqa: F401
     DataTypes,
     NullFunctions,
     Attributes,
+    Components as _Components,
 )
 
 
