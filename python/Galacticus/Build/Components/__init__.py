@@ -42,7 +42,12 @@ from Galacticus.Build.Components import (  # noqa: F401
     NullFunctions,
     Attributes,
     Components as _Components,
+    Classes,
+    TreeNodes,
 )
+from Galacticus.Build.Components.Classes   import Utils as _ClassesUtils    # noqa: F401
+from Galacticus.Build.Components.TreeNodes import State    as _TreeNodesState    # noqa: F401
+from Galacticus.Build.Components.TreeNodes import Classes  as _TreeNodesClasses  # noqa: F401
 
 
 # ---------------------------------------------------------------------------
@@ -416,11 +421,19 @@ def bound_function_table(object_name, bindings):
     """
     enriched = []
     for b in bindings:
-        function_name = (
-            b['descriptor']['name']
-            if 'descriptor' in b
-            else b.get('function')
-        )
+        # Match Perl's `cmp` semantics: descriptor name takes precedence;
+        # otherwise stringify `function` (which may be a list for `generic`
+        # bindings).  For lists we join with commas so the sort is at least
+        # deterministic — Perl stringified array refs to `ARRAY(0xHEX)`,
+        # making the order effectively random there.
+        if 'descriptor' in b:
+            function_name = b['descriptor']['name']
+        else:
+            target = b.get('function')
+            if isinstance(target, list):
+                function_name = ','.join(target)
+            else:
+                function_name = target or ''
         enriched.append((function_name, b))
     enriched.sort(key=lambda pair: pair[0])
 
