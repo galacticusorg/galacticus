@@ -37,11 +37,13 @@ def Gather_Classes(build):
     for implementation in (build.get('components') or {}).values():
         class_name = implementation['class']
         impl_name  = implementation['name']
-        entry = component_classes.setdefault(class_name, {
-            'name':        class_name,
-            'memberNames': [],
-            'members':     [],
-        })
+        # Implementation_Defaults may have already created the entry
+        # carrying just `defaultImplementation`; fill in the rest
+        # rather than overwrite.
+        entry = component_classes.setdefault(class_name, {})
+        entry.setdefault('name',        class_name)
+        entry.setdefault('memberNames', [])
+        entry.setdefault('members',     [])
         entry['memberNames'].append(impl_name)
         entry['members'    ].append(implementation)
 
