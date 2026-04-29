@@ -450,3 +450,47 @@ def extract_variables(variable_list, keep_qualifiers=False, lower_case=True, rem
         variables = [_restore(v) for v in variables]
 
     return variables
+
+
+def unformat_variables(variable_string):
+    """Parse a Fortran variable declaration string into a structured dict.
+
+    Mirrors Perl `Fortran::Utils::Unformat_Variables`.  Walks the
+    `INTRINSIC_DECLARATIONS` regex table; the first match wins.  Returns
+    None if no intrinsic regex matches.
+
+    The returned dict carries `intrinsic`, `variables` (with qualifiers
+    preserved), `variableNames` (without qualifiers), and optionally
+    `type` and `attributes`.
+    """
+    for entry in INTRINSIC_DECLARATIONS.values():
+        m = entry['regex'].match(variable_string)
+        if not m:
+            continue
+        groups = m.groups()
+        type_text          = groups[entry['type'      ]] if entry.get('type'      ) is not None else None
+        attributes_string  = groups[entry['attributes']] if entry.get('attributes') is not None else None
+        variables_string   = groups[entry['variables' ]] if entry.get('variables' ) is not None else None
+
+        if type_text is not None:
+            type_text = re.sub(r'^\((.*)\)$', r'\1', type_text)
+            type_text = re.sub(r'\s', '', type_text)
+        if attributes_string is not None:
+            attributes_string = re.sub(r'^\s*,\s*', '', attributes_string)
+
+        variables      = extract_variables(variables_string,  keep_qualifiers=True,  remove_spaces=True)
+        variable_names = extract_variables(variables_string,  keep_qualifiers=False, remove_spaces=True)
+        attributes     = extract_variables(attributes_string, keep_qualifiers=True,  remove_spaces=True) \
+            if attributes_string is not None else []
+
+        result = {
+            'intrinsic':     entry['intrinsic'],
+            'variables':     variables,
+            'variableNames': variable_names,
+        }
+        if type_text:
+            result['type'] = type_text
+        if attributes:
+            result['attributes'] = attributes
+        return result
+    return None

@@ -58,7 +58,9 @@ from Galacticus.Build.Components.Classes import Evolve         as _ClassesEvolve
 from Galacticus.Build.Components.Classes import Output         as _ClassesOutput          # noqa: F401
 from Galacticus.Build.Components.Implementations import Utils  as _ImplementationsUtils   # noqa: F401
 from Galacticus.Build.Components.Implementations import Names  as _ImplementationsNames   # noqa: F401
-from Galacticus.Build.Components.Implementations import State  as _ImplementationsState   # noqa: F401
+from Galacticus.Build.Components.Implementations import State    as _ImplementationsState    # noqa: F401
+from Galacticus.Build.Components.Implementations import Deferred as _ImplementationsDeferred # noqa: F401
+from Galacticus.Build.Components.Implementations import Output   as _ImplementationsOutput   # noqa: F401
 from Galacticus.Build.Components.Hierarchy import State        as _HierarchyState        # noqa: F401
 from Galacticus.Build.Components.Hierarchy import ODESolver    as _HierarchyODESolver    # noqa: F401
 from Galacticus.Build.Components.Hierarchy import Utils        as _HierarchyUtils        # noqa: F401
