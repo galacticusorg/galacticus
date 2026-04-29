@@ -262,15 +262,20 @@ def derived_types_serialize(build):
     from Sort.Topo import sort as topo_sort
 
     types        = build.get('types') or {}
+    # `Sort.Topo.sort` (per Perl Sort::Topo semantics) treats
+    # `dependencies[X] = [Y]` as "Y depends on X — Y must come AFTER X."
+    # So for each type we put its dependents (types that need it
+    # declared first) on its own list.  Mirrors Components.pm:248,252.
     dependencies = {}
     for type_name, type_def in types.items():
-        # A type depends on its parent.
+        # `extends` parent must come BEFORE this type.
         parent = type_def.get('extends')
         if parent:
-            dependencies.setdefault(type_name, []).append(parent)
-        # …and on any member that is itself one of our generated types,
-        # unless that member is held by pointer (in which case the parent
-        # type only needs the forward declaration that comes for free).
+            dependencies.setdefault(parent, []).append(type_name)
+        # Any non-pointer `type(...)` / `class(...)` member type must
+        # also come BEFORE this type, since the Fortran compiler needs
+        # the full definition (pointer members can use the forward
+        # declaration that comes for free).
         for member in type_def.get('dataContent') or []:
             intrinsic = member.get('intrinsic')
             if intrinsic not in ('type', 'class'):
@@ -281,7 +286,7 @@ def derived_types_serialize(build):
             attrs = member.get('attributes') or []
             if 'pointer' in attrs:
                 continue
-            dependencies.setdefault(type_name, []).append(mtype)
+            dependencies.setdefault(mtype, []).append(type_name)
 
     type_order = topo_sort(sorted(types.keys()), dependencies)
 
