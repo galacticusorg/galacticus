@@ -400,17 +400,18 @@ def Node_Event_Deserialize_Raw_Polymorphic(build):
 def Node_Event_Non_Static_Size_Of(build):
     """Generate `nodeEventSizeOf`.  Mirrors `Node_Event_Non_Static_Size_Of`.
 
-    WART preserved: the Perl description references `$code::class->{'name'}`
-    but `$code::class` is not assigned in this hook (it's a sister-hook
-    iterator variable).  Perl evaluates the dereference as undef →
-    empty string, so the description renders as "Compute the size of
-    the non-static parts of a \\mono{} object."  Mirrored verbatim.
+    The Perl original interpolates `$code::class->{'name'}` into the
+    description, but `$code::class` is never set in this hook's scope —
+    it's a sister-hook iterator variable, so Perl evaluates the deref
+    as undef and emits `\\mono{}`.  We fix the bug by hard-coding
+    `nodeEvent` (the actual `class(...)` of `self` in the generated
+    function), which is what the description was clearly meant to say.
     """
     function = {
         'type':        'integer(c_size_t)',
         'name':        'nodeEventSizeOf',
         'description': (
-            r"Compute the size of the non-static parts of a \mono{} object."
+            r"Compute the size of the non-static parts of a \mono{nodeEvent} object."
         ),
         'variables':   [
             {
