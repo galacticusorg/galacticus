@@ -26,7 +26,7 @@ def process_add_meta_property(tree, options):
     for node in walk_tree(tree):
         if node.get('type') != 'addMetaProperty':
             continue
-        directive = node.get('directive') or {}
+        directive = node.setdefault('directive', {})
         if directive.get('processed'):
             continue
         directive['processed'] = True

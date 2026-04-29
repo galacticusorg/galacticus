@@ -11,6 +11,7 @@ import copy
 sys.path.insert(0, os.path.join(os.environ.get('GALACTICUS_EXEC_PATH', ''), 'python'))
 
 from Fortran.Utils import INTRINSIC_DECLARATIONS, extract_variables
+from build.fortran_utils import extract_bracketed
 
 
 def parse_declaration(line):
@@ -73,24 +74,48 @@ def parse_declaration(line):
     type_val = None
     attributes = []
     if type_attrs_raw:
-        # Look for a type specification: intrinsic(something)
-        # But avoid matching dimension(:) or other attributes that follow a comma
-        parts = type_attrs_raw.split(',', 1)  # Split at first comma
-        first_part = parts[0].strip()
-        rest = parts[1].strip() if len(parts) > 1 else ''
+        # Carve a leading balanced parenthesised group off `type_attrs_raw` if
+        # one is present.  Uses `extract_bracketed` so that nested parens
+        # — e.g. `character(len=len(tagName))` — are matched correctly; the
+        # earlier `\(\s*([^)]+)\s*\)` regex stopped at the first `)` and
+        # produced `len=len(tagName` as the type, dropping the outer paren
+        # and breaking the round-trip.
+        leading_parens = None
+        rest_after_parens = type_attrs_raw.lstrip()
+        if rest_after_parens.startswith('('):
+            extracted, remainder, _ = extract_bracketed(
+                rest_after_parens, brackets="()")
+            if extracted is not None:
+                leading_parens   = extracted          # includes the outer ()
+                rest_after_parens = remainder.lstrip()
 
-        # Check if first part has parentheses (type specification)
-        m_type = re.search(r'\(\s*([^)]+)\s*\)', first_part)
-        if m_type and ('kind' in first_part.lower() or 'len' in first_part.lower() or
-                       intrinsic in ['type', 'class']):
-            type_val = m_type.group(1).strip()
+        # The remainder (after the optional leading parens) is the attributes
+        # list.  It still uses a single comma-separated form, so split on the
+        # leading comma if present.
+        first_part = leading_parens or ''
+        rest       = rest_after_parens.lstrip(', ').strip() \
+            if rest_after_parens.startswith(',') else rest_after_parens.strip()
 
-        # Attributes come after comma or are everything else
+        # Decide whether the leading parens should be consumed as the
+        # type-spec.  If `first_part` *starts* with `(` (i.e. the parens are
+        # the very first non-space content after the intrinsic), they are
+        # always the type-spec — `integer(c_size_t) :: …`,
+        # `type(varying_string) :: …`, `procedure(template), nopass :: …`,
+        # `character(len=len(tag)) :: …`, etc.
+        consumed_as_type = False
+        if first_part.startswith('(') and first_part.endswith(')'):
+            # Strip the outer parens to get the type-spec body.
+            type_val = first_part[1:-1].strip()
+            consumed_as_type = True
+
         if rest:
             attributes = extract_variables(rest, keep_qualifiers=True)
-        elif not m_type or not ('kind' in first_part.lower() or 'len' in first_part.lower()):
-            # No comma but has parens - might be attributes without type
+        elif not consumed_as_type and first_part:
+            # `first_part` carries parens that aren't a type-spec (rare —
+            # `dimension(:)` written without a leading comma).
             attributes = extract_variables(first_part, keep_qualifiers=True)
+        else:
+            attributes = []
 
     variables = extract_variables(variables_raw, keep_qualifiers=True, lower_case=True)
     variable_names = extract_variables(variables_raw, keep_qualifiers=False, lower_case=False)
@@ -295,14 +320,23 @@ def declaration_exists(node, variable_name):
     """Return True if the named variable has a declaration in node.
 
     Mirrors DeclarationExists() from Parse/Declarations.pm.  Case-insensitive.
+    Strips any `=…` initializer off each stored variable name before
+    comparing — declarations are stored as raw `name=value` tokens (e.g.
+    `warnObjectBuilder0__=.false.`) but callers query by bare name.  Also
+    falls back to `variableNames` (the parser's already-stripped list)
+    when present.
     """
     target = variable_name.lower()
     child = node.get('firstChild')
     while child:
         if child.get('type') == 'declaration':
             for declaration in child.get('declarations', []):
-                for v in declaration.get('variables', []):
+                for v in declaration.get('variableNames') or []:
                     if v.lower() == target:
+                        return True
+                for v in declaration.get('variables', []):
+                    bare = re.match(r'^([^=\s]+)', v)
+                    if bare and bare.group(1).lower() == target:
                         return True
         child = child.get('sibling')
     return False

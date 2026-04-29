@@ -26,18 +26,30 @@ def dependency_sort(tasks):
     Returns
     -------
     list[str]
-        Task names in an order consistent with Perl `Dependency_Sort`.
+        Task names in an order consistent with what Perl `Dependency_Sort`
+        actually emits (which is the opposite of what its docstring says
+        — see the Notes below).
 
     Notes
     -----
-    The Perl implementation builds edges as follows:
-      - `X.after = Y` → Sort::Topo is told that **Y depends on X**, i.e. X
-        precedes Y.
-      - `X.before = Y` → Sort::Topo is told that **X depends on Y**, i.e. Y
-        precedes X.
-    Both conventions read "inverted" relative to plain English but are
-    internally consistent and are what callers rely on.  We mirror them
-    exactly here.
+    Reading is the natural one:
+      - `X.after  = Y` →  X comes AFTER  Y in the output (Y precedes X).
+      - `X.before = Y` →  X comes BEFORE Y in the output (X precedes Y).
+
+    Implementation note (subtle).  Perl's `Sort::Topo` documents its
+    `dependencies` argument as "key X → array of names X depends on",
+    but its actual algorithm emits the *array element* later than the
+    key (so `dependencies[X] = [Y]` makes X precede Y in the output —
+    the opposite of what its docstring says).  Perl `Dependency_Sort`
+    relied on that inversion: for `X.after = Y` it pushed
+    `dependencies[Y] += [X]`, and the broken docstring + broken
+    algorithm cancelled out to give the right answer.
+
+    Our Python `Sort.Topo` wraps `graphlib.TopologicalSorter`, which
+    matches the standard "X depends on Y → Y first" convention.  So
+    we build edges the way the standard reading dictates:
+      - `X.after  = Y` → `deps[X] += [Y]` ("X depends on Y", Y first).
+      - `X.before = Y` → `deps[Y] += [X]` ("Y depends on X", X first).
     """
     names = list(tasks.keys())
     deps  = {name: [] for name in names}
@@ -45,9 +57,9 @@ def dependency_sort(tasks):
     for name, info in tasks.items():
         for after in as_array(info.get('after')):
             if after in deps:
-                deps[after].append(name)
+                deps[name].append(after)
         for before in as_array(info.get('before')):
-            if name in deps:
-                deps[name].append(before)
+            if before in deps:
+                deps[before].append(name)
 
     return topo_sort(sorted(names), deps)

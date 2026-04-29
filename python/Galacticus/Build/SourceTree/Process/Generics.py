@@ -18,7 +18,7 @@ from List.ExtraUtils                                  import as_array
 from Galacticus.Build.SourceTree                      import (
     walk_tree, replace_node, parse_code, serialize,
 )
-from Galacticus.Build.SourceTree.Process              import register_process
+from Galacticus.Build.SourceTree.Process              import register_process, process_tree
 
 # The broken-bar character used as field separator in generic placeholders.
 # Defined as a constant to make the intent obvious at call sites.
@@ -162,11 +162,17 @@ def _reparse_declaration(code_node):
     }
     node_copy['parent'] = tree_tmp
     # Delegate to the (already-ported) declarations parse pass.
-    from Galacticus.Build.SourceTree import _pass_declarations
+    from Galacticus.Build.SourceTree import _pass_declarations, children
     _pass_declarations(tree_tmp)
-    # Replace the original declaration parent (which contained the old code
-    # node) with whatever the re-parse produced.
-    replace_node(parent, [tree_tmp['firstChild']])
+    # Replace the original declaration parent with EVERY child the parse
+    # pass produced — `_pass_declarations` may split the input into a
+    # sequence (declaration + code + declaration + …) when preprocessor
+    # directives like `#ifdef` separate runs of declarations.  Passing only
+    # the first child to `replace_node` (which overwrites the new node's
+    # sibling pointer) silently dropped any preprocessor-wrapped
+    # declarations such as the `commitHash` array added by
+    # ParameterMigration.
+    replace_node(parent, children(tree_tmp))
 
 
 def _opener_matches_generic(node, generic_re):
@@ -195,7 +201,7 @@ def process_generics(tree, options):
     for node in list(walk_tree(tree)):
         if node.get('type') != 'generic':
             continue
-        directive = node.get('directive') or {}
+        directive = node.setdefault('directive', {})
         directive['processed'] = True
         identifier = directive['identifier']
         generic_re = re.compile(
@@ -205,28 +211,74 @@ def process_generics(tree, options):
         sibling = node.get('sibling')
         tree_name = tree.get('name', '<generic>')
         while sibling is not None:
-            stack = _stack_it(sibling)
-            while stack:
-                sub_node, sub_depth = stack.pop()
-
-                if _opener_matches_generic(sub_node, generic_re):
-                    # Branch A: clone the whole subtree per instance.
-                    copies = _expand_subtree(
-                        sub_node, identifier, instances, tree_name)
-                    replace_node(sub_node, copies)
-                    # Drop any remaining stack entries that belonged to this
-                    # subtree — i.e. everything at depth > sub_depth that we
-                    # haven't already popped.
-                    while stack and stack[-1][1] > sub_depth:
-                        stack.pop()
-
-                elif 'content' in sub_node:
-                    if _has_generic_ancestor(sub_node, generic_re):
-                        continue
-                    _expand_content_lines(
-                        sub_node, identifier, instances, generic_re)
-
+            # Walk the sibling's subtree top-down (parent before children) so
+            # that an *outer* opener with a generic placeholder is expanded as
+            # a single unit — its descendants are cloned once-per-instance via
+            # the per-clone substitution walk inside `_expand_subtree`, and
+            # the descendants must NOT be expanded a second time afterwards.
+            #
+            # The bottom-up stack pop order would expand inner placeholders
+            # first (e.g. the `module procedure {Type¦…}` *inside* an
+            # `interface {Type¦…}`), and then the outer expansion would clone
+            # the interface — now containing 13 already-expanded modprocs —
+            # 13 times, giving every interface a copy of every constructor.
+            _expand_top_down(sibling, generic_re, identifier, instances,
+                             tree_name)
             sibling = sibling.get('sibling')
+
+
+def _expand_top_down(node, generic_re, identifier, instances, tree_name):
+    """Walk `node` and its subtree top-down, expanding every opener that
+    matches `generic_re`.  When an opener matches, the entire subtree at that
+    point is cloned once per instance; descendants of the matched node are
+    NOT visited a second time (they were already cloned-and-substituted as
+    part of the parent's `_expand_subtree`).
+
+    Code-content nodes (no `opener`) are visited unconditionally so inline
+    `{Type¦…}` placeholders inside raw Fortran lines still get substituted.
+    """
+    if _opener_matches_generic(node, generic_re):
+        copies = _expand_subtree(node, identifier, instances, tree_name)
+        replace_node(node, copies)
+        return
+
+    if 'content' in node:
+        if not _has_generic_ancestor(node, generic_re):
+            _expand_content_lines(node, identifier, instances, generic_re)
+
+    # Recurse into children.  Materialise the child list first because each
+    # child may rewrite the parent's child chain via replace_node above.
+    children_list = []
+    child = node.get('firstChild')
+    while child is not None:
+        children_list.append(child)
+        child = child.get('sibling')
+    for c in children_list:
+        _expand_top_down(c, generic_re, identifier, instances, tree_name)
+
+
+def _strip_processed_directive_content(root):
+    """Blank the firstChild content of every already-processed directive
+    in the subtree at `root`, EXCEPT those whose type is in the
+    `is_non_processed_type` exemption list (`<methods>`, `<workaround>`,
+    …) — those carry data rather than generating code, so their content
+    must survive into the cloned subtree for the inner `process_tree`'s
+    classDocumentation pass to find them.
+
+    See `_expand_subtree` for why we strip in the first place.
+    """
+    from Galacticus.Build.SourceTree.Process.NonProcessed import (
+        is_non_processed_type,
+    )
+    for cn in walk_tree(root):
+        directive = cn.get('directive')
+        if not (directive and directive.get('processed')):
+            continue
+        if is_non_processed_type(cn.get('type')):
+            continue
+        first = cn.get('firstChild')
+        if first is not None:
+            first['content'] = ''
 
 
 def _expand_subtree(sub_node, identifier, instances, tree_name):
@@ -251,9 +303,26 @@ def _expand_subtree(sub_node, identifier, instances, tree_name):
                     cn['content'], identifier, instance)
                 _reparse_declaration(cn)
 
+        # Strip the `!![…!!]` XML markers from every already-processed
+        # directive — see `_strip_processed_directive_content` for the
+        # exemption rules and rationale.
+        _strip_processed_directive_content(copied)
+
         # Re-parse the serialized copy so generic-expanded declarations /
-        # directives are re-discovered.
-        reparsed = parse_code(serialize(copied), name=tree_name)
+        # directives are re-discovered, then run the full process pipeline on
+        # the isolated subtree so any directive types that were already
+        # handled in the outer tree (e.g. `optionalArgument`, `inputParameter`)
+        # also get processed in the new copy.  Hooks are idempotent — they
+        # check `directive.get('processed')` and skip — so re-running them is
+        # safe.  Mirrors `_insert_parsed(..., run_process_tree=True)`.
+        # `instrument=False`: the original tree was already source-introspection-
+        # instrumented when first parsed, so its serialised form already
+        # contains `{introspection:location:NNN}` tags.  Re-instrumenting
+        # would re-tag those, replacing baked-in line numbers with the line
+        # number of the position they happen to land on in the synthesised
+        # text — matches Perl ParseCode's `instrument => 0` option.
+        reparsed = parse_code(serialize(copied), name=tree_name, instrument=False)
+        process_tree(reparsed)
         copies.append(reparsed)
     return copies
 

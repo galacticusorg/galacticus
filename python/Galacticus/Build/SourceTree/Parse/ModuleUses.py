@@ -54,9 +54,16 @@ def parse_module_uses(tree):
 
         def _flush_code():
             nonlocal raw_code_buf, raw_code_line, raw_use_line
-            if raw_pp_buf:
-                raw_code_buf.extend(raw_pp_buf)
-                raw_pp_buf.clear()
+            # NB: deliberately leaves `raw_pp_buf` alone — preprocessor lines
+            # immediately preceding a `use` belong with the moduleUse block
+            # (they record the directive's condition in `entry['conditions']`
+            # and `_build_module_uses` re-emits a matching `#ifdef … #endif`
+            # wrapper).  Absorbing them into the code node here would cause
+            # the wrapper to be emitted twice — once by the surrounding code
+            # node, once by the rebuild — leaving the output with one extra
+            # `#ifdef` and an unmatched preprocessor block.  The plain-code
+            # `else` branch and the EOF handler still absorb any pp lines
+            # that were *not* followed by a `use`.
             if raw_code_buf:
                 new_nodes.append(_make_code_node(
                     ''.join(raw_code_buf), source, raw_code_line))
@@ -368,6 +375,15 @@ def add_uses(node, module_uses_node):
         existing['intrinsic'] = new_entry.get('intrinsic', False)
         if 'conditions' in new_entry:
             existing['conditions'] = copy.deepcopy(new_entry['conditions'])
+        else:
+            # The caller wants to use this module unconditionally — if the
+            # existing entry was wrapped in `#ifdef …`, drop the conditions
+            # so the wrapper is removed.  Otherwise the merged `use` ends up
+            # only imported in builds where the original (e.g. MPI-only)
+            # condition holds, and the new caller's symbol is undefined in
+            # other builds.  This mirrors the intuitive read of "merge in
+            # an unconditional use of mod_name".
+            existing.pop('conditions', None)
 
         if 'all' not in existing:
             if new_entry.get('all'):

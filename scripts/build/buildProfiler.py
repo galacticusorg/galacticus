@@ -79,7 +79,7 @@ with open(args.buildLogFile) as f:
             time_latest = stop_time
         # Simplify the command to a more human-readable form where possible.
         elements = command.split()
-        if len(elements) > 1 and elements[0] == "./scripts/build/preprocess.pl":
+        if len(elements) > 1 and elements[0] == "./scripts/build/preprocess.py":
             elements[1] = elements[1].replace("source/", "")
             command = elements[1] + " (preprocess)"
         elif len(elements) > 4 and elements[0] == "gfortran":

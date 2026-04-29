@@ -45,7 +45,7 @@ def process_source_digests(tree, options):
     for node in walk_tree(tree):
         if node.get('type') != 'sourceDigest':
             continue
-        directive = node.get('directive') or {}
+        directive = node.setdefault('directive', {})
         if directive.get('processed'):
             continue
         directive['processed'] = True

@@ -33,7 +33,22 @@ def xml_to_dict(element, keyed_tags=None, force_array=None):
             converted = [xml_to_dict(child, keyed_tags, force_array) for child in children]
             is_forced = force_array is not None and tag in force_array
             result[tag] = converted if (is_forced or len(converted) > 1) else converted[0]
-    text = (element.text or '').strip()
+    text = element.text or ''
+    if '\n' in text:
+        # Multi-line content (typically a directive code body, e.g. the
+        # `<forEach>…end if\n</forEach>` body or the `<call>…\n</call>`
+        # template).  Preserve the text as-is so internal newlines and the
+        # final trailing newline survive — downstream emitters concatenate
+        # the body with extra lines (`end do\n`, `end if\n`, …) and assume
+        # each line is properly terminated.  Only treat the text as empty
+        # when it is pure whitespace.
+        if not text.strip():
+            text = ''
+    else:
+        # Single-line text (descriptions, parameter values, etc.) — strip
+        # surrounding whitespace as the XML::Simple-style port has done
+        # since day one.
+        text = text.strip()
     if text:
         if result:
             result['content'] = text

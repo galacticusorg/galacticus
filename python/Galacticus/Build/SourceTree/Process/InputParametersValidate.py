@@ -13,6 +13,9 @@ import xml.etree.ElementTree as ET
 sys.path.insert(0, os.path.join(os.environ.get('GALACTICUS_EXEC_PATH', ''), 'python'))
 
 from XML.Utils                                      import xml_to_dict
+from Galacticus.Build.StateStorables                import (
+    function_class_names    as _shared_function_class_names,
+)
 from Galacticus.Build.SourceTree                    import walk_tree, insert_after_node
 from Galacticus.Build.SourceTree.Process            import register_process
 from Galacticus.Build.SourceTree.Parse.Declarations import (
@@ -51,24 +54,7 @@ def _function_class_result_name(parent_function):
 def process_input_parameters_validate(tree, options):
     """Mirrors Process_InputParametersValidate() from InputParametersValidate.pm."""
     state_storables = _load_state_storables()
-    function_classes = (state_storables.get('functionClasses') or {})
-    # Python xml_to_dict on `<functionClasses><functionClass .../></functionClasses>` yields
-    # {'functionClass': [...]} or {'functionClass': {...}}.  We only need the set of
-    # class-name keys (like `xxxClass`) for the membership test below.  The Perl code
-    # indexes `$stateStorables->{'functionClasses'}{'xxxClass'}` directly — XML::Simple's
-    # keyAttr grouping would have produced that shape.  Rebuild it from the list form.
-    class_names = set()
-    if isinstance(function_classes, dict):
-        if 'functionClass' in function_classes:
-            entries = function_classes['functionClass']
-            if isinstance(entries, dict):
-                entries = [entries]
-            for e in entries:
-                name = e.get('name') if isinstance(e, dict) else None
-                if name:
-                    class_names.add(name)
-        else:
-            class_names = set(function_classes.keys())
+    class_names     = _shared_function_class_names(state_storables)
 
     function_class_name = None
 
@@ -79,7 +65,7 @@ def process_input_parameters_validate(tree, options):
 
         if ntype != 'inputParametersValidate':
             continue
-        directive = node.get('directive') or {}
+        directive = node.setdefault('directive', {})
         if directive.get('processed'):
             continue
         directive['processed'] = True

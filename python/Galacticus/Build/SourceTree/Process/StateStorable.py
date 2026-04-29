@@ -38,8 +38,13 @@ _EXTENDS_ATTR_RE = re.compile(r'extends\(([a-zA-Z0-9_]+)\)', re.IGNORECASE)
 
 def _parse_type_opener(opener):
     """Return `(name, extends_or_None, abstract_bool)` for a `type … :: name`
-    opener line, or raise if it can't be parsed.
+    opener line, or None for openers carrying unexpanded `{Type¦…}` generic
+    placeholders (StateStorable doesn't support generics, so those types are
+    silently skipped — DeepCopyActions makes the same carve-out at
+    DeepCopyActions.pm:62).  Raises only on genuinely unparseable openers.
     """
+    if '{' in opener:
+        return None
     m = _TYPE_OPENER_RE.match(opener)
     if not m:
         raise RuntimeError(
@@ -270,7 +275,14 @@ def _process_allocatable_intrinsic(declaration, exclude):
     }
     attributes = declaration.get('attributes') or []
     rank = _attribute_rank(attributes)
-    fragments['rank_seen'] = rank
+    # NB: deliberately do NOT propagate `rank` into `fragments['rank_seen']`.
+    # The output/input bodies below use Fortran whole-array I/O
+    # (`write (stateFile) self%name`) and never emit a `do iN=...` loop, so
+    # the caller's `rank_maximum` (which gates the `integer(c_size_t) :: i1
+    # … iN` declaration) must not be bumped on our account — otherwise the
+    # compiler emits "Unused variable" warnings for `i2`, `i3`, … in the
+    # generated stateStore subroutine when the only multi-rank field in
+    # the type is an allocatable intrinsic.
     for name in declaration.get('variables', []):
         if any(x.lower() == name.lower() for x in exclude):
             continue
@@ -415,7 +427,7 @@ def process_state_storable(tree, options):
     for node in walk_tree(tree):
         ntype = node.get('type')
         if ntype == 'stateStorable':
-            directive = node.get('directive') or {}
+            directive = node.setdefault('directive', {})
             if directive.get('processed'):
                 continue
             parent = node.get('parent')
@@ -425,7 +437,13 @@ def process_state_storable(tree, options):
             directive_nodes.append(node)
             continue
         if ntype == 'type':
-            name, extends, abstract = _parse_type_opener(node.get('opener', ''))
+            parsed = _parse_type_opener(node.get('opener', ''))
+            if parsed is None:
+                # Generic-templated opener (e.g. `type :: {Type¦label}Foo`) —
+                # ignore it; the expanded copies will be re-processed after
+                # generics runs.
+                continue
+            name, extends, abstract = parsed
             classes[name] = {
                 'node':     node,
                 'extends':  extends,
@@ -600,7 +618,12 @@ def _emit_store_restore(directive, classes, storable_types):
                 if child.get('type') == 'declaration':
                     for declaration in child.get('declarations', []):
                         intr = declaration.get('intrinsic')
-                        if intr == 'procedure':
+                        # Skip type-bound markers (`procedure`/`generic`/
+                        # `final`).  None of these declare data members;
+                        # treating them as data emits invalid Fortran like
+                        # `sizeof(self%assignment(=)=>integratorAssign)` for
+                        # generic-operator bindings.
+                        if intr in ('procedure', 'generic', 'final'):
                             continue
                         if intr in ('class', 'type'):
                             frag = _process_derived_declaration(

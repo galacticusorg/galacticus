@@ -29,13 +29,26 @@ def parse_file(filename):
     return parse_code(content, name=os.path.basename(filename), source=filename)
 
 
-def parse_code(code, name='<string>', source=None):
+def parse_code(code, name='<string>', source=None, instrument=True):
     """Build an AST from a Fortran source string.
 
     Mirrors Perl Galacticus::Build::SourceTree::ParseCode(code, fileName).
     Used by Process/Generics when it serializes a macro-expanded subtree and
     needs to re-parse it from its textual form.
+
+    `instrument=True` (the default) tags every `{introspection:location}`
+    placeholder with the line number on which it appears; downstream
+    `process_source_introspection` then expands those into a full Fortran
+    expression naming the surrounding scope.  Re-parses of generic-expanded
+    or otherwise synthesised content should pass `instrument=False` so the
+    line numbers aren't tagged a second time — matching Perl ParseCode's
+    `instrument => 0` option.
     """
+    if instrument:
+        from Galacticus.Build.SourceTree.Process.SourceIntrospection import (
+            instrument as _instrument,
+        )
+        code = _instrument(code)
     root = {
         'type':       'file',
         'name':       name,
@@ -94,17 +107,17 @@ def _build_tree(root):
     Mirrors Perl Build_Children + Parse_Unit + the directive/moduleUse/
     declaration parse hooks.
     """
-    # Step 1: comment out LaTeX and XML blocks so that _parse_units() is not confused
-    # by documentation text that could look like structural Fortran keywords.  Keep the
-    # original content so _parse_units() can store unmodified raw lines in code nodes,
-    # which is required for correct round-trip serialization.
-    original_content   = root['content']
-    root['content']    = _comment_embedded(original_content)
-    root['_orig_content'] = original_content   # parallel reader used by _parse_units
+    # Step 1: comment out embedded LaTeX (`!!{ ... !!}`) and XML (`!![ ... !!]`)
+    # blocks by prefixing each body line with "!< ".  Mirrors Perl
+    # Comment_Embedded(): the markers themselves remain unmodified (they are
+    # already valid Fortran comments because they begin with "!!"), but the
+    # body lines need the "!< " prefix to be valid Fortran when serialized
+    # straight to the compiler.  We store the commented content in code nodes
+    # so that serialize() emits compilable Fortran.
+    root['content'] = _comment_embedded(root['content'])
 
-    # Step 2: split raw content into structural units.
+    # Step 2: split content into structural units.
     unit_children = _parse_units(root)
-    del root['_orig_content']
     _link_children(root, unit_children)
 
     # Step 3: run the parse passes over the whole tree (matches the set of
@@ -156,18 +169,19 @@ def _make_code_node(content, source, line, parent=None):
 
 
 def _parse_units(parent):
-    """Split parent['content'] into child nodes (clean implementation)."""
-    content          = parent.get('content', '')
-    # _orig_content is set by _build_tree() before calling _comment_embedded(); for
-    # recursively-created dummy parents (from _children_from_mixed_lines), the content
-    # is already the original because we accumulate from fh_orig below.
-    original_content = parent.get('_orig_content', content)
-    source           = parent.get('source', 'unknown')
-    base_line        = parent.get('line',   0)
+    """Split parent['content'] into child nodes (clean implementation).
+
+    parent['content'] is expected to already have any embedded LaTeX/XML
+    blocks commented out by _comment_embedded() — every line stored in a
+    code/opener/closer field is the same line we will later serialize, so
+    the round-trip output is valid Fortran.
+    """
+    content   = parent.get('content', '')
+    source    = parent.get('source', 'unknown')
+    base_line = parent.get('line',   0)
 
     import io
-    fh      = io.StringIO(content)           # processed (possibly commented) — for detection
-    fh_orig = io.StringIO(original_content)  # original — for raw line storage
+    fh = io.StringIO(content)
 
     # Each stack entry: [node_dict, inner_lines_list]
     stack         = []
@@ -185,8 +199,7 @@ def _parse_units(parent):
             raw_code_line = current_line
 
     while True:
-        raw_line,      processed_line, _ = get_fortran_line(fh)
-        raw_orig_line, _,              _ = get_fortran_line(fh_orig)
+        raw_line, processed_line, _ = get_fortran_line(fh)
         if not raw_line and not processed_line:
             break
 
@@ -198,7 +211,7 @@ def _parse_units(parent):
             top_node = stack[-1][0]
             closer_re = UNIT_CLOSERS.get(top_node['type'])
             if closer_re and closer_re.match(processed_line):
-                top_node['closer'] = raw_orig_line   # store original
+                top_node['closer'] = raw_line
                 # Recurse into the accumulated inner content.
                 # inner_lines may contain pre-built sentinel nodes interspersed
                 # with raw string chunks, so use _children_from_mixed_lines.
@@ -210,11 +223,10 @@ def _parse_units(parent):
                 # Deliver the closed node to the new top scope.
                 if stack:
                     # Flush raw code inside outer unit, then add closed node.
-                    # (raw_code_buf is accumulates top-level code; it would be
+                    # (raw_code_buf accumulates top-level code; it would be
                     # empty here in practice, but handle defensively.)
                     if raw_code_buf:
-                        s = ''.join(raw_code_buf)
-                        stack[-1][1].append((s, s))   # same for modified/original
+                        stack[-1][1].append(''.join(raw_code_buf))
                         raw_code_buf  = []
                         raw_code_line = line_after
                     # The closed node goes into the outer unit's inner lines as
@@ -261,7 +273,7 @@ def _parse_units(parent):
             node = {
                 'type':       unit_type,
                 'name':       unit_name,
-                'opener':     raw_orig_line,   # store original (unmodified) opener
+                'opener':     raw_line,
                 'parent':     None,
                 'firstChild': None,
                 'sibling':    None,
@@ -295,13 +307,10 @@ def _parse_units(parent):
             continue
 
         # ---- plain code line ----
-        # Store (modified, original) pair so that _children_from_mixed_lines can
-        # pass modified content to _parse_units for structural detection while
-        # keeping original content for code-node storage.
         if stack:
-            stack[-1][1].append((raw_line, raw_orig_line))
+            stack[-1][1].append(raw_line)
         else:
-            raw_code_buf.append(raw_orig_line)
+            raw_code_buf.append(raw_line)
 
         current_line = line_after
 
@@ -333,57 +342,44 @@ def _resolve_sentinels(node_list):
 
 
 def _children_from_mixed_lines(inner_lines, parent):
-    """Build child node list from inner_lines (mixed line-pairs and sentinel tuples).
+    """Build child node list from inner_lines.
 
     inner_lines is a list where each element is either:
-      - a (modified_str, orig_str) 2-tuple — a raw Fortran source pair, or
-      - a ('\x00NODE\x00', node)   2-tuple — a pre-built child node.
+      - a string — a raw Fortran source line (already commented for embedded
+        LaTeX/XML by _comment_embedded()), or
+      - a ('\x00NODE\x00', node) 2-tuple — a pre-built child node injected
+        when a sub-unit closed while an outer unit was still open.
 
-    Line-pair runs are joined separately: modified content is passed as 'content'
-    (used for structural unit detection) and original content as '_orig_content'
-    (used for code-node raw-text storage).  This mirrors the parallel-reader
-    approach in _parse_units at the top level.
+    Runs of plain strings are joined and re-parsed via _parse_units(); pre-
+    built nodes pass through unchanged.
     """
     children = []
-    mod_buf  = []
-    orig_buf = []
+    line_buf = []
     source   = parent.get('source', 'unknown')
     line     = parent.get('line',   0)
 
     def _flush():
-        if not mod_buf:
+        if not line_buf:
             return
-        mod_text  = ''.join(mod_buf)
-        orig_text = ''.join(orig_buf)
         dummy = {
-            'content':       mod_text,
-            '_orig_content': orig_text,
-            'source':        source,
-            'line':          line,
+            'content': ''.join(line_buf),
+            'source':  source,
+            'line':    line,
         }
         children.extend(_parse_units(dummy))
-        mod_buf.clear()
-        orig_buf.clear()
+        line_buf.clear()
 
     for item in inner_lines:
         if isinstance(item, tuple) and item[0] == '\x00NODE\x00':
             _flush()
-            children.append(item[1])  # pre-built node
+            children.append(item[1])
+        elif isinstance(item, str):
+            line_buf.append(item)
         else:
-            # Must be a (modified_str, orig_str) 2-tuple; plain strings are not
-            # accepted — they would silently index as character sequences.
-            if (
-                not isinstance(item, tuple)
-                or len(item) != 2
-                or not isinstance(item[0], str)
-                or not isinstance(item[1], str)
-            ):
-                raise TypeError(
-                    f"_children_from_mixed_lines: expected a (modified_str, orig_str) "
-                    f"2-tuple, got {type(item).__name__!r}: {item!r}"
-                )
-            mod_buf.append(item[0])
-            orig_buf.append(item[1])
+            raise TypeError(
+                f"_children_from_mixed_lines: expected a string or sentinel "
+                f"tuple, got {type(item).__name__!r}: {item!r}"
+            )
     _flush()
     return children
 
@@ -754,31 +750,103 @@ def _pass_openmp(tree):
 # Serialization  (mirrors Perl Galacticus::Build::SourceTree::Serialize)
 # ---------------------------------------------------------------------------
 
-def serialize(node):
+def serialize(node, annotate=False, strip_mappings=False):
     """Reconstruct Fortran source text from an AST node and its siblings.
 
-    Mirrors Perl Galacticus::Build::SourceTree::Serialize(node, annotate => 0).
+    Mirrors Perl Galacticus::Build::SourceTree::Serialize().
+
+    Parameters
+    ----------
+    node : dict
+        Root AST node.
+    annotate : bool, default False
+        When True, emit `!--> <origLine> <outLine> "<source>"` line-number
+        mapping comments ahead of each node's serialized content.  When
+        False, the serialized output is pure Fortran.  (Perl defaults to
+        True; we default to False so existing callers that just want source
+        text are unaffected.)
+    strip_mappings : bool, default False
+        When True, the annotations are removed from the returned source and
+        collected into a second string.  In that mode the function returns a
+        `(source, mappings)` 2-tuple.  When False (the default), the function
+        returns a single `source` string — matching the behaviour used by
+        `Generics` / `FunctionClass` callers that do not need mappings.
 
     The algorithm is a sibling-chain walk that recurses into firstChild:
       - code nodes      → emit content directly
       - all other nodes → emit opener (if any) + serialize(firstChild) + closer (if any)
-
-    This works for every node type produced by the parser:
-      - structural units (module, subroutine, …): have opener/closer
-      - moduleUse nodes: firstChild holds the raw/reformatted use text
-      - declaration nodes: firstChild holds the raw declaration text
-      - directive nodes: firstChild holds the raw !![…!!] block text
     """
-    result  = ""
-    current = node
-    while current:
-        if current.get('type') == 'code':
-            result += current.get('content') or ''
-        else:
-            result += current.get('opener') or ''
-            child = current.get('firstChild')
-            if child:
-                result += serialize(child)
-            result += current.get('closer') or ''
-        current = current.get('sibling')
+    result, mappings = _serialize(node, annotate=annotate, strip_mappings=strip_mappings)
+    if strip_mappings:
+        return result, mappings
     return result
+
+
+_MAPPING_RE = re.compile(r'^!-->\s+(\d+)\s+(\d+)\s+"(.+)"')
+
+
+def _serialize(node, annotate, strip_mappings):
+    """Internal helper: always returns (source, mappings) and tracks the
+    cumulative output line number across the sibling chain.
+    """
+    serialization = ''
+    mappings      = ''
+    line_number   = 0
+    current       = node
+
+    while current:
+        # Emit line-mapping annotation for this node.
+        if annotate and 'source' in current and 'line' in current:
+            mapping_line = f'!--> {current["line"]} {line_number} "{current["source"]}"\n'
+            if strip_mappings:
+                mappings += mapping_line
+            else:
+                line_number   += 1
+                serialization += mapping_line
+
+        # Serialize this node's own content.
+        if current.get('type') == 'code':
+            node_text = current.get('content') or ''
+        else:
+            node_text = current.get('opener') or ''
+            child     = current.get('firstChild')
+            if child:
+                # Children never strip mappings themselves — we do that at the
+                # outermost level as we fold their text back in.
+                child_text, _ = _serialize(child, annotate=annotate, strip_mappings=False)
+                node_text += child_text
+            node_text += current.get('closer') or ''
+
+        if strip_mappings:
+            stripped = ''
+            for line in node_text.splitlines(keepends=True):
+                m = _MAPPING_RE.match(line)
+                if m:
+                    mappings += f'!--> {m.group(1)} {line_number + 1} "{m.group(3)}"\n'
+                else:
+                    line_number += 1
+                    stripped    += line
+            node_text = stripped
+        else:
+            line_number += node_text.count('\n')
+
+        serialization += node_text
+        current        = current.get('sibling')
+
+    return serialization, mappings
+
+
+def analyze_tree(tree, options=None):
+    """Run every registered analyze hook on the tree.
+
+    Mirrors Perl Galacticus::Build::SourceTree::AnalyzeTree().  The analyze
+    hook registry lives in Galacticus.Build.SourceTree.Process so that Analyze
+    submodules can register themselves at import time; if no analyze modules
+    have been imported, this is a no-op.
+    """
+    from Galacticus.Build.SourceTree.Process import ANALYZE_HOOKS
+    if options is None:
+        options = {}
+    for name in sorted(ANALYZE_HOOKS.keys()):
+        ANALYZE_HOOKS[name](tree, options)
+    return tree

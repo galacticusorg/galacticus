@@ -15,6 +15,7 @@ import xml.etree.ElementTree as ET
 sys.path.insert(0, os.path.join(os.environ.get('GALACTICUS_EXEC_PATH', ''), 'python'))
 
 from XML.Utils                                      import xml_to_dict
+from Galacticus.Build.StateStorables                import function_class_entries
 from Galacticus.Build.SourceTree                    import (
     walk_tree, insert_after_node,
 )
@@ -42,22 +43,12 @@ def _load_state_storables():
 
 
 def _function_classes_by_name(state_storables):
-    """Return `{<name>Class: {module: …, …}}` — the shape Perl's XML::Simple
-    with default KeyAttr grouping produces, which the hook relies on.
-    """
+    """Return `{<name>Class: {module: …, …}}` keyed by class name."""
     out = {}
-    fc = (state_storables or {}).get('functionClasses') or {}
-    if not isinstance(fc, dict):
-        return out
-    entries = fc.get('functionClass')
-    if entries is None:
-        return {k: (v if isinstance(v, dict) else {})
-                for k, v in fc.items()}
-    if isinstance(entries, dict):
-        entries = [entries]
-    for e in entries:
-        if isinstance(e, dict) and 'name' in e:
-            out[e['name']] = {k: v for k, v in e.items() if k != 'name'}
+    for entry in function_class_entries(state_storables):
+        name = entry.get('name')
+        if name:
+            out[name] = {k: v for k, v in entry.items() if k != 'name'}
     return out
 
 
@@ -524,9 +515,15 @@ def process_object_builder(tree, options):
     state_storables  = _load_state_storables()
     function_classes = _function_classes_by_name(state_storables)
 
+    handled_types = (
+        'objectBuilder', 'objectDestructor', 'referenceCountIncrement',
+        'referenceAcquire', 'referenceConstruct', 'deepCopy',
+    )
     for node in list(walk_tree(tree)):
         ntype = node.get('type')
-        directive = node.get('directive') or {}
+        if ntype not in handled_types:
+            continue
+        directive = node.setdefault('directive', {})
         if directive.get('processed'):
             continue
 
@@ -542,8 +539,6 @@ def process_object_builder(tree, options):
             _handle_reference_construct(node)
         elif ntype == 'deepCopy':
             _handle_deep_copy(node)
-        else:
-            continue
 
         directive['processed'] = True
 

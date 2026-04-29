@@ -167,7 +167,7 @@ def process_constant(tree, options):
             continue
         if ntype != 'constant':
             continue
-        directive = node.get('directive') or {}
+        directive = node.setdefault('directive', {})
         if directive.get('processed'):
             continue
 

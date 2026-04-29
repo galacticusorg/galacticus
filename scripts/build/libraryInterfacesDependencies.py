@@ -39,7 +39,7 @@ for name in class_names:
         f" {build_path}libgalacticus/{name}.F90"
         f" {build_path}hdf5FCInterop.dat"
         f" {build_path}openMPCriticalSections.xml\n"
-        f"\t./scripts/build/preprocess.pl"
+        f"\t./scripts/build/preprocess.py"
         f" {build_path}libgalacticus/{name}.F90"
         f" {build_path}libgalacticus/{name}.p.F90\n"
         f"{build_path}libgalacticus/{name}.p.F90 :"

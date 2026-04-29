@@ -28,6 +28,11 @@ sys.path.insert(0, os.path.join(os.environ.get('GALACTICUS_EXEC_PATH', ''), 'pyt
 from List.ExtraUtils                                         import as_array
 from Sort.Topo                                               import sort as topo_sort
 from XML.Utils                                               import xml_to_dict
+from Galacticus.Build.StateStorables                         import (
+    function_class_entries  as _shared_function_class_entries,
+    function_class_names    as _shared_function_class_names,
+    function_class_instances as _shared_function_class_instances,
+)
 from Galacticus.Build.SourceTree                             import (
     walk_tree, parse_code, parse_file, insert_after_node,
     insert_pre_contains, insert_post_contains, prepend_child_to_node,
@@ -177,36 +182,11 @@ _DIRECTIVE_LOCATIONS_HOLDER = {'value': None}
 
 
 def _function_class_names(state_storables):
-    """Set of functionClass name keys."""
-    fc = (state_storables or {}).get('functionClasses') or {}
-    if not isinstance(fc, dict):
-        return set()
-    entries = fc.get('functionClass')
-    if entries is None:
-        return set(fc.keys())
-    if isinstance(entries, dict):
-        entries = [entries]
-    return {e.get('name') for e in entries
-            if isinstance(e, dict) and 'name' in e}
+    return _shared_function_class_names(state_storables)
 
 
 def _function_class_instances(state_storables):
-    """List of functionClassInstances names."""
-    raw = (state_storables or {}).get('functionClassInstances') or []
-    if isinstance(raw, str):
-        return [raw] if raw else []
-    if isinstance(raw, dict):
-        name = raw.get('content') or raw.get('name')
-        return [name] if name else []
-    out = []
-    for item in raw:
-        if isinstance(item, str):
-            out.append(item)
-        elif isinstance(item, dict):
-            name = item.get('content') or item.get('name')
-            if name:
-                out.append(name)
-    return out
+    return _shared_function_class_instances(state_storables)
 
 
 # ---------------------------------------------------------------------------
@@ -408,7 +388,16 @@ def _load_and_sort_classes(directive, directive_locations):
         for dep in class_deps:
             type_name = class_record.get('type')
             if type_name and dep != type_name:
-                dependencies.setdefault(dep, []).append(type_name)
+                # Sort.Topo's predecessor convention: `dependencies[X] = [Y, …]`
+                # means X must come *after* Y — i.e. Y is X's predecessor.
+                # `class_dependencies` returns the parents that this class
+                # extends (and any cross-referenced sibling types), so each
+                # `dep` must be emitted *before* `type_name`.  Earlier this
+                # appended `type_name` under `dep`, which produced the
+                # opposite order: a child (e.g. cosmologyFunctionsMatterDarkEnergy)
+                # would be emitted before its parent
+                # (cosmologyFunctionsMatterLambda), which gfortran rejects.
+                dependencies.setdefault(type_name, []).append(dep)
 
         class_record['file'] = class_location
         class_record['tree'] = class_tree
@@ -686,9 +675,10 @@ def _descriptor_discover_class(non_abstract_class, directive, classes,
                 potential_descriptor_parameters(
                     walker.get('declarations'),
                     non_abstract_class, cls, state_storables, potential_names)
-            walker = (walker.get('firstChild')
-                      if walker.get('type') == 'contains'
-                      else walker.get('sibling'))
+            # See note at line 877: in our parse `contains` has no children;
+            # post-contains members are siblings, so a sibling-walk reaches
+            # them naturally.
+            walker = walker.get('sibling')
 
         cls = (None if cls.get('extends') == directive['name']
                else classes.get(cls.get('extends')))
@@ -762,10 +752,12 @@ def _descriptor_discover_class(non_abstract_class, directive, classes,
                     elif ctype == 'code':
                         code_stream = io.StringIO(cnode.get('content') or '')
                         while True:
-                            line_data = get_fortran_line(code_stream)
-                            if line_data is None:
+                            raw_line, processed_line, _ = get_fortran_line(
+                                code_stream)
+                            # get_fortran_line returns ('','','') at EOF
+                            # rather than None, so detect that explicitly.
+                            if not raw_line and not processed_line:
                                 break
-                            _, processed_line, _ = line_data
                             # Subparameter sources.
                             sm = re.match(
                                 r'^\s*([a-zA-Z0-9_]+)\s*=\s*([a-zA-Z0-9_]+)'
@@ -784,7 +776,7 @@ def _descriptor_discover_class(non_abstract_class, directive, classes,
                                     processed_line):
                                 parent_constructor_used = True
                     elif ctype == 'inputParameter':
-                        d = cnode.get('directive') or {}
+                        d = cnode.setdefault('directive', {})
                         if 'source' not in d:
                             supported = -4
                             failure_message.append(
@@ -864,7 +856,7 @@ def _descriptor_discover_class(non_abstract_class, directive, classes,
                                 msg += f" - did you mean [{guess}]"
                             failure_message.append(msg)
                     elif ctype == 'objectBuilder':
-                        d = cnode.get('directive') or {}
+                        d = cnode.setdefault('directive', {})
                         if 'source' not in d:
                             supported = -6
                             failure_message.append(
@@ -892,9 +884,11 @@ def _descriptor_discover_class(non_abstract_class, directive, classes,
                             failure_message.append(
                                 f"could not find a matching internal object "
                                 f"for object [{obj_name}]")
-        node = (node.get('firstChild')
-                if node.get('type') == 'contains'
-                else node.get('sibling'))
+        # Perl iterates by descending into `contains` (which holds the
+        # post-contains procedures as children).  In our parse `contains`
+        # is a self-closing sibling marker — every post-contains procedure
+        # is its sibling, so a plain sibling-walk visits them naturally.
+        node = node.get('sibling')
 
     # --- Validate sub-parameter hierarchy.
     for sp_name in sorted(sub_parameters.keys()):
@@ -1430,14 +1424,20 @@ def _build_descriptor_methods(directive, non_abstract_classes, classes,
                 descriptor_code += "end if\n"
             cls = (None if cls.get('extends') == directive['name']
                    else classes.get(cls.get('extends')))
-        if class_chain_rank_max > 0:
-            descriptor_code = (
-                "integer :: "
-                + ", ".join(
-                    f"i{i}"
-                    for i in range(1, class_chain_rank_max + 1))
-                + "\n" + descriptor_code
-            )
+        # Remember whether the parameter-loop section needs `parameterValues`
+        # before merging the file-dependency rank into `rank_maximum` —
+        # parameterValues is only used for parameter loops.
+        parameter_values_used = rank_maximum > 0
+        # Loop indices for the runtime-file-dependency section and the
+        # parameter-loop section share the names i1, i2, …, so we want a
+        # single `integer :: i1, …, iN` declaration covering the larger of
+        # the two ranks.  Emitting both separately (matching Perl literally,
+        # which has the same two-emission flaw) produces duplicate
+        # `integer :: i1` declarations and gfortran rejects with "Symbol
+        # 'i1' at (1) already has basic type of INTEGER".  Fold the
+        # file-dependency rank into the running max so the parameter-loop
+        # block below emits the combined declaration.
+        rank_maximum = max(rank_maximum, class_chain_rank_max)
 
         if 'descriptorSpecial' in non_abstract:
             descriptor_code += (
@@ -1469,12 +1469,14 @@ def _build_descriptor_methods(directive, non_abstract_classes, classes,
         descriptor_code = (
             "character(len=18) :: parameterLabel\n" + descriptor_code)
     if rank_maximum > 0:
-        descriptor_code = (
+        prefix = (
             "integer :: "
             + ",".join(f"i{i}" for i in range(1, rank_maximum + 1))
-            + "\ntype(varying_string) :: parameterValues\n"
-            + descriptor_code
+            + "\n"
         )
+        if parameter_values_used:
+            prefix += "type(varying_string) :: parameterValues\n"
+        descriptor_code = prefix + descriptor_code
 
     methods['descriptor'] = {
         'description': ('Return an input parameter list descriptor which '
@@ -1563,7 +1565,7 @@ def _build_allowed_parameters_method(directive, classes_ordered, methods):
         allowed_parameters_linked_list,
     )
     from Galacticus.Build.SourceTree.Process.FunctionClass.Utils import (
-        trimlc, striplc,
+        trimlc, striplc, strip_variable_name,
     )
     from build.fortran_utils import get_fortran_line
     import io
@@ -1605,8 +1607,21 @@ def _build_allowed_parameters_method(directive, classes_ordered, methods):
                     and node.get('name') in constructors):
                 opener = node.get('opener') or ''
                 name   = node['name']
+                # Match `function NAME(parameters [, recursiveConstruct,
+                # recursiveSelf])` with an optional `recursive` prefix.
+                # The mandatory whitespace lives INSIDE the
+                # `(recursive\s+)?` group so non-recursive openers (which
+                # have no leading word and no whitespace) match too —
+                # the previous form `(recursive)??\s+function` required
+                # whitespace before `function` unconditionally and
+                # therefore missed every non-recursive constructor,
+                # leaving the `objects` accumulator empty and the
+                # generated `allowedParameters` method without its
+                # `if (associated(self%X_)) call self%X_%allowedParameters
+                # (allowedParameters,'parameters',.true.)` lines for
+                # nested object pointers.
                 sig_re = (
-                    r'^\s*(recursive)??\s+function\s+' + re.escape(name)
+                    r'^\s*(recursive\s+)?function\s+' + re.escape(name)
                     + r'\s*\(\s*parameters\s*'
                     + r'(\s*,\s*recursiveConstruct\s*,\s*recursiveSelf\s*)??\)'
                 )
@@ -1638,10 +1653,11 @@ def _build_allowed_parameters_method(directive, classes_ordered, methods):
                             modified = False
                             code = io.StringIO(cnode.get('content') or '')
                             while True:
-                                line_data = get_fortran_line(code)
-                                if line_data is None:
+                                raw_line, processed_line, _ = get_fortran_line(code)
+                                # get_fortran_line returns ('','','') at EOF,
+                                # not None.
+                                if not raw_line and not processed_line:
                                     break
-                                raw_line, processed_line, _ = line_data
                                 pm = re.match(
                                     r'^\s*' + re.escape(result)
                                     + r'%([a-zA-Z0-9_]+)\s*=([a-zA-Z0-9_]+)'
@@ -1665,8 +1681,8 @@ def _build_allowed_parameters_method(directive, classes_ordered, methods):
                             if modified:
                                 cnode['content'] = new_content
                         elif ctype == 'inputParameter':
-                            src = (cnode.get('directive') or {}).get('source')
-                            iname = (cnode.get('directive') or {}).get('name')
+                            src = (cnode.setdefault('directive', {})).get('source')
+                            iname = (cnode.setdefault('directive', {})).get('name')
                             if src is not None and iname is not None:
                                 slot = (allowed_parameters[class_name]
                                         ['parameters']
@@ -1674,10 +1690,10 @@ def _build_allowed_parameters_method(directive, classes_ordered, methods):
                                         .setdefault('all', []))
                                 slot.append(iname)
                         elif ctype == 'objectBuilder':
-                            src = (cnode.get('directive') or {}).get('source')
+                            src = (cnode.setdefault('directive', {})).get('source')
                             if src is None:
                                 continue
-                            d = cnode.get('directive') or {}
+                            d = cnode.setdefault('directive', {})
                             param_name = d.get('parameterName') or d.get('class')
                             slot_src = (allowed_parameters[class_name]
                                         ['parameters']
@@ -1709,25 +1725,53 @@ def _build_allowed_parameters_method(directive, classes_ordered, methods):
                                                     for v in (
                                                             dec.get('variables')
                                                             or []):
+                                                        # `v` arrives from
+                                                        # `parse_declaration`'s
+                                                        # `keep_qualifiers=True`
+                                                        # mode and so still
+                                                        # carries any
+                                                        # `=>null()` or
+                                                        # `=initial` tail
+                                                        # (e.g.
+                                                        # `galacticfilter_=>null()`).
+                                                        # `strip_variable_name`
+                                                        # removes that tail
+                                                        # so the comparison
+                                                        # against the
+                                                        # directive's `name`
+                                                        # attribute (which is
+                                                        # the bare member
+                                                        # name) actually
+                                                        # matches — without
+                                                        # this strip, every
+                                                        # `<objectBuilder>`
+                                                        # falls through and
+                                                        # `objects` stays
+                                                        # empty, dropping the
+                                                        # nested
+                                                        # `if (associated(self%X_))
+                                                        # call self%X_%allowedParameters(…)`
+                                                        # forwarding lines.
+                                                        bare = strip_variable_name(v)
                                                         cmp_direct = (
-                                                            v.lower()
+                                                            bare.lower()
                                                             == striplc(
                                                                 d.get('name')))
                                                         cmp_qual = (
                                                             (result
-                                                             + '%' + v).lower()
+                                                             + '%' + bare).lower()
                                                             == striplc(
                                                                 d.get('name')))
                                                         if cmp_direct or cmp_qual:
-                                                            slot_objects.append(v)
+                                                            slot_objects.append(bare)
                                         child = child.get('sibling')
                                     break
                                 type_node = type_node.get('sibling')
 
-            # Descend into contains blocks; else move to sibling.
-            node = (node.get('firstChild')
-                    if node.get('type') == 'contains'
-                    else node.get('sibling'))
+            # Same `contains` walk as in `_descriptor_discover_class`: in
+            # our parse `contains` has no children, so just walk siblings —
+            # the post-contains procedures are siblings of the marker.
+            node = node.get('sibling')
 
     # --- Emission pass. ---
     allowed_parameters_linked_list_variables = []
@@ -1966,7 +2010,21 @@ def _build_assignment_method(directive, non_abstract_classes, classes,
                     for declaration in as_array(child.get('declarations')):
                         if not isinstance(declaration, dict):
                             continue
-                        attributes = declaration.get('attributes') or []
+                        # Skip type-bound markers — `generic`/`final` and
+                        # bare `procedure ::` bindings — none of which are
+                        # data members.  A `procedure(intf), pointer ::
+                        # foo` is *also* an `intrinsic == 'procedure'`
+                        # declaration but IS a data member that must be
+                        # copied (with `=>`); that case falls through to
+                        # the assignment loop below.
+                        intrinsic_decl = declaration.get('intrinsic')
+                        decl_attrs     = declaration.get('attributes') or []
+                        if intrinsic_decl in ('generic', 'final'):
+                            continue
+                        if (intrinsic_decl == 'procedure'
+                                and not any(a == 'pointer' for a in decl_attrs)):
+                            continue
+                        attributes = decl_attrs
                         is_pointer     = any(a == 'pointer'     for a in attributes)
                         is_allocatable = any(a == 'allocatable' for a in attributes)
                         assigner = '=>' if is_pointer else '='
@@ -3204,10 +3262,11 @@ def _generate_class_submodules(directive, classes_ordered, non_abstract_classes,
         contained = False
         while class_node is not None:
             if class_node.get('type') == 'contains':
-                class_node = class_node.get('firstChild')
+                # `contains` is a self-closing sibling marker in our parse —
+                # post-contains procedures are siblings of it, not children.
                 contained = True
-                if class_node is None:
-                    break
+                class_node = class_node.get('sibling')
+                continue
             if contained:
                 submodule_post.append(class_node)
                 if class_node.get('type') in ('function', 'subroutine'):
@@ -3462,7 +3521,7 @@ def _handle_pre_contains_node(class_node, directive, code_content, block,
     directive_name = directive['name']
 
     if ntype == 'scoping':
-        d = class_node.get('directive') or {}
+        d = class_node.setdefault('directive', {})
         inner = d.get('module') if isinstance(d, dict) else None
         if isinstance(inner, dict) and 'variables' in inner:
             module_scoped.extend(
@@ -3510,10 +3569,10 @@ def _collect_type_bindings_and_module_symbols(class_node, block,
     type_node = class_node.get('firstChild')
     while type_node is not None:
         if type_node.get('type') == 'contains':
+            # Self-closing sibling marker — set the flag and skip past.
             post_contains = True
-            type_node = type_node.get('firstChild')
-            if type_node is None:
-                break
+            type_node = type_node.get('sibling')
+            continue
         if post_contains:
             if type_node.get('type') == 'declaration':
                 for declaration in type_node.get('declarations') or []:
@@ -3935,14 +3994,11 @@ def _collect_doc_parameters_and_objects(
                         parameters.append(entry)
                 elif cnode.get('type') == 'objectBuilder':
                     objects.append(
-                        (cnode.get('directive') or {}).get('class'))
-        # Descend into `contains` blocks — the Perl idiom
-        # `$node = $node->{'type'} eq "contains" ? $node->{'firstChild'}
-        #                                         : $node->{'sibling'};`
-        if node.get('type') == 'contains':
-            node = node.get('firstChild')
-        else:
-            node = node.get('sibling')
+                        (cnode.setdefault('directive', {})).get('class'))
+        # In Perl, `contains` holds the post-contains procedures as
+        # children; in our parse it is a self-closing sibling marker, so a
+        # plain sibling-walk reaches everything that comes after it.
+        node = node.get('sibling')
     return parameters, [o for o in objects if o]
 
 
@@ -3951,7 +4007,7 @@ def _format_input_parameter_doc(cnode, function_node, class_record,
     """Render one inputParameter directive into a LaTeX `\\item[...]` line
     for the class's documentation entry.
     """
-    cdir = cnode.get('directive') or {}
+    cdir = cnode.setdefault('directive', {})
     variable_name = cdir.get('variable') or cdir.get('name') or ''
     variable_name = re.sub(r'\(.+\)$', '', variable_name)
 
@@ -4133,12 +4189,12 @@ def process_function_class(tree, options):
         # post_process_directives.
         nclass = (node.get('type') or '') + 'Class'
         if nclass in _function_class_names(state_storables):
-            directive = node.get('directive') or {}
+            directive = node.setdefault('directive', {})
             directive['processed'] = True
 
         if node.get('type') != 'functionClass':
             continue
-        directive = node.get('directive') or {}
+        directive = node.setdefault('directive', {})
         if directive.get('processed'):
             continue
 

@@ -10,6 +10,10 @@ import sys
 sys.path.insert(0, os.path.join(os.environ.get('GALACTICUS_EXEC_PATH', ''), 'python'))
 
 from List.ExtraUtils                                           import as_array
+from Galacticus.Build.StateStorables                           import (
+    function_class_names    as _shared_function_class_names,
+    function_class_instances as _shared_function_class_instances,
+)
 from Galacticus.Build.SourceTree.Process.FunctionClass.Utils   import (
     lctrim, trimlc, strip_variable_name,
 )
@@ -92,34 +96,10 @@ def potential_descriptor_parameters(declarations, non_abstract_class,
 
 
 def _function_class_names(state_storables):
-    """Return the set of lowercased functionClass names listed in
-    `stateStorables['functionClasses']`, collapsing Perl-KeyAttr vs
-    list-of-dicts shapes.
-    """
-    fc = (state_storables or {}).get('functionClasses') or {}
-    if not isinstance(fc, dict):
-        return set()
-    entries = fc.get('functionClass')
-    if entries is None:
-        return {k.lower() for k in fc.keys()}
-    if isinstance(entries, dict):
-        entries = [entries]
-    return {
-        (e.get('name') or '').lower()
-        for e in entries
-        if isinstance(e, dict) and e.get('name')
-    }
+    """Return the set of lowercased functionClass names."""
+    return {n.lower() for n in _shared_function_class_names(state_storables)}
 
 
 def _function_class_instances(state_storables):
-    """Return the set of lowercased functionClassInstances names."""
-    raw = (state_storables or {}).get('functionClassInstances') or []
-    if isinstance(raw, str):
-        return {raw.lower()} if raw else set()
-    if isinstance(raw, dict):
-        raw = [raw.get('content') or raw.get('name') or '']
-    return {
-        (item if isinstance(item, str) else (item or {}).get('name') or '').lower()
-        for item in raw
-        if item
-    }
+    """Return the set of lowercased functionClass instance names."""
+    return {n.lower() for n in _shared_function_class_instances(state_storables)}

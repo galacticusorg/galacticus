@@ -30,12 +30,7 @@ sub Process_EventHooksStatic {
     # Initialize event hook names.
     our @eventHookNames;
     unless ( @eventHookNames ) {
-	if ( -e $ENV{'BUILDPATH'}."/eventHooksStatic.blob" ) {
-	    @eventHookNames = @{retrieve($ENV{'BUILDPATH'}."/eventHooksStatic.blob")};
-	} else {
-	    @eventHookNames = map {$_->{'name'}} map {&Galacticus::Build::Directives::Extract_Directives($_,'eventHookStatic')} &List::ExtraUtils::as_array($directiveLocations->{'eventHookStatic'}->{'file'});
-	    store(\@eventHookNames,$ENV{'BUILDPATH'}."/eventHooksStatic.blob");
-	}
+	@eventHookNames = map {$_->{'name'}} map {&Galacticus::Build::Directives::Extract_Directives($_,'eventHookStatic')} &List::ExtraUtils::as_array($directiveLocations->{'eventHookStatic'}->{'file'});
     }
     # Walk the tree, looking for hook directives.
     my $node            = $tree;

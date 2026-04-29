@@ -76,7 +76,7 @@ Generation of code to implement the functionality of \mono{include} directives i
 
 \subsubsection{Pre-processing and Post-processing}\label{sec:codeBuildPrePostProcess}
 
-Before being compiled, all Fortran source files are passed through a tree-based preprocessor. The functionality of this preprocessor is described in \S\ref{sec:sourceTreePreprocessor}. The preprocessor is invoked on each source file by the \mono{preprocess.pl}\index{preprocess.pl@\mono{preprocess.pl}} script, which takes a \mono{source/*.F90} file as input and outputs a preprocessed file \mono{\$(BUILDPATH)/*.p.F90}.
+Before being compiled, all Fortran source files are passed through a tree-based preprocessor. The functionality of this preprocessor is described in \S\ref{sec:sourceTreePreprocessor}. The preprocessor is invoked on each source file by the \mono{preprocess.py}\index{preprocess.py@\mono{preprocess.py}} script, which takes a \mono{source/*.F90} file as input and outputs a preprocessed file \mono{\$(BUILDPATH)/*.p.F90}.
 
 Output from the \mono{gfortran} compiler is directed through the \mono{postprocess.py}\index{postprocess.py@\mono{postprocess.py}} script. This script currently performs the following functions:
 \begin{itemize}
@@ -113,7 +113,7 @@ All files involved in the build process are summarized below.
 
 \item[\mono{scripts/build/postprocess.py}\index{postprocess.py@\mono{postprocess.py}}:] Postprocesses the output of the \mono{gfortran} compiler to remove spurious warnings and provide line numbers in warning/error reports that point into the unpreprocessed source files (see \S\ref{sec:codeBuildPrePostProcess});
 
-\item[\mono{scripts/build/preprocess.pl}\index{preprocess.pl@\mono{preprocess.pl}}:] Preprocesses Fortran source code to provide various extended functionality (see \S\ref{sec:codeBuildPrePostProcess});
+\item[\mono{scripts/build/preprocess.py}\index{preprocess.py@\mono{preprocess.py}}:] Preprocesses Fortran source code to provide various extended functionality (see \S\ref{sec:codeBuildPrePostProcess});
 
 \item[\mono{scripts/build/useDependencies.py}\index{useDependencies.py@\mono{useDependencies.py}}:] Discovers (and generates rules for) dependencies between files originating from module \mono{use} statements (see \S\ref{sec:buildModulesUsed});
   

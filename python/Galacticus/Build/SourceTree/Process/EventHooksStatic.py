@@ -16,6 +16,7 @@ sys.path.insert(0, os.path.join(os.environ.get('GALACTICUS_EXEC_PATH', ''), 'pyt
 
 from List.ExtraUtils                              import as_array
 from XML.Utils                                    import xml_to_dict
+from Galacticus.Build.StateStorables              import function_class_entry as _shared_function_class_entry
 from Galacticus.Build.Directives                  import extract_directives
 from Galacticus.Build.Dependencies                import dependency_sort
 from Galacticus.Build.SourceTree                  import (
@@ -61,10 +62,26 @@ def _load_event_hook_names(directive_locations):
     build_path = os.environ.get('BUILDPATH')
     blob_path = (os.path.join(build_path, 'eventHooksStatic.blob')
                  if build_path else None)
-    if blob_path and os.path.exists(blob_path):
-        with open(blob_path, 'rb') as fh:
-            _EVENT_HOOK_NAMES = list(pickle.load(fh))
-        return _EVENT_HOOK_NAMES
+    locations_path = (os.path.join(build_path, 'directiveLocations.xml')
+                      if build_path else None)
+    blob_is_fresh = (
+        blob_path
+        and os.path.exists(blob_path)
+        and (
+            not (locations_path and os.path.exists(locations_path))
+            or os.path.getmtime(blob_path) >= os.path.getmtime(locations_path)
+        )
+    )
+    if blob_is_fresh:
+        try:
+            with open(blob_path, 'rb') as fh:
+                _EVENT_HOOK_NAMES = list(pickle.load(fh))
+            return _EVENT_HOOK_NAMES
+        except (pickle.UnpicklingError, EOFError):
+            # Truncated / corrupt cache (e.g. an earlier run was interrupted
+            # mid-write, or written by Perl's Storable rather than pickle).
+            # Fall through and rebuild it.
+            pass
 
     block = (directive_locations.get('eventHookStatic') or {})
     files = list(as_array(block.get('file')))
@@ -75,11 +92,18 @@ def _load_event_hook_names(directive_locations):
                 names.append(d['name'])
     _EVENT_HOOK_NAMES = names
     if blob_path:
+        # Atomic write: dump to a sibling tmp file then rename, so concurrent
+        # readers (parallel make jobs) never observe a half-written blob.
+        tmp_path = blob_path + '.tmp'
         try:
-            with open(blob_path, 'wb') as fh:
+            with open(tmp_path, 'wb') as fh:
                 pickle.dump(names, fh)
+            os.replace(tmp_path, blob_path)
         except OSError:
-            pass
+            try:
+                os.unlink(tmp_path)
+            except OSError:
+                pass
     return _EVENT_HOOK_NAMES
 
 
@@ -87,24 +111,9 @@ def _function_class_entry_for(type_name, state_storables):
     """Return the functionClass entry (dict) for `<type>+'Class'` or None.
 
     Matches the lookup `$stateStorables->{'functionClasses'}{$type.'Class'}`
-    from EventHooksStatic.pm:84 / :90 / :157.  Our xml_to_dict produces a
-    list of entries where the Perl KeyAttr grouping would have produced a
-    name-keyed dict; bridge accordingly.
+    from EventHooksStatic.pm:84 / :90 / :157.
     """
-    fc = (state_storables or {}).get('functionClasses') or {}
-    target = type_name + 'Class'
-    if not isinstance(fc, dict):
-        return None
-    entries = fc.get('functionClass')
-    if entries is None:
-        val = fc.get(target)
-        return val if isinstance(val, dict) else None
-    if isinstance(entries, dict):
-        entries = [entries]
-    for e in entries:
-        if isinstance(e, dict) and e.get('name') == target:
-            return e
-    return None
+    return _shared_function_class_entry(state_storables, type_name + 'Class')
 
 
 def _resolve_hooked_function(source_file, target_directive_name, state_storables):
@@ -204,7 +213,7 @@ def process_event_hooks_static(tree, options):
             module_node = node
 
         if ntype == 'eventHookStatic':
-            directive = node.get('directive') or {}
+            directive = node.setdefault('directive', {})
             if directive.get('processed'):
                 continue
             directive['processed'] = True
@@ -253,7 +262,7 @@ def process_event_hooks_static(tree, options):
 
         # Collect function names declared via any registered static hook.
         if ntype and ntype in event_hook_names:
-            directive = node.get('directive') or {}
+            directive = node.setdefault('directive', {})
             if not directive.get('processed'):
                 directive['processed'] = True
                 fn = directive.get('function')

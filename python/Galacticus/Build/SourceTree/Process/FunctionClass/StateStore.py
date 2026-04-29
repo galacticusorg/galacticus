@@ -15,6 +15,10 @@ import sys
 sys.path.insert(0, os.path.join(os.environ.get('GALACTICUS_EXEC_PATH', ''), 'python'))
 
 from List.ExtraUtils                                         import as_array
+from Galacticus.Build.StateStorables                         import (
+    function_class_names    as _shared_function_class_names,
+    function_class_instances as _shared_function_class_instances,
+)
 from Galacticus.Build.SourceTree.Process.FunctionClass.Utils import (
     strip_variable_name, declaration_rank,
 )
@@ -25,16 +29,7 @@ from Galacticus.Build.SourceTree.Process.FunctionClass.Utils import (
 # ---------------------------------------------------------------------------
 
 def _function_class_name_set(state_storables):
-    fc = (state_storables or {}).get('functionClasses') or {}
-    if not isinstance(fc, dict):
-        return set()
-    entries = fc.get('functionClass')
-    if entries is None:
-        return set(fc.keys())
-    if isinstance(entries, dict):
-        entries = [entries]
-    return {e.get('name') for e in entries
-            if isinstance(e, dict) and 'name' in e}
+    return _shared_function_class_names(state_storables)
 
 
 def _state_storables_by_type(state_storables):
@@ -47,21 +42,7 @@ def _state_storables_by_type(state_storables):
 
 
 def _function_class_instances(state_storables):
-    raw = (state_storables or {}).get('functionClassInstances') or []
-    if isinstance(raw, str):
-        return [raw] if raw else []
-    if isinstance(raw, dict):
-        name = raw.get('content') or raw.get('name')
-        return [name] if name else []
-    out = []
-    for item in raw:
-        if isinstance(item, str):
-            out.append(item)
-        elif isinstance(item, dict):
-            name = item.get('content') or item.get('name')
-            if name:
-                out.append(name)
-    return out
+    return _shared_function_class_instances(state_storables)
 
 
 # ---------------------------------------------------------------------------
@@ -209,8 +190,11 @@ def state_store_variables(state_stores, state_store, class_record,
         has_pointer    = any(a == 'pointer' for a in attributes)
         is_allocatable = any(a == 'allocatable' for a in attributes)
 
-        # ---- Skip type-bound procedures and finalisers ----
-        if intrinsic in ('procedure', 'final'):
+        # ---- Skip type-bound procedures, finalisers, and generic operator
+        # bindings.  None declare data members, and `generic :: assignment(=)
+        # => …` parses as a "variable" named `assignment(=)=>…` that would
+        # otherwise be emitted as `self%assignment(=)…` — invalid Fortran.
+        if intrinsic in ('procedure', 'final', 'generic'):
             _maybe_flag_custom_hooks(state_store, declaration)
             continue
 
@@ -434,6 +418,17 @@ def state_store_variables(state_stores, state_store, class_record,
                     state_stores['gslStateFileUsed'] = True
                 _maybe_flag_custom_hooks(state_store, declaration)
                 continue
+
+            # Unrecognised derived type — Perl simply does nothing with it
+            # (the `class`/`type` arm has no fall-through into the intrinsic
+            # branch).  Without this explicit continue our walk dropped into
+            # the `is_allocatable` intrinsic path below and emitted, e.g.,
+            # `write (stateFile) self%postprocessors` for a
+            # `type(stellarPopulationSpectraPostprocessorList), allocatable,
+            # dimension(:)` member whose element type carries pointer
+            # components — invalid Fortran I/O.
+            _maybe_flag_custom_hooks(state_store, declaration)
+            continue
 
         # ---- Intrinsic types ----
         if has_pointer:

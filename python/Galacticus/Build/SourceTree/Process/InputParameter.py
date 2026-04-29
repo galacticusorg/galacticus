@@ -77,7 +77,7 @@ def process_input_parameters(tree, options):
     for node in walk_tree(tree):
         if node.get('type') != 'inputParameter':
             continue
-        directive = node.get('directive') or {}
+        directive = node.setdefault('directive', {})
         if directive.get('processed'):
             continue
         directive['processed'] = True

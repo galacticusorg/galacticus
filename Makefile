@@ -2,6 +2,15 @@
 #
 # Andrew Benson (06-Feb-2010)
 
+# Detect Operating System
+UNAME_S := $(shell uname -s)
+
+# Conditional assignment for macOS
+ifeq ($(UNAME_S),Darwin)
+    # For MacOS we must set LC_ALL=C to avoid problems with non-UTF8 characters and sed.
+    export LC_ALL=C
+endif
+
 # Build option.
 GALACTICUS_BUILD_OPTION ?= default
 ifdef  BUILDPATH
@@ -192,7 +201,7 @@ ALLSOURCESINC = $(wildcard source/*.[fF]90 source/*.Inc source/*.h source/*.c so
 # build the module file.
 vpath %.F90 source
 $(BUILDPATH)/%.p.F90.up : source/%.F90 $(BUILDPATH)/hdf5FCInterop.dat $(BUILDPATH)/openMPCriticalSections.xml
-	./scripts/build/preprocess.pl source/$*.F90 $(BUILDPATH)/$*.p.F90
+	./scripts/build/preprocess.py source/$*.F90 $(BUILDPATH)/$*.p.F90
 $(BUILDPATH)/%.p.F90 : $(BUILDPATH)/%.p.F90.up
 	@true
 $(BUILDPATH)/%.o : $(BUILDPATH)/%.p.F90 $(BUILDPATH)/%.m $(BUILDPATH)/%.d $(BUILDPATH)/%.fl Makefile
@@ -419,11 +428,11 @@ $(BUILDPATH)/pFq/pfq.new.o : ./source/pFq/pfq.new.f Makefile
 # Rule for running *.Inc files through the preprocessor. We strip out single quote characters in comment lines to avoid spurious
 # complaints from the preprocessor.
 $(BUILDPATH)/%.Inc.up : ./source/%.Inc $(BUILDPATH)/hdf5FCInterop.dat $(BUILDPATH)/openMPCriticalSections.xml
-	./scripts/build/preprocess.pl ./source/$*.Inc $(BUILDPATH)/$*.Inc
+	./scripts/build/preprocess.py ./source/$*.Inc $(BUILDPATH)/$*.Inc
 $(BUILDPATH)/%.Inc : $(BUILDPATH)/%.Inc.up
 	@true
 $(BUILDPATH)/%.inc : $(BUILDPATH)/%.Inc Makefile
-	perl -MRegexp::Common -ne '$$l=$$_;$$l =~ s/($$RE{comment}{Fortran}{-keep})/\/\*$$4\*\/$$5/; print $$l' $< | cpp -nostdinc -C | perl -MRegexp::Common -ne '$$l=$$_;$$l =~ s/($$RE{comment}{C}{-keep})/!$$4/; print $$l' > $(BUILDPATH)/$*.tmp
+	sed -E s/'^([[:space:]]*)!(.*)'/'\1\/\*\2\*\/'/ $< | cpp -nostdinc -C | sed -E s/'^([[:space:]]*)\/\*(.*)\*\/'/'\1!\2'/ > $(BUILDPATH)/$*.tmp
 	mv -f $(BUILDPATH)/$*.tmp $(BUILDPATH)/$*.inc
 
 # Dependency files (*.d) are created as empty files by default. Normally this rule is overruled by a specific set of rules in the
@@ -555,11 +564,11 @@ $(BUILDPATH)/Makefile_Library_Dependencies:
 $(BUILDPATH)/libgalacticus.Inc: $(BUILDPATH)/directiveLocations.xml $(BUILDPATH)/stateStorables.xml
 	./scripts/build/libraryInterfaces.py
 $(BUILDPATH)/libgalacticus.p.Inc.up : $(BUILDPATH)/libgalacticus.Inc $(BUILDPATH)/hdf5FCInterop.dat $(BUILDPATH)/openMPCriticalSections.xml
-	./scripts/build/preprocess.pl $(BUILDPATH)/libgalacticus.Inc $(BUILDPATH)/libgalacticus.p.Inc
+	./scripts/build/preprocess.py $(BUILDPATH)/libgalacticus.Inc $(BUILDPATH)/libgalacticus.p.Inc
 $(BUILDPATH)/libgalacticus.p.Inc : $(BUILDPATH)/libgalacticus.p.Inc.up
 	@true
 $(BUILDPATH)/libgalacticus.inc : $(BUILDPATH)/libgalacticus.p.Inc Makefile
-	perl -MRegexp::Common -ne '$$l=$$_;$$l =~ s/($$RE{comment}{Fortran}{-keep})/\/\*$$4\*\/$$5/; print $$l' $(BUILDPATH)/libgalacticus.p.Inc | cpp -nostdinc -C | perl -MRegexp::Common -ne '$$l=$$_;$$l =~ s/($$RE{comment}{C}{-keep})/!$$4/; print $$l' > $(BUILDPATH)/libgalacticus.tmp
+	sed -E s/'^([[:space:]]*)!(.*)'/'\1\/\*\2\*\/'/ $(BUILDPATH)/libgalacticus.p.Inc | cpp -nostdinc -C | sed -E s/'^([[:space:]]*)\/\*(.*)\*\/'/'\1!\2'/ > $(BUILDPATH)/libgalacticus.tmp
 	mv -f $(BUILDPATH)/libgalacticus.tmp $(BUILDPATH)/libgalacticus.inc
 libgalacticus.so: $(BUILDPATH)/libgalacticus.o $(BUILDPATH)/libgalacticus_classes.d
 	./scripts/build/parameterDependencies.py `pwd` libgalacticus.o

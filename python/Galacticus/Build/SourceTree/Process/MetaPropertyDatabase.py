@@ -15,6 +15,9 @@ sys.path.insert(0, os.path.join(os.environ.get('GALACTICUS_EXEC_PATH', ''), 'pyt
 
 from List.ExtraUtils                                         import as_array
 from XML.Utils                                               import xml_to_dict
+from Galacticus.Build.StateStorables                         import (
+    function_class_names as _shared_function_class_names,
+)
 from Galacticus.Build.Directives                             import extract_directives
 from Galacticus.Build.SourceTree                             import walk_tree, insert_after_node
 from Galacticus.Build.SourceTree.Process                     import register_process
@@ -30,23 +33,8 @@ def _load_xml(build_path, name):
 
 
 def _function_class_names(state_storables):
-    """Return the set of `<name>Class` keys advertised in stateStorables.xml.
-
-    Perl's XML::Simple with default KeyAttr groups `<functionClass name=…/>`
-    children by their `name` attribute, producing a dict whose keys are the
-    class names (e.g. `fooClass`).  Our `xml_to_dict` produces a list of dicts
-    instead; translate.
-    """
-    fc = (state_storables or {}).get('functionClasses') or {}
-    if not isinstance(fc, dict):
-        return set()
-    entries = fc.get('functionClass')
-    if entries is None:
-        # Already keyed by name.
-        return set(fc.keys())
-    if isinstance(entries, dict):
-        entries = [entries]
-    return {e.get('name') for e in entries if isinstance(e, dict) and 'name' in e}
+    """Return the set of `<name>Class` keys advertised in stateStorables.xml."""
+    return _shared_function_class_names(state_storables)
 
 
 def _locate_function_class(file_name, class_names):
@@ -87,7 +75,7 @@ def process_meta_property_database(tree, options):
     for node in walk_tree(tree):
         if node.get('type') != 'metaPropertyDatabase':
             continue
-        directive = node.get('directive') or {}
+        directive = node.setdefault('directive', {})
         if directive.get('processed'):
             continue
         directive['processed'] = True

@@ -18,6 +18,34 @@ from Sort.Topo import sort as topo_sort
 PROCESS_HOOKS       = {}   # name -> callable(tree, options)
 PROCESS_DEPENDENCIES = {}  # name -> list of hook names that should run AFTER name
 POSTPROCESS_HOOKS   = {}   # name -> callable(tree, options)
+ANALYZE_HOOKS       = {}   # name -> callable(tree, options)
+
+# Recursion-depth counter for `process_tree`.  `Generics` and `FunctionClass`
+# both call `process_tree` on synthetic subtrees during expansion, and a
+# few hooks (notably `classDocumentation`) want to know whether they're
+# running on the outer source tree or on one of those inner subtrees so
+# they can avoid emitting partial output that the outer pass will later
+# overwrite or contradict.
+_PROCESS_TREE_DEPTH = 0
+
+
+def is_inner_process_tree_call():
+    """Return True if the current `process_tree` invocation is nested
+    inside another (i.e. called from `Generics._expand_subtree`,
+    `FunctionClass._insert_and_write_output`, etc.).  Useful for hooks
+    that must only run at the truly outer level — `classDocumentation`
+    in particular needs the FULLY-expanded outer tree to find generic-
+    cloned types and their associated function nodes side by side."""
+    return _PROCESS_TREE_DEPTH > 1
+
+
+def register_analyze(name, fn):
+    """Register an analyze hook.
+
+    Mirrors `$Hooks::analyzeHooks{name} = \\&fn`.  Analyze hooks run in
+    alphabetical order after process_tree() when analyze_tree() is invoked.
+    """
+    ANALYZE_HOOKS[name] = fn
 
 
 def register_process(name, fn, before=()):
@@ -61,6 +89,7 @@ def process_tree(tree, options=None):
     PROCESS_DEPENDENCIES as the precedence graph: if
     `PROCESS_DEPENDENCIES[X] = [Y, Z]`, X runs before Y and before Z.
     """
+    global _PROCESS_TREE_DEPTH
     if options is None:
         options = {}
 
@@ -72,11 +101,15 @@ def process_tree(tree, options=None):
         for dependent in dependents:
             edges.setdefault(dependent, []).append(name)
 
-    for name in topo_sort(sorted(PROCESS_HOOKS.keys()), edges):
-        PROCESS_HOOKS[name](tree, options)
+    _PROCESS_TREE_DEPTH += 1
+    try:
+        for name in topo_sort(sorted(PROCESS_HOOKS.keys()), edges):
+            PROCESS_HOOKS[name](tree, options)
 
-    for name in sorted(POSTPROCESS_HOOKS.keys()):
-        POSTPROCESS_HOOKS[name](tree, options)
+        for name in sorted(POSTPROCESS_HOOKS.keys()):
+            POSTPROCESS_HOOKS[name](tree, options)
+    finally:
+        _PROCESS_TREE_DEPTH -= 1
 
     return tree
 

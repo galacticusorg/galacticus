@@ -233,12 +233,14 @@ def _validate_directive(directive_name, xml_text, context_node):
     state_storables = _load_state_storables()
     schema_xml = None
 
-    function_classes = (state_storables or {}).get('functionClasses') or {}
-    event_hook_statics = (state_storables or {}).get('eventHookStatics') or []
-    if isinstance(event_hook_statics, dict):
-        event_hook_statics = [event_hook_statics]
+    from Galacticus.Build.StateStorables import (
+        function_class_names    as _fcn_names,
+        event_hook_static_names as _ehs_names,
+    )
+    function_class_names = _fcn_names(state_storables)
+    event_hook_statics   = _ehs_names(state_storables)
 
-    if state_storables and (directive_name + "Class") in function_classes:
+    if state_storables and (directive_name + "Class") in function_class_names:
         schema_xml = _FUNCTION_CLASS_SCHEMA.format(name=directive_name)
     elif state_storables and directive_name in event_hook_statics:
         schema_xml = _EVENT_HOOK_STATIC_SCHEMA.format(name=directive_name)
@@ -282,13 +284,18 @@ def _parse_directive_xml(xml_text, context_node):
     try:
         elem = ET.fromstring(xml_text)
     except ET.ParseError:
-        # Wrap in a root element and try again (handles bare fragments).
+        # Wrap in a root element and try again — handles bare fragments
+        # (e.g. leading whitespace before a single directive).  Only accept
+        # the wrap when it produces exactly one child; otherwise the input
+        # is multiple sibling directives, which the caller should have
+        # split into individual directives upstream.
         try:
             elem = ET.fromstring('<root>' + xml_text + '</root>')
-            if len(elem) == 1:
-                elem = list(elem)[0]
         except ET.ParseError:
             return None
+        if len(elem) != 1:
+            return None
+        elem = list(elem)[0]
 
     directive_name = elem.tag
     _validate_directive(directive_name, xml_text, context_node)
@@ -314,8 +321,11 @@ def parse_directives(tree):
       !< <tagname ...>  (XML content lines — '!<' prefix stripped)
       !!]          (closing marker)
 
-    A single `!![ ... !!]` block may contain multiple directives back-to-back;
-    each is emitted as its own node (the Perl flushes on every closing tag).
+    A single `!![ ... !!]` block may contain *multiple* sibling directive
+    tags (e.g. six `<constant ... />` in a row).  Each is emitted as its
+    own directive node, wrapped in synthetic `!![ ... !!]` markers — this
+    matches the Perl behaviour and prevents the XML parser from collapsing
+    the siblings into a synthetic `<root>` wrapper node.
     """
     from Galacticus.Build.SourceTree import walk_tree, replace_node, _make_code_node
 
@@ -328,54 +338,70 @@ def parse_directives(tree):
         content = node.get('content', '')
         new_nodes      = []
         raw_code_buf   = []
-        raw_dir_buf    = []   # XML text for the directive currently being assembled.
-        raw_dir_lines  = []   # raw source lines for the directive currently being assembled.
+        # Per-directive accumulators (reset each time a directive completes):
+        raw_dir_buf    = []   # `!<`-stripped XML lines for current directive
+        raw_dir_lines  = []   # original raw lines for current directive
+        # Synthetic wrapping for each emitted directive:
+        raw_opener     = None  # the `!![\n` line that opened the current XML block
+        raw_closer     = None  # the corresponding `!!]\n` line (derived from opener)
         in_xml         = False
         in_directive   = False
         directive_root = None
-        raw_opener     = None  # the actual `!![` line that opened the current block.
 
-        def _emit(directive_node):
-            """Attach a synthesized firstChild raw-text block, flush any
-            pending plain-code buffer, and append the directive to new_nodes."""
-            raw_closer = re.sub(r'\[', ']', raw_opener) if raw_opener else '!!]\n'
-            directive_node['firstChild'] = {
+        def _flush_code_buf():
+            if raw_code_buf:
+                new_nodes.append(_make_code_node(
+                    ''.join(raw_code_buf), node['source'], node['line']))
+                raw_code_buf.clear()
+
+        def _emit_directive(pending_dir):
+            """Wrap a parsed directive in synthetic `!![ ... !!]` and push it."""
+            pending_dir['firstChild'] = {
                 'type':       'code',
-                'content':    (raw_opener or '') + ''.join(raw_dir_lines) + raw_closer,
-                'parent':     directive_node,
+                'content':    (raw_opener or '') + ''.join(raw_dir_lines)
+                              + (raw_closer or ''),
+                'parent':     pending_dir,
                 'sibling':    None,
                 'firstChild': None,
                 'source':     node['source'],
                 'line':       node['line'],
             }
-            if raw_code_buf:
-                new_nodes.append(_make_code_node(
-                    ''.join(raw_code_buf), node['source'], node['line']))
-                raw_code_buf.clear()
-            new_nodes.append(directive_node)
+            _flush_code_buf()
+            new_nodes.append(pending_dir)
 
         for raw_line in content.splitlines(keepends=True):
             stripped = re.sub(r'^\s*!<\s*', '', raw_line)
 
             if re.match(r'^\s*!!\]', raw_line):
-                # End of XML block.  If a directive is mid-assembly (malformed
-                # source missing a closing tag), parse what we have.
+                # Block is closing.  Flush any directive that didn't have its
+                # own end tag (rare — usually directives self-close before this).
                 if raw_dir_buf:
-                    pending_dir = _parse_directive_xml(''.join(raw_dir_buf), node)
-                    raw_dir_buf = []
+                    xml_text    = ''.join(raw_dir_buf)
+                    pending_dir = _parse_directive_xml(xml_text, node)
                     if pending_dir:
-                        _emit(pending_dir)
-                in_xml         = False
+                        _emit_directive(pending_dir)
+                    else:
+                        # Unparseable trailing fragment — emit as raw code with
+                        # the synthetic wrapper restored.
+                        _flush_code_buf()
+                        new_nodes.append(_make_code_node(
+                            (raw_opener or '') + ''.join(raw_dir_lines)
+                            + raw_line,
+                            node['source'], node['line']))
+                    raw_dir_buf.clear()
+                    raw_dir_lines.clear()
+                raw_opener     = None
+                raw_closer     = None
                 in_directive   = False
                 directive_root = None
-                raw_opener     = None
-                raw_dir_lines  = []
+                in_xml         = False
                 continue
 
             if re.match(r'^\s*!!\[', raw_line):
-                in_xml        = True
-                raw_opener    = raw_line
-                raw_dir_lines = []
+                in_xml     = True
+                raw_opener = raw_line
+                # Mirror Perl: derive `!!]` from `!![` by replacing `[` → `]`.
+                raw_closer = raw_opener.replace('[', ']')
                 continue
 
             if in_xml:
@@ -383,25 +409,37 @@ def parse_directives(tree):
                 if m and not in_directive:
                     directive_root = m.group(1)
                     in_directive   = True
-                    raw_dir_lines  = []
                 if in_directive:
-                    raw_dir_lines.append(raw_line)
                     stripped = stripped.replace('&nbsp;', ' ')
                     raw_dir_buf.append(stripped)
+                    raw_dir_lines.append(raw_line)
+                    # Three end-tag forms: a closing `</tag>`, a self-closing
+                    # `<tag attr=…/>` (attributes may contain `/` — e.g. URLs —
+                    # so use `.*` greedily, matching Perl's
+                    # `\s*<tag\s.*\/>`), or a bare `<tag/>`.
                     end1 = re.search(
                         r'</\s*' + re.escape(directive_root) + r'\s*>', stripped)
-                    end2 = re.match(
-                        r'^\s*<' + re.escape(directive_root) + r'(\s[^/]*)?\s*/>',
+                    end2 = re.search(
+                        r'\s*<' + re.escape(directive_root) + r'\s.*/>',
                         stripped)
-                    if end1 or end2:
-                        pending_dir  = _parse_directive_xml(
-                            ''.join(raw_dir_buf), node)
-                        raw_dir_buf  = []
+                    end3 = re.search(
+                        r'\s*<' + re.escape(directive_root) + r'\s*/>', stripped)
+                    if end1 or end2 or end3:
+                        xml_text    = ''.join(raw_dir_buf)
+                        pending_dir = _parse_directive_xml(xml_text, node)
                         if pending_dir:
-                            _emit(pending_dir)
+                            _emit_directive(pending_dir)
+                        else:
+                            # Unparseable directive fragment — emit verbatim.
+                            _flush_code_buf()
+                            new_nodes.append(_make_code_node(
+                                (raw_opener or '') + ''.join(raw_dir_lines)
+                                + (raw_closer or ''),
+                                node['source'], node['line']))
+                        raw_dir_buf.clear()
+                        raw_dir_lines.clear()
                         in_directive   = False
                         directive_root = None
-                        raw_dir_lines  = []
                 continue
 
             raw_code_buf.append(raw_line)
@@ -416,25 +454,36 @@ def parse_directives(tree):
     for old_node, new_node_list in nodes_to_replace:
         replace_node(old_node, new_node_list)
 
-
 def post_process_directives(tree):
     """Verify that every directive node has been processed.
 
     Mirrors PostProcess_Directives() at Directives.pm:347-361.  Called after
     the Process/* passes complete; raises RuntimeError on the first unprocessed
     directive encountered.
+
+    Directives whose type is in the `NonProcessed` exemption list are
+    forgiven even if they have no `processed` flag — code-generating hooks
+    (DeepCopyActions, StateStorable, Enumeration, FunctionClass, …) inject
+    fresh `<methods>` blocks late in the pipeline, after `nonProcessed`
+    has already walked the tree, so those directives never get marked.
     """
     from Galacticus.Build.SourceTree import walk_tree
+    from Galacticus.Build.SourceTree.Process.NonProcessed import (
+        is_non_processed_type,
+    )
 
     for node in walk_tree(tree):
         if 'directive' not in node:
             continue
-        directive = node.get('directive') or {}
-        if not directive.get('processed'):
-            file_node = node
-            while file_node is not None and file_node.get('type') != 'file':
-                file_node = file_node.get('parent')
-            file_name = file_node.get('name') if file_node else 'unknown'
-            raise RuntimeError(
-                f"directive '{node.get('type')}' was not processed at line "
-                f"{node.get('line', 0)} in {file_name}")
+        directive = node.setdefault('directive', {})
+        if directive.get('processed'):
+            continue
+        if is_non_processed_type(node.get('type')):
+            continue
+        file_node = node
+        while file_node is not None and file_node.get('type') != 'file':
+            file_node = file_node.get('parent')
+        file_name = file_node.get('name') if file_node else 'unknown'
+        raise RuntimeError(
+            f"directive '{node.get('type')}' was not processed at line "
+            f"{node.get('line', 0)} in {file_name}")

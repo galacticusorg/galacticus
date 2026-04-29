@@ -18,7 +18,7 @@ def process_deep_copy_finalize(tree, options):
     for node in walk_tree(tree):
         if node.get('type') != 'deepCopyFinalize':
             continue
-        directive = node.get('directive') or {}
+        directive = node.setdefault('directive', {})
         if directive.get('processed'):
             continue
         objects = (directive.get('variables') or '').split()

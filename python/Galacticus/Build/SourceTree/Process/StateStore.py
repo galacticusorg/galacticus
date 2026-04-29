@@ -36,7 +36,9 @@ def process_state_store(tree, options):
     """
     for node in walk_tree(tree):
         ntype = node.get('type')
-        directive = node.get('directive') or {}
+        if ntype not in ('stateStore', 'stateRestore'):
+            continue
+        directive = node.setdefault('directive', {})
 
         if ntype == 'stateStore' and not directive.get('processed'):
             directive['processed'] = True

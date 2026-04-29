@@ -115,6 +115,7 @@ module Tables
        <method description="Return an array of all $y$-values. If \mono{table} is specified then the \mono{table}$^\mathrm{th}$ table is used for the $y$-values, otherwise the first table is used." method="ys" />
        <method description="Return the effective value of $x$ to use in table interpolations." method="xEffective"/>
        <method description="Return the weights to be applied to the table to integrate (using the trapezium rule) between \mono{x0} and \mono{x1}." method="integrationWeights" />
+       <method description="Assign \mono{table1d} objects." method="assignment(=)" />
      </methods>
      !!]
      procedure(Table1D_Interpolate ), deferred :: interpolate

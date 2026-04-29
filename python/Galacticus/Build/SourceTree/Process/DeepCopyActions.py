@@ -157,7 +157,7 @@ def process_deep_copy_actions(tree, options):
     for node in walk_tree(tree):
         ntype = node.get('type')
         if ntype == 'deepCopyActions':
-            directive = node.get('directive') or {}
+            directive = node.setdefault('directive', {})
             directive['processed'] = True
             directive_nodes.append(node)
             continue

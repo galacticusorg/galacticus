@@ -27,7 +27,7 @@ from Galacticus.Build.SourceTree                   import (
     walk_tree, parse_code, children, set_visibility,
     insert_after_node, insert_before_node, insert_post_contains,
 )
-from Galacticus.Build.SourceTree.Process           import register_process
+from Galacticus.Build.SourceTree.Process           import register_process, process_tree
 from Galacticus.Build.SourceTree.Parse.Declarations import add_declarations
 from Galacticus.Build.SourceTree.Parse.ModuleUses   import add_uses
 from Galacticus.Build.SourceTree.Process.SourceIntrospection import location
@@ -132,7 +132,7 @@ def _process_event_hook_call_site(node):
 
     Mirrors EventHooks.pm:562-631.
     """
-    directive = node.get('directive') or {}
+    directive = node.setdefault('directive', {})
     directive['processed'] = True
 
     add_uses(node['parent'], {
@@ -450,25 +450,35 @@ def _parse_interface_arguments(interface_text):
 
     Mirrors EventHooks.pm:46-59 in spirit: iterate each Fortran line, match
     against the intrinsic-type patterns, and extract the variable list after
-    the `::` separator.  Uses a simple `::` split rather than indexing into
-    INTRINSIC_DECLARATIONS groups, because the group indices in the shared
-    spec do not line up cleanly across all intrinsics (harmless elsewhere —
-    `parse_declaration` has its own regex — but it would trip us up here).
+    the `::` separator.
+
+    Note that an attribute list may contain `dimension(:)` (with a colon
+    inside the parens), so the line cannot be split on the first `::` found
+    by `[^:]*::` — that pattern would lock onto the colon inside `(:)` and
+    then fail to match the real `::` that follows.  Use a leading-intrinsic
+    check, then split on the *last* `::` to isolate the trailing variable
+    list.
     """
     arguments = []
+    intrinsic_re = re.compile(
+        r'^\s*(?:integer|real|double\s+precision|double\s+complex|'
+        r'logical|character|type|class)\b',
+        re.IGNORECASE,
+    )
+
     fh = io.StringIO(interface_text)
     while True:
         raw_line, processed_line, _ = get_fortran_line(fh)
         if not raw_line and not processed_line:
             break
-        m = re.match(
-            r'^\s*(?:integer|real|double\s+precision|double\s+complex|'
-            r'logical|character|type|class)\b[^:]*::\s*(.+?)\s*$',
-            processed_line,
-            re.IGNORECASE,
-        )
-        if m:
-            arguments.extend(extract_variables(m.group(1), keep_qualifiers=False))
+        if not intrinsic_re.match(processed_line):
+            continue
+        sep = processed_line.rfind('::')
+        if sep < 0:
+            continue
+        var_list = processed_line[sep + 2:].strip()
+        if var_list:
+            arguments.extend(extract_variables(var_list, keep_qualifiers=False))
     return arguments
 
 
@@ -544,12 +554,16 @@ def _emit_typed_hook_block(hook, parent_node, manager_parent):
     type_block = _substitute(_HOOK_TYPE_TEMPLATE, subs)
 
     # The subroutine bodies go after the `contains` marker of the manager's
-    # parent module.
+    # parent module.  Run process_tree on each parsed sub_tree so directives
+    # embedded in the templates (e.g. `<optionalArgument>` in `_ATTACH_TEMPLATE`)
+    # are expanded and marked processed — the dispatchers for those directive
+    # types have already run by the time eventHooks executes.
     for template in (_ATTACH_TEMPLATE, _DETACH_TEMPLATE, _ISATTACHED_TEMPLATE):
         sub_tree = parse_code(
             _substitute(template, subs),
             name='EventHooks',
         )
+        process_tree(sub_tree)
         kids = children(sub_tree)
         for k in kids:
             k['parent'] = None
@@ -798,7 +812,7 @@ def _process_event_hook_manager(node):
     Then synthesize the module-level helper subroutines (copy-out/in/done,
     restore, filter, initializer, wait-times).
     """
-    directive = node.get('directive') or {}
+    directive = node.setdefault('directive', {})
     directive['processed'] = True
     manager_parent = node['parent']
 
@@ -835,6 +849,10 @@ def process_event_hooks(tree, options):
     # Materialise the walk up front because we mutate the tree as we go.
     for node in list(walk_tree(tree)):
         ntype = node.get('type')
+        # Read-only access to `directive` here; we only call setdefault inside
+        # the per-type handlers that *will* write back to it, so we don't
+        # accidentally add an empty `'directive': {}` key to every node in the
+        # tree (which would later trip post_process_directives).
         directive = node.get('directive') or {}
 
         if ntype == 'eventHookManager' and not directive.get('processed'):
