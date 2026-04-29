@@ -16,7 +16,16 @@ import sys
 
 sys.path.insert(0, os.path.join(os.environ['GALACTICUS_EXEC_PATH'], 'python'))
 
-from Galacticus.Build.Components.Utils import register, verbosity_level
+from Galacticus.Build.Components.Utils         import (
+    register,
+    verbosity_level,
+    _component_properties,
+)
+from Galacticus.Build.Components.DataTypes     import (
+    data_object_primitive_name,
+    data_object_doc_name,
+)
+from Galacticus.Build.Components.NullFunctions import create_null_function
 
 
 def Gather_Classes(build):
@@ -67,4 +76,182 @@ def Gather_Classes(build):
                 print(f"               --> {impl_name}")
 
 
+def Build_Component_Classes(build):
+    """Define one `nodeComponent<Class>` Fortran type per component class.
+
+    Mirrors `Build_Component_Classes` (Classes.pm:75-217).  For every
+    `(implementation, property)` pair under each class that has at
+    least one of `isGettable` / `isSettable` / `isEvolvable`, emit
+    null-function bindings for `Set` / `Count` / `Rate` / `Analytic`
+    / `Inactive` / `Scale` as appropriate.  Each function name is
+    deduplicated per-class via `properties_created`.
+    """
+    components        = build.get('components')        or {}
+    component_classes = build.get('componentClasses')  or {}
+
+    for class_name in sorted(component_classes.keys()):
+        class_dict = component_classes[class_name]
+        properties_created = set()
+        type_bound_functions = []
+
+        for impl_name in class_dict.get('memberNames') or []:
+            impl_id = _ucfirst(class_name) + _ucfirst(impl_name)
+            implementation = components.get(impl_id) or {}
+
+            for prop in _component_properties(implementation):
+                attrs = prop.get('attributes') or {}
+                if not (attrs.get('isGettable')
+                        or attrs.get('isSettable')
+                        or attrs.get('isEvolvable')):
+                    continue
+
+                # Set function.
+                if attrs.get('isSettable'):
+                    fn_name = prop['name'] + 'Set'
+                    if fn_name not in properties_created:
+                        bound_to = create_null_function(build, {
+                            'selfType':  class_name,
+                            'attribute': 'set',
+                            'property':  prop,
+                            'intent':    'inout',
+                        })
+                        type_bound_functions.append({
+                            'type':        'procedure',
+                            'name':        fn_name,
+                            'function':    bound_to,
+                            'returnType':  r"\void",
+                            'arguments':   (
+                                data_object_doc_name(prop) + r"\ value"
+                            ),
+                            'description': (
+                                f"Set the \\mono{{{prop['name']}}} property "
+                                f"of the \\mono{{{class_name}}} component."
+                            ),
+                        })
+                        properties_created.add(fn_name)
+
+                # Evolve functions.
+                if attrs.get('isEvolvable'):
+                    # Count function.
+                    fn_name = prop['name'] + 'Count'
+                    if fn_name not in properties_created:
+                        type_bound_functions.append({
+                            'type':        'procedure',
+                            'name':        fn_name,
+                            'function':    create_null_function(build, {
+                                'selfType':  class_name,
+                                'attribute': 'get',
+                                'property':  {'type': 'integer', 'rank': 0},
+                                'intent':    'in',
+                            }),
+                            'returnType':  r"\intzero",
+                            'arguments':   "",
+                            'description': (
+                                f"Compute the count of evolvable quantities in the "
+                                f"\\mono{{{prop['name']}}} property of the "
+                                f"\\mono{{{impl_id}}} component."
+                            ),
+                        })
+                        properties_created.add(fn_name)
+
+                    # Rate function (skipped for createIfNeeded).
+                    fn_name = prop['name'] + 'Rate'
+                    if fn_name not in properties_created:
+                        if not attrs.get('createIfNeeded'):
+                            type_bound_functions.append({
+                                'type':        'procedure',
+                                'name':        fn_name,
+                                'function':    create_null_function(build, {
+                                    'selfType':  class_name,
+                                    'attribute': 'rate',
+                                    'property':  prop,
+                                    'intent':    'inout',
+                                }),
+                                'returnType':  r"\void",
+                                'arguments':   (
+                                    data_object_doc_name(prop) + r"\ value"
+                                ),
+                                'description': (
+                                    f"Cumulate to the rate of the "
+                                    f"\\mono{{{prop['name']}}} property of the "
+                                    f"\\mono{{{impl_id}}} component."
+                                ),
+                            })
+
+                        # Analytic / Inactive / Scale (only if not virtual).
+                        if not attrs.get('isVirtual'):
+                            type_bound_functions.append({
+                                'type':        'procedure',
+                                'name':        prop['name'] + 'Analytic',
+                                'function':    create_null_function(build, {
+                                    'selfType':  class_name,
+                                    'attribute': 'analytic',
+                                    'property':  prop,
+                                    'intent':    'inout',
+                                }),
+                                'returnType':  r"\void",
+                                'arguments':   "",
+                                'description': (
+                                    f"Mark the \\mono{{{prop['name']}}} property of "
+                                    f"the \\mono{{{impl_id}}} component as "
+                                    f"analtyically-solvable."
+                                ),
+                            })
+                            type_bound_functions.append({
+                                'type':        'procedure',
+                                'name':        prop['name'] + 'Inactive',
+                                'function':    create_null_function(build, {
+                                    'selfType':  class_name,
+                                    'attribute': 'inactive',
+                                    'property':  prop,
+                                    'intent':    'inout',
+                                }),
+                                'returnType':  r"\void",
+                                'arguments':   "",
+                                'description': (
+                                    f"Mark the \\mono{{{prop['name']}}} property of "
+                                    f"the \\mono{{{impl_id}}} component as inactive."
+                                ),
+                            })
+                            type_bound_functions.append({
+                                'type':        'procedure',
+                                'name':        prop['name'] + 'Scale',
+                                'function':    create_null_function(build, {
+                                    'selfType':  class_name,
+                                    'attribute': 'scale',
+                                    'property':  prop,
+                                    'intent':    'inout',
+                                }),
+                                'returnType':  r"\void",
+                                'arguments':   (
+                                    data_object_doc_name(prop) + r"\ value"
+                                ),
+                                'description': (
+                                    f"Set the scale of the \\mono{{{prop['name']}}} "
+                                    f"property of the \\mono{{{impl_id}}} component."
+                                ),
+                            })
+                        properties_created.add(fn_name)
+
+        type_name = 'nodeComponent' + _ucfirst(class_name)
+        build.setdefault('types', {})[type_name] = {
+            'name':           type_name,
+            'comment':        (
+                f"Type for the \\mono{{{class_name}}} component class."
+            ),
+            'isPublic':       True,
+            'extends':        'nodeComponent',
+            'boundFunctions': type_bound_functions,
+        }
+
+
+def _ucfirst(text):
+    return text[:1].upper() + text[1:] if text else text
+
+
+# ---------------------------------------------------------------------------
+# Hook registration.  Order matches Perl Classes.pm:21-28.
+# ---------------------------------------------------------------------------
+
 register('classes', 'gather', Gather_Classes)
+register('classes', 'types',  Build_Component_Classes)
