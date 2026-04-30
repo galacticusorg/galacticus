@@ -526,7 +526,7 @@ def _write_classes_xml(tree, classes):
     Mirrors ClassDocumentation.pm:173-180.
     """
     build_path = os.environ.get('BUILDPATH')
-    name       = tree.get('name') or ''
+    name       = os.path.basename(tree.get('name') or '')
     if not build_path or not classes:
         return
     m = re.match(r'(.+)\.(F90|Inc)$', name)
