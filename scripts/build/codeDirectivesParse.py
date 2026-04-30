@@ -324,7 +324,7 @@ def main(argv):
                 " $(BUILDPATH)/openMPCriticalSections.xml\n"
             )
             mk.write(
-                f"\t./scripts/build/buildCode.pl {install_directory}"
+                f"\t./scripts/build/buildCode.py {install_directory}"
                 f" {directive_xml}\n"
             )
             mk.write(f"{file_name}: {file_name}.up\n\n")

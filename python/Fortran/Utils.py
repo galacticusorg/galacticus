@@ -450,3 +450,101 @@ def extract_variables(variable_list, keep_qualifiers=False, lower_case=True, rem
         variables = [_restore(v) for v in variables]
 
     return variables
+
+
+def unformat_variables(variable_string):
+    """Parse a Fortran variable declaration string into a structured dict.
+
+    Mirrors Perl `Fortran::Utils::Unformat_Variables`.  Returns None if
+    the input doesn't parse as a valid declaration.
+
+    The returned dict carries `intrinsic`, `variables` (with qualifiers
+    preserved), `variableNames` (without qualifiers), and optionally
+    `type` and `attributes`.
+
+    The Perl original walks the `INTRINSIC_DECLARATIONS` regex table
+    and indexes capture groups by position, but the Python ports of
+    those regexes use slightly different capture-group structures
+    (non-capturing type brackets) than the Perl versions.  Rather than
+    keep two versions of the regex table in sync we just split the
+    string at the `::` separator, find the matching intrinsic prefix,
+    extract any `(...)` type bracket, and treat whatever remains as
+    attributes.  Equivalent semantics, simpler implementation.
+    """
+    if variable_string is None or '::' not in variable_string:
+        return None
+    before_decl, variables_part = variable_string.split('::', 1)
+
+    # Detect optional !$ OpenMP marker.
+    m = re.match(r'^\s*(!\$)?\s*(.*)$', before_decl, re.DOTALL)
+    if not m:
+        return None
+    head = m.group(2).rstrip()
+
+    # Match against each intrinsic in turn — the first that matches
+    # wins.  Use the same intrinsic names as the Perl table; multi-word
+    # intrinsics (`double precision`, `double complex`) need a flexible
+    # whitespace pattern.
+    intrinsic_patterns = [
+        ('double precision', r'double\s+precision'),
+        ('double complex',   r'double\s+complex'),
+        ('integer',          r'integer'),
+        ('real',             r'real'),
+        ('complex',          r'complex'),
+        ('logical',          r'logical'),
+        ('character',        r'character'),
+        ('type',             r'type'),
+        ('class',            r'class'),
+        ('procedure',        r'procedure'),
+        ('generic',          r'generic'),
+        ('final',            r'final'),
+    ]
+
+    matched_intrinsic = None
+    rest = None
+    for name, pattern in intrinsic_patterns:
+        m = re.match(r'^(' + pattern + r')\s*(.*)$', head, re.IGNORECASE)
+        if m:
+            matched_intrinsic = name
+            rest = m.group(2).strip()
+            break
+    if matched_intrinsic is None:
+        return None
+
+    # Pull off the optional `(...)` type bracket if present.  Uses
+    # `extract_bracketed` to walk balanced parens (so `kind(c_int)`-style
+    # nesting doesn't trip us up).  Local import avoids a top-level
+    # circular dep with `build.fortran_utils`.
+    type_text = None
+    if rest.startswith('('):
+        from build.fortran_utils import extract_bracketed
+        bracket, after, _ = extract_bracketed(rest, "()")
+        if bracket is not None:
+            type_text = bracket
+            rest = after.strip()
+
+    # Whatever remains before the leading comma (if any) is leftover
+    # after-type whitespace; whatever is after a comma is attributes.
+    attributes_string = re.sub(r'^\s*,\s*', '', rest) if rest else ''
+
+    if type_text is not None:
+        # Strip the outer parens then any internal whitespace.
+        type_text = re.sub(r'^\((.*)\)$', r'\1', type_text)
+        type_text = re.sub(r'\s', '', type_text)
+
+    variables_string  = variables_part
+    variables         = extract_variables(variables_string,  keep_qualifiers=True,  remove_spaces=True)
+    variable_names    = extract_variables(variables_string,  keep_qualifiers=False, remove_spaces=True)
+    attributes        = extract_variables(attributes_string, keep_qualifiers=True,  remove_spaces=True) \
+        if attributes_string else []
+
+    result = {
+        'intrinsic':     matched_intrinsic,
+        'variables':     variables,
+        'variableNames': variable_names,
+    }
+    if type_text:
+        result['type'] = type_text
+    if attributes:
+        result['attributes'] = attributes
+    return result
