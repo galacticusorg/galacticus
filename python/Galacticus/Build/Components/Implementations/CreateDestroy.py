@@ -236,14 +236,9 @@ def Implementation_Finalization(build, class_dict, member):
 
     if isinstance(member.get('extends'), dict):
         ext = member['extends']
-        # WART preserved: Perl uses `$member->{'class'}` here, but the
-        # corresponding initializer / builder use `$member->{'extends'}->{'class'}`.
-        # When `member.class` happens to differ from `member.extends.class`
-        # (rare in practice) the destroyer would target the wrong parent
-        # type.  Reproduced verbatim.
         parent_type = (
             'nodeComponent'
-            + _ucfirst(member.get('class', ''))
+            + _ucfirst(ext.get('class', ''))
             + _ucfirst(ext.get('name', ''))
         )
         function['content'] += f"call self%{parent_type}%destroy()\n"
@@ -411,15 +406,10 @@ def Implementation_Builder(build, class_dict, member):
                         "//{introspection:location})\n"
                     )
                 else:
-                    # WART preserved: Perl uses `self%{$property->{'name'}}`
-                    # here (no `Data` suffix on the deallocate / allocate),
-                    # but `self%{$property->{'name'}}Data(i)%builder` on the
-                    # call line.  The two forms refer to different
-                    # symbols.  Mirrored verbatim.
                     content += (
-                        f"  if (allocated(self%{prop['name']})) "
-                        f"deallocate(self%{prop['name']})\n"
-                        f"  allocate(self%{prop['name']}(propertyListLength))\n"
+                        f"  if (allocated(self%{prop['name']}Data)) "
+                        f"deallocate(self%{prop['name']}Data)\n"
+                        f"  allocate(self%{prop['name']}Data(propertyListLength))\n"
                         "  do i=1,propertyListLength\n"
                         "    !$omp critical (FoX_DOM_Access)\n"
                         "    property => item(propertyList,i-1)\n"

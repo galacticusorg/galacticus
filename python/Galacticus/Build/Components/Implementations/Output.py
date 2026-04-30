@@ -314,16 +314,10 @@ def Implementation_Output_Names(build, class_dict, member):
                         )
                 elif 'count' in output:
                     label = re.sub(r'\{i\}', 'i', output.get('labels', ''))
-                    # WART preserved: Perl Output.pm:237 uses
-                    # `$class->{'name'}.ucfirst($propertyName)` but the
-                    # variable `$propertyName` is never set in the loop
-                    # — Perl evaluates it as undef and emits an empty
-                    # interpolation, leaving just `<class>` followed by
-                    # `'//{label}`.  Mirrored verbatim.
                     function['content'] += (
                         f"do i=1,{output['count']}\n"
                         f"   {ot}Property                                   ={ot}Property+1\n"
-                        f"   {ot}Properties({ot}Property)%name     ='{class_dict['name']}'//{label}\n"
+                        f"   {ot}Properties({ot}Property)%name     ='{class_dict['name']}{cap_prop}'//{label}\n"
                         f"   {ot}Properties({ot}Property)%comment  ='{comment} [' //{label}//']'\n"
                         f"   {ot}Properties({ot}Property)%units    ="
                         f"unitType(unitsInSI={units_in_si},"
