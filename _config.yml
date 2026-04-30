@@ -1,0 +1,30 @@
+title: Galacticus
+description: Benchmark and validation metrics for the Galacticus galaxy formation model.
+url: https://galacticusorg.github.io
+baseurl: /galacticus
+remote_theme: just-the-docs/just-the-docs
+plugins:
+  - jekyll-remote-theme
+search_enabled: true
+heading_anchors: true
+color_scheme: light
+aux_links:
+  "Galacticus on GitHub":
+    - https://github.com/galacticusorg/galacticus
+  "Wiki":
+    - https://github.com/galacticusorg/galacticus/wiki
+aux_links_new_tab: true
+logo: /assets/New_Logo_Galaxy_192_Transparent.png
+defaults:
+  - scope:
+      path: "dev"
+    values:
+      sitemap: false
+exclude:
+  - Gemfile
+  - Gemfile.lock
+  - vendor
+include:
+  - _data
+  - _includes
+  - groups

@@ -1,93 +1,82 @@
-# Galacticus
+---
+layout: default
+title: Home
+nav_order: 1
+---
 
+# Galacticus
 
 ![logo](assets/New_Logo_Galaxy_192_Transparent.png)
 
-This site is used to host development and validation metrics for the Galacticus galaxy formation model.
+Benchmark and validation metrics for the [Galacticus](https://github.com/galacticusorg/galacticus) galaxy formation model. Documentation lives on the [wiki](https://github.com/galacticusorg/galacticus/wiki).
 
-You can find Galacticus itself [here](https://github.com/galacticusorg/galacticus). Documentation can be found on the [wiki](https://github.com/galacticusorg/galacticus/wiki).
+See the [status dashboard](dashboard.html) for a one-page summary of every metric, or browse by group below.
 
-Here you can find:
+## [Dark matter-only subhalos](groups/dmoSubhalos.html)
 
-* Benchmark and validation metrics for:
-    * [Dark matter-only subhalos](https://galacticusorg.github.io/galacticus/dev/bench/darkMatterOnlySubhalos/)
-	* Dark matter-only subhalos (Symphony Milky Way; see [Nadler et al. (2023)](https://ui.adsabs.harvard.edu/abs/2023ApJ...945..159N) for details)
-        * [Resolution X1](https://galacticusorg.github.io/galacticus/dev/bench/darkMatterOnlySubhalosSymphonyCDMMilkyWayX1)
-        * [Resolution X8](https://galacticusorg.github.io/galacticus/dev/bench/darkMatterOnlySubhalosSymphonyCDMMilkyWayX8)
-        * [Resolution X64](https://galacticusorg.github.io/galacticus/dev/bench/darkMatterOnlySubhalosSymphonyCDMMilkyWayX64)
-    * Dark matter-only subhalos (COZMIC Milky Way; see [Nadler et al. (2025)](https://ui.adsabs.harvard.edu/abs/2025ApJ...986..127N) and [An et al. (2025)](https://ui.adsabs.harvard.edu/abs/2025ApJ...986..128A) for details)
-        * Resolution X1
-		   * [mᵪ = 3keV](https://galacticusorg.github.io/galacticus/dev/bench/darkMatterOnlySubhalosCOZMICWDM3keVMilkyWayX1)
-		   * [mᵪ = 4keV](https://galacticusorg.github.io/galacticus/dev/bench/darkMatterOnlySubhalosCOZMICWDM4keVMilkyWayX1)
-		   * [mᵪ = 5keV](https://galacticusorg.github.io/galacticus/dev/bench/darkMatterOnlySubhalosCOZMICWDM5keVMilkyWayX1)
-		   * [mᵪ = 6keV](https://galacticusorg.github.io/galacticus/dev/bench/darkMatterOnlySubhalosCOZMICWDM6keVMilkyWayX1)
-		   * [mᵪ = 6.5keV](https://galacticusorg.github.io/galacticus/dev/bench/darkMatterOnlySubhalosCOZMICWDM6.5keVMilkyWayX1)
-		   * [mᵪ = 10keV](https://galacticusorg.github.io/galacticus/dev/bench/darkMatterOnlySubhalosCOZMICWDM10keVMilkyWayX1)
-        * Resolution X8
-		   * [mᵪ = 3keV](https://galacticusorg.github.io/galacticus/dev/bench/darkMatterOnlySubhalosCOZMICWDM3keVMilkyWayX8)
-		   * [mᵪ = 4keV](https://galacticusorg.github.io/galacticus/dev/bench/darkMatterOnlySubhalosCOZMICWDM4keVMilkyWayX8)
-		   * [mᵪ = 5keV](https://galacticusorg.github.io/galacticus/dev/bench/darkMatterOnlySubhalosCOZMICWDM5keVMilkyWayX8)
-		   * [mᵪ = 6keV](https://galacticusorg.github.io/galacticus/dev/bench/darkMatterOnlySubhalosCOZMICWDM6keVMilkyWayX8)
-		   * [mᵪ = 6.5keV](https://galacticusorg.github.io/galacticus/dev/bench/darkMatterOnlySubhalosCOZMICWDM6.5keVMilkyWayX8)
-		   * [mᵪ = 10keV](https://galacticusorg.github.io/galacticus/dev/bench/darkMatterOnlySubhalosCOZMICWDM10keVMilkyWayX8)
-    * Decaying dark matter-only subhalos (see [Nadler & Benson (2025)](https://ui.adsabs.harvard.edu/abs/2025arXiv250112636N) for details)
-	    * [τ=10 Gyr; vₖ=20 km/s](https://galacticusorg.github.io/galacticus/dev/bench/darkMatterOnlySubhalos_decayingDarkMatter_lifetime10.0_velocityKick20.0/index.html)
-	    * [τ=20 Gyr; vₖ=20 km/s](https://galacticusorg.github.io/galacticus/dev/bench/darkMatterOnlySubhalos_decayingDarkMatter_lifetime20.0_velocityKick20.0/index.html)
-	    * [τ=20 Gyr; vₖ=40 km/s](https://galacticusorg.github.io/galacticus/dev/bench/darkMatterOnlySubhalos_decayingDarkMatter_lifetime20.0_velocityKick40.0/index.html)
-	    * [τ=40 Gyr; vₖ=20 km/s](https://galacticusorg.github.io/galacticus/dev/bench/darkMatterOnlySubhalos_decayingDarkMatter_lifetime40.0_velocityKick20.0/index.html)
-	    * [τ=40 Gyr; vₖ=40 km/s](https://galacticusorg.github.io/galacticus/dev/bench/darkMatterOnlySubhalos_decayingDarkMatter_lifetime40.0_velocityKick40.0/index.html)
-	    * [τ=80 Gyr; vₖ=40 km/s](https://galacticusorg.github.io/galacticus/dev/bench/darkMatterOnlySubhalos_decayingDarkMatter_lifetime80.0_velocityKick40.0/index.html)
-    * [Milky Way model](https://galacticusorg.github.io/galacticus/dev/bench/milkyWayModel/)
-    * Idealized subhalo simulations (see [Du et al. (2024)](https://ui.adsabs.harvard.edu/abs/2024arXiv240309597D) for details)
-	    * [rₚ/rₐ=0.005; γ=1.5](https://galacticusorg.github.io/galacticus/dev/bench/idealizedSubhaloSimulation_rpra0.005_gamma1.5)
-	    * [rₚ/rₐ=0.01; γ=1.5](https://galacticusorg.github.io/galacticus/dev/bench/idealizedSubhaloSimulation_rpra0.01_gamma1.5)
-	    * [rₚ/rₐ=0.05; γ=0.5](https://galacticusorg.github.io/galacticus/dev/bench/idealizedSubhaloSimulation_rpra0.05_gamma0.5)
-	    * [rₚ/rₐ=0.05; γ=1.0](https://galacticusorg.github.io/galacticus/dev/bench/idealizedSubhaloSimulation_rpra0.05_gamma1.0)
-	    * [rₚ/rₐ=0.2; γ=0.0](https://galacticusorg.github.io/galacticus/dev/bench/idealizedSubhaloSimulation_rpra0.2_gamma0.0)
-	    * [rₚ/rₐ=0.2; γ=0.5](https://galacticusorg.github.io/galacticus/dev/bench/idealizedSubhaloSimulation_rpra0.2_gamma0.5)
-	    * [rₚ/rₐ=0.2; γ=1.0](https://galacticusorg.github.io/galacticus/dev/bench/idealizedSubhaloSimulation_rpra0.2_gamma1.0)
-	    * [rₚ/rₐ=0.4; γ=0.0](https://galacticusorg.github.io/galacticus/dev/bench/idealizedSubhaloSimulation_rpra0.4_gamma0.0)
-* Validation plots and data for:
-    * [Merger tree builder convergence](https://galacticusorg.github.io/galacticus/dev/valid/mergerTreeConvergence)
-    * [Halo concentration convergence](https://galacticusorg.github.io/galacticus/dev/valid/concentrationConvergence)
-    * [Dark matter-only subhalos](https://galacticusorg.github.io/galacticus/dev/valid/darkMatterOnlySubhalos/)
-	* Dark matter-only subhalos (Symphony Milky Way; see [Nadler et al. (2023)](https://ui.adsabs.harvard.edu/abs/2023ApJ...945..159N) for details)
-        * [Resolution X1](https://galacticusorg.github.io/galacticus/dev/valid/darkMatterOnlySubhalosSymphonyCDMMilkyWayX1)
-        * [Resolution X8](https://galacticusorg.github.io/galacticus/dev/valid/darkMatterOnlySubhalosSymphonyCDMMilkyWayX8)
-        * [Resolution X64](https://galacticusorg.github.io/galacticus/dev/valid/darkMatterOnlySubhalosSymphonyCDMMilkyWayX64)
-    * Dark matter-only subhalos (COZMIC Milky Way; see [Nadler et al. (2025)](https://ui.adsabs.harvard.edu/abs/2025ApJ...986..127N) and [An et al. (2025)](https://ui.adsabs.harvard.edu/abs/2025ApJ...986..128A) for details)
-        * Resolution X1
-		   * [mᵪ = 3keV](https://galacticusorg.github.io/galacticus/dev/valid/darkMatterOnlySubhalosCOZMICWDM3keVMilkyWayX1)
-		   * [mᵪ = 4keV](https://galacticusorg.github.io/galacticus/dev/valid/darkMatterOnlySubhalosCOZMICWDM4keVMilkyWayX1)
-		   * [mᵪ = 5keV](https://galacticusorg.github.io/galacticus/dev/valid/darkMatterOnlySubhalosCOZMICWDM5keVMilkyWayX1)
-		   * [mᵪ = 6keV](https://galacticusorg.github.io/galacticus/dev/valid/darkMatterOnlySubhalosCOZMICWDM6keVMilkyWayX1)
-		   * [mᵪ = 6.5keV](https://galacticusorg.github.io/galacticus/dev/valid/darkMatterOnlySubhalosCOZMICWDM6.5keVMilkyWayX1)
-		   * [mᵪ = 10keV](https://galacticusorg.github.io/galacticus/dev/valid/darkMatterOnlySubhalosCOZMICWDM10keVMilkyWayX1)
-        * Resolution X8
-		   * [mᵪ = 3keV](https://galacticusorg.github.io/galacticus/dev/valid/darkMatterOnlySubhalosCOZMICWDM3keVMilkyWayX8)
-		   * [mᵪ = 4keV](https://galacticusorg.github.io/galacticus/dev/valid/darkMatterOnlySubhalosCOZMICWDM4keVMilkyWayX8)
-		   * [mᵪ = 5keV](https://galacticusorg.github.io/galacticus/dev/valid/darkMatterOnlySubhalosCOZMICWDM5keVMilkyWayX8)
-		   * [mᵪ = 6keV](https://galacticusorg.github.io/galacticus/dev/valid/darkMatterOnlySubhalosCOZMICWDM6keVMilkyWayX8)
-		   * [mᵪ = 6.5keV](https://galacticusorg.github.io/galacticus/dev/valid/darkMatterOnlySubhalosCOZMICWDM6.5keVMilkyWayX8)
-		   * [mᵪ = 10keV](https://galacticusorg.github.io/galacticus/dev/valid/darkMatterOnlySubhalosCOZMICWDM10keVMilkyWayX8)
-    * Decaying dark matter-only subhalos (see [Nadler & Benson (2025)](https://ui.adsabs.harvard.edu/abs/2025arXiv250112636N) for details)
-	    * [τ=10 Gyr; vₖ=20 km/s](https://galacticusorg.github.io/galacticus/dev/valid/darkMatterOnlySubhalosDecayingDarkMatter/index_lifetime10.0_velocityKick20.0.html)
-	    * [τ=20 Gyr; vₖ=20 km/s](https://galacticusorg.github.io/galacticus/dev/valid/darkMatterOnlySubhalosDecayingDarkMatter/index_lifetime20.0_velocityKick20.0.html)
-	    * [τ=20 Gyr; vₖ=40 km/s](https://galacticusorg.github.io/galacticus/dev/valid/darkMatterOnlySubhalosDecayingDarkMatter/index_lifetime20.0_velocityKick40.0.html)
-	    * [τ=40 Gyr; vₖ=20 km/s](https://galacticusorg.github.io/galacticus/dev/valid/darkMatterOnlySubhalosDecayingDarkMatter/index_lifetime40.0_velocityKick20.0.html)
-	    * [τ=40 Gyr; vₖ=40 km/s](https://galacticusorg.github.io/galacticus/dev/valid/darkMatterOnlySubhalosDecayingDarkMatter/index_lifetime40.0_velocityKick40.0.html)
-	    * [τ=80 Gyr; vₖ=40 km/s](https://galacticusorg.github.io/galacticus/dev/valid/darkMatterOnlySubhalosDecayingDarkMatter/index_lifetime80.0_velocityKick40.0.html)
-    * [Milky Way model](https://galacticusorg.github.io/galacticus/dev/valid/milkyWayModel/)
-    * Idealized subhalo simulations (see [Du et al. (2024)](https://ui.adsabs.harvard.edu/abs/2024arXiv240309597D) for details)
-	    * [rₚ/rₐ=0.005; γ=1.5](https://galacticusorg.github.io/galacticus/dev/valid/idealizedSubhaloSimulations/index_idealizedSubhaloSimulation_rpra0.005_gamma1.5.html)
-	    * [rₚ/rₐ=0.01; γ=1.5](https://galacticusorg.github.io/galacticus/dev/valid/idealizedSubhaloSimulations/index_idealizedSubhaloSimulation_rpra0.01_gamma1.5.html)
-	    * [rₚ/rₐ=0.05; γ=0.5](https://galacticusorg.github.io/galacticus/dev/valid/idealizedSubhaloSimulations/index_idealizedSubhaloSimulation_rpra0.05_gamma0.5.html)
-	    * [rₚ/rₐ=0.05; γ=1.0](https://galacticusorg.github.io/galacticus/dev/valid/idealizedSubhaloSimulations/index_idealizedSubhaloSimulation_rpra0.05_gamma1.0.html)
-	    * [rₚ/rₐ=0.2; γ=0.0](https://galacticusorg.github.io/galacticus/dev/valid/idealizedSubhaloSimulations/index_idealizedSubhaloSimulation_rpra0.2_gamma0.0.html)
-	    * [rₚ/rₐ=0.2; γ=0.5](https://galacticusorg.github.io/galacticus/dev/valid/idealizedSubhaloSimulations/index_idealizedSubhaloSimulation_rpra0.2_gamma0.5.html)
-	    * [rₚ/rₐ=0.2; γ=1.0](https://galacticusorg.github.io/galacticus/dev/valid/idealizedSubhaloSimulations/index_idealizedSubhaloSimulation_rpra0.2_gamma1.0.html)
-	    * [rₚ/rₐ=0.4; γ=0.0](https://galacticusorg.github.io/galacticus/dev/valid/idealizedSubhaloSimulations/index_idealizedSubhaloSimulation_rpra0.4_gamma0.0.html)
-    * [Strong lensing measurements](https://galacticusorg.github.io/galacticus/dev/valid/strongLensing/)
-    * [Baryonic suppression of structure growth](https://galacticusorg.github.io/galacticus/dev/valid/baryonicSuppression/)
-* Meta metrics
-    * [Build profile](https://galacticusorg.github.io/galacticus/dev/bench/meta/buildProfile)
+Generic dark matter-only subhalo benchmarks and validations.
+
+1 metric(s).
+
+## [Symphony CDM Milky Way](groups/symphonyCDM.html)
+
+Dark matter-only subhalos calibrated against the Symphony Milky Way zoom-in suite.
+
+_[Nadler et al. (2023)](https://ui.adsabs.harvard.edu/abs/2023ApJ...945..159N)_
+
+3 metric(s).
+
+## [COZMIC WDM Milky Way](groups/cozmicWDM.html)
+
+Dark matter-only subhalos in warm dark matter cosmologies, calibrated against the COZMIC suite.
+
+_[Nadler et al. (2025); An et al. (2025)](https://ui.adsabs.harvard.edu/abs/2025ApJ...986..127N)_
+
+12 metric(s).
+
+## [Decaying dark matter subhalos](groups/decayingDM.html)
+
+Dark matter-only subhalos in two-body decaying dark matter cosmologies.
+
+_[Nadler & Benson (2025)](https://ui.adsabs.harvard.edu/abs/2025arXiv250112636N)_
+
+6 metric(s).
+
+## [Idealized subhalo simulations](groups/idealizedSubhalos.html)
+
+Idealized subhalo evolution under controlled tidal stripping.
+
+_[Du et al. (2024)](https://ui.adsabs.harvard.edu/abs/2024arXiv240309597D)_
+
+8 metric(s).
+
+## [Milky Way model](groups/milkyWayModel.html)
+
+Full Milky Way galaxy formation model.
+
+1 metric(s).
+
+## [Convergence tests](groups/convergence.html)
+
+Numerical convergence checks of internal Galacticus algorithms.
+
+2 metric(s).
+
+## [Strong lensing](groups/strongLensing.html)
+
+Subhalo populations relevant to strong gravitational lensing measurements.
+
+1 metric(s).
+
+## [Baryonic suppression](groups/baryonicSuppression.html)
+
+Suppression of structure growth by baryonic physics.
+
+1 metric(s).
+
+## [Build metrics](groups/meta.html)
+
+Compilation profiling and other build-time diagnostics.
+
+1 metric(s).
+
