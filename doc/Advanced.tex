@@ -435,10 +435,7 @@ The resulting mass function is written to the output file in a group named ``\mo
 \item [\mono{massFunctionTarget}] The observed mass function from \cite{baldry_galaxy_2012};
 \item [\mono{massFunctionCovarianceTarget}] The covariance matrix for the observed mass function from \cite{baldry_galaxy_2012}.
 \end{description}
-The output group also contains a ``\mono{logLikelihood}'' attribute which gives the log-likelihood of the model given this data. Additional attributes provide a description of the analysis that allows a simple plot comparing the \glc\ and observed mass functions to be made using:
-\begin{verbatim}
-./scripts/analysis/analysesPlot.py <outputFileName>
-\end{verbatim}
+The output group also contains a ``\mono{logLikelihood}'' attribute which gives the log-likelihood of the model given this data. Additional attributes provide a description of the analysis that allows a simple plot comparing the \glc\ and observed mass functions to be made using the \href{https://github.com/galacticusorg/dendros}{Dendros} package, which auto-discovers on-the-fly analyses in a \glc\ output file and produces comparison plots. Dendros is available on \href{https://pypi.org/project/dendros/}{PyPI} and can be installed via \mono{pip install dendros}.
 
 Multiple on-the-fly analyses can be performed, by simply grouping them inside a ``\mono{multi}'' \refClass{outputAnalysisClass}, e.g.:
 \begin{verbatim}
