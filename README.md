@@ -77,5 +77,5 @@ For further help, visit the [wiki](https://github.com/galacticusorg/galacticus/w
 Analysis and visualization of Galacticus outputs - including plotting of on-the-fly analyses, MCMC chain diagnostics, and posterior corner plots - is provided by the [Dendros](https://github.com/galacticusorg/dendros) package, available on [PyPI](https://pypi.org/project/dendros/):
 
 ```bash
-pip install dendros
+python3 -m pip install dendros
 ```
