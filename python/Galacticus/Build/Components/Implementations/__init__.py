@@ -142,7 +142,7 @@ def Implementation_Dependencies(build):
             impl    = components.get(impl_id) or {}
             ext     = impl.get('extends')
             if isinstance(ext, dict) and 'name' in ext:
-                dependencies.setdefault(ext['name'], []).append(impl_name)
+                dependencies.setdefault(impl_name, []).append(ext['name'])
 
         sorted_member_names = topo_sort(member_names, dependencies)
         class_dict['memberNames'] = sorted_member_names
