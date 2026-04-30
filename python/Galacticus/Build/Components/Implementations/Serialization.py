@@ -470,15 +470,7 @@ def Implementation_Serialize_Raw(build, class_dict, member):
 
 
 def Implementation_Deserialize_Raw(build, class_dict, member):
-    """Mirrors `Implementation_Deserialize_Raw`.
-
-    WART preserved: Perl Serialization.pm:571 has `do i=1,arraySize)` —
-    a stray closing paren that would produce syntactically invalid
-    Fortran for any rank-1 derived-type property in this hook.  This
-    branch appears to be never exercised in the current build (no
-    rank-1 derived-type properties in `objects.nodes.components.*`),
-    so the bug never surfaces.  Mirrored verbatim.
-    """
+    """Mirrors `Implementation_Deserialize_Raw`."""
     cap_class  = _ucfirst(class_dict['name'])
     cap_member = _ucfirst(member['name'])
     impl_type  = 'nodeComponent' + cap_class + cap_member
@@ -567,7 +559,7 @@ def Implementation_Deserialize_Raw(build, class_dict, member):
             else:
                 content += (
                     f"   allocate(self%{prop['name']}Data(arraySize))\n"
-                    "   do i=1,arraySize)\n"
+                    "   do i=1,arraySize\n"
                     f"      call self%{prop['name']}Data(i)%readRaw(fileHandle)\n"
                     "   end do\n"
                 )

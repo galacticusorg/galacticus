@@ -93,12 +93,7 @@ def Tree_Node_Serialize_ASCII(build):
         "call displayIndent('state',verbosityLevel_)\n"
     )
     for state in _TREE_NODE_STATES:
-        # WART: the Perl original (Serialization.pm:107) writes
-        # `length($tate)` instead of `length($state)`, so the Perl
-        # padding evaluates `length(undef)` = 0 and emits 22 leading
-        # spaces every iteration.  Preserved here for byte-identical
-        # output; clearly an unintended typo in the original.
-        pad = ' ' * (22 - 0)
+        pad = ' ' * (22 - len(state))
         content += (
             f"message='{pad}{state}: '\n"
             f"write (label,'(l1)') self%{state}\n"

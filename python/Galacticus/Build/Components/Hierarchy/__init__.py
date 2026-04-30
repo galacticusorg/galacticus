@@ -139,16 +139,10 @@ def Hierarchy_Initialization(build):
                     f"      <source>parameters_</source>\n"
                     f"      <defaultValue>.false.</defaultValue>\n"
                     f"      <attachedTo>module</attachedTo>\n"
-                    # Mirror Perl literal: $componentClass is undeclared
-                    # in the original Perl block, so the generated text
-                    # contains a literal empty replacement.  The lone
-                    # backslashes around `}` (e.g. `\}`) are kept literal
-                    # to match the output of the Perl source — see WART
-                    # note in summary.
                     f"      <description>Specifies whether the "
-                    f"\\mono{{{prop['name']}\\}} method of the "
-                    f"\\mono{{{member['name']}\\}} implemention of the "
-                    f"\\mono{{\\}} component class should be output."
+                    f"\\mono{{{prop['name']}}} method of the "
+                    f"\\mono{{{member['name']}}} implementation of the "
+                    f"\\mono{{{class_name}}} component class should be output."
                     f"</description>\n"
                     f"      <type>string</type>\n"
                     f"      <cardinality>1</cardinality>\n"

@@ -588,13 +588,10 @@ def Tree_Node_Mass_Baryonic(build):
     content = "treeNodeMassBaryonic=0.0d0\n"
     for class_dict in _active_classes(build):
         cap = _ucfirst(class_dict['name'])
-        # WART preserved: Utils.pm:540 mistypes the LHS as
-        # `treeNodeMassbaryonic` (lowercase 'b').  Fortran is
-        # case-insensitive, so it still binds to the same variable.
         content += (
             f"  if (allocated(self%component{cap})) then\n"
             f"     do i=1,size(self%component{cap})\n"
-            f"       treeNodeMassbaryonic=treeNodeMassBaryonic"
+            f"       treeNodeMassBaryonic=treeNodeMassBaryonic"
             f"+self%component{cap}(i)%massBaryonic()\n"
             f"     end do\n"
             f"  end if\n"

@@ -85,23 +85,13 @@ def Build_Node_Component_Class(build):
 
 def _meta_property_arg_doc(mpt):
     """Return the documentation-only argument string for an `add…MetaProperty`
-    method.  Mirrors Components.pm:221 byte-for-byte, including two warts
-    in the original Perl literal:
-
-    * Each `\\textcolor{red}{...}` is left unclosed (no terminating `}`
-      after `\\textgreater`).
-    * The conditional `eq "flat"` test never matches the actual label
-      `"float"` in the meta-property table, so the `[isEvolvable]` clause
-      is effectively dead code.
-
-    Both reproduce here verbatim so the generated documentation is
-    identical to the Perl output.
+    method.
     """
     is_evolvable = r", \logicalzero\ [isEvolvable]" \
-        if (mpt['label'] == 'flat' and mpt['rank'] == 0) else ""
+        if (mpt['label'] == 'float' and mpt['rank'] == 0) else ""
     return (
-        r"\textcolor{red}{\textless type(varying\_string)\textgreater label, "
-        r"\textcolor{red}{\textless character(len=*)\textgreater name"
+        r"\textcolor{red}{\textless type(varying\_string)\textgreater} label, "
+        r"\textcolor{red}{\textless character(len=*)\textgreater} name"
         + is_evolvable
         + r", \logicalzero\ [isCreator]"
     )
