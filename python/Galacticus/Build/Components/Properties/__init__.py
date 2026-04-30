@@ -87,11 +87,6 @@ def Property_Output_Validate(build):
 
     Mirrors `Property_Output_Validate`.  Strips whitespace from
     `labels` and `modules` after validation.
-
-    WART preserved: the original Perl `die` for "output of rank>1
-    arrays not supported" reads `unless ( $property->{'data'}->{'rank'} > 1 )`,
-    which is the inverse of the message — the `unless` should have
-    been `if`.  Reproducing the bug verbatim means we never raise here.
     """
     for component in (build.get('components') or {}).values():
         for prop in _component_properties(component):
@@ -106,6 +101,11 @@ def Property_Output_Validate(build):
                 )
             data = prop.get('data') or {}
             rank = int(data.get('rank') or 0)
+            if rank > 1:
+                sys.exit(
+                    "Property_Output_Validate: output of rank>1 arrays "
+                    "is not supported"
+                )
             if rank > 0 and 'labels' not in output:
                 sys.exit(
                     "Property_Output_Validate: output of rank>0 objects "
