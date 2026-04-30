@@ -307,12 +307,9 @@ def Implementation_Serialize_XML(build, class_dict, member):
                     )
         else:
             # Virtual + rank-0 + isGettable + intrinsic: call the getter.
-            # WART preserved: Perl checks `$property->{'rank'} == 0` (the
-            # raw-input rank field) rather than `data.rank` here.
-            raw_rank = int(prop.get('rank') or 0)
             if (
                 attrs.get('isGettable')
-                and raw_rank == 0
+                and rank == 0
                 and is_intrinsic(ptype)
             ):
                 fmt = _FORMAT_LABEL_BARE[ptype]

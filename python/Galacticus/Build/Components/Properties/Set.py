@@ -59,15 +59,11 @@ def Bind_Set_Functions(build, class_dict, member, prop):
     is not deferred.
 
     Mirrors `Bind_Set_Functions`.
-
-    WART preserved: Perl checks `$property->{'attributes'}->{'isGettable'}`
-    here (the wrong attribute — should be `isSettable`).  Reproduced
-    verbatim.
     """
     attrs = prop.get('attributes') or {}
     set_function = prop.get('setFunction') or {}
     if (
-        attrs.get('isGettable')   # WART: should be isSettable per the docstring.
+        attrs.get('isSettable')
         and not set_function.get('build')
         and not _is_deferred(prop, 'set')
     ):
