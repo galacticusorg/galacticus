@@ -6,19 +6,19 @@ window.PONOSV_DATA = {
             "name": "Andrew Benson",
             "email": "abensonca@gmail.com"
         },
-        "id": "e3727aa117f9afecb9008ea052a90e9d26255ced",
-        "message": "Merge pull request #1088 from galacticusorg/claude/mpi-unique-node-ids-mUbcE\n\nAdd MPI-aware unique ID assignment for tree nodes\n",
-        "timestamp": "2026-04-27 14:19:53+00:00",
-        "url": "https://github.com/galacticusorg/galacticus/commit/e3727aa117f9afecb9008ea052a90e9d26255ced"
+        "id": "309719ffd333e5238520098542e0d28f09beddd2",
+        "message": "Merge pull request #1094 from galacticusorg/fixLMCLabel\n\nCorrect constrained MW+LMC tree parameter file to label the correct branch\n",
+        "timestamp": "2026-04-29 15:52:01+00:00",
+        "url": "https://github.com/galacticusorg/galacticus/commit/309719ffd333e5238520098542e0d28f09beddd2"
     },
     "surfaceDensity": {
-        "percentageBelow": 42.857142857142854,
-        "percentageAbove": 57.142857142857146,
+        "percentageBelow": 32.14285714285714,
+        "percentageAbove": 67.85714285714286,
         "target": 0.006
     },
     "slope": {
-        "percentageBelow": 72.72727272727272,
-        "percentageAbove": 27.272727272727273,
+        "percentageBelow": 44.44444444444444,
+        "percentageAbove": 55.55555555555556,
         "target": 0.85
     }
 }
