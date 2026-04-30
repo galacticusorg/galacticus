@@ -12,7 +12,6 @@ runs:
         echo "GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
         echo "GALACTICUS_DATA_PATH=$GITHUB_WORKSPACE/datasets" >> $GITHUB_ENV
         echo "PATH=$PATH:/opt/local/bin:/usr/local/bin" >> $GITHUB_ENV
-        echo "PERL_MM_USE_DEFAULT=1" >> $GITHUB_ENV
         echo "GALACTICUS_EXEC_PATH=`pwd`" >> $GITHUB_ENV
         echo "FCCOMPILER=gfortran-12" >> $GITHUB_ENV
         echo "CCOMPILER=gcc-15" >> $GITHUB_ENV
@@ -155,90 +154,3 @@ runs:
         sudo cp bin/* /usr/local/bin/.
         sudo cp lib/* /usr/local/lib/.
         sudo cp -R include/* /usr/local/include/.
-    - name: Install IO::Socket::SSL
-      shell: bash
-      run: |
-        if [[ "${OS_VER}" -ge 14 ]]; then
-           # For OS version 14 and above install OpenSSL and specify the exact version to use.
-           sudo port install openssl11
-           export OPENSSL_PREFIX=/opt/local/libexec/openssl11
-        fi
-        curl -L https://cpan.metacpan.org/authors/id/C/CH/CHRISN/Net-SSLeay-1.94.tar.gz --output Net-SSLeay-1.94.tar.gz
-        tar xvfz Net-SSLeay-1.94.tar.gz
-        cd Net-SSLeay-1.94
-        perl Makefile.PL
-        make -j3
-        sudo make install
-        cd ..
-        curl -L https://cpan.metacpan.org/authors/id/S/SU/SULLR/IO-Socket-SSL-2.098.tar.gz --output IO-Socket-SSL-2.098.tar.gz
-        tar xvfz IO-Socket-SSL-2.098.tar.gz
-        cd IO-Socket-SSL-2.098
-        perl Makefile.PL
-        make -j3
-        sudo make install
-        cd ..
-        curl -L https://cpan.metacpan.org/authors/id/M/MK/MKODERER/Sys-CPU-0.52.tar.gz --output Sys-CPU-0.52.tar.gz
-        tar xvfz Sys-CPU-0.52.tar.gz
-        cd Sys-CPU-0.52
-        perl Makefile.PL
-        make -j3
-        sudo make install
-        cd ..
-    - name: Install CPAN
-      shell: bash
-      run: |
-        sudo perl -MCPAN -e shell
-        sudo perl -MCPAN -e 'install Bundle::CPAN'
-    - name: Configure CPAN mirrors
-      shell: bash
-      run: |
-        sudo perl -MCPAN -e '
-          CPAN::HandleConfig->load();
-          $CPAN::Config->{pushy_https} = 0;
-          $CPAN::Config->{urllist} = [
-            q{https://cpan.metacpan.org/},
-            q{https://www.cpan.org/},
-            q{https://cpan.perl.org/},
-            q{http://ftp.funet.fi/pub/languages/perl/CPAN/},
-            q{ftp://ftp.cpan.org/pub/CPAN/},
-          ];
-          CPAN::HandleConfig->commit();
-        '
-    - name: Install Perl modules
-      shell: bash
-      run: |
-        export CFLAGS=-I/Library/Developer/CommandLineTools/SDKs/MacOSX10.15.sdk/System/Library/Perl/5.18/darwin-thread-multi-2level/CORE
-        sudo perl -MCPAN -e 'force("install","NestedMap")'
-        sudo perl -MCPAN -e 'force("install","Scalar::Util")'
-        sudo perl -MCPAN -e 'force("install","Term::ANSIColor")'
-        sudo perl -MCPAN -e 'force("install","Text::Table")'
-        sudo perl -MCPAN -e 'force("install","ExtUtils::ParseXS")'
-        sudo perl -MCPAN -e 'force("install","Path::Tiny")'
-        sudo perl -MCPAN -e 'force("install","PkgConfig")'
-        sudo perl -MCPAN -e 'force("install","Alien::Base::Wrapper")'
-        sudo perl -MCPAN -e 'force("install","Alien::Libxml2")'
-        sudo perl -MCPAN -e 'force("install","XML::LibXML")'
-        sudo perl -MCPAN -e 'force("install","XML::LibXML::SAX")'
-        sudo perl -MCPAN -e 'force("install","XML::LibXML::SAX::Parser")'
-        if [[ "${OS_VER}" -ge 12 ]]; then
-           # For OS versions 12 and above we need to ensure that the ParserDetails.ini is set up.
-           sudo perl -MXML::SAX -e "XML::SAX->add_parser('XML::SAX::PurePerl')->save_parsers()" || true
-           sudo perl -MXML::SAX -e "XML::SAX->add_parser('XML::LibXML::SAX::Parser')->save_parsers()" || true
-           sudo perl -MXML::SAX -e "XML::SAX->add_parser('XML::LibXML::SAX')->save_parsers()" || true
-        fi
-        sudo perl -MCPAN -e 'force("install","Text::Template")'
-        sudo perl -MCPAN -e 'force("install","Text::Levenshtein")'
-        sudo perl -MCPAN -e 'force("install","List::Uniq")'
-        sudo perl -MCPAN -e 'force("install","IO::Util")'
-        sudo perl -MCPAN -e 'force("install","Class::Util")'
-        sudo perl -MCPAN -e 'force("install","CGI::Builder")'
-        sudo perl -MCPAN -e 'force("install","Simple")'
-        sudo perl -MCPAN -e 'force("install","Readonly")'
-        sudo perl -MCPAN -e 'force("install","File::Slurp")'
-        sudo perl -MCPAN -e 'force("install","XML::Simple")'
-        sudo perl -MCPAN -e 'force("install","List::MoreUtils")'
-        sudo perl -MCPAN -e 'force("install","Clone")'
-        sudo perl -MCPAN -e 'force("install","IO::Scalar")'
-        sudo perl -MCPAN -e 'force("install","Regexp::Common")'
-        sudo perl -MCPAN -e 'force("install","LaTeX::Encode")'
-        sudo perl -MCPAN -e 'force("install","Sub::Identify")'
