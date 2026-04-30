@@ -1,38 +1,8 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1777338623101,
+  "lastUpdate": 1777533563128,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Milky Way model benchmarks": [
-      {
-        "commit": {
-          "author": {
-            "email": "abensonca@gmail.com",
-            "name": "Andrew Benson",
-            "username": "abensonca"
-          },
-          "committer": {
-            "email": "noreply@github.com",
-            "name": "GitHub",
-            "username": "web-flow"
-          },
-          "distinct": true,
-          "id": "b6d0f9785f667e2dd2bdd50699482db27aa2269b",
-          "message": "Merge pull request #815 from galacticusorg/fixUnphysicalMergerHost\n\nAdd option to ignore unphysical merger host galaxy when computing merger remnant size",
-          "timestamp": "2025-03-15T05:49:24Z",
-          "tree_id": "235fb1052e47647ed31908987052f0af1398ec94",
-          "url": "https://github.com/galacticusorg/galacticus/commit/b6d0f9785f667e2dd2bdd50699482db27aa2269b"
-        },
-        "date": 1742041027847,
-        "tool": "customSmallerIsBetter",
-        "benches": [
-          {
-            "name": "Milky Way model - Wall Time",
-            "value": 34.505,
-            "unit": "seconds",
-            "range": 0.0532588020897476
-          }
-        ]
-      },
       {
         "commit": {
           "author": {
@@ -10704,6 +10674,36 @@ window.BENCHMARK_DATA = {
             "name": "Milky Way model - Likelihood - localGroupStellarMassHaloMassRelation",
             "value": 6.494747729361775,
             "unit": "-logℒ"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abensonca@gmail.com",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "309719ffd333e5238520098542e0d28f09beddd2",
+          "message": "Merge pull request #1094 from galacticusorg/fixLMCLabel\n\nCorrect constrained MW+LMC tree parameter file to label the correct branch",
+          "timestamp": "2026-04-29T15:52:01Z",
+          "tree_id": "22578b4386cc64939d95ec9969fa17351c00657a",
+          "url": "https://github.com/galacticusorg/galacticus/commit/309719ffd333e5238520098542e0d28f09beddd2"
+        },
+        "date": 1777533562010,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Milky Way model - Wall Time",
+            "value": 80.75699999999998,
+            "range": "0.22298004395012555",
+            "unit": "seconds"
           }
         ]
       }
