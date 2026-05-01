@@ -23,7 +23,7 @@ Before developing, ensure you have:
 - A modern Fortran compiler (e.g., `gfortran` ≥ 11)
 - `make`
 - HDF5, FFTW3, and GSL libraries
-- Python 3
+- Python 3 (≥ 3.9)
 
 **Tip:** Use [GitHub Codespaces](https://github.com/codespaces/new?hide_repo_select=true&ref=master&repo=204087682) for a pre-configured environment with all dependencies installed.
 
@@ -37,15 +37,26 @@ For detailed setup instructions, see the [README](README.md).
    cd galacticus
    ```
 
-2. Build Galacticus:
+2. Install Python dependencies (puts the modules under `python/` on the import path and pulls in numpy / scipy / h5py / lxml / matplotlib / …):
+   ```bash
+   pip install -e '.[test]'
+   ```
+   The `[test]` extra also installs `pytest`. Drop it if you don't need to run the unit tests.
+
+3. Build Galacticus:
    ```bash
    make -jN Galacticus.exe
    ```
    Replace `N` with the number of CPU cores to use.
 
-3. Run the quick test:
+4. Run the quick test:
    ```bash
    ./Galacticus.exe parameters/quickTest.xml
+   ```
+
+5. (Optional) Run the Python unit tests:
+   ```bash
+   pytest
    ```
 
 For more help, see the [README troubleshooting section](README.md#troubleshooting).

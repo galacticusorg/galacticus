@@ -1,0 +1,84 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "galacticus"
+version = "0.0.0"
+description = "Python infrastructure for the Galacticus semi-analytic galaxy formation model."
+readme = "README.md"
+license = {file = "COPYING"}
+requires-python = ">=3.9"
+authors = [
+    {name = "Andrew Benson"},
+]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Science/Research",
+    "License :: OSI Approved :: GNU General Public License v3 (GPLv3)",
+    "Operating System :: POSIX",
+    "Programming Language :: Python :: 3",
+    "Topic :: Scientific/Engineering :: Astronomy",
+    "Topic :: Scientific/Engineering :: Physics",
+]
+# Core runtime dependencies actually imported by code under python/ and
+# scripts/ that the build system invokes.  Versions intentionally
+# unpinned for now -- if reproducibility becomes a goal, add a separate
+# requirements-lock.txt produced via pip-tools or pip freeze.
+dependencies = [
+    "numpy",
+    "scipy",
+    "h5py",
+    "lxml",
+    "matplotlib",
+    "requests",
+    "PyYAML",
+    "GitPython",
+    "PyPDF2",
+    "termcolor",
+]
+
+[project.optional-dependencies]
+# Emulator pipelines (scripts/emulation/, tested in cicd.yml).  Heavy
+# transitive dependencies (TensorFlow, lenstronomy) so kept opt-in.
+emulation = [
+    "tensorflow",
+    "tensorflow-probability",
+    "tf-keras",
+    "lenstronomy",
+    "tqdm",
+    "colossus",
+    "mcfit",
+    "samana",
+]
+test = [
+    "pytest",
+]
+
+[project.urls]
+Homepage      = "https://github.com/galacticusorg/galacticus"
+Documentation = "https://github.com/galacticusorg/galacticus/wiki"
+Issues        = "https://github.com/galacticusorg/galacticus/issues"
+
+# ----------------------------------------------------------------------
+# setuptools layout: source lives under python/ rather than alongside
+# pyproject.toml at the repo root, so we tell setuptools to treat python/
+# as the package root.  `find` then discovers Galacticus, Fortran,
+# LibraryInterfaces, List, Sort, XML, and build.  The handful of loose
+# top-level modules under python/ are listed via `py-modules`.
+# ----------------------------------------------------------------------
+[tool.setuptools]
+package-dir = {"" = "python"}
+py-modules  = [
+    "cloudy",
+    "queueManager",
+    "validate",
+    "emulator_utils",
+    "latex_spellcheck",
+    "latex_utils",
+    "list_utils",
+]
+
+[tool.setuptools.packages.find]
+where    = ["python"]
+exclude  = ["*.tests", "*.tests.*", "tests", "tests.*"]

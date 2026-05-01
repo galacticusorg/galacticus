@@ -24,9 +24,19 @@ Before building, make sure you have the following available:
 - HDF5 libraries (the code writes output in HDF5 format)
 - FFTW3 libraries
 - GSL (GNU Scientific Library)
-- Python 3 (used by the build system for code generation and various supporting scripts)
+- Python 3 (≥ 3.9; used by the build system for code generation and various supporting scripts)
 
 > **Tip:** The easiest way to get a fully configured environment is to use [GitHub Codespaces](#open-in-github-codespaces) (click the badge above). All dependencies are pre-installed.
+
+### Installing Python dependencies
+
+The build system imports modules from `python/`. Make those modules importable, and install the third-party packages they depend on (numpy, scipy, h5py, lxml, matplotlib, …), with a single editable install from the repo root:
+
+```bash
+pip install -e .
+```
+
+This is sufficient for building Galacticus and running its supporting scripts. Heavy emulation pipelines have additional dependencies (TensorFlow, lenstronomy, etc.); install those on demand with `pip install -e '.[emulation]'`. To run the Python test suite, install with `pip install -e '.[test]'`.
 
 ### Building Galacticus
 
