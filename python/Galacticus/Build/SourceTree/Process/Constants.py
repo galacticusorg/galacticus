@@ -75,7 +75,7 @@ def _emit_gsl_enum(directive):
     )
     output = _compile_and_run(c_src)
     values = output.split()
-    definitions = [f"{members[i]}={values[i]}" for i in range(len(members))]
+    definitions = [f"{m}={v}" for m, v in zip(members, values)]
     return (
         "enum, bind(c)\n"
         " enumerator :: " + ", ".join(definitions) + "\n"

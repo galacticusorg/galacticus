@@ -10,7 +10,6 @@ OpenMP sentinels.
 
 import os
 import re
-import sys
 
 def get_fortran_line(file_obj):
     """Read one logical Fortran line from file_obj, handling & continuation lines.
@@ -202,11 +201,9 @@ def extract_variables(variable_list, lower_case=True, keep_qualifiers=False, rem
     while '(' in variable_list or '[' in variable_list:
         iteration += 1
         if iteration > 10000:
-            print(
-                f"extract_variables: maximum iterations exceeded for input: '{variable_list}'",
-                file=sys.stderr,
+            raise RuntimeError(
+                f"extract_variables: maximum iterations exceeded for input: '{variable_list}'"
             )
-            sys.exit(1)
         extracted, remainder, prefix = extract_bracketed(variable_list, "()[]")
         if extracted is None:
             break
@@ -303,71 +300,70 @@ def read_file(file_name, *, state='raw', follow_includes=False,
     code_buffer    = []
 
     while file_names:
-        fh = open(file_names[0], 'r', errors='replace')
-        if file_positions[0] != -1:
-            fh.seek(file_positions[0])
+        with open(file_names[0], 'r', errors='replace') as fh:
+            if file_positions[0] != -1:
+                fh.seek(file_positions[0])
 
-        include_pushed = False
-        while True:
-            raw_line, processed_line, buffered_comments = get_fortran_line(fh)
-            if not raw_line and not processed_line:
-                break  # EOF
+            include_pushed = False
+            while True:
+                raw_line, processed_line, buffered_comments = get_fortran_line(fh)
+                if not raw_line and not processed_line:
+                    break  # EOF
 
-            # Detect `include '<name>'` and recurse.
-            if follow_includes:
-                m = re.match(r"^\s*include\s*['\"]([^'\"]+)['\"]\s*$",
-                             processed_line)
-                if m:
-                    include_leaf = m.group(1)
-                    if include_leaf not in include_files_excluded:
-                        # Perl: `$fileNames[0] =~ s/\/[^\/]+$/\//` — strip basename,
-                        # leaving the directory with a trailing slash (or the
-                        # original path unchanged if there was no slash).
-                        cur_dir = re.sub(r'/[^/]+$', '/', file_names[0])
-                        if cur_dir == file_names[0]:
-                            cur_dir = ''
-                        include_file = None
-                        for suffix in ('.inc', '.Inc'):
-                            for loc in all_include_locations:
-                                candidate = re.sub(
-                                    r'\.inc$',
-                                    suffix,
-                                    cur_dir + loc + '/' + include_leaf,
-                                )
-                                if os.path.exists(candidate):
-                                    include_file = candidate
+                # Detect `include '<name>'` and recurse.
+                if follow_includes:
+                    m = re.match(r"^\s*include\s*['\"]([^'\"]+)['\"]\s*$",
+                                 processed_line)
+                    if m:
+                        include_leaf = m.group(1)
+                        if include_leaf not in include_files_excluded:
+                            # Perl: `$fileNames[0] =~ s/\/[^\/]+$/\//` — strip basename,
+                            # leaving the directory with a trailing slash (or the
+                            # original path unchanged if there was no slash).
+                            cur_dir = re.sub(r'/[^/]+$', '/', file_names[0])
+                            if cur_dir == file_names[0]:
+                                cur_dir = ''
+                            include_file = None
+                            for suffix in ('.inc', '.Inc'):
+                                for loc in all_include_locations:
+                                    candidate = re.sub(
+                                        r'\.inc$',
+                                        suffix,
+                                        cur_dir + loc + '/' + include_leaf,
+                                    )
+                                    if os.path.exists(candidate):
+                                        include_file = candidate
+                                        break
+                                if include_file is not None:
                                     break
                             if include_file is not None:
+                                file_positions[0] = fh.tell()
+                                file_names.insert(0, include_file)
+                                file_positions.insert(0, -1)
+                                include_pushed = True
                                 break
-                        if include_file is not None:
-                            file_positions[0] = fh.tell()
-                            file_names.insert(0, include_file)
-                            file_positions.insert(0, -1)
-                            include_pushed = True
-                            break
 
-            if state == 'raw':
-                line = raw_line
-            elif state == 'processed':
-                line = processed_line
-            elif state == 'comments':
-                line = buffered_comments
-            else:
-                raise ValueError(f"read_file: invalid state '{state}'")
+                if state == 'raw':
+                    line = raw_line
+                elif state == 'processed':
+                    line = processed_line
+                elif state == 'comments':
+                    line = buffered_comments
+                else:
+                    raise ValueError(f"read_file: invalid state '{state}'")
 
-            if strip_regex is not None:
-                line = strip_regex.sub('', line)
-            if strip_leading:
-                line = re.sub(r'^\s*', '', line)
-            if strip_trailing:
-                line = re.sub(r'\s*$', '', line)
-            if line.endswith('\n'):
-                line = line[:-1]
+                if strip_regex is not None:
+                    line = strip_regex.sub('', line)
+                if strip_leading:
+                    line = re.sub(r'^\s*', '', line)
+                if strip_trailing:
+                    line = re.sub(r'\s*$', '', line)
+                if line.endswith('\n'):
+                    line = line[:-1]
 
-            if not (strip_empty and re.match(r'^\s*$', line)):
-                code_buffer.append(line + '\n')
+                if not (strip_empty and re.match(r'^\s*$', line)):
+                    code_buffer.append(line + '\n')
 
-        fh.close()
         if not include_pushed:
             file_names.pop(0)
             file_positions.pop(0)

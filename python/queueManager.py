@@ -176,19 +176,18 @@ class SLURMManager(QueueManager):
                                 if countCPUsLimit < job['tasksPerNode']:
                                     job['tasksPerNode'] = countCPUsLimit
                     # Create the job submit file.
-                    fileBatch = open(job['launchFile'],"w")
-                    fileBatch.write('#!/bin/bash\n')
-                    for option in job:
-                        if option in optionMap:
-                            suffix = "M" if re.match(r"^mem\-",optionMap[option],) else ""
-                            fileBatch.write(f'#SBATCH --{optionMap[option]}={job[option]}{suffix}\n')
-                    fileBatch.write(f'ulimit -t unlimited\n')
-                    fileBatch.write(f'ulimit -c unlimited\n')
-                    if "countOpenMPThreads" in job:
-                        fileBatch.write(f'export OMP_NUM_THREADS={job["countOpenMPThreads"]}\n')
-                    fileBatch.write(f'{job["command"]}\n')
-                    fileBatch.write(f'exit\n')
-                    fileBatch.close()
+                    with open(job['launchFile'],"w") as fileBatch:
+                        fileBatch.write('#!/bin/bash\n')
+                        for option in job:
+                            if option in optionMap:
+                                suffix = "M" if re.match(r"^mem\-",optionMap[option],) else ""
+                                fileBatch.write(f'#SBATCH --{optionMap[option]}={job[option]}{suffix}\n')
+                        fileBatch.write(f'ulimit -t unlimited\n')
+                        fileBatch.write(f'ulimit -c unlimited\n')
+                        if "countOpenMPThreads" in job:
+                            fileBatch.write(f'export OMP_NUM_THREADS={job["countOpenMPThreads"]}\n')
+                        fileBatch.write(f'{job["command"]}\n')
+                        fileBatch.write(f'exit\n')
                     print(f'Submitting job "{job["label"]}"')
                     countSubmitAttempts = 0
                     submitSuccess       = False
