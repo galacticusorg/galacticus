@@ -112,10 +112,10 @@ forward_model(args.outputDirectory+"/", job_index, n_keep, data_class, model, pr
 
 fluxes = np.genfromtxt(args.outputDirectory+'/job_'+str(job_index)+'/fluxes.txt')
 print('Flux ratios:')
-for i in range(len(fluxes)):
-    f2f1 = fluxes[i][1]/fluxes[i][0]
-    f3f1 = fluxes[i][2]/fluxes[i][0]
-    f4f1 = fluxes[i][3]/fluxes[i][0]
+for flux_row in fluxes:
+    f2f1 = flux_row[1]/flux_row[0]
+    f3f1 = flux_row[2]/flux_row[0]
+    f4f1 = flux_row[3]/flux_row[0]
     print(f'   {f2f1}, {f3f1}, {f4f1}')
 
 

@@ -76,7 +76,6 @@ py-modules  = [
     "emulator_utils",
     "latex_spellcheck",
     "latex_utils",
-    "list_utils",
 ]
 
 [tool.setuptools.packages.find]

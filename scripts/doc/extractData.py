@@ -11,8 +11,8 @@ import re
 import sys
 import xml.etree.ElementTree as ET
 
-from latex_utils import latex_encode
-from list_utils  import as_array
+from latex_utils      import latex_encode
+from List.ExtraUtils  import as_array
 
 
 # ---------------------------------------------------------------------------

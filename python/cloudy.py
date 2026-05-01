@@ -98,15 +98,27 @@ def initialize(options):
     # Build the code.
     if not os.path.isfile(f"{cloudyPath}/source/cloudy.exe"):
         print("compiling Cloudy code...")
-        buildCommand      = f"cd {cloudyPath}/source; chmod u=wrx configure.sh capabilities.pl; "
-        buildCommand     += "" if os.environ.get('CLOUDY_COMPILER_PATH') is None else f"export PATH={os.environ.get('CLOUDY_COMPILER_PATH')}:$PATH; "
-        buildCommand     += " make -f Makefile_modified"
+        source_dir = f"{cloudyPath}/source"
+        # Make the configure scripts executable (mirrors `chmod u=wrx`).
+        subprocess.run(
+            ['chmod', 'u=wrx', 'configure.sh', 'capabilities.pl'],
+            cwd=source_dir,
+        )
+        # Build env: prepend CLOUDY_COMPILER_PATH to PATH if set.
+        build_env    = os.environ.copy()
+        compiler_path = os.environ.get('CLOUDY_COMPILER_PATH')
+        if compiler_path is not None:
+            build_env['PATH'] = compiler_path + os.pathsep + build_env.get('PATH', '')
         extra             = "EXTRA = -static\n" if os.environ.get('CLOUDY_STATIC_BUILD') == "yes" else "EXTRA = \n"
         with open(f"{cloudyPath}/source/Makefile", 'r') as makeFile, open(f"{cloudyPath}/source/Makefile_modified", 'w') as makeFileModified:
             for line in makeFile:
                 lineModified = re.sub(r'^EXTRA\s*=.*', extra, line)
                 makeFileModified.write(lineModified)
-        build = subprocess.run(buildCommand, shell=True)
+        build = subprocess.run(
+            ['make', '-f', 'Makefile_modified'],
+            cwd=source_dir,
+            env=build_env,
+        )
         if build.returncode != 0:
             raise RuntimeError("failed to build Cloudy code")
     # Return path and version.

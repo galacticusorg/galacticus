@@ -10,7 +10,7 @@ import tempfile
 from datetime import datetime, timezone
 from lxml import etree
 
-from list_utils import as_array
+from List.ExtraUtils import as_array
 
 
 def parse_arguments():
