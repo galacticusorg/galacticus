@@ -135,7 +135,7 @@ jobs:
         run: |
           status=0
           for file in ${{ steps.changed-files.outputs.all_changed_files }}; do
-            if python3 scripts/aux/staticAnalyzer.py $file; then
+            if PYTHONPATH=$GITHUB_WORKSPACE/python python3 scripts/aux/staticAnalyzer.py $file; then
               echo "Fortran file $file passes analysis"
             else
               echo "Fortran file $file fails analysis"
@@ -178,7 +178,7 @@ jobs:
         run: |
           status=0
           for file in ${{ steps.changed-files.outputs.all_changed_files }}; do
-            if python3 scripts/aux/embeddedAnalyzer.py $file warnings.md; then
+            if PYTHONPATH=$GITHUB_WORKSPACE/python python3 scripts/aux/embeddedAnalyzer.py $file warnings.md; then
               echo "Embedded XML/LaTeX in file $file passes analysis"
             else
               echo "Embedded XML/LaTeX in file $file fails analysis"
@@ -241,7 +241,7 @@ jobs:
         run: |
           status=0
           for file in ${{ steps.changed-files.outputs.all_changed_files }}; do
-            python3 scripts/aux/spellChecker.py $file warnings.md
+            PYTHONPATH=$GITHUB_WORKSPACE/python python3 scripts/aux/spellChecker.py $file warnings.md
           done
       - name: Check file existence
         id: check_files

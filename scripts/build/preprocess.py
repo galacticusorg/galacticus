@@ -13,7 +13,6 @@ Andrew Benson (ported to Python 2026).
 import os
 import sys
 
-sys.path.insert(0, os.path.join(os.environ.get('GALACTICUS_EXEC_PATH', ''), 'python'))
 
 from build.file_changes                       import update as file_changes_update
 from Galacticus.Build.SourceTree              import parse_file, serialize, analyze_tree

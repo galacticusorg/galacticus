@@ -19,7 +19,6 @@ import threading
 import time
 from xml.etree import ElementTree as ET
 
-sys.path.insert(0, os.path.join(os.environ.get('GALACTICUS_EXEC_PATH', ''), 'python'))
 from XML.Utils import xml_to_dict
 
 # ---------------------------------------------------------------------------

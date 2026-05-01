@@ -9,7 +9,6 @@ import os
 import tempfile
 import argparse
 
-sys.path.insert(0, os.path.join(os.environ.get('GALACTICUS_EXEC_PATH', ''), 'python'))
 
 from Galacticus.Build.SourceTree import parse_file, walk_tree, serialize
 from Galacticus.Build.SourceTree.Parse.ModuleUses import update_uses

@@ -4,12 +4,6 @@ import re
 import sys
 import xml.etree.ElementTree as ET
 
-galacticus_exec_path = os.environ.get('GALACTICUS_EXEC_PATH')
-if not galacticus_exec_path:
-    print("Error: GALACTICUS_EXEC_PATH environment variable is not set.", file=sys.stderr)
-    sys.exit(1)
-python_path = os.path.abspath(os.path.join(galacticus_exec_path, 'python'))
-sys.path.insert(0, python_path)
 from build.fortran_utils import get_fortran_line
 
 # Locate all OpenMP critical sections, and build an enumeration of them for use

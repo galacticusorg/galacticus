@@ -11,7 +11,6 @@ import numpy as np
 import lxml.etree as ET
 import h5py
 
-sys.path.insert(0, os.path.join(os.environ.get('GALACTICUS_EXEC_PATH', ''), 'python'))
 from List.ExtraUtils import hash_list, as_array
 from XML.Utils import xml_to_dict
 

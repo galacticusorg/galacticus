@@ -24,4 +24,4 @@ jobs:
           cd $GALACTICUS_EXEC_PATH
           git config --global --add safe.directory $GALACTICUS_EXEC_PATH
           git fetch --unshallow
-          python3 scripts/aux/workflowStatus.py
+          PYTHONPATH=$GITHUB_WORKSPACE/python python3 scripts/aux/workflowStatus.py

@@ -8,7 +8,6 @@ import re
 import sys
 import os
 import copy
-sys.path.insert(0, os.path.join(os.environ.get('GALACTICUS_EXEC_PATH', ''), 'python'))
 
 from Fortran.Utils import INTRINSIC_DECLARATIONS, extract_variables
 from build.fortran_utils import extract_bracketed

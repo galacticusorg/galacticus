@@ -8,7 +8,6 @@ import re
 from pathlib import Path
 
 # Set up path for imports from python/
-sys.path.insert(0, os.path.join(os.environ['GALACTICUS_EXEC_PATH'], 'python'))
 
 import xml.etree.ElementTree as ET
 from Galacticus.Build import SourceTree

@@ -22,7 +22,6 @@ import re
 import sys
 import xml.etree.ElementTree as ET
 
-sys.path.insert(0, os.path.join(os.environ['GALACTICUS_EXEC_PATH'], 'python'))
 
 from build.fortran_utils                      import get_fortran_line
 from build.file_changes                       import update as file_changes_update

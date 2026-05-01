@@ -8,7 +8,6 @@
 import os
 import sys
 
-sys.path.insert(0, os.path.join(os.environ.get('GALACTICUS_EXEC_PATH', ''), 'python'))
 
 from Sort.Topo        import sort as topo_sort
 from List.ExtraUtils  import as_array

@@ -14,13 +14,8 @@ import os
 import re
 import sys
 
-_exec_path = os.environ.get(
-    'GALACTICUS_EXEC_PATH',
-    os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..')),
-)
-sys.path.insert(0, os.path.join(_exec_path, 'python'))
-from latex_utils import latex_encode                                   # noqa: E402
-from build.fortran_utils import (get_fortran_line, extract_bracketed,  # noqa: E402
+from latex_utils import latex_encode
+from build.fortran_utils import (get_fortran_line, extract_bracketed,
                                   extract_variables)
 
 # ---------------------------------------------------------------------------
