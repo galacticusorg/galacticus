@@ -19,8 +19,11 @@
 # functions on `Utils.component_utils` at import time; the driver simply
 # walks that registry.
 
+import logging
 import os
 import re
+
+logger = logging.getLogger(__name__)
 
 
 from Galacticus.Build.FileChanges        import update as file_changes_update
@@ -197,9 +200,9 @@ def generate_output(build):
 
     hooks = sorted(Utils.component_utils.items(), key=lambda kv: kv[0])
 
-    print("--> Phase:")
+    logger.info("--> Phase:")
     for phase in _PHASES:
-        print(f"   --> {_ucfirst(phase)}...")
+        logger.info(f"   --> {_ucfirst(phase)}...")
         for owner, owner_hooks in hooks:
             functions = owner_hooks.get(phase) or []
             if isinstance(functions, list):
@@ -211,7 +214,7 @@ def generate_output(build):
                     f" {{{getattr(fn, '__name__', '<fn>')}}}"
                     if len(fns) > 1 else ''
                 )
-                print(f"      --> {owner}{marker}")
+                logger.info(f"      --> {owner}{marker}")
                 fn(build)
 
     derived_types_serialize(build)
@@ -328,9 +331,9 @@ def interfaces_serialize(build):
     block, since lifting Perl expression evaluation into Python isn't
     worth the complexity.
     """
-    print("   --> Serialize interfaces...")
+    logger.info("   --> Serialize interfaces...")
     for interface in (build.get('interfaces') or {}).values():
-        print(f"      ---> {interface['name']}")
+        logger.info(f"      ---> {interface['name']}")
         is_void    = interface['intrinsic'] == 'void'
         result_yes = interface.get('result') == 'yes'
         if is_void:
@@ -361,7 +364,7 @@ def functions_serialize(build):
     """Append every entry on `build['functions']` (and every bound function
     descriptor referenced from `build['types']`) to `build['content']`.
     """
-    print("   --> Serialize functions...")
+    logger.info("   --> Serialize functions...")
 
     seen = []
     for fn in build.get('functions') or []:
@@ -372,7 +375,7 @@ def functions_serialize(build):
                 seen.append(binding['descriptor'])
 
     for function in seen:
-        print(f"      --> {function['name']}")
+        logger.info(f"      --> {function['name']}")
 
         return_name = None
         # `type => name`-style return signature.  Lift the parsed parts

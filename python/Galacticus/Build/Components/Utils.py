@@ -10,7 +10,11 @@
 # the `gather` phase; later phases read them for column-aligned output.
 from __future__ import annotations
 
+import logging
+
 from typing import Any, Callable
+
+logger = logging.getLogger(__name__)
 
 
 
@@ -41,6 +45,11 @@ def register(owner: str, phase: str, function: Callable) -> None:
 # Global state.  Set by Label_Lengths during the `gather` phase.
 # ---------------------------------------------------------------------------
 
+# `verbosity_level` was the Perl-era manual log-level switch.  It is still
+# imported by sister modules and exposed for backward compatibility, but new
+# diagnostic output should go through the module-level `logger` instead and
+# use `logger.info` / `logger.debug` -- the standard logging module's level
+# filtering replaces the manual `if verbosity_level >= N: print(...)` gating.
 verbosity_level                          = 1
 boolean_label                            = ('false', 'true')
 
@@ -301,12 +310,11 @@ def Label_Lengths(build: dict) -> None:
         'variables': [f'propertyNameLengthMax={prop_max}'],
     })
 
-    if verbosity_level >= 1:
-        print("         --> Maximum label lengths:")
-        print(f"            -->           Class: {class_name_length_max}")
-        print(f"            -->  Implementation: {implementation_name_length_max}")
-        print(f"            --> Fully-qualified: {fully_qualified_name_length_max}")
-        print(f"            -->        Property: {prop_max}")
+    logger.info("         --> Maximum label lengths:")
+    logger.info(f"            -->           Class: {class_name_length_max}")
+    logger.info(f"            -->  Implementation: {implementation_name_length_max}")
+    logger.info(f"            --> Fully-qualified: {fully_qualified_name_length_max}")
+    logger.info(f"            -->        Property: {prop_max}")
 
 
 # `Label_Lengths` is the only hook this module registers — the rest of the

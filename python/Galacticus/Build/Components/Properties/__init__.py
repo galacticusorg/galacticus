@@ -10,15 +10,16 @@
 #   scatter     → Class_Defaults_Scatter
 #   content     → Construct_Data
 
+import logging
 import re
 
-
-from Galacticus.Build.Components       import Utils as _Utils
 from Galacticus.Build.Components.Utils import (
     register,
     apply_defaults,
     _component_properties,
 )
+
+logger = logging.getLogger(__name__)
 
 
 # Default-attribute table for each property.  Mirrors the `%defaults`
@@ -232,8 +233,8 @@ def Class_Defaults_Scatter(build):
             if class_entry is None:
                 continue
             if 'classDefault' not in prop:
-                print(
-                    "         --> Warning: property '"
+                logger.warning(
+                    "         --> property '"
                     f"{prop['name']}' of component '{component['name']}' "
                     f"of class '{component['class']}' is being assigned "
                     "a class default even though it does not have one "
@@ -250,12 +251,11 @@ def Construct_Data(build):
     Mirrors `Construct_Data` (Properties.pm:260-318).
     """
     for component in (build.get('components') or {}).values():
-        if _Utils.verbosity_level >= 1:
-            print(
-                "         --> Creating linked data objects for "
-                f"implementation '{_lcfirst(component.get('name', ''))}'"
-                f" of '{_lcfirst(component.get('class', ''))}' class"
-            )
+        logger.info(
+            "         --> Creating linked data objects for "
+            f"implementation '{_lcfirst(component.get('name', ''))}'"
+            f" of '{_lcfirst(component.get('class', ''))}' class"
+        )
         component_content = component.setdefault('content', {})
         component_content_data = component_content.setdefault('data', {})
 
@@ -321,8 +321,7 @@ def Construct_Data(build):
             if attributes.get('isVirtual') or prop['definedInParent']:
                 continue
 
-            if _Utils.verbosity_level >= 1:
-                print(f"            --> '{prop['name']}'")
+            logger.info(f"            --> '{prop['name']}'")
 
             linked_data_name = prop['name'] + 'Data'
             prop['linkedData'] = linked_data_name

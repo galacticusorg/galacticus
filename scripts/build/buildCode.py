@@ -31,6 +31,11 @@ from Galacticus.Build                         import Hooks
 from Galacticus.Build                         import SourceTree
 from Galacticus.Build.SourceTree.Process      import process_tree
 import Galacticus.Build.Components            # registers the `component` hook on import
+from Galacticus._logging                      import configure_default as _configure_default
+
+# Show INFO-level diagnostic output from the library modules (mirrors the
+# verbose `print()`-driven output of the Perl-era driver).
+_configure_default()
 
 # Importing each Process submodule registers its hook with the SourceTree
 # pipeline.  Mirrors the `use` statements at the top of

@@ -35,8 +35,13 @@ from Galacticus.Build.Directives                             import extract_dire
 from Galacticus.Build.SourceTree                             import parse_file, walk_tree
 from Galacticus.Build.SourceTree.Process.FunctionClass.Utils import class_dependencies
 from Galacticus.Build.SourceTree.Process.SourceDigest        import find_hash
+from Galacticus._logging                                     import configure_default as _configure_default
 from List.ExtraUtils                                         import as_array
 from XML.Utils                                               import xml_to_dict
+
+# Show INFO-level diagnostic output from the library modules (mirrors the
+# verbose `print()`-driven output of the Perl-era driver).
+_configure_default()
 
 
 _EXCLUDED_INCLUDES = [

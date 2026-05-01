@@ -19,6 +19,10 @@ sys.path.insert(0, os.path.join(os.environ.get('GALACTICUS_EXEC_PATH', ''), 'pyt
 import queueManager
 from queueManager import translate_job, submit_jobs
 from Galacticus.Constraints.Simulations import iterate, parse_simulations_xml
+from Galacticus._logging                 import configure_default as _configure_default
+
+# Show INFO-level diagnostic output from library modules.
+_configure_default()
 
 
 def _parse_param_xml(path):

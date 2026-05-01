@@ -2,6 +2,7 @@
 # Python port of perl/Galacticus/Constraints/Simulations.pm
 # Andrew Benson (ported to Python 2026)
 
+import logging
 import os
 import re
 import math
@@ -12,6 +13,8 @@ import h5py
 
 from List.ExtraUtils import hash_list, as_array
 from XML.Utils import xml_to_dict
+
+logger = logging.getLogger(__name__)
 
 __all__ = ['select_simulations', 'match_selection', 'iterate', 'parse_simulations_xml']
 
@@ -289,7 +292,7 @@ def iterate(simulations, options, stop_after='redshift'):
                     del ps_classes[ps_class]
         simulation_list = reordered
         for entry in simulation_list:
-            print(entry['simulation'].get('powerSpectrumClass', {}).get('value', ''))
+            logger.info(entry['simulation'].get('powerSpectrumClass', {}).get('value', ''))
 
     return simulation_list
 

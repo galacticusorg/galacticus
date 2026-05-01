@@ -11,12 +11,15 @@
 
 
 
+import logging
+
 from Galacticus.Build.Components.Utils import (
     register,
     component_utils,
-    verbosity_level,
     _component_properties,
 )
+
+logger = logging.getLogger(__name__)
 
 
 def Implementation_Is_Active(build):
@@ -70,7 +73,7 @@ def Implementation_Function_Iterator(build):
                 f" {{{getattr(fn, '__name__', '<fn>')}}}"
                 if len(functions) > 1 else ''
             )
-            print(f"         --> {owner_name}{marker}")
+            logger.info(f"         --> {owner_name}{marker}")
             for class_dict in (build.get('componentClasses') or {}).values():
                 for member in class_dict.get('members') or []:
                     fn(build, class_dict, member)

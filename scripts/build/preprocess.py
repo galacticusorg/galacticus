@@ -17,6 +17,11 @@ import sys
 from Galacticus.Build.FileChanges                       import update as file_changes_update
 from Galacticus.Build.SourceTree              import parse_file, serialize, analyze_tree
 from Galacticus.Build.SourceTree.Process      import process_tree
+from Galacticus._logging                      import configure_default as _configure_default
+
+# Show INFO-level diagnostic output from the library modules (mirrors the
+# verbose `print()`-driven output of the Perl-era driver).
+_configure_default()
 
 # Importing each Process submodule registers its hook.  Mirrors the `use`
 # statements at the top of perl/Galacticus/Build/SourceTree.pm.

@@ -14,7 +14,11 @@
 
 
 
-from Galacticus.Build.Components.Utils import register, component_utils, verbosity_level
+import logging
+
+from Galacticus.Build.Components.Utils import register, component_utils
+
+logger = logging.getLogger(__name__)
 
 
 def Class_Function_Iterator(build):
@@ -25,10 +29,6 @@ def Class_Function_Iterator(build):
     called as `fn(build, class_dict)` for every entry in
     `build['componentClasses']`.
     """
-    if verbosity_level >= 1:
-        # Match Perl's leading-six-space report indent.
-        pass
-
     for owner_name in sorted(component_utils.keys()):
         owner = component_utils[owner_name]
         functions = owner.get('classIteratedFunctions')
@@ -41,7 +41,7 @@ def Class_Function_Iterator(build):
                 f" {{{getattr(fn, '__name__', '<fn>')}}}"
                 if len(functions) > 1 else ''
             )
-            print(f"         --> {owner_name}{marker}")
+            logger.info(f"         --> {owner_name}{marker}")
             for class_dict in (build.get('componentClasses') or {}).values():
                 fn(build, class_dict)
 

@@ -353,7 +353,8 @@ def test_Label_Lengths_computes_max_lengths_and_emits_variable():
         Utils.implementation_property_name_length_max,
     )
     try:
-        Utils.verbosity_level = 0  # suppress diagnostic prints
+        # Diagnostic logger.info output is suppressed automatically by
+        # pytest's default WARNING root-level — no manual silencing needed.
         build = {
             'components': {
                 'darkMatterStandard': {
@@ -387,7 +388,6 @@ def test_Label_Lengths_computes_max_lengths_and_emits_variable():
             for v in emitted
         )
     finally:
-        Utils.verbosity_level = 1
         (Utils.class_name_length_max,
          Utils.implementation_name_length_max,
          Utils.fully_qualified_name_length_max,
@@ -404,7 +404,6 @@ def test_Label_Lengths_handles_empty_components():
         Utils.property_name_length_max,
     )
     try:
-        Utils.verbosity_level = 0
         build = {'components': {}}
         Label_Lengths(build)
         assert Utils.class_name_length_max == 0
@@ -412,7 +411,6 @@ def test_Label_Lengths_handles_empty_components():
         assert Utils.fully_qualified_name_length_max == 0
         assert Utils.property_name_length_max == 0
     finally:
-        Utils.verbosity_level = 1
         (Utils.class_name_length_max,
          Utils.implementation_name_length_max,
          Utils.fully_qualified_name_length_max,
