@@ -6,12 +6,9 @@
 import re
 import io
 import copy
-import os
-import sys
 
-sys.path.insert(0, os.path.join(os.environ.get('GALACTICUS_EXEC_PATH', ''), 'python'))
 
-from build.fortran_utils import get_fortran_line
+from Galacticus.Build.FortranUtils import get_fortran_line
 
 _MODULE_USE_RE = re.compile(
     r'^\s*(!\$)?\s*use\s*(,\s*(intrinsic))?\s*(::)?\s*([a-zA-Z0-9_]+)'
@@ -205,7 +202,7 @@ def update_uses(uses_node):
     Mirrors UpdateUses() from perl/Galacticus/Build/SourceTree/Parse/ModuleUses.pm.
     Rewrites uses_node['firstChild']['content'] in place.
     """
-    from build.fortran_utils import get_fortran_line
+    from Galacticus.Build.FortranUtils import get_fortran_line
 
     # Determine indentation from the existing raw content.
     indent = ""

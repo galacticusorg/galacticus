@@ -14,6 +14,9 @@ import json
 import codecs
 from git import Repo
 
+__all__ = ['extract']
+
+
 def extract(fileName, name, suffix, parameterFileName):
     """Extract likelihood measures and result data from a Galacticus model output file.
 
@@ -158,6 +161,8 @@ def extract(fileName, name, suffix, parameterFileName):
             for dataName in data:
                 result['data'][dataName] = list(data[dataName])
             results.append(result)
+        else:
+            print(f"Warning: analysis '{analysisName}' has unknown 'type' attribute '{attributes['type']}', so it can not be processed.")
     # Write benchmark results.
     f = codecs.open("outputs/validate_"+suffix+".json", "w", "utf-8")
     f.write(json.dumps(likelihoods,indent=4,ensure_ascii=False))

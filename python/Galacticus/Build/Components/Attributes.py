@@ -8,11 +8,9 @@
 #   preValidate  → Validate_Deferreds_Functionless
 #   default      → Default_Functions
 #   postValidate → Validate_Boolean, Validate_Evolvable_Intrinsics
+from __future__ import annotations
 
-import os
-import sys
 
-sys.path.insert(0, os.path.join(os.environ['GALACTICUS_EXEC_PATH'], 'python'))
 
 from Galacticus.Build.Components.Utils import (
     register,
@@ -21,7 +19,7 @@ from Galacticus.Build.Components.Utils import (
 )
 
 
-def Validate_Deferreds_Functionless(build):
+def Validate_Deferreds_Functionless(build: dict) -> None:
     """Forbid build-time `xxxFunction` elements on a property whose `xxx`
     method is also flagged deferred.  Mirrors `Validate_Deferreds_Functionless`.
     """
@@ -35,7 +33,7 @@ def Validate_Deferreds_Functionless(build):
                 continue
             for method in deferred_field.split(':'):
                 if (method + 'Function') in prop:
-                    sys.exit(
+                    raise ValueError(
                         "Validate_Deferreds_Functionless(): cannot specify '"
                         f"{method}Function' when '{method}' method is "
                         f"deferred for property '{prop['name']}' of component "
@@ -43,7 +41,7 @@ def Validate_Deferreds_Functionless(build):
                     )
 
 
-def Default_Functions(build):
+def Default_Functions(build: dict) -> None:
     """Fill in default `rateFunction` / `getFunction` / `setFunction`
     entries on every component property.
 
@@ -81,7 +79,7 @@ def Default_Functions(build):
                     }
 
 
-def Validate_Boolean(build):
+def Validate_Boolean(build: dict) -> None:
     """Require `isSettable` / `isGettable` / `isEvolvable` to be `"true"`
     or `"false"`, and convert each to a Python `bool`.
 
@@ -106,7 +104,7 @@ def Validate_Boolean(build):
                     # Already coerced (e.g. Default_Functions ran twice).
                     pass
                 else:
-                    sys.exit(
+                    raise ValueError(
                         f"Validate_Boolean: value of '{key}' attribute of '"
                         f"{prop['name']}' of '"
                         f"{component['class']}{_ucfirst(component['name'])}' "
@@ -114,7 +112,7 @@ def Validate_Boolean(build):
                     )
 
 
-def Validate_Evolvable_Intrinsics(build):
+def Validate_Evolvable_Intrinsics(build: dict) -> None:
     """Forbid evolvable intrinsic properties whose type is not `double`.
 
     Mirrors `Validate_Evolvable_Intrinsics`.
@@ -127,7 +125,7 @@ def Validate_Evolvable_Intrinsics(build):
             if (is_intrinsic(prop.get('type'))
                     and prop['type'] != 'double'
                     and attrs.get('isEvolvable')):
-                sys.exit(
+                raise ValueError(
                     "Validate_Evolvable_Intrinsics: non-real intrinsic "
                     f"property '{prop['name']}' of '"
                     f"{component['class']}{_ucfirst(component['name'])}' "
@@ -145,9 +143,9 @@ register('attributes', 'postValidate', Validate_Boolean)
 register('attributes', 'postValidate', Validate_Evolvable_Intrinsics)
 
 
-def _ucfirst(text):
+def _ucfirst(text: str) -> str:
     return text[:1].upper() + text[1:] if text else text
 
 
-def _lcfirst(text):
+def _lcfirst(text: str) -> str:
     return text[:1].lower() + text[1:] if text else text

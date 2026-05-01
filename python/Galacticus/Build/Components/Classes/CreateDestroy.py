@@ -7,10 +7,7 @@
 # helper for createIfNeeded); plus Add/Count/Name_Meta_Property (one
 # function per meta-property type per class).
 
-import os
-import sys
 
-sys.path.insert(0, os.path.join(os.environ['GALACTICUS_EXEC_PATH'], 'python'))
 
 from Galacticus.Build.Components.Utils                  import (
     register,

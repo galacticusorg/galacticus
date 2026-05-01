@@ -10,11 +10,9 @@
 import io
 import os
 import re
-import sys
 
-sys.path.insert(0, os.path.join(os.environ.get('GALACTICUS_EXEC_PATH', ''), 'python'))
 
-from build.fortran_utils                          import get_fortran_line
+from Galacticus.Build.FortranUtils                          import get_fortran_line
 from Galacticus.Build.SourceTree                  import walk_tree
 from Galacticus.Build.SourceTree.Process          import register_process
 from Galacticus.Build.SourceTree.Parse.ModuleUses import add_uses

@@ -15,7 +15,11 @@ import numpy as np
 
 sys.path.insert(0, os.path.join(os.environ.get('GALACTICUS_EXEC_PATH', ''), 'python'))
 from Galacticus.Constraints.Simulations import iterate, parse_simulations_xml
+from Galacticus._logging                 import configure_default as _configure_default
 from XML.Utils import xml_to_dict
+
+# Show INFO-level diagnostic output from library modules.
+_configure_default()
 
 
 # ---------------------------------------------------------------------------

@@ -7,10 +7,7 @@
 # for each `isDeferred` attribute (`get` / `set` / `rate`) on every
 # component property.
 
-import os
-import sys
 
-sys.path.insert(0, os.path.join(os.environ['GALACTICUS_EXEC_PATH'], 'python'))
 
 from Galacticus.Build.Components.Utils         import register
 from Galacticus.Build.Components.DataTypes     import data_object_definition

@@ -7,11 +7,9 @@
 
 import re
 import os
-import sys
 
-sys.path.insert(0, os.path.join(os.environ.get('GALACTICUS_EXEC_PATH', ''), 'python'))
 
-from build.fortran_utils import get_fortran_line
+from Galacticus.Build.FortranUtils import get_fortran_line
 from Fortran.Utils import UNIT_OPENERS, UNIT_CLOSERS
 from Galacticus.Build.SourceTree.Parse.Declarations import parse_declaration
 

@@ -3,7 +3,6 @@
 # Andrew Benson (28-December-2012)
 
 import os
-import sys
 import subprocess
 import numpy as np
 from datetime import datetime, timezone

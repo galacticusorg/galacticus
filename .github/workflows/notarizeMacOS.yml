@@ -44,7 +44,7 @@ jobs:
           NOTARIZATION_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
           NOTARIZATION_REPOSITORY: ${{ github.repository }}
         run: |
-          python3 scripts/aux/notarizationStatus.py
+          PYTHONPATH=$GITHUB_WORKSPACE/python python3 scripts/aux/notarizationStatus.py
       - name: Mark notarization as reported
         if: >
           steps.poll.outputs.overall_status == 'success' ||

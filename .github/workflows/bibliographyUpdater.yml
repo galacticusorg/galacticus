@@ -31,7 +31,7 @@ jobs:
       - name: Update the bibliography
         if: ${{ env.adstoken != '' }}
         run: |
-          python3 scripts/aux/bibliographyUpdate.py ${{ secrets.NASA_ADS_API_TOKEN }}
+          PYTHONPATH=$GITHUB_WORKSPACE/python python3 scripts/aux/bibliographyUpdate.py ${{ secrets.NASA_ADS_API_TOKEN }}
       - name: Create Pull Request
         if: ${{ ( env.appid != '' ) && ( env.adstoken != '' ) }}
         uses: peter-evans/create-pull-request@v8

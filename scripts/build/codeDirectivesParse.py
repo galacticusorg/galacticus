@@ -21,9 +21,8 @@ import pickle
 import re
 import sys
 
-sys.path.insert(0, os.path.join(os.environ.get('GALACTICUS_EXEC_PATH', ''), 'python'))
 
-from build.file_changes               import update as file_changes_update
+from Galacticus.Build.FileChanges               import update as file_changes_update
 from Galacticus.Build.Directives      import extract_directives
 from XML.Utils                        import dict_to_xml_string
 

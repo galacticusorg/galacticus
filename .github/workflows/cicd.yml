@@ -43,11 +43,11 @@ jobs:
           python-version: '3.x'
       - name: Install pytest
         run: python -m pip install --upgrade pip pytest
-      - name: Run preprocessor regression tests
+      - name: Run Python regression tests
         run: |
           cd $GITHUB_WORKSPACE
           export GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE
-          python -m pytest python/Galacticus/Build/SourceTree/tests/ -v
+          python -m pytest -v
       - run: echo "This job's status is ${{ job.status }}."
   # Build and deploy
   ## Linux
@@ -890,7 +890,7 @@ jobs:
         run: |
           cd $GALACTICUS_EXEC_PATH
           git config --global --add safe.directory $GALACTICUS_EXEC_PATH
-          python3 scripts/aux/updateMonitor.py ${{ steps.changed-files.outputs.all_changed_files }}
+          PYTHONPATH=$GALACTICUS_EXEC_PATH/python python3 scripts/aux/updateMonitor.py ${{ steps.changed-files.outputs.all_changed_files }}
       - name: Check file existence
         id: check_files
         uses: andstor/file-existence-action@v3
@@ -1678,9 +1678,9 @@ jobs:
           chmod u=wrx ./Galacticus.exe
           ./Galacticus.exe testSuite/parameters/emulation-lensSubhalos.xml
       - name: Train the emulator
-        run: ${GITHUB_WORKSPACE}/virtualenv/bin/python3 scripts/emulation/emulatorSubhalosTraining.py testSuite/outputs/emulation-subhalos/emulation-lensSubhalos.hdf5 --outputDirectory testSuite/outputs/emulation-subhalos
+        run: PYTHONPATH=$GITHUB_WORKSPACE/python ${GITHUB_WORKSPACE}/virtualenv/bin/python3 scripts/emulation/emulatorSubhalosTraining.py testSuite/outputs/emulation-subhalos/emulation-lensSubhalos.hdf5 --outputDirectory testSuite/outputs/emulation-subhalos
       - name: Perform a test inference
-        run: ${GITHUB_WORKSPACE}/virtualenv/bin/python3 scripts/emulation/emulatorSubhaloQuadLensingInference.py --outputDirectory testSuite/outputs/emulation-subhalos
+        run: PYTHONPATH=$GITHUB_WORKSPACE/python ${GITHUB_WORKSPACE}/virtualenv/bin/python3 scripts/emulation/emulatorSubhaloQuadLensingInference.py --outputDirectory testSuite/outputs/emulation-subhalos
       - name: Upload plots
         uses: actions/upload-artifact@v7
         with:

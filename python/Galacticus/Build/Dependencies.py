@@ -4,17 +4,15 @@
 # Mirrors perl/Galacticus/Build/Dependencies.pm — specifically Dependency_Sort,
 # in its minimal subset used by SourceTree.Process.EventHooksStatic: no
 # `sortName` aliasing, no `re:` regex keys.
-
-import os
-import sys
-
-sys.path.insert(0, os.path.join(os.environ.get('GALACTICUS_EXEC_PATH', ''), 'python'))
+from __future__ import annotations
 
 from Sort.Topo        import sort as topo_sort
 from List.ExtraUtils  import as_array
 
+__all__ = ['dependency_sort']
 
-def dependency_sort(tasks):
+
+def dependency_sort(tasks: dict[str, dict]) -> list[str]:
     """Sort task names into dependency order.
 
     Parameters
@@ -52,7 +50,7 @@ def dependency_sort(tasks):
       - `X.before = Y` → `deps[Y] += [X]` ("Y depends on X", X first).
     """
     names = list(tasks.keys())
-    deps  = {name: [] for name in names}
+    deps: dict[str, list[str]] = {name: [] for name in names}
 
     for name, info in tasks.items():
         for after in as_array(info.get('after')):

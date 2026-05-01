@@ -2,16 +2,12 @@
 # Andrew Benson (ported to Python 2026)
 #
 # Mirrors perl/Galacticus/Build/Components/Classes/Names.pm.
-
-import os
-import sys
-
-sys.path.insert(0, os.path.join(os.environ['GALACTICUS_EXEC_PATH'], 'python'))
+from __future__ import annotations
 
 from Galacticus.Build.Components.Utils import register
 
 
-def Class_Type(build, class_dict):
+def Class_Type(build: dict, class_dict: dict) -> None:
     """Generate `nodeComponent<Class>Type` returning the class label.
 
     Mirrors `Class_Type`.  Body just returns `'nodeComponent:<class>'`.
@@ -45,7 +41,7 @@ def Class_Type(build, class_dict):
     })
 
 
-def _ucfirst(text):
+def _ucfirst(text: str) -> str:
     return text[:1].upper() + text[1:] if text else text
 
 

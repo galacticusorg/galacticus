@@ -1,12 +1,14 @@
 # Provides functionality to manage jobs in queue managers (e.g. SLURM).
 # Andrew Benson (25-February-2025)
 import os
-import sys
 import time
 import re
 import json
 import lxml.etree as ET
 import subprocess
+
+__all__ = ['QueueManager', 'SLURMManager', 'factory', 'translate_job', 'submit_jobs']
+
 
 class QueueManager:
     """Base class for queue managers"""
@@ -22,9 +24,13 @@ def factory(args):
     managerType = None
     for host in hosts:
         name = host.find('name')
+        if name is None or name.text is None:
+            raise ValueError("malformed galacticusConfig.xml: queueManager/host is missing a non-empty <name>")
         match = re.search(name.text,os.environ['HOSTNAME'])
         if match:
             manager = host.find('manager')
+            if manager is None or manager.text is None:
+                raise ValueError(f"malformed galacticusConfig.xml: queueManager/host '{name.text}' is missing a non-empty <manager>")
             managerType = manager.text
     if managerType is None:
         raise Exception(f"No manager defined for this system")
@@ -32,6 +38,8 @@ def factory(args):
     hostConfig = None
     for host in hosts:
         name = host.find('name')
+        if name is None or name.text is None:
+            raise ValueError(f"malformed galacticusConfig.xml: {managerType}/host is missing a non-empty <name>")
         match = re.search(name.text,os.environ['HOSTNAME'])
         if match:
             hostConfig = host
@@ -176,19 +184,18 @@ class SLURMManager(QueueManager):
                                 if countCPUsLimit < job['tasksPerNode']:
                                     job['tasksPerNode'] = countCPUsLimit
                     # Create the job submit file.
-                    fileBatch = open(job['launchFile'],"w")
-                    fileBatch.write('#!/bin/bash\n')
-                    for option in job:
-                        if option in optionMap:
-                            suffix = "M" if re.match(r"^mem\-",optionMap[option],) else ""
-                            fileBatch.write(f'#SBATCH --{optionMap[option]}={job[option]}{suffix}\n')
-                    fileBatch.write(f'ulimit -t unlimited\n')
-                    fileBatch.write(f'ulimit -c unlimited\n')
-                    if "countOpenMPThreads" in job:
-                        fileBatch.write(f'export OMP_NUM_THREADS={job["countOpenMPThreads"]}\n')
-                    fileBatch.write(f'{job["command"]}\n')
-                    fileBatch.write(f'exit\n')
-                    fileBatch.close()
+                    with open(job['launchFile'],"w") as fileBatch:
+                        fileBatch.write('#!/bin/bash\n')
+                        for option in job:
+                            if option in optionMap:
+                                suffix = "M" if re.match(r"^mem\-",optionMap[option],) else ""
+                                fileBatch.write(f'#SBATCH --{optionMap[option]}={job[option]}{suffix}\n')
+                        fileBatch.write(f'ulimit -t unlimited\n')
+                        fileBatch.write(f'ulimit -c unlimited\n')
+                        if "countOpenMPThreads" in job:
+                            fileBatch.write(f'export OMP_NUM_THREADS={job["countOpenMPThreads"]}\n')
+                        fileBatch.write(f'{job["command"]}\n')
+                        fileBatch.write(f'exit\n')
                     print(f'Submitting job "{job["label"]}"')
                     countSubmitAttempts = 0
                     submitSuccess       = False

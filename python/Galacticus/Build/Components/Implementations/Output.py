@@ -3,11 +3,8 @@
 #
 # Mirrors perl/Galacticus/Build/Components/Implementations/Output.pm.
 
-import os
 import re
-import sys
 
-sys.path.insert(0, os.path.join(os.environ['GALACTICUS_EXEC_PATH'], 'python'))
 
 from Galacticus.Build.Components.Utils import (
     register,

@@ -39,6 +39,13 @@ endif
 # Preprocessor:
 PREPROCESSOR ?= cpp
 
+# Make the Galacticus python tree importable for any python3 process the
+# Makefile launches.  This replaces the per-module
+# `sys.path.insert(0, $GALACTICUS_EXEC_PATH/python)` shims that the
+# scripts under scripts/build/ used to carry, and complements (does not
+# require) `pip install -e .` -- either is sufficient on its own.
+export PYTHONPATH := $(CURDIR)/python$(if $(PYTHONPATH),:$(PYTHONPATH))
+
 # Profiling options.
 ifeq '$(GALACTICUS_BUILD_OPTION)' 'compileprof'
 SHELL = ./scripts/build/profiler.sh

@@ -11,10 +11,8 @@ import re
 import sys
 import xml.etree.ElementTree as ET
 
-_exec_path = os.environ.get('GALACTICUS_EXEC_PATH', os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..')))
-sys.path.insert(0, os.path.join(_exec_path, 'python'))
-from latex_utils import latex_encode  # noqa: E402
-from list_utils  import as_array      # noqa: E402
+from latex_utils      import latex_encode
+from List.ExtraUtils  import as_array
 
 
 # ---------------------------------------------------------------------------

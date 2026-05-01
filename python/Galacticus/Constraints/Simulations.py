@@ -2,18 +2,20 @@
 # Python port of perl/Galacticus/Constraints/Simulations.pm
 # Andrew Benson (ported to Python 2026)
 
+import logging
 import os
-import sys
 import re
-import math
 
 import numpy as np
 import lxml.etree as ET
 import h5py
 
-sys.path.insert(0, os.path.join(os.environ.get('GALACTICUS_EXEC_PATH', ''), 'python'))
 from List.ExtraUtils import hash_list, as_array
 from XML.Utils import xml_to_dict
+
+logger = logging.getLogger(__name__)
+
+__all__ = ['select_simulations', 'match_selection', 'iterate', 'parse_simulations_xml']
 
 
 def select_simulations(options):
@@ -289,7 +291,7 @@ def iterate(simulations, options, stop_after='redshift'):
                     del ps_classes[ps_class]
         simulation_list = reordered
         for entry in simulation_list:
-            print(entry['simulation'].get('powerSpectrumClass', {}).get('value', ''))
+            logger.info(entry['simulation'].get('powerSpectrumClass', {}).get('value', ''))
 
     return simulation_list
 
@@ -343,7 +345,10 @@ def _load_cosmology(suite, pipeline_path):
     for key in ('HubbleConstant', 'OmegaMatter', 'OmegaDarkEnergy', 'OmegaBaryon'):
         el = cosmo_el.find(key) if cosmo_el is not None else root.find(f'.//{key}')
         if el is not None:
-            suite['cosmology'][key] = float(el.get('value'))
+            value = el.get('value')
+            if value is None:
+                raise ValueError(f"cosmology_{suite['name']}.xml: <{key}> element has no 'value' attribute")
+            suite['cosmology'][key] = float(value)
     if 'HubbleConstant' in suite['cosmology']:
         suite['cosmology']['hubbleConstant'] = suite['cosmology']['HubbleConstant'] / 100.0
 
@@ -378,7 +383,13 @@ def _load_resolution_data(suite_name, group_name, res_name, resolution, suite, p
         mass_particle_str = mp_el.get('value', '')
         if mass_particle_str.startswith('='):
             expr = mass_particle_str[1:]
-            hubble = suite['cosmology'].get('HubbleConstant', 100.0)
+            if 'HubbleConstant' not in suite['cosmology']:
+                raise ValueError(
+                    f"massParticle/{res_name} expression references "
+                    f"[cosmologyParameters/HubbleConstant] but no HubbleConstant "
+                    f"is defined in suite '{suite['name']}'"
+                )
+            hubble = suite['cosmology']['HubbleConstant']
             expr = re.sub(r'\[cosmologyParameters/HubbleConstant\]', str(hubble), expr)
             # eval() is intentional: expression comes from a trusted pipeline XML file.
             resolution['massParticle'] = float(eval(expr))  # noqa: S307

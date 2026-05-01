@@ -73,11 +73,6 @@ jobs:
         uses: actions/checkout@v6
         with:
           fetch-depth: ${{ inputs.fetchDepth }}
-      - name: Check out repository analysis-perl
-        uses: actions/checkout@v6
-        with:
-          repository: galacticusorg/analysis-perl
-          path: analysis-perl
       - name: Check out repository datasets
         uses: actions/checkout@v6      
         with:
@@ -101,7 +96,6 @@ jobs:
         run: |
           echo "GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
           echo "GALACTICUS_DATA_PATH=$GITHUB_WORKSPACE/datasets" >> $GITHUB_ENV
-          echo "GALACTICUS_ANALYSIS_PERL_PATH=$GITHUB_WORKSPACE/analysis-perl" >> $GITHUB_ENV
           echo "PYTHONPATH=$GITHUB_WORKSPACE/python" >> $GITHUB_ENV
           echo "DEBIAN_FRONTEND=noninteractive" >> $GITHUB_ENV
       - name: "Set number of OpenMP threads"
@@ -163,10 +157,6 @@ jobs:
            else
             ./Galacticus.exe ${{ inputs.file }} 2>&1 | tee test.log
            fi
-          elif [[ ${{ inputs.file }} =~ \.pl$ ]]; then
-           cd ${{ inputs.runPath }}
-           chmod u=wrx ./${{ inputs.file }}
-           ./${{ inputs.file }} ${{ inputs.options }} 2>&1 | tee test.log
           elif [[ ${{ inputs.file }} =~ \.sh$ ]]; then
            cd ${{ inputs.runPath }}
            chmod u=wrx ./${{ inputs.file }}

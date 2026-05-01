@@ -3,19 +3,19 @@
 #
 # Mirrors perl/Galacticus/Build/Components/Implementations.pm.
 
-import os
-import sys
 
-sys.path.insert(0, os.path.join(os.environ['GALACTICUS_EXEC_PATH'], 'python'))
+
+import logging
 
 from Sort.Topo                                import sort as topo_sort
 from Galacticus.Build.Components.Utils        import (
     register,
     apply_defaults,
-    verbosity_level,
     boolean_label,
 )
 from Galacticus.Build.Components.DataTypes    import data_object_definition
+
+logger = logging.getLogger(__name__)
 
 
 def Default_Full_Name(build):
@@ -113,10 +113,9 @@ def Null_Implementations(build):
         # Append to the ID list (Implementation_ID_List ran in
         # `preValidate`, so we keep the trailing-append pattern).
         build.setdefault('componentIdList', []).append(impl_name)
-        if verbosity_level >= 1:
-            prefix = "         --> Adding null implementation "
-            qualifier = "as default " if not info['hasDefault'] else ""
-            print(f"{prefix}{qualifier}for {class_name} class")
+        prefix = "         --> Adding null implementation "
+        qualifier = "as default " if not info['hasDefault'] else ""
+        logger.info(f"{prefix}{qualifier}for {class_name} class")
 
 
 def Implementation_Dependencies(build):
@@ -125,8 +124,7 @@ def Implementation_Dependencies(build):
 
     Mirrors `Implementation_Dependencies`.
     """
-    if verbosity_level >= 1:
-        print("         --> Sorting implentations into parent->child order:")
+    logger.info("         --> Sorting implentations into parent->child order:")
 
     component_classes = build.get('componentClasses') or {}
     components        = build.get('components')        or {}
@@ -152,10 +150,9 @@ def Implementation_Dependencies(build):
             members_by_name[n] for n in sorted_member_names if n in members_by_name
         ]
 
-        if verbosity_level >= 1:
-            print(f"            --> {class_name}:")
-            for n in sorted_member_names:
-                print(f"               --> {n}")
+        logger.info(f"            --> {class_name}:")
+        for n in sorted_member_names:
+            logger.info(f"               --> {n}")
 
     # Rebuild componentIdList in dependency order: outer iterates classes,
     # inner iterates the freshly-sorted memberNames.  Mirrors the Perl

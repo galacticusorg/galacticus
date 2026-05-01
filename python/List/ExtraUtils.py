@@ -1,8 +1,13 @@
 # Provides extra list/dict utility functions.
 # Andrew Benson (ported to Python 2026)
+from __future__ import annotations
+
+from typing import Any
+
+__all__ = ['smart_push', 'as_array', 'hash_list', 'sorted_keys']
 
 
-def smart_push(array, item):
+def smart_push(array: list, item: Any) -> None:
     """Intelligently append item(s) onto array.
 
     Mirrors Perl List::ExtraUtils::smart_push().
@@ -18,17 +23,17 @@ def smart_push(array, item):
         array.append(item)
 
 
-def as_array(item):
+def as_array(item: Any) -> list:
     """Return item coerced to a list.
 
     Mirrors Perl List::ExtraUtils::as_array().
     """
-    result = []
+    result: list = []
     smart_push(result, item)
     return result
 
 
-def hash_list(d, key_as=None):
+def hash_list(d: dict | None, key_as: str | None = None) -> list:
     """Return a list of dict values, sorted by key.
 
     Mirrors Perl List::ExtraUtils::hashList().
@@ -37,7 +42,7 @@ def hash_list(d, key_as=None):
     """
     if not d:
         return []
-    result = []
+    result: list = []
     for key in sorted(d.keys()):
         val = d[key]
         if key_as is not None:
@@ -48,7 +53,7 @@ def hash_list(d, key_as=None):
     return result
 
 
-def sorted_keys(d):
+def sorted_keys(d: dict | None) -> list:
     """Return sorted list of dict keys.
 
     Mirrors Perl List::ExtraUtils::sortedKeys().

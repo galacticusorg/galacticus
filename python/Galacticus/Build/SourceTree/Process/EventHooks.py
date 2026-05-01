@@ -11,12 +11,10 @@ import hashlib
 import io
 import os
 import re
-import sys
 import xml.etree.ElementTree as ET
 
-sys.path.insert(0, os.path.join(os.environ.get('GALACTICUS_EXEC_PATH', ''), 'python'))
 
-from build.fortran_utils                           import get_fortran_line
+from Galacticus.Build.FortranUtils                           import get_fortran_line
 from Fortran.Utils                                 import (
     INTRINSIC_DECLARATIONS, extract_variables,
 )

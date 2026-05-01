@@ -9,10 +9,7 @@
 # generated function names are deduplicated by a fingerprint key so that
 # any two callers asking for the same shape share one function.
 
-import os
-import sys
 
-sys.path.insert(0, os.path.join(os.environ['GALACTICUS_EXEC_PATH'], 'python'))
 
 from Galacticus.Build.Components.Utils import (
     is_intrinsic,

@@ -7,11 +7,8 @@
 #
 # Mirrors perl/Galacticus/Build/SourceTree/Process/DeepCopyActions.pm
 
-import os
 import re
-import sys
 
-sys.path.insert(0, os.path.join(os.environ.get('GALACTICUS_EXEC_PATH', ''), 'python'))
 
 from List.ExtraUtils                     import as_array
 from Galacticus.Build.SourceTree         import (

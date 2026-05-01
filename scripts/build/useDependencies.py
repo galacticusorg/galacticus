@@ -20,7 +20,6 @@ import subprocess
 import sys
 import xml.etree.ElementTree as ET
 
-sys.path.insert(0, os.path.join(os.environ.get('GALACTICUS_EXEC_PATH', ''), 'python'))
 
 from Galacticus.Build.Directives import extract_directives
 from List.ExtraUtils             import as_array, hash_list, smart_push

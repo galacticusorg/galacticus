@@ -12,9 +12,7 @@ import sys
 from collections import defaultdict
 from pathlib import Path
 
-_exec_path = os.environ.get('GALACTICUS_EXEC_PATH', os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..')))
-sys.path.insert(0, os.path.join(_exec_path, 'python'))
-from latex_utils import latex_encode  # noqa: E402
+from latex_utils import latex_encode
 
 # Mapping of accented/special characters to their LaTeX equivalents.
 ACCENT_MAP = {

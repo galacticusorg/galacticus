@@ -3,11 +3,14 @@
 #
 # Wraps Python's standard-library graphlib.TopologicalSorter (Python >= 3.9),
 # exposing an interface that matches the Perl Sort::Topo module.
+from __future__ import annotations
 
 from graphlib import TopologicalSorter, CycleError
 
+__all__ = ['sort']
 
-def sort(objects, dependencies):
+
+def sort(objects: list, dependencies: dict) -> list:
     """Topologically sort objects by their dependencies.
 
     Mirrors Perl Sort::Topo::sort().
@@ -32,7 +35,7 @@ def sort(objects, dependencies):
         If a circular dependency is detected (matches the Perl 'die').
     """
     objects_set = set(objects)
-    ts = TopologicalSorter()
+    ts: TopologicalSorter = TopologicalSorter()
     for obj in objects:
         deps = [d for d in dependencies.get(obj, []) if d in objects_set]
         ts.add(obj, *deps)

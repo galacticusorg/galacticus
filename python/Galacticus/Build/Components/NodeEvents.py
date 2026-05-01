@@ -8,10 +8,7 @@
 #   functions  → Node_Event_Non_Static_Size_Of, Node_Event_Serialize_Raw,
 #                Node_Event_Deserialize_Raw, Node_Event_Deserialize_Raw_Polymorphic
 
-import os
-import sys
 
-sys.path.insert(0, os.path.join(os.environ['GALACTICUS_EXEC_PATH'], 'python'))
 
 from Galacticus.Build.Components.Utils import register
 

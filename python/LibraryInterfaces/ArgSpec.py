@@ -3,6 +3,8 @@
 
 from dataclasses import dataclass, field
 
+__all__ = ['ArgSpec']
+
 
 @dataclass
 class ArgSpec:

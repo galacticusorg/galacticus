@@ -9,12 +9,10 @@
 
 import os
 import re
-import sys
 import tempfile
 import subprocess
 import xml.etree.ElementTree as ET
 
-sys.path.insert(0, os.path.join(os.environ.get('GALACTICUS_EXEC_PATH', ''), 'python'))
 
 from Galacticus.Build.SourceTree         import walk_tree, insert_after_node
 from Galacticus.Build.SourceTree.Process import register_process
@@ -75,7 +73,7 @@ def _emit_gsl_enum(directive):
     )
     output = _compile_and_run(c_src)
     values = output.split()
-    definitions = [f"{members[i]}={values[i]}" for i in range(len(members))]
+    definitions = [f"{m}={v}" for m, v in zip(members, values)]
     return (
         "enum, bind(c)\n"
         " enumerator :: " + ", ".join(definitions) + "\n"

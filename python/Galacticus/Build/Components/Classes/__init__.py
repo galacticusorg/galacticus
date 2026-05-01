@@ -11,20 +11,17 @@
 # builder and the per-class iterated hooks come with the full Classes/
 # port.
 
+import logging
 import os
-import sys
 
-sys.path.insert(0, os.path.join(os.environ['GALACTICUS_EXEC_PATH'], 'python'))
+logger = logging.getLogger(__name__)
+
 
 from Galacticus.Build.Components.Utils         import (
     register,
-    verbosity_level,
     _component_properties,
 )
-from Galacticus.Build.Components.DataTypes     import (
-    data_object_primitive_name,
-    data_object_doc_name,
-)
+from Galacticus.Build.Components.DataTypes     import data_object_doc_name
 from Galacticus.Build.Components.NullFunctions import create_null_function
 
 
@@ -68,12 +65,11 @@ def Gather_Classes(build):
     else:
         build['componentClassListActive'] = list(component_class_list)
 
-    if verbosity_level > 0:
-        print("         --> Found the following component classes and implementations:")
-        for class_name in component_class_list:
-            print(f"            --> {class_name}")
-            for impl_name in component_classes[class_name]['memberNames']:
-                print(f"               --> {impl_name}")
+    logger.info("         --> Found the following component classes and implementations:")
+    for class_name in component_class_list:
+        logger.info(f"            --> {class_name}")
+        for impl_name in component_classes[class_name]['memberNames']:
+            logger.info(f"               --> {impl_name}")
 
 
 def Build_Component_Classes(build):

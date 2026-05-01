@@ -16,10 +16,7 @@
 #       back to a parent class's binding (if any), or emits an
 #       `Error_Report` if no fallback exists.
 
-import os
-import sys
 
-sys.path.insert(0, os.path.join(os.environ['GALACTICUS_EXEC_PATH'], 'python'))
 
 from Fortran.Utils                                  import unformat_variables
 from Galacticus.Build.Components.Utils              import (

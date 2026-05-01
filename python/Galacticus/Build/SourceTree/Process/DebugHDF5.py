@@ -8,9 +8,7 @@
 
 import re
 import os
-import sys
 
-sys.path.insert(0, os.path.join(os.environ.get('GALACTICUS_EXEC_PATH', ''), 'python'))
 
 from Galacticus.Build.SourceTree                  import walk_tree
 from Galacticus.Build.SourceTree.Process          import register_process

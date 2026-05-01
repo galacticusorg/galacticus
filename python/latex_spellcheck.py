@@ -2,6 +2,7 @@
 # Shared spell-checking logic for LaTeX and plain-text fragments.
 # Used by spellChecker.py and embeddedAnalyzer.py.
 # Andrew Benson (28-February-2023) [Python port]
+from __future__ import annotations
 
 import os
 import re
@@ -9,6 +10,8 @@ import shutil
 import subprocess
 import tempfile
 import xml.etree.ElementTree as ET
+
+__all__ = ['spell_check', 'spell_check_file']
 
 # Module-level cache so the word list is only loaded once per process.
 _spell_words_cache = None
@@ -221,7 +224,7 @@ def _preprocess_line(line, is_latex, spell_words):
     return line
 
 
-def spell_check(text, text_type, file_name_original):
+def spell_check(text: str, text_type: str, file_name_original: str) -> str:
     """Spell-check a text fragment (string).  text_type is 'latex' or 'text'."""
     is_latex = text_type == 'latex'
     suffix = '.tex' if is_latex else '.txt'
@@ -237,7 +240,7 @@ def spell_check(text, text_type, file_name_original):
             pass
 
 
-def spell_check_file(file_name, file_name_original):
+def spell_check_file(file_name: str, file_name_original: str) -> str:
     """Spell-check a file on disk.  Returns a warnings string (may be empty)."""
     is_latex  = file_name.endswith('.tex')
     words     = _load_spell_words()
@@ -276,7 +279,7 @@ def spell_check_file(file_name, file_name_original):
         raw_output = ''
 
     # Collect unique misspelled words (case-folded).
-    word_counts = {}
+    word_counts: dict[str, int] = {}
     for w in raw_output.splitlines():
         w = w.strip().lower()
         if w:

@@ -23,7 +23,6 @@ import pickle
 import re
 import sys
 
-sys.path.insert(0, os.path.join(os.environ.get('GALACTICUS_EXEC_PATH', ''), 'python'))
 
 from Galacticus.Build.Directives import extract_directives
 

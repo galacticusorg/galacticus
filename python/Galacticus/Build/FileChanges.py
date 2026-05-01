@@ -6,13 +6,16 @@
 # either moves `new_file` over `old_file` (if different) or deletes
 # `new_file` (if identical).  Preserving the old file's mtime in the
 # identical case lets Make skip rebuilds of downstream targets.
+from __future__ import annotations
 
 import filecmp
 import os
 import shutil
 
+__all__ = ['update']
 
-def update(old_file, new_file, *, prove_update=False):
+
+def update(old_file: str, new_file: str, *, prove_update: bool = False) -> None:
     """Atomically update `old_file` from `new_file`, leaving mtime untouched
     when nothing changed.
 

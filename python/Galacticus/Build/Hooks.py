@@ -6,5 +6,11 @@
 # Each entry maps a build `type` (e.g. `"component"`) to a dict of
 # `validate` / `parse` / `generate` callables that buildCode.py invokes
 # during a build.
+from __future__ import annotations
 
-module_hooks = {}
+from typing import Callable
+
+__all__ = ['module_hooks']
+
+
+module_hooks: dict[str, dict[str, Callable]] = {}

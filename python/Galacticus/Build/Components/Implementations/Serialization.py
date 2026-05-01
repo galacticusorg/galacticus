@@ -7,10 +7,7 @@
 # in those functions are effectively dead code in the original.  We omit
 # those branches here.
 
-import os
-import sys
 
-sys.path.insert(0, os.path.join(os.environ['GALACTICUS_EXEC_PATH'], 'python'))
 
 from Galacticus.Build.Components                       import Utils as _Utils
 from Galacticus.Build.Components.Utils                 import (

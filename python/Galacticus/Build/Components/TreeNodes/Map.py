@@ -20,10 +20,7 @@
 # bound function whose descriptor carries a `mappable` key, followed by
 # a generic fallback that switches on the reduction at run-time.
 
-import os
-import sys
 
-sys.path.insert(0, os.path.join(os.environ['GALACTICUS_EXEC_PATH'], 'python'))
 
 from Galacticus.Build.Components.Utils import register
 

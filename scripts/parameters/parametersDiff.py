@@ -85,8 +85,8 @@ print()
 
 # Remove any temporary files.
 if not args.respectOrder:
-    for i in range(len(fileNamesTmp)):
-        os.unlink(fileNamesTmp[i])
+    for tmp_file in fileNamesTmp:
+        os.unlink(tmp_file)
 
 # Return diff status.
 sys.exit(status.returncode)

@@ -15,19 +15,20 @@
 import base64
 import fcntl
 import hashlib
+import logging
 import os
 import re
-import sys
 
-sys.path.insert(0, os.path.join(os.environ.get('GALACTICUS_EXEC_PATH', ''), 'python'))
 
-from build.fortran_utils                            import (
+from Galacticus.Build.FortranUtils                            import (
     get_matching_lines, read_file,
 )
 from Galacticus.Build.SourceTree                    import walk_tree
 from Galacticus.Build.SourceTree.Process            import register_process
 from Galacticus.Build.SourceTree.Parse.Declarations import add_declarations
 from Galacticus.Build.SourceTree.Parse.ModuleUses   import add_uses
+
+logger = logging.getLogger(__name__)
 
 
 # ---------------------------------------------------------------------------
@@ -163,18 +164,18 @@ def find_hash(file_names, *, use_locks=True, include_files_excluded=None,
     build_path = os.environ['BUILDPATH']
 
     if report:
-        print("=> Begin computing MD5 hash")
+        logger.info("=> Begin computing MD5 hash")
 
     hasher = hashlib.md5()
 
     for file_name in file_names:
         if report:
-            print(f" => Process file: {file_name}")
+            logger.info(f" => Process file: {file_name}")
 
         if file_name in _composite_digests:
             hasher.update(_composite_digests[file_name].encode('ascii'))
             if report:
-                print(
+                logger.info(
                     f"  => Use pre-existing composite hash: "
                     f"{_composite_digests[file_name]}"
                 )
@@ -195,7 +196,7 @@ def find_hash(file_names, *, use_locks=True, include_files_excluded=None,
             continue
 
         if report:
-            print("  => Processing dependencies")
+            logger.info("  => Processing dependencies")
 
         composite_lock = open(hash_file_name + '.lock', 'w')
         try:
@@ -216,13 +217,13 @@ def find_hash(file_names, *, use_locks=True, include_files_excluded=None,
                             object_file_name,
                         )
                         if report:
-                            print(f"   => Dependency file: {source_prefix}")
+                            logger.info(f"   => Dependency file: {source_prefix}")
                         for suffix in ('F90', 'c', 'h', 'Inc', 'cpp'):
                             source_file_name = f"{source_prefix}.{suffix}"
                             if not os.path.exists(source_file_name):
                                 continue
                             if report:
-                                print(f"    => Dependency file: {source_file_name}")
+                                logger.info(f"    => Dependency file: {source_file_name}")
                             # Mirror Perl: `$md5FileName = $sourceFileName; $md5FileName =~ s/^source//;
                             #              $md5FileName = $BUILDPATH.$md5FileName.".md5";`
                             stripped = re.sub(
@@ -240,9 +241,9 @@ def find_hash(file_names, *, use_locks=True, include_files_excluded=None,
                                     use_stored_composite = False
                                 if report:
                                     if use_stored_composite:
-                                        print(f"     => Can use stored hash: {source_file_name}")
+                                        logger.info(f"     => Can use stored hash: {source_file_name}")
                                     else:
-                                        print(f"     => Can not use stored hash: {source_file_name}")
+                                        logger.info(f"     => Can not use stored hash: {source_file_name}")
                             else:
                                 if not (
                                     modification_time(hash_file_name)
@@ -251,9 +252,9 @@ def find_hash(file_names, *, use_locks=True, include_files_excluded=None,
                                     use_stored_composite = False
                                 if report:
                                     if use_stored_composite:
-                                        print("     => Digest pre-exists")
+                                        logger.info("     => Digest pre-exists")
                                     else:
-                                        print("     => Digest pre-exists but is outdated")
+                                        logger.info("     => Digest pre-exists but is outdated")
 
             # If the composite is still current, read and use it.
             if use_stored_composite:
@@ -263,7 +264,7 @@ def find_hash(file_names, *, use_locks=True, include_files_excluded=None,
                     _composite_digests[file_name] = composite_digest
                     hasher.update(composite_digest.encode('ascii'))
                     if report:
-                        print(
+                        logger.info(
                             f"   => Reading stored composite hash:\t"
                             f"{file_name}\t{hash_file_name}\t"
                             f"{_composite_digests[file_name]}"
@@ -274,7 +275,7 @@ def find_hash(file_names, *, use_locks=True, include_files_excluded=None,
             # Otherwise, recompute the composite from scratch.
             if not use_stored_composite:
                 if report:
-                    print("   => Computing composite hash")
+                    logger.info("   => Computing composite hash")
                 with open(dependency_file_name) as dep_fh:
                     for object_file_name in dep_fh:
                         object_file_name = object_file_name.rstrip('\n')
@@ -321,7 +322,7 @@ def find_hash(file_names, *, use_locks=True, include_files_excluded=None,
                                         if digest:
                                             _digests[source_file_name] = digest
                                             if report:
-                                                print(
+                                                logger.info(
                                                     f"   => Reading stored hash: "
                                                     f"{source_file_name}\t"
                                                     f"{_digests[source_file_name]}"
@@ -330,7 +331,7 @@ def find_hash(file_names, *, use_locks=True, include_files_excluded=None,
                                             use_stored = False
                                     if not use_stored:
                                         if report:
-                                            print("   => Computing hash")
+                                            logger.info("   => Computing hash")
                                         file_hasher = hashlib.md5()
                                         if suffix in ('F90', 'Inc'):
                                             text = read_file(
@@ -358,7 +359,7 @@ def find_hash(file_names, *, use_locks=True, include_files_excluded=None,
                                             ]
                                             hash_data_files(file_hasher, extra_files)
                                             if report:
-                                                print(
+                                                logger.info(
                                                     f"    => Computed hash from: "
                                                     f"{source_file_name} {{{', '.join(extra_files)}}}"
                                                 )
@@ -366,7 +367,7 @@ def find_hash(file_names, *, use_locks=True, include_files_excluded=None,
                                             with open(source_file_name, 'rb') as raw_fh:
                                                 file_hasher.update(raw_fh.read())
                                             if report:
-                                                print(
+                                                logger.info(
                                                     f"    => Computed hash from: "
                                                     f"{source_file_name} {{RAW}}"
                                                 )
@@ -375,7 +376,7 @@ def find_hash(file_names, *, use_locks=True, include_files_excluded=None,
                                             md5_fh.write(_digests[source_file_name])
                                         update_modification_time(md5_file_name)
                                         if report:
-                                            print(
+                                            logger.info(
                                                 f"   => Stored hash: {source_file_name}\t"
                                                 f"{_digests[source_file_name]}"
                                             )
@@ -396,7 +397,7 @@ def find_hash(file_names, *, use_locks=True, include_files_excluded=None,
                     md5_fh.write(_composite_digests[file_name])
                 update_modification_time(file_name)
                 if report:
-                    print(
+                    logger.info(
                         f"   => Composite hash stored\t{file_name}\t"
                         f"{hash_file_name}\t{_composite_digests[file_name]}"
                     )
@@ -405,5 +406,5 @@ def find_hash(file_names, *, use_locks=True, include_files_excluded=None,
 
     final_hash = _b64digest(hasher)
     if report:
-        print(f"=> MD5 hash: {final_hash}")
+        logger.info(f"=> MD5 hash: {final_hash}")
     return final_hash

@@ -4,12 +4,23 @@
 # Andrew Benson (ported to Python 2026)
 
 import os
-import sys
 
 import numpy as np
 
-sys.path.insert(0, os.path.join(os.environ.get('GALACTICUS_EXEC_PATH', ''), 'python'))
 from List.ExtraUtils import as_array
+
+__all__ = [
+    # Canonical snake_case names.
+    'log_file_root',
+    'maximum_posterior_parameter_vector',
+    'maximum_likelihood_parameter_vector',
+    'parameter_names',
+    # camelCase compatibility aliases (defined further down in this module).
+    'logFileRoot',
+    'maximumPosteriorParameterVector',
+    'maximumLikelihoodParameterVector',
+    'parameterNames',
+]
 
 
 def log_file_root(config, options=None):

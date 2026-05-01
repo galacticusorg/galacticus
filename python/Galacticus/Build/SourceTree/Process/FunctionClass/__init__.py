@@ -20,10 +20,8 @@
 
 import os
 import re
-import sys
 import xml.etree.ElementTree as ET
 
-sys.path.insert(0, os.path.join(os.environ.get('GALACTICUS_EXEC_PATH', ''), 'python'))
 
 from List.ExtraUtils                                         import as_array
 from Sort.Topo                                               import sort as topo_sort
@@ -638,7 +636,7 @@ def _descriptor_discover_class(non_abstract_class, directive, classes,
         trimlc, striplc, strip_variable_name,
     )
     from Galacticus.Build.SourceTree.Parse.Declarations import parse_declaration
-    from build.fortran_utils import get_fortran_line
+    from Galacticus.Build.FortranUtils import get_fortran_line
     import io
 
     potential_names        = {}
@@ -1567,7 +1565,7 @@ def _build_allowed_parameters_method(directive, classes_ordered, methods):
     from Galacticus.Build.SourceTree.Process.FunctionClass.Utils import (
         trimlc, striplc, strip_variable_name,
     )
-    from build.fortran_utils import get_fortran_line
+    from Galacticus.Build.FortranUtils import get_fortran_line
     import io
 
     directive_name = directive['name']

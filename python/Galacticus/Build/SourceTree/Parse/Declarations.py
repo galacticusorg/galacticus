@@ -5,13 +5,10 @@
 # perl/Galacticus/Build/SourceTree/Parse/Declarations.pm
 
 import re
-import sys
-import os
 import copy
-sys.path.insert(0, os.path.join(os.environ.get('GALACTICUS_EXEC_PATH', ''), 'python'))
 
 from Fortran.Utils import INTRINSIC_DECLARATIONS, extract_variables
-from build.fortran_utils import extract_bracketed
+from Galacticus.Build.FortranUtils import extract_bracketed
 
 
 def parse_declaration(line):

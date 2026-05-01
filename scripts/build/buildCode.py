@@ -22,16 +22,20 @@ import re
 import sys
 import xml.etree.ElementTree as ET
 
-sys.path.insert(0, os.path.join(os.environ['GALACTICUS_EXEC_PATH'], 'python'))
 
-from build.fortran_utils                      import get_fortran_line
-from build.file_changes                       import update as file_changes_update
+from Galacticus.Build.FortranUtils                      import get_fortran_line
+from Galacticus.Build.FileChanges                       import update as file_changes_update
 from Fortran.Utils                            import UNIT_OPENERS, UNIT_CLOSERS
 from XML.Utils                                import xml_to_dict
 from Galacticus.Build                         import Hooks
 from Galacticus.Build                         import SourceTree
 from Galacticus.Build.SourceTree.Process      import process_tree
 import Galacticus.Build.Components            # registers the `component` hook on import
+from Galacticus._logging                      import configure_default as _configure_default
+
+# Show INFO-level diagnostic output from the library modules (mirrors the
+# verbose `print()`-driven output of the Perl-era driver).
+_configure_default()
 
 # Importing each Process submodule registers its hook with the SourceTree
 # pipeline.  Mirrors the `use` statements at the top of

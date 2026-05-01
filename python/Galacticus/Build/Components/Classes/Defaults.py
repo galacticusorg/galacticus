@@ -6,11 +6,8 @@
 # `<prop>IsGettable`, `<prop>` (the default-value lookup), and
 # `<prop>RateGet` (a zero-rate fallback).
 
-import os
 import re
-import sys
 
-sys.path.insert(0, os.path.join(os.environ['GALACTICUS_EXEC_PATH'], 'python'))
 
 from Galacticus.Build.Components.Utils      import (
     register,

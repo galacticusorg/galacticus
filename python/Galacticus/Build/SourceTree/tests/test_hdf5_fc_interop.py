@@ -9,7 +9,6 @@
 # The fix uses `re.search` so the regex floats past the leading whitespace,
 # matching Perl's `$line =~ m/(\S+)\s*=\s*(\S+)/`.
 
-import os
 import textwrap
 
 from Galacticus.Build.SourceTree.Process.HDF5FCInterop import _load_type_map
