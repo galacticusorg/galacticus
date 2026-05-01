@@ -10,6 +10,8 @@
 from Sort.Topo        import sort as topo_sort
 from List.ExtraUtils  import as_array
 
+__all__ = ['dependency_sort']
+
 
 def dependency_sort(tasks):
     """Sort task names into dependency order.

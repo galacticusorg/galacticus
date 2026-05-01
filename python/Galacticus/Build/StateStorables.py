@@ -23,6 +23,12 @@
 # and then look for a `functionClass` wrapper key.  Centralise the shape-
 # bridging here so every reader handles the actual on-disk format.
 
+__all__ = [
+    'function_class_entries', 'function_class_names',
+    'function_class_module_map', 'function_class_entry',
+    'function_class_instances', 'event_hook_static_names',
+]
+
 
 def function_class_entries(state_storables):
     """Return a list of ``{'name': ..., 'module': ..., ...}`` dicts for every

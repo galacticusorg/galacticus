@@ -13,6 +13,8 @@ import h5py
 from List.ExtraUtils import hash_list, as_array
 from XML.Utils import xml_to_dict
 
+__all__ = ['select_simulations', 'match_selection', 'iterate', 'parse_simulations_xml']
+
 
 def select_simulations(options):
     """Parse options['select'] into a list of selection filter dicts.

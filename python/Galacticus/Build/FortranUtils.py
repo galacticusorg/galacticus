@@ -11,6 +11,12 @@ OpenMP sentinels.
 import os
 import re
 
+__all__ = [
+    'get_fortran_line', 'extract_bracketed', 'extract_variables',
+    'get_matching_lines', 'read_file',
+]
+
+
 def get_fortran_line(file_obj):
     """Read one logical Fortran line from file_obj, handling & continuation lines.
 

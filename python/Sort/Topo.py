@@ -6,6 +6,8 @@
 
 from graphlib import TopologicalSorter, CycleError
 
+__all__ = ['sort']
+
 
 def sort(objects, dependencies):
     """Topologically sort objects by their dependencies.

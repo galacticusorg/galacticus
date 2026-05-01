@@ -4,6 +4,8 @@
 
 import xml.etree.ElementTree as ET
 
+__all__ = ['xml_to_dict', 'dict_to_xml_string']
+
 
 def xml_to_dict(element, keyed_tags=None, force_array=None):
     """Recursively convert an XML element to nested Python dicts/lists/strings.

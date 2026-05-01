@@ -3,6 +3,9 @@
 
 import re
 
+__all__ = ['latex_encode']
+
+
 _LATEX_SPECIAL = [
     ('\\', r'\textbackslash{}'),
     ('{',  r'\{'),

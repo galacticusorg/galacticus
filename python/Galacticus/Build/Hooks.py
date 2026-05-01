@@ -7,4 +7,7 @@
 # `validate` / `parse` / `generate` callables that buildCode.py invokes
 # during a build.
 
+__all__ = ['module_hooks']
+
+
 module_hooks = {}

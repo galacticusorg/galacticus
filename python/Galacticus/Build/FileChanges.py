@@ -11,6 +11,8 @@ import filecmp
 import os
 import shutil
 
+__all__ = ['update']
+
 
 def update(old_file, new_file, *, prove_update=False):
     """Atomically update `old_file` from `new_file`, leaving mtime untouched

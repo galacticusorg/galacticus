@@ -7,6 +7,9 @@ import json
 import lxml.etree as ET
 import subprocess
 
+__all__ = ['QueueManager', 'SLURMManager', 'factory', 'translate_job', 'submit_jobs']
+
+
 class QueueManager:
     """Base class for queue managers"""
     def __init__(self,name):

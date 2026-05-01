@@ -13,6 +13,9 @@ import numpy as np
 import tensorflow_probability as tfp
 from scipy import stats
 
+__all__ = ['norm_transform', 'norm_transform_inv', 'Coupling', 'RealNVP']
+
+
 # This function transforms data from normalized coordinates to hypercube coordinates
 def norm_transform(data, min_val, max_val):
     """Transform data from normalized coordinates to hypercube coordinates.

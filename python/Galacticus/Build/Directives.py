@@ -14,6 +14,8 @@ import xml.etree.ElementTree as ET
 
 from XML.Utils import xml_to_dict
 
+__all__ = ['extract_directives', 'extract_directive']
+
 
 _END_MARKER_RE    = re.compile(r'^\s*!!\]')
 _START_MARKER_RE  = re.compile(r'^\s*!!\[')

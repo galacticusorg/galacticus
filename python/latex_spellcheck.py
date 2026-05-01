@@ -10,6 +10,8 @@ import subprocess
 import tempfile
 import xml.etree.ElementTree as ET
 
+__all__ = ['spell_check', 'spell_check_file']
+
 # Module-level cache so the word list is only loaded once per process.
 _spell_words_cache = None
 

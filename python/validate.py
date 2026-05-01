@@ -14,6 +14,9 @@ import json
 import codecs
 from git import Repo
 
+__all__ = ['extract']
+
+
 def extract(fileName, name, suffix, parameterFileName):
     """Extract likelihood measures and result data from a Galacticus model output file.
 

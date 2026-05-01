@@ -2,10 +2,16 @@
 # Andrew Benson (ported to Python 2026)
 #
 # Mirrors the subset of perl/Fortran/Utils.pm used by the Galacticus build system.
-# The get_fortran_line() function lives in build/fortran_utils.py; import it from
-# there when needed.
+# The get_fortran_line() function lives in Galacticus.Build.FortranUtils; import
+# it from there when needed.
 
 import re
+
+__all__ = [
+    'extract_variables', 'unformat_variables',
+    'LABEL', 'ARGUMENT_LIST',
+    'UNIT_OPENERS', 'UNIT_CLOSERS', 'INTRINSIC_DECLARATIONS',
+]
 
 # ---------------------------------------------------------------------------
 # Basic regex fragments

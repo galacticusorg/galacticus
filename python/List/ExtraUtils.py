@@ -1,6 +1,8 @@
 # Provides extra list/dict utility functions.
 # Andrew Benson (ported to Python 2026)
 
+__all__ = ['smart_push', 'as_array', 'hash_list', 'sorted_keys']
+
 
 def smart_push(array, item):
     """Intelligently append item(s) onto array.

@@ -13,6 +13,9 @@ import subprocess
 import urllib.request
 from urllib.error import HTTPError
 
+__all__ = ['initialize']
+
+
 def initialize(options):
     """Download, unpack, and compile the Cloudy photoionization code.
 

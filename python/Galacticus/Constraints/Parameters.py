@@ -9,6 +9,19 @@ import numpy as np
 
 from List.ExtraUtils import as_array
 
+__all__ = [
+    # Canonical snake_case names.
+    'log_file_root',
+    'maximum_posterior_parameter_vector',
+    'maximum_likelihood_parameter_vector',
+    'parameter_names',
+    # camelCase compatibility aliases (defined further down in this module).
+    'logFileRoot',
+    'maximumPosteriorParameterVector',
+    'maximumLikelihoodParameterVector',
+    'parameterNames',
+]
+
 
 def log_file_root(config, options=None):
     """Return the chain log file root path.
