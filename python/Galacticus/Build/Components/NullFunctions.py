@@ -9,8 +9,6 @@
 # generated function names are deduplicated by a fingerprint key so that
 # any two callers asking for the same shape share one function.
 
-import os
-import sys
 
 
 from Galacticus.Build.Components.Utils import (

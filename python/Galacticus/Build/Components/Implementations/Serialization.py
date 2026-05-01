@@ -7,8 +7,6 @@
 # in those functions are effectively dead code in the original.  We omit
 # those branches here.
 
-import os
-import sys
 
 
 from Galacticus.Build.Components                       import Utils as _Utils

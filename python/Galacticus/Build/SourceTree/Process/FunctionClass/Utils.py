@@ -3,9 +3,7 @@
 #
 # Mirrors perl/Galacticus/Build/SourceTree/Process/FunctionClass/Utils.pm
 
-import os
 import re
-import sys
 
 
 from Galacticus.Build.SourceTree import walk_tree

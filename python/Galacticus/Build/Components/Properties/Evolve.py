@@ -5,7 +5,6 @@
 # Mirrors perl/Galacticus/Build/Components/Properties/Evolve.pm.
 
 import os
-import sys
 
 
 from Galacticus.Build.Components.Utils      import (

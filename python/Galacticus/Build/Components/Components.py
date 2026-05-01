@@ -10,8 +10,6 @@
 # pointer back to its owning `treeNode` along with one allocatable array
 # per meta-property kind.
 
-import os
-import sys
 
 
 from Galacticus.Build.Components.Utils import register

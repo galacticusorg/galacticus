@@ -9,8 +9,6 @@
 #                                     `implementationIteratedFunctions`
 #                                     sub-iteration phase.
 
-import os
-import sys
 
 
 from Galacticus.Build.Components.Utils import (

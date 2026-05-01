@@ -21,7 +21,6 @@
 
 import os
 import re
-import sys
 
 
 from build.file_changes        import update as file_changes_update

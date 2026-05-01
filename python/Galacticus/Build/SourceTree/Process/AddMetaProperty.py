@@ -6,8 +6,6 @@
 #
 # Mirrors perl/Galacticus/Build/SourceTree/Process/AddMetaProperty.pm
 
-import os
-import sys
 
 
 from Galacticus.Build.SourceTree                    import (

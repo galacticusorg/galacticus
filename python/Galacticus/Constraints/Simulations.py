@@ -3,7 +3,6 @@
 # Andrew Benson (ported to Python 2026)
 
 import os
-import sys
 import re
 import math
 

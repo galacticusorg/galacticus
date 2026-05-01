@@ -4,9 +4,7 @@
 #
 # Mirrors perl/Galacticus/Build/Components/Implementations/CreateDestroy.pm.
 
-import os
 import re
-import sys
 
 
 from Galacticus.Build.Components.Utils                  import (

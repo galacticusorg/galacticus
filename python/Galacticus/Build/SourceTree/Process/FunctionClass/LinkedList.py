@@ -3,8 +3,6 @@
 #
 # Mirrors perl/Galacticus/Build/SourceTree/Process/FunctionClass/LinkedList.pm
 
-import os
-import sys
 
 
 from Galacticus.Build.SourceTree.Process.SourceIntrospection import location

@@ -24,8 +24,6 @@
 #      cross-language type conversion.
 
 import re
-import sys
-import os
 
 from List.ExtraUtils import as_array
 from LibraryInterfaces.ArgSpec import ArgSpec

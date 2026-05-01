@@ -5,8 +5,6 @@
 # Eight hooks total — seven implementationIteratedFunctions plus one
 # top-level `functions` hook (Implementation_ODE_Rate_Variables).
 
-import os
-import sys
 
 
 from Galacticus.Build.Components.Utils                  import (

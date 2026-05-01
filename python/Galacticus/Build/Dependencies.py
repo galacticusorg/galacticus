@@ -5,8 +5,6 @@
 # in its minimal subset used by SourceTree.Process.EventHooksStatic: no
 # `sortName` aliasing, no `re:` regex keys.
 
-import os
-import sys
 
 
 from Sort.Topo        import sort as topo_sort

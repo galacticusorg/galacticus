@@ -8,9 +8,7 @@
 # Perl aliases `$stateStorables` from the parent package; we take it as a
 # parameter here.
 
-import os
 import re
-import sys
 
 
 from List.ExtraUtils                                         import as_array

@@ -12,8 +12,6 @@
 # (`Class_Move`, `Class_Remove`, the main `functions`-phase group) belong
 # to a later port stage.
 
-import os
-import sys
 
 
 from Galacticus.Build.Components.Utils import register, component_utils, verbosity_level

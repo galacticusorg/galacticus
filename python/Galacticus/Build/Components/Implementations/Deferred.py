@@ -16,8 +16,6 @@
 #       back to a parent class's binding (if any), or emits an
 #       `Error_Report` if no fallback exists.
 
-import os
-import sys
 
 
 from Fortran.Utils                                  import unformat_variables

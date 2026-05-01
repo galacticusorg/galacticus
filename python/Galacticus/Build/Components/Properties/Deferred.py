@@ -7,8 +7,6 @@
 # for each `isDeferred` attribute (`get` / `set` / `rate`) on every
 # component property.
 
-import os
-import sys
 
 
 from Galacticus.Build.Components.Utils         import register

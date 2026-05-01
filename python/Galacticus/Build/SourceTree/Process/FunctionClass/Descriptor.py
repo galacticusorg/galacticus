@@ -3,9 +3,7 @@
 #
 # Mirrors perl/Galacticus/Build/SourceTree/Process/FunctionClass/Descriptor.pm
 
-import os
 import re
-import sys
 
 
 from List.ExtraUtils                                           import as_array

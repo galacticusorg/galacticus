@@ -4,8 +4,6 @@
 #
 # Mirrors perl/Galacticus/Build/SourceTree/Process/DeepCopyFinalize.pm
 
-import os
-import sys
 
 
 from Galacticus.Build.SourceTree         import walk_tree, insert_after_node

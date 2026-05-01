@@ -7,9 +7,7 @@
 #
 # Mirrors perl/Galacticus/Build/SourceTree/Process/DeepCopyActions.pm
 
-import os
 import re
-import sys
 
 
 from List.ExtraUtils                     import as_array

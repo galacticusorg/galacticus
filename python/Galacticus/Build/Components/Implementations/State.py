@@ -3,8 +3,6 @@
 #
 # Mirrors perl/Galacticus/Build/Components/Implementations/State.pm.
 
-import os
-import sys
 
 
 from Galacticus.Build.Components.Utils import (

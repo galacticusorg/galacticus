@@ -4,8 +4,6 @@
 #
 # Mirrors perl/Galacticus/Build/Components/TreeNodes/State.pm.
 
-import os
-import sys
 
 
 from Galacticus.Build.Components.Utils import register

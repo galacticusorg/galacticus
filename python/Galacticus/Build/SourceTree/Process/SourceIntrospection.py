@@ -6,8 +6,6 @@
 # Mirrors perl/Galacticus/Build/SourceTree/Process/SourceIntrospection.pm
 
 import re
-import os
-import sys
 
 
 from Galacticus.Build.SourceTree         import walk_tree

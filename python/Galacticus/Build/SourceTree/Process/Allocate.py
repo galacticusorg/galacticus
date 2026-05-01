@@ -5,8 +5,6 @@
 #
 # Mirrors perl/Galacticus/Build/SourceTree/Process/Allocate.pm
 
-import os
-import sys
 
 
 from Galacticus.Build.SourceTree                    import walk_tree, insert_after_node

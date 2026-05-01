@@ -4,7 +4,6 @@
 #
 # Mirrors scripts/aux/formatModuleUses.pl
 
-import sys
 import os
 import tempfile
 import argparse

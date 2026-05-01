@@ -4,9 +4,7 @@
 #
 # Mirrors perl/Galacticus/Build/Components/Classes/Output.pm.
 
-import os
 import re
-import sys
 
 
 from Galacticus.Build.Components       import Utils as _Utils

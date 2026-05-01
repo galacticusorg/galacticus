@@ -8,9 +8,7 @@
 
 import copy
 import io
-import os
 import re
-import sys
 
 
 from List.ExtraUtils                                  import as_array

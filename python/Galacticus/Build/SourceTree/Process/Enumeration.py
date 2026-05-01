@@ -6,7 +6,6 @@
 # Mirrors perl/Galacticus/Build/SourceTree/Process/Enumeration.pm
 
 import os
-import sys
 
 
 from List.ExtraUtils                                         import as_array

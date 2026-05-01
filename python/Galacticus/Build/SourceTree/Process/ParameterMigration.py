@@ -6,7 +6,6 @@
 # Mirrors perl/Galacticus/Build/SourceTree/Process/ParameterMigration.pm
 
 import os
-import sys
 import xml.etree.ElementTree as ET
 
 

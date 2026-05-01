@@ -7,8 +7,6 @@
 # two `classIteratedFunctions` hooks emit per-class create/destroy
 # methods.
 
-import os
-import sys
 
 
 from Galacticus.Build.Components.Utils import register

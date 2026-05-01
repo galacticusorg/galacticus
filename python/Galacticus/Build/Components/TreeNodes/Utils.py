@@ -7,8 +7,6 @@
 # steps; this step ports `Copy` and `Move` only.  The remaining two
 # hooks are stubbed and wired up in follow-up commits.
 
-import os
-import sys
 
 
 from Galacticus.Build.Components.Utils import register

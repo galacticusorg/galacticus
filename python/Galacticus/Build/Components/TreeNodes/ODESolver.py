@@ -6,8 +6,6 @@
 # `functions`-phase hooks (one of which — `Tree_Node_ODE_Step_Initialize`
 # — itself emits four bound methods, one per quantity).
 
-import os
-import sys
 
 
 from Galacticus.Build.Components.Utils import register

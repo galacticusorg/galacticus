@@ -8,9 +8,7 @@
 # at compile time; we take both as explicit parameters instead — cleaner
 # Python and decouples the helper from a global.
 
-import os
 import re
-import sys
 
 
 from List.ExtraUtils                                         import as_array

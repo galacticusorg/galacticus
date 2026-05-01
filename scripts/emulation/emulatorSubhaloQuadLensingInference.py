@@ -8,7 +8,6 @@ import numpy as np
 import tensorflow_probability as tfp
 import h5py
 from samana.forward_model import forward_model
-import os
 import sys
 import random
 from scipy import stats

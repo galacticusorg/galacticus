@@ -9,7 +9,6 @@
 # (`class_name_length_max`, etc.).  `Label_Lengths` populates them during
 # the `gather` phase; later phases read them for column-aligned output.
 
-import os
 
 
 # ---------------------------------------------------------------------------

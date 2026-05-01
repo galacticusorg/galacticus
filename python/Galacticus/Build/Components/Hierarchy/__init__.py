@@ -5,9 +5,7 @@
 # `functions`-phase hooks emitting `nodeClassHierarchyInitialize` and
 # `nodeClassHierarchyFinalize`.
 
-import os
 import re
-import sys
 
 
 from Galacticus.Build.Components.Utils import register

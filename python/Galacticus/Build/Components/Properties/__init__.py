@@ -10,9 +10,7 @@
 #   scatter     → Class_Defaults_Scatter
 #   content     → Construct_Data
 
-import os
 import re
-import sys
 
 
 from Galacticus.Build.Components       import Utils as _Utils

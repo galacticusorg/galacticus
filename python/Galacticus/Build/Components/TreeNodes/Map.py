@@ -20,8 +20,6 @@
 # bound function whose descriptor carries a `mappable` key, followed by
 # a generic fallback that switches on the reduction at run-time.
 
-import os
-import sys
 
 
 from Galacticus.Build.Components.Utils import register

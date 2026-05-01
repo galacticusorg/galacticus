@@ -3,8 +3,6 @@
 #
 # Mirrors perl/Galacticus/Build/Components/Implementations.pm.
 
-import os
-import sys
 
 
 from Sort.Topo                                import sort as topo_sort

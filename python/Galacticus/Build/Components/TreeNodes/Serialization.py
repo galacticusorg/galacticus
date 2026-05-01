@@ -5,8 +5,6 @@
 # Four hooks on the `functions` phase: `serializeASCII`, `serializeXML`,
 # `serializeRaw`, and `deserializeRaw`.
 
-import os
-import sys
 
 
 from Galacticus.Build.Components.Utils import register

@@ -6,8 +6,6 @@
 # perl/Galacticus/Build/SourceTree.pm.  Each Process submodule registers
 # itself at import time via register_process() or register_postprocess().
 
-import os
-import sys
 
 
 from Sort.Topo import sort as topo_sort

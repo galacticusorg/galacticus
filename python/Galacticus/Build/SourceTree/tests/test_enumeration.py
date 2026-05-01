@@ -100,7 +100,6 @@ class _inserted_holder:
 # into the docs build.  The Python port had a TODO comment but no
 # emission, so the docs build assembled an empty list.
 
-import os
 from Galacticus.Build.SourceTree.Process.Enumeration import (
     _emit_enumeration_definition_tex,
 )

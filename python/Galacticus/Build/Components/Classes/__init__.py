@@ -12,7 +12,6 @@
 # port.
 
 import os
-import sys
 
 
 from Galacticus.Build.Components.Utils         import (

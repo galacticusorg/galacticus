@@ -4,8 +4,6 @@
 #
 # Mirrors perl/Galacticus/Build/Components/DataTypes.pm.
 
-import os
-import sys
 
 
 from Galacticus.Build.Components.Utils import intrinsic_types

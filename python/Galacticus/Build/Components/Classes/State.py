@@ -7,8 +7,6 @@
 # meta-property bookkeeping arrays); `Class_Size_Of` emits the
 # byte-count accessor.
 
-import os
-import sys
 
 
 from Galacticus.Build.Components.Utils                   import register

@@ -6,8 +6,6 @@
 import re
 import io
 import copy
-import os
-import sys
 
 
 from build.fortran_utils import get_fortran_line

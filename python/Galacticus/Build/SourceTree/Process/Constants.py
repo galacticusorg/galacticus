@@ -9,7 +9,6 @@
 
 import os
 import re
-import sys
 import tempfile
 import subprocess
 import xml.etree.ElementTree as ET

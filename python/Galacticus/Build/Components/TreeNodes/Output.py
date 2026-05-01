@@ -7,8 +7,6 @@
 # node-level output properties (currently just `subsamplingWeight`)
 # and then delegates to every active component class member.
 
-import os
-import sys
 
 
 from Galacticus.Build.Components.Utils import register

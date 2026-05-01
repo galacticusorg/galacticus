@@ -9,7 +9,6 @@
 
 import os
 import pickle
-import sys
 import xml.etree.ElementTree as ET
 
 

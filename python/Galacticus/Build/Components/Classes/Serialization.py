@@ -3,8 +3,6 @@
 #
 # Mirrors perl/Galacticus/Build/Components/Classes/Serialization.pm.
 
-import os
-import sys
 
 
 from Galacticus.Build.Components       import Utils as _Utils

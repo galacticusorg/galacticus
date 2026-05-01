@@ -5,8 +5,6 @@
 # perl/Galacticus/Build/SourceTree/Parse/Declarations.pm
 
 import re
-import sys
-import os
 import copy
 
 from Fortran.Utils import INTRINSIC_DECLARATIONS, extract_variables
