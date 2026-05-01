@@ -134,7 +134,7 @@ No output (and an exit value of 0) indicates a valid parameter file. Invalid par
 
 Some scripts are provided which assist in the generation of parameter files. These are located in the \mono{scripts/parameters/} folder and are detailed below:
 \begin{description}
-\item [\mono{cosmologicalParametersMonteCarlo.pl}] This script will generate a set of cosmological parameters drawn at random from the WMAP-9 constraints \citep{hinshaw_nine-year_2012}. It uses the covariance matrix (currently defined in \mono{data/Cosmological\_Parameters\_WMAP-9.xml}) to produce correlated random variables\footnote{Note that this does not capture the full details of the correlations between parameters, since it uses just the covariance matrix. For a more accurate calculation the full Monte Carlo Markov Chains used in the WMAP-9 parameter fitting should be used instead.}. The generated parameters are printed to standard output as \glc-compatible XML.
+\item [\mono{cosmologicalParametersMonteCarlo.py}] This script will generate a set of cosmological parameters drawn at random from the WMAP-9 constraints \citep{hinshaw_nine-year_2012}. It uses the covariance matrix (currently defined in \mono{data/Cosmological\_Parameters\_WMAP-9.xml}) to produce correlated random variables\footnote{Note that this does not capture the full details of the correlations between parameters, since it uses just the covariance matrix. For a more accurate calculation the full Monte Carlo Markov Chains used in the WMAP-9 parameter fitting should be used instead.}. The generated parameters are printed to standard output as \glc-compatible XML.
 \end{description}
 
 \subsection{Changing Parameter Files}\index{parameters!changing}
@@ -468,11 +468,11 @@ Suppose, for example, that we wish to construct a luminosity function of galaxie
 
 \section{Running Grids of Models}\label{sec:RunningGrids}
 
-You can easily write your own scripts to generate parameter files and run \glc\ on these files. An example of such a script is \mono{scripts/aux/launch.pl}. This script will loop over a sequence of parameter values, generate appropriate parameter files, run \glc\ using those parameters and analyze the results. This script currently supports running of \glc\ on a local machine, via a PBS queue (as multiple jobs or a single job), or on a \href{https://research.cs.wisc.edu/htcondor/}{{\normalfont \scshape Condor}}\index{Condor} cluster. To run the script simply enter:
+You can easily write your own scripts to generate parameter files and run \glc\ on these files. An example of such a script is \mono{scripts/aux/launch.py}. This script will loop over a sequence of parameter values, generate appropriate parameter files, run \glc\ using those parameters and analyze the results. This script currently supports running of \glc\ on a local machine, via a PBS queue (as multiple jobs or a single job), or on a \href{https://research.cs.wisc.edu/htcondor/}{{\normalfont \scshape Condor}}\index{Condor} cluster. To run the script simply enter:
 \begin{verbatim}
- ./scripts/aux/launch.pl <runFile>
+ ./scripts/aux/launch.py <runFile>
 \end{verbatim}
-This will launch a single instance of the script. Multiple instances can be launched and will share the work load (i.e. they will not attempt to run a model which another instance is already running or has finished). If multiple instances are to be launched on multiple machines a command line option to \mono{launch.pl} can be used to ensure that they do not duplicate work. Adding \mono{-{}-instance 2:4} for example will tell the script to run only the second model from each block of four models it finds. Launching for \mono{launch.pl} scripts on four different machines with \mono{-{}-instance 1:4}, \mono{-{}-instance 2:4}, \mono{-{}-instance 3:4} and \mono{-{}-instance 4:4} will then divide the models between those machines.
+This will launch a single instance of the script. Multiple instances can be launched and will share the work load (i.e. they will not attempt to run a model which another instance is already running or has finished). If multiple instances are to be launched on multiple machines a command line option to \mono{launch.py} can be used to ensure that they do not duplicate work. Adding \mono{-{}-instance 2:4} for example will tell the script to run only the second model from each block of four models it finds. Launching for \mono{launch.py} scripts on four different machines with \mono{-{}-instance 1:4}, \mono{-{}-instance 2:4}, \mono{-{}-instance 3:4} and \mono{-{}-instance 4:4} will then divide the models between those machines.
 
 The \mono{runFile} is an XML file with the following structure:
 \begin{verbatim}

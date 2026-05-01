@@ -24,8 +24,7 @@ Before building, make sure you have the following available:
 - HDF5 libraries (the code writes output in HDF5 format)
 - FFTW3 libraries
 - GSL (GNU Scientific Library)
-- Perl (used by the build system for code generation)
-- Python 3 (used by various scripts)
+- Python 3 (used by the build system for code generation and various supporting scripts)
 
 > **Tip:** The easiest way to get a fully configured environment is to use [GitHub Codespaces](#open-in-github-codespaces) (click the badge above). All dependencies are pre-installed.
 

@@ -23,7 +23,7 @@ Before developing, ensure you have:
 - A modern Fortran compiler (e.g., `gfortran` ≥ 11)
 - `make`
 - HDF5, FFTW3, and GSL libraries
-- Perl and Python 3
+- Python 3
 
 **Tip:** Use [GitHub Codespaces](https://github.com/codespaces/new?hide_repo_select=true&ref=master&repo=204087682) for a pre-configured environment with all dependencies installed.
 
@@ -131,20 +131,6 @@ contains
   end subroutine mySubroutine
   
 end module myModule
-```
-
-### Perl Contributions
-
-Add comments in `.pm` files:
-
-```perl
-# Module created by Jane Developer
-# Contributions: Jane Developer, Bob Smith
-# This subroutine was generated with Claude and verified by Jane Developer
-
-sub my_subroutine {
-  # ... code
-}
 ```
 
 The [Extract_Contributors.py](scripts/doc/Extract_Contributors.py) script automatically generates contributor lists from these markers.

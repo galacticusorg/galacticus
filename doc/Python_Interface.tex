@@ -8,8 +8,7 @@
 
 Building the Python library requires the same toolchain used to build the main \glc\ executable (a Fortran~95 compiler, a C compiler, and the \gls{gnu} Make build system) plus the following additional requirements:
 \begin{itemize}
-  \item Python~3 (any recent version);
-  \item the Perl modules listed in the standard \glc\ build requirements (needed by the preprocessing scripts such as \mono{scripts/build/preprocess.pl} that are invoked during the build).
+  \item Python~3 (any recent version), together with the Python packages listed in the standard \glc\ build requirements (used by the build-time preprocessing and code-generation scripts such as \mono{scripts/build/preprocess.py} and \mono{scripts/build/buildCode.py}).
 \end{itemize}
 
 No additional Python packages (e.g., \mono{numpy}) are required merely to \emph{use} the library---the generated module relies only on the Python standard library's \mono{ctypes} module.
