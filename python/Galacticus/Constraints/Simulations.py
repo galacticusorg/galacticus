@@ -343,7 +343,10 @@ def _load_cosmology(suite, pipeline_path):
     for key in ('HubbleConstant', 'OmegaMatter', 'OmegaDarkEnergy', 'OmegaBaryon'):
         el = cosmo_el.find(key) if cosmo_el is not None else root.find(f'.//{key}')
         if el is not None:
-            suite['cosmology'][key] = float(el.get('value'))
+            value = el.get('value')
+            if value is None:
+                raise ValueError(f"cosmology_{suite['name']}.xml: <{key}> element has no 'value' attribute")
+            suite['cosmology'][key] = float(value)
     if 'HubbleConstant' in suite['cosmology']:
         suite['cosmology']['hubbleConstant'] = suite['cosmology']['HubbleConstant'] / 100.0
 
@@ -378,7 +381,13 @@ def _load_resolution_data(suite_name, group_name, res_name, resolution, suite, p
         mass_particle_str = mp_el.get('value', '')
         if mass_particle_str.startswith('='):
             expr = mass_particle_str[1:]
-            hubble = suite['cosmology'].get('HubbleConstant', 100.0)
+            if 'HubbleConstant' not in suite['cosmology']:
+                raise ValueError(
+                    f"massParticle/{res_name} expression references "
+                    f"[cosmologyParameters/HubbleConstant] but no HubbleConstant "
+                    f"is defined in suite '{suite['name']}'"
+                )
+            hubble = suite['cosmology']['HubbleConstant']
             expr = re.sub(r'\[cosmologyParameters/HubbleConstant\]', str(hubble), expr)
             # eval() is intentional: expression comes from a trusted pipeline XML file.
             resolution['massParticle'] = float(eval(expr))  # noqa: S307

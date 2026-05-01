@@ -76,7 +76,7 @@ def initialize(options):
     cloudyVersion      = options.get('version', "23.01")
     cloudyVersionMajor = cloudyVersion[0:cloudyVersion.index(".")]
     # Specify Cloudy path.
-    cloudyPath = os.environ.get('GALACTICUS_DATA_PATH')+"/dynamic/c"+cloudyVersion
+    cloudyPath = os.environ['GALACTICUS_DATA_PATH']+"/dynamic/c"+cloudyVersion
     os.makedirs(cloudyPath, exist_ok=True)
     # Download the code.
     if not os.path.isfile(f"{cloudyPath}.tar.gz"):
@@ -90,7 +90,7 @@ def initialize(options):
     # Unpack the code.
     if not os.path.isfile(f"{cloudyPath}/source/Makefile"):
         print("unpacking Cloudy code...")
-        unpack = subprocess.run(['tar', '-x', '-v', '-z', '-C', os.environ.get('GALACTICUS_DATA_PATH')+'/dynamic', '-f', f"{cloudyPath}.tar.gz"])
+        unpack = subprocess.run(['tar', '-x', '-v', '-z', '-C', os.environ['GALACTICUS_DATA_PATH']+'/dynamic', '-f', f"{cloudyPath}.tar.gz"])
         if unpack.returncode != 0:
             raise RuntimeError("failed to unpack Cloudy")
     if not os.path.isfile(f"{cloudyPath}/source/Makefile"):

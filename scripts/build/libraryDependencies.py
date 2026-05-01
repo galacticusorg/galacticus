@@ -4,7 +4,7 @@ import re
 import shutil
 import subprocess
 import sys
-from graphlib import TopologicalSorter
+from graphlib import CycleError, TopologicalSorter
 
 # Output linker options to link required libraries for building an executable.
 # Andrew Benson (ported to Python 2026)
@@ -133,8 +133,13 @@ for lib, before_these in static_link_dependencies.items():
 ts = TopologicalSorter(ts_graph)
 try:
     sorted_libraries = list(ts.static_order())
-except Exception:
-    sorted_libraries = sorted(libraries)
+except CycleError as exc:
+    # Cycles in static_link_dependencies are a build-system bug. Surface
+    # the cycle clearly rather than silently shipping an alphabetical
+    # link order, which would mask the bug behind cryptic linker errors.
+    raise RuntimeError(
+        f"library dependency graph contains a cycle: {exc.args[1] if len(exc.args) > 1 else exc}"
+    ) from exc
 # Filter to only the libraries we actually need.
 sorted_libraries = [lib for lib in sorted_libraries if lib in libraries]
 

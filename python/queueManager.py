@@ -22,9 +22,13 @@ def factory(args):
     managerType = None
     for host in hosts:
         name = host.find('name')
+        if name is None or name.text is None:
+            raise ValueError("malformed galacticusConfig.xml: queueManager/host is missing a non-empty <name>")
         match = re.search(name.text,os.environ['HOSTNAME'])
         if match:
             manager = host.find('manager')
+            if manager is None or manager.text is None:
+                raise ValueError(f"malformed galacticusConfig.xml: queueManager/host '{name.text}' is missing a non-empty <manager>")
             managerType = manager.text
     if managerType is None:
         raise Exception(f"No manager defined for this system")
@@ -32,6 +36,8 @@ def factory(args):
     hostConfig = None
     for host in hosts:
         name = host.find('name')
+        if name is None or name.text is None:
+            raise ValueError(f"malformed galacticusConfig.xml: {managerType}/host is missing a non-empty <name>")
         match = re.search(name.text,os.environ['HOSTNAME'])
         if match:
             hostConfig = host
