@@ -43,11 +43,11 @@ jobs:
           python-version: '3.x'
       - name: Install pytest
         run: python -m pip install --upgrade pip pytest
-      - name: Run preprocessor regression tests
+      - name: Run Python regression tests
         run: |
           cd $GITHUB_WORKSPACE
           export GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE
-          python -m pytest python/Galacticus/Build/SourceTree/tests/ -v
+          python -m pytest -v
       - run: echo "This job's status is ${{ job.status }}."
   # Build and deploy
   ## Linux
