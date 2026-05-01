@@ -13,7 +13,6 @@ import sys
 import lxml.etree as ET
 import numpy as np
 
-sys.path.insert(0, os.path.join(os.environ.get('GALACTICUS_EXEC_PATH', ''), 'python'))
 import queueManager
 from queueManager import submit_jobs
 from List.ExtraUtils import as_array

@@ -7,13 +7,11 @@ import argparse
 import math
 import os
 import re
-import sys
 
 import h5py
 import lxml.etree as ET
 import numpy as np
 
-sys.path.insert(0, os.path.join(os.environ.get('GALACTICUS_EXEC_PATH', ''), 'python'))
 from Galacticus.Constraints.Simulations import iterate, parse_simulations_xml
 from Galacticus._logging                 import configure_default as _configure_default
 from XML.Utils import xml_to_dict

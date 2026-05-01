@@ -5,7 +5,6 @@
 
 import argparse
 import os
-import sys
 
 import h5py
 import matplotlib
@@ -13,7 +12,6 @@ matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 import numpy as np
 
-sys.path.insert(0, os.path.join(os.environ.get('GALACTICUS_EXEC_PATH', ''), 'python'))
 import queueManager
 from queueManager import translate_job, submit_jobs
 from Galacticus.Constraints.Simulations import iterate, parse_simulations_xml

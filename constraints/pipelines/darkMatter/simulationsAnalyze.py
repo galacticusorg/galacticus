@@ -8,14 +8,12 @@ import math
 import os
 import re
 import shutil
-import sys
 from datetime import datetime
 
 import h5py
 import lxml.etree as ET
 import numpy as np
 
-sys.path.insert(0, os.path.join(os.environ.get('GALACTICUS_EXEC_PATH', ''), 'python'))
 import queueManager
 from queueManager import translate_job, submit_jobs
 from Galacticus.Constraints.Simulations import iterate, parse_simulations_xml
