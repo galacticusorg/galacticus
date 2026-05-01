@@ -8,6 +8,9 @@
 # Module-level globals reproduce Perl's `our $foo` declarations
 # (`class_name_length_max`, etc.).  `Label_Lengths` populates them during
 # the `gather` phase; later phases read them for column-aligned output.
+from __future__ import annotations
+
+from typing import Any, Callable
 
 
 
@@ -20,10 +23,10 @@
 # }
 # ---------------------------------------------------------------------------
 
-component_utils = {}
+component_utils: dict[str, dict[str, list[Callable]]] = {}
 
 
-def register(owner, phase, function):
+def register(owner: str, phase: str, function: Callable) -> None:
     """Append `function` to the list of hooks for `(owner, phase)`.
 
     Mirrors the Perl idiom of mutating
@@ -41,14 +44,17 @@ def register(owner, phase, function):
 verbosity_level                          = 1
 boolean_label                            = ('false', 'true')
 
-# Maximum lengths of various labels.  `None` until Label_Lengths runs;
-# downstream code never reads these before that, matching Perl's `our $foo`
-# being undef until populated.
-class_name_length_max                    = None
-implementation_name_length_max           = None
-fully_qualified_name_length_max          = None
-property_name_length_max                 = None
-implementation_property_name_length_max  = None
+# Maximum lengths of various labels.  Initialised to 0 and then set by
+# `Label_Lengths` during the `gather` phase; downstream code never reads
+# them before that, matching Perl's `our $foo` being undef until populated
+# (in Python we choose 0 over None so the pad_* helpers' arithmetic stays
+# well-typed; reading any of these before Label_Lengths simply produces a
+# zero-padded label rather than a TypeError on arithmetic).
+class_name_length_max                    = 0
+implementation_name_length_max           = 0
+fully_qualified_name_length_max          = 0
+property_name_length_max                 = 0
+implementation_property_name_length_max  = 0
 linked_data_name_length_max              = 0
 
 
@@ -78,7 +84,7 @@ output_type_map = {
 }
 
 
-def is_intrinsic(type_name):
+def is_intrinsic(type_name: str | None) -> bool:
     """Return True if `type_name` is one of the recognised intrinsic types.
 
     Mirrors `Galacticus::Build::Components::Utils::isIntrinsic`.
@@ -86,7 +92,7 @@ def is_intrinsic(type_name):
     return type_name in intrinsic_types
 
 
-def is_output_intrinsic(type_name):
+def is_output_intrinsic(type_name: str | None) -> bool:
     """Return True if `type_name` is intrinsic *and* directly outputtable.
 
     Mirrors `Galacticus::Build::Components::Utils::isOutputIntrinsic`.
@@ -108,7 +114,7 @@ _OFFSET_SHORT_NAME = {
 }
 
 
-def offset_name(*args):
+def offset_name(*args: Any) -> str:
     """Return the variable name used to store the ODE solver offset of a
     property.  Mirrors `Components::Utils::offsetName`.
     """
@@ -135,31 +141,31 @@ def offset_name(*args):
 # Padding.  Each `pad_*` helper rounds a label to the matching length-max.
 # ---------------------------------------------------------------------------
 
-def pad_class(text, extra_pad=(0, 0)):
+def pad_class(text: str, extra_pad: tuple[int, int] = (0, 0)) -> str:
     return _pad_generic(class_name_length_max,                    text, extra_pad)
 
 
-def pad_implementation(text, extra_pad=(0, 0)):
+def pad_implementation(text: str, extra_pad: tuple[int, int] = (0, 0)) -> str:
     return _pad_generic(implementation_name_length_max,           text, extra_pad)
 
 
-def pad_fully_qualified(text, extra_pad=(0, 0)):
+def pad_fully_qualified(text: str, extra_pad: tuple[int, int] = (0, 0)) -> str:
     return _pad_generic(fully_qualified_name_length_max,          text, extra_pad)
 
 
-def pad_property_name(text, extra_pad=(0, 0)):
+def pad_property_name(text: str, extra_pad: tuple[int, int] = (0, 0)) -> str:
     return _pad_generic(property_name_length_max,                 text, extra_pad)
 
 
-def pad_implementation_property_name(text, extra_pad=(0, 0)):
+def pad_implementation_property_name(text: str, extra_pad: tuple[int, int] = (0, 0)) -> str:
     return _pad_generic(implementation_property_name_length_max,  text, extra_pad)
 
 
-def pad_linked_data(text, extra_pad=(0, 0)):
+def pad_linked_data(text: str, extra_pad: tuple[int, int] = (0, 0)) -> str:
     return _pad_generic(linked_data_name_length_max,              text, extra_pad)
 
 
-def _pad_generic(length, text, extra_pad):
+def _pad_generic(length: int, text: str, extra_pad: tuple[int, int]) -> str:
     """Right-pad `text` to `length + extra_pad[0]`, but never shorter than
     `extra_pad[1]`.
     """
@@ -176,7 +182,7 @@ def _pad_generic(length, text, extra_pad):
 # into Python `True`/`False`.
 # ---------------------------------------------------------------------------
 
-def apply_defaults(obj, name, default):
+def apply_defaults(obj: Any, name: str, default: Any) -> None:
     """Mirror Perl `applyDefaults($object, $name, $default)`.
 
     `default` may be either a plain scalar (or string starting with
@@ -210,7 +216,7 @@ def apply_defaults(obj, name, default):
 # variable descriptors.  Used when building Fortran function signatures.
 # ---------------------------------------------------------------------------
 
-def argument_list(*descriptors):
+def argument_list(*descriptors: Any) -> list[str]:
     """Return the flat list of argument names taken from `descriptors`.
 
     A descriptor contributes its `variables` to the result when it is:
@@ -220,7 +226,7 @@ def argument_list(*descriptors):
       flag), or
     * declared `external`.
     """
-    arguments = []
+    arguments: list[str] = []
     for desc in descriptors:
         if not isinstance(desc, dict):
             continue
@@ -253,7 +259,7 @@ def argument_list(*descriptors):
 # column-aligned output.  Registered in the `gather` phase below.
 # ---------------------------------------------------------------------------
 
-def Label_Lengths(build):
+def Label_Lengths(build: dict) -> None:
     """Set the module-level `*_length_max` globals from the components in
     `build`.  Pushes `propertyNameLengthMax` into `build['variables']` so
     the generated Fortran can reference it at run-time.
@@ -312,7 +318,7 @@ register('utils', 'gather', Label_Lengths)
 # Internal helpers
 # ---------------------------------------------------------------------------
 
-def _as_list(value):
+def _as_list(value: Any) -> list:
     """Normalise XMLin's "scalar or list" idiom into a list."""
     if value is None:
         return []
@@ -321,7 +327,7 @@ def _as_list(value):
     return [value]
 
 
-def _component_properties(component):
+def _component_properties(component: dict) -> list[dict]:
     """Yield every property declared on `component`, regardless of whether
     `properties.property` is a dict, a single dict, or a list of dicts.
     """
@@ -340,5 +346,5 @@ def _component_properties(component):
     return []
 
 
-def _ucfirst(text):
+def _ucfirst(text: str) -> str:
     return text[:1].upper() + text[1:] if text else text

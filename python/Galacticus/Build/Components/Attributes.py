@@ -8,6 +8,7 @@
 #   preValidate  → Validate_Deferreds_Functionless
 #   default      → Default_Functions
 #   postValidate → Validate_Boolean, Validate_Evolvable_Intrinsics
+from __future__ import annotations
 
 
 
@@ -18,7 +19,7 @@ from Galacticus.Build.Components.Utils import (
 )
 
 
-def Validate_Deferreds_Functionless(build):
+def Validate_Deferreds_Functionless(build: dict) -> None:
     """Forbid build-time `xxxFunction` elements on a property whose `xxx`
     method is also flagged deferred.  Mirrors `Validate_Deferreds_Functionless`.
     """
@@ -40,7 +41,7 @@ def Validate_Deferreds_Functionless(build):
                     )
 
 
-def Default_Functions(build):
+def Default_Functions(build: dict) -> None:
     """Fill in default `rateFunction` / `getFunction` / `setFunction`
     entries on every component property.
 
@@ -78,7 +79,7 @@ def Default_Functions(build):
                     }
 
 
-def Validate_Boolean(build):
+def Validate_Boolean(build: dict) -> None:
     """Require `isSettable` / `isGettable` / `isEvolvable` to be `"true"`
     or `"false"`, and convert each to a Python `bool`.
 
@@ -111,7 +112,7 @@ def Validate_Boolean(build):
                     )
 
 
-def Validate_Evolvable_Intrinsics(build):
+def Validate_Evolvable_Intrinsics(build: dict) -> None:
     """Forbid evolvable intrinsic properties whose type is not `double`.
 
     Mirrors `Validate_Evolvable_Intrinsics`.
@@ -142,9 +143,9 @@ register('attributes', 'postValidate', Validate_Boolean)
 register('attributes', 'postValidate', Validate_Evolvable_Intrinsics)
 
 
-def _ucfirst(text):
+def _ucfirst(text: str) -> str:
     return text[:1].upper() + text[1:] if text else text
 
 
-def _lcfirst(text):
+def _lcfirst(text: str) -> str:
     return text[:1].lower() + text[1:] if text else text

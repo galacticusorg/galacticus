@@ -54,6 +54,10 @@ emulation = [
 test = [
     "pytest",
 ]
+lint = [
+    "mypy",
+    "pyflakes",
+]
 
 [project.urls]
 Homepage      = "https://github.com/galacticusorg/galacticus"
@@ -81,3 +85,21 @@ py-modules  = [
 [tool.setuptools.packages.find]
 where    = ["python"]
 exclude  = ["*.tests", "*.tests.*", "tests", "tests.*"]
+
+# ----------------------------------------------------------------------
+# mypy: permissive defaults so partially-annotated code doesn't drown the
+# user in noise.  Annotations were added in 2026 starting with the public
+# `__all__` surface (List, Sort, XML, Galacticus.Build's small public
+# modules, the loose top-level utilities, and a minimal `build: dict`
+# stamp on the Components/* hook validators).  Heavy `build`-dict
+# machinery under SourceTree.Process and the rest of Components/* is
+# intentionally left unannotated.  See the "Where type hints help"
+# discussion in the audit for the rationale.
+# ----------------------------------------------------------------------
+[tool.mypy]
+python_version           = "3.9"
+ignore_missing_imports   = true
+disallow_untyped_defs    = false
+warn_unused_ignores      = true
+warn_redundant_casts     = true
+exclude                  = ['/tests/', 'galacticus\.py']

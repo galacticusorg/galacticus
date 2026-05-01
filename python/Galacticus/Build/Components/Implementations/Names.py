@@ -2,13 +2,12 @@
 # Andrew Benson (ported to Python 2026)
 #
 # Mirrors perl/Galacticus/Build/Components/Implementations/Names.pm.
-
-
+from __future__ import annotations
 
 from Galacticus.Build.Components.Utils import register
 
 
-def Implementation_Type(build, class_dict, member):
+def Implementation_Type(build: dict, class_dict: dict, member: dict) -> None:
     """Generate `nodeComponent<Class><Member>Type` returning a static
     `'nodeComponent:<class>:<member>'` label.
 
@@ -47,7 +46,7 @@ def Implementation_Type(build, class_dict, member):
     })
 
 
-def _ucfirst(text):
+def _ucfirst(text: str) -> str:
     return text[:1].upper() + text[1:] if text else text
 
 

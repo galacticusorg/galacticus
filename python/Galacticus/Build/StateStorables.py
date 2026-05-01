@@ -1,5 +1,6 @@
 # Helpers for reading the structure of `$BUILDPATH/stateStorables.xml`.
 # Andrew Benson (ported to Python 2026)
+from __future__ import annotations
 #
 # `dict_to_xml_string()` writes `stateStorables.xml` in the no-attribute
 # (`NoAttr => 1`) style: every value is a child element rather than an
@@ -30,7 +31,7 @@ __all__ = [
 ]
 
 
-def function_class_entries(state_storables):
+def function_class_entries(state_storables: dict | None) -> list[dict]:
     """Return a list of ``{'name': ..., 'module': ..., ...}`` dicts for every
     functionClass listed in ``stateStorables.xml``.
 
@@ -72,20 +73,20 @@ def function_class_entries(state_storables):
     return []
 
 
-def function_class_names(state_storables):
+def function_class_names(state_storables: dict | None) -> set[str]:
     """Set of `<name>Class` strings from ``stateStorables.xml``."""
     return {e['name'] for e in function_class_entries(state_storables)
             if e.get('name')}
 
 
-def function_class_module_map(state_storables):
+def function_class_module_map(state_storables: dict | None) -> dict[str, str | None]:
     """Map ``{<name>Class: providing_module}`` from ``stateStorables.xml``."""
     return {e['name']: e.get('module')
             for e in function_class_entries(state_storables)
             if e.get('name')}
 
 
-def function_class_entry(state_storables, class_name):
+def function_class_entry(state_storables: dict | None, class_name: str) -> dict | None:
     """Return the entry dict for ``class_name`` (e.g. ``'massDistributionClass'``)
     or ``None`` if no such entry exists.
     """
@@ -95,7 +96,7 @@ def function_class_entry(state_storables, class_name):
     return None
 
 
-def function_class_instances(state_storables):
+def function_class_instances(state_storables: dict | None) -> list[str]:
     """List of every concrete ``functionClass`` instance name."""
     raw = (state_storables or {}).get('functionClassInstances')
     if raw is None:
@@ -118,7 +119,7 @@ def function_class_instances(state_storables):
     return out
 
 
-def event_hook_static_names(state_storables):
+def event_hook_static_names(state_storables: dict | None) -> list[str]:
     """List of every ``eventHookStatic`` name."""
     raw = (state_storables or {}).get('eventHookStatics')
     if raw is None:

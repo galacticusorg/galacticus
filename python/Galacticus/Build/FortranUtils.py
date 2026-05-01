@@ -7,9 +7,12 @@ continuation lines and stripping comments) and for locating the start of
 inline comments, including correct treatment of string literals and
 OpenMP sentinels.
 """
+from __future__ import annotations
 
 import os
 import re
+
+from typing import IO
 
 __all__ = [
     'get_fortran_line', 'extract_bracketed', 'extract_variables',
@@ -17,7 +20,7 @@ __all__ = [
 ]
 
 
-def get_fortran_line(file_obj):
+def get_fortran_line(file_obj: IO[str]) -> tuple[str, str, str]:
     """Read one logical Fortran line from file_obj, handling & continuation lines.
 
     Returns a 3-tuple: (raw_line, processed_line, buffered_comments)
@@ -88,12 +91,12 @@ def get_fortran_line(file_obj):
     return raw_line, processed_line, buffered_comments
 
 
-def _fast_comment_check(line):
+def _fast_comment_check(line: str) -> bool:
     """Return True if the line may need the full comment-position scan."""
     return bool(re.match(r"^([^'\"{\n]+?)![^\$]", line))
 
 
-def _find_comment_position(line):
+def _find_comment_position(line: str) -> int:
     """Scan through line character by character to find the comment start position."""
     i = 0
     n = len(line)
@@ -134,7 +137,7 @@ def _find_comment_position(line):
     return -1
 
 
-def extract_bracketed(text, brackets="()"):
+def extract_bracketed(text: str, brackets: str = "()") -> tuple[str | None, str, str | None]:
     """Find and extract the first balanced bracket pair in text.
 
     Port of Perl Text::Balanced::extract_bracketed.
@@ -148,15 +151,15 @@ def extract_bracketed(text, brackets="()"):
     close_map  = {'(': ')', '[': ']'}
     open_chars = [brackets[i] for i in range(0, len(brackets), 2) if brackets[i] in close_map]
 
-    best_pos  = -1
-    best_open = None
+    best_pos     = -1
+    best_open: str | None = None
     for oc in open_chars:
         pos = text.find(oc)
         if pos != -1 and (best_pos == -1 or pos < best_pos):
             best_pos  = pos
             best_open = oc
 
-    if best_pos == -1:
+    if best_pos == -1 or best_open is None:
         return None, text, None
 
     close_char = close_map[best_open]
@@ -175,7 +178,8 @@ def extract_bracketed(text, brackets="()"):
     return None, text, None
 
 
-def extract_variables(variable_list, lower_case=True, keep_qualifiers=False, remove_spaces=True):
+def extract_variables(variable_list: str, lower_case: bool = True,
+                      keep_qualifiers: bool = False, remove_spaces: bool = True) -> list[str]:
     """Given the post-'::' section of a Fortran variable declaration, return a list of names.
 
     Port of Fortran::Utils::Extract_Variables (perl/Fortran/Utils.pm).
@@ -213,6 +217,9 @@ def extract_variables(variable_list, lower_case=True, keep_qualifiers=False, rem
         extracted, remainder, prefix = extract_bracketed(variable_list, "()[]")
         if extracted is None:
             break
+        # `extract_bracketed` returns prefix as `str` whenever `extracted` is
+        # not None — they're correlated; narrow for the type checker.
+        assert prefix is not None
         if keep_qualifiers:
             encoded = (extracted
                        .replace('(', '%%OPEN%%').replace(')', '%%CLOSE%%')
@@ -251,7 +258,7 @@ def extract_variables(variable_list, lower_case=True, keep_qualifiers=False, rem
 _processed_files_cache = {}
 
 
-def get_matching_lines(file_name, regex):
+def get_matching_lines(file_name: str, regex: re.Pattern[str]) -> list[dict]:
     """Return every processed Fortran line in `file_name` that matches `regex`.
 
     Mirrors Perl Fortran::Utils::Get_Matching_Lines.  Each returned entry is
@@ -280,10 +287,12 @@ def get_matching_lines(file_name, regex):
     return matches
 
 
-def read_file(file_name, *, state='raw', follow_includes=False,
-              include_locations=None, include_files_excluded=None,
-              strip_regex=None, strip_leading=False, strip_trailing=False,
-              strip_empty=False):
+def read_file(file_name: str, *, state: str = 'raw', follow_includes: bool = False,
+              include_locations: list[str] | None = None,
+              include_files_excluded: set[str] | None = None,
+              strip_regex: re.Pattern[str] | str | None = None,
+              strip_leading: bool = False, strip_trailing: bool = False,
+              strip_empty: bool = False) -> str:
     """Return the (optionally preprocessed) text of `file_name`.
 
     Mirrors Perl Fortran::Utils::read_file.  Follows `include '…'` statements
@@ -293,7 +302,7 @@ def read_file(file_name, *, state='raw', follow_includes=False,
     if include_locations is None:
         include_locations = []
     if include_files_excluded is None:
-        include_files_excluded = []
+        include_files_excluded = set()
     if strip_regex is not None and isinstance(strip_regex, str):
         strip_regex = re.compile(strip_regex)
 

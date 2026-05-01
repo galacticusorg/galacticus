@@ -3,8 +3,7 @@
 # Andrew Benson (ported to Python 2026)
 #
 # Mirrors perl/Galacticus/Build/Components/Properties/Set.pm.
-
-
+from __future__ import annotations
 
 from Galacticus.Build.Components.Utils      import (
     register,
@@ -13,14 +12,14 @@ from Galacticus.Build.Components.Utils      import (
 from Galacticus.Build.Components.DataTypes  import data_object_definition
 
 
-def _is_deferred(prop, verb):
+def _is_deferred(prop: dict, verb: str) -> bool:
     deferred = (prop.get('attributes') or {}).get('isDeferred')
     if not deferred:
         return False
     return verb in str(deferred).split(':')
 
 
-def Build_Class_Setters(build):
+def Build_Class_Setters(build: dict) -> None:
     """Insert one `<prop>IsSettable` Boolean_False stub per property
     into the matching `nodeComponent<Class>` type.
 
@@ -50,7 +49,7 @@ def Build_Class_Setters(build):
             })
 
 
-def Bind_Set_Functions(build, class_dict, member, prop):
+def Bind_Set_Functions(build: dict, class_dict: dict, member: dict, prop: dict) -> None:
     """Bind a compile-time custom set function to the component
     implementation when the user supplied one and the property's `set`
     is not deferred.
@@ -78,7 +77,7 @@ def Bind_Set_Functions(build, class_dict, member, prop):
         })
 
 
-def Build_Set_Functions(build, class_dict, member, prop):
+def Build_Set_Functions(build: dict, class_dict: dict, member: dict, prop: dict) -> None:
     """Build the auto-generated set function for a non-deferred,
     non-virtual settable property.  Mirrors `Build_Set_Functions`.
     """
@@ -163,7 +162,7 @@ def Build_Set_Functions(build, class_dict, member, prop):
     })
 
 
-def _ucfirst(text):
+def _ucfirst(text: str) -> str:
     return text[:1].upper() + text[1:] if text else text
 
 

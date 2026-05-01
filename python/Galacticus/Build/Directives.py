@@ -6,11 +6,13 @@
 # wrapper).  This is distinct from SourceTree.Parse.Directives.parse_directives,
 # which walks an already-parsed AST; the functions here open a file on disk and
 # extract its directives without building a SourceTree.
+from __future__ import annotations
 
 import os
 import re
 import xml.etree.ElementTree as ET
 
+from typing import Any
 
 from XML.Utils import xml_to_dict
 
@@ -25,7 +27,7 @@ _OPEN_TAG_RE      = re.compile(r'<([a-zA-Z0-9]+)[^/>]*>')
 _CLOSE_TAG_RE     = re.compile(r'</([a-zA-Z0-9]+)>')
 
 
-def _matches_conditions(directive, conditions):
+def _matches_conditions(directive: dict, conditions: dict | None) -> bool:
     """Return True when every key/value in `conditions` is present and equal in
     `directive`.  Mirrors the inner filter loop at Directives.pm:55-65.
     """
@@ -37,8 +39,9 @@ def _matches_conditions(directive, conditions):
     return True
 
 
-def extract_directives(file_name, directive_name,
-                       conditions=None, set_root_element_type=False):
+def extract_directives(file_name: str, directive_name: str,
+                       conditions: dict | None = None,
+                       set_root_element_type: bool = False) -> list[dict]:
     """Return every directive in `file_name` whose root element matches
     `directive_name` (or whose root element is anything when `directive_name`
     is `'*'`).
@@ -110,7 +113,7 @@ def extract_directives(file_name, directive_name,
     return results
 
 
-def extract_directive(file_name, directive_name, **kwargs):
+def extract_directive(file_name: str, directive_name: str, **kwargs: Any) -> dict | None:
     """Return the first directive matching `directive_name` (or None).
 
     Thin convenience wrapper around `extract_directives`.
@@ -119,8 +122,9 @@ def extract_directive(file_name, directive_name, **kwargs):
     return directives[0] if directives else None
 
 
-def _parse_xml_block(xml_text, file_name, directive_name,
-                     conditions, set_root_element_type):
+def _parse_xml_block(xml_text: str, file_name: str, directive_name: str,
+                     conditions: dict | None,
+                     set_root_element_type: bool) -> dict | None:
     """Parse one accumulated XML block and return a dict if the root matches
     `directive_name`, else None.
 

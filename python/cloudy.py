@@ -7,6 +7,8 @@ This module provides utilities for obtaining and compiling the
 code, which is used by Galacticus to compute cooling rates and other
 thermodynamic quantities.
 """
+from __future__ import annotations
+
 import os
 import re
 import subprocess
@@ -16,7 +18,7 @@ from urllib.error import HTTPError
 __all__ = ['initialize']
 
 
-def initialize(options):
+def initialize(options: dict) -> tuple[str, str]:
     """Download, unpack, and compile the Cloudy photoionization code.
 
     Fetches the requested version of Cloudy from the official distribution
@@ -70,8 +72,9 @@ def initialize(options):
     """
     # Initialize Cloudy by downloading and compiling.
     # Determine Cloudy version.
-    if os.environ.get('GALACTICUS_EXEC_PATH') is not None and 'version' not in options:
-        with open(os.environ.get('GALACTICUS_EXEC_PATH')+"/aux/dependencies.yml") as dependencies:
+    galacticus_exec_path = os.environ.get('GALACTICUS_EXEC_PATH')
+    if galacticus_exec_path is not None and 'version' not in options:
+        with open(galacticus_exec_path+"/aux/dependencies.yml") as dependencies:
             for line in dependencies:
                 match = re.match(r'^cloudy:\s+([\d\.]+)',line)
                 if match:

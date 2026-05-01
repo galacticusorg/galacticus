@@ -1,13 +1,20 @@
 # Provides XML element-to-dict conversion utilities.
 # Mirrors Perl XML::Simple default behaviour, with optional KeyAttr and ForceArray support.
 # Andrew Benson (2026)
+from __future__ import annotations
 
 import xml.etree.ElementTree as ET
+
+from typing import Any
 
 __all__ = ['xml_to_dict', 'dict_to_xml_string']
 
 
-def xml_to_dict(element, keyed_tags=None, force_array=None):
+def xml_to_dict(
+    element: ET.Element,
+    keyed_tags: set[str] | None = None,
+    force_array: set[str] | None = None,
+) -> dict | str:
     """Recursively convert an XML element to nested Python dicts/lists/strings.
 
     Mirrors Perl XML::Simple default behaviour:
@@ -21,8 +28,8 @@ def xml_to_dict(element, keyed_tags=None, force_array=None):
 
     Works with both lxml.etree and stdlib xml.etree.ElementTree elements.
     """
-    result = dict(element.attrib)
-    children_by_tag = {}
+    result: dict[str, Any] = dict(element.attrib)
+    children_by_tag: dict[str, list[ET.Element]] = {}
     for child in element:
         children_by_tag.setdefault(child.tag, []).append(child)
     for tag, children in children_by_tag.items():
@@ -59,7 +66,7 @@ def xml_to_dict(element, keyed_tags=None, force_array=None):
     return result
 
 
-def dict_to_xml_string(root_name, data):
+def dict_to_xml_string(root_name: str, data: dict) -> str:
     """Serialise `data` to a pretty-printed XML string, XML::Simple-style.
 
     Mirrors Perl `XML::Simple::XMLout($data, RootName => root_name, NoAttr => 1)`:
@@ -73,7 +80,7 @@ def dict_to_xml_string(root_name, data):
     return ET.tostring(root, encoding='unicode') + "\n"
 
 
-def _fill_element(elem, data):
+def _fill_element(elem: ET.Element, data: Any) -> None:
     if isinstance(data, dict):
         for key in sorted(data.keys()):
             value = data[key]
@@ -97,7 +104,7 @@ def _fill_element(elem, data):
             elem.text = str(data)
 
 
-def _indent(elem, level=0):
+def _indent(elem: ET.Element, level: int = 0) -> None:
     """In-place two-space pretty-printer."""
     pad = "\n" + "  " * level
     if len(elem):
