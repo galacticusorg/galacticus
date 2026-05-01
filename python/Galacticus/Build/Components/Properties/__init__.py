@@ -13,6 +13,7 @@
 import logging
 import re
 
+from Galacticus.Build.Components       import Utils as _Utils
 from Galacticus.Build.Components.Utils import (
     register,
     apply_defaults,

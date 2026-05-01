@@ -8,10 +8,12 @@
 
 import pytest
 
+from Galacticus.Build.Components import Utils as _Utils
 from Galacticus.Build.Components.Properties import (
     Property_Defaults,
     Data_Validate,
     Property_Output_Validate,
+    Construct_Data,
 )
 
 
@@ -216,3 +218,74 @@ def test_output_validate_rank_0_allowed_without_labels():
         'output':     {},
     }])
     Property_Output_Validate(build)
+
+
+# ---------------------------------------------------------------------------
+# Construct_Data
+#
+# Construct_Data is large and validates parent-implementation chains, but
+# it ALSO has a small but mistake-prone responsibility: maintaining the
+# `Components.Utils.linked_data_name_length_max` global as it visits each
+# property.  That global is referenced as `_Utils.linked_data_name_length_max`
+# -- and an earlier refactor accidentally dropped the `from ... import Utils
+# as _Utils` import while leaving the references in place.  These tests
+# exercise that codepath end-to-end so any future drop of the import (or any
+# rename of the global) breaks here rather than at runtime in the build.
+# ---------------------------------------------------------------------------
+
+def test_construct_data_seeds_property_data_dict():
+    """Construct_Data populates each property's `data` sub-dict from its
+    type / rank / isEvolvable attribute."""
+    build = _build([{
+        'name': 'mass', 'type': 'double', 'rank': 0,
+        'attributes': {'isEvolvable': True},
+    }])
+    Construct_Data(build)
+    prop = build['components']['darkMatterstandard']['properties']['property'][0]
+    assert prop['data'] == {'type': 'double', 'rank': 0, 'isEvolvable': True}
+    assert prop['definedInParent'] is False
+
+
+def test_construct_data_creates_linked_data_entry_in_component_content():
+    """Each non-virtual, non-inherited property's `<name>Data` becomes a
+    key under `component['content']['data']`."""
+    build = _build([{
+        'name': 'mass', 'type': 'double', 'rank': 0,
+        'attributes': {'isEvolvable': True, 'isVirtual': False},
+    }])
+    Construct_Data(build)
+    component = build['components']['darkMatterstandard']
+    assert 'massData' in component['content']['data']
+
+
+def test_construct_data_updates_linked_data_name_length_max():
+    """The linked-data name's length is tracked on
+    `Components.Utils.linked_data_name_length_max` so downstream column-
+    aligned output uses a consistent width.  Regression test for the
+    `_Utils.linked_data_name_length_max` reference in Construct_Data
+    (its import was accidentally dropped during the logging migration)."""
+    saved = _Utils.linked_data_name_length_max
+    try:
+        _Utils.linked_data_name_length_max = 0
+        build = _build([{
+            'name': 'angularMomentum', 'type': 'double', 'rank': 0,
+            'attributes': {'isEvolvable': True, 'isVirtual': False},
+        }])
+        Construct_Data(build)
+        # `angularMomentumData` is 19 characters.
+        assert _Utils.linked_data_name_length_max == len('angularMomentumData')
+    finally:
+        _Utils.linked_data_name_length_max = saved
+
+
+def test_construct_data_skips_linked_data_for_virtual_properties():
+    """Virtual properties don't get a linked-data entry (their values come
+    from the get function, not state)."""
+    build = _build([{
+        'name': 'massVirtual', 'type': 'double', 'rank': 0,
+        'attributes': {'isEvolvable': False, 'isVirtual': True},
+    }])
+    Construct_Data(build)
+    component = build['components']['darkMatterstandard']
+    # `massVirtualData` should NOT be in the linked-data registry.
+    assert 'massVirtualData' not in component.get('content', {}).get('data', {})
