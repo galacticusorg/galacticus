@@ -35,7 +35,7 @@ def Validate_Deferreds_Functionless(build):
                 continue
             for method in deferred_field.split(':'):
                 if (method + 'Function') in prop:
-                    sys.exit(
+                    raise ValueError(
                         "Validate_Deferreds_Functionless(): cannot specify '"
                         f"{method}Function' when '{method}' method is "
                         f"deferred for property '{prop['name']}' of component "
@@ -106,7 +106,7 @@ def Validate_Boolean(build):
                     # Already coerced (e.g. Default_Functions ran twice).
                     pass
                 else:
-                    sys.exit(
+                    raise ValueError(
                         f"Validate_Boolean: value of '{key}' attribute of '"
                         f"{prop['name']}' of '"
                         f"{component['class']}{_ucfirst(component['name'])}' "
@@ -127,7 +127,7 @@ def Validate_Evolvable_Intrinsics(build):
             if (is_intrinsic(prop.get('type'))
                     and prop['type'] != 'double'
                     and attrs.get('isEvolvable')):
-                sys.exit(
+                raise ValueError(
                     "Validate_Evolvable_Intrinsics: non-real intrinsic "
                     f"property '{prop['name']}' of '"
                     f"{component['class']}{_ucfirst(component['name'])}' "

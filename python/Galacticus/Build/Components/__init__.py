@@ -127,10 +127,10 @@ def validate(document_string, file_name):
     try:
         schema.assertValid(document)
     except lxml_etree.DocumentInvalid as exc:
-        sys.exit(
+        raise ValueError(
             f"Galacticus::Build::Components::Components_Validate(): "
             f"validation failed in file {file_name}:\n{exc}"
-        )
+        ) from exc
 
 
 # ---------------------------------------------------------------------------
@@ -146,19 +146,19 @@ def parse_directive(build):
     """
     document = build.get('currentDocument')
     if document is None:
-        sys.exit("Galacticus::Build::Components::Components_Parse_Directive: "
+        raise ValueError("Galacticus::Build::Components::Components_Parse_Directive: "
                  "no currentDocument present")
     if 'name' not in document:
-        sys.exit("Galacticus::Build::Components::Components_Parse_Directive: "
+        raise ValueError("Galacticus::Build::Components::Components_Parse_Directive: "
                  "no name present")
     if 'class' not in document:
-        sys.exit("Galacticus::Build::Components::Components_Parse_Directive: "
+        raise ValueError("Galacticus::Build::Components::Components_Parse_Directive: "
                  "no class present")
 
     component_id = _ucfirst(document['class']) + _ucfirst(document['name'])
     components   = build.setdefault('components', {})
     if component_id in components:
-        sys.exit(
+        raise ValueError(
             "Galacticus::Build::Components::Components_Parse_Directive: "
             f"multiple components with ID '{component_id}'"
         )

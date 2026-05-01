@@ -64,7 +64,7 @@ def Data_Validate(build):
         for prop in _component_properties(component):
             for required in ('type', 'rank'):
                 if required not in prop:
-                    sys.exit(
+                    raise ValueError(
                         f"Data_Validate: no {required} was specified for "
                         f"the '{prop.get('name', '?')}' property of the '"
                         f"{_lcfirst(component.get('name', '?'))}' component "
@@ -73,7 +73,7 @@ def Data_Validate(build):
                     )
             attrs = prop.get('attributes') or {}
             if int(prop.get('rank') or 0) > 0 and attrs.get('createIfNeeded'):
-                sys.exit(
+                raise ValueError(
                     "Data_Validate: auto-creation of rank > 0 properties "
                     "is not supported"
                 )
@@ -95,19 +95,19 @@ def Property_Output_Validate(build):
                 continue
             attrs = prop.get('attributes') or {}
             if attrs.get('isVirtual') and not attrs.get('isGettable'):
-                sys.exit(
+                raise ValueError(
                     "Property_Output_Validate: non-gettable, virtual "
                     "properties can not be output"
                 )
             data = prop.get('data') or {}
             rank = int(data.get('rank') or 0)
             if rank > 1:
-                sys.exit(
+                raise ValueError(
                     "Property_Output_Validate: output of rank>1 arrays "
                     "is not supported"
                 )
             if rank > 0 and 'labels' not in output:
-                sys.exit(
+                raise ValueError(
                     "Property_Output_Validate: output of rank>0 objects "
                     "requires a labels attribute"
                 )
@@ -118,7 +118,7 @@ def Property_Output_Validate(build):
                 and not _LABELS_BRACKET_RE.match(labels)
                 and 'count' not in output
             ):
-                sys.exit(
+                raise ValueError(
                     "Property_Output_Validate: output of rank>0 objects "
                     "requires parseable labels or explicit count"
                 )
@@ -127,7 +127,7 @@ def Property_Output_Validate(build):
                 and not _LABELS_BRACKET_RE.match(labels)
                 and 'count' not in output
             ):
-                sys.exit(
+                raise ValueError(
                     "Property_Output_Validate: no method to determine "
                     "output size for rank-1 property"
                 )
@@ -158,7 +158,7 @@ def Class_Defaults_Validate(build):
                                          .setdefault(prop['name'], {})
             if 'code' in class_entry:
                 if code != class_entry['code']:
-                    sys.exit(
+                    raise ValueError(
                         f"Class_Defaults_Validate: inconsistent class "
                         f"defaults for property '{prop['name']}' of "
                         f"class '{component['class']}'"
@@ -179,7 +179,7 @@ def Class_Defaults_Validate(build):
             if default_count is not None:
                 if 'count' in class_entry:
                     if str(default_count) != str(class_entry['count']):
-                        sys.exit(
+                        raise ValueError(
                             f"Class_Defaults: inconsistent class defaults "
                             f"count for property '{prop['name']}' of class "
                             f"'{component['class']}'"
@@ -290,7 +290,7 @@ def Construct_Data(build):
                     prop['definedInParent'] = True
                     for key in ('type', 'rank'):
                         if key not in prop:
-                            sys.exit(
+                            raise ValueError(
                                 "Galacticus::Build::Components::Properties::"
                                 f"Construct_Data: property '{prop['name']}' "
                                 f"in component '{component['name']}' of "
@@ -299,7 +299,7 @@ def Construct_Data(build):
                                 "present in parent implementation"
                             )
                         if str(prop[key]) != str(parent_prop.get(key)):
-                            sys.exit(
+                            raise ValueError(
                                 "Galacticus::Build::Components::Properties::"
                                 f"Construct_Data: property '{prop['name']}' "
                                 f"in component '{component['name']}' of "
@@ -309,7 +309,7 @@ def Construct_Data(build):
                             )
                     for attr_name in (parent_prop.get('attributes') or {}).keys():
                         if attr_name not in (prop.get('attributes') or {}):
-                            sys.exit(
+                            raise ValueError(
                                 "Galacticus::Build::Components::Properties::"
                                 f"Construct_Data: property '{prop['name']}' "
                                 f"in component '{component['name']}' of "
