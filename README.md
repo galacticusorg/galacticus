@@ -71,3 +71,11 @@ To find the output file path, inspect the `outputFileName` element near the top 
 | Missing library errors at link time | Verify that HDF5, FFTW3, and GSL development packages are installed and that their locations are on the relevant library paths. |
 
 For further help, visit the [wiki](https://github.com/galacticusorg/galacticus/wiki) or ask in the [discussion forum](https://github.com/galacticusorg/galacticus/discussions).
+
+## Analyzing Galacticus output
+
+Analysis and visualization of Galacticus outputs - including plotting of on-the-fly analyses, MCMC chain diagnostics, and posterior corner plots - is provided by the [Dendros](https://github.com/galacticusorg/dendros) package, available on [PyPI](https://pypi.org/project/dendros/):
+
+```bash
+python3 -m pip install dendros
+```
