@@ -1,0 +1,361 @@
+diff --git a/Constraints:-Dark-matter-halo-mass-function.md b/Constraints:-Dark-matter-halo-mass-function.md
+index 6ab6d5a..09e4b32 100644
+--- a/Constraints:-Dark-matter-halo-mass-function.md
++++ b/Constraints:-Dark-matter-halo-mass-function.md
+@@ -2,7 +2,7 @@ To constrain the dark matter halo mass function model in Galacticus we calibrate
+ 
+ We make use of the Rockstar halo catalogs/merger trees for the [VSMDPL](https://www.cosmosim.org/metadata/vsmdpl/), [SMDPL](https://www.cosmosim.org/metadata/smdpl/), [MDPL2](https://www.cosmosim.org/metadata/mdpl2/), [BigMDPL](https://www.cosmosim.org/metadata/bigmdpl/), and [HugeMDPL](https://www.cosmosim.org/metadata/hugemdpl/) simulations. We remove backsplash halos following the methodology of [Benson (2017)](https://ui.adsabs.harvard.edu/abs/2017MNRAS.467.3454B/abstract), and then construct halo mass functions by binning halos by mass. This workflow is implemented in the [`constraints/pipelines/darkMatter/haloMassFunctionPreProcess.pl`](https://github.com/galacticusorg/galacticus/blob/master/constraints/pipelines/darkMatter/haloMassFunctionPreProcess.pl) script.
+ 
+-We use the [Sheth-Tormen](https://ui.adsabs.harvard.edu/abs/2002MNRAS.329...61S/abstract) functional form for the mass function with an environmental dependence based on the peak--background split model (e.g. [Bardeen et al. 1986](https://ui.adsabs.harvard.edu/abs/1986ApJ...304...15B/abstract)). When fitting to the N-body data this mass function is first averaged over all environments then convolved with the N-body halo mass distribution function [(Trenti et al. 2010)](https://ui.adsabs.harvard.edu/abs/2010ApJ...711.1198T/abstract), and finally averaged over each bin of the N-body halo mass function. A particle swarm optimization algorithm is then used to optimize the parameters of the [Sheth-Tormen](https://ui.adsabs.harvard.edu/abs/2002MNRAS.329...61S/abstract) mass function to maximize the log-likelihood of the model given the N-body data. In constructing this log-likelihood we assume that the number of N-body halos in each bin of our mass function obeys Poisson statistics, and exclude any bin which corresponds to halos of fewer than 3,000 particles (below which we find that systematic deviations from higher resolution simulations become apparent), or for which the simulation has fewer than 30 halos (for which the uncertainties become large). The likelihoods of the five MultiDark Planck simulations are assumed to be independent, and so we sum the log-likelihoods to obtain the final log-likelihood which we maximize. This workflow is part of the dark matter constraints pipeline implemented in the [`constraints/pipelines/darkMatter/pipeline.pl`](https://github.com/galacticusorg/galacticus/blob/master/constraints/pipelines/darkMatter/pipeline.pl) script.
++We use the [Sheth-Tormen](https://ui.adsabs.harvard.edu/abs/2002MNRAS.329...61S/abstract) functional form for the mass function with an environmental dependence based on the peak--background split model (e.g. [Bardeen et al. 1986](https://ui.adsabs.harvard.edu/abs/1986ApJ...304...15B/abstract)). When fitting to the N-body data this mass function is first averaged over all environments then convolved with the N-body halo mass distribution function [(Trenti et al. 2010)](https://ui.adsabs.harvard.edu/abs/2010ApJ...711.1198T/abstract), and finally averaged over each bin of the N-body halo mass function. A particle swarm optimization algorithm is then used to optimize the parameters of the [Sheth-Tormen](https://ui.adsabs.harvard.edu/abs/2002MNRAS.329...61S/abstract) mass function to maximize the log-likelihood of the model given the N-body data. In constructing this log-likelihood we assume that the number of N-body halos in each bin of our mass function obeys Poisson statistics, and exclude any bin which corresponds to halos of fewer than 3,000 particles (below which we find that systematic deviations from higher resolution simulations become apparent), or for which the simulation has fewer than 30 halos (for which the uncertainties become large). The likelihoods of the five MultiDark Planck simulations are assumed to be independent, and so we sum the log-likelihoods to obtain the final log-likelihood which we maximize. This workflow is part of the dark matter constraints pipeline implemented in the [`constraints/pipelines/darkMatter/pipeline.py`](https://github.com/galacticusorg/galacticus/blob/master/constraints/pipelines/darkMatter/pipeline.py) script.
+ 
+ The resulting optimized parameters for the [Sheth-Tormen](https://ui.adsabs.harvard.edu/abs/2002MNRAS.329...61S/abstract) mass function are:
+ ```
+diff --git a/Constraints:-Dark-matter-progenitor-halo-mass-functions.md b/Constraints:-Dark-matter-progenitor-halo-mass-functions.md
+index 1055ef3..4c2e1ae 100644
+--- a/Constraints:-Dark-matter-progenitor-halo-mass-functions.md
++++ b/Constraints:-Dark-matter-progenitor-halo-mass-functions.md
+@@ -2,7 +2,7 @@ To constrain the dark matter halo progenitor mass function model in Galacticus w
+ 
+ We make use of the Rockstar halo catalogs/merger trees for the [VSMDPL](https://www.cosmosim.org/metadata/vsmdpl/), [SMDPL](https://www.cosmosim.org/metadata/smdpl/), [MDPL2](https://www.cosmosim.org/metadata/mdpl2/), [BigMDPL](https://www.cosmosim.org/metadata/bigmdpl/), and [HugeMDPL](https://www.cosmosim.org/metadata/hugemdpl/) simulations. For the Caterpillar simulations we similarly make use of Rockstar halo catalogs provided by Alex Ji. (Note that these are constructed using the modified Rockstar described by [Griffen et al. (2016)](https://ui.adsabs.harvard.edu/abs/2016ApJ...818...10G)). We remove backsplash halos following the methodology of [Benson (2017)](https://ui.adsabs.harvard.edu/abs/2017MNRAS.467.3454B/abstract), and then construct progenitor halo mass functions by identifying progenitors of _z_=0 halos at a set of higher redshifts, and binning those progenitor halos by their mass ratio to the _z_=0 parent halo. This workflow is implemented in the [`constraints/pipelines/darkMatter/progenitorMassFunctionPreProcess.pl`](https://github.com/galacticusorg/galacticus/blob/master/constraints/pipelines/darkMatter/progenitorMassFunctionPreProcess.pl) script.
+ 
+-We use the [PCH+](https://github.com/galacticusorg/galacticus/releases/download/bleeding-edge/Galacticus_Development.pdf#class.mergerTreeBranchingProbabilityPCHPlus) model for constructing merger trees (and, therefore, progenitor mass functions), and the [Sheth-Tormen](https://ui.adsabs.harvard.edu/abs/2002MNRAS.329...61S/abstract) halo mass function, with parameter values optimized as described [here](https://github.com/galacticusorg/galacticus/wiki/Constraints:-Dark-matter-halo-mass-function). When fitting to the N-body data the progenitor mass functions are convolved with the N-body halo mass distribution function [(Trenti et al. 2010)](https://ui.adsabs.harvard.edu/abs/2010ApJ...711.1198T/abstract). A particle swarm optimization algorithm is then used to optimize the parameters of the [PCH+](https://github.com/galacticusorg/galacticus/releases/download/bleeding-edge/Galacticus_Development.pdf#class.mergerTreeBranchingProbabilityPCHPlus) algorithm to maximize the log-likelihood of the model given the N-body data. In constructing this log-likelihood we assume Poisson statistics in the number of N-body halos in each bin to estimate the variance of the mass function. We set a minimum root-variance equal to 10% of the progenitor mass function in each bin, and assume a log-normal distribution in each bin. Uncertainties in the model progenitor mass function are ignored. We exclude from the log-likelihood the contribution from any bin which corresponds to halos of fewer than 300 particles (below which we find that systematic deviations from higher resolution simulations become apparent), and any bin corresponding to mass ratios greater than unity. The likelihoods of the five MultiDark Planck simulations and the Caterpillar simulations are assumed to be independent, and so we sum the log-likelihoods to obtain the final log-likelihood which we maximize. This workflow is part of the dark matter constraints pipeline implemented in the [`constraints/pipelines/darkMatter/pipeline.pl`](https://github.com/galacticusorg/galacticus/blob/master/constraints/pipelines/darkMatter/pipeline.pl) script.
++We use the [PCH+](https://github.com/galacticusorg/galacticus/releases/download/bleeding-edge/Galacticus_Development.pdf#class.mergerTreeBranchingProbabilityPCHPlus) model for constructing merger trees (and, therefore, progenitor mass functions), and the [Sheth-Tormen](https://ui.adsabs.harvard.edu/abs/2002MNRAS.329...61S/abstract) halo mass function, with parameter values optimized as described [here](https://github.com/galacticusorg/galacticus/wiki/Constraints:-Dark-matter-halo-mass-function). When fitting to the N-body data the progenitor mass functions are convolved with the N-body halo mass distribution function [(Trenti et al. 2010)](https://ui.adsabs.harvard.edu/abs/2010ApJ...711.1198T/abstract). A particle swarm optimization algorithm is then used to optimize the parameters of the [PCH+](https://github.com/galacticusorg/galacticus/releases/download/bleeding-edge/Galacticus_Development.pdf#class.mergerTreeBranchingProbabilityPCHPlus) algorithm to maximize the log-likelihood of the model given the N-body data. In constructing this log-likelihood we assume Poisson statistics in the number of N-body halos in each bin to estimate the variance of the mass function. We set a minimum root-variance equal to 10% of the progenitor mass function in each bin, and assume a log-normal distribution in each bin. Uncertainties in the model progenitor mass function are ignored. We exclude from the log-likelihood the contribution from any bin which corresponds to halos of fewer than 300 particles (below which we find that systematic deviations from higher resolution simulations become apparent), and any bin corresponding to mass ratios greater than unity. The likelihoods of the five MultiDark Planck simulations and the Caterpillar simulations are assumed to be independent, and so we sum the log-likelihoods to obtain the final log-likelihood which we maximize. This workflow is part of the dark matter constraints pipeline implemented in the [`constraints/pipelines/darkMatter/pipeline.py`](https://github.com/galacticusorg/galacticus/blob/master/constraints/pipelines/darkMatter/pipeline.py) script.
+ 
+ 
+ The resulting optimized parameters for the [PCH+](https://github.com/galacticusorg/galacticus/releases/download/bleeding-edge/Galacticus_Development.pdf#class.mergerTreeBranchingProbabilityPCHPlus) algorithm are:
+diff --git a/Constraints:-Halo-spins-and-concentrations.md b/Constraints:-Halo-spins-and-concentrations.md
+index 60405fc..7c063e3 100644
+--- a/Constraints:-Halo-spins-and-concentrations.md
++++ b/Constraints:-Halo-spins-and-concentrations.md
+@@ -2,7 +2,7 @@ To constrain random-walk models of dark matter halo spin and concentration in Ga
+ 
+ We make use of the Rockstar halo catalogs/merger trees for the [VSMDPL](https://www.cosmosim.org/metadata/vsmdpl/), [SMDPL](https://www.cosmosim.org/metadata/smdpl/), [MDPL2](https://www.cosmosim.org/metadata/mdpl2/), [BigMDPL](https://www.cosmosim.org/metadata/bigmdpl/), and [HugeMDPL](https://www.cosmosim.org/metadata/hugemdpl/) simulations. We remove backsplash halos following the methodology of [Benson (2017)](https://ui.adsabs.harvard.edu/abs/2017MNRAS.467.3454B/abstract), and then construct _z_=0 distributions of halo spins averaged over all reliable halo masses (corresponding to at least 300 particles), and distributions of concentrations in bins of mass with width 0.5 dex starting at the lowest integer or half-integer log<sub>10</sub>(mass) which exceeds the minimum threshold of 300 particles. This workflow is implemented in the [`constraints/pipelines/darkMatter/spinConcentrationPreProcess.pl`](https://github.com/galacticusorg/galacticus/blob/master/constraints/pipelines/darkMatter/spinConcentrationPreProcess.pl) script.
+ 
+-We use the [PCH+](https://github.com/galacticusorg/galacticus/releases/download/bleeding-edge/Galacticus_Development.pdf#class.mergerTreeBranchingProbabilityPCHPlus) model for constructing merger trees (and, therefore, progenitor mass functions) with parameters optimized as described [here](https://github.com/galacticusorg/galacticus/wiki/Constraints:-Dark-matter-progenitor-halo-mass-functions), and the [Sheth-Tormen](https://ui.adsabs.harvard.edu/abs/2002MNRAS.329...61S/abstract) halo mass function, with parameter values optimized as described [here](https://github.com/galacticusorg/galacticus/wiki/Constraints:-Dark-matter-halo-mass-function). We utilize the "random walk in angular momentum" model for halo spins of [Benson, Behrens, & Lu (2020)](https://ui.adsabs.harvard.edu/abs/2020MNRAS.496.3371B) to model halo spins, and the "random walk in halo energy" model for halo concentrations of [Johnson, Benson, & Grin (2021)](https://ui.adsabs.harvard.edu/abs/2021ApJ...908...33J). When fitting to the N-body data the spin and concentration distributions are convolved with the appropriate N-body uncertainty distributions (see [Benson (2017)](https://ui.adsabs.harvard.edu/abs/2017MNRAS.471.2871B) and [Benson, Ludlow, & Cole (2019)](https://ui.adsabs.harvard.edu/abs/2019MNRAS.485.5010B)). A particle swarm optimization algorithm is then used to optimize the parameters of the [Benson, Behrens, & Lu (2020)](https://ui.adsabs.harvard.edu/abs/2020MNRAS.496.3371B) and [Johnson, Benson, & Grin (2021)](https://ui.adsabs.harvard.edu/abs/2021ApJ...908...33J) algorithms to maximize the log-likelihood of the model given the N-body data. In constructing this log-likelihood we assume Poisson statistics in the number of N-body halos in each bin to estimate the variance of the distribution functions. The likelihoods of the five MultiDark Planck simulations are assumed to be independent, and so we sum the log-likelihoods to obtain the final log-likelihood which we maximize. This workflow is part of the dark matter constraints pipeline implemented in the [`constraints/pipelines/darkMatter/pipeline.pl`](https://github.com/galacticusorg/galacticus/blob/master/constraints/pipelines/darkMatter/pipeline.pl) script.
++We use the [PCH+](https://github.com/galacticusorg/galacticus/releases/download/bleeding-edge/Galacticus_Development.pdf#class.mergerTreeBranchingProbabilityPCHPlus) model for constructing merger trees (and, therefore, progenitor mass functions) with parameters optimized as described [here](https://github.com/galacticusorg/galacticus/wiki/Constraints:-Dark-matter-progenitor-halo-mass-functions), and the [Sheth-Tormen](https://ui.adsabs.harvard.edu/abs/2002MNRAS.329...61S/abstract) halo mass function, with parameter values optimized as described [here](https://github.com/galacticusorg/galacticus/wiki/Constraints:-Dark-matter-halo-mass-function). We utilize the "random walk in angular momentum" model for halo spins of [Benson, Behrens, & Lu (2020)](https://ui.adsabs.harvard.edu/abs/2020MNRAS.496.3371B) to model halo spins, and the "random walk in halo energy" model for halo concentrations of [Johnson, Benson, & Grin (2021)](https://ui.adsabs.harvard.edu/abs/2021ApJ...908...33J). When fitting to the N-body data the spin and concentration distributions are convolved with the appropriate N-body uncertainty distributions (see [Benson (2017)](https://ui.adsabs.harvard.edu/abs/2017MNRAS.471.2871B) and [Benson, Ludlow, & Cole (2019)](https://ui.adsabs.harvard.edu/abs/2019MNRAS.485.5010B)). A particle swarm optimization algorithm is then used to optimize the parameters of the [Benson, Behrens, & Lu (2020)](https://ui.adsabs.harvard.edu/abs/2020MNRAS.496.3371B) and [Johnson, Benson, & Grin (2021)](https://ui.adsabs.harvard.edu/abs/2021ApJ...908...33J) algorithms to maximize the log-likelihood of the model given the N-body data. In constructing this log-likelihood we assume Poisson statistics in the number of N-body halos in each bin to estimate the variance of the distribution functions. The likelihoods of the five MultiDark Planck simulations are assumed to be independent, and so we sum the log-likelihoods to obtain the final log-likelihood which we maximize. This workflow is part of the dark matter constraints pipeline implemented in the [`constraints/pipelines/darkMatter/pipeline.py`](https://github.com/galacticusorg/galacticus/blob/master/constraints/pipelines/darkMatter/pipeline.py) script.
+ 
+ 
+ The resulting optimized parameters for the [Benson, Behrens, & Lu (2020)](https://ui.adsabs.harvard.edu/abs/2020MNRAS.496.3371B) and [Johnson, Benson, & Grin (2021)](https://ui.adsabs.harvard.edu/abs/2021ApJ...908...33J) algorithms are:
+diff --git a/Installation-from-source-on-MacOS.md b/Installation-from-source-on-MacOS.md
+index 0b1d9ba..e5496d2 100644
+--- a/Installation-from-source-on-MacOS.md
++++ b/Installation-from-source-on-MacOS.md
+@@ -142,96 +142,18 @@ sudo cp lib/* /usr/local/lib/.
+ sudo cp -R include/* /usr/local/include/.
+ ```
+ 
+-## Install CPAN
++## Install Python dependencies
+ 
+-During this, and all subsequent Perl module installs, accept all defaults (you can just press `enter` at each prompt):
+-```
+-sudo perl -MCPAN -e shell
+-sudo perl -MCPAN  -e 'install Bundle::CPAN'
+-```	
+-
+-## Install various Perl modules
+-
+-First, install `CPAN`:
+-```
+-if [[ "${ver}" -ge 14 ]]; then
+-    sudo port install openssl11
+-    export OPENSSL_PREFIX=/opt/local/libexec/openssl11
+-fi
+-curl -L https://cpan.metacpan.org/authors/id/C/CH/CHRISN/Net-SSLeay-1.90.tar.gz --output Net-SSLeay-1.90.tar.gz
+-tar xvfz Net-SSLeay-1.90.tar.gz
+-cd Net-SSLeay-1.90
+-perl Makefile.PL
+-make -j
+-sudo make install
+-cd ..
+-rm -rf Net-SSLeay-1.90.tar.gz Net-SSLeay-1.90
+-curl -L https://cpan.metacpan.org/authors/id/S/SU/SULLR/IO-Socket-SSL-1.966.tar.gz --output IO-Socket-SSL-1.966.tar.gz
+-tar xvfz IO-Socket-SSL-1.966.tar.gz
+-cd IO-Socket-SSL-1.966
+-perl Makefile.PL
+-make -j
+-sudo make install
+-cd ..
+-rm -rf IO-Socket-SSL-1.966.tar.gz IO-Socket-SSL-1.966
+-curl -L https://cpan.metacpan.org/authors/id/M/MK/MKODERER/Sys-CPU-0.52.tar.gz --output Sys-CPU-0.52.tar.gz
+-tar xvfz Sys-CPU-0.52.tar.gz
+-cd Sys-CPU-0.52
+-perl Makefile.PL CCFLAGS=-Wno-error=implicit-function-declaration
+-make -j
+-sudo make install
+-cd ..
+-rm -rf Sys-CPU-0.52.tar.gz Sys-CPU-0.52
+-sudo perl -MCPAN -e 'install Bundle::CPAN'
+-```
++Galacticus uses Python during compilation to preprocess the source code, and ships various Python scripts under `scripts/` for analysis and pipeline tasks.  Python ≥ 3.9 is required.
+ 
+-Next install modules. If the command reports something like:
++The Python package `galacticus` (declared in the top-level `pyproject.toml`) installs the modules under `python/` onto the Python import path together with their third-party dependencies — `numpy`, `scipy`, `h5py`, `lxml`, `matplotlib`, `requests`, `PyYAML`, `GitPython`, `PyPDF2`, `termcolor` — via a single editable install run from the cloned repository's root:
+ ```
+-Can't locate object method "install" via package "Cwd" at -e line 1.
++pip3 install -e .
+ ```
+-just ignore it - it means you already have the package installed.
++This is sufficient for compiling Galacticus and running its supporting scripts.  Two optional extras are also available:
+ 
+-```
+-if [[ "${ver}" -eq 14 ]]; then
+-    PERLCFLAGS=-I/Library/Developer/CommandLineTools/SDKs/MacOSX14.2.sdk/System/Library/Perl/5.30/darwin-thread-multi-2level/CORE perl -MCPAN -e 'force("install","Alien::Base::Wrapper")'
+-else
+-    PERLCFLAGS=
+-fi
+-sudo perl -MCPAN -e 'force("install","NestedMap")'
+-sudo perl -MCPAN -e 'force("install","Scalar::Util")'
+-sudo perl -MCPAN -e 'force("install","Term::ANSIColor")'
+-sudo perl -MCPAN -e 'force("install","Text::Table")'
+-sudo perl -MCPAN -e 'force("install","ExtUtils::ParseXS")'
+-sudo perl -MCPAN -e 'force("install","Path::Tiny")'
+-sudo perl -MCPAN -e 'force("install","PkgConfig")'
+-sudo CFLAGS=${PERLCFLAGS} perl -MCPAN -e 'force("install","Alien::Base::Wrapper")'
+-sudo  perl -MCPAN -e 'force("install","Alien::Libxml2")'
+-sudo perl -MCPAN -e 'force("install","XML::LibXML::SAX")'
+-sudo perl -MCPAN -e 'force("install","XML::LibXML::SAX::Parser")'
+-if [[ "${ver}" -ge 12 ]]; then
+-    # For OS versions 12 and above we need to ensure that the ParserDetails.ini is set up.
+-    sudo perl -MXML::SAX -e "XML::SAX->add_parser('XML::SAX::PurePerl')->save_parsers()" || true
+-    sudo perl -MXML::SAX -e "XML::SAX->add_parser('XML::LibXML::SAX::Parser')->save_parsers()" 
+-    sudo perl -MXML::SAX -e "XML::SAX->add_parser('XML::LibXML::SAX')->save_parsers()" 
+-fi
+-sudo perl -MCPAN -e 'force("install","XML::LibXML")'
+-sudo perl -MCPAN -e 'force("install","Text::Template")'
+-sudo perl -MCPAN -e 'force("install","Text::Levenshtein")'
+-sudo perl -MCPAN -e 'force("install","List::Uniq")'
+-sudo perl -MCPAN -e 'force("install","IO::Util")'
+-sudo perl -MCPAN -e 'force("install","Class::Util")'
+-sudo perl -MCPAN -e 'force("install","CGI::Builder")'
+-sudo perl -MCPAN -e 'force("install","Simple")'
+-sudo perl -MCPAN -e 'force("install","Readonly")'
+-sudo perl -MCPAN -e 'force("install","File::Slurp")'
+-sudo perl -MCPAN -e 'force("install","XML::Simple")'
+-sudo CFLAGS=${PERLCFLAGS} perl -MCPAN -e 'force("install","List::MoreUtils")'
+-sudo perl -MCPAN -e 'force("install","Clone")'
+-sudo perl -MCPAN -e 'force("install","IO::Scalar")'
+-sudo perl -MCPAN -e 'force("install","Regexp::Common")'
+-sudo perl -MCPAN -e 'force("install","LaTeX::Encode")'
+-sudo perl -MCPAN -e 'force("install","Sub::Identify")'
+-```
++* `pip3 install -e '.[emulation]'` — adds dependencies needed by the emulator pipelines under `scripts/emulation/`.
++* `pip3 install -e '.[test]'` — adds `pytest` for running the Python unit-test suite.
+ 
+ ## Install Galacticus
+ 
+diff --git a/Installation-from-source.md b/Installation-from-source.md
+index 1fc03a1..477faf0 100644
+--- a/Installation-from-source.md
++++ b/Installation-from-source.md
+@@ -103,50 +103,24 @@ The following libraries are optional. Galacticus will detect them at build time
+ * matheval :triangular_flag_on_post: [v1.1.13](https://github.com/galacticusorg/libmatheval/releases/download/latest/libmatheval-1.1.13.tar.gz)
+     * Used only for evaluating of derived parameter expressions when performing simulations of the model posterior - if you don't plan to do this you do not need to install matheval
+ 
+-## Perl modules ##
+-
+-Galacticus uses Perl during compilation to preprocess the source code. The following Perl modules are required:
+-
+-* Clone :triangular_flag_on_post:
+-* Cwd :triangular_flag_on_post:
+-* Data::Dumper :triangular_flag_on_post:
+-* DateTime :triangular_flag_on_post:
+-* File::Copy 🚩 
+-* File::Slurp :triangular_flag_on_post:
+-* IO::Scalar :triangular_flag_on_post:
+-* LaTeX::Encode :triangular_flag_on_post:
+-* List::Uniq :triangular_flag_on_post:
+-* NestedMap :triangular_flag_on_post:
+-* Regexp::Common :triangular_flag_on_post:
+-* Scalar::Util :triangular_flag_on_post:
+-* Term::ANSIColor :triangular_flag_on_post:
+-* Text::Table :triangular_flag_on_post:
+-* Text::Template :triangular_flag_on_post:
+-* Text::Levenshtein :triangular_flag_on_post:
+-* XML::LibXML::PrettyPrint
+-* XML::Simple :triangular_flag_on_post:
+-* XML::LibXML :triangular_flag_on_post:
+-
+-
+-If you cannot install these packages via you distro's package manager you can install via CPAN, e.g.:
+-```
+-perl -MCPAN -e 'install(Scalar::Util)'
+-```
+-Note that if you do not have root access you will first need to install Perls' ```local::lib``` module to permit you to install these packages as a non-root user:
+-```
+-cd $INSTALL_PATH
+-mkdir .cpan
+-mkdir perl5
+-ln -sf $INSTALL_PATH/.cpan $HOME/
+-ln -sf $INSTALL_PATH/perl5 $HOME/
+-wget http://search.cpan.org/CPAN/authors/id/A/AP/APEIRON/local-lib-1.008004.tar.gz
+-tar xvfz local-lib-1.008004.tar.gz 
+-cd local-lib-1.008004
+-perl Makefile.PL --bootstrap
+-make
+-make test
+-make install
+-perl -I$HOME/perl5/lib/perl5 -Mlocal::lib >> $HOME/.bashrc
++## Python dependencies ##
++
++Galacticus uses Python during compilation to preprocess the source code, and ships a number of Python scripts under `scripts/` for analysis and pipeline tasks.  Python ≥ 3.9 is required.
++
++The Python package `galacticus` (declared in the top-level `pyproject.toml`) installs the modules under `python/` onto the Python import path together with their third-party dependencies — `numpy`, `scipy`, `h5py`, `lxml`, `matplotlib`, `requests`, `PyYAML`, `GitPython`, `PyPDF2`, `termcolor` — via a single editable install run from the repository root:
++```
++pip install -e .
++```
++This is sufficient for compiling Galacticus and running its supporting scripts.
++
++Two optional extras are also available:
++
++* `pip install -e '.[emulation]'` — adds the heavier dependencies needed by the emulator pipelines under `scripts/emulation/` (TensorFlow, lenstronomy, colossus, samana, tf-keras, tqdm, mcfit).
++* `pip install -e '.[test]'` — adds `pytest` for running the Python unit-test suite.
++
++If `pip` is not available system-wide, exporting `PYTHONPATH` before invoking `make` is also sufficient to put the Galacticus modules on the import path (the third-party dependencies must then be available in the active Python environment by some other means):
++```
++export PYTHONPATH=$(pwd)/python:$PYTHONPATH
+ ```
+ 
+ ## Compiling Galacticus ##
+diff --git a/Troubleshooting.md b/Troubleshooting.md
+index 48d3094..d12394b 100644
+--- a/Troubleshooting.md
++++ b/Troubleshooting.md
+@@ -27,7 +27,7 @@ of Galacticus. To permit easy and error-free migration between versions a script
+ is provided to translate parameter files from earlier to later versions.
+ To migrate a parameter file simply use:
+ ```
+-    ./scripts/aux/parametersMigrate.pl parameters.xml newParameters.xml
++    ./scripts/aux/parametersMigrate.py parameters.xml newParameters.xml
+ ```
+ By default, this script will translate from the previous to the current
+ version of Galacticus. If your parameter file contains a `version`
+@@ -37,7 +37,7 @@ migrate the parameter file through all intermediate versions to bring it
+ into compliance with the current version. You can also specify input and
+ output versions directly:
+ ```
+-    ./scripts/aux/parametersMigrate.pl parameters.xml newParameters.xml --inputVersion 0.9.0 --outputVersion 0.9.3
++    ./scripts/aux/parametersMigrate.py parameters.xml newParameters.xml --inputVersion 0.9.0 --outputVersion 0.9.3
+ ```
+ will convert `parameters.xml` from version 0.9.0 syntax to version 0.9.3 syntax.
+ 
+diff --git a/Troubleshooting:-Compile-Time-Error-Messages.md b/Troubleshooting:-Compile-Time-Error-Messages.md
+index 6bf0fbf..ac871ef 100644
+--- a/Troubleshooting:-Compile-Time-Error-Messages.md
++++ b/Troubleshooting:-Compile-Time-Error-Messages.md
+@@ -39,18 +39,25 @@ is simply the `make` command telling you that, because an error occurred (in try
+ 
+ ## Errors from the pre-processor
+ 
+-You may also see errors that originate from Galacticus' pre-processor itself, which typically look something like:
++You may also see errors that originate from Galacticus' pre-processor itself.  These appear as Python tracebacks ending with a raised exception; an illustrative example is:
+ ```
+-foo: no matching unit closer was found for opener 'function bar(a,b,c) result(self)' at ./perl/Galacticus/Build/Baz.pm line 354, <$code> line 78
++Traceback (most recent call last):
++  ...
++  File "./python/Galacticus/Build/Baz.py", line 354, in foo
++    raise ValueError("no matching unit closer was found for opener 'function bar(a,b,c) result(self)'")
++ValueError: no matching unit closer was found for opener 'function bar(a,b,c) result(self)'
+ ```
+ 
+-These can be identified by the path `perl/Galacticus/Build` which corresponds to the pre-processor. In the above, `foo` indicates the name of the preprocessor function which identified the error, and `./perl/Galacticus/Build/Baz.pm` indicates the file in which that function can be found. The error message itself is, in this case, `no matching unit closer was found for opener 'function bar(a,b,c) result(self)'` (which means that a `function` statement in a source file had no matching `end function` line).
++These can be identified by the `python/Galacticus/Build` path in the traceback, which corresponds to the pre-processor.  In the above, `foo` indicates the name of the preprocessor function which identified the error, and `./python/Galacticus/Build/Baz.py` indicates the file in which that function can be found.  The error message itself is, in this case, `no matching unit closer was found for opener 'function bar(a,b,c) result(self)'` (which means that a `function` statement in a source file had no matching `end function` line).
+ 
+ # Common error messages
+ 
+ ## Missing (or misnamed) function closer
+ 
+-`Build_Children: no matching unit closer was found for opener 'function foo(a,b,c) result(self)' at /galacticus/perl/Galacticus/Build/SourceTree.pm line XYZ, <$code> line ABC.`
++```
++ValueError: Build_Children: no matching unit closer was found for opener 'function foo(a,b,c) result(self)'
++```
++(raised from `python/Galacticus/Build/SourceTree.py`)
+ 
+ This error means that the preprocessor could not find a matching closer line in a source file. An _opener_ is a line which begins a function (or subroutine, or module, or other code unit), such as `function foo` in the above. Every such opener must have a matching _closer_, in this case `end function foo`.
+ 
+@@ -110,10 +117,12 @@ To fix this error, find the constructor function that you intended to call and c
+ ## `Parse_Directives` failed to parse
+ 
+ ```
+-Parse_Directives: failed parsing with message:
+-
+-mismatched tag at line 12, column 2, byte 579 at perl5/lib/perl5/x86_64-linux-thread-multi/XML/Parser.pm line 187.
+-
++Traceback (most recent call last):
++  ...
++  File "python/Galacticus/Build/Directives.py", line 134, in _parse_xml_block
++    raise RuntimeError(
++RuntimeError: extract_directives: failed parsing XML while extracting directive 'functionClass' from 'source/star_formation.rates.disks.F90': mismatched tag: line 12, column 2
++XML content was:
+ <functionClass>
+ <name>starFormationRateDisks</name>
+ <descriptiveName>Rates for star formation in disks.</descriptiveName>
+@@ -126,9 +135,6 @@ mismatched tag at line 12, column 2, byte 579 at perl5/lib/perl5/x86_64-linux-th
+ <selfTarget>yes</selfTarget>
+ <argument>type(treeNode), intent(inout), target :: node</argument>
+ </functionClass>
+-
+-mismatched tag at line 12, column 2, byte 579 at perl5/lib/perl5/x86_64-linux-thread-multi/XML/Parser.pm line 187.
+-        ...propagated at perl/Galacticus/Build/SourceTree/Parse/Directives.pm line 101, <$code> line 19.
+ ```
+ 
+ This is an error message from the pre-processor. The pre-processor was attempting to parse a block of XML embedded in a Galacticus source file, but parsing that XML failed. The error message will include the XML that was being parsed (in the above, the section starting `<functionClass>`), and, below this, the error message reported by the XML parser. In this particular case, the XML parser reports `mismatched tag at line 12, column 2`. Looking at this line in the block of XML above we see that we have a closing `</functionClass>` tag, but this does not match the currently open tag, `<method>` - that means we are missing a closing `</method>` tag here. 
+diff --git a/Tutorial:-Introduction-to-Galacticus-parameter-files.md b/Tutorial:-Introduction-to-Galacticus-parameter-files.md
+index a0377d9..a0818c2 100644
+--- a/Tutorial:-Introduction-to-Galacticus-parameter-files.md
++++ b/Tutorial:-Introduction-to-Galacticus-parameter-files.md
+@@ -95,13 +95,13 @@ defines a parameter named "`cosmologyFunctions`" to have a value of "`matterLamb
+ 
+ ## Checking your parameter file
+ 
+-You can check that your parameter file has correct syntax using the `validateParameters.pl` script. For example, to run this script on a parameter file named `myParameterFile.xml` you would do:
++You can check that your parameter file has correct syntax using the `validateParameters.py` script. For example, to run this script on a parameter file named `myParameterFile.xml` you would do:
+ ```
+-./scripts/aux/validateParameters.pl myParameterFile.xml
++./scripts/aux/validateParameters.py myParameterFile.xml
+ ```
+ Any problems with the parameters will be reported. As an example, try running the script on the (intentionally) incorrect parameter file `testSuite/parameters/validation/duplicate-value-invalid.xml`:
+ ```
+-./scripts/aux/validateParameters.pl testSuite/parameters/validation/duplicate-value-invalid.xml
++./scripts/aux/validateParameters.py testSuite/parameters/validation/duplicate-value-invalid.xml
+ ```
+ The output should be:
+ ```
+diff --git a/Verions-and-Releases.md b/Verions-and-Releases.md
+index 896ea76..d0c0be5 100644
+--- a/Verions-and-Releases.md
++++ b/Verions-and-Releases.md
+@@ -107,25 +107,25 @@ sudo bzip2 galacticusorg_buildenv_v1.0.0.tar
+ Compilation instructions for MacOS are given [here](https://github.com/galacticusorg/galacticus/wiki/Installation-from-source-on-MacOS). To create statically-linked binaries on MacOS proceed as follows:
+ 1. Compiler Galacticus as usual.
+ 2. Run `./Galacticus.exe parameters/buildTools.xml` to build all run-time tools (RecFast, FSPS, CAMB, Class, Cloudy).
+-3. Since MacOS does not really support static-linking we need to do some manual re-linking to making statically linked binaries. To make this easier a script `./scripts/build/staticRelinker.pl` is provided. Static executables can be created using the following commands:
++3. Since MacOS does not really support static-linking we need to do some manual re-linking to making statically linked binaries. To make this easier a script `./scripts/build/staticRelinker.py` is provided. Static executables can be created using the following commands:
+ ```
+ cd ~/galacticus
+-~/galacticus/scripts/build/staticRelinker.pl gfortran-11.2 `cat ./work/build/Galacticus.d` ./work/build/Galacticus.parameters.o ./work/build/Galacticus.md5s.o -o Galacticus.exe -ffree-line-length-none -frecursive -DBUILDPATH=\'./work/build\' -J./work/build/moduleBuild/ -I./work/build/ -fintrinsic-modules-path /usr/local/include -L/usr/local/lib -L/opt/local/lib -fintrinsic-modules-path /usr/local/finclude -fintrinsic-modules-path /usr/local/include/gfortran -fintrinsic-modules-path /usr/local/include -fintrinsic-modules-path /usr/lib/gfortran/modules -fintrinsic-modules-path /usr/include/gfortran -fintrinsic-modules-path /usr/include -fintrinsic-modules-path /usr/finclude -fintrinsic-modules-path /usr/lib64/gfortran/modules -fintrinsic-modules-path /usr/lib64/openmpi/lib -pthread -Wall -fbacktrace -ffpe-trap=invalid,zero,overflow -fdump-core -O3 -ffinite-math-only -fno-math-errno -fopenmp -g -DOFDUNAVAIL -DFFTW3AVAIL -DANNAVAIL -DMATHEVALAVAIL `./scripts/build/libraryDependencies.pl Galacticus.exe -ffree-line-length-none -frecursive -DBUILDPATH=\'./work/build\' -J./work/build/moduleBuild/ -I./work/build/ -fintrinsic-modules-path /usr/local/include -L/usr/local/lib -L/opt/local/lib -fintrinsic-modules-path /usr/local/finclude -fintrinsic-modules-path /usr/local/include/gfortran -fintrinsic-modules-path /usr/local/include -fintrinsic-modules-path /usr/lib/gfortran/modules -fintrinsic-modules-path /usr/include/gfortran -fintrinsic-modules-path /usr/include -fintrinsic-modules-path /usr/finclude -fintrinsic-modules-path /usr/lib64/gfortran/modules -fintrinsic-modules-path /usr/lib64/openmpi/lib -pthread -Wall -fbacktrace -ffpe-trap=invalid,zero,overflow -fdump-core -O3 -ffinite-math-only -fno-math-errno -fopenmp -g -DOFDUNAVAIL -DFFTW3AVAIL -DANNAVAIL -DMATHEVALAVAIL`
++~/galacticus/scripts/build/staticRelinker.py gfortran-11.2 `cat ./work/build/Galacticus.d` ./work/build/Galacticus.parameters.o ./work/build/Galacticus.md5s.o -o Galacticus.exe -ffree-line-length-none -frecursive -DBUILDPATH=\'./work/build\' -J./work/build/moduleBuild/ -I./work/build/ -fintrinsic-modules-path /usr/local/include -L/usr/local/lib -L/opt/local/lib -fintrinsic-modules-path /usr/local/finclude -fintrinsic-modules-path /usr/local/include/gfortran -fintrinsic-modules-path /usr/local/include -fintrinsic-modules-path /usr/lib/gfortran/modules -fintrinsic-modules-path /usr/include/gfortran -fintrinsic-modules-path /usr/include -fintrinsic-modules-path /usr/finclude -fintrinsic-modules-path /usr/lib64/gfortran/modules -fintrinsic-modules-path /usr/lib64/openmpi/lib -pthread -Wall -fbacktrace -ffpe-trap=invalid,zero,overflow -fdump-core -O3 -ffinite-math-only -fno-math-errno -fopenmp -g -DOFDUNAVAIL -DFFTW3AVAIL -DANNAVAIL -DMATHEVALAVAIL `./scripts/build/libraryDependencies.py Galacticus.exe -ffree-line-length-none -frecursive -DBUILDPATH=\'./work/build\' -J./work/build/moduleBuild/ -I./work/build/ -fintrinsic-modules-path /usr/local/include -L/usr/local/lib -L/opt/local/lib -fintrinsic-modules-path /usr/local/finclude -fintrinsic-modules-path /usr/local/include/gfortran -fintrinsic-modules-path /usr/local/include -fintrinsic-modules-path /usr/lib/gfortran/modules -fintrinsic-modules-path /usr/include/gfortran -fintrinsic-modules-path /usr/include -fintrinsic-modules-path /usr/finclude -fintrinsic-modules-path /usr/lib64/gfortran/modules -fintrinsic-modules-path /usr/lib64/openmpi/lib -pthread -Wall -fbacktrace -ffpe-trap=invalid,zero,overflow -fdump-core -O3 -ffinite-math-only -fno-math-errno -fopenmp -g -DOFDUNAVAIL -DFFTW3AVAIL -DANNAVAIL -DMATHEVALAVAIL`
+ 
+ cd ~/datasets/dynamic/RecFast
+-~/galacticus/scripts/build/staticRelinker.pl gfortran-11.2 recfast.for -o recfast.exe -O3 -ffixed-form -ffixed-line-length-none
++~/galacticus/scripts/build/staticRelinker.py gfortran-11.2 recfast.for -o recfast.exe -O3 -ffixed-form -ffixed-line-length-none
+ 
+ cd ~/datasets/dynamic/CAMB-1.3.2/fortran
+-~/galacticus/scripts/build/staticRelinker.pl gfortran-11.2 -cpp -Ofast -fopenmp -fintrinsic-modules-path /usr/local/include -L/usr/local/lib -L/opt/local/lib -JRelease -IRelease/ -I"Users/ajb/datasets/dynamic/CAMB-1.3.2/fortran/../forutils/Release/" Release/inidriver.o Release/libcamb.a  -L"/Users/ajb/datasets/dynamic/CAMB-1.3.2/fortran/../forutils/Release/" -lforutils -o camb
++~/galacticus/scripts/build/staticRelinker.py gfortran-11.2 -cpp -Ofast -fopenmp -fintrinsic-modules-path /usr/local/include -L/usr/local/lib -L/opt/local/lib -JRelease -IRelease/ -I"Users/ajb/datasets/dynamic/CAMB-1.3.2/fortran/../forutils/Release/" Release/inidriver.o Release/libcamb.a  -L"/Users/ajb/datasets/dynamic/CAMB-1.3.2/fortran/../forutils/Release/" -lforutils -o camb
+ 
+ cd ~/datasets/dynamic/class_public-3.0.2
+-~/galacticus/scripts/build/staticRelinker.pl gcc-11.2 -O3 -fopenmp -g -fPIC -o class build/growTable.o build/dei_rkck.o build/sparse.o build/evolver_rkck.o build/evolver_ndf15.o build/arrays.o build/parser.o build/quadrature.o build/hyperspherical.o build/common.o build/trigonometric_integrals.o build/input.o build/background.o build/thermodynamics.o build/perturbations.o build/primordial.o build/fourier.o build/transfer.o build/harmonic.o build/lensing.o build/distortions.o build/wrap_recfast.o build/injection.o build/noninjection.o build/hyrectools.o build/helium.o build/hydrogen.o build/history.o build/wrap_hyrec.o build/energy_injection.o build/output.o build/class.o -lm
++~/galacticus/scripts/build/staticRelinker.py gcc-11.2 -O3 -fopenmp -g -fPIC -o class build/growTable.o build/dei_rkck.o build/sparse.o build/evolver_rkck.o build/evolver_ndf15.o build/arrays.o build/parser.o build/quadrature.o build/hyperspherical.o build/common.o build/trigonometric_integrals.o build/input.o build/background.o build/thermodynamics.o build/perturbations.o build/primordial.o build/fourier.o build/transfer.o build/harmonic.o build/lensing.o build/distortions.o build/wrap_recfast.o build/injection.o build/noninjection.o build/hyrectools.o build/helium.o build/hydrogen.o build/history.o build/wrap_hyrec.o build/energy_injection.o build/output.o build/class.o -lm
+ 
+ cd ~/datasets/dynamic/fsps-3.2/src
+-~/galacticus/scripts/build/staticRelinker.pl gfortran-11.2 -O3 -cpp -fPIC -mcmodel=medium  -o autosps.exe autosps.o sps_vars.o sps_utils.o compsp.o csp_gen.o galacticus_IMF.o ssp_gen.o getmags.o locate.o funcint.o sps_setup.o pz_convol.o get_tuniv.o intsfwght.o imf.o imf_weight.o add_dust.o getspec.o sbf.o add_bs.o mod_hb.o add_remnants.o getindx.o smoothspec.o mod_gb.o add_nebular.o write_isochrone.o sfhstat.o linterp.o tsum.o add_agb_dust.o linterparr.o ztinterp.o vacairconv.o igm_absorb.o get_lumdist.o attn_curve.o sfh_weight.o sfhlimit.o sfhinfo.o setup_tabular_sfh.o agn_dust.o
++~/galacticus/scripts/build/staticRelinker.py gfortran-11.2 -O3 -cpp -fPIC -mcmodel=medium  -o autosps.exe autosps.o sps_vars.o sps_utils.o compsp.o csp_gen.o galacticus_IMF.o ssp_gen.o getmags.o locate.o funcint.o sps_setup.o pz_convol.o get_tuniv.o intsfwght.o imf.o imf_weight.o add_dust.o getspec.o sbf.o add_bs.o mod_hb.o add_remnants.o getindx.o smoothspec.o mod_gb.o add_nebular.o write_isochrone.o sfhstat.o linterp.o tsum.o add_agb_dust.o linterparr.o ztinterp.o vacairconv.o igm_absorb.o get_lumdist.o attn_curve.o sfh_weight.o sfhlimit.o sfhinfo.o setup_tabular_sfh.o agn_dust.o
+ 
+ cd ~/datasets/dynamic/c17.02/source
+-~/galacticus/scripts/build/staticRelinker.pl g++-11.2 -O3 -ftrapping-math -fnop-math-errno -ftree-vectorize -Wall -g -o cloudy.exe maincl.o -L. -lcloudy
++~/galacticus/scripts/build/staticRelinker.py g++-11.2 -O3 -ftrapping-math -fnop-math-errno -ftree-vectorize -Wall -g -o cloudy.exe maincl.o -L. -lcloudy
+ ```
+ 4. Package the executables (and data):
+ ```
