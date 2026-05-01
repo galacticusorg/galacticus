@@ -45,12 +45,6 @@ def register(owner: str, phase: str, function: Callable) -> None:
 # Global state.  Set by Label_Lengths during the `gather` phase.
 # ---------------------------------------------------------------------------
 
-# `verbosity_level` was the Perl-era manual log-level switch.  It is still
-# imported by sister modules and exposed for backward compatibility, but new
-# diagnostic output should go through the module-level `logger` instead and
-# use `logger.info` / `logger.debug` -- the standard logging module's level
-# filtering replaces the manual `if verbosity_level >= N: print(...)` gating.
-verbosity_level                          = 1
 boolean_label                            = ('false', 'true')
 
 # Maximum lengths of various labels.  Initialised to 0 and then set by

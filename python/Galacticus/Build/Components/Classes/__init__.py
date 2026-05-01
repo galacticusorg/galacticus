@@ -21,10 +21,7 @@ from Galacticus.Build.Components.Utils         import (
     register,
     _component_properties,
 )
-from Galacticus.Build.Components.DataTypes     import (
-    data_object_primitive_name,
-    data_object_doc_name,
-)
+from Galacticus.Build.Components.DataTypes     import data_object_doc_name
 from Galacticus.Build.Components.NullFunctions import create_null_function
 
 

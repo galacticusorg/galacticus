@@ -5,7 +5,6 @@
 import logging
 import os
 import re
-import math
 
 import numpy as np
 import lxml.etree as ET
