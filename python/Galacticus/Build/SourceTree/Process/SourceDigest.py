@@ -19,7 +19,7 @@ import os
 import re
 
 
-from build.fortran_utils                            import (
+from Galacticus.Build.FortranUtils                            import (
     get_matching_lines, read_file,
 )
 from Galacticus.Build.SourceTree                    import walk_tree

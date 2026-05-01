@@ -9,7 +9,7 @@ import re
 import os
 
 
-from build.fortran_utils import get_fortran_line
+from Galacticus.Build.FortranUtils import get_fortran_line
 from Fortran.Utils import UNIT_OPENERS, UNIT_CLOSERS
 from Galacticus.Build.SourceTree.Parse.Declarations import parse_declaration
 

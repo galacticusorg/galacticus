@@ -15,7 +15,7 @@ import re
 import sys
 
 from latex_utils import latex_encode
-from build.fortran_utils import (get_fortran_line, extract_bracketed,
+from Galacticus.Build.FortranUtils import (get_fortran_line, extract_bracketed,
                                   extract_variables)
 
 # ---------------------------------------------------------------------------

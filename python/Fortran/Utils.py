@@ -517,7 +517,7 @@ def unformat_variables(variable_string):
     # circular dep with `build.fortran_utils`.
     type_text = None
     if rest.startswith('('):
-        from build.fortran_utils import extract_bracketed
+        from Galacticus.Build.FortranUtils import extract_bracketed
         bracket, after, _ = extract_bracketed(rest, "()")
         if bracket is not None:
             type_text = bracket

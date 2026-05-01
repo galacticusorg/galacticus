@@ -8,7 +8,7 @@ import re
 import copy
 
 from Fortran.Utils import INTRINSIC_DECLARATIONS, extract_variables
-from build.fortran_utils import extract_bracketed
+from Galacticus.Build.FortranUtils import extract_bracketed
 
 
 def parse_declaration(line):

@@ -7,7 +7,7 @@ import re
 import io
 
 
-from build.fortran_utils import get_fortran_line
+from Galacticus.Build.FortranUtils import get_fortran_line
 
 _VISIBILITY_RE = re.compile(r'^\s*(public|private)\s*(::)?\s*(.*?)\s*$', re.IGNORECASE)
 

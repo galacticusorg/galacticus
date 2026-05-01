@@ -14,7 +14,7 @@ import re
 import xml.etree.ElementTree as ET
 
 
-from build.fortran_utils                           import get_fortran_line
+from Galacticus.Build.FortranUtils                           import get_fortran_line
 from Fortran.Utils                                 import (
     INTRINSIC_DECLARATIONS, extract_variables,
 )

@@ -14,7 +14,7 @@ import os
 import sys
 
 
-from build.file_changes                       import update as file_changes_update
+from Galacticus.Build.FileChanges                       import update as file_changes_update
 from Galacticus.Build.SourceTree              import parse_file, serialize, analyze_tree
 from Galacticus.Build.SourceTree.Process      import process_tree
 

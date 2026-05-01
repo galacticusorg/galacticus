@@ -23,8 +23,8 @@ import sys
 import xml.etree.ElementTree as ET
 
 
-from build.fortran_utils                      import get_fortran_line
-from build.file_changes                       import update as file_changes_update
+from Galacticus.Build.FortranUtils                      import get_fortran_line
+from Galacticus.Build.FileChanges                       import update as file_changes_update
 from Fortran.Utils                            import UNIT_OPENERS, UNIT_CLOSERS
 from XML.Utils                                import xml_to_dict
 from Galacticus.Build                         import Hooks

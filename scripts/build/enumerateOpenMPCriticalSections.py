@@ -4,7 +4,7 @@ import re
 import sys
 import xml.etree.ElementTree as ET
 
-from build.fortran_utils import get_fortran_line
+from Galacticus.Build.FortranUtils import get_fortran_line
 
 # Locate all OpenMP critical sections, and build an enumeration of them for use
 # in source code instrumentation.

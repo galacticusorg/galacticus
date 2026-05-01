@@ -22,7 +22,7 @@ import re
 import sys
 
 
-from build.file_changes               import update as file_changes_update
+from Galacticus.Build.FileChanges               import update as file_changes_update
 from Galacticus.Build.Directives      import extract_directives
 from XML.Utils                        import dict_to_xml_string
 

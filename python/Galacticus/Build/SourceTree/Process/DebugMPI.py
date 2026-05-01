@@ -9,7 +9,7 @@ import re
 import os
 
 
-from build.fortran_utils                              import get_fortran_line
+from Galacticus.Build.FortranUtils                              import get_fortran_line
 from Galacticus.Build.SourceTree                      import walk_tree
 from Galacticus.Build.SourceTree.Process              import register_process
 from Galacticus.Build.SourceTree.Process.SourceIntrospection import location

@@ -23,7 +23,7 @@ import os
 import re
 
 
-from build.file_changes        import update as file_changes_update
+from Galacticus.Build.FileChanges        import update as file_changes_update
 from Galacticus.Build          import Hooks
 from Galacticus.Build.Components import Utils
 from Galacticus.Build.Components.CodeGeneration import (

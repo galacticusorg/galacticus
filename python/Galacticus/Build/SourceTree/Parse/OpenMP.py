@@ -7,7 +7,7 @@ import re
 import io
 
 
-from build.fortran_utils import get_fortran_line
+from Galacticus.Build.FortranUtils import get_fortran_line
 
 _OMP_PARALLEL_RE = re.compile(
     r'^\s*!\$omp\s+(end\s+)?parallel\s+(do|workshare)?\s?(.*)',
