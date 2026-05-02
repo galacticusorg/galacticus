@@ -436,10 +436,18 @@ def interfaces_methods(code, python, func_class, extensions, module_uses_impls,
             }
         ]
 
+        # Generate method name (used below by some result-type conversions).
+        method_name_c = class_name + method_name[0].upper() + method_name[1:] + 'L'
+
         # Determine any ISO_C_Binding imports needed.
-        isoImports = {}
-        result_conversion_open = ""
-        result_conversion_close = ""
+        isoImports                = {}
+        result_conversion_open    = ""
+        result_conversion_close   = ""
+        result_extra_module_uses  = ""
+        result_extra_declarations = ""
+        result_post_call_code     = ""
+        result_call_target        = method_name_c
+        result_python_decode      = False
         if method_type == "double precision":
             method_type_c                        = "real(c_double)"
             clib_res_type                        = "c_double";
@@ -454,6 +462,38 @@ def interfaces_methods(code, python, func_class, extensions, module_uses_impls,
             result_conversion_open               = "logical(";
             result_conversion_close              = ",kind=c_bool)";
             isoImports['c_bool'] = 1
+        elif method_type == "type(varying_string)":
+            # Returned varying_string is copied into a per-function static C
+            # buffer (deallocated on each call so only the most recent result
+            # persists), then a c_ptr to that buffer is returned.  Python's
+            # ctypes c_char_p restype copies the bytes; we then decode to str.
+            method_type_c                        = "type(c_ptr)"
+            clib_res_type                        = "c_char_p"
+            isoImports['c_ptr']       = 1
+            isoImports['c_loc']       = 1
+            isoImports['c_char']      = 1
+            isoImports['c_null_char'] = 1
+            result_extra_module_uses = (
+                f'  use :: ISO_Varying_String, only : varying_string, char\n'
+            )
+            result_call_target = f'{method_name_c}_result_'
+            result_extra_declarations = (
+                f'  type     (varying_string)                                       :: {method_name_c}_result_\n'
+                f'  character(kind=c_char   ), dimension(:), allocatable, save, target :: {method_name_c}_buffer_\n'
+                f'  character(len=:         ), allocatable                          :: {method_name_c}_chars_\n'
+                f'  integer                                                         :: {method_name_c}_i_\n'
+            )
+            result_post_call_code = (
+                f'  {method_name_c}_chars_ = char({method_name_c}_result_)\n'
+                f'  if (allocated({method_name_c}_buffer_)) deallocate({method_name_c}_buffer_)\n'
+                f'  allocate({method_name_c}_buffer_(len({method_name_c}_chars_)+1))\n'
+                f'  do {method_name_c}_i_ = 1, len({method_name_c}_chars_)\n'
+                f'     {method_name_c}_buffer_({method_name_c}_i_) = {method_name_c}_chars_({method_name_c}_i_:{method_name_c}_i_)\n'
+                f'  end do\n'
+                f'  {method_name_c}_buffer_(len({method_name_c}_chars_)+1) = c_null_char\n'
+                f'  {method_name_c} = c_loc({method_name_c}_buffer_)\n'
+            )
+            result_python_decode = True
         elif method_type == "void":
             pass
         else:
@@ -485,9 +525,6 @@ def interfaces_methods(code, python, func_class, extensions, module_uses_impls,
                                               extensions, module_uses_impls,
                                               lib_function_classes)
 
-        # Generate method name
-        method_name_c = class_name + method_name[0].upper() + method_name[1:] + 'L'
-
         # Generate Fortran method
         procedure = 'subroutine' if method_type == 'void' else 'function'
         func_decl = '' if method_type == 'void' else f'{method_type_c} :: {method_name_c}\n'
@@ -497,16 +534,17 @@ def interfaces_methods(code, python, func_class, extensions, module_uses_impls,
         declarations = fortran_declarations(arg_list)
         reassignments = fortran_reassignments(arg_list)
         module_uses = fortran_module_uses(arg_list)
+        call_lhs = "call" if method_type == "void" else f'{result_call_target} ='
         call_code = fortran_call_code(arg_list,
-                                     f'{"call" if method_type == "void" else method_name_c + "="} {result_conversion_open} self_%{method_name}( &\n',
+                                     f'{call_lhs} {result_conversion_open} self_%{method_name}( &\n',
                                      f'&){result_conversion_close}\n', '&')
+        call_code += result_post_call_code
 
         fort_method = f'''{procedure} {method_name_c}({','.join(fort_args)}) bind(c,name='{method_name_c}')
   use :: {func_class.get('module')}, only : {class_name}Class
-{module_uses}
-{iso_imports}
+{module_uses}{result_extra_module_uses}{iso_imports}
   implicit none
-{func_decl}{declarations}
+{func_decl}{declarations}{result_extra_declarations}
 {reassignments}{call_code}  return
 end {procedure} {method_name_c}
 '''
@@ -524,6 +562,14 @@ end {procedure} {method_name_c}
         # Generate Python method
         py_args = python_arg_list(arg_list)
         py_call = python_call_code(arg_list, f'return c_lib.{method_name_c}')
+        if result_python_decode:
+            # Append .decode("utf-8") to each call line so the bytes returned by
+            # ctypes c_char_p are converted to a Python str.
+            py_call = re.sub(
+                r'(c_lib\.' + re.escape(method_name_c) + r'\([^\n]*\))(\n)',
+                r'\1.decode("utf-8")\2',
+                py_call,
+            )
 
         py_method = f'''def {method_name}({','.join(py_args)}):
 {py_call}
