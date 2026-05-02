@@ -34,6 +34,20 @@ def test_assign_c_types_intrinsic_scalars(intrinsic, expected_ctype, expected_fo
     assert out[0].fort_type == expected_fort
 
 
+@pytest.mark.parametrize("kind,expected_ctype,expected_fort", [
+    ('c_long',   'c_long',   'integer(c_long)'),
+    ('c_size_t', 'c_size_t', 'integer(c_size_t)'),
+])
+def test_assign_c_types_integer_kinds(kind, expected_ctype, expected_fort):
+    """integer(c_long) and integer(c_size_t) pass through with matching
+    ctypes wrappers rather than being silently demoted to c_int."""
+    raw = [{'name': 'n', 'intrinsic': 'integer', 'type': kind,
+            'attributes': ['intent(in)']}]
+    out = assign_c_types(raw, lib_function_classes={})
+    assert out[0].ctype     == expected_ctype
+    assert out[0].fort_type == expected_fort
+
+
 def test_assign_c_types_varying_string_maps_to_c_char_p():
     """type(varying_string) is treated like character — passes as c_char_p."""
     raw = [{'name': 'name', 'intrinsic': 'type', 'type': 'varying_string',

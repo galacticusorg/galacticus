@@ -61,8 +61,18 @@ def assign_c_types(argument_list, lib_function_classes):
             arg.ctype     = 'c_double'
             arg.fort_type = 'real(c_double)'
         elif intrinsic == 'integer':
-            arg.ctype     = 'c_int'
-            arg.fort_type = 'integer(c_int)'
+            # Default kind maps to c_int; explicit C-interop kinds (c_long,
+            # c_size_t) pass through with matching ctypes wrappers so that
+            # 64-bit values aren't silently truncated.
+            if type_spec_val == 'c_long':
+                arg.ctype     = 'c_long'
+                arg.fort_type = 'integer(c_long)'
+            elif type_spec_val == 'c_size_t':
+                arg.ctype     = 'c_size_t'
+                arg.fort_type = 'integer(c_size_t)'
+            else:
+                arg.ctype     = 'c_int'
+                arg.fort_type = 'integer(c_int)'
         elif intrinsic == 'logical':
             arg.ctype     = 'c_bool'
             arg.fort_type = 'logical(c_bool)'

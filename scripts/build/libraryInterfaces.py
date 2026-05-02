@@ -456,6 +456,14 @@ def interfaces_methods(code, python, func_class, extensions, module_uses_impls,
             method_type_c                        = "integer(c_int)"
             clib_res_type                        = "c_int";
             isoImports['c_int'] = 1
+        elif method_type == "integer(c_long)":
+            method_type_c                        = "integer(c_long)"
+            clib_res_type                        = "c_long";
+            isoImports['c_long'] = 1
+        elif method_type == "integer(c_size_t)":
+            method_type_c                        = "integer(c_size_t)"
+            clib_res_type                        = "c_size_t";
+            isoImports['c_size_t'] = 1
         elif method_type == "logical":
             method_type_c                        = "logical(c_bool)"
             clib_res_type                        = "c_bool";
