@@ -525,6 +525,28 @@ def interfaces_methods(code, python, func_class, extensions, module_uses_impls,
                         'name': var_name,
                     })
 
+        # Skip the method if any argument has a Fortran intrinsic the pipeline
+        # can't translate.  Currently this is `complex` / `double complex`:
+        # ctypes has no built-in c_complex, and the only known callers (e.g.
+        # surveyGeometry::windowFunctions) combine complex with multi-dimensional
+        # runtime-sized arrays — together a substantial design effort that
+        # isn't justified for a single method.  Methods are dropped with a
+        # warning rather than emitted as broken Fortran/Python.
+        unsupported_arg = next(
+            (arg for arg in arg_list[1:]
+             if arg['intrinsic'] in ('complex', 'double complex')),
+            None,
+        )
+        if unsupported_arg:
+            sys.stderr.write(
+                f"libraryInterfaces.py: caution: method '{method_name}' in"
+                f" class '{class_name}' has argument '{unsupported_arg['name']}'"
+                f" of unsupported type '{unsupported_arg['intrinsic']}"
+                f"({unsupported_arg.get('type','')})' — skipping method\n"
+            )
+            methods_to_delete.append(method_name)
+            continue
+
         # Process arguments
         arg_list = assign_c_types(arg_list, lib_function_classes or {})
         arg_list = assign_c_attributes(arg_list)
