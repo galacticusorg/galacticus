@@ -268,6 +268,22 @@ def test_fortran_reassignments_treeNode_uses_c_f_pointer():
     assert 'treeNode' in out[0].fort_modules['Galacticus_Nodes']
 
 
+def test_fortran_reassignments_mergerTree_imported_from_Galacticus_Nodes():
+    """type(mergerTree) must come from Galacticus_Nodes — without the
+    explicit special case the fall-back branch would import it from the
+    functionClass's own module (e.g. Merger_Trees_Build_Mass_Resolution),
+    where it isn't defined."""
+    args = [ArgSpec(name='tree', intrinsic='type', type_spec='mergerTree')]
+    out = build_fortran_reassignments(
+        args,
+        func_class={'module': 'Merger_Trees_Build_Mass_Resolution'},
+        implementation=None, extensions={}, module_uses_impls={},
+    )
+    assert 'mergerTree' in out[0].fort_modules['Galacticus_Nodes']
+    assert 'Merger_Trees_Build_Mass_Resolution' not in out[0].fort_modules
+    assert 'c_f_pointer(tree,tree_)' in out[0].fort_reassignment
+
+
 def test_fortran_reassignments_optional_treeNode_emits_present_branch():
     """An optional treeNode argument gets an explicit `if (present(...))`
     block in fort_reassignment so the absent case sets the pointer to null."""

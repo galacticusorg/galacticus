@@ -281,8 +281,11 @@ def build_fortran_reassignments(argument_list, func_class, implementation,
                 if import_module:
                     arg.fort_modules.setdefault(import_module, {})[type_spec_val] = 1
 
-            elif type_spec_val == 'treeNode':
-                # c_ptr -> type(treeNode) via c_f_pointer.
+            elif type_spec_val in ('treeNode', 'mergerTree'):
+                # c_ptr -> type(treeNode|mergerTree) via c_f_pointer.  Both
+                # types live in Galacticus_Nodes; without this special case
+                # the fall-back branch below would try to import them from
+                # the functionClass's own module.
                 arg.fort_declarations = f'type({type_spec_val}), pointer :: {name}_\n'
                 arg.fort_pass_as      = name + '_'
                 reassign = f'call c_f_pointer({name},{name}_)\n'
@@ -291,7 +294,7 @@ def build_fortran_reassignments(argument_list, func_class, implementation,
                                 f'{reassign}else\n {name}_ => null()\nend if\n')
                 arg.fort_reassignment   = reassign
                 arg.fort_iso_c_symbols  = ['c_f_pointer']
-                arg.fort_modules.setdefault('Galacticus_Nodes', {})['treeNode'] = 1
+                arg.fort_modules.setdefault('Galacticus_Nodes', {})[type_spec_val] = 1
 
             else:
                 # Other derived types: c_ptr -> type(X) via c_f_pointer.
