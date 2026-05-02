@@ -46,5 +46,12 @@
     <haloMassFunction/>
     <darkMatterHaloBias/>
     <correlationFunctionTwoPoint/>
+    <darkMatterHaloMassAccretionHistory/>
+    <darkMatterProfileScaleRadius/>
+    <darkMatterProfileShape/>
+    <darkMatterProfileConcentration/>
+    <accretionHaloTotal/>
+    <haloSpinDistribution/>
+    <hotHaloOutflowReincorporation/>
   </classes>
 </library>
