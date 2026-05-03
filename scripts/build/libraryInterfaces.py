@@ -258,7 +258,17 @@ def _unsupported_arg(arg, lib_function_classes, *,
     if is_constructor:
         for attr in arg.get('attributes', []):
             if attr.startswith('dimension'):
-                return 'dimensioned argument'
+                # 1D deferred-shape arrays of basic numeric types are now
+                # plumbed through with a count companion + numpy ndarray
+                # conversion (see assign_c_types / build_python_reassignments
+                # in Pipeline.py).  Everything else (multi-dim, fixed-size,
+                # character/varying_string arrays, complex element types) is
+                # still beyond what the pipeline can express.
+                if (attr == 'dimension(:)' and intrinsic in
+                        ('double precision', 'integer')):
+                    continue
+                return ('dimensioned argument'
+                        ' (only 1D deferred-shape numeric is supported)')
     return None
 
 
@@ -1051,6 +1061,7 @@ def _write_python_interface(python):
     """Write generated Python code to galacticus.py."""
     # Initialize the init unit
     init_content = '''from ctypes import *
+import numpy as np
 # Load the shared library into ctypes.
 import os
 cwd = os.getcwd()

@@ -136,6 +136,33 @@ def assign_c_types(argument_list, lib_function_classes):
                     # Insert _ID before the current front, then arg before that.
                     new_list.insert(0, arg_id)
 
+        # Insert a count companion for 1D deferred-shape numeric arrays.
+        # The companion (integer(c_size_t), value, intent(in)) sits in the
+        # bind(c) signature immediately after the array, computed at the
+        # Python boundary from the input numpy array's .size.  It's
+        # py_is_present=False so it's hidden from the user's signature, and
+        # galacticus_is_present=False because the inner Galacticus method
+        # receives the array as a slice (arr(1:arr_count)) — see
+        # build_fortran_reassignments — so it sees a normal dimension(:)
+        # array without needing the count separately.
+        if (intrinsic in ('double precision', 'integer')
+                and 'dimension(:)' in arg.attributes):
+            arg.is_array = True
+            count_arg = ArgSpec(
+                name                  = arg.name + '_count',
+                intrinsic             = 'integer',
+                type_spec             = 'c_size_t',
+                attributes            = ['intent(in)'],
+                ctype                 = 'c_size_t',
+                fort_type             = 'integer(c_size_t)',
+                fort_is_present       = True,
+                py_is_present         = False,
+                galacticus_is_present = False,
+                is_optional           = False,
+                is_function_class     = False,
+            )
+            new_list.insert(0, count_arg)
+
         new_list.insert(0, arg)
 
     return new_list
@@ -149,8 +176,17 @@ def assign_c_attributes(argument_list):
         if arg.is_optional:
             arg.fort_attributes.append('optional')
 
-        attr_filters = [a for a in arg.attributes
-                       if a.startswith('dimension') or a == 'allocatable']
+        # dimension(:) (assumed-shape) isn't allowed in bind(c); rewrite to
+        # dimension(*) (assumed-size) so the C side sees a plain pointer.
+        # The companion <name>_count carries the runtime length, and the
+        # inner Galacticus call slices arr(1:arr_count) to recover an
+        # ordinary dimension(:) section — see build_fortran_reassignments.
+        attr_filters = []
+        for a in arg.attributes:
+            if a == 'dimension(:)':
+                attr_filters.append('dimension(*)')
+            elif a.startswith('dimension') or a == 'allocatable':
+                attr_filters.append(a)
         arg.fort_attributes.extend(attr_filters)
 
         if arg.ctype == 'c_char_p':
@@ -207,8 +243,37 @@ def build_python_reassignments(argument_list):
                 arg.py_pass_as    = name + '._glcObj'
                 arg_id.py_pass_as = name + '._classID'
             new_list.insert(0, arg_id)        # unshift _ID back
+        elif arg.is_array:
+            # 1D deferred-shape numeric array: convert the user's input
+            # (numpy array, list, scalar tuple) to a contiguous ndarray of
+            # the right dtype, then pass its data pointer + size to the
+            # bind(c) function.  Same pop/unshift trick as the _ID case
+            # above to grab the count companion that's sitting at the
+            # front of new_list.
+            count_arg = new_list.pop(0)
+            np_dtype  = _ARRAY_NUMPY_DTYPE.get(arg.ctype, 'float64')
+            arg.py_reassignment = (
+                f'    {arg.name} = np.ascontiguousarray({arg.name},'
+                f' dtype=np.{np_dtype})\n'
+            )
+            arg.py_pass_as       = (
+                f'{arg.name}.ctypes.data_as(POINTER({arg.ctype}))'
+            )
+            count_arg.py_pass_as = f'c_size_t({arg.name}.size)'
+            new_list.insert(0, count_arg)
         new_list.insert(0, arg)               # unshift current arg
     return new_list
+
+
+# Numpy dtype string used when converting a Python input to a contiguous
+# array for an array-typed argument.  Keep in sync with the ctypes mapping
+# in assign_c_types.
+_ARRAY_NUMPY_DTYPE = {
+    'c_double': 'float64',
+    'c_int'   : 'int32',
+    'c_long'  : 'int64',
+    'c_size_t': 'uint64',
+}
 
 
 def build_fortran_reassignments(argument_list, func_class, implementation,
@@ -242,7 +307,14 @@ def build_fortran_reassignments(argument_list, func_class, implementation,
         is_optional   = arg.is_optional
         opt_prefix    = f'if (present({name})) ' if is_optional else ''
 
-        if intrinsic == 'logical':
+        if arg.is_array:
+            # 1D deferred-shape numeric array.  The bind(c) signature has
+            # `dimension(*)` (assumed-size) plus a separate <name>_count;
+            # the inner Galacticus method takes `dimension(:)` (assumed-
+            # shape), so we pass an array section to recover a proper
+            # rank-1 descriptor of the right length.
+            arg.fort_pass_as = f'{name}(1:{name}_count)'
+        elif intrinsic == 'logical':
             # c_bool must be recast to a plain Fortran logical.
             arg.fort_reassignment = f'{opt_prefix}{name}_=logical({name})\n'
             arg.fort_declarations = f'logical :: {name}_\n'

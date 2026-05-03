@@ -42,6 +42,7 @@ class ArgSpec:
     # -------------------------------------------------------------------------
     is_optional:       bool = False
     is_function_class: bool = False
+    is_array:          bool = False    # 1D deferred-shape numeric array
 
     # ctypes
     ctype:         str  = ''    # e.g. 'c_double', 'c_void_p', 'c_char_p', 'c_int'
