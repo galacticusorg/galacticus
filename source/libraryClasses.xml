@@ -62,5 +62,6 @@
     <accretionHaloTotal/>
     <haloSpinDistribution/>
     <hotHaloOutflowReincorporation/>
+    <initialMassFunction/>
   </classes>
 </library>

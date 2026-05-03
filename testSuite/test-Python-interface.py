@@ -28,6 +28,16 @@ def check(label, actual, expected, rtol=1.0e-6, fmt=".2f", unit=""):
               f'(expected {expected:{fmt}}, Δ={actual-expected:.3g})')
 
 
+def check_eq(label, actual, expected):
+    """Exact-equality variant for non-numeric values (strings, etc.)."""
+    global _failures
+    if actual == expected:
+        print(f'   PASS: {label} = {actual!r}')
+    else:
+        _failures += 1
+        print(f'   FAIL: {label} = {actual!r} (expected {expected!r})')
+
+
 @contextmanager
 def safe_section(name):
     """Wrap a test section so an unexpected exception is reported as FAIL
@@ -106,6 +116,49 @@ with safe_section("haloMassFunctionShethTormen"):
     haloMassFunction = galacticus.haloMassFunctionShethTormen(cosmologyParameters,cosmologicalMassVariance,criticalOverdensity,0.707,0.3,0.322183)
     haloMass = 1.0e10
     check("dn/dlnM(M=10¹⁰M☉,a=1)", haloMassFunction.differential(13.8,haloMass)*haloMass, 0.1040973175348119, fmt=".4f")
+
+# Random number generator.  Exercises method returns of `integer` (poisson),
+# `integer(c_long)` (range/sample/seed), and the `integer(c_long)` argument
+# path (sample(n=...)) plus the optional-arg branching for c_long.
+with safe_section("randomNumberGeneratorGSL"):
+    rng = galacticus.randomNumberGeneratorGSL(seed_=219,ompThreadOffset=False,mpiRankOffset=False)
+    # TODO: replace dummy expectations below with golden values from a real run.
+    check_eq("seed"        , rng.seed()                  ,         219)  # integer(c_long) return
+    check_eq("rangeMinimum", rng.rangeMinimum()          ,           0)  # integer(c_long) return
+    check_eq("rangeMaximum", rng.rangeMaximum()          ,  4294967295)  # integer(c_long) return
+    check_eq("sample()"    , rng.sample()                ,           0)  # integer(c_long) return, no args
+    check_eq("sample(n=10)", rng.sample(n=10)            ,           0)  # integer(c_long) optional arg
+    check_eq("poisson(5.0)", rng.poissonSample(mean=5.0) ,           0)  # plain `integer` return
+    check   ("uniform"     , rng.uniformSample()         ,         0.0)  # double precision baseline
+
+# Output times — exercises `integer(c_size_t)` return + arg.
+with safe_section("outputTimesUniformSpacingInRedshift"):
+    outputTimes = galacticus.outputTimesUniformSpacingInRedshift(0.0,5.0,10,cosmologyFunctions)
+    # TODO: replace dummy expectations below with golden values from a real run.
+    check_eq("count()"           , outputTimes.count()             ,  10)  # integer(c_size_t) return
+    check   ("time(indexOutput=0)", outputTimes.time(indexOutput=0),  0.0)  # integer(c_size_t) arg, double return
+    check   ("redshift(idx=9)"   , outputTimes.redshift(indexOutput=9),  0.0)
+
+# Dark matter profile concentration — confirms partial-method exposure works
+# (densityContrastDefinition/darkMatterProfileDMODefinition return class(...)
+# and were auto-skipped, but the constructor and other methods should still
+# be reachable).  Methods of this class take type(treeNode) which Python
+# can't construct yet, so we just verify the constructor succeeds.
+with safe_section("darkMatterProfileConcentrationBullock2001"):
+    concentration = galacticus.darkMatterProfileConcentrationBullock2001(0.01,3.4,cosmologyParameters,cosmologyFunctions,criticalOverdensity,cosmologicalMassVariance,virialDensityContrast)
+    # No assertion — the constructor not raising and the subsequent destructor
+    # running cleanly is the test.
+
+# Initial mass function — exercises `type(varying_string)` return-type path
+# (Fortran-side static c_char buffer + Python-side .decode("utf-8")).
+with safe_section("initialMassFunctionSalpeter1955"):
+    imf = galacticus.initialMassFunctionSalpeter1955()
+    # TODO: replace dummy expectations below with golden values from a real run.
+    check_eq("label"      , imf.label()                            ,    "Salpeter1955")  # varying_string return
+    check   ("massMinimum", imf.massMinimum()                      ,    0.1)
+    check   ("massMaximum", imf.massMaximum()                      ,  125.0)
+    check   ("phi(M=1)"   , imf.phi(massInitial=1.0)               ,    0.0)
+    check   ("N(0.1..125)", imf.numberCumulative(massLower=0.1,massUpper=125.0), 0.0)
 
 # Final summary and exit code.
 print(f"--- {_failures} failure(s) ---")
