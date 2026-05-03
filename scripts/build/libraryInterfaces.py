@@ -164,6 +164,31 @@ def _process_function_class_file(file_name, code, python, lib_function_classes,
             code, python, lib_function_classes
         )
 
+def _unsupported_constructor_arg(args):
+    """If any constructor argument has a type the pipeline can't translate,
+    return ``(name, reason)``; otherwise ``None``.
+
+    Today this catches:
+
+    * ``complex`` / ``double complex`` — ctypes has no built-in c_complex.
+    * Any source-level ``dimension(...)`` attribute.  Arrays of basic types
+      need a size-passing convention we don't have yet, and arrays of
+      ``character`` / ``type(varying_string)`` would also collide with the
+      ``dimension(*)`` that ``assign_c_attributes`` auto-appends for
+      c_char_p, producing invalid two-``dimension``-clause declarations.
+
+    Allocatable scalars (no ``dimension``) are still permitted.
+    """
+    for arg in args:
+        intrinsic = arg.get('intrinsic')
+        if intrinsic in ('complex', 'double complex'):
+            return arg['name'], f"{intrinsic}({arg.get('type','')})"
+        for attr in arg.get('attributes', []):
+            if attr.startswith('dimension'):
+                return arg['name'], 'dimensioned argument'
+    return None
+
+
 def _process_implementations(func_class, directive_locations, state_storables,
                              code, python, lib_function_classes):
     """Process all implementations of a function class."""
@@ -267,13 +292,28 @@ def _process_implementations(func_class, directive_locations, state_storables,
         is_excluded = (isinstance(impl_conf, dict)
                        and impl_conf.get('exclude') == 'yes')
         if not is_abstract and not is_excluded:
-            impls_list.append({
-                'name':      impl_name,
-                'classID':   class_id,
-                'fileName':  impl_file,
-                'moduleUses': module_uses_impls.get(impl_name, []),
-                'arguments': args_constructor,
-            })
+            unsupported = _unsupported_constructor_arg(args_constructor)
+            if unsupported:
+                # Skip implementations whose constructor takes an argument the
+                # pipeline can't translate (today: source-level dimensioned
+                # args of any intrinsic, and complex / double complex).
+                # The class itself is still exposed; only the offending
+                # implementation is omitted from impls_list, so it won't
+                # appear in the Python class hierarchy or GetPtr dispatcher.
+                sys.stderr.write(
+                    f"libraryInterfaces.py: caution: implementation"
+                    f" '{impl_name}' of class '{class_name}' has constructor"
+                    f" argument '{unsupported[0]}' of unsupported kind"
+                    f" ({unsupported[1]}) — skipping implementation\n"
+                )
+            else:
+                impls_list.append({
+                    'name':      impl_name,
+                    'classID':   class_id,
+                    'fileName':  impl_file,
+                    'moduleUses': module_uses_impls.get(impl_name, []),
+                    'arguments': args_constructor,
+                })
 
     func_class['implementations'] = impls_list
 
