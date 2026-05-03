@@ -44,8 +44,8 @@ errors are a power-law in halo mass.
      !!{
      Constructors for the \refClass{nbodyHaloMassErrorPowerLaw} N-body halo mass error class.
      !!}
-     module procedure nbodyHaloMassErrorPowerLawParameters
-     module procedure nbodyHaloMassErrorPowerLawInternal
+     module procedure nbodyHaloMassErrorPowerLawConstructorParameters
+     module procedure nbodyHaloMassErrorPowerLawConstructorInternal
   end interface nbodyHaloMassErrorPowerLaw
 
   ! Reference mass used in the error model.
@@ -53,7 +53,7 @@ errors are a power-law in halo mass.
 
 contains
 
-  function nbodyHaloMassErrorPowerLawParameters(parameters) result(self)
+  function nbodyHaloMassErrorPowerLawConstructorParameters(parameters) result(self)
     !!{
     Constructor for the \refClass{nbodyHaloMassErrorPowerLaw} N-body halo mass error class which takes a parameter set as input.
     !!}
@@ -94,9 +94,9 @@ contains
     <inputParametersValidate source="parameters"/>
     !!]
     return
-  end function nbodyHaloMassErrorPowerLawParameters
+  end function nbodyHaloMassErrorPowerLawConstructorParameters
 
-  function nbodyHaloMassErrorPowerLawInternal(normalization,exponent,fractionalErrorHighMass) result(self)
+  function nbodyHaloMassErrorPowerLawConstructorInternal(normalization,exponent,fractionalErrorHighMass) result(self)
     !!{
     Internal constructor for the \refClass{nbodyHaloMassErrorPowerLaw} N-body halo mass error class.
     !!}
@@ -111,7 +111,7 @@ contains
     self%normalizationSquared          =normalization          **2
     self%fractionalErrorHighMassSquared=fractionalErrorHighMass**2
     return
-  end function nbodyHaloMassErrorPowerLawInternal
+  end function nbodyHaloMassErrorPowerLawConstructorInternal
 
   double precision function powerLawErrorFractional(self,node)
     !!{
