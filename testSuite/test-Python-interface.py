@@ -149,8 +149,8 @@ with safe_section("outputTimesList"):
     outputTimesL = galacticus.outputTimesList([0.5, 1.0, 2.0, 5.0, 13.0], cosmologyFunctions)
     # TODO: replace dummy expectations below with golden values from a real run.
     check_eq("count() (5 entries)"     , outputTimesL.count()                   , 5)
-    check   ("time(indexOutput=0)"     , outputTimesL.time(indexOutput=0)       , 0.5)
-    check   ("time(indexOutput=4)"     , outputTimesL.time(indexOutput=4)       , 13.0)
+    check   ("time(indexOutput=1)"     , outputTimesL.time(indexOutput=1)       , 0.5)
+    check   ("time(indexOutput=5)"     , outputTimesL.time(indexOutput=5)       , 13.0)
 
 # Dark matter profile concentration — exercises the class(FooClass) return
 # path: densityContrastDefinition() returns class(virialDensityContrastClass),
