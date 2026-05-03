@@ -49,6 +49,13 @@ _SHARED_TYPE_MODULES = {
 }
 
 
+# Match a fixed-size 1D dimension attribute (e.g. dimension(3)).  Used to
+# distinguish a fixed-size array — whose length is known at codegen time
+# and so needs no count companion — from a deferred-shape dimension(:),
+# which does.
+_DIM_FIXED_RX = re.compile(r'^dimension\s*\(\s*(\d+)\s*\)$')
+
+
 def assign_c_types(argument_list, lib_function_classes):
     """Assign appropriate C types for each argument.
 
@@ -136,32 +143,40 @@ def assign_c_types(argument_list, lib_function_classes):
                     # Insert _ID before the current front, then arg before that.
                     new_list.insert(0, arg_id)
 
-        # Insert a count companion for 1D deferred-shape numeric arrays.
-        # The companion (integer(c_size_t), value, intent(in)) sits in the
-        # bind(c) signature immediately after the array, computed at the
-        # Python boundary from the input numpy array's .size.  It's
-        # py_is_present=False so it's hidden from the user's signature, and
-        # galacticus_is_present=False because the inner Galacticus method
-        # receives the array as a slice (arr(1:arr_count)) — see
-        # build_fortran_reassignments — so it sees a normal dimension(:)
-        # array without needing the count separately.
-        if (intrinsic in ('double precision', 'integer')
-                and 'dimension(:)' in arg.attributes):
-            arg.is_array = True
-            count_arg = ArgSpec(
-                name                  = arg.name + '_count',
-                intrinsic             = 'integer',
-                type_spec             = 'c_size_t',
-                attributes            = ['intent(in)'],
-                ctype                 = 'c_size_t',
-                fort_type             = 'integer(c_size_t)',
-                fort_is_present       = True,
-                py_is_present         = False,
-                galacticus_is_present = False,
-                is_optional           = False,
-                is_function_class     = False,
-            )
-            new_list.insert(0, count_arg)
+        # Detect 1D numeric arrays (deferred-shape or fixed-size) and set
+        # is_array / array_size so the rest of the pipeline can recognise
+        # them.  Deferred-shape gets a hidden integer(c_size_t) count
+        # companion immediately after it — same trick as the _ID
+        # companion for class(FooClass) args; the Python wrapper computes
+        # the value from the input numpy array's .size, and the inner
+        # Galacticus method receives an `arr(1:arr_count)` slice (see
+        # build_fortran_reassignments).  Fixed-size needs no companion:
+        # the length is in the dimension spec itself.
+        if intrinsic in ('double precision', 'integer'):
+            if 'dimension(:)' in arg.attributes:
+                arg.is_array   = True
+                arg.array_size = None
+                count_arg = ArgSpec(
+                    name                  = arg.name + '_count',
+                    intrinsic             = 'integer',
+                    type_spec             = 'c_size_t',
+                    attributes            = ['intent(in)'],
+                    ctype                 = 'c_size_t',
+                    fort_type             = 'integer(c_size_t)',
+                    fort_is_present       = True,
+                    py_is_present         = False,
+                    galacticus_is_present = False,
+                    is_optional           = False,
+                    is_function_class     = False,
+                )
+                new_list.insert(0, count_arg)
+            else:
+                for a in arg.attributes:
+                    m = _DIM_FIXED_RX.match(a)
+                    if m:
+                        arg.is_array   = True
+                        arg.array_size = int(m.group(1))
+                        break
 
         new_list.insert(0, arg)
 
@@ -244,23 +259,35 @@ def build_python_reassignments(argument_list):
                 arg_id.py_pass_as = name + '._classID'
             new_list.insert(0, arg_id)        # unshift _ID back
         elif arg.is_array:
-            # 1D deferred-shape numeric array: convert the user's input
-            # (numpy array, list, scalar tuple) to a contiguous ndarray of
-            # the right dtype, then pass its data pointer + size to the
-            # bind(c) function.  Same pop/unshift trick as the _ID case
+            # 1D numeric array: convert the user's input (numpy array, list,
+            # tuple) to a contiguous ndarray of the right dtype, then pass
+            # its data pointer to the bind(c) function.  Deferred-shape
+            # also passes a count: same pop/unshift trick as the _ID case
             # above to grab the count companion that's sitting at the
-            # front of new_list.
-            count_arg = new_list.pop(0)
+            # front of new_list.  Fixed-size validates the length so a
+            # mismatched input raises a clear ValueError instead of
+            # silently corrupting Fortran-side memory.
             np_dtype  = _ARRAY_NUMPY_DTYPE.get(arg.ctype, 'float64')
-            arg.py_reassignment = (
-                f'    {arg.name} = np.ascontiguousarray({arg.name},'
-                f' dtype=np.{np_dtype})\n'
-            )
-            arg.py_pass_as       = (
+            if arg.array_size is None:
+                count_arg = new_list.pop(0)
+                arg.py_reassignment = (
+                    f'    {arg.name} = np.ascontiguousarray({arg.name},'
+                    f' dtype=np.{np_dtype})\n'
+                )
+                count_arg.py_pass_as = f'c_size_t({arg.name}.size)'
+                new_list.insert(0, count_arg)
+            else:
+                arg.py_reassignment = (
+                    f'    {arg.name} = np.ascontiguousarray({arg.name},'
+                    f' dtype=np.{np_dtype})\n'
+                    f'    if {arg.name}.size != {arg.array_size}:\n'
+                    f'        raise ValueError('
+                    f'f"{arg.name} expects {arg.array_size} elements, got '
+                    f'{{{arg.name}.size}}")\n'
+                )
+            arg.py_pass_as = (
                 f'{arg.name}.ctypes.data_as(POINTER({arg.ctype}))'
             )
-            count_arg.py_pass_as = f'c_size_t({arg.name}.size)'
-            new_list.insert(0, count_arg)
         new_list.insert(0, arg)               # unshift current arg
     return new_list
 
@@ -308,12 +335,15 @@ def build_fortran_reassignments(argument_list, func_class, implementation,
         opt_prefix    = f'if (present({name})) ' if is_optional else ''
 
         if arg.is_array:
-            # 1D deferred-shape numeric array.  The bind(c) signature has
-            # `dimension(*)` (assumed-size) plus a separate <name>_count;
-            # the inner Galacticus method takes `dimension(:)` (assumed-
-            # shape), so we pass an array section to recover a proper
-            # rank-1 descriptor of the right length.
-            arg.fort_pass_as = f'{name}(1:{name}_count)'
+            # 1D numeric array.  Deferred-shape needs slicing — the bind(c)
+            # signature has `dimension(*)` (assumed-size) plus a separate
+            # <name>_count, so we hand the inner method a section
+            # `name(1:name_count)` to recover a proper rank-1 descriptor of
+            # the right length.  Fixed-size doesn't need slicing: the
+            # bind(c) declaration is already explicit-shape `dimension(N)`,
+            # which the inner method accepts directly.
+            if arg.array_size is None:
+                arg.fort_pass_as = f'{name}(1:{name}_count)'
         elif intrinsic == 'logical':
             # c_bool must be recast to a plain Fortran logical.
             arg.fort_reassignment = f'{opt_prefix}{name}_=logical({name})\n'

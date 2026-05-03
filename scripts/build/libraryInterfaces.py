@@ -181,6 +181,18 @@ _CLASS_RETURN_RX = re.compile(
     re.IGNORECASE,
 )
 
+# Match a fixed-size 1D dimension(N) attribute on a constructor/method arg.
+# Mirrors Pipeline._DIM_FIXED_RX (kept locally so libraryInterfaces.py
+# doesn't need to import a private name).
+_DIM_FIXED_RX_INTERFACES = re.compile(r'^dimension\s*\(\s*(\d+)\s*\)$')
+
+# Match a 1D fixed-size array RETURN type, e.g. `double precision, dimension(3)`
+# or `integer, dimension(3)`.  Captures (intrinsic, size).
+_ARRAY_RETURN_RX = re.compile(
+    r'^(double\s+precision|integer)\s*,\s*dimension\s*\(\s*(\d+)\s*\)\s*$',
+    re.IGNORECASE,
+)
+
 
 def _find_enum_module(enum_type, func_class):
     """Locate the Fortran module that exports *enum_type* (an
@@ -261,16 +273,20 @@ def _unsupported_arg(arg, lib_function_classes, *,
     attrs = arg.get('attributes', [])
     for attr in attrs:
         if attr.startswith('dimension'):
-            # 1D deferred-shape arrays of basic numeric types are
-            # plumbed through with a count companion + numpy ndarray
-            # conversion (see assign_c_types / build_python_reassignments
-            # in Pipeline.py) — but only as input (intent(in), no
-            # allocatable).  Output / allocatable arrays would need
-            # the bind(c) function to communicate the size BACK to
-            # Python, plus a non-assumed-size shape; that's a separate
-            # implementation we don't have yet.
-            if (attr == 'dimension(:)' and intrinsic in
-                    ('double precision', 'integer')):
+            # 1D numeric arrays are plumbed through with a numpy ndarray
+            # conversion at the Python boundary; deferred-shape gets a
+            # count companion (see assign_c_types /
+            # build_python_reassignments in Pipeline.py), fixed-size
+            # uses the literal length from the dimension spec.  Output /
+            # allocatable arrays still need the bind(c) function to
+            # communicate the size BACK to Python plus a non-assumed-size
+            # shape — that's a separate implementation we don't have yet.
+            is_supported_dim = (
+                intrinsic in ('double precision', 'integer')
+                and (attr == 'dimension(:)'
+                     or _DIM_FIXED_RX_INTERFACES.match(attr))
+            )
+            if is_supported_dim:
                 if 'allocatable' in attrs:
                     return ('1D allocatable array argument'
                             ' (output arrays not yet supported)')
@@ -279,7 +295,8 @@ def _unsupported_arg(arg, lib_function_classes, *,
                             ' (output arrays not yet supported)')
                 continue
             return ('dimensioned argument'
-                    ' (only 1D deferred-shape numeric input is supported)')
+                    ' (only 1D deferred-shape or fixed-size numeric input'
+                    ' is supported)')
     return None
 
 
@@ -720,6 +737,8 @@ def interfaces_methods(code, python, func_class, extensions, module_uses_impls,
         result_extra_fort_args    = []    # extra args appended to bind(c) signature
         result_extra_clib_argtypes = []   # matching ctypes wrappers
         result_python_class_wrap  = None  # (parent_class, out_id_var) or None
+        result_python_array_wrap  = None  # (size, elem_ctype, elem_dtype) or None
+        result_is_subroutine      = False # force `subroutine` even when method_type != "void"
         if method_type == "double precision":
             method_type_c                        = "real(c_double)"
             clib_res_type                        = "c_double";
@@ -860,6 +879,38 @@ def interfaces_methods(code, python, func_class, extensions, module_uses_impls,
             result_extra_fort_args     = [out_classID_name]
             result_extra_clib_argtypes = ['POINTER(c_int)']
             result_python_class_wrap   = (return_stem, out_classID_name)
+        elif _ARRAY_RETURN_RX.match(method_type):
+            # Returned 1D fixed-size numeric array (e.g.
+            # `double precision, dimension(3)`).  bind(c) functions can't
+            # return arrays directly, so we lower to a subroutine with an
+            # extra `intent(out), dimension(N)` arg and have the inner
+            # method's result assigned into it.  Python pre-allocates a
+            # numpy array of the right shape/dtype, passes it via
+            # data_as(POINTER(...)), and returns it.
+            m = _ARRAY_RETURN_RX.match(method_type)
+            arr_intrinsic_raw = m.group(1).lower()
+            arr_intrinsic     = re.sub(r'\s+', ' ', arr_intrinsic_raw)
+            arr_size = int(m.group(2))
+            if arr_intrinsic == 'double precision':
+                elem_ctype, elem_fort, elem_dtype = ('c_double',
+                                                    'real(c_double)',
+                                                    'float64')
+            else:                                # integer (default kind)
+                elem_ctype, elem_fort, elem_dtype = ('c_int',
+                                                    'integer(c_int)',
+                                                    'int32')
+            isoImports[elem_ctype] = 1
+            method_type_c              = ''      # subroutine, no return type
+            clib_res_type              = None
+            result_call_target         = 'glcResult_'
+            result_extra_declarations  = (
+                f'  {elem_fort}, dimension({arr_size}), intent(out) ::'
+                f' glcResult_\n'
+            )
+            result_extra_fort_args     = ['glcResult_']
+            result_extra_clib_argtypes = [f'POINTER({elem_ctype})']
+            result_python_array_wrap   = (arr_size, elem_ctype, elem_dtype)
+            result_is_subroutine       = True
         elif method_type == "void":
             pass
         else:
@@ -908,9 +959,13 @@ def interfaces_methods(code, python, func_class, extensions, module_uses_impls,
                                               extensions, module_uses_impls,
                                               lib_function_classes)
 
-        # Generate Fortran method
-        procedure = 'subroutine' if method_type == 'void' else 'function'
-        func_decl = '' if method_type == 'void' else f'{method_type_c} :: {method_name_c}\n'
+        # Generate Fortran method.  An array-return method is lowered to a
+        # subroutine with an extra intent(out) array arg (see the
+        # _ARRAY_RETURN_RX branch above), so result_is_subroutine forces
+        # `subroutine` even though method_type is non-void.
+        is_subroutine = method_type == 'void' or result_is_subroutine
+        procedure = 'subroutine' if is_subroutine else 'function'
+        func_decl = '' if is_subroutine else f'{method_type_c} :: {method_name_c}\n'
 
         iso_imports = iso_c_binding_import(arg_list, *isoImports.keys())
         fort_args = list(fortran_arg_list(arg_list)) + list(result_extra_fort_args)
@@ -966,8 +1021,37 @@ end {procedure} {method_name_c}
                 + f'    _ptr_ = c_lib.{method_name_c}({",".join(py_call_args)})\n'
                 + f'    return {parent_class}._from_classID({out_id_var}.value, _ptr_)\n'
             )
+        elif result_python_array_wrap:
+            # Fixed-size array return: pre-allocate a numpy array of the
+            # right shape/dtype, hand its data pointer as the synthetic
+            # intent(out) arg, then return the (now-filled) numpy array.
+            # As with class(...) returns, optional-arg branching isn't
+            # supported here — none of today's array-return methods need it.
+            arr_size, elem_ctype, elem_dtype = result_python_array_wrap
+            py_call_args = []
+            for a in arg_list:
+                if not a.fort_is_present:
+                    continue
+                py_call_args.append(a.py_pass_as if a.py_pass_as else a.name)
+            py_call_args.append(
+                f'_glcArr_.ctypes.data_as(POINTER({elem_ctype}))'
+            )
+            reassignments_block = ''.join(a.py_reassignment for a in arg_list)
+            py_call = (
+                reassignments_block
+                + f'    _glcArr_ = np.zeros({arr_size}, dtype=np.{elem_dtype})\n'
+                + f'    c_lib.{method_name_c}({",".join(py_call_args)})\n'
+                + f'    return _glcArr_\n'
+            )
         else:
-            py_call = python_call_code(arg_list, f'return c_lib.{method_name_c}')
+            # Reassignments (numpy conversion, optional-arg unpacking, …)
+            # belong before the call, mirroring the constructor template.
+            # Without this, methods with array args would see an unconverted
+            # input passed straight to data_as(), and methods with optional
+            # functionClass args would skip their presence-check block.
+            py_call = (python_reassignments(arg_list)
+                       + python_call_code(arg_list,
+                                          f'return c_lib.{method_name_c}'))
             if result_python_decode:
                 # Append .decode("utf-8") to each call line so the bytes returned by
                 # ctypes c_char_p are converted to a Python str.

@@ -90,6 +90,46 @@ def test_assign_c_types_function_class_inserts_id_companion():
     assert out[1].galacticus_is_present is False
 
 
+def test_assign_c_types_fixed_array_no_count_companion():
+    """A double precision, dimension(3) argument is is_array=True with
+    array_size=3, but does NOT get a count companion (the size is in the
+    dimension spec)."""
+    raw = [{'name': 'point', 'intrinsic': 'double precision', 'type': None,
+            'attributes': ['intent(in)', 'dimension(3)']}]
+    out = assign_c_types(raw, lib_function_classes={})
+    assert [a.name for a in out] == ['point']
+    assert out[0].is_array   is True
+    assert out[0].array_size == 3
+    assert out[0].ctype      == 'c_double'
+
+
+def test_python_reassignments_fixed_array_validates_size():
+    """A fixed-size is_array arg's py_reassignment converts via numpy AND
+    raises ValueError if the input's size doesn't match the declared
+    length — a wrong-size input would otherwise silently corrupt
+    Fortran-side memory."""
+    arr = ArgSpec(name='point', intrinsic='double precision',
+                  ctype='c_double', is_array=True, array_size=3)
+    out = build_python_reassignments([arr])
+    assert 'np.ascontiguousarray(point' in out[0].py_reassignment
+    assert 'point.size != 3'            in out[0].py_reassignment
+    assert 'raise ValueError'           in out[0].py_reassignment
+    assert out[0].py_pass_as == 'point.ctypes.data_as(POINTER(c_double))'
+
+
+def test_fortran_reassignments_fixed_array_passed_directly():
+    """A fixed-size is_array arg's fort_pass_as is unset (defaults to the
+    arg name) — no slicing is needed because the bind(c) declaration is
+    already explicit-shape `dimension(N)` and matches the inner method."""
+    arr = ArgSpec(name='point', intrinsic='double precision', ctype='c_double',
+                  fort_type='real(c_double)', is_array=True, array_size=3)
+    out = build_fortran_reassignments(
+        [arr], func_class={}, implementation=None,
+        extensions={}, module_uses_impls={},
+    )
+    assert out[0].fort_pass_as == ''  # no slicing — name passes through
+
+
 def test_assign_c_types_deferred_array_inserts_count_companion():
     """A double precision, dimension(:) argument gets a hidden c_size_t
     count companion immediately after it; both are flagged so the rest of
