@@ -139,17 +139,32 @@ with safe_section("outputTimesUniformSpacingInRedshift"):
     check   ("time(indexOutput=1)", outputTimes.time(indexOutput=1),  1.15473815)  # integer(c_size_t) arg, double return
     check   ("redshift(idx=10)"   , outputTimes.redshift(indexOutput=10),  0.0)
 
-# Dark matter profile concentration — confirms partial-method exposure works
-# (densityContrastDefinition/darkMatterProfileDMODefinition return class(...)
-# and were auto-skipped, but the constructor and other methods should still
-# be reachable).  Methods of this class take type(treeNode) which Python
-# can't construct yet, so we just verify the constructor succeeds
+# Dark matter profile concentration — exercises the class(FooClass) return
+# path: densityContrastDefinition() returns class(virialDensityContrastClass),
+# which the wrapper resolves into the matching Python subclass via
+# virialDensityContrast._from_classID.  The returned object is owned by
+# Galacticus (not by Python), so its destructor is a no-op (_owned=False)
+# and we should still be able to call methods on it.
 darkMatterHaloScale = galacticus.darkMatterHaloScaleVirialDensityContrastDefinition(cosmologyParameters,cosmologyFunctions,virialDensityContrast)
 darkMatterProfileDMO = galacticus.darkMatterProfileDMOIsothermal(darkMatterHaloScale)
 with safe_section("darkMatterProfileConcentrationFixed"):
     concentration = galacticus.darkMatterProfileConcentrationFixed(10.0,virialDensityContrast,darkMatterProfileDMO)
-    # No assertion — the constructor not raising and the subsequent destructor
-    # running cleanly is the test.
+    vdcReturned   = concentration.densityContrastDefinition()
+    # The returned wrapper should be the same concrete subclass we passed in.
+    check_eq("class(...) return type"   , type(vdcReturned).__name__           , type(virialDensityContrast).__name__)
+    check_eq("class(...) return _owned" , getattr(vdcReturned, '_owned', True) , False)
+    # And the wrapped object should be usable for further method calls; the
+    # value should match the original instance (same Galacticus object).
+    check   ("Δ_vir(via returned)"      , vdcReturned.densityContrast(mass=1.0e12,time=13.8), 350.506868239381)
+
+# Node property extractor — exercises `type(enumerationXxxType)` return path
+# (the inner method gives a derived enum type, the wrapper lifts the %ID
+# component out as c_int).
+with safe_section("nodePropertyExtractorNodeMajorMergerTime"):
+    npe = galacticus.nodePropertyExtractorNodeMajorMergerTime()
+    # TODO: replace dummy expectations below with golden values from a real run.
+    check_eq("type()"    , npe.type()    , 0)  # type(enumerationOutputAnalysisPropertyType    Type) → c_int
+    check_eq("quantity()", npe.quantity(), 0)  # type(enumerationOutputAnalysisPropertyQuantityType) → c_int
 
 # Initial mass function — exercises `type(varying_string)` return-type path
 # (Fortran-side static c_char buffer + Python-side .decode("utf-8")).
