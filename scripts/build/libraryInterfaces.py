@@ -727,6 +727,13 @@ def interfaces_methods(code, python, func_class, extensions, module_uses_impls,
             # buffer (deallocated on each call so only the most recent result
             # persists), then a c_ptr to that buffer is returned.  Python's
             # ctypes c_char_p restype copies the bytes; we then decode to str.
+            #
+            # Local-variable names are short, generic, and scoped to the
+            # bind(c) function — the Galacticus convention is a `glc` prefix
+            # plus a trailing underscore so they don't collide with user-named
+            # method arguments.  This also avoids the Fortran 63-character
+            # identifier limit, which long method names would otherwise trip
+            # if we used `<method>_result_` etc.
             method_type_c                        = "type(c_ptr)"
             clib_res_type                        = "c_char_p"
             isoImports['c_ptr']       = 1
@@ -736,22 +743,22 @@ def interfaces_methods(code, python, func_class, extensions, module_uses_impls,
             result_extra_module_uses = (
                 f'  use :: ISO_Varying_String, only : varying_string, char\n'
             )
-            result_call_target = f'{method_name_c}_result_'
+            result_call_target = 'glcResult_'
             result_extra_declarations = (
-                f'  type     (varying_string)                                       :: {method_name_c}_result_\n'
-                f'  character(kind=c_char   ), dimension(:), allocatable, save, target :: {method_name_c}_buffer_\n'
-                f'  character(len=:         ), allocatable                          :: {method_name_c}_chars_\n'
-                f'  integer                                                         :: {method_name_c}_i_\n'
+                f'  type     (varying_string)                                          :: glcResult_\n'
+                f'  character(kind=c_char   ), dimension(:), allocatable, save, target :: glcBuffer_\n'
+                f'  character(len=:         ), allocatable                             :: glcChars_\n'
+                f'  integer                                                            :: glcI_\n'
             )
             result_post_call_code = (
-                f'  {method_name_c}_chars_ = char({method_name_c}_result_)\n'
-                f'  if (allocated({method_name_c}_buffer_)) deallocate({method_name_c}_buffer_)\n'
-                f'  allocate({method_name_c}_buffer_(len({method_name_c}_chars_)+1))\n'
-                f'  do {method_name_c}_i_ = 1, len({method_name_c}_chars_)\n'
-                f'     {method_name_c}_buffer_({method_name_c}_i_) = {method_name_c}_chars_({method_name_c}_i_:{method_name_c}_i_)\n'
+                f'  glcChars_ = char(glcResult_)\n'
+                f'  if (allocated(glcBuffer_)) deallocate(glcBuffer_)\n'
+                f'  allocate(glcBuffer_(len(glcChars_)+1))\n'
+                f'  do glcI_ = 1, len(glcChars_)\n'
+                f'     glcBuffer_(glcI_) = glcChars_(glcI_:glcI_)\n'
                 f'  end do\n'
-                f'  {method_name_c}_buffer_(len({method_name_c}_chars_)+1) = c_null_char\n'
-                f'  {method_name_c} = c_loc({method_name_c}_buffer_)\n'
+                f'  glcBuffer_(len(glcChars_)+1) = c_null_char\n'
+                f'  {method_name_c} = c_loc(glcBuffer_)\n'
             )
             result_python_decode = True
         elif _ENUM_RETURN_RX.match(method_type):
@@ -769,12 +776,12 @@ def interfaces_methods(code, python, func_class, extensions, module_uses_impls,
                 result_extra_module_uses = (
                     f'  use :: {enum_module}, only : {enum_type}\n'
                 )
-            result_call_target = f'{method_name_c}_result_'
+            result_call_target = 'glcResult_'
             result_extra_declarations = (
-                f'  type({enum_type}) :: {method_name_c}_result_\n'
+                f'  type({enum_type}) :: glcResult_\n'
             )
             result_post_call_code = (
-                f'  {method_name_c} = {method_name_c}_result_%ID\n'
+                f'  {method_name_c} = glcResult_%ID\n'
             )
         elif _CLASS_RETURN_RX.match(method_type):
             # Returned class(FooClass): the inner method gives us a
@@ -800,7 +807,10 @@ def interfaces_methods(code, python, func_class, extensions, module_uses_impls,
                 continue
             return_module = (lib_function_classes or {}) \
                             .get(return_stem, {}).get('module')
-            out_classID_name = f'{method_name_c}_classID_out'
+            # Short, scoped Fortran identifiers — see the varying_string
+            # branch above for the same rationale (Fortran 63-char limit
+            # plus collision-avoidance with user-named method arguments).
+            out_classID_name = 'glcCidOut_'
             method_type_c   = "type(c_ptr)"
             clib_res_type   = "c_void_p"
             isoImports['c_ptr'] = 1
@@ -809,10 +819,10 @@ def interfaces_methods(code, python, func_class, extensions, module_uses_impls,
                 result_extra_module_uses = (
                     f'  use :: {return_module}, only : {return_class_type}\n'
                 )
-            result_call_target = f'{method_name_c}_result_'
+            result_call_target = 'glcResult_'
             result_assign_op   = '=>'   # method returns a polymorphic pointer
             result_extra_declarations = (
-                f'  class({return_class_type}), pointer :: {method_name_c}_result_\n'
+                f'  class({return_class_type}), pointer :: glcResult_\n'
                 f'  integer(c_int), intent(out) :: {out_classID_name}\n'
                 f'  interface\n'
                 f'    function {return_stem}GetIdAndPtr(obj,classID) result(ptr)\n'
@@ -825,7 +835,7 @@ def interfaces_methods(code, python, func_class, extensions, module_uses_impls,
             )
             result_post_call_code = (
                 f'  {method_name_c} = {return_stem}GetIdAndPtr('
-                f'{method_name_c}_result_,{out_classID_name})\n'
+                f'glcResult_,{out_classID_name})\n'
             )
             result_extra_fort_args     = [out_classID_name]
             result_extra_clib_argtypes = ['POINTER(c_int)']
