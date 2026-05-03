@@ -164,40 +164,93 @@ def _process_function_class_file(file_name, code, python, lib_function_classes,
             code, python, lib_function_classes
         )
 
-def _unsupported_constructor_arg(args, lib_function_classes):
-    """If any constructor argument has a type the pipeline can't translate,
-    return ``(name, reason)``; otherwise ``None``.
+def _unsupported_arg(arg, lib_function_classes, *,
+                     constructor_overrides=(), is_constructor=False):
+    """Return a human-readable reason if ``arg`` has a type the pipeline
+    can't translate, otherwise ``None``.
 
-    Today this catches:
+    Shared core used by both :func:`_unsupported_constructor_arg` and
+    :func:`_unsupported_method_arg`.
+
+    Always rejects:
 
     * ``complex`` / ``double complex`` — ctypes has no built-in c_complex.
+    * ``class(FooClass)`` whose stem ``Foo`` is not listed in
+      ``libraryClasses.xml``.  Without that registration, ``assign_c_types``
+      can't set ``is_function_class=True``, so no ``_ID`` companion or
+      ``FooGetPtr``-based reassignment is generated and the bind(c) wrapper
+      passes a raw c_ptr into a Fortran routine that wants ``class(...)``.
+    * ``class(SomethingElse)`` that isn't a registered functionClass — same
+      mismatch (e.g. ``class(nodeComponentBlackHole)``).
+    * ``class(*)`` unless ``constructor_overrides`` contains a matching
+      ``<argument name=... type=... module=.../>`` hint from
+      libraryClasses.xml.
+
+    Additionally rejects when *is_constructor* is True:
+
     * Any source-level ``dimension(...)`` attribute.  Arrays of basic types
       need a size-passing convention we don't have yet, and arrays of
       ``character`` / ``type(varying_string)`` would also collide with the
       ``dimension(*)`` that ``assign_c_attributes`` auto-appends for
-      c_char_p, producing invalid two-``dimension``-clause declarations.
-    * ``class(FooClass)`` whose stem ``Foo`` is not itself listed in
-      ``libraryClasses.xml``.  Without that registration, ``assign_c_types``
-      can't set ``is_function_class=True``, so no ``_ID`` companion or
-      ``FooGetPtr``-based reassignment is generated and the call from the
-      bind(c) wrapper to the inner Fortran constructor is a type mismatch.
+      ``c_char_p``, producing invalid two-``dimension``-clause declarations.
 
-    Allocatable scalars (no ``dimension``) are still permitted.
+    Method args don't get the dimension check today: dimensioned method
+    args also produce broken-but-not-fatal output downstream, so leaving
+    that as-is preserves the previous behaviour for callers that have been
+    living with it.  Allocatable scalars (no ``dimension``) are still fine.
     """
-    for arg in args:
-        intrinsic = arg.get('intrinsic')
-        if intrinsic in ('complex', 'double complex'):
-            return arg['name'], f"{intrinsic}({arg.get('type','')})"
-        if intrinsic == 'class':
-            type_spec = arg.get('type', '') or ''
-            if type_spec.endswith('Class'):
-                stem = type_spec[:-5]
-                if stem not in lib_function_classes:
-                    return arg['name'], (f"class({type_spec}) — '{stem}' "
-                                         f"is not registered in libraryClasses.xml")
+    intrinsic = arg.get('intrinsic')
+    if intrinsic in ('complex', 'double complex'):
+        return f"{intrinsic}({arg.get('type','')})"
+    if intrinsic == 'class':
+        type_spec = (arg.get('type') or '').strip()
+        if type_spec == '*':
+            has_override = any(
+                isinstance(o, dict) and o.get('name') == arg.get('name')
+                for o in constructor_overrides
+            )
+            if not has_override:
+                return ("class(*) without a libraryClasses.xml override "
+                        "(<constructor><argument name=… type=… module=…/>)")
+        elif type_spec.endswith('Class'):
+            stem = type_spec[:-5]
+            if stem not in lib_function_classes:
+                return (f"class({type_spec}) — '{stem}' is not a registered "
+                        f"functionClass in libraryClasses.xml")
+        else:
+            return (f"class({type_spec}) — only registered functionClasses "
+                    f"and class(*) (with override) are supported")
+    if is_constructor:
         for attr in arg.get('attributes', []):
             if attr.startswith('dimension'):
-                return arg['name'], 'dimensioned argument'
+                return 'dimensioned argument'
+    return None
+
+
+def _unsupported_constructor_arg(args, lib_function_classes,
+                                 constructor_overrides=()):
+    """If any constructor argument is unsupported, return ``(name, reason)``;
+    otherwise ``None``.  See :func:`_unsupported_arg` for the predicate."""
+    for arg in args:
+        reason = _unsupported_arg(
+            arg, lib_function_classes,
+            constructor_overrides=constructor_overrides,
+            is_constructor=True,
+        )
+        if reason:
+            return arg['name'], reason
+    return None
+
+
+def _unsupported_method_arg(args, lib_function_classes):
+    """If any method argument is unsupported, return ``(name, reason)``;
+    otherwise ``None``.  Methods don't have constructor-style overrides for
+    ``class(*)``, so the override list is empty and any ``class(*)`` arg is
+    rejected."""
+    for arg in args:
+        reason = _unsupported_arg(arg, lib_function_classes)
+        if reason:
+            return arg['name'], reason
     return None
 
 
@@ -304,8 +357,12 @@ def _process_implementations(func_class, directive_locations, state_storables,
         is_excluded = (isinstance(impl_conf, dict)
                        and impl_conf.get('exclude') == 'yes')
         if not is_abstract and not is_excluded:
+            constructor_overrides = ()
+            if isinstance(impl_conf, dict):
+                constructor_overrides = as_array(
+                    impl_conf.get('constructor', {}).get('argument', []))
             unsupported = _unsupported_constructor_arg(
-                args_constructor, lib_function_classes)
+                args_constructor, lib_function_classes, constructor_overrides)
             if unsupported:
                 # Skip implementations whose constructor takes an argument the
                 # pipeline can't translate (today: source-level dimensioned
@@ -578,24 +635,19 @@ def interfaces_methods(code, python, func_class, extensions, module_uses_impls,
                         'name': var_name,
                     })
 
-        # Skip the method if any argument has a Fortran intrinsic the pipeline
-        # can't translate.  Currently this is `complex` / `double complex`:
-        # ctypes has no built-in c_complex, and the only known callers (e.g.
-        # surveyGeometry::windowFunctions) combine complex with multi-dimensional
-        # runtime-sized arrays — together a substantial design effort that
-        # isn't justified for a single method.  Methods are dropped with a
-        # warning rather than emitted as broken Fortran/Python.
-        unsupported_arg = next(
-            (arg for arg in arg_list[1:]
-             if arg['intrinsic'] in ('complex', 'double complex')),
-            None,
-        )
+        # Skip the method if any argument has a type the pipeline can't
+        # translate (complex/double complex, class(non-registered), class(*)).
+        # See :func:`_unsupported_arg` for the predicate.  Self (arg_list[0])
+        # is class(<the current class>Class) — registered by definition — so
+        # the slice [1:] is just to avoid noise in the iteration.
+        unsupported_arg = _unsupported_method_arg(
+            arg_list[1:], lib_function_classes or {})
         if unsupported_arg:
             sys.stderr.write(
                 f"libraryInterfaces.py: caution: method '{method_name}' in"
-                f" class '{class_name}' has argument '{unsupported_arg['name']}'"
-                f" of unsupported type '{unsupported_arg['intrinsic']}"
-                f"({unsupported_arg.get('type','')})' — skipping method\n"
+                f" class '{class_name}' has argument '{unsupported_arg[0]}'"
+                f" of unsupported kind ({unsupported_arg[1]}) — skipping"
+                f" method\n"
             )
             methods_to_delete.append(method_name)
             continue
