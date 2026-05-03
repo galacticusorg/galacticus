@@ -172,6 +172,15 @@ _ENUM_RETURN_RX = re.compile(
     re.IGNORECASE,
 )
 
+# Match `class(fooClass)` — the Galacticus convention for a polymorphic
+# pointer to a registered functionClass.  Used by interfaces_methods to
+# detect class(...) return types and route them through the per-class
+# XGetIdAndPtr helper.
+_CLASS_RETURN_RX = re.compile(
+    r'^class\s*\(\s*([a-z][a-zA-Z0-9_]*Class)\s*\)$',
+    re.IGNORECASE,
+)
+
 
 def _find_enum_module(enum_type, func_class):
     """Locate the Fortran module that exports *enum_type* (an
@@ -460,7 +469,21 @@ def _process_implementations(func_class, directive_locations, state_storables,
 
 
 def interfaces_pointer_get(code, func_class):
-    """Generate pointer getter function for a function class."""
+    """Generate pointer getters for a function class.
+
+    Emits two Fortran helpers:
+
+    * ``<class>GetPtr(c_ptr, classID) -> class(<class>Class), pointer`` —
+      the inverse, used by every wrapper that takes a ``class(<class>Class)``
+      argument from the Python side: c_ptr + classID → typed pointer.
+
+    * ``<class>GetIdAndPtr(class_obj, classID) -> c_ptr`` — the *forward*
+      direction, used by every wrapper whose method *returns* a
+      ``class(<class>Class)``.  Walks the class's concrete impls with a
+      `select type` block, sets ``classID`` to the matching impl's id,
+      and returns ``c_loc(obj)`` for the concrete typed pointer (which
+      ``c_loc`` requires — it can't take a polymorphic target directly).
+    """
     class_name = func_class['name']
     impls = func_class.get('implementations', [])
 
@@ -486,18 +509,65 @@ def interfaces_pointer_get(code, func_class):
 end function {class_name}GetPtr
 ''')
 
+    # Forward helper used by class(...) return-type method wrappers.
+    select_branches = chr(10).join(
+        f'  type is ({impl["name"]})\n'
+        f'     ptr     = c_loc(obj)\n'
+        f'     classID = {impl["classID"]}'
+        for impl in impls
+    )
+    code.setdefault(class_name, []).append(f'''function {class_name}GetIdAndPtr(obj,classID) result(ptr)
+  use, intrinsic :: ISO_C_Binding, only : c_ptr, c_int, c_loc, c_null_ptr
+  use :: {func_class.get('module', 'Unknown')}, only : {', '.join(symbols)}
+  implicit none
+  type(c_ptr) :: ptr
+  class({class_name}Class), pointer, intent(in) :: obj
+  integer(c_int), intent(out) :: classID
+
+  if (.not.associated(obj)) then
+     ptr     = c_null_ptr
+     classID = -1
+     return
+  end if
+  select type (obj)
+{select_branches}
+  class default
+     ptr     = c_null_ptr
+     classID = -1
+  end select
+  return
+end function {class_name}GetIdAndPtr
+''')
+
 
 def interfaces_python_classes(python, func_class):
     """Generate Python class hierarchy for a function class."""
     class_name = func_class['name']
 
-    # Parent class
+    # Parent class.  _from_classID() is the entry point used by methods
+    # that return class(...)-typed objects: it walks the direct subclasses,
+    # picks the one whose _classIDStatic matches the runtime classID, and
+    # constructs an instance via __new__ (skipping __init__ so we don't
+    # build a *new* Galacticus object — we just wrap the existing pointer).
+    # The returned wrapper is marked _owned=False so the destructor
+    # doesn't try to free Galacticus's object.
     parent_code = f'''class {class_name}:
 
     # Constructor
     def __init__(self):
         # Assign class ID to negative (not a concrete class)
         self._classID = -1
+
+    @classmethod
+    def _from_classID(cls, classID, ptr):
+        for subcls in cls.__subclasses__():
+            if getattr(subcls, '_classIDStatic', None) == classID:
+                obj = subcls.__new__(subcls)
+                obj._glcObj  = ptr
+                obj._classID = classID
+                obj._owned   = False
+                return obj
+        raise ValueError(f"Unknown classID {{classID}} for {{cls.__name__}}")
 '''
     python['units'][class_name] = {
         'content': parent_code,
@@ -505,9 +575,15 @@ def interfaces_python_classes(python, func_class):
         'dependencies': ['init'],
     }
 
-    # Child classes (implementations)
+    # Child classes.  _classIDStatic is the class-level companion to the
+    # per-instance _classID set by the constructor, used by the parent
+    # class's _from_classID to pick the right subclass without having
+    # to instantiate one.
     for impl in func_class.get('implementations', []):
-        child_code = f"class {impl['name']}({class_name}):"
+        child_code = (
+            f"class {impl['name']}({class_name}):\n"
+            f"    _classIDStatic = {impl['classID']}"
+        )
         python['units'][impl['name']] = {
             'content': child_code,
             'indent': 0,
@@ -619,7 +695,11 @@ def interfaces_methods(code, python, func_class, extensions, module_uses_impls,
         result_extra_declarations = ""
         result_post_call_code     = ""
         result_call_target        = method_name_c
+        result_assign_op          = '='   # `=>` for pointer-returning methods (class(...))
         result_python_decode      = False
+        result_extra_fort_args    = []    # extra args appended to bind(c) signature
+        result_extra_clib_argtypes = []   # matching ctypes wrappers
+        result_python_class_wrap  = None  # (parent_class, out_id_var) or None
         if method_type == "double precision":
             method_type_c                        = "real(c_double)"
             clib_res_type                        = "c_double";
@@ -696,6 +776,60 @@ def interfaces_methods(code, python, func_class, extensions, module_uses_impls,
             result_post_call_code = (
                 f'  {method_name_c} = {method_name_c}_result_%ID\n'
             )
+        elif _CLASS_RETURN_RX.match(method_type):
+            # Returned class(FooClass): the inner method gives us a
+            # polymorphic pointer.  We can't c_loc() it directly (Fortran
+            # forbids that on a polymorphic target), so we hand it to
+            # FooGetIdAndPtr — generated by interfaces_pointer_get for
+            # every registered class — which dispatches via select type
+            # to extract a typed c_loc + the matching classID.  Python
+            # gets back (c_void_p, c_int via byref) and dispatches into
+            # the right Foo subclass via Foo._from_classID.
+            return_class_type = _CLASS_RETURN_RX.match(method_type).group(1)
+            return_stem = (return_class_type[:-5]
+                           if return_class_type.endswith('Class')
+                           else return_class_type)
+            if return_stem not in (lib_function_classes or {}):
+                sys.stderr.write(
+                    f"libraryInterfaces.py: caution: method '{method_name}' in"
+                    f" class '{class_name}' returns class({return_class_type}) —"
+                    f" '{return_stem}' is not a registered functionClass in"
+                    f" libraryClasses.xml — skipping method\n"
+                )
+                methods_to_delete.append(method_name)
+                continue
+            return_module = (lib_function_classes or {}) \
+                            .get(return_stem, {}).get('module')
+            out_classID_name = f'{method_name_c}_classID_out'
+            method_type_c   = "type(c_ptr)"
+            clib_res_type   = "c_void_p"
+            isoImports['c_ptr'] = 1
+            isoImports['c_int'] = 1
+            if return_module:
+                result_extra_module_uses = (
+                    f'  use :: {return_module}, only : {return_class_type}\n'
+                )
+            result_call_target = f'{method_name_c}_result_'
+            result_assign_op   = '=>'   # method returns a polymorphic pointer
+            result_extra_declarations = (
+                f'  class({return_class_type}), pointer :: {method_name_c}_result_\n'
+                f'  integer(c_int), intent(out) :: {out_classID_name}\n'
+                f'  interface\n'
+                f'    function {return_stem}GetIdAndPtr(obj,classID) result(ptr)\n'
+                f'      import :: c_ptr, c_int, {return_class_type}\n'
+                f'      type(c_ptr) :: ptr\n'
+                f'      class({return_class_type}), pointer, intent(in) :: obj\n'
+                f'      integer(c_int), intent(out) :: classID\n'
+                f'    end function {return_stem}GetIdAndPtr\n'
+                f'  end interface\n'
+            )
+            result_post_call_code = (
+                f'  {method_name_c} = {return_stem}GetIdAndPtr('
+                f'{method_name_c}_result_,{out_classID_name})\n'
+            )
+            result_extra_fort_args     = [out_classID_name]
+            result_extra_clib_argtypes = ['POINTER(c_int)']
+            result_python_class_wrap   = (return_stem, out_classID_name)
         elif method_type == "void":
             pass
         else:
@@ -749,11 +883,12 @@ def interfaces_methods(code, python, func_class, extensions, module_uses_impls,
         func_decl = '' if method_type == 'void' else f'{method_type_c} :: {method_name_c}\n'
 
         iso_imports = iso_c_binding_import(arg_list, *isoImports.keys())
-        fort_args = fortran_arg_list(arg_list)
+        fort_args = list(fortran_arg_list(arg_list)) + list(result_extra_fort_args)
         declarations = fortran_declarations(arg_list)
         reassignments = fortran_reassignments(arg_list)
         module_uses = fortran_module_uses(arg_list)
-        call_lhs = "call" if method_type == "void" else f'{result_call_target} ='
+        call_lhs = ("call" if method_type == "void"
+                    else f'{result_call_target} {result_assign_op}')
         call_code = fortran_call_code(arg_list,
                                      f'{call_lhs} {result_conversion_open} self_%{method_name}( &\n',
                                      f'&){result_conversion_close}\n', '&')
@@ -770,7 +905,8 @@ end {procedure} {method_name_c}
         code.setdefault(class_name, []).append(fort_method)
 
         # Add c_lib interface
-        arg_types = ctypes_arg_types(arg_list)
+        arg_types = (list(ctypes_arg_types(arg_list))
+                     + list(result_extra_clib_argtypes))
         restype = None if method_type == 'void' else clib_res_type
         python['c_lib'].append({
             'name': method_name_c,
@@ -780,15 +916,36 @@ end {procedure} {method_name_c}
 
         # Generate Python method
         py_args = python_arg_list(arg_list)
-        py_call = python_call_code(arg_list, f'return c_lib.{method_name_c}')
-        if result_python_decode:
-            # Append .decode("utf-8") to each call line so the bytes returned by
-            # ctypes c_char_p are converted to a Python str.
-            py_call = re.sub(
-                r'(c_lib\.' + re.escape(method_name_c) + r'\([^\n]*\))(\n)',
-                r'\1.decode("utf-8")\2',
-                py_call,
+        if result_python_class_wrap:
+            # class(...) return: bypass python_call_code's "return c_lib(args)"
+            # template — we need a setup statement (the c_int that ctypes
+            # will fill), then the call, then a wrap-into-Python-class step.
+            # Optional-arg branching is intentionally not supported here;
+            # no current method needs it.
+            parent_class, out_id_var = result_python_class_wrap
+            py_call_args = []
+            for a in arg_list:
+                if not a.fort_is_present:
+                    continue
+                py_call_args.append(a.py_pass_as if a.py_pass_as else a.name)
+            py_call_args.append(f'byref({out_id_var})')
+            reassignments_block = ''.join(a.py_reassignment for a in arg_list)
+            py_call = (
+                reassignments_block
+                + f'    {out_id_var} = c_int(-1)\n'
+                + f'    _ptr_ = c_lib.{method_name_c}({",".join(py_call_args)})\n'
+                + f'    return {parent_class}._from_classID({out_id_var}.value, _ptr_)\n'
             )
+        else:
+            py_call = python_call_code(arg_list, f'return c_lib.{method_name_c}')
+            if result_python_decode:
+                # Append .decode("utf-8") to each call line so the bytes returned by
+                # ctypes c_char_p are converted to a Python str.
+                py_call = re.sub(
+                    r'(c_lib\.' + re.escape(method_name_c) + r'\([^\n]*\))(\n)',
+                    r'\1.decode("utf-8")\2',
+                    py_call,
+                )
 
         py_method = f'''def {method_name}({','.join(py_args)}):
 {py_call}
@@ -830,10 +987,16 @@ end subroutine {class_name}DestructorL
         'argtypes': ['c_void_p', 'c_int'],
     })
 
-    # Add Python destructor
+    # Add Python destructor.  The _owned guard lets class(...)-returned
+    # objects (which Galacticus owns and frees as part of their parent's
+    # lifecycle) skip the destructor — see _from_classID in the parent
+    # class body emitted by interfaces_python_classes.  Default-True via
+    # getattr keeps every constructor-built object on the destroy path
+    # without each constructor having to set the flag.
     py_destructor = f'''# Destructor
 def __del__(self):
-    c_lib.{class_name}DestructorL(self._glcObj,self._classID)
+    if getattr(self, '_owned', True):
+        c_lib.{class_name}DestructorL(self._glcObj,self._classID)
 '''
     python['units'].setdefault(class_name, {}).setdefault('subUnits', []).append({
         'content': py_destructor,
