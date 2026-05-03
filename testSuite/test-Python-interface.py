@@ -126,26 +126,28 @@ with safe_section("randomNumberGeneratorGSL"):
     check_eq("seed"        , rng.seed()                  ,         219)  # integer(c_long) return
     check_eq("rangeMinimum", rng.rangeMinimum()          ,           0)  # integer(c_long) return
     check_eq("rangeMaximum", rng.rangeMaximum()          ,  4294967295)  # integer(c_long) return
-    check_eq("sample()"    , rng.sample()                ,           0)  # integer(c_long) return, no args
-    check_eq("sample(n=10)", rng.sample(n=10)            ,           0)  # integer(c_long) optional arg
-    check_eq("poisson(5.0)", rng.poissonSample(mean=5.0) ,           0)  # plain `integer` return
-    check   ("uniform"     , rng.uniformSample()         ,         0.0)  # double precision baseline
-
+    check_eq("sample()"    , rng.sample()                ,           57953729)  # integer(c_long) return, no args
+    check_eq("sample(n=10)", rng.sample(n=10)            ,           1)  # integer(c_long) optional arg
+    check_eq("poisson(5.0)", rng.poissonSample(mean=5.0) ,           3)  # plain `integer` return
+    check   ("uniform"     , rng.uniformSample()         ,         0.271657)  # double precision baseline
+    
 # Output times — exercises `integer(c_size_t)` return + arg.
 with safe_section("outputTimesUniformSpacingInRedshift"):
     outputTimes = galacticus.outputTimesUniformSpacingInRedshift(0.0,5.0,10,cosmologyFunctions)
     # TODO: replace dummy expectations below with golden values from a real run.
     check_eq("count()"           , outputTimes.count()             ,  10)  # integer(c_size_t) return
-    check   ("time(indexOutput=0)", outputTimes.time(indexOutput=0),  0.0)  # integer(c_size_t) arg, double return
-    check   ("redshift(idx=9)"   , outputTimes.redshift(indexOutput=9),  0.0)
+    check   ("time(indexOutput=1)", outputTimes.time(indexOutput=1),  1.15473815)  # integer(c_size_t) arg, double return
+    check   ("redshift(idx=10)"   , outputTimes.redshift(indexOutput=10),  0.0)
 
 # Dark matter profile concentration — confirms partial-method exposure works
 # (densityContrastDefinition/darkMatterProfileDMODefinition return class(...)
 # and were auto-skipped, but the constructor and other methods should still
 # be reachable).  Methods of this class take type(treeNode) which Python
-# can't construct yet, so we just verify the constructor succeeds.
-with safe_section("darkMatterProfileConcentrationBullock2001"):
-    concentration = galacticus.darkMatterProfileConcentrationBullock2001(0.01,3.4,cosmologyParameters,cosmologyFunctions,criticalOverdensity,cosmologicalMassVariance,virialDensityContrast)
+# can't construct yet, so we just verify the constructor succeeds
+darkMatterHaloScale = galacticus.darkMatterHaloScaleVirialDensityContrastDefinition(cosmologyParameters,cosmologyFunctions,virialDensityContrast)
+darkMatterProfileDMO = galacticus.darkMatterProfileDMOIsothermal(darkMatterHaloScale)
+with safe_section("darkMatterProfileConcentrationFixed"):
+    concentration = galacticus.darkMatterProfileConcentrationFixed(10.0,virialDensityContrast,darkMatterProfileDMO)
     # No assertion — the constructor not raising and the subsequent destructor
     # running cleanly is the test.
 
@@ -157,8 +159,8 @@ with safe_section("initialMassFunctionSalpeter1955"):
     check_eq("label"      , imf.label()                            ,    "Salpeter1955")  # varying_string return
     check   ("massMinimum", imf.massMinimum()                      ,    0.1)
     check   ("massMaximum", imf.massMaximum()                      ,  125.0)
-    check   ("phi(M=1)"   , imf.phi(massInitial=1.0)               ,    0.0)
-    check   ("N(0.1..125)", imf.numberCumulative(massLower=0.1,massUpper=125.0), 0.0)
+    check   ("phi(M=1)"   , imf.phi(massInitial=1.0)               ,    0.170384)
+    check   ("N(0.1..125)", imf.numberCumulative(massLower=0.1,massUpper=125.0), 2.82531)
 
 # Final summary and exit code.
 print(f"--- {_failures} failure(s) ---")
