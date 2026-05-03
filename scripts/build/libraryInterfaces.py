@@ -309,20 +309,25 @@ def _process_implementations(func_class, directive_locations, state_storables,
             elif (impl_name
                   and node['type'] == 'interface'
                   and node.get('name', '').lower() == impl_name.lower()):
-                # Collect every Internal-matching module procedure across
-                # this interface's children.  Match anywhere in the name
-                # (case-insensitive) so variants like ConstructorInternal,
-                # ConstructorInternalType, ConstructorInternalDefined are
-                # all found — the previous endswith('internal') check
-                # silently missed the suffixed ones, leaving
-                # name_constructor unresolved.
+                # Collect every Internal-marked module procedure across this
+                # interface's children.  The Galacticus convention names
+                # constructors `<short>Constructor<Variant>` where Variant
+                # is `Parameters` (XML-driven) or `Internal[Suffix]`; we
+                # want only the Internal flavour.  Substring-matching plain
+                # 'internal' is too loose — for impls whose short name is
+                # itself `internal` (e.g. intergalacticMediumStateInternal),
+                # `internalConstructorParameters` would spuriously match.
+                # Anchoring on `ConstructorInternal` rules that out while
+                # still catching variants like ConstructorInternalType /
+                # ConstructorInternalDefined that the previous
+                # endswith('internal') rule missed.
                 candidates = []
                 child = node.get('firstChild')
                 while child:
                     if child['type'] == 'moduleProcedure':
                         candidates.extend(
                             n for n in child.get('names', [])
-                            if 'internal' in n.lower()
+                            if 'constructorinternal' in n.lower()
                         )
                     child = child.get('sibling')
                 if len(candidates) == 1:
