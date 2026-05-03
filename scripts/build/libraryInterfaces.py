@@ -200,7 +200,7 @@ def _find_enum_module(enum_type, func_class):
 
 
 def _unsupported_arg(arg, lib_function_classes, *,
-                     constructor_overrides=(), is_constructor=False):
+                     constructor_overrides=()):
     """Return a human-readable reason if ``arg`` has a type the pipeline
     can't translate, otherwise ``None``.
 
@@ -220,19 +220,14 @@ def _unsupported_arg(arg, lib_function_classes, *,
     * ``class(*)`` unless ``constructor_overrides`` contains a matching
       ``<argument name=... type=... module=.../>`` hint from
       libraryClasses.xml.
-
-    Additionally rejects when *is_constructor* is True:
-
-    * Any source-level ``dimension(...)`` attribute.  Arrays of basic types
-      need a size-passing convention we don't have yet, and arrays of
-      ``character`` / ``type(varying_string)`` would also collide with the
-      ``dimension(*)`` that ``assign_c_attributes`` auto-appends for
-      ``c_char_p``, producing invalid two-``dimension``-clause declarations.
-
-    Method args don't get the dimension check today: dimensioned method
-    args also produce broken-but-not-fatal output downstream, so leaving
-    that as-is preserves the previous behaviour for callers that have been
-    living with it.  Allocatable scalars (no ``dimension``) are still fine.
+    * Any source-level ``dimension(...)`` other than 1D deferred-shape
+      ``dimension(:)`` of double precision / integer (the array path
+      plumbed through assign_c_types et al. — see Pipeline.py).  And even
+      among those, ``allocatable`` and ``intent(out)`` / ``intent(inout)``
+      array args are rejected: those are output arrays whose shape is
+      determined by the inner Galacticus call, which needs a different
+      bind(c) shape (allocatable can't be assumed-size, the count has to
+      come back, etc.) than the input-array path does.
     """
     intrinsic = arg.get('intrinsic')
     if intrinsic in ('complex', 'double complex'):
@@ -255,20 +250,36 @@ def _unsupported_arg(arg, lib_function_classes, *,
         else:
             return (f"class({type_spec}) — only registered functionClasses "
                     f"and class(*) (with override) are supported")
-    if is_constructor:
-        for attr in arg.get('attributes', []):
-            if attr.startswith('dimension'):
-                # 1D deferred-shape arrays of basic numeric types are now
-                # plumbed through with a count companion + numpy ndarray
-                # conversion (see assign_c_types / build_python_reassignments
-                # in Pipeline.py).  Everything else (multi-dim, fixed-size,
-                # character/varying_string arrays, complex element types) is
-                # still beyond what the pipeline can express.
-                if (attr == 'dimension(:)' and intrinsic in
-                        ('double precision', 'integer')):
-                    continue
-                return ('dimensioned argument'
-                        ' (only 1D deferred-shape numeric is supported)')
+    # Dimension check — same predicate for constructor and method args now
+    # that both use the array-arg pipeline.  (Previously constructor-only,
+    # which left method args producing broken-but-not-fatal Fortran when
+    # they had array shapes.  After array support landed, *some* of those
+    # method args now compile, but the cases that don't fit our
+    # input-only pipeline — allocatable / intent(out) — produce hard
+    # compile errors instead of silently broken code, so we now reject
+    # them cleanly here for both contexts.)
+    attrs = arg.get('attributes', [])
+    for attr in attrs:
+        if attr.startswith('dimension'):
+            # 1D deferred-shape arrays of basic numeric types are
+            # plumbed through with a count companion + numpy ndarray
+            # conversion (see assign_c_types / build_python_reassignments
+            # in Pipeline.py) — but only as input (intent(in), no
+            # allocatable).  Output / allocatable arrays would need
+            # the bind(c) function to communicate the size BACK to
+            # Python, plus a non-assumed-size shape; that's a separate
+            # implementation we don't have yet.
+            if (attr == 'dimension(:)' and intrinsic in
+                    ('double precision', 'integer')):
+                if 'allocatable' in attrs:
+                    return ('1D allocatable array argument'
+                            ' (output arrays not yet supported)')
+                if 'intent(in)' not in attrs:
+                    return ('non-intent(in) array argument'
+                            ' (output arrays not yet supported)')
+                continue
+            return ('dimensioned argument'
+                    ' (only 1D deferred-shape numeric input is supported)')
     return None
 
 
@@ -280,7 +291,6 @@ def _unsupported_constructor_arg(args, lib_function_classes,
         reason = _unsupported_arg(
             arg, lib_function_classes,
             constructor_overrides=constructor_overrides,
-            is_constructor=True,
         )
         if reason:
             return arg['name'], reason
