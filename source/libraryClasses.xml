@@ -12,11 +12,23 @@
     <powerSpectrum/>
     <powerSpectrumNonlinear/>
     <linearGrowth/>
+    <mergerTreeBranchingProbability/>
     <intergalacticMediumState/>
     <intergalacticMediumFilteringMass/>
     <cosmologicalMassVariance/>
     <haloEnvironment/>
     <criticalOverdensity/>
+    <galacticFilter/>
+    <nodePropertyExtractor/>
+    <virialOrbit/>
+    <geometryLightcone/>
+    <starFormationRateDisks/>
+    <starFormationRateSpheroids/>
+    <starFormationRateNuclearStarClusters/>
+    <randomNumberGenerator/>
+    <outputTimes/>
+    <surveyGeometry/>
+    <mergerTreeMassResolution/>
     <virialDensityContrast>
       <virialDensityContrastPercolation>
 	<constructor>
