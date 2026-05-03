@@ -78,7 +78,7 @@ contains
     use :: Nodes_Labels, only : nodeLabelRegister
     implicit none
     type(galacticFilterLabelled)                :: self
-    type(varying_string        ), intent(inout) :: label
+    type(varying_string        ), intent(in   ) :: label
     !![
     <constructorAssign variables="label"/>
     !!]
