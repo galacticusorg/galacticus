@@ -300,7 +300,8 @@ contains
 #endif
     end if
     call GSL_RNG_Set(self%randomNumberGenerator%rng,seed__)
-    self%seed_=seed__
+    self%seed_ =seed__
+    self%seed__=seed__
     return
   end function gslConstructorInternal
   
