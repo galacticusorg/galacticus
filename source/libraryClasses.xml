@@ -30,10 +30,7 @@
     <excursionSetFirstCrossing/>
     <nbodyHaloMassError/>
     <darkMatterHaloScale/>
-    <darkMatterProfileDMO>
-      <darkMatterProfileDMOAccretionFlowShi2016             exclude="yes"/>
-      <darkMatterProfileDMOAccretionFlowCorrelationFunction exclude="yes"/>
-    </darkMatterProfileDMO>
+    <darkMatterProfileDMO/>
     <darkMatterProfileHeating>
       <darkMatterProfileHeatingImpulsiveOutflow>
 	<constructor>

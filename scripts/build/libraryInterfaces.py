@@ -164,7 +164,7 @@ def _process_function_class_file(file_name, code, python, lib_function_classes,
             code, python, lib_function_classes
         )
 
-def _unsupported_constructor_arg(args):
+def _unsupported_constructor_arg(args, lib_function_classes):
     """If any constructor argument has a type the pipeline can't translate,
     return ``(name, reason)``; otherwise ``None``.
 
@@ -176,6 +176,11 @@ def _unsupported_constructor_arg(args):
       ``character`` / ``type(varying_string)`` would also collide with the
       ``dimension(*)`` that ``assign_c_attributes`` auto-appends for
       c_char_p, producing invalid two-``dimension``-clause declarations.
+    * ``class(FooClass)`` whose stem ``Foo`` is not itself listed in
+      ``libraryClasses.xml``.  Without that registration, ``assign_c_types``
+      can't set ``is_function_class=True``, so no ``_ID`` companion or
+      ``FooGetPtr``-based reassignment is generated and the call from the
+      bind(c) wrapper to the inner Fortran constructor is a type mismatch.
 
     Allocatable scalars (no ``dimension``) are still permitted.
     """
@@ -183,6 +188,13 @@ def _unsupported_constructor_arg(args):
         intrinsic = arg.get('intrinsic')
         if intrinsic in ('complex', 'double complex'):
             return arg['name'], f"{intrinsic}({arg.get('type','')})"
+        if intrinsic == 'class':
+            type_spec = arg.get('type', '') or ''
+            if type_spec.endswith('Class'):
+                stem = type_spec[:-5]
+                if stem not in lib_function_classes:
+                    return arg['name'], (f"class({type_spec}) — '{stem}' "
+                                         f"is not registered in libraryClasses.xml")
         for attr in arg.get('attributes', []):
             if attr.startswith('dimension'):
                 return arg['name'], 'dimensioned argument'
@@ -292,7 +304,8 @@ def _process_implementations(func_class, directive_locations, state_storables,
         is_excluded = (isinstance(impl_conf, dict)
                        and impl_conf.get('exclude') == 'yes')
         if not is_abstract and not is_excluded:
-            unsupported = _unsupported_constructor_arg(args_constructor)
+            unsupported = _unsupported_constructor_arg(
+                args_constructor, lib_function_classes)
             if unsupported:
                 # Skip implementations whose constructor takes an argument the
                 # pipeline can't translate (today: source-level dimensioned
