@@ -34,6 +34,21 @@ __all__ = [
 ]
 
 
+# Shared derived types whose defining module is NOT the functionClass's own
+# module.  Without these explicit overrides, build_fortran_reassignments'
+# fall-back imports the type from func_class['module'] — which compiles for
+# types defined alongside the class but emits broken `use ::` lines for
+# shared types like treeNode, mergerTree, multiCounter, etc.
+#
+# Add to this table when a new shared type starts appearing as a method or
+# constructor argument in libraryClasses.xml.
+_SHARED_TYPE_MODULES = {
+    'treeNode'    : 'Galacticus_Nodes',
+    'mergerTree'  : 'Galacticus_Nodes',
+    'multiCounter': 'Multi_Counters',
+}
+
+
 def assign_c_types(argument_list, lib_function_classes):
     """Assign appropriate C types for each argument.
 
@@ -281,11 +296,11 @@ def build_fortran_reassignments(argument_list, func_class, implementation,
                 if import_module:
                     arg.fort_modules.setdefault(import_module, {})[type_spec_val] = 1
 
-            elif type_spec_val in ('treeNode', 'mergerTree'):
-                # c_ptr -> type(treeNode|mergerTree) via c_f_pointer.  Both
-                # types live in Galacticus_Nodes; without this special case
-                # the fall-back branch below would try to import them from
-                # the functionClass's own module.
+            elif type_spec_val in _SHARED_TYPE_MODULES:
+                # c_ptr -> type(X) via c_f_pointer for derived types that
+                # live in a known module other than the functionClass's own
+                # (see _SHARED_TYPE_MODULES).  Includes the proper
+                # null-on-absent handling for optional args.
                 arg.fort_declarations = f'type({type_spec_val}), pointer :: {name}_\n'
                 arg.fort_pass_as      = name + '_'
                 reassign = f'call c_f_pointer({name},{name}_)\n'
@@ -294,7 +309,8 @@ def build_fortran_reassignments(argument_list, func_class, implementation,
                                 f'{reassign}else\n {name}_ => null()\nend if\n')
                 arg.fort_reassignment   = reassign
                 arg.fort_iso_c_symbols  = ['c_f_pointer']
-                arg.fort_modules.setdefault('Galacticus_Nodes', {})[type_spec_val] = 1
+                shared_mod = _SHARED_TYPE_MODULES[type_spec_val]
+                arg.fort_modules.setdefault(shared_mod, {})[type_spec_val] = 1
 
             else:
                 # Other derived types: c_ptr -> type(X) via c_f_pointer.

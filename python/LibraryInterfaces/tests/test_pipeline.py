@@ -284,6 +284,20 @@ def test_fortran_reassignments_mergerTree_imported_from_Galacticus_Nodes():
     assert 'c_f_pointer(tree,tree_)' in out[0].fort_reassignment
 
 
+def test_fortran_reassignments_multiCounter_imported_from_Multi_Counters():
+    """type(multiCounter) must come from the Multi_Counters module rather
+    than the functionClass's own module."""
+    args = [ArgSpec(name='counter', intrinsic='type', type_spec='multiCounter')]
+    out = build_fortran_reassignments(
+        args,
+        func_class={'module': 'Some_Other_Module'},
+        implementation=None, extensions={}, module_uses_impls={},
+    )
+    assert 'multiCounter' in out[0].fort_modules['Multi_Counters']
+    assert 'Some_Other_Module' not in out[0].fort_modules
+    assert 'c_f_pointer(counter,counter_)' in out[0].fort_reassignment
+
+
 def test_fortran_reassignments_optional_treeNode_emits_present_branch():
     """An optional treeNode argument gets an explicit `if (present(...))`
     block in fort_reassignment so the absent case sets the pointer to null."""
