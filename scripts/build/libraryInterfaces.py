@@ -298,6 +298,7 @@ def _process_implementations(func_class, directive_locations, state_storables,
         impl_name = None
         is_abstract = False
         name_constructor = None
+        ambiguous_internals = None
         args_constructor = []
 
         for node in SourceTree.walk_tree(tree):
@@ -308,15 +309,31 @@ def _process_implementations(func_class, directive_locations, state_storables,
             elif (impl_name
                   and node['type'] == 'interface'
                   and node.get('name', '').lower() == impl_name.lower()):
-                # Scan moduleProcedure children for an Internal-suffixed constructor.
+                # Collect every Internal-matching module procedure across
+                # this interface's children.  Match anywhere in the name
+                # (case-insensitive) so variants like ConstructorInternal,
+                # ConstructorInternalType, ConstructorInternalDefined are
+                # all found — the previous endswith('internal') check
+                # silently missed the suffixed ones, leaving
+                # name_constructor unresolved.
+                candidates = []
                 child = node.get('firstChild')
                 while child:
                     if child['type'] == 'moduleProcedure':
-                        internal = [n for n in child.get('names', [])
-                                    if n.lower().endswith('internal')]
-                        if len(internal) == 1:
-                            name_constructor = internal[0]
+                        candidates.extend(
+                            n for n in child.get('names', [])
+                            if 'internal' in n.lower()
+                        )
                     child = child.get('sibling')
+                if len(candidates) == 1:
+                    name_constructor = candidates[0]
+                elif len(candidates) > 1:
+                    # Multiple Internal-suffixed constructors (e.g.
+                    # darkMatterProfileConcentrationDuttonMaccio2014's
+                    # InternalType vs InternalDefined).  Stash for the
+                    # warning-and-skip below; leave name_constructor unset
+                    # so the impl is dropped from impls_list.
+                    ambiguous_internals = candidates
 
             elif (name_constructor
                   and node['type'] == 'function'
@@ -357,33 +374,47 @@ def _process_implementations(func_class, directive_locations, state_storables,
         is_excluded = (isinstance(impl_conf, dict)
                        and impl_conf.get('exclude') == 'yes')
         if not is_abstract and not is_excluded:
-            constructor_overrides = ()
-            if isinstance(impl_conf, dict):
-                constructor_overrides = as_array(
-                    impl_conf.get('constructor', {}).get('argument', []))
-            unsupported = _unsupported_constructor_arg(
-                args_constructor, lib_function_classes, constructor_overrides)
-            if unsupported:
-                # Skip implementations whose constructor takes an argument the
-                # pipeline can't translate (today: source-level dimensioned
-                # args of any intrinsic, and complex / double complex).
-                # The class itself is still exposed; only the offending
-                # implementation is omitted from impls_list, so it won't
-                # appear in the Python class hierarchy or GetPtr dispatcher.
+            if ambiguous_internals:
+                # Drop the impl: we can't pick one of N Internal constructors
+                # without a hint, and emitting the previous fall-back
+                # (constructor call with no args) crashes gfortran with
+                # "No initializer for component 'X' given …" whenever the
+                # type has any required components.
                 sys.stderr.write(
                     f"libraryInterfaces.py: caution: implementation"
-                    f" '{impl_name}' of class '{class_name}' has constructor"
-                    f" argument '{unsupported[0]}' of unsupported kind"
-                    f" ({unsupported[1]}) — skipping implementation\n"
+                    f" '{impl_name}' of class '{class_name}' has multiple"
+                    f" Internal-suffixed constructors"
+                    f" ({', '.join(ambiguous_internals)}) — ambiguous,"
+                    f" skipping implementation\n"
                 )
             else:
-                impls_list.append({
-                    'name':      impl_name,
-                    'classID':   class_id,
-                    'fileName':  impl_file,
-                    'moduleUses': module_uses_impls.get(impl_name, []),
-                    'arguments': args_constructor,
-                })
+                constructor_overrides = ()
+                if isinstance(impl_conf, dict):
+                    constructor_overrides = as_array(
+                        impl_conf.get('constructor', {}).get('argument', []))
+                unsupported = _unsupported_constructor_arg(
+                    args_constructor, lib_function_classes, constructor_overrides)
+                if unsupported:
+                    # Skip implementations whose constructor takes an argument the
+                    # pipeline can't translate (today: source-level dimensioned
+                    # args of any intrinsic, and complex / double complex).
+                    # The class itself is still exposed; only the offending
+                    # implementation is omitted from impls_list, so it won't
+                    # appear in the Python class hierarchy or GetPtr dispatcher.
+                    sys.stderr.write(
+                        f"libraryInterfaces.py: caution: implementation"
+                        f" '{impl_name}' of class '{class_name}' has constructor"
+                        f" argument '{unsupported[0]}' of unsupported kind"
+                        f" ({unsupported[1]}) — skipping implementation\n"
+                    )
+                else:
+                    impls_list.append({
+                        'name':      impl_name,
+                        'classID':   class_id,
+                        'fileName':  impl_file,
+                        'moduleUses': module_uses_impls.get(impl_name, []),
+                        'arguments': args_constructor,
+                    })
 
     func_class['implementations'] = impls_list
 
