@@ -190,6 +190,36 @@ with safe_section("initialMassFunctionSalpeter1955"):
     check   ("phi(M=1)"   , imf.phi(massInitial=1.0)               ,    0.170384)
     check   ("N(0.1..125)", imf.numberCumulative(massLower=0.1,massUpper=125.0), 2.82531)
 
+# Radiative transfer photon packet — exercises both fixed-size dimensional
+# shapes in one round-trip: positionSet/directionSet take a `dimension(3)`
+# *input* and position()/direction() return a `dimension(3)` numpy array.
+# The constructor takes only scalar doubles, so this is fully self-contained.
+with safe_section("radiativeTransferPhotonPacketSimple"):
+    photon = galacticus.radiativeTransferPhotonPacketSimple(
+        wavelength=500.0, wavelengthMinimum=400.0, wavelengthMaximum=700.0,
+        luminosity=1.0e30,
+    )
+    photon.positionSet ([1.0, 2.0, 3.0])
+    photon.directionSet([0.0, 0.0, 1.0])
+    pos = photon.position ()
+    dir = photon.direction()
+    # Plain round-trip — values stored go straight back out, so exact
+    # equality is reliable here.
+    check_eq("position[0]" , float(pos[0]), 1.0)
+    check_eq("position[1]" , float(pos[1]), 2.0)
+    check_eq("position[2]" , float(pos[2]), 3.0)
+    check_eq("direction[2]", float(dir[2]), 1.0)
+    # Returned object should be a numpy array of length 3.
+    check_eq("position type" , type(pos).__name__, 'ndarray')
+    check_eq("position size" , pos.size           , 3)
+    # Wrong-size input should raise ValueError (size guard in the wrapper).
+    try:
+        photon.positionSet([1.0, 2.0])
+    except ValueError as exc:
+        check_eq("ValueError on size mismatch", "expects 3" in str(exc), True)
+    else:
+        check_eq("ValueError on size mismatch", "no exception raised", "ValueError")
+
 # Final summary and exit code.
 print(f"--- {_failures} failure(s) ---")
 sys.exit(1 if _failures else 0)
