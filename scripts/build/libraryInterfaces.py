@@ -164,6 +164,32 @@ def _process_function_class_file(file_name, code, python, lib_function_classes,
             code, python, lib_function_classes
         )
 
+# Match `type(enumerationFooType)` — the Galacticus convention for an
+# enumeration kind named "foo".  Used by interfaces_methods to detect
+# enumeration return types and lift the inner %ID component out as c_int.
+_ENUM_RETURN_RX = re.compile(
+    r'^type\s*\(\s*(enumeration[a-z0-9_]+type)\s*\)$',
+    re.IGNORECASE,
+)
+
+
+def _find_enum_module(enum_type, func_class):
+    """Locate the Fortran module that exports *enum_type* (an
+    `enumerationXxxType` derived-type name).
+
+    Looks first at the functionClass file's own ``use``-block imports
+    (collected during parsing as ``func_class['moduleUses']``), then falls
+    back to the functionClass's own module.  Mirrors the scan
+    ``build_fortran_reassignments`` already does for enumeration *arguments*.
+    """
+    for use_block in func_class.get('moduleUses', []):
+        for mod_name, mod_data in use_block.items():
+            if (isinstance(mod_data, dict)
+                    and enum_type in mod_data.get('only', {})):
+                return mod_name
+    return func_class.get('module')
+
+
 def _unsupported_arg(arg, lib_function_classes, *,
                      constructor_overrides=(), is_constructor=False):
     """Return a human-readable reason if ``arg`` has a type the pipeline
@@ -648,6 +674,28 @@ def interfaces_methods(code, python, func_class, extensions, module_uses_impls,
                 f'  {method_name_c} = c_loc({method_name_c}_buffer_)\n'
             )
             result_python_decode = True
+        elif _ENUM_RETURN_RX.match(method_type):
+            # Returned type(enumerationXxxType): the inner method gives us a
+            # derived type whose %ID component holds the c_int value we want
+            # to surface to Python.  Same scaffolding shape as varying_string
+            # — call into a temporary, then pull the c_int out — minus the
+            # buffer/decode dance.
+            enum_type = _ENUM_RETURN_RX.match(method_type).group(1)
+            enum_module = _find_enum_module(enum_type, func_class)
+            method_type_c                        = "integer(c_int)"
+            clib_res_type                        = "c_int"
+            isoImports['c_int'] = 1
+            if enum_module:
+                result_extra_module_uses = (
+                    f'  use :: {enum_module}, only : {enum_type}\n'
+                )
+            result_call_target = f'{method_name_c}_result_'
+            result_extra_declarations = (
+                f'  type({enum_type}) :: {method_name_c}_result_\n'
+            )
+            result_post_call_code = (
+                f'  {method_name_c} = {method_name_c}_result_%ID\n'
+            )
         elif method_type == "void":
             pass
         else:
