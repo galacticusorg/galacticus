@@ -139,6 +139,19 @@ with safe_section("outputTimesUniformSpacingInRedshift"):
     check   ("time(indexOutput=1)", outputTimes.time(indexOutput=1),  1.15473815)  # integer(c_size_t) arg, double return
     check   ("redshift(idx=10)"   , outputTimes.redshift(indexOutput=10),  0.0)
 
+# Output times list — exercises the 1D deferred-shape numeric array path
+# (the constructor's `times` arg is `dimension(:)`).  Python passes a list
+# / numpy array; the wrapper converts via np.ascontiguousarray and
+# generates the (data_pointer, c_size_t(count)) pair the bind(c) function
+# expects.  Without dimension support this whole class would have been
+# auto-skipped at constructor-arg validation time.
+with safe_section("outputTimesList"):
+    outputTimesL = galacticus.outputTimesList([0.5, 1.0, 2.0, 5.0, 13.0], cosmologyFunctions)
+    # TODO: replace dummy expectations below with golden values from a real run.
+    check_eq("count() (5 entries)"     , outputTimesL.count()                   , 5)
+    check   ("time(indexOutput=0)"     , outputTimesL.time(indexOutput=0)       , 0.5)
+    check   ("time(indexOutput=4)"     , outputTimesL.time(indexOutput=4)       , 13.0)
+
 # Dark matter profile concentration — exercises the class(FooClass) return
 # path: densityContrastDefinition() returns class(virialDensityContrastClass),
 # which the wrapper resolves into the matching Python subclass via
