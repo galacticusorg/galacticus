@@ -180,13 +180,6 @@ module Node_Component_Hot_Halo_Standard
       <type>double</type>
       <rank>0</rank>
     </property>
-    <property>
-      <name>massTotal</name>
-      <attributes isSettable="false" isGettable="true" isEvolvable="false" isVirtual="true" />
-      <type>double</type>
-      <rank>0</rank>
-      <getFunction>Node_Component_Hot_Halo_Standard_Mass_Total</getFunction>
-    </property>
    </properties>
    <bindings>
      <binding method="massDistribution" isDeferred="true" >
