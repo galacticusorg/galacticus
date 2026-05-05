@@ -236,16 +236,19 @@
       <!-- Satellite evolution -->
       <nodeOperator value="satelliteMergingTime" iterable="no"/>
       <!-- Star formation -->
-      <nodeOperator value="starFormationDisks" iterable="no"/>
-      <nodeOperator value="stellarFeedbackDisks" iterable="no">
-	<stellarFeedbackOutflows value="rateLimit">
-          <timescaleOutflowFractionalMinimum value="0.001"/>
-          <stellarFeedbackOutflows value="vlctyMxSclng">
-	    <fraction value="5.4973312818696149E-002"/>
-	    <exponentRedshift value="1.9464430036515628"/>
-	    <exponentVelocity value="-5.2559103933618596"/>
+      <nodeOperator value="filtered" iterable="no">
+	<galacticFilter value="haloIsolated"/>
+	<nodeOperator value="starFormationDisks"/>
+	<nodeOperator value="stellarFeedbackDisks">
+	  <stellarFeedbackOutflows value="rateLimit">
+            <timescaleOutflowFractionalMinimum value="0.001"/>
+            <stellarFeedbackOutflows value="vlctyMxSclng">
+	      <fraction value="5.4973312818696149E-002"/>
+	      <exponentRedshift value="1.9464430036515628"/>
+	      <exponentVelocity value="-5.2559103933618596"/>
+	    </stellarFeedbackOutflows>
 	  </stellarFeedbackOutflows>
-	</stellarFeedbackOutflows>
+	</nodeOperator>
       </nodeOperator>
       <!-- CGM physics -->
       <nodeOperator value="CGMOuterRadiusVirialRadius" iterable="no"/>
@@ -262,11 +265,11 @@
       <nodeOperator value="CGMOutflowReincorporation" iterable="no">
 	<includeSatellites value="false"/>
       </nodeOperator>
-    <nodeOperator value="diskVerySimpleAnalyticSolver" iterable="no">
-
-  <pruneMassGas value="1.0e6"/>
-
-  <pruneMassStars value="1.0e6"/></nodeOperator></nodeOperator>
+      <nodeOperator value="diskVerySimpleAnalyticSolver" iterable="no">
+	<pruneMassGas value="1.0e6"/>      
+	<pruneMassStars value="1.0e6"/>
+      </nodeOperator>
+    </nodeOperator>
 
     <nodePropertyExtractor value="multi">
       <nodePropertyExtractor value="nodeIndices" iterable="no"/>
