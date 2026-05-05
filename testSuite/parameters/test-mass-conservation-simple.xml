@@ -18,7 +18,7 @@
 
   <parameters>
     <formatVersion>2</formatVersion>
-    <lastModified revision="61711340399619cdd6d89322db6e90ce228d3d93" time="2026-04-14T18:10:17"/>
+    <lastModified revision="9900725301ed83cdb450879427064fa176ffe294" time="2026-05-05T17:19:09"/>
     <accretionHalo value="bertschinger">
       <redshiftReionization value="10.5"/>
       <velocitySuppressionReionization value="47.370163695687651"/>
@@ -195,10 +195,7 @@
     <componentDarkMatterProfile value="scale"/>
     <componentDisk value="verySimpleSize">
       <toleranceAbsoluteMass value="1.0e-6"/>
-      <pruneMassGas value="1.0e6"/>
-      <pruneMassStars value="1.0e6"/>
       <scaleAbsoluteMass value="1.0e6"/>
-      <useAnalyticSolver value="true"/>
     </componentDisk>
     <componentHotHalo value="verySimpleDelayed">
       <scaleRelativeMass value="1.0"/>
@@ -264,7 +261,11 @@
       <nodeOperator value="CGMOutflowReincorporation" iterable="no">
 	<includeSatellites value="false"/>
       </nodeOperator>
-    </nodeOperator>
+    <nodeOperator value="diskVerySimpleAnalyticSolver" iterable="no">
+
+  <pruneMassGas value="1.0e6"/>
+
+  <pruneMassStars value="1.0e6"/></nodeOperator></nodeOperator>
 
     <nodePropertyExtractor value="multi">
       <nodePropertyExtractor value="nodeIndices" iterable="no"/>

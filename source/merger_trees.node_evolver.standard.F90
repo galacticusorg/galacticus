@@ -389,8 +389,8 @@ contains
     class           (nodeComponentBasic                 )                            , pointer :: basic
     class           (integratorMultiVectorized1D        ), allocatable                         :: integrator_
     type            (odeSolver                          )                            , target  :: solver
-    logical                                                                                    :: solvedAnalytically       , solvedNumerically, &
-         &                                                                                        jacobianSolver           , solverInitialized
+    logical                                                                                    :: solvedNumerically        , jacobianSolver   , &
+         &                                                                                        solverInitialized
     double precision                                                                           :: timeStart                , stepSize
     integer                                                                                    :: lengthMaximum            , odeStatus        , &
          &                                                                                        odeAlgorithm
@@ -427,20 +427,9 @@ contains
     self%galacticStructureSolver_ => galacticStructureSolver__
     ! Ensure calculations are reset for this new step.
     call Calculations_Reset(node)
-    ! Attempt to find analytic solutions.
-    solvedAnalytically=.false.
-    !![
-    <eventHookStatic name="analyticSolverTask">
-     <callWith>node,timeStart,timeEnd,solvedAnalytically</callWith>
-    </eventHookStatic>
-    !!]
-    ! Check if an analytic solution was available - use numerical solution if not.
-    if (solvedAnalytically) then
-       ! An analytic solution was available. Record that no interrupt therefore occurred.
-       interrupted=.false.
-    else
-       ! Compute offsets into serialization arrays for rates and scales.
-       call node%serializationOffsets(propertyTypeAll)
+    interrupted=.false.
+    ! Compute offsets into serialization arrays for rates and scales.
+    call node%serializationOffsets(propertyTypeAll)
        ! Find number of all evolvable variables (active and inactive) for this node.
        self%propertyCountAll=node%serializeCount(propertyTypeAll)
        ! Allocate pointer arrays if necessary.
@@ -727,7 +716,6 @@ contains
              end if
           end if
        end do
-    end if
     ! Call routines to perform any post-evolution tasks.
     if (associated(node)) then
        call treeLock              %set                      (    )
