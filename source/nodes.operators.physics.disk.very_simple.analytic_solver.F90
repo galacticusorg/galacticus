@@ -170,23 +170,24 @@ contains
     satellite is too small to ever be of interest and will not merge before the present day, prune it
     from the tree, distributing its outflowed mass over future host halos.
     !!}
-    use :: Abundances_Structure, only : abundances        , max                , operator(*)
-    use :: Galacticus_Nodes    , only : nodeComponentBasic, nodeComponentDisk  , nodeComponentDiskVerySimple, nodeComponentHotHalo, &
+    use :: Abundances_Structure, only : abundances            , max              , operator(*)
+    use :: Error               , only : Error_Report
+    use :: Galacticus_Nodes    , only : nodeComponentBasic    , nodeComponentDisk, nodeComponentDiskVerySimple, nodeComponentHotHalo, &
          &                              nodeComponentSatellite
     implicit none
     class           (nodeOperatorDiskVerySimpleAnalyticSolver), intent(inout) :: self
     type            (treeNode                                ), intent(inout) :: node
     type            (treeNode                                ), pointer       :: nodeWalk
-    class           (nodeComponentBasic                      ), pointer       :: basic                   , basicHost                   , &
+    class           (nodeComponentBasic                      ), pointer       :: basic                       , basicHost            , &
          &                                                                       basicParentHost
     class           (nodeComponentDisk                       ), pointer       :: disk
     class           (nodeComponentHotHalo                    ), pointer       :: hotHaloHost
     class           (nodeComponentSatellite                  ), pointer       :: satellite
     double precision                                          , parameter     :: massTolerance        =1.0d-6
-    double precision                                                          :: rateFuel                , rateStars                   , &
-         &                                                                       rateOutflow             , massStellarAsymptotic       , &
+    double precision                                                          :: rateFuel                    , rateStars            , &
+         &                                                                       rateOutflow                 , massStellarAsymptotic, &
          &                                                                       massOutflowed
-    type            (abundances                              ), save          :: rateAbundanceFuel       , rateAbundanceStars          , &
+    type            (abundances                              ), save          :: rateAbundanceFuel           , rateAbundanceStars   , &
          &                                                                       abundancesOutflowed
     !$omp threadprivate(rateAbundanceFuel,rateAbundanceStars,abundancesOutflowed)
 
@@ -227,14 +228,14 @@ contains
              basicHost       => nodeWalk       %basic  (                 )
              hotHaloHost     => nodeWalk       %hotHalo(autoCreate=.true.)
              basicParentHost => nodeWalk%parent%basic  (                 )
-             massOutflowed   =  +self%massGasInitial                                                            &
-                  &             *(                                                                              &
-                  &               +self%timescaleFuel                                                           &
-                  &               /self%timescaleOutflow                                                        &
-                  &              )                                                                              &
-                  &             *(                                                                              &
-                  &               +exp(-max(0.0d0,basicHost      %time()-self%timeStart)/self%timescaleFuel)    &
-                  &               -exp(-max(0.0d0,basicParentHost%time()-self%timeStart)/self%timescaleFuel)    &
+             massOutflowed   =  +self%massGasInitial                                                         &
+                  &             *(                                                                           &
+                  &               +self%timescaleFuel                                                        &
+                  &               /self%timescaleOutflow                                                     &
+                  &              )                                                                           &
+                  &             *(                                                                           &
+                  &               +exp(-max(0.0d0,basicHost      %time()-self%timeStart)/self%timescaleFuel) &
+                  &               -exp(-max(0.0d0,basicParentHost%time()-self%timeStart)/self%timescaleFuel) &
                   &              )
              call hotHaloHost%outflowedMassSet(                             &
                   &                            +hotHaloHost%outflowedMass() &
@@ -354,10 +355,10 @@ contains
     double precision                                          , intent(in   ) :: time
     class           (nodeComponentDisk                       ), pointer       :: disk
     class           (nodeComponentHotHalo                    ), pointer       :: hotHalo
-    double precision                                                          :: timeStep         , exponentialFactor      , &
-         &                                                                       massGasFinal     , massStellarFinal       , &
+    double precision                                                          :: timeStep           , exponentialFactor     , &
+         &                                                                       massGasFinal       , massStellarFinal      , &
          &                                                                       massOutflowed
-    type            (abundances                              ), save          :: abundancesGasFinal, abundancesStellarFinal, &
+    type            (abundances                              ), save          :: abundancesGasFinal , abundancesStellarFinal, &
          &                                                                       abundancesOutflowed
     !$omp threadprivate(abundancesGasFinal,abundancesStellarFinal,abundancesOutflowed)
 
@@ -457,12 +458,12 @@ contains
     type            (stellarLuminosities                     )                :: luminositiesStellarRates
     !$omp threadprivate(fuelAbundances)
 
-    disk => node%disk()
-    fuelMassRate         =0.0d0
-    stellarMassRate      =0.0d0
-    massOutflowRate      =0.0d0
-    fuelAbundancesRate   =zeroAbundances
-    stellarAbundancesRate=zeroAbundances
+    disk                  => node%disk()
+    fuelMassRate          =  0.0d0
+    stellarMassRate       =  0.0d0
+    massOutflowRate       =  0.0d0
+    fuelAbundancesRate    =  zeroAbundances
+    stellarAbundancesRate =  zeroAbundances
     if (disk%massGas() <= 0.0d0) return
     fuelAbundances=disk%abundancesGas()
     call fuelAbundances%massToMassFraction(disk%massGas())
