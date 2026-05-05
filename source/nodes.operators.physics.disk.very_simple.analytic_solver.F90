@@ -299,9 +299,8 @@ contains
              call satellite%destructionTimeSet(0.0d0)
           else
              ! The active satellite component (e.g., `mergeTime`) does not expose a destructionTime
-             ! property, so fall back to detaching the node from its host's satellite list. The node
-             ! object remains allocated until the tree itself is destroyed.
-             call node     %removeFromHost   (     )
+             ! property.
+             call Error_Report('unable to set satellite destruction time'//{introspection:location})
           end if
           return
        end if
