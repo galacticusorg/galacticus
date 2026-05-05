@@ -208,16 +208,18 @@ def build_launch_script(method, queue_config):
 def calibrate_model(modelName, fileName, randomSeed, gitRevision, calibrateCount,
                     calibratePercentile, launchMethodOverride):
     """Run `calibrateCount` realizations of `modelName` and write the calibration reference file."""
-    # Resolve the queue manager from galacticusConfig.xml (or fall back to local).
+    # Resolve the queue manager and per-method settings from galacticusConfig.xml using
+    # host-aware regex matching; fall back to local if the host has no entry.
     config       = _launch._load_config()
-    qm_section   = config.get("queueManager", {}) if isinstance(config, dict) else {}
     method       = launchMethodOverride
     if method is None:
-        method   = qm_section.get("manager") if isinstance(qm_section, dict) else None
+        qm_section = _launch.resolve_host_section("queueManager", config)
+        method     = qm_section.get("manager") if isinstance(qm_section, dict) else None
     if method is None or method not in _launch._MODULE_HOOKS:
         method   = "local"
-    queue_config = config.get(method, {}) if isinstance(config, dict) else {}
+    queue_config = _launch.resolve_host_section(method, config)
     launch_script = build_launch_script(method, queue_config)
+    launch_script["config"] = config
     _launch._MODULE_HOOKS[method]["validate"](launch_script)
 
     # Build per-realization parameter files and job specs.
