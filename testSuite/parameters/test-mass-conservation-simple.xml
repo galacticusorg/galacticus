@@ -18,7 +18,7 @@
 
   <parameters>
     <formatVersion>2</formatVersion>
-    <lastModified revision="9900725301ed83cdb450879427064fa176ffe294" time="2026-05-05T17:19:09"/>
+    <lastModified revision="9704b4a807cd102ed519068078ee15028d2935f0" time="2026-05-05T17:25:48"/>
     <accretionHalo value="bertschinger">
       <redshiftReionization value="10.5"/>
       <velocitySuppressionReionization value="47.370163695687651"/>
