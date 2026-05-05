@@ -247,6 +247,7 @@
       <timeStepRelative value="0.01"/>
     </mergerTreeEvolveTimestep>
     <mergerTreeEvolveTimestep value="satellite"/>
+    <mergerTreeEvolveTimestep value="satelliteDestruction"/>
   </mergerTreeEvolveTimestep>
   <!-- Node evolution and physics -->
   <nodeOperator value="multi">

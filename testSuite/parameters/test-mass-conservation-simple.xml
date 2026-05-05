@@ -184,6 +184,7 @@
         <timeStepRelative value="0.01"/>
       </mergerTreeEvolveTimestep>
       <mergerTreeEvolveTimestep value="satellite" iterable="no"/>
+      <mergerTreeEvolveTimestep value="satelliteDestruction" iterable="no"/>
     </mergerTreeEvolveTimestep>
 
     <transferFunction value="eisensteinHu1999">
