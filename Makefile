@@ -565,8 +565,8 @@ $(BUILDPATH)/%.m : ./source/%.F90
 	$(CONDORLINKER) $(FCCOMPILER) `cat $*.d` $(BUILDPATH)/$*.parameters.o $(BUILDPATH)/$*.md5s.o -o $*.exe$(SUFFIX) $(FCFLAGS) `scripts/build/libraryDependencies.py $*.exe $(FCFLAGS)` 2>&1 | ./scripts/build/postprocessLinker.py
 
 # Library.
--include $(BUILDPATH)/Makefile_Library_Dependencies 
-$(BUILDPATH)/Makefile_Library_Dependencies:
+-include $(BUILDPATH)/Makefile_Library_Dependencies
+$(BUILDPATH)/Makefile_Library_Dependencies: $(BUILDPATH)/libgalacticus.Inc
 	./scripts/build/libraryInterfacesDependencies.py
 $(BUILDPATH)/libgalacticus.Inc: $(BUILDPATH)/directiveLocations.xml $(BUILDPATH)/stateStorables.xml ./source/libraryClasses.xml ./scripts/build/libraryInterfaces.py ./python/LibraryInterfaces/Pipeline.py ./python/LibraryInterfaces/Emitters.py ./python/LibraryInterfaces/ArgSpec.py
 	./scripts/build/libraryInterfaces.py

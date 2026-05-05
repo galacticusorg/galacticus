@@ -505,6 +505,29 @@ def _process_implementations(func_class, directive_locations, state_storables,
     interfaces_destructor(code, python, func_class)
 
 
+def _shared_bucket(code, class_name):
+    """Return the per-class 'shared' code list, creating the bucket if needed.
+
+    ``code[class_name]`` is a dict ``{'shared': […], 'per_impl': {…}}`` —
+    'shared' holds the per-class pieces (GetPtr, GetIdAndPtr, methods,
+    destructor) that all live together in ``<class>.F90``, and
+    'per_impl[impl_name]' holds the constructor wrapper for one impl,
+    written to its own ``<class>__<impl>.F90`` so that gfortran doesn't
+    have to compile every impl's bind(c) wrapper in a single
+    compilation unit.
+    """
+    return code.setdefault(class_name, {'shared': [], 'per_impl': {}})['shared']
+
+
+def _impl_bucket(code, class_name, impl_name):
+    """Return the per-impl code list, creating the bucket if needed.
+
+    See :func:`_shared_bucket` for the structure.
+    """
+    return (code.setdefault(class_name, {'shared': [], 'per_impl': {}})
+                ['per_impl'].setdefault(impl_name, []))
+
+
 def interfaces_pointer_get(code, func_class):
     """Generate pointer getters for a function class.
 
@@ -526,7 +549,7 @@ def interfaces_pointer_get(code, func_class):
 
     symbols = [class_name + 'Class'] + [impl['name'] for impl in impls]
 
-    code.setdefault(class_name, []).append(f'''function {class_name}GetPtr({class_name}_,classID)
+    _shared_bucket(code, class_name).append(f'''function {class_name}GetPtr({class_name}_,classID)
   use, intrinsic :: ISO_C_Binding, only : c_ptr, c_int, c_f_pointer
   use :: Error, only : Error_Report
   use :: {func_class.get('module', 'Unknown')}, only : {', '.join(symbols)}
@@ -553,7 +576,7 @@ end function {class_name}GetPtr
         f'     classID = {impl["classID"]}'
         for impl in impls
     )
-    code.setdefault(class_name, []).append(f'''function {class_name}GetIdAndPtr(obj,classID) result(ptr)
+    _shared_bucket(code, class_name).append(f'''function {class_name}GetIdAndPtr(obj,classID) result(ptr)
   use, intrinsic :: ISO_C_Binding, only : c_ptr, c_int, c_loc, c_null_ptr
   use :: {func_class.get('module', 'Unknown')}, only : {', '.join(symbols)}
   implicit none
@@ -677,7 +700,7 @@ def interfaces_constructors(code, python, func_class, lib_function_classes,
   return
 end function {impl["name"]}L
 '''
-        code.setdefault(class_name, []).append(fort_constructor)
+        _impl_bucket(code, class_name, impl['name']).append(fort_constructor)
 
         # Add c_lib interface
         arg_types = ctypes_arg_types(arg_list)
@@ -987,7 +1010,7 @@ def interfaces_methods(code, python, func_class, extensions, module_uses_impls,
 {reassignments}{call_code}  return
 end {procedure} {method_name_c}
 '''
-        code.setdefault(class_name, []).append(fort_method)
+        _shared_bucket(code, class_name).append(fort_method)
 
         # Add c_lib interface
         arg_types = (list(ctypes_arg_types(arg_list))
@@ -1092,7 +1115,7 @@ def interfaces_destructor(code, python, func_class):
 end subroutine {class_name}DestructorL
 '''
 
-    code.setdefault(class_name, []).append(destructor_code)
+    _shared_bucket(code, class_name).append(destructor_code)
 
     # Add c_lib interface
     python['c_lib'].append({
@@ -1136,18 +1159,59 @@ end program libGalacticusInit
 
 
 def _write_fortran_code(code, build_path):
-    """Write generated Fortran code to files."""
+    """Write generated Fortran code to files.
+
+    Per class, the per-impl constructor wrappers are split into separate
+    .F90 files (``<class>__<impl>.F90``) so that gfortran has a small
+    compilation unit per impl.  This works around a memory-blow-up
+    pathology that triggers OOM kills on classes with many impls
+    (galacticFilter and nodePropertyExtractor were the original
+    offenders, ~12 GB for a single .F90).  The class's shared pieces —
+    GetPtr / GetIdAndPtr / methods / destructor — go to the original
+    ``<class>.F90`` filename so existing dependency rules continue to
+    apply to it; the per-impl files are picked up by
+    libraryInterfacesDependencies.py via a directory listing.
+
+    Stale per-impl files from a previous run (whose impl was since
+    excluded or renamed) are cleaned up so they don't get linked into
+    the .so.
+    """
     out_dir = os.path.join(build_path, 'libgalacticus')
     os.makedirs(out_dir, exist_ok=True)
 
-    for class_name in sorted(code.keys()):
-        if class_name == 'main':
-            out_file = os.path.join(build_path, 'libgalacticus.Inc')
-        else:
-            out_file = os.path.join(out_dir, f'{class_name}.F90')
+    written = set()
 
-        with open(out_file, 'w') as fh:
-            fh.write('\n'.join(code[class_name]) + '\n')
+    if 'main' in code:
+        main_file = os.path.join(build_path, 'libgalacticus.Inc')
+        with open(main_file, 'w') as fh:
+            fh.write('\n'.join(code['main']) + '\n')
+
+    for class_name in sorted(k for k in code if k != 'main'):
+        bucket = code[class_name]
+        # Shared pieces (GetPtr, GetIdAndPtr, methods, destructor) go to
+        # <class>.F90.
+        shared_file = os.path.join(out_dir, f'{class_name}.F90')
+        with open(shared_file, 'w') as fh:
+            fh.write('\n'.join(bucket['shared']) + '\n')
+        written.add(f'{class_name}.F90')
+        # One file per concrete impl's constructor wrapper.
+        for impl_name, blocks in sorted(bucket['per_impl'].items()):
+            impl_file = os.path.join(out_dir, f'{class_name}__{impl_name}.F90')
+            with open(impl_file, 'w') as fh:
+                fh.write('\n'.join(blocks) + '\n')
+            written.add(f'{class_name}__{impl_name}.F90')
+
+    # Remove any stale .F90 (and matching .p.F90, .o, .d, .m) files that
+    # weren't regenerated this run — e.g. an impl that picked up an
+    # exclude="yes" or whose constructor newly fails the predicate would
+    # otherwise leave a dangling object the linker still pulls in.
+    for fname in os.listdir(out_dir):
+        if fname.endswith('.F90') and fname not in written:
+            stem = fname[:-len('.F90')]
+            for ext in ('.F90', '.p.F90', '.p.F90.up', '.o', '.d', '.m'):
+                stale = os.path.join(out_dir, stem + ext)
+                if os.path.exists(stale):
+                    os.remove(stale)
 
 
 
