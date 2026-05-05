@@ -290,10 +290,18 @@ contains
              end if
              nodeWalk => nodeWalk%parent
           end do
-          ! Remove the satellite from its host's satellite list. The node is left allocated (the
-          ! operator interface does not give us a pointer with which to deallocate it) but, since it
-          ! is no longer linked into the tree, it will not be visited again by the tree walker.
-          call node%removeFromHost()
+          ! Trigger destruction of this satellite via the standard mechanism. This requires
+          ! `mergerTreeEvolveTimestep value="satelliteDestruction"` to be included in the parameter
+          ! file (the parametersMigrate helper ensures this), and a satellite component that
+          ! supports a settable destructionTime (e.g., `orbiting`).
+          if (satellite%destructionTimeIsSettable()) then
+             call satellite%destructionTimeSet(0.0d0)
+          else
+             ! The active satellite component (e.g., `mergeTime`) does not expose a destructionTime
+             ! property, so fall back to detaching the node from its host's satellite list. The node
+             ! object remains allocated until the tree itself is destroyed.
+             call node     %removeFromHost   (     )
+          end if
           return
        end if
        self%active=.true.
