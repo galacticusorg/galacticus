@@ -131,7 +131,7 @@ contains
     Update the \gls{cgm} content of a node as a result of a merger.
     !!}
     use :: Abundances_Structure         , only : zeroAbundances
-    use :: Accretion_Halos              , only : accretionModeHot      , accretionModeTotal
+    use :: Accretion_Halos              , only : accretionModeHot      , accretionModeTotal  , accretionModeCold
     use :: Chemical_Abundances_Structure, only : zeroChemicalAbundances
     use :: Galactic_Structure_Options   , only : componentTypeAll      , massTypeBaryonic
     use :: Galacticus_Nodes             , only : nodeComponentBasic    , nodeComponentHotHalo, nodeComponentSpin
@@ -146,7 +146,7 @@ contains
     class           (nodeComponentSpin        ), pointer       :: spinParent
     class           (massDistributionClass    ), pointer       :: massDistribution_
     double precision                                           :: baryonicMassCurrent, baryonicMassMaximum, &
-         &                                                        fractionRemove        
+         &                                                        fractionRemove     , massCGMTotal
 
     ! Get the hot halo component.
     hotHalo => node%hotHalo()
@@ -166,12 +166,24 @@ contains
                &                                                 hotHaloParent%mass                    () &
                &                                                +hotHalo      %mass                    () &
                &                                               )
-          if (hotHaloParent%angularMomentumIsSettable())                                                  &
+          if (hotHaloParent%    angularMomentumIsSettable())                                              &
                & call hotHaloParent%         angularMomentumSet(                                          &
                &                                                 hotHaloParent%angularMomentum         () &
                &                                                +hotHalo      %mass                    () &
                &                                                *spinParent   %angularMomentum         () &
                &                                                /basicParent  %mass                    () &
+               &                                               )
+          if (hotHaloParent%           massColdIsSettable())                                              &
+               & call hotHaloParent%                massColdSet(                                          &
+               &                                                 hotHaloParent %massCold               () &
+               &                                                +hotHalo       %massCold               () &
+               &                                               )
+          if (hotHaloParent%angularMomentumColdIsSettable())                                              &
+               & call hotHaloParent%     angularMomentumColdSet(                                          &
+               &                                                 hotHaloParent %angularMomentumCold    () &
+               &                                                +hotHalo       %massCold               () &
+               &                                                *spinParent    %angularMomentum        () &
+               &                                                /basicParent   %mass                   () &
                &                                               )
        end if
        if (hotHaloParent%           outflowedMassIsSettable()                                     )       &
@@ -194,6 +206,14 @@ contains
                & call hotHalo      %         angularMomentumSet(                                          &
                &                                                 0.0d0                                    &
                &                                               )
+          if (hotHalo%                   massColdIsSettable())                                            &
+               & call hotHalo      %                massColdSet(                                          &
+               &                                                 0.0d0                                    &
+               &                                               )
+          if (hotHalo%        angularMomentumColdIsSettable())                                            &
+               & call hotHalo      %     angularMomentumColdSet(                                          &
+               &                                                 0.0d0                                    &
+               &                                               )
        end if
        if (hotHalo%                  outflowedMassIsSettable()                                   )        &
             & call    hotHalo      %           outflowedMassSet(                                          &
@@ -204,13 +224,22 @@ contains
             &                                                    0.0d0                                    &
             &                                                  )
        if (                                                     .not.self%starveOutflowsOnly) then
-          call hotHaloParent%              abundancesSet(                                          &
-               &                                          hotHaloParent%abundances              () &
-               &                                         +hotHalo      %abundances              () &
-               &                                        )
-          call hotHalo      %              abundancesSet(                                          &
-               &                                          zeroAbundances                           &
-               &                                        )
+          call    hotHaloParent%    abundancesSet(                                 &
+               &                                   hotHaloParent%abundances     () &
+               &                                  +hotHalo      %abundances     () &
+               &                                 )
+          call    hotHalo      %    abundancesSet(                                 &
+               &                                   zeroAbundances                  &
+               &                                 )
+          if (hotHalo%abundancesColdIsSettable())  then
+             call hotHaloParent%abundancesColdSet(                                 &
+                  &                                hotHaloParent %abundancesCold() &
+                  &                               +hotHalo       %abundancesCold() &
+                  &                              )
+             call hotHalo      %abundancesColdSet(                                 &
+                  &                                zeroAbundances                  &
+                  &                              )
+          end if          
        end if
        if (hotHaloParent%outflowedAbundancesIsSettable()                                    ) then
           call hotHaloParent%     outflowedAbundancesSet(                                          &
@@ -248,23 +277,30 @@ contains
                &                 *self             %cosmologyParameters_%omegaBaryon     (                         ) &
                &                 /self             %cosmologyParameters_%omegaMatter     (                         )
           baryonicMassCurrent =  +massDistribution_                     %massTotal       (                         )
+          massCGMTotal        =  +hotHaloParent                         %mass            (                         ) &
+               &                 +hotHaloParent                         %massCold        (                         )
           !![
 	  <objectDestructor name="massDistribution_"/>
 	  !!]
           if (baryonicMassCurrent > baryonicMassMaximum .and. hotHaloParent%mass() > 0.0d0) then
-             fractionRemove=min((baryonicMassCurrent-baryonicMassMaximum)/hotHaloParent%massTotal(),1.0d0)
-             call hotHaloParent%      unaccretedMassSet(                                                             &
-                  &                                      hotHaloParent%unaccretedMass      ()                        &
-                  &                                     +hotHaloParent%mass                ()*       fractionRemove  &
-                  &                                    )
-             call hotHaloParent%unaccretedAbundancesSet(                                                             &
-                  &                                      hotHaloParent%unaccretedAbundances()                        &
-                  &                                     +hotHaloParent%abundances          ()*       fractionRemove  &
-                  &                                    )
-             call hotHaloParent%                massSet( hotHaloParent%mass                ()*(1.0d0-fractionRemove))
-             call hotHaloParent%     angularMomentumSet( hotHaloParent%angularMomentum     ()*(1.0d0-fractionRemove))
-             call hotHaloParent%          abundancesSet( hotHaloParent%abundances          ()*(1.0d0-fractionRemove))
-             call hotHaloParent%          chemicalsSet ( hotHaloParent%chemicals           ()*(1.0d0-fractionRemove))
+             fractionRemove=min((baryonicMassCurrent-baryonicMassMaximum)/massCGMTotal,1.0d0)
+             call    hotHaloParent%      unaccretedMassSet(                                                             &
+                  &                                         hotHaloParent%unaccretedMass      ()                        &
+                  &                                        +hotHaloParent%mass                ()*       fractionRemove  &
+                  &                                       )
+             call    hotHaloParent%unaccretedAbundancesSet(                                                             &
+                  &                                         hotHaloParent%unaccretedAbundances()                        &
+                  &                                        +hotHaloParent%abundances          ()*       fractionRemove  &
+                  &                                       )
+             call    hotHaloParent%                massSet( hotHaloParent%mass                ()*(1.0d0-fractionRemove))
+             call    hotHaloParent%     angularMomentumSet( hotHaloParent%angularMomentum     ()*(1.0d0-fractionRemove))
+             call    hotHaloParent%          abundancesSet( hotHaloParent%abundances          ()*(1.0d0-fractionRemove))
+             call    hotHaloParent%          chemicalsSet ( hotHaloParent%chemicals           ()*(1.0d0-fractionRemove))
+             if (hotHaloParent%massColdIsSettable()) then
+                call hotHaloParent%            massColdSet( hotHaloParent%massCold            ()*(1.0d0-fractionRemove))
+                call hotHaloParent% angularMomentumColdSet( hotHaloParent%angularMomentumCold ()*(1.0d0-fractionRemove))
+                call hotHaloParent%      abundancesColdSet( hotHaloParent%abundancesCold      ()*(1.0d0-fractionRemove))
+             end if
           end if
        end if
     end select

@@ -426,7 +426,7 @@ contains
     use            :: Abundances_Structure            , only : Abundances_Get_Metallicity
     use            :: Dates_and_Times                 , only : Formatted_Date_and_Time
     use            :: Display                         , only : displayCounter                   , displayCounterClear , displayIndent, displayUnindent, &
-          &                                                    verbosityLevelWorking
+          &                                                    verbosityLevelWorking            , displayMessage
     use            :: File_Utilities                  , only : Directory_Make                   , File_Exists         , File_Lock    , File_Path      , &
           &                                                    File_Unlock                      , lockDescriptor
     use            :: Error                           , only : Error_Report
@@ -596,7 +596,7 @@ contains
           call    file      %writeDataset(property%property,char(property%label))
           call    file      %close       (                                      )
           !$ call hdf5Access%unset       (                                      )
-          call displayIndent('Storing to file: '//fileName,verbosityLevelWorking)
+          call displayMessage('Storing to file: '//fileName,verbosityLevelWorking)
        end if
        call File_Unlock(lock)
        ! Build interpolators.
