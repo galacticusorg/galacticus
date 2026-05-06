@@ -18,7 +18,7 @@
 
   <parameters>
     <formatVersion>2</formatVersion>
-    <lastModified revision="61711340399619cdd6d89322db6e90ce228d3d93" time="2026-04-14T18:10:17"/>
+    <lastModified revision="9704b4a807cd102ed519068078ee15028d2935f0" time="2026-05-05T17:25:48"/>
     <accretionHalo value="bertschinger">
       <redshiftReionization value="10.5"/>
       <velocitySuppressionReionization value="47.370163695687651"/>
@@ -184,6 +184,7 @@
         <timeStepRelative value="0.01"/>
       </mergerTreeEvolveTimestep>
       <mergerTreeEvolveTimestep value="satellite" iterable="no"/>
+      <mergerTreeEvolveTimestep value="satelliteDestruction" iterable="no"/>
     </mergerTreeEvolveTimestep>
 
     <transferFunction value="eisensteinHu1999">
@@ -195,10 +196,7 @@
     <componentDarkMatterProfile value="scale"/>
     <componentDisk value="verySimpleSize">
       <toleranceAbsoluteMass value="1.0e-6"/>
-      <pruneMassGas value="1.0e6"/>
-      <pruneMassStars value="1.0e6"/>
       <scaleAbsoluteMass value="1.0e6"/>
-      <useAnalyticSolver value="true"/>
     </componentDisk>
     <componentHotHalo value="verySimpleDelayed">
       <scaleRelativeMass value="1.0"/>
@@ -238,16 +236,19 @@
       <!-- Satellite evolution -->
       <nodeOperator value="satelliteMergingTime" iterable="no"/>
       <!-- Star formation -->
-      <nodeOperator value="starFormationDisks" iterable="no"/>
-      <nodeOperator value="stellarFeedbackDisks" iterable="no">
-	<stellarFeedbackOutflows value="rateLimit">
-          <timescaleOutflowFractionalMinimum value="0.001"/>
-          <stellarFeedbackOutflows value="vlctyMxSclng">
-	    <fraction value="5.4973312818696149E-002"/>
-	    <exponentRedshift value="1.9464430036515628"/>
-	    <exponentVelocity value="-5.2559103933618596"/>
+      <nodeOperator value="filtered" iterable="no">
+	<galacticFilter value="haloIsolated"/>
+	<nodeOperator value="starFormationDisks"/>
+	<nodeOperator value="stellarFeedbackDisks">
+	  <stellarFeedbackOutflows value="rateLimit">
+            <timescaleOutflowFractionalMinimum value="0.001"/>
+            <stellarFeedbackOutflows value="vlctyMxSclng">
+	      <fraction value="5.4973312818696149E-002"/>
+	      <exponentRedshift value="1.9464430036515628"/>
+	      <exponentVelocity value="-5.2559103933618596"/>
+	    </stellarFeedbackOutflows>
 	  </stellarFeedbackOutflows>
-	</stellarFeedbackOutflows>
+	</nodeOperator>
       </nodeOperator>
       <!-- CGM physics -->
       <nodeOperator value="CGMOuterRadiusVirialRadius" iterable="no"/>
@@ -263,6 +264,10 @@
       </nodeOperator>
       <nodeOperator value="CGMOutflowReincorporation" iterable="no">
 	<includeSatellites value="false"/>
+      </nodeOperator>
+      <nodeOperator value="diskVerySimpleAnalyticSolver" iterable="no">
+	<pruneMassGas value="1.0e6"/>      
+	<pruneMassStars value="1.0e6"/>
       </nodeOperator>
     </nodeOperator>
 

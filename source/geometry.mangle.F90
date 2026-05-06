@@ -114,7 +114,7 @@ contains
     message='found '
     message=message//self%polygonCount//' polygons'
     call displayMessage(message)
-     allocate(self%polygons       (self%polygonCount))
+    allocate(self%polygons       (self%polygonCount))
     allocate(solidAngle          (self%polygonCount))
     allocate(self%solidAngleIndex(self%polygonCount))
     ! Read each polygon.
@@ -271,7 +271,8 @@ contains
     !!{
     Compute the solid angle of a \textsc{mangle} geometry.
     !!}
-    use :: File_Utilities          , only : File_Exists       , File_Name_Temporary
+   use :: File_Utilities           , only : File_Exists       , File_Name_Temporary, File_Lock         , File_Unlock  , &
+        &                                   lockDescriptor
     use :: Error                   , only : Error_Report
     use :: HDF5_Access             , only : hdf5Access
     use :: IO_HDF5                 , only : hdf5Object
@@ -292,13 +293,16 @@ contains
     double precision                                                            :: multiplier              , subSolidAngle, &
          &                                                                         w00
     type            (hdf5Object    )                                            :: solidAngleFile
+    type            (lockDescriptor)                                            :: fileLock
 
     ! Check for pre-existing calculation.
     if (present(solidAngleFileName).and.File_Exists(solidAngleFileName)) then
+       call File_Lock(solidAngleFileName,fileLock,lockIsShared=.true.)
        !$ call hdf5Access%set  ()
-       solidAngleFile=hdf5Object(solidAngleFileName,overWrite=.false.)
+       solidAngleFile=hdf5Object(solidAngleFileName,overWrite=.false.,readOnly=.true.)
        call solidAngleFile%readDatasetStatic('solidAngle',geometryMangleSolidAngle)
        !$ call hdf5Access%unset()
+       call File_Unlock(fileLock)
        return
     end if
     ! Ensure mangle is available.
@@ -332,12 +336,14 @@ contains
     end do
     ! Store the solid angle to file.
     if (present(solidAngleFileName)) then
+       call File_Lock(solidAngleFileName,fileLock,lockIsShared=.false.)
        !$ call hdf5Access%set  ()
        solidAngleFile=hdf5Object(solidAngleFileName,overWrite=.true.)
        call solidAngleFile%writeAttribute(String_Join(fileNames               ,":"),          'files'     )
        call solidAngleFile%writeDataset  (            geometryMangleSolidAngle     ,          'solidAngle')
        call solidAngleFile%flush         (                                                                )
        !$ call hdf5Access%unset()
+       call File_Unlock(fileLock)
     end if
     return
   end function geometryMangleSolidAngle
@@ -346,7 +352,8 @@ contains
     !!{
     Compute the angular power spectra of a \textsc{mangle} geometry.
     !!}
-    use :: File_Utilities    , only : File_Exists       , File_Name_Temporary
+    use :: File_Utilities    , only : File_Exists       , File_Name_Temporary, File_Lock         , File_Unlock, &
+         &                            lockDescriptor
     use :: Error             , only : Error_Report
     use :: HDF5_Access       , only : hdf5Access
     use :: IO_HDF5           , only : hdf5Object
@@ -371,11 +378,13 @@ contains
          &                                                                                                                                       p                         , q
     double precision                                                                                                                          :: multiplier                , weight
     type            (hdf5Object    )                                                                                                          :: angularPowerFile
+    type            (lockDescriptor)                                                                                                          :: fileLock
 
     ! Read the angular power from file if possible.
     if (present(angularPowerFileName).and.File_Exists(angularPowerFileName)) then
+       call File_Lock(angularPowerFileName,fileLock,lockIsShared=.true.)
        !$ call hdf5Access%set  ()
-       angularPowerFile=hdf5Object(angularPowerFileName)
+       angularPowerFile=hdf5Object(angularPowerFileName,readOnly=.true.)
        l=0
        do p=1,size(fileNames)
           do q=p,size(fileNames)
@@ -385,6 +394,7 @@ contains
        end do
        call angularPowerFile%flush()
        !$ call hdf5Access%unset()
+       call File_Unlock(fileLock)
        return
     end if
     ! Ensure mangle is available.
@@ -446,6 +456,7 @@ contains
     end do
     ! Store the angular power to file.
     if (present(angularPowerFileName)) then
+       call File_Lock(angularPowerFileName,fileLock,lockIsShared=.false.)
        !$ call hdf5Access%set  ()
        angularPowerFile=hdf5Object(angularPowerFileName,overWrite=.true.)
        call angularPowerFile%writeAttribute(String_Join(fileNames,":"),'files')
@@ -458,6 +469,7 @@ contains
        end do
        call angularPowerFile%flush()
        !$ call hdf5Access%unset()
+       call File_Unlock(fileLock)
     end if
     return
   end function geometryMangleAngularPower

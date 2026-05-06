@@ -28,15 +28,14 @@ module Node_Component_Hot_Halo_Cold_Mode
   reservoir.
   !!}
   use :: Accretion_Halos                      , only : accretionHaloClass
-  use :: Cosmology_Parameters                 , only : cosmologyParametersClass
   use :: Dark_Matter_Halo_Scales              , only : darkMatterHaloScaleClass
   use :: Hot_Halo_Cold_Mode_Mass_Distributions, only : hotHaloColdModeMassDistributionClass
   implicit none
   private
-  public :: Node_Component_Hot_Halo_Cold_Mode_Initialize       , Node_Component_Hot_Halo_Cold_Mode_Node_Merger        , &
+  public :: Node_Component_Hot_Halo_Cold_Mode_Initialize       , Node_Component_Hot_Halo_Cold_Mode_State_Restore      , &
        &    Node_Component_Hot_Halo_Cold_Mode_Scale_Set        , Node_Component_Hot_Halo_Cold_Mode_Tree_Initialize    , &
        &    Node_Component_Hot_Halo_Cold_Mode_Thread_Initialize, Node_Component_Hot_Halo_Cold_Mode_Thread_Uninitialize, &
-       &    Node_Component_Hot_Halo_Cold_Mode_State_Store      , Node_Component_Hot_Halo_Cold_Mode_State_Restore
+       &    Node_Component_Hot_Halo_Cold_Mode_State_Store
 
   !![
   <component>
@@ -69,13 +68,6 @@ module Node_Component_Hot_Halo_Cold_Mode
       <attributes isSettable="true" isGettable="true" isEvolvable="true" createIfNeeded="true" />
       <output unitsInSI="massSolar*megaParsec*kilo" comment="Angular momentum of cold-mode gas in the hot halo."/>
     </property>
-    <property>
-      <name>massTotal</name>
-      <attributes isSettable="false" isGettable="true" isEvolvable="false" isVirtual="true" />
-      <type>double</type>
-      <rank>0</rank>
-      <getFunction>Node_Component_Hot_Halo_Cold_Mode_Mass_Total</getFunction>
-    </property>
    </properties>
    <bindings>
      <binding method="massDistribution" isDeferred="true" >
@@ -99,10 +91,9 @@ module Node_Component_Hot_Halo_Cold_Mode
 
   ! Objects used by this component.
   class(accretionHaloClass                  ), pointer :: accretionHalo_
-  class(cosmologyParametersClass            ), pointer :: cosmologyParameters_
   class(darkMatterHaloScaleClass            ), pointer :: darkMatterHaloScale_
   class(hotHaloColdModeMassDistributionClass), pointer :: hotHaloColdModeMassDistribution_
-  !$omp threadprivate(accretionHalo_,cosmologyParameters_,darkMatterHaloScale_,hotHaloColdModeMassDistribution_)
+  !$omp threadprivate(accretionHalo_,darkMatterHaloScale_,hotHaloColdModeMassDistribution_)
 
   ! Internal count of abundances.
   integer :: abundancesCount
@@ -167,7 +158,6 @@ contains
        ! Find our parameters.
        subParameters=parameters%subParameters('componentHotHalo')
        !![
-       <objectBuilder class="cosmologyParameters"             name="cosmologyParameters_"             source="subParameters"/>
        <objectBuilder class="darkMatterHaloScale"             name="darkMatterHaloScale_"             source="subParameters"/>
        <objectBuilder class="accretionHalo"                   name="accretionHalo_"                   source="subParameters"/>
        <objectBuilder class="hotHaloColdModeMassDistribution" name="hotHaloColdModeMassDistribution_" source="subParameters"/>
@@ -193,7 +183,6 @@ contains
 
     if (defaultHotHaloComponent%coldModeIsActive()) then
        !![
-       <objectDestructor name="cosmologyParameters_"            />
        <objectDestructor name="darkMatterHaloScale_"            />
        <objectDestructor name="accretionHalo_"                  />
        <objectDestructor name="hotHaloColdModeMassDistribution_"/>
@@ -299,144 +288,6 @@ contains
     end if
     return
   end subroutine Node_Component_Hot_Halo_Cold_Mode_Tree_Initialize
-
-  !![
-  <nodeMergerTask function="Node_Component_Hot_Halo_Cold_Mode_Node_Merger" before="Node_Component_Hot_Halo_Standard_Node_Merger"/>
-  !!]
-  subroutine Node_Component_Hot_Halo_Cold_Mode_Node_Merger(node)
-    !!{
-    Starve \mono{node} by transferring its hot halo to its parent.
-    !!}
-    use :: Abundances_Structure                 , only : abundances                     , operator(*)            , zeroAbundances
-    use :: Accretion_Halos                      , only : accretionModeCold              , accretionModeTotal
-    use :: Galactic_Structure_Options           , only : componentTypeAll               , massTypeBaryonic
-    use :: Galacticus_Nodes                     , only : nodeComponentBasic             , nodeComponentHotHalo   , nodeComponentHotHaloColdMode, nodeComponentSpin, &
-          &                                              treeNode                       , defaultHotHaloComponent
-    use :: Node_Component_Hot_Halo_Standard_Data, only : fractionBaryonLimitInNodeMerger, starveSatellites
-    use :: Mass_Distributions                   , only : massDistributionClass
-    implicit none
-    type            (treeNode             ), intent(inout) :: node
-    type            (treeNode             ), pointer       :: nodeParent
-    class           (nodeComponentHotHalo ), pointer       :: hotHaloParent          , hotHalo
-    class           (nodeComponentSpin    ), pointer       :: spinParent
-    class           (nodeComponentBasic   ), pointer       :: basicParent            , basic
-    class           (massDistributionClass), pointer       :: massDistribution_
-    double precision                                       :: baryonicMassCurrent    , baryonicMassMaximum   , &
-         &                                                    fractionRemove         , massAccretedCold      , &
-         &                                                    massAccreted           , massUnaccreted        , &
-         &                                                    angularMomentumAccreted, massReaccreted        , &
-         &                                                    fractionAccreted
-    type            (abundances           ), save          :: massMetalsAccreted     , fractionMetalsAccreted, &
-         &                                                    massMetalsReaccreted
-    !$omp threadprivate(massMetalsAccreted,fractionMetalsAccreted,massMetalsReaccreted)
-
-    ! Return immediately if this class is not in use.
-    if (.not.defaultHotHaloComponent%coldModeIsActive()) return
-    ! Get the hot halo component.
-    hotHalo => node%hotHalo()
-    ! Ensure that it is of cold mode class.
-    select type (hotHalo)
-    class is (nodeComponentHotHaloColdMode)
-       ! Find the parent node and its hot halo and angular momentum components.
-       nodeParent    => node      %parent
-       hotHaloParent => nodeParent%hotHalo(autoCreate=.true.)
-       spinParent    => nodeParent%spin   (                 )
-       basicParent   => nodeParent%basic  (                 )
-       basic         => node      %basic  (                 )
-       ! Since the parent node is undergoing mass growth through this merger we potentially return some of the unaccreted gas to
-       ! the hot phase.
-       !! First, find the masses of hot and failed mass the node would have if it formed instantaneously.
-       massAccretedCold=accretionHalo_%      accretedMass(nodeParent,accretionModeCold )
-       massAccreted    =accretionHalo_%      accretedMass(nodeParent,accretionModeTotal)
-       massUnaccreted  =accretionHalo_%failedAccretedMass(nodeParent,accretionModeTotal)
-       !! Find the fraction of mass that would be successfully accreted.
-       fractionAccreted=+  massAccretedCold &
-            &           /(                  &
-            &             +massAccreted     &
-            &             +massUnaccreted   &
-            &            )
-       !! Find the change in the unaccreted mass.
-       massReaccreted=+hotHaloParent   %unaccretedMass() &
-            &         *fractionAccreted                  &
-            &         *basic           %          mass() &
-            &         /basicParent     %          mass()
-       !! Reaccrete the gas.
-       call hotHaloParent%unaccretedMassSet(hotHaloParent%unaccretedMass()-massReaccreted)
-       call hotHaloParent%      massColdSet(hotHaloParent%      massCold()+massReaccreted)
-       ! Compute the reaccreted angular momentum.
-       angularMomentumAccreted=+            massReaccreted    &
-            &                  *spinParent %angularMomentum() &
-            &                  /basicParent%mass           ()
-       call hotHaloParent%angularMomentumColdSet(hotHaloParent%angularMomentumCold()+angularMomentumAccreted)
-       ! Compute the reaccreted metals.
-       !! First, find the metal mass the node would have if it formed instantaneously.
-       massMetalsAccreted=accretionHalo_%accretedMassMetals(nodeParent,accretionModeCold)
-       !! Find the mass fraction of metals that would be successfully accreted.
-       fractionMetalsAccreted=+  massMetalsAccreted &
-            &                 /(                    &
-            &                   +massAccreted       &
-            &                   +massUnaccreted     &
-            &                  )
-       !! Find the change in the unaccreted mass.
-       massMetalsReaccreted=+hotHaloParent         %unaccretedMass() &
-            &               *fractionMetalsAccreted                  &
-            &               *basic                 %          mass() &
-            &               /basicParent           %          mass()
-       !! Reaccrete the metals.
-       call hotHaloParent%abundancesColdSet(hotHaloParent%abundancesCold()+massMetalsReaccreted)
-       ! Determine if starvation is to be applied.
-       if (starveSatellites) then
-          ! Move the hot halo to the parent. We leave the hot halo in place even if it is starved, since outflows will accumulate to
-          ! this hot halo (and will be moved to the parent at the end of the evolution timestep).
-          call hotHaloParent%           massColdSet(                                      &
-               &                                     hotHaloParent %massCold           () &
-               &                                    +hotHalo       %massCold           () &
-               &                                   )
-          call hotHaloParent%angularMomentumColdSet(                                      &
-               &                                     hotHaloParent %angularMomentumCold() &
-               &                                    +hotHalo       %massCold           () &
-               &                                    *spinParent    %angularMomentum    () &
-               &                                    /basicParent   %mass               () &
-               &                                   )
-          call hotHalo      %           massColdSet(                                      &
-               &                                     0.0d0                                &
-               &                                   )
-          call hotHalo      %angularMomentumColdSet(                                      &
-               &                                     0.0d0                                &
-               &                                   )
-          call hotHaloParent%     abundancesColdSet(                                      &
-               &                                     hotHaloParent %abundancesCold     () &
-               &                                    +hotHalo       %abundancesCold     () &
-               &                                   )
-          call hotHalo      %     abundancesColdSet(                                      &
-               &                                     zeroAbundances                       &
-               &                                   )
-          ! Check if the baryon fraction in the parent hot halo exceeds the universal value. If it does, mitigate this by moving
-          ! some of the mass to the failed accretion reservoir.
-          if (fractionBaryonLimitInNodeMerger) then
-             massDistribution_   =>  nodeParent          %massDistribution(massType=massTypeBaryonic)
-             baryonicMassMaximum =  +basicParent         %mass            (                         ) &
-                  &                 *cosmologyParameters_%omegaBaryon     (                         ) &
-                  &                 /cosmologyParameters_%omegaMatter     (                         )
-             baryonicMassCurrent =  +massDistribution_   %massTotal       (                         )
-             !![
-	     <objectDestructor name="massDistribution_"/>
-	     !!]
-             if (baryonicMassCurrent > baryonicMassMaximum .and. hotHaloParent%mass()+hotHaloParent%massCold() > 0.0d0) then
-                fractionRemove=min((baryonicMassCurrent-baryonicMassMaximum)/hotHaloParent%massTotal(),1.0d0)
-                call hotHaloParent%     unaccretedMassSet(                                                            &
-                     &                                     hotHaloParent%unaccretedMass     ()                        &
-                     &                                    +hotHaloParent%massCold           ()*       fractionRemove  &
-                     &                                   )
-                call hotHaloParent%           massColdSet( hotHaloParent%massCold           ()*(1.0d0-fractionRemove))
-                call hotHaloParent%angularMomentumColdSet( hotHaloParent%angularMomentumCold()*(1.0d0-fractionRemove))
-                call hotHaloParent%     abundancesColdSet( hotHaloParent%abundancesCold     ()*(1.0d0-fractionRemove))
-             end if
-          end if
-       end if
-    end select
-    return
-  end subroutine Node_Component_Hot_Halo_Cold_Mode_Node_Merger
 
   subroutine satelliteMerger(self,node)
     !!{
@@ -594,7 +445,7 @@ contains
 
     call displayMessage('Storing state for: componentHotHalo -> coldMode',verbosity=verbosityLevelInfo)
     !![
-    <stateStore variables="accretionHalo_ cosmologyParameters_ hotHaloColdModeMassDistribution_"/>
+    <stateStore variables="accretionHalo_ hotHaloColdModeMassDistribution_"/>
     !!]
     return
   end subroutine Node_Component_Hot_Halo_Cold_Mode_State_Store
@@ -615,7 +466,7 @@ contains
 
     call displayMessage('Retrieving state for: componentHotHalo -> coldMode',verbosity=verbosityLevelInfo)
     !![
-    <stateRestore variables="accretionHalo_ cosmologyParameters_ hotHaloColdModeMassDistribution_"/>
+    <stateRestore variables="accretionHalo_ hotHaloColdModeMassDistribution_"/>
     !!]
     return
   end subroutine Node_Component_Hot_Halo_Cold_Mode_State_Restore
