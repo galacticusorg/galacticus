@@ -107,8 +107,12 @@ def assign_c_types(argument_list, lib_function_classes):
         elif intrinsic == 'integer':
             # Default kind maps to c_int; explicit C-interop kinds (c_long,
             # c_size_t) pass through with matching ctypes wrappers so that
-            # 64-bit values aren't silently truncated.
-            if type_spec_val == 'c_long':
+            # 64-bit values aren't silently truncated.  `kind_int8` is the
+            # Galacticus alias for `selected_int_kind(18)` (a 64-bit
+            # integer) — without this branch its arrays would be emitted
+            # as `integer(c_int)` and mismatch the inner method's
+            # `integer(kind_int8)` signature, breaking the build.
+            if type_spec_val in ('c_long', 'kind_int8'):
                 arg.ctype     = 'c_long'
                 arg.fort_type = 'integer(c_long)'
             elif type_spec_val == 'c_size_t':
