@@ -258,9 +258,9 @@ contains
     fileName=inputPath(pathTypeDataDynamic)//"starFormation/"//self%objectType()//"_"//self%hashedDescriptor(includeSourceDigest=.true.)//".hdf5"
     allocate(self%intervals(self%outputTimes_%count()))
     if (File_Exists(fileName)) then
-       call File_Lock(char(fileName),fileLock,lockIsShared=.true.)
+       call File_Lock(fileName,fileLock,lockIsShared=.true.)
        !$ call hdf5Access%set()
-       call file%openFile(char(fileName))
+       call file%openFile(fileName,readOnly=.true.)
        do iOutput=1,self%outputTimes_%count()
           write (name,'(a,i4.4)') 'times'   ,iOutput
           call file%readDataset(name,self%intervals(iOutput)%time    )
