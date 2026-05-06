@@ -41,27 +41,27 @@ Implements a null N-body dark matter halo mass error class.
      !!{
      Constructors for the \refClass{nbodyHaloMassErrorNull} N-body halo mass error class.
      !!}
-     module procedure nbodyHaloMassErrorNullParameters
+     module procedure nullConstructorParameters
   end interface nbodyHaloMassErrorNull
 
 contains
 
-  function nbodyHaloMassErrorNullParameters(parameters)
+  function nullConstructorParameters(parameters) result(self)
     !!{
     Constructor for the \refClass{nbodyHaloMassErrorNull} N-body halo mass error class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
-    type(nbodyHaloMassErrorNull)                :: nbodyHaloMassErrorNullParameters
+    type(nbodyHaloMassErrorNull)                :: self
     type(inputParameters       ), intent(inout) :: parameters
 
     ! Check and read parameters.
-    nbodyHaloMassErrorNullParameters=nbodyHaloMassErrorNull()
+    self=nbodyHaloMassErrorNull()
     !![
     <inputParametersValidate source="parameters"/>
     !!]
     return
-  end function nbodyHaloMassErrorNullParameters
+  end function nullConstructorParameters
 
   double precision function nullErrorFractional(self,node)
     !!{

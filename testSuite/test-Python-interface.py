@@ -1,105 +1,225 @@
 # Simple test of Python interface to libgalacticus
 import galacticus
 import ctypes
+import sys
 import numpy as np
+from contextlib import contextmanager
 
 # Simple tests of the Python API.
 # Andrew Benson (23-April-2026)
 
-# Constructs various objects and asserts that their methods return result that match expectations.
-# Writes PASS/FAIL for each test.
+# Constructs various objects and asserts that their methods return results
+# that match expectations.  Writes PASS/FAIL for each test, and exits with a
+# non-zero status if any test failed (so CI catches regressions even if the
+# script is interrupted before the failure summary is printed).
+
+_failures = 0
+
+
+def check(label, actual, expected, rtol=1.0e-6, fmt=".2f", unit=""):
+    """Compare actual vs expected; print PASS/FAIL and tally failures."""
+    global _failures
+    suffix = f" {unit}" if unit else ""
+    if np.isclose(actual, expected, rtol=rtol):
+        print(f'   PASS: {label} = {actual:{fmt}}{suffix}')
+    else:
+        _failures += 1
+        print(f'   FAIL: {label} = {actual:{fmt}}{suffix} '
+              f'(expected {expected:{fmt}}, Δ={actual-expected:.3g})')
+
+
+def check_eq(label, actual, expected):
+    """Exact-equality variant for non-numeric values (strings, etc.)."""
+    global _failures
+    if actual == expected:
+        print(f'   PASS: {label} = {actual!r}')
+    else:
+        _failures += 1
+        print(f'   FAIL: {label} = {actual!r} (expected {expected!r})')
+
+
+@contextmanager
+def safe_section(name):
+    """Wrap a test section so an unexpected exception is reported as FAIL
+    rather than aborting the rest of the suite."""
+    global _failures
+    print(f"--- {name} ---")
+    try:
+        yield
+    except Exception as exc:
+        _failures += 1
+        print(f'   FAIL: section raised {type(exc).__name__}: {exc}')
+
 
 # Cosmological parameters.
-print("--- cosmologyParametersSimple ---")
-cosmologyParameters = galacticus.cosmologyParametersSimple(0.3,0.045,0.7,2.78,70.0)
-## Ω_m
-OmegaMatter = cosmologyParameters.OmegaMatter()
-status      = "PASS" if np.isclose(OmegaMatter, 0.3, rtol=1.0e-6) else "FAIL"
-print(f'   {status}: Ω_m = {OmegaMatter:.2f}')
-## H₀
-HubbleConstant = cosmologyParameters.HubbleConstant()
-status      = "PASS" if np.isclose(HubbleConstant, 70.0, rtol=1.0e-6) else "FAIL"
-print(f'   {status}: H₀ = {HubbleConstant:.2f}')
+with safe_section("cosmologyParametersSimple"):
+    cosmologyParameters = galacticus.cosmologyParametersSimple(0.3,0.045,0.7,2.78,70.0)
+    check("Ω_m", cosmologyParameters.OmegaMatter()   ,  0.3)
+    check("H₀" , cosmologyParameters.HubbleConstant(), 70.0)
 
 # Cosmological functions.
-print("--- cosmologyFunctionsMatterLambda ---")
-cosmologyFunctions = galacticus.cosmologyFunctionsMatterLambda(cosmologyParameters)
-time   = cosmologyFunctions.cosmicTime(1.0)
-status = "PASS" if np.isclose(time, 13.466717044688263, rtol=1.0e-6) else "FAIL"
-print(f'   {status}: t(a=1) = {time:.4f} Gyr')
-expansionFactor = cosmologyFunctions.expansionFactor(time)
-status = "PASS" if np.isclose(expansionFactor, 1.0, rtol=1.0e-6) else "FAIL"
-print(f'   {status}: a(t={time:.2f}Gyr) = {expansionFactor:.2f}')
-OmegaMatterEpochal = cosmologyFunctions.omegaMatterEpochal(time=6.0)
-status = "PASS" if np.isclose(OmegaMatterEpochal, 0.7576520892903698, rtol=1.0e-6) else "FAIL"
-print(f'   {status}: Ω_m(t=6.0Gyr) = {OmegaMatterEpochal:.2f}')
-OmegaMatterEpochal = cosmologyFunctions.omegaMatterEpochal(expansionFactor=0.5)
-status = "PASS" if np.isclose(OmegaMatterEpochal, 0.774193548387097, rtol=1.0e-6) else "FAIL"
-print(f'   {status}: Ω_m(a=0.5) = {OmegaMatterEpochal:.2f}')
+with safe_section("cosmologyFunctionsMatterLambda"):
+    cosmologyFunctions = galacticus.cosmologyFunctionsMatterLambda(cosmologyParameters)
+    time = cosmologyFunctions.cosmicTime(1.0)
+    check("t(a=1)"             , time                                                       , 13.466717044688263, fmt=".4f", unit="Gyr")
+    check(f"a(t={time:.2f}Gyr)", cosmologyFunctions.expansionFactor(time)                   ,  1.0)
+    check("Ω_m(t=6.0Gyr)"      , cosmologyFunctions.omegaMatterEpochal(time=6.0)            ,  0.7576520892903698)
+    check("Ω_m(a=0.5)"         , cosmologyFunctions.omegaMatterEpochal(expansionFactor=0.5) ,  0.774193548387097)
 
 # Primordial power spectrum.
-print("--- powerSpectrumPrimordialPowerLaw ---")
-powerSpectrumPrimordial = galacticus.powerSpectrumPrimordialPowerLaw(0.965,0.0,0.0,1.0,False)
-power = powerSpectrumPrimordial.power(2.0)
-status = "PASS" if np.isclose(power, 1.9520635215524493, rtol=1.0e-6) else "FAIL"
-print(f'   {status}: P₀(k=2 Mpc⁻¹) = {power:.2f} Mpc³')
+with safe_section("powerSpectrumPrimordialPowerLaw"):
+    powerSpectrumPrimordial = galacticus.powerSpectrumPrimordialPowerLaw(0.965,0.0,0.0,1.0,False)
+    check("P₀(k=2 Mpc⁻¹)", powerSpectrumPrimordial.power(2.0), 1.9520635215524493, unit="Mpc³")
 
 # Window functions.
-print("--- powerSpectrumWindowFunctionTopHat ---")
-powerSpectrumWindowFunction = galacticus.powerSpectrumWindowFunctionTopHat(cosmologyParameters)
-windowFunction = powerSpectrumWindowFunction.value(2.0,1.0e12,time)
-status = "PASS" if np.isclose(windowFunction, 0.1780975268538394, rtol=1.0e-6) else "FAIL"
-print(f'   {status}: W(k=2 Mpc⁻¹|M=10¹²M☉) = {windowFunction:.2f}')
+with safe_section("powerSpectrumWindowFunctionTopHat"):
+    powerSpectrumWindowFunction = galacticus.powerSpectrumWindowFunctionTopHat(cosmologyParameters)
+    check("W(k=2 Mpc⁻¹|M=10¹²M☉)", powerSpectrumWindowFunction.value(2.0,1.0e12,time), 0.1780975268538394)
 
 # Dark matter particle.
-darkMatterParticle = galacticus.darkMatterParticleCDM()
+with safe_section("darkMatterParticleCDM"):
+    darkMatterParticle = galacticus.darkMatterParticleCDM()
 
 # Transfer functions.
-print("--- transferFunctionCAMB ---")
-transferFunction = galacticus.transferFunctionCAMB(darkMatterParticle,cosmologyParameters,cosmologyFunctions,0,0.0,0)
-transferValue = transferFunction.value(2.0)
-status = "PASS" if np.isclose(transferValue, 14637.776794245852, rtol=1.0e-6) else "FAIL"
-print(f'   {status}: T(k=2 Mpc⁻¹) = {transferValue:.2f}')
+with safe_section("transferFunctionCAMB"):
+    transferFunction = galacticus.transferFunctionCAMB(darkMatterParticle,cosmologyParameters,cosmologyFunctions,0,0.0,0)
+    check("T(k=2 Mpc⁻¹)", transferFunction.value(2.0), 14637.776794245852)
 
 # Linear growth.
-print("--- linearGrowthCollisionlessMatter ---")
-linearGrowth = galacticus.linearGrowthCollisionlessMatter(cosmologyParameters,cosmologyFunctions)
-growthFunction = linearGrowth.value(time=6.0)
-status = "PASS" if np.isclose(growthFunction, 0.6282911249247264, rtol=1.0e-6) else "FAIL"
-print(f'   {status}: D(t=6 Gyr) = {growthFunction:.2f}')
+with safe_section("linearGrowthCollisionlessMatter"):
+    linearGrowth = galacticus.linearGrowthCollisionlessMatter(cosmologyParameters,cosmologyFunctions)
+    check("D(t=6 Gyr)", linearGrowth.value(time=6.0), 0.6282911249247264)
 
-# Power spectrum transferred
-print("--- powerSpectrumPrimordialTransferredSimple ---")
-powerSpectrumTransferred = galacticus.powerSpectrumPrimordialTransferredSimple(powerSpectrumPrimordial,transferFunction,linearGrowth)
-powerTransferred = powerSpectrumTransferred.power(wavenumber=2.0,time=6.0)
-status = "PASS" if np.isclose(powerTransferred, 165107209.2923229, rtol=3.0e-6) else "FAIL"
-print(f'   {status}: P(k=2 Mpc⁻¹,t=6 Gyr) = {powerTransferred:.2f}')
+# Power spectrum transferred.  Tolerance is loosened here because the result
+# accumulates the integration tolerances of every upstream object.
+with safe_section("powerSpectrumPrimordialTransferredSimple"):
+    powerSpectrumTransferred = galacticus.powerSpectrumPrimordialTransferredSimple(powerSpectrumPrimordial,transferFunction,linearGrowth)
+    check("P(k=2 Mpc⁻¹,t=6 Gyr)", powerSpectrumTransferred.power(wavenumber=2.0,time=6.0), 165107209.2923229, rtol=3.0e-6)
 
 # Cosmological mass variance.
-print("--- cosmologicalMassVarianceFilteredPower ---")
-cosmologicalMassVariance = galacticus.cosmologicalMassVarianceFilteredPower(sigma8=0.8,tolerance=1.0e-4,toleranceTopHat=1.0e-4,nonMonotonicIsFatal=True,integrationFailureIsFatal=True,monotonicInterpolation=False,rootVarianceLogarithmicGradientTolerance=1.0e-4,truncateAtParticleHorizon=False,storeTabulations=True,cosmologyParameters_=cosmologyParameters,cosmologyFunctions_=cosmologyFunctions,linearGrowth_=linearGrowth,powerSpectrumPrimordialTransferred_=powerSpectrumTransferred,powerSpectrumWindowFunction_=powerSpectrumWindowFunction)
-rootVariance = cosmologicalMassVariance.rootVariance(mass=1.0e12,time=13.8)
-status = "PASS" if np.isclose(rootVariance, 2.1968385715548044, rtol=1.0e-6) else "FAIL"
-print(f'   {status}: σ(M=10¹²M☉) = {rootVariance:.2f}')
+with safe_section("cosmologicalMassVarianceFilteredPower"):
+    cosmologicalMassVariance = galacticus.cosmologicalMassVarianceFilteredPower(sigma8=0.8,tolerance=1.0e-4,toleranceTopHat=1.0e-4,nonMonotonicIsFatal=True,integrationFailureIsFatal=True,monotonicInterpolation=False,rootVarianceLogarithmicGradientTolerance=1.0e-4,truncateAtParticleHorizon=False,storeTabulations=True,cosmologyParameters_=cosmologyParameters,cosmologyFunctions_=cosmologyFunctions,linearGrowth_=linearGrowth,powerSpectrumPrimordialTransferred_=powerSpectrumTransferred,powerSpectrumWindowFunction_=powerSpectrumWindowFunction)
+    check("σ(M=10¹²M☉)", cosmologicalMassVariance.rootVariance(mass=1.0e12,time=13.8), 2.1968385715548044)
 
 # Critical overdensity.
-print("--- criticalOverdensitySphericalCollapseClsnlssMttrCsmlgclCnstnt ---")
-criticalOverdensity = galacticus.criticalOverdensitySphericalCollapseClsnlssMttrCsmlgclCnstnt(linearGrowth,cosmologyFunctions,cosmologicalMassVariance,darkMatterParticle,True)
-deltaCrit = criticalOverdensity.value(time=13.8)
-status = "PASS" if np.isclose(deltaCrit, 1.6750993420127407, rtol=1.0e-6) else "FAIL"
-print(f'   {status}: δ_c(a=1) = {deltaCrit:.2f}')
+with safe_section("criticalOverdensitySphericalCollapseClsnlssMttrCsmlgclCnstnt"):
+    criticalOverdensity = galacticus.criticalOverdensitySphericalCollapseClsnlssMttrCsmlgclCnstnt(linearGrowth,cosmologyFunctions,cosmologicalMassVariance,darkMatterParticle,True)
+    check("δ_c(a=1)", criticalOverdensity.value(time=13.8), 1.6750993420127407)
 
 # Virial density contrast.
-print("--- virialDensityContrastSphericalCollapseClsnlssMttrCsmlgclCnstnt ---")
-virialDensityContrast = galacticus.virialDensityContrastSphericalCollapseClsnlssMttrCsmlgclCnstnt(True,cosmologyFunctions)
-contrast = virialDensityContrast.densityContrast(mass=1.0e12,time=13.8)
-status = "PASS" if np.isclose(contrast, 350.506868239381, rtol=1.0e-6) else "FAIL"
-print(f'   {status}: Δ_vir(a=1) = {contrast:.2f}')
+with safe_section("virialDensityContrastSphericalCollapseClsnlssMttrCsmlgclCnstnt"):
+    virialDensityContrast = galacticus.virialDensityContrastSphericalCollapseClsnlssMttrCsmlgclCnstnt(True,cosmologyFunctions)
+    check("Δ_vir(a=1)", virialDensityContrast.densityContrast(mass=1.0e12,time=13.8), 350.506868239381)
 
 # Halo mass function.
-print("--- haloMassFunctionShethTormen ---")
-haloMassFunction = galacticus.haloMassFunctionShethTormen(cosmologyParameters,cosmologicalMassVariance,criticalOverdensity,0.707,0.3,0.322183)
-haloMass = 1.0e10
-hmf = haloMassFunction.differential(13.8,haloMass)*haloMass
-status = "PASS" if np.isclose(hmf, 0.1040973175348119, rtol=1.0e-6) else "FAIL"
-print(f'   {status}: dn/dlnM(M=10¹⁰M☉,a=1) = {hmf:.4f}')
+with safe_section("haloMassFunctionShethTormen"):
+    haloMassFunction = galacticus.haloMassFunctionShethTormen(cosmologyParameters,cosmologicalMassVariance,criticalOverdensity,0.707,0.3,0.322183)
+    haloMass = 1.0e10
+    check("dn/dlnM(M=10¹⁰M☉,a=1)", haloMassFunction.differential(13.8,haloMass)*haloMass, 0.1040973175348119, fmt=".4f")
+
+# Random number generator.  Exercises method returns of `integer` (poisson),
+# `integer(c_long)` (range/sample/seed), and the `integer(c_long)` argument
+# path (sample(n=...)) plus the optional-arg branching for c_long.
+with safe_section("randomNumberGeneratorGSL"):
+    rng = galacticus.randomNumberGeneratorGSL(seed_=219,ompThreadOffset=False,mpiRankOffset=False)
+    # TODO: replace dummy expectations below with golden values from a real run.
+    check_eq("seed"        , rng.seed()                  ,         219)  # integer(c_long) return
+    check_eq("rangeMinimum", rng.rangeMinimum()          ,           0)  # integer(c_long) return
+    check_eq("rangeMaximum", rng.rangeMaximum()          ,  4294967295)  # integer(c_long) return
+    check_eq("sample()"    , rng.sample()                ,           57953729)  # integer(c_long) return, no args
+    check_eq("sample(n=10)", rng.sample(n=10)            ,           1)  # integer(c_long) optional arg
+    check_eq("poisson(5.0)", rng.poissonSample(mean=5.0) ,           3)  # plain `integer` return
+    check   ("uniform"     , rng.uniformSample()         ,         0.271657)  # double precision baseline
+    
+# Output times — exercises `integer(c_size_t)` return + arg.
+with safe_section("outputTimesUniformSpacingInRedshift"):
+    outputTimes = galacticus.outputTimesUniformSpacingInRedshift(0.0,5.0,10,cosmologyFunctions)
+    # TODO: replace dummy expectations below with golden values from a real run.
+    check_eq("count()"           , outputTimes.count()             ,  10)  # integer(c_size_t) return
+    check   ("time(indexOutput=1)", outputTimes.time(indexOutput=1),  1.15473815)  # integer(c_size_t) arg, double return
+    check   ("redshift(idx=10)"   , outputTimes.redshift(indexOutput=10),  0.0)
+
+# Output times list — exercises the 1D deferred-shape numeric array path
+# (the constructor's `times` arg is `dimension(:)`).  Python passes a list
+# / numpy array; the wrapper converts via np.ascontiguousarray and
+# generates the (data_pointer, c_size_t(count)) pair the bind(c) function
+# expects.  Without dimension support this whole class would have been
+# auto-skipped at constructor-arg validation time.
+with safe_section("outputTimesList"):
+    outputTimesL = galacticus.outputTimesList([0.5, 1.0, 2.0, 5.0, 13.0], cosmologyFunctions)
+    # TODO: replace dummy expectations below with golden values from a real run.
+    check_eq("count() (5 entries)"     , outputTimesL.count()                   , 5)
+    check   ("time(indexOutput=1)"     , outputTimesL.time(indexOutput=1)       , 0.5)
+    check   ("time(indexOutput=5)"     , outputTimesL.time(indexOutput=5)       , 13.0)
+
+# Dark matter profile concentration — exercises the class(FooClass) return
+# path: densityContrastDefinition() returns class(virialDensityContrastClass),
+# which the wrapper resolves into the matching Python subclass via
+# virialDensityContrast._from_classID.  The returned object is owned by
+# Galacticus (not by Python), so its destructor is a no-op (_owned=False)
+# and we should still be able to call methods on it.
+darkMatterHaloScale = galacticus.darkMatterHaloScaleVirialDensityContrastDefinition(cosmologyParameters,cosmologyFunctions,virialDensityContrast)
+darkMatterProfileDMO = galacticus.darkMatterProfileDMOIsothermal(darkMatterHaloScale)
+with safe_section("darkMatterProfileConcentrationFixed"):
+    concentration = galacticus.darkMatterProfileConcentrationFixed(10.0,virialDensityContrast,darkMatterProfileDMO)
+    vdcReturned   = concentration.densityContrastDefinition()
+    # The returned wrapper should be the same concrete subclass we passed in.
+    check_eq("class(...) return type"   , type(vdcReturned).__name__           , type(virialDensityContrast).__name__)
+    check_eq("class(...) return _owned" , getattr(vdcReturned, '_owned', True) , False)
+    # And the wrapped object should be usable for further method calls; the
+    # value should match the original instance (same Galacticus object).
+    check   ("Δ_vir(via returned)"      , vdcReturned.densityContrast(mass=1.0e12,time=13.8), 350.506868239381)
+
+# Node property extractor — exercises `type(enumerationXxxType)` return path
+# (the inner method gives a derived enum type, the wrapper lifts the %ID
+# component out as c_int).
+with safe_section("nodePropertyExtractorNodeMajorMergerTime"):
+    npe = galacticus.nodePropertyExtractorNodeMajorMergerTime()
+    # TODO: replace dummy expectations below with golden values from a real run.
+    check_eq("type()"    , npe.type()    , 0)  # type(enumerationOutputAnalysisPropertyType    Type) → c_int
+    check_eq("quantity()", npe.quantity(), 0)  # type(enumerationOutputAnalysisPropertyQuantityType) → c_int
+
+# Initial mass function — exercises `type(varying_string)` return-type path
+# (Fortran-side static c_char buffer + Python-side .decode("utf-8")).
+with safe_section("initialMassFunctionSalpeter1955"):
+    imf = galacticus.initialMassFunctionSalpeter1955()
+    # TODO: replace dummy expectations below with golden values from a real run.
+    check_eq("label"      , imf.label()                            ,    "Salpeter1955")  # varying_string return
+    check   ("massMinimum", imf.massMinimum()                      ,    0.1)
+    check   ("massMaximum", imf.massMaximum()                      ,  125.0)
+    check   ("phi(M=1)"   , imf.phi(massInitial=1.0)               ,    0.170384)
+    check   ("N(0.1..125)", imf.numberCumulative(massLower=0.1,massUpper=125.0), 2.82531)
+
+# Radiative transfer photon packet — exercises both fixed-size dimensional
+# shapes in one round-trip: positionSet/directionSet take a `dimension(3)`
+# *input* and position()/direction() return a `dimension(3)` numpy array.
+# The constructor takes only scalar doubles, so this is fully self-contained.
+with safe_section("radiativeTransferPhotonPacketSimple"):
+    photon = galacticus.radiativeTransferPhotonPacketSimple(
+        wavelength=500.0, wavelengthMinimum=400.0, wavelengthMaximum=700.0,
+        luminosity=1.0e30,
+    )
+    photon.positionSet ([1.0, 2.0, 3.0])
+    photon.directionSet([0.0, 0.0, 1.0])
+    pos = photon.position ()
+    dir = photon.direction()
+    # Plain round-trip — values stored go straight back out, so exact
+    # equality is reliable here.
+    check_eq("position[0]" , float(pos[0]), 1.0)
+    check_eq("position[1]" , float(pos[1]), 2.0)
+    check_eq("position[2]" , float(pos[2]), 3.0)
+    check_eq("direction[2]", float(dir[2]), 1.0)
+    # Returned object should be a numpy array of length 3.
+    check_eq("position type" , type(pos).__name__, 'ndarray')
+    check_eq("position size" , pos.size           , 3)
+    # Wrong-size input should raise ValueError (size guard in the wrapper).
+    try:
+        photon.positionSet([1.0, 2.0])
+    except ValueError as exc:
+        check_eq("ValueError on size mismatch", "expects 3" in str(exc), True)
+    else:
+        check_eq("ValueError on size mismatch", "no exception raised", "ValueError")
+
+# Final summary and exit code.
+print(f"--- {_failures} failure(s) ---")
+sys.exit(1 if _failures else 0)

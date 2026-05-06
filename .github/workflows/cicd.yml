@@ -281,7 +281,7 @@ jobs:
         run: |
           cd $GALACTICUS_EXEC_PATH
           git config --global --add safe.directory $GALACTICUS_EXEC_PATH
-          make -j4 GALACTICUS_BUILD_OPTION=lib libgalacticus.so
+          make -j1 GALACTICUS_BUILD_OPTION=lib libgalacticus.so
       - name: Package the code
         run: |
           cd $GALACTICUS_EXEC_PATH
@@ -1745,7 +1745,7 @@ jobs:
       - name: Install Python
         run: |
           apt -y update && apt -y upgrade
-          apt -y install python3
+          apt -y install python3 python3-numpy
       - name: Download library
         uses: actions/download-artifact@v8
         with:
@@ -1789,7 +1789,7 @@ jobs:
           echo "DEBIAN_FRONTEND=noninteractive" >> $GITHUB_ENV
       - name: Install Python
         run: |
-          sudo port install python312
+          sudo port install python312 py312-numpy
           sudo port select --set python python312
           sudo port select --set python3 python312
       - name: Build Galacticus

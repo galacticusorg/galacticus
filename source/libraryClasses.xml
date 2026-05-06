@@ -12,11 +12,23 @@
     <powerSpectrum/>
     <powerSpectrumNonlinear/>
     <linearGrowth/>
+    <mergerTreeBranchingProbability/>
     <intergalacticMediumState/>
     <intergalacticMediumFilteringMass/>
     <cosmologicalMassVariance/>
     <haloEnvironment/>
     <criticalOverdensity/>
+    <galacticFilter/>
+    <nodePropertyExtractor/>
+    <virialOrbit/>
+    <geometryLightcone/>
+    <starFormationRateDisks/>
+    <starFormationRateSpheroids/>
+    <starFormationRateNuclearStarClusters/>
+    <randomNumberGenerator/>
+    <outputTimes/>
+    <surveyGeometry/>
+    <mergerTreeMassResolution/>
     <virialDensityContrast>
       <virialDensityContrastPercolation>
 	<constructor>
@@ -30,10 +42,7 @@
     <excursionSetFirstCrossing/>
     <nbodyHaloMassError/>
     <darkMatterHaloScale/>
-    <darkMatterProfileDMO>
-      <darkMatterProfileDMOAccretionFlowShi2016             exclude="yes"/>
-      <darkMatterProfileDMOAccretionFlowCorrelationFunction exclude="yes"/>
-    </darkMatterProfileDMO>
+    <darkMatterProfileDMO/>
     <darkMatterProfileHeating>
       <darkMatterProfileHeatingImpulsiveOutflow>
 	<constructor>
@@ -46,5 +55,14 @@
     <haloMassFunction/>
     <darkMatterHaloBias/>
     <correlationFunctionTwoPoint/>
+    <darkMatterHaloMassAccretionHistory/>
+    <darkMatterProfileScaleRadius/>
+    <darkMatterProfileShape/>
+    <darkMatterProfileConcentration/>
+    <accretionHaloTotal/>
+    <haloSpinDistribution/>
+    <hotHaloOutflowReincorporation/>
+    <initialMassFunction/>
+    <radiativeTransferPhotonPacket/>
   </classes>
 </library>

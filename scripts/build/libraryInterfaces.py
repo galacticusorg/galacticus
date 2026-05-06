@@ -164,6 +164,168 @@ def _process_function_class_file(file_name, code, python, lib_function_classes,
             code, python, lib_function_classes
         )
 
+# Match `type(enumerationFooType)` — the Galacticus convention for an
+# enumeration kind named "foo".  Used by interfaces_methods to detect
+# enumeration return types and lift the inner %ID component out as c_int.
+_ENUM_RETURN_RX = re.compile(
+    r'^type\s*\(\s*(enumeration[a-z0-9_]+type)\s*\)$',
+    re.IGNORECASE,
+)
+
+# Match `class(fooClass)` — the Galacticus convention for a polymorphic
+# pointer to a registered functionClass.  Used by interfaces_methods to
+# detect class(...) return types and route them through the per-class
+# XGetIdAndPtr helper.
+_CLASS_RETURN_RX = re.compile(
+    r'^class\s*\(\s*([a-z][a-zA-Z0-9_]*Class)\s*\)$',
+    re.IGNORECASE,
+)
+
+# Match a fixed-size 1D dimension(N) attribute on a constructor/method arg.
+# Mirrors Pipeline._DIM_FIXED_RX (kept locally so libraryInterfaces.py
+# doesn't need to import a private name).
+_DIM_FIXED_RX_INTERFACES = re.compile(r'^dimension\s*\(\s*(\d+)\s*\)$')
+
+# Match a 1D fixed-size array RETURN type, e.g. `double precision, dimension(3)`
+# or `integer, dimension(3)`.  Captures (intrinsic, size).
+_ARRAY_RETURN_RX = re.compile(
+    r'^(double\s+precision|integer)\s*,\s*dimension\s*\(\s*(\d+)\s*\)\s*$',
+    re.IGNORECASE,
+)
+
+
+def _find_enum_module(enum_type, func_class):
+    """Locate the Fortran module that exports *enum_type* (an
+    `enumerationXxxType` derived-type name).
+
+    Looks first at the functionClass file's own ``use``-block imports
+    (collected during parsing as ``func_class['moduleUses']``), then falls
+    back to the functionClass's own module.  Mirrors the scan
+    ``build_fortran_reassignments`` already does for enumeration *arguments*.
+    """
+    for use_block in func_class.get('moduleUses', []):
+        for mod_name, mod_data in use_block.items():
+            if (isinstance(mod_data, dict)
+                    and enum_type in mod_data.get('only', {})):
+                return mod_name
+    return func_class.get('module')
+
+
+def _unsupported_arg(arg, lib_function_classes, *,
+                     constructor_overrides=()):
+    """Return a human-readable reason if ``arg`` has a type the pipeline
+    can't translate, otherwise ``None``.
+
+    Shared core used by both :func:`_unsupported_constructor_arg` and
+    :func:`_unsupported_method_arg`.
+
+    Always rejects:
+
+    * ``complex`` / ``double complex`` — ctypes has no built-in c_complex.
+    * ``class(FooClass)`` whose stem ``Foo`` is not listed in
+      ``libraryClasses.xml``.  Without that registration, ``assign_c_types``
+      can't set ``is_function_class=True``, so no ``_ID`` companion or
+      ``FooGetPtr``-based reassignment is generated and the bind(c) wrapper
+      passes a raw c_ptr into a Fortran routine that wants ``class(...)``.
+    * ``class(SomethingElse)`` that isn't a registered functionClass — same
+      mismatch (e.g. ``class(nodeComponentBlackHole)``).
+    * ``class(*)`` unless ``constructor_overrides`` contains a matching
+      ``<argument name=... type=... module=.../>`` hint from
+      libraryClasses.xml.
+    * Any source-level ``dimension(...)`` other than 1D deferred-shape
+      ``dimension(:)`` of double precision / integer (the array path
+      plumbed through assign_c_types et al. — see Pipeline.py).  And even
+      among those, ``allocatable`` and ``intent(out)`` / ``intent(inout)``
+      array args are rejected: those are output arrays whose shape is
+      determined by the inner Galacticus call, which needs a different
+      bind(c) shape (allocatable can't be assumed-size, the count has to
+      come back, etc.) than the input-array path does.
+    """
+    intrinsic = arg.get('intrinsic')
+    if intrinsic in ('complex', 'double complex'):
+        return f"{intrinsic}({arg.get('type','')})"
+    if intrinsic == 'class':
+        type_spec = (arg.get('type') or '').strip()
+        if type_spec == '*':
+            has_override = any(
+                isinstance(o, dict) and o.get('name') == arg.get('name')
+                for o in constructor_overrides
+            )
+            if not has_override:
+                return ("class(*) without a libraryClasses.xml override "
+                        "(<constructor><argument name=… type=… module=…/>)")
+        elif type_spec.endswith('Class'):
+            stem = type_spec[:-5]
+            if stem not in lib_function_classes:
+                return (f"class({type_spec}) — '{stem}' is not a registered "
+                        f"functionClass in libraryClasses.xml")
+        else:
+            return (f"class({type_spec}) — only registered functionClasses "
+                    f"and class(*) (with override) are supported")
+    # Dimension check — same predicate for constructor and method args now
+    # that both use the array-arg pipeline.  (Previously constructor-only,
+    # which left method args producing broken-but-not-fatal Fortran when
+    # they had array shapes.  After array support landed, *some* of those
+    # method args now compile, but the cases that don't fit our
+    # input-only pipeline — allocatable / intent(out) — produce hard
+    # compile errors instead of silently broken code, so we now reject
+    # them cleanly here for both contexts.)
+    attrs = arg.get('attributes', [])
+    for attr in attrs:
+        if attr.startswith('dimension'):
+            # 1D numeric arrays are plumbed through with a numpy ndarray
+            # conversion at the Python boundary; deferred-shape gets a
+            # count companion (see assign_c_types /
+            # build_python_reassignments in Pipeline.py), fixed-size
+            # uses the literal length from the dimension spec.  Output /
+            # allocatable arrays still need the bind(c) function to
+            # communicate the size BACK to Python plus a non-assumed-size
+            # shape — that's a separate implementation we don't have yet.
+            is_supported_dim = (
+                intrinsic in ('double precision', 'integer')
+                and (attr == 'dimension(:)'
+                     or _DIM_FIXED_RX_INTERFACES.match(attr))
+            )
+            if is_supported_dim:
+                if 'allocatable' in attrs:
+                    return ('1D allocatable array argument'
+                            ' (output arrays not yet supported)')
+                if 'intent(in)' not in attrs:
+                    return ('non-intent(in) array argument'
+                            ' (output arrays not yet supported)')
+                continue
+            return ('dimensioned argument'
+                    ' (only 1D deferred-shape or fixed-size numeric input'
+                    ' is supported)')
+    return None
+
+
+def _unsupported_constructor_arg(args, lib_function_classes,
+                                 constructor_overrides=()):
+    """If any constructor argument is unsupported, return ``(name, reason)``;
+    otherwise ``None``.  See :func:`_unsupported_arg` for the predicate."""
+    for arg in args:
+        reason = _unsupported_arg(
+            arg, lib_function_classes,
+            constructor_overrides=constructor_overrides,
+        )
+        if reason:
+            return arg['name'], reason
+    return None
+
+
+def _unsupported_method_arg(args, lib_function_classes):
+    """If any method argument is unsupported, return ``(name, reason)``;
+    otherwise ``None``.  Methods don't have constructor-style overrides for
+    ``class(*)``, so the override list is empty and any ``class(*)`` arg is
+    rejected."""
+    for arg in args:
+        reason = _unsupported_arg(arg, lib_function_classes)
+        if reason:
+            return arg['name'], reason
+    return None
+
+
 def _process_implementations(func_class, directive_locations, state_storables,
                              code, python, lib_function_classes):
     """Process all implementations of a function class."""
@@ -208,6 +370,7 @@ def _process_implementations(func_class, directive_locations, state_storables,
         impl_name = None
         is_abstract = False
         name_constructor = None
+        ambiguous_internals = None
         args_constructor = []
 
         for node in SourceTree.walk_tree(tree):
@@ -218,15 +381,36 @@ def _process_implementations(func_class, directive_locations, state_storables,
             elif (impl_name
                   and node['type'] == 'interface'
                   and node.get('name', '').lower() == impl_name.lower()):
-                # Scan moduleProcedure children for an Internal-suffixed constructor.
+                # Collect every Internal-marked module procedure across this
+                # interface's children.  The Galacticus convention names
+                # constructors `<short>Constructor<Variant>` where Variant
+                # is `Parameters` (XML-driven) or `Internal[Suffix]`; we
+                # want only the Internal flavour.  Substring-matching plain
+                # 'internal' is too loose — for impls whose short name is
+                # itself `internal` (e.g. intergalacticMediumStateInternal),
+                # `internalConstructorParameters` would spuriously match.
+                # Anchoring on `ConstructorInternal` rules that out while
+                # still catching variants like ConstructorInternalType /
+                # ConstructorInternalDefined that the previous
+                # endswith('internal') rule missed.
+                candidates = []
                 child = node.get('firstChild')
                 while child:
                     if child['type'] == 'moduleProcedure':
-                        internal = [n for n in child.get('names', [])
-                                    if n.lower().endswith('internal')]
-                        if len(internal) == 1:
-                            name_constructor = internal[0]
+                        candidates.extend(
+                            n for n in child.get('names', [])
+                            if 'constructorinternal' in n.lower()
+                        )
                     child = child.get('sibling')
+                if len(candidates) == 1:
+                    name_constructor = candidates[0]
+                elif len(candidates) > 1:
+                    # Multiple Internal-suffixed constructors (e.g.
+                    # darkMatterProfileConcentrationDuttonMaccio2014's
+                    # InternalType vs InternalDefined).  Stash for the
+                    # warning-and-skip below; leave name_constructor unset
+                    # so the impl is dropped from impls_list.
+                    ambiguous_internals = candidates
 
             elif (name_constructor
                   and node['type'] == 'function'
@@ -267,13 +451,47 @@ def _process_implementations(func_class, directive_locations, state_storables,
         is_excluded = (isinstance(impl_conf, dict)
                        and impl_conf.get('exclude') == 'yes')
         if not is_abstract and not is_excluded:
-            impls_list.append({
-                'name':      impl_name,
-                'classID':   class_id,
-                'fileName':  impl_file,
-                'moduleUses': module_uses_impls.get(impl_name, []),
-                'arguments': args_constructor,
-            })
+            if ambiguous_internals:
+                # Drop the impl: we can't pick one of N Internal constructors
+                # without a hint, and emitting the previous fall-back
+                # (constructor call with no args) crashes gfortran with
+                # "No initializer for component 'X' given …" whenever the
+                # type has any required components.
+                sys.stderr.write(
+                    f"libraryInterfaces.py: caution: implementation"
+                    f" '{impl_name}' of class '{class_name}' has multiple"
+                    f" Internal-suffixed constructors"
+                    f" ({', '.join(ambiguous_internals)}) — ambiguous,"
+                    f" skipping implementation\n"
+                )
+            else:
+                constructor_overrides = ()
+                if isinstance(impl_conf, dict):
+                    constructor_overrides = as_array(
+                        impl_conf.get('constructor', {}).get('argument', []))
+                unsupported = _unsupported_constructor_arg(
+                    args_constructor, lib_function_classes, constructor_overrides)
+                if unsupported:
+                    # Skip implementations whose constructor takes an argument the
+                    # pipeline can't translate (today: source-level dimensioned
+                    # args of any intrinsic, and complex / double complex).
+                    # The class itself is still exposed; only the offending
+                    # implementation is omitted from impls_list, so it won't
+                    # appear in the Python class hierarchy or GetPtr dispatcher.
+                    sys.stderr.write(
+                        f"libraryInterfaces.py: caution: implementation"
+                        f" '{impl_name}' of class '{class_name}' has constructor"
+                        f" argument '{unsupported[0]}' of unsupported kind"
+                        f" ({unsupported[1]}) — skipping implementation\n"
+                    )
+                else:
+                    impls_list.append({
+                        'name':      impl_name,
+                        'classID':   class_id,
+                        'fileName':  impl_file,
+                        'moduleUses': module_uses_impls.get(impl_name, []),
+                        'arguments': args_constructor,
+                    })
 
     func_class['implementations'] = impls_list
 
@@ -287,14 +505,51 @@ def _process_implementations(func_class, directive_locations, state_storables,
     interfaces_destructor(code, python, func_class)
 
 
+def _shared_bucket(code, class_name):
+    """Return the per-class 'shared' code list, creating the bucket if needed.
+
+    ``code[class_name]`` is a dict ``{'shared': […], 'per_impl': {…}}`` —
+    'shared' holds the per-class pieces (GetPtr, GetIdAndPtr, methods,
+    destructor) that all live together in ``<class>.F90``, and
+    'per_impl[impl_name]' holds the constructor wrapper for one impl,
+    written to its own ``<class>__<impl>.F90`` so that gfortran doesn't
+    have to compile every impl's bind(c) wrapper in a single
+    compilation unit.
+    """
+    return code.setdefault(class_name, {'shared': [], 'per_impl': {}})['shared']
+
+
+def _impl_bucket(code, class_name, impl_name):
+    """Return the per-impl code list, creating the bucket if needed.
+
+    See :func:`_shared_bucket` for the structure.
+    """
+    return (code.setdefault(class_name, {'shared': [], 'per_impl': {}})
+                ['per_impl'].setdefault(impl_name, []))
+
+
 def interfaces_pointer_get(code, func_class):
-    """Generate pointer getter function for a function class."""
+    """Generate pointer getters for a function class.
+
+    Emits two Fortran helpers:
+
+    * ``<class>GetPtr(c_ptr, classID) -> class(<class>Class), pointer`` —
+      the inverse, used by every wrapper that takes a ``class(<class>Class)``
+      argument from the Python side: c_ptr + classID → typed pointer.
+
+    * ``<class>GetIdAndPtr(class_obj, classID) -> c_ptr`` — the *forward*
+      direction, used by every wrapper whose method *returns* a
+      ``class(<class>Class)``.  Walks the class's concrete impls with a
+      `select type` block, sets ``classID`` to the matching impl's id,
+      and returns ``c_loc(obj)`` for the concrete typed pointer (which
+      ``c_loc`` requires — it can't take a polymorphic target directly).
+    """
     class_name = func_class['name']
     impls = func_class.get('implementations', [])
 
     symbols = [class_name + 'Class'] + [impl['name'] for impl in impls]
 
-    code.setdefault(class_name, []).append(f'''function {class_name}GetPtr({class_name}_,classID)
+    _shared_bucket(code, class_name).append(f'''function {class_name}GetPtr({class_name}_,classID)
   use, intrinsic :: ISO_C_Binding, only : c_ptr, c_int, c_f_pointer
   use :: Error, only : Error_Report
   use :: {func_class.get('module', 'Unknown')}, only : {', '.join(symbols)}
@@ -314,18 +569,65 @@ def interfaces_pointer_get(code, func_class):
 end function {class_name}GetPtr
 ''')
 
+    # Forward helper used by class(...) return-type method wrappers.
+    select_branches = chr(10).join(
+        f'  type is ({impl["name"]})\n'
+        f'     ptr     = c_loc(obj)\n'
+        f'     classID = {impl["classID"]}'
+        for impl in impls
+    )
+    _shared_bucket(code, class_name).append(f'''function {class_name}GetIdAndPtr(obj,classID) result(ptr)
+  use, intrinsic :: ISO_C_Binding, only : c_ptr, c_int, c_loc, c_null_ptr
+  use :: {func_class.get('module', 'Unknown')}, only : {', '.join(symbols)}
+  implicit none
+  type(c_ptr) :: ptr
+  class({class_name}Class), pointer, intent(in) :: obj
+  integer(c_int), intent(out) :: classID
+
+  if (.not.associated(obj)) then
+     ptr     = c_null_ptr
+     classID = -1
+     return
+  end if
+  select type (obj)
+{select_branches}
+  class default
+     ptr     = c_null_ptr
+     classID = -1
+  end select
+  return
+end function {class_name}GetIdAndPtr
+''')
+
 
 def interfaces_python_classes(python, func_class):
     """Generate Python class hierarchy for a function class."""
     class_name = func_class['name']
 
-    # Parent class
+    # Parent class.  _from_classID() is the entry point used by methods
+    # that return class(...)-typed objects: it walks the direct subclasses,
+    # picks the one whose _classIDStatic matches the runtime classID, and
+    # constructs an instance via __new__ (skipping __init__ so we don't
+    # build a *new* Galacticus object — we just wrap the existing pointer).
+    # The returned wrapper is marked _owned=False so the destructor
+    # doesn't try to free Galacticus's object.
     parent_code = f'''class {class_name}:
 
     # Constructor
     def __init__(self):
         # Assign class ID to negative (not a concrete class)
         self._classID = -1
+
+    @classmethod
+    def _from_classID(cls, classID, ptr):
+        for subcls in cls.__subclasses__():
+            if getattr(subcls, '_classIDStatic', None) == classID:
+                obj = subcls.__new__(subcls)
+                obj._glcObj  = ptr
+                obj._classID = classID
+                obj._owned   = False
+                return obj
+        raise ValueError(f"Unknown classID {{classID}} for {{cls.__name__}}")
 '''
     python['units'][class_name] = {
         'content': parent_code,
@@ -333,9 +635,15 @@ def interfaces_python_classes(python, func_class):
         'dependencies': ['init'],
     }
 
-    # Child classes (implementations)
+    # Child classes.  _classIDStatic is the class-level companion to the
+    # per-instance _classID set by the constructor, used by the parent
+    # class's _from_classID to pick the right subclass without having
+    # to instantiate one.
     for impl in func_class.get('implementations', []):
-        child_code = f"class {impl['name']}({class_name}):"
+        child_code = (
+            f"class {impl['name']}({class_name}):\n"
+            f"    _classIDStatic = {impl['classID']}"
+        )
         python['units'][impl['name']] = {
             'content': child_code,
             'indent': 0,
@@ -392,7 +700,7 @@ def interfaces_constructors(code, python, func_class, lib_function_classes,
   return
 end function {impl["name"]}L
 '''
-        code.setdefault(class_name, []).append(fort_constructor)
+        _impl_bucket(code, class_name, impl['name']).append(fort_constructor)
 
         # Add c_lib interface
         arg_types = ctypes_arg_types(arg_list)
@@ -436,20 +744,196 @@ def interfaces_methods(code, python, func_class, extensions, module_uses_impls,
             }
         ]
 
+        # Generate method name (used below by some result-type conversions).
+        method_name_c = class_name + method_name[0].upper() + method_name[1:] + 'L'
+
         # Determine any ISO_C_Binding imports needed.
-        isoImports = {}
-        result_conversion_open = ""
-        result_conversion_close = ""
+        isoImports                = {}
+        result_conversion_open    = ""
+        result_conversion_close   = ""
+        result_extra_module_uses  = ""
+        result_extra_declarations = ""
+        result_post_call_code     = ""
+        result_call_target        = method_name_c
+        result_assign_op          = '='   # `=>` for pointer-returning methods (class(...))
+        result_python_decode      = False
+        result_extra_fort_args    = []    # extra args appended to bind(c) signature
+        result_extra_clib_argtypes = []   # matching ctypes wrappers
+        result_python_class_wrap  = None  # (parent_class, out_id_var) or None
+        result_python_array_wrap  = None  # (size, elem_ctype, elem_dtype) or None
+        result_is_subroutine      = False # force `subroutine` even when method_type != "void"
         if method_type == "double precision":
             method_type_c                        = "real(c_double)"
             clib_res_type                        = "c_double";
             isoImports['c_double'] = 1
+        elif method_type == "integer":
+            method_type_c                        = "integer(c_int)"
+            clib_res_type                        = "c_int";
+            isoImports['c_int'] = 1
+        elif method_type == "integer(c_long)":
+            method_type_c                        = "integer(c_long)"
+            clib_res_type                        = "c_long";
+            isoImports['c_long'] = 1
+        elif method_type == "integer(c_size_t)":
+            method_type_c                        = "integer(c_size_t)"
+            clib_res_type                        = "c_size_t";
+            isoImports['c_size_t'] = 1
         elif method_type == "logical":
             method_type_c                        = "logical(c_bool)"
             clib_res_type                        = "c_bool";
             result_conversion_open               = "logical(";
             result_conversion_close              = ",kind=c_bool)";
             isoImports['c_bool'] = 1
+        elif method_type == "type(varying_string)":
+            # Returned varying_string is copied into a per-function static C
+            # buffer (deallocated on each call so only the most recent result
+            # persists), then a c_ptr to that buffer is returned.  Python's
+            # ctypes c_char_p restype copies the bytes; we then decode to str.
+            #
+            # Local-variable names are short, generic, and scoped to the
+            # bind(c) function — the Galacticus convention is a `glc` prefix
+            # plus a trailing underscore so they don't collide with user-named
+            # method arguments.  This also avoids the Fortran 63-character
+            # identifier limit, which long method names would otherwise trip
+            # if we used `<method>_result_` etc.
+            method_type_c                        = "type(c_ptr)"
+            clib_res_type                        = "c_char_p"
+            isoImports['c_ptr']       = 1
+            isoImports['c_loc']       = 1
+            isoImports['c_char']      = 1
+            isoImports['c_null_char'] = 1
+            result_extra_module_uses = (
+                f'  use :: ISO_Varying_String, only : varying_string, char\n'
+            )
+            result_call_target = 'glcResult_'
+            result_extra_declarations = (
+                f'  type     (varying_string)                                          :: glcResult_\n'
+                f'  character(kind=c_char   ), dimension(:), allocatable, save, target :: glcBuffer_\n'
+                f'  character(len=:         ), allocatable                             :: glcChars_\n'
+                f'  integer                                                            :: glcI_\n'
+            )
+            result_post_call_code = (
+                f'  glcChars_ = char(glcResult_)\n'
+                f'  if (allocated(glcBuffer_)) deallocate(glcBuffer_)\n'
+                f'  allocate(glcBuffer_(len(glcChars_)+1))\n'
+                f'  do glcI_ = 1, len(glcChars_)\n'
+                f'     glcBuffer_(glcI_) = glcChars_(glcI_:glcI_)\n'
+                f'  end do\n'
+                f'  glcBuffer_(len(glcChars_)+1) = c_null_char\n'
+                f'  {method_name_c} = c_loc(glcBuffer_)\n'
+            )
+            result_python_decode = True
+        elif _ENUM_RETURN_RX.match(method_type):
+            # Returned type(enumerationXxxType): the inner method gives us a
+            # derived type whose %ID component holds the c_int value we want
+            # to surface to Python.  Same scaffolding shape as varying_string
+            # — call into a temporary, then pull the c_int out — minus the
+            # buffer/decode dance.
+            enum_type = _ENUM_RETURN_RX.match(method_type).group(1)
+            enum_module = _find_enum_module(enum_type, func_class)
+            method_type_c                        = "integer(c_int)"
+            clib_res_type                        = "c_int"
+            isoImports['c_int'] = 1
+            if enum_module:
+                result_extra_module_uses = (
+                    f'  use :: {enum_module}, only : {enum_type}\n'
+                )
+            result_call_target = 'glcResult_'
+            result_extra_declarations = (
+                f'  type({enum_type}) :: glcResult_\n'
+            )
+            result_post_call_code = (
+                f'  {method_name_c} = glcResult_%ID\n'
+            )
+        elif _CLASS_RETURN_RX.match(method_type):
+            # Returned class(FooClass): the inner method gives us a
+            # polymorphic pointer.  We can't c_loc() it directly (Fortran
+            # forbids that on a polymorphic target), so we hand it to
+            # FooGetIdAndPtr — generated by interfaces_pointer_get for
+            # every registered class — which dispatches via select type
+            # to extract a typed c_loc + the matching classID.  Python
+            # gets back (c_void_p, c_int via byref) and dispatches into
+            # the right Foo subclass via Foo._from_classID.
+            return_class_type = _CLASS_RETURN_RX.match(method_type).group(1)
+            return_stem = (return_class_type[:-5]
+                           if return_class_type.endswith('Class')
+                           else return_class_type)
+            if return_stem not in (lib_function_classes or {}):
+                sys.stderr.write(
+                    f"libraryInterfaces.py: caution: method '{method_name}' in"
+                    f" class '{class_name}' returns class({return_class_type}) —"
+                    f" '{return_stem}' is not a registered functionClass in"
+                    f" libraryClasses.xml — skipping method\n"
+                )
+                methods_to_delete.append(method_name)
+                continue
+            return_module = (lib_function_classes or {}) \
+                            .get(return_stem, {}).get('module')
+            # Short, scoped Fortran identifiers — see the varying_string
+            # branch above for the same rationale (Fortran 63-char limit
+            # plus collision-avoidance with user-named method arguments).
+            out_classID_name = 'glcCidOut_'
+            method_type_c   = "type(c_ptr)"
+            clib_res_type   = "c_void_p"
+            isoImports['c_ptr'] = 1
+            isoImports['c_int'] = 1
+            if return_module:
+                result_extra_module_uses = (
+                    f'  use :: {return_module}, only : {return_class_type}\n'
+                )
+            result_call_target = 'glcResult_'
+            result_assign_op   = '=>'   # method returns a polymorphic pointer
+            result_extra_declarations = (
+                f'  class({return_class_type}), pointer :: glcResult_\n'
+                f'  integer(c_int), intent(out) :: {out_classID_name}\n'
+                f'  interface\n'
+                f'    function {return_stem}GetIdAndPtr(obj,classID) result(ptr)\n'
+                f'      import :: c_ptr, c_int, {return_class_type}\n'
+                f'      type(c_ptr) :: ptr\n'
+                f'      class({return_class_type}), pointer, intent(in) :: obj\n'
+                f'      integer(c_int), intent(out) :: classID\n'
+                f'    end function {return_stem}GetIdAndPtr\n'
+                f'  end interface\n'
+            )
+            result_post_call_code = (
+                f'  {method_name_c} = {return_stem}GetIdAndPtr('
+                f'glcResult_,{out_classID_name})\n'
+            )
+            result_extra_fort_args     = [out_classID_name]
+            result_extra_clib_argtypes = ['POINTER(c_int)']
+            result_python_class_wrap   = (return_stem, out_classID_name)
+        elif _ARRAY_RETURN_RX.match(method_type):
+            # Returned 1D fixed-size numeric array (e.g.
+            # `double precision, dimension(3)`).  bind(c) functions can't
+            # return arrays directly, so we lower to a subroutine with an
+            # extra `intent(out), dimension(N)` arg and have the inner
+            # method's result assigned into it.  Python pre-allocates a
+            # numpy array of the right shape/dtype, passes it via
+            # data_as(POINTER(...)), and returns it.
+            m = _ARRAY_RETURN_RX.match(method_type)
+            arr_intrinsic_raw = m.group(1).lower()
+            arr_intrinsic     = re.sub(r'\s+', ' ', arr_intrinsic_raw)
+            arr_size = int(m.group(2))
+            if arr_intrinsic == 'double precision':
+                elem_ctype, elem_fort, elem_dtype = ('c_double',
+                                                    'real(c_double)',
+                                                    'float64')
+            else:                                # integer (default kind)
+                elem_ctype, elem_fort, elem_dtype = ('c_int',
+                                                    'integer(c_int)',
+                                                    'int32')
+            isoImports[elem_ctype] = 1
+            method_type_c              = ''      # subroutine, no return type
+            clib_res_type              = None
+            result_call_target         = 'glcResult_'
+            result_extra_declarations  = (
+                f'  {elem_fort}, dimension({arr_size}), intent(out) ::'
+                f' glcResult_\n'
+            )
+            result_extra_fort_args     = ['glcResult_']
+            result_extra_clib_argtypes = [f'POINTER({elem_ctype})']
+            result_python_array_wrap   = (arr_size, elem_ctype, elem_dtype)
+            result_is_subroutine       = True
         elif method_type == "void":
             pass
         else:
@@ -473,6 +957,23 @@ def interfaces_methods(code, python, func_class, extensions, module_uses_impls,
                         'name': var_name,
                     })
 
+        # Skip the method if any argument has a type the pipeline can't
+        # translate (complex/double complex, class(non-registered), class(*)).
+        # See :func:`_unsupported_arg` for the predicate.  Self (arg_list[0])
+        # is class(<the current class>Class) — registered by definition — so
+        # the slice [1:] is just to avoid noise in the iteration.
+        unsupported_arg = _unsupported_method_arg(
+            arg_list[1:], lib_function_classes or {})
+        if unsupported_arg:
+            sys.stderr.write(
+                f"libraryInterfaces.py: caution: method '{method_name}' in"
+                f" class '{class_name}' has argument '{unsupported_arg[0]}'"
+                f" of unsupported kind ({unsupported_arg[1]}) — skipping"
+                f" method\n"
+            )
+            methods_to_delete.append(method_name)
+            continue
+
         # Process arguments
         arg_list = assign_c_types(arg_list, lib_function_classes or {})
         arg_list = assign_c_attributes(arg_list)
@@ -481,35 +982,39 @@ def interfaces_methods(code, python, func_class, extensions, module_uses_impls,
                                               extensions, module_uses_impls,
                                               lib_function_classes)
 
-        # Generate method name
-        method_name_c = class_name + method_name[0].upper() + method_name[1:] + 'L'
-
-        # Generate Fortran method
-        procedure = 'subroutine' if method_type == 'void' else 'function'
-        func_decl = '' if method_type == 'void' else f'{method_type_c} :: {method_name_c}\n'
+        # Generate Fortran method.  An array-return method is lowered to a
+        # subroutine with an extra intent(out) array arg (see the
+        # _ARRAY_RETURN_RX branch above), so result_is_subroutine forces
+        # `subroutine` even though method_type is non-void.
+        is_subroutine = method_type == 'void' or result_is_subroutine
+        procedure = 'subroutine' if is_subroutine else 'function'
+        func_decl = '' if is_subroutine else f'{method_type_c} :: {method_name_c}\n'
 
         iso_imports = iso_c_binding_import(arg_list, *isoImports.keys())
-        fort_args = fortran_arg_list(arg_list)
+        fort_args = list(fortran_arg_list(arg_list)) + list(result_extra_fort_args)
         declarations = fortran_declarations(arg_list)
         reassignments = fortran_reassignments(arg_list)
         module_uses = fortran_module_uses(arg_list)
+        call_lhs = ("call" if method_type == "void"
+                    else f'{result_call_target} {result_assign_op}')
         call_code = fortran_call_code(arg_list,
-                                     f'{"call" if method_type == "void" else method_name_c + "="} {result_conversion_open} self_%{method_name}( &\n',
+                                     f'{call_lhs} {result_conversion_open} self_%{method_name}( &\n',
                                      f'&){result_conversion_close}\n', '&')
+        call_code += result_post_call_code
 
         fort_method = f'''{procedure} {method_name_c}({','.join(fort_args)}) bind(c,name='{method_name_c}')
   use :: {func_class.get('module')}, only : {class_name}Class
-{module_uses}
-{iso_imports}
+{module_uses}{result_extra_module_uses}{iso_imports}
   implicit none
-{func_decl}{declarations}
+{func_decl}{declarations}{result_extra_declarations}
 {reassignments}{call_code}  return
 end {procedure} {method_name_c}
 '''
-        code.setdefault(class_name, []).append(fort_method)
+        _shared_bucket(code, class_name).append(fort_method)
 
         # Add c_lib interface
-        arg_types = ctypes_arg_types(arg_list)
+        arg_types = (list(ctypes_arg_types(arg_list))
+                     + list(result_extra_clib_argtypes))
         restype = None if method_type == 'void' else clib_res_type
         python['c_lib'].append({
             'name': method_name_c,
@@ -519,7 +1024,65 @@ end {procedure} {method_name_c}
 
         # Generate Python method
         py_args = python_arg_list(arg_list)
-        py_call = python_call_code(arg_list, f'return c_lib.{method_name_c}')
+        if result_python_class_wrap:
+            # class(...) return: bypass python_call_code's "return c_lib(args)"
+            # template — we need a setup statement (the c_int that ctypes
+            # will fill), then the call, then a wrap-into-Python-class step.
+            # Optional-arg branching is intentionally not supported here;
+            # no current method needs it.
+            parent_class, out_id_var = result_python_class_wrap
+            py_call_args = []
+            for a in arg_list:
+                if not a.fort_is_present:
+                    continue
+                py_call_args.append(a.py_pass_as if a.py_pass_as else a.name)
+            py_call_args.append(f'byref({out_id_var})')
+            reassignments_block = ''.join(a.py_reassignment for a in arg_list)
+            py_call = (
+                reassignments_block
+                + f'    {out_id_var} = c_int(-1)\n'
+                + f'    _ptr_ = c_lib.{method_name_c}({",".join(py_call_args)})\n'
+                + f'    return {parent_class}._from_classID({out_id_var}.value, _ptr_)\n'
+            )
+        elif result_python_array_wrap:
+            # Fixed-size array return: pre-allocate a numpy array of the
+            # right shape/dtype, hand its data pointer as the synthetic
+            # intent(out) arg, then return the (now-filled) numpy array.
+            # As with class(...) returns, optional-arg branching isn't
+            # supported here — none of today's array-return methods need it.
+            arr_size, elem_ctype, elem_dtype = result_python_array_wrap
+            py_call_args = []
+            for a in arg_list:
+                if not a.fort_is_present:
+                    continue
+                py_call_args.append(a.py_pass_as if a.py_pass_as else a.name)
+            py_call_args.append(
+                f'_glcArr_.ctypes.data_as(POINTER({elem_ctype}))'
+            )
+            reassignments_block = ''.join(a.py_reassignment for a in arg_list)
+            py_call = (
+                reassignments_block
+                + f'    _glcArr_ = np.zeros({arr_size}, dtype=np.{elem_dtype})\n'
+                + f'    c_lib.{method_name_c}({",".join(py_call_args)})\n'
+                + f'    return _glcArr_\n'
+            )
+        else:
+            # Reassignments (numpy conversion, optional-arg unpacking, …)
+            # belong before the call, mirroring the constructor template.
+            # Without this, methods with array args would see an unconverted
+            # input passed straight to data_as(), and methods with optional
+            # functionClass args would skip their presence-check block.
+            py_call = (python_reassignments(arg_list)
+                       + python_call_code(arg_list,
+                                          f'return c_lib.{method_name_c}'))
+            if result_python_decode:
+                # Append .decode("utf-8") to each call line so the bytes returned by
+                # ctypes c_char_p are converted to a Python str.
+                py_call = re.sub(
+                    r'(c_lib\.' + re.escape(method_name_c) + r'\([^\n]*\))(\n)',
+                    r'\1.decode("utf-8")\2',
+                    py_call,
+                )
 
         py_method = f'''def {method_name}({','.join(py_args)}):
 {py_call}
@@ -552,7 +1115,7 @@ def interfaces_destructor(code, python, func_class):
 end subroutine {class_name}DestructorL
 '''
 
-    code.setdefault(class_name, []).append(destructor_code)
+    _shared_bucket(code, class_name).append(destructor_code)
 
     # Add c_lib interface
     python['c_lib'].append({
@@ -561,10 +1124,16 @@ end subroutine {class_name}DestructorL
         'argtypes': ['c_void_p', 'c_int'],
     })
 
-    # Add Python destructor
+    # Add Python destructor.  The _owned guard lets class(...)-returned
+    # objects (which Galacticus owns and frees as part of their parent's
+    # lifecycle) skip the destructor — see _from_classID in the parent
+    # class body emitted by interfaces_python_classes.  Default-True via
+    # getattr keeps every constructor-built object on the destroy path
+    # without each constructor having to set the flag.
     py_destructor = f'''# Destructor
 def __del__(self):
-    c_lib.{class_name}DestructorL(self._glcObj,self._classID)
+    if getattr(self, '_owned', True):
+        c_lib.{class_name}DestructorL(self._glcObj,self._classID)
 '''
     python['units'].setdefault(class_name, {}).setdefault('subUnits', []).append({
         'content': py_destructor,
@@ -590,18 +1159,59 @@ end program libGalacticusInit
 
 
 def _write_fortran_code(code, build_path):
-    """Write generated Fortran code to files."""
+    """Write generated Fortran code to files.
+
+    Per class, the per-impl constructor wrappers are split into separate
+    .F90 files (``<class>__<impl>.F90``) so that gfortran has a small
+    compilation unit per impl.  This works around a memory-blow-up
+    pathology that triggers OOM kills on classes with many impls
+    (galacticFilter and nodePropertyExtractor were the original
+    offenders, ~12 GB for a single .F90).  The class's shared pieces —
+    GetPtr / GetIdAndPtr / methods / destructor — go to the original
+    ``<class>.F90`` filename so existing dependency rules continue to
+    apply to it; the per-impl files are picked up by
+    libraryInterfacesDependencies.py via a directory listing.
+
+    Stale per-impl files from a previous run (whose impl was since
+    excluded or renamed) are cleaned up so they don't get linked into
+    the .so.
+    """
     out_dir = os.path.join(build_path, 'libgalacticus')
     os.makedirs(out_dir, exist_ok=True)
 
-    for class_name in sorted(code.keys()):
-        if class_name == 'main':
-            out_file = os.path.join(build_path, 'libgalacticus.Inc')
-        else:
-            out_file = os.path.join(out_dir, f'{class_name}.F90')
+    written = set()
 
-        with open(out_file, 'w') as fh:
-            fh.write('\n'.join(code[class_name]) + '\n')
+    if 'main' in code:
+        main_file = os.path.join(build_path, 'libgalacticus.Inc')
+        with open(main_file, 'w') as fh:
+            fh.write('\n'.join(code['main']) + '\n')
+
+    for class_name in sorted(k for k in code if k != 'main'):
+        bucket = code[class_name]
+        # Shared pieces (GetPtr, GetIdAndPtr, methods, destructor) go to
+        # <class>.F90.
+        shared_file = os.path.join(out_dir, f'{class_name}.F90')
+        with open(shared_file, 'w') as fh:
+            fh.write('\n'.join(bucket['shared']) + '\n')
+        written.add(f'{class_name}.F90')
+        # One file per concrete impl's constructor wrapper.
+        for impl_name, blocks in sorted(bucket['per_impl'].items()):
+            impl_file = os.path.join(out_dir, f'{class_name}__{impl_name}.F90')
+            with open(impl_file, 'w') as fh:
+                fh.write('\n'.join(blocks) + '\n')
+            written.add(f'{class_name}__{impl_name}.F90')
+
+    # Remove any stale .F90 (and matching .p.F90, .o, .d, .m) files that
+    # weren't regenerated this run — e.g. an impl that picked up an
+    # exclude="yes" or whose constructor newly fails the predicate would
+    # otherwise leave a dangling object the linker still pulls in.
+    for fname in os.listdir(out_dir):
+        if fname.endswith('.F90') and fname not in written:
+            stem = fname[:-len('.F90')]
+            for ext in ('.F90', '.p.F90', '.p.F90.up', '.o', '.d', '.m'):
+                stale = os.path.join(out_dir, stem + ext)
+                if os.path.exists(stale):
+                    os.remove(stale)
 
 
 
@@ -609,6 +1219,7 @@ def _write_python_interface(python):
     """Write generated Python code to galacticus.py."""
     # Initialize the init unit
     init_content = '''from ctypes import *
+import numpy as np
 # Load the shared library into ctypes.
 import os
 cwd = os.getcwd()

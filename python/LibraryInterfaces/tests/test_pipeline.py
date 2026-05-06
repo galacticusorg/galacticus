@@ -34,6 +34,20 @@ def test_assign_c_types_intrinsic_scalars(intrinsic, expected_ctype, expected_fo
     assert out[0].fort_type == expected_fort
 
 
+@pytest.mark.parametrize("kind,expected_ctype,expected_fort", [
+    ('c_long',   'c_long',   'integer(c_long)'),
+    ('c_size_t', 'c_size_t', 'integer(c_size_t)'),
+])
+def test_assign_c_types_integer_kinds(kind, expected_ctype, expected_fort):
+    """integer(c_long) and integer(c_size_t) pass through with matching
+    ctypes wrappers rather than being silently demoted to c_int."""
+    raw = [{'name': 'n', 'intrinsic': 'integer', 'type': kind,
+            'attributes': ['intent(in)']}]
+    out = assign_c_types(raw, lib_function_classes={})
+    assert out[0].ctype     == expected_ctype
+    assert out[0].fort_type == expected_fort
+
+
 def test_assign_c_types_varying_string_maps_to_c_char_p():
     """type(varying_string) is treated like character — passes as c_char_p."""
     raw = [{'name': 'name', 'intrinsic': 'type', 'type': 'varying_string',
@@ -74,6 +88,82 @@ def test_assign_c_types_function_class_inserts_id_companion():
     assert out[1].ctype             == 'c_int'
     assert out[1].py_is_present     is False
     assert out[1].galacticus_is_present is False
+
+
+def test_assign_c_types_fixed_array_no_count_companion():
+    """A double precision, dimension(3) argument is is_array=True with
+    array_size=3, but does NOT get a count companion (the size is in the
+    dimension spec)."""
+    raw = [{'name': 'point', 'intrinsic': 'double precision', 'type': None,
+            'attributes': ['intent(in)', 'dimension(3)']}]
+    out = assign_c_types(raw, lib_function_classes={})
+    assert [a.name for a in out] == ['point']
+    assert out[0].is_array   is True
+    assert out[0].array_size == 3
+    assert out[0].ctype      == 'c_double'
+
+
+def test_python_reassignments_fixed_array_validates_size():
+    """A fixed-size is_array arg's py_reassignment converts via numpy AND
+    raises ValueError if the input's size doesn't match the declared
+    length — a wrong-size input would otherwise silently corrupt
+    Fortran-side memory."""
+    arr = ArgSpec(name='point', intrinsic='double precision',
+                  ctype='c_double', is_array=True, array_size=3)
+    out = build_python_reassignments([arr])
+    assert 'np.ascontiguousarray(point' in out[0].py_reassignment
+    assert 'point.size != 3'            in out[0].py_reassignment
+    assert 'raise ValueError'           in out[0].py_reassignment
+    assert out[0].py_pass_as == 'point.ctypes.data_as(POINTER(c_double))'
+
+
+def test_fortran_reassignments_fixed_array_passed_directly():
+    """A fixed-size is_array arg's fort_pass_as is unset (defaults to the
+    arg name) — no slicing is needed because the bind(c) declaration is
+    already explicit-shape `dimension(N)` and matches the inner method."""
+    arr = ArgSpec(name='point', intrinsic='double precision', ctype='c_double',
+                  fort_type='real(c_double)', is_array=True, array_size=3)
+    out = build_fortran_reassignments(
+        [arr], func_class={}, implementation=None,
+        extensions={}, module_uses_impls={},
+    )
+    assert out[0].fort_pass_as == ''  # no slicing — name passes through
+
+
+def test_assign_c_types_deferred_array_inserts_count_companion():
+    """A double precision, dimension(:) argument gets a hidden c_size_t
+    count companion immediately after it; both are flagged so the rest of
+    the pipeline can recognise them."""
+    raw = [{'name': 'times', 'intrinsic': 'double precision', 'type': None,
+            'attributes': ['intent(in)', 'dimension(:)']}]
+    out = assign_c_types(raw, lib_function_classes={})
+    assert [a.name for a in out] == ['times', 'times_count']
+    assert out[0].is_array is True
+    assert out[0].ctype     == 'c_double'
+    assert out[1].name      == 'times_count'
+    assert out[1].ctype     == 'c_size_t'
+    assert out[1].fort_type == 'integer(c_size_t)'
+    # Hidden from the user-facing Python signature; never passed to the
+    # inner Galacticus call.
+    assert out[1].py_is_present         is False
+    assert out[1].galacticus_is_present is False
+
+
+@pytest.mark.parametrize("intrinsic,kind,expected_ctype", [
+    ('double precision', None      , 'c_double'),
+    ('integer'         , None      , 'c_int'   ),
+    ('integer'         , 'c_long'  , 'c_long'  ),
+    ('integer'         , 'c_size_t', 'c_size_t'),
+])
+def test_assign_c_types_deferred_array_ctype_matches_scalar_kind(
+        intrinsic, kind, expected_ctype):
+    """The array's element ctype follows the same kind-mapping as a scalar
+    of the same intrinsic."""
+    raw = [{'name': 'a', 'intrinsic': intrinsic, 'type': kind,
+            'attributes': ['intent(in)', 'dimension(:)']}]
+    out = assign_c_types(raw, lib_function_classes={})
+    assert out[0].is_array is True
+    assert out[0].ctype     == expected_ctype
 
 
 def test_assign_c_types_self_function_class_skips_galacticus_pass_through():
@@ -156,12 +246,15 @@ def test_assign_c_attributes_optional_uses_reference_passing():
 
 
 def test_assign_c_attributes_dimension_attr_propagates_and_forces_reference():
-    """A `dimension(...)` attribute is preserved on fort_attributes and
-    forces reference passing (arrays can't be value-passed)."""
+    """A `dimension(:)` attribute (assumed-shape) is rewritten to
+    `dimension(*)` (assumed-size) for bind(c) compatibility, propagated to
+    fort_attributes, and forces reference passing (arrays can't be
+    value-passed)."""
     args = [ArgSpec(name='vec', intrinsic='double precision', ctype='c_double',
                     attributes=['intent(in)', 'dimension(:)'])]
     assign_c_attributes(args)
-    assert 'dimension(:)' in args[0].fort_attributes
+    assert 'dimension(*)' in args[0].fort_attributes
+    assert 'dimension(:)' not in args[0].fort_attributes
     assert args[0].pass_by == 'reference'
 
 
@@ -242,6 +335,37 @@ def test_fortran_reassignments_varying_string_routes_through_String_C_to_Fortran
     assert 'String_C_to_Fortran' in out[0].fort_modules['String_Handling']
 
 
+def test_fortran_reassignments_array_arg_passed_as_slice():
+    """An is_array arg's fort_pass_as is `name(1:name_count)` so the inner
+    Galacticus method receives a proper rank-1 array section bounded by
+    the count companion's runtime value."""
+    arr = ArgSpec(name='times', intrinsic='double precision', ctype='c_double',
+                  fort_type='real(c_double)', is_array=True)
+    out = build_fortran_reassignments(
+        [arr], func_class={}, implementation=None,
+        extensions={}, module_uses_impls={},
+    )
+    assert out[0].fort_pass_as == 'times(1:times_count)'
+
+
+def test_python_reassignments_array_arg_converts_via_numpy():
+    """An is_array arg's py_reassignment converts the user's input through
+    np.ascontiguousarray of the right dtype, and py_pass_as hands ctypes
+    the array's data pointer.  The count companion's py_pass_as reads
+    .size off the (now numpy-array) input."""
+    arr = ArgSpec(name='times', intrinsic='double precision',
+                  ctype='c_double', is_array=True)
+    cnt = ArgSpec(name='times_count', intrinsic='integer',
+                  type_spec='c_size_t', ctype='c_size_t',
+                  fort_is_present=True, py_is_present=False,
+                  galacticus_is_present=False)
+    out = build_python_reassignments([arr, cnt])
+    assert 'np.ascontiguousarray(times' in out[0].py_reassignment
+    assert 'dtype=np.float64'           in out[0].py_reassignment
+    assert out[0].py_pass_as == 'times.ctypes.data_as(POINTER(c_double))'
+    assert out[1].py_pass_as == 'c_size_t(times.size)'
+
+
 def test_fortran_reassignments_treeNode_uses_c_f_pointer():
     args = [ArgSpec(name='n', intrinsic='type', type_spec='treeNode')]
     out = build_fortran_reassignments(
@@ -252,6 +376,36 @@ def test_fortran_reassignments_treeNode_uses_c_f_pointer():
     assert out[0].fort_pass_as == 'n_'
     assert 'c_f_pointer' in out[0].fort_iso_c_symbols
     assert 'treeNode' in out[0].fort_modules['Galacticus_Nodes']
+
+
+def test_fortran_reassignments_mergerTree_imported_from_Galacticus_Nodes():
+    """type(mergerTree) must come from Galacticus_Nodes — without the
+    explicit special case the fall-back branch would import it from the
+    functionClass's own module (e.g. Merger_Trees_Build_Mass_Resolution),
+    where it isn't defined."""
+    args = [ArgSpec(name='tree', intrinsic='type', type_spec='mergerTree')]
+    out = build_fortran_reassignments(
+        args,
+        func_class={'module': 'Merger_Trees_Build_Mass_Resolution'},
+        implementation=None, extensions={}, module_uses_impls={},
+    )
+    assert 'mergerTree' in out[0].fort_modules['Galacticus_Nodes']
+    assert 'Merger_Trees_Build_Mass_Resolution' not in out[0].fort_modules
+    assert 'c_f_pointer(tree,tree_)' in out[0].fort_reassignment
+
+
+def test_fortran_reassignments_multiCounter_imported_from_Multi_Counters():
+    """type(multiCounter) must come from the Multi_Counters module rather
+    than the functionClass's own module."""
+    args = [ArgSpec(name='counter', intrinsic='type', type_spec='multiCounter')]
+    out = build_fortran_reassignments(
+        args,
+        func_class={'module': 'Some_Other_Module'},
+        implementation=None, extensions={}, module_uses_impls={},
+    )
+    assert 'multiCounter' in out[0].fort_modules['Multi_Counters']
+    assert 'Some_Other_Module' not in out[0].fort_modules
+    assert 'c_f_pointer(counter,counter_)' in out[0].fort_reassignment
 
 
 def test_fortran_reassignments_optional_treeNode_emits_present_branch():

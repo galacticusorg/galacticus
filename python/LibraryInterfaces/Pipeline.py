@@ -34,6 +34,28 @@ __all__ = [
 ]
 
 
+# Shared derived types whose defining module is NOT the functionClass's own
+# module.  Without these explicit overrides, build_fortran_reassignments'
+# fall-back imports the type from func_class['module'] — which compiles for
+# types defined alongside the class but emits broken `use ::` lines for
+# shared types like treeNode, mergerTree, multiCounter, etc.
+#
+# Add to this table when a new shared type starts appearing as a method or
+# constructor argument in libraryClasses.xml.
+_SHARED_TYPE_MODULES = {
+    'treeNode'    : 'Galacticus_Nodes',
+    'mergerTree'  : 'Galacticus_Nodes',
+    'multiCounter': 'Multi_Counters',
+}
+
+
+# Match a fixed-size 1D dimension attribute (e.g. dimension(3)).  Used to
+# distinguish a fixed-size array — whose length is known at codegen time
+# and so needs no count companion — from a deferred-shape dimension(:),
+# which does.
+_DIM_FIXED_RX = re.compile(r'^dimension\s*\(\s*(\d+)\s*\)$')
+
+
 def assign_c_types(argument_list, lib_function_classes):
     """Assign appropriate C types for each argument.
 
@@ -61,8 +83,18 @@ def assign_c_types(argument_list, lib_function_classes):
             arg.ctype     = 'c_double'
             arg.fort_type = 'real(c_double)'
         elif intrinsic == 'integer':
-            arg.ctype     = 'c_int'
-            arg.fort_type = 'integer(c_int)'
+            # Default kind maps to c_int; explicit C-interop kinds (c_long,
+            # c_size_t) pass through with matching ctypes wrappers so that
+            # 64-bit values aren't silently truncated.
+            if type_spec_val == 'c_long':
+                arg.ctype     = 'c_long'
+                arg.fort_type = 'integer(c_long)'
+            elif type_spec_val == 'c_size_t':
+                arg.ctype     = 'c_size_t'
+                arg.fort_type = 'integer(c_size_t)'
+            else:
+                arg.ctype     = 'c_int'
+                arg.fort_type = 'integer(c_int)'
         elif intrinsic == 'logical':
             arg.ctype     = 'c_bool'
             arg.fort_type = 'logical(c_bool)'
@@ -111,6 +143,41 @@ def assign_c_types(argument_list, lib_function_classes):
                     # Insert _ID before the current front, then arg before that.
                     new_list.insert(0, arg_id)
 
+        # Detect 1D numeric arrays (deferred-shape or fixed-size) and set
+        # is_array / array_size so the rest of the pipeline can recognise
+        # them.  Deferred-shape gets a hidden integer(c_size_t) count
+        # companion immediately after it — same trick as the _ID
+        # companion for class(FooClass) args; the Python wrapper computes
+        # the value from the input numpy array's .size, and the inner
+        # Galacticus method receives an `arr(1:arr_count)` slice (see
+        # build_fortran_reassignments).  Fixed-size needs no companion:
+        # the length is in the dimension spec itself.
+        if intrinsic in ('double precision', 'integer'):
+            if 'dimension(:)' in arg.attributes:
+                arg.is_array   = True
+                arg.array_size = None
+                count_arg = ArgSpec(
+                    name                  = arg.name + '_count',
+                    intrinsic             = 'integer',
+                    type_spec             = 'c_size_t',
+                    attributes            = ['intent(in)'],
+                    ctype                 = 'c_size_t',
+                    fort_type             = 'integer(c_size_t)',
+                    fort_is_present       = True,
+                    py_is_present         = False,
+                    galacticus_is_present = False,
+                    is_optional           = False,
+                    is_function_class     = False,
+                )
+                new_list.insert(0, count_arg)
+            else:
+                for a in arg.attributes:
+                    m = _DIM_FIXED_RX.match(a)
+                    if m:
+                        arg.is_array   = True
+                        arg.array_size = int(m.group(1))
+                        break
+
         new_list.insert(0, arg)
 
     return new_list
@@ -124,8 +191,17 @@ def assign_c_attributes(argument_list):
         if arg.is_optional:
             arg.fort_attributes.append('optional')
 
-        attr_filters = [a for a in arg.attributes
-                       if a.startswith('dimension') or a == 'allocatable']
+        # dimension(:) (assumed-shape) isn't allowed in bind(c); rewrite to
+        # dimension(*) (assumed-size) so the C side sees a plain pointer.
+        # The companion <name>_count carries the runtime length, and the
+        # inner Galacticus call slices arr(1:arr_count) to recover an
+        # ordinary dimension(:) section — see build_fortran_reassignments.
+        attr_filters = []
+        for a in arg.attributes:
+            if a == 'dimension(:)':
+                attr_filters.append('dimension(*)')
+            elif a.startswith('dimension') or a == 'allocatable':
+                attr_filters.append(a)
         arg.fort_attributes.extend(attr_filters)
 
         if arg.ctype == 'c_char_p':
@@ -182,8 +258,49 @@ def build_python_reassignments(argument_list):
                 arg.py_pass_as    = name + '._glcObj'
                 arg_id.py_pass_as = name + '._classID'
             new_list.insert(0, arg_id)        # unshift _ID back
+        elif arg.is_array:
+            # 1D numeric array: convert the user's input (numpy array, list,
+            # tuple) to a contiguous ndarray of the right dtype, then pass
+            # its data pointer to the bind(c) function.  Deferred-shape
+            # also passes a count: same pop/unshift trick as the _ID case
+            # above to grab the count companion that's sitting at the
+            # front of new_list.  Fixed-size validates the length so a
+            # mismatched input raises a clear ValueError instead of
+            # silently corrupting Fortran-side memory.
+            np_dtype  = _ARRAY_NUMPY_DTYPE.get(arg.ctype, 'float64')
+            if arg.array_size is None:
+                count_arg = new_list.pop(0)
+                arg.py_reassignment = (
+                    f'    {arg.name} = np.ascontiguousarray({arg.name},'
+                    f' dtype=np.{np_dtype})\n'
+                )
+                count_arg.py_pass_as = f'c_size_t({arg.name}.size)'
+                new_list.insert(0, count_arg)
+            else:
+                arg.py_reassignment = (
+                    f'    {arg.name} = np.ascontiguousarray({arg.name},'
+                    f' dtype=np.{np_dtype})\n'
+                    f'    if {arg.name}.size != {arg.array_size}:\n'
+                    f'        raise ValueError('
+                    f'f"{arg.name} expects {arg.array_size} elements, got '
+                    f'{{{arg.name}.size}}")\n'
+                )
+            arg.py_pass_as = (
+                f'{arg.name}.ctypes.data_as(POINTER({arg.ctype}))'
+            )
         new_list.insert(0, arg)               # unshift current arg
     return new_list
+
+
+# Numpy dtype string used when converting a Python input to a contiguous
+# array for an array-typed argument.  Keep in sync with the ctypes mapping
+# in assign_c_types.
+_ARRAY_NUMPY_DTYPE = {
+    'c_double': 'float64',
+    'c_int'   : 'int32',
+    'c_long'  : 'int64',
+    'c_size_t': 'uint64',
+}
 
 
 def build_fortran_reassignments(argument_list, func_class, implementation,
@@ -217,7 +334,17 @@ def build_fortran_reassignments(argument_list, func_class, implementation,
         is_optional   = arg.is_optional
         opt_prefix    = f'if (present({name})) ' if is_optional else ''
 
-        if intrinsic == 'logical':
+        if arg.is_array:
+            # 1D numeric array.  Deferred-shape needs slicing — the bind(c)
+            # signature has `dimension(*)` (assumed-size) plus a separate
+            # <name>_count, so we hand the inner method a section
+            # `name(1:name_count)` to recover a proper rank-1 descriptor of
+            # the right length.  Fixed-size doesn't need slicing: the
+            # bind(c) declaration is already explicit-shape `dimension(N)`,
+            # which the inner method accepts directly.
+            if arg.array_size is None:
+                arg.fort_pass_as = f'{name}(1:{name}_count)'
+        elif intrinsic == 'logical':
             # c_bool must be recast to a plain Fortran logical.
             arg.fort_reassignment = f'{opt_prefix}{name}_=logical({name})\n'
             arg.fort_declarations = f'logical :: {name}_\n'
@@ -271,8 +398,11 @@ def build_fortran_reassignments(argument_list, func_class, implementation,
                 if import_module:
                     arg.fort_modules.setdefault(import_module, {})[type_spec_val] = 1
 
-            elif type_spec_val == 'treeNode':
-                # c_ptr -> type(treeNode) via c_f_pointer.
+            elif type_spec_val in _SHARED_TYPE_MODULES:
+                # c_ptr -> type(X) via c_f_pointer for derived types that
+                # live in a known module other than the functionClass's own
+                # (see _SHARED_TYPE_MODULES).  Includes the proper
+                # null-on-absent handling for optional args.
                 arg.fort_declarations = f'type({type_spec_val}), pointer :: {name}_\n'
                 arg.fort_pass_as      = name + '_'
                 reassign = f'call c_f_pointer({name},{name}_)\n'
@@ -281,7 +411,8 @@ def build_fortran_reassignments(argument_list, func_class, implementation,
                                 f'{reassign}else\n {name}_ => null()\nend if\n')
                 arg.fort_reassignment   = reassign
                 arg.fort_iso_c_symbols  = ['c_f_pointer']
-                arg.fort_modules.setdefault('Galacticus_Nodes', {})['treeNode'] = 1
+                shared_mod = _SHARED_TYPE_MODULES[type_spec_val]
+                arg.fort_modules.setdefault(shared_mod, {})[type_spec_val] = 1
 
             else:
                 # Other derived types: c_ptr -> type(X) via c_f_pointer.

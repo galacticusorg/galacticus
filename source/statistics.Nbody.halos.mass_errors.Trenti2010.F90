@@ -48,13 +48,13 @@ Implements an N-body dark matter halo mass error class using the model of \cite{
      !!{
      Constructors for the \refClass{nbodyHaloMassErrorTrenti2010} N-body halo mass error class.
      !!}
-     module procedure nbodyHaloMassErrorTrenti2010Parameters
-     module procedure nbodyHaloMassErrorTrenti2010Internal
+     module procedure nbodyHaloMassErrorTrenti2010ConstructorParameters
+     module procedure nbodyHaloMassErrorTrenti2010ConstructorInternal
   end interface nbodyHaloMassErrorTrenti2010
 
 contains
 
-  function nbodyHaloMassErrorTrenti2010Parameters(parameters) result(self)
+  function nbodyHaloMassErrorTrenti2010ConstructorParameters(parameters) result(self)
     !!{
     Constructor for the \refClass{nbodyHaloMassErrorTrenti2010} N-body halo mass error class which takes a parameter set as input.
     !!}
@@ -103,9 +103,9 @@ contains
     <objectDestructor name="cosmologyFunctions_"/>
     !!]
     return
-  end function nbodyHaloMassErrorTrenti2010Parameters
+  end function nbodyHaloMassErrorTrenti2010ConstructorParameters
 
-  function nbodyHaloMassErrorTrenti2010Internal(massParticle,correlationNormalization,correlationMassExponent,correlationRedshiftExponent,cosmologyFunctions_) result(self)
+  function nbodyHaloMassErrorTrenti2010ConstructorInternal(massParticle,correlationNormalization,correlationMassExponent,correlationRedshiftExponent,cosmologyFunctions_) result(self)
     !!{
     Internal constructor for the \refClass{nbodyHaloMassErrorTrenti2010} N-body halo mass error class. \cite{trenti_how_2010} report
     a normalization of the fractional error in particle number of 0.15 at $N=1000$ particles. Since this is based on
@@ -149,7 +149,7 @@ contains
        self%cosmologyFunctions_         => null()
     end if
     return
-  end function nbodyHaloMassErrorTrenti2010Internal
+  end function nbodyHaloMassErrorTrenti2010ConstructorInternal
 
   subroutine trenti2010Destructor(self)
     !!{
