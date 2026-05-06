@@ -402,21 +402,22 @@ def _process_implementations(func_class, directive_locations, state_storables,
                 # interface's children.  The Galacticus convention names
                 # constructors `<short>Constructor<Variant>` where Variant
                 # is `Parameters` (XML-driven) or `Internal[Suffix]`; we
-                # want only the Internal flavour.  Substring-matching plain
-                # 'internal' is too loose — for impls whose short name is
-                # itself `internal` (e.g. intergalacticMediumStateInternal),
-                # `internalConstructorParameters` would spuriously match.
-                # Anchoring on `ConstructorInternal` rules that out while
-                # still catching variants like ConstructorInternalType /
-                # ConstructorInternalDefined that the previous
-                # endswith('internal') rule missed.
+                # want only the Internal flavour.  Some classes (the merger
+                # tree walkers, for example) use the shorter `<short>Internal`
+                # form without a `Constructor` infix.  Accepting either
+                # `endswith('internal')` or `'constructorinternal' in name`
+                # covers both conventions plus the rarer
+                # `ConstructorInternalType` / `ConstructorInternalDefined`
+                # disambiguation suffixes; `<short>ConstructorParameters`
+                # satisfies neither rule and is correctly rejected.
                 candidates = []
                 child = node.get('firstChild')
                 while child:
                     if child['type'] == 'moduleProcedure':
                         candidates.extend(
                             n for n in child.get('names', [])
-                            if 'constructorinternal' in n.lower()
+                            if (n.lower().endswith('internal')
+                                or 'constructorinternal' in n.lower())
                         )
                     child = child.get('sibling')
                 if len(candidates) == 1:

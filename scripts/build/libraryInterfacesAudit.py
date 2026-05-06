@@ -60,13 +60,19 @@ from Galacticus.Build import SourceTree                # noqa: E402
 _DIM_FIXED_RX = re.compile(r'^dimension\s*\(\s*(\d+)\s*\)$')
 
 # Recognise an Internal-suffixed module-procedure name following the
-# Galacticus convention <short>Constructor[Internal[Suffix]].  Loosened
-# from .endswith('internal') so that variants like
-# ConstructorInternalType / ConstructorInternalDefined are caught;
-# anchored on `constructorinternal` to avoid false positives where the
-# impl's short name itself happens to be `internal` (see commit
-# 5fe87098 in the original generator).
-_INTERNAL_NAME_NEEDLE = 'constructorinternal'
+# Galacticus convention <short>Constructor[Internal[Suffix]] OR the
+# alternative <short>Internal form (used by the merger-tree walkers,
+# e.g. allAndFormationNodesInternal).  We accept either:
+#   • a name ending in "internal" (catches both `<short>ConstructorInternal`
+#     and `<short>Internal`), or
+#   • a name containing "constructorinternal" (catches the rarer
+#     ConstructorInternalType / ConstructorInternalDefined variants
+#     used to disambiguate multiple internal constructors).
+# `<name>ConstructorParameters` and similar do not satisfy either rule
+# and are correctly rejected.
+def _is_internal_constructor_name(name):
+    lower = name.lower()
+    return lower.endswith('internal') or 'constructorinternal' in lower
 
 
 # ---------------------------------------------------------------------------
@@ -162,7 +168,7 @@ def parse_impls_in_file(impl_file, fc_name):
             while child:
                 if child['type'] == 'moduleProcedure':
                     for n in child.get('names', []):
-                        if _INTERNAL_NAME_NEEDLE in n.lower():
+                        if _is_internal_constructor_name(n):
                             internals_seen.append(n)
                 child = child.get('sibling')
             if len(internals_seen) == 1:
