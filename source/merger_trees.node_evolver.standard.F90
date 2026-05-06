@@ -389,8 +389,8 @@ contains
     class           (nodeComponentBasic                 )                            , pointer :: basic
     class           (integratorMultiVectorized1D        ), allocatable                         :: integrator_
     type            (odeSolver                          )                            , target  :: solver
-    logical                                                                                    :: solvedAnalytically       , solvedNumerically, &
-         &                                                                                        jacobianSolver           , solverInitialized
+    logical                                                                                    :: solvedNumerically        , jacobianSolver   , &
+         &                                                                                        solverInitialized
     double precision                                                                           :: timeStart                , stepSize
     integer                                                                                    :: lengthMaximum            , odeStatus        , &
          &                                                                                        odeAlgorithm
@@ -427,308 +427,296 @@ contains
     self%galacticStructureSolver_ => galacticStructureSolver__
     ! Ensure calculations are reset for this new step.
     call Calculations_Reset(node)
-    ! Attempt to find analytic solutions.
-    solvedAnalytically=.false.
-    !![
-    <eventHookStatic name="analyticSolverTask">
-     <callWith>node,timeStart,timeEnd,solvedAnalytically</callWith>
-    </eventHookStatic>
-    !!]
-    ! Check if an analytic solution was available - use numerical solution if not.
-    if (solvedAnalytically) then
-       ! An analytic solution was available. Record that no interrupt therefore occurred.
-       interrupted=.false.
-    else
-       ! Compute offsets into serialization arrays for rates and scales.
-       call node%serializationOffsets(propertyTypeAll)
-       ! Find number of all evolvable variables (active and inactive) for this node.
-       self%propertyCountAll=node%serializeCount(propertyTypeAll)
-       ! Allocate pointer arrays if necessary.
-       if (self%propertyCountAll > self%propertyCountMaximum) then
-          if (allocated(self%propertyValuesActive)) then
-             deallocate(self%isNonNegative                )
-             deallocate(self%propertyValuesActive         )
-             deallocate(self%propertyValuesActiveSaved    )
-             deallocate(self%propertyValuesInactive       )
-             deallocate(self%propertyValuesInactiveSaved  )
-             deallocate(self%propertyScalesActive         )
-             deallocate(self%propertyScalesInactive       )
-             deallocate(self%propertyValuesPrevious       )
-             deallocate(self%propertyRatesPrevious        )
-             deallocate(self%propertyErrors               )
-             deallocate(self%propertyTolerances           )
-             deallocate(self%odeTolerancesInactiveRelative)
-             deallocate(self%odeTolerancesInactiveAbsolute)
-          end if
-          allocate(self%isNonNegative                (self%propertyCountAll))
-          allocate(self%propertyValuesActive         (self%propertyCountAll))
-          allocate(self%propertyValuesActiveSaved    (self%propertyCountAll))
-          allocate(self%propertyValuesInactive       (self%propertyCountAll))
-          allocate(self%propertyValuesInactiveSaved  (self%propertyCountAll))
-          allocate(self%propertyScalesActive         (self%propertyCountAll))
-          allocate(self%propertyScalesInactive       (self%propertyCountAll))
-          allocate(self%propertyValuesPrevious       (self%propertyCountAll))
-          allocate(self%propertyRatesPrevious        (self%propertyCountAll))
-          allocate(self%propertyErrors               (self%propertyCountAll))
-          allocate(self%propertyTolerances           (self%propertyCountAll))
-          allocate(self%odeTolerancesInactiveRelative(self%propertyCountAll))
-          allocate(self%odeTolerancesInactiveAbsolute(self%propertyCountAll))
-          self%propertyCountMaximum  =self%propertyCountAll
-          self%propertyValuesPrevious=0.0d0
-          self%isNonNegative         =.false.
+    interrupted=.false.
+    ! Compute offsets into serialization arrays for rates and scales.
+    call node%serializationOffsets(propertyTypeAll)
+    ! Find number of all evolvable variables (active and inactive) for this node.
+    self%propertyCountAll=node%serializeCount(propertyTypeAll)
+    ! Allocate pointer arrays if necessary.
+    if (self%propertyCountAll > self%propertyCountMaximum) then
+       if (allocated(self%propertyValuesActive)) then
+          deallocate(self%isNonNegative                )
+          deallocate(self%propertyValuesActive         )
+          deallocate(self%propertyValuesActiveSaved    )
+          deallocate(self%propertyValuesInactive       )
+          deallocate(self%propertyValuesInactiveSaved  )
+          deallocate(self%propertyScalesActive         )
+          deallocate(self%propertyScalesInactive       )
+          deallocate(self%propertyValuesPrevious       )
+          deallocate(self%propertyRatesPrevious        )
+          deallocate(self%propertyErrors               )
+          deallocate(self%propertyTolerances           )
+          deallocate(self%odeTolerancesInactiveRelative)
+          deallocate(self%odeTolerancesInactiveAbsolute)
        end if
-       ! Iterate until the step has been solved numerically.
-       solvedNumerically=.false.
-       jacobianSolver   =self%useJacobian
-       do while (.not.solvedNumerically)
-          if (jacobianSolver) then
-             self%propertyTypeODE       =propertyTypeActive
-             self%propertyTypeIntegrator=propertyTypeInactive
-          else
-             self%propertyTypeODE       =propertyTypeNumerics
-             self%propertyTypeIntegrator=propertyTypeNone
-          end if
-          rateComputeState=self%propertyTypeODE
-          ! Determine active and inactive properties.
-          call node%odeStepInactivesInitialize()
-          call node%odeStepAnalyticsInitialize()
-          if (jacobianSolver) then
-             !![
-             <eventHookStatic name="inactiveSetTask">
-              <callWith>node</callWith>
-             </eventHookStatic>
-             !!]
-             call self%nodeOperator_%differentialEvolutionInactives(node)
-          end if
-          ! Determine analytically-solvable properties.
-          call self%nodeOperator_%differentialEvolutionAnalytics(node)
-          ! Compute offsets into serialization arrays for rates and scales.
-          call node%serializationOffsets(self%propertyTypeODE       )
-          call node%serializationOffsets(self%propertyTypeIntegrator)
-          ! Find number of active and inactive variables to evolve for this node.
-          self%propertyCountActive  =node%serializeCount(self%propertyTypeODE       )
-          self%propertyCountInactive=node%serializeCount(self%propertyTypeIntegrator)
-          ! Serialize property values to array, and save a copy in case of a need to reset.
-          call node%serializeValues(self%propertyValuesActive  ,self%propertyTypeODE       )
-          call node%serializeValues(self%propertyValuesInactive,self%propertyTypeIntegrator)
-          self%propertyValuesActiveSaved  (1:self%propertyCountActive  )=self%propertyValuesActive  (1:self%propertyCountActive  )
-          self%propertyValuesInactiveSaved(1:self%propertyCountInactive)=self%propertyValuesInactive(1:self%propertyCountInactive)
-          ! Find properties that must be non-negative.
-          if (self%enforceNonNegativity) then
-             call node%serializeNonNegative(self%isNonNegative)
-          else
-             self%isNonNegative=.false.
-          end if
-          ! Compute scales for all properties and extract from the node.
-          call node%odeStepScalesInitialize()
+       allocate(self%isNonNegative                (self%propertyCountAll))
+       allocate(self%propertyValuesActive         (self%propertyCountAll))
+       allocate(self%propertyValuesActiveSaved    (self%propertyCountAll))
+       allocate(self%propertyValuesInactive       (self%propertyCountAll))
+       allocate(self%propertyValuesInactiveSaved  (self%propertyCountAll))
+       allocate(self%propertyScalesActive         (self%propertyCountAll))
+       allocate(self%propertyScalesInactive       (self%propertyCountAll))
+       allocate(self%propertyValuesPrevious       (self%propertyCountAll))
+       allocate(self%propertyRatesPrevious        (self%propertyCountAll))
+       allocate(self%propertyErrors               (self%propertyCountAll))
+       allocate(self%propertyTolerances           (self%propertyCountAll))
+       allocate(self%odeTolerancesInactiveRelative(self%propertyCountAll))
+       allocate(self%odeTolerancesInactiveAbsolute(self%propertyCountAll))
+       self%propertyCountMaximum  =self%propertyCountAll
+       self%propertyValuesPrevious=0.0d0
+       self%isNonNegative         =.false.
+    end if
+    ! Iterate until the step has been solved numerically.
+    solvedNumerically=.false.
+    jacobianSolver   =self%useJacobian
+    do while (.not.solvedNumerically)
+       if (jacobianSolver) then
+          self%propertyTypeODE       =propertyTypeActive
+          self%propertyTypeIntegrator=propertyTypeInactive
+       else
+          self%propertyTypeODE       =propertyTypeNumerics
+          self%propertyTypeIntegrator=propertyTypeNone
+       end if
+       rateComputeState=self%propertyTypeODE
+       ! Determine active and inactive properties.
+       call node%odeStepInactivesInitialize()
+       call node%odeStepAnalyticsInitialize()
+       if (jacobianSolver) then
           !![
-          <eventHookStatic name="scaleSetTask">
-           <callWith>node</callWith>
+          <eventHookStatic name="inactiveSetTask">
+          <callWith>node</callWith>
           </eventHookStatic>
           !!]
-          call self%nodeOperator_%differentialEvolutionScales(node)
-          call node%serializeScales(self%propertyScalesActive  ,self%propertyTypeODE       )
-          call node%serializeScales(self%propertyScalesInactive,self%propertyTypeIntegrator)
-          ! Check for zero property scales which will cause floating point overflow in the ODE solver.
-          if (any(self%propertyScalesActive(1:self%propertyCountActive) == 0.0d0)) then
-             message=displayMagenta()//'WARNING:'//displayReset()//' Zero entry in ODE system scales for node'
-             call Warn         (message)
-             call displayIndent(message)
-             lengthMaximum=0
-             do i=1,self%propertyCountActive
-                lengthMaximum=max(lengthMaximum,len(node%nameFromIndex(int(i),self%propertyTypeODE)))
-             end do
-             line=repeat("―",lengthMaximum)//repeat("―――――――――――――――",2)
-             call displayMessage(line)
-             call displayMessage(repeat(" ",lengthMaximum)//' : y            : yScale')
-             call displayMessage(line)
-             do i=1,self%propertyCountActive
-                message=node%nameFromIndex(int(i),self%propertyTypeODE)
-                message=repeat(" ",lengthMaximum-len(message))//message
-                write (label,'(e12.6)') self%propertyValuesActive(i)
-                message=message//" : "//label
-                write (label,'(e12.6)') self%propertyScalesActive(i)
-                message=message//" : "//label
-                call displayMessage(message)
-             end do
-             call displayMessage(line)
-             call node%serializeASCII()
-             call displayUnindent('done')
-          end if          
-          ! Assign module global pointer to this node.
-          self_                   => self
-          solver_                 => solver
-          self   %activeTreeIndex =  tree%index
-          self   %activeNode      => node
-          ! Reset interrupt variables.
-          self%interruptFirstFound    =  .false.
-          self%timeInterruptFirst     =  0.0d0
-          self%functionInterruptFirst => null()
-          ! Call ODE solver routines.
-          solvedNumerically=.true.
-          stepSize         =-1.0d0
-          if (timeStart /= timeEnd .and. self%propertyCountActive > 0) then
-             self%propertyCountPrevious=self%propertyCountActive
-             self%trialCount           =0
-             solverInitialized         =.false.
-             odeStatus                 =errorStatusFail
-             do while (self%trialCount < trialCountMaximum .and. .not.(odeStatus == errorStatusSuccess .or. odeStatus == odeSolverInterrupt))
-                ! Initialize state. Stepsize is reduced by half on each successive trial.
-                if (.not.solverInitialized) then
-                   if (jacobianSolver) then
-                      ! Initialize integrator.
-                      if (.not.allocated(integrator_)) then
-                         select case (self%odeLatentIntegratorType%ID)
-                         case (latentIntegratorTypeGaussKronrod%ID)
-                            allocate(integratorMultiVectorizedCompositeGaussKronrod1D :: integrator_)
-                            select type (integrator_)
-                            type is (integratorMultiVectorizedCompositeGaussKronrod1D)
-                               call integrator_%initialize(self%odeLatentIntegratorIntervalsMaximum,self%odeLatentIntegratorOrder)
-                            end select
-                         case (latentIntegratorTypeTrapezoidal %ID)
-                            allocate(integratorMultiVectorizedCompositeTrapezoidal1D  :: integrator_)
-                            select type (integrator_)
-                            type is (integratorMultiVectorizedCompositeTrapezoidal1D )
-                               call integrator_%initialize(self%odeLatentIntegratorIntervalsMaximum                              )
-                            end select
+          call self%nodeOperator_%differentialEvolutionInactives(node)
+       end if
+       ! Determine analytically-solvable properties.
+       call self%nodeOperator_%differentialEvolutionAnalytics(node)
+       ! Compute offsets into serialization arrays for rates and scales.
+       call node%serializationOffsets(self%propertyTypeODE       )
+       call node%serializationOffsets(self%propertyTypeIntegrator)
+       ! Find number of active and inactive variables to evolve for this node.
+       self%propertyCountActive  =node%serializeCount(self%propertyTypeODE       )
+       self%propertyCountInactive=node%serializeCount(self%propertyTypeIntegrator)
+       ! Serialize property values to array, and save a copy in case of a need to reset.
+       call node%serializeValues(self%propertyValuesActive  ,self%propertyTypeODE       )
+       call node%serializeValues(self%propertyValuesInactive,self%propertyTypeIntegrator)
+       self%propertyValuesActiveSaved  (1:self%propertyCountActive  )=self%propertyValuesActive  (1:self%propertyCountActive  )
+       self%propertyValuesInactiveSaved(1:self%propertyCountInactive)=self%propertyValuesInactive(1:self%propertyCountInactive)
+       ! Find properties that must be non-negative.
+       if (self%enforceNonNegativity) then
+          call node%serializeNonNegative(self%isNonNegative)
+       else
+          self%isNonNegative=.false.
+       end if
+       ! Compute scales for all properties and extract from the node.
+       call node%odeStepScalesInitialize()
+       !![
+       <eventHookStatic name="scaleSetTask">
+       <callWith>node</callWith>
+       </eventHookStatic>
+       !!]
+       call self%nodeOperator_%differentialEvolutionScales(node)
+       call node%serializeScales(self%propertyScalesActive  ,self%propertyTypeODE       )
+       call node%serializeScales(self%propertyScalesInactive,self%propertyTypeIntegrator)
+       ! Check for zero property scales which will cause floating point overflow in the ODE solver.
+       if (any(self%propertyScalesActive(1:self%propertyCountActive) == 0.0d0)) then
+          message=displayMagenta()//'WARNING:'//displayReset()//' Zero entry in ODE system scales for node'
+          call Warn         (message)
+          call displayIndent(message)
+          lengthMaximum=0
+          do i=1,self%propertyCountActive
+             lengthMaximum=max(lengthMaximum,len(node%nameFromIndex(int(i),self%propertyTypeODE)))
+          end do
+          line=repeat("―",lengthMaximum)//repeat("―――――――――――――――",2)
+          call displayMessage(line)
+          call displayMessage(repeat(" ",lengthMaximum)//' : y            : yScale')
+          call displayMessage(line)
+          do i=1,self%propertyCountActive
+             message=node%nameFromIndex(int(i),self%propertyTypeODE)
+             message=repeat(" ",lengthMaximum-len(message))//message
+             write (label,'(e12.6)') self%propertyValuesActive(i)
+             message=message//" : "//label
+             write (label,'(e12.6)') self%propertyScalesActive(i)
+             message=message//" : "//label
+             call displayMessage(message)
+          end do
+          call displayMessage(line)
+          call node%serializeASCII()
+          call displayUnindent('done')
+       end if
+       ! Assign module global pointer to this node.
+       self_                   => self
+       solver_                 => solver
+       self   %activeTreeIndex =  tree%index
+       self   %activeNode      => node
+       ! Reset interrupt variables.
+       self%interruptFirstFound    =  .false.
+       self%timeInterruptFirst     =  0.0d0
+       self%functionInterruptFirst => null()
+       ! Call ODE solver routines.
+       solvedNumerically=.true.
+       stepSize         =-1.0d0
+       if (timeStart /= timeEnd .and. self%propertyCountActive > 0) then
+          self%propertyCountPrevious=self%propertyCountActive
+          self%trialCount           =0
+          solverInitialized         =.false.
+          odeStatus                 =errorStatusFail
+          do while (self%trialCount < trialCountMaximum .and. .not.(odeStatus == errorStatusSuccess .or. odeStatus == odeSolverInterrupt))
+             ! Initialize state. Stepsize is reduced by half on each successive trial.
+             if (.not.solverInitialized) then
+                if (jacobianSolver) then
+                   ! Initialize integrator.
+                   if (.not.allocated(integrator_)) then
+                      select case (self%odeLatentIntegratorType%ID)
+                      case (latentIntegratorTypeGaussKronrod%ID)
+                         allocate(integratorMultiVectorizedCompositeGaussKronrod1D :: integrator_)
+                         select type (integrator_)
+                         type is (integratorMultiVectorizedCompositeGaussKronrod1D)
+                            call integrator_%initialize(self%odeLatentIntegratorIntervalsMaximum,self%odeLatentIntegratorOrder)
                          end select
-                      end if
-                      odeAlgorithm=self%odeAlgorithm
-                   else
-                      odeAlgorithm=self%odeAlgorithmNonJacobian
+                      case (latentIntegratorTypeTrapezoidal %ID)
+                         allocate(integratorMultiVectorizedCompositeTrapezoidal1D  :: integrator_)
+                         select type (integrator_)
+                         type is (integratorMultiVectorizedCompositeTrapezoidal1D )
+                            call integrator_%initialize(self%odeLatentIntegratorIntervalsMaximum                              )
+                         end select
+                      end select
                    end if
-                   if (self%profileOdeEvolver) call self%stepTimer%start()
-                   !![
-                   <conditionalCall>
-		    <call>
-                     solver=odeSolver(                                                     &amp;
-                      &amp;                             self%propertyCountActive         , &amp;
-                      &amp;                                  standardODEs                , &amp;
-                      &amp;           toleranceAbsolute=self%odeToleranceAbsolute        , &amp;
-                      &amp;           toleranceRelative=self%odeToleranceRelative        , &amp;
-                      &amp;           scale            =self%propertyScalesActive        , &amp;
-                      &amp;           stepperType      =     odeAlgorithm                , &amp;
-                      &amp;           postStep         =     standardPostStepProcessing  , &amp;
-                      &amp;           finalState       =     standardFinalStateProcessing, &amp;
-                      &amp;           errorHandler     =     standardErrorHandler          &amp;                                      
-                      &amp;           {conditions}                                         &amp;
-                      &amp;          )
-		    </call>
-                    <argument name="jacobian"                value="standardODEsJacobian"      condition="jacobianSolver"           />
-                    <argument name="integrator"              value="integrator_"               condition="jacobianSolver"           />
-                    <argument name="integratorErrorTolerant" value=".true."                    condition="jacobianSolver"           />
-                    <argument name="integrands"              value="standardIntegrands"        condition="jacobianSolver"           />
-                    <argument name="errorAnalyzer"           value="standardStepErrorAnalyzer" condition="self%profileOdeEvolver"   />
-                    <argument name="isNonNegative"           value="self%isNonNegative"        condition="self%enforceNonNegativity"/>
-                   </conditionalCall>
-                   !!]
-                   solverInitialized=.true.
-                end if
-                if (self%reuseODEStepSize) then
-                   stepSize      =node%timeStep()/2.0d0**self%trialCount
+                   odeAlgorithm=self%odeAlgorithm
                 else
-                   stepSize      =-1.0d0
+                   odeAlgorithm=self%odeAlgorithmNonJacobian
                 end if
-                self%timePrevious=-1.0d0
-                timeStart        =timeStartSaved
-                if (jacobianSolver) then
-                   self%odeTolerancesInactiveRelative(1:self%propertyCountInactive)=self%odeToleranceRelative
-                   self%odeTolerancesInactiveAbsolute(1:self%propertyCountInactive)=self%odeToleranceAbsolute*self%propertyScalesInactive(1:self%propertyCountInactive)
-                   call integrator_%tolerancesSet(self%odeTolerancesInactiveAbsolute(1:self%propertyCountInactive),self%odeTolerancesInactiveRelative(1:self%propertyCountInactive))
-                   call solver     %solve(timeStart,timeEnd,self%propertyValuesActive,status=odeStatus,xStep=stepSize,z=self%propertyValuesInactive(1:self%propertyCountInactive))
-                else
-                   call solver     %solve(timeStart,timeEnd,self%propertyValuesActive,status=odeStatus,xStep=stepSize                                                            )
-                end if
-                ! If non-negativity is being enforced for some properties, check for failures in the step and, if these are due to such a property
-                ! being negative, zero that property and ignore the failure. This is necessary as it may be that a non-negative property has
-                ! non-zero derivative as it approaches zero, such that even an arbitrarily small step size still results in it becoming negative.                
-                if     (                                                                    &
-                     &   self%enforceNonNegativity                                          &
-                     &  .and.                                                               &
-                     &   .not.                                                              &
-                     &    (                                                                 &
-                     &      odeStatus == errorStatusSuccess                                 &
-                     &     .or.                                                             &
-                     &      odeStatus == odeSolverInterrupt                                 &
-                     &    )                                                                 &
-                     &  .and.                                                               &
-                     &   any(                                                               &
-                     &        self%propertyValuesActive(1:self%propertyCountActive) < 0.0d0 &
-                     &       .and.                                                          &
-                     &        self%isNonNegative       (1:self%propertyCountActive)         &
-                     &      )                                                               &
-                     & ) then
-                   where  (                                                               &
-                        &   self%propertyValuesActive(1:self%propertyCountActive) < 0.0d0 &
-                        &  .and.                                                          &
-                        &   self%isNonNegative       (1:self%propertyCountActive)         &
-                        & )
-                      self%propertyValuesActive(1:self%propertyCountActive)=0.0d0
-                   end where
-                   ! Ignore the returned step size in this case.
-                   stepSize =node%timeStep()/2.0d0**self%trialCount
-                   ! Reset status to success.
-                   odeStatus=errorStatusSuccess
-                end if
-                ! Check for failure.
-                if (.not.(odeStatus == errorStatusSuccess .or. odeStatus == odeSolverInterrupt)) then
-                   ! Increment number of trials.
-                   self%trialCount=self%trialCount+1
-                   ! Restore state of the node.
-                   self%propertyValuesActive  (1:self%propertyCountActive  )=self%propertyValuesActiveSaved  (1:self%propertyCountActive  )
-                   self%propertyValuesInactive(1:self%propertyCountInactive)=self%propertyValuesInactiveSaved(1:self%propertyCountInactive)
-                end if
-                ! Check for exceeding wall time.
-                if (self%systemClockMaximum > 0_kind_int8) then
-                   call System_Clock(systemClockCount)
-                   if (systemClockCount > self%systemClockMaximum) then
-                      if (present(status)) then
-                         call displayMessage('maximum wall time exceeded'                          )
-                         status=errorStatusXCPU
-                         return
-                      else
-                         call Error_Report  ('maximum wall time exceeded'//{introspection:location})
-                      end if
-                   end if
-                end if
-             end do
-             if (.not.(odeStatus == errorStatusSuccess .or. odeStatus == odeSolverInterrupt)) then
-                if (jacobianSolver) then
-                   ! Restore state of the node, switch to using a non-Jacobian solver, and indicate that the step was not solved numerically.
-                   solvedNumerically=.false.
-                   jacobianSolver   =.false.
-                   solverInitialized=.false.
-                   self%propertyValuesActive  (1:self%propertyCountActive  )=self%propertyValuesActiveSaved  (1:self%propertyCountActive  )
-                   self%propertyValuesInactive(1:self%propertyCountInactive)=self%propertyValuesInactiveSaved(1:self%propertyCountInactive)
-                else if (present(status)) then
-                   call displayMessage('ODE integration failed '//{introspection:location})
-                   status=errorStatusUnderflow
-                   return
-                else
-                   call Error_Report  ('ODE integration failed '//{introspection:location})
-                end if
+                if (self%profileOdeEvolver) call self%stepTimer%start()
+                !![
+                <conditionalCall>
+                <call>
+                solver=odeSolver(                                                     &amp;
+                &amp;                             self%propertyCountActive         , &amp;
+                &amp;                                  standardODEs                , &amp;
+                &amp;           toleranceAbsolute=self%odeToleranceAbsolute        , &amp;
+                &amp;           toleranceRelative=self%odeToleranceRelative        , &amp;
+                &amp;           scale            =self%propertyScalesActive        , &amp;
+                &amp;           stepperType      =     odeAlgorithm                , &amp;
+                &amp;           postStep         =     standardPostStepProcessing  , &amp;
+                &amp;           finalState       =     standardFinalStateProcessing, &amp;
+                &amp;           errorHandler     =     standardErrorHandler          &amp;                                      
+                &amp;           {conditions}                                         &amp;
+                &amp;          )
+                </call>
+                <argument name="jacobian"                value="standardODEsJacobian"      condition="jacobianSolver"           />
+                <argument name="integrator"              value="integrator_"               condition="jacobianSolver"           />
+                <argument name="integratorErrorTolerant" value=".true."                    condition="jacobianSolver"           />
+                <argument name="integrands"              value="standardIntegrands"        condition="jacobianSolver"           />
+                <argument name="errorAnalyzer"           value="standardStepErrorAnalyzer" condition="self%profileOdeEvolver"   />
+                <argument name="isNonNegative"           value="self%isNonNegative"        condition="self%enforceNonNegativity"/>
+                </conditionalCall>
+                !!]
+                solverInitialized=.true.
              end if
-          end if
-          if (solvedNumerically) then
-             ! Extract values.
-             call node%deserializeValues(self%propertyValuesActive  ,self%propertyTypeODE       )
-             call node%deserializeValues(self%propertyValuesInactive,self%propertyTypeIntegrator)
-             call self%nodeOperator_%differentialEvolutionSolveAnalytics(node,timeEnd)
-             ! Flag interruption if one occurred, and ensure that the time is matched precisely to the end or interrupt time (can differ
-             ! due to finite precision of the ODE integrator).
-             if (self%timeInterruptFirst /= 0.0d0) then
-                interrupted=.true.
-                functionInterrupt => self%functionInterruptFirst
-                call basic%timeSet    (self%timeInterruptFirst)
-                call node %timeStepSet(     -1.0d0            )
+             if (self%reuseODEStepSize) then
+                stepSize      =node%timeStep()/2.0d0**self%trialCount
              else
-                interrupted=.false.
-                call basic%timeSet    (     timeEnd           )
-                call node %timeStepSet(     stepSize          )
+                stepSize      =-1.0d0
+             end if
+             self%timePrevious=-1.0d0
+             timeStart        =timeStartSaved
+             if (jacobianSolver) then
+                self%odeTolerancesInactiveRelative(1:self%propertyCountInactive)=self%odeToleranceRelative
+                self%odeTolerancesInactiveAbsolute(1:self%propertyCountInactive)=self%odeToleranceAbsolute*self%propertyScalesInactive(1:self%propertyCountInactive)
+                call integrator_%tolerancesSet(self%odeTolerancesInactiveAbsolute(1:self%propertyCountInactive),self%odeTolerancesInactiveRelative(1:self%propertyCountInactive))
+                call solver     %solve(timeStart,timeEnd,self%propertyValuesActive,status=odeStatus,xStep=stepSize,z=self%propertyValuesInactive(1:self%propertyCountInactive))
+             else
+                call solver     %solve(timeStart,timeEnd,self%propertyValuesActive,status=odeStatus,xStep=stepSize                                                            )
+             end if
+             ! If non-negativity is being enforced for some properties, check for failures in the step and, if these are due to such a property
+             ! being negative, zero that property and ignore the failure. This is necessary as it may be that a non-negative property has
+             ! non-zero derivative as it approaches zero, such that even an arbitrarily small step size still results in it becoming negative.                
+             if     (                                                                    &
+                  &   self%enforceNonNegativity                                          &
+                  &  .and.                                                               &
+                  &   .not.                                                              &
+                  &    (                                                                 &
+                  &      odeStatus == errorStatusSuccess                                 &
+                  &     .or.                                                             &
+                  &      odeStatus == odeSolverInterrupt                                 &
+                  &    )                                                                 &
+                  &  .and.                                                               &
+                  &   any(                                                               &
+                  &        self%propertyValuesActive(1:self%propertyCountActive) < 0.0d0 &
+                  &       .and.                                                          &
+                  &        self%isNonNegative       (1:self%propertyCountActive)         &
+                  &      )                                                               &
+                  & ) then
+                where  (                                                               &
+                     &   self%propertyValuesActive(1:self%propertyCountActive) < 0.0d0 &
+                     &  .and.                                                          &
+                     &   self%isNonNegative       (1:self%propertyCountActive)         &
+                     & )
+                   self%propertyValuesActive(1:self%propertyCountActive)=0.0d0
+                end where
+                ! Ignore the returned step size in this case.
+                stepSize =node%timeStep()/2.0d0**self%trialCount
+                ! Reset status to success.
+                odeStatus=errorStatusSuccess
+             end if
+             ! Check for failure.
+             if (.not.(odeStatus == errorStatusSuccess .or. odeStatus == odeSolverInterrupt)) then
+                ! Increment number of trials.
+                self%trialCount=self%trialCount+1
+                ! Restore state of the node.
+                self%propertyValuesActive  (1:self%propertyCountActive  )=self%propertyValuesActiveSaved  (1:self%propertyCountActive  )
+                self%propertyValuesInactive(1:self%propertyCountInactive)=self%propertyValuesInactiveSaved(1:self%propertyCountInactive)
+             end if
+             ! Check for exceeding wall time.
+             if (self%systemClockMaximum > 0_kind_int8) then
+                call System_Clock(systemClockCount)
+                if (systemClockCount > self%systemClockMaximum) then
+                   if (present(status)) then
+                      call displayMessage('maximum wall time exceeded'                          )
+                      status=errorStatusXCPU
+                      return
+                   else
+                      call Error_Report  ('maximum wall time exceeded'//{introspection:location})
+                   end if
+                end if
+             end if
+          end do
+          if (.not.(odeStatus == errorStatusSuccess .or. odeStatus == odeSolverInterrupt)) then
+             if (jacobianSolver) then
+                ! Restore state of the node, switch to using a non-Jacobian solver, and indicate that the step was not solved numerically.
+                solvedNumerically=.false.
+                jacobianSolver   =.false.
+                solverInitialized=.false.
+                self%propertyValuesActive  (1:self%propertyCountActive  )=self%propertyValuesActiveSaved  (1:self%propertyCountActive  )
+                self%propertyValuesInactive(1:self%propertyCountInactive)=self%propertyValuesInactiveSaved(1:self%propertyCountInactive)
+             else if (present(status)) then
+                call displayMessage('ODE integration failed '//{introspection:location})
+                status=errorStatusUnderflow
+                return
+             else
+                call Error_Report  ('ODE integration failed '//{introspection:location})
              end if
           end if
-       end do
-    end if
+       end if
+       if (solvedNumerically) then
+          ! Extract values.
+          call node%deserializeValues(self%propertyValuesActive  ,self%propertyTypeODE       )
+          call node%deserializeValues(self%propertyValuesInactive,self%propertyTypeIntegrator)
+          call self%nodeOperator_%differentialEvolutionSolveAnalytics(node,timeEnd)
+          ! Flag interruption if one occurred, and ensure that the time is matched precisely to the end or interrupt time (can differ
+          ! due to finite precision of the ODE integrator).
+          if (self%timeInterruptFirst /= 0.0d0) then
+             interrupted=.true.
+             functionInterrupt => self%functionInterruptFirst
+             call basic%timeSet    (self%timeInterruptFirst)
+             call node %timeStepSet(     -1.0d0            )
+          else
+             interrupted=.false.
+             call basic%timeSet    (     timeEnd           )
+             call node %timeStepSet(     stepSize          )
+          end if
+       end if
+    end do
     ! Call routines to perform any post-evolution tasks.
     if (associated(node)) then
        call treeLock              %set                      (    )

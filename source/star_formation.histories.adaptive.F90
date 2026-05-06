@@ -75,7 +75,7 @@
      private
      class           (outputTimesClass), pointer                   :: outputTimes_          => null()
      double precision                                              :: timeStepMinimum                , metallicityMaximum, &
-          &                                                           metallicityMinimum
+          &                                                           metallicityMinimum             , massScaleAbsolute
      integer         (c_size_t        )                            :: countTimeStepsMaximum          , countMetallicities
      double precision                  , allocatable, dimension(:) :: metallicityTable
      type            (timeIntervals   ), allocatable, dimension(:) :: intervals
@@ -115,7 +115,7 @@ contains
     class           (outputTimesClass            ), pointer                     :: outputTimes_
     double precision                              , allocatable  , dimension(:) :: metallicityBoundaries
     double precision                                                            :: timeStepMinimum      , metallicityMinimum   , &
-         &                                                                         metallicityMaximum
+         &                                                                         metallicityMaximum   , massScaleAbsolute
     integer         (c_size_t)                                                  :: countMetallicities   , countTimeStepsMaximum
 
     !![
@@ -129,6 +129,12 @@ contains
       <name>countTimeStepsMaximum</name>
       <defaultValue>10_c_size_t</defaultValue>
       <description>The maximum number of timesteps to track in any star formation history.</description>
+      <source>parameters</source>
+    </inputParameter>
+    <inputParameter>
+      <name>massScaleAbsolute</name>
+      <defaultValue>1.0d0</defaultValue>
+      <description>The absolute tolerance scale (for the mass in each bin of star formation history) to use during ODE solution.</description>
       <source>parameters</source>
     </inputParameter>
     !!]
@@ -171,7 +177,7 @@ contains
     !![
     <objectBuilder class="outputTimes" name="outputTimes_" source="parameters"/>
     <conditionalCall>
-     <call>self=starFormationHistoryAdaptive(outputTimes_,timeStepMinimum,countTimeStepsMaximum{conditions})</call>
+     <call>self=starFormationHistoryAdaptive(outputTimes_,timeStepMinimum,countTimeStepsMaximum,massScaleAbsolute{conditions})</call>
      <argument name="metallicityBoundaries" value="metallicityBoundaries" condition="     parameters%isPresent('metallicityBoundaries')"/>
      <argument name="countMetallicities"    value="countMetallicities"    condition=".not.parameters%isPresent('metallicityBoundaries')"/>
      <argument name="metallicityMinimum"    value="metallicityMinimum"    condition=".not.parameters%isPresent('metallicityBoundaries')"/>
@@ -183,7 +189,7 @@ contains
     return
   end function adaptiveConstructorParameters
 
-  function adaptiveConstructorInternal(outputTimes_,timeStepMinimum,countTimeStepsMaximum,metallicityBoundaries,countMetallicities,metallicityMinimum,metallicityMaximum) result(self)
+  function adaptiveConstructorInternal(outputTimes_,timeStepMinimum,countTimeStepsMaximum,massScaleAbsolute,metallicityBoundaries,countMetallicities,metallicityMinimum,metallicityMaximum) result(self)
     !!{
     Internal constructor for the \refClass{starFormationHistoryAdaptive} star formation history class.
     !!}
@@ -199,7 +205,7 @@ contains
     type            (starFormationHistoryAdaptive)                                        :: self
     double precision                              , intent(in   ), dimension(:), optional :: metallicityBoundaries
     double precision                              , intent(in   )              , optional :: metallicityMinimum   , metallicityMaximum
-    double precision                              , intent(in   )                         :: timeStepMinimum
+    double precision                              , intent(in   )                         :: timeStepMinimum      , massScaleAbsolute
     integer         (c_size_t                    ), intent(in   )                         :: countTimeStepsMaximum
     integer         (c_size_t                    ), intent(in   )              , optional :: countMetallicities
     class           (outputTimesClass            ), intent(in   ), target                 :: outputTimes_
@@ -216,7 +222,7 @@ contains
     type            (lockDescriptor              )                                        :: fileLock
     character       (len=16                      )                                        :: name
     !![
-    <constructorAssign variables="timeStepMinimum, countTimeStepsMaximum, metallicityMinimum, metallicityMaximum, countMetallicities, *outputTimes_"/>
+    <constructorAssign variables="timeStepMinimum, countTimeStepsMaximum, metallicityMinimum, metallicityMaximum, countMetallicities, massScaleAbsolute, *outputTimes_"/>
     !!]
 
     ! Validate metallicity argument and construct the table of metallicities.
@@ -258,9 +264,9 @@ contains
     fileName=inputPath(pathTypeDataDynamic)//"starFormation/"//self%objectType()//"_"//self%hashedDescriptor(includeSourceDigest=.true.)//".hdf5"
     allocate(self%intervals(self%outputTimes_%count()))
     if (File_Exists(fileName)) then
-       call File_Lock(char(fileName),fileLock,lockIsShared=.true.)
+       call File_Lock(fileName,fileLock,lockIsShared=.true.)
        !$ call hdf5Access%set()
-       file=hdf5Object(char(fileName))
+       file=hdf5Object(fileName,readOnly=.true.)
        do iOutput=1,self%outputTimes_%count()
           write (name,'(a,i4.4)') 'times'   ,iOutput
           call file%readDataset(name,self%intervals(iOutput)%time    )
@@ -481,7 +487,8 @@ contains
     integer(c_size_t                    )                        :: iStart              , iEnd, &
          &                                                          i
     type    (history                    )                        :: newHistory
-    !$GLC attributes unused :: node                                                                                                                                                                                     
+    !$GLC attributes unused :: node
+
     ! If another output exists map the existing star formation history to the time bins of the next output.
     if (historyStarFormation%exists() .and. indexOutput < size(self%intervals)) then
        call newHistory%create(int(self%countMetallicities+1),size(self%intervals(indexOutput+1)%time))
@@ -512,11 +519,10 @@ contains
     !!}
     implicit none
     class           (starFormationHistoryAdaptive), intent(inout)               :: self
-    double precision                              , intent(in   )               :: massStellar               , massGas
+    double precision                              , intent(in   )               :: massStellar         , massGas
     type            (abundances                  ), intent(in   )               :: abundancesStellar
     type            (history                     ), intent(inout)               :: historyStarFormation
     type            (treeNode                    ), intent(inout)               :: node
-    double precision                              , parameter                   :: massMinimum         =1.0d0
     double precision                              , allocatable  , dimension(:) :: timeSteps
     integer         (c_size_t                    )                              :: iMetallicity
     !$GLC attributes unused :: abundancesStellar, node
@@ -524,7 +530,7 @@ contains
     if (.not.historyStarFormation%exists()) return
     call historyStarFormation%timeSteps(timeSteps)
     forall(iMetallicity=1:self%countMetallicities+1)
-       historyStarFormation%data(:,iMetallicity)=+max(massStellar+massGas,massMinimum)                            &
+       historyStarFormation%data(:,iMetallicity)=+max(massStellar+massGas,self%massScaleAbsolute)                 &
             &                                    *                     timeSteps                                  &
             &                                    /historyStarFormation%time     (size(historyStarFormation%time))
     end forall

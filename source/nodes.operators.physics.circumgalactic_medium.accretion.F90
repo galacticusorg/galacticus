@@ -274,7 +274,7 @@ contains
     !!}
     use :: Abundances_Structure         , only : abundances        , zeroAbundances        , operator(*)
     use :: Chemical_Abundances_Structure, only : chemicalAbundances, zeroChemicalAbundances, operator(*)      , operator(>)
-    use :: Accretion_Halos              , only : accretionModeHot  , accretionModeTotal
+    use :: Accretion_Halos              , only : accretionModeHot  , accretionModeTotal    , accretionModeCold
     use :: Galacticus_Nodes             , only : nodeComponentBasic, nodeComponentHotHalo  , nodeComponentSpin
     implicit none
     class           (nodeOperatorCGMAccretion), intent(inout) :: self
@@ -291,7 +291,8 @@ contains
     logical                                                   :: massTotalNonZero
     double precision                                          :: massAccreted           , massUnaccreted           , &
          &                                                       fractionAccreted       , massReaccreted           , &
-         &                                                       angularMomentumAccreted, massAccretedHot
+         &                                                       angularMomentumAccreted, massAccretedHot          , &
+         &                                                       massAccretedCold
 
     ! Get the hot halo component.
     hotHalo => node%hotHalo()
@@ -315,12 +316,13 @@ contains
        end if
        ! Since the parent node is undergoing mass growth through this merger we potentially return some of the unaccreted
        ! gas to the hot phase.
-       !! First, find the masses of hot and failed mass the node would have if it formed instantaneously.
+       !! First, find the masses of hot, cold and failed mass the node would have if it formed instantaneously.
        massAccretedHot =self%accretionHalo_%      accretedMass(nodeParent,accretionModeHot  )
+       massAccretedCold=self%accretionHalo_%      accretedMass(nodeParent,accretionModeCold )
        massAccreted    =self%accretionHalo_%      accretedMass(nodeParent,accretionModeTotal)
        massUnaccreted  =self%accretionHalo_%failedAccretedMass(nodeParent,accretionModeTotal)
        massTotalNonZero=+massAccreted+massUnaccreted > 0.0d0
-       !! Find the fraction of mass that would be successfully accreted.
+       !! Find the fraction of hot mass that would be successfully accreted.
        if (massAccretedHot > 0.0d0) then
           if (.not.massTotalNonZero) call Error_Report('mass of hot-mode gas accreted is non-zero, but total mass is zero'//{introspection:location})
           fractionAccreted=+  massAccretedHot &
@@ -381,6 +383,49 @@ contains
                &                  /basicParent     %          mass()
           !! Reaccrete the chemicals.
           call hotHaloParent%chemicalsSet(hotHaloParent%chemicals()+massChemicalsReaccreted)
+       end if
+       !! Find the fraction of cold mass that would be successfully accreted.
+       if (massAccretedCold > 0.0d0) then
+          if (.not.massTotalNonZero) call Error_Report('mass of cold-mode gas accreted is non-zero, but total mass is zero'//{introspection:location})
+          fractionAccreted=+  massAccretedCold &
+               &           /(                  &
+               &             +massAccreted     &
+               &             +massUnaccreted   &
+               &            )
+          !! Find the change in the unaccreted mass.
+          massReaccreted=+hotHaloParent   %unaccretedMass() &
+               &         *fractionAccreted                  &
+               &         *basic           %          mass() &
+               &         /basicParent     %          mass()
+          !! Reaccrete the gas,
+          call hotHaloParent%unaccretedMassSet(hotHaloParent%unaccretedMass()-massReaccreted)
+          call hotHaloParent%      massColdSet(hotHaloParent%      massCold()+massReaccreted)
+          ! Compute the reaccreted metals.
+          if (hotHaloParent%unaccretedAbundancesIsSettable()) then
+             !! First, find the metal mass the node would have if it formed instantaneously.
+             massMetalsAccreted=self%accretionHalo_%accretedMassMetals(nodeParent,accretionModeCold)
+             !! Find the mass fraction of metals that would be successfully accreted.
+             fractionMetalsAccreted=+  massMetalsAccreted &
+                  &                 /(                    &
+                  &                   +massAccreted       &
+                  &                   +massUnaccreted     &
+                  &                  )
+             !! Find the change in the unaccreted mass.
+             massMetalsReaccreted=+hotHaloParent   %unaccretedMass() &
+                  &               *fractionMetalsAccreted            &
+                  &               *basic           %          mass() &
+                  &               /basicParent     %          mass()
+             !! Reaccrete the metals.
+             call hotHaloParent%unaccretedAbundancesSet(hotHaloParent%unaccretedAbundances()-massMetalsReaccreted)
+             call hotHaloParent%      abundancesColdSet(hotHaloParent%      abundancesCold()+massMetalsReaccreted)
+          end if
+          ! Compute the reaccreted angular momentum.
+          if (hotHaloParent%angularMomentumColdIsSettable()) then
+             angularMomentumAccreted=+            massReaccreted    &
+                  &                  *spinParent %angularMomentum() &
+                  &                  /basicParent%mass           ()
+             call hotHaloParent%angularMomentumColdSet(hotHaloParent%angularMomentumCold()+angularMomentumAccreted)
+          end if
        end if
     end select
     return

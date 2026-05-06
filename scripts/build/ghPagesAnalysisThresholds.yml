@@ -42,8 +42,8 @@ thresholds:
       threshold_warn: -2.7718
     subhaloRadialDistribution:
       current: -0.7801
-      threshold_fail: -0.9361
-      threshold_warn: -0.8581
+      threshold_fail: -2.0000
+      threshold_warn: -1.0000
     subhaloVelocityMaximumMean:
       current: -116.0329
       threshold_fail: -139.2395
@@ -77,8 +77,8 @@ thresholds:
   darkMatterOnlySubhalosCOZMICWDM4keVMilkyWayX1:
     subhaloMassFunction:
       current: 0.128
-      threshold_fail: 0.1024
-      threshold_warn: 0.1152
+      threshold_fail: 0.2500
+      threshold_warn: 0.2000
     subhaloRadialDistribution:
       current: -5.9938
       threshold_fail: -7.1925
@@ -150,8 +150,8 @@ thresholds:
       threshold_warn: -27.9341
     subhaloVelocityMaximumMean:
       current: -30.6134
-      threshold_fail: -36.7361
-      threshold_warn: -33.6748
+      threshold_fail: -60.000
+      threshold_warn: -50.000
   darkMatterOnlySubhalosCOZMICWDM6keVMilkyWayX1:
     subhaloMassFunction:
       current: 0.4438
@@ -211,8 +211,8 @@ thresholds:
       threshold_warn: -2.9972
     subhaloRadialDistribution:
       current: -3.0932
-      threshold_fail: -3.7118
-      threshold_warn: -3.4025
+      threshold_fail: -6.0000
+      threshold_warn: -5.0000
     subhaloVelocityMaximumMean:
       current: -44.5829
       threshold_fail: -53.4995
@@ -247,8 +247,8 @@ thresholds:
   darkMatterOnlySubhalos_decayingDarkMatter_lifetime40.0_velocityKick20.0:
     massCumulativeDistribution:
       current: 4.2937
-      threshold_fail: 3.435
-      threshold_warn: 3.8643
+      threshold_fail: 3.200
+      threshold_warn: 3.400
     radialCumulativeDistribution:
       current: 47.184
       threshold_fail: 37.7472
@@ -260,8 +260,8 @@ thresholds:
       threshold_warn: 2.9854
     radialCumulativeDistribution:
       current: 25.5298
-      threshold_fail: 20.4238
-      threshold_warn: 22.9768
+      threshold_fail: 12.0000
+      threshold_warn: 15.0000
   darkMatterOnlySubhalos_decayingDarkMatter_lifetime80.0_velocityKick40.0:
     massCumulativeDistribution:
       current: 38.2226
@@ -398,5 +398,5 @@ thresholds:
       threshold_warn: -64.5287
     localGroupStellarMassHaloMassRelation:
       current: -6.4615
-      threshold_fail: -7.7538
-      threshold_warn: -7.1077
+      threshold_fail: -16.0000
+      threshold_warn: -15.0000

@@ -64,7 +64,8 @@
      class           (geometryLightconeClass       ), pointer                   :: geometryLightcone_  => null()
      class           (cosmologyFunctionsClass      ), pointer                   :: cosmologyFunctions_ => null()
      double precision                                                           :: ageMinimum                   , ageMaximum        , &
-          &                                                                        metallicityMaximum           , metallicityMinimum
+          &                                                                        metallicityMaximum           , metallicityMinimum, &
+          &                                                                        massScaleAbsolute
      integer         (c_size_t                     )                            :: countAges                    , countMetallicities
      integer                                                                    :: timesCrossingID              , countRetain       , &
           &                                                                        createdInID
@@ -114,7 +115,7 @@ contains
     class           (cosmologyFunctionsClass      )               , pointer     :: cosmologyFunctions_
     double precision                               , dimension(:) , allocatable :: metallicityBoundaries
     double precision                                                            :: metallicityMinimum   , metallicityMaximum, &
-         &                                                                         ageMinimum
+         &                                                                         ageMinimum           , massScaleAbsolute
     integer         (c_size_t)                                                  :: countMetallicities   , countAges
 
     !![
@@ -130,6 +131,12 @@ contains
       <name>countAges</name>
       <defaultValue>10_c_size_t</defaultValue>
       <description>The maximum number of ages to track in any star formation history.</description>
+      <source>parameters</source>
+    </inputParameter>
+    <inputParameter>
+      <name>massScaleAbsolute</name>
+      <defaultValue>1.0d0</defaultValue>
+      <description>The absolute tolerance scale (for the mass in each bin of star formation history) to use during ODE solution.</description>
       <source>parameters</source>
     </inputParameter>
     !!]
@@ -171,7 +178,7 @@ contains
     end if
     !![
     <conditionalCall>
-     <call>self=starFormationHistoryFixedAges(cosmologyFunctions_,geometryLightcone_,ageMinimum,countAges{conditions})</call>
+     <call>self=starFormationHistoryFixedAges(cosmologyFunctions_,geometryLightcone_,ageMinimum,countAges,massScaleAbsolute{conditions})</call>
      <argument name="metallicityBoundaries" value="metallicityBoundaries" condition="     parameters%isPresent('metallicityBoundaries')"/>
      <argument name="countMetallicities"    value="countMetallicities"    condition=".not.parameters%isPresent('metallicityBoundaries')"/>
      <argument name="metallicityMinimum"    value="metallicityMinimum"    condition=".not.parameters%isPresent('metallicityBoundaries')"/>
@@ -184,7 +191,7 @@ contains
     return
   end function fixedAgesConstructorParameters
 
-  recursive function fixedAgesConstructorInternal(cosmologyFunctions_,geometryLightcone_,ageMinimum,countAges,metallicityBoundaries,countMetallicities,metallicityMinimum,metallicityMaximum) result(self)
+  recursive function fixedAgesConstructorInternal(cosmologyFunctions_,geometryLightcone_,ageMinimum,countAges,massScaleAbsolute,metallicityBoundaries,countMetallicities,metallicityMinimum,metallicityMaximum) result(self)
     !!{
     Internal constructor for the \refClass{starFormationHistoryFixedAges} star formation history class.
     !!}
@@ -195,14 +202,14 @@ contains
     type            (starFormationHistoryFixedAges)                                        :: self
     double precision                               , intent(in   ), dimension(:), optional :: metallicityBoundaries
     double precision                               , intent(in   )              , optional :: metallicityMinimum   , metallicityMaximum
-    double precision                               , intent(in   )                         :: ageMinimum
+    double precision                               , intent(in   )                         :: ageMinimum           , massScaleAbsolute
     integer         (c_size_t                     ), intent(in   )                         :: countAges
     integer         (c_size_t                     ), intent(in   )              , optional :: countMetallicities
     class           (cosmologyFunctionsClass      ), intent(in   ), target                 :: cosmologyFunctions_
     class           (geometryLightconeClass       ), intent(in   ), target                 :: geometryLightcone_
     
     !![
-    <constructorAssign variables="ageMinimum, countAges, metallicityMinimum, metallicityMaximum, countMetallicities, *cosmologyFunctions_, *geometryLightcone_"/>
+    <constructorAssign variables="ageMinimum, countAges, metallicityMinimum, metallicityMaximum, countMetallicities, massScaleAbsolute, *cosmologyFunctions_, *geometryLightcone_"/>
     !!]
 
     ! Validate metallicity argument and construct the table of metallicities.
@@ -625,14 +632,13 @@ contains
     use :: Galacticus_Nodes, only : nodeComponentBasic
     implicit none
     class           (starFormationHistoryFixedAges), intent(inout)               :: self
-    double precision                               , intent(in   )               :: massStellar               , massGas
+    double precision                               , intent(in   )               :: massStellar         , massGas
     type            (abundances                   ), intent(in   )               :: abundancesStellar
     type            (history                      ), intent(inout)               :: historyStarFormation
     type            (treeNode                     ), intent(inout)               :: node
     class           (nodeComponentBasic           ), pointer                     :: basic
-    double precision                               , parameter                   :: massMinimum         =1.0d0
-    double precision                               , allocatable  , dimension(:) :: timeSteps                 , timesCrossing
-    integer         (c_size_t                     )                              :: i                         , j
+    double precision                               , allocatable  , dimension(:) :: timeSteps           , timesCrossing
+    integer         (c_size_t                     )                              :: i                   , j
     !$GLC attributes unused :: abundancesStellar
 
     ! Call the recursive copy if needed.
@@ -651,8 +657,8 @@ contains
           do j=1,self%countMetallicities+1
              ! The scale is set to a representative stellar mass scale multiplied by the fraction of the total history time in
              ! each time bin.
-             historyStarFormation%data(:,(i-1)*(self%countMetallicities+1)+j)=+max(massStellar+massGas,massMinimum) &
-                  &                                                           *timeSteps                            &
+             historyStarFormation%data(:,(i-1)*(self%countMetallicities+1)+j)=+max(massStellar+massGas,self%massScaleAbsolute) &
+                  &                                                           *timeSteps                                       &
                   &                                                           /timesCrossing(i)
           end do
        end do

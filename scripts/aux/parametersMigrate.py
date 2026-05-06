@@ -1120,6 +1120,127 @@ def satellite_bound_mass_initializor(input_doc, parameters, is_grid):
         parent.remove(init_type)
 
 
+def disk_very_simple_analytic_solver(input_doc, parameters, is_grid):
+    """Migrate the legacy 'verySimple' disk analytic solver from the disk component to a nodeOperator."""
+    disks = parameters.xpath(
+        ".//componentDisk[@value='verySimple' or @value='verySimpleSize']"
+    )
+    has_operator_already = (
+        len(parameters.xpath(".//nodeOperator[@value='diskVerySimpleAnalyticSolver']")) > 0
+    )
+    if len(disks) == 0 and not has_operator_already:
+        return
+    print("   translate special './/componentDisk[@value='verySimple' or @value='verySimpleSize']'")
+    use_analytic_solver = False
+    prune_mass_gas = None
+    prune_mass_stars = None
+    track_abundances = None
+    for disk in disks:
+        # Capture and remove the four moving parameters and drop the obsolete trackLuminosities.
+        for child_name, capture in (
+            ("useAnalyticSolver", "useAnalyticSolver"),
+            ("pruneMassGas",      "pruneMassGas"     ),
+            ("pruneMassStars",    "pruneMassStars"   ),
+            ("trackAbundances",   "trackAbundances"  ),
+            ("trackLuminosities", None               ),
+        ):
+            for child in disk.findall(child_name):
+                value = child.get("value")
+                if capture == "useAnalyticSolver" and value is not None and value.lower() == "true":
+                    use_analytic_solver = True
+                elif capture == "pruneMassGas":
+                    prune_mass_gas = value
+                elif capture == "pruneMassStars":
+                    prune_mass_stars = value
+                elif capture == "trackAbundances":
+                    track_abundances = value
+                disk.remove(child)
+    if not use_analytic_solver and not has_operator_already:
+        return
+    if use_analytic_solver and not has_operator_already:
+        # Insert a new nodeOperator carrying the captured parameters.
+        node_operators = parameters.xpath(".//nodeOperator[@value='multi']")
+        if len(node_operators) == 0:
+            sys.exit(
+                "can not find any `nodeOperator[@value='multi']` into which to insert"
+                " a `diskVerySimpleAnalyticSolver` operator"
+            )
+        if len(node_operators) > 1:
+            sys.exit(
+                "found multiple `nodeOperator[@value='multi']` nodes - unknown into which to"
+                " insert a `diskVerySimpleAnalyticSolver` operator"
+            )
+        _insert_disk_very_simple_analytic_solver_operator(
+            node_operators[0], is_grid, prune_mass_gas, prune_mass_stars, track_abundances
+        )
+    _ensure_satellite_destruction_timestep(parameters, is_grid)
+
+
+def _insert_disk_very_simple_analytic_solver_operator(
+    multi_node, is_grid, prune_mass_gas, prune_mass_stars, track_abundances
+):
+    operator_node = etree.Element("nodeOperator")
+    operator_node.set("value", "diskVerySimpleAnalyticSolver")
+    if is_grid:
+        operator_node.set("iterable", "no")
+    for tag, value in (
+        ("pruneMassGas",    prune_mass_gas    ),
+        ("pruneMassStars",  prune_mass_stars  ),
+        ("trackAbundances", track_abundances  ),
+    ):
+        if value is None:
+            continue
+        child = etree.Element(tag)
+        child.set("value", value)
+        operator_node.append(child)
+    multi_node.append(operator_node)
+
+
+def _ensure_satellite_destruction_timestep(parameters, is_grid):
+    """Ensure a `satelliteDestruction` mergerTreeEvolveTimestep is present so pruned satellites
+    (those flagged via `destructionTime`) are cleaned up by the standard mechanism."""
+    if len(parameters.xpath(".//mergerTreeEvolveTimestep[@value='satelliteDestruction']")) > 0:
+        return
+    timestep_top_level = parameters.findall("mergerTreeEvolveTimestep")
+    if len(timestep_top_level) == 0:
+        # No top-level entry: insert a `multi` containing the default `standard` entry plus our
+        # new `satelliteDestruction` entry.
+        multi_node = etree.Element("mergerTreeEvolveTimestep")
+        multi_node.set("value", "multi")
+        standard_node = etree.Element("mergerTreeEvolveTimestep")
+        standard_node.set("value", "standard")
+        if is_grid:
+            standard_node.set("iterable", "no")
+        destruction_node = etree.Element("mergerTreeEvolveTimestep")
+        destruction_node.set("value", "satelliteDestruction")
+        if is_grid:
+            destruction_node.set("iterable", "no")
+        multi_node.append(standard_node)
+        multi_node.append(destruction_node)
+        parameters.append(multi_node)
+    else:
+        timestep = timestep_top_level[0]
+        destruction_node = etree.Element("mergerTreeEvolveTimestep")
+        destruction_node.set("value", "satelliteDestruction")
+        if is_grid:
+            destruction_node.set("iterable", "no")
+        if timestep.get("value") == "multi":
+            # Append into the existing `multi` entry.
+            timestep.append(destruction_node)
+        else:
+            # Wrap the existing entry in a new `multi` and append our new destruction entry.
+            multi_node = etree.Element("mergerTreeEvolveTimestep")
+            multi_node.set("value", "multi")
+            idx = list(parameters).index(timestep)
+            parameters.remove(timestep)
+            # The wrapped entry must look like an inner `iterable="no"` child for grids.
+            if is_grid and timestep.get("iterable") is None:
+                timestep.set("iterable", "no")
+            multi_node.append(timestep)
+            multi_node.append(destruction_node)
+            parameters.insert(idx, multi_node)
+
+
 # ---------------------------------------------------------------------------
 # Dispatch table for special migration functions
 # ---------------------------------------------------------------------------
@@ -1138,6 +1259,7 @@ SPECIAL_FUNCTIONS = {
     "hot_halo_standard_inflow_outflow": hot_halo_standard_inflow_outflow,
     "hot_halo_standard_ram_pressure_stripping": hot_halo_standard_ram_pressure_stripping,
     "satellite_bound_mass_initializor": satellite_bound_mass_initializor,
+    "disk_very_simple_analytic_solver": disk_very_simple_analytic_solver,
 }
 
 

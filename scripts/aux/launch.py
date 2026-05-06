@@ -14,6 +14,7 @@ import re
 import copy
 import hashlib
 import json
+import socket
 import subprocess
 import threading
 import time
@@ -133,6 +134,46 @@ def _load_config() -> dict:
         if os.path.isfile(path):
             return xml_to_dict(ET.parse(path).getroot())
     return {}
+
+
+def resolve_host_section(section: str, config: dict | None = None,
+                         hostname: str | None = None) -> dict:
+    """Return the host-specific subsection of ``config[section]``.
+
+    Mirrors Galacticus::Options::Config(section). Each ``<host name="...">``
+    entry's ``name`` is matched as a regex (``re.fullmatch``) against the current
+    hostname, with a ``name="default"`` fallback. Returns ``{}`` if no entry
+    matches and no default is provided.
+    """
+    if config is None:
+        config = _load_config()
+    if hostname is None:
+        hostname = os.environ.get("HOSTNAME") or socket.gethostname()
+    section_value = config.get(section) if isinstance(config, dict) else None
+    if not isinstance(section_value, dict):
+        return {}
+    host_entries = section_value.get("host")
+    if host_entries is None:
+        return {}
+    if not isinstance(host_entries, list):
+        host_entries = [host_entries]
+    default_entry: dict | None = None
+    for entry in host_entries:
+        if not isinstance(entry, dict):
+            continue
+        name = entry.get("name")
+        if name is None:
+            continue
+        if name == "default":
+            default_entry = entry
+            continue
+        try:
+            matched = re.fullmatch(name, hostname) is not None
+        except re.error:
+            matched = name == hostname
+        if matched:
+            return entry
+    return default_entry if default_entry is not None else {}
 
 
 # ---------------------------------------------------------------------------
@@ -345,6 +386,9 @@ def _post_cleanup(job: dict, launch_script: dict):
 
 def _local_validate(launch_script: dict):
     local = launch_script.setdefault("local", {})
+    for key, val in resolve_host_section("local", launch_script.get("config")).items():
+        if key != "name":
+            local.setdefault(key, val)
     local.setdefault("threadCount", 1)
     local.setdefault("ompThreads",  "maximum")
     local.setdefault("executable",  "Galacticus.exe")
@@ -414,6 +458,9 @@ def _local_run_models(i_thread: int, thread_count: int,
 
 def _pbs_validate(launch_script: dict):
     pbs = launch_script.setdefault("pbs", {})
+    for key, val in resolve_host_section("pbs", launch_script.get("config")).items():
+        if key != "name":
+            pbs.setdefault(key, val)
     for key, val in {
         "mpiLaunch":               "yes",
         "mpiRun":                  ("mpirun --map-by node --mca mpi_preconnect_mpi 1"
@@ -567,6 +614,9 @@ def _qsub(script: str) -> str:
 
 def _slurm_validate(launch_script: dict):
     slurm = launch_script.setdefault("slurm", {})
+    for key, val in resolve_host_section("slurm", launch_script.get("config")).items():
+        if key != "name":
+            slurm.setdefault(key, val)
     for key, val in {
         "mpiLaunch":               "yes",
         "mpiRun":                  "mpirun --bynode",
@@ -644,6 +694,9 @@ def _write_slurm_script(path: str, job: dict, launch_script: dict, slurm: dict):
         f.write(f"#SBATCH -o {pwd}{job['directory']}/galacticus.log\n")
         if "account" in slurm:
             f.write(f"#SBATCH -A {slurm['account']}\n")
+        partition = slurm.get("partition") or slurm.get("queue")
+        if partition:
+            f.write(f"#SBATCH --partition={partition}\n")
         for env in _as_list(slurm.get("environment")):
             f.write(f"export {env}\n")
         for mod in _as_list(slurm.get("module")):
