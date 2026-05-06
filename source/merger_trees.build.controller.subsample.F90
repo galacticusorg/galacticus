@@ -27,7 +27,7 @@ Implements a merger tree build controller class which performs subsampling of br
     <name>destroyStubs</name>
     <description>Enumeration of options controlling when to destroy stub branches.</description>
     <encodeFunction>yes</encodeFunction>
-    <visibility>private</visibility>
+    <visibility>public</visibility>
     <entry label="always"          />
     <entry label="never"           />
     <entry label="sideBranchesOnly"/>
