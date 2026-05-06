@@ -253,6 +253,14 @@ def _unsupported_arg(arg, lib_function_classes, *,
     intrinsic = arg.get('intrinsic')
     if intrinsic in ('complex', 'double complex'):
         return f"{intrinsic}({arg.get('type','')})"
+    if intrinsic == 'procedure':
+        # Procedure-pointer args (e.g. `procedure(integrand) :: f`) have
+        # no ctypes counterpart in this pipeline — assign_c_types has no
+        # branch for them, so without an early reject the arg falls
+        # through with empty ctype/fort_type and the bind(c) wrapper
+        # emits a broken declaration that mismatches the inner method
+        # signature.  Skip the surrounding constructor or method instead.
+        return f"procedure({arg.get('type','')}) — procedure-pointer args are not supported"
     if intrinsic == 'class':
         type_spec = (arg.get('type') or '').strip()
         if type_spec == '*':
