@@ -49,14 +49,25 @@ __all__ = [
 # Add to this table when a new shared type starts appearing as a method or
 # constructor argument in libraryClasses.xml.
 _SHARED_TYPE_MODULES = {
-    'treeNode'                   : 'Galacticus_Nodes',
-    'mergerTree'                 : 'Galacticus_Nodes',
-    'multiCounter'               : 'Multi_Counters',
-    'hdf5Object'                 : 'IO_HDF5',
-    'abundances'                 : 'Abundances_Structure',
-    'chemicalAbundances'         : 'Chemical_Abundances_Structure',
-    'enumerationFrameType'       : 'Stellar_Luminosities_Structure',
-    'enumerationDestroyStubsType': 'Merger_Tree_Build_Controllers',
+    'treeNode'                            : 'Galacticus_Nodes',
+    'mergerTree'                          : 'Galacticus_Nodes',
+    'universe'                            : 'Galacticus_Nodes',
+    'multiCounter'                        : 'Multi_Counters',
+    'history'                             : 'Histories',
+    'keplerOrbit'                         : 'Kepler_Orbits',
+    'hdf5Object'                          : 'IO_HDF5',
+    'abundances'                          : 'Abundances_Structure',
+    'chemicalAbundances'                  : 'Chemical_Abundances_Structure',
+    'multiExtractorList'                  : 'Node_Property_Extractors',
+    'enumerationFrameType'                : 'Stellar_Luminosities_Structure',
+    'enumerationDestroyStubsType'         : 'Merger_Tree_Build_Controllers',
+    'enumerationComponentTypeType'        : 'Galactic_Structure_Options',
+    'enumerationCoolingFromType'          : 'Cooling_Options',
+    'enumerationIntervalTypeType'         : 'Nodes_Operators',
+    'enumerationParticulateKernelType'    : 'Merger_Tree_Operators',
+    'enumerationRandomSampleCountTypeType': 'Tasks',
+    'enumerationRelativeToType'           : 'Nodes_Operators',
+    'enumerationSelectionType'            : 'Merger_Tree_Operators',
 }
 
 
