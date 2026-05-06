@@ -307,11 +307,17 @@ with safe_section("nodeOperatorPositionInterpolated"):
 # itself needs nine atomic-physics functionClass dependencies that
 # we don't build here — confirming the wrapper symbol exists is the
 # meaningful end-to-end check that the emission succeeded.
+#
+# `computationalDomain` has three impls but two (Cartesian3D,
+# cylindrical) take `dimension(3,2)` / `dimension(2,2)` boundaries
+# arrays which the pipeline still doesn't support; only the
+# spherical impl (with `dimension(2)`) registers, and that's the one
+# we check for.
 with safe_section("radiativeTransferMatter (character len=N array path)"):
     check_eq("radiativeTransferMatterAtomic exposed",
              hasattr(galacticus, 'radiativeTransferMatterAtomic'), True)
-    check_eq("computationalDomainCartesian3D exposed",
-             hasattr(galacticus, 'computationalDomainCartesian3D'), True)
+    check_eq("computationalDomainSpherical exposed",
+             hasattr(galacticus, 'computationalDomainSpherical'),  True)
 
 # Final summary and exit code.
 print(f"--- {_failures} failure(s) ---")
