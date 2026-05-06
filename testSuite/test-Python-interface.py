@@ -319,6 +319,27 @@ with safe_section("radiativeTransferMatter (character len=N array path)"):
     check_eq("computationalDomainSpherical exposed",
              hasattr(galacticus, 'computationalDomainSpherical'),  True)
 
+# Multivariate normal — exercises the 2D deferred-shape numeric array
+# constructor argument path: the inner constructor takes
+# `double precision, dimension(:,:) :: covariance`, which the wrapper
+# now flattens at the bind(c) boundary, ships as
+# (data_pointer, shape[0], shape[1]), and reshapes inside (Fortran
+# column-major; the Python side hands ctypes an `np.asfortranarray`
+# buffer so the layouts match without a transpose).  Without 2D
+# support, this whole class would have failed constructor-arg
+# validation.
+with safe_section("distributionFunctionMultivariateNormal"):
+    mvn = galacticus.distributionFunctionMultivariateNormal(
+        mean=[0.0, 0.0],
+        covariance=[[1.0, 0.0], [0.0, 1.0]],   # 2D identity; passed as nested list
+        errorAbsolute     =1.0e-6,
+        errorRelative     =1.0e-6,
+        countTrialsMaximum=100,
+        randomNumberGenerator_=rng,
+    )
+    check_eq("constructed type",
+             type(mvn).__name__, 'distributionFunctionMultivariateNormal')
+
 # Final summary and exit code.
 print(f"--- {_failures} failure(s) ---")
 sys.exit(1 if _failures else 0)

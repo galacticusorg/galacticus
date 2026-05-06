@@ -212,5 +212,6 @@
     <stellarPopulationProperties/>
     <radiativeTransferMatter/>
     <computationalDomain/>
+    <distributionFunctionMultivariate/>
   </classes>
 </library>

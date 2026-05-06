@@ -85,6 +85,28 @@ _DIM_FIXED_RX = re.compile(r'^dimension\s*\(\s*(\d+)\s*\)$')
 _CHAR_LEN_RX = re.compile(r'^len\s*=\s*(\d+)$')
 
 
+def _make_count_companion(name):
+    """Build a hidden c_size_t count companion ArgSpec for a deferred-shape
+    array argument.  The companion appears in the bind(c) signature and
+    is filled in by the Python wrapper from the input array's `.size`
+    or `.shape[i]`; it's never visible in the user-facing Python signature
+    nor passed to the inner Galacticus call.
+    """
+    return ArgSpec(
+        name                  = name,
+        intrinsic             = 'integer',
+        type_spec             = 'c_size_t',
+        attributes            = ['intent(in)'],
+        ctype                 = 'c_size_t',
+        fort_type             = 'integer(c_size_t)',
+        fort_is_present       = True,
+        py_is_present         = False,
+        galacticus_is_present = False,
+        is_optional           = False,
+        is_function_class     = False,
+    )
+
+
 def assign_c_types(argument_list, lib_function_classes):
     """Assign appropriate C types for each argument.
 
@@ -216,20 +238,23 @@ def assign_c_types(argument_list, lib_function_classes):
             if 'dimension(:)' in arg.attributes:
                 arg.is_array   = True
                 arg.array_size = None
-                count_arg = ArgSpec(
-                    name                  = arg.name + '_count',
-                    intrinsic             = 'integer',
-                    type_spec             = 'c_size_t',
-                    attributes            = ['intent(in)'],
-                    ctype                 = 'c_size_t',
-                    fort_type             = 'integer(c_size_t)',
-                    fort_is_present       = True,
-                    py_is_present         = False,
-                    galacticus_is_present = False,
-                    is_optional           = False,
-                    is_function_class     = False,
-                )
+                count_arg = _make_count_companion(arg.name + '_count')
                 new_list.insert(0, count_arg)
+            elif is_numeric_array_candidate and 'dimension(:,:)' in arg.attributes:
+                # 2D deferred-shape numeric array: two count companions,
+                # one per axis.  The wrapper passes a flat C buffer plus
+                # the two dimensions; inside, we allocate a
+                # `dimension(:,:)` local of the right shape and reshape
+                # the flat input into it (column-major Fortran order, so
+                # the Python boundary uses np.asfortranarray).
+                arg.is_array   = True
+                arg.array_size = None
+                arg.array_rank = 2
+                count_arg_1 = _make_count_companion(arg.name + '_count_1')
+                count_arg_2 = _make_count_companion(arg.name + '_count_2')
+                # Insert in reverse so final order is arg, count_1, count_2.
+                new_list.insert(0, count_arg_2)
+                new_list.insert(0, count_arg_1)
             elif is_numeric_array_candidate:
                 # Fixed-size numeric arrays (`dimension(N)`) need no
                 # count companion; the length is in the dimension spec.
@@ -261,9 +286,14 @@ def assign_c_attributes(argument_list):
         # The companion <name>_count carries the runtime length, and the
         # inner Galacticus call slices arr(1:arr_count) to recover an
         # ordinary dimension(:) section — see build_fortran_reassignments.
+        # `dimension(:,:)` (rank-2 assumed-shape) is also illegal in
+        # bind(c); the wrapper takes a rank-1 flat buffer plus two
+        # count companions and rebuilds a rank-2 view inside via
+        # `reshape`, so the bind(c) signature collapses to
+        # `dimension(*)` for both rank-1 and rank-2 deferred shapes.
         attr_filters = []
         for a in arg.attributes:
-            if a == 'dimension(:)':
+            if a in ('dimension(:)', 'dimension(:,:)'):
                 attr_filters.append('dimension(*)')
             elif a.startswith('dimension') or a == 'allocatable':
                 attr_filters.append(a)
@@ -329,6 +359,33 @@ def build_python_reassignments(argument_list):
                 arg.py_pass_as    = name + '._glcObj'
                 arg_id.py_pass_as = name + '._classID'
             new_list.insert(0, arg_id)        # unshift _ID back
+        elif arg.is_array and arg.array_rank == 2:
+            # 2D deferred-shape numeric array.  Convert input to a
+            # contiguous Fortran-order numpy array (column-major) so the
+            # raw byte layout matches Fortran's `dimension(N, M)`
+            # convention; pass the data pointer plus shape[0]/shape[1]
+            # as the two count companions, in the same order they sit at
+            # the front of new_list (count_1 then count_2 — see
+            # assign_c_types).
+            np_dtype = _ARRAY_NUMPY_DTYPE.get(arg.ctype, 'float64')
+            safe = python_safe_name(arg.name)
+            count_arg_1 = new_list.pop(0)
+            count_arg_2 = new_list.pop(0)
+            arg.py_reassignment = (
+                f'    {safe} = np.asfortranarray('
+                f'np.asarray({safe}, dtype=np.{np_dtype}))\n'
+                f'    if {safe}.ndim != 2:\n'
+                f'        raise ValueError('
+                f'f"{arg.name} expects a 2D array, got '
+                f'{{{safe}.ndim}}D")\n'
+            )
+            count_arg_1.py_pass_as = f'c_size_t({safe}.shape[0])'
+            count_arg_2.py_pass_as = f'c_size_t({safe}.shape[1])'
+            new_list.insert(0, count_arg_2)
+            new_list.insert(0, count_arg_1)
+            arg.py_pass_as = (
+                f'{safe}.ctypes.data_as(POINTER({arg.ctype}))'
+            )
         elif arg.is_array and arg.intrinsic == 'character':
             # Fixed-length character array: build a contiguous count*N
             # byte buffer.  Each input element is `str()`-coerced,
@@ -431,7 +488,28 @@ def build_fortran_reassignments(argument_list, func_class, implementation,
         is_optional   = arg.is_optional
         opt_prefix    = f'if (present({name})) ' if is_optional else ''
 
-        if arg.is_array and arg.intrinsic == 'character':
+        if arg.is_array and arg.array_rank == 2:
+            # 2D deferred-shape numeric array.  bind(c) receives the
+            # buffer as a flat `dimension(*)` block plus two c_size_t
+            # counts.  Allocate a `dimension(:,:)` local of the right
+            # shape and reshape the flat slice into it (column-major
+            # Fortran order — the Python side already laid the buffer
+            # out F-contiguous via np.asfortranarray).  Allocatable
+            # sidesteps any concerns about forward-referencing the
+            # dummy counts in an automatic-array size spec, and the
+            # local is auto-deallocated when the wrapper returns.
+            arg.fort_declarations = (
+                f'  {arg.fort_type}, dimension(:,:), allocatable'
+                f' :: {name}_F_\n'
+            )
+            arg.fort_reassignment = (
+                f'allocate({name}_F_({name}_count_1, {name}_count_2))\n'
+                f'{name}_F_ = reshape('
+                f'{name}(1:{name}_count_1*{name}_count_2),'
+                f' [{name}_count_1, {name}_count_2])\n'
+            )
+            arg.fort_pass_as = f'{name}_F_'
+        elif arg.is_array and arg.intrinsic == 'character':
             # Fixed-length character array.  bind(c) declares it as a
             # flat `character(c_char), dimension(*)` byte buffer (length
             # count*N); the inner Galacticus method wants

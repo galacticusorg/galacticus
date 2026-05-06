@@ -266,12 +266,14 @@ def classify_constructor(args, all_fcs, registered):
         # Dimension shape checks.
         dim_attr = next((a for a in attrs if a.startswith('dimension')), None)
         if dim_attr:
-            # Fixed-length character arrays at deferred shape are now
-            # supported alongside the numeric cases — see the analogous
-            # extension in libraryInterfaces._unsupported_arg.
+            # Fixed-length character arrays at deferred shape, plus 2D
+            # deferred-shape numeric arrays, are now supported alongside
+            # the 1D numeric cases — see the analogous extensions in
+            # libraryInterfaces._unsupported_arg.
             is_supported_shape = (
                 (intrinsic in ('double precision', 'integer')
                  and (dim_attr == 'dimension(:)'
+                      or dim_attr == 'dimension(:,:)'
                       or _DIM_FIXED_RX.match(dim_attr)))
                 or
                 (intrinsic == 'character'

@@ -451,6 +451,82 @@ def test_fortran_reassignments_arbitrary_derived_type_uses_c_f_pointer():
 
 
 # ---------------------------------------------------------------------------
+# 2D deferred-shape numeric arrays — `dimension(:,:)`
+# ---------------------------------------------------------------------------
+
+def test_assign_c_types_2d_array_inserts_two_count_companions():
+    """A `double precision, dimension(:,:)` argument expands into the
+    arg followed by two c_size_t count companions (one per axis).
+    array_rank=2 marks it for the 2D-specific Python and Fortran paths."""
+    raw = [{'name': 'covariance', 'intrinsic': 'double precision', 'type': None,
+            'attributes': ['intent(in)', 'dimension(:,:)']}]
+    out = assign_c_types(raw, lib_function_classes={})
+    assert [a.name for a in out] == [
+        'covariance', 'covariance_count_1', 'covariance_count_2',
+    ]
+    assert out[0].is_array   is True
+    assert out[0].array_rank == 2
+    assert out[0].ctype      == 'c_double'
+    assert all(c.ctype == 'c_size_t' for c in out[1:])
+    assert all(c.py_is_present is False and c.galacticus_is_present is False
+               for c in out[1:])
+
+
+def test_assign_c_attributes_2d_array_collapsed_to_dimension_star():
+    """Both `dimension(:)` and `dimension(:,:)` collapse to `dimension(*)`
+    on the bind(c) signature — assumed-shape isn't interoperable, and the
+    wrapper rebuilds the rank-2 view inside via `reshape`."""
+    raw = [{'name': 'm', 'intrinsic': 'double precision', 'type': None,
+            'attributes': ['intent(in)', 'dimension(:,:)']}]
+    out = assign_c_types(raw, lib_function_classes={})
+    out = assign_c_attributes(out)
+    assert 'dimension(*)' in out[0].fort_attributes
+    assert 'dimension(:,:)' not in out[0].fort_attributes
+
+
+def test_python_reassignments_2d_array_uses_asfortranarray_with_shape_counts():
+    """The Python wrapper converts inputs through np.asfortranarray (so
+    the underlying buffer matches Fortran's column-major layout) and
+    fills both count companions from `.shape[0]` / `.shape[1]`."""
+    arr = ArgSpec(name='m', intrinsic='double precision',
+                  ctype='c_double', is_array=True, array_rank=2)
+    c1  = ArgSpec(name='m_count_1', intrinsic='integer',
+                  type_spec='c_size_t', ctype='c_size_t',
+                  fort_is_present=True, py_is_present=False,
+                  galacticus_is_present=False)
+    c2  = ArgSpec(name='m_count_2', intrinsic='integer',
+                  type_spec='c_size_t', ctype='c_size_t',
+                  fort_is_present=True, py_is_present=False,
+                  galacticus_is_present=False)
+    out = build_python_reassignments([arr, c1, c2])
+    assert 'np.asfortranarray' in out[0].py_reassignment
+    assert 'm.ndim != 2'       in out[0].py_reassignment
+    assert out[1].py_pass_as == 'c_size_t(m.shape[0])'
+    assert out[2].py_pass_as == 'c_size_t(m.shape[1])'
+    assert out[0].py_pass_as == 'm.ctypes.data_as(POINTER(c_double))'
+
+
+def test_fortran_reassignments_2d_array_reshapes_into_local():
+    """The wrapper allocates a `dimension(:,:)` local and reshapes the
+    flat bind(c) buffer into it before passing to the inner Galacticus
+    method; the inner call receives the rank-2 local, not the flat
+    rank-1 dummy."""
+    arr = ArgSpec(name='m', intrinsic='double precision',
+                  ctype='c_double', fort_type='real(c_double)',
+                  is_array=True, array_rank=2)
+    out = build_fortran_reassignments(
+        [arr], func_class={}, implementation=None,
+        extensions={}, module_uses_impls={},
+    )
+    decls    = out[0].fort_declarations
+    reassign = out[0].fort_reassignment
+    assert 'real(c_double), dimension(:,:), allocatable :: m_F_' in decls
+    assert 'allocate(m_F_(m_count_1, m_count_2))' in reassign
+    assert 'reshape(m(1:m_count_1*m_count_2), [m_count_1, m_count_2])' in reassign
+    assert out[0].fort_pass_as == 'm_F_'
+
+
+# ---------------------------------------------------------------------------
 # 1D fixed-length character arrays — `character(len=N), dimension(:)`
 # ---------------------------------------------------------------------------
 

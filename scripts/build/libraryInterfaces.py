@@ -308,6 +308,7 @@ def _unsupported_arg(arg, lib_function_classes, *,
             is_supported_dim = (
                 intrinsic in ('double precision', 'integer')
                 and (attr == 'dimension(:)'
+                     or attr == 'dimension(:,:)'
                      or _DIM_FIXED_RX_INTERFACES.match(attr))
             )
             # Fixed-length character arrays (`character(len=N),
@@ -330,8 +331,8 @@ def _unsupported_arg(arg, lib_function_classes, *,
                 continue
             return ('dimensioned argument'
                     ' (only 1D deferred-shape or fixed-size numeric input,'
-                    ' or 1D deferred-shape fixed-length character arrays,'
-                    ' are supported)')
+                    ' 2D deferred-shape numeric input, or 1D deferred-shape'
+                    ' fixed-length character arrays, are supported)')
     return None
 
 
