@@ -407,7 +407,10 @@ contains
           self             %weightMainBranch     ( :             ,indexHaloMass)=     &
                &  +self    %weightMainBranch     ( :             ,indexHaloMass)      &
                &  +         distribution         (1:self%binCount)                    &
-               &  *         weightValue1
+               &  *         sqrt(                                                     &
+               &                 +weightValue1                                        &
+               &                 *weightValue2                                        &
+               &                )
           self             %weightMainBranchCross(                indexHaloMass)=     &
                &  +    self%weightMainBranchCross(                indexHaloMass)      &
                &  +sum(     distribution          (1:self%binCount              ))**2 &
