@@ -5,6 +5,7 @@
 import sys
 import os
 import re
+import keyword
 from pathlib import Path
 
 # Set up path for imports from python/
@@ -1108,7 +1109,16 @@ end {procedure} {method_name_c}
                     py_call,
                 )
 
-        py_method = f'''def {method_name}({','.join(py_args)}):
+        # Python-side identifier for the method.  Galacticus method names
+        # (`yield`, `class`, ...) can collide with Python reserved words,
+        # which would emit a `def yield(...)` and break import.  Follow
+        # PEP 8's trailing-underscore convention to escape; the Fortran
+        # call (`self_%{method_name}`) and the bind(c) symbol
+        # (`{method_name_c}`) are unaffected.
+        py_method_name = (method_name + '_'
+                          if keyword.iskeyword(method_name)
+                          else method_name)
+        py_method = f'''def {py_method_name}({','.join(py_args)}):
 {py_call}
 '''
         python['units'][class_name].setdefault('subUnits', []).append({
