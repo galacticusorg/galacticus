@@ -45,6 +45,9 @@ class ArgSpec:
     is_array:          bool = False    # 1D numeric array (deferred or fixed shape)
     array_size:        int  = None     # element count for fixed-shape arrays;
                                        # None for deferred (dimension(:))
+    char_len:          int  = 0        # per-element length for fixed-length
+                                       # character arrays (`character(len=N),
+                                       # dimension(:)`); 0 otherwise.
 
     # ctypes
     ctype:         str  = ''    # e.g. 'c_double', 'c_void_p', 'c_char_p', 'c_int'

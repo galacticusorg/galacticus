@@ -78,6 +78,12 @@ _SHARED_TYPE_MODULES = {
 # which does.
 _DIM_FIXED_RX = re.compile(r'^dimension\s*\(\s*(\d+)\s*\)$')
 
+# Match a `len=N` literal in a character type-spec, used to detect
+# fixed-length character arrays (e.g. `character(len=2), dimension(:)`).
+# Variable-length forms (`len=*`, `len=:`) deliberately don't match — we
+# can't pack those into a fixed-stride byte buffer at the Python boundary.
+_CHAR_LEN_RX = re.compile(r'^len\s*=\s*(\d+)$')
+
 
 def assign_c_types(argument_list, lib_function_classes):
     """Assign appropriate C types for each argument.
@@ -126,8 +132,28 @@ def assign_c_types(argument_list, lib_function_classes):
             arg.ctype     = 'c_bool'
             arg.fort_type = 'logical(c_bool)'
         elif intrinsic == 'character':
-            arg.ctype     = 'c_char_p'
-            arg.fort_type = 'character(c_char)'
+            char_len_m = _CHAR_LEN_RX.match((type_spec_val or '').strip())
+            if char_len_m and 'dimension(:)' in arg.attributes:
+                # Fixed-length character array (`character(len=N),
+                # dimension(:)`).  bind(c) receives a flat
+                # `character(c_char), dimension(*)` byte buffer of total
+                # length count*N, plus the count companion inserted
+                # below; the wrapper repacks into `character(len=N),
+                # dimension(:)` before calling the inner method.  The
+                # `_p` suffix would otherwise drag this through the
+                # null-terminated-string scalar path in
+                # `build_fortran_reassignments`, which is wrong here.
+                arg.ctype     = 'c_char'
+                arg.fort_type = 'character(c_char)'
+                arg.char_len  = int(char_len_m.group(1))
+                # Fall through into the array-detection block below; it
+                # already handles deferred-shape `dimension(:)` for the
+                # numeric case, and we set `is_array` etc. there.
+            else:
+                # Scalar `character(c_char)` / `character(len=*)` / etc.
+                # — null-terminated C string round-trip.
+                arg.ctype     = 'c_char_p'
+                arg.fort_type = 'character(c_char)'
         elif intrinsic == 'type':
             if type_spec_val == 'varying_string':
                 arg.ctype     = 'c_char_p'
@@ -179,7 +205,14 @@ def assign_c_types(argument_list, lib_function_classes):
         # Galacticus method receives an `arr(1:arr_count)` slice (see
         # build_fortran_reassignments).  Fixed-size needs no companion:
         # the length is in the dimension spec itself.
-        if intrinsic in ('double precision', 'integer'):
+        # Numeric arrays go straight through the array path; character
+        # arrays piggyback on the deferred-shape branch when their
+        # per-element length was resolved above (a fixed-len character
+        # array sets arg.char_len > 0; variable-len fell back to the
+        # scalar path and is_array stays False).
+        is_numeric_array_candidate = intrinsic in ('double precision', 'integer')
+        is_char_array_candidate    = intrinsic == 'character' and arg.char_len > 0
+        if is_numeric_array_candidate or is_char_array_candidate:
             if 'dimension(:)' in arg.attributes:
                 arg.is_array   = True
                 arg.array_size = None
@@ -197,7 +230,12 @@ def assign_c_types(argument_list, lib_function_classes):
                     is_function_class     = False,
                 )
                 new_list.insert(0, count_arg)
-            else:
+            elif is_numeric_array_candidate:
+                # Fixed-size numeric arrays (`dimension(N)`) need no
+                # count companion; the length is in the dimension spec.
+                # Fixed-size character arrays aren't supported yet — the
+                # only registered class needing them was already covered
+                # by the deferred-shape path.
                 for a in arg.attributes:
                     m = _DIM_FIXED_RX.match(a)
                     if m:
@@ -291,6 +329,28 @@ def build_python_reassignments(argument_list):
                 arg.py_pass_as    = name + '._glcObj'
                 arg_id.py_pass_as = name + '._classID'
             new_list.insert(0, arg_id)        # unshift _ID back
+        elif arg.is_array and arg.intrinsic == 'character':
+            # Fixed-length character array: build a contiguous count*N
+            # byte buffer.  Each input element is `str()`-coerced,
+            # right-padded (Fortran convention) and clipped to N chars,
+            # then ASCII-encoded.  numpy's `S{N}` dtype gives us a
+            # fixed-stride buffer whose `.size` is the element count and
+            # whose underlying memory is exactly the N-byte-per-element
+            # layout the inner Fortran method expects.
+            safe = python_safe_name(arg.name)
+            n    = arg.char_len
+            count_arg = new_list.pop(0)
+            arg.py_reassignment = (
+                f"    {safe} = np.ascontiguousarray("
+                f"np.array("
+                f"[(str(s).ljust({n}))[:{n}].encode('ascii') for s in {safe}],"
+                f" dtype='S{n}'))\n"
+            )
+            count_arg.py_pass_as = f'c_size_t({safe}.size)'
+            new_list.insert(0, count_arg)
+            arg.py_pass_as = (
+                f'{safe}.ctypes.data_as(POINTER(c_char))'
+            )
         elif arg.is_array:
             # 1D numeric array: convert the user's input (numpy array, list,
             # tuple) to a contiguous ndarray of the right dtype, then pass
@@ -371,7 +431,38 @@ def build_fortran_reassignments(argument_list, func_class, implementation,
         is_optional   = arg.is_optional
         opt_prefix    = f'if (present({name})) ' if is_optional else ''
 
-        if arg.is_array:
+        if arg.is_array and arg.intrinsic == 'character':
+            # Fixed-length character array.  bind(c) declares it as a
+            # flat `character(c_char), dimension(*)` byte buffer (length
+            # count*N); the inner Galacticus method wants
+            # `character(len=N), dimension(:)`.  Repack into an
+            # allocatable local of the right type, copying byte-by-byte
+            # (an explicit do-loop is bulletproof across compilers, and
+            # allocatable sidesteps any concerns about forward-reference
+            # to the count dummy in an automatic-array size spec).  The
+            # local is auto-deallocated when the wrapper returns.
+            n = arg.char_len
+            # Both loop indices are c_size_t to match the count
+            # companion's kind — the outer loop runs to {name}_count
+            # (c_size_t), and arithmetic mixing kinds in the index
+            # expression `({name}_glcI_-1)*N + {name}_glcJ_` is cleanest
+            # when both are the same kind.
+            arg.fort_declarations = (
+                f'  character(len={n}), dimension(:), allocatable'
+                f' :: {name}_F_\n'
+                f'  integer(c_size_t) :: {name}_glcI_, {name}_glcJ_\n'
+            )
+            arg.fort_reassignment = (
+                f'allocate({name}_F_({name}_count))\n'
+                f'do {name}_glcI_ = 1, {name}_count\n'
+                f'  do {name}_glcJ_ = 1, {n}\n'
+                f'    {name}_F_({name}_glcI_)({name}_glcJ_:{name}_glcJ_)'
+                f' = {name}(({name}_glcI_-1)*{n} + {name}_glcJ_)\n'
+                f'  end do\n'
+                f'end do\n'
+            )
+            arg.fort_pass_as = f'{name}_F_'
+        elif arg.is_array:
             # 1D numeric array.  Deferred-shape needs slicing — the bind(c)
             # signature has `dimension(*)` (assumed-size) plus a separate
             # <name>_count, so we hand the inner method a section

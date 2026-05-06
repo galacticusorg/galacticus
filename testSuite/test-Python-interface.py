@@ -297,6 +297,22 @@ with safe_section("nodeOperatorPositionInterpolated"):
     check_eq("constructed type",
              type(nopi).__name__, 'nodeOperatorPositionInterpolated')
 
+# Fixed-length character-array constructor argument — exercises the
+# `character(len=N), dimension(:)` pipeline path.  The
+# `radiativeTransferMatterAtomic` constructor takes
+# `character(len=2), dimension(:) :: elements`; without the new
+# code-gen path it (and its parent `radiativeTransferMatter`, plus
+# `computationalDomain` which transitively depends on it) would have
+# been rejected at constructor-arg validation time.  The constructor
+# itself needs nine atomic-physics functionClass dependencies that
+# we don't build here — confirming the wrapper symbol exists is the
+# meaningful end-to-end check that the emission succeeded.
+with safe_section("radiativeTransferMatter (character len=N array path)"):
+    check_eq("radiativeTransferMatterAtomic exposed",
+             hasattr(galacticus, 'radiativeTransferMatterAtomic'), True)
+    check_eq("computationalDomainCartesian3D exposed",
+             hasattr(galacticus, 'computationalDomainCartesian3D'), True)
+
 # Final summary and exit code.
 print(f"--- {_failures} failure(s) ---")
 sys.exit(1 if _failures else 0)

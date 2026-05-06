@@ -59,6 +59,12 @@ from Galacticus.Build import SourceTree                # noqa: E402
 # generator's unrelated emitter machinery).
 _DIM_FIXED_RX = re.compile(r'^dimension\s*\(\s*(\d+)\s*\)$')
 
+# Match `len=N` in a character type-spec.  Used to recognise fixed-length
+# character arrays (`character(len=N), dimension(:)`), which the pipeline
+# now plumbs through; variable-length forms (`len=*`, `len=:`) are still
+# unsupported because they have no fixed stride at the byte boundary.
+_CHAR_LEN_RX = re.compile(r'^len\s*=\s*(\d+)$')
+
 # Recognise an Internal-suffixed module-procedure name following the
 # Galacticus convention <short>Constructor[Internal[Suffix]] OR the
 # alternative <short>Internal form (used by the merger-tree walkers,
@@ -260,10 +266,17 @@ def classify_constructor(args, all_fcs, registered):
         # Dimension shape checks.
         dim_attr = next((a for a in attrs if a.startswith('dimension')), None)
         if dim_attr:
+            # Fixed-length character arrays at deferred shape are now
+            # supported alongside the numeric cases — see the analogous
+            # extension in libraryInterfaces._unsupported_arg.
             is_supported_shape = (
-                intrinsic in ('double precision', 'integer')
-                and (dim_attr == 'dimension(:)'
-                     or _DIM_FIXED_RX.match(dim_attr))
+                (intrinsic in ('double precision', 'integer')
+                 and (dim_attr == 'dimension(:)'
+                      or _DIM_FIXED_RX.match(dim_attr)))
+                or
+                (intrinsic == 'character'
+                 and dim_attr == 'dimension(:)'
+                 and _CHAR_LEN_RX.match(type_spec))
             )
             if not is_supported_shape:
                 pipeline_reasons.append(

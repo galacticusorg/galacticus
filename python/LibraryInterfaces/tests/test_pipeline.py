@@ -448,3 +448,74 @@ def test_fortran_reassignments_arbitrary_derived_type_uses_c_f_pointer():
     )
     assert 'call c_f_pointer(cosmo,cosmo_)' in out[0].fort_reassignment
     assert 'cosmologyParameters' in out[0].fort_modules['Cosmology_Parameters']
+
+
+# ---------------------------------------------------------------------------
+# 1D fixed-length character arrays — `character(len=N), dimension(:)`
+# ---------------------------------------------------------------------------
+
+def test_assign_c_types_char_array_inserts_count_companion():
+    """`character(len=2), dimension(:)` is treated as a 1D array: a hidden
+    c_size_t count companion is inserted, the element ctype is c_char,
+    and char_len is captured for the downstream emitters."""
+    raw = [{'name': 'elements', 'intrinsic': 'character', 'type': 'len=2',
+            'attributes': ['intent(in)', 'dimension(:)']}]
+    out = assign_c_types(raw, lib_function_classes={})
+    assert [a.name for a in out] == ['elements', 'elements_count']
+    assert out[0].is_array  is True
+    assert out[0].ctype     == 'c_char'
+    assert out[0].fort_type == 'character(c_char)'
+    assert out[0].char_len  == 2
+    assert out[1].ctype     == 'c_size_t'
+
+
+def test_assign_c_types_scalar_character_unaffected():
+    """Plain `character(len=*)` / `character(c_char)` scalars still go
+    through the null-terminated-string path (ctype=c_char_p), not the new
+    array branch."""
+    raw = [{'name': 'name', 'intrinsic': 'character', 'type': 'len=*',
+            'attributes': ['intent(in)']}]
+    out = assign_c_types(raw, lib_function_classes={})
+    assert len(out) == 1
+    assert out[0].is_array is False
+    assert out[0].char_len == 0
+    assert out[0].ctype    == 'c_char_p'
+
+
+def test_python_reassignments_char_array_packs_to_fixed_byte_buffer():
+    """The Python wrapper space-pads + clips each input string to N
+    characters, encodes ASCII, and lays them out contiguously as `S{N}`
+    so .ctypes.data_as gives a valid count*N byte buffer to bind(c)."""
+    arr = ArgSpec(name='elements', intrinsic='character',
+                  ctype='c_char', char_len=2, is_array=True)
+    cnt = ArgSpec(name='elements_count', intrinsic='integer',
+                  type_spec='c_size_t', ctype='c_size_t',
+                  fort_is_present=True, py_is_present=False,
+                  galacticus_is_present=False)
+    out = build_python_reassignments([arr, cnt])
+    assert "ljust(2)" in out[0].py_reassignment
+    assert "[:2]"     in out[0].py_reassignment
+    assert "dtype='S2'" in out[0].py_reassignment
+    assert out[0].py_pass_as == "elements.ctypes.data_as(POINTER(c_char))"
+    # Count companion reads .size off the now-numpy buffer.
+    assert out[1].py_pass_as == 'c_size_t(elements.size)'
+
+
+def test_fortran_reassignments_char_array_repacks_into_local():
+    """The wrapper allocates a `character(len=N), dimension(:)` local,
+    copies the flat bind(c) byte buffer in element by element, and
+    passes that local to the inner Galacticus call."""
+    arr = ArgSpec(name='elements', intrinsic='character',
+                  ctype='c_char', fort_type='character(c_char)',
+                  char_len=2, is_array=True)
+    out = build_fortran_reassignments(
+        [arr], func_class={}, implementation=None,
+        extensions={}, module_uses_impls={},
+    )
+    decls = out[0].fort_declarations
+    reassign = out[0].fort_reassignment
+    assert 'character(len=2), dimension(:), allocatable :: elements_F_' in decls
+    assert 'allocate(elements_F_(elements_count))' in reassign
+    assert 'elements_F_(elements_glcI_)(elements_glcJ_:elements_glcJ_)' in reassign
+    assert 'elements((elements_glcI_-1)*2 + elements_glcJ_)' in reassign
+    assert out[0].fort_pass_as == 'elements_F_'

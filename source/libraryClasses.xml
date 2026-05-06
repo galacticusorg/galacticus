@@ -210,5 +210,7 @@
     <stellarPopulationSelector/>
     <coolingInfallRadius/>
     <stellarPopulationProperties/>
+    <radiativeTransferMatter/>
+    <computationalDomain/>
   </classes>
 </library>

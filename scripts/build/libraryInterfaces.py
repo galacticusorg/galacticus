@@ -189,6 +189,11 @@ _CLASS_RETURN_RX = re.compile(
 # doesn't need to import a private name).
 _DIM_FIXED_RX_INTERFACES = re.compile(r'^dimension\s*\(\s*(\d+)\s*\)$')
 
+# Match `len=N` literal in a character type-spec.  Same regex as
+# Pipeline.py's `_CHAR_LEN_RX`; duplicated here to keep this module
+# self-contained for the validation pass that runs before the pipeline.
+_CHAR_LEN_RX_INTERFACES = re.compile(r'^len\s*=\s*(\d+)$')
+
 # Match a 1D fixed-size array RETURN type, e.g. `double precision, dimension(3)`
 # or `integer, dimension(3)`.  Captures (intrinsic, size).
 _ARRAY_RETURN_RX = re.compile(
@@ -305,7 +310,17 @@ def _unsupported_arg(arg, lib_function_classes, *,
                 and (attr == 'dimension(:)'
                      or _DIM_FIXED_RX_INTERFACES.match(attr))
             )
-            if is_supported_dim:
+            # Fixed-length character arrays (`character(len=N),
+            # dimension(:)`) are supported at deferred shape: the bind(c)
+            # boundary receives a contiguous count*N byte buffer plus a
+            # count companion, and the wrapper repacks into
+            # `character(len=N), dimension(:)` for the inner call.
+            is_supported_char_array = (
+                intrinsic == 'character'
+                and attr == 'dimension(:)'
+                and _CHAR_LEN_RX_INTERFACES.match((arg.get('type') or '').strip())
+            )
+            if is_supported_dim or is_supported_char_array:
                 if 'allocatable' in attrs:
                     return ('1D allocatable array argument'
                             ' (output arrays not yet supported)')
@@ -314,8 +329,9 @@ def _unsupported_arg(arg, lib_function_classes, *,
                             ' (output arrays not yet supported)')
                 continue
             return ('dimensioned argument'
-                    ' (only 1D deferred-shape or fixed-size numeric input'
-                    ' is supported)')
+                    ' (only 1D deferred-shape or fixed-size numeric input,'
+                    ' or 1D deferred-shape fixed-length character arrays,'
+                    ' are supported)')
     return None
 
 
