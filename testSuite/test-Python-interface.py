@@ -220,6 +220,83 @@ with safe_section("radiativeTransferPhotonPacketSimple"):
     else:
         check_eq("ValueError on size mismatch", "no exception raised", "ValueError")
 
+# Non-central χ² (degree 3) distribution — exercises the Python-keyword
+# escape on a constructor argument.  The Fortran constructor takes
+# `lambda` as a parameter; without renaming the Python signature to
+# `lambda_` the wrapper module fails to import (SyntaxError on
+# `def __init__(self, lambda, ...)`).
+with safe_section("distributionFunction1DNonCentralChiDegree3"):
+    chi3 = galacticus.distributionFunction1DNonCentralChiDegree3(
+        lambda_=2.5, randomNumberGenerator_=rng,
+    )
+    # density() at the mode-ish region should be finite and positive;
+    # the value itself isn't load-bearing — surviving the call is.
+    d = chi3.density(x=2.5)
+    check_eq("density(x=2.5) is finite", np.isfinite(d) and d > 0.0, True)
+
+# Supernovae Type Ia power-law DTD (differential) — exercises the
+# Python-keyword escape on a method NAME.  The Fortran class declares
+# `<method name="yield">`; `yield` is a reserved word in Python, so the
+# wrapper renames it to `yield_` (PEP 8).  Just confirm the rename:
+# calling it would need a stellar age / metallicity dataset we don't
+# initialise here.
+with safe_section("supernovaeTypeIaPowerLawDTDDifferential"):
+    sn1a = galacticus.supernovaeTypeIaPowerLawDTDDifferential(
+        timeMinimum=0.04, exponent=-1.0, normalization=2.0e-3,
+    )
+    check_eq("yield_ method exposed" , hasattr(sn1a, 'yield_'), True)
+    check_eq("'yield' not exposed"   , hasattr(sn1a, 'yield' ), False)
+
+# Spherical computational-domain volume integrator — exercises the
+# procedure-pointer-arg skip.  The class's `integrate(integrand)`
+# method takes `procedure(...)` which the pipeline can't translate, so
+# the wrapper drops just that method while keeping the rest of the
+# class.  `volume()` is a plain double-precision return so it survives.
+with safe_section("computationalDomainVolumeIntegratorSpherical"):
+    cdom = galacticus.computationalDomainVolumeIntegratorSpherical([1.0, 5.0])
+    check   ("volume()"               , cdom.volume(), (4.0/3.0)*np.pi*(5.0**3 - 1.0**3))
+    check_eq("integrate() not exposed", hasattr(cdom, 'integrate'), False)
+
+# Empirical UniverseMachine node operator — exercises the
+# continuation-character strip in the Internal-constructor arg-name
+# capture: the source declares the constructor across many
+# continuation lines (24 scalar args + 3 functionClass deps), and
+# without stripping `&` from each captured token the args leaked into
+# the emitted `<referenceConstruct>` directive and broke XML parsing.
+# Constructing the object end-to-end confirms the multi-line opener
+# was parsed cleanly.
+with safe_section("nodeOperatorEmpiricalGalaxyUniverseMachine"):
+    um = galacticus.nodeOperatorEmpiricalGalaxyUniverseMachine(
+        massStellarFinal=-1.0, fractionMassSpheroid=0.0, fractionMassDisk=1.0,
+        epsilon_0=-1.435, epsilon_a= 1.831, epsilon_lna= 1.368, epsilon_z=-0.217,
+        M_0      =12.035, M_a      = 4.556, M_lna      = 4.417, M_z      =-0.731,
+        alpha_0  = 1.963, alpha_a  =-2.316, alpha_lna  =-1.732, alpha_z  = 0.178,
+        beta_0   = 0.482, beta_a   =-0.841, beta_z     =-0.471,
+        gamma_0  =-1.034, gamma_a  =-3.100, gamma_z    =-1.055,
+        delta_0  = 0.411,
+        redshiftMaximum=15.0, massHaloMinimum=1.0e10,
+        cosmologyParameters_  =cosmologyParameters,
+        cosmologyFunctions_   =cosmologyFunctions,
+        virialDensityContrast_=virialDensityContrast,
+    )
+    check_eq("constructed type",
+             type(um).__name__, 'nodeOperatorEmpiricalGalaxyUniverseMachine')
+
+# Position-interpolated node operator — exercises the kind_int8 (=
+# selected_int_kind(18), 64-bit) integer array path.  Without the
+# kind_int8 → c_long mapping, `nodeIndicesReport` would be emitted as
+# `integer(c_int)` (32-bit) and mismatch the inner constructor.  We
+# include a value > 2^31 to make the 64-bit-ness load-bearing.
+with safe_section("nodeOperatorPositionInterpolated"):
+    indices = np.array([1, 42, 1_000_000_000_000], dtype=np.int64)
+    nopi = galacticus.nodeOperatorPositionInterpolated(
+        lengthBox=100.0, wrapPeriodic=True,
+        nodeIndicesReport=indices,
+        cosmologyFunctions_=cosmologyFunctions,
+    )
+    check_eq("constructed type",
+             type(nopi).__name__, 'nodeOperatorPositionInterpolated')
+
 # Final summary and exit code.
 print(f"--- {_failures} failure(s) ---")
 sys.exit(1 if _failures else 0)
