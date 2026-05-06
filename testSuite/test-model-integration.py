@@ -230,7 +230,7 @@ def calibrate_model(modelName, fileName, randomSeed, gitRevision, calibrateCount
         write_model_parameters(
             fileName,
             f"{realDir}/parameters.xml",
-            f"testSuite/outputs/test-model-integration/{modelName}{i}/galacticus.hdf5",
+            f"{realDir}/galacticus.hdf5",
             randomSeed + i,
         )
         jobs.append({
