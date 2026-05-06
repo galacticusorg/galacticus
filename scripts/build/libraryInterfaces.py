@@ -421,7 +421,13 @@ def _process_implementations(func_class, directive_locations, state_storables,
                     r'function\s+' + re.escape(name_constructor) + r'\s*\(([^)]+)\)',
                     opener, re.IGNORECASE)
                 if m:
-                    args_constructor = [{'name': a.strip()}
+                    # Strip Fortran line-continuation characters (`&`) and any
+                    # whitespace (including embedded newlines from multi-line
+                    # function openers) from each captured argument name —
+                    # otherwise tokens like "&\n   &  delta_0" leak into
+                    # downstream emitters (e.g. as text in <referenceConstruct>)
+                    # and break XML parsing because the literal `&` isn't escaped.
+                    args_constructor = [{'name': re.sub(r'[\s&]+', '', a)}
                                         for a in m.group(1).split(',')]
                 # Enrich each argument with its declared type from child declaration nodes.
                 child = node.get('firstChild')

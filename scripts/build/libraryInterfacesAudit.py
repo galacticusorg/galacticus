@@ -176,7 +176,10 @@ def parse_impls_in_file(impl_file, fc_name):
                 r'function\s+' + re.escape(name_constructor) + r'\s*\(([^)]+)\)',
                 opener, re.IGNORECASE)
             if m:
-                args_constructor = [{'name': a.strip()}
+                # Strip Fortran line-continuation `&` and any whitespace from
+                # each captured argument; multi-line openers otherwise leave
+                # `&\n  &` fragments inside the names, breaking name->decl matching.
+                args_constructor = [{'name': re.sub(r'[\s&]+', '', a)}
                                     for a in m.group(1).split(',')]
             child = node.get('firstChild')
             while child:
