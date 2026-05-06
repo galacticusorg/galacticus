@@ -40,12 +40,23 @@ __all__ = [
 # types defined alongside the class but emits broken `use ::` lines for
 # shared types like treeNode, mergerTree, multiCounter, etc.
 #
+# This table is consulted by every site that has to decide which module a
+# referenced type lives in: the constructor-arg fall-back below, the
+# enumeration-arg lookup (where it short-circuits the moduleUses walk),
+# and `_find_enum_module` in libraryInterfaces.py for method return types.
+# An explicit entry always wins over the smart-lookup fall-backs.
+#
 # Add to this table when a new shared type starts appearing as a method or
 # constructor argument in libraryClasses.xml.
 _SHARED_TYPE_MODULES = {
-    'treeNode'    : 'Galacticus_Nodes',
-    'mergerTree'  : 'Galacticus_Nodes',
-    'multiCounter': 'Multi_Counters',
+    'treeNode'                   : 'Galacticus_Nodes',
+    'mergerTree'                 : 'Galacticus_Nodes',
+    'multiCounter'               : 'Multi_Counters',
+    'hdf5Object'                 : 'IO_HDF5',
+    'abundances'                 : 'Abundances_Structure',
+    'chemicalAbundances'         : 'Chemical_Abundances_Structure',
+    'enumerationFrameType'       : 'Stellar_Luminosities_Structure',
+    'enumerationDestroyStubsType': 'Merger_Tree_Build_Controllers',
 }
 
 
@@ -367,9 +378,14 @@ def build_fortran_reassignments(argument_list, func_class, implementation,
                 arg.fort_declarations = f'type({type_spec_val}) :: {name}_\n'
                 arg.fort_pass_as      = name + '_'
                 arg.fort_reassignment = f'{opt_prefix}{name}_%ID={name}\n'
-                # Locate the module that imports this enumeration type:
+                # Locate the module that imports this enumeration type.
+                # 0. an explicit override in _SHARED_TYPE_MODULES wins outright
+                #    — used when the impl file's own moduleUses don't carry the
+                #    type explicitly (e.g. when the enum is defined in the same
+                #    module the impl is included into) so the walk below would
+                #    otherwise miss it.
+                import_module = _SHARED_TYPE_MODULES.get(type_spec_val)
                 # 1. walk implementation's module uses, following the extends chain.
-                import_module = None
                 if implementation:
                     cls = implementation['name']
                     while cls and not import_module:

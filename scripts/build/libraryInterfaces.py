@@ -22,6 +22,7 @@ from LibraryInterfaces.Pipeline import (
     assign_c_attributes,
     build_python_reassignments,
     build_fortran_reassignments,
+    _SHARED_TYPE_MODULES,
 )
 from LibraryInterfaces.Emitters import (
     ctypes_arg_types,
@@ -198,11 +199,19 @@ def _find_enum_module(enum_type, func_class):
     """Locate the Fortran module that exports *enum_type* (an
     `enumerationXxxType` derived-type name).
 
-    Looks first at the functionClass file's own ``use``-block imports
-    (collected during parsing as ``func_class['moduleUses']``), then falls
-    back to the functionClass's own module.  Mirrors the scan
-    ``build_fortran_reassignments`` already does for enumeration *arguments*.
+    Order of resolution:
+      0. explicit override in :data:`_SHARED_TYPE_MODULES` (wins outright;
+         used for enums whose home module isn't imported by name in the
+         functionClass's own ``use``-blocks),
+      1. the functionClass file's own ``use``-block imports
+         (collected during parsing as ``func_class['moduleUses']``),
+      2. fall back to the functionClass's own module.
+    Mirrors the scan ``build_fortran_reassignments`` already does for
+    enumeration *arguments*.
     """
+    explicit = _SHARED_TYPE_MODULES.get(enum_type)
+    if explicit:
+        return explicit
     for use_block in func_class.get('moduleUses', []):
         for mod_name, mod_data in use_block.items():
             if (isinstance(mod_data, dict)
