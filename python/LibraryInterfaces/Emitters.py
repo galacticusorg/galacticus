@@ -4,6 +4,7 @@
 # All functions accept a list of fully-enriched ArgSpec objects (produced by
 # the four Pipeline stages) and return a code string or a list of strings.
 
+import keyword
 import re
 from itertools import chain, combinations
 
@@ -12,7 +13,21 @@ __all__ = [
     'fortran_reassignments', 'fortran_module_uses', 'fortran_call_code',
     'iso_c_binding_import',
     'python_arg_list', 'python_reassignments', 'python_call_code',
+    'python_safe_name',
 ]
+
+
+def python_safe_name(name):
+    """Return *name* escaped so it can be used as a Python identifier.
+
+    Galacticus argument and method names (`lambda`, `yield`, `class`, ...)
+    can collide with Python reserved words, which would emit a syntax
+    error in the generated wrapper module.  Follow PEP 8's
+    trailing-underscore convention to escape; the Fortran identifier is
+    unaffected because every emitter that touches the Fortran side uses
+    `arg.name` (or `fort_pass_as`), not this helper.
+    """
+    return name + '_' if keyword.iskeyword(name) else name
 
 
 # ---------------------------------------------------------------------------
@@ -200,7 +215,7 @@ def python_arg_list(argument_list):
     for arg in argument_list:
         if not arg.py_is_present:
             continue
-        name = arg.name
+        name = python_safe_name(arg.name)
         if arg.is_optional or first_optional:
             name += '=None'
             first_optional = True
@@ -229,8 +244,8 @@ def python_call_code(argument_list, call):
             if not arg.fort_is_present:
                 continue
             is_opt = arg.is_optional
-            pv     = arg.py_present if arg.py_present else arg.name
-            pa     = arg.py_pass_as if arg.py_pass_as else arg.name
+            pv     = arg.py_present if arg.py_present else python_safe_name(arg.name)
+            pa     = arg.py_pass_as if arg.py_pass_as else python_safe_name(arg.name)
             if is_opt:
                 first_optional = True
             if first_optional:
@@ -250,7 +265,7 @@ def python_call_code(argument_list, call):
             continue
         if not arg.fort_is_present:
             continue
-        pv = arg.py_present if arg.py_present else arg.name
+        pv = arg.py_present if arg.py_present else python_safe_name(arg.name)
         pv_seen[pv] = True
     optional_pvs = sorted(pv_seen.keys())
 

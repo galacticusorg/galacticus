@@ -27,6 +27,7 @@ import re
 
 from List.ExtraUtils import as_array
 from LibraryInterfaces.ArgSpec import ArgSpec
+from LibraryInterfaces.Emitters import python_safe_name
 
 __all__ = [
     'assign_c_types', 'assign_c_attributes',
@@ -165,7 +166,7 @@ def assign_c_types(argument_list, lib_function_classes):
                     if arg.is_optional:
                         arg_id.attributes.append('optional')
                         arg_id.is_optional = True
-                        arg_id.py_present  = arg.name
+                        arg_id.py_present  = python_safe_name(arg.name)
                     # Insert _ID before the current front, then arg before that.
                     new_list.insert(0, arg_id)
 
@@ -268,7 +269,13 @@ def build_python_reassignments(argument_list):
     for arg in reversed(argument_list):
         if arg.is_function_class:
             arg_id = new_list.pop(0)          # shift _ID off front of new list
-            name = arg.name
+            # Galacticus arg names that collide with Python keywords
+            # (`lambda`, `class`, ...) need to be escaped before being
+            # spliced into the generated Python source — every emitted
+            # `if {name}:` / `{name}._glcObj` would otherwise be a
+            # SyntaxError in the wrapper module.  Fortran-side identifier
+            # is unaffected (Fortran allows `lambda` as a name).
+            name = python_safe_name(arg.name)
             if arg.is_optional:
                 arg.py_pass_as       = name + '_glcObj'
                 arg_id.py_pass_as    = name + '_classID'
@@ -294,25 +301,29 @@ def build_python_reassignments(argument_list):
             # mismatched input raises a clear ValueError instead of
             # silently corrupting Fortran-side memory.
             np_dtype  = _ARRAY_NUMPY_DTYPE.get(arg.ctype, 'float64')
+            # See the function-class branch above for the rationale —
+            # `lambda` / `class` / ... can appear as a Galacticus arg name
+            # and must be escaped before splicing into Python source.
+            safe = python_safe_name(arg.name)
             if arg.array_size is None:
                 count_arg = new_list.pop(0)
                 arg.py_reassignment = (
-                    f'    {arg.name} = np.ascontiguousarray({arg.name},'
+                    f'    {safe} = np.ascontiguousarray({safe},'
                     f' dtype=np.{np_dtype})\n'
                 )
-                count_arg.py_pass_as = f'c_size_t({arg.name}.size)'
+                count_arg.py_pass_as = f'c_size_t({safe}.size)'
                 new_list.insert(0, count_arg)
             else:
                 arg.py_reassignment = (
-                    f'    {arg.name} = np.ascontiguousarray({arg.name},'
+                    f'    {safe} = np.ascontiguousarray({safe},'
                     f' dtype=np.{np_dtype})\n'
-                    f'    if {arg.name}.size != {arg.array_size}:\n'
+                    f'    if {safe}.size != {arg.array_size}:\n'
                     f'        raise ValueError('
                     f'f"{arg.name} expects {arg.array_size} elements, got '
-                    f'{{{arg.name}.size}}")\n'
+                    f'{{{safe}.size}}")\n'
                 )
             arg.py_pass_as = (
-                f'{arg.name}.ctypes.data_as(POINTER({arg.ctype}))'
+                f'{safe}.ctypes.data_as(POINTER({arg.ctype}))'
             )
         new_list.insert(0, arg)               # unshift current arg
     return new_list

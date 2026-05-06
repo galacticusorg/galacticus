@@ -36,6 +36,7 @@ from LibraryInterfaces.Emitters import (
     python_arg_list,
     python_reassignments,
     python_call_code,
+    python_safe_name,
 )
 def main():
     """Main entry point — mirrors libraryInterfaces.pl."""
@@ -1060,7 +1061,7 @@ end {procedure} {method_name_c}
             for a in arg_list:
                 if not a.fort_is_present:
                     continue
-                py_call_args.append(a.py_pass_as if a.py_pass_as else a.name)
+                py_call_args.append(a.py_pass_as if a.py_pass_as else python_safe_name(a.name))
             py_call_args.append(f'byref({out_id_var})')
             reassignments_block = ''.join(a.py_reassignment for a in arg_list)
             py_call = (
@@ -1080,7 +1081,7 @@ end {procedure} {method_name_c}
             for a in arg_list:
                 if not a.fort_is_present:
                     continue
-                py_call_args.append(a.py_pass_as if a.py_pass_as else a.name)
+                py_call_args.append(a.py_pass_as if a.py_pass_as else python_safe_name(a.name))
             py_call_args.append(
                 f'_glcArr_.ctypes.data_as(POINTER({elem_ctype}))'
             )
