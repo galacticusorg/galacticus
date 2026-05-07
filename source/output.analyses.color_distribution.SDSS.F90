@@ -95,6 +95,7 @@ contains
     use :: Node_Property_Extractors                , only : nodePropertyExtractorLmnstyStllrCF2000            , nodePropertyExtractorRatio
     use :: Output_Analyses_Options                 , only : outputAnalysisCovarianceModelPoisson
     use :: Output_Analysis_Distribution_Normalizers, only : normalizerList                                    , outputAnalysisDistributionNormalizerBinWidth, outputAnalysisDistributionNormalizerSequence, outputAnalysisDistributionNormalizerUnitarity
+    use :: Output_Analysis_Target_Data             , only : outputAnalysisTargetDataStandard
     use :: Output_Analysis_Distribution_Operators  , only : outputAnalysisDistributionOperatorRandomErrorFixed
     use :: Output_Analysis_Property_Operators      , only : outputAnalysisPropertyOperatorCsmlgyLmnstyDstnc   , outputAnalysisPropertyOperatorIdentity      , outputAnalysisPropertyOperatorMagnitude     , outputAnalysisPropertyOperatorSequence       , &
           &                                                 propertyOperatorList
@@ -304,13 +305,15 @@ contains
          &                                covarianceBinomialMassHaloMinimum                       , &
          &                                covarianceBinomialMassHaloMaximum                       , &
          &                                .false.                                                 , &
-         &                                var_str('$u-r$'                        )                , &
-         &                                var_str('$\mathrm{d}p/\mathrm{d}(u-r)$')                , &
-         &                                .false.                                                 , &
-         &                                .false.                                                 , &
-         &                                var_str('Baldry et al. (2004)')                         , &
-         &                                functionValueTarget                                     , &
-         &                                functionCovarianceTarget                                  &
+         &                                outputAnalysisTargetDataStandard(                                                       &
+         &                                                                 xAxisLabel      =var_str('$u-r$'                        ), &
+         &                                                                 yAxisLabel      =var_str('$\mathrm{d}p/\mathrm{d}(u-r)$'), &
+         &                                                                 xAxisIsLog      =.false.                                 , &
+         &                                                                 yAxisIsLog      =.false.                                 , &
+         &                                                                 targetLabel     =var_str('Baldry et al. (2004)')         , &
+         &                                                                 valueTarget     =functionValueTarget                     , &
+         &                                                                 covarianceTarget=functionCovarianceTarget                  &
+         &                                                                )                                                          &
          &                               )
     ! Clean up.
     !![

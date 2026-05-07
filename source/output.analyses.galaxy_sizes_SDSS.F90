@@ -126,6 +126,7 @@ contains
     use :: Numerical_Constants_Prefixes            , only : kilo                                         , milli
     use :: Output_Analyses_Options                 , only : outputAnalysisCovarianceModelPoisson
     use :: Output_Analysis_Distribution_Normalizers, only : normalizerList                               , outputAnalysisDistributionNormalizerBinWidth  , outputAnalysisDistributionNormalizerSequence   , outputAnalysisDistributionNormalizerUnitarity
+    use :: Output_Analysis_Target_Data             , only : outputAnalysisTargetDataStandard
     use :: Output_Analysis_Distribution_Operators  , only : distributionOperatorList                     , lensedPropertySize                            , outputAnalysisDistributionOperatorClass        , outputAnalysisDistributionOperatorDiskSizeInclntn, &
           &                                                 outputAnalysisDistributionOperatorGrvtnlLnsng, outputAnalysisDistributionOperatorIdentity    , outputAnalysisDistributionOperatorSequence
     use :: Output_Analysis_Property_Operators      , only : outputAnalysisPropertyOperatorAntiLog10      , outputAnalysisPropertyOperatorCsmlgyAnglrDstnc, outputAnalysisPropertyOperatorCsmlgyLmnstyDstnc, outputAnalysisPropertyOperatorLog10              , &
@@ -448,13 +449,15 @@ contains
          &                                covarianceBinomialMassHaloMinimum                     , &
          &                                covarianceBinomialMassHaloMaximum                     , &
          &                                .false.                                               , &
-         &                                var_str('$r_{1/2}/\mathrm{kpc}$'                   )  , &
-         &                                var_str('$\mathrm{d}p/\mathrm{d}\log_{10} r_{1/2}$')  , &
-         &                                .true.                                                , &
-         &                                .false.                                               , &
-         &                                var_str('Shen et al. (2003)')                         , &
-         &                                functionValueTarget                                   , &
-         &                                functionCovarianceTarget                                &
+         &                                outputAnalysisTargetDataStandard(                                                          &
+         &                                                                 xAxisLabel      =var_str('$r_{1/2}/\mathrm{kpc}$'                   ), &
+         &                                                                 yAxisLabel      =var_str('$\mathrm{d}p/\mathrm{d}\log_{10} r_{1/2}$'), &
+         &                                                                 xAxisIsLog      =.true.                                              , &
+         &                                                                 yAxisIsLog      =.false.                                             , &
+         &                                                                 targetLabel     =var_str('Shen et al. (2003)')                      , &
+         &                                                                 valueTarget     =functionValueTarget                                 , &
+         &                                                                 covarianceTarget=functionCovarianceTarget                              &
+         &                                                                )                                                                      &
          &                               )
     !![
     <objectDestructor name="surveyGeometry_"                                 />

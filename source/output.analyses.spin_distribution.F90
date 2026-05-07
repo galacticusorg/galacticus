@@ -376,6 +376,7 @@ contains
     use :: Output_Analyses_Options                 , only : outputAnalysisCovarianceModelPoisson
     use :: Output_Analysis_Distribution_Normalizers, only : normalizerList                                   , outputAnalysisDistributionNormalizerBinWidth, outputAnalysisDistributionNormalizerLog10ToLog, outputAnalysisDistributionNormalizerSequence, &
           &                                                 outputAnalysisDistributionNormalizerUnitarity
+    use :: Output_Analysis_Target_Data             , only : outputAnalysisTargetDataStandard
     use :: Output_Analysis_Distribution_Operators  , only : outputAnalysisDistributionOperatorSpinNBodyErrors
     use :: Output_Analysis_Property_Operators      , only : outputAnalysisPropertyOperatorAntiLog10          , outputAnalysisPropertyOperatorLog10
     use :: Output_Analysis_Weight_Operators        , only : outputAnalysisWeightOperatorIdentity
@@ -580,13 +581,15 @@ contains
          &                                                             covarianceBinomialMassHaloMinimum                  , &
          &                                                             covarianceBinomialMassHaloMaximum                  , &
          &                                                             .false.                                            , &
-         &                                                             var_str('$\lambda$'                               ), &
-         &                                                             var_str('$\mathrm{d}p/\mathrm{d}\log\lambda$'     ), &
-         &                                                             .true.                                             , &
-         &                                                             .true.                                             , &
-         &                                                             targetLabel                                        , &
-         &                                                             functionValueTarget                                , &
-         &                                                             functionCovarianceTarget                             &
+         &                                                             outputAnalysisTargetDataStandard(                                                                  &
+         &                                                                                              xAxisLabel      =var_str('$\lambda$'                               ), &
+         &                                                                                              yAxisLabel      =var_str('$\mathrm{d}p/\mathrm{d}\log\lambda$'     ), &
+         &                                                                                              xAxisIsLog      =.true.                                             , &
+         &                                                                                              yAxisIsLog      =.true.                                             , &
+         &                                                                                              targetLabel     =targetLabel                                        , &
+         &                                                                                              valueTarget     =functionValueTarget                                , &
+         &                                                                                              covarianceTarget=functionCovarianceTarget                             &
+         &                                                                                             )                                                                     &
          &                                                            )
     !![
     <objectDestructor name="haloSpinDistributionDeltaFunction_"             />

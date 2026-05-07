@@ -301,6 +301,7 @@ contains
     use :: Numerical_Constants_Astronomical      , only : gigaYear                                   , massSolar
     use :: Output_Analyses_Options               , only : outputAnalysisCovarianceModelBinomial
     use :: Output_Analysis_Distribution_Operators, only : outputAnalysisDistributionOperatorClass
+    use :: Output_Analysis_Target_Data           , only : outputAnalysisTargetDataStandard
     use :: Output_Analysis_Property_Operators    , only : outputAnalysisPropertyOperatorAntiLog10    , outputAnalysisPropertyOperatorClass   , outputAnalysisPropertyOperatorCsmlgyLmnstyDstnc, outputAnalysisPropertyOperatorLog10, &
           &                                               outputAnalysisPropertyOperatorNormal       , outputAnalysisPropertyOperatorSequence, propertyOperatorList
     use :: Output_Analysis_Weight_Operators      , only : outputAnalysisWeightOperatorIdentity
@@ -500,13 +501,15 @@ contains
          &                              covarianceBinomialMassHaloMinimum                               , &
          &                              covarianceBinomialMassHaloMaximum                               , &
          &                              .false.                                                         , &
-         &                              var_str('$M_\star\, [\mathrm{M}_\odot]$'                       ), &
-         &                              var_str('$f_\mathrm{q}$'                                       ), &
-         &                              .true.                                                          , &
-         &                              .true.                                                          , &
-         &                              targetLabel                                                     , &
-         &                              meanValueTarget                                                 , &
-         &                              meanCovarianceTarget                                              &
+         &                              outputAnalysisTargetDataStandard(                                                                       &
+         &                                                               xAxisLabel      =var_str('$M_\star\, [\mathrm{M}_\odot]$'           ), &
+         &                                                               yAxisLabel      =var_str('$f_\mathrm{q}$'                            ), &
+         &                                                               xAxisIsLog      =.true.                                              , &
+         &                                                               yAxisIsLog      =.true.                                              , &
+         &                                                               targetLabel     =targetLabel                                         , &
+         &                                                               valueTarget     =meanValueTarget                                     , &
+         &                                                               covarianceTarget=meanCovarianceTarget                                  &
+         &                                                              )                                                                      &
          &                             )
     !![
     <objectDestructor name="outputAnalysisPropertyOperatorCsmlgyLmnstyDstnc_"/>

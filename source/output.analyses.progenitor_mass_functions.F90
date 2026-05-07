@@ -486,6 +486,7 @@ contains
     use :: Output_Analysis_Distribution_Operators  , only : outputAnalysisDistributionOperatorMassRatioNBody
     use :: Output_Analysis_Property_Operators      , only : outputAnalysisPropertyOperatorAntiLog10         , outputAnalysisPropertyOperatorIdentity      , outputAnalysisPropertyOperatorLog10
     use :: Output_Analyses_Options                 , only : outputAnalysisCovarianceModelPoisson
+    use :: Output_Analysis_Target_Data             , only : outputAnalysisTargetDataStandard
     use :: Statistics_NBody_Halo_Mass_Errors       , only : nbodyHaloMassErrorClass
     use :: Virial_Density_Contrast                 , only : virialDensityContrastClass
     implicit none
@@ -731,13 +732,15 @@ contains
          &                                covarianceBinomialMassHaloMinimum                         , &
          &                                covarianceBinomialMassHaloMaximum                         , &
          &                                .false.                                                   , &
-         &                                var_str('$x=M_\mathrm{progenitor}/M_\mathrm{parent}$'    ), &
-         &                                var_str('$\mathrm{d}f/\mathrm{d}\log_\mathrm{e}x$'       ), &
-         &                                .true.                                                    , &
-         &                                .true.                                                    , &
-         &                                targetLabel                                               , &
-         &                                functionValueTarget                                       , &
-         &                                functionCovarianceTarget                                    &
+         &                                outputAnalysisTargetDataStandard(                                                                                &
+         &                                                                 xAxisLabel      =var_str('$x=M_\mathrm{progenitor}/M_\mathrm{parent}$'        ), &
+         &                                                                 yAxisLabel      =var_str('$\mathrm{d}f/\mathrm{d}\log_\mathrm{e}x$'           ), &
+         &                                                                 xAxisIsLog      =.true.                                                        , &
+         &                                                                 yAxisIsLog      =.true.                                                        , &
+         &                                                                 targetLabel     =targetLabel                                                   , &
+         &                                                                 valueTarget     =functionValueTarget                                           , &
+         &                                                                 covarianceTarget=functionCovarianceTarget                                        &
+         &                                                                )                                                                                &
          &                               )
     !![
     <objectDestructor name="galacticFilterHaloIsolated_"                    />

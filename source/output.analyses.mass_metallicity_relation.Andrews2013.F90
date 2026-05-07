@@ -160,6 +160,7 @@ contains
     use :: Numerical_Constants_Astronomical          , only : massSolar
     use :: Output_Analyses_Options                   , only : outputAnalysisCovarianceModelBinomial
     use :: Output_Analysis_Distribution_Operators    , only : outputAnalysisDistributionOperatorRandomErrorPlynml
+    use :: Output_Analysis_Target_Data               , only : outputAnalysisTargetDataStandard
     use :: Output_Analysis_Property_Operators        , only : outputAnalysisPropertyOperatorAntiLog10            , outputAnalysisPropertyOperatorCsmlgyLmnstyDstnc, outputAnalysisPropertyOperatorFilterHighPass   , outputAnalysisPropertyOperatorLog10, &
           &                                                   outputAnalysisPropertyOperatorMetallicity12LogNH   , outputAnalysisPropertyOperatorSequence         , outputAnalysisPropertyOperatorSystmtcPolynomial, propertyOperatorList
     use :: Output_Analysis_Utilities                 , only : Output_Analysis_Output_Weight_Survey_Volume
@@ -428,13 +429,15 @@ contains
          &                                                         covarianceBinomialMassHaloMinimum                      , &
          &                                                         covarianceBinomialMassHaloMaximum                      , &
          &                                                         likelihoodNormalize                                    , &
-         &                                                         var_str('$M_\star/\mathrm{M}_\odot$')                  , &
-         &                                                         var_str('$\langle 12+[\mathrm{O}/\mathrm{H}] \rangle$'), &
-         &                                                         .true.                                                 , &
-         &                                                         .false.                                                , &
-         &                                                         var_str('Andrews \& Martini (2013)')                   , &
-         &                                                         functionValueTarget                                    , &
-         &                                                         functionCovarianceTarget                                 &
+         &                                                         outputAnalysisTargetDataStandard(                                                                  &
+         &                                                                                          xAxisLabel      =var_str('$M_\star/\mathrm{M}_\odot$'                ), &
+         &                                                                                          yAxisLabel      =var_str('$\langle 12+[\mathrm{O}/\mathrm{H}] \rangle$'), &
+         &                                                                                          xAxisIsLog      =.true.                                              , &
+         &                                                                                          yAxisIsLog      =.false.                                             , &
+         &                                                                                          targetLabel     =var_str('Andrews \& Martini (2013)')                , &
+         &                                                                                          valueTarget     =functionValueTarget                                 , &
+         &                                                                                          covarianceTarget=functionCovarianceTarget                              &
+         &                                                                                         )                                                                      &
          &                                                        )
     ! Clean up.
     !![

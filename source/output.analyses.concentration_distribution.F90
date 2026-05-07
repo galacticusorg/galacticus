@@ -340,6 +340,7 @@ contains
     use :: Output_Analyses_Options                 , only : outputAnalysisCovarianceModelPoisson
     use :: Output_Analysis_Distribution_Normalizers, only : normalizerList                                  , outputAnalysisDistributionNormalizerBinWidth, outputAnalysisDistributionNormalizerLog10ToLog, outputAnalysisDistributionNormalizerSequence, &
           &                                                 outputAnalysisDistributionNormalizerUnitarity
+    use :: Output_Analysis_Target_Data             , only : outputAnalysisTargetDataStandard
     use :: Output_Analysis_Distribution_Operators  , only : outputAnalysisDistributionOperatorRndmErrNbdyCnc
     use :: Output_Analysis_Property_Operators      , only : outputAnalysisPropertyOperatorAntiLog10         , outputAnalysisPropertyOperatorIdentity      , outputAnalysisPropertyOperatorLog10
     use :: Output_Analysis_Weight_Operators        , only : outputAnalysisWeightOperatorNbodyMass
@@ -574,13 +575,15 @@ contains
          &                                covarianceBinomialMassHaloMinimum                           , &
          &                                covarianceBinomialMassHaloMaximum                           , &
          &                                .false.                                                     , &
-         &                                var_str('$c$'                                              ), &
-         &                                var_str('$\mathrm{d}p/\mathrm{d}\log c$'                   ), &
-         &                                .true.                                                      , &
-         &                                .false.                                                     , &
-         &                                targetLabel                                                 , &
-         &                                functionValueTarget                                         , &
-         &                                functionCovarianceTarget                                      &
+         &                                outputAnalysisTargetDataStandard(                                                                       &
+         &                                                                 xAxisLabel      =var_str('$c$'                          )             , &
+         &                                                                 yAxisLabel      =var_str('$\mathrm{d}p/\mathrm{d}\log c$')             , &
+         &                                                                 xAxisIsLog      =.true.                                                , &
+         &                                                                 yAxisIsLog      =.false.                                               , &
+         &                                                                 targetLabel     =targetLabel                                           , &
+         &                                                                 valueTarget     =functionValueTarget                                   , &
+         &                                                                 covarianceTarget=functionCovarianceTarget                                &
+         &                                                                )                                                                        &
          &                               )
     !![
     <objectDestructor name="galacticFilterHaloIsolated_"                    />

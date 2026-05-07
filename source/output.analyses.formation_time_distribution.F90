@@ -450,6 +450,7 @@ contains
     use :: Output_Analysis_Weight_Operators        , only : outputAnalysisWeightOperatorSubsampling         , weightOperatorList
     use :: Output_Analysis_Property_Operators      , only : outputAnalysisPropertyOperatorIdentity
     use :: Output_Analyses_Options                 , only : outputAnalysisCovarianceModelPoisson
+    use :: Output_Analysis_Target_Data             , only : outputAnalysisTargetDataStandard
     use :: Statistics_NBody_Halo_Mass_Errors       , only : nbodyHaloMassErrorClass
     use :: Virial_Density_Contrast                 , only : virialDensityContrastClass
     implicit none
@@ -658,12 +659,15 @@ contains
          &                                covarianceBinomialMassHaloMinimum                            , &
          &                                covarianceBinomialMassHaloMaximum                            , &
          &                                .false.                                                      , &
-         &                                var_str('$x= z $'                                           ), &
-         &                                var_str('Distribution'                                      ), &
-         &                                .false.                                                      , &
-         &                                .true.                                                       ,                                 targetLabel                                                  , &
-         &                                functionValueTarget                                          , &
-         &                                functionCovarianceTarget                                       &
+         &                                outputAnalysisTargetDataStandard(                                                          &
+         &                                                                 xAxisLabel      =var_str('$x= z $'      )                , &
+         &                                                                 yAxisLabel      =var_str('Distribution' )                , &
+         &                                                                 xAxisIsLog      =.false.                                  , &
+         &                                                                 yAxisIsLog      =.true.                                   , &
+         &                                                                 targetLabel     =targetLabel                              , &
+         &                                                                 valueTarget     =functionValueTarget                      , &
+         &                                                                 covarianceTarget=functionCovarianceTarget                   &
+         &                                                                )                                                          &
          &                               )
     !![
     <objectDestructor name="galacticFilterHaloIsolated_"                    />

@@ -236,6 +236,7 @@ contains
     use :: Numerical_Constants_Astronomical        , only : massSolar                                  , megaParsec
     use :: Output_Analyses_Options                 , only : outputAnalysisCovarianceModelBinomial
     use :: Output_Analysis_Distribution_Normalizers, only : normalizerList                             , outputAnalysisDistributionNormalizerBinWidth, outputAnalysisDistributionNormalizerLog10ToLog , outputAnalysisDistributionNormalizerSequence
+    use :: Output_Analysis_Target_Data             , only : outputAnalysisTargetDataStandard
     use :: Output_Analysis_Property_Operators      , only : outputAnalysisPropertyOperatorAntiLog10    , outputAnalysisPropertyOperatorClass         , outputAnalysisPropertyOperatorCsmlgyLmnstyDstnc, outputAnalysisPropertyOperatorLog10         , &
           &                                                 outputAnalysisPropertyOperatorSequence     , propertyOperatorList
     use :: Output_Analysis_Utilities               , only : Output_Analysis_Output_Weight_Survey_Volume
@@ -375,13 +376,15 @@ contains
          &                                covarianceBinomialMassHaloMinimum                         , &
          &                                covarianceBinomialMassHaloMaximum                         , &
          &                                .false.                                                   , &
-         &                                var_str('$\log_{10}(M_\star/\mathrm{M}_\odot)$'          ), &
-         &                                var_str('$\mathrm{d}n/\mathrm{d}\log_\mathrm{e} M_\star$'), &
-         &                                .true.                                                    , &
-         &                                .true.                                                    , &
-         &                                targetLabel                                               , &
-         &                                functionValueTarget                                       , &
-         &                                functionCovarianceTarget                                    &
+         &                                outputAnalysisTargetDataStandard(                                                                            &
+         &                                                                 xAxisLabel      =var_str('$\log_{10}(M_\star/\mathrm{M}_\odot)$'          ), &
+         &                                                                 yAxisLabel      =var_str('$\mathrm{d}n/\mathrm{d}\log_\mathrm{e} M_\star$'), &
+         &                                                                 xAxisIsLog      =.true.                                                    , &
+         &                                                                 yAxisIsLog      =.true.                                                    , &
+         &                                                                 targetLabel     =targetLabel                                               , &
+         &                                                                 valueTarget     =functionValueTarget                                       , &
+         &                                                                 covarianceTarget=functionCovarianceTarget                                    &
+         &                                                                )                                                                            &
          &                               )
     ! Clean up.
     !![

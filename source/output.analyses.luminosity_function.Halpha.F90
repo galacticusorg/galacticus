@@ -283,6 +283,7 @@ contains
     use :: Numerical_Constants_Units               , only : ergs
     use :: Output_Analyses_Options                 , only : outputAnalysisCovarianceModelBinomial
     use :: Output_Analysis_Distribution_Normalizers, only : normalizerList                                 , outputAnalysisDistributionNormalizerBinWidth, outputAnalysisDistributionNormalizerLog10ToLog , outputAnalysisDistributionNormalizerSequence
+    use :: Output_Analysis_Target_Data             , only : outputAnalysisTargetDataStandard
     use :: Output_Analysis_Distribution_Operators  , only : outputAnalysisDistributionOperatorClass
     use :: Output_Analysis_Property_Operators      , only : outputAnalysisPropertyOperatorAntiLog10        , outputAnalysisPropertyOperatorClass         , outputAnalysisPropertyOperatorCsmlgyLmnstyDstnc, outputAnalysisPropertyOperatorLog10         , &
           &                                                 outputAnalysisPropertyOperatorSequence         , propertyOperatorList
@@ -443,13 +444,15 @@ contains
          &                                covarianceBinomialMassHaloMinimum                                                          , &
          &                                covarianceBinomialMassHaloMaximum                                                          , &
          &                                .false.                                                                                    , &
-         &                                var_str('$L_{\mathrm{H}\alpha}$ [ergs/s]'                                                 ), &
-         &                                var_str('$\mathrm{d}n/\mathrm{d}\log_\mathrm{e} L_{\mathrm{H}\alpha}$ [$_\chi$Mpc$^{-3}$]'), &
-         &                                .true.                                                                                     , &
-         &                                .true.                                                                                     , &
-         &                                targetLabel                                                                                , &
-         &                                functionValueTarget                                                                        , &
-         &                                functionCovarianceTarget                                                                     &
+         &                                outputAnalysisTargetDataStandard(                                                                                                          &
+         &                                                                 xAxisLabel      =var_str('$L_{\mathrm{H}\alpha}$ [ergs/s]'                                                 ), &
+         &                                                                 yAxisLabel      =var_str('$\mathrm{d}n/\mathrm{d}\log_\mathrm{e} L_{\mathrm{H}\alpha}$ [$_\chi$Mpc$^{-3}$]'), &
+         &                                                                 xAxisIsLog      =.true.                                                                                     , &
+         &                                                                 yAxisIsLog      =.true.                                                                                     , &
+         &                                                                 targetLabel     =targetLabel                                                                                , &
+         &                                                                 valueTarget     =functionValueTarget                                                                        , &
+         &                                                                 covarianceTarget=functionCovarianceTarget                                                                     &
+         &                                                                )                                                                                                            &
          &                               )
     ! Clean up.
     !![

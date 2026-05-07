@@ -305,6 +305,7 @@ contains
     use :: Numerical_Constants_Astronomical      , only : massSolar
     use :: Output_Analyses_Options               , only : outputAnalysisCovarianceModelBinomial
     use :: Output_Analysis_Distribution_Operators, only : outputAnalysisDistributionOperatorClass
+    use :: Output_Analysis_Target_Data           , only : outputAnalysisTargetDataStandard
     use :: Output_Analysis_Property_Operators    , only : outputAnalysisPropertyOperatorAntiLog10    , outputAnalysisPropertyOperatorClass, outputAnalysisPropertyOperatorCsmlgyLmnstyDstnc, outputAnalysisPropertyOperatorLog10, &
           &                                               outputAnalysisPropertyOperatorSequence     , propertyOperatorList
     use :: Output_Analysis_Weight_Operators      , only : outputAnalysisWeightOperatorIdentity
@@ -490,13 +491,15 @@ contains
          &                              covarianceBinomialMassHaloMinimum                                                 , &
          &                              covarianceBinomialMassHaloMaximum                                                 , &
          &                              .false.                                                                           , &
-         &                              var_str('$M_\star\, [\mathrm{M}_\odot]$'                                         ), &
-         &                              var_str('$\langle \log_{10} (\dot{M}_\star/M_\star / \mathrm{Gyr}^{-1}) \rangle$'), &
-         &                              .true.                                                                            , &
-         &                              .false.                                                                           , &
-         &                              targetLabel                                                                       , &
-         &                              meanValueTarget                                                                   , &
-         &                              meanCovarianceTarget                                                              , &
+         &                              outputAnalysisTargetDataStandard(                                                                                                  &
+         &                                                               xAxisLabel      =var_str('$M_\star\, [\mathrm{M}_\odot]$'                                         ), &
+         &                                                               yAxisLabel      =var_str('$\langle \log_{10} (\dot{M}_\star/M_\star / \mathrm{Gyr}^{-1}) \rangle$'), &
+         &                                                               xAxisIsLog      =.true.                                                                            , &
+         &                                                               yAxisIsLog      =.false.                                                                           , &
+         &                                                               targetLabel     =targetLabel                                                                       , &
+         &                                                               valueTarget     =meanValueTarget                                                                   , &
+         &                                                               covarianceTarget=meanCovarianceTarget                                                                &
+         &                                                              )                                                                                                    , &
          &                              massesStellarBinWidthLogarithmic                                                    &
          &                             )
     !![
