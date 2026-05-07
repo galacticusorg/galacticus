@@ -355,16 +355,16 @@ contains
     ! Optional dummies (`targetLabel`, `functionValueTarget`, `functionCovarianceTarget`) of
     ! this enclosing constructor pass through unchanged: an absent optional dummy forwarded
     ! by name to another optional dummy of the same name remains absent.
+    outputAnalysisTargetData_=outputAnalysisTargetDataStandard(                                                                           &
+         &                                                     xAxisLabel      =var_str('$M$'                                          ), &
+         &                                                     yAxisLabel      =var_str('$\mathrm{d}n/\mathrm{d}M$ [$_\chi$Mpc$^{-3}$]'), &
+         &                                                     xAxisIsLog      =.false.                                                 , &
+         &                                                     yAxisIsLog      =.true.                                                  , &
+         &                                                     targetLabel     =targetLabel                                             , &
+         &                                                     valueTarget     =functionValueTarget                                     , &
+         &                                                     covarianceTarget=functionCovarianceTarget                                  &
+         &                                                    )
     self%outputAnalysisVolumeFunction1D=                                                            &
-         outputAnalysisTargetData_=outputAnalysisTargetDataStandard(                                                                  &
-         &                                                                 xAxisLabel      =var_str('$M$'                                ),  &
-         &                                                                 yAxisLabel      =var_str('$\mathrm{d}n/\mathrm{d}M$ [$_\chi$Mpc$^{-3}$]'), &
-         &                                                                 xAxisIsLog      =.false.                                       ,  &
-         &                                                                 yAxisIsLog      =.true.                                        ,  &
-         &                                                                 targetLabel     =targetLabel                                   ,  &
-         &                                                                 valueTarget     =functionValueTarget                          ,  &
-         &                                                                 covarianceTarget=functionCovarianceTarget                         &
-         &                                                                )
          & outputAnalysisVolumeFunction1D(                                                          &
          &                                'luminosityFunction'//label                             , &
          &                                comment                                                 , &
@@ -396,7 +396,7 @@ contains
          &                                covarianceBinomialMassHaloMinimum                       , &
          &                                covarianceBinomialMassHaloMaximum                       , &
          &                                .false.                                                 , &
-         &                                outputAnalysisTargetData_                                                                  &
+         &                                outputAnalysisTargetData_                                 &
          &                               )
     ! Clean up.
     !![
