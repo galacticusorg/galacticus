@@ -34,12 +34,12 @@
      !!{
      The standard \refClass{outputAnalysisTargetData} class.
      !!}
-     type            (varying_string)                            :: xAxisLabel
-     type            (varying_string)                            :: yAxisLabel
-     type            (varying_string)                            :: targetLabel
-     logical                                                     :: xAxisIsLog
-     logical                                                     :: yAxisIsLog
-     double precision                , allocatable, dimension(:  ) :: valueTarget
+     type            (varying_string)                              :: xAxisLabel
+     type            (varying_string)                              :: yAxisLabel
+     type            (varying_string)                              :: targetLabel
+     logical                                                       :: xAxisIsLog
+     logical                                                       :: yAxisIsLog
+     double precision                , allocatable, dimension(:  ) :: valueTarget     , covarianceTarget1D
      double precision                , allocatable, dimension(:,:) :: covarianceTarget
    contains
      procedure :: hasTarget => standardHasTarget
@@ -63,13 +63,13 @@ contains
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
-    type            (outputAnalysisTargetDataStandard)                :: self
-    type            (inputParameters                 ), intent(inout) :: parameters
-    type            (varying_string                  )                :: xAxisLabel      , yAxisLabel  , &
-         &                                                               targetLabel
-    logical                                                           :: xAxisIsLog      , yAxisIsLog
-    double precision                                  , allocatable, dimension(:  )      :: valueTarget
-    double precision                                  , allocatable, dimension(:,:)      :: covarianceTarget
+    type            (outputAnalysisTargetDataStandard)                                :: self
+    type            (inputParameters                 ), intent(inout)                 :: parameters
+    type            (varying_string                  )                                :: xAxisLabel      , yAxisLabel        , &
+         &                                                                               targetLabel
+    logical                                                                           :: xAxisIsLog      , yAxisIsLog
+    double precision                                  , allocatable  , dimension(:  ) :: valueTarget     , covarianceTarget1D
+    double precision                                  , allocatable  , dimension(:,:) :: covarianceTarget
 
     !![
     <inputParameter>
@@ -118,17 +118,22 @@ contains
          <description>Target dataset values to compare against, one per bin of the output analysis.</description>
        </inputParameter>
        !!]
-    end if
-    if (parameters%isPresent('covarianceTarget')) then
-       allocate(covarianceTarget(parameters%count('covarianceTarget',dimension=1),parameters%count('covarianceTarget',dimension=2)))
-       !![
-       <inputParameter>
-         <name>covarianceTarget</name>
-         <source>parameters</source>
-         <variable>covarianceTarget</variable>
-         <description>Target-dataset covariance matrix corresponding to the \mono{valueTarget} array.</description>
-       </inputParameter>
-       !!]
+       if (parameters%isPresent('covarianceTarget')) then
+          if (parameters%count('covarianceTarget') /= parameters%count('valueTarget')**2) call Error_Report('covariance size does not match value size'//{introspection:location})
+          allocate(covarianceTarget1D(parameters%count('valueTarget')*parameters%count('valueTarget')))
+          allocate(covarianceTarget  (parameters%count('valueTarget'),parameters%count('valueTarget')))
+          !![
+          <inputParameter>
+          <name>covarianceTarget</name>
+          <source>parameters</source>
+          <variable>covarianceTarget1D</variable>
+          <description>Target-dataset covariance matrix corresponding to the \mono{valueTarget} array.</description>
+          </inputParameter>
+          !!]
+          covarianceTarget=reshape(covarianceTarget,[parameters%count('valueTarget'),parameters%count('valueTarget')])
+       end if
+    else
+        if (parameters%isPresent('covarianceTarget')) call Error_Report('variance provided but no target values'//{introspection:location})
     end if
     self=outputAnalysisTargetDataStandard(xAxisLabel,yAxisLabel,targetLabel,xAxisIsLog,yAxisIsLog,valueTarget,covarianceTarget)
     !![
