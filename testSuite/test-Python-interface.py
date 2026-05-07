@@ -1,6 +1,7 @@
 # Simple test of Python interface to libgalacticus
 import galacticus
 import ctypes
+import inspect
 import sys
 import numpy as np
 from contextlib import contextmanager
@@ -339,6 +340,66 @@ with safe_section("distributionFunctionMultivariateNormal"):
     )
     check_eq("constructed type",
              type(mvn).__name__, 'distributionFunctionMultivariateNormal')
+
+# `outputAnalysisTargetDataStandard` — a tiny functionClass that bundles the
+# seven coupled-but-individually-optional fields the 1D function output-analyses
+# (mean / scatter / volume) used to expose as separate constructor args.
+# Bundling them collapses the wrapper-pipeline's optional-argument branching
+# from 2^12+ to 2^6 on each affected outer constructor (see source/output.analyses.target_data.F90).
+# This test exercises three things:
+#   1. Round-trip from Python: construct an instance via the wrapper, call a
+#      method on it, get a value back.  `hasTarget()` returns true iff both
+#      target arrays are allocated, so it gives us a clean boolean witness.
+#   2. The bundle is genuinely partial-fill safe: defaults work, label-only
+#      construction works, full construction works.
+#   3. The refactored outer-class constructors actually carry `targetData_`
+#      in their Python signature (we don't try to instantiate one — that
+#      would need a half-dozen functionClass dependencies — just confirm
+#      the signature).
+with safe_section("outputAnalysisTargetDataStandard"):
+    # Default-construct: every field omitted.  hasTarget() is False because
+    # neither the value nor the covariance array was allocated.
+    td_empty = galacticus.outputAnalysisTargetDataStandard()
+    check_eq("hasTarget() default-constructed", td_empty.hasTarget(), False)
+
+    # Labels + log-scale flags only — still no target dataset, so
+    # hasTarget() remains False.
+    td_partial = galacticus.outputAnalysisTargetDataStandard(
+        xAxisLabel = 'log10(M_halo / M_sun)',
+        yAxisLabel = 'M_HI / M_sun',
+        xAxisIsLog = True,
+        yAxisIsLog = True,
+    )
+    check_eq("hasTarget() label-only construction", td_partial.hasTarget(), False)
+
+    # Fully populated, including a 3-element value array and 3x3 covariance
+    # (which exercises the 1D + 2D array boundary plumbing in the wrapper).
+    td_full = galacticus.outputAnalysisTargetDataStandard(
+        xAxisLabel       = 'log10(M_halo / M_sun)',
+        yAxisLabel       = 'log10(M_HI / M_sun)',
+        targetLabel      = 'Test target',
+        xAxisIsLog       = True,
+        yAxisIsLog       = True,
+        valueTarget      = [9.0, 9.5, 10.0],
+        covarianceTarget = [[0.1, 0.0, 0.0],
+                            [0.0, 0.2, 0.0],
+                            [0.0, 0.0, 0.3]],
+    )
+    check_eq("hasTarget() fully populated", td_full.hasTarget(), True)
+
+    # And confirm the refactored outer constructor exposes the bundled object
+    # under the expected keyword name.  This is what proves the
+    # 2^N branching reduction is wired up: each refactored constructor now
+    # has ONE optional argument for the bundle instead of seven.
+    sig = inspect.signature(galacticus.outputAnalysisVolumeFunction1D.__init__)
+    check_eq("outputAnalysisVolumeFunction1D exposes targetData_",
+             'targetData_' in sig.parameters, True)
+    sig = inspect.signature(galacticus.outputAnalysisMeanFunction1D.__init__)
+    check_eq("outputAnalysisMeanFunction1D exposes targetData_",
+             'targetData_' in sig.parameters, True)
+    sig = inspect.signature(galacticus.outputAnalysisScatterFunction1D.__init__)
+    check_eq("outputAnalysisScatterFunction1D exposes targetData_",
+             'targetData_' in sig.parameters, True)
 
 # Final summary and exit code.
 print(f"--- {_failures} failure(s) ---")
