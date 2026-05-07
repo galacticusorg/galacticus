@@ -149,7 +149,7 @@ contains
     All arguments are optional --- omitted axis labels default to \mono{'x'} / \mono{'y'}, omitted log-scale
     flags default to \mono{.false.}, and omitted target arrays simply remain unallocated.  These defaults
     match the per-argument defaults used by the outer 1D function output-analysis constructors when
-    \mono{targetData_} itself is absent.
+    \mono{targetData\_} itself is absent.
     !!}
     implicit none
     type            (outputAnalysisTargetDataStandard)                                          :: self
