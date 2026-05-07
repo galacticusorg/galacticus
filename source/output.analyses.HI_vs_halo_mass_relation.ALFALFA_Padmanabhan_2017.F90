@@ -405,15 +405,15 @@ contains
        end do
     end if
     ! Build the object.
-    outputAnalysisTargetData_=outputAnalysisTargetDataStandard(                                          &
-         &                                                                                          xAxisLabel      =var_str('$M_\mathrm{halo}/\mathrm{M}_\odot$'         ), &
-         &                                                                                          yAxisLabel      =var_str('$\log_{10}(M_\mathrm{HI}/\mathrm{M}_\odot)$'), &
-         &                                                                                          xAxisIsLog      =.true.                                ,  &
-         &                                                                                          yAxisIsLog      =.false.                               ,  &
-         &                                                                                          targetLabel     =var_str('Padmanabhan \\& Refrigier (2017)'),  &
-         &                                                                                          valueTarget     =massHILogarithmicTarget               ,  &
-         &                                                                                          covarianceTarget=massHILogarithmicCovarianceTarget        &
-         &                                                                                         )
+    outputAnalysisTargetData_=outputAnalysisTargetDataStandard(                                                                         &
+         &                                                     xAxisLabel      =var_str('$M_\mathrm{halo}/\mathrm{M}_\odot$'         ), &
+         &                                                     yAxisLabel      =var_str('$\log_{10}(M_\mathrm{HI}/\mathrm{M}_\odot)$'), &
+         &                                                     xAxisIsLog      =.true.                                                , &
+         &                                                     yAxisIsLog      =.false.                                               , &
+         &                                                     targetLabel     =var_str('Padmanabhan \\& Refrigier (2017)'           ), &
+         &                                                     valueTarget     =massHILogarithmicTarget                               , &
+         &                                                     covarianceTarget=massHILogarithmicCovarianceTarget                       &
+         &                                                    )
     self%outputAnalysisMeanFunction1D=outputAnalysisMeanFunction1D(                                                        &
          &                                                         var_str('hiHaloMassRelationPadmanabhan2017'          ), &
          &                                                         var_str('HI vs. halo mass relation'                  ), &
@@ -446,7 +446,7 @@ contains
          &                                                         covarianceBinomialMassHaloMinimum                     , &
          &                                                         covarianceBinomialMassHaloMaximum                     , &
          &                                                         likelihoodNormalize                                   , &
-         &                                                         outputAnalysisTargetData_                                            &
+         &                                                         outputAnalysisTargetData_                               &
          &                                                        )
     ! Clean up.
     !![

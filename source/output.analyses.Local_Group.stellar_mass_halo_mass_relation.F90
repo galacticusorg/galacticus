@@ -364,14 +364,14 @@ contains
     select type (outputAnalysis_ => self%outputAnalysis_)
     type is (outputAnalysisMeanFunction1D)
        outputAnalysisTargetData_=outputAnalysisTargetDataStandard(                                                                                  &
-           &                                                         xAxisLabel      =var_str('$M_\mathrm{halo}/\mathrm{M}_\odot$'                  ), &
-           &                                                         yAxisLabel      =var_str('$\langle\log_{10}(M_\star/\mathrm{M}_\odot)\rangle$' ), &
-           &                                                         xAxisIsLog      =.true.                                                        , &
-           &                                                         yAxisIsLog      =.false.                                                       , &
-           &                                                         targetLabel     =var_str('Nadler et al. (2020)'                                ), &
-           &                                                         valueTarget     =functionValueTarget                                           , &
-           &                                                         covarianceTarget=functionCovarianceTarget                                        &
-           &                                                        )
+           &                                                      xAxisLabel      =var_str('$M_\mathrm{halo}/\mathrm{M}_\odot$'                  ), &
+           &                                                      yAxisLabel      =var_str('$\langle\log_{10}(M_\star/\mathrm{M}_\odot)\rangle$' ), &
+           &                                                      xAxisIsLog      =.true.                                                         , &
+           &                                                      yAxisIsLog      =.false.                                                        , &
+           &                                                      targetLabel     =var_str('Nadler et al. (2020)'                                ), &
+           &                                                      valueTarget     =functionValueTarget                                            , &
+           &                                                      covarianceTarget=functionCovarianceTarget                                         &
+           &                                                     )
        !![
        <referenceConstruct isResult="yes" object="outputAnalysis_">
 	 <constructor>
@@ -407,7 +407,7 @@ contains
 	   &amp;                        covarianceBinomialMassHaloMinimum                                   , &amp;
 	   &amp;                        covarianceBinomialMassHaloMaximum                                   , &amp;
            &amp;                        likelihoodNormalize                                                 , &amp;
-           &amp;                        outputAnalysisTargetData_                                                                                  &amp;
+           &amp;                        outputAnalysisTargetData_                                             &amp;
 	   &amp;                       )
 	 </constructor>
        </referenceConstruct>

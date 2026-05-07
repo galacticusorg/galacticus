@@ -418,16 +418,16 @@ contains
     write (massStellarMinimumLogarithmic,'(f5.2)') log10(massStellarMinimum)
     write (massStellarMaximumLogarithmic,'(f5.2)') log10(massStellarMaximum)
     description=description//"$"//trim(adjustl(massStellarMinimumLogarithmic))//" < \log_{10}(M_\star/\mathrm{M}_\odot) < "//trim(adjustl(massStellarMaximumLogarithmic))//"$"
+    outputAnalysisTargetData_=outputAnalysisTargetDataStandard(                                                                       &
+         &                                                     xAxisLabel      =var_str('$r_{1/2}/\mathrm{kpc}$'                   ), &
+         &                                                     yAxisLabel      =var_str('$\mathrm{d}p/\mathrm{d}\log_{10} r_{1/2}$'), &
+         &                                                     xAxisIsLog      =.true.                                              , &
+         &                                                     yAxisIsLog      =.false.                                             , &
+         &                                                     targetLabel     =var_str('Shen et al. (2003)')                       , &
+         &                                                     valueTarget     =functionValueTarget                                 , &
+         &                                                     covarianceTarget=functionCovarianceTarget                              &
+         &                                                    )
     self%outputAnalysisVolumeFunction1D=                                                          &
-         outputAnalysisTargetData_=outputAnalysisTargetDataStandard(                                                          &
-         &                                                                 xAxisLabel      =var_str('$r_{1/2}/\mathrm{kpc}$'                   ), &
-         &                                                                 yAxisLabel      =var_str('$\mathrm{d}p/\mathrm{d}\log_{10} r_{1/2}$'), &
-         &                                                                 xAxisIsLog      =.true.                                              , &
-         &                                                                 yAxisIsLog      =.false.                                             , &
-         &                                                                 targetLabel     =var_str('Shen et al. (2003)')                      , &
-         &                                                                 valueTarget     =functionValueTarget                                 , &
-         &                                                                 covarianceTarget=functionCovarianceTarget                              &
-         &                                                                )
          & outputAnalysisVolumeFunction1D(                                                        &
          &                                var_str('galaxySizesSDSS')//trim(distributionName)    , &
          &                                description                                           , &
@@ -459,7 +459,7 @@ contains
          &                                covarianceBinomialMassHaloMinimum                     , &
          &                                covarianceBinomialMassHaloMaximum                     , &
          &                                .false.                                               , &
-         &                                outputAnalysisTargetData_                                                                      &
+         &                                outputAnalysisTargetData_                               &
          &                               )
     !![
     <objectDestructor name="surveyGeometry_"                                 />

@@ -544,16 +544,16 @@ contains
     ! Determine number of buffer bins.
     bufferCount=0
     ! Construct the object.
+    outputAnalysisTargetData_=outputAnalysisTargetDataStandard(                                                            &
+         &                                                     xAxisLabel      =var_str('$c$'                           ), &
+         &                                                     yAxisLabel      =var_str('$\mathrm{d}p/\mathrm{d}\log c$'), &
+         &                                                     xAxisIsLog      =.true.                                   , &
+         &                                                     yAxisIsLog      =.false.                                  , &
+         &                                                     targetLabel     =targetLabel                              , &
+         &                                                     valueTarget     =functionValueTarget                      , &
+         &                                                     covarianceTarget=functionCovarianceTarget                   &
+         &                                                    )
     self%outputAnalysisVolumeFunction1D=                                                                &
-         outputAnalysisTargetData_=outputAnalysisTargetDataStandard(                                                                       &
-         &                                                                 xAxisLabel      =var_str('$c$'                          )             , &
-         &                                                                 yAxisLabel      =var_str('$\mathrm{d}p/\mathrm{d}\log c$')             , &
-         &                                                                 xAxisIsLog      =.true.                                                , &
-         &                                                                 yAxisIsLog      =.false.                                               , &
-         &                                                                 targetLabel     =targetLabel                                           , &
-         &                                                                 valueTarget     =functionValueTarget                                   , &
-         &                                                                 covarianceTarget=functionCovarianceTarget                                &
-         &                                                                )
          & outputAnalysisVolumeFunction1D(                                                              &
          &                                var_str('concentrationDistribution')//label                 , &
          &                                comment                                                     , &
@@ -585,7 +585,7 @@ contains
          &                                covarianceBinomialMassHaloMinimum                           , &
          &                                covarianceBinomialMassHaloMaximum                           , &
          &                                .false.                                                     , &
-         &                                outputAnalysisTargetData_                                                                        &
+         &                                outputAnalysisTargetData_                                     &
          &                               )
     !![
     <objectDestructor name="galacticFilterHaloIsolated_"                    />

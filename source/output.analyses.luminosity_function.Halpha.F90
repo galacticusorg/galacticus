@@ -413,48 +413,48 @@ contains
     ! convolution operations on the distribution function are unaffected by edge effects.
     bufferCount=max(int(bufferWidth/log10(luminosities(2)/luminosities(1)))+1,bufferCountMinimum)
     ! Construct the object.
-    self%outputAnalysisVolumeFunction1D=                                                                                               &
-         outputAnalysisTargetData_=outputAnalysisTargetDataStandard(                                                                                                          &
-         &                                                                 xAxisLabel      =var_str('$L_{\mathrm{H}\alpha}$ [ergs/s]'                                                 ), &
-         &                                                                 yAxisLabel      =var_str('$\mathrm{d}n/\mathrm{d}\log_\mathrm{e} L_{\mathrm{H}\alpha}$ [$_\chi$Mpc$^{-3}$]'), &
-         &                                                                 xAxisIsLog      =.true.                                                                                     , &
-         &                                                                 yAxisIsLog      =.true.                                                                                     , &
-         &                                                                 targetLabel     =targetLabel                                                                                , &
-         &                                                                 valueTarget     =functionValueTarget                                                                        , &
-         &                                                                 covarianceTarget=functionCovarianceTarget                                                                     &
-         &                                                                )
-         & outputAnalysisVolumeFunction1D(                                                                                             &
-         &                                'luminosityFunctionHalpha'//label                                                          , &
-         &                                comment                                                                                    , &
-         &                                var_str('luminosity'                                                                      ), &
-         &                                var_str('Hα luminosity at the bin center'                                                 ), &
-         &                                var_str('ergs/s'                                                                          ), &
-         &                                var_str('erg/s'                                                                           ), &
-         &                                .false.                                                                                    , &
-         &                                ergs                                                                                       , &
-         &                                var_str('luminosityFunction'                                                              ), &
-         &                                var_str('luminosity function averaged over each bin'                                      ), &
-         &                                var_str('ᵪMpc⁻³'                                                                          ), &
-         &                                var_str('Mpc^-3'                                                                          ), &
-         &                                .true.                                                                                     , &
-         &                                megaParsec**(-3)                                                                           , &
-         &                                log10(luminosities)                                                                        , &
-         &                                bufferCount                                                                                , &
-         &                                outputWeight                                                                               , &
-         &                                nodePropertyExtractor_                                                                     , &
-         &                                outputAnalysisPropertyOperatorSequence_                                                    , &
-         &                                outputAnalysisPropertyOperatorAntiLog10_                                                   , &
-         &                                outputAnalysisWeightOperator_                                                              , &
-         &                                outputAnalysisDistributionOperator_                                                        , &
-         &                                outputAnalysisDistributionNormalizer_                                                      , &
-         &                                galacticFilter_                                                                            , &
-         &                                outputTimes_                                                                               , &
-         &                                outputAnalysisCovarianceModelBinomial                                                      , &
-         &                                covarianceBinomialBinsPerDecade                                                            , &
-         &                                covarianceBinomialMassHaloMinimum                                                          , &
-         &                                covarianceBinomialMassHaloMaximum                                                          , &
-         &                                .false.                                                                                    , &
-         &                                outputAnalysisTargetData_                                                                                                            &
+    outputAnalysisTargetData_=outputAnalysisTargetDataStandard(                                                                                                              &
+         &                                                     xAxisLabel      =var_str('$L_{\mathrm{H}\alpha}$ [ergs/s]'                                                 ), &
+         &                                                     yAxisLabel      =var_str('$\mathrm{d}n/\mathrm{d}\log_\mathrm{e} L_{\mathrm{H}\alpha}$ [$_\chi$Mpc$^{-3}$]'), &
+         &                                                     xAxisIsLog      =.true.                                                                                     , &
+         &                                                     yAxisIsLog      =.true.                                                                                     , &
+         &                                                     targetLabel     =targetLabel                                                                                , &
+         &                                                     valueTarget     =functionValueTarget                                                                        , &
+         &                                                     covarianceTarget=functionCovarianceTarget                                                                     &
+         &                                                    )
+    self%outputAnalysisVolumeFunction1D=                                                         &
+         & outputAnalysisVolumeFunction1D(                                                       &
+         &                                'luminosityFunctionHalpha'//label                    , &
+         &                                comment                                              , &
+         &                                var_str('luminosity'                                ), &
+         &                                var_str('Hα luminosity at the bin center'           ), &
+         &                                var_str('ergs/s'                                    ), &
+         &                                var_str('erg/s'                                     ), &
+         &                                .false.                                              , &
+         &                                ergs                                                 , &
+         &                                var_str('luminosityFunction'                        ), &
+         &                                var_str('luminosity function averaged over each bin'), &
+         &                                var_str('ᵪMpc⁻³'                                    ), &
+         &                                var_str('Mpc^-3'                                    ), &
+         &                                .true.                                               , &
+         &                                megaParsec**(-3)                                     , &
+         &                                log10(luminosities)                                  , &
+         &                                bufferCount                                          , &
+         &                                outputWeight                                         , &
+         &                                nodePropertyExtractor_                               , &
+         &                                outputAnalysisPropertyOperatorSequence_              , &
+         &                                outputAnalysisPropertyOperatorAntiLog10_             , &
+         &                                outputAnalysisWeightOperator_                        , &
+         &                                outputAnalysisDistributionOperator_                  , &
+         &                                outputAnalysisDistributionNormalizer_                , &
+         &                                galacticFilter_                                      , &
+         &                                outputTimes_                                         , &
+         &                                outputAnalysisCovarianceModelBinomial                , &
+         &                                covarianceBinomialBinsPerDecade                      , &
+         &                                covarianceBinomialMassHaloMinimum                    , &
+         &                                covarianceBinomialMassHaloMaximum                    , &
+         &                                .false.                                              , &
+         &                                outputAnalysisTargetData_                              &
          &                               )
     ! Clean up.
     !![

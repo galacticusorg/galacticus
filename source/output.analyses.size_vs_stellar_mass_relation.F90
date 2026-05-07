@@ -666,15 +666,15 @@ contains
        </referenceConstruct>
        !!]
     type is (outputAnalysisMeanFunction1D   )
-       outputAnalysisTargetData_=outputAnalysisTargetDataStandard(                                                                                                                       &
-          &                                                                                xAxisLabel      =var_str('$M_\star\mathrm{M}_\odot$'               )                                              , &
-          &                                                                                yAxisLabel      =var_str('$\log_{10}(R_\mathrm{eff}/\mathrm{Mpc})$')                                              , &
-          &                                                                                xAxisIsLog      =.true.                                                                                            , &
-          &                                                                                yAxisIsLog      =.false.                                                                                           , &
-          &                                                                                targetLabel     =referenceTarget                                                                                   , &
-          &                                                                                valueTarget     =radiusEffectiveLogarithmicTarget                                                                  , &
-          &                                                                                covarianceTarget=radiusEffectiveLogarithmicCovarianceTarget                                                          &
-          &                                                                               )
+       outputAnalysisTargetData_=outputAnalysisTargetDataStandard(                                                                      &
+          &                                                       xAxisLabel      =var_str('$M_\star\mathrm{M}_\odot$'               ), &
+          &                                                       yAxisLabel      =var_str('$\log_{10}(R_\mathrm{eff}/\mathrm{Mpc})$'), &
+          &                                                       xAxisIsLog      =.true.                                             , &
+          &                                                       yAxisIsLog      =.false.                                            , &
+          &                                                       targetLabel     =referenceTarget                                    , &
+          &                                                       valueTarget     =radiusEffectiveLogarithmicTarget                   , &
+          &                                                       covarianceTarget=radiusEffectiveLogarithmicCovarianceTarget           &
+          &                                                      )
        !![
        <referenceConstruct isResult="yes" object="outputAnalysis_">
         <constructor>
@@ -707,7 +707,7 @@ contains
           &amp;                                               outputTimes_                                                                                                            , &amp;
           &amp;                                               outputAnalysisCovarianceModelPoisson                                                                                    , &amp;
           &amp;                          likelihoodNormalize =likelihoodNormalize                                                                                                     , &amp;
-          &amp;                          targetData_         =outputAnalysisTargetData_                                                                                                                     &amp;
+          &amp;                          targetData_         =outputAnalysisTargetData_                                                                                                 &amp;
           &amp;                         )
         </constructor>
        </referenceConstruct>

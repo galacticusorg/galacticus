@@ -551,15 +551,15 @@ contains
     ! convolution operations on the distribution function are unaffected by edge effects.
     bufferCount=max(int(bufferWidthLogarithmic/log10(spins(2)/spins(1)))+1,bufferCountMinimum)
     ! Construct the object. We convert spins to log10(spins) here.
-    outputAnalysisTargetData_=outputAnalysisTargetDataStandard(                                                                  &
-         &                                                                                              xAxisLabel      =var_str('$\lambda$'                               ), &
-         &                                                                                              yAxisLabel      =var_str('$\mathrm{d}p/\mathrm{d}\log\lambda$'     ), &
-         &                                                                                              xAxisIsLog      =.true.                                             , &
-         &                                                                                              yAxisIsLog      =.true.                                             , &
-         &                                                                                              targetLabel     =targetLabel                                        , &
-         &                                                                                              valueTarget     =functionValueTarget                                , &
-         &                                                                                              covarianceTarget=functionCovarianceTarget                             &
-         &                                                                                             )
+    outputAnalysisTargetData_=outputAnalysisTargetDataStandard(                                                                 &
+         &                                                     xAxisLabel      =var_str('$\lambda$'                          ), &
+         &                                                     yAxisLabel      =var_str('$\mathrm{d}p/\mathrm{d}\log\lambda$'), &
+         &                                                     xAxisIsLog      =.true.                                        , &
+         &                                                     yAxisIsLog      =.true.                                        , &
+         &                                                     targetLabel     =targetLabel                                   , &
+         &                                                     valueTarget     =functionValueTarget                           , &
+         &                                                     covarianceTarget=functionCovarianceTarget                        &
+         &                                                    )
     self%outputAnalysisVolumeFunction1D=outputAnalysisVolumeFunction1D(                                                     &
          &                                                             var_str('spinDistribution')//label                 , &
          &                                                             comment                                            , &
@@ -591,7 +591,7 @@ contains
          &                                                             covarianceBinomialMassHaloMinimum                  , &
          &                                                             covarianceBinomialMassHaloMaximum                  , &
          &                                                             .false.                                            , &
-         &                                                             outputAnalysisTargetData_                                                                     &
+         &                                                             outputAnalysisTargetData_                            &
          &                                                            )
     !![
     <objectDestructor name="haloSpinDistributionDeltaFunction_"             />

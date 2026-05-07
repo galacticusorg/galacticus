@@ -701,16 +701,16 @@ contains
     ! Determine number of buffer bins.
     bufferCount=0_c_size_t
     ! Construct the object.
+    outputAnalysisTargetData_=outputAnalysisTargetDataStandard(                                                                         &
+         &                                                     xAxisLabel      =var_str('$x=M_\mathrm{progenitor}/M_\mathrm{parent}$'), &
+         &                                                     yAxisLabel      =var_str('$\mathrm{d}f/\mathrm{d}\log_\mathrm{e}x$'   ), &
+         &                                                     xAxisIsLog      =.true.                                                , &
+         &                                                     yAxisIsLog      =.true.                                                , &
+         &                                                     targetLabel     =targetLabel                                           , &
+         &                                                     valueTarget     =functionValueTarget                                   , &
+         &                                                     covarianceTarget=functionCovarianceTarget                                &
+         &                                                    )
     self%outputAnalysisVolumeFunction1D=                                                              &
-         outputAnalysisTargetData_=outputAnalysisTargetDataStandard(                                                                                &
-         &                                                                 xAxisLabel      =var_str('$x=M_\mathrm{progenitor}/M_\mathrm{parent}$'        ), &
-         &                                                                 yAxisLabel      =var_str('$\mathrm{d}f/\mathrm{d}\log_\mathrm{e}x$'           ), &
-         &                                                                 xAxisIsLog      =.true.                                                        , &
-         &                                                                 yAxisIsLog      =.true.                                                        , &
-         &                                                                 targetLabel     =targetLabel                                                   , &
-         &                                                                 valueTarget     =functionValueTarget                                           , &
-         &                                                                 covarianceTarget=functionCovarianceTarget                                        &
-         &                                                                )
          & outputAnalysisVolumeFunction1D(                                                            &
          &                                var_str('progenitorMassFunction')//label                  , &
          &                                comment                                                   , &
@@ -742,7 +742,7 @@ contains
          &                                covarianceBinomialMassHaloMinimum                         , &
          &                                covarianceBinomialMassHaloMaximum                         , &
          &                                .false.                                                   , &
-         &                                outputAnalysisTargetData_                                                                                &
+         &                                outputAnalysisTargetData_                                   &
          &                               )
     !![
     <objectDestructor name="galacticFilterHaloIsolated_"                    />

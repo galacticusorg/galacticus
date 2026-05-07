@@ -441,15 +441,15 @@ contains
     allocate(outputAnalysisMeanFunction1D :: self%outputAnalysis_)
     select type (outputAnalysis_ => self%outputAnalysis_)
     type is (outputAnalysisMeanFunction1D)
-       outputAnalysisTargetData_=outputAnalysisTargetDataStandard(                                                                       &
-           &                                                         xAxisLabel      =var_str('$M_\star/\mathrm{M}_\odot$'                ), &
-           &                                                         yAxisLabel      =var_str('$\langle\log_{10}(r_{1/2}/\mathrm{Mpc})\rangle$'), &
-           &                                                         xAxisIsLog      =.true.                                              , &
-           &                                                         yAxisIsLog      =.false.                                             , &
-           &                                                         targetLabel     =var_str('Galacticus compilation'                   ), &
-           &                                                         valueTarget     =functionValueTargetNonZero                          , &
-           &                                                         covarianceTarget=functionCovarianceTargetNonZero                       &
-           &                                                        )
+       outputAnalysisTargetData_=outputAnalysisTargetDataStandard(                                                                             &
+           &                                                      xAxisLabel      =var_str('$M_\star/\mathrm{M}_\odot$'                     ), &
+           &                                                      yAxisLabel      =var_str('$\langle\log_{10}(r_{1/2}/\mathrm{Mpc})\rangle$'), &
+           &                                                      xAxisIsLog      =.true.                                                    , &
+           &                                                      yAxisIsLog      =.false.                                                   , &
+           &                                                      targetLabel     =var_str('Galacticus compilation'                         ), &
+           &                                                      valueTarget     =functionValueTargetNonZero                                , &
+           &                                                      covarianceTarget=functionCovarianceTargetNonZero                             &
+           &                                                     )
        !![
        <referenceConstruct isResult="yes" object="outputAnalysis_">
 	 <constructor>
@@ -485,7 +485,7 @@ contains
 	   &amp;                        covarianceBinomialMassHaloMinimum                             , &amp;
 	   &amp;                        covarianceBinomialMassHaloMaximum                             , &amp;
            &amp;                        likelihoodNormalize                                           , &amp;
-           &amp;                        outputAnalysisTargetData_                                                                      , &amp;
+           &amp;                        outputAnalysisTargetData_                                     , &amp;
 	   &amp;                        massesWidthBin                                                  &amp;
 	   &amp;                       )
 	 </constructor>

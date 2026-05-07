@@ -459,16 +459,16 @@ contains
        bufferCount=max(int(bufferWidthLogarithmic/log10(massesStellar(2)/massesStellar(1)))+1,bufferCountMinimum)
     end if
     ! Construct the object.
+    outputAnalysisTargetData_=outputAnalysisTargetDataStandard(                                                                                                     &
+         &                                                     xAxisLabel      =var_str('$M_\star\, [\mathrm{M}_\odot]$'                                         ), &
+         &                                                     yAxisLabel      =var_str('$\langle \log_{10} (\dot{M}_\star/M_\star / \mathrm{Gyr}^{-1}) \rangle$'), &
+         &                                                     xAxisIsLog      =.true.                                                                            , &
+         &                                                     yAxisIsLog      =.false.                                                                           , &
+         &                                                     targetLabel     =targetLabel                                                                       , &
+         &                                                     valueTarget     =meanValueTarget                                                                   , &
+         &                                                     covarianceTarget=meanCovarianceTarget                                                                &
+         &                                                    )
     self%outputAnalysisMeanFunction1D=                                                                                      &
-         outputAnalysisTargetData_=outputAnalysisTargetDataStandard(                                                                                                  &
-         &                                                               xAxisLabel      =var_str('$M_\star\, [\mathrm{M}_\odot]$'                                         ), &
-         &                                                               yAxisLabel      =var_str('$\langle \log_{10} (\dot{M}_\star/M_\star / \mathrm{Gyr}^{-1}) \rangle$'), &
-         &                                                               xAxisIsLog      =.true.                                                                            , &
-         &                                                               yAxisIsLog      =.false.                                                                           , &
-         &                                                               targetLabel     =targetLabel                                                                       , &
-         &                                                               valueTarget     =meanValueTarget                                                                   , &
-         &                                                               covarianceTarget=meanCovarianceTarget                                                                &
-         &                                                              )
          & outputAnalysisMeanFunction1D(                                                                                    &
          &                              var_str('starFormingMainSequence')//label                                         , &
          &                              comment                                                                           , &
@@ -501,7 +501,7 @@ contains
          &                              covarianceBinomialMassHaloMinimum                                                 , &
          &                              covarianceBinomialMassHaloMaximum                                                 , &
          &                              .false.                                                                           , &
-         &                              outputAnalysisTargetData_                                                                                                    , &
+         &                              outputAnalysisTargetData_                                                         , &
          &                              massesStellarBinWidthLogarithmic                                                    &
          &                             )
     !![

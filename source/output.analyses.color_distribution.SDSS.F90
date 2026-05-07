@@ -274,16 +274,16 @@ contains
     write (magnitudeMinimumLabel,'(f6.2)') magnitudeMinimum
     write (magnitudeMaximumLabel,'(f6.2)') magnitudeMaximum
     description=description//"$"//trim(adjustl(magnitudeMinimumLabel))//" < r < "//trim(adjustl(magnitudeMaximumLabel))//"$"
+    outputAnalysisTargetData_=outputAnalysisTargetDataStandard(                                                           &
+         &                                                     xAxisLabel      =var_str('$u-r$'                        ), &
+         &                                                     yAxisLabel      =var_str('$\mathrm{d}p/\mathrm{d}(u-r)$'), &
+         &                                                     xAxisIsLog      =.false.                                 , &
+         &                                                     yAxisIsLog      =.false.                                 , &
+         &                                                     targetLabel     =var_str('Baldry et al. (2004)')         , &
+         &                                                     valueTarget     =functionValueTarget                     , &
+         &                                                     covarianceTarget=functionCovarianceTarget                  &
+         &                                                    )
     self%outputAnalysisVolumeFunction1D=                                                            &
-         outputAnalysisTargetData_=outputAnalysisTargetDataStandard(                                                       &
-         &                                                                 xAxisLabel      =var_str('$u-r$'                        ), &
-         &                                                                 yAxisLabel      =var_str('$\mathrm{d}p/\mathrm{d}(u-r)$'), &
-         &                                                                 xAxisIsLog      =.false.                                 , &
-         &                                                                 yAxisIsLog      =.false.                                 , &
-         &                                                                 targetLabel     =var_str('Baldry et al. (2004)')         , &
-         &                                                                 valueTarget     =functionValueTarget                     , &
-         &                                                                 covarianceTarget=functionCovarianceTarget                  &
-         &                                                                )
          & outputAnalysisVolumeFunction1D(                                                          &
          &                                var_str('colorDistributionSDSS')//trim(distributionName), &
          &                                description                                             , &
@@ -302,7 +302,7 @@ contains
          &                                colors                                                  , &
          &                                bufferCount                                             , &
          &                                outputWeight                                            , &
-         &                                nodePropertyExtractorRatio_                   , &
+         &                                nodePropertyExtractorRatio_                             , &
          &                                outputAnalysisPropertyOperatorMagnitude_                , &
          &                                outputAnalysisPropertyOperatorIdentity_                 , &
          &                                outputAnalysisWeightOperator_                           , &
@@ -315,7 +315,7 @@ contains
          &                                covarianceBinomialMassHaloMinimum                       , &
          &                                covarianceBinomialMassHaloMaximum                       , &
          &                                .false.                                                 , &
-         &                                outputAnalysisTargetData_                                                          &
+         &                                outputAnalysisTargetData_                                 &
          &                               )
     ! Clean up.
     !![

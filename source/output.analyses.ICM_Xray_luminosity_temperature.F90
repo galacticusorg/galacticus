@@ -256,12 +256,12 @@ contains
     <referenceConstruct object="outputAnalysisWeightPropertyExtractor_"           constructor="nodePropertyExtractorICMXRayLuminosity         (cosmologyFunctions_,darkMatterHaloScale_,coolingFunction_                                                    )"/>
     !!]
     ! Build the object.
-    outputAnalysisTargetData_=outputAnalysisTargetDataStandard(                                                                                              &
-         &                                                                                          xAxisLabel      =var_str('$T_\mathrm{ICM}$ [keV]'                                           ), &
-         &                                                                                          yAxisLabel      =var_str('$\langle \log_{10} L_\mathrm{ICM}/\mathrm{ergs\, s}^{-1} \rangle$'), &
-         &                                                                                          xAxisIsLog      =.true.                                                                      , &
-         &                                                                                          yAxisIsLog      =.false.                                                                       &
-         &                                                                                         )
+    outputAnalysisTargetData_=outputAnalysisTargetDataStandard(                                                                                               &
+         &                                                     xAxisLabel      =var_str('$T_\mathrm{ICM}$ [keV]'                                           ), &
+         &                                                     yAxisLabel      =var_str('$\langle \log_{10} L_\mathrm{ICM}/\mathrm{ergs\, s}^{-1} \rangle$'), &
+         &                                                     xAxisIsLog      =.true.                                                                      , &
+         &                                                     yAxisIsLog      =.false.                                                                       &
+         &                                                    )
     self%outputAnalysisMeanFunction1D=outputAnalysisMeanFunction1D(                                                                              &
          &                                                         var_str('icmXrayLuminosityTemperature'                                     ), &
          &                                                         var_str('ICM X-ray luminosity-temperature relation'                        ), &
@@ -294,7 +294,7 @@ contains
          &                                                         covarianceBinomialMassHaloMinimum                                           , &
          &                                                         covarianceBinomialMassHaloMaximum                                           , &
          &                                                         likelihoodNormalize                                                         , &
-         &                                                         outputAnalysisTargetData_                                                                                              &
+         &                                                         outputAnalysisTargetData_                                                     &
          &                                                        )
     ! Clean up.
     !![

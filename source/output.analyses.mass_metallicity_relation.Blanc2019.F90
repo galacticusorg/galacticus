@@ -402,15 +402,15 @@ contains
     <referenceConstruct object="outputAnalysisWeightPropertyExtractor_"                 constructor="nodePropertyExtractorMetallicityISM             (Abundances_Index_From_Name('O')                              )"/>
     !!]
     ! Build the object.
-    outputAnalysisTargetData_=outputAnalysisTargetDataStandard(                                                                  &
-         &                                                                                          xAxisLabel      =var_str('$M_\star/\mathrm{M}_\odot$'                ), &
-         &                                                                                          yAxisLabel      =var_str('$\langle 12+[\mathrm{O}/\mathrm{H}] \rangle$'), &
-         &                                                                                          xAxisIsLog      =.true.                                              , &
-         &                                                                                          yAxisIsLog      =.false.                                             , &
-         &                                                                                          targetLabel     =var_str('Blanc et al. (2017)')                      , &
-         &                                                                                          valueTarget     =functionValueTarget                                 , &
-         &                                                                                          covarianceTarget=functionCovarianceTarget                              &
-         &                                                                                         )
+    outputAnalysisTargetData_=outputAnalysisTargetDataStandard(                                                                          &
+         &                                                     xAxisLabel      =var_str('$M_\star/\mathrm{M}_\odot$'                  ), &
+         &                                                     yAxisLabel      =var_str('$\langle 12+[\mathrm{O}/\mathrm{H}] \rangle$'), &
+         &                                                     xAxisIsLog      =.true.                                                 , &
+         &                                                     yAxisIsLog      =.false.                                                , &
+         &                                                     targetLabel     =var_str('Blanc et al. (2017)'                         ), &
+         &                                                     valueTarget     =functionValueTarget                                    , &
+         &                                                     covarianceTarget=functionCovarianceTarget                                 &
+         &                                                    )
     self%outputAnalysisMeanFunction1D=outputAnalysisMeanFunction1D(                                                         &
          &                                                         var_str('massMetallicityBlanc2019'                    ), &
          &                                                         var_str('Mass-metallicity relation'                   ), &
@@ -443,7 +443,7 @@ contains
          &                                                         covarianceBinomialMassHaloMinimum                      , &
          &                                                         covarianceBinomialMassHaloMaximum                      , &
          &                                                         likelihoodNormalize                                    , &
-         &                                                         outputAnalysisTargetData_                                                                      &
+         &                                                         outputAnalysisTargetData_                                &
          &                                                        )
     ! Clean up.
     !![

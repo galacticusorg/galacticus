@@ -385,16 +385,16 @@ contains
     ! convolution operations on the distribution function are unaffected by edge effects.
     bufferCount=max(int(bufferWidthLogarithmic/log10(starFormationRates(2)/starFormationRates(1)))+1,bufferCountMinimum)
     ! Construct the object. We convert starFormationRates to log10(starFormationRates) here.
+    outputAnalysisTargetData_=outputAnalysisTargetDataStandard(                                                                                                       &
+         &                                                     xAxisLabel      =var_str('$\log_{10}(\dot{M}_\star/\mathrm{M}_\odot) \mathrm{Gyr}^{-1}$'            ), &
+         &                                                     yAxisLabel      =var_str('$\mathrm{d}n/\mathrm{d}\log_\mathrm{e} \dot{M}_\star / \mathrm{Mpc}^{-3}$'), &
+         &                                                     xAxisIsLog      =.true.                                                                              , &
+         &                                                     yAxisIsLog      =.true.                                                                              , &
+         &                                                     targetLabel     =targetLabel                                                                         , &
+         &                                                     valueTarget     =functionValueTarget                                                                 , &
+         &                                                     covarianceTarget=functionCovarianceTarget                                                              &
+         &                                                    )
     self%outputAnalysisVolumeFunction1D=                                                                                        &
-         outputAnalysisTargetData_=outputAnalysisTargetDataStandard(                                                                                                  &
-         &                                                                 xAxisLabel      =var_str('$\log_{10}(\dot{M}_\star/\mathrm{M}_\odot) \mathrm{Gyr}^{-1}$'         ), &
-         &                                                                 yAxisLabel      =var_str('$\mathrm{d}n/\mathrm{d}\log_\mathrm{e} \dot{M}_\star / \mathrm{Mpc}^{-3}$'), &
-         &                                                                 xAxisIsLog      =.true.                                                                            , &
-         &                                                                 yAxisIsLog      =.true.                                                                            , &
-         &                                                                 targetLabel     =targetLabel                                                                       , &
-         &                                                                 valueTarget     =functionValueTarget                                                               , &
-         &                                                                 covarianceTarget=functionCovarianceTarget                                                            &
-         &                                                                )
          & outputAnalysisVolumeFunction1D(                                                                                      &
          &                                'starFormationRateFunction'//label                                                  , &
          &                                comment                                                                             , &
@@ -426,7 +426,7 @@ contains
          &                                covarianceBinomialMassHaloMinimum                                                   , &
          &                                covarianceBinomialMassHaloMaximum                                                   , &
          &                                .false.                                                                             , &
-         &                                outputAnalysisTargetData_                                                                                                    &
+         &                                outputAnalysisTargetData_                                                             &
          &                               )
     ! Clean up.
     !![

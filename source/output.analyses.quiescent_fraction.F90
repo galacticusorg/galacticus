@@ -469,16 +469,16 @@ contains
     ! convolution operations on the distribution function are unaffected by edge effects.
     bufferCount=max(int(bufferWidthLogarithmic/log10(massesStellar(2)/massesStellar(1)))+1,bufferCountMinimum)
     ! Construct the object.
+    outputAnalysisTargetData_=outputAnalysisTargetDataStandard(                                                            &
+         &                                                     xAxisLabel      =var_str('$M_\star\, [\mathrm{M}_\odot]$'), &
+         &                                                     yAxisLabel      =var_str('$f_\mathrm{q}$'                ), &
+         &                                                     xAxisIsLog      =.true.                                   , &
+         &                                                     yAxisIsLog      =.true.                                   , &
+         &                                                     targetLabel     =targetLabel                              , &
+         &                                                     valueTarget     =meanValueTarget                          , &
+         &                                                     covarianceTarget=meanCovarianceTarget                       &
+         &                                                    )
     self%outputAnalysisMeanFunction1D=                                                                    &
-         outputAnalysisTargetData_=outputAnalysisTargetDataStandard(                                                                       &
-         &                                                               xAxisLabel      =var_str('$M_\star\, [\mathrm{M}_\odot]$'           ), &
-         &                                                               yAxisLabel      =var_str('$f_\mathrm{q}$'                            ), &
-         &                                                               xAxisIsLog      =.true.                                              , &
-         &                                                               yAxisIsLog      =.true.                                              , &
-         &                                                               targetLabel     =targetLabel                                         , &
-         &                                                               valueTarget     =meanValueTarget                                     , &
-         &                                                               covarianceTarget=meanCovarianceTarget                                  &
-         &                                                              )
          & outputAnalysisMeanFunction1D(                                                                  &
          &                              var_str('quiescentFraction')//label                             , &
          &                              comment                                                         , &
@@ -511,7 +511,7 @@ contains
          &                              covarianceBinomialMassHaloMinimum                               , &
          &                              covarianceBinomialMassHaloMaximum                               , &
          &                              .false.                                                         , &
-         &                              outputAnalysisTargetData_                                                                      &
+         &                              outputAnalysisTargetData_                                         &
          &                             )
     !![
     <objectDestructor name="outputAnalysisPropertyOperatorCsmlgyLmnstyDstnc_"/>

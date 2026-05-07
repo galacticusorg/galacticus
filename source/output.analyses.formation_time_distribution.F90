@@ -21,8 +21,8 @@
   Contains a module which implements a concentration distribution output analysis class for dark matter halo time formation distribution.
   !!}
   
-  use :: Galactic_Filters                , only : galacticFilterAll
-  use :: Node_Property_Extractors        , only : nodePropertyExtractorMassHalo
+  use :: Galactic_Filters        , only : galacticFilterAll
+  use :: Node_Property_Extractors, only : nodePropertyExtractorMassHalo
 
   !![
   <outputAnalysis name="outputAnalysisFormationTimeDistribution">
@@ -628,16 +628,16 @@ contains
     ! Determine number of buffer bins.
     bufferCount=0_c_size_t
     ! Construct the object.
+    outputAnalysisTargetData_=outputAnalysisTargetDataStandard(                                           &
+         &                                                     xAxisLabel      =var_str('$x= z $'      ), &
+         &                                                     yAxisLabel      =var_str('Distribution' ), &
+         &                                                     xAxisIsLog      =.false.                 , &
+         &                                                     yAxisIsLog      =.true.                  , &
+         &                                                     targetLabel     =targetLabel             , &
+         &                                                     valueTarget     =functionValueTarget     , &
+         &                                                     covarianceTarget=functionCovarianceTarget  &
+         &                                                    )
     self%outputAnalysisVolumeFunction1D=                                                                 &
-         outputAnalysisTargetData_=outputAnalysisTargetDataStandard(                                                          &
-         &                                                                 xAxisLabel      =var_str('$x= z $'      )                , &
-         &                                                                 yAxisLabel      =var_str('Distribution' )                , &
-         &                                                                 xAxisIsLog      =.false.                                  , &
-         &                                                                 yAxisIsLog      =.true.                                   , &
-         &                                                                 targetLabel     =targetLabel                              , &
-         &                                                                 valueTarget     =functionValueTarget                      , &
-         &                                                                 covarianceTarget=functionCovarianceTarget                   &
-         &                                                                )
          & outputAnalysisVolumeFunction1D(                                                               &
          &                                var_str('formationTimeDistribution')//label                  , &
          &                                comment                                                      , &
@@ -669,17 +669,17 @@ contains
          &                                covarianceBinomialMassHaloMinimum                            , &
          &                                covarianceBinomialMassHaloMaximum                            , &
          &                                .false.                                                      , &
-         &                                outputAnalysisTargetData_                                                          &
+         &                                outputAnalysisTargetData_                                      &
          &                               )
     !![
     <objectDestructor name="galacticFilterHaloIsolated_"                    />
-    <objectDestructor name="galacticFilterHaloMassRange_"                    />
+    <objectDestructor name="galacticFilterHaloMassRange_"                   />
     <objectDestructor name="galacticFilterParentMassMinimum_"               />
     <objectDestructor name="galacticFilterParentMassMaximum_"               />
     <objectDestructor name="galacticFilterParentNode_"                      />
     <objectDestructor name="galacticFilterNot_"                             />
     <objectDestructor name="galacticFilter_"                                />
-    <objectDestructor name="nodePropertyExtractorNodeFormationTime_"         />
+    <objectDestructor name="nodePropertyExtractorNodeFormationTime_"        />
     <objectDestructor name="nodePropertyExtractorMassProgenitor_"           />
     <objectDestructor name="nodePropertyExtractorParentNode_"               />
     <objectDestructor name="outputAnalysisDistributionNormalizerUnitarity_" />

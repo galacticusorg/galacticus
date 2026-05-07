@@ -587,15 +587,15 @@ contains
        </referenceConstruct>
        !!]
     type is (outputAnalysisMeanFunction1D   )
-       outputAnalysisTargetData_=outputAnalysisTargetDataStandard(                                                                                                                        &
-          &                                                                                xAxisLabel      =var_str('$M_\mathrm{halo}/\mathrm{M}_\odot$'     )                                                  , &
-          &                                                                                yAxisLabel      =var_str('$\log_{10}(M_\bullet/\mathrm{M}_\odot)$')                                                  , &
-          &                                                                                xAxisIsLog      =.true.                                                                                              , &
-          &                                                                                yAxisIsLog      =.false.                                                                                             , &
-          &                                                                                targetLabel     =referenceTarget                                                                                     , &
-          &                                                                                valueTarget     =massBlackHoleLogarithmicTarget                                                                      , &
-          &                                                                                covarianceTarget=massBlackHoleLogarithmicCovarianceTarget                                                              &
-          &                                                                               )
+       outputAnalysisTargetData_=outputAnalysisTargetDataStandard(                                                                     &
+          &                                                       xAxisLabel      =var_str('$M_\mathrm{halo}/\mathrm{M}_\odot$'     ), &
+          &                                                       yAxisLabel      =var_str('$\log_{10}(M_\bullet/\mathrm{M}_\odot)$'), &
+          &                                                       xAxisIsLog      =.true.                                            , &
+          &                                                       yAxisIsLog      =.false.                                           , &
+          &                                                       targetLabel     =referenceTarget                                   , &
+          &                                                       valueTarget     =massBlackHoleLogarithmicTarget                    , &
+          &                                                       covarianceTarget=massBlackHoleLogarithmicCovarianceTarget            &
+          &                                                      )
        !![
        <referenceConstruct isResult="yes" object="outputAnalysis_">
         <constructor>
@@ -628,7 +628,7 @@ contains
           &amp;                                               outputTimes_                                                                                                       , &amp;
           &amp;                                               outputAnalysisCovarianceModelPoisson                                                                               , &amp;
           &amp;                          likelihoodNormalize =likelihoodNormalize                                                                                                , &amp;
-          &amp;                          targetData_         =outputAnalysisTargetData_                                                                                                                       &amp;
+          &amp;                          targetData_         =outputAnalysisTargetData_                                                                                            &amp;
           &amp;                         )
         </constructor>
        </referenceConstruct>

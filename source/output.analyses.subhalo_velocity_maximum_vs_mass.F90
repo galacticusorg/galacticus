@@ -254,7 +254,7 @@ contains
     double precision                                            , allocatable  , dimension(:  )           :: masses
     double precision                                            , allocatable  , dimension(:,:)           :: outputWeight
     integer         (c_size_t                                  )                                          :: i
-    type            (outputAnalysisTargetDataStandard)                              :: outputAnalysisTargetData_
+    type            (outputAnalysisTargetDataStandard          )                                          :: outputAnalysisTargetData_
     !![
     <constructorAssign variables="*cosmologyFunctions_, *virialDensityContrastDefinition_, *cosmologyParameters_, *virialDensityContrast_, *darkMatterProfileDMO_, massMinimum, massMaximum, countMasses"/>
     !!]
@@ -329,15 +329,15 @@ contains
        end if
     end do
     ! Construct the mean function analyzer.
-    outputAnalysisTargetData_=outputAnalysisTargetDataStandard(                                                                  &
-         &                                                                                                                xAxisLabel      =var_str('$M_\mathrm{bound}/\mathrm{M}_\odot$'                  ), &
-         &                                                                                                                yAxisLabel      =var_str('$\langle V_\mathrm{max} \rangle / \hbox{km s}^{-1}$'  ), &
-         &                                                                                                                xAxisIsLog      =.true.                                                          , &
-         &                                                                                                                yAxisIsLog      =.true.                                                          , &
-         &                                                                                                                targetLabel     =labelTarget                                                     , &
-         &                                                                                                                valueTarget     =functionTarget                                                  , &
-         &                                                                                                                covarianceTarget=functionCovarianceTarget                                          &
-         &                                                                                                              )
+    outputAnalysisTargetData_=outputAnalysisTargetDataStandard(                                                                                    &
+         &                                                      xAxisLabel      =var_str('$M_\mathrm{bound}/\mathrm{M}_\odot$'                  ), &
+         &                                                      yAxisLabel      =var_str('$\langle V_\mathrm{max} \rangle / \hbox{km s}^{-1}$'  ), &
+         &                                                      xAxisIsLog      =.true.                                                          , &
+         &                                                      yAxisIsLog      =.true.                                                          , &
+         &                                                      targetLabel     =labelTarget                                                     , &
+         &                                                      valueTarget     =functionTarget                                                  , &
+         &                                                      covarianceTarget=functionCovarianceTarget                                          &
+         &                                                    )
     self%outputAnalysisMeanFunction1D=outputAnalysisMeanFunction1D(                                                                                       &
          &                                                                              var_str('subhaloVelocityMaximumMean'                           ), &
          &                                                                              var_str('Subhalo mean maximum velocity vs. bound mass relation'), &
@@ -367,7 +367,7 @@ contains
          &                                                                              outputTimes_                                                    , &
          &                                                                              outputAnalysisCovarianceModelPoisson                            , &
          &                                                         likelihoodNormalize =.false.                                                         , &
-         &                                                         targetData_         =outputAnalysisTargetData_                                                                                    &
+         &                                                         targetData_         =outputAnalysisTargetData_                                         &
          &                                                        )
     !![
     <objectDestructor name="nodePropertyExtractorMassBound_"       />

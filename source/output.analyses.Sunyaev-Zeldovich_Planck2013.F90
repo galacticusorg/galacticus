@@ -318,15 +318,15 @@ contains
     </referenceConstruct>
     !!]
     ! Build the object.
-    outputAnalysisTargetData_=outputAnalysisTargetDataStandard(                                                                  &
-         &                                                                                          xAxisLabel      =var_str('$M_\star/\mathrm{M}_\odot$'           ), &
-         &                                                                                          yAxisLabel      =var_str('$\widetilde{Y}_{500}/\hbox{arcmin}^2$'), &
-         &                                                                                          xAxisIsLog      =.true.                                          , &
-         &                                                                                          yAxisIsLog      =.true.                                          , &
-         &                                                                                          targetLabel     =var_str('Planck Intermediate Results XI (2013)'), &
-         &                                                                                          valueTarget     =functionValueTarget                             , &
-         &                                                                                          covarianceTarget=functionCovarianceTarget                          &
-         &                                                                                         )
+    outputAnalysisTargetData_=outputAnalysisTargetDataStandard(                                                                   &
+         &                                                     xAxisLabel      =var_str('$M_\star/\mathrm{M}_\odot$'           ), &
+         &                                                     yAxisLabel      =var_str('$\widetilde{Y}_{500}/\hbox{arcmin}^2$'), &
+         &                                                     xAxisIsLog      =.true.                                          , &
+         &                                                     yAxisIsLog      =.true.                                          , &
+         &                                                     targetLabel     =var_str('Planck Intermediate Results XI (2013)'), &
+         &                                                     valueTarget     =functionValueTarget                             , &
+         &                                                     covarianceTarget=functionCovarianceTarget                          &
+         &                                                    )
     self%outputAnalysisMeanFunction1D=outputAnalysisMeanFunction1D(                                                                     &
          &                                                         var_str('sunyaevZeldovichPlanck2013'                              ), &
          &                                                         var_str('Sunyaev-Zeldovich signal vs. central galaxy stellar mass'), &
@@ -359,7 +359,7 @@ contains
          &                                                         covarianceBinomialMassHaloMinimum                                  , &
          &                                                         covarianceBinomialMassHaloMaximum                                  , &
          &                                                         likelihoodNormalize                                                , &
-         &                                                         outputAnalysisTargetData_                                                                  &
+         &                                                         outputAnalysisTargetData_                                            &
          &                                                        )
     ! Clean up.
     !![
