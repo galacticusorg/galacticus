@@ -437,6 +437,30 @@ def test_fortran_reassignments_optional_2d_array_gated_on_present():
     assert 'end if'                   in out[0].fort_reassignment
 
 
+def test_python_reassignments_c_char_p_encodes_str_to_bytes():
+    """ctypes' c_char_p expects bytes (it implements `char *` as a
+    NUL-terminated byte string).  Python users naturally pass `str`,
+    and ctypes won't auto-encode — it raises 'bytes or integer address
+    expected instead of str instance'.  build_python_reassignments
+    must emit an isinstance-gated `.encode()` so str inputs work and
+    None / bytes pass through unchanged."""
+    s = ArgSpec(name='xAxisLabel', intrinsic='type', type_spec='varying_string',
+                ctype='c_char_p', is_optional=True)
+    out = build_python_reassignments([s])
+    assert 'isinstance(xAxisLabel, str)'        in out[0].py_reassignment
+    assert 'xAxisLabel = xAxisLabel.encode('    in out[0].py_reassignment
+
+
+def test_python_reassignments_c_char_p_uses_safe_name_for_keyword_args():
+    """A `class`/`lambda`/... arg name has been escaped via python_safe_name
+    in the Python signature, so the encode reassignment must reference the
+    escaped identifier — otherwise the generated code raises NameError."""
+    s = ArgSpec(name='class', intrinsic='character', ctype='c_char_p')
+    out = build_python_reassignments([s])
+    assert 'isinstance(class_, str)' in out[0].py_reassignment
+    assert 'class_ = class_.encode(' in out[0].py_reassignment
+
+
 def test_python_call_code_array_arg_not_wrapped_in_ctype():
     """Array args are passed as POINTER(...) expressions; wrapping them
     in `{ctype}(pa)` (e.g. `c_double(<pointer>)`) — which is what

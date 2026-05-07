@@ -512,6 +512,19 @@ def build_python_reassignments(argument_list):
                 arg.py_pass_as = (
                     f'{safe}.ctypes.data_as(POINTER({arg.ctype}))'
                 )
+        elif arg.ctype == 'c_char_p':
+            # Scalar `character(...)` and `type(varying_string)` args both
+            # cross the boundary as a `c_char_p` (NUL-terminated C string),
+            # which ctypes implements with Python `bytes`.  Python users
+            # naturally pass `str` though, and ctypes won't auto-encode —
+            # it raises "bytes or integer address expected instead of str
+            # instance".  Encode at the boundary; `None` and `bytes` pass
+            # through unchanged.
+            safe = python_safe_name(arg.name)
+            arg.py_reassignment = (
+                f'    if isinstance({safe}, str):\n'
+                f'        {safe} = {safe}.encode("utf-8")\n'
+            )
         new_list.insert(0, arg)               # unshift current arg
     return new_list
 
