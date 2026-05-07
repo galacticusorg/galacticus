@@ -238,6 +238,7 @@ contains
     use :: Numerical_Constants_Astronomical      , only : massSolar
     use :: Output_Analyses_Options               , only : outputAnalysisCovarianceModelPoisson
     use :: Output_Analysis_Distribution_Operators, only : outputAnalysisDistributionOperatorIdentity
+    use :: Output_Analysis_Target_Data           , only : outputAnalysisTargetDataStandard
     use :: Output_Analysis_Property_Operators    , only : outputAnalysisPropertyOperatorAntiLog10                       , outputAnalysisPropertyOperatorCsmlgyLmnstyDstnc, propertyOperatorList      , outputAnalysisPropertyOperatorLog10, &
           &                                               outputAnalysisPropertyOperatorSequence                        , outputAnalysisPropertyOperatorSystmtcPolynomial, 
     use :: Output_Analysis_Utilities             , only : Output_Analysis_Output_Weight_Survey_Volume
@@ -571,13 +572,15 @@ contains
           &amp;                                                  outputTimes_                                                                                                           , &amp;
           &amp;                                                  outputAnalysisCovarianceModelPoisson                                                                                   , &amp;
           &amp;                          likelihoodNormalize    =likelihoodNormalize                                                                                                    , &amp;
-          &amp;                          xAxisLabel             =var_str('$M_\mathrm{halo}/\mathrm{M}_\odot$'            )                                                              , &amp;
-          &amp;                          yAxisLabel             =var_str('$\sigma_{\log_{10}(M_\star/\mathrm{M}_\odot)}$')                                                              , &amp;
-          &amp;                          xAxisIsLog             =.true.                                                                                                                 , &amp;
-          &amp;                          yAxisIsLog             =.false.                                                                                                                , &amp;
-          &amp;                          targetLabel            =referenceTarget                                                                                                        , &amp;
-          &amp;                          scatterValueTarget     =massStellarScatterTarget                                                                                               , &amp;
-          &amp;                          scatterCovarianceTarget=massStellarScatterCovarianceTarget                                                                                       &amp;
+          &amp;                          targetData_            =outputAnalysisTargetDataStandard(                                                                                                                            &amp;
+          &amp;                                                                                   xAxisLabel      =var_str('$M_\mathrm{halo}/\mathrm{M}_\odot$'            )                                              , &amp;
+          &amp;                                                                                   yAxisLabel      =var_str('$\sigma_{\log_{10}(M_\star/\mathrm{M}_\odot)}$')                                              , &amp;
+          &amp;                                                                                   xAxisIsLog      =.true.                                                                                                  , &amp;
+          &amp;                                                                                   yAxisIsLog      =.false.                                                                                                 , &amp;
+          &amp;                                                                                   targetLabel     =referenceTarget                                                                                         , &amp;
+          &amp;                                                                                   valueTarget     =massStellarScatterTarget                                                                                , &amp;
+          &amp;                                                                                   covarianceTarget=massStellarScatterCovarianceTarget                                                                        &amp;
+          &amp;                                                                                  )                                                                                                                            &amp;
           &amp;                         )
         </constructor>
        </referenceConstruct>
@@ -615,13 +618,15 @@ contains
           &amp;                                               outputTimes_                                                                                                , &amp;
           &amp;                                               outputAnalysisCovarianceModelPoisson                                                                        , &amp;
           &amp;                          likelihoodNormalize =likelihoodNormalize                                                                                         , &amp;
-          &amp;                          xAxisLabel          =var_str('$M_\mathrm{halo}/\mathrm{M}_\odot$'   )                                                            , &amp;
-          &amp;                          yAxisLabel          =var_str('$\log_{10}(M_\star/\mathrm{M}_\odot)$')                                                            , &amp;
-          &amp;                          xAxisIsLog          =.true.                                                                                                      , &amp;
-          &amp;                          yAxisIsLog          =.false.                                                                                                     , &amp;
-          &amp;                          targetLabel         =referenceTarget                                                                                             , &amp;
-          &amp;                          meanValueTarget     =massStellarLogarithmicTarget                                                                                , &amp;
-          &amp;                          meanCovarianceTarget=massStellarLogarithmicCovarianceTarget                                                                        &amp;
+          &amp;                          targetData_         =outputAnalysisTargetDataStandard(                                                                                                                   &amp;
+          &amp;                                                                                xAxisLabel      =var_str('$M_\mathrm{halo}/\mathrm{M}_\odot$'   )                                              , &amp;
+          &amp;                                                                                yAxisLabel      =var_str('$\log_{10}(M_\star/\mathrm{M}_\odot)$')                                              , &amp;
+          &amp;                                                                                xAxisIsLog      =.true.                                                                                        , &amp;
+          &amp;                                                                                yAxisIsLog      =.false.                                                                                       , &amp;
+          &amp;                                                                                targetLabel     =referenceTarget                                                                               , &amp;
+          &amp;                                                                                valueTarget     =massStellarLogarithmicTarget                                                                  , &amp;
+          &amp;                                                                                covarianceTarget=massStellarLogarithmicCovarianceTarget                                                          &amp;
+          &amp;                                                                               )                                                                                                                 &amp;
           &amp;                         )
         </constructor>
        </referenceConstruct>

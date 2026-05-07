@@ -172,6 +172,7 @@ contains
     use :: Output_Analyses_Options                 , only : outputAnalysisCovarianceModelBinomial
     use :: Output_Analysis_Distribution_Normalizers, only : outputAnalysisDistributionNormalizerIdentity
     use :: Output_Analysis_Distribution_Operators  , only : outputAnalysisDistributionOperatorRandomErrorPlynml
+    use :: Output_Analysis_Target_Data             , only : outputAnalysisTargetDataStandard
     use :: Output_Analysis_Property_Operators      , only : outputAnalysisPropertyOperatorAntiLog10               , outputAnalysisPropertyOperatorLog10    , outputAnalysisPropertyOperatorSequence, outputAnalysisPropertyOperatorSystmtcPolynomial, &
           &                                                 outputAnalysisPropertyOperatorMetallicitySolarRelative, propertyOperatorList
     use :: Output_Analysis_Weight_Operators        , only : outputAnalysisWeightOperatorSubsampling
@@ -460,14 +461,16 @@ contains
 	   &amp;                        covarianceBinomialMassHaloMinimum                             , &amp;
 	   &amp;                        covarianceBinomialMassHaloMaximum                             , &amp;
            &amp;                        likelihoodNormalize                                           , &amp;
-           &amp;                        var_str('$M_\star/\mathrm{M}_\odot$'                         ), &amp;
-           &amp;                        var_str('$[\mathrm{Fe}/\mathrm{H}]$'                         ), &amp;
-           &amp;                        .true.                                                        , &amp;
-           &amp;                        .false.                                                       , &amp;
-           &amp;                        var_str('Galacticus compilation'                             ), &amp;
-           &amp;                        functionValueTargetNonZero                                    , &amp;
-           &amp;                        functionCovarianceTargetNonZero                               , &amp;
-	   &amp;                        massesWidthBin                                                  &amp; 
+           &amp;                        outputAnalysisTargetDataStandard(                                                                       &amp;
+           &amp;                                                         xAxisLabel      =var_str('$M_\star/\mathrm{M}_\odot$'                ), &amp;
+           &amp;                                                         yAxisLabel      =var_str('$[\mathrm{Fe}/\mathrm{H}]$'                ), &amp;
+           &amp;                                                         xAxisIsLog      =.true.                                              , &amp;
+           &amp;                                                         yAxisIsLog      =.false.                                             , &amp;
+           &amp;                                                         targetLabel     =var_str('Galacticus compilation'                   ), &amp;
+           &amp;                                                         valueTarget     =functionValueTargetNonZero                          , &amp;
+           &amp;                                                         covarianceTarget=functionCovarianceTargetNonZero                       &amp;
+           &amp;                                                        )                                                                      , &amp;
+	   &amp;                        massesWidthBin                                                  &amp;
 	   &amp;                       )
 	 </constructor>
        </referenceConstruct>

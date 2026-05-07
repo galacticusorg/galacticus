@@ -217,6 +217,7 @@ contains
     use :: Numerical_Ranges                      , only : Make_Range                                , rangeTypeLinear
     use :: Output_Analyses_Options               , only : outputAnalysisCovarianceModelPoisson
     use :: Output_Analysis_Distribution_Operators, only : outputAnalysisDistributionOperatorIdentity
+    use :: Output_Analysis_Target_Data           , only : outputAnalysisTargetDataStandard
     use :: Output_Analysis_Property_Operators    , only : outputAnalysisPropertyOperatorAntiLog10   , outputAnalysisPropertyOperatorLog10, outputAnalysisPropertyOperatorIdentity
     use :: Output_Analysis_Weight_Operators      , only : outputAnalysisWeightOperatorSubsampling
     use :: Output_Times                          , only : outputTimesClass
@@ -356,13 +357,15 @@ contains
          &                                                                              outputTimes_                                                    , &
          &                                                                              outputAnalysisCovarianceModelPoisson                            , &
          &                                                         likelihoodNormalize =.false.                                                         , &
-         &                                                         xAxisLabel          =var_str('$M_\mathrm{bound}/\mathrm{M}_\odot$'                  ), &
-         &                                                         yAxisLabel          =var_str('$\langle V_\mathrm{max} \rangle / \hbox{km s}^{-1}$'  ), &
-         &                                                         xAxisIsLog          =.true.                                                          , &
-         &                                                         yAxisIsLog          =.true.                                                          , &
-         &                                                         targetLabel         =labelTarget                                                     , &
-         &                                                         meanValueTarget     =functionTarget                                                  , &
-         &                                                         meanCovarianceTarget=functionCovarianceTarget                                          &
+         &                                                         targetData_         =outputAnalysisTargetDataStandard(                                                                  &
+         &                                                                                                                xAxisLabel      =var_str('$M_\mathrm{bound}/\mathrm{M}_\odot$'                  ), &
+         &                                                                                                                yAxisLabel      =var_str('$\langle V_\mathrm{max} \rangle / \hbox{km s}^{-1}$'  ), &
+         &                                                                                                                xAxisIsLog      =.true.                                                          , &
+         &                                                                                                                yAxisIsLog      =.true.                                                          , &
+         &                                                                                                                targetLabel     =labelTarget                                                     , &
+         &                                                                                                                valueTarget     =functionTarget                                                  , &
+         &                                                                                                                covarianceTarget=functionCovarianceTarget                                          &
+         &                                                                                                              )                                                                                    &
          &                                                        )
     !![
     <objectDestructor name="nodePropertyExtractorMassBound_"       />

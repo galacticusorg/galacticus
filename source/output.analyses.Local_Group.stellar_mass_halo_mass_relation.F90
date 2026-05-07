@@ -171,6 +171,7 @@ contains
     use :: Output_Analyses_Options                 , only : outputAnalysisCovarianceModelBinomial
     use :: Output_Analysis_Distribution_Normalizers, only : outputAnalysisDistributionNormalizerIdentity
     use :: Output_Analysis_Distribution_Operators  , only : outputAnalysisDistributionOperatorRandomErrorPlynml
+    use :: Output_Analysis_Target_Data             , only : outputAnalysisTargetDataStandard
     use :: Output_Analysis_Property_Operators      , only : outputAnalysisPropertyOperatorAntiLog10             , outputAnalysisPropertyOperatorLog10       , outputAnalysisPropertyOperatorSequence, outputAnalysisPropertyOperatorSystmtcPolynomial, &
           &                                                 propertyOperatorList
     use :: Output_Analysis_Weight_Operators        , only : outputAnalysisWeightOperatorSubsampling
@@ -396,13 +397,15 @@ contains
 	   &amp;                        covarianceBinomialMassHaloMinimum                                   , &amp;
 	   &amp;                        covarianceBinomialMassHaloMaximum                                   , &amp;
            &amp;                        likelihoodNormalize                                                 , &amp;
-           &amp;                        var_str('$M_\mathrm{halo}/\mathrm{M}_\odot$'                       ), &amp;
-           &amp;                        var_str('$\langle\log_{10}(M_\star/\mathrm{M}_\odot)\rangle$'      ), &amp;
-           &amp;                        .true.                                                              , &amp;
-           &amp;                        .false.                                                             , &amp;
-           &amp;                        var_str('Nadler et al. (2020)'                                     ), &amp;
-           &amp;                        functionValueTarget                                                 , &amp;
-           &amp;                        functionCovarianceTarget                                              &amp;
+           &amp;                        outputAnalysisTargetDataStandard(                                                                                  &amp;
+           &amp;                                                         xAxisLabel      =var_str('$M_\mathrm{halo}/\mathrm{M}_\odot$'                  ), &amp;
+           &amp;                                                         yAxisLabel      =var_str('$\langle\log_{10}(M_\star/\mathrm{M}_\odot)\rangle$' ), &amp;
+           &amp;                                                         xAxisIsLog      =.true.                                                        , &amp;
+           &amp;                                                         yAxisIsLog      =.false.                                                       , &amp;
+           &amp;                                                         targetLabel     =var_str('Nadler et al. (2020)'                                ), &amp;
+           &amp;                                                         valueTarget     =functionValueTarget                                           , &amp;
+           &amp;                                                         covarianceTarget=functionCovarianceTarget                                        &amp;
+           &amp;                                                        )                                                                                  &amp;
 	   &amp;                       )
 	 </constructor>
        </referenceConstruct>
