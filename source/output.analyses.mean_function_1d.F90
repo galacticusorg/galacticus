@@ -494,6 +494,19 @@ contains
     else
        self%targetData_=outputAnalysisTargetDataStandard()
     end if
+    ! Mirror the bundled target-data fields onto the outer object so the auto-built descriptor
+    ! (which walks the type definition, not contained types) can reconstruct a parameter block
+    ! that recreates this object.  Reshape the 2D covariance into the 1D form the parameter
+    ! reader produces.
+    self%xAxisLabel =self%targetData_%xAxisLabel
+    self%yAxisLabel =self%targetData_%yAxisLabel
+    self%targetLabel=self%targetData_%targetLabel
+    self%xAxisIsLog =self%targetData_%xAxisIsLog
+    self%yAxisIsLog =self%targetData_%yAxisIsLog
+    if (self%targetData_%hasTarget()) then
+       self%meanValueTarget       =self%targetData_%valueTarget
+       self%meanCovarianceTarget1D=reshape(self%targetData_%covarianceTarget,[size(self%targetData_%covarianceTarget)])
+    end if
     self%outputWeight=reshape(outputWeight,[size(outputWeight)])
     ! Mark as unfinalized.
     self%finalized=.false.

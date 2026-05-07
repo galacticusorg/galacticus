@@ -130,7 +130,7 @@ contains
           <description>Target-dataset covariance matrix corresponding to the \mono{valueTarget} array.</description>
           </inputParameter>
           !!]
-          covarianceTarget=reshape(covarianceTarget,[parameters%count('valueTarget'),parameters%count('valueTarget')])
+          covarianceTarget=reshape(covarianceTarget1D,[parameters%count('valueTarget'),parameters%count('valueTarget')])
        end if
     else
         if (parameters%isPresent('covarianceTarget')) call Error_Report('variance provided but no target values'//{introspection:location})
@@ -160,6 +160,11 @@ contains
     !![
     <constructorAssign variables="xAxisLabel='x', yAxisLabel='y', targetLabel, xAxisIsLog=.false., yAxisIsLog=.false., valueTarget, covarianceTarget"/>
     !!]
+    ! Maintain a 1D flattening of the covariance for the auto-built descriptor, which serializes
+    ! parameter-file fields as 1D lists.  Populated lazily here so every construction path (both
+    ! Parameters-from-XML and Internal-from-Fortran) ends up with a consistent `self%covarianceTarget1D`.
+    if (allocated(self%covarianceTarget)) &
+         & self%covarianceTarget1D=reshape(self%covarianceTarget,[size(self%covarianceTarget)])
     return
   end function standardConstructorInternal
 
