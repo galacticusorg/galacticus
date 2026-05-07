@@ -134,6 +134,7 @@ contains
     use :: Numerical_Constants_Astronomical      , only : massSolar
     use :: Numerical_Ranges                      , only : Make_Range                                        , rangeTypeLinear
     use :: Output_Analyses_Options               , only : outputAnalysisCovarianceModelBinomial
+    use :: Output_Analysis_Target_Data           , only : outputAnalysisTargetDataStandard
     use :: Output_Analysis_Distribution_Operators, only : outputAnalysisDistributionOperatorIdentity
     use :: Output_Analysis_Molecular_Ratios      , only : outputAnalysisMolecularRatioClass
     use :: Output_Analysis_Property_Operators    , only : outputAnalysisPropertyOperatorAntiLog10           , outputAnalysisPropertyOperatorCsmlgyLmnstyDstnc, outputAnalysisPropertyOperatorFilterHighPass   , outputAnalysisPropertyOperatorHIMass, &
@@ -435,13 +436,15 @@ contains
          &                                                         covarianceBinomialMassHaloMinimum                     , &
          &                                                         covarianceBinomialMassHaloMaximum                     , &
          &                                                         likelihoodNormalize                                   , &
-         &                                                         var_str('$M_\mathrm{halo}/\mathrm{M}_\odot$'         ), &
-         &                                                         var_str('$\log_{10}(M_\mathrm{HI}/\mathrm{M}_\odot)$'), &
-         &                                                         .true.                                                , &
-         &                                                         .false.                                               , &
-         &                                                         var_str('Padmanabhan \\& Refrigier (2017)'           ), &
-         &                                                         massHILogarithmicTarget                               , &
-         &                                                         massHILogarithmicCovarianceTarget                       &
+         &                                                         outputAnalysisTargetDataStandard(                                          &
+         &                                                                                          xAxisLabel      =var_str('$M_\mathrm{halo}/\mathrm{M}_\odot$'         ), &
+         &                                                                                          yAxisLabel      =var_str('$\log_{10}(M_\mathrm{HI}/\mathrm{M}_\odot)$'), &
+         &                                                                                          xAxisIsLog      =.true.                                ,  &
+         &                                                                                          yAxisIsLog      =.false.                               ,  &
+         &                                                                                          targetLabel     =var_str('Padmanabhan \\& Refrigier (2017)'),  &
+         &                                                                                          valueTarget     =massHILogarithmicTarget               ,  &
+         &                                                                                          covarianceTarget=massHILogarithmicCovarianceTarget        &
+         &                                                                                         )                                            &
          &                                                        )
     ! Clean up.
     !![

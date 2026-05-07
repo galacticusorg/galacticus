@@ -143,6 +143,7 @@ contains
     use :: Output_Analysis_Distribution_Operators, only : outputAnalysisDistributionOperatorRandomErrorPlynml
     use :: Output_Analysis_Property_Operators    , only : outputAnalysisPropertyOperatorAntiLog10            , outputAnalysisPropertyOperatorCsmlgyLmnstyDstnc, outputAnalysisPropertyOperatorLog10, outputAnalysisPropertyOperatorNormal, &
           &                                               outputAnalysisPropertyOperatorSequence             , outputAnalysisPropertyOperatorSystmtcPolynomial, propertyOperatorList
+    use :: Output_Analysis_Target_Data           , only : outputAnalysisTargetDataStandard
     use :: Output_Analysis_Utilities             , only : Output_Analysis_Output_Weight_Survey_Volume
     use :: Output_Analysis_Weight_Operators      , only : outputAnalysisWeightOperatorIdentity
     use :: Output_Times                          , only : outputTimesClass
@@ -388,13 +389,15 @@ contains
          &                                                         covarianceBinomialMassHaloMinimum              , &
          &                                                         covarianceBinomialMassHaloMaximum              , &
          &                                                         likelihoodNormalize                            , &
-         &                                                         var_str('$M_\star/\mathrm{M}_\odot$')          , &
-         &                                                         var_str('$f_\mathrm{early}$'        )          , &
-         &                                                         .true.                                         , &
-         &                                                         .false.                                        , &
-         &                                                         var_str('Moffett et al. (2016)')               , &
-         &                                                         functionValueTarget                            , &
-         &                                                         functionCovarianceTarget                         &
+         &                                                         outputAnalysisTargetDataStandard(                                            &
+         &                                                                                          xAxisLabel      =var_str('$M_\star/\mathrm{M}_\odot$'),  &
+         &                                                                                          yAxisLabel      =var_str('$f_\mathrm{early}$'        ),  &
+         &                                                                                          xAxisIsLog      =.true.                                ,  &
+         &                                                                                          yAxisIsLog      =.false.                               ,  &
+         &                                                                                          targetLabel     =var_str('Moffett et al. (2016)')      ,  &
+         &                                                                                          valueTarget     =functionValueTarget                   ,  &
+         &                                                                                          covarianceTarget=functionCovarianceTarget                 &
+         &                                                                                         )                                              &
          &                                                        )
     ! Clean up.
     !![

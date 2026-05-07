@@ -129,6 +129,7 @@ contains
     use :: Node_Property_Extractors              , only : nodePropertyExtractorMassStellar                   , nodePropertyExtractorICMSZ
     use :: Numerical_Constants_Astronomical      , only : massSolar
     use :: Output_Analyses_Options               , only : outputAnalysisCovarianceModelBinomial
+    use :: Output_Analysis_Target_Data           , only : outputAnalysisTargetDataStandard
     use :: Output_Analysis_Distribution_Operators, only : outputAnalysisDistributionOperatorRandomErrorPlynml
     use :: Output_Analysis_Property_Operators    , only : outputAnalysisPropertyOperatorAntiLog10            , outputAnalysisPropertyOperatorLog10            , outputAnalysisPropertyOperatorCosmologySZ, &
           &                                               outputAnalysisPropertyOperatorSequence             , outputAnalysisPropertyOperatorSystmtcPolynomial, propertyOperatorList
@@ -348,13 +349,15 @@ contains
          &                                                         covarianceBinomialMassHaloMinimum                                  , &
          &                                                         covarianceBinomialMassHaloMaximum                                  , &
          &                                                         likelihoodNormalize                                                , &
-         &                                                         var_str('$M_\star/\mathrm{M}_\odot$'                              ), &
-         &                                                         var_str('$\widetilde{Y}_{500}/\hbox{arcmin}^2$'                   ), &
-         &                                                         .true.                                                             , &
-         &                                                         .true.                                                             , &
-         &                                                         var_str('Planck Intermediate Results XI (2013)'                   ), &
-         &                                                         functionValueTarget                                                , &
-         &                                                         functionCovarianceTarget                                             &
+         &                                                         outputAnalysisTargetDataStandard(                                                                  &
+         &                                                                                          xAxisLabel      =var_str('$M_\star/\mathrm{M}_\odot$'           ), &
+         &                                                                                          yAxisLabel      =var_str('$\widetilde{Y}_{500}/\hbox{arcmin}^2$'), &
+         &                                                                                          xAxisIsLog      =.true.                                          , &
+         &                                                                                          yAxisIsLog      =.true.                                          , &
+         &                                                                                          targetLabel     =var_str('Planck Intermediate Results XI (2013)'), &
+         &                                                                                          valueTarget     =functionValueTarget                             , &
+         &                                                                                          covarianceTarget=functionCovarianceTarget                          &
+         &                                                                                         )                                                                  &
          &                                                        )
     ! Clean up.
     !![

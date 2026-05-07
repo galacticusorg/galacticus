@@ -129,6 +129,7 @@ contains
     use :: Numerical_Constants_Units             , only : electronVolt                                       , ergs
     use :: Numerical_Ranges                      , only : Make_Range                                         , rangeTypeLinear
     use :: Output_Analyses_Options               , only : outputAnalysisCovarianceModelBinomial
+    use :: Output_Analysis_Target_Data           , only : outputAnalysisTargetDataStandard
     use :: Output_Analysis_Distribution_Operators, only : outputAnalysisDistributionOperatorRandomErrorPlynml
     use :: Output_Analysis_Property_Operators    , only : outputAnalysisPropertyOperatorAntiLog10            , outputAnalysisPropertyOperatorLog10    , outputAnalysisPropertyOperatorSequence, outputAnalysisPropertyOperatorSystmtcPolynomial, &
           &                                               propertyOperatorList
@@ -286,10 +287,12 @@ contains
          &                                                         covarianceBinomialMassHaloMinimum                                           , &
          &                                                         covarianceBinomialMassHaloMaximum                                           , &
          &                                                         likelihoodNormalize                                                         , &
-         &                                                         var_str('$T_\mathrm{ICM}$ [keV]'                                           ), &
-         &                                                         var_str('$\langle \log_{10} L_\mathrm{ICM}/\mathrm{ergs\, s}^{-1} \rangle$'), &
-         &                                                         .true.                                                                      , &
-         &                                                         .false.                                                                       &
+         &                                                         outputAnalysisTargetDataStandard(                                                                                              &
+         &                                                                                          xAxisLabel      =var_str('$T_\mathrm{ICM}$ [keV]'                                           ), &
+         &                                                                                          yAxisLabel      =var_str('$\langle \log_{10} L_\mathrm{ICM}/\mathrm{ergs\, s}^{-1} \rangle$'), &
+         &                                                                                          xAxisIsLog      =.true.                                                                      , &
+         &                                                                                          yAxisIsLog      =.false.                                                                       &
+         &                                                                                         )                                                                                              &
          &                                                        )
     ! Clean up.
     !![
