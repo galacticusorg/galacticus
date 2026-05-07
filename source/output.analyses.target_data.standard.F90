@@ -61,6 +61,7 @@ contains
     set as input.  Each field has its own \mono{<inputParameter>}; absent parameters fall back
     to the same defaults the inline constructor uses.
     !!}
+    use :: Error           , only : Error_Report
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type            (outputAnalysisTargetDataStandard)                                :: self
