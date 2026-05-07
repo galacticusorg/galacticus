@@ -100,7 +100,7 @@ contains
     use :: Nodes_Labels, only : nodeLabelRegister
     implicit none
     type   (nodeOperatorLabel  )                        :: self
-    type   (varying_string     ), intent(inout)         :: label
+    type   (varying_string     ), intent(in   )         :: label
     logical                     , intent(in   )         :: onInitialize   , onPostEvolution
     class  (galacticFilterClass), intent(in   ), target :: galacticFilter_
     !![
