@@ -386,8 +386,11 @@ def test_python_reassignments_optional_array_gates_conversion_on_None():
     assert 'np.ascontiguousarray(valueTarget'  in out[0].py_reassignment
     assert out[0].py_pass_as == \
         'valueTarget.ctypes.data_as(POINTER(c_double)) if valueTarget is not None else None'
+    # Count companion: NOT wrapped in c_size_t(...) — python_call_code
+    # adds that once the arg crosses the first-optional boundary, and a
+    # second wrap (c_size_t(c_size_t(...))) is rejected by ctypes.
     assert out[1].py_pass_as == \
-        'c_size_t(valueTarget.size) if valueTarget is not None else c_size_t(0)'
+        'valueTarget.size if valueTarget is not None else 0'
 
 
 def test_python_reassignments_optional_2d_array_gates_conversion_on_None():
@@ -407,10 +410,14 @@ def test_python_reassignments_optional_2d_array_gates_conversion_on_None():
                   fort_is_present=True, py_is_present=False,
                   galacticus_is_present=False)
     out = build_python_reassignments([arr, c1, c2])
-    assert 'if covarianceTarget is not None:' in out[0].py_reassignment
-    assert 'covarianceTarget is not None else None' in out[0].py_pass_as
-    assert 'covarianceTarget is not None else c_size_t(0)' in out[1].py_pass_as
-    assert 'covarianceTarget is not None else c_size_t(0)' in out[2].py_pass_as
+    assert 'if covarianceTarget is not None:'        in out[0].py_reassignment
+    assert 'covarianceTarget is not None else None'  in out[0].py_pass_as
+    # Same c_size_t double-wrap concern as the 1D test above — leave
+    # the wrap to python_call_code; emit a plain Python int / 0 here.
+    assert 'covarianceTarget is not None else 0'     in out[1].py_pass_as
+    assert 'covarianceTarget is not None else 0'     in out[2].py_pass_as
+    assert 'c_size_t' not in out[1].py_pass_as
+    assert 'c_size_t' not in out[2].py_pass_as
 
 
 def test_fortran_reassignments_optional_2d_array_gated_on_present():

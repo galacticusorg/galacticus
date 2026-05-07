@@ -388,8 +388,15 @@ def build_python_reassignments(argument_list):
                     f'f"{arg.name} expects a 2D array, got '
                     f'{{{safe}.ndim}}D")\n'
                 )
-                count_arg_1.py_pass_as = f'c_size_t({safe}.shape[0]) if {safe} is not None else c_size_t(0)'
-                count_arg_2.py_pass_as = f'c_size_t({safe}.shape[1]) if {safe} is not None else c_size_t(0)'
+                # The count companions' `py_pass_as` deliberately doesn't
+                # wrap the result in `c_size_t(...)` — `python_call_code`
+                # adds that wrap once the optional region begins, and a
+                # second wrap (`c_size_t(c_size_t(...))`) is rejected by
+                # ctypes ("'c_ulong' object cannot be interpreted as an
+                # integer").  Same logic for the 1D and character branches
+                # below.
+                count_arg_1.py_pass_as = f'{safe}.shape[0] if {safe} is not None else 0'
+                count_arg_2.py_pass_as = f'{safe}.shape[1] if {safe} is not None else 0'
                 arg.py_pass_as = (
                     f'{safe}.ctypes.data_as(POINTER({arg.ctype})) if {safe} is not None else None'
                 )
@@ -429,7 +436,10 @@ def build_python_reassignments(argument_list):
                     f"[(str(s).ljust({n}))[:{n}].encode('ascii') for s in {safe}],"
                     f" dtype='S{n}'))\n"
                 )
-                count_arg.py_pass_as = f'c_size_t({safe}.size) if {safe} is not None else c_size_t(0)'
+                # See the 2D branch above — let python_call_code's outer
+                # `c_size_t(...)` wrap supply the conversion; double-wrap
+                # is rejected by ctypes.
+                count_arg.py_pass_as = f'{safe}.size if {safe} is not None else 0'
                 arg.py_pass_as = (
                     f'{safe}.ctypes.data_as(POINTER(c_char)) if {safe} is not None else None'
                 )
@@ -466,12 +476,16 @@ def build_python_reassignments(argument_list):
                     # `np.ascontiguousarray(None, dtype=...)` (which
                     # produces a 0-D scalar in modern numpy and breaks
                     # downstream `.size` / `.ctypes` access) never runs.
+                    # The count companion's `py_pass_as` doesn't wrap
+                    # in `c_size_t(...)` — `python_call_code` adds that
+                    # wrap once the optional region begins; double-wrap
+                    # is rejected by ctypes.
                     arg.py_reassignment = (
                         f'    if {safe} is not None:\n'
                         f'        {safe} = np.ascontiguousarray({safe},'
                         f' dtype=np.{np_dtype})\n'
                     )
-                    count_arg.py_pass_as = f'c_size_t({safe}.size) if {safe} is not None else c_size_t(0)'
+                    count_arg.py_pass_as = f'{safe}.size if {safe} is not None else 0'
                     arg.py_pass_as = (
                         f'{safe}.ctypes.data_as(POINTER({arg.ctype})) if {safe} is not None else None'
                     )
