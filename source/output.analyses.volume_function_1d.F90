@@ -478,8 +478,8 @@ contains
     type            (varying_string                              ), intent(in   ), optional                 :: xAxisLabel                           , yAxisLabel                       , &
          &                                                                                                     targetLabel
     logical                                                       , intent(in   ), optional                 :: xAxisIsLog                           , yAxisIsLog                       , &
-         &                                                                                                     propertyIsComoving                   , distributionIsComoving           , &
          &                                                                                                     likelihoodNormalize
+    logical                                                       , intent(in   )                           :: propertyIsComoving                   , distributionIsComoving
     double precision                                              , intent(in   )                           :: propertyUnitsInSI                    , distributionUnitsInSI
     double precision                                              , intent(in   )          , dimension(:  ) :: binCenter
     integer         (c_size_t                                    ), intent(in   )                           :: bufferCount

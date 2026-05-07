@@ -440,8 +440,8 @@ contains
     integer         (c_size_t                                    ), intent(in   )                           :: bufferCount
     double precision                                              , intent(in   )          , dimension(:,:) :: outputWeight
     logical                                                       , intent(in   ), optional                 :: xAxisIsLog                               , yAxisIsLog                             , &
-         &                                                                                                     propertyIsComoving                       , meanIsComoving                         , &
          &                                                                                                     likelihoodNormalize
+    logical                                                       , intent(in   )                           :: propertyIsComoving                          , meanIsComoving
     double precision                                              , intent(in   ), optional                 :: binWidth
     class           (nodePropertyExtractorClass                  ), intent(inout), target                   :: nodePropertyExtractor_                   , outputAnalysisWeightPropertyExtractor_
     class           (outputAnalysisPropertyOperatorClass         ), intent(inout), target                   :: outputAnalysisPropertyOperator_          , outputAnalysisPropertyUnoperator_      , &

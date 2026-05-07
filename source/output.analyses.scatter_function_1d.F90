@@ -418,8 +418,8 @@ contains
     integer         (c_size_t                                    ), intent(in   )                           :: bufferCount
     double precision                                              , intent(in   )          , dimension(:,:) :: outputWeight
     logical                                                       , intent(in   ), optional                 :: xAxisIsLog                                  , yAxisIsLog                                   , &
-         &                                                                                                     propertyIsComoving                          , scatterIsComoving                            , &
          &                                                                                                     likelihoodNormalize
+    logical                                                       , intent(in   )                           :: propertyIsComoving                          , scatterIsComoving
     class           (nodePropertyExtractorClass                  ), intent(inout), target                   :: nodePropertyExtractor_                      , outputAnalysisWeightPropertyExtractor_
     class           (outputAnalysisPropertyOperatorClass         ), intent(inout), target                   :: outputAnalysisPropertyOperator_             , outputAnalysisPropertyUnoperator_            , &
          &                                                                                                     outputAnalysisWeightPropertyOperator_
