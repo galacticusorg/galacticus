@@ -183,6 +183,7 @@ contains
     integer         (c_size_t                                             )                                :: iBin                                                                   , binCount
     type            (hdf5Object                                           )                                :: dataFile
     double precision                                                                                       :: probit                                                                 , sqrtArg
+    type            (outputAnalysisTargetDataStandard)                              :: outputAnalysisTargetData_
     !![
     <constructorAssign variables="ratioEarlyType, ratioEarlyTypeError, systematicErrorPolynomialCoefficient, randomErrorPolynomialCoefficient, randomErrorMinimum, randomErrorMaximum, *cosmologyFunctions_"/>
     !!]
@@ -357,6 +358,15 @@ contains
     <referenceConstruct object="outputAnalysisWeightPropertyExtractor_"           constructor="nodePropertyExtractorMassStellarMorphology(                                                                          )"/>
     !!]
     ! Build the object.
+    outputAnalysisTargetData_=outputAnalysisTargetDataStandard(                                            &
+         &                                                                                          xAxisLabel      =var_str('$M_\star/\mathrm{M}_\odot$'),  &
+         &                                                                                          yAxisLabel      =var_str('$f_\mathrm{early}$'        ),  &
+         &                                                                                          xAxisIsLog      =.true.                                ,  &
+         &                                                                                          yAxisIsLog      =.false.                               ,  &
+         &                                                                                          targetLabel     =var_str('Moffett et al. (2016)')      ,  &
+         &                                                                                          valueTarget     =functionValueTarget                   ,  &
+         &                                                                                          covarianceTarget=functionCovarianceTarget                 &
+         &                                                                                         )
     self%outputAnalysisMeanFunction1D=outputAnalysisMeanFunction1D(                                                 &
          &                                                         var_str('morphologicalFractionGAMAMoffett2016'), &
          &                                                         var_str('Early-type fraction'                 ), &
@@ -389,15 +399,7 @@ contains
          &                                                         covarianceBinomialMassHaloMinimum              , &
          &                                                         covarianceBinomialMassHaloMaximum              , &
          &                                                         likelihoodNormalize                            , &
-         &                                                         outputAnalysisTargetDataStandard(                                            &
-         &                                                                                          xAxisLabel      =var_str('$M_\star/\mathrm{M}_\odot$'),  &
-         &                                                                                          yAxisLabel      =var_str('$f_\mathrm{early}$'        ),  &
-         &                                                                                          xAxisIsLog      =.true.                                ,  &
-         &                                                                                          yAxisIsLog      =.false.                               ,  &
-         &                                                                                          targetLabel     =var_str('Moffett et al. (2016)')      ,  &
-         &                                                                                          valueTarget     =functionValueTarget                   ,  &
-         &                                                                                          covarianceTarget=functionCovarianceTarget                 &
-         &                                                                                         )                                              &
+         &                                                         outputAnalysisTargetData_                                              &
          &                                                        )
     ! Clean up.
     !![

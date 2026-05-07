@@ -166,6 +166,7 @@ contains
     double precision                                                     , parameter                     :: temperatureMinimum                              =0.1d0  , temperatureMaximum                   =1.0d01, &
          &                                                                                                  countTemperaturesPerDecade                      =5.0d0
     integer         (c_size_t                                           )                                :: iOutput                                                 , countTemperatures
+    type            (outputAnalysisTargetDataStandard)                              :: outputAnalysisTargetData_
     !![
     <constructorAssign variables="systematicErrorPolynomialCoefficient, randomErrorPolynomialCoefficient, randomErrorMinimum, randomErrorMaximum, *cosmologyFunctions_, *darkMatterHaloScale_, *coolingFunction_"/>
     !!]
@@ -255,6 +256,12 @@ contains
     <referenceConstruct object="outputAnalysisWeightPropertyExtractor_"           constructor="nodePropertyExtractorICMXRayLuminosity         (cosmologyFunctions_,darkMatterHaloScale_,coolingFunction_                                                    )"/>
     !!]
     ! Build the object.
+    outputAnalysisTargetData_=outputAnalysisTargetDataStandard(                                                                                              &
+         &                                                                                          xAxisLabel      =var_str('$T_\mathrm{ICM}$ [keV]'                                           ), &
+         &                                                                                          yAxisLabel      =var_str('$\langle \log_{10} L_\mathrm{ICM}/\mathrm{ergs\, s}^{-1} \rangle$'), &
+         &                                                                                          xAxisIsLog      =.true.                                                                      , &
+         &                                                                                          yAxisIsLog      =.false.                                                                       &
+         &                                                                                         )
     self%outputAnalysisMeanFunction1D=outputAnalysisMeanFunction1D(                                                                              &
          &                                                         var_str('icmXrayLuminosityTemperature'                                     ), &
          &                                                         var_str('ICM X-ray luminosity-temperature relation'                        ), &
@@ -287,12 +294,7 @@ contains
          &                                                         covarianceBinomialMassHaloMinimum                                           , &
          &                                                         covarianceBinomialMassHaloMaximum                                           , &
          &                                                         likelihoodNormalize                                                         , &
-         &                                                         outputAnalysisTargetDataStandard(                                                                                              &
-         &                                                                                          xAxisLabel      =var_str('$T_\mathrm{ICM}$ [keV]'                                           ), &
-         &                                                                                          yAxisLabel      =var_str('$\langle \log_{10} L_\mathrm{ICM}/\mathrm{ergs\, s}^{-1} \rangle$'), &
-         &                                                                                          xAxisIsLog      =.true.                                                                      , &
-         &                                                                                          yAxisIsLog      =.false.                                                                       &
-         &                                                                                         )                                                                                              &
+         &                                                         outputAnalysisTargetData_                                                                                              &
          &                                                        )
     ! Clean up.
     !![

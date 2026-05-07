@@ -500,6 +500,7 @@ contains
     integer         (c_size_t                                        )                                          :: iOutput                                                , bufferCount
     type            (varying_string                                  )                                          :: message
     character       (len=10                                          )                                          :: timeLabel
+    type            (outputAnalysisTargetDataStandard)                              :: outputAnalysisTargetData_
     !![
     <constructorAssign variables="redshiftMinimum, redshiftMaximum, countRedshiftProgenitor, massParentMinimum, massParentMaximum, timeProgenitor, timeParent, alwaysIsolatedOnly, covarianceDiagonalize, covarianceTargetOnly, rootVarianceTargetFractional, *cosmologyParameters_, *cosmologyFunctions_, *darkMatterProfileDMO_, *virialDensityContrast_, *virialDensityContrastDefinition_, *nbodyHaloMassError_, *outputTimes_"/>
     !!]
@@ -628,6 +629,15 @@ contains
     bufferCount=0_c_size_t
     ! Construct the object.
     self%outputAnalysisVolumeFunction1D=                                                                 &
+         outputAnalysisTargetData_=outputAnalysisTargetDataStandard(                                                          &
+         &                                                                 xAxisLabel      =var_str('$x= z $'      )                , &
+         &                                                                 yAxisLabel      =var_str('Distribution' )                , &
+         &                                                                 xAxisIsLog      =.false.                                  , &
+         &                                                                 yAxisIsLog      =.true.                                   , &
+         &                                                                 targetLabel     =targetLabel                              , &
+         &                                                                 valueTarget     =functionValueTarget                      , &
+         &                                                                 covarianceTarget=functionCovarianceTarget                   &
+         &                                                                )
          & outputAnalysisVolumeFunction1D(                                                               &
          &                                var_str('formationTimeDistribution')//label                  , &
          &                                comment                                                      , &
@@ -659,15 +669,7 @@ contains
          &                                covarianceBinomialMassHaloMinimum                            , &
          &                                covarianceBinomialMassHaloMaximum                            , &
          &                                .false.                                                      , &
-         &                                outputAnalysisTargetDataStandard(                                                          &
-         &                                                                 xAxisLabel      =var_str('$x= z $'      )                , &
-         &                                                                 yAxisLabel      =var_str('Distribution' )                , &
-         &                                                                 xAxisIsLog      =.false.                                  , &
-         &                                                                 yAxisIsLog      =.true.                                   , &
-         &                                                                 targetLabel     =targetLabel                              , &
-         &                                                                 valueTarget     =functionValueTarget                      , &
-         &                                                                 covarianceTarget=functionCovarianceTarget                   &
-         &                                                                )                                                          &
+         &                                outputAnalysisTargetData_                                                          &
          &                               )
     !![
     <objectDestructor name="galacticFilterHaloIsolated_"                    />

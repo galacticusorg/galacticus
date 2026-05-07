@@ -137,6 +137,7 @@ contains
     character       (len=16                                            )                              :: distributionName                                 , magnitudeMinimumLabel                               , &
          &                                                                                               magnitudeMaximumLabel
     type            (varying_string                                    )                              :: description
+    type            (outputAnalysisTargetDataStandard)                              :: outputAnalysisTargetData_
     !![
     <constructorAssign variables="distributionNumber, *cosmologyFunctions_"/>
     !!]
@@ -274,6 +275,15 @@ contains
     write (magnitudeMaximumLabel,'(f6.2)') magnitudeMaximum
     description=description//"$"//trim(adjustl(magnitudeMinimumLabel))//" < r < "//trim(adjustl(magnitudeMaximumLabel))//"$"
     self%outputAnalysisVolumeFunction1D=                                                            &
+         outputAnalysisTargetData_=outputAnalysisTargetDataStandard(                                                       &
+         &                                                                 xAxisLabel      =var_str('$u-r$'                        ), &
+         &                                                                 yAxisLabel      =var_str('$\mathrm{d}p/\mathrm{d}(u-r)$'), &
+         &                                                                 xAxisIsLog      =.false.                                 , &
+         &                                                                 yAxisIsLog      =.false.                                 , &
+         &                                                                 targetLabel     =var_str('Baldry et al. (2004)')         , &
+         &                                                                 valueTarget     =functionValueTarget                     , &
+         &                                                                 covarianceTarget=functionCovarianceTarget                  &
+         &                                                                )
          & outputAnalysisVolumeFunction1D(                                                          &
          &                                var_str('colorDistributionSDSS')//trim(distributionName), &
          &                                description                                             , &
@@ -305,15 +315,7 @@ contains
          &                                covarianceBinomialMassHaloMinimum                       , &
          &                                covarianceBinomialMassHaloMaximum                       , &
          &                                .false.                                                 , &
-         &                                outputAnalysisTargetDataStandard(                                                       &
-         &                                                                 xAxisLabel      =var_str('$u-r$'                        ), &
-         &                                                                 yAxisLabel      =var_str('$\mathrm{d}p/\mathrm{d}(u-r)$'), &
-         &                                                                 xAxisIsLog      =.false.                                 , &
-         &                                                                 yAxisIsLog      =.false.                                 , &
-         &                                                                 targetLabel     =var_str('Baldry et al. (2004)')         , &
-         &                                                                 valueTarget     =functionValueTarget                     , &
-         &                                                                 covarianceTarget=functionCovarianceTarget                  &
-         &                                                                )                                                          &
+         &                                outputAnalysisTargetData_                                                          &
          &                               )
     ! Clean up.
     !![

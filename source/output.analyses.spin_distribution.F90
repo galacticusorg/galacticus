@@ -429,6 +429,7 @@ contains
     integer                                                            , parameter                                  :: covarianceBinomialBinsPerDecade         =2
     double precision                                                   , parameter                                  :: covarianceBinomialMassHaloMinimum       =3.000d11, covarianceBinomialMassHaloMaximum=1.0d15
     integer         (c_size_t                                         )                                             :: i                                                , bufferCount
+    type            (outputAnalysisTargetDataStandard)                              :: outputAnalysisTargetData_
     !![
     <constructorAssign variables="label, comment, time, massMinimum, massMaximum, spinMinimum, spinMaximum, countSpins, timeRecent, massParticle, particleCountMinimum, energyEstimateParticleCountMaximum, logNormalRange, errorTolerant, *cosmologyParameters_, *cosmologyFunctions_, *nbodyHaloMassError_, *haloMassFunction_, *darkMatterHaloScale_, *darkMatterProfileScaleRadius_, *outputTimes_, *virialDensityContrast_, *virialDensityContrastDefinition_"/>
     !!]
@@ -550,6 +551,15 @@ contains
     ! convolution operations on the distribution function are unaffected by edge effects.
     bufferCount=max(int(bufferWidthLogarithmic/log10(spins(2)/spins(1)))+1,bufferCountMinimum)
     ! Construct the object. We convert spins to log10(spins) here.
+    outputAnalysisTargetData_=outputAnalysisTargetDataStandard(                                                                  &
+         &                                                                                              xAxisLabel      =var_str('$\lambda$'                               ), &
+         &                                                                                              yAxisLabel      =var_str('$\mathrm{d}p/\mathrm{d}\log\lambda$'     ), &
+         &                                                                                              xAxisIsLog      =.true.                                             , &
+         &                                                                                              yAxisIsLog      =.true.                                             , &
+         &                                                                                              targetLabel     =targetLabel                                        , &
+         &                                                                                              valueTarget     =functionValueTarget                                , &
+         &                                                                                              covarianceTarget=functionCovarianceTarget                             &
+         &                                                                                             )
     self%outputAnalysisVolumeFunction1D=outputAnalysisVolumeFunction1D(                                                     &
          &                                                             var_str('spinDistribution')//label                 , &
          &                                                             comment                                            , &
@@ -581,15 +591,7 @@ contains
          &                                                             covarianceBinomialMassHaloMinimum                  , &
          &                                                             covarianceBinomialMassHaloMaximum                  , &
          &                                                             .false.                                            , &
-         &                                                             outputAnalysisTargetDataStandard(                                                                  &
-         &                                                                                              xAxisLabel      =var_str('$\lambda$'                               ), &
-         &                                                                                              yAxisLabel      =var_str('$\mathrm{d}p/\mathrm{d}\log\lambda$'     ), &
-         &                                                                                              xAxisIsLog      =.true.                                             , &
-         &                                                                                              yAxisIsLog      =.true.                                             , &
-         &                                                                                              targetLabel     =targetLabel                                        , &
-         &                                                                                              valueTarget     =functionValueTarget                                , &
-         &                                                                                              covarianceTarget=functionCovarianceTarget                             &
-         &                                                                                             )                                                                     &
+         &                                                             outputAnalysisTargetData_                                                                     &
          &                                                            )
     !![
     <objectDestructor name="haloSpinDistributionDeltaFunction_"             />

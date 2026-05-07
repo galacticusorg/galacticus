@@ -213,6 +213,7 @@ contains
     double precision                                                        , parameter                     :: massStellarThreshold                            =+1.0d-3
     integer         (c_size_t                                              )                                :: i                                                           , bufferCount
     type            (hdf5Object                                            )                                :: fileData
+    type            (outputAnalysisTargetDataStandard)                              :: outputAnalysisTargetData_
     !![
     <constructorAssign variables="*outputTimes_, positionType, randomErrorMinimum, randomErrorMaximum, randomErrorPolynomialCoefficient, systematicErrorPolynomialCoefficient, massStellarSystematicErrorPolynomialCoefficient, covarianceBinomialBinsPerDecade, covarianceBinomialMassHaloMinimum, covarianceBinomialMassHaloMaximum"/>
     !!]
@@ -362,6 +363,15 @@ contains
     allocate(outputAnalysisMeanFunction1D :: self%outputAnalysis_)
     select type (outputAnalysis_ => self%outputAnalysis_)
     type is (outputAnalysisMeanFunction1D)
+       outputAnalysisTargetData_=outputAnalysisTargetDataStandard(                                                                                  &
+           &                                                         xAxisLabel      =var_str('$M_\mathrm{halo}/\mathrm{M}_\odot$'                  ), &
+           &                                                         yAxisLabel      =var_str('$\langle\log_{10}(M_\star/\mathrm{M}_\odot)\rangle$' ), &
+           &                                                         xAxisIsLog      =.true.                                                        , &
+           &                                                         yAxisIsLog      =.false.                                                       , &
+           &                                                         targetLabel     =var_str('Nadler et al. (2020)'                                ), &
+           &                                                         valueTarget     =functionValueTarget                                           , &
+           &                                                         covarianceTarget=functionCovarianceTarget                                        &
+           &                                                        )
        !![
        <referenceConstruct isResult="yes" object="outputAnalysis_">
 	 <constructor>
@@ -397,15 +407,7 @@ contains
 	   &amp;                        covarianceBinomialMassHaloMinimum                                   , &amp;
 	   &amp;                        covarianceBinomialMassHaloMaximum                                   , &amp;
            &amp;                        likelihoodNormalize                                                 , &amp;
-           &amp;                        outputAnalysisTargetDataStandard(                                                                                  &amp;
-           &amp;                                                         xAxisLabel      =var_str('$M_\mathrm{halo}/\mathrm{M}_\odot$'                  ), &amp;
-           &amp;                                                         yAxisLabel      =var_str('$\langle\log_{10}(M_\star/\mathrm{M}_\odot)\rangle$' ), &amp;
-           &amp;                                                         xAxisIsLog      =.true.                                                        , &amp;
-           &amp;                                                         yAxisIsLog      =.false.                                                       , &amp;
-           &amp;                                                         targetLabel     =var_str('Nadler et al. (2020)'                                ), &amp;
-           &amp;                                                         valueTarget     =functionValueTarget                                           , &amp;
-           &amp;                                                         covarianceTarget=functionCovarianceTarget                                        &amp;
-           &amp;                                                        )                                                                                  &amp;
+           &amp;                        outputAnalysisTargetData_                                                                                  &amp;
 	   &amp;                       )
 	 </constructor>
        </referenceConstruct>

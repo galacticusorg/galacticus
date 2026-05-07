@@ -284,6 +284,7 @@ contains
     double precision                                                  , parameter                               :: bufferWidth                                     =7.5d0
     integer         (c_size_t                                        ), parameter                               :: bufferCountMinimum                              =5
     integer         (c_size_t                                        )                                          :: iBin                                                  , bufferCount
+    type            (outputAnalysisTargetDataStandard)                              :: outputAnalysisTargetData_
     !![
     <constructorAssign variables="magnitudesAbsolute, *surveyGeometry_, *cosmologyFunctions_, *cosmologyFunctionsData"/>
     !!]
@@ -355,6 +356,15 @@ contains
     ! this enclosing constructor pass through unchanged: an absent optional dummy forwarded
     ! by name to another optional dummy of the same name remains absent.
     self%outputAnalysisVolumeFunction1D=                                                            &
+         outputAnalysisTargetData_=outputAnalysisTargetDataStandard(                                                                  &
+         &                                                                 xAxisLabel      =var_str('$M$'                                ),  &
+         &                                                                 yAxisLabel      =var_str('$\mathrm{d}n/\mathrm{d}M$ [$_\chi$Mpc$^{-3}$]'), &
+         &                                                                 xAxisIsLog      =.false.                                       ,  &
+         &                                                                 yAxisIsLog      =.true.                                        ,  &
+         &                                                                 targetLabel     =targetLabel                                   ,  &
+         &                                                                 valueTarget     =functionValueTarget                          ,  &
+         &                                                                 covarianceTarget=functionCovarianceTarget                         &
+         &                                                                )
          & outputAnalysisVolumeFunction1D(                                                          &
          &                                'luminosityFunction'//label                             , &
          &                                comment                                                 , &
@@ -386,15 +396,7 @@ contains
          &                                covarianceBinomialMassHaloMinimum                       , &
          &                                covarianceBinomialMassHaloMaximum                       , &
          &                                .false.                                                 , &
-         &                                outputAnalysisTargetDataStandard(                                                                  &
-         &                                                                 xAxisLabel      =var_str('$M$'                                ),  &
-         &                                                                 yAxisLabel      =var_str('$\mathrm{d}n/\mathrm{d}M$ [$_\chi$Mpc$^{-3}$]'), &
-         &                                                                 xAxisIsLog      =.false.                                       ,  &
-         &                                                                 yAxisIsLog      =.true.                                        ,  &
-         &                                                                 targetLabel     =targetLabel                                   ,  &
-         &                                                                 valueTarget     =functionValueTarget                          ,  &
-         &                                                                 covarianceTarget=functionCovarianceTarget                         &
-         &                                                                )                                                                  &
+         &                                outputAnalysisTargetData_                                                                  &
          &                               )
     ! Clean up.
     !![

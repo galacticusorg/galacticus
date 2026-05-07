@@ -160,6 +160,7 @@ contains
     integer         (c_size_t                                           )                                :: iOutput                                                 , i
     type            (hdf5Object                                         )                                :: dataFile
     type            (varying_string                                     )                                :: targetLabel
+    type            (outputAnalysisTargetDataStandard)                              :: outputAnalysisTargetData_
     !![
     <constructorAssign variables="systematicErrorPolynomialCoefficient, randomErrorPolynomialCoefficient, randomErrorMinimum, randomErrorMaximum, *cosmologyFunctions_, *outputTimes_"/>
     !!]
@@ -286,6 +287,15 @@ contains
     <referenceConstruct object="outputAnalysisWeightPropertyExtractor_"           constructor="nodePropertyExtractorMassBlackHole             (                                                                          )"/>
     !!]
     ! Build the object.
+    outputAnalysisTargetData_=outputAnalysisTargetDataStandard(                                                              &
+         &                                                                                          xAxisLabel      =var_str('$M_{\star,\mathrm{bulge}}$ [M$_\odot$]'                ), &
+         &                                                                                          yAxisLabel      =var_str('$\langle \log_{10} M_\bullet/\mathrm{M}_\odot \rangle$'), &
+         &                                                                                          xAxisIsLog      =.true.                                       , &
+         &                                                                                          yAxisIsLog      =.false.                                      , &
+         &                                                                                          targetLabel     =targetLabel                                  , &
+         &                                                                                          valueTarget     =functionValueTarget                          , &
+         &                                                                                          covarianceTarget=functionCovarianceTarget                       &
+         &                                                                                         )
     self%outputAnalysisMeanFunction1D=outputAnalysisMeanFunction1D(                                                                   &
          &                                                         var_str('blackHoleBulgeRelation'                                ), &
          &                                                         var_str('Black hole mass-bulge mass relation'                   ), &
@@ -318,15 +328,7 @@ contains
          &                                                         covarianceBinomialMassHaloMinimum                                , &
          &                                                         covarianceBinomialMassHaloMaximum                                , &
          &                                                         likelihoodNormalize                                              , &
-         &                                                         outputAnalysisTargetDataStandard(                                                              &
-         &                                                                                          xAxisLabel      =var_str('$M_{\star,\mathrm{bulge}}$ [M$_\odot$]'                ), &
-         &                                                                                          yAxisLabel      =var_str('$\langle \log_{10} M_\bullet/\mathrm{M}_\odot \rangle$'), &
-         &                                                                                          xAxisIsLog      =.true.                                       , &
-         &                                                                                          yAxisIsLog      =.false.                                      , &
-         &                                                                                          targetLabel     =targetLabel                                  , &
-         &                                                                                          valueTarget     =functionValueTarget                          , &
-         &                                                                                          covarianceTarget=functionCovarianceTarget                       &
-         &                                                                                         )                                  &
+         &                                                         outputAnalysisTargetData_                                  &
          &                                                        )
     ! Clean up.
     !![

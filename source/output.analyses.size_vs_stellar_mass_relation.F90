@@ -343,6 +343,7 @@ contains
          &                                                                                                  groupCosmology
     character       (len=4                                              )                                :: redshiftMinimumLabel                                          , redshiftMaximumLabel
     type            (enumerationFilterTypeType                          )                                :: filterType
+    type            (outputAnalysisTargetDataStandard)                              :: outputAnalysisTargetData_
     !![
     <constructorAssign variables="fileNameTarget, sample, likelihoodBins, likelihoodBinsAutomatic, likelihoodNormalize, computeScatter, systematicErrorPolynomialCoefficient, systematicErrorMassStellarPolynomialCoefficient, randomErrorMassStellarPolynomialCoefficient, randomErrorMassStellarMinimum, randomErrorMassStellarMaximum, *cosmologyParameters_, *cosmologyFunctions_, *outputTimes_, *starFormationRateDisks_, *starFormationRateSpheroids_, *starFormationRateNuclearStarClusters_"/>
     !!]
@@ -618,6 +619,15 @@ contains
     ! is appropriate to counting analyses (e.g. mass functions), but not to this type of mean or scatter analysis.
     select type (outputAnalysis_ => self%outputAnalysis_)
     type is (outputAnalysisScatterFunction1D)
+       outputAnalysisTargetData_=outputAnalysisTargetDataStandard(                                                                                                                              &
+          &                                                                                   xAxisLabel      =var_str('$M_\star/\mathrm{M}_\odot$'                       )                                              , &
+          &                                                                                   yAxisLabel      =var_str('$\sigma_{\log_{10}(R_\mathrm{eff}/\mathrm{Mpc})}$')                                              , &
+          &                                                                                   xAxisIsLog      =.true.                                                                                                     , &
+          &                                                                                   yAxisIsLog      =.false.                                                                                                    , &
+          &                                                                                   targetLabel     =referenceTarget                                                                                            , &
+          &                                                                                   valueTarget     =radiusEffectiveScatterTarget                                                                               , &
+          &                                                                                   covarianceTarget=radiusEffectiveScatterCovarianceTarget                                                                       &
+          &                                                                                  )
        !![
        <referenceConstruct isResult="yes" object="outputAnalysis_">
         <constructor>
@@ -650,20 +660,21 @@ contains
           &amp;                                                  outputTimes_                                                                                                                       , &amp;
           &amp;                                                  outputAnalysisCovarianceModelPoisson                                                                                               , &amp;
           &amp;                          likelihoodNormalize    =likelihoodNormalize                                                                                                                , &amp;
-          &amp;                          targetData_            =outputAnalysisTargetDataStandard(                                                                                                                              &amp;
-          &amp;                                                                                   xAxisLabel      =var_str('$M_\star/\mathrm{M}_\odot$'                       )                                              , &amp;
-          &amp;                                                                                   yAxisLabel      =var_str('$\sigma_{\log_{10}(R_\mathrm{eff}/\mathrm{Mpc})}$')                                              , &amp;
-          &amp;                                                                                   xAxisIsLog      =.true.                                                                                                     , &amp;
-          &amp;                                                                                   yAxisIsLog      =.false.                                                                                                    , &amp;
-          &amp;                                                                                   targetLabel     =referenceTarget                                                                                            , &amp;
-          &amp;                                                                                   valueTarget     =radiusEffectiveScatterTarget                                                                               , &amp;
-          &amp;                                                                                   covarianceTarget=radiusEffectiveScatterCovarianceTarget                                                                       &amp;
-          &amp;                                                                                  )                                                                                                                              &amp;
+          &amp;                          targetData_            =outputAnalysisTargetData_                                                                                                                              &amp;
           &amp;                         )
         </constructor>
        </referenceConstruct>
        !!]
     type is (outputAnalysisMeanFunction1D   )
+       outputAnalysisTargetData_=outputAnalysisTargetDataStandard(                                                                                                                       &
+          &                                                                                xAxisLabel      =var_str('$M_\star\mathrm{M}_\odot$'               )                                              , &
+          &                                                                                yAxisLabel      =var_str('$\log_{10}(R_\mathrm{eff}/\mathrm{Mpc})$')                                              , &
+          &                                                                                xAxisIsLog      =.true.                                                                                            , &
+          &                                                                                yAxisIsLog      =.false.                                                                                           , &
+          &                                                                                targetLabel     =referenceTarget                                                                                   , &
+          &                                                                                valueTarget     =radiusEffectiveLogarithmicTarget                                                                  , &
+          &                                                                                covarianceTarget=radiusEffectiveLogarithmicCovarianceTarget                                                          &
+          &                                                                               )
        !![
        <referenceConstruct isResult="yes" object="outputAnalysis_">
         <constructor>
@@ -696,15 +707,7 @@ contains
           &amp;                                               outputTimes_                                                                                                            , &amp;
           &amp;                                               outputAnalysisCovarianceModelPoisson                                                                                    , &amp;
           &amp;                          likelihoodNormalize =likelihoodNormalize                                                                                                     , &amp;
-          &amp;                          targetData_         =outputAnalysisTargetDataStandard(                                                                                                                       &amp;
-          &amp;                                                                                xAxisLabel      =var_str('$M_\star\mathrm{M}_\odot$'               )                                              , &amp;
-          &amp;                                                                                yAxisLabel      =var_str('$\log_{10}(R_\mathrm{eff}/\mathrm{Mpc})$')                                              , &amp;
-          &amp;                                                                                xAxisIsLog      =.true.                                                                                            , &amp;
-          &amp;                                                                                yAxisIsLog      =.false.                                                                                           , &amp;
-          &amp;                                                                                targetLabel     =referenceTarget                                                                                   , &amp;
-          &amp;                                                                                valueTarget     =radiusEffectiveLogarithmicTarget                                                                  , &amp;
-          &amp;                                                                                covarianceTarget=radiusEffectiveLogarithmicCovarianceTarget                                                          &amp;
-          &amp;                                                                               )                                                                                                                     &amp;
+          &amp;                          targetData_         =outputAnalysisTargetData_                                                                                                                     &amp;
           &amp;                         )
         </constructor>
        </referenceConstruct>

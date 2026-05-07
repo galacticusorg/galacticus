@@ -543,6 +543,7 @@ contains
     integer         (c_size_t                                        )                                          :: iOutput                                                , bufferCount
     type            (varying_string                                  )                                          :: message
     character       (len=10                                          )                                          :: timeLabel
+    type            (outputAnalysisTargetDataStandard)                              :: outputAnalysisTargetData_
     !![
     <constructorAssign variables="massRatioMinimum, massRatioMaximum, countMassRatio, massParentMinimum, massParentMaximum, timeProgenitor, timeParent, alwaysIsolatedOnly, massRatioLikelihoodMinimum, massRatioLikelihoodMaximum, covarianceDiagonalize, covarianceTargetOnly, rootVarianceTargetFractional, likelihoodInLog, likelihoodInCounts, likelihoodNormalize, functionCountTarget, *cosmologyParameters_, *cosmologyFunctions_, *darkMatterProfileDMO_, *virialDensityContrast_, *virialDensityContrastDefinition_, *nbodyHaloMassError_, *outputTimes_"/>
     !!]
@@ -701,6 +702,15 @@ contains
     bufferCount=0_c_size_t
     ! Construct the object.
     self%outputAnalysisVolumeFunction1D=                                                              &
+         outputAnalysisTargetData_=outputAnalysisTargetDataStandard(                                                                                &
+         &                                                                 xAxisLabel      =var_str('$x=M_\mathrm{progenitor}/M_\mathrm{parent}$'        ), &
+         &                                                                 yAxisLabel      =var_str('$\mathrm{d}f/\mathrm{d}\log_\mathrm{e}x$'           ), &
+         &                                                                 xAxisIsLog      =.true.                                                        , &
+         &                                                                 yAxisIsLog      =.true.                                                        , &
+         &                                                                 targetLabel     =targetLabel                                                   , &
+         &                                                                 valueTarget     =functionValueTarget                                           , &
+         &                                                                 covarianceTarget=functionCovarianceTarget                                        &
+         &                                                                )
          & outputAnalysisVolumeFunction1D(                                                            &
          &                                var_str('progenitorMassFunction')//label                  , &
          &                                comment                                                   , &
@@ -732,15 +742,7 @@ contains
          &                                covarianceBinomialMassHaloMinimum                         , &
          &                                covarianceBinomialMassHaloMaximum                         , &
          &                                .false.                                                   , &
-         &                                outputAnalysisTargetDataStandard(                                                                                &
-         &                                                                 xAxisLabel      =var_str('$x=M_\mathrm{progenitor}/M_\mathrm{parent}$'        ), &
-         &                                                                 yAxisLabel      =var_str('$\mathrm{d}f/\mathrm{d}\log_\mathrm{e}x$'           ), &
-         &                                                                 xAxisIsLog      =.true.                                                        , &
-         &                                                                 yAxisIsLog      =.true.                                                        , &
-         &                                                                 targetLabel     =targetLabel                                                   , &
-         &                                                                 valueTarget     =functionValueTarget                                           , &
-         &                                                                 covarianceTarget=functionCovarianceTarget                                        &
-         &                                                                )                                                                                &
+         &                                outputAnalysisTargetData_                                                                                &
          &                               )
     !![
     <objectDestructor name="galacticFilterHaloIsolated_"                    />

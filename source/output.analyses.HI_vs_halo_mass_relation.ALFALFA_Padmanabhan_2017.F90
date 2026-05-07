@@ -199,6 +199,7 @@ contains
          &                                                                                                 jacobianAlpha                                                        , jacobianBeta                                         , &
          &                                                                                                 jacobianVelocity0                                                    , jacobianVelocity1
     integer         (c_size_t                                          )                                :: iBin
+    type            (outputAnalysisTargetDataStandard)                              :: outputAnalysisTargetData_
     !![
     <constructorAssign variables="systematicErrorPolynomialCoefficient, *cosmologyParameters_, *cosmologyFunctions_, *darkMatterProfileDMO_, *virialDensityContrast_, *outputAnalysisMolecularRatio_"/>
     !!]
@@ -404,6 +405,15 @@ contains
        end do
     end if
     ! Build the object.
+    outputAnalysisTargetData_=outputAnalysisTargetDataStandard(                                          &
+         &                                                                                          xAxisLabel      =var_str('$M_\mathrm{halo}/\mathrm{M}_\odot$'         ), &
+         &                                                                                          yAxisLabel      =var_str('$\log_{10}(M_\mathrm{HI}/\mathrm{M}_\odot)$'), &
+         &                                                                                          xAxisIsLog      =.true.                                ,  &
+         &                                                                                          yAxisIsLog      =.false.                               ,  &
+         &                                                                                          targetLabel     =var_str('Padmanabhan \\& Refrigier (2017)'),  &
+         &                                                                                          valueTarget     =massHILogarithmicTarget               ,  &
+         &                                                                                          covarianceTarget=massHILogarithmicCovarianceTarget        &
+         &                                                                                         )
     self%outputAnalysisMeanFunction1D=outputAnalysisMeanFunction1D(                                                        &
          &                                                         var_str('hiHaloMassRelationPadmanabhan2017'          ), &
          &                                                         var_str('HI vs. halo mass relation'                  ), &
@@ -436,15 +446,7 @@ contains
          &                                                         covarianceBinomialMassHaloMinimum                     , &
          &                                                         covarianceBinomialMassHaloMaximum                     , &
          &                                                         likelihoodNormalize                                   , &
-         &                                                         outputAnalysisTargetDataStandard(                                          &
-         &                                                                                          xAxisLabel      =var_str('$M_\mathrm{halo}/\mathrm{M}_\odot$'         ), &
-         &                                                                                          yAxisLabel      =var_str('$\log_{10}(M_\mathrm{HI}/\mathrm{M}_\odot)$'), &
-         &                                                                                          xAxisIsLog      =.true.                                ,  &
-         &                                                                                          yAxisIsLog      =.false.                               ,  &
-         &                                                                                          targetLabel     =var_str('Padmanabhan \\& Refrigier (2017)'),  &
-         &                                                                                          valueTarget     =massHILogarithmicTarget               ,  &
-         &                                                                                          covarianceTarget=massHILogarithmicCovarianceTarget        &
-         &                                                                                         )                                            &
+         &                                                         outputAnalysisTargetData_                                            &
          &                                                        )
     ! Clean up.
     !![

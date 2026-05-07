@@ -343,6 +343,7 @@ contains
     integer         (c_size_t                                       ), parameter                                    :: bufferCountMinimum                              =5
     integer         (c_size_t                                       )                                               :: iBin                                                        , bufferCount                                         , &
          &                                                                                                             countMasses
+         type            (outputAnalysisTargetDataStandard)                              :: outputAnalysisTargetData_
     !![
     <constructorAssign variables="*surveyGeometry_, *cosmologyFunctions_, *cosmologyFunctionsData, *starFormationRateDisks_, *starFormationRateSpheroids_, *starFormationRateNuclearStarClusters_"/>
     !!]
@@ -459,6 +460,15 @@ contains
     end if
     ! Construct the object.
     self%outputAnalysisMeanFunction1D=                                                                                      &
+         outputAnalysisTargetData_=outputAnalysisTargetDataStandard(                                                                                                  &
+         &                                                               xAxisLabel      =var_str('$M_\star\, [\mathrm{M}_\odot]$'                                         ), &
+         &                                                               yAxisLabel      =var_str('$\langle \log_{10} (\dot{M}_\star/M_\star / \mathrm{Gyr}^{-1}) \rangle$'), &
+         &                                                               xAxisIsLog      =.true.                                                                            , &
+         &                                                               yAxisIsLog      =.false.                                                                           , &
+         &                                                               targetLabel     =targetLabel                                                                       , &
+         &                                                               valueTarget     =meanValueTarget                                                                   , &
+         &                                                               covarianceTarget=meanCovarianceTarget                                                                &
+         &                                                              )
          & outputAnalysisMeanFunction1D(                                                                                    &
          &                              var_str('starFormingMainSequence')//label                                         , &
          &                              comment                                                                           , &
@@ -491,15 +501,7 @@ contains
          &                              covarianceBinomialMassHaloMinimum                                                 , &
          &                              covarianceBinomialMassHaloMaximum                                                 , &
          &                              .false.                                                                           , &
-         &                              outputAnalysisTargetDataStandard(                                                                                                  &
-         &                                                               xAxisLabel      =var_str('$M_\star\, [\mathrm{M}_\odot]$'                                         ), &
-         &                                                               yAxisLabel      =var_str('$\langle \log_{10} (\dot{M}_\star/M_\star / \mathrm{Gyr}^{-1}) \rangle$'), &
-         &                                                               xAxisIsLog      =.true.                                                                            , &
-         &                                                               yAxisIsLog      =.false.                                                                           , &
-         &                                                               targetLabel     =targetLabel                                                                       , &
-         &                                                               valueTarget     =meanValueTarget                                                                   , &
-         &                                                               covarianceTarget=meanCovarianceTarget                                                                &
-         &                                                              )                                                                                                    , &
+         &                              outputAnalysisTargetData_                                                                                                    , &
          &                              massesStellarBinWidthLogarithmic                                                    &
          &                             )
     !![

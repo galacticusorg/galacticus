@@ -340,6 +340,7 @@ contains
     integer         (c_size_t                                       ), parameter                                    :: bufferCountMinimum                              =5
     integer         (c_size_t                                       )                                               :: iBin                                                        , bufferCount                                         , &
          &                                                                                                             countMasses
+         type            (outputAnalysisTargetDataStandard)                              :: outputAnalysisTargetData_
     !![
     <constructorAssign variables="starFormationRateSpecificQuiescentLogarithmic, starFormationRateSpecificLogarithmicError, *surveyGeometry_, *cosmologyFunctions_, *cosmologyFunctionsData, *starFormationRateDisks_, *starFormationRateSpheroids_, *starFormationRateNuclearStarClusters_"/>
     !!]
@@ -469,6 +470,15 @@ contains
     bufferCount=max(int(bufferWidthLogarithmic/log10(massesStellar(2)/massesStellar(1)))+1,bufferCountMinimum)
     ! Construct the object.
     self%outputAnalysisMeanFunction1D=                                                                    &
+         outputAnalysisTargetData_=outputAnalysisTargetDataStandard(                                                                       &
+         &                                                               xAxisLabel      =var_str('$M_\star\, [\mathrm{M}_\odot]$'           ), &
+         &                                                               yAxisLabel      =var_str('$f_\mathrm{q}$'                            ), &
+         &                                                               xAxisIsLog      =.true.                                              , &
+         &                                                               yAxisIsLog      =.true.                                              , &
+         &                                                               targetLabel     =targetLabel                                         , &
+         &                                                               valueTarget     =meanValueTarget                                     , &
+         &                                                               covarianceTarget=meanCovarianceTarget                                  &
+         &                                                              )
          & outputAnalysisMeanFunction1D(                                                                  &
          &                              var_str('quiescentFraction')//label                             , &
          &                              comment                                                         , &
@@ -501,15 +511,7 @@ contains
          &                              covarianceBinomialMassHaloMinimum                               , &
          &                              covarianceBinomialMassHaloMaximum                               , &
          &                              .false.                                                         , &
-         &                              outputAnalysisTargetDataStandard(                                                                       &
-         &                                                               xAxisLabel      =var_str('$M_\star\, [\mathrm{M}_\odot]$'           ), &
-         &                                                               yAxisLabel      =var_str('$f_\mathrm{q}$'                            ), &
-         &                                                               xAxisIsLog      =.true.                                              , &
-         &                                                               yAxisIsLog      =.true.                                              , &
-         &                                                               targetLabel     =targetLabel                                         , &
-         &                                                               valueTarget     =meanValueTarget                                     , &
-         &                                                               covarianceTarget=meanCovarianceTarget                                  &
-         &                                                              )                                                                      &
+         &                              outputAnalysisTargetData_                                                                      &
          &                             )
     !![
     <objectDestructor name="outputAnalysisPropertyOperatorCsmlgyLmnstyDstnc_"/>

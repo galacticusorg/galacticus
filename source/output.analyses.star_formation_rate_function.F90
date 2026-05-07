@@ -311,6 +311,7 @@ contains
     double precision                                                 , parameter                               :: bufferWidthLogarithmic                          =3.0d0
     integer         (c_size_t                                       ), parameter                               :: bufferCountMinimum                              =5
     integer         (c_size_t                                       )                                          :: iBin                                                  , bufferCount
+    type            (outputAnalysisTargetDataStandard)                              :: outputAnalysisTargetData_
     !![
     <constructorAssign variables="starFormationRates, *surveyGeometry_, *cosmologyFunctions_, *cosmologyFunctionsData, *starFormationRateDisks_, *starFormationRateSpheroids_, *starFormationRateNuclearStarClusters_"/>
     !!]
@@ -385,6 +386,15 @@ contains
     bufferCount=max(int(bufferWidthLogarithmic/log10(starFormationRates(2)/starFormationRates(1)))+1,bufferCountMinimum)
     ! Construct the object. We convert starFormationRates to log10(starFormationRates) here.
     self%outputAnalysisVolumeFunction1D=                                                                                        &
+         outputAnalysisTargetData_=outputAnalysisTargetDataStandard(                                                                                                  &
+         &                                                                 xAxisLabel      =var_str('$\log_{10}(\dot{M}_\star/\mathrm{M}_\odot) \mathrm{Gyr}^{-1}$'         ), &
+         &                                                                 yAxisLabel      =var_str('$\mathrm{d}n/\mathrm{d}\log_\mathrm{e} \dot{M}_\star / \mathrm{Mpc}^{-3}$'), &
+         &                                                                 xAxisIsLog      =.true.                                                                            , &
+         &                                                                 yAxisIsLog      =.true.                                                                            , &
+         &                                                                 targetLabel     =targetLabel                                                                       , &
+         &                                                                 valueTarget     =functionValueTarget                                                               , &
+         &                                                                 covarianceTarget=functionCovarianceTarget                                                            &
+         &                                                                )
          & outputAnalysisVolumeFunction1D(                                                                                      &
          &                                'starFormationRateFunction'//label                                                  , &
          &                                comment                                                                             , &
@@ -416,15 +426,7 @@ contains
          &                                covarianceBinomialMassHaloMinimum                                                   , &
          &                                covarianceBinomialMassHaloMaximum                                                   , &
          &                                .false.                                                                             , &
-         &                                outputAnalysisTargetDataStandard(                                                                                                  &
-         &                                                                 xAxisLabel      =var_str('$\log_{10}(\dot{M}_\star/\mathrm{M}_\odot) \mathrm{Gyr}^{-1}$'         ), &
-         &                                                                 yAxisLabel      =var_str('$\mathrm{d}n/\mathrm{d}\log_\mathrm{e} \dot{M}_\star / \mathrm{Mpc}^{-3}$'), &
-         &                                                                 xAxisIsLog      =.true.                                                                            , &
-         &                                                                 yAxisIsLog      =.true.                                                                            , &
-         &                                                                 targetLabel     =targetLabel                                                                       , &
-         &                                                                 valueTarget     =functionValueTarget                                                               , &
-         &                                                                 covarianceTarget=functionCovarianceTarget                                                            &
-         &                                                                )                                                                                                    &
+         &                                outputAnalysisTargetData_                                                                                                    &
          &                               )
     ! Clean up.
     !![

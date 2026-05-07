@@ -212,6 +212,7 @@ contains
     integer         (c_size_t                                           )                                :: iBin                                                    , binCount
     type            (hdf5Object                                         )                                :: dataFile
     integer                                                                                              :: indexOxygen
+    type            (outputAnalysisTargetDataStandard)                              :: outputAnalysisTargetData_
     !![
     <constructorAssign variables="metallicitySystematicErrorPolynomialCoefficient, systematicErrorPolynomialCoefficient, randomErrorPolynomialCoefficient, randomErrorMinimum, randomErrorMaximum, fractionGasThreshold, *cosmologyFunctions_, *starFormationRateDisks_, *starFormationRateSpheroids_, *starFormationRateNuclearStarClusters_"/>
     !!]
@@ -397,6 +398,15 @@ contains
     <referenceConstruct object="outputAnalysisWeightPropertyExtractor_"                 constructor="nodePropertyExtractorMetallicityISM             (Abundances_Index_From_Name('O')                              )"/>
     !!]
     ! Build the object.
+    outputAnalysisTargetData_=outputAnalysisTargetDataStandard(                                                                  &
+         &                                                                                          xAxisLabel      =var_str('$M_\star/\mathrm{M}_\odot$'                ), &
+         &                                                                                          yAxisLabel      =var_str('$\langle 12+[\mathrm{O}/\mathrm{H}] \rangle$'), &
+         &                                                                                          xAxisIsLog      =.true.                                              , &
+         &                                                                                          yAxisIsLog      =.false.                                             , &
+         &                                                                                          targetLabel     =var_str('Andrews \& Martini (2013)')                , &
+         &                                                                                          valueTarget     =functionValueTarget                                 , &
+         &                                                                                          covarianceTarget=functionCovarianceTarget                              &
+         &                                                                                         )
     self%outputAnalysisMeanFunction1D=outputAnalysisMeanFunction1D(                                                         &
          &                                                         var_str('massMetallicityAndrews2013'                  ), &
          &                                                         var_str('Mass-metallicity relation'                   ), &
@@ -429,15 +439,7 @@ contains
          &                                                         covarianceBinomialMassHaloMinimum                      , &
          &                                                         covarianceBinomialMassHaloMaximum                      , &
          &                                                         likelihoodNormalize                                    , &
-         &                                                         outputAnalysisTargetDataStandard(                                                                  &
-         &                                                                                          xAxisLabel      =var_str('$M_\star/\mathrm{M}_\odot$'                ), &
-         &                                                                                          yAxisLabel      =var_str('$\langle 12+[\mathrm{O}/\mathrm{H}] \rangle$'), &
-         &                                                                                          xAxisIsLog      =.true.                                              , &
-         &                                                                                          yAxisIsLog      =.false.                                             , &
-         &                                                                                          targetLabel     =var_str('Andrews \& Martini (2013)')                , &
-         &                                                                                          valueTarget     =functionValueTarget                                 , &
-         &                                                                                          covarianceTarget=functionCovarianceTarget                              &
-         &                                                                                         )                                                                      &
+         &                                                         outputAnalysisTargetData_                                                                      &
          &                                                        )
     ! Clean up.
     !![

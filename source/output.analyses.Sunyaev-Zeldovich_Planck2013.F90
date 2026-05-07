@@ -172,6 +172,7 @@ contains
     double precision                                                     , parameter                     :: errorPolynomialZeroPoint                        =11.300d00
     integer         (c_size_t                                           ), parameter                     :: bufferCount                                     =10
     integer         (c_size_t                                           )                                :: iBin                                                      , binCount
+    type            (outputAnalysisTargetDataStandard)                              :: outputAnalysisTargetData_
     !![
     <constructorAssign variables="systematicErrorPolynomialCoefficient, randomErrorPolynomialCoefficient, randomErrorMinimum, randomErrorMaximum, *cosmologyParameters_, *cosmologyFunctions_, *darkMatterHaloScale_, *chemicalState_"/>
     !!]
@@ -317,6 +318,15 @@ contains
     </referenceConstruct>
     !!]
     ! Build the object.
+    outputAnalysisTargetData_=outputAnalysisTargetDataStandard(                                                                  &
+         &                                                                                          xAxisLabel      =var_str('$M_\star/\mathrm{M}_\odot$'           ), &
+         &                                                                                          yAxisLabel      =var_str('$\widetilde{Y}_{500}/\hbox{arcmin}^2$'), &
+         &                                                                                          xAxisIsLog      =.true.                                          , &
+         &                                                                                          yAxisIsLog      =.true.                                          , &
+         &                                                                                          targetLabel     =var_str('Planck Intermediate Results XI (2013)'), &
+         &                                                                                          valueTarget     =functionValueTarget                             , &
+         &                                                                                          covarianceTarget=functionCovarianceTarget                          &
+         &                                                                                         )
     self%outputAnalysisMeanFunction1D=outputAnalysisMeanFunction1D(                                                                     &
          &                                                         var_str('sunyaevZeldovichPlanck2013'                              ), &
          &                                                         var_str('Sunyaev-Zeldovich signal vs. central galaxy stellar mass'), &
@@ -349,15 +359,7 @@ contains
          &                                                         covarianceBinomialMassHaloMinimum                                  , &
          &                                                         covarianceBinomialMassHaloMaximum                                  , &
          &                                                         likelihoodNormalize                                                , &
-         &                                                         outputAnalysisTargetDataStandard(                                                                  &
-         &                                                                                          xAxisLabel      =var_str('$M_\star/\mathrm{M}_\odot$'           ), &
-         &                                                                                          yAxisLabel      =var_str('$\widetilde{Y}_{500}/\hbox{arcmin}^2$'), &
-         &                                                                                          xAxisIsLog      =.true.                                          , &
-         &                                                                                          yAxisIsLog      =.true.                                          , &
-         &                                                                                          targetLabel     =var_str('Planck Intermediate Results XI (2013)'), &
-         &                                                                                          valueTarget     =functionValueTarget                             , &
-         &                                                                                          covarianceTarget=functionCovarianceTarget                          &
-         &                                                                                         )                                                                  &
+         &                                                         outputAnalysisTargetData_                                                                  &
          &                                                        )
     ! Clean up.
     !![

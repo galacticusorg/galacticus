@@ -328,6 +328,7 @@ contains
     double precision                                                 , parameter                               :: bufferWidth                                     =1.0d0
     integer         (c_size_t                                       ), parameter                               :: bufferCountMinimum                              =5
     integer         (c_size_t                                       )                                          :: iBin                                                  , bufferCount
+    type            (outputAnalysisTargetDataStandard)                              :: outputAnalysisTargetData_
     !![
     <constructorAssign variables="luminosities, depthOpticalISMCoefficient, includeNitrogenII, *surveyGeometry_, *cosmologyFunctions_, *cosmologyFunctionsData, *starFormationRateDisks_, *starFormationRateSpheroids_"/>
     !!]
@@ -413,6 +414,15 @@ contains
     bufferCount=max(int(bufferWidth/log10(luminosities(2)/luminosities(1)))+1,bufferCountMinimum)
     ! Construct the object.
     self%outputAnalysisVolumeFunction1D=                                                                                               &
+         outputAnalysisTargetData_=outputAnalysisTargetDataStandard(                                                                                                          &
+         &                                                                 xAxisLabel      =var_str('$L_{\mathrm{H}\alpha}$ [ergs/s]'                                                 ), &
+         &                                                                 yAxisLabel      =var_str('$\mathrm{d}n/\mathrm{d}\log_\mathrm{e} L_{\mathrm{H}\alpha}$ [$_\chi$Mpc$^{-3}$]'), &
+         &                                                                 xAxisIsLog      =.true.                                                                                     , &
+         &                                                                 yAxisIsLog      =.true.                                                                                     , &
+         &                                                                 targetLabel     =targetLabel                                                                                , &
+         &                                                                 valueTarget     =functionValueTarget                                                                        , &
+         &                                                                 covarianceTarget=functionCovarianceTarget                                                                     &
+         &                                                                )
          & outputAnalysisVolumeFunction1D(                                                                                             &
          &                                'luminosityFunctionHalpha'//label                                                          , &
          &                                comment                                                                                    , &
@@ -444,15 +454,7 @@ contains
          &                                covarianceBinomialMassHaloMinimum                                                          , &
          &                                covarianceBinomialMassHaloMaximum                                                          , &
          &                                .false.                                                                                    , &
-         &                                outputAnalysisTargetDataStandard(                                                                                                          &
-         &                                                                 xAxisLabel      =var_str('$L_{\mathrm{H}\alpha}$ [ergs/s]'                                                 ), &
-         &                                                                 yAxisLabel      =var_str('$\mathrm{d}n/\mathrm{d}\log_\mathrm{e} L_{\mathrm{H}\alpha}$ [$_\chi$Mpc$^{-3}$]'), &
-         &                                                                 xAxisIsLog      =.true.                                                                                     , &
-         &                                                                 yAxisIsLog      =.true.                                                                                     , &
-         &                                                                 targetLabel     =targetLabel                                                                                , &
-         &                                                                 valueTarget     =functionValueTarget                                                                        , &
-         &                                                                 covarianceTarget=functionCovarianceTarget                                                                     &
-         &                                                                )                                                                                                            &
+         &                                outputAnalysisTargetData_                                                                                                            &
          &                               )
     ! Clean up.
     !![

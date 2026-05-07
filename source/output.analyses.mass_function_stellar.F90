@@ -271,6 +271,7 @@ contains
     double precision                                                 , parameter                               :: bufferWidthLogarithmic                          =3.0d0
     integer         (c_size_t                                       ), parameter                               :: bufferCountMinimum                              =5
     integer         (c_size_t                                       )                                          :: iBin                                                  , bufferCount
+    type            (outputAnalysisTargetDataStandard)                              :: outputAnalysisTargetData_
     !![
     <constructorAssign variables="masses, *surveyGeometry_, *cosmologyFunctions_, *cosmologyFunctionsData"/>
     !!]
@@ -345,6 +346,15 @@ contains
     bufferCount=max(int(bufferWidthLogarithmic/log10(masses(2)/masses(1)))+1,bufferCountMinimum)
     ! Construct the object. We convert masses to log10(masses) here.
     self%outputAnalysisVolumeFunction1D=                                                              &
+         outputAnalysisTargetData_=outputAnalysisTargetDataStandard(                                                                            &
+         &                                                                 xAxisLabel      =var_str('$\log_{10}(M_\star/\mathrm{M}_\odot)$'          ), &
+         &                                                                 yAxisLabel      =var_str('$\mathrm{d}n/\mathrm{d}\log_\mathrm{e} M_\star$'), &
+         &                                                                 xAxisIsLog      =.true.                                                    , &
+         &                                                                 yAxisIsLog      =.true.                                                    , &
+         &                                                                 targetLabel     =targetLabel                                               , &
+         &                                                                 valueTarget     =functionValueTarget                                       , &
+         &                                                                 covarianceTarget=functionCovarianceTarget                                    &
+         &                                                                )
          & outputAnalysisVolumeFunction1D(                                                            &
          &                                'massFunctionStellar'//label                              , &
          &                                comment                                                   , &
@@ -376,15 +386,7 @@ contains
          &                                covarianceBinomialMassHaloMinimum                         , &
          &                                covarianceBinomialMassHaloMaximum                         , &
          &                                .false.                                                   , &
-         &                                outputAnalysisTargetDataStandard(                                                                            &
-         &                                                                 xAxisLabel      =var_str('$\log_{10}(M_\star/\mathrm{M}_\odot)$'          ), &
-         &                                                                 yAxisLabel      =var_str('$\mathrm{d}n/\mathrm{d}\log_\mathrm{e} M_\star$'), &
-         &                                                                 xAxisIsLog      =.true.                                                    , &
-         &                                                                 yAxisIsLog      =.true.                                                    , &
-         &                                                                 targetLabel     =targetLabel                                               , &
-         &                                                                 valueTarget     =functionValueTarget                                       , &
-         &                                                                 covarianceTarget=functionCovarianceTarget                                    &
-         &                                                                )                                                                            &
+         &                                outputAnalysisTargetData_                                                                            &
          &                               )
     ! Clean up.
     !![
