@@ -367,26 +367,48 @@ def build_python_reassignments(argument_list):
             # convention; pass the data pointer plus shape[0]/shape[1]
             # as the two count companions, in the same order they sit at
             # the front of new_list (count_1 then count_2 — see
-            # assign_c_types).
+            # assign_c_types).  For optional args, the conversion is
+            # gated on the input not being None — otherwise
+            # `np.asarray(None, dtype=...)` produces a 0D scalar that
+            # `np.asfortranarray` then promotes to 1D, tripping the
+            # ndim check below.  When absent we pass NULL as the data
+            # pointer and 0 for both counts; the bind(c) wrapper guards
+            # the reshape on `present()` so the values are unused.
             np_dtype = _ARRAY_NUMPY_DTYPE.get(arg.ctype, 'float64')
             safe = python_safe_name(arg.name)
             count_arg_1 = new_list.pop(0)
             count_arg_2 = new_list.pop(0)
-            arg.py_reassignment = (
-                f'    {safe} = np.asfortranarray('
-                f'np.asarray({safe}, dtype=np.{np_dtype}))\n'
-                f'    if {safe}.ndim != 2:\n'
-                f'        raise ValueError('
-                f'f"{arg.name} expects a 2D array, got '
-                f'{{{safe}.ndim}}D")\n'
-            )
-            count_arg_1.py_pass_as = f'c_size_t({safe}.shape[0])'
-            count_arg_2.py_pass_as = f'c_size_t({safe}.shape[1])'
+            if arg.is_optional:
+                arg.py_reassignment = (
+                    f'    if {safe} is not None:\n'
+                    f'        {safe} = np.asfortranarray('
+                    f'np.asarray({safe}, dtype=np.{np_dtype}))\n'
+                    f'        if {safe}.ndim != 2:\n'
+                    f'            raise ValueError('
+                    f'f"{arg.name} expects a 2D array, got '
+                    f'{{{safe}.ndim}}D")\n'
+                )
+                count_arg_1.py_pass_as = f'c_size_t({safe}.shape[0]) if {safe} is not None else c_size_t(0)'
+                count_arg_2.py_pass_as = f'c_size_t({safe}.shape[1]) if {safe} is not None else c_size_t(0)'
+                arg.py_pass_as = (
+                    f'{safe}.ctypes.data_as(POINTER({arg.ctype})) if {safe} is not None else None'
+                )
+            else:
+                arg.py_reassignment = (
+                    f'    {safe} = np.asfortranarray('
+                    f'np.asarray({safe}, dtype=np.{np_dtype}))\n'
+                    f'    if {safe}.ndim != 2:\n'
+                    f'        raise ValueError('
+                    f'f"{arg.name} expects a 2D array, got '
+                    f'{{{safe}.ndim}}D")\n'
+                )
+                count_arg_1.py_pass_as = f'c_size_t({safe}.shape[0])'
+                count_arg_2.py_pass_as = f'c_size_t({safe}.shape[1])'
+                arg.py_pass_as = (
+                    f'{safe}.ctypes.data_as(POINTER({arg.ctype}))'
+                )
             new_list.insert(0, count_arg_2)
             new_list.insert(0, count_arg_1)
-            arg.py_pass_as = (
-                f'{safe}.ctypes.data_as(POINTER({arg.ctype}))'
-            )
         elif arg.is_array and arg.intrinsic == 'character':
             # Fixed-length character array: build a contiguous count*N
             # byte buffer.  Each input element is `str()`-coerced,
@@ -394,21 +416,35 @@ def build_python_reassignments(argument_list):
             # then ASCII-encoded.  numpy's `S{N}` dtype gives us a
             # fixed-stride buffer whose `.size` is the element count and
             # whose underlying memory is exactly the N-byte-per-element
-            # layout the inner Fortran method expects.
+            # layout the inner Fortran method expects.  Optional-arg
+            # handling matches the 2D-array branch above.
             safe = python_safe_name(arg.name)
             n    = arg.char_len
             count_arg = new_list.pop(0)
-            arg.py_reassignment = (
-                f"    {safe} = np.ascontiguousarray("
-                f"np.array("
-                f"[(str(s).ljust({n}))[:{n}].encode('ascii') for s in {safe}],"
-                f" dtype='S{n}'))\n"
-            )
-            count_arg.py_pass_as = f'c_size_t({safe}.size)'
+            if arg.is_optional:
+                arg.py_reassignment = (
+                    f"    if {safe} is not None:\n"
+                    f"        {safe} = np.ascontiguousarray("
+                    f"np.array("
+                    f"[(str(s).ljust({n}))[:{n}].encode('ascii') for s in {safe}],"
+                    f" dtype='S{n}'))\n"
+                )
+                count_arg.py_pass_as = f'c_size_t({safe}.size) if {safe} is not None else c_size_t(0)'
+                arg.py_pass_as = (
+                    f'{safe}.ctypes.data_as(POINTER(c_char)) if {safe} is not None else None'
+                )
+            else:
+                arg.py_reassignment = (
+                    f"    {safe} = np.ascontiguousarray("
+                    f"np.array("
+                    f"[(str(s).ljust({n}))[:{n}].encode('ascii') for s in {safe}],"
+                    f" dtype='S{n}'))\n"
+                )
+                count_arg.py_pass_as = f'c_size_t({safe}.size)'
+                arg.py_pass_as = (
+                    f'{safe}.ctypes.data_as(POINTER(c_char))'
+                )
             new_list.insert(0, count_arg)
-            arg.py_pass_as = (
-                f'{safe}.ctypes.data_as(POINTER(c_char))'
-            )
         elif arg.is_array:
             # 1D numeric array: convert the user's input (numpy array, list,
             # tuple) to a contiguous ndarray of the right dtype, then pass
@@ -425,13 +461,32 @@ def build_python_reassignments(argument_list):
             safe = python_safe_name(arg.name)
             if arg.array_size is None:
                 count_arg = new_list.pop(0)
-                arg.py_reassignment = (
-                    f'    {safe} = np.ascontiguousarray({safe},'
-                    f' dtype=np.{np_dtype})\n'
-                )
-                count_arg.py_pass_as = f'c_size_t({safe}.size)'
+                if arg.is_optional:
+                    # Optional 1D array: gate on None so that
+                    # `np.ascontiguousarray(None, dtype=...)` (which
+                    # produces a 0-D scalar in modern numpy and breaks
+                    # downstream `.size` / `.ctypes` access) never runs.
+                    arg.py_reassignment = (
+                        f'    if {safe} is not None:\n'
+                        f'        {safe} = np.ascontiguousarray({safe},'
+                        f' dtype=np.{np_dtype})\n'
+                    )
+                    count_arg.py_pass_as = f'c_size_t({safe}.size) if {safe} is not None else c_size_t(0)'
+                    arg.py_pass_as = (
+                        f'{safe}.ctypes.data_as(POINTER({arg.ctype})) if {safe} is not None else None'
+                    )
+                else:
+                    arg.py_reassignment = (
+                        f'    {safe} = np.ascontiguousarray({safe},'
+                        f' dtype=np.{np_dtype})\n'
+                    )
+                    count_arg.py_pass_as = f'c_size_t({safe}.size)'
+                    arg.py_pass_as = (
+                        f'{safe}.ctypes.data_as(POINTER({arg.ctype}))'
+                    )
                 new_list.insert(0, count_arg)
             else:
+                # Fixed-size: `array_size` is the literal length.
                 arg.py_reassignment = (
                     f'    {safe} = np.ascontiguousarray({safe},'
                     f' dtype=np.{np_dtype})\n'
@@ -440,9 +495,9 @@ def build_python_reassignments(argument_list):
                     f'f"{arg.name} expects {arg.array_size} elements, got '
                     f'{{{safe}.size}}")\n'
                 )
-            arg.py_pass_as = (
-                f'{safe}.ctypes.data_as(POINTER({arg.ctype}))'
-            )
+                arg.py_pass_as = (
+                    f'{safe}.ctypes.data_as(POINTER({arg.ctype}))'
+                )
         new_list.insert(0, arg)               # unshift current arg
     return new_list
 
@@ -499,16 +554,27 @@ def build_fortran_reassignments(argument_list, func_class, implementation,
             # sidesteps any concerns about forward-referencing the
             # dummy counts in an automatic-array size spec, and the
             # local is auto-deallocated when the wrapper returns.
+            #
+            # Optional args are gated on `present(...)` because the
+            # bind(c) buffer is a NULL pointer when the user passed
+            # None on the Python side; slicing it would segfault.
             arg.fort_declarations = (
                 f'  {arg.fort_type}, dimension(:,:), allocatable'
                 f' :: {name}_F_\n'
             )
-            arg.fort_reassignment = (
+            reassign = (
                 f'allocate({name}_F_({name}_count_1, {name}_count_2))\n'
                 f'{name}_F_ = reshape('
                 f'{name}(1:{name}_count_1*{name}_count_2),'
                 f' [{name}_count_1, {name}_count_2])\n'
             )
+            if is_optional:
+                reassign = (
+                    f'if (present({name})) then\n'
+                    f'   {reassign.replace(chr(10), chr(10) + "   ").rstrip()}\n'
+                    f'end if\n'
+                )
+            arg.fort_reassignment = reassign
             arg.fort_pass_as = f'{name}_F_'
         elif arg.is_array and arg.intrinsic == 'character':
             # Fixed-length character array.  bind(c) declares it as a
@@ -531,7 +597,7 @@ def build_fortran_reassignments(argument_list, func_class, implementation,
                 f' :: {name}_F_\n'
                 f'  integer(c_size_t) :: {name}_glcI_, {name}_glcJ_\n'
             )
-            arg.fort_reassignment = (
+            reassign = (
                 f'allocate({name}_F_({name}_count))\n'
                 f'do {name}_glcI_ = 1, {name}_count\n'
                 f'  do {name}_glcJ_ = 1, {n}\n'
@@ -540,6 +606,16 @@ def build_fortran_reassignments(argument_list, func_class, implementation,
                 f'  end do\n'
                 f'end do\n'
             )
+            if is_optional:
+                # See the 2D branch above for the rationale: optional
+                # arrays may be a NULL pointer at bind(c), and indexing
+                # them would segfault.
+                reassign = (
+                    f'if (present({name})) then\n'
+                    f'   {reassign.replace(chr(10), chr(10) + "   ").rstrip()}\n'
+                    f'end if\n'
+                )
+            arg.fort_reassignment = reassign
             arg.fort_pass_as = f'{name}_F_'
         elif arg.is_array:
             # 1D numeric array.  Deferred-shape needs slicing — the bind(c)

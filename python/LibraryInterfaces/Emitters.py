@@ -251,6 +251,15 @@ def python_call_code(argument_list, call):
             if first_optional:
                 if is_opt and present_set is not None and pv not in present_set:
                     args.append('None')
+                elif arg.is_array:
+                    # Array args are always passed as pointers
+                    # (`arr.ctypes.data_as(POINTER(...))`) — wrapping them
+                    # in `{ctype}(...)` would call e.g. c_double(<pointer>)
+                    # which ctypes rejects.  Pass `pa` directly; for
+                    # optional arrays `pa` is itself a None-aware
+                    # conditional expression set up by
+                    # build_python_reassignments.
+                    args.append(pa)
                 else:
                     ctype = arg.ctype or 'c_void_p'
                     args.append(f'{ctype}({pa})')

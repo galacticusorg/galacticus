@@ -8,6 +8,7 @@
 import pytest
 
 from LibraryInterfaces.ArgSpec  import ArgSpec
+from LibraryInterfaces.Emitters import python_call_code
 from LibraryInterfaces.Pipeline import (
     assign_c_types,
     assign_c_attributes,
@@ -364,6 +365,84 @@ def test_python_reassignments_array_arg_converts_via_numpy():
     assert 'dtype=np.float64'           in out[0].py_reassignment
     assert out[0].py_pass_as == 'times.ctypes.data_as(POINTER(c_double))'
     assert out[1].py_pass_as == 'c_size_t(times.size)'
+
+
+def test_python_reassignments_optional_array_gates_conversion_on_None():
+    """An optional 1D array gates the np.ascontiguousarray conversion on
+    `is not None`.  Without the gate, a default value of None propagates
+    into `np.ascontiguousarray(None, dtype=...)` which yields a 0-D
+    scalar in modern numpy and breaks downstream `.size` / `.ctypes`
+    access.  The pass expression and count are likewise None-aware so
+    the absent-arg branch of python_call_code passes a NULL pointer
+    and a zero count cleanly."""
+    arr = ArgSpec(name='valueTarget', intrinsic='double precision',
+                  ctype='c_double', is_array=True, is_optional=True)
+    cnt = ArgSpec(name='valueTarget_count', intrinsic='integer',
+                  type_spec='c_size_t', ctype='c_size_t',
+                  fort_is_present=True, py_is_present=False,
+                  galacticus_is_present=False)
+    out = build_python_reassignments([arr, cnt])
+    assert 'if valueTarget is not None:' in out[0].py_reassignment
+    assert 'np.ascontiguousarray(valueTarget'  in out[0].py_reassignment
+    assert out[0].py_pass_as == \
+        'valueTarget.ctypes.data_as(POINTER(c_double)) if valueTarget is not None else None'
+    assert out[1].py_pass_as == \
+        'c_size_t(valueTarget.size) if valueTarget is not None else c_size_t(0)'
+
+
+def test_python_reassignments_optional_2d_array_gates_conversion_on_None():
+    """Same gating for the 2D case.  Without it,
+    `np.asfortranarray(np.asarray(None, dtype=...))` produces a 1-D
+    array (asarray gives 0-D, asfortranarray promotes) and trips the
+    ndim==2 check below the conversion."""
+    arr = ArgSpec(name='covarianceTarget', intrinsic='double precision',
+                  ctype='c_double', is_array=True, array_rank=2,
+                  is_optional=True)
+    c1  = ArgSpec(name='covarianceTarget_count_1', intrinsic='integer',
+                  type_spec='c_size_t', ctype='c_size_t',
+                  fort_is_present=True, py_is_present=False,
+                  galacticus_is_present=False)
+    c2  = ArgSpec(name='covarianceTarget_count_2', intrinsic='integer',
+                  type_spec='c_size_t', ctype='c_size_t',
+                  fort_is_present=True, py_is_present=False,
+                  galacticus_is_present=False)
+    out = build_python_reassignments([arr, c1, c2])
+    assert 'if covarianceTarget is not None:' in out[0].py_reassignment
+    assert 'covarianceTarget is not None else None' in out[0].py_pass_as
+    assert 'covarianceTarget is not None else c_size_t(0)' in out[1].py_pass_as
+    assert 'covarianceTarget is not None else c_size_t(0)' in out[2].py_pass_as
+
+
+def test_fortran_reassignments_optional_2d_array_gated_on_present():
+    """Optional 2D array's fort_reassignment is wrapped in
+    `if (present(...)) then ... end if` so the bind(c) wrapper doesn't
+    slice a NULL pointer when the user passed None on the Python side."""
+    arr = ArgSpec(name='arr', intrinsic='double precision',
+                  ctype='c_double', fort_type='real(c_double)',
+                  is_array=True, array_rank=2, is_optional=True)
+    out = build_fortran_reassignments(
+        [arr], func_class={}, implementation=None,
+        extensions={}, module_uses_impls={},
+    )
+    assert 'if (present(arr)) then'   in out[0].fort_reassignment
+    assert 'allocate(arr_F_'          in out[0].fort_reassignment
+    assert 'reshape(arr(1:'           in out[0].fort_reassignment
+    assert 'end if'                   in out[0].fort_reassignment
+
+
+def test_python_call_code_array_arg_not_wrapped_in_ctype():
+    """Array args are passed as POINTER(...) expressions; wrapping them
+    in `{ctype}(pa)` (e.g. `c_double(<pointer>)`) — which is what
+    python_call_code does for scalar optional args — would crash at
+    runtime.  python_call_code must recognise is_array and pass the
+    expression directly."""
+    arr = ArgSpec(name='valueTarget', intrinsic='double precision',
+                  ctype='c_double', is_array=True, is_optional=True,
+                  py_pass_as='valueTarget.ctypes.data_as(POINTER(c_double)) if valueTarget is not None else None',
+                  fort_is_present=True)
+    out = python_call_code([arr], 'self._glcObj = c_lib.fooL')
+    assert 'c_double(valueTarget' not in out
+    assert 'valueTarget.ctypes.data_as(POINTER(c_double))' in out
 
 
 def test_fortran_reassignments_treeNode_uses_c_f_pointer():
