@@ -648,14 +648,14 @@ contains
                    if (mask(j)) then
                       jj=jj+1
                       ! Compute total covariance.
-                      functionCovarianceCombined       (ii,jj)=    +self%functionCovarianceTarget     (i,j)       &
-                           &                                       +self%functionCovariance           (i,j)
+                      functionCovarianceCombined       (ii,jj)=    +self%targetData_%covarianceTarget             ( i, j)     &
+                           &                                       +self            %functionCovariance           ( i, j)
                       if (ii == jj) &
-                           & functionCovarianceCombined(ii,jj)=max(                                               &
-                           &                                       +functionCovarianceCombined        (ii,jj)   , &
-                           &                                       +self%functionValueTarget          ( i   )     &
-                           &                                       *self%functionValueTarget          (    j)     &
-                           &                                       *self%rootVarianceFractionalMinimum       **2  &
+                           & functionCovarianceCombined(ii,jj)=max(                                                           &
+                           &                                       +                 functionCovarianceCombined   (ii,jj)   , &
+                           &                                       +self%targetData_%valueTarget                  ( i   )     &
+                           &                                       *self%targetData_%valueTarget                  (    j)     &
+                           &                                       *self            %rootVarianceFractionalMinimum       **2  &
                            &                                      )
                     end if
                 end do

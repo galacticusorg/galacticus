@@ -423,11 +423,11 @@ contains
 
     ! Count the number of non-zero bins.
     countNonZero=0
-    do i=1,size(self%meanValueTarget)
-       if     (                                         &
-            &   self%meanValueTarget     (i  ) <= 0.0d0 &
-            &  .or.                                     &
-            &   self%meanCovarianceTarget(i,i) <= 0.0d0 &
+    do i=1,size(self%targetData_%valueTarget)
+       if     (                                                 &
+            &   self%targetData_%valueTarget     (i  ) <= 0.0d0 &
+            &  .or.                                             &
+            &   self%targetData_%covarianceTarget(i,i) <= 0.0d0 &
             & ) cycle
        countNonZero=countNonZero+1
     end do
@@ -437,15 +437,15 @@ contains
     velocityMeanDifference=0.0d0
     velocityMeanCovariance=0.0d0
     j=0
-    do i=1,size(self%meanValueTarget)
-       if     (                                         &
-            &   self%meanValueTarget     (i  ) <= 0.0d0 &
-            &  .or.                                     &
-            &   self%meanCovarianceTarget(i,i) <= 0.0d0 &
+    do i=1,size(self%targetData_%valueTarget)
+       if     (                                                 &
+            &   self%targetData_%valueTarget     (i  ) <= 0.0d0 &
+            &  .or.                                             &
+            &   self%targetData_%covarianceTarget(i,i) <= 0.0d0 &
             & ) cycle
        j=j+1
-       velocityMeanDifference(j  )=self%meanValue     (i  )-self%meanValueTarget     (i  )
-       velocityMeanCovariance(j,j)=self%meanCovariance(i,i)+self%meanCovarianceTarget(i,i)
+       velocityMeanDifference(j  )=self%meanValue     (i  )-self%targetData_%valueTarget     (i  )
+       velocityMeanCovariance(j,j)=self%meanCovariance(i,i)+self%targetData_%covarianceTarget(i,i)
     end do
     ! Construct residual vector and covariance matrix.
     residual  =vector(velocityMeanDifference)

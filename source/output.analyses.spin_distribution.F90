@@ -430,7 +430,7 @@ contains
     double precision                                                   , parameter                                  :: covarianceBinomialMassHaloMinimum       =3.000d11, covarianceBinomialMassHaloMaximum=1.0d15
     integer         (c_size_t                                         )                                             :: i                                                , bufferCount
     !![
-    <constructorAssign variables="label, comment, time, massMinimum, massMaximum, spinMinimum, spinMaximum, countSpins, timeRecent, massParticle, particleCountMinimum, energyEstimateParticleCountMaximum, logNormalRange, errorTolerant, *cosmologyParameters_, *cosmologyFunctions_, *nbodyHaloMassError_, *haloMassFunction_, *darkMatterHaloScale_, *darkMatterProfileScaleRadius_, *outputTimes_, *virialDensityContrast_, *virialDensityContrastDefinition_, targetLabel, functionValueTarget, functionCovarianceTarget"/>
+    <constructorAssign variables="label, comment, time, massMinimum, massMaximum, spinMinimum, spinMaximum, countSpins, timeRecent, massParticle, particleCountMinimum, energyEstimateParticleCountMaximum, logNormalRange, errorTolerant, *cosmologyParameters_, *cosmologyFunctions_, *nbodyHaloMassError_, *haloMassFunction_, *darkMatterHaloScale_, *darkMatterProfileScaleRadius_, *outputTimes_, *virialDensityContrast_, *virialDensityContrastDefinition_"/>
     !!]
     
     ! Build grid of spins.
@@ -636,11 +636,11 @@ contains
     integer                                                                         :: status
     
     ! Check for existence of a target distribution.
-    if (allocated(self%functionValueTarget)) then
+    if (allocated(self%targetData_%valueTarget)) then
        ! Finalize analysis.
        call self%finalizeAnalysis()
        ! Find bins which have a measured target value.
-       mask=self%functionValueTarget > 0.0d0
+       mask=self%targetData_%valueTarget > 0.0d0
        if (count(mask) > 0) then
           ! Allocate workspaces.
           allocate(functionCovarianceCombined(count(mask),count(mask)))
@@ -650,15 +650,15 @@ contains
           do i=1,self%binCount
              if (mask(i)) then
                 ii=ii+1
-                functionValueDifference(ii)=+self%functionValue      (i) &
-                     &                      -self%functionValueTarget(i)
+                functionValueDifference(ii)=+self            %functionValue(i) &
+                     &                      -self%targetData_%valueTarget  (i)
                 jj=0
                 do j=1,self%binCount
                    if (mask(j)) then
                       jj=jj+1
                       ! Compute total covariance.
-                      functionCovarianceCombined(ii,jj)=+self%functionCovarianceTarget(i,j) &
-                           &                            +self%functionCovariance      (i,j)
+                      functionCovarianceCombined(ii,jj)=+self%targetData_%covarianceTarget  (i,j) &
+                           &                            +self            %functionCovariance(i,j)
                    end if
                 end do
              end if

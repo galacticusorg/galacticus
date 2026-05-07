@@ -1020,43 +1020,43 @@ contains
                       !  Compute difference between model and target.
                       if (self%functionValue(i) > 0.0d0) then
                          ! Map values to compute difference in log(φ).
-                         functionValueDifference(ii)=log(+self%functionValue      (i) &
-                              &                          /self%functionValueTarget(i) &
+                         functionValueDifference(ii)=log(+self            %functionValue(i) &
+                              &                          /self%targetData_%valueTarget  (i) &
                               &                         )
                       else
                          functionValueDifference(ii)=logRatioZero
                       end if
                    else
                       ! Compute difference in φ.
-                      functionValueDifference   (ii)=    +self%functionValue      (i) &
-                           &                             -self%functionValueTarget(i)
+                      functionValueDifference   (ii)=    +self            %functionValue(i) &
+                           &                             -self%targetData_%valueTarget  (i)
                    end if
                    jj=0
                    ! Find the maximum ratio of model to target covariance.
-                   ratioCovarianceMaximum=max(                                     &
-                        &                     +ratioCovarianceMaximum            , &
-                        &                     +self%functionCovariance      (i,i)  &
-                        &                     /self%functionCovarianceTarget(i,i)  &
+                   ratioCovarianceMaximum=max(                                               &
+                        &                     +                 ratioCovarianceMaximum     , &
+                        &                     +self            %functionCovariance    (i,i)  &
+                        &                     /self%targetData_%covarianceTarget      (i,i)  &
                         &                    )
                    do j=1,self%binCount
                       if (mask(j)) then
                          jj=jj+1
                          ! Compute covariance terms for model and target
-                         covarianceTermTarget=self%functionCovarianceTarget(i,j)
+                         covarianceTermTarget=self%targetData_%covarianceTarget  (i,j)
                          if (self%covarianceTargetOnly) then
                             covarianceTerm   =0.0d0
                          else
-                            covarianceTerm   =self%functionCovariance      (i,j)
+                            covarianceTerm   =self            %functionCovariance(i,j)
                          end if
                          ! Map to log(φ) if requested.
                          if (self%likelihoodInLog) then
-                            covarianceTermTarget=+covarianceTermTarget        &
-                                 &               /self%functionValueTarget(i) &
-                                 &               /self%functionValueTarget(j)
+                            covarianceTermTarget=+covarianceTermTarget              &
+                                 &               /self%targetData_%valueTarget  (i) &
+                                 &               /self%targetData_%valueTarget  (j)
                             if (self%functionValue(i) > 0.0d0 .and. self%functionValue(j) > 0.0d0) then
-                               covarianceTerm   =+covarianceTerm              &
-                                    &            /self%functionValue      (i) &
-                                    &            /self%functionValue      (j)
+                               covarianceTerm   =+covarianceTerm                    &
+                                    &            /self            %functionValue(i) &
+                                    &            /self            %functionValue(j)
                             else
                                covarianceTerm   =+0.0d0
                             end if
