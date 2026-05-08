@@ -340,10 +340,17 @@ def aggregate_class(impls, all_fcs, registered):
     empty missing_deps.  MISSING-DEP if no impl is ready but at least one
     impl has empty pipeline_reasons (just unmet deps).  Otherwise
     PIPELINE-BLOCKED.
+
+    The full per-impl classifications are also returned under
+    ``classified`` so the report can surface impl-level drops even when
+    the class as a whole evaluates as ready.  Each entry is a tuple
+    ``(impl_dict, deps_set, reasons_list)`` for one concrete impl;
+    ``deps`` and ``reasons`` are both empty iff the impl is itself ready.
     """
     concrete = [i for i in impls if not i['is_abstract']]
     if not concrete:
-        return {'status': 'no-concrete-impls', 'impls': impls}
+        return {'status': 'no-concrete-impls', 'impls': impls,
+                'classified': []}
 
     classified = []
     for impl in concrete:
@@ -358,8 +365,9 @@ def aggregate_class(impls, all_fcs, registered):
 
     ready = [(i, d, r) for (i, d, r) in classified if not r and not d]
     if ready:
-        return {'status'   : 'ready',
-                'impls'    : impls,
+        return {'status'    : 'ready',
+                'impls'     : impls,
+                'classified': classified,
                 'ready_impl': ready[0][0]['name']}
 
     missing_dep = [(i, d, r) for (i, d, r) in classified if not r and d]
@@ -371,6 +379,7 @@ def aggregate_class(impls, all_fcs, registered):
         rep = min(missing_dep, key=lambda x: (len(x[1]), x[0]['name']))
         return {'status'    : 'missing-dep',
                 'impls'     : impls,
+                'classified': classified,
                 'deps'      : union,
                 'min_deps'  : rep[1],
                 'rep_impl'  : rep[0]['name']}
@@ -380,9 +389,10 @@ def aggregate_class(impls, all_fcs, registered):
     for impl, _, r in classified:
         for s in r:
             reasons.append((impl['name'], s))
-    return {'status' : 'pipeline-blocked',
-            'impls'  : impls,
-            'reasons': reasons}
+    return {'status'    : 'pipeline-blocked',
+            'impls'     : impls,
+            'classified': classified,
+            'reasons'   : reasons}
 
 
 # ---------------------------------------------------------------------------
@@ -456,6 +466,23 @@ def main():
     for fc, info in audit.items():
         by_status[info['status']].append(fc)
 
+    # Impl-level totals — a class can be READY at the class level (some
+    # impl is ready) while still having other impls that the generator
+    # drops; the impl-level numbers make those drops visible alongside
+    # the class-level totals.  `dropped` counts impls (in registered
+    # classes only — drops in unregistered classes don't affect the
+    # built library).
+    impl_total_concrete   = 0
+    impl_ready            = 0
+    impl_dropped_in_built = 0
+    for fc, info in audit.items():
+        for impl, deps, reasons in info.get('classified', []):
+            impl_total_concrete += 1
+            if not deps and not reasons:
+                impl_ready += 1
+            elif fc in registered:
+                impl_dropped_in_built += 1
+
     print(fmt_section("Summary"))
     print(f"  Total functionClasses:    {len(all_fcs)}")
     print(f"  Currently registered:     {len(registered)} "
@@ -467,6 +494,12 @@ def main():
               f"({100*n//len(all_fcs):3d}%)")
     print(f"  (registered classes are also counted in their bucket above —")
     print(f"  they all evaluate as 'ready' so they don't dominate the lists.)")
+    print()
+    print(f"  Total concrete impls:     {impl_total_concrete}")
+    print(f"  Impl-level ready:         {impl_ready} "
+          f"({100*impl_ready//impl_total_concrete}%)")
+    print(f"  Dropped from BUILT lib:   {impl_dropped_in_built} "
+          f"(impls in registered classes the generator skips)")
 
     # READY (excluding already-registered).
     ready_unregistered = sorted(c for c in by_status['ready']
@@ -529,6 +562,43 @@ def main():
         for fc in blocked:
             reason_set = sorted(set(r for _, r in audit[fc]['reasons']))
             print(f"    {fc}".ljust(50) + f"{reason_set[0]}")
+
+    # DROPPED IMPLS — impls of *registered* classes that the generator
+    # nevertheless skips (because their constructor takes a type the
+    # pipeline can't translate, or has unmet missing deps even though
+    # some sibling impl is ready).  These are the impls that show up
+    # as `caution: implementation '<name>' of class '<cls>' has
+    # constructor argument …` warnings during a `make` build, and are
+    # invisible to the class-level READY/MISSING-DEP/PIPELINE-BLOCKED
+    # buckets above — the class itself still surfaces in Python via
+    # its other impls, but the dropped ones simply aren't reachable.
+    dropped = []
+    for fc in sorted(registered):
+        info = audit.get(fc, {})
+        for impl, deps, reasons in info.get('classified', []):
+            if reasons or deps:
+                # Pick the most informative line — pipeline reasons
+                # dominate; otherwise list missing deps.
+                if reasons:
+                    summary = reasons[0]
+                else:
+                    summary = "missing dep(s): " + ', '.join(sorted(deps))
+                dropped.append((fc, impl['name'], summary))
+    print(fmt_section(
+        f"DROPPED IMPLS ({len(dropped)}) — registered classes whose"
+        f" non-ready impls are skipped"))
+    if dropped:
+        # Width chosen so the longest current `<class> :: <impl>` label
+        # fits without truncation; reasons line up in the second column.
+        label_width = max(
+            (len(f"  {fc} :: {impl_name}") for fc, impl_name, _ in dropped),
+            default=0,
+        )
+        for fc, impl_name, summary in dropped:
+            label = f"  {fc} :: {impl_name}"
+            print(f"{label.ljust(label_width)}  {summary}")
+    else:
+        print("  (none — every concrete impl of every registered class is built)")
 
     # NO-CONCRETE-IMPLS — generally these are abstract base classes that
     # only matter as deps; surface them but don't dwell.
