@@ -1945,6 +1945,7 @@ module Galacticus_Nodes
     !!}
     implicit none
     type(nodeHierarchyWrapper), intent(inout) :: self
+    !$GLC attributes unused :: self
 
     call nodeClassHierarchyFinalize()
     return
