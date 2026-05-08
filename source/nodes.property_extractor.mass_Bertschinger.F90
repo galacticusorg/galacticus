@@ -38,7 +38,7 @@
 
   interface nodePropertyExtractorMassBertschinger
      !!{
-     Constructors for the \refClass{nodePropertyExtractorMassBertschinger} output extractor class.
+     Constructors for the \refClass{nodePropertyExtractorMassBertschinger} property extractor class.
      !!}
      module procedure massBertschingerConstructorParameters
      module procedure massBertschingerConstructorInternal
@@ -64,7 +64,7 @@ contains
 
   function massBertschingerConstructorInternal() result(self)
     !!{
-    Internal constructor for the \refClass{nodePropertyExtractorMassBertschinger} output extractor property extractor class.
+    Internal constructor for the \refClass{nodePropertyExtractorMassBertschinger} property extractor class.
     !!}
     implicit none
     type (nodePropertyExtractorMassBertschinger) :: self

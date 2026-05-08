@@ -39,7 +39,7 @@
 
   interface nodePropertyExtractorGalaxyMajorMergerTime
      !!{
-     Constructors for the \refClass{nodePropertyExtractorGalaxyMajorMergerTime} output extractor class.
+     Constructors for the \refClass{nodePropertyExtractorGalaxyMajorMergerTime} property extractor class.
      !!}
      module procedure galaxyMajorMergerTimeConstructorParameters
      module procedure galaxyMajorMergerTimeConstructorInternal
@@ -65,7 +65,7 @@ contains
 
   function galaxyMajorMergerTimeConstructorInternal() result(self)
     !!{
-    Internal constructor for the \refClass{nodePropertyExtractorGalaxyMajorMergerTime} output extractor property extractor class.
+    Internal constructor for the \refClass{nodePropertyExtractorGalaxyMajorMergerTime} property extractor class.
     !!}
     implicit none
     type(nodePropertyExtractorGalaxyMajorMergerTime) :: self

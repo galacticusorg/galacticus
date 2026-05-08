@@ -58,7 +58,7 @@ contains
 
   function fluxFromLuminosityConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the \refClass{nodePropertyExtractorFluxFromLuminosity} output analysis property extractor class which takes a parameter set as input.
+    Constructor for the \refClass{nodePropertyExtractorFluxFromLuminosity} property extractor class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -94,7 +94,7 @@ contains
   
   subroutine fluxFromLuminosityDestructor(self)
     !!{
-    Destructor for the \refClass{nodePropertyExtractorFluxFromLuminosity} output analysis property extractor class.
+    Destructor for the \refClass{nodePropertyExtractorFluxFromLuminosity} property extractor class.
     !!}
     implicit none
     type(nodePropertyExtractorFluxFromLuminosity), intent(inout) :: self

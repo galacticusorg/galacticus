@@ -80,7 +80,7 @@ contains
 
   function sidmIsothermalConstructorInternal(darkMatterProfile_,darkMatterParticle_) result(self)
     !!{
-    Internal constructor for the \refClass{darkMatterProfileSIDMIsothermal} dark matter profile class.
+    Internal constructor for the \refClass{darkMatterProfileSIDMIsothermal} dark matter halo profile class.
     !!}
     use :: Dark_Matter_Particles, only : darkMatterParticleSelfInteractingDarkMatter
     implicit none

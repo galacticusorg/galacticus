@@ -100,7 +100,7 @@ contains
 
   function powerLawCumulativeLuminosityConstructorInternal(rateHydrogenIonizingPhotonsMinimum,rateHydrogenIonizingPhotonsMaximum,exponent) result(self)
     !!{
-    Internal constructor for the \refClass{hiiRegionLuminosityFunctionPowerLaw} luminosity function class.
+    Internal constructor for the \refClass{hiiRegionLuminosityFunctionPowerLaw} HII region luminosity function class.
     !!}
     
     implicit none

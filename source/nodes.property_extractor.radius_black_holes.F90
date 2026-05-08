@@ -41,7 +41,7 @@
 
   interface nodePropertyExtractorRadiusBlackHoles
      !!{
-     Constructors for the \refClass{nodePropertyExtractorRadiusBlackHoles} output extractor class.
+     Constructors for the \refClass{nodePropertyExtractorRadiusBlackHoles} property extractor class.
      !!}
     module procedure radiusBlackHolesConstructorParameters
   end interface nodePropertyExtractorRadiusBlackHoles

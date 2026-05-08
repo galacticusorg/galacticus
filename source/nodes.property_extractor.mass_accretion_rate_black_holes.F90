@@ -42,7 +42,7 @@
 
   interface nodePropertyExtractorMassAccretionRateBlackHoles
      !!{
-     Constructors for the \refClass{nodePropertyExtractorMassAccretionRateBlackHoles} output extractor class.
+     Constructors for the \refClass{nodePropertyExtractorMassAccretionRateBlackHoles} property extractor class.
      !!}
      module procedure massAccretionRateBlackHolesConstructorParameters
      module procedure massAccretionRateBlackHolesConstructorInternal

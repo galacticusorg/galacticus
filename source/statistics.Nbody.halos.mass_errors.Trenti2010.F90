@@ -153,7 +153,7 @@ contains
 
   subroutine trenti2010Destructor(self)
     !!{
-    Destructor for the \refClass{nbodyHaloMassErrorTrenti2010} N-body statistics class.
+    Destructor for the \refClass{nbodyHaloMassErrorTrenti2010} N-body halo mass error class.
     !!}
     implicit none
     type(nbodyHaloMassErrorTrenti2010), intent(inout) :: self

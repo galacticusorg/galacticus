@@ -50,7 +50,7 @@ contains
 
   function darkMatterProfileShapeParameterConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the \refClass{nodePropertyExtractorDarkMatterProfileShapeParameter} output analysis property extractor class which takes a parameter set as input.
+    Constructor for the \refClass{nodePropertyExtractorDarkMatterProfileShapeParameter} property extractor class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none

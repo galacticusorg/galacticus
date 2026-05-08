@@ -122,7 +122,7 @@ contains
 
   subroutine satelliteOrbitalExtremaDestructor(self)
     !!{
-    Destructor for the \refClass{nodePropertyExtractorSatelliteOrbitalExtrema} node property extractor class.
+    Destructor for the \refClass{nodePropertyExtractorSatelliteOrbitalExtrema} property extractor class.
     !!}
     implicit none
     type(nodePropertyExtractorSatelliteOrbitalExtrema), intent(inout) :: self

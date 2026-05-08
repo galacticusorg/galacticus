@@ -66,7 +66,7 @@ contains
 
   function rosolowsky2021CumulativeMassConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the \refClass{hiiRegionMassFunctionRosolowsky2021} HII region mass function class which takes a parameter
+    Constructor for the \refClass{hiiRegionMassFunctionRosolowsky2021} HII region stellar mass function class which takes a parameter
     set as input.    
     !!}
     use :: Input_Parameters, only : inputParameters

@@ -59,7 +59,7 @@
 
   interface virialOrbitFixed
      !!{
-     Constructors for the \refClass{virialOrbitFixed} virial orbit class.
+     Constructors for the \refClass{virialOrbitFixed} virial orbits class.
      !!}
      module procedure fixedConstructorParameters
      module procedure fixedConstructorInternal
@@ -69,7 +69,7 @@ contains
 
   function fixedConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the \refClass{virialOrbitFixed} satellite virial orbit class which takes a parameter set as input.
+    Constructor for the \refClass{virialOrbitFixed} virial orbits class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none

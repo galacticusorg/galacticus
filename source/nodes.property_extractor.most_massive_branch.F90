@@ -56,7 +56,7 @@ contains
 
   function branchMostMassiveConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the \refClass{nodePropertyExtractorBranchMostMassive} node property extractor class which takes a parameter set as input.
+    Constructor for the \refClass{nodePropertyExtractorBranchMostMassive} property extractor class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -72,7 +72,7 @@ contains
 
   function branchMostMassiveConstructorInternal() result(self)
     !!{
-    Internal constructor for the \refClass{nodePropertyExtractorBranchMostMassive} node property extractor class.
+    Internal constructor for the \refClass{nodePropertyExtractorBranchMostMassive} property extractor class.
     !!}
     implicit none
     type(nodePropertyExtractorBranchMostMassive) :: self

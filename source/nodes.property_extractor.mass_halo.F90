@@ -71,7 +71,7 @@ contains
 
   function massHaloConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the \refClass{nodePropertyExtractorMassHalo} output analysis property extractor class which takes a parameter set as input.
+    Constructor for the \refClass{nodePropertyExtractorMassHalo} property extractor class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -110,7 +110,7 @@ contains
 
   function massHaloConstructorInternal(useLastIsolatedTime,cosmologyFunctions_,cosmologyParameters_,darkMatterProfileDMO_,virialDensityContrast_,virialDensityContrastDefinition_) result(self)
     !!{
-    Internal constructor for the \refClass{nodePropertyExtractorMassHalo} output analysis property extractor class.
+    Internal constructor for the \refClass{nodePropertyExtractorMassHalo} property extractor class.
     !!}
     implicit none
     type   (nodePropertyExtractorMassHalo)                        :: self
@@ -128,7 +128,7 @@ contains
 
   subroutine massHaloDestructor(self)
     !!{
-    Destructor for the \refClass{nodePropertyExtractorMassHalo} output analysis property extractor class.
+    Destructor for the \refClass{nodePropertyExtractorMassHalo} property extractor class.
     !!}
     implicit none
     type(nodePropertyExtractorMassHalo), intent(inout) :: self

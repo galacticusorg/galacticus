@@ -69,7 +69,7 @@ contains
 
   function simpleConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the \refClass{tidalStrippingSimple} tidal stripping class which takes a parameter set as input.
+    Constructor for the \refClass{tidalStrippingSimple} model of tidal stripping class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none

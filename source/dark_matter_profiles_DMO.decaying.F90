@@ -128,7 +128,7 @@ contains
 
   function decayingConstructorInternal(toleranceRelativePotential,toleranceRelativeVelocityDispersion,toleranceRelativeVelocityDispersionMaximum,tolerateVelocityMaximumFailure,toleratePotentialIntegrationFailure,tolerateEnclosedMassIntegrationFailure,darkMatterParticle_,darkMatterHaloScale_,darkMatterProfileDMO_) result(self)
     !!{
-    Internal constructor for the \refClass{darkMatterProfileDMODecaying} dark matter profile class.
+    Internal constructor for the \refClass{darkMatterProfileDMODecaying} dark matter halo profile class.
     !!}
     use :: Mass_Distributions, only : enumerationNonAnalyticSolversIsValid
     use :: Error             , only : Error_Report

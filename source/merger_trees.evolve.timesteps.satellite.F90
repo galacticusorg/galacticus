@@ -122,7 +122,7 @@ contains
 
   subroutine satelliteDestructor(self)
     !!{
-    Destructor for the \refClass{mergerTreeEvolveTimestepSatellite} erger tree evolution timestep class.
+    Destructor for the \refClass{mergerTreeEvolveTimestepSatellite} merger tree evolution timestep class.
     !!}
     implicit none
     type(mergerTreeEvolveTimestepSatellite), intent(inout) :: self

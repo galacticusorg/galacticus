@@ -111,7 +111,7 @@ contains
 
   subroutine multipleDestructor(self)
     !!{
-    Destructor for the \refClass{nbodyImporterMultiple} importer class.
+    Destructor for the \refClass{nbodyImporterMultiple} N-body importer class.
     !!}
     implicit none
     type(nbodyImporterMultiple), intent(inout) :: self

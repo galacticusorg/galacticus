@@ -73,7 +73,7 @@
 
   interface nodePropertyExtractorMulti
      !!{
-     Constructors for the \refClass{nodePropertyExtractorMulti} output extractor class.
+     Constructors for the \refClass{nodePropertyExtractorMulti} property extractor class.
      !!}
      module procedure multiConstructorParameters
      module procedure multiConstructorInternal
@@ -93,7 +93,7 @@ contains
 
   function multiConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the \refClass{nodePropertyExtractorMulti} output extractor property extractor class which takes a parameter set as input.
+    Constructor for the \refClass{nodePropertyExtractorMulti} property extractor class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -124,7 +124,7 @@ contains
 
   function multiConstructorInternal(extractors) result(self)
     !!{
-    Internal constructor for the \refClass{nodePropertyExtractorMulti} output extractor property extractor class.
+    Internal constructor for the \refClass{nodePropertyExtractorMulti} property extractor class.
     !!}
     implicit none
     type(nodePropertyExtractorMulti)                         :: self
@@ -144,7 +144,7 @@ contains
 
   subroutine multiDestructor(self)
     !!{
-    Destructor for the \refClass{nodePropertyExtractorMulti} output extractor property extractor class.
+    Destructor for the \refClass{nodePropertyExtractorMulti} property extractor class.
     !!}
     implicit none
     type(nodePropertyExtractorMulti), intent(inout) :: self

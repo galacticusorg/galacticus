@@ -44,7 +44,7 @@
 
   interface nodePropertyExtractorJetPowerBlackHoles
      !!{
-     Constructors for the \refClass{nodePropertyExtractorJetPowerBlackHoles} output extractor class.
+     Constructors for the \refClass{nodePropertyExtractorJetPowerBlackHoles} property extractor class.
      !!}
      module procedure jetPowerBlackHolesConstructorParameters
      module procedure jetPowerBlackHolesConstructorInternal

@@ -39,7 +39,7 @@
 
   interface nodePropertyExtractorExcursion
      !!{
-     Constructors for the \refClass{nodePropertyExtractorExcursion} output extractor class.
+     Constructors for the \refClass{nodePropertyExtractorExcursion} property extractor class.
      !!}
      module procedure excursionConstructorParameters
      module procedure excursionConstructorInternal
@@ -65,7 +65,7 @@ contains
 
   function excursionConstructorInternal() result(self)
     !!{
-    Internal constructor for the \refClass{nodePropertyExtractorExcursion} output extractor property extractor class.
+    Internal constructor for the \refClass{nodePropertyExtractorExcursion} property extractor class.
     !!}
     implicit none
     type(nodePropertyExtractorExcursion) :: self

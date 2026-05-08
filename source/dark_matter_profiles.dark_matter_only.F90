@@ -90,7 +90,7 @@ contains
 
   function darkMatterOnlyConstructorInternal(chandrasekharIntegralComputeVelocityDispersion,cosmologyParameters_,darkMatterProfileDMO_) result(self)
     !!{
-    Internal constructor for the \refClass{darkMatterProfileDarkMatterOnly} dark matter profile class.
+    Internal constructor for the \refClass{darkMatterProfileDarkMatterOnly} dark matter halo profile class.
     !!}
     implicit none
     type   (darkMatterProfileDarkMatterOnly)                        :: self

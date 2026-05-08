@@ -52,7 +52,7 @@
 
   interface nodePropertyExtractorAgesStellarMassWeighted
      !!{
-     Constructors for the \refClass{nodePropertyExtractorAgesStellarMassWeighted} output extractor class.
+     Constructors for the \refClass{nodePropertyExtractorAgesStellarMassWeighted} property extractor class.
      !!}
      module procedure agesStellarMassWeightedConstructorParameters
      module procedure agesStellarMassWeightedConstructorInternal
@@ -78,7 +78,7 @@ contains
 
   function agesStellarMassWeightedConstructorInternal() result(self)
     !!{
-    Internal constructor for the \refClass{nodePropertyExtractorAgesStellarMassWeighted} output extractor property extractor class.
+    Internal constructor for the \refClass{nodePropertyExtractorAgesStellarMassWeighted} property extractor class.
     !!}
     implicit none
     type(nodePropertyExtractorAgesStellarMassWeighted) :: self

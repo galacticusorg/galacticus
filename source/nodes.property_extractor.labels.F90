@@ -38,7 +38,7 @@
 
   interface nodePropertyExtractorLabels
      !!{
-     Constructors for the \refClass{nodePropertyExtractorLabels} output extractor class.
+     Constructors for the \refClass{nodePropertyExtractorLabels} property extractor class.
      !!}
      module procedure labelsConstructorParameters
   end interface nodePropertyExtractorLabels

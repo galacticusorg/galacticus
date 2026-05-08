@@ -94,7 +94,7 @@ contains
 
   subroutine kitayamaSuto1996Destructor(self)
     !!{
-    Destructor for the \refClass{virialDensityContrastKitayamaSuto1996} virial density contrast class.
+    Destructor for the \refClass{virialDensityContrastKitayamaSuto1996} dark matter halo virial density contrast class.
     !!}
     implicit none
     type(virialDensityContrastKitayamaSuto1996), intent(inout) :: self

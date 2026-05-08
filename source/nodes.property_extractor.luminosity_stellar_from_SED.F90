@@ -76,7 +76,7 @@ contains
 
   function luminosityStellarFromSEDConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the \refClass{nodePropertyExtractorLuminosityStellarFromSED} output analysis property extractor class which takes a parameter set as input.
+    Constructor for the \refClass{nodePropertyExtractorLuminosityStellarFromSED} property extractor class which takes a parameter set as input.
     !!}
     use :: Error           , only : Error_Report
     use :: Input_Parameters, only : inputParameter, inputParameters
@@ -133,7 +133,7 @@ contains
   
   subroutine luminosityStellarFromSEDDestructor(self)
     !!{
-    Destructor for the \refClass{nodePropertyExtractorLuminosityStellarFromSED} output analysis property extractor class.
+    Destructor for the \refClass{nodePropertyExtractorLuminosityStellarFromSED} property extractor class.
     !!}
     implicit none
     type(nodePropertyExtractorLuminosityStellarFromSED), intent(inout) :: self

@@ -117,7 +117,7 @@ contains
 
   function multivariateNormalStochasticConstructorInternal(means,covariance,realizationCount,realizationCountMinimum,randomNumberGenerator_) result(self)
     !!{
-    Constructor for the \refClass{posteriorSampleLikelihoodMltiVrtNormalStochastic} convergence class.
+    Constructor for the \refClass{posteriorSampleLikelihoodMltiVrtNormalStochastic} posterior sampling likelihood class.
     !!}
     type            (posteriorSampleLikelihoodMltiVrtNormalStochastic)                                :: self
     double precision                                                  , intent(in   ), dimension(:  ) :: means
@@ -134,7 +134,7 @@ contains
 
   subroutine multivariateNormalStochasticDestructor(self)
     !!{
-    Destructor for the \refClass{posteriorSampleLikelihoodMltiVrtNormalStochastic} model likelihood class.
+    Destructor for the \refClass{posteriorSampleLikelihoodMltiVrtNormalStochastic} posterior sampling likelihood class.
     !!}
     implicit none
     type(posteriorSampleLikelihoodMltiVrtNormalStochastic), intent(inout) :: self

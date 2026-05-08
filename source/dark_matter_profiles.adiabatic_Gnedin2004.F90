@@ -126,7 +126,7 @@ contains
 
   function adiabaticGnedin2004ConstructorInternal(A,omega,radiusFractionalPivot,toleranceRelative,nonAnalyticSolver,cosmologyParameters_,darkMatterHaloScale_,darkMatterProfileDMO_) result(self)
     !!{
-    Internal constructor for the \refClass{darkMatterProfileAdiabaticGnedin2004} dark matter profile class.
+    Internal constructor for the \refClass{darkMatterProfileAdiabaticGnedin2004} dark matter halo profile class.
     !!}
     use :: Mass_Distributions, only : enumerationNonAnalyticSolversIsValid
     use :: Error             , only : Error_Report

@@ -64,7 +64,7 @@ contains
 
   function descendantsConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the \refClass{nodePropertyExtractorDescendants} node property extractor class which takes a parameter set as input.
+    Constructor for the \refClass{nodePropertyExtractorDescendants} property extractor class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -85,7 +85,7 @@ contains
 
   function descendantsConstructorInternal(outputTimes_) result(self)
     !!{
-    Internal constructor for the \refClass{nodePropertyExtractorDescendants} node property extractor class.
+    Internal constructor for the \refClass{nodePropertyExtractorDescendants} property extractor class.
     !!}
     implicit none
     type (nodePropertyExtractorDescendants)                        :: self

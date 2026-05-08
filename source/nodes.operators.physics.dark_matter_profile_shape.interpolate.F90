@@ -99,7 +99,7 @@ contains
 
   subroutine dmpShapeInterpolateConstructorDestructor(self)
     !!{
-    Destructor for the \refClass{nodeOperatorDarkMatterProfileShapeInterpolate} dark matter halo profile shape parameter class.
+    Destructor for the \refClass{nodeOperatorDarkMatterProfileShapeInterpolate} node operator class.
     !!}
     implicit none
     type(nodeOperatorDarkMatterProfileShapeInterpolate), intent(inout) :: self

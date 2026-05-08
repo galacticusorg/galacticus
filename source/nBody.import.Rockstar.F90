@@ -308,7 +308,7 @@ contains
 
   subroutine rockstarDestructor(self)
     !!{
-    Destructor for the \refClass{nbodyImporterRockstar} importer class.
+    Destructor for the \refClass{nbodyImporterRockstar} N-body importer class.
     !!}
     implicit none
     type(nbodyImporterRockstar), intent(inout) :: self

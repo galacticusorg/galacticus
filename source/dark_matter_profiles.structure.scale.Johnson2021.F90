@@ -204,7 +204,7 @@ contains
   
   function darkMatterProfileScaleJohnson2021ConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the \refClass{darkMatterProfileScaleRadiusJohnson2021} dark matter profile scale radius class which
+    Constructor for the \refClass{darkMatterProfileScaleRadiusJohnson2021} dark matter halo profile scale radius class which
     takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
@@ -342,7 +342,7 @@ contains
 
   function darkMatterProfileScaleJohnson2021ConstructorInternal(massExponent,peakHeightExponent,energyBoost,unresolvedEnergy,factorMassResolution,scatter,scatterExcess,correlationRateDecay,correlationExponent,countSampleEnergyUnresolved,mainBranchOnly,applySubsamplingWeights,acceptUnboundOrbits,includeUnresolvedVariance,cosmologyFunctions_,darkMatterProfileScaleRadius_,darkMatterHaloScale_,darkMatterProfileDMO_,virialOrbit_,mergerTreeMassResolution_,criticalOverdensity_,cosmologicalMassVariance_) result(self)
     !!{
-    Internal constructor for the \refClass{darkMatterProfileScaleRadiusJohnson2021} dark matter profile scale radius class.
+    Internal constructor for the \refClass{darkMatterProfileScaleRadiusJohnson2021} dark matter halo profile scale radius class.
     !!}
     implicit none
     type            (darkMatterProfileScaleRadiusJohnson2021)                        :: self

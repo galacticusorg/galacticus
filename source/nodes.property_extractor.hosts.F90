@@ -53,7 +53,7 @@ contains
 
   function indicesHostConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the \refClass{nodePropertyExtractorIndicesHost} node property extractor class which takes a parameter set as input.
+    Constructor for the \refClass{nodePropertyExtractorIndicesHost} property extractor class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -78,7 +78,7 @@ contains
 
   function indicesHostConstructorInternal(topLevel) result(self)
     !!{
-    Internal constructor for the \refClass{nodePropertyExtractorIndicesHost} node property extractor class.
+    Internal constructor for the \refClass{nodePropertyExtractorIndicesHost} property extractor class.
     !!}
     implicit none
     type   (nodePropertyExtractorIndicesHost)                :: self

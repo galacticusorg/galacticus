@@ -104,7 +104,7 @@ contains
 
   function multivariateNormalConstructorInternal(means,covariance) result(self)
     !!{
-    Constructor for the \refClass{posteriorSampleLikelihoodMultivariateNormal} convergence class.
+    Constructor for the \refClass{posteriorSampleLikelihoodMultivariateNormal} posterior sampling likelihood class.
     !!}
     use :: Linear_Algebra, only : assignment(=)
     implicit none

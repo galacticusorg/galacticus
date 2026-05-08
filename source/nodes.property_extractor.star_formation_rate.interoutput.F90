@@ -43,7 +43,7 @@
 
   interface nodePropertyExtractorStarFormationRateInterOutput
      !!{
-     Constructors for the \refClass{nodePropertyExtractorStarFormationRateInterOutput} output extractor class.
+     Constructors for the \refClass{nodePropertyExtractorStarFormationRateInterOutput} property extractor class.
      !!}
      module procedure starFormationRateInterOutputConstructorParameters
      module procedure starFormationRateInterOutputConstructorInternal
@@ -69,7 +69,7 @@ contains
 
   function starFormationRateInterOutputConstructorInternal() result(self)
     !!{
-    Internal constructor for the \refClass{nodePropertyExtractorStarFormationRateInterOutput} output extractor property extractor class.
+    Internal constructor for the \refClass{nodePropertyExtractorStarFormationRateInterOutput} property extractor class.
     !!}
     implicit none
     type (nodePropertyExtractorStarFormationRateInterOutput) :: self

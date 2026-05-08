@@ -144,7 +144,7 @@ contains
   
   subroutine lam2013Destructor(self)
     !!{
-    Destructor for the \refClass{kinematicsDistributionLam2013} accretion flow mass distribution class.
+    Destructor for the \refClass{kinematicsDistributionLam2013} kinematic distribution class.
     !!}
     implicit none
     type(kinematicsDistributionLam2013), intent(inout) :: self

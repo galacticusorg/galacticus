@@ -42,7 +42,7 @@
 
   interface outputAnalysisDistributionOperatorMassIncompleteness
      !!{
-     Constructors for the \refClass{outputAnalysisDistributionOperatorMassIncompleteness} output distribution operator class.
+     Constructors for the \refClass{outputAnalysisDistributionOperatorMassIncompleteness} output analysis distribution operator class.
      !!}
      module procedure massIncompletenessConstructorParameters
      module procedure massIncompletenessConstructorInternal
@@ -52,7 +52,7 @@ contains
 
   function massIncompletenessConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the \refClass{outputAnalysisDistributionOperatorMassIncompleteness} output analysis distribution operator operator class which takes a parameter set as input.
+    Constructor for the \refClass{outputAnalysisDistributionOperatorMassIncompleteness} output analysis distribution operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -87,7 +87,7 @@ contains
 
   subroutine massIncompletenessDestructor(self)
     !!{
-    Destructor for the \refClass{outputAnalysisDistributionOperatorMassIncompleteness} output analysis distribution operator operator class.
+    Destructor for the \refClass{outputAnalysisDistributionOperatorMassIncompleteness} output analysis distribution operator class.
     !!}
     implicit none
     type(outputAnalysisDistributionOperatorMassIncompleteness), intent(inout) :: self

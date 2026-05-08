@@ -53,7 +53,7 @@ contains
 
   function isInLightconeConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the \refClass{nodePropertyExtractorIsInLightcone} node property extractor class which takes a parameter set as input.
+    Constructor for the \refClass{nodePropertyExtractorIsInLightcone} property extractor class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -74,7 +74,7 @@ contains
 
   function isInLightconeConstructorInternal(geometryLightcone_) result(self)
     !!{
-    Internal constructor for the \refClass{nodePropertyExtractorIsInLightcone} node property extractor class.
+    Internal constructor for the \refClass{nodePropertyExtractorIsInLightcone} property extractor class.
     !!}
     implicit none
     type (nodePropertyExtractorIsInLightcone)                        :: self
@@ -88,7 +88,7 @@ contains
 
   subroutine isInLightconeDestructor(self)
     !!{
-    Destructor for the \refClass{nodePropertyExtractorIsInLightcone} node property extractor class.
+    Destructor for the \refClass{nodePropertyExtractorIsInLightcone} property extractor class.
     !!}
     implicit none
     type(nodePropertyExtractorIsInLightcone), intent(inout) :: self

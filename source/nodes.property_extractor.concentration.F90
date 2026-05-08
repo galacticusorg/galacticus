@@ -71,7 +71,7 @@ contains
 
   function concentrationConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the \refClass{nodePropertyExtractorConcentration} output analysis property extractor class which takes a parameter set as input.
+    Constructor for the \refClass{nodePropertyExtractorConcentration} property extractor class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -110,7 +110,7 @@ contains
 
   function concentrationConstructorInternal(useLastIsolatedTime,cosmologyParameters_,cosmologyFunctions_,darkMatterProfileDMO_,virialDensityContrast_,virialDensityContrastDefinition_) result(self)
     !!{
-    Internal constructor for the \refClass{nodePropertyExtractorConcentration} output analysis property extractor class.
+    Internal constructor for the \refClass{nodePropertyExtractorConcentration} property extractor class.
     !!}
     implicit none
     type   (nodePropertyExtractorConcentration)                        :: self
@@ -128,7 +128,7 @@ contains
 
   subroutine concentrationDestructor(self)
     !!{
-    Destructor for the \refClass{nodePropertyExtractorConcentration} output analysis property extractor class.
+    Destructor for the \refClass{nodePropertyExtractorConcentration} property extractor class.
     !!}
     implicit none
     type(nodePropertyExtractorConcentration), intent(inout) :: self

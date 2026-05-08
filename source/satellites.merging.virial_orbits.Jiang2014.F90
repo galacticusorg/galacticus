@@ -85,7 +85,7 @@
 
   interface virialOrbitJiang2014
      !!{
-     Constructors for the \refClass{virialOrbitJiang2014} virial orbit class.
+     Constructors for the \refClass{virialOrbitJiang2014} virial orbits class.
      !!}
      module procedure jiang2014ConstructorParameters
      module procedure jiang2014ConstructorInternal

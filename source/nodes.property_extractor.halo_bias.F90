@@ -58,7 +58,7 @@ contains
 
   function haloBiasConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the \refClass{nodePropertyExtractorHaloBias} node property extractor class which takes a parameter set as input.
+    Constructor for the \refClass{nodePropertyExtractorHaloBias} property extractor class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -79,7 +79,7 @@ contains
 
   function haloBiasConstructorInternal(darkMatterHaloBias_) result(self)
     !!{
-    Internal constructor for the \refClass{nodePropertyExtractorHaloBias} node property extractor class.
+    Internal constructor for the \refClass{nodePropertyExtractorHaloBias} property extractor class.
     !!}
     implicit none
     type (nodePropertyExtractorHaloBias)                        :: self

@@ -95,7 +95,7 @@ contains
 
   subroutine outputStructureDestructor(self)
     !!{
-    Destructor for the \refClass{mergerTreeOperatorOutputStructure} merger tree operator function class.
+    Destructor for the \refClass{mergerTreeOperatorOutputStructure} merger tree operator class.
     !!}
     implicit none
     type(mergerTreeOperatorOutputStructure), intent(inout) :: self

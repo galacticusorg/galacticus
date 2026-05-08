@@ -116,7 +116,7 @@ contains
 
   subroutine mergeDestructor(self)
     !!{
-    Destructor for the \refClass{nbodyImporterMerge} importer class.
+    Destructor for the \refClass{nbodyImporterMerge} N-body importer class.
     !!}
     implicit none
     type(nbodyImporterMerge), intent(inout) :: self

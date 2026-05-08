@@ -65,7 +65,7 @@ contains
 
   function mainBranchStatusConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the \refClass{nodePropertyExtractorMainBranchStatus} node property extractor class which takes a parameter set as input.
+    Constructor for the \refClass{nodePropertyExtractorMainBranchStatus} property extractor class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -93,7 +93,7 @@ contains
 
   function mainBranchStatusConstructorInternal(includeSubhalos) result(self)
     !!{
-    Internal constructor for the \refClass{nodePropertyExtractorMainBranchStatus} node property extractor class.
+    Internal constructor for the \refClass{nodePropertyExtractorMainBranchStatus} property extractor class.
     !!}
     implicit none
     type   (nodePropertyExtractorMainBranchStatus)                :: self

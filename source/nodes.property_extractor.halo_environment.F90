@@ -56,7 +56,7 @@ contains
 
   function haloEnvironmentConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the \refClass{nodePropertyExtractorHaloEnvironment} node property extractor class which takes a parameter set as input.
+    Constructor for the \refClass{nodePropertyExtractorHaloEnvironment} property extractor class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -77,7 +77,7 @@ contains
 
   function haloEnvironmentConstructorInternal(haloEnvironment_) result(self)
     !!{
-    Internal constructor for the \refClass{nodePropertyExtractorHaloEnvironment} output analysis property extractor class.
+    Internal constructor for the \refClass{nodePropertyExtractorHaloEnvironment} property extractor class.
     !!}
     implicit none
     type (nodePropertyExtractorHaloEnvironment)                        :: self
@@ -91,7 +91,7 @@ contains
 
   subroutine haloEnvironmentDestructor(self)
     !!{
-    Destructor for the \refClass{nodePropertyExtractorHaloEnvironment} output analysis property extractor class.
+    Destructor for the \refClass{nodePropertyExtractorHaloEnvironment} property extractor class.
     !!}
     implicit none
     type(nodePropertyExtractorHaloEnvironment), intent(inout) :: self

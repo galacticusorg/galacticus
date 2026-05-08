@@ -89,7 +89,7 @@ contains
 
   function multiConstructorInternal(outputters) result(self)
     !!{
-    Internal constructor for the \refClass{mergerTreeOutputterMulti} outputter class.
+    Internal constructor for the \refClass{mergerTreeOutputterMulti} merger tree outputter class.
     !!}
     implicit none
     type(mergerTreeOutputterMulti)                        :: self
@@ -109,7 +109,7 @@ contains
 
   subroutine multiDestructor(self)
     !!{
-    Destructor for the \refClass{mergerTreeOutputterMulti} outputter class.
+    Destructor for the \refClass{mergerTreeOutputterMulti} merger tree outputter class.
     !!}
     implicit none
     type(mergerTreeOutputterMulti), intent(inout) :: self

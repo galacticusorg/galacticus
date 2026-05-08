@@ -99,7 +99,7 @@ contains
 
   function truncatedExponentialConstructorInternal(radiusFractionalDecay,nonAnalyticSolver,darkMatterProfileDMO_,darkMatterHaloScale_) result(self)
     !!{
-    Internal constructor for the \refClass{darkMatterProfileDMOTruncatedExponential} dark matter profile class.
+    Internal constructor for the \refClass{darkMatterProfileDMOTruncatedExponential} dark matter halo profile class.
     !!}
     use :: Error             , only : Error_Report
     use :: Mass_Distributions, only : enumerationNonAnalyticSolversIsValid

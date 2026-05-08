@@ -104,7 +104,7 @@
 
   interface virialOrbitLossCone
      !!{
-     Constructors for the \refClass{virialOrbitLossCone} virial orbit class.
+     Constructors for the \refClass{virialOrbitLossCone} virial orbits class.
      !!}
      module procedure lossConeConstructorParameters
      module procedure lossConeConstructorInternal

@@ -60,7 +60,7 @@
 
   interface nodePropertyExtractorHaloCollapseEpoch
      !!{
-     Constructors for the \refClass{nodePropertyExtractorHaloCollapseEpoch} output extractor class.
+     Constructors for the \refClass{nodePropertyExtractorHaloCollapseEpoch} property extractor class.
      !!}
      module procedure haloCollapseEpochConstructorParameters
      module procedure haloCollapseEpochConstructorInternal
@@ -104,7 +104,7 @@ contains
 
   function haloCollapseEpochConstructorInternal(massFractionFormation,criticalOverdensity_,cosmologicalMassvariance_,cosmologyFunctions_) result(self)
     !!{
-    Internal constructor for the \refClass{nodePropertyExtractorHaloCollapseEpoch} output extractor property extractor class.
+    Internal constructor for the \refClass{nodePropertyExtractorHaloCollapseEpoch} property extractor class.
     !!}
     implicit none
     type            (nodePropertyExtractorHaloCollapseEpoch)                        :: self
@@ -121,7 +121,7 @@ contains
 
   subroutine haloCollapseEpochDestructor(self)
     !!{
-    Destructor for the \refClass{nodePropertyExtractorHaloCollapseEpoch} output extractor property extractor class.
+    Destructor for the \refClass{nodePropertyExtractorHaloCollapseEpoch} property extractor class.
     !!}
     implicit none
     type(nodePropertyExtractorHaloCollapseEpoch), intent(inout) :: self

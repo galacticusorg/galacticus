@@ -63,7 +63,7 @@ contains
 
   function lmnstyStllrChrltFll2000ConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the \refClass{nodePropertyExtractorLmnstyStllrCF2000} output analysis property extractor class which takes a parameter set as input.
+    Constructor for the \refClass{nodePropertyExtractorLmnstyStllrCF2000} property extractor class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -132,7 +132,7 @@ contains
 
   function lmnstyStllrChrltFll2000ConstructorInternal(filterName,filterType,depthOpticalISMCoefficient,depthOpticalCloudsCoefficient,wavelengthExponent,outputTimes_,redshiftBand,outputMask) result(self)
     !!{
-    Internal constructor for the \refClass{nodePropertyExtractorLmnstyStllrCF2000} output analysis property extractor class.
+    Internal constructor for the \refClass{nodePropertyExtractorLmnstyStllrCF2000} property extractor class.
     !!}
     use, intrinsic :: ISO_C_Binding                 , only : c_size_t
     use            :: Instruments_Filters           , only : Filter_Get_Index       , Filter_Wavelength_Effective
@@ -177,7 +177,7 @@ contains
 
   subroutine lmnstyStllrChrltFll2000Destructor(self)
     !!{
-    Destructor for the \refClass{nodePropertyExtractorLmnstyStllrCF2000} output analysis property extractor class.
+    Destructor for the \refClass{nodePropertyExtractorLmnstyStllrCF2000} property extractor class.
     !!}
     implicit none
     type(nodePropertyExtractorLmnstyStllrCF2000), intent(inout) :: self

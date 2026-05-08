@@ -38,7 +38,7 @@
 
   interface nodePropertyExtractorSatelliteVirialOrbit
      !!{
-     Constructors for the \refClass{nodePropertyExtractorSatelliteVirialOrbit} extractor class.
+     Constructors for the \refClass{nodePropertyExtractorSatelliteVirialOrbit} property extractor class.
      !!}
      module procedure satelliteVirialOrbitConstructorParameters
      module procedure satelliteVirialOrbitConstructorInternal
@@ -73,7 +73,7 @@ contains
 
   function satelliteVirialOrbitConstructorInternal(properties) result(self)
     !!{
-    Internal constructor for the \refClass{nodePropertyExtractorSatelliteVirialOrbit} output extractor property extractor class.
+    Internal constructor for the \refClass{nodePropertyExtractorSatelliteVirialOrbit} property extractor class.
     !!}
     implicit none
     type(nodePropertyExtractorSatelliteVirialOrbit)                              :: self

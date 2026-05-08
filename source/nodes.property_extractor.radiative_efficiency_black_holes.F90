@@ -44,7 +44,7 @@
 
   interface nodePropertyExtractorRadiativeEfficiencyBlackHoles
      !!{
-     Constructors for the \refClass{nodePropertyExtractorRadiativeEfficiencyBlackHoles} output extractor class.
+     Constructors for the \refClass{nodePropertyExtractorRadiativeEfficiencyBlackHoles} property extractor class.
      !!}
      module procedure radiativeEfficiencyBlackHolesConstructorParameters
      module procedure radiativeEfficiencyBlackHolesConstructorInternal

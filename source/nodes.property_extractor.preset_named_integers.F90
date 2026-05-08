@@ -43,7 +43,7 @@
 
   interface nodePropertyExtractorPresetNamedIntegers
      !!{
-     Constructors for the \refClass{nodePropertyExtractorPresetNamedIntegers} output extractor class.
+     Constructors for the \refClass{nodePropertyExtractorPresetNamedIntegers} property extractor class.
      !!}
      module procedure presetNamedIntegersConstructorParameters
      module procedure presetNamedIntegersConstructorInternal
@@ -78,7 +78,7 @@ contains
 
   function presetNamedIntegersConstructorInternal(presetnames) result(self)
     !!{
-    Internal constructor for the \refClass{nodePropertyExtractorPresetNamedIntegers} output extractor property extractor class.
+    Internal constructor for the \refClass{nodePropertyExtractorPresetNamedIntegers} property extractor class.
     !!}
     implicit none
     type   (nodePropertyExtractorPresetNamedIntegers)                              :: self

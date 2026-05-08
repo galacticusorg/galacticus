@@ -116,7 +116,7 @@ contains
 
   subroutine randomDestructor(self)
     !!{
-    Destructor for the \refClass{nbodyImporterRandom} importer class.
+    Destructor for the \refClass{nbodyImporterRandom} N-body importer class.
     !!}
     implicit none
     type(nbodyImporterRandom), intent(inout) :: self

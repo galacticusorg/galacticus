@@ -54,7 +54,7 @@
 
   interface virialOrbitSpinCorrelated
      !!{
-     Constructors for the \refClass{virialOrbitSpinCorrelated} virial orbit class.
+     Constructors for the \refClass{virialOrbitSpinCorrelated} virial orbits class.
      !!}
      module procedure spinCorrelatedConstructorParameters
      module procedure spinCorrelatedConstructorInternal
@@ -64,7 +64,7 @@ contains
 
   function spinCorrelatedConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the \refClass{virialOrbitSpinCorrelated} satellite virial orbit class which takes a parameter set as input.
+    Constructor for the \refClass{virialOrbitSpinCorrelated} virial orbits class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none

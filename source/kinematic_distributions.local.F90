@@ -81,7 +81,7 @@ contains
   
   function localConstructorInternal(alpha) result(self)
     !!{
-    Constructor for the \refClass{kinematicsDistributionLocal} kinematics distribution class.
+    Constructor for the \refClass{kinematicsDistributionLocal} kinematic distribution class.
     !!}
     implicit none
     type            (kinematicsDistributionLocal)                :: self
