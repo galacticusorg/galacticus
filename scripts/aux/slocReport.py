@@ -106,52 +106,52 @@ def save_history(history):
 
 def indicator(delta, is_new):
     if is_new:
-        return ':new:'
+        return '\U0001F195'
     if delta > 0:
-        return ':large_green_circle:'
+        return '\U0001F7E2'
     if delta < 0:
-        return ':red_circle:'
-    return ':white_circle:'
+        return '\U0001F534'
+    return '⚪'
 
 
 def format_report(current, previous_entry, sha, measured):
     previous_counts = previous_entry["counts"] if previous_entry else {}
     previous_date   = previous_entry["timestamp"][:10] if previous_entry else None
 
-    lines = [f"*Galacticus SLOC report — {measured}* (commit `{sha}`)"]
+    header = f"Galacticus SLOC report {measured} (commit {sha})"
     if previous_date:
-        lines.append(f"Previous: {previous_date}")
+        header += f" — previous: {previous_date}"
     else:
-        lines.append("Baseline measurement (no prior data).")
-    lines.append("")
+        header += " — baseline measurement"
+    lines = [header, ""]
 
     sorted_langs = sorted(current.items(), key=lambda kv: kv[1], reverse=True)
     for language, value in sorted_langs:
         if previous_entry is None:
-            lines.append(f":new: *{language}*: {value:,}")
+            lines.append(f"{indicator(0, True)} {language}: {value:,}")
             continue
         is_new   = language not in previous_counts
         previous = previous_counts.get(language, 0)
         delta    = value - previous
         if is_new:
-            lines.append(f":new: *{language}*: {value:,} (new)")
+            lines.append(f"{indicator(0, True)} {language}: {value:,} (new)")
         else:
             pct = (100.0 * delta / previous) if previous else 0.0
             lines.append(
-                f"{indicator(delta, False)} *{language}*: {value:,} "
+                f"{indicator(delta, False)} {language}: {value:,} "
                 f"({delta:+,}, {pct:+.2f}%)"
             )
 
     total = sum(current.values())
-    lines.append("─" * 8)
+    lines.append("--------")
     if previous_entry is None:
-        lines.append(f":new: *total*: {total:,}")
+        lines.append(f"{indicator(0, True)} total: {total:,}")
     else:
         previous_total = sum(previous_counts.values())
         delta_total    = total - previous_total
         pct_total      = (100.0 * delta_total / previous_total) if previous_total else 0.0
         lines.append(
-            f"{indicator(delta_total, False)} *total*: {total:,} "
+            f"{indicator(delta_total, False)} total: {total:,} "
             f"({delta_total:+,}, {pct_total:+.2f}%)"
         )
     return "\n".join(lines)
