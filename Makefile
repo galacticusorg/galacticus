@@ -566,7 +566,7 @@ $(BUILDPATH)/%.m : ./source/%.F90
 
 # Library.
 -include $(BUILDPATH)/Makefile_Library_Dependencies
-$(BUILDPATH)/Makefile_Library_Dependencies: $(BUILDPATH)/libgalacticus.Inc
+$(BUILDPATH)/Makefile_Library_Dependencies: $(BUILDPATH)/libgalacticus.Inc ./scripts/build/libraryInterfacesDependencies.py
 	./scripts/build/libraryInterfacesDependencies.py
 $(BUILDPATH)/libgalacticus.Inc: $(BUILDPATH)/directiveLocations.xml $(BUILDPATH)/stateStorables.xml ./source/libraryClasses.xml ./scripts/build/libraryInterfaces.py ./python/LibraryInterfaces/Pipeline.py ./python/LibraryInterfaces/Emitters.py ./python/LibraryInterfaces/ArgSpec.py
 	./scripts/build/libraryInterfaces.py

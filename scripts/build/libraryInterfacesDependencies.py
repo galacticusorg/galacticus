@@ -62,8 +62,23 @@ for name in units:
     )
 
 # Rule for libgalacticus_classes.d (concatenates every per-unit .d).
+# The aggregator is also forced to re-run whenever
+# `Makefile_Library_Dependencies` itself is regenerated — because the
+# prereq list of `libgalacticus_classes.d` changes when an impl is
+# removed (e.g. a constructor arg starts failing the predicate and
+# libraryInterfaces.py drops the impl), Make's mtime check otherwise
+# misses the deletion and `libgalacticus_classes.d` keeps its stale
+# concatenation containing the now-unbuildable `<class>__<impl>.o`.
+# That stale entry then survives into the link command, where Make
+# tries to resolve the missing target and errors out with "No rule to
+# make target ...".  Adding `Makefile_Library_Dependencies` as a prereq
+# means a fresh deps file (which it always is whenever this script
+# runs) cascades into a fresh aggregation.
 dep_d_files = ' '.join(f"{build_path}libgalacticus/{n}.d" for n in units)
-rules.append(f"{build_path}libgalacticus_classes.d: {dep_d_files}\n")
+rules.append(
+    f"{build_path}libgalacticus_classes.d: {dep_d_files}"
+    f" {build_path}Makefile_Library_Dependencies\n"
+)
 rules.append(f"\t@rm -f {build_path}libgalacticus_classes.d~\n")
 for name in units:
     rules.append(f"\t@cat {build_path}libgalacticus/{name}.d >> {build_path}libgalacticus_classes.d~\n")
