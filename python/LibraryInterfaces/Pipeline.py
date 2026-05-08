@@ -131,6 +131,21 @@ def assign_c_types(argument_list, lib_function_classes):
         intrinsic     = arg.intrinsic
         type_spec_val = arg.type_spec
 
+        # Drop optional `integer(omp_lock_kind)` args entirely.  The OpenMP
+        # lock kind is platform-dependent (INTEGER(4) on Linux GCC,
+        # INTEGER(8) on macOS GCC); mapping it to a fixed C-interop kind
+        # picks the wrong size on one platform and produces a "passed
+        # INTEGER(4) to INTEGER(8)" type-mismatch when the wrapper calls
+        # the inner Galacticus method.  These args are also semantically
+        # meaningless to a Python caller — they coordinate threads inside
+        # the Fortran code — so simply omitting them and letting the
+        # inner method's `optional` default kick in is correct.
+        # `_unsupported_arg` rejects the surrounding method outright when
+        # the arg is non-optional, since dropping a required arg would
+        # silently mis-call the inner method.
+        if intrinsic == 'integer' and type_spec_val == 'omp_lock_kind':
+            continue
+
         if intrinsic == 'double precision':
             arg.ctype     = 'c_double'
             arg.fort_type = 'real(c_double)'

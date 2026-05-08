@@ -268,6 +268,20 @@ def _unsupported_arg(arg, lib_function_classes, *,
         # emits a broken declaration that mismatches the inner method
         # signature.  Skip the surrounding constructor or method instead.
         return f"procedure({arg.get('type','')}) — procedure-pointer args are not supported"
+    if intrinsic == 'integer' \
+            and (arg.get('type') or '').strip() == 'omp_lock_kind' \
+            and 'optional' not in arg.get('attributes', []):
+        # `integer(omp_lock_kind)` has a platform-dependent size
+        # (INTEGER(4) on Linux GCC vs INTEGER(8) on macOS GCC), so the
+        # wrapper can't pick a single C-interop kind that's correct on
+        # both.  When the arg is `optional`, assign_c_types drops it
+        # silently and the inner method's optional default takes over.
+        # When it's non-optional we have to reject the surrounding
+        # method — silently dropping a required arg would mis-call the
+        # inner Galacticus routine.
+        return ("integer(omp_lock_kind) non-optional argument — kind is "
+                "platform-dependent (INTEGER(4) on Linux vs INTEGER(8) on "
+                "macOS), no portable C-interop kind exists")
     if intrinsic == 'class':
         type_spec = (arg.get('type') or '').strip()
         if type_spec == '*':

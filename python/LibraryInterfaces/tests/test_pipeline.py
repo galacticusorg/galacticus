@@ -49,6 +49,26 @@ def test_assign_c_types_integer_kinds(kind, expected_ctype, expected_fort):
     assert out[0].fort_type == expected_fort
 
 
+def test_assign_c_types_optional_omp_lock_kind_is_dropped():
+    """`integer(omp_lock_kind)` has a platform-dependent size — INTEGER(4)
+    on Linux GCC, INTEGER(8) on macOS GCC — so the wrapper can't pick a
+    single C-interop kind that matches the inner method on both
+    platforms.  Optional ones are silently dropped from the wrapper
+    (the inner method's optional default kicks in); the surrounding
+    method's other args still flow through unchanged."""
+    raw = [
+        {'name': 'tree',  'intrinsic': 'type', 'type': 'mergerTree',
+         'attributes': ['intent(inout)', 'target']},
+        {'name': 'initializationLock', 'intrinsic': 'integer',
+         'type': 'omp_lock_kind',
+         'attributes': ['intent(inout)', 'optional']},
+    ]
+    out = assign_c_types(raw, lib_function_classes={})
+    names = [a.name for a in out]
+    assert 'initializationLock' not in names
+    assert 'tree' in names
+
+
 def test_assign_c_types_varying_string_maps_to_c_char_p():
     """type(varying_string) is treated like character — passes as c_char_p."""
     raw = [{'name': 'name', 'intrinsic': 'type', 'type': 'varying_string',
