@@ -408,14 +408,18 @@ contains
                &  +self    %weightMainBranch     ( :             ,indexHaloMass)      &
                &  +         distribution         (1:self%binCount)                    &
                &  *         sqrt(                                                     &
-               &                 +weightValue1                                        &
-               &                 *weightValue2                                        &
+               &                 abs(                                                 &
+               &                     +weightValue1                                    &
+               &                     *weightValue2                                    &
+               &                    )                                                 &
                &                )
           self             %weightMainBranchCross(                indexHaloMass)=     &
                &  +    self%weightMainBranchCross(                indexHaloMass)      &
                &  +sum(     distribution          (1:self%binCount              ))**2 &
-               &  *         weightValue1                                              &
-               &  *         weightValue2
+               &  *abs(                                                               &
+               &       +    weightValue1                                              &
+               &       *    weightValue2                                              &
+               &      )
        end if
     else
        ! Construct contribution to the covariance matrix assuming Poisson statistics.
