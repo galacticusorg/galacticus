@@ -3,15 +3,20 @@ on:
   workflow_dispatch:
   schedule:
     - cron: '01 15 01 * *'
+permissions:
+  contents: write
 jobs:
   Report-Status:
     runs-on: ubuntu-latest
     concurrency:
-      group: workflowStatus-${{ github.ref }}
+      group: slocReport-${{ github.ref }}
       cancel-in-progress: true
     steps:
       - name: Check out repository code
         uses: actions/checkout@v6
+        with:
+          ref: master
+          fetch-depth: 1
       - run: echo "The ${{ github.repository }} repository has been cloned to the runner."
       - name: "Set environmental variables"
         run: |
@@ -23,10 +28,22 @@ jobs:
       - name: Retrieve and report status
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_SHA: ${{ github.sha }}
           SLACK_WEBHOOK_SLOCREPORT_URL: ${{ secrets.SLACK_WEBHOOK_SLOCREPORT_URL }}
         run: |
           cd $GALACTICUS_EXEC_PATH
           git config --global --add safe.directory $GALACTICUS_EXEC_PATH
           ./scripts/aux/slocReport.py
-
-          
+      - name: Commit updated history file
+        if: success() && github.ref == 'refs/heads/master'
+        run: |
+          cd $GALACTICUS_EXEC_PATH
+          git config user.name  "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add .github/metrics/slocHistory.json
+          if git diff --cached --quiet; then
+            echo "No history change; skipping commit."
+            exit 0
+          fi
+          git commit -m "chore: update SLOC history for $(date -u +%Y-%m-%d) [skip ci]"
+          git push origin HEAD:master
