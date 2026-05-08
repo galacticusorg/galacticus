@@ -60,6 +60,8 @@ _SHARED_TYPE_MODULES = {
     'abundances'                                  : 'Abundances_Structure',
     'chemicalAbundances'                          : 'Chemical_Abundances_Structure',
     'multiExtractorList'                          : 'Node_Property_Extractors',
+    'modelParameterList'                          : 'Model_Parameters',
+    'stellarPopulationSpectraPostprocessorList'   : 'Stellar_Population_Spectra_Postprocess',
     'enumerationFrameType'                        : 'Stellar_Luminosities_Structure',
     'enumerationDestroyStubsType'                 : 'Merger_Tree_Build_Controllers',
     'enumerationComponentTypeType'                : 'Galactic_Structure_Options',
@@ -84,6 +86,34 @@ _DIM_FIXED_RX = re.compile(r'^dimension\s*\(\s*(\d+)\s*\)$')
 # Variable-length forms (`len=*`, `len=:`) deliberately don't match — we
 # can't pack those into a fixed-stride byte buffer at the Python boundary.
 _CHAR_LEN_RX = re.compile(r'^len\s*=\s*(\d+)$')
+
+
+def _make_id_array_companion(name):
+    """Build a hidden 1D ``integer(c_int), dimension(*)`` companion ArgSpec
+    for a ``polymorphic_list_array`` argument — the parallel buffer carrying
+    each element's concrete class ID.  Mirrors the scalar functionClass
+    arg path's ``_ID`` companion (set up inside ``assign_c_types``), only
+    1D and never optional.
+
+    The companion participates in ``assign_c_attributes`` like any other
+    deferred-shape numeric input — ``dimension(:)`` is rewritten to
+    ``dimension(*)`` and ``ctype_pointer`` becomes True so ctypes
+    receives ``POINTER(c_int)`` and the Python side hands over a
+    ``(c_int * count)(*ids)`` ctypes array.
+    """
+    return ArgSpec(
+        name                  = name,
+        intrinsic             = 'integer',
+        type_spec             = '',
+        attributes            = ['intent(in)', 'dimension(:)'],
+        ctype                 = 'c_int',
+        fort_type             = 'integer(c_int)',
+        fort_is_present       = True,
+        py_is_present         = False,
+        galacticus_is_present = False,
+        is_optional           = False,
+        is_function_class     = False,
+    )
 
 
 def _make_count_companion(name):
@@ -194,12 +224,60 @@ def assign_c_types(argument_list, lib_function_classes):
                 arg.fort_type = 'character(c_char)'
         elif intrinsic == 'type':
             if type_spec_val == 'varying_string':
-                arg.ctype     = 'c_char_p'
-                arg.fort_type = 'character(c_char)'
+                if 'dimension(:)' in arg.attributes:
+                    # `type(varying_string), dimension(:)`.  No fixed
+                    # per-element width is known at codegen time, so we
+                    # ship a flat `character(c_char), dimension(*)` byte
+                    # buffer plus a count companion AND a per-element
+                    # length companion (both c_size_t, by value).  The
+                    # Python wrapper picks the max ASCII-encoded length
+                    # at runtime, pads each element to that width, and
+                    # passes the contiguous buffer; the Fortran wrapper
+                    # repacks into `type(varying_string), dimension(:)`
+                    # via element-wise assignment from a per-element
+                    # `character(len=:), allocatable` scratch buffer.
+                    arg.ctype                = 'c_char'
+                    arg.fort_type            = 'character(c_char)'
+                    arg.varying_string_array = True
+                    # Fall through to the array-detection block below;
+                    # it handles the deferred-shape branch and inserts
+                    # the (single) count companion.  The second
+                    # per-element-length companion is inserted there too
+                    # so its position is fixed relative to the count.
+                else:
+                    arg.ctype     = 'c_char_p'
+                    arg.fort_type = 'character(c_char)'
             elif re.match(r'^enumeration[a-z0-9_]+type$', type_spec_val, re.IGNORECASE):
                 # Enumeration types map to C int.
                 arg.ctype     = 'c_int'
                 arg.fort_type = 'integer(c_int)'
+            elif (type_spec_val.endswith('List')
+                  and type_spec_val[:-4] in lib_function_classes
+                  and 'dimension(:)' in arg.attributes):
+                # `type(<class>List), dimension(:)` — Galacticus's idiom
+                # for "array of class(<class>Class)".  Each element wraps
+                # a `class(<class>Class), pointer` whose component name is
+                # `<class>_` (universal convention; see e.g.
+                # modelParameterList in models.parameters.F90 or
+                # stellarPopulationSpectraPostprocessorList in
+                # stellar_populations.spectra.postprocess.F90).  We ship
+                # parallel buffers of object pointers + class IDs and
+                # rebuild the list inside the bind(c) wrapper using the
+                # registered class's GetPtr helper — same machinery as
+                # the scalar `class(FooClass)` arg path.
+                stem                          = type_spec_val[:-4]
+                arg.ctype                     = 'c_void_p'
+                arg.fort_type                 = 'type(c_ptr)'
+                arg.polymorphic_list_array    = True
+                arg.polymorphic_list_class    = stem
+                arg.polymorphic_list_type     = type_spec_val
+                arg.polymorphic_list_component = stem + '_'
+                # Insert the IDs array companion (sits between the
+                # parent and the count once the count is added below).
+                # Order at the end of this iteration: parent, count, IDs.
+                new_list.insert(0, _make_id_array_companion(arg.name + '_IDs'))
+                # Fall through to the array-detection block below; it
+                # marks is_array and inserts the count companion.
             else:
                 arg.ctype     = 'c_void_p'
                 arg.fort_type = 'type(c_ptr)'
@@ -250,12 +328,22 @@ def assign_c_types(argument_list, lib_function_classes):
         # scalar path and is_array stays False).
         is_numeric_array_candidate = intrinsic in ('double precision', 'integer')
         is_char_array_candidate    = intrinsic == 'character' and arg.char_len > 0
-        if is_numeric_array_candidate or is_char_array_candidate:
+        is_vstr_array_candidate    = arg.varying_string_array
+        is_list_array_candidate    = arg.polymorphic_list_array
+        if (is_numeric_array_candidate or is_char_array_candidate
+                or is_vstr_array_candidate or is_list_array_candidate):
             if 'dimension(:)' in arg.attributes:
                 arg.is_array   = True
                 arg.array_size = None
                 count_arg = _make_count_companion(arg.name + '_count')
                 new_list.insert(0, count_arg)
+                if is_vstr_array_candidate:
+                    # Per-element ASCII byte length (decided at runtime by
+                    # the Python wrapper from the input list's max length);
+                    # placed AFTER the count companion in bind(c) order, so
+                    # we insert it first while iterating in reverse.
+                    char_len_arg = _make_count_companion(arg.name + '_charLen')
+                    new_list.insert(1, char_len_arg)
             elif is_numeric_array_candidate and 'dimension(:,:)' in arg.attributes:
                 # 2D deferred-shape numeric array: two count companions,
                 # one per axis.  The wrapper passes a flat C buffer plus
@@ -431,6 +519,89 @@ def build_python_reassignments(argument_list):
                 )
             new_list.insert(0, count_arg_2)
             new_list.insert(0, count_arg_1)
+        elif arg.is_array and arg.varying_string_array:
+            # `type(varying_string), dimension(:)`: encode each element to
+            # ASCII, pad to the max encoded length, and ship as a flat
+            # contiguous `S{N}` numpy buffer.  N is decided at *runtime*
+            # (we can't know it at codegen), so the count companion's
+            # `py_pass_as` reads `.size` and the per-element-length
+            # companion reads `.itemsize` — numpy's `S{N}` dtype packs
+            # each element exactly N bytes wide, which is what the
+            # bind(c) buffer expects.  Empty / all-empty lists fall back
+            # to N=1 so the dtype is well-formed.  Optional-arg handling
+            # mirrors the fixed-len-character-array branch below.
+            safe = python_safe_name(arg.name)
+            count_arg    = new_list.pop(0)
+            char_len_arg = new_list.pop(0)
+            encode_block = (
+                f"[(s if isinstance(s,(bytes,bytearray)) else str(s).encode('ascii'))"
+                f" for s in {safe}]"
+            )
+            if arg.is_optional:
+                arg.py_reassignment = (
+                    f"    if {safe} is not None:\n"
+                    f"        {safe}_glcStrs_ = {encode_block}\n"
+                    f"        {safe}_glcLen_ = max((len(b) for b in {safe}_glcStrs_), default=1) or 1\n"
+                    f"        {safe} = np.ascontiguousarray("
+                    f"np.array({safe}_glcStrs_, dtype=f'S{{{safe}_glcLen_}}'))\n"
+                )
+                count_arg.py_pass_as    = f'{safe}.size if {safe} is not None else 0'
+                char_len_arg.py_pass_as = f'{safe}.itemsize if {safe} is not None else 0'
+                arg.py_pass_as = (
+                    f'{safe}.ctypes.data_as(POINTER(c_char)) if {safe} is not None else None'
+                )
+            else:
+                arg.py_reassignment = (
+                    f"    {safe}_glcStrs_ = {encode_block}\n"
+                    f"    {safe}_glcLen_ = max((len(b) for b in {safe}_glcStrs_), default=1) or 1\n"
+                    f"    {safe} = np.ascontiguousarray("
+                    f"np.array({safe}_glcStrs_, dtype=f'S{{{safe}_glcLen_}}'))\n"
+                )
+                count_arg.py_pass_as    = f'c_size_t({safe}.size)'
+                char_len_arg.py_pass_as = f'c_size_t({safe}.itemsize)'
+                arg.py_pass_as = (
+                    f'{safe}.ctypes.data_as(POINTER(c_char))'
+                )
+            new_list.insert(0, char_len_arg)
+            new_list.insert(0, count_arg)
+        elif arg.is_array and arg.polymorphic_list_array:
+            # `type(<class>List), dimension(:)`: ship parallel ctypes
+            # arrays of object pointers + class IDs, one per element,
+            # built from the `_glcObj` / `_classID` fields the Python
+            # wrapper attaches to every constructor-built functionClass
+            # instance.  The bind(c) signature receives the pointer
+            # buffer as `type(c_ptr), dimension(*)` (see
+            # assign_c_attributes; ctypes side is `POINTER(c_void_p)`)
+            # and the IDs companion as `integer(c_int), dimension(*)`.
+            # Optional-arg handling matches the other array branches.
+            safe         = python_safe_name(arg.name)
+            count_arg    = new_list.pop(0)
+            ids_arg      = new_list.pop(0)
+            if arg.is_optional:
+                arg.py_reassignment = (
+                    f'    if {safe} is not None:\n'
+                    f'        {safe}_glcN_    = len({safe})\n'
+                    f'        {safe}_glcPtrs_ = (c_void_p * {safe}_glcN_)('
+                    f'*[x._glcObj for x in {safe}])\n'
+                    f'        {safe}_glcIDs_  = (c_int    * {safe}_glcN_)('
+                    f'*[x._classID for x in {safe}])\n'
+                )
+                count_arg.py_pass_as = f'{safe}_glcN_ if {safe} is not None else 0'
+                ids_arg.py_pass_as   = f'{safe}_glcIDs_ if {safe} is not None else None'
+                arg.py_pass_as       = f'{safe}_glcPtrs_ if {safe} is not None else None'
+            else:
+                arg.py_reassignment = (
+                    f'    {safe}_glcN_    = len({safe})\n'
+                    f'    {safe}_glcPtrs_ = (c_void_p * {safe}_glcN_)('
+                    f'*[x._glcObj for x in {safe}])\n'
+                    f'    {safe}_glcIDs_  = (c_int    * {safe}_glcN_)('
+                    f'*[x._classID for x in {safe}])\n'
+                )
+                count_arg.py_pass_as = f'c_size_t({safe}_glcN_)'
+                ids_arg.py_pass_as   = f'{safe}_glcIDs_'
+                arg.py_pass_as       = f'{safe}_glcPtrs_'
+            new_list.insert(0, ids_arg)
+            new_list.insert(0, count_arg)
         elif arg.is_array and arg.intrinsic == 'character':
             # Fixed-length character array: build a contiguous count*N
             # byte buffer.  Each input element is `str()`-coerced,
@@ -618,6 +789,111 @@ def build_fortran_reassignments(argument_list, func_class, implementation,
                 )
             arg.fort_reassignment = reassign
             arg.fort_pass_as = f'{name}_F_'
+        elif arg.is_array and arg.varying_string_array:
+            # `type(varying_string), dimension(:)`.  bind(c) declares the
+            # buffer as a flat `character(c_char), dimension(*)` block of
+            # `name_count * name_charLen` bytes; the inner Galacticus
+            # method wants `type(varying_string), dimension(:)`.  Walk
+            # the buffer element-by-element, copy each N-byte slice into
+            # a `character(len=:)` scratch local, then assign to the
+            # varying_string element (with `trim()` to drop the
+            # right-padding spaces the Python wrapper inserted to match
+            # numpy's fixed-stride `S{N}` dtype).
+            arg.fort_declarations = (
+                f'  type(varying_string), dimension(:), allocatable'
+                f' :: {name}_F_\n'
+                f'  character(len=:), allocatable :: {name}_buf_\n'
+                f'  integer(c_size_t) :: {name}_glcI_, {name}_glcJ_\n'
+            )
+            reassign = (
+                f'allocate({name}_F_({name}_count))\n'
+                f'allocate(character(len=int({name}_charLen)) :: {name}_buf_)\n'
+                f'do {name}_glcI_ = 1, {name}_count\n'
+                f'  do {name}_glcJ_ = 1, {name}_charLen\n'
+                f'    {name}_buf_({name}_glcJ_:{name}_glcJ_)'
+                f' = {name}(({name}_glcI_-1)*{name}_charLen + {name}_glcJ_)\n'
+                f'  end do\n'
+                f'  {name}_F_({name}_glcI_) = trim({name}_buf_)\n'
+                f'end do\n'
+            )
+            if is_optional:
+                reassign = (
+                    f'if (present({name})) then\n'
+                    f'   {reassign.replace(chr(10), chr(10) + "   ").rstrip()}\n'
+                    f'end if\n'
+                )
+            arg.fort_reassignment = reassign
+            arg.fort_pass_as      = f'{name}_F_'
+            # ISO_Varying_String supplies both the type and the
+            # `assignment(=)` overload from char to varying_string.
+            arg.fort_modules.setdefault('ISO_Varying_String', {})['varying_string'] = 1
+            arg.fort_modules.setdefault('ISO_Varying_String', {})['assignment(=)']  = 1
+        elif arg.is_array and arg.polymorphic_list_array:
+            # `type(<class>List), dimension(:)`.  bind(c) gets a flat
+            # `type(c_ptr), dimension(*)` buffer plus a parallel
+            # `integer(c_int), dimension(*)` IDs buffer plus a count.
+            # Build a `type(<class>List), dimension(:), allocatable`
+            # local of the right size, then for each element use the
+            # registered class's `<class>GetPtr(ptr,id)` helper to
+            # recover the polymorphic pointer (same dispatch the scalar
+            # `class(<class>Class)` arg path uses) and stash it on the
+            # element's `<class>_` component.
+            stem      = arg.polymorphic_list_class
+            list_type = arg.polymorphic_list_type
+            comp      = arg.polymorphic_list_component
+            arg.fort_declarations = (
+                f'  type({list_type}), dimension(:), allocatable'
+                f' :: {name}_F_\n'
+                f'  integer(c_size_t) :: {name}_glcI_\n'
+            )
+            reassign = (
+                f'allocate({name}_F_({name}_count))\n'
+                f'do {name}_glcI_ = 1, {name}_count\n'
+                f'  {name}_F_({name}_glcI_)%{comp} =>'
+                f' {stem}GetPtr({name}({name}_glcI_), {name}_IDs({name}_glcI_))\n'
+                f'end do\n'
+            )
+            if is_optional:
+                reassign = (
+                    f'if (present({name})) then\n'
+                    f'   {reassign.replace(chr(10), chr(10) + "   ").rstrip()}\n'
+                    f'end if\n'
+                )
+            arg.fort_reassignment   = reassign
+            arg.fort_pass_as        = f'{name}_F_'
+            # Re-use the scalar class-arg path's interface-block emission
+            # (see fortran_declarations in Emitters.py) — the same
+            # `<class>GetPtr` is what we're calling element-by-element.
+            arg.fort_function_class = stem
+            # The list type's home module is needed for the `use ::`
+            # line that imports `<class>List` into the bind(c) wrapper.
+            # Either an explicit override in _SHARED_TYPE_MODULES or a
+            # walk of moduleUses is required; the override is checked
+            # first (same scheme the scalar derived-type branch uses).
+            list_mod = _SHARED_TYPE_MODULES.get(list_type)
+            if not list_mod:
+                for use_block in func_class.get('moduleUses', []):
+                    for mod_name, mod_data in use_block.items():
+                        if (isinstance(mod_data, dict)
+                                and list_type in mod_data.get('only', {})):
+                            list_mod = mod_name
+                            break
+                    if list_mod:
+                        break
+            if implementation and not list_mod:
+                cls = implementation['name']
+                while cls and not list_mod:
+                    for use_block in module_uses_impls.get(cls, []):
+                        for mod_name, mod_data in use_block.items():
+                            if (isinstance(mod_data, dict)
+                                    and list_type in mod_data.get('only', {})):
+                                list_mod = mod_name
+                                break
+                        if list_mod:
+                            break
+                    cls = extensions.get(cls)
+            if list_mod:
+                arg.fort_modules.setdefault(list_mod, {})[list_type] = 1
         elif arg.is_array and arg.intrinsic == 'character':
             # Fixed-length character array.  bind(c) declares it as a
             # flat `character(c_char), dimension(*)` byte buffer (length

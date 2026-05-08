@@ -270,6 +270,26 @@ def classify_constructor(args, all_fcs, registered):
             # deferred-shape numeric arrays, are now supported alongside
             # the 1D numeric cases — see the analogous extensions in
             # libraryInterfaces._unsupported_arg.
+            # `type(<class>List), dimension(:)` — supported when the
+            # stripped-`List` stem is a registered functionClass; the
+            # generator ships parallel c_ptr + classID buffers and
+            # rebuilds the wrapper-list via `<class>GetPtr`.  The check
+            # against `registered` matches the scalar class-arg case
+            # below (an unregistered stem gets reported as a missing
+            # dependency rather than a hard pipeline blocker, so the
+            # closure pass can still pull the class in once the dep
+            # is added).
+            is_list_array = (
+                intrinsic == 'type'
+                and dim_attr == 'dimension(:)'
+                and type_spec.endswith('List')
+                and type_spec[:-4] in all_fcs
+            )
+            if is_list_array:
+                stem = type_spec[:-4]
+                if stem not in registered:
+                    missing_deps.add(stem)
+                continue
             is_supported_shape = (
                 (intrinsic in ('double precision', 'integer')
                  and (dim_attr == 'dimension(:)'
@@ -279,6 +299,10 @@ def classify_constructor(args, all_fcs, registered):
                 (intrinsic == 'character'
                  and dim_attr == 'dimension(:)'
                  and _CHAR_LEN_RX.match(type_spec))
+                or
+                (intrinsic == 'type'
+                 and type_spec == 'varying_string'
+                 and dim_attr == 'dimension(:)')
             )
             if not is_supported_shape:
                 pipeline_reasons.append(

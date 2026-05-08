@@ -725,3 +725,175 @@ def test_fortran_reassignments_char_array_repacks_into_local():
     assert 'elements_F_(elements_glcI_)(elements_glcJ_:elements_glcJ_)' in reassign
     assert 'elements((elements_glcI_-1)*2 + elements_glcJ_)' in reassign
     assert out[0].fort_pass_as == 'elements_F_'
+
+
+# ---------------------------------------------------------------------------
+# 1D varying_string arrays — `type(varying_string), dimension(:)`
+# ---------------------------------------------------------------------------
+
+def test_assign_c_types_vstring_array_inserts_count_and_charlen_companions():
+    """`type(varying_string), dimension(:)` ships as a flat byte buffer
+    plus two c_size_t companions: count (number of elements) and
+    charLen (per-element ASCII byte length, runtime-decided)."""
+    raw = [{'name': 'names', 'intrinsic': 'type', 'type': 'varying_string',
+            'attributes': ['intent(in)', 'dimension(:)']}]
+    out = assign_c_types(raw, lib_function_classes={})
+    assert [a.name for a in out] == ['names', 'names_count', 'names_charLen']
+    assert out[0].is_array             is True
+    assert out[0].varying_string_array is True
+    assert out[0].ctype                == 'c_char'
+    assert out[0].fort_type            == 'character(c_char)'
+    assert out[1].ctype                == 'c_size_t'
+    assert out[2].ctype                == 'c_size_t'
+
+
+def test_python_reassignments_vstring_array_picks_runtime_max_length():
+    """The Python wrapper ASCII-encodes each input element, picks the
+    max length at runtime, and lays the result out as a contiguous
+    `S{N}` numpy buffer.  The count companion reads `.size`, the
+    char-length companion reads `.itemsize` so Fortran sees the
+    runtime-chosen N."""
+    arr = ArgSpec(name='names', intrinsic='type', type_spec='varying_string',
+                  ctype='c_char', is_array=True, varying_string_array=True)
+    cnt = ArgSpec(name='names_count', intrinsic='integer',
+                  type_spec='c_size_t', ctype='c_size_t',
+                  fort_is_present=True, py_is_present=False,
+                  galacticus_is_present=False)
+    cl  = ArgSpec(name='names_charLen', intrinsic='integer',
+                  type_spec='c_size_t', ctype='c_size_t',
+                  fort_is_present=True, py_is_present=False,
+                  galacticus_is_present=False)
+    out = build_python_reassignments([arr, cnt, cl])
+    assert "names_glcStrs_" in out[0].py_reassignment
+    assert "names_glcLen_"  in out[0].py_reassignment
+    assert "dtype=f'S{names_glcLen_}'" in out[0].py_reassignment
+    assert out[0].py_pass_as == "names.ctypes.data_as(POINTER(c_char))"
+    assert out[1].py_pass_as == 'c_size_t(names.size)'
+    assert out[2].py_pass_as == 'c_size_t(names.itemsize)'
+
+
+def test_fortran_reassignments_vstring_array_repacks_into_varying_string_local():
+    """The wrapper allocates a `type(varying_string), dimension(:)`
+    local, builds a per-element scratch character buffer of the
+    runtime-decided length, copies bytes in, then trims and assigns to
+    each varying_string element.  ISO_Varying_String must supply both
+    the type and the assignment(=) overload."""
+    arr = ArgSpec(name='names', intrinsic='type', type_spec='varying_string',
+                  ctype='c_char', fort_type='character(c_char)',
+                  is_array=True, varying_string_array=True)
+    out = build_fortran_reassignments(
+        [arr], func_class={}, implementation=None,
+        extensions={}, module_uses_impls={},
+    )
+    decls    = out[0].fort_declarations
+    reassign = out[0].fort_reassignment
+    assert 'type(varying_string), dimension(:), allocatable :: names_F_' in decls
+    assert 'character(len=:), allocatable :: names_buf_'                  in decls
+    assert 'allocate(names_F_(names_count))'                              in reassign
+    assert 'allocate(character(len=int(names_charLen)) :: names_buf_)'    in reassign
+    assert 'names_F_(names_glcI_) = trim(names_buf_)'                     in reassign
+    assert out[0].fort_pass_as                                            == 'names_F_'
+    assert 'varying_string'  in out[0].fort_modules.get('ISO_Varying_String', {})
+    assert 'assignment(=)'   in out[0].fort_modules.get('ISO_Varying_String', {})
+
+
+# ---------------------------------------------------------------------------
+# 1D polymorphic-list arrays — `type(<class>List), dimension(:)`
+# ---------------------------------------------------------------------------
+
+def test_assign_c_types_list_array_inserts_count_and_id_companions():
+    """`type(modelParameterList), dimension(:)` (the Galacticus idiom for
+    "array of class(modelParameterClass)") expands into a c_void_p
+    pointer buffer + a count companion + a parallel c_int IDs buffer."""
+    raw = [{'name': 'parms', 'intrinsic': 'type',
+            'type': 'modelParameterList',
+            'attributes': ['intent(in)', 'dimension(:)']}]
+    out = assign_c_types(
+        raw, lib_function_classes={'modelParameter': {'module': 'Model_Parameters'}})
+    assert [a.name for a in out] == ['parms', 'parms_count', 'parms_IDs']
+    assert out[0].is_array                   is True
+    assert out[0].polymorphic_list_array     is True
+    assert out[0].polymorphic_list_class     == 'modelParameter'
+    assert out[0].polymorphic_list_type      == 'modelParameterList'
+    assert out[0].polymorphic_list_component == 'modelParameter_'
+    assert out[0].ctype                      == 'c_void_p'
+    assert out[0].fort_type                  == 'type(c_ptr)'
+    assert out[1].ctype                      == 'c_size_t'   # count
+    assert out[2].ctype                      == 'c_int'      # IDs (array)
+    # IDs companion is a deferred-shape array so the bind(c) emitter
+    # rewrites it to dimension(*) (see assign_c_attributes).
+    assert 'dimension(:)' in out[2].attributes
+
+
+def test_assign_c_types_list_array_unregistered_stem_falls_back_to_void_p():
+    """`type(fooList), dimension(:)` where `foo` is not a registered
+    functionClass takes the generic-derived-type path (ctype=c_void_p)
+    rather than the polymorphic-list-array path — _unsupported_arg
+    will reject the surrounding constructor in libraryInterfaces.py."""
+    raw = [{'name': 'xs', 'intrinsic': 'type', 'type': 'fooList',
+            'attributes': ['intent(in)', 'dimension(:)']}]
+    out = assign_c_types(raw, lib_function_classes={})
+    assert out[0].polymorphic_list_array is False
+
+
+def test_python_reassignments_list_array_builds_ptr_and_id_buffers():
+    """The Python wrapper builds parallel ctypes arrays of object
+    pointers + class IDs, one per element, off the `_glcObj` /
+    `_classID` fields the wrapper attaches to every functionClass
+    instance."""
+    arr = ArgSpec(name='parms', intrinsic='type',
+                  type_spec='modelParameterList',
+                  ctype='c_void_p', is_array=True,
+                  polymorphic_list_array=True,
+                  polymorphic_list_class='modelParameter',
+                  polymorphic_list_type='modelParameterList',
+                  polymorphic_list_component='modelParameter_')
+    cnt = ArgSpec(name='parms_count', intrinsic='integer',
+                  type_spec='c_size_t', ctype='c_size_t',
+                  fort_is_present=True, py_is_present=False,
+                  galacticus_is_present=False)
+    ids = ArgSpec(name='parms_IDs', intrinsic='integer',
+                  ctype='c_int', fort_is_present=True,
+                  py_is_present=False, galacticus_is_present=False,
+                  attributes=['intent(in)', 'dimension(:)'])
+    out = build_python_reassignments([arr, cnt, ids])
+    reassign = out[0].py_reassignment
+    assert 'parms_glcN_'    in reassign
+    assert '_glcObj'        in reassign
+    assert '_classID'       in reassign
+    assert '(c_void_p * parms_glcN_)' in reassign
+    assert '(c_int    * parms_glcN_)' in reassign
+    assert out[0].py_pass_as == 'parms_glcPtrs_'
+    assert out[1].py_pass_as == 'c_size_t(parms_glcN_)'
+    assert out[2].py_pass_as == 'parms_glcIDs_'
+
+
+def test_fortran_reassignments_list_array_loops_via_get_ptr():
+    """The Fortran wrapper allocates a `type(<class>List), dimension(:)`
+    local of the right size, then loops over each element and uses the
+    registered class's `<class>GetPtr` helper to recover the polymorphic
+    pointer that the wrapper struct's `<class>_` component should hold.
+    The `_SHARED_TYPE_MODULES` table supplies the wrapper struct's home
+    module for the `use ::` line."""
+    arr = ArgSpec(name='parms', intrinsic='type',
+                  type_spec='modelParameterList',
+                  ctype='c_void_p', fort_type='type(c_ptr)',
+                  is_array=True, polymorphic_list_array=True,
+                  polymorphic_list_class='modelParameter',
+                  polymorphic_list_type='modelParameterList',
+                  polymorphic_list_component='modelParameter_')
+    out = build_fortran_reassignments(
+        [arr], func_class={}, implementation=None,
+        extensions={}, module_uses_impls={},
+    )
+    decls    = out[0].fort_declarations
+    reassign = out[0].fort_reassignment
+    assert 'type(modelParameterList), dimension(:), allocatable :: parms_F_' in decls
+    assert 'integer(c_size_t) :: parms_glcI_'                                in decls
+    assert 'allocate(parms_F_(parms_count))'                                 in reassign
+    assert ('parms_F_(parms_glcI_)%modelParameter_ =>'
+            ' modelParameterGetPtr(parms(parms_glcI_), parms_IDs(parms_glcI_))') in reassign
+    assert out[0].fort_pass_as        == 'parms_F_'
+    assert out[0].fort_function_class == 'modelParameter'
+    # `_SHARED_TYPE_MODULES` supplies modelParameterList's home module.
+    assert 'modelParameterList' in out[0].fort_modules.get('Model_Parameters', {})
