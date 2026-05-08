@@ -1,0 +1,19 @@
+{
+  "entries": [
+    {
+      "counts": {
+        "ansic": 3307,
+        "cpp": 137,
+        "fortran": 253456,
+        "latex": 20956,
+        "perl": 35130,
+        "python": 18318,
+        "sh": 284,
+        "xml": 132163
+      },
+      "sha": "943b094a",
+      "timestamp": "2026-05-08T15:53:47Z"
+    }
+  ],
+  "schema_version": 1
+}
