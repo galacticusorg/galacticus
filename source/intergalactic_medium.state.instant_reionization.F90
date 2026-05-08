@@ -18,7 +18,7 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
   !!{
-  An implementation of the intergalactic medium state class for a simplistic model of instantaneous and full reionization with some other class providing the pre-reionization state.
+  An implementation of the \gls{igm} state class for a simplistic model of instantaneous and full reionization with some other class providing the pre-reionization state.
   !!}
 
   !![
@@ -47,7 +47,7 @@
 
   interface intergalacticMediumStateInstantReionization
      !!{
-     Constructors for the instantReionization intergalactic medium state class.
+     Constructors for the instantReionization \gls{igm} state class.
      !!}
      module procedure instantReionizationIGMConstructorParameters
      module procedure instantReionizationIGMConstructorInternal
@@ -228,7 +228,7 @@ contains
 
   subroutine instantReionizationDestructor(self)
     !!{
-    Destructor for the instant reionization intergalactic medium state class.
+    Destructor for the instant reionization \gls{igm} state class.
     !!}
     implicit none
     type(intergalacticMediumStateInstantReionization), intent(inout) :: self

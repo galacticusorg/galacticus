@@ -109,7 +109,7 @@ contains
 
   function extendedSchmidtConstructorInternal(normalization,exponentGas,exponentStars) result(self)
     !!{
-    Internal constructor for the \refClass{starFormationRateSurfaceDensityDisksExtendedSchmidt} star formation surface density rate from disks class.
+    Internal constructor for the \refClass{starFormationRateSurfaceDensityDisksExtendedSchmidt} star formation surface density rate in disks class.
     !!}
     use :: Numerical_Constants_Prefixes, only : giga, mega
     implicit none

@@ -32,7 +32,7 @@
   !!]
   type, extends(intergalacticMediumStateClass) :: intergalacticMediumStateMetallicityFixed
      !!{
-     An intergalactic medium state class which provides a fixed metallicity for the \gls{igm}, given by \mono{[metallicity]}.
+     An \gls{igm} state class which provides a fixed metallicity for the \gls{igm}, given by \mono{[metallicity]}.
      !!}
      private
      class           (intergalacticMediumStateClass), pointer :: intergalacticMediumState_ => null()
@@ -49,7 +49,7 @@
 
   interface intergalacticMediumStateMetallicityFixed
      !!{
-     Constructors for the \refClass{intergalacticMediumStateMetallicityFixed} intergalactic medium state class.
+     Constructors for the \refClass{intergalacticMediumStateMetallicityFixed} \gls{igm} state class.
      !!}
      module procedure metallicityFixedIGMConstructorParameters
      module procedure metallicityFixedIGMConstructorInternal

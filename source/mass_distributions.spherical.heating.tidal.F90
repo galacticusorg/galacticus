@@ -62,7 +62,7 @@
 
   interface massDistributionHeatingTidal
      !!{
-     Constructors for the \refClass{massDistributionHeatingTidal} mass distribution class.
+     Constructors for the \refClass{massDistributionHeatingTidal} mass distribution heating class.
      !!}
      module procedure tidalConstructorParameters
      module procedure tidalConstructorInternal
@@ -72,7 +72,7 @@ contains
 
   function tidalConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the \refClass{massDistributionHeatingTidal} mass distribution class which builds the object from a parameter
+    Constructor for the \refClass{massDistributionHeatingTidal} mass distribution heating class which builds the object from a parameter
     set.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters

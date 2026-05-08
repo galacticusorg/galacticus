@@ -47,7 +47,7 @@
 
   interface massDistributionHeatingSummation
      !!{
-     Constructors for the \refClass{massDistributionHeatingSummation} mass distribution class.
+     Constructors for the \refClass{massDistributionHeatingSummation} mass distribution heating class.
      !!}
      module procedure summationConstructorParameters
      module procedure summationConstructorInternal
@@ -57,7 +57,7 @@ contains
 
   function summationConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the \refClass{massDistributionHeatingSummation} mass distribution class which builds the object from a parameter
+    Constructor for the \refClass{massDistributionHeatingSummation} mass distribution heating class which builds the object from a parameter
     set.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
@@ -88,7 +88,7 @@ contains
   
   function summationConstructorInternal(massDistributionHeatings) result(self)
     !!{
-    Constructor for the \refClass{massDistributionHeatingSummation} mass distribution class.
+    Constructor for the \refClass{massDistributionHeatingSummation} mass distribution heating class.
     !!}
     implicit none
     type(massDistributionHeatingSummation)                         :: self

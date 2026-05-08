@@ -85,7 +85,7 @@ contains
 
   function acceleratorConstructorInternal(toleranceRelative,factorRadiusMaximum,darkMatterProfile_) result(self)
     !!{
-    Internal constructor for the \refClass{darkMatterProfileAccelerator} dark matter halo profile class.
+    Internal constructor for the \refClass{darkMatterProfileAccelerator} non-dark-matter-only dark matter halo profile class.
     !!}
     implicit none
     type            (darkMatterProfileAccelerator)                        :: self
@@ -100,7 +100,7 @@ contains
 
   subroutine acceleratorDestructor(self)
     !!{
-    Destructor for the \refClass{darkMatterProfileAccelerator} dark matter halo profile class.
+    Destructor for the \refClass{darkMatterProfileAccelerator} dnon-dark-matter-only ark matter halo profile class.
     !!}
     implicit none
     type(darkMatterProfileAccelerator), intent(inout) :: self

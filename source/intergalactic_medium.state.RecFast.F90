@@ -20,7 +20,7 @@
 !+    Contributions to this file made by:  Luiz Felippe S. Rodrigues.
 
   !!{
-  An implementation of the intergalactic medium state class in which state is computed using {\normalfont \scshape RecFast}.
+  An implementation of the \gls{igm} state class in which state is computed using {\normalfont \scshape RecFast}.
   !!}
 
   use :: File_Utilities, only : lockDescriptor
@@ -28,7 +28,7 @@
   !![
   <intergalacticMediumState name="intergalacticMediumStateRecFast">
    <description>
-    An intergalactic medium state class which computes the state of the intergalactic medium using the
+    An \gls{igm} state class which computes the state of the intergalactic medium using the
     \href{https://www.astro.ubc.ca/people/scott/recfast.html}{{\normalfont \scshape RecFast}} code
     \cite{seager_how_2000,wong_how_2008}. The {\normalfont \scshape RecFast} code will be downloaded and run to compute the
     intergalactic medium state as needed, which will then be stored for future use.
@@ -45,7 +45,7 @@
 
   interface intergalacticMediumStateRecFast
      !!{
-     Constructors for the \refClass{intergalacticMediumStateRecFast} intergalactic medium state class.
+     Constructors for the \refClass{intergalacticMediumStateRecFast} \gls{igm} state class.
      !!}
      module procedure recFastConstructorParameters
      module procedure recFastConstructorInternal
