@@ -32,7 +32,7 @@
    <description>Used to specify the type of dust model to use in SED fitting likelihoods.</description>
    <encodeFunction>yes</encodeFunction>
    <validator>yes</validator>
-   <visibility>private</visibility>
+   <visibility>public</visibility>
    <entry label="null"           />
    <entry label="charlotFall2000"/>
    <entry label="cardelli1989"   />
@@ -48,7 +48,7 @@
    <description>Used to specify the type of start time to use in SED fitting likelihoods.</description>
    <encodeFunction>yes</encodeFunction>
    <validator>yes</validator>
-   <visibility>private</visibility>
+   <visibility>public</visibility>
    <entry label="time"/>
    <entry label="age" />
   </enumeration>
