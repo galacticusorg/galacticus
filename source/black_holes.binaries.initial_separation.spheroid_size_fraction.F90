@@ -53,8 +53,7 @@ contains
 
   function spheroidRadiusFractionConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the \refClass{blackHoleBinaryInitialSeparationSpheroidRadiusFraction} black hole binary recoiled class which takes a parameter list as
-    input.
+    Constructor for the \refClass{blackHoleBinaryInitialSeparationSpheroidRadiusFraction} black hole binary initial radius class which takes a parameter list as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -79,8 +78,7 @@ contains
 
   function spheroidRadiusFractionConstructorInternal(spheroidRadiusFraction) result(self)
     !!{
-    Constructor for the \refClass{blackHoleBinaryInitialSeparationSpheroidRadiusFraction} black hole binary recoiled class which takes a parameter list as
-    input.
+    Constructor for the \refClass{blackHoleBinaryInitialSeparationSpheroidRadiusFraction} black hole binary initial radius class which takes a parameter list as input.
     !!}
     implicit none
     type            (blackHoleBinaryInitialSeparationSpheroidRadiusFraction)                :: self
