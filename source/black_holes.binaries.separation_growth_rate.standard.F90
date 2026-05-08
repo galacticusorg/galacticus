@@ -87,7 +87,7 @@
 
   interface blackHoleBinarySeparationGrowthRateStandard
      !!{
-     Constructors for the \refClass{blackHoleBinarySeparationGrowthRateStandard} black hole binary recoil class.
+     Constructors for the \refClass{blackHoleBinarySeparationGrowthRateStandard} black hole binary separation growth rate class.
      !!}
      module procedure standardConstructorParameters
      module procedure standardConstructorInternal

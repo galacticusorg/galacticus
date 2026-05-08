@@ -65,7 +65,7 @@
   
   interface darkMatterProfileScaleRadiusPowerLaw
      !!{
-     Constructors for the \refClass{darkMatterProfileScaleRadiusPowerLaw} node operator class.
+     Constructors for the \refClass{darkMatterProfileScaleRadiusPowerLaw} dark matter halo profile scale radius class.
      !!}
      module procedure darkMatterProfileScalePowerLawConstructorParameters
      module procedure darkMatterProfileScalePowerLawConstructorInternal

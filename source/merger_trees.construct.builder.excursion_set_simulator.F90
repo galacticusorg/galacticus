@@ -58,7 +58,7 @@
 
   interface mergerTreeBuilderExcursionSetSimulator
      !!{
-     Constructors for the \refClass{mergerTreeBuilderExcursionSetSimulator} merger tree constructor class.
+     Constructors for the \refClass{mergerTreeBuilderExcursionSetSimulator} merger tree builder class.
      !!}
      module procedure excursionSetSimulatorConstructorParameters
        module procedure excursionSetSimulatorConstructorInternal
@@ -172,7 +172,7 @@
 
       subroutine excursionSetSimulatorDestructor(self)
         !!{
-        Destructor for the \refClass{mergerTreeBuilderExcursionSetSimulator} merger tree constructor class.
+        Destructor for the \refClass{mergerTreeBuilderExcursionSetSimulator} merger tree builder class.
         !!}
         implicit none
         type(mergerTreeBuilderExcursionSetSimulator), intent(inout) :: self

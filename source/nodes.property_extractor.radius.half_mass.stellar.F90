@@ -41,7 +41,7 @@ Implements a half-stellar mass radius output analysis property extractor class.
 
   interface nodePropertyExtractorRadiusHalfMassStellar
      !!{
-     Constructors for the \refClass{nodePropertyExtractorRadiusHalfMassStellar} output analysis class.
+     Constructors for the \refClass{nodePropertyExtractorRadiusHalfMassStellar} property extractor class.
      !!}
      module procedure radiusHalfMassStellarConstructorParameters
   end interface nodePropertyExtractorRadiusHalfMassStellar

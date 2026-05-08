@@ -46,7 +46,7 @@
 
   interface nodePropertyExtractorConstrainedStatus
      !!{
-     Constructors for the \refClass{nodePropertyExtractorConstrainedStatus} output analysis class.
+     Constructors for the \refClass{nodePropertyExtractorConstrainedStatus} property extractor class.
      !!}
      module procedure constrainedStatusConstructorParameters
      module procedure constrainedStatusConstructorInternal

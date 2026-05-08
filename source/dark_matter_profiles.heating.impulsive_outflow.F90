@@ -28,8 +28,8 @@
     \begin{equation}
      \dot{\epsilon}^\prime = \dot{M}_\mathrm{outflow} f\left( \frac{t_\phi}{t_\mathrm{dyn}} \right),
     \end{equation}    
-    has been accumulated by the \refClass{nodeOperatorImpulsiveOutflowEnergy} object---radially-dependent factors are then applied
-    in the \refClass{massDistributionHeatingImpulsiveOutflow} object returned from our factory.
+    has been accumulated by the \refClass{nodeOperatorImpulsiveOutflowEnergy} node operator object---radially-dependent factors are then applied
+    in the \refClass{massDistributionHeatingImpulsiveOutflow} mass distribution object returned from our factory.
    </description>
   </darkMatterProfileHeating>
   !!]

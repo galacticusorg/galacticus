@@ -102,7 +102,7 @@
 
   interface posteriorSampleSimulationDifferentialEvolution
      !!{
-     Constructors for the \refClass{posteriorSampleSimulationDifferentialEvolution} posterior sampling convergence class.
+     Constructors for the \refClass{posteriorSampleSimulationDifferentialEvolution} posterior sampling simulation class.
      !!}
      module procedure differentialEvolutionConstructorParameters
      module procedure differentialEvolutionConstructorInternal

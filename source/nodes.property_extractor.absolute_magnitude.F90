@@ -52,7 +52,7 @@ Implements a node property extractor class for absolute magnitudes.
 
   interface nodePropertyExtractorMagnitudesAbsolute
      !!{
-     Constructors for the \refClass{nodePropertyExtractorMagnitudesAbsolute} output analysis class.
+     Constructors for the \refClass{nodePropertyExtractorMagnitudesAbsolute} property extractor class.
      !!}
      module procedure magnitudesAbsoluteConstructorParameters
      module procedure magnitudesAbsoluteConstructorInternal

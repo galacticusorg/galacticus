@@ -46,7 +46,7 @@ Implements a virial density contrast output analysis property extractor class.
 
   interface nodePropertyExtractorDensityContrastVirial
      !!{
-     Constructors for the \refClass{nodePropertyExtractorDensityContrastVirial} output analysis class.
+     Constructors for the \refClass{nodePropertyExtractorDensityContrastVirial} property extractor class.
      !!}
      module procedure densityContrastVirialConstructorParameters
      module procedure densityContrastVirialConstructorInternal

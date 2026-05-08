@@ -66,7 +66,7 @@
 
   interface nodePropertyExtractorMassProfile
      !!{
-     Constructors for the \refClass{nodePropertyExtractorMassProfile} output analysis class.
+     Constructors for the \refClass{nodePropertyExtractorMassProfile} property extractor class.
      !!}
      module procedure massProfileConstructorParameters
      module procedure massProfileConstructorInternal

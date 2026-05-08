@@ -25,7 +25,7 @@
   !![
   <mergerTreeBuilder name="mergerTreeBuilderCole2000Parallel">
    <description>
-     A merger tree builder class derived fro the \refClass{mergerTreeBuilderCole2000} class which implements a recursive tree
+     A merger tree builder class derived fro the \refClass{mergerTreeBuilderCole2000} merger tree builder class which implements a recursive tree
      construction algorithm utilizing OpenMP task parallelism.
    </description>
   </mergerTreeBuilder>

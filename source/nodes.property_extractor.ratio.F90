@@ -51,7 +51,7 @@ Implements a ratio output analysis property extractor class.
 
   interface nodePropertyExtractorRatio
      !!{
-     Constructors for the \refClass{nodePropertyExtractorRatio} output analysis class.
+     Constructors for the \refClass{nodePropertyExtractorRatio} property extractor class.
      !!}
      module procedure ratioConstructorParameters
      module procedure ratioConstructorInternal

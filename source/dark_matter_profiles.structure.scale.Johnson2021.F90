@@ -187,7 +187,7 @@
   
   interface darkMatterProfileScaleRadiusJohnson2021
      !!{
-     Constructors for the \refClass{darkMatterProfileScaleRadiusJohnson2021} node operator class.
+     Constructors for the \refClass{darkMatterProfileScaleRadiusJohnson2021} dark matter halo profile scale radius class.
      !!}
      module procedure darkMatterProfileScaleJohnson2021ConstructorParameters
      module procedure darkMatterProfileScaleJohnson2021ConstructorInternal

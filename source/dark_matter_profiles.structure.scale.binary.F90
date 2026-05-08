@@ -42,7 +42,7 @@
 
   interface darkMatterProfileScaleRadiusBinary
      !!{
-     Constructors for the \refClass{darkMatterProfileScaleRadiusBinary} dark matter halo profile concentration class.
+     Constructors for the \refClass{darkMatterProfileScaleRadiusBinary} dark matter halo profile scale radius class.
      !!}
      module procedure binaryConstructorParameters
      module procedure binaryConstructorInternal
@@ -81,7 +81,7 @@ contains
 
   function binaryConstructorInternal(darkMatterProfileScaleRadiusAccept_,darkMatterProfileScaleRadiusReject_,galacticFilter_) result(self)
     !!{
-    Constructor for the \refClass{darkMatterProfileScaleRadiusBinary} dark matter halo profile concentration class.
+    Constructor for the \refClass{darkMatterProfileScaleRadiusBinary} dark matter halo profile scale radius class.
     !!}
     implicit none
     type (darkMatterProfileScaleRadiusBinary)                        :: self
@@ -96,7 +96,7 @@ contains
 
   subroutine binaryDestructor(self)
     !!{
-    Destructor for the \refClass{darkMatterProfileScaleRadiusBinary} dark matter halo profile concentration class.
+    Destructor for the \refClass{darkMatterProfileScaleRadiusBinary} dark matter halo profile scale radius class.
     !!}
     implicit none
     type(darkMatterProfileScaleRadiusBinary), intent(inout) :: self

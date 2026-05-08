@@ -37,7 +37,7 @@ Implements a null output analysis class.
 
   interface nodePropertyExtractorNull
      !!{
-     Constructors for the \refClass{nodePropertyExtractorNull} output analysis class.
+     Constructors for the \refClass{nodePropertyExtractorNull} property extractor class.
      !!}
      module procedure nullConstructorParameters
   end interface nodePropertyExtractorNull

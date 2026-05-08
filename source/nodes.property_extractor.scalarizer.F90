@@ -44,7 +44,7 @@ Implements an output analysis property extractor class that scalarizes one eleme
 
   interface nodePropertyExtractorScalarizer
      !!{
-     Constructors for the \refClass{nodePropertyExtractorScalarizer} output analysis class.
+     Constructors for the \refClass{nodePropertyExtractorScalarizer} property extractor class.
      !!}
      module procedure scalarizerConstructorParameters
      module procedure scalarizerConstructorInternal

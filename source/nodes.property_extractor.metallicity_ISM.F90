@@ -48,7 +48,7 @@ Implements an ISM metallicity output analysis property extractor class.
 
   interface nodePropertyExtractorMetallicityISM
      !!{
-     Constructors for the \refClass{nodePropertyExtractorMetallicityISM} output analysis class.
+     Constructors for the \refClass{nodePropertyExtractorMetallicityISM} property extractor class.
      !!}
      module procedure metallicityISMConstructorParameters
      module procedure metallicityISMConstructorInternal

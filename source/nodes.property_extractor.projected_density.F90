@@ -62,7 +62,7 @@
 
   interface nodePropertyExtractorProjectedDensity
      !!{
-     Constructors for the \refClass{nodePropertyExtractorProjectedDensity} output analysis class.
+     Constructors for the \refClass{nodePropertyExtractorProjectedDensity} property extractor class.
      !!}
      module procedure projectedDensityConstructorParameters
      module procedure projectedDensityConstructorInternal

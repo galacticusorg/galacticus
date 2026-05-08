@@ -21,7 +21,7 @@
   <nodePropertyExtractor name="nodePropertyExtractorStarFormationRateInterOutput">
    <description>
     A node property extractor which extracts the mean star formation rate between successive outputs. Intended to be paired with the
-    \refClass{nodeOperatorStarFormationRateInterOutput} class to compute those rates.
+    \refClass{nodeOperatorStarFormationRateInterOutput} node operator class to compute those rates.
    </description>
   </nodePropertyExtractor>
   !!]

@@ -104,7 +104,7 @@ contains
 
   subroutine antonini2015Destructor(self)
     !!{
-    Destructor for the \refClass{nuclearStarClusterGrowthRatesAntonini2015} class
+    Destructor for the \refClass{nuclearStarClusterGrowthRatesAntonini2015} gas inflow rate in \glspl{nsc} class
     !!}
     implicit none
     type(nuclearStarClusterGrowthRatesAntonini2015), intent(inout) :: self

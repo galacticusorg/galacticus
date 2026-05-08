@@ -27,7 +27,7 @@
   <darkMatterProfileDMO name="darkMatterProfileDMOSIDMIsothermal">
     <description>
       Dark matter halo profiles for self-interacting dark matter following the ``isothermal'' model of
-      \cite{jiang_semi-analytic_2023} are built via the \refClass{massDistributionSphericalSIDMIsothermal} class.
+      \cite{jiang_semi-analytic_2023} are built via the \refClass{massDistributionSphericalSIDMIsothermal} mass distribution class.
     </description>
   </darkMatterProfileDMO>
   !!]

@@ -52,7 +52,7 @@ Implements a cosmological luminosity distance corrector analysis property operat
 
   interface outputAnalysisPropertyOperatorCsmlgyLmnstyDstnc
      !!{
-     Constructors for the \refClass{outputAnalysisPropertyOperatorCsmlgyLmnstyDstnc} output analysis class.
+     Constructors for the \refClass{outputAnalysisPropertyOperatorCsmlgyLmnstyDstnc} output analysis property operator class.
      !!}
      module procedure csmlgyLuminosityDistanceConstructorParameters
      module procedure csmlgyLuminosityDistanceConstructorInternal

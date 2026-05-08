@@ -41,7 +41,7 @@ Implements an output analysis property extractor class that extracts the basic m
 
   interface nodePropertyExtractorMassBasic
      !!{
-     Constructors for the \refClass{nodePropertyExtractorMassBasic} output analysis class.
+     Constructors for the \refClass{nodePropertyExtractorMassBasic} property extractor class.
      !!}
      module procedure massBasicConstructorParameters
   end interface nodePropertyExtractorMassBasic

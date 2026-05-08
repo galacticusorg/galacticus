@@ -48,7 +48,7 @@ Implements a tidal field property extractor class.
 
   interface nodePropertyExtractorTidalField
      !!{
-     Constructors for the \refClass{nodePropertyExtractorTidalField} output analysis class.
+     Constructors for the \refClass{nodePropertyExtractorTidalField} property extractor class.
      !!}
      module procedure tidalFieldConstructorParameters
      module procedure tidalFieldConstructorInternal
@@ -79,7 +79,7 @@ contains
 
   function tidalFieldConstructorInternal(satelliteTidalField_) result(self)
     !!{
-    Internal constructor for the \refClass{nodePropertyExtractorTidalField} class.
+    Internal constructor for the \refClass{nodePropertyExtractorTidalField} property extractor class.
     !!}
     implicit none
     type (nodePropertyExtractorTidalField)                        :: self
@@ -93,7 +93,7 @@ contains
 
   subroutine tidalFieldDestructor(self)
     !!{
-    Destructor for the \refClass{nodePropertyExtractorTidalField} class.
+    Destructor for the \refClass{nodePropertyExtractorTidalField} property extractor class.
     !!}
     implicit none
     type(nodePropertyExtractorTidalField), intent(inout) :: self

@@ -107,7 +107,7 @@ contains
 
   function logNormalConstructorInternal(densityHydrogenReference,sigma,densityHydrogenMinimum,densityHydrogenMaximum) result(self)
     !!{
-    Internal constructor for the \refClass{hiiRegionDensityDistributionLogNormal} class.
+    Internal constructor for the \refClass{hiiRegionDensityDistributionLogNormal} HII region density distribution class.
     !!}
     implicit none
     type            (hiiRegionDensityDistributionLogNormal)                :: self

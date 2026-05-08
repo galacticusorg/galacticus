@@ -111,7 +111,7 @@ contains
 
   function logNormalConstructorInternal(radiusEnvironment,cosmologyParameters_,cosmologyFunctions_,cosmologicalMassVariance_,linearGrowth_,criticalOverdensity_) result(self)
     !!{
-    Internal constructor for the \refClass{haloEnvironmentLogNormal} halo mass function class.
+    Internal constructor for the \refClass{haloEnvironmentLogNormal} halo environment class.
     !!}
     use :: Numerical_Constants_Math, only : Pi
     implicit none
@@ -155,7 +155,7 @@ contains
 
   subroutine logNormalDestructor(self)
     !!{
-    Destructor for the \refClass{haloEnvironmentLogNormal} halo mass function class.
+    Destructor for the \refClass{haloEnvironmentLogNormal} halo environment class.
     !!}
     implicit none
     type(haloEnvironmentLogNormal), intent(inout) :: self

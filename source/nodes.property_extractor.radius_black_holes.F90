@@ -71,7 +71,7 @@ contains
 
   function radiusBlackHolesConstructorInternal(blackHoleBinarySeparationGrowthRate_) result(self)
     !!{
-    Internal constructor for the \refClass{nodePropertyExtractorRadiusBlackHoles} node operator class.
+    Internal constructor for the \refClass{nodePropertyExtractorRadiusBlackHoles} property extractor class.
     !!}
     implicit none
     type (nodePropertyExtractorRadiusBlackHoles   )                        :: self

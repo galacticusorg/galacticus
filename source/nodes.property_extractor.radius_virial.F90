@@ -60,7 +60,7 @@ Implements a virial radius output analysis property extractor class.
 
   interface nodePropertyExtractorRadiusVirial
      !!{
-     Constructors for the \refClass{nodePropertyExtractorRadiusVirial} output analysis class.
+     Constructors for the \refClass{nodePropertyExtractorRadiusVirial} property extractor class.
      !!}
      module procedure radiusVirialConstructorParameters
      module procedure radiusVirialConstructorInternal

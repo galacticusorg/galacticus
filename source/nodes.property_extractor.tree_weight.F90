@@ -41,7 +41,7 @@ Implements a merger tree weight property extractor class.
 
   interface nodePropertyExtractorTreeWeight
      !!{
-     Constructors for the \refClass{nodePropertyExtractorTreeWeight} output analysis class.
+     Constructors for the \refClass{nodePropertyExtractorTreeWeight} property extractor class.
      !!}
      module procedure treeWeightConstructorParameters
   end interface nodePropertyExtractorTreeWeight

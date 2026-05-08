@@ -48,7 +48,7 @@ Implements a node property extractor class for the \cite{bullock_profiles_2001} 
 
   interface nodePropertyExtractorSpinBullock
      !!{
-     Constructors for the \refClass{nodePropertyExtractorSpinBullock} output analysis class.
+     Constructors for the \refClass{nodePropertyExtractorSpinBullock} property extractor class.
      !!}
      module procedure spinBullockConstructorParameters
      module procedure spinBullockConstructorInternal

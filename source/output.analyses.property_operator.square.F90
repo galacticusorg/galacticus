@@ -37,7 +37,7 @@ Implements a square output analysis property operator class.
 
   interface outputAnalysisPropertyOperatorSquare
      !!{
-     Constructors for the \refClass{outputAnalysisPropertyOperatorSquare} output analysis class.
+     Constructors for the \refClass{outputAnalysisPropertyOperatorSquare} output analysis property operator class.
      !!}
      module procedure squareConstructorParameters
   end interface outputAnalysisPropertyOperatorSquare

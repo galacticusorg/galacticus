@@ -42,7 +42,7 @@ Implements a cosmic time output analysis property extractor class.
 
   interface nodePropertyExtractorTimeFirstInfall
      !!{
-     Constructors for the \refClass{nodePropertyExtractorTimeFirstInfall} output analysis class.
+     Constructors for the \refClass{nodePropertyExtractorTimeFirstInfall} property extractor class.
      !!}
      module procedure timeFirstInfallConstructorParameters
      module procedure timeFirstInfallConstructorInternal

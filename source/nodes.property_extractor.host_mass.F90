@@ -41,7 +41,7 @@ Implements a massHost property extractor class.
 
   interface nodePropertyExtractorMassHost
      !!{
-     Constructors for the \refClass{nodePropertyExtractorMassHost} output analysis class.
+     Constructors for the \refClass{nodePropertyExtractorMassHost} property extractor class.
      !!}
      module procedure massHostConstructorParameters
   end interface nodePropertyExtractorMassHost

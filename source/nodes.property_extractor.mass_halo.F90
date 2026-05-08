@@ -61,7 +61,7 @@ Implements a halo mass output analysis property extractor class.
 
   interface nodePropertyExtractorMassHalo
      !!{
-     Constructors for the \refClass{nodePropertyExtractorMassHalo} output analysis class.
+     Constructors for the \refClass{nodePropertyExtractorMassHalo} property extractor class.
      !!}
      module procedure massHaloConstructorParameters
      module procedure massHaloConstructorInternal

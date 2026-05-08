@@ -111,7 +111,7 @@ contains
 
   subroutine decayingDarkMatterDestructor(self)
     !!{
-    Destructor for the \refClass{darkMatterProfileHeatingDecayingDarkMatter} dark matter halo profile class.
+    Destructor for the \refClass{darkMatterProfileHeatingDecayingDarkMatter} dark matter profile heating class.
     !!}
     implicit none
     type(darkMatterProfileHeatingDecayingDarkMatter), intent(inout) :: self

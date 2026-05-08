@@ -99,7 +99,7 @@
   
   interface nodePropertyExtractorSED
      !!{
-     Constructors for the \refClass{nodePropertyExtractorSED} output analysis class.
+     Constructors for the \refClass{nodePropertyExtractorSED} property extractor class.
      !!}
      module procedure sedConstructorParameters
      module procedure sedConstructorInternal

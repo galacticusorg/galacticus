@@ -66,7 +66,7 @@
 
   interface posteriorSampleLikelihoodHaloMassFunction
      !!{
-     Constructors for the \refClass{posteriorSampleLikelihoodHaloMassFunction} posterior sampling convergence class.
+     Constructors for the \refClass{posteriorSampleLikelihoodHaloMassFunction} posterior sampling likelihood class.
      !!}
      module procedure haloMassFunctionConstructorParameters
      module procedure haloMassFunctionConstructorInternal
@@ -76,7 +76,7 @@ contains
 
   function haloMassFunctionConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the \refClass{posteriorSampleLikelihoodHaloMassFunction} posterior sampling convergence class which builds the object from a
+    Constructor for the \refClass{posteriorSampleLikelihoodHaloMassFunction} posterior sampling likelihood class which builds the object from a
     parameter set.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters

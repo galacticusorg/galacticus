@@ -62,7 +62,7 @@
 
   interface nodePropertyExtractorDensityProfile
      !!{
-     Constructors for the \refClass{nodePropertyExtractorDensityProfile} output analysis class.
+     Constructors for the \refClass{nodePropertyExtractorDensityProfile} property extractor class.
      !!}
      module procedure densityProfileConstructorParameters
      module procedure densityProfileConstructorInternal

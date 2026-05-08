@@ -41,7 +41,7 @@ Implements a stellar mass-weighted morphology output analysis property extractor
 
   interface nodePropertyExtractorMassStellarMorphology
      !!{
-     Constructors for the \refClass{nodePropertyExtractorMassStellarMorphology} output analysis class.
+     Constructors for the \refClass{nodePropertyExtractorMassStellarMorphology} property extractor class.
      !!}
      module procedure massStellarMorphologyConstructorParameters
   end interface nodePropertyExtractorMassStellarMorphology

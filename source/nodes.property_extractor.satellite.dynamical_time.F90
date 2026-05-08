@@ -55,7 +55,7 @@ Provides a class that implements a satellite dynamical time extractor.
 
   interface nodePropertyExtractorSatelliteDynamicalTime
      !!{
-     Constructors for the \refClass{nodePropertyExtractorSatelliteDynamicalTime} output analysis class.
+     Constructors for the \refClass{nodePropertyExtractorSatelliteDynamicalTime} property extractor class.
      !!}
      module procedure dynamicalTimeConstructorParameters
      module procedure dynamicalTimeConstructorInternal

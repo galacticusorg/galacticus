@@ -65,7 +65,7 @@
 
   interface stellarPopulationPropertiesInstantaneous
      !!{
-     Constructors for the \refClass{stellarPopulationPropertiesInstantaneous} stellar population class.
+     Constructors for the \refClass{stellarPopulationPropertiesInstantaneous} stellar population properties class.
      !!}
      module procedure instantaneousConstructorParameters
      module procedure instantaneousConstructorInternal

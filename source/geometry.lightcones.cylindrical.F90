@@ -87,7 +87,7 @@
 
   interface geometryLightconeCylindrical
      !!{
-     Constructors for the \refClass{geometryLightconeCylindrical} dark matter halo spin distribution class.
+     Constructors for the \refClass{geometryLightconeCylindrical} lightcone geometry distribution class.
      !!}
      module procedure cylindricalConstructorParameters
      module procedure cylindricalConstructorInternal

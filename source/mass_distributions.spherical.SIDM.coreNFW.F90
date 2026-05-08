@@ -157,7 +157,7 @@ contains
 
   subroutine sphericalSIDMCoreNFWDestructor(self)
     !!{
-    Destructor for the abstract \refClass{massDistributionSphericalSIDMCoreNFW} class.
+    Destructor for the abstract \refClass{massDistributionSphericalSIDMCoreNFW} mass distribution class.
     !!}
     implicit none
     type(massDistributionSphericalSIDMCoreNFW), intent(inout) :: self

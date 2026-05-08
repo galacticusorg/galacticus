@@ -104,7 +104,7 @@
   
   interface nodePropertyExtractorLuminosityEmissionLine
      !!{
-     Constructors for the \refClass{nodePropertyExtractorLuminosityEmissionLine} output analysis class.
+     Constructors for the \refClass{nodePropertyExtractorLuminosityEmissionLine} property extractor class.
      !!}
      module procedure emissionLineLuminosityConstructorParameters
      module procedure emissionLineLuminosityConstructorInternal

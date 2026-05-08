@@ -41,7 +41,7 @@ Implements a half-galactic mass radius output analysis property extractor class.
 
   interface nodePropertyExtractorRadiusHalfMassGalactic
      !!{
-     Constructors for the \refClass{nodePropertyExtractorRadiusHalfMassGalactic} output analysis class.
+     Constructors for the \refClass{nodePropertyExtractorRadiusHalfMassGalactic} property extractor class.
      !!}
      module procedure radiusHalfMassGalacticConstructorParameters
   end interface nodePropertyExtractorRadiusHalfMassGalactic

@@ -84,7 +84,7 @@ contains
 
   function bandPassFilterConstructorInternal(wavelengthMinimum,wavelengthMaximum,radiativeTransferSpectrum_) result(self)
     !!{
-    Internal constructor for the \refClass{radiativeTransferSpectrumBandPassFilter} radiative transfer photon packet class.
+    Internal constructor for the \refClass{radiativeTransferSpectrumBandPassFilter} radiative transfer spectrum class.
     !!}
     implicit none
     type            (radiativeTransferSpectrumBandPassFilter)                        :: self
@@ -99,7 +99,7 @@ contains
 
   subroutine bandPassFilterDestructor(self)
     !!{
-    Destructor for the \refClass{radiativeTransferSpectrumBandPassFilter} radiative transfer photon packet class.
+    Destructor for the \refClass{radiativeTransferSpectrumBandPassFilter} radiative transfer spectrum class.
     !!}
     implicit none
     type(radiativeTransferSpectrumBandPassFilter), intent(inout) :: self

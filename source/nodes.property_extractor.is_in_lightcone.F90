@@ -43,7 +43,7 @@ Implements a property extractor for ``in lightcone'' status.
 
   interface nodePropertyExtractorIsInLightcone
      !!{
-     Constructors for the \refClass{nodePropertyExtractorIsInLightcone} output analysis class.
+     Constructors for the \refClass{nodePropertyExtractorIsInLightcone} property extractor class.
      !!}
      module procedure isInLightconeConstructorParameters
      module procedure isInLightconeConstructorInternal

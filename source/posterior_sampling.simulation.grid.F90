@@ -57,7 +57,7 @@
 
   interface posteriorSampleSimulationGrid
      !!{
-     Constructors for the \refClass{posteriorSampleSimulationGrid} posterior sampling convergence class.
+     Constructors for the \refClass{posteriorSampleSimulationGrid} posterior sampling simulation class.
      !!}
      module procedure gridConstructorParameters
      module procedure gridConstructorInternal

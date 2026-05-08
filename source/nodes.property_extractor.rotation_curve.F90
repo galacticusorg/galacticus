@@ -62,7 +62,7 @@
 
   interface nodePropertyExtractorRotationCurve
      !!{
-     Constructors for the \refClass{nodePropertyExtractorRotationCurve} output analysis class.
+     Constructors for the \refClass{nodePropertyExtractorRotationCurve} property extractor class.
      !!}
      module procedure rotationCurveConstructorParameters
      module procedure rotationCurveConstructorInternal

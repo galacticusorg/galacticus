@@ -63,7 +63,7 @@
 
   interface posteriorSampleSimulationAnnealedDffrntlEvltn
      !!{
-     Constructors for the \refClass{posteriorSampleSimulationAnnealedDffrntlEvltn} posterior sampling convergence class.
+     Constructors for the \refClass{posteriorSampleSimulationAnnealedDffrntlEvltn} posterior sampling simulation class.
      !!}
      module procedure annealedDifferentialEvolutionConstructorParameters
      module procedure annealedDifferentialEvolutionConstructorInternal

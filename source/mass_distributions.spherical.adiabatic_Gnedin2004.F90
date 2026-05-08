@@ -311,7 +311,7 @@ contains
 
   subroutine sphericalAdiabaticGnedin2004Destructor(self)
     !!{
-    Destructor for the abstract \refClass{massDistributionSphericalAdiabaticGnedin2004} class.
+    Destructor for the abstract \refClass{massDistributionSphericalAdiabaticGnedin2004} mass distribution class.
     !!}
     implicit none
     type(massDistributionSphericalAdiabaticGnedin2004), intent(inout) :: self

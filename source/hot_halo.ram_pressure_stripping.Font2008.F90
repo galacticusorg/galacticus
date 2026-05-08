@@ -61,7 +61,7 @@
 
   interface hotHaloRamPressureStrippingFont2008
      !!{
-     Constructors for the \refClass{hotHaloRamPressureStrippingFont2008} hot halo ram pressure timescale class.
+     Constructors for the \refClass{hotHaloRamPressureStrippingFont2008} hot halo ram pressure stripping class.
      !!}
      module procedure font2008ConstructorParameters
      module procedure font2008ConstructorInternal

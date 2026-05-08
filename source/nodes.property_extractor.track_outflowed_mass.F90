@@ -43,7 +43,7 @@
 
   interface nodePropertyExtractorTrackOutflowedMass
      !!{
-     Constructors for the \refClass{nodePropertyExtractorTrackOutflowedMass} output analysis class.
+     Constructors for the \refClass{nodePropertyExtractorTrackOutflowedMass} property extractor class.
      !!}
      module procedure trackOutflowedMassConstructorParameters
      module procedure trackOutflowedMassConstructorInternal

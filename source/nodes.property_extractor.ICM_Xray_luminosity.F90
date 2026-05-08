@@ -49,7 +49,7 @@ Implements an intracluster medium X-ray luminosity property extractor class.
 
   interface nodePropertyExtractorICMXRayLuminosity
      !!{
-     Constructors for the \refClass{nodePropertyExtractorICMXRayLuminosity} output analysis class.
+     Constructors for the \refClass{nodePropertyExtractorICMXRayLuminosity} property extractor class.
      !!}
      module procedure icmXRayLuminosityConstructorParameters
      module procedure icmXRayLuminosityConstructorInternal

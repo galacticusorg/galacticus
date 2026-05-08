@@ -58,7 +58,7 @@ Implements a stellar mass output analysis property extractor class.
 
   interface nodePropertyExtractorLuminosityStellar
      !!{
-     Constructors for the \refClass{nodePropertyExtractorLuminosityStellar} output analysis class.
+     Constructors for the \refClass{nodePropertyExtractorLuminosityStellar} property extractor class.
      !!}
      module procedure luminosityStellarConstructorParameters
      module procedure luminosityStellarConstructorInternal

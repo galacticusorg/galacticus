@@ -39,7 +39,7 @@
 
   interface nodePropertyExtractorIsPhysicallyPlausible
      !!{
-     Constructors for the \refClass{nodePropertyExtractorIsPhysicallyPlausible} output analysis class.
+     Constructors for the \refClass{nodePropertyExtractorIsPhysicallyPlausible} property extractor class.
      !!}
      module procedure isPhysicallyPlausibleConstructorParameters
   end interface nodePropertyExtractorIsPhysicallyPlausible

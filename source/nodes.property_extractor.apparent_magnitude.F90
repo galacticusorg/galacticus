@@ -55,7 +55,7 @@ Implements a node property extractor class for apparent magnitudes.
 
   interface nodePropertyExtractorMagnitudesApparent
      !!{
-     Constructors for the \refClass{nodePropertyExtractorMagnitudesApparent} output analysis class.
+     Constructors for the \refClass{nodePropertyExtractorMagnitudesApparent} property extractor class.
      !!}
      module procedure magnitudesApparentConstructorParameters
      module procedure magnitudesApparentConstructorInternal

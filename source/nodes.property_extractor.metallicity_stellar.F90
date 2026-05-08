@@ -48,7 +48,7 @@ Implements an ISM metallicity output analysis property extractor class.
 
   interface nodePropertyExtractorMetallicityStellar
      !!{
-     Constructors for the \refClass{nodePropertyExtractorMetallicityStellar} output analysis class.
+     Constructors for the \refClass{nodePropertyExtractorMetallicityStellar} property extractor class.
      !!}
      module procedure metallicityStellarConstructorParameters
      module procedure metallicityStellarConstructorInternal

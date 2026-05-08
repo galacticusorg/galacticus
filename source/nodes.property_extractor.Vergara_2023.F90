@@ -51,7 +51,7 @@
 
   interface nodePropertyExtractorBlackHoleSeedingVergara2023
      !!{
-     Constructors for the \refClass{nodePropertyExtractorBlackHoleSeedingVergara2023} output analysis class.
+     Constructors for the \refClass{nodePropertyExtractorBlackHoleSeedingVergara2023} property extractor class.
      !!}
      module procedure blackHoleSeedingVergara2023ConstructorParameters
      module procedure blackHoleSeedingVergara2023ConstructorInternal

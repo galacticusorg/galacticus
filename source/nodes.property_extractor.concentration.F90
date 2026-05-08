@@ -61,7 +61,7 @@ Implements a concentration output analysis property extractor class.
 
   interface nodePropertyExtractorConcentration
      !!{
-     Constructors for the \refClass{nodePropertyExtractorConcentration} output analysis class.
+     Constructors for the \refClass{nodePropertyExtractorConcentration} property extractor class.
      !!}
      module procedure concentrationConstructorParameters
      module procedure concentrationConstructorInternal

@@ -53,7 +53,7 @@ contains
 
   function massRatioNBodyConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the \refClass{outputAnalysisDistributionOperatorMassRatioNBody} output analysis weight operator class which takes a parameter
+    Constructor for the \refClass{outputAnalysisDistributionOperatorMassRatioNBody} output analysis distribution operator class which takes a parameter
     set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
@@ -113,7 +113,7 @@ contains
 
   subroutine massRatioNBodyDestructor(self)
     !!{
-    Destructor for the \refClass{outputAnalysisDistributionOperatorMassRatioNBody} output analysis weight operator class.
+    Destructor for the \refClass{outputAnalysisDistributionOperatorMassRatioNBody} output analysis distribution operator class.
     !!}
     type(outputAnalysisDistributionOperatorMassRatioNBody), intent(inout) :: self
 

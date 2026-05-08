@@ -57,7 +57,7 @@ contains
 
   function standardConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the \refClass{outputAnalysisTargetDataStandard} class which takes a parameter
+    Constructor for the \refClass{outputAnalysisTargetDataStandard} output analysis target data class which takes a parameter
     set as input.  Each field has its own \mono{<inputParameter>}; absent parameters fall back
     to the same defaults the inline constructor uses.
     !!}

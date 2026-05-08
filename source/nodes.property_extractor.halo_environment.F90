@@ -46,7 +46,7 @@ Implements a node property extractor class for halo environment.
 
   interface nodePropertyExtractorHaloEnvironment
      !!{
-     Constructors for the \refClass{nodePropertyExtractorHaloEnvironment} output analysis class.
+     Constructors for the \refClass{nodePropertyExtractorHaloEnvironment} property extractor class.
      !!}
      module procedure haloEnvironmentConstructorParameters
      module procedure haloEnvironmentConstructorInternal

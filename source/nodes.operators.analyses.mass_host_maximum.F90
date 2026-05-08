@@ -25,7 +25,7 @@
   <nodeOperator name="nodeOperatorMassHostMaximum">
     <description>
       A node operator class that tracks the maximum host halo mass which a node has occupied. Intended to be paired with the
-      \refClass{nodePropertyExtractorMassHostMaximum} class to extract these masses for output.
+      \refClass{nodePropertyExtractorMassHostMaximum} property extractor class to extract these masses for output.
     </description>
   </nodeOperator>
   !!]

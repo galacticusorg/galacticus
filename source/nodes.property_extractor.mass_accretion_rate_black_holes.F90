@@ -73,7 +73,7 @@ contains
 
   function massAccretionRateBlackHolesConstructorInternal(blackHoleAccretionRate_) result(self)
     !!{
-    Internal constructor for the \refClass{nodePropertyExtractorMassAccretionRateBlackHoles} node operator class.
+    Internal constructor for the \refClass{nodePropertyExtractorMassAccretionRateBlackHoles} property extractor class.
     !!}
     implicit none
     type (nodePropertyExtractorMassAccretionRateBlackHoles)                        :: self

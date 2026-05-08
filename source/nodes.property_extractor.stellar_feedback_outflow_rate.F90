@@ -57,7 +57,7 @@
 
   interface nodePropertyExtractorStellarFeedbackOutflowRate
      !!{
-     Constructors for the \refClass{nodePropertyExtractorStellarFeedbackOutflowRate} output analysis class.
+     Constructors for the \refClass{nodePropertyExtractorStellarFeedbackOutflowRate} property extractor class.
      !!}
      module procedure stellarFeedbackOutflowRateConstructorParameters
      module procedure stellarFeedbackOutflowRateConstructorInternal

@@ -46,7 +46,7 @@
 
   interface nodePropertyExtractorBranchMostMassive
      !!{
-     Constructors for the \refClass{nodePropertyExtractorBranchMostMassive} output analysis class.
+     Constructors for the \refClass{nodePropertyExtractorBranchMostMassive} property extractor class.
      !!}
      module procedure branchMostMassiveConstructorParameters
      module procedure branchMostMassiveConstructorInternal

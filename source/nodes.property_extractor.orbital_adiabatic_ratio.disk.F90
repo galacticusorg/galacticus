@@ -53,7 +53,7 @@ Implements a property extractor class for the orbital adiabatic ratio of disks.
 
   interface nodePropertyExtractorAdiabaticRatioOrbitalDisk
      !!{
-     Constructors for the \refClass{nodePropertyExtractorAdiabaticRatioOrbitalDisk} output analysis class.
+     Constructors for the \refClass{nodePropertyExtractorAdiabaticRatioOrbitalDisk} property extractor class.
      !!}
      module procedure adiabaticRatioOrbitalDiskConstructorParameters
      module procedure adiabaticRatioOrbitalDiskConstructorInternal
@@ -84,7 +84,7 @@ contains
 
   function adiabaticRatioOrbitalDiskConstructorInternal(darkMatterHaloScale_) result(self)
     !!{
-    Internal constructor for the \refClass{nodePropertyExtractorAdiabaticRatioOrbitalDisk} node operator class.
+    Internal constructor for the \refClass{nodePropertyExtractorAdiabaticRatioOrbitalDisk} property extractor class.
     !!}
     implicit none
     type (nodePropertyExtractorAdiabaticRatioOrbitalDisk)                        :: self
@@ -98,7 +98,7 @@ contains
 
   subroutine adiabaticRatioOrbitalDiskDestructor(self)
     !!{
-    Destructor for the \refClass{nodePropertyExtractorAdiabaticRatioOrbitalDisk} node operator class.
+    Destructor for the \refClass{nodePropertyExtractorAdiabaticRatioOrbitalDisk} property extractor class.
     !!}
     implicit none
     type(nodePropertyExtractorAdiabaticRatioOrbitalDisk), intent(inout) :: self

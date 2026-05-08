@@ -53,7 +53,7 @@ Implements a stellar luminosity output analysis property extractor class which a
 
   interface nodePropertyExtractorLmnstyStllrCF2000
      !!{
-     Constructors for the \refClass{nodePropertyExtractorLmnstyStllrCF2000} output analysis class.
+     Constructors for the \refClass{nodePropertyExtractorLmnstyStllrCF2000} property extractor class.
      !!}
      module procedure lmnstyStllrChrltFll2000ConstructorParameters
      module procedure lmnstyStllrChrltFll2000ConstructorInternal

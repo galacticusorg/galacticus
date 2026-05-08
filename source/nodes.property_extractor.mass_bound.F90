@@ -41,7 +41,7 @@ Implements an output analysis property extractor class that extracts the bound m
 
   interface nodePropertyExtractorMassBound
      !!{
-     Constructors for the \refClass{nodePropertyExtractorMassBound} output analysis class.
+     Constructors for the \refClass{nodePropertyExtractorMassBound} property extractor class.
      !!}
      module procedure massBoundConstructorParameters
   end interface nodePropertyExtractorMassBound

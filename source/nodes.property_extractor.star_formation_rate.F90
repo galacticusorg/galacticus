@@ -56,7 +56,7 @@ Implements a star formation rate property extractor class.
 
   interface nodePropertyExtractorStarFormationRate
      !!{
-     Constructors for the \refClass{nodePropertyExtractorStarFormationRate} output analysis class.
+     Constructors for the \refClass{nodePropertyExtractorStarFormationRate} property extractor class.
      !!}
      module procedure starFormationRateConstructorParameters
      module procedure starFormationRateConstructorInternal

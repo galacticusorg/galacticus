@@ -87,7 +87,7 @@ Implements an emission line luminosity node property extractor class.
 
   interface nodePropertyExtractorLmnstyEmssnLinePanuzzo2003
      !!{
-     Constructors for the \refClass{nodePropertyExtractorLmnstyEmssnLinePanuzzo2003} output analysis class.
+     Constructors for the \refClass{nodePropertyExtractorLmnstyEmssnLinePanuzzo2003} property extractor class.
      !!}
      module procedure lmnstyEmssnLinePanuzzo2003ConstructorParameters
      module procedure lmnstyEmssnLinePanuzzo2003ConstructorInternal

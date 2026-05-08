@@ -60,7 +60,7 @@
 
   interface modelParameterActive
      !!{
-     Constructors for the \refClass{modelParameterActive} 1D distribution function class.
+     Constructors for the \refClass{modelParameterActive} model parameter class.
      !!}
      module procedure activeConstructorParameters
      module procedure activeConstructorInternal

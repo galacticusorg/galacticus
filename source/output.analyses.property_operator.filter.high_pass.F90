@@ -39,7 +39,7 @@ Implements a high-pass filter analysis property operator class.
 
   interface outputAnalysisPropertyOperatorFilterHighPass
      !!{
-     Constructors for the \refClass{outputAnalysisPropertyOperatorFilterHighPass} output analysis class.
+     Constructors for the \refClass{outputAnalysisPropertyOperatorFilterHighPass} output analysis property operator class.
      !!}
      module procedure filterHighPassConstructorParameters
      module procedure filterHighPassConstructorInternal
@@ -87,7 +87,7 @@ contains
 
   function filterHighPassConstructorInternal(filterThreshold,filterWidth,normalized) result (self)
     !!{
-    Internal constructor for the \refClass{outputAnalysisPropertyOperatorFilterHighPass} output analysis distribution operator class.
+    Internal constructor for the \refClass{outputAnalysisPropertyOperatorFilterHighPass} output analysis property operator class.
     !!}
     implicit none
     type            (outputAnalysisPropertyOperatorFilterHighPass)                          :: self

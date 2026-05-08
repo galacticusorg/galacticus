@@ -30,7 +30,7 @@
   <darkMatterProfileDMO name="darkMatterProfileDMOTruncatedExponential">
     <description>
       Exponentially truncated dark matter halo profiles \cite{kazantzidis_2006} are constructed via the
-      \refClass{massDistributionSphericalTruncatedExponential} class.
+      \refClass{massDistributionSphericalTruncatedExponential} mass distribution class.
     </description>
   </darkMatterProfileDMO>
   !!]

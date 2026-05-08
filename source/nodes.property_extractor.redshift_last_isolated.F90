@@ -45,7 +45,7 @@ Implements a property extractor class that extracts the redshift at which a \gls
 
   interface nodePropertyExtractorRedshiftLastIsolated
      !!{
-     Constructors for the \refClass{nodePropertyExtractorRedshiftLastIsolated} output analysis class.
+     Constructors for the \refClass{nodePropertyExtractorRedshiftLastIsolated} property extractor class.
      !!}
      module procedure redshiftLastIsolatedConstructorParameters
      module procedure redshiftLastIsolatedConstructorInternal

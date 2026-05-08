@@ -49,7 +49,7 @@
 
   interface nodePropertyExtractorRadiusOrbitalProjected
      !!{
-     Constructors for the \refClass{nodePropertyExtractorRadiusOrbitalProjected} output analysis class.
+     Constructors for the \refClass{nodePropertyExtractorRadiusOrbitalProjected} property extractor class.
      !!}
      module procedure radiusOrbitalProjectedConstructorParameters
      module procedure radiusOrbitalProjectedConstructorInternal

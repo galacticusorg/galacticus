@@ -40,7 +40,7 @@ Implements a node property extractor for the index of the last host node.
 
   interface nodePropertyExtractorIndexLastHost
      !!{
-     Constructors for the \refClass{nodePropertyExtractorIndexLastHost} output analysis class.
+     Constructors for the \refClass{nodePropertyExtractorIndexLastHost} property extractor class.
      !!}
      module procedure indexLastHostConstructorParameters
      module procedure indexLastHostConstructorInternal

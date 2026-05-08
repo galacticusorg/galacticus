@@ -42,7 +42,7 @@ Implements a spheroid stellar mass output analysis property extractor class.
 
   interface nodePropertyExtractorMassStellarSpheroid
      !!{
-     Constructors for the \refClass{nodePropertyExtractorMassStellarSpheroid} output analysis class.
+     Constructors for the \refClass{nodePropertyExtractorMassStellarSpheroid} property extractor class.
      !!}
      module procedure massStellarSpheroidConstructorParameters
   end interface nodePropertyExtractorMassStellarSpheroid

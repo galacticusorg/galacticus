@@ -53,7 +53,7 @@ contains
 
   function neverConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the \refClass{posteriorSampleConvergenceNever} merger tree halo mass function sampling class which builds the object from a parameter set.
+    Constructor for the \refClass{posteriorSampleConvergenceNever} posterior sampling convergence class which builds the object from a parameter set.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none

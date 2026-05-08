@@ -41,7 +41,7 @@ Implements an orbital radius output analysis property extractor class.
 
   interface nodePropertyExtractorRadiusOrbital
      !!{
-     Constructors for the \refClass{nodePropertyExtractorRadiusOrbital} output analysis class.
+     Constructors for the \refClass{nodePropertyExtractorRadiusOrbital} property extractor class.
      !!}
      module procedure radiusOrbitalConstructorParameters
   end interface nodePropertyExtractorRadiusOrbital

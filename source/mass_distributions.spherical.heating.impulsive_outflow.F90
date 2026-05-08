@@ -102,7 +102,7 @@ contains
   
   function impulsiveOutflowConstructorInternal(energyImpulsiveOutflowDisk,energyImpulsiveOutflowSpheroid,impulsiveEnergyFactor) result(self)
     !!{
-    Constructor for the \refClass{massDistributionHeatingImpulsiveOutflow} dark matter profile heating class.
+    Constructor for the \refClass{massDistributionHeatingImpulsiveOutflow} mass distribution class.
     !!}
     implicit none
     type             (massDistributionHeatingImpulsiveOutflow)                :: self

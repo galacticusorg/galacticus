@@ -54,7 +54,7 @@ Implements an ISM mass output analysis property extractor class.
 
   interface nodePropertyExtractorDescendants
      !!{
-     Constructors for the \refClass{nodePropertyExtractorDescendants} output analysis class.
+     Constructors for the \refClass{nodePropertyExtractorDescendants} property extractor class.
      !!}
      module procedure descendantsConstructorParameters
      module procedure descendantsConstructorInternal

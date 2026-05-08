@@ -72,7 +72,7 @@
 
   interface nodePropertyExtractorVelocityDispersion
      !!{
-     Constructors for the \refClass{nodePropertyExtractorVelocityDispersion} output analysis class.
+     Constructors for the \refClass{nodePropertyExtractorVelocityDispersion} property extractor class.
      !!}
      module procedure velocityDispersionConstructorParameters
      module procedure velocityDispersionConstructorInternal

@@ -53,7 +53,7 @@ Implements an output analysis property extractor class that extracts the Einstei
 
   interface nodePropertyExtractorRadiusEinstein
      !!{
-     Constructors for the \refClass{nodePropertyExtractorRadiusEinstein} output analysis class.
+     Constructors for the \refClass{nodePropertyExtractorRadiusEinstein} property extractor class.
      !!}
      module procedure radiusEinsteinConstructorParameters
      module procedure radiusEinsteinConstructorInternal

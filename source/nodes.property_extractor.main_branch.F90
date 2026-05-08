@@ -55,7 +55,7 @@
 
   interface nodePropertyExtractorMainBranchStatus
      !!{
-     Constructors for the \refClass{nodePropertyExtractorMainBranchStatus} output analysis class.
+     Constructors for the \refClass{nodePropertyExtractorMainBranchStatus} property extractor class.
      !!}
      module procedure mainBranchStatusConstructorParameters
      module procedure mainBranchStatusConstructorInternal

@@ -42,7 +42,7 @@ Implements an ISM mass output analysis property extractor class.
 
   interface nodePropertyExtractorMassISM
      !!{
-     Constructors for the \refClass{nodePropertyExtractorMassISM} output analysis class.
+     Constructors for the \refClass{nodePropertyExtractorMassISM} property extractor class.
      !!}
      module procedure massISMConstructorParameters
   end interface nodePropertyExtractorMassISM

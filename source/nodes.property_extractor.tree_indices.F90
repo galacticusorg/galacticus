@@ -40,7 +40,7 @@ Implements merger tree index property extractor class.
 
   interface nodePropertyExtractorIndicesTree
      !!{
-     Constructors for the \refClass{nodePropertyExtractorIndicesTree} output analysis class.
+     Constructors for the \refClass{nodePropertyExtractorIndicesTree} property extractor class.
      !!}
      module procedure indicesTreeConstructorParameters
   end interface nodePropertyExtractorIndicesTree

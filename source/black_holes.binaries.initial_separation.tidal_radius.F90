@@ -68,7 +68,7 @@ contains
 
   function tidalRadiusConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the \refClass{blackHoleBinaryInitialSeparationTidalRadius} black hole binary recoil class which takes a parameter list as
+    Constructor for the \refClass{blackHoleBinaryInitialSeparationTidalRadius} black hole binary initial radius class which takes a parameter list as
     input.
     !!}
     use :: Input_Parameters, only : inputParameters
@@ -85,7 +85,7 @@ contains
 
   function tidalRadiusConstructorInternal() result(self)
     !!{
-    Internal constructor for the \refClass{blackHoleBinaryInitialSeparationTidalRadius} black hole binary recoil class.
+    Internal constructor for the \refClass{blackHoleBinaryInitialSeparationTidalRadius} black hole binary initial radius class.
     !!}
     implicit none
     type (blackHoleBinaryInitialSeparationTidalRadius) :: self

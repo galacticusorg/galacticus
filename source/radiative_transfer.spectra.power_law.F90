@@ -93,7 +93,7 @@ contains
 
   function powerLawConstructorInternal(wavelengthMinimum,wavelengthMaximum,exponent,normalization) result(self)
     !!{
-    Internal constructor for the \refClass{radiativeTransferSpectrumPowerLaw} radiative transfer photon packet class.
+    Internal constructor for the \refClass{radiativeTransferSpectrumPowerLaw} radiative transfer spectrum class.
     !!}
     implicit none
     type            (radiativeTransferSpectrumPowerLaw)                :: self

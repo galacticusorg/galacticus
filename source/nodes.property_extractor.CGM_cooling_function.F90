@@ -77,7 +77,7 @@
 
   interface nodePropertyExtractorCGMCoolingFunction
      !!{
-     Constructors for the \refClass{nodePropertyExtractorCGMCoolingFunction} output analysis class.
+     Constructors for the \refClass{nodePropertyExtractorCGMCoolingFunction} property extractor class.
      !!}
      module procedure cgmCoolingFunctionConstructorParameters
      module procedure cgmCoolingFunctionConstructorInternal

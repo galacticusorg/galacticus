@@ -42,7 +42,7 @@ Implements a black hole mass property extractor class.
 
   interface nodePropertyExtractorMassBlackHole
      !!{
-     Constructors for the \refClass{nodePropertyExtractorMassBlackHole} output analysis class.
+     Constructors for the \refClass{nodePropertyExtractorMassBlackHole} property extractor class.
      !!}
      module procedure massBlackHoleConstructorParameters
   end interface nodePropertyExtractorMassBlackHole

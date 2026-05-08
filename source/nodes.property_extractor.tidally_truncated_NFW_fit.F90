@@ -57,7 +57,7 @@ Implements a node property extractor that fits for a tidal truncation radius for
 
   interface nodePropertyExtractorTidallyTruncatedNFWFit
      !!{
-     Constructors for the \refClass{nodePropertyExtractorTidallyTruncatedNFWFit} output analysis class.
+     Constructors for the \refClass{nodePropertyExtractorTidallyTruncatedNFWFit} property extractor class.
      !!}
      module procedure tidallyTruncatedNFWFitConstructorParameters
      module procedure tidallyTruncatedNFWFitConstructorInternal

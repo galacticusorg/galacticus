@@ -74,7 +74,7 @@
 
   interface nodePropertyExtractorLmnstyEmssnLineAGN
      !!{
-     Constructors for the \refClass{nodePropertyExtractorLmnstyEmssnLineAGN} output analysis class.
+     Constructors for the \refClass{nodePropertyExtractorLmnstyEmssnLineAGN} property extractor class.
      !!}
      module procedure lmnstyEmssnLineAGNConstructorParameters
      module procedure lmnstyEmssnLineAGNConstructorInternal

@@ -63,7 +63,7 @@
   
   interface darkMatterProfileScaleRadiusRandomWalk
      !!{
-     Constructors for the \refClass{darkMatterProfileScaleRadiusRandomWalk} node operator class.
+     Constructors for the \refClass{darkMatterProfileScaleRadiusRandomWalk} dark matter halo profile scale radius class.
      !!}
      module procedure darkMatterProfileScaleRandomWalkConstructorParameters
      module procedure darkMatterProfileScaleRandomWalkConstructorInternal

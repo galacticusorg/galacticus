@@ -159,7 +159,7 @@ contains
 
   subroutine decayingDarkMatterDestructor(self)
     !!{
-    Destructor for the \refClass{massDistributionHeatingDecayingDarkMatter} dark matter profile heating class.
+    Destructor for the \refClass{massDistributionHeatingDecayingDarkMatter} mass distribution class.
     !!}
     implicit none
     type(massDistributionHeatingDecayingDarkMatter), intent(inout) :: self

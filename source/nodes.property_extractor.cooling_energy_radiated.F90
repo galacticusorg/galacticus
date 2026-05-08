@@ -42,7 +42,7 @@ Implements a cooling energy radiated property extractor class.
 
   interface nodePropertyExtractorCoolingEnergyRadiated
      !!{
-     Constructors for the \refClass{nodePropertyExtractorCoolingEnergyRadiated} output analysis class.
+     Constructors for the \refClass{nodePropertyExtractorCoolingEnergyRadiated} property extractor class.
      !!}
      module procedure coolingEnergyRadiatedConstructorParameters
      module procedure coolingEnergyRadiatedConstructorInternal

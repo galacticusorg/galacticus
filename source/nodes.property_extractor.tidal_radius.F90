@@ -45,7 +45,7 @@ Implements a tidal radius property extractor class.
 
   interface nodePropertyExtractorRadiusTidal
      !!{
-     Constructors for the \refClass{nodePropertyExtractorRadiusTidal} output analysis class.
+     Constructors for the \refClass{nodePropertyExtractorRadiusTidal} property extractor class.
      !!}
      module procedure radiusTidalConstructorParameters
      module procedure radiusTidalConstructorInternal

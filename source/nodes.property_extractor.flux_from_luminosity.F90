@@ -48,7 +48,7 @@ Implements a class which extracts fluxes from luminosities.
 
   interface nodePropertyExtractorFluxFromLuminosity
      !!{
-     Constructors for the \refClass{nodePropertyExtractorFluxFromLuminosity} output analysis class.
+     Constructors for the \refClass{nodePropertyExtractorFluxFromLuminosity} property extractor class.
      !!}
      module procedure fluxFromLuminosityConstructorParameters
      module procedure fluxFromLuminosityConstructorInternal

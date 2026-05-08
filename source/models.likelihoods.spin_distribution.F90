@@ -71,7 +71,7 @@
 
   interface posteriorSampleLikelihoodSpinDistribution
      !!{
-     Constructors for the \refClass{posteriorSampleLikelihoodSpinDistribution} posterior sampling convergence class.
+     Constructors for the \refClass{posteriorSampleLikelihoodSpinDistribution} posterior sampling likelihood class.
      !!}
      module procedure spinDistributionConstructorParameters
      module procedure spinDistributionConstructorInternal
@@ -81,7 +81,7 @@ contains
 
   function spinDistributionConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the \refClass{posteriorSampleLikelihoodSpinDistribution} posterior sampling convergence class which builds the object from a
+    Constructor for the \refClass{posteriorSampleLikelihoodSpinDistribution} posterior sampling likelihood class which builds the object from a
     parameter set.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
