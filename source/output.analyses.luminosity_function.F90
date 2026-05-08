@@ -252,6 +252,7 @@ contains
     use :: Output_Analysis_Distribution_Operators  , only : outputAnalysisDistributionOperatorClass
     use :: Output_Analysis_Property_Operators      , only : outputAnalysisPropertyOperatorClass         , outputAnalysisPropertyOperatorCsmlgyLmnstyDstnc, outputAnalysisPropertyOperatorIdentity, outputAnalysisPropertyOperatorMagnitude, &
           &                                                 outputAnalysisPropertyOperatorSequence      , propertyOperatorList
+    use :: Output_Analysis_Target_Data             , only : outputAnalysisTargetDataStandard
     use :: Output_Analysis_Utilities               , only : Output_Analysis_Output_Weight_Survey_Volume
     use :: Output_Analysis_Weight_Operators        , only : outputAnalysisWeightOperatorCsmlgyVolume
     implicit none
@@ -283,6 +284,7 @@ contains
     double precision                                                  , parameter                               :: bufferWidth                                     =7.5d0
     integer         (c_size_t                                        ), parameter                               :: bufferCountMinimum                              =5
     integer         (c_size_t                                        )                                          :: iBin                                                  , bufferCount
+    type            (outputAnalysisTargetDataStandard)                              :: outputAnalysisTargetData_
     !![
     <constructorAssign variables="magnitudesAbsolute, *surveyGeometry_, *cosmologyFunctions_, *cosmologyFunctionsData"/>
     !!]
@@ -346,6 +348,22 @@ contains
     ! convolution operations on the distribution function are unaffected by edge effects.
     bufferCount=max(int(bufferWidth/(magnitudesAbsolute(2)-magnitudesAbsolute(1)))+1,bufferCountMinimum)
     ! Construct the object.
+    ! Bundle the axis labels, log-scale flags, and (optional) target dataset into a single
+    ! `outputAnalysisTargetDataStandard` object — the parent class now exposes them through
+    ! one optional argument rather than seven, which collapses the wrapper-pipeline's
+    ! optional-argument branching from 2^N for these fields to a single present/absent bit.
+    ! Optional dummies (`targetLabel`, `functionValueTarget`, `functionCovarianceTarget`) of
+    ! this enclosing constructor pass through unchanged: an absent optional dummy forwarded
+    ! by name to another optional dummy of the same name remains absent.
+    outputAnalysisTargetData_=outputAnalysisTargetDataStandard(                                                                           &
+         &                                                     xAxisLabel      =var_str('$M$'                                          ), &
+         &                                                     yAxisLabel      =var_str('$\mathrm{d}n/\mathrm{d}M$ [$_\chi$Mpc$^{-3}$]'), &
+         &                                                     xAxisIsLog      =.false.                                                 , &
+         &                                                     yAxisIsLog      =.true.                                                  , &
+         &                                                     targetLabel     =targetLabel                                             , &
+         &                                                     valueTarget     =functionValueTarget                                     , &
+         &                                                     covarianceTarget=functionCovarianceTarget                                  &
+         &                                                    )
     self%outputAnalysisVolumeFunction1D=                                                            &
          & outputAnalysisVolumeFunction1D(                                                          &
          &                                'luminosityFunction'//label                             , &
@@ -378,13 +396,7 @@ contains
          &                                covarianceBinomialMassHaloMinimum                       , &
          &                                covarianceBinomialMassHaloMaximum                       , &
          &                                .false.                                                 , &
-         &                                var_str('$M$'                                          ), &
-         &                                var_str('$\mathrm{d}n/\mathrm{d}M$ [$_\chi$Mpc$^{-3}$]'), &
-         &                                .false.                                                 , &
-         &                                .true.                                                  , &
-         &                                targetLabel                                             , &
-         &                                functionValueTarget                                     , &
-         &                                functionCovarianceTarget                                  &
+         &                                outputAnalysisTargetData_                                 &
          &                               )
     ! Clean up.
     !![

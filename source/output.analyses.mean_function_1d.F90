@@ -22,7 +22,8 @@
   objects binned by some property) output analysis class.
   !!}
 
-  use :: ISO_Varying_String, only : varying_string
+  use :: ISO_Varying_String         , only : varying_string
+  use :: Output_Analysis_Target_Data, only : outputAnalysisTargetDataClass, outputAnalysisTargetDataStandard
 
   !![
   <outputAnalysis name="outputAnalysisMeanFunction1D">
@@ -44,9 +45,13 @@
           &                                                                                         propertyLabel                                  , propertyComment                                 , &
           &                                                                                         meanLabel                                      , meanComment                                     , &
           &                                                                                         propertyUnits                                  , meanUnits                                       , &
-          &                                                                                         propertyQuantity                               , meanQuantity                                    , &
-          &                                                                                         xAxisLabel                                     , yAxisLabel                                      , &
-          &                                                                                         targetLabel
+          &                                                                                         propertyQuantity                               , meanQuantity
+     ! Axis labels, log-scale flags, and (optional) target dataset are all bundled into a single
+     ! `outputAnalysisTargetDataStandard` instance so the wrapper-pipeline doesn't have to enumerate
+     ! 2^N presence combinations for these otherwise individually-optional fields.  Stored
+     ! concretely (not polymorphically) since there's only ever one impl and we want plain
+     ! `self%targetData_%xAxisLabel` access throughout the rest of this module.
+     type            (outputAnalysisTargetDataStandard            )                              :: targetData_
      type            (enumerationOutputAnalysisCovarianceModelType)                              :: covarianceModel
      double precision                                                                            :: propertyUnitsInSI                              , meanUnitsInSI
      logical                                                                                     :: propertyIsComoving                             , meanIsComoving
@@ -60,11 +65,13 @@
      type            (outputAnalysisVolumeFunction1D              ), pointer                     :: volumeFunctionUnweighted              => null(), volumeFunctionWeighted                  => null()
      type            (outputAnalysisCrossCorrelator1D             ), pointer                     :: crossCovariance                       => null()
      double precision                                              , allocatable, dimension(:  ) :: binCenter                                      , meanValue                                        , &
-          &                                                                                         meanValueTarget                                , meanCovarianceTarget1D                           , &
-          &                                                                                         outputWeight
-     double precision                                              , allocatable, dimension(:,:) :: meanCovariance                                 , meanCovarianceTarget
+          &                                                                                         outputWeight                                   , meanValueTarget                                  , &
+          &                                                                                         meanCovarianceTarget1D 
+     double precision                                              , allocatable, dimension(:,:) :: meanCovariance
      double precision                                                                            :: covarianceBinomialMassHaloMinimum              , covarianceBinomialMassHaloMaximum                , &
           &                                                                                         binWidth
+     type            (varying_string                              )                              :: xAxisLabel                                     , yAxisLabel                                       , &
+          &                                                                                         targetLabel
      logical                                                                                     :: finalized                                      , likelihoodNormalize                              , &
           &                                                                                         xAxisIsLog                                     , yAxisIsLog
      integer                                                                                     :: covarianceBinomialBinsPerDecade
@@ -112,6 +119,7 @@ contains
     class           (outputAnalysisDistributionOperatorClass), pointer                     :: outputAnalysisDistributionOperator_
     class           (galacticFilterClass                    ), pointer                     :: galacticFilter_
     class           (outputTimesClass                       ), pointer                     :: outputTimes_
+    type            (outputAnalysisTargetDataStandard       )                              :: targetData_
     double precision                                         , dimension(:  ), allocatable :: binCenter                            , outputWeight                          , &
          &                                                                                    meanValueTarget                      , meanCovarianceTarget1D
     double precision                                         , dimension(:,:), allocatable :: meanCovarianceTarget
@@ -322,7 +330,12 @@ contains
       <description>If true then normalize the likelihood to make it a probability density.</description>
     </inputParameter>
     !!]
-   if (parameters%isPresent('meanValueTarget')) then
+    ! Read the target dataset (if provided) and the corresponding target label.  These are read
+    ! at the outer-class level (rather than via an `<objectBuilder>` for `outputAnalysisTargetData`)
+    ! so existing parameter files that put `xAxisLabel`, `meanValueTarget`, ... directly under the
+    ! mean-function-1d block continue to work; we then assemble a single
+    ! `outputAnalysisTargetDataStandard` from those fields and pass it to the internal constructor.
+    if (parameters%isPresent('meanValueTarget')) then
        if (parameters%isPresent('meanCovarianceTarget')) then
           !![
           <inputParameter>
@@ -357,6 +370,16 @@ contains
       <defaultValue>var_str('')</defaultValue>
     </inputParameter>
     !!]
+    ! Bundle the (potentially partial) target data into a single object for the internal constructor.
+    targetData_=outputAnalysisTargetDataStandard(                            &
+         &                                       xAxisLabel      =xAxisLabel      , &
+         &                                       yAxisLabel      =yAxisLabel      , &
+         &                                       targetLabel     =targetLabel     , &
+         &                                       xAxisIsLog      =xAxisIsLog      , &
+         &                                       yAxisIsLog      =yAxisIsLog      , &
+         &                                       valueTarget     =meanValueTarget , &
+         &                                       covarianceTarget=meanCovarianceTarget &
+         &                                      )
     ! Build the object.
     !![
     <conditionalCall>
@@ -393,20 +416,14 @@ contains
            &amp;                        covarianceBinomialMassHaloMinimum                                                            , &amp;
            &amp;                        covarianceBinomialMassHaloMaximum                                                            , &amp;
            &amp;                        likelihoodNormalize                                                                          , &amp;
-           &amp;                        xAxisLabel                                                                                   , &amp;
-           &amp;                        yAxisLabel                                                                                   , &amp;
-           &amp;                        xAxisIsLog                                                                                   , &amp;
-           &amp;                        yAxisIsLog                                                                                   , &amp;
-           &amp;                        targetLabel                                                                                    &amp;
+           &amp;                        targetData_                                                                                    &amp;
            &amp;                        {conditions}                                                                                   &amp;
            &amp;                       )
      </call>
-     <argument name="meanValueTarget"      value="meanValueTarget"      parameterPresent="parameters"          />
-     <argument name="meanCovarianceTarget" value="meanCovarianceTarget" parameterPresent="parameters"          />
      <argument name="binWidth"             value="binWidth"                    condition="size(binCenter) == 1"/>
     </conditionalCall>
     <inputParametersValidate source="parameters"/>
-    <objectDestructor name="nodePropertyExtractor_"      />
+    <objectDestructor name="nodePropertyExtractor_"                />
     <objectDestructor name="outputAnalysisWeightPropertyExtractor_"/>
     <objectDestructor name="outputAnalysisPropertyOperator_"       />
     <objectDestructor name="outputAnalysisWeightPropertyOperator_" />
@@ -419,10 +436,11 @@ contains
     return
   end function meanFunction1DConstructorParameters
 
-  function meanFunction1DConstructorInternal(label,comment,propertyLabel,propertyComment,propertyUnits,propertyQuantity,propertyIsComoving,propertyUnitsInSI,meanLabel,meanComment,meanUnits,meanQuantity,meanIsComoving,meanUnitsInSI,binCenter,bufferCount,outputWeight,nodePropertyExtractor_,outputAnalysisWeightPropertyExtractor_,outputAnalysisPropertyOperator_,outputAnalysisWeightPropertyOperator_,outputAnalysisPropertyUnoperator_,outputAnalysisWeightOperator_,outputAnalysisDistributionOperator_,galacticFilter_,outputTimes_,covarianceModel,covarianceBinomialBinsPerDecade,covarianceBinomialMassHaloMinimum,covarianceBinomialMassHaloMaximum,likelihoodNormalize,xAxisLabel,yAxisLabel,xAxisIsLog,yAxisIsLog,targetLabel,meanValueTarget,meanCovarianceTarget,binWidth) result (self)
+  function meanFunction1DConstructorInternal(label,comment,propertyLabel,propertyComment,propertyUnits,propertyQuantity,propertyIsComoving,propertyUnitsInSI,meanLabel,meanComment,meanUnits,meanQuantity,meanIsComoving,meanUnitsInSI,binCenter,bufferCount,outputWeight,nodePropertyExtractor_,outputAnalysisWeightPropertyExtractor_,outputAnalysisPropertyOperator_,outputAnalysisWeightPropertyOperator_,outputAnalysisPropertyUnoperator_,outputAnalysisWeightOperator_,outputAnalysisDistributionOperator_,galacticFilter_,outputTimes_,covarianceModel,covarianceBinomialBinsPerDecade,covarianceBinomialMassHaloMinimum,covarianceBinomialMassHaloMaximum,likelihoodNormalize,targetData_,binWidth) result (self)
     !!{
     Constructor for the \refClass{outputAnalysisMeanFunction1D} output analysis class for internal use.
     !!}
+    use :: Error                                   , only : Error_Report
     use :: Output_Analysis_Distribution_Normalizers, only : outputAnalysisDistributionNormalizerIdentity
     use :: Output_Analysis_Property_Operators      , only : outputAnalysisPropertyOperatorBoolean       , outputAnalysisPropertyOperatorClass , outputAnalysisPropertyOperatorSequence, propertyOperatorList
     use :: Output_Analysis_Weight_Operators        , only : outputAnalysisWeightOperatorClass           , outputAnalysisWeightOperatorProperty, outputAnalysisWeightOperatorSequence  , weightOperatorList
@@ -433,15 +451,12 @@ contains
          &                                                                                                     meanLabel                                , meanComment                            , &
          &                                                                                                     propertyUnits                            , meanUnits                              , &
          &                                                                                                     propertyQuantity                         , meanQuantity
-    type            (varying_string                              ), intent(in   ), optional                 :: xAxisLabel                               , yAxisLabel                             , &
-         &                                                                                                     targetLabel
     double precision                                              , intent(in   )                           :: propertyUnitsInSI                        , meanUnitsInSI
     double precision                                              , intent(in   )          , dimension(:  ) :: binCenter
     integer         (c_size_t                                    ), intent(in   )                           :: bufferCount
     double precision                                              , intent(in   )          , dimension(:,:) :: outputWeight
-    logical                                                       , intent(in   ), optional                 :: xAxisIsLog                               , yAxisIsLog                             , &
-         &                                                                                                     propertyIsComoving                       , meanIsComoving                         , &
-         &                                                                                                     likelihoodNormalize
+    logical                                                       , intent(in   ), optional                 :: likelihoodNormalize
+    logical                                                       , intent(in   )                           :: propertyIsComoving                          , meanIsComoving
     double precision                                              , intent(in   ), optional                 :: binWidth
     class           (nodePropertyExtractorClass                  ), intent(inout), target                   :: nodePropertyExtractor_                   , outputAnalysisWeightPropertyExtractor_
     class           (outputAnalysisPropertyOperatorClass         ), intent(inout), target                   :: outputAnalysisPropertyOperator_          , outputAnalysisPropertyUnoperator_      , &
@@ -453,8 +468,7 @@ contains
     type            (enumerationOutputAnalysisCovarianceModelType), intent(in   )                           :: covarianceModel
     integer                                                       , intent(in   ), optional                 :: covarianceBinomialBinsPerDecade
     double precision                                              , intent(in   ), optional                 :: covarianceBinomialMassHaloMinimum        , covarianceBinomialMassHaloMaximum
-    double precision                                              , intent(in   ), optional, dimension(:  ) :: meanValueTarget
-    double precision                                              , intent(in   ), optional, dimension(:,:) :: meanCovarianceTarget
+    class           (outputAnalysisTargetDataClass               ), intent(in   ), optional                 :: targetData_
     type            (outputAnalysisDistributionNormalizerIdentity), pointer                                 :: outputAnalysisDistributionNormalizer_
     type            (outputAnalysisWeightOperatorSequence        ), pointer                                 :: outputAnalysisWeightOperatorWeighted_    , outputAnalysisWeightOperatorUnweighted_
     type            (weightOperatorList                          ), pointer                                 :: weightOperatorWeight_                    , weightOperatorUnweighted_
@@ -463,13 +477,37 @@ contains
     type            (outputAnalysisWeightOperatorProperty        ), pointer                                 :: weightOperatorUnweightedProperty_        , weightOperatorWeightProperty_
     type            (outputAnalysisPropertyOperatorBoolean       ), pointer                                 :: propertyOperatorUnweightedBoolean_
     !![
-    <constructorAssign variables="binWidth, bufferCount, covarianceModel, covarianceBinomialBinsPerDecade, covarianceBinomialMassHaloMinimum, covarianceBinomialMassHaloMaximum, label, comment, propertyLabel, propertyComment, propertyUnits, propertyQuantity, propertyIsComoving, propertyUnitsInSI, meanLabel, meanComment, meanUnits, meanQuantity, meanIsComoving, meanUnitsInSI, xAxisLabel, yAxisLabel, xAxisIsLog, yAxisIsLog, targetLabel, meanValueTarget, meanCovarianceTarget, *nodePropertyExtractor_, *outputAnalysisWeightPropertyExtractor_, *outputAnalysisPropertyOperator_, *outputAnalysisWeightPropertyOperator_, *outputAnalysisPropertyUnoperator_, *outputAnalysisWeightOperator_, *outputAnalysisDistributionOperator_, *galacticFilter_, *outputTimes_"/>
+    <constructorAssign variables="binWidth, bufferCount, covarianceModel, covarianceBinomialBinsPerDecade, covarianceBinomialMassHaloMinimum, covarianceBinomialMassHaloMaximum, label, comment, propertyLabel, propertyComment, propertyUnits, propertyQuantity, propertyIsComoving, propertyUnitsInSI, meanLabel, meanComment, meanUnits, meanQuantity, meanIsComoving, meanUnitsInSI, *nodePropertyExtractor_, *outputAnalysisWeightPropertyExtractor_, *outputAnalysisPropertyOperator_, *outputAnalysisWeightPropertyOperator_, *outputAnalysisPropertyUnoperator_, *outputAnalysisWeightOperator_, *outputAnalysisDistributionOperator_, *galacticFilter_, *outputTimes_"/>
     !!]
 
-    ! Set 1D covariance for descriptor.
-    if (present(meanCovarianceTarget)) &
-         & self%meanCovarianceTarget1D=reshape(meanCovarianceTarget,[size(meanCovarianceTarget)])
-    self       %outputWeight          =reshape(outputWeight        ,[size(outputWeight        )])
+    ! Initialise the bundled target-data fields.  An explicit `targetData_`
+    ! must be of the concrete `outputAnalysisTargetDataStandard` type (the
+    ! only impl in the project today); without one we default-construct,
+    ! matching the per-arg defaults the previous signature exposed.
+    if (present(targetData_)) then
+       select type (targetData_)
+       type is (outputAnalysisTargetDataStandard)
+          self%targetData_=targetData_
+       class default
+          call Error_Report('targetData_ must be of type outputAnalysisTargetDataStandard'//{introspection:location})
+       end select
+    else
+       self%targetData_=outputAnalysisTargetDataStandard()
+    end if
+    ! Mirror the bundled target-data fields onto the outer object so the auto-built descriptor
+    ! (which walks the type definition, not contained types) can reconstruct a parameter block
+    ! that recreates this object.  Reshape the 2D covariance into the 1D form the parameter
+    ! reader produces.
+    self%xAxisLabel =self%targetData_%xAxisLabel
+    self%yAxisLabel =self%targetData_%yAxisLabel
+    self%targetLabel=self%targetData_%targetLabel
+    self%xAxisIsLog =self%targetData_%xAxisIsLog
+    self%yAxisIsLog =self%targetData_%yAxisIsLog
+    if (self%targetData_%hasTarget()) then
+       self%meanValueTarget       =self%targetData_%valueTarget
+       self%meanCovarianceTarget1D=reshape(self%targetData_%covarianceTarget,[size(self%targetData_%covarianceTarget)])
+    end if
+    self%outputWeight=reshape(outputWeight,[size(outputWeight)])
     ! Mark as unfinalized.
     self%finalized=.false.
     ! Set normalization state for likelihood.
@@ -771,16 +809,16 @@ contains
     end if
     analysisGroup=inGroup%openGroup(char(self%label),char(self%comment))
     ! Write metadata describing this analysis.
-    call    analysisGroup%writeAttribute(     char(self%   comment   )                    ,'description'                                                                                                   )
+    call    analysisGroup%writeAttribute(     char(self%   comment              )         ,'description'                                                                                                   )
     call    analysisGroup%writeAttribute("function1D"                                     ,'type'                                                                                                          )
-    call    analysisGroup%writeAttribute(     char(self%   xAxisLabel)                    ,'xAxisLabel'                                                                                                    )
-    call    analysisGroup%writeAttribute(     char(self%   yAxisLabel)                    ,'yAxisLabel'                                                                                                    )
-    call    analysisGroup%writeAttribute(          self%   xAxisIsLog                     ,'xAxisIsLog'                                                                                                    )
-    call    analysisGroup%writeAttribute(          self%   yAxisIsLog                     ,'yAxisIsLog'                                                                                                    )
-    call    analysisGroup%writeAttribute(     char(self%propertyLabel)                    ,'xDataset'                                                                                                      )
-    call    analysisGroup%writeAttribute(     char(self%    meanLabel)                    ,'yDataset'                                                                                                      )
+    call    analysisGroup%writeAttribute(     char(self%targetData_%xAxisLabel)           ,'xAxisLabel'                                                                                                    )
+    call    analysisGroup%writeAttribute(     char(self%targetData_%yAxisLabel)           ,'yAxisLabel'                                                                                                    )
+    call    analysisGroup%writeAttribute(          self%targetData_%xAxisIsLog            ,'xAxisIsLog'                                                                                                    )
+    call    analysisGroup%writeAttribute(          self%targetData_%yAxisIsLog            ,'yAxisIsLog'                                                                                                    )
+    call    analysisGroup%writeAttribute(     char(self%propertyLabel           )         ,'xDataset'                                                                                                      )
+    call    analysisGroup%writeAttribute(     char(self%    meanLabel           )         ,'yDataset'                                                                                                      )
     call    analysisGroup%writeAttribute(     char(self%    meanLabel)//"Covariance"      ,'yCovariance'                                                                                                   )
-    if (allocated(self%meanValueTarget)) then
+    if (self%targetData_%hasTarget()) then
        call analysisGroup%writeAttribute(     char(self%    meanLabel)//"Target"          ,'yDatasetTarget'                                                                                                )
        call analysisGroup%writeAttribute(     char(self%    meanLabel)//"CovarianceTarget",'yCovarianceTarget'                                                                                             )
     end if
@@ -792,12 +830,12 @@ contains
     call    analysisGroup%writeDataset  (          self%meanCovariance                    ,char(self%    meanLabel)//"Covariance"      ,char(self%    meanComment)//" [covariance]",datasetReturned=dataset)
     call    dataset      %writeAttribute(unitType(self%meanUnitsInSI**2 ,description="["//char(self%meanUnits)//"]²",quantity="("//char(self%meanQuantity    )//")^2",isComoving=self%meanIsComoving    ),'units')
     ! If available, include the log-likelihood and target dataset.
-    if (allocated(self%meanValueTarget)) then
+    if (self%targetData_%hasTarget()) then
        call analysisGroup%writeAttribute(          self%logLikelihood()                   ,'logLikelihood'                                                                                                 )
-       call analysisGroup%writeAttribute(     char(self%targetLabel         )             ,'targetLabel'                                                                                                   )
-       call analysisGroup%writeDataset  (          self%meanValueTarget                   ,char(self%    meanLabel)//"Target"          ,char(self%    meanComment)                 ,datasetReturned=dataset)
+       call analysisGroup%writeAttribute(     char(self%targetData_%targetLabel)          ,'targetLabel'                                                                                                   )
+       call analysisGroup%writeDataset  (          self%targetData_%valueTarget           ,char(self%    meanLabel)//"Target"          ,char(self%    meanComment)                 ,datasetReturned=dataset)
        call dataset      %writeAttribute(unitType(self%meanUnitsInSI    ,description=     char(self%meanUnits    )  ,quantity=     char(self%meanQuantity    )       ,isComoving=self%meanIsComoving    ),'units')
-       call analysisGroup%writeDataset  (          self%meanCovarianceTarget              ,char(self%    meanLabel)//"CovarianceTarget",char(self%    meanComment)//" [covariance]",datasetReturned=dataset)
+       call analysisGroup%writeDataset  (          self%targetData_%covarianceTarget      ,char(self%    meanLabel)//"CovarianceTarget",char(self%    meanComment)//" [covariance]",datasetReturned=dataset)
        call dataset      %writeAttribute(unitType(self%meanUnitsInSI**2 ,description="["//char(self%meanUnits)//"]²",quantity="("//char(self%meanQuantity    )//")^2",isComoving=self%meanIsComoving    ),'units')
     end if
     !$ call hdf5Access%unset()
@@ -852,17 +890,17 @@ contains
     integer                                                                       :: status
 
     ! Check for existence of a target distribution.
-    if (allocated(self%meanValueTarget)) then
+    if (self%targetData_%hasTarget()) then
        ! Finalize analysis.
        call self%finalizeAnalysis()
        ! Allocate workspaces.
        allocate(meanCovarianceCombined(size(self%binCenter),size(self%binCenter)))
        allocate(meanValueDifference   (size(self%binCenter)                     ))
        ! Find combined covariance and difference between model and target.
-       meanValueDifference   =+self%meanValue            &
-            &                 -self%meanValueTarget
-       meanCovarianceCombined=+self%meanCovariance       &
-            &                 +self%meanCovarianceTarget
+       meanValueDifference   =+self%meanValue                  &
+            &                 -self%targetData_%valueTarget
+       meanCovarianceCombined=+self%meanCovariance             &
+            &                 +self%targetData_%covarianceTarget
        residual              = vector(meanValueDifference   )
        covariance            = matrix(meanCovarianceCombined)
        ! Compute the log-likelihood.

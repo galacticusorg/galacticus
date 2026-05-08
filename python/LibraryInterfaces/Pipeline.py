@@ -27,6 +27,7 @@ import re
 
 from List.ExtraUtils import as_array
 from LibraryInterfaces.ArgSpec import ArgSpec
+from LibraryInterfaces.Emitters import python_safe_name
 
 __all__ = [
     'assign_c_types', 'assign_c_attributes',
@@ -40,12 +41,35 @@ __all__ = [
 # types defined alongside the class but emits broken `use ::` lines for
 # shared types like treeNode, mergerTree, multiCounter, etc.
 #
+# This table is consulted by every site that has to decide which module a
+# referenced type lives in: the constructor-arg fall-back below, the
+# enumeration-arg lookup (where it short-circuits the moduleUses walk),
+# and `_find_enum_module` in libraryInterfaces.py for method return types.
+# An explicit entry always wins over the smart-lookup fall-backs.
+#
 # Add to this table when a new shared type starts appearing as a method or
 # constructor argument in libraryClasses.xml.
 _SHARED_TYPE_MODULES = {
-    'treeNode'    : 'Galacticus_Nodes',
-    'mergerTree'  : 'Galacticus_Nodes',
-    'multiCounter': 'Multi_Counters',
+    'treeNode'                                    : 'Galacticus_Nodes',
+    'mergerTree'                                  : 'Galacticus_Nodes',
+    'universe'                                    : 'Galacticus_Nodes',
+    'multiCounter'                                : 'Multi_Counters',
+    'history'                                     : 'Histories',
+    'keplerOrbit'                                 : 'Kepler_Orbits',
+    'hdf5Object'                                  : 'IO_HDF5',
+    'abundances'                                  : 'Abundances_Structure',
+    'chemicalAbundances'                          : 'Chemical_Abundances_Structure',
+    'multiExtractorList'                          : 'Node_Property_Extractors',
+    'enumerationFrameType'                        : 'Stellar_Luminosities_Structure',
+    'enumerationDestroyStubsType'                 : 'Merger_Tree_Build_Controllers',
+    'enumerationComponentTypeType'                : 'Galactic_Structure_Options',
+    'enumerationCoolingFromType'                  : 'Cooling_Options',
+    'enumerationIntervalTypeType'                 : 'Nodes_Operators',
+    'enumerationParticulateKernelType'            : 'Merger_Tree_Operators',
+    'enumerationRandomSampleCountTypeType'        : 'Tasks',
+    'enumerationRelativeToType'                   : 'Nodes_Operators',
+    'enumerationSelectionType'                    : 'Merger_Tree_Operators',
+    'enumerationOutputAnalysisCovarianceModelType': 'Output_Analyses_Options',
 }
 
 
@@ -54,6 +78,34 @@ _SHARED_TYPE_MODULES = {
 # and so needs no count companion — from a deferred-shape dimension(:),
 # which does.
 _DIM_FIXED_RX = re.compile(r'^dimension\s*\(\s*(\d+)\s*\)$')
+
+# Match a `len=N` literal in a character type-spec, used to detect
+# fixed-length character arrays (e.g. `character(len=2), dimension(:)`).
+# Variable-length forms (`len=*`, `len=:`) deliberately don't match — we
+# can't pack those into a fixed-stride byte buffer at the Python boundary.
+_CHAR_LEN_RX = re.compile(r'^len\s*=\s*(\d+)$')
+
+
+def _make_count_companion(name):
+    """Build a hidden c_size_t count companion ArgSpec for a deferred-shape
+    array argument.  The companion appears in the bind(c) signature and
+    is filled in by the Python wrapper from the input array's `.size`
+    or `.shape[i]`; it's never visible in the user-facing Python signature
+    nor passed to the inner Galacticus call.
+    """
+    return ArgSpec(
+        name                  = name,
+        intrinsic             = 'integer',
+        type_spec             = 'c_size_t',
+        attributes            = ['intent(in)'],
+        ctype                 = 'c_size_t',
+        fort_type             = 'integer(c_size_t)',
+        fort_is_present       = True,
+        py_is_present         = False,
+        galacticus_is_present = False,
+        is_optional           = False,
+        is_function_class     = False,
+    )
 
 
 def assign_c_types(argument_list, lib_function_classes):
@@ -79,14 +131,33 @@ def assign_c_types(argument_list, lib_function_classes):
         intrinsic     = arg.intrinsic
         type_spec_val = arg.type_spec
 
+        # Drop optional `integer(omp_lock_kind)` args entirely.  The OpenMP
+        # lock kind is platform-dependent (INTEGER(4) on Linux GCC,
+        # INTEGER(8) on macOS GCC); mapping it to a fixed C-interop kind
+        # picks the wrong size on one platform and produces a "passed
+        # INTEGER(4) to INTEGER(8)" type-mismatch when the wrapper calls
+        # the inner Galacticus method.  These args are also semantically
+        # meaningless to a Python caller — they coordinate threads inside
+        # the Fortran code — so simply omitting them and letting the
+        # inner method's `optional` default kick in is correct.
+        # `_unsupported_arg` rejects the surrounding method outright when
+        # the arg is non-optional, since dropping a required arg would
+        # silently mis-call the inner method.
+        if intrinsic == 'integer' and type_spec_val == 'omp_lock_kind':
+            continue
+
         if intrinsic == 'double precision':
             arg.ctype     = 'c_double'
             arg.fort_type = 'real(c_double)'
         elif intrinsic == 'integer':
             # Default kind maps to c_int; explicit C-interop kinds (c_long,
             # c_size_t) pass through with matching ctypes wrappers so that
-            # 64-bit values aren't silently truncated.
-            if type_spec_val == 'c_long':
+            # 64-bit values aren't silently truncated.  `kind_int8` is the
+            # Galacticus alias for `selected_int_kind(18)` (a 64-bit
+            # integer) — without this branch its arrays would be emitted
+            # as `integer(c_int)` and mismatch the inner method's
+            # `integer(kind_int8)` signature, breaking the build.
+            if type_spec_val in ('c_long', 'kind_int8'):
                 arg.ctype     = 'c_long'
                 arg.fort_type = 'integer(c_long)'
             elif type_spec_val == 'c_size_t':
@@ -99,8 +170,28 @@ def assign_c_types(argument_list, lib_function_classes):
             arg.ctype     = 'c_bool'
             arg.fort_type = 'logical(c_bool)'
         elif intrinsic == 'character':
-            arg.ctype     = 'c_char_p'
-            arg.fort_type = 'character(c_char)'
+            char_len_m = _CHAR_LEN_RX.match((type_spec_val or '').strip())
+            if char_len_m and 'dimension(:)' in arg.attributes:
+                # Fixed-length character array (`character(len=N),
+                # dimension(:)`).  bind(c) receives a flat
+                # `character(c_char), dimension(*)` byte buffer of total
+                # length count*N, plus the count companion inserted
+                # below; the wrapper repacks into `character(len=N),
+                # dimension(:)` before calling the inner method.  The
+                # `_p` suffix would otherwise drag this through the
+                # null-terminated-string scalar path in
+                # `build_fortran_reassignments`, which is wrong here.
+                arg.ctype     = 'c_char'
+                arg.fort_type = 'character(c_char)'
+                arg.char_len  = int(char_len_m.group(1))
+                # Fall through into the array-detection block below; it
+                # already handles deferred-shape `dimension(:)` for the
+                # numeric case, and we set `is_array` etc. there.
+            else:
+                # Scalar `character(c_char)` / `character(len=*)` / etc.
+                # — null-terminated C string round-trip.
+                arg.ctype     = 'c_char_p'
+                arg.fort_type = 'character(c_char)'
         elif intrinsic == 'type':
             if type_spec_val == 'varying_string':
                 arg.ctype     = 'c_char_p'
@@ -139,7 +230,7 @@ def assign_c_types(argument_list, lib_function_classes):
                     if arg.is_optional:
                         arg_id.attributes.append('optional')
                         arg_id.is_optional = True
-                        arg_id.py_present  = arg.name
+                        arg_id.py_present  = python_safe_name(arg.name)
                     # Insert _ID before the current front, then arg before that.
                     new_list.insert(0, arg_id)
 
@@ -152,25 +243,40 @@ def assign_c_types(argument_list, lib_function_classes):
         # Galacticus method receives an `arr(1:arr_count)` slice (see
         # build_fortran_reassignments).  Fixed-size needs no companion:
         # the length is in the dimension spec itself.
-        if intrinsic in ('double precision', 'integer'):
+        # Numeric arrays go straight through the array path; character
+        # arrays piggyback on the deferred-shape branch when their
+        # per-element length was resolved above (a fixed-len character
+        # array sets arg.char_len > 0; variable-len fell back to the
+        # scalar path and is_array stays False).
+        is_numeric_array_candidate = intrinsic in ('double precision', 'integer')
+        is_char_array_candidate    = intrinsic == 'character' and arg.char_len > 0
+        if is_numeric_array_candidate or is_char_array_candidate:
             if 'dimension(:)' in arg.attributes:
                 arg.is_array   = True
                 arg.array_size = None
-                count_arg = ArgSpec(
-                    name                  = arg.name + '_count',
-                    intrinsic             = 'integer',
-                    type_spec             = 'c_size_t',
-                    attributes            = ['intent(in)'],
-                    ctype                 = 'c_size_t',
-                    fort_type             = 'integer(c_size_t)',
-                    fort_is_present       = True,
-                    py_is_present         = False,
-                    galacticus_is_present = False,
-                    is_optional           = False,
-                    is_function_class     = False,
-                )
+                count_arg = _make_count_companion(arg.name + '_count')
                 new_list.insert(0, count_arg)
-            else:
+            elif is_numeric_array_candidate and 'dimension(:,:)' in arg.attributes:
+                # 2D deferred-shape numeric array: two count companions,
+                # one per axis.  The wrapper passes a flat C buffer plus
+                # the two dimensions; inside, we allocate a
+                # `dimension(:,:)` local of the right shape and reshape
+                # the flat input into it (column-major Fortran order, so
+                # the Python boundary uses np.asfortranarray).
+                arg.is_array   = True
+                arg.array_size = None
+                arg.array_rank = 2
+                count_arg_1 = _make_count_companion(arg.name + '_count_1')
+                count_arg_2 = _make_count_companion(arg.name + '_count_2')
+                # Insert in reverse so final order is arg, count_1, count_2.
+                new_list.insert(0, count_arg_2)
+                new_list.insert(0, count_arg_1)
+            elif is_numeric_array_candidate:
+                # Fixed-size numeric arrays (`dimension(N)`) need no
+                # count companion; the length is in the dimension spec.
+                # Fixed-size character arrays aren't supported yet — the
+                # only registered class needing them was already covered
+                # by the deferred-shape path.
                 for a in arg.attributes:
                     m = _DIM_FIXED_RX.match(a)
                     if m:
@@ -196,9 +302,14 @@ def assign_c_attributes(argument_list):
         # The companion <name>_count carries the runtime length, and the
         # inner Galacticus call slices arr(1:arr_count) to recover an
         # ordinary dimension(:) section — see build_fortran_reassignments.
+        # `dimension(:,:)` (rank-2 assumed-shape) is also illegal in
+        # bind(c); the wrapper takes a rank-1 flat buffer plus two
+        # count companions and rebuilds a rank-2 view inside via
+        # `reshape`, so the bind(c) signature collapses to
+        # `dimension(*)` for both rank-1 and rank-2 deferred shapes.
         attr_filters = []
         for a in arg.attributes:
-            if a == 'dimension(:)':
+            if a in ('dimension(:)', 'dimension(:,:)'):
                 attr_filters.append('dimension(*)')
             elif a.startswith('dimension') or a == 'allocatable':
                 attr_filters.append(a)
@@ -242,7 +353,13 @@ def build_python_reassignments(argument_list):
     for arg in reversed(argument_list):
         if arg.is_function_class:
             arg_id = new_list.pop(0)          # shift _ID off front of new list
-            name = arg.name
+            # Galacticus arg names that collide with Python keywords
+            # (`lambda`, `class`, ...) need to be escaped before being
+            # spliced into the generated Python source — every emitted
+            # `if {name}:` / `{name}._glcObj` would otherwise be a
+            # SyntaxError in the wrapper module.  Fortran-side identifier
+            # is unaffected (Fortran allows `lambda` as a name).
+            name = python_safe_name(arg.name)
             if arg.is_optional:
                 arg.py_pass_as       = name + '_glcObj'
                 arg_id.py_pass_as    = name + '_classID'
@@ -258,6 +375,101 @@ def build_python_reassignments(argument_list):
                 arg.py_pass_as    = name + '._glcObj'
                 arg_id.py_pass_as = name + '._classID'
             new_list.insert(0, arg_id)        # unshift _ID back
+        elif arg.is_array and arg.array_rank == 2:
+            # 2D deferred-shape numeric array.  Convert input to a
+            # contiguous Fortran-order numpy array (column-major) so the
+            # raw byte layout matches Fortran's `dimension(N, M)`
+            # convention; pass the data pointer plus shape[0]/shape[1]
+            # as the two count companions, in the same order they sit at
+            # the front of new_list (count_1 then count_2 — see
+            # assign_c_types).  For optional args, the conversion is
+            # gated on the input not being None — otherwise
+            # `np.asarray(None, dtype=...)` produces a 0D scalar that
+            # `np.asfortranarray` then promotes to 1D, tripping the
+            # ndim check below.  When absent we pass NULL as the data
+            # pointer and 0 for both counts; the bind(c) wrapper guards
+            # the reshape on `present()` so the values are unused.
+            np_dtype = _ARRAY_NUMPY_DTYPE.get(arg.ctype, 'float64')
+            safe = python_safe_name(arg.name)
+            count_arg_1 = new_list.pop(0)
+            count_arg_2 = new_list.pop(0)
+            if arg.is_optional:
+                arg.py_reassignment = (
+                    f'    if {safe} is not None:\n'
+                    f'        {safe} = np.asfortranarray('
+                    f'np.asarray({safe}, dtype=np.{np_dtype}))\n'
+                    f'        if {safe}.ndim != 2:\n'
+                    f'            raise ValueError('
+                    f'f"{arg.name} expects a 2D array, got '
+                    f'{{{safe}.ndim}}D")\n'
+                )
+                # The count companions' `py_pass_as` deliberately doesn't
+                # wrap the result in `c_size_t(...)` — `python_call_code`
+                # adds that wrap once the optional region begins, and a
+                # second wrap (`c_size_t(c_size_t(...))`) is rejected by
+                # ctypes ("'c_ulong' object cannot be interpreted as an
+                # integer").  Same logic for the 1D and character branches
+                # below.
+                count_arg_1.py_pass_as = f'{safe}.shape[0] if {safe} is not None else 0'
+                count_arg_2.py_pass_as = f'{safe}.shape[1] if {safe} is not None else 0'
+                arg.py_pass_as = (
+                    f'{safe}.ctypes.data_as(POINTER({arg.ctype})) if {safe} is not None else None'
+                )
+            else:
+                arg.py_reassignment = (
+                    f'    {safe} = np.asfortranarray('
+                    f'np.asarray({safe}, dtype=np.{np_dtype}))\n'
+                    f'    if {safe}.ndim != 2:\n'
+                    f'        raise ValueError('
+                    f'f"{arg.name} expects a 2D array, got '
+                    f'{{{safe}.ndim}}D")\n'
+                )
+                count_arg_1.py_pass_as = f'c_size_t({safe}.shape[0])'
+                count_arg_2.py_pass_as = f'c_size_t({safe}.shape[1])'
+                arg.py_pass_as = (
+                    f'{safe}.ctypes.data_as(POINTER({arg.ctype}))'
+                )
+            new_list.insert(0, count_arg_2)
+            new_list.insert(0, count_arg_1)
+        elif arg.is_array and arg.intrinsic == 'character':
+            # Fixed-length character array: build a contiguous count*N
+            # byte buffer.  Each input element is `str()`-coerced,
+            # right-padded (Fortran convention) and clipped to N chars,
+            # then ASCII-encoded.  numpy's `S{N}` dtype gives us a
+            # fixed-stride buffer whose `.size` is the element count and
+            # whose underlying memory is exactly the N-byte-per-element
+            # layout the inner Fortran method expects.  Optional-arg
+            # handling matches the 2D-array branch above.
+            safe = python_safe_name(arg.name)
+            n    = arg.char_len
+            count_arg = new_list.pop(0)
+            if arg.is_optional:
+                arg.py_reassignment = (
+                    f"    if {safe} is not None:\n"
+                    f"        {safe} = np.ascontiguousarray("
+                    f"np.array("
+                    f"[(str(s).ljust({n}))[:{n}].encode('ascii') for s in {safe}],"
+                    f" dtype='S{n}'))\n"
+                )
+                # See the 2D branch above — let python_call_code's outer
+                # `c_size_t(...)` wrap supply the conversion; double-wrap
+                # is rejected by ctypes.
+                count_arg.py_pass_as = f'{safe}.size if {safe} is not None else 0'
+                arg.py_pass_as = (
+                    f'{safe}.ctypes.data_as(POINTER(c_char)) if {safe} is not None else None'
+                )
+            else:
+                arg.py_reassignment = (
+                    f"    {safe} = np.ascontiguousarray("
+                    f"np.array("
+                    f"[(str(s).ljust({n}))[:{n}].encode('ascii') for s in {safe}],"
+                    f" dtype='S{n}'))\n"
+                )
+                count_arg.py_pass_as = f'c_size_t({safe}.size)'
+                arg.py_pass_as = (
+                    f'{safe}.ctypes.data_as(POINTER(c_char))'
+                )
+            new_list.insert(0, count_arg)
         elif arg.is_array:
             # 1D numeric array: convert the user's input (numpy array, list,
             # tuple) to a contiguous ndarray of the right dtype, then pass
@@ -268,25 +480,65 @@ def build_python_reassignments(argument_list):
             # mismatched input raises a clear ValueError instead of
             # silently corrupting Fortran-side memory.
             np_dtype  = _ARRAY_NUMPY_DTYPE.get(arg.ctype, 'float64')
+            # See the function-class branch above for the rationale —
+            # `lambda` / `class` / ... can appear as a Galacticus arg name
+            # and must be escaped before splicing into Python source.
+            safe = python_safe_name(arg.name)
             if arg.array_size is None:
                 count_arg = new_list.pop(0)
-                arg.py_reassignment = (
-                    f'    {arg.name} = np.ascontiguousarray({arg.name},'
-                    f' dtype=np.{np_dtype})\n'
-                )
-                count_arg.py_pass_as = f'c_size_t({arg.name}.size)'
+                if arg.is_optional:
+                    # Optional 1D array: gate on None so that
+                    # `np.ascontiguousarray(None, dtype=...)` (which
+                    # produces a 0-D scalar in modern numpy and breaks
+                    # downstream `.size` / `.ctypes` access) never runs.
+                    # The count companion's `py_pass_as` doesn't wrap
+                    # in `c_size_t(...)` — `python_call_code` adds that
+                    # wrap once the optional region begins; double-wrap
+                    # is rejected by ctypes.
+                    arg.py_reassignment = (
+                        f'    if {safe} is not None:\n'
+                        f'        {safe} = np.ascontiguousarray({safe},'
+                        f' dtype=np.{np_dtype})\n'
+                    )
+                    count_arg.py_pass_as = f'{safe}.size if {safe} is not None else 0'
+                    arg.py_pass_as = (
+                        f'{safe}.ctypes.data_as(POINTER({arg.ctype})) if {safe} is not None else None'
+                    )
+                else:
+                    arg.py_reassignment = (
+                        f'    {safe} = np.ascontiguousarray({safe},'
+                        f' dtype=np.{np_dtype})\n'
+                    )
+                    count_arg.py_pass_as = f'c_size_t({safe}.size)'
+                    arg.py_pass_as = (
+                        f'{safe}.ctypes.data_as(POINTER({arg.ctype}))'
+                    )
                 new_list.insert(0, count_arg)
             else:
+                # Fixed-size: `array_size` is the literal length.
                 arg.py_reassignment = (
-                    f'    {arg.name} = np.ascontiguousarray({arg.name},'
+                    f'    {safe} = np.ascontiguousarray({safe},'
                     f' dtype=np.{np_dtype})\n'
-                    f'    if {arg.name}.size != {arg.array_size}:\n'
+                    f'    if {safe}.size != {arg.array_size}:\n'
                     f'        raise ValueError('
                     f'f"{arg.name} expects {arg.array_size} elements, got '
-                    f'{{{arg.name}.size}}")\n'
+                    f'{{{safe}.size}}")\n'
                 )
-            arg.py_pass_as = (
-                f'{arg.name}.ctypes.data_as(POINTER({arg.ctype}))'
+                arg.py_pass_as = (
+                    f'{safe}.ctypes.data_as(POINTER({arg.ctype}))'
+                )
+        elif arg.ctype == 'c_char_p':
+            # Scalar `character(...)` and `type(varying_string)` args both
+            # cross the boundary as a `c_char_p` (NUL-terminated C string),
+            # which ctypes implements with Python `bytes`.  Python users
+            # naturally pass `str` though, and ctypes won't auto-encode —
+            # it raises "bytes or integer address expected instead of str
+            # instance".  Encode at the boundary; `None` and `bytes` pass
+            # through unchanged.
+            safe = python_safe_name(arg.name)
+            arg.py_reassignment = (
+                f'    if isinstance({safe}, str):\n'
+                f'        {safe} = {safe}.encode("utf-8")\n'
             )
         new_list.insert(0, arg)               # unshift current arg
     return new_list
@@ -334,7 +586,80 @@ def build_fortran_reassignments(argument_list, func_class, implementation,
         is_optional   = arg.is_optional
         opt_prefix    = f'if (present({name})) ' if is_optional else ''
 
-        if arg.is_array:
+        if arg.is_array and arg.array_rank == 2:
+            # 2D deferred-shape numeric array.  bind(c) receives the
+            # buffer as a flat `dimension(*)` block plus two c_size_t
+            # counts.  Allocate a `dimension(:,:)` local of the right
+            # shape and reshape the flat slice into it (column-major
+            # Fortran order — the Python side already laid the buffer
+            # out F-contiguous via np.asfortranarray).  Allocatable
+            # sidesteps any concerns about forward-referencing the
+            # dummy counts in an automatic-array size spec, and the
+            # local is auto-deallocated when the wrapper returns.
+            #
+            # Optional args are gated on `present(...)` because the
+            # bind(c) buffer is a NULL pointer when the user passed
+            # None on the Python side; slicing it would segfault.
+            arg.fort_declarations = (
+                f'  {arg.fort_type}, dimension(:,:), allocatable'
+                f' :: {name}_F_\n'
+            )
+            reassign = (
+                f'allocate({name}_F_({name}_count_1, {name}_count_2))\n'
+                f'{name}_F_ = reshape('
+                f'{name}(1:{name}_count_1*{name}_count_2),'
+                f' [{name}_count_1, {name}_count_2])\n'
+            )
+            if is_optional:
+                reassign = (
+                    f'if (present({name})) then\n'
+                    f'   {reassign.replace(chr(10), chr(10) + "   ").rstrip()}\n'
+                    f'end if\n'
+                )
+            arg.fort_reassignment = reassign
+            arg.fort_pass_as = f'{name}_F_'
+        elif arg.is_array and arg.intrinsic == 'character':
+            # Fixed-length character array.  bind(c) declares it as a
+            # flat `character(c_char), dimension(*)` byte buffer (length
+            # count*N); the inner Galacticus method wants
+            # `character(len=N), dimension(:)`.  Repack into an
+            # allocatable local of the right type, copying byte-by-byte
+            # (an explicit do-loop is bulletproof across compilers, and
+            # allocatable sidesteps any concerns about forward-reference
+            # to the count dummy in an automatic-array size spec).  The
+            # local is auto-deallocated when the wrapper returns.
+            n = arg.char_len
+            # Both loop indices are c_size_t to match the count
+            # companion's kind — the outer loop runs to {name}_count
+            # (c_size_t), and arithmetic mixing kinds in the index
+            # expression `({name}_glcI_-1)*N + {name}_glcJ_` is cleanest
+            # when both are the same kind.
+            arg.fort_declarations = (
+                f'  character(len={n}), dimension(:), allocatable'
+                f' :: {name}_F_\n'
+                f'  integer(c_size_t) :: {name}_glcI_, {name}_glcJ_\n'
+            )
+            reassign = (
+                f'allocate({name}_F_({name}_count))\n'
+                f'do {name}_glcI_ = 1, {name}_count\n'
+                f'  do {name}_glcJ_ = 1, {n}\n'
+                f'    {name}_F_({name}_glcI_)({name}_glcJ_:{name}_glcJ_)'
+                f' = {name}(({name}_glcI_-1)*{n} + {name}_glcJ_)\n'
+                f'  end do\n'
+                f'end do\n'
+            )
+            if is_optional:
+                # See the 2D branch above for the rationale: optional
+                # arrays may be a NULL pointer at bind(c), and indexing
+                # them would segfault.
+                reassign = (
+                    f'if (present({name})) then\n'
+                    f'   {reassign.replace(chr(10), chr(10) + "   ").rstrip()}\n'
+                    f'end if\n'
+                )
+            arg.fort_reassignment = reassign
+            arg.fort_pass_as = f'{name}_F_'
+        elif arg.is_array:
             # 1D numeric array.  Deferred-shape needs slicing — the bind(c)
             # signature has `dimension(*)` (assumed-size) plus a separate
             # <name>_count, so we hand the inner method a section
@@ -367,9 +692,14 @@ def build_fortran_reassignments(argument_list, func_class, implementation,
                 arg.fort_declarations = f'type({type_spec_val}) :: {name}_\n'
                 arg.fort_pass_as      = name + '_'
                 arg.fort_reassignment = f'{opt_prefix}{name}_%ID={name}\n'
-                # Locate the module that imports this enumeration type:
+                # Locate the module that imports this enumeration type.
+                # 0. an explicit override in _SHARED_TYPE_MODULES wins outright
+                #    — used when the impl file's own moduleUses don't carry the
+                #    type explicitly (e.g. when the enum is defined in the same
+                #    module the impl is included into) so the walk below would
+                #    otherwise miss it.
+                import_module = _SHARED_TYPE_MODULES.get(type_spec_val)
                 # 1. walk implementation's module uses, following the extends chain.
-                import_module = None
                 if implementation:
                     cls = implementation['name']
                     while cls and not import_module:

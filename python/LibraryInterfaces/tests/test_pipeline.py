@@ -8,6 +8,7 @@
 import pytest
 
 from LibraryInterfaces.ArgSpec  import ArgSpec
+from LibraryInterfaces.Emitters import python_call_code
 from LibraryInterfaces.Pipeline import (
     assign_c_types,
     assign_c_attributes,
@@ -46,6 +47,26 @@ def test_assign_c_types_integer_kinds(kind, expected_ctype, expected_fort):
     out = assign_c_types(raw, lib_function_classes={})
     assert out[0].ctype     == expected_ctype
     assert out[0].fort_type == expected_fort
+
+
+def test_assign_c_types_optional_omp_lock_kind_is_dropped():
+    """`integer(omp_lock_kind)` has a platform-dependent size — INTEGER(4)
+    on Linux GCC, INTEGER(8) on macOS GCC — so the wrapper can't pick a
+    single C-interop kind that matches the inner method on both
+    platforms.  Optional ones are silently dropped from the wrapper
+    (the inner method's optional default kicks in); the surrounding
+    method's other args still flow through unchanged."""
+    raw = [
+        {'name': 'tree',  'intrinsic': 'type', 'type': 'mergerTree',
+         'attributes': ['intent(inout)', 'target']},
+        {'name': 'initializationLock', 'intrinsic': 'integer',
+         'type': 'omp_lock_kind',
+         'attributes': ['intent(inout)', 'optional']},
+    ]
+    out = assign_c_types(raw, lib_function_classes={})
+    names = [a.name for a in out]
+    assert 'initializationLock' not in names
+    assert 'tree' in names
 
 
 def test_assign_c_types_varying_string_maps_to_c_char_p():
@@ -366,6 +387,115 @@ def test_python_reassignments_array_arg_converts_via_numpy():
     assert out[1].py_pass_as == 'c_size_t(times.size)'
 
 
+def test_python_reassignments_optional_array_gates_conversion_on_None():
+    """An optional 1D array gates the np.ascontiguousarray conversion on
+    `is not None`.  Without the gate, a default value of None propagates
+    into `np.ascontiguousarray(None, dtype=...)` which yields a 0-D
+    scalar in modern numpy and breaks downstream `.size` / `.ctypes`
+    access.  The pass expression and count are likewise None-aware so
+    the absent-arg branch of python_call_code passes a NULL pointer
+    and a zero count cleanly."""
+    arr = ArgSpec(name='valueTarget', intrinsic='double precision',
+                  ctype='c_double', is_array=True, is_optional=True)
+    cnt = ArgSpec(name='valueTarget_count', intrinsic='integer',
+                  type_spec='c_size_t', ctype='c_size_t',
+                  fort_is_present=True, py_is_present=False,
+                  galacticus_is_present=False)
+    out = build_python_reassignments([arr, cnt])
+    assert 'if valueTarget is not None:' in out[0].py_reassignment
+    assert 'np.ascontiguousarray(valueTarget'  in out[0].py_reassignment
+    assert out[0].py_pass_as == \
+        'valueTarget.ctypes.data_as(POINTER(c_double)) if valueTarget is not None else None'
+    # Count companion: NOT wrapped in c_size_t(...) — python_call_code
+    # adds that once the arg crosses the first-optional boundary, and a
+    # second wrap (c_size_t(c_size_t(...))) is rejected by ctypes.
+    assert out[1].py_pass_as == \
+        'valueTarget.size if valueTarget is not None else 0'
+
+
+def test_python_reassignments_optional_2d_array_gates_conversion_on_None():
+    """Same gating for the 2D case.  Without it,
+    `np.asfortranarray(np.asarray(None, dtype=...))` produces a 1-D
+    array (asarray gives 0-D, asfortranarray promotes) and trips the
+    ndim==2 check below the conversion."""
+    arr = ArgSpec(name='covarianceTarget', intrinsic='double precision',
+                  ctype='c_double', is_array=True, array_rank=2,
+                  is_optional=True)
+    c1  = ArgSpec(name='covarianceTarget_count_1', intrinsic='integer',
+                  type_spec='c_size_t', ctype='c_size_t',
+                  fort_is_present=True, py_is_present=False,
+                  galacticus_is_present=False)
+    c2  = ArgSpec(name='covarianceTarget_count_2', intrinsic='integer',
+                  type_spec='c_size_t', ctype='c_size_t',
+                  fort_is_present=True, py_is_present=False,
+                  galacticus_is_present=False)
+    out = build_python_reassignments([arr, c1, c2])
+    assert 'if covarianceTarget is not None:'        in out[0].py_reassignment
+    assert 'covarianceTarget is not None else None'  in out[0].py_pass_as
+    # Same c_size_t double-wrap concern as the 1D test above — leave
+    # the wrap to python_call_code; emit a plain Python int / 0 here.
+    assert 'covarianceTarget is not None else 0'     in out[1].py_pass_as
+    assert 'covarianceTarget is not None else 0'     in out[2].py_pass_as
+    assert 'c_size_t' not in out[1].py_pass_as
+    assert 'c_size_t' not in out[2].py_pass_as
+
+
+def test_fortran_reassignments_optional_2d_array_gated_on_present():
+    """Optional 2D array's fort_reassignment is wrapped in
+    `if (present(...)) then ... end if` so the bind(c) wrapper doesn't
+    slice a NULL pointer when the user passed None on the Python side."""
+    arr = ArgSpec(name='arr', intrinsic='double precision',
+                  ctype='c_double', fort_type='real(c_double)',
+                  is_array=True, array_rank=2, is_optional=True)
+    out = build_fortran_reassignments(
+        [arr], func_class={}, implementation=None,
+        extensions={}, module_uses_impls={},
+    )
+    assert 'if (present(arr)) then'   in out[0].fort_reassignment
+    assert 'allocate(arr_F_'          in out[0].fort_reassignment
+    assert 'reshape(arr(1:'           in out[0].fort_reassignment
+    assert 'end if'                   in out[0].fort_reassignment
+
+
+def test_python_reassignments_c_char_p_encodes_str_to_bytes():
+    """ctypes' c_char_p expects bytes (it implements `char *` as a
+    NUL-terminated byte string).  Python users naturally pass `str`,
+    and ctypes won't auto-encode — it raises 'bytes or integer address
+    expected instead of str instance'.  build_python_reassignments
+    must emit an isinstance-gated `.encode()` so str inputs work and
+    None / bytes pass through unchanged."""
+    s = ArgSpec(name='xAxisLabel', intrinsic='type', type_spec='varying_string',
+                ctype='c_char_p', is_optional=True)
+    out = build_python_reassignments([s])
+    assert 'isinstance(xAxisLabel, str)'        in out[0].py_reassignment
+    assert 'xAxisLabel = xAxisLabel.encode('    in out[0].py_reassignment
+
+
+def test_python_reassignments_c_char_p_uses_safe_name_for_keyword_args():
+    """A `class`/`lambda`/... arg name has been escaped via python_safe_name
+    in the Python signature, so the encode reassignment must reference the
+    escaped identifier — otherwise the generated code raises NameError."""
+    s = ArgSpec(name='class', intrinsic='character', ctype='c_char_p')
+    out = build_python_reassignments([s])
+    assert 'isinstance(class_, str)' in out[0].py_reassignment
+    assert 'class_ = class_.encode(' in out[0].py_reassignment
+
+
+def test_python_call_code_array_arg_not_wrapped_in_ctype():
+    """Array args are passed as POINTER(...) expressions; wrapping them
+    in `{ctype}(pa)` (e.g. `c_double(<pointer>)`) — which is what
+    python_call_code does for scalar optional args — would crash at
+    runtime.  python_call_code must recognise is_array and pass the
+    expression directly."""
+    arr = ArgSpec(name='valueTarget', intrinsic='double precision',
+                  ctype='c_double', is_array=True, is_optional=True,
+                  py_pass_as='valueTarget.ctypes.data_as(POINTER(c_double)) if valueTarget is not None else None',
+                  fort_is_present=True)
+    out = python_call_code([arr], 'self._glcObj = c_lib.fooL')
+    assert 'c_double(valueTarget' not in out
+    assert 'valueTarget.ctypes.data_as(POINTER(c_double))' in out
+
+
 def test_fortran_reassignments_treeNode_uses_c_f_pointer():
     args = [ArgSpec(name='n', intrinsic='type', type_spec='treeNode')]
     out = build_fortran_reassignments(
@@ -448,3 +578,150 @@ def test_fortran_reassignments_arbitrary_derived_type_uses_c_f_pointer():
     )
     assert 'call c_f_pointer(cosmo,cosmo_)' in out[0].fort_reassignment
     assert 'cosmologyParameters' in out[0].fort_modules['Cosmology_Parameters']
+
+
+# ---------------------------------------------------------------------------
+# 2D deferred-shape numeric arrays — `dimension(:,:)`
+# ---------------------------------------------------------------------------
+
+def test_assign_c_types_2d_array_inserts_two_count_companions():
+    """A `double precision, dimension(:,:)` argument expands into the
+    arg followed by two c_size_t count companions (one per axis).
+    array_rank=2 marks it for the 2D-specific Python and Fortran paths."""
+    raw = [{'name': 'covariance', 'intrinsic': 'double precision', 'type': None,
+            'attributes': ['intent(in)', 'dimension(:,:)']}]
+    out = assign_c_types(raw, lib_function_classes={})
+    assert [a.name for a in out] == [
+        'covariance', 'covariance_count_1', 'covariance_count_2',
+    ]
+    assert out[0].is_array   is True
+    assert out[0].array_rank == 2
+    assert out[0].ctype      == 'c_double'
+    assert all(c.ctype == 'c_size_t' for c in out[1:])
+    assert all(c.py_is_present is False and c.galacticus_is_present is False
+               for c in out[1:])
+
+
+def test_assign_c_attributes_2d_array_collapsed_to_dimension_star():
+    """Both `dimension(:)` and `dimension(:,:)` collapse to `dimension(*)`
+    on the bind(c) signature — assumed-shape isn't interoperable, and the
+    wrapper rebuilds the rank-2 view inside via `reshape`."""
+    raw = [{'name': 'm', 'intrinsic': 'double precision', 'type': None,
+            'attributes': ['intent(in)', 'dimension(:,:)']}]
+    out = assign_c_types(raw, lib_function_classes={})
+    out = assign_c_attributes(out)
+    assert 'dimension(*)' in out[0].fort_attributes
+    assert 'dimension(:,:)' not in out[0].fort_attributes
+
+
+def test_python_reassignments_2d_array_uses_asfortranarray_with_shape_counts():
+    """The Python wrapper converts inputs through np.asfortranarray (so
+    the underlying buffer matches Fortran's column-major layout) and
+    fills both count companions from `.shape[0]` / `.shape[1]`."""
+    arr = ArgSpec(name='m', intrinsic='double precision',
+                  ctype='c_double', is_array=True, array_rank=2)
+    c1  = ArgSpec(name='m_count_1', intrinsic='integer',
+                  type_spec='c_size_t', ctype='c_size_t',
+                  fort_is_present=True, py_is_present=False,
+                  galacticus_is_present=False)
+    c2  = ArgSpec(name='m_count_2', intrinsic='integer',
+                  type_spec='c_size_t', ctype='c_size_t',
+                  fort_is_present=True, py_is_present=False,
+                  galacticus_is_present=False)
+    out = build_python_reassignments([arr, c1, c2])
+    assert 'np.asfortranarray' in out[0].py_reassignment
+    assert 'm.ndim != 2'       in out[0].py_reassignment
+    assert out[1].py_pass_as == 'c_size_t(m.shape[0])'
+    assert out[2].py_pass_as == 'c_size_t(m.shape[1])'
+    assert out[0].py_pass_as == 'm.ctypes.data_as(POINTER(c_double))'
+
+
+def test_fortran_reassignments_2d_array_reshapes_into_local():
+    """The wrapper allocates a `dimension(:,:)` local and reshapes the
+    flat bind(c) buffer into it before passing to the inner Galacticus
+    method; the inner call receives the rank-2 local, not the flat
+    rank-1 dummy."""
+    arr = ArgSpec(name='m', intrinsic='double precision',
+                  ctype='c_double', fort_type='real(c_double)',
+                  is_array=True, array_rank=2)
+    out = build_fortran_reassignments(
+        [arr], func_class={}, implementation=None,
+        extensions={}, module_uses_impls={},
+    )
+    decls    = out[0].fort_declarations
+    reassign = out[0].fort_reassignment
+    assert 'real(c_double), dimension(:,:), allocatable :: m_F_' in decls
+    assert 'allocate(m_F_(m_count_1, m_count_2))' in reassign
+    assert 'reshape(m(1:m_count_1*m_count_2), [m_count_1, m_count_2])' in reassign
+    assert out[0].fort_pass_as == 'm_F_'
+
+
+# ---------------------------------------------------------------------------
+# 1D fixed-length character arrays — `character(len=N), dimension(:)`
+# ---------------------------------------------------------------------------
+
+def test_assign_c_types_char_array_inserts_count_companion():
+    """`character(len=2), dimension(:)` is treated as a 1D array: a hidden
+    c_size_t count companion is inserted, the element ctype is c_char,
+    and char_len is captured for the downstream emitters."""
+    raw = [{'name': 'elements', 'intrinsic': 'character', 'type': 'len=2',
+            'attributes': ['intent(in)', 'dimension(:)']}]
+    out = assign_c_types(raw, lib_function_classes={})
+    assert [a.name for a in out] == ['elements', 'elements_count']
+    assert out[0].is_array  is True
+    assert out[0].ctype     == 'c_char'
+    assert out[0].fort_type == 'character(c_char)'
+    assert out[0].char_len  == 2
+    assert out[1].ctype     == 'c_size_t'
+
+
+def test_assign_c_types_scalar_character_unaffected():
+    """Plain `character(len=*)` / `character(c_char)` scalars still go
+    through the null-terminated-string path (ctype=c_char_p), not the new
+    array branch."""
+    raw = [{'name': 'name', 'intrinsic': 'character', 'type': 'len=*',
+            'attributes': ['intent(in)']}]
+    out = assign_c_types(raw, lib_function_classes={})
+    assert len(out) == 1
+    assert out[0].is_array is False
+    assert out[0].char_len == 0
+    assert out[0].ctype    == 'c_char_p'
+
+
+def test_python_reassignments_char_array_packs_to_fixed_byte_buffer():
+    """The Python wrapper space-pads + clips each input string to N
+    characters, encodes ASCII, and lays them out contiguously as `S{N}`
+    so .ctypes.data_as gives a valid count*N byte buffer to bind(c)."""
+    arr = ArgSpec(name='elements', intrinsic='character',
+                  ctype='c_char', char_len=2, is_array=True)
+    cnt = ArgSpec(name='elements_count', intrinsic='integer',
+                  type_spec='c_size_t', ctype='c_size_t',
+                  fort_is_present=True, py_is_present=False,
+                  galacticus_is_present=False)
+    out = build_python_reassignments([arr, cnt])
+    assert "ljust(2)" in out[0].py_reassignment
+    assert "[:2]"     in out[0].py_reassignment
+    assert "dtype='S2'" in out[0].py_reassignment
+    assert out[0].py_pass_as == "elements.ctypes.data_as(POINTER(c_char))"
+    # Count companion reads .size off the now-numpy buffer.
+    assert out[1].py_pass_as == 'c_size_t(elements.size)'
+
+
+def test_fortran_reassignments_char_array_repacks_into_local():
+    """The wrapper allocates a `character(len=N), dimension(:)` local,
+    copies the flat bind(c) byte buffer in element by element, and
+    passes that local to the inner Galacticus call."""
+    arr = ArgSpec(name='elements', intrinsic='character',
+                  ctype='c_char', fort_type='character(c_char)',
+                  char_len=2, is_array=True)
+    out = build_fortran_reassignments(
+        [arr], func_class={}, implementation=None,
+        extensions={}, module_uses_impls={},
+    )
+    decls = out[0].fort_declarations
+    reassign = out[0].fort_reassignment
+    assert 'character(len=2), dimension(:), allocatable :: elements_F_' in decls
+    assert 'allocate(elements_F_(elements_count))' in reassign
+    assert 'elements_F_(elements_glcI_)(elements_glcJ_:elements_glcJ_)' in reassign
+    assert 'elements((elements_glcI_-1)*2 + elements_glcJ_)' in reassign
+    assert out[0].fort_pass_as == 'elements_F_'

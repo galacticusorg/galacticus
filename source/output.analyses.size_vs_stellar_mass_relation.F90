@@ -277,6 +277,7 @@ contains
     use :: Numerical_Constants_Prefixes          , only : giga
     use :: Output_Analyses_Options               , only : outputAnalysisCovarianceModelPoisson
     use :: Output_Analysis_Distribution_Operators, only : outputAnalysisDistributionOperatorRandomErrorPlynml
+    use :: Output_Analysis_Target_Data           , only : outputAnalysisTargetDataStandard
     use :: Output_Analysis_Property_Operators    , only : outputAnalysisPropertyOperatorAntiLog10                       , outputAnalysisPropertyOperatorCsmlgyLmnstyDstnc, propertyOperatorList                          , outputAnalysisPropertyOperatorLog10, &
           &                                               outputAnalysisPropertyOperatorSequence                        , outputAnalysisPropertyOperatorSystmtcPolynomial, outputAnalysisPropertyOperatorCsmlgyAnglrDstnc
     use :: Output_Analysis_Utilities             , only : Output_Analysis_Output_Weight_Survey_Volume
@@ -342,6 +343,7 @@ contains
          &                                                                                                  groupCosmology
     character       (len=4                                              )                                :: redshiftMinimumLabel                                          , redshiftMaximumLabel
     type            (enumerationFilterTypeType                          )                                :: filterType
+    type            (outputAnalysisTargetDataStandard)                              :: outputAnalysisTargetData_
     !![
     <constructorAssign variables="fileNameTarget, sample, likelihoodBins, likelihoodBinsAutomatic, likelihoodNormalize, computeScatter, systematicErrorPolynomialCoefficient, systematicErrorMassStellarPolynomialCoefficient, randomErrorMassStellarPolynomialCoefficient, randomErrorMassStellarMinimum, randomErrorMassStellarMaximum, *cosmologyParameters_, *cosmologyFunctions_, *outputTimes_, *starFormationRateDisks_, *starFormationRateSpheroids_, *starFormationRateNuclearStarClusters_"/>
     !!]
@@ -617,6 +619,15 @@ contains
     ! is appropriate to counting analyses (e.g. mass functions), but not to this type of mean or scatter analysis.
     select type (outputAnalysis_ => self%outputAnalysis_)
     type is (outputAnalysisScatterFunction1D)
+       outputAnalysisTargetData_=outputAnalysisTargetDataStandard(                                                                                                                              &
+          &                                                                                   xAxisLabel      =var_str('$M_\star/\mathrm{M}_\odot$'                       )                                              , &
+          &                                                                                   yAxisLabel      =var_str('$\sigma_{\log_{10}(R_\mathrm{eff}/\mathrm{Mpc})}$')                                              , &
+          &                                                                                   xAxisIsLog      =.true.                                                                                                     , &
+          &                                                                                   yAxisIsLog      =.false.                                                                                                    , &
+          &                                                                                   targetLabel     =referenceTarget                                                                                            , &
+          &                                                                                   valueTarget     =radiusEffectiveScatterTarget                                                                               , &
+          &                                                                                   covarianceTarget=radiusEffectiveScatterCovarianceTarget                                                                       &
+          &                                                                                  )
        !![
        <referenceConstruct isResult="yes" object="outputAnalysis_">
         <constructor>
@@ -649,18 +660,21 @@ contains
           &amp;                                                  outputTimes_                                                                                                                       , &amp;
           &amp;                                                  outputAnalysisCovarianceModelPoisson                                                                                               , &amp;
           &amp;                          likelihoodNormalize    =likelihoodNormalize                                                                                                                , &amp;
-          &amp;                          xAxisLabel             =var_str('$M_\star/\mathrm{M}_\odot$'                       )                                                                       , &amp;
-          &amp;                          yAxisLabel             =var_str('$\sigma_{\log_{10}(R_\mathrm{eff}/\mathrm{Mpc})}$')                                                                       , &amp;
-          &amp;                          xAxisIsLog             =.true.                                                                                                                             , &amp;
-          &amp;                          yAxisIsLog             =.false.                                                                                                                            , &amp;
-          &amp;                          targetLabel            =referenceTarget                                                                                                                    , &amp;
-          &amp;                          scatterValueTarget     =radiusEffectiveScatterTarget                                                                                                       , &amp;
-          &amp;                          scatterCovarianceTarget=radiusEffectiveScatterCovarianceTarget                                                                                               &amp;
+          &amp;                          targetData_            =outputAnalysisTargetData_                                                                                                                              &amp;
           &amp;                         )
         </constructor>
        </referenceConstruct>
        !!]
     type is (outputAnalysisMeanFunction1D   )
+       outputAnalysisTargetData_=outputAnalysisTargetDataStandard(                                                                      &
+          &                                                       xAxisLabel      =var_str('$M_\star\mathrm{M}_\odot$'               ), &
+          &                                                       yAxisLabel      =var_str('$\log_{10}(R_\mathrm{eff}/\mathrm{Mpc})$'), &
+          &                                                       xAxisIsLog      =.true.                                             , &
+          &                                                       yAxisIsLog      =.false.                                            , &
+          &                                                       targetLabel     =referenceTarget                                    , &
+          &                                                       valueTarget     =radiusEffectiveLogarithmicTarget                   , &
+          &                                                       covarianceTarget=radiusEffectiveLogarithmicCovarianceTarget           &
+          &                                                      )
        !![
        <referenceConstruct isResult="yes" object="outputAnalysis_">
         <constructor>
@@ -693,13 +707,7 @@ contains
           &amp;                                               outputTimes_                                                                                                            , &amp;
           &amp;                                               outputAnalysisCovarianceModelPoisson                                                                                    , &amp;
           &amp;                          likelihoodNormalize =likelihoodNormalize                                                                                                     , &amp;
-          &amp;                          xAxisLabel          =var_str('$M_\star\mathrm{M}_\odot$'               )                                                                     , &amp;
-          &amp;                          yAxisLabel          =var_str('$\log_{10}(R_\mathrm{eff}/\mathrm{Mpc})$')                                                                     , &amp;
-          &amp;                          xAxisIsLog          =.true.                                                                                                                  , &amp;
-          &amp;                          yAxisIsLog          =.false.                                                                                                                 , &amp;
-          &amp;                          targetLabel         =referenceTarget                                                                                                         , &amp;
-          &amp;                          meanValueTarget     =radiusEffectiveLogarithmicTarget                                                                                        , &amp;
-          &amp;                          meanCovarianceTarget=radiusEffectiveLogarithmicCovarianceTarget                                                                                &amp;
+          &amp;                          targetData_         =outputAnalysisTargetData_                                                                                                 &amp;
           &amp;                         )
         </constructor>
        </referenceConstruct>

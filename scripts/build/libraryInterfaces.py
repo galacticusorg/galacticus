@@ -5,6 +5,7 @@
 import sys
 import os
 import re
+import keyword
 from pathlib import Path
 
 # Set up path for imports from python/
@@ -22,6 +23,7 @@ from LibraryInterfaces.Pipeline import (
     assign_c_attributes,
     build_python_reassignments,
     build_fortran_reassignments,
+    _SHARED_TYPE_MODULES,
 )
 from LibraryInterfaces.Emitters import (
     ctypes_arg_types,
@@ -34,6 +36,7 @@ from LibraryInterfaces.Emitters import (
     python_arg_list,
     python_reassignments,
     python_call_code,
+    python_safe_name,
 )
 def main():
     """Main entry point — mirrors libraryInterfaces.pl."""
@@ -186,6 +189,11 @@ _CLASS_RETURN_RX = re.compile(
 # doesn't need to import a private name).
 _DIM_FIXED_RX_INTERFACES = re.compile(r'^dimension\s*\(\s*(\d+)\s*\)$')
 
+# Match `len=N` literal in a character type-spec.  Same regex as
+# Pipeline.py's `_CHAR_LEN_RX`; duplicated here to keep this module
+# self-contained for the validation pass that runs before the pipeline.
+_CHAR_LEN_RX_INTERFACES = re.compile(r'^len\s*=\s*(\d+)$')
+
 # Match a 1D fixed-size array RETURN type, e.g. `double precision, dimension(3)`
 # or `integer, dimension(3)`.  Captures (intrinsic, size).
 _ARRAY_RETURN_RX = re.compile(
@@ -198,11 +206,19 @@ def _find_enum_module(enum_type, func_class):
     """Locate the Fortran module that exports *enum_type* (an
     `enumerationXxxType` derived-type name).
 
-    Looks first at the functionClass file's own ``use``-block imports
-    (collected during parsing as ``func_class['moduleUses']``), then falls
-    back to the functionClass's own module.  Mirrors the scan
-    ``build_fortran_reassignments`` already does for enumeration *arguments*.
+    Order of resolution:
+      0. explicit override in :data:`_SHARED_TYPE_MODULES` (wins outright;
+         used for enums whose home module isn't imported by name in the
+         functionClass's own ``use``-blocks),
+      1. the functionClass file's own ``use``-block imports
+         (collected during parsing as ``func_class['moduleUses']``),
+      2. fall back to the functionClass's own module.
+    Mirrors the scan ``build_fortran_reassignments`` already does for
+    enumeration *arguments*.
     """
+    explicit = _SHARED_TYPE_MODULES.get(enum_type)
+    if explicit:
+        return explicit
     for use_block in func_class.get('moduleUses', []):
         for mod_name, mod_data in use_block.items():
             if (isinstance(mod_data, dict)
@@ -244,6 +260,28 @@ def _unsupported_arg(arg, lib_function_classes, *,
     intrinsic = arg.get('intrinsic')
     if intrinsic in ('complex', 'double complex'):
         return f"{intrinsic}({arg.get('type','')})"
+    if intrinsic == 'procedure':
+        # Procedure-pointer args (e.g. `procedure(integrand) :: f`) have
+        # no ctypes counterpart in this pipeline — assign_c_types has no
+        # branch for them, so without an early reject the arg falls
+        # through with empty ctype/fort_type and the bind(c) wrapper
+        # emits a broken declaration that mismatches the inner method
+        # signature.  Skip the surrounding constructor or method instead.
+        return f"procedure({arg.get('type','')}) — procedure-pointer args are not supported"
+    if intrinsic == 'integer' \
+            and (arg.get('type') or '').strip() == 'omp_lock_kind' \
+            and 'optional' not in arg.get('attributes', []):
+        # `integer(omp_lock_kind)` has a platform-dependent size
+        # (INTEGER(4) on Linux GCC vs INTEGER(8) on macOS GCC), so the
+        # wrapper can't pick a single C-interop kind that's correct on
+        # both.  When the arg is `optional`, assign_c_types drops it
+        # silently and the inner method's optional default takes over.
+        # When it's non-optional we have to reject the surrounding
+        # method — silently dropping a required arg would mis-call the
+        # inner Galacticus routine.
+        return ("integer(omp_lock_kind) non-optional argument — kind is "
+                "platform-dependent (INTEGER(4) on Linux vs INTEGER(8) on "
+                "macOS), no portable C-interop kind exists")
     if intrinsic == 'class':
         type_spec = (arg.get('type') or '').strip()
         if type_spec == '*':
@@ -284,9 +322,20 @@ def _unsupported_arg(arg, lib_function_classes, *,
             is_supported_dim = (
                 intrinsic in ('double precision', 'integer')
                 and (attr == 'dimension(:)'
+                     or attr == 'dimension(:,:)'
                      or _DIM_FIXED_RX_INTERFACES.match(attr))
             )
-            if is_supported_dim:
+            # Fixed-length character arrays (`character(len=N),
+            # dimension(:)`) are supported at deferred shape: the bind(c)
+            # boundary receives a contiguous count*N byte buffer plus a
+            # count companion, and the wrapper repacks into
+            # `character(len=N), dimension(:)` for the inner call.
+            is_supported_char_array = (
+                intrinsic == 'character'
+                and attr == 'dimension(:)'
+                and _CHAR_LEN_RX_INTERFACES.match((arg.get('type') or '').strip())
+            )
+            if is_supported_dim or is_supported_char_array:
                 if 'allocatable' in attrs:
                     return ('1D allocatable array argument'
                             ' (output arrays not yet supported)')
@@ -295,8 +344,9 @@ def _unsupported_arg(arg, lib_function_classes, *,
                             ' (output arrays not yet supported)')
                 continue
             return ('dimensioned argument'
-                    ' (only 1D deferred-shape or fixed-size numeric input'
-                    ' is supported)')
+                    ' (only 1D deferred-shape or fixed-size numeric input,'
+                    ' 2D deferred-shape numeric input, or 1D deferred-shape'
+                    ' fixed-length character arrays, are supported)')
     return None
 
 
@@ -385,21 +435,22 @@ def _process_implementations(func_class, directive_locations, state_storables,
                 # interface's children.  The Galacticus convention names
                 # constructors `<short>Constructor<Variant>` where Variant
                 # is `Parameters` (XML-driven) or `Internal[Suffix]`; we
-                # want only the Internal flavour.  Substring-matching plain
-                # 'internal' is too loose — for impls whose short name is
-                # itself `internal` (e.g. intergalacticMediumStateInternal),
-                # `internalConstructorParameters` would spuriously match.
-                # Anchoring on `ConstructorInternal` rules that out while
-                # still catching variants like ConstructorInternalType /
-                # ConstructorInternalDefined that the previous
-                # endswith('internal') rule missed.
+                # want only the Internal flavour.  Some classes (the merger
+                # tree walkers, for example) use the shorter `<short>Internal`
+                # form without a `Constructor` infix.  Accepting either
+                # `endswith('internal')` or `'constructorinternal' in name`
+                # covers both conventions plus the rarer
+                # `ConstructorInternalType` / `ConstructorInternalDefined`
+                # disambiguation suffixes; `<short>ConstructorParameters`
+                # satisfies neither rule and is correctly rejected.
                 candidates = []
                 child = node.get('firstChild')
                 while child:
                     if child['type'] == 'moduleProcedure':
                         candidates.extend(
                             n for n in child.get('names', [])
-                            if 'constructorinternal' in n.lower()
+                            if (n.lower().endswith('internal')
+                                or 'constructorinternal' in n.lower())
                         )
                     child = child.get('sibling')
                 if len(candidates) == 1:
@@ -421,7 +472,13 @@ def _process_implementations(func_class, directive_locations, state_storables,
                     r'function\s+' + re.escape(name_constructor) + r'\s*\(([^)]+)\)',
                     opener, re.IGNORECASE)
                 if m:
-                    args_constructor = [{'name': a.strip()}
+                    # Strip Fortran line-continuation characters (`&`) and any
+                    # whitespace (including embedded newlines from multi-line
+                    # function openers) from each captured argument name —
+                    # otherwise tokens like "&\n   &  delta_0" leak into
+                    # downstream emitters (e.g. as text in <referenceConstruct>)
+                    # and break XML parsing because the literal `&` isn't escaped.
+                    args_constructor = [{'name': re.sub(r'[\s&]+', '', a)}
                                         for a in m.group(1).split(',')]
                 # Enrich each argument with its declared type from child declaration nodes.
                 child = node.get('firstChild')
@@ -1035,7 +1092,7 @@ end {procedure} {method_name_c}
             for a in arg_list:
                 if not a.fort_is_present:
                     continue
-                py_call_args.append(a.py_pass_as if a.py_pass_as else a.name)
+                py_call_args.append(a.py_pass_as if a.py_pass_as else python_safe_name(a.name))
             py_call_args.append(f'byref({out_id_var})')
             reassignments_block = ''.join(a.py_reassignment for a in arg_list)
             py_call = (
@@ -1055,7 +1112,7 @@ end {procedure} {method_name_c}
             for a in arg_list:
                 if not a.fort_is_present:
                     continue
-                py_call_args.append(a.py_pass_as if a.py_pass_as else a.name)
+                py_call_args.append(a.py_pass_as if a.py_pass_as else python_safe_name(a.name))
             py_call_args.append(
                 f'_glcArr_.ctypes.data_as(POINTER({elem_ctype}))'
             )
@@ -1084,7 +1141,16 @@ end {procedure} {method_name_c}
                     py_call,
                 )
 
-        py_method = f'''def {method_name}({','.join(py_args)}):
+        # Python-side identifier for the method.  Galacticus method names
+        # (`yield`, `class`, ...) can collide with Python reserved words,
+        # which would emit a `def yield(...)` and break import.  Follow
+        # PEP 8's trailing-underscore convention to escape; the Fortran
+        # call (`self_%{method_name}`) and the bind(c) symbol
+        # (`{method_name_c}`) are unaffected.
+        py_method_name = (method_name + '_'
+                          if keyword.iskeyword(method_name)
+                          else method_name)
+        py_method = f'''def {py_method_name}({','.join(py_args)}):
 {py_call}
 '''
         python['units'][class_name].setdefault('subUnits', []).append({

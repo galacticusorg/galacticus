@@ -1,6 +1,7 @@
 # Simple test of Python interface to libgalacticus
 import galacticus
 import ctypes
+import inspect
 import sys
 import numpy as np
 from contextlib import contextmanager
@@ -219,6 +220,186 @@ with safe_section("radiativeTransferPhotonPacketSimple"):
         check_eq("ValueError on size mismatch", "expects 3" in str(exc), True)
     else:
         check_eq("ValueError on size mismatch", "no exception raised", "ValueError")
+
+# Non-central χ² (degree 3) distribution — exercises the Python-keyword
+# escape on a constructor argument.  The Fortran constructor takes
+# `lambda` as a parameter; without renaming the Python signature to
+# `lambda_` the wrapper module fails to import (SyntaxError on
+# `def __init__(self, lambda, ...)`).
+with safe_section("distributionFunction1DNonCentralChiDegree3"):
+    chi3 = galacticus.distributionFunction1DNonCentralChiDegree3(
+        lambda_=2.5, randomNumberGenerator_=rng,
+    )
+    # density() at the mode-ish region should be finite and positive;
+    # the value itself isn't load-bearing — surviving the call is.
+    d = chi3.density(x=2.5)
+    check_eq("density(x=2.5) is finite", np.isfinite(d) and d > 0.0, True)
+
+# Supernovae Type Ia power-law DTD (differential) — exercises the
+# Python-keyword escape on a method NAME.  The Fortran class declares
+# `<method name="yield">`; `yield` is a reserved word in Python, so the
+# wrapper renames it to `yield_` (PEP 8).  Just confirm the rename:
+# calling it would need a stellar age / metallicity dataset we don't
+# initialise here.
+with safe_section("supernovaeTypeIaPowerLawDTDDifferential"):
+    sn1a = galacticus.supernovaeTypeIaPowerLawDTDDifferential(
+        timeMinimum=0.04, exponent=-1.0, normalization=2.0e-3,
+    )
+    check_eq("yield_ method exposed" , hasattr(sn1a, 'yield_'), True)
+    check_eq("'yield' not exposed"   , hasattr(sn1a, 'yield' ), False)
+
+# Spherical computational-domain volume integrator — exercises the
+# procedure-pointer-arg skip.  The class's `integrate(integrand)`
+# method takes `procedure(...)` which the pipeline can't translate, so
+# the wrapper drops just that method while keeping the rest of the
+# class.  `volume()` is a plain double-precision return so it survives.
+with safe_section("computationalDomainVolumeIntegratorSpherical"):
+    cdom = galacticus.computationalDomainVolumeIntegratorSpherical([1.0, 5.0])
+    check   ("volume()"               , cdom.volume(), (4.0/3.0)*np.pi*(5.0**3 - 1.0**3))
+    check_eq("integrate() not exposed", hasattr(cdom, 'integrate'), False)
+
+# Empirical UniverseMachine node operator — exercises the
+# continuation-character strip in the Internal-constructor arg-name
+# capture: the source declares the constructor across many
+# continuation lines (24 scalar args + 3 functionClass deps), and
+# without stripping `&` from each captured token the args leaked into
+# the emitted `<referenceConstruct>` directive and broke XML parsing.
+# Constructing the object end-to-end confirms the multi-line opener
+# was parsed cleanly.
+with safe_section("nodeOperatorEmpiricalGalaxyUniverseMachine"):
+    um = galacticus.nodeOperatorEmpiricalGalaxyUniverseMachine(
+        massStellarFinal=-1.0, fractionMassSpheroid=0.0, fractionMassDisk=1.0,
+        epsilon_0=-1.435, epsilon_a= 1.831, epsilon_lna= 1.368, epsilon_z=-0.217,
+        M_0      =12.035, M_a      = 4.556, M_lna      = 4.417, M_z      =-0.731,
+        alpha_0  = 1.963, alpha_a  =-2.316, alpha_lna  =-1.732, alpha_z  = 0.178,
+        beta_0   = 0.482, beta_a   =-0.841, beta_z     =-0.471,
+        gamma_0  =-1.034, gamma_a  =-3.100, gamma_z    =-1.055,
+        delta_0  = 0.411,
+        redshiftMaximum=15.0, massHaloMinimum=1.0e10,
+        cosmologyParameters_  =cosmologyParameters,
+        cosmologyFunctions_   =cosmologyFunctions,
+        virialDensityContrast_=virialDensityContrast,
+    )
+    check_eq("constructed type",
+             type(um).__name__, 'nodeOperatorEmpiricalGalaxyUniverseMachine')
+
+# Position-interpolated node operator — exercises the kind_int8 (=
+# selected_int_kind(18), 64-bit) integer array path.  Without the
+# kind_int8 → c_long mapping, `nodeIndicesReport` would be emitted as
+# `integer(c_int)` (32-bit) and mismatch the inner constructor.  We
+# include a value > 2^31 to make the 64-bit-ness load-bearing.
+with safe_section("nodeOperatorPositionInterpolated"):
+    indices = np.array([1, 42, 1_000_000_000_000], dtype=np.int64)
+    nopi = galacticus.nodeOperatorPositionInterpolated(
+        lengthBox=100.0, wrapPeriodic=True,
+        nodeIndicesReport=indices,
+        cosmologyFunctions_=cosmologyFunctions,
+    )
+    check_eq("constructed type",
+             type(nopi).__name__, 'nodeOperatorPositionInterpolated')
+
+# Fixed-length character-array constructor argument — exercises the
+# `character(len=N), dimension(:)` pipeline path.  The
+# `radiativeTransferMatterAtomic` constructor takes
+# `character(len=2), dimension(:) :: elements`; without the new
+# code-gen path it (and its parent `radiativeTransferMatter`, plus
+# `computationalDomain` which transitively depends on it) would have
+# been rejected at constructor-arg validation time.  The constructor
+# itself needs nine atomic-physics functionClass dependencies that
+# we don't build here — confirming the wrapper symbol exists is the
+# meaningful end-to-end check that the emission succeeded.
+#
+# `computationalDomain` has three impls but two (Cartesian3D,
+# cylindrical) take `dimension(3,2)` / `dimension(2,2)` boundaries
+# arrays which the pipeline still doesn't support; only the
+# spherical impl (with `dimension(2)`) registers, and that's the one
+# we check for.
+with safe_section("radiativeTransferMatter (character len=N array path)"):
+    check_eq("radiativeTransferMatterAtomic exposed",
+             hasattr(galacticus, 'radiativeTransferMatterAtomic'), True)
+    check_eq("computationalDomainSpherical exposed",
+             hasattr(galacticus, 'computationalDomainSpherical'),  True)
+
+# Multivariate normal — exercises the 2D deferred-shape numeric array
+# constructor argument path: the inner constructor takes
+# `double precision, dimension(:,:) :: covariance`, which the wrapper
+# now flattens at the bind(c) boundary, ships as
+# (data_pointer, shape[0], shape[1]), and reshapes inside (Fortran
+# column-major; the Python side hands ctypes an `np.asfortranarray`
+# buffer so the layouts match without a transpose).  Without 2D
+# support, this whole class would have failed constructor-arg
+# validation.
+with safe_section("distributionFunctionMultivariateNormal"):
+    mvn = galacticus.distributionFunctionMultivariateNormal(
+        mean=[0.0, 0.0],
+        covariance=[[1.0, 0.0], [0.0, 1.0]],   # 2D identity; passed as nested list
+        errorAbsolute     =1.0e-6,
+        errorRelative     =1.0e-6,
+        countTrialsMaximum=100,
+        randomNumberGenerator_=rng,
+    )
+    check_eq("constructed type",
+             type(mvn).__name__, 'distributionFunctionMultivariateNormal')
+
+# `outputAnalysisTargetDataStandard` — a tiny functionClass that bundles the
+# seven coupled-but-individually-optional fields the 1D function output-analyses
+# (mean / scatter / volume) used to expose as separate constructor args.
+# Bundling them collapses the wrapper-pipeline's optional-argument branching
+# from 2^12+ to 2^6 on each affected outer constructor (see source/output.analyses.target_data.F90).
+# This test exercises three things:
+#   1. Round-trip from Python: construct an instance via the wrapper, call a
+#      method on it, get a value back.  `hasTarget()` returns true iff both
+#      target arrays are allocated, so it gives us a clean boolean witness.
+#   2. The bundle is genuinely partial-fill safe: defaults work, label-only
+#      construction works, full construction works.
+#   3. The refactored outer-class constructors actually carry `targetData_`
+#      in their Python signature (we don't try to instantiate one — that
+#      would need a half-dozen functionClass dependencies — just confirm
+#      the signature).
+with safe_section("outputAnalysisTargetDataStandard"):
+    # Default-construct: every field omitted.  hasTarget() is False because
+    # neither the value nor the covariance array was allocated.
+    td_empty = galacticus.outputAnalysisTargetDataStandard()
+    check_eq("hasTarget() default-constructed", td_empty.hasTarget(), False)
+
+    # Labels + log-scale flags only — still no target dataset, so
+    # hasTarget() remains False.
+    td_partial = galacticus.outputAnalysisTargetDataStandard(
+        xAxisLabel = 'log10(M_halo / M_sun)',
+        yAxisLabel = 'M_HI / M_sun',
+        xAxisIsLog = True,
+        yAxisIsLog = True,
+    )
+    check_eq("hasTarget() label-only construction", td_partial.hasTarget(), False)
+
+    # Fully populated, including a 3-element value array and 3x3 covariance
+    # (which exercises the 1D + 2D array boundary plumbing in the wrapper).
+    td_full = galacticus.outputAnalysisTargetDataStandard(
+        xAxisLabel       = 'log10(M_halo / M_sun)',
+        yAxisLabel       = 'log10(M_HI / M_sun)',
+        targetLabel      = 'Test target',
+        xAxisIsLog       = True,
+        yAxisIsLog       = True,
+        valueTarget      = [9.0, 9.5, 10.0],
+        covarianceTarget = [[0.1, 0.0, 0.0],
+                            [0.0, 0.2, 0.0],
+                            [0.0, 0.0, 0.3]],
+    )
+    check_eq("hasTarget() fully populated", td_full.hasTarget(), True)
+
+    # And confirm the refactored outer constructor exposes the bundled object
+    # under the expected keyword name.  This is what proves the
+    # 2^N branching reduction is wired up: each refactored constructor now
+    # has ONE optional argument for the bundle instead of seven.
+    sig = inspect.signature(galacticus.outputAnalysisVolumeFunction1D.__init__)
+    check_eq("outputAnalysisVolumeFunction1D exposes targetData_",
+             'targetData_' in sig.parameters, True)
+    sig = inspect.signature(galacticus.outputAnalysisMeanFunction1D.__init__)
+    check_eq("outputAnalysisMeanFunction1D exposes targetData_",
+             'targetData_' in sig.parameters, True)
+    sig = inspect.signature(galacticus.outputAnalysisScatterFunction1D.__init__)
+    check_eq("outputAnalysisScatterFunction1D exposes targetData_",
+             'targetData_' in sig.parameters, True)
 
 # Final summary and exit code.
 print(f"--- {_failures} failure(s) ---")

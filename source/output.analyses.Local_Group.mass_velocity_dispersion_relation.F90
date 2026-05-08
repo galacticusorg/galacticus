@@ -175,6 +175,7 @@ contains
     use :: Output_Analyses_Options                 , only : outputAnalysisCovarianceModelBinomial
     use :: Output_Analysis_Distribution_Normalizers, only : outputAnalysisDistributionNormalizerIdentity
     use :: Output_Analysis_Distribution_Operators  , only : outputAnalysisDistributionOperatorRandomErrorPlynml
+    use :: Output_Analysis_Target_Data             , only : outputAnalysisTargetDataStandard
     use :: Output_Analysis_Property_Operators      , only : outputAnalysisPropertyOperatorAntiLog10             , outputAnalysisPropertyOperatorLog10       , outputAnalysisPropertyOperatorSequence, outputAnalysisPropertyOperatorSystmtcPolynomial, &
           &                                                 propertyOperatorList
     use :: Output_Analysis_Weight_Operators        , only : outputAnalysisWeightOperatorSubsampling
@@ -229,6 +230,7 @@ contains
     type            (localGroupDB                                          )                                :: localGroupDB_
     double precision                                                                                        :: massesWidthBin
     type            (varying_string                                        )               , dimension(1)   :: radiusSpecifier
+    type            (outputAnalysisTargetDataStandard)                              :: outputAnalysisTargetData_
     !![
     <constructorAssign variables="*outputTimes_, *darkMatterHaloScale_, randomErrorPolynomialCoefficient, systematicErrorPolynomialCoefficient, velocityDispersionSystematicErrorPolynomialCoefficient, covarianceBinomialMassHaloMinimum, covarianceBinomialMassHaloMaximum, randomErrorMinimum, randomErrorMaximum, positionType"/>
     !!]
@@ -452,6 +454,15 @@ contains
     allocate(outputAnalysisMeanFunction1D :: self%outputAnalysis_)
     select type (outputAnalysis_ => self%outputAnalysis_)
     type is (outputAnalysisMeanFunction1D)
+       outputAnalysisTargetData_=outputAnalysisTargetDataStandard(                                                                                                                  &
+           &                                                      xAxisLabel      =var_str('$M_\star/\mathrm{M}_\odot$'                                                          ), &
+           &                                                      yAxisLabel      =var_str('$\langle\log_{10}(\sigma_{\star, \mathrm{los}}/\mathrm{km}\,\mathrm{s}^{-1})\rangle$'), &
+           &                                                      xAxisIsLog      =.true.                                                                                         , &
+           &                                                      yAxisIsLog      =.false.                                                                                        , &
+           &                                                      targetLabel     =var_str('Galacticus compilation'                                                              ), &
+           &                                                      valueTarget     =functionValueTargetNonZero                                                                     , &
+           &                                                      covarianceTarget=functionCovarianceTargetNonZero                                                                  &
+           &                                                     )
        !![
        <referenceConstruct isResult="yes" object="outputAnalysis_">
 	 <constructor>
@@ -487,14 +498,8 @@ contains
 	   &amp;                        covarianceBinomialMassHaloMinimum                                                                               , &amp;
 	   &amp;                        covarianceBinomialMassHaloMaximum                                                                               , &amp;
            &amp;                        likelihoodNormalize                                                                                             , &amp;
-           &amp;                        var_str('$M_\star/\mathrm{M}_\odot$'                                                                           ), &amp;
-           &amp;                        var_str('$\langle\log_{10}(\sigma_{\star, \mathrm{los}}/\mathrm{km}\,\mathrm{s}^{-1})\rangle$'                 ), &amp;
-           &amp;                        .true.                                                                                                          , &amp;
-           &amp;                        .false.                                                                                                         , &amp;
-           &amp;                        var_str('Galacticus compilation'                                                                               ), &amp;
-           &amp;                        functionValueTargetNonZero                                                                                      , &amp;
-           &amp;                        functionCovarianceTargetNonZero                                                                                 , &amp;
-	   &amp;                        massesWidthBin                                                                                                    &amp; 
+           &amp;                        outputAnalysisTargetData_                                                                                       , &amp;
+	   &amp;                        massesWidthBin                                                                                                    &amp;
 	   &amp;                       )
 	 </constructor>
        </referenceConstruct>

@@ -59,14 +59,26 @@ from Galacticus.Build import SourceTree                # noqa: E402
 # generator's unrelated emitter machinery).
 _DIM_FIXED_RX = re.compile(r'^dimension\s*\(\s*(\d+)\s*\)$')
 
+# Match `len=N` in a character type-spec.  Used to recognise fixed-length
+# character arrays (`character(len=N), dimension(:)`), which the pipeline
+# now plumbs through; variable-length forms (`len=*`, `len=:`) are still
+# unsupported because they have no fixed stride at the byte boundary.
+_CHAR_LEN_RX = re.compile(r'^len\s*=\s*(\d+)$')
+
 # Recognise an Internal-suffixed module-procedure name following the
-# Galacticus convention <short>Constructor[Internal[Suffix]].  Loosened
-# from .endswith('internal') so that variants like
-# ConstructorInternalType / ConstructorInternalDefined are caught;
-# anchored on `constructorinternal` to avoid false positives where the
-# impl's short name itself happens to be `internal` (see commit
-# 5fe87098 in the original generator).
-_INTERNAL_NAME_NEEDLE = 'constructorinternal'
+# Galacticus convention <short>Constructor[Internal[Suffix]] OR the
+# alternative <short>Internal form (used by the merger-tree walkers,
+# e.g. allAndFormationNodesInternal).  We accept either:
+#   • a name ending in "internal" (catches both `<short>ConstructorInternal`
+#     and `<short>Internal`), or
+#   • a name containing "constructorinternal" (catches the rarer
+#     ConstructorInternalType / ConstructorInternalDefined variants
+#     used to disambiguate multiple internal constructors).
+# `<name>ConstructorParameters` and similar do not satisfy either rule
+# and are correctly rejected.
+def _is_internal_constructor_name(name):
+    lower = name.lower()
+    return lower.endswith('internal') or 'constructorinternal' in lower
 
 
 # ---------------------------------------------------------------------------
@@ -162,7 +174,7 @@ def parse_impls_in_file(impl_file, fc_name):
             while child:
                 if child['type'] == 'moduleProcedure':
                     for n in child.get('names', []):
-                        if _INTERNAL_NAME_NEEDLE in n.lower():
+                        if _is_internal_constructor_name(n):
                             internals_seen.append(n)
                 child = child.get('sibling')
             if len(internals_seen) == 1:
@@ -176,7 +188,10 @@ def parse_impls_in_file(impl_file, fc_name):
                 r'function\s+' + re.escape(name_constructor) + r'\s*\(([^)]+)\)',
                 opener, re.IGNORECASE)
             if m:
-                args_constructor = [{'name': a.strip()}
+                # Strip Fortran line-continuation `&` and any whitespace from
+                # each captured argument; multi-line openers otherwise leave
+                # `&\n  &` fragments inside the names, breaking name->decl matching.
+                args_constructor = [{'name': re.sub(r'[\s&]+', '', a)}
                                     for a in m.group(1).split(',')]
             child = node.get('firstChild')
             while child:
@@ -251,10 +266,19 @@ def classify_constructor(args, all_fcs, registered):
         # Dimension shape checks.
         dim_attr = next((a for a in attrs if a.startswith('dimension')), None)
         if dim_attr:
+            # Fixed-length character arrays at deferred shape, plus 2D
+            # deferred-shape numeric arrays, are now supported alongside
+            # the 1D numeric cases — see the analogous extensions in
+            # libraryInterfaces._unsupported_arg.
             is_supported_shape = (
-                intrinsic in ('double precision', 'integer')
-                and (dim_attr == 'dimension(:)'
-                     or _DIM_FIXED_RX.match(dim_attr))
+                (intrinsic in ('double precision', 'integer')
+                 and (dim_attr == 'dimension(:)'
+                      or dim_attr == 'dimension(:,:)'
+                      or _DIM_FIXED_RX.match(dim_attr)))
+                or
+                (intrinsic == 'character'
+                 and dim_attr == 'dimension(:)'
+                 and _CHAR_LEN_RX.match(type_spec))
             )
             if not is_supported_shape:
                 pipeline_reasons.append(

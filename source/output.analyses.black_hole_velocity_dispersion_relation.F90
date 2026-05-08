@@ -133,6 +133,7 @@ contains
     use :: Numerical_Constants_Prefixes          , only : kilo
     use :: Output_Analyses_Options               , only : outputAnalysisCovarianceModelBinomial
     use :: Output_Analysis_Distribution_Operators, only : outputAnalysisDistributionOperatorRandomErrorPlynml
+    use :: Output_Analysis_Target_Data           , only : outputAnalysisTargetDataStandard
     use :: Output_Analysis_Property_Operators    , only : outputAnalysisPropertyOperatorAntiLog10            , outputAnalysisPropertyOperatorCsmlgyLmnstyDstnc, outputAnalysisPropertyOperatorLog10, outputAnalysisPropertyOperatorMinMax, &
           &                                               outputAnalysisPropertyOperatorSequence             , outputAnalysisPropertyOperatorSystmtcPolynomial, propertyOperatorList
     use :: Output_Analysis_Weight_Operators      , only : outputAnalysisWeightOperatorIdentity
@@ -173,6 +174,7 @@ contains
     type            (hdf5Object                                         )                                :: dataFile
     type            (varying_string                                     )                                :: targetLabel
     type            (varying_string                                     )               , dimension(1  ) :: radiusSpecifiers
+    type            (outputAnalysisTargetDataStandard)                              :: outputAnalysisTargetData_
     !![
     <constructorAssign variables="systematicErrorPolynomialCoefficient, randomErrorPolynomialCoefficient, randomErrorMinimum, randomErrorMaximum, *cosmologyFunctions_, *outputTimes_, toleranceRelative, *darkMatterHaloScale_"/>
     !!]
@@ -306,6 +308,15 @@ contains
     <referenceConstruct object="outputAnalysisWeightPropertyExtractor_"           constructor="nodePropertyExtractorMassBlackHole             (                                                                                              )"/>
     !!]
     ! Build the object.
+    outputAnalysisTargetData_=outputAnalysisTargetDataStandard(                                                                                    &
+         &                                                     xAxisLabel      =var_str('$\sigma_{\star,\mathrm{spheroid}}$ [km/s]'             ), &
+         &                                                     yAxisLabel      =var_str('$\langle \log_{10} M_\bullet/\mathrm{M}_\odot \rangle$'), &
+         &                                                     xAxisIsLog      =.true.                                                           , &
+         &                                                     yAxisIsLog      =.false.                                                          , &
+         &                                                     targetLabel     =targetLabel                                                      , &
+         &                                                     valueTarget     =functionValueTarget                                              , &
+         &                                                     covarianceTarget=functionCovarianceTarget                                           &
+         &                                                    )
     self%outputAnalysisMeanFunction1D=outputAnalysisMeanFunction1D(                                                                   &
          &                                                         var_str('blackHoleVelocityDispersionRelation'                   ), &
          &                                                         var_str('Black hole mass-VelocityDispersion mass relation'      ), &
@@ -338,13 +349,7 @@ contains
          &                                                         covarianceBinomialMassHaloMinimum                                , &
          &                                                         covarianceBinomialMassHaloMaximum                                , &
          &                                                         likelihoodNormalize                                              , &
-         &                                                         var_str('$\sigma_{\star,\mathrm{spheroid}}$ [km/s]'             ), &
-         &                                                         var_str('$\langle \log_{10} M_\bullet/\mathrm{M}_\odot \rangle$'), &
-         &                                                         .true.                                                           , &
-         &                                                         .false.                                                          , &
-         &                                                         targetLabel                                                      , &
-         &                                                         functionValueTarget                                              , &
-         &                                                         functionCovarianceTarget                                           &
+         &                                                         outputAnalysisTargetData_                                          &
          &                                                        )
     ! Clean up.
     !![

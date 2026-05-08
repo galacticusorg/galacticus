@@ -26,7 +26,7 @@
   <enumeration>
    <name>randomSampleCountType</name>
    <description>Used to specify the type of random sample count.</description>
-   <visibility>private</visibility>
+   <visibility>public</visibility>
    <entry label="fixed"        />
    <entry label="multiplicative"/>
   </enumeration>

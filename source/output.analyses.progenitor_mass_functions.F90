@@ -486,6 +486,7 @@ contains
     use :: Output_Analysis_Distribution_Operators  , only : outputAnalysisDistributionOperatorMassRatioNBody
     use :: Output_Analysis_Property_Operators      , only : outputAnalysisPropertyOperatorAntiLog10         , outputAnalysisPropertyOperatorIdentity      , outputAnalysisPropertyOperatorLog10
     use :: Output_Analyses_Options                 , only : outputAnalysisCovarianceModelPoisson
+    use :: Output_Analysis_Target_Data             , only : outputAnalysisTargetDataStandard
     use :: Statistics_NBody_Halo_Mass_Errors       , only : nbodyHaloMassErrorClass
     use :: Virial_Density_Contrast                 , only : virialDensityContrastClass
     implicit none
@@ -542,6 +543,7 @@ contains
     integer         (c_size_t                                        )                                          :: iOutput                                                , bufferCount
     type            (varying_string                                  )                                          :: message
     character       (len=10                                          )                                          :: timeLabel
+    type            (outputAnalysisTargetDataStandard)                              :: outputAnalysisTargetData_
     !![
     <constructorAssign variables="massRatioMinimum, massRatioMaximum, countMassRatio, massParentMinimum, massParentMaximum, timeProgenitor, timeParent, alwaysIsolatedOnly, massRatioLikelihoodMinimum, massRatioLikelihoodMaximum, covarianceDiagonalize, covarianceTargetOnly, rootVarianceTargetFractional, likelihoodInLog, likelihoodInCounts, likelihoodNormalize, functionCountTarget, *cosmologyParameters_, *cosmologyFunctions_, *darkMatterProfileDMO_, *virialDensityContrast_, *virialDensityContrastDefinition_, *nbodyHaloMassError_, *outputTimes_"/>
     !!]
@@ -699,6 +701,15 @@ contains
     ! Determine number of buffer bins.
     bufferCount=0_c_size_t
     ! Construct the object.
+    outputAnalysisTargetData_=outputAnalysisTargetDataStandard(                                                                         &
+         &                                                     xAxisLabel      =var_str('$x=M_\mathrm{progenitor}/M_\mathrm{parent}$'), &
+         &                                                     yAxisLabel      =var_str('$\mathrm{d}f/\mathrm{d}\log_\mathrm{e}x$'   ), &
+         &                                                     xAxisIsLog      =.true.                                                , &
+         &                                                     yAxisIsLog      =.true.                                                , &
+         &                                                     targetLabel     =targetLabel                                           , &
+         &                                                     valueTarget     =functionValueTarget                                   , &
+         &                                                     covarianceTarget=functionCovarianceTarget                                &
+         &                                                    )
     self%outputAnalysisVolumeFunction1D=                                                              &
          & outputAnalysisVolumeFunction1D(                                                            &
          &                                var_str('progenitorMassFunction')//label                  , &
@@ -731,13 +742,7 @@ contains
          &                                covarianceBinomialMassHaloMinimum                         , &
          &                                covarianceBinomialMassHaloMaximum                         , &
          &                                .false.                                                   , &
-         &                                var_str('$x=M_\mathrm{progenitor}/M_\mathrm{parent}$'    ), &
-         &                                var_str('$\mathrm{d}f/\mathrm{d}\log_\mathrm{e}x$'       ), &
-         &                                .true.                                                    , &
-         &                                .true.                                                    , &
-         &                                targetLabel                                               , &
-         &                                functionValueTarget                                       , &
-         &                                functionCovarianceTarget                                    &
+         &                                outputAnalysisTargetData_                                   &
          &                               )
     !![
     <objectDestructor name="galacticFilterHaloIsolated_"                    />
@@ -1017,43 +1022,43 @@ contains
                       !  Compute difference between model and target.
                       if (self%functionValue(i) > 0.0d0) then
                          ! Map values to compute difference in log(φ).
-                         functionValueDifference(ii)=log(+self%functionValue      (i) &
-                              &                          /self%functionValueTarget(i) &
+                         functionValueDifference(ii)=log(+self            %functionValue(i) &
+                              &                          /self%targetData_%valueTarget  (i) &
                               &                         )
                       else
                          functionValueDifference(ii)=logRatioZero
                       end if
                    else
                       ! Compute difference in φ.
-                      functionValueDifference   (ii)=    +self%functionValue      (i) &
-                           &                             -self%functionValueTarget(i)
+                      functionValueDifference   (ii)=    +self            %functionValue(i) &
+                           &                             -self%targetData_%valueTarget  (i)
                    end if
                    jj=0
                    ! Find the maximum ratio of model to target covariance.
-                   ratioCovarianceMaximum=max(                                     &
-                        &                     +ratioCovarianceMaximum            , &
-                        &                     +self%functionCovariance      (i,i)  &
-                        &                     /self%functionCovarianceTarget(i,i)  &
+                   ratioCovarianceMaximum=max(                                               &
+                        &                     +                 ratioCovarianceMaximum     , &
+                        &                     +self            %functionCovariance    (i,i)  &
+                        &                     /self%targetData_%covarianceTarget      (i,i)  &
                         &                    )
                    do j=1,self%binCount
                       if (mask(j)) then
                          jj=jj+1
                          ! Compute covariance terms for model and target
-                         covarianceTermTarget=self%functionCovarianceTarget(i,j)
+                         covarianceTermTarget=self%targetData_%covarianceTarget  (i,j)
                          if (self%covarianceTargetOnly) then
                             covarianceTerm   =0.0d0
                          else
-                            covarianceTerm   =self%functionCovariance      (i,j)
+                            covarianceTerm   =self            %functionCovariance(i,j)
                          end if
                          ! Map to log(φ) if requested.
                          if (self%likelihoodInLog) then
-                            covarianceTermTarget=+covarianceTermTarget        &
-                                 &               /self%functionValueTarget(i) &
-                                 &               /self%functionValueTarget(j)
+                            covarianceTermTarget=+covarianceTermTarget              &
+                                 &               /self%targetData_%valueTarget  (i) &
+                                 &               /self%targetData_%valueTarget  (j)
                             if (self%functionValue(i) > 0.0d0 .and. self%functionValue(j) > 0.0d0) then
-                               covarianceTerm   =+covarianceTerm              &
-                                    &            /self%functionValue      (i) &
-                                    &            /self%functionValue      (j)
+                               covarianceTerm   =+covarianceTerm                    &
+                                    &            /self            %functionValue(i) &
+                                    &            /self            %functionValue(j)
                             else
                                covarianceTerm   =+0.0d0
                             end if
