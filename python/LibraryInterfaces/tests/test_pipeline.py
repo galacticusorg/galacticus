@@ -885,6 +885,7 @@ def test_fortran_reassignments_list_array_loops_via_get_ptr():
     out = build_fortran_reassignments(
         [arr], func_class={}, implementation=None,
         extensions={}, module_uses_impls={},
+        lib_function_classes={'modelParameter': {'module': 'Model_Parameters'}},
     )
     decls    = out[0].fort_declarations
     reassign = out[0].fort_reassignment
@@ -896,4 +897,10 @@ def test_fortran_reassignments_list_array_loops_via_get_ptr():
     assert out[0].fort_pass_as        == 'parms_F_'
     assert out[0].fort_function_class == 'modelParameter'
     # `_SHARED_TYPE_MODULES` supplies modelParameterList's home module.
-    assert 'modelParameterList' in out[0].fort_modules.get('Model_Parameters', {})
+    # The Class type ALSO has to be imported into the bind(c) host
+    # scope — otherwise the GetPtr interface block emitted by
+    # `fortran_declarations` (from `fort_function_class`) hits
+    # "Cannot IMPORT 'modelparameterclass' from host scoping unit"
+    # because the host only `use`s the List type, not the Class.
+    assert 'modelParameterList'  in out[0].fort_modules.get('Model_Parameters', {})
+    assert 'modelParameterClass' in out[0].fort_modules.get('Model_Parameters', {})

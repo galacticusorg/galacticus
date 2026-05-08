@@ -894,6 +894,22 @@ def build_fortran_reassignments(argument_list, func_class, implementation,
                     cls = extensions.get(cls)
             if list_mod:
                 arg.fort_modules.setdefault(list_mod, {})[list_type] = 1
+            # The bind(c) wrapper also needs `<class>Class` visible in
+            # the host scope so the GetPtr interface block (emitted by
+            # `fortran_declarations` from `fort_function_class`) can
+            # `import` it — without this, gfortran reports "Cannot
+            # IMPORT '<class>class' from host scoping unit ... does not
+            # exist" because the host only sees the List type.  The
+            # Class lives in the registered functionClass's home module
+            # (looked up via `lib_function_classes`), which for the
+            # current set of polymorphic-list-array users happens to be
+            # the same module as the List type, but we don't rely on
+            # that — Galacticus has classes whose List wrapper lives in
+            # a separate module.
+            class_type = stem + 'Class'
+            class_mod  = lib_function_classes.get(stem, {}).get('module')
+            if class_mod:
+                arg.fort_modules.setdefault(class_mod, {})[class_type] = 1
         elif arg.is_array and arg.intrinsic == 'character':
             # Fixed-length character array.  bind(c) declares it as a
             # flat `character(c_char), dimension(*)` byte buffer (length
