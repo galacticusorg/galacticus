@@ -836,6 +836,26 @@ def test_assign_c_types_list_array_unregistered_stem_falls_back_to_void_p():
     assert out[0].polymorphic_list_array is False
 
 
+def test_assign_c_types_list_array_unregistered_wrapper_falls_back_to_void_p():
+    """`type(<class>List), dimension(:)` where `<class>` IS a registered
+    functionClass but the wrapper type isn't in `_SHARED_TYPE_MODULES`
+    must NOT take the polymorphic-list-array path — locally-defined
+    wrappers can carry extra members (e.g.
+    `virialDensityContrastList` in tasks.halo_mass_function.F90 has a
+    `label` field alongside the polymorphic pointer) which our
+    rebuild loop would silently drop.  Falling through to the
+    generic-derived-type path means `_unsupported_arg` rejects the
+    surrounding constructor cleanly."""
+    raw = [{'name': 'xs', 'intrinsic': 'type',
+            'type': 'virialDensityContrastList',
+            'attributes': ['intent(in)', 'dimension(:)']}]
+    out = assign_c_types(
+        raw, lib_function_classes={'virialDensityContrast': {'module': 'X'}})
+    assert out[0].polymorphic_list_array is False
+    # Single-element output: no companion args were inserted.
+    assert len(out) == 1
+
+
 def test_python_reassignments_list_array_builds_ptr_and_id_buffers():
     """The Python wrapper builds parallel ctypes arrays of object
     pointers + class IDs, one per element, off the `_glcObj` /

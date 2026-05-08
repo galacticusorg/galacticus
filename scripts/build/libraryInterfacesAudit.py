@@ -51,6 +51,7 @@ sys.path.insert(0, str(REPO_ROOT / 'python'))
 import xml.etree.ElementTree as ET                     # noqa: E402
 
 from Galacticus.Build import SourceTree                # noqa: E402
+from LibraryInterfaces.Pipeline import _SHARED_TYPE_MODULES  # noqa: E402
 
 
 # Match a fixed-size dimension(N) attribute (N a positive integer literal).
@@ -279,11 +280,19 @@ def classify_constructor(args, all_fcs, registered):
             # dependency rather than a hard pipeline blocker, so the
             # closure pass can still pull the class in once the dep
             # is added).
+            # Match the gating in Pipeline.py / libraryInterfaces.py:
+            # the wrapper type itself must be registered in
+            # `_SHARED_TYPE_MODULES`, otherwise it's a locally-defined
+            # struct (likely with extra members beyond the polymorphic
+            # pointer — see `virialDensityContrastList` in
+            # tasks.halo_mass_function.F90) and falls through to the
+            # generic unsupported-arg rejection path.
             is_list_array = (
                 intrinsic == 'type'
                 and dim_attr == 'dimension(:)'
                 and type_spec.endswith('List')
                 and type_spec[:-4] in all_fcs
+                and type_spec in _SHARED_TYPE_MODULES
             )
             if is_list_array:
                 stem = type_spec[:-4]

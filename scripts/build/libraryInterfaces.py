@@ -354,11 +354,18 @@ def _unsupported_arg(arg, lib_function_classes, *,
             # via `<class>GetPtr` element-by-element (same machinery as
             # the scalar `class(...)` arg path).
             type_spec = (arg.get('type') or '').strip()
+            # The shape is only recognised when the wrapper type is
+            # registered in `_SHARED_TYPE_MODULES` (Pipeline.py's
+            # gatekeeper); see the corresponding branch in
+            # `assign_c_types` for the rationale.  Other locally-defined
+            # `<class>List` structs that happen to share the naming
+            # convention fall through to the generic-rejection path.
             is_supported_list_array = (
                 intrinsic == 'type'
                 and attr == 'dimension(:)'
                 and type_spec.endswith('List')
                 and type_spec[:-4] in lib_function_classes
+                and type_spec in _SHARED_TYPE_MODULES
             )
             if (is_supported_dim or is_supported_char_array
                     or is_supported_vstring_array or is_supported_list_array):

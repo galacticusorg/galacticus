@@ -253,18 +253,25 @@ def assign_c_types(argument_list, lib_function_classes):
                 arg.fort_type = 'integer(c_int)'
             elif (type_spec_val.endswith('List')
                   and type_spec_val[:-4] in lib_function_classes
-                  and 'dimension(:)' in arg.attributes):
+                  and 'dimension(:)' in arg.attributes
+                  and type_spec_val in _SHARED_TYPE_MODULES):
                 # `type(<class>List), dimension(:)` — Galacticus's idiom
-                # for "array of class(<class>Class)".  Each element wraps
-                # a `class(<class>Class), pointer` whose component name is
-                # `<class>_` (universal convention; see e.g.
-                # modelParameterList in models.parameters.F90 or
-                # stellarPopulationSpectraPostprocessorList in
-                # stellar_populations.spectra.postprocess.F90).  We ship
-                # parallel buffers of object pointers + class IDs and
-                # rebuild the list inside the bind(c) wrapper using the
-                # registered class's GetPtr helper — same machinery as
-                # the scalar `class(FooClass)` arg path.
+                # for "array of class(<class>Class)".  We only handle
+                # this shape when the List wrapper itself is registered
+                # in `_SHARED_TYPE_MODULES`: that's our promise that
+                # (a) the type is exported from a known module so the
+                # bind(c) host can `use ::` it, and (b) the wrapper has
+                # the canonical thin-pointer layout (one component
+                # named `<class>_`).  Locally-defined `<class>List`
+                # structs that happen to follow the naming convention
+                # but carry extra members — e.g.
+                # `virialDensityContrastList` in
+                # tasks.halo_mass_function.F90, which adds a `label`
+                # field — would otherwise silently drop those extra
+                # members when the wrapper rebuilds the list.  Falling
+                # through to the generic derived-type branch lets
+                # `_unsupported_arg` reject the surrounding constructor,
+                # which is the correct outcome.
                 stem                          = type_spec_val[:-4]
                 arg.ctype                     = 'c_void_p'
                 arg.fort_type                 = 'type(c_ptr)'
