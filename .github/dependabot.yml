@@ -11,3 +11,9 @@ updates:
       interval: "weekly"
     assignees:
       - "abensonca"
+  - package-ecosystem: "pip"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    assignees:
+      - "abensonca"
