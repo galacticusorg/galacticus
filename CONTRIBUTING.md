@@ -144,7 +144,7 @@ contains
 end module myModule
 ```
 
-The [Extract_Contributors.py](scripts/doc/Extract_Contributors.py) script automatically generates contributor lists from these markers.
+The [extractContributors.py](scripts/doc/extractContributors.py) script automatically generates contributor lists from these markers.
 
 ## AI-Assisted Contributions
 
