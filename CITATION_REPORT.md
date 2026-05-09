@@ -1,9 +1,18 @@
 # Inline Citation Report
 
 ## Summary
-- Total inline citations found: 328
-- Citations with confirmed BibTeX key: 282
+- Total inline citations found: 335
+- Citations with confirmed BibTeX key: 289
 - Citations with NO BibTeX match (need to be added): 46
+
+Note: An initial pass missed citations appearing inside multi-line LaTeX
+docstring blocks (`!!{ ... !!}`), since the content lines inside such blocks
+have no `!!` prefix. A follow-up pass added 7 entries from those blocks
+(see `dark_matter_profiles.SIDM.isothermal.F90`,
+`dark_matter_profiles_DMO.SIDM.coreNFW.F90`,
+`stellar_feedback.outflows.Creasey2013.F90`,
+`tests.mass_accretion_history.Hearin2021.F90`, and
+`tests.mass_accretion_history.Hearin2021_stochastic.F90`).
 
 ## Citations to fix (grouped by file)
 
@@ -83,6 +92,10 @@
 - Line 92: "Bullock et al. (2001" -> `\cite{bullock_profiles_2001}`
   - Context [inline-comment]: `! Use the halo angular momentum scale used in the Bullock et al. (2001; http://adsabs.harvard.edu/abs/2001ApJ...555..240B)`
 
+### source/dark_matter_profiles.SIDM.isothermal.F90
+- Line 37: "Jiang et al. (2022)" -> `\cite{jiang_semi-analytic_2023}`
+  - Context [latex-docblock !!{...!!}]: `A dark matter halo profile class implementing profiles for self-interacting dark matter following the ``isothermal'' model of Jiang et al. (2022).`
+
 ### source/dark_matter_profiles.structure.concentration.Brown2021.F90
 - Line 196: "Brown et al. (2021)" -> `\cite{brown_towards_2022}`
   - Context [inline-comment]: `! Evaluate the concentration using equation (20) of Brown et al. (2021).`
@@ -126,6 +139,8 @@
   - Context [inline-comment]: `! Find the density contrast as used to define masses by Ludlow et al. (2016).`
 
 ### source/dark_matter_profiles_DMO.SIDM.coreNFW.F90
+- Line 38: "Jiang et al. (2022)" -> `\cite{jiang_semi-analytic_2023}`
+  - Context [latex-docblock !!{...!!}]: `on the model of Jiang et al. (2022). The profile is defined by the enclosed mass, with (Jiang et al. 2022):`
 - Line 81: "Jiang et al. (2022)" -> `\cite{jiang_semi-analytic_2023}`
   - Context [xml:defaultSource]: `<defaultSource>Jiang et al. (2022)</defaultSource>`
 
@@ -611,6 +626,10 @@
 - Line 101: "Lacey et al. (2016)" -> `\cite{lacey_unified_2016}`
   - Context [inline-comment]: `! Implement equation (A5) of Lacey et al. (2016).`
 
+### source/stellar_feedback.outflows.Creasey2013.F90
+- Line 216: "Creasey et al. (2012)" -> `\cite{creasey_how_2013}`
+  - Context [latex-docblock !!{...!!}]: `Integrand function for the ``Creasey et al. (2012)'' supernovae feedback calculation.`
+
 ### source/structure_formation.gravitational_lensing.Takahashi_2011.F90
 - Line 454: "Takahashi et al. (2011)" -> `\cite{takahashi_probability_2011}`
   - Context [string-doc]: `call parametersFile%writeDataset(tableNKappa             ,"NKappa"             ,"Parameter N_kappa from Takahashi et al. (2011)"    )`
@@ -826,10 +845,18 @@
   - Context [inline-comment]: `! Test Correa et al. 2015 algorithm.`
 
 ### source/tests.mass_accretion_history.Hearin2021.F90
+- Line 21: "Hearin (2021)" -> `\cite{hearin_differentiable_2021}`
+  - Context [latex-docblock !!{...!!}]: `Contains a program which tests the Hearin (2021) halo mass formation history.`
+- Line 26: "Hearin (2021)" -> `\cite{hearin_differentiable_2021}`
+  - Context [latex-docblock !!{...!!}]: `Tests the Hearin (2021) halo mass formation history algorithm.`
 - Line 58: "Correa et al. 2015" -> `\cite{correa_accretion_2015}`
   - Context [inline-comment]: `! Test Correa et al. 2015 algorithm.`
 
 ### source/tests.mass_accretion_history.Hearin2021_stochastic.F90
+- Line 21: "Hearin (2021)" -> `\cite{hearin_differentiable_2021}`
+  - Context [latex-docblock !!{...!!}]: `Contains a program which tests the Hearin (2021) stochastic halo mass formation history.`
+- Line 26: "Hearin (2021)" -> `\cite{hearin_differentiable_2021}`
+  - Context [latex-docblock !!{...!!}]: `Tests the Hearin (2021) halo mass formation history algorithm.`
 - Line 85: "Correa et al. 2015" -> `\cite{correa_accretion_2015}`
   - Context [inline-comment]: `! Test Correa et al. 2015 algorithm.`
 
