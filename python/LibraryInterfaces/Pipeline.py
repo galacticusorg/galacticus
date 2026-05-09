@@ -544,11 +544,21 @@ def build_python_reassignments(argument_list):
                 f"[(s if isinstance(s,(bytes,bytearray)) else str(s).encode('ascii'))"
                 f" for s in {safe}]"
             )
+            # Each element is `ljust`-padded with **spaces** to the
+            # max-length width before being handed to numpy.  numpy's
+            # `S{N}` dtype otherwise NUL-pads short bytes-strings,
+            # which Fortran `trim()` (the unpacking code uses) doesn't
+            # strip — producing varying_string elements with embedded
+            # NUL bytes that fail equality against cleanly-encoded
+            # `varying_string` scalars.  Pre-padding with spaces means
+            # every buffer entry is exactly `_glcLen_` bytes wide AND
+            # correctly trim-able on the Fortran side.
             if arg.is_optional:
                 arg.py_reassignment = (
                     f"    if {safe} is not None:\n"
                     f"        {safe}_glcStrs_ = {encode_block}\n"
                     f"        {safe}_glcLen_ = max((len(b) for b in {safe}_glcStrs_), default=1) or 1\n"
+                    f"        {safe}_glcStrs_ = [b.ljust({safe}_glcLen_, b' ') for b in {safe}_glcStrs_]\n"
                     f"        {safe} = np.ascontiguousarray("
                     f"np.array({safe}_glcStrs_, dtype=f'S{{{safe}_glcLen_}}'))\n"
                 )
@@ -561,6 +571,7 @@ def build_python_reassignments(argument_list):
                 arg.py_reassignment = (
                     f"    {safe}_glcStrs_ = {encode_block}\n"
                     f"    {safe}_glcLen_ = max((len(b) for b in {safe}_glcStrs_), default=1) or 1\n"
+                    f"    {safe}_glcStrs_ = [b.ljust({safe}_glcLen_, b' ') for b in {safe}_glcStrs_]\n"
                     f"    {safe} = np.ascontiguousarray("
                     f"np.array({safe}_glcStrs_, dtype=f'S{{{safe}_glcLen_}}'))\n"
                 )

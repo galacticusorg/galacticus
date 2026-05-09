@@ -767,6 +767,12 @@ def test_python_reassignments_vstring_array_picks_runtime_max_length():
     assert "names_glcStrs_" in out[0].py_reassignment
     assert "names_glcLen_"  in out[0].py_reassignment
     assert "dtype=f'S{names_glcLen_}'" in out[0].py_reassignment
+    # Each element is space-padded to max-length BEFORE being handed
+    # to numpy: numpy's `S{N}` dtype NUL-pads short bytes-strings,
+    # and Fortran `trim()` doesn't strip NULs, so an element shorter
+    # than the max would otherwise carry embedded NULs into its
+    # varying_string and fail equality with cleanly-encoded scalars.
+    assert "ljust(names_glcLen_, b' ')" in out[0].py_reassignment
     assert out[0].py_pass_as == "names.ctypes.data_as(POINTER(c_char))"
     assert out[1].py_pass_as == 'c_size_t(names.size)'
     assert out[2].py_pass_as == 'c_size_t(names.itemsize)'
