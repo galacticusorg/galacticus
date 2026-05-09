@@ -45,7 +45,6 @@ module Node_Component_Spheroid_Standard
    <class>spheroid</class>
    <name>standard</name>
    <isDefault>true</isDefault>
-   <createFunction isDeferred="true" />
    <properties>
     <property>
       <name>isInitialized</name>
@@ -215,7 +214,6 @@ contains
        call spheroidStandardComponent%             massGasSinkRateFunction(Node_Component_Spheroid_Standard_Mass_Gas_Sink_Rate         )
        call spheroidStandardComponent%    starFormationHistoryRateFunction(Node_Component_Spheroid_Standard_Star_Formation_History_Rate)
        call spheroidStandardComponent%stellarPropertiesHistoryRateFunction(Node_Component_Spheroid_Standard_Stellar_Prprts_History_Rate)
-       call spheroidStandardComponent%                   createFunctionSet(Node_Component_Spheroid_Standard_Initializor                )
 
        ! Find our parameters.
        subParameters=parameters%subParameters('componentSpheroid')

@@ -53,7 +53,6 @@ module Node_Component_Hot_Halo_Standard
    <class>hotHalo</class>
    <name>standard</name>
    <isDefault>true</isDefault>
-   <createFunction isDeferred="true" />
    <properties>
     <property>
       <name>isInitialized</name>
@@ -325,8 +324,6 @@ contains
        call hotHalo%           outflowingMassRateFunction(Node_Component_Hot_Halo_Standard_Outflowing_Mass_Rate      )
        call hotHalo%outflowingAngularMomentumRateFunction(Node_Component_Hot_Halo_Standard_Outflowing_Ang_Mom_Rate   )
        call hotHalo%     outflowingAbundancesRateFunction(Node_Component_Hot_Halo_Standard_Outflowing_Abundances_Rate)
-       ! Bind a creation function.
-       call hotHalo%                    createFunctionSet(Node_Component_Hot_Halo_Standard_Initializor               )
        ! Bind the mass distribution function.
        Node_Component_Hot_Halo_Standard_Mass_Distribution_ => Node_Component_Hot_Halo_Standard_Mass_Distribution
        call hotHalo%             massDistributionFunction(Node_Component_Hot_Halo_Standard_Mass_Distribution_        )

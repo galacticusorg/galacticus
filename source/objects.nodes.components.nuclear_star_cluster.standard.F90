@@ -46,7 +46,6 @@ module Node_Component_NSC_Standard
    <class>NSC</class>
    <name>standard</name>
    <isDefault>false</isDefault>
-   <createFunction isDeferred="true" />
    <properties>
     <property>
       <name>isInitialized</name>
