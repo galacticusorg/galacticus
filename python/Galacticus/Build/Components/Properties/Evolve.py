@@ -1,8 +1,10 @@
-# Per-property evolution methods: count / rateGet / Rate / scale /
-# inactive / analytic + auto-create rate functions on the class type.
-# Andrew Benson (ported to Python 2026)
-#
-# Mirrors perl/Galacticus/Build/Components/Properties/Evolve.pm.
+"""Per-property evolution methods: count / rateGet / Rate / scale /
+inactive / analytic + auto-create rate functions on the class type.
+
+Andrew Benson (ported to Python 2026)
+
+Mirrors perl/Galacticus/Build/Components/Properties/Evolve.pm.
+"""
 
 import os
 

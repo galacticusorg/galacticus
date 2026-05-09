@@ -1,5 +1,7 @@
-# Helpers for reading the structure of `$BUILDPATH/stateStorables.xml`.
-# Andrew Benson (ported to Python 2026)
+"""Helpers for reading the structure of `$BUILDPATH/stateStorables.xml`.
+
+Andrew Benson (ported to Python 2026)
+"""
 from __future__ import annotations
 #
 # `dict_to_xml_string()` writes `stateStorables.xml` in the no-attribute

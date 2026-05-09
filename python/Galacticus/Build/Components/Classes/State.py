@@ -1,11 +1,13 @@
-# Per-class module-scope state variables.
-# Andrew Benson (ported to Python 2026)
-#
-# Mirrors perl/Galacticus/Build/Components/Classes/State.pm.  Two
-# `classIteratedFunctions` hooks: `Class_State` declares the
-# class-scope variables (default component, allocator template,
-# meta-property bookkeeping arrays); `Class_Size_Of` emits the
-# byte-count accessor.
+"""Per-class module-scope state variables.
+
+Andrew Benson (ported to Python 2026)
+
+Mirrors perl/Galacticus/Build/Components/Classes/State.pm.  Two
+`classIteratedFunctions` hooks: `Class_State` declares the
+class-scope variables (default component, allocator template,
+meta-property bookkeeping arrays); `Class_Size_Of` emits the
+byte-count accessor.
+"""
 
 
 

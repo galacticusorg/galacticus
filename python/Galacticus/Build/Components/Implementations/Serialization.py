@@ -1,11 +1,13 @@
-# Per-implementation (de)serialization methods (ASCII / XML / raw / deserialize raw).
-# Andrew Benson (ported to Python 2026)
-#
-# Mirrors perl/Galacticus/Build/Components/Implementations/Serialization.pm.
-# Note: the Perl source references `@code::unused` in three of the four
-# hooks, but never populates it — so the `!$GLC attributes unused` lines
-# in those functions are effectively dead code in the original.  We omit
-# those branches here.
+"""Per-implementation (de)serialization methods (ASCII / XML / raw / deserialize raw).
+
+Andrew Benson (ported to Python 2026)
+
+Mirrors perl/Galacticus/Build/Components/Implementations/Serialization.pm.
+Note: the Perl source references `@code::unused` in three of the four
+hooks, but never populates it — so the `!$GLC attributes unused` lines
+in those functions are effectively dead code in the original.  We omit
+those branches here.
+"""
 
 
 

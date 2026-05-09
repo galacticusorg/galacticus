@@ -1,5 +1,7 @@
-# LibraryInterfaces.ArgSpec — intermediate representation for a single argument.
-# Andrew Benson (ported to Python with assistance from Claude 2026)
+"""LibraryInterfaces.ArgSpec — intermediate representation for a single argument.
+
+Andrew Benson (ported to Python with assistance from Claude 2026)
+"""
 
 from dataclasses import dataclass, field
 

@@ -1,20 +1,21 @@
-# Regression tests for `Galacticus.Build.SourceTree.Parse.ModuleUses`.
-#
-# Two bug classes:
-#
-#   1. `_flush_code` used to absorb `raw_pp_buf` whenever flushing a code
-#      buffer.  That broke the case where a `#ifdef USEMPI` line sat
-#      immediately before a `use mpi` line: the `#ifdef` got copied into the
-#      surrounding code node, and again into the moduleUse block when the
-#      use was rebuilt — yielding a duplicated `#ifdef … #endif` wrapper
-#      (one of which was unmatched and produced "unterminated #ifdef" at
-#      compile time).
-#
-#   2. `add_uses` merged a new unconditional `use` onto an existing
-#      conditional entry while preserving the existing entry's `conditions`
-#      list.  This meant code that simply asked to `use mpiSelf` ended up
-#      only importing it under `#ifdef USEMPI`, and was undefined in serial
-#      builds.
+"""Regression tests for `Galacticus.Build.SourceTree.Parse.ModuleUses`.
+
+Two bug classes:
+
+  1. `_flush_code` used to absorb `raw_pp_buf` whenever flushing a code
+     buffer.  That broke the case where a `#ifdef USEMPI` line sat
+     immediately before a `use mpi` line: the `#ifdef` got copied into the
+     surrounding code node, and again into the moduleUse block when the
+     use was rebuilt — yielding a duplicated `#ifdef … #endif` wrapper
+     (one of which was unmatched and produced "unterminated #ifdef" at
+     compile time).
+
+  2. `add_uses` merged a new unconditional `use` onto an existing
+     conditional entry while preserving the existing entry's `conditions`
+     list.  This meant code that simply asked to `use mpiSelf` ended up
+     only importing it under `#ifdef USEMPI`, and was undefined in serial
+     builds.
+"""
 
 from Galacticus.Build.SourceTree                  import parse_code, serialize
 from Galacticus.Build.SourceTree.Parse.ModuleUses import parse_module_uses, add_uses

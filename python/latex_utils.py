@@ -1,5 +1,7 @@
-# Shared LaTeX encoding utilities.
-# Andrew Benson (ported to Python 2026)
+"""Shared LaTeX encoding utilities.
+
+Andrew Benson (ported to Python 2026)
+"""
 from __future__ import annotations
 
 import re

@@ -1,7 +1,9 @@
-# Per-implementation output methods: outputCount / outputNames / postOutput.
-# Andrew Benson (ported to Python 2026)
-#
-# Mirrors perl/Galacticus/Build/Components/Implementations/Output.pm.
+"""Per-implementation output methods: outputCount / outputNames / postOutput.
+
+Andrew Benson (ported to Python 2026)
+
+Mirrors perl/Galacticus/Build/Components/Implementations/Output.pm.
+"""
 
 import re
 

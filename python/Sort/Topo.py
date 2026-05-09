@@ -1,8 +1,10 @@
-# Provides topological sort functionality.
-# Andrew Benson (ported to Python 2026)
-#
-# Wraps Python's standard-library graphlib.TopologicalSorter (Python >= 3.9),
-# exposing an interface that matches the Perl Sort::Topo module.
+"""Provides topological sort functionality.
+
+Andrew Benson (ported to Python 2026)
+
+Wraps Python's standard-library graphlib.TopologicalSorter (Python >= 3.9),
+exposing an interface that matches the Perl Sort::Topo module.
+"""
 from __future__ import annotations
 
 from graphlib import TopologicalSorter, CycleError

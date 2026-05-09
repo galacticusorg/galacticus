@@ -1,7 +1,9 @@
-# Contains a Python module which implements parsing of OpenMP directives.
-# Andrew Benson (ported to Python 2026)
-#
-# Mirrors perl/Galacticus/Build/SourceTree/Parse/OpenMP.pm
+"""Contains a Python module which implements parsing of OpenMP directives.
+
+Andrew Benson (ported to Python 2026)
+
+Mirrors perl/Galacticus/Build/SourceTree/Parse/OpenMP.pm
+"""
 
 import re
 import io

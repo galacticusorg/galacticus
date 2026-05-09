@@ -1,9 +1,11 @@
-# Per-implementation ODE-solver hooks.
-# Andrew Benson (ported to Python 2026)
-#
-# Mirrors perl/Galacticus/Build/Components/Implementations/ODESolver.pm.
-# Eight hooks total — seven implementationIteratedFunctions plus one
-# top-level `functions` hook (Implementation_ODE_Rate_Variables).
+"""Per-implementation ODE-solver hooks.
+
+Andrew Benson (ported to Python 2026)
+
+Mirrors perl/Galacticus/Build/Components/Implementations/ODESolver.pm.
+Eight hooks total — seven implementationIteratedFunctions plus one
+top-level `functions` hook (Implementation_ODE_Rate_Variables).
+"""
 
 
 

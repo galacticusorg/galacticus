@@ -1,11 +1,13 @@
-# `treeNode` lifecycle methods: initialize, build-from-XML, destroy, and
-# per-class create/destroy.
-# Andrew Benson (ported to Python 2026)
-#
-# Mirrors perl/Galacticus/Build/Components/TreeNodes/CreateDestroy.pm.
-# Three `functions`-phase hooks emit the global lifecycle methods, plus
-# two `classIteratedFunctions` hooks emit per-class create/destroy
-# methods.
+"""`treeNode` lifecycle methods: initialize, build-from-XML, destroy, and
+per-class create/destroy.
+
+Andrew Benson (ported to Python 2026)
+
+Mirrors perl/Galacticus/Build/Components/TreeNodes/CreateDestroy.pm.
+Three `functions`-phase hooks emit the global lifecycle methods, plus
+two `classIteratedFunctions` hooks emit per-class create/destroy
+methods.
+"""
 
 
 

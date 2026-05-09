@@ -1,11 +1,13 @@
-# Replace a file only when its content has actually changed.
-# Andrew Benson (ported to Python 2026)
-#
-# Mirrors perl/File/Changes.pm -- the `Update(oldFile, newFile, proveUpdate =>)`
-# helper that compares `old_file` with the freshly-written `new_file`, and
-# either moves `new_file` over `old_file` (if different) or deletes
-# `new_file` (if identical).  Preserving the old file's mtime in the
-# identical case lets Make skip rebuilds of downstream targets.
+"""Replace a file only when its content has actually changed.
+
+Andrew Benson (ported to Python 2026)
+
+Mirrors perl/File/Changes.pm -- the `Update(oldFile, newFile, proveUpdate =>)`
+helper that compares `old_file` with the freshly-written `new_file`, and
+either moves `new_file` over `old_file` (if different) or deletes
+`new_file` (if identical).  Preserving the old file's mtime in the
+identical case lets Make skip rebuilds of downstream targets.
+"""
 from __future__ import annotations
 
 import filecmp

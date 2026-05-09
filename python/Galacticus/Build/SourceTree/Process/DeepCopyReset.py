@@ -1,8 +1,10 @@
-# Processes `deepCopyReset` directives: emits a call to `%deepCopyReset()` for
-# each named object and marks the directive as processed.
-# Andrew Benson (ported to Python 2026)
-#
-# Mirrors perl/Galacticus/Build/SourceTree/Process/DeepCopyReset.pm
+"""Processes `deepCopyReset` directives: emits a call to `%deepCopyReset()` for
+each named object and marks the directive as processed.
+
+Andrew Benson (ported to Python 2026)
+
+Mirrors perl/Galacticus/Build/SourceTree/Process/DeepCopyReset.pm
+"""
 
 
 

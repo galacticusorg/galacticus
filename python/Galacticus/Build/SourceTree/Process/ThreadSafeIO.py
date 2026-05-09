@@ -1,11 +1,13 @@
-# Wraps Fortran I/O statements in an `!$omp critical(gfortranInternalIO_)`
-# section when $GALACTICUS_FCFLAGS contains `-DTHREADSAFEIO`, to work
-# around gfortran PR 92836 (internal-file I/O is not thread-safe there).
-# Also rewrites existing `gfortranInternalIO` / `FoX_DOM_Access` critical
-# sections to use the same underlying `gfortranInternalIO_` lock name.
-# Andrew Benson (ported to Python 2026)
-#
-# Mirrors perl/Galacticus/Build/SourceTree/Process/ThreadSafeIO.pm
+"""Wraps Fortran I/O statements in an `!$omp critical(gfortranInternalIO_)`
+section when $GALACTICUS_FCFLAGS contains `-DTHREADSAFEIO`, to work
+around gfortran PR 92836 (internal-file I/O is not thread-safe there).
+
+Also rewrites existing `gfortranInternalIO` / `FoX_DOM_Access` critical
+sections to use the same underlying `gfortranInternalIO_` lock name.
+Andrew Benson (ported to Python 2026)
+
+Mirrors perl/Galacticus/Build/SourceTree/Process/ThreadSafeIO.pm
+"""
 
 import io
 import os

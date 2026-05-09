@@ -1,17 +1,18 @@
-# Regression tests for `Galacticus.Build.SourceTree.Process.ConditionalCall`.
-#
-# Covers two bug classes:
-#
-#   1. The XML parser strips trailing whitespace from `<call>` text bodies, so
-#      a template ending with `)` carries no trailing newline.  When
-#      `_render_call` returned that text verbatim the caller appended
-#      `end if\n` directly to the closing paren, producing `…)end if` — a
-#      Fortran syntax error.  The fix forces a trailing newline after each
-#      rendered call so `end if` lands on its own line.
-#
-#   2. A `<call>` template with NO `{conditions}` marker should raise rather
-#      than silently emit an unguarded call (which would lose the entire
-#      point of the directive).
+"""Regression tests for `Galacticus.Build.SourceTree.Process.ConditionalCall`.
+
+Covers two bug classes:
+
+  1. The XML parser strips trailing whitespace from `<call>` text bodies, so
+     a template ending with `)` carries no trailing newline.  When
+     `_render_call` returned that text verbatim the caller appended
+     `end if\n` directly to the closing paren, producing `…)end if` — a
+     Fortran syntax error.  The fix forces a trailing newline after each
+     rendered call so `end if` lands on its own line.
+
+  2. A `<call>` template with NO `{conditions}` marker should raise rather
+     than silently emit an unguarded call (which would lose the entire
+     point of the directive).
+"""
 
 import pytest
 

@@ -1,7 +1,9 @@
-# Small utility helpers shared by the functionClass pipeline.
-# Andrew Benson (ported to Python 2026)
-#
-# Mirrors perl/Galacticus/Build/SourceTree/Process/FunctionClass/Utils.pm
+"""Small utility helpers shared by the functionClass pipeline.
+
+Andrew Benson (ported to Python 2026)
+
+Mirrors perl/Galacticus/Build/SourceTree/Process/FunctionClass/Utils.pm
+"""
 
 import re
 

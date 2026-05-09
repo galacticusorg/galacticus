@@ -1,12 +1,14 @@
-# State store/restore code generation helpers for the functionClass
-# pipeline.
-# Andrew Benson (ported to Python 2026)
-#
-# Mirrors perl/Galacticus/Build/SourceTree/Process/FunctionClass/StateStore.pm
-# — all three exported functions (`state_store_explicit_function`,
-# `generate_allocatable_state_store_code`, `state_store_variables`).
-# Perl aliases `$stateStorables` from the parent package; we take it as a
-# parameter here.
+"""State store/restore code generation helpers for the functionClass
+pipeline.
+
+Andrew Benson (ported to Python 2026)
+
+Mirrors perl/Galacticus/Build/SourceTree/Process/FunctionClass/StateStore.pm
+— all three exported functions (`state_store_explicit_function`,
+`generate_allocatable_state_store_code`, `state_store_variables`).
+Perl aliases `$stateStorables` from the parent package; we take it as a
+parameter here.
+"""
 
 import re
 

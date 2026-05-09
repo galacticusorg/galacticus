@@ -1,9 +1,11 @@
-# Processes `enumeration` directives: for each enum declared under a module
-# or file, synthesizes the enumeration type, its equality operator, and
-# (optionally) validator / encode / decode / describe helpers.
-# Andrew Benson (ported to Python 2026)
-#
-# Mirrors perl/Galacticus/Build/SourceTree/Process/Enumeration.pm
+"""Processes `enumeration` directives: for each enum declared under a module
+or file, synthesizes the enumeration type, its equality operator, and
+(optionally) validator / encode / decode / describe helpers.
+
+Andrew Benson (ported to Python 2026)
+
+Mirrors perl/Galacticus/Build/SourceTree/Process/Enumeration.pm
+"""
 
 import os
 

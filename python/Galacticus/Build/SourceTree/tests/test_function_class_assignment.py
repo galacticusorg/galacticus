@@ -1,23 +1,24 @@
-# Regression test for `_build_assignment_method` in
-# `Galacticus.Build.SourceTree.Process.FunctionClass`.
-#
-# Two related bugs:
-#
-#   1. Type-bound bindings (`procedure :: methodName => methodImpl`) are
-#      `intrinsic == 'procedure'` declarations, but they are NOT data
-#      members.  An earlier draft emitted `self%methodName=from%methodName`
-#      for them — invalid Fortran since `methodName` resolves to the
-#      bound procedure, not a slot.
-#
-#   2. Procedure-pointer DATA members (`procedure(intf), pointer :: foo`)
-#      are ALSO `intrinsic == 'procedure'`, but they MUST be copied — with
-#      `=>` since they are pointers.  An over-aggressive fix for #1
-#      skipped every `intrinsic == 'procedure'` declaration, leaving
-#      procedure-pointer slots null in the assignment, and producing
-#      runtime null-procedure-pointer segfaults at the call site.
-#
-# The correct discriminator is the `pointer` attribute: pointer ⇒ data
-# member (emit `self%X=>from%X`), no pointer ⇒ type-bound binding (skip).
+"""Regression test for `_build_assignment_method` in
+`Galacticus.Build.SourceTree.Process.FunctionClass`.
+
+Two related bugs:
+
+  1. Type-bound bindings (`procedure :: methodName => methodImpl`) are
+     `intrinsic == 'procedure'` declarations, but they are NOT data
+     members.  An earlier draft emitted `self%methodName=from%methodName`
+     for them — invalid Fortran since `methodName` resolves to the
+     bound procedure, not a slot.
+
+  2. Procedure-pointer DATA members (`procedure(intf), pointer :: foo`)
+     are ALSO `intrinsic == 'procedure'`, but they MUST be copied — with
+     `=>` since they are pointers.  An over-aggressive fix for #1
+     skipped every `intrinsic == 'procedure'` declaration, leaving
+     procedure-pointer slots null in the assignment, and producing
+     runtime null-procedure-pointer segfaults at the call site.
+
+The correct discriminator is the `pointer` attribute: pointer ⇒ data
+member (emit `self%X=>from%X`), no pointer ⇒ type-bound binding (skip).
+"""
 
 from Galacticus.Build.SourceTree.Process.FunctionClass import (
     _build_assignment_method,

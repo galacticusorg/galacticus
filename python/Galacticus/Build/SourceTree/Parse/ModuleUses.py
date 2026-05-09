@@ -1,7 +1,9 @@
-# Contains a Python module which implements parsing of module uses in the Galacticus preprocessor system.
-# Andrew Benson (ported to Python 2026)
-#
-# Mirrors perl/Galacticus/Build/SourceTree/Parse/ModuleUses.pm
+"""Contains a Python module which implements parsing of module uses in the Galacticus preprocessor system.
+
+Andrew Benson (ported to Python 2026)
+
+Mirrors perl/Galacticus/Build/SourceTree/Parse/ModuleUses.pm
+"""
 
 import re
 import io

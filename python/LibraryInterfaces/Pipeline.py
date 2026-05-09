@@ -1,27 +1,29 @@
-# LibraryInterfaces.Pipeline — four pipeline stages that enrich ArgSpec objects.
-# Andrew Benson (ported to Python with assistance from Claude 2026)
-#
-# Each stage accepts a list of ArgSpec (or raw dicts for assign_c_types) and
-# returns the enriched list.  Stages must be applied in order:
-#
-#   1. assign_c_types(raw_list, lib_function_classes)
-#      Converts raw Fortran-declaration dicts to ArgSpec objects and sets
-#      ctype / fort_type / is_optional / is_function_class.  Inserts _ID
-#      companion args for functionClass parameters.
-#
-#   2. assign_c_attributes(arg_list)
-#      Sets fort_attributes, pass_by, ctype_pointer based on the type and
-#      direction of each argument.
-#
-#   3. build_python_reassignments(arg_list)
-#      Populates py_pass_as and py_reassignment for functionClass arguments.
-#
-#   4. build_fortran_reassignments(arg_list, func_class, implementation,
-#                                  extensions, module_uses_impls,
-#                                  lib_function_classes=None)
-#      Populates fort_pass_as, fort_reassignment, fort_declarations,
-#      fort_modules, and fort_iso_c_symbols for all arguments that need
-#      cross-language type conversion.
+"""LibraryInterfaces.Pipeline — four pipeline stages that enrich ArgSpec objects.
+
+Andrew Benson (ported to Python with assistance from Claude 2026)
+
+Each stage accepts a list of ArgSpec (or raw dicts for assign_c_types) and
+returns the enriched list.  Stages must be applied in order:
+
+  1. assign_c_types(raw_list, lib_function_classes)
+     Converts raw Fortran-declaration dicts to ArgSpec objects and sets
+     ctype / fort_type / is_optional / is_function_class.  Inserts _ID
+     companion args for functionClass parameters.
+
+  2. assign_c_attributes(arg_list)
+     Sets fort_attributes, pass_by, ctype_pointer based on the type and
+     direction of each argument.
+
+  3. build_python_reassignments(arg_list)
+     Populates py_pass_as and py_reassignment for functionClass arguments.
+
+  4. build_fortran_reassignments(arg_list, func_class, implementation,
+                                 extensions, module_uses_impls,
+                                 lib_function_classes=None)
+     Populates fort_pass_as, fort_reassignment, fort_declarations,
+     fort_modules, and fort_iso_c_symbols for all arguments that need
+     cross-language type conversion.
+"""
 
 import re
 

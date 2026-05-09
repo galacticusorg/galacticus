@@ -1,7 +1,9 @@
-# Contains a Python module which implements parsing of directives in the Galacticus preprocessor system.
-# Andrew Benson (ported to Python 2026)
-#
-# Mirrors perl/Galacticus/Build/SourceTree/Parse/Directives.pm
+"""Contains a Python module which implements parsing of directives in the Galacticus preprocessor system.
+
+Andrew Benson (ported to Python 2026)
+
+Mirrors perl/Galacticus/Build/SourceTree/Parse/Directives.pm
+"""
 
 import re
 import os

@@ -1,11 +1,13 @@
-# `treeNode` utility methods: copyNodeTo, moveComponentsTo, massDistribution,
-# massBaryonic.
-# Andrew Benson (ported to Python 2026)
-#
-# Mirrors perl/Galacticus/Build/Components/TreeNodes/Utils.pm.  Four
-# `functions`-phase hooks.  This file lands in three commit-sized
-# steps; this step ports `Copy` and `Move` only.  The remaining two
-# hooks are stubbed and wired up in follow-up commits.
+"""`treeNode` utility methods: copyNodeTo, moveComponentsTo, massDistribution,
+massBaryonic.
+
+Andrew Benson (ported to Python 2026)
+
+Mirrors perl/Galacticus/Build/Components/TreeNodes/Utils.pm.  Four
+`functions`-phase hooks.  This file lands in three commit-sized
+steps; this step ports `Copy` and `Move` only.  The remaining two
+hooks are stubbed and wired up in follow-up commits.
+"""
 
 
 

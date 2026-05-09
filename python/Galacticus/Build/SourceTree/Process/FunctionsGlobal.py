@@ -1,11 +1,13 @@
-# Processes `functionsGlobal` directives: either synthesizes the
-# procedure-pointer declarations + `_Null` default implementations
-# (`type="pointers"`) or emits the runtime pointer assignments
-# (`type="establish"`) that wire named global functions into the pointer
-# table.
-# Andrew Benson (ported to Python 2026)
-#
-# Mirrors perl/Galacticus/Build/SourceTree/Process/FunctionsGlobal.pm
+"""Processes `functionsGlobal` directives: either synthesizes the
+procedure-pointer declarations + `_Null` default implementations
+(`type="pointers"`) or emits the runtime pointer assignments
+(`type="establish"`) that wire named global functions into the pointer
+table.
+
+Andrew Benson (ported to Python 2026)
+
+Mirrors perl/Galacticus/Build/SourceTree/Process/FunctionsGlobal.pm
+"""
 
 import os
 import re

@@ -1,13 +1,14 @@
-# Regression tests for top-level `Galacticus.Build.SourceTree` behaviour.
-#
-# Bug class: embedded LaTeX (`!!{ … !!}`) and XML (`!![ … !!]`) blocks must
-# survive the parse → serialize round-trip in a form the Fortran compiler
-# accepts.  An earlier draft kept the original text in a parallel buffer,
-# so when `serialize` rebuilt the source the LaTeX/XML body landed in the
-# output uncommented — a Fortran compile error.  The fix prefixes each
-# body line with `!< ` at parse time and stores the commented text in code
-# nodes; serialize then emits compilable Fortran while the directive
-# parser still sees the original markers.
+"""Regression tests for top-level `Galacticus.Build.SourceTree` behaviour.
+
+Bug class: embedded LaTeX (`!!{ … !!}`) and XML (`!![ … !!]`) blocks must
+survive the parse → serialize round-trip in a form the Fortran compiler
+accepts.  An earlier draft kept the original text in a parallel buffer,
+so when `serialize` rebuilt the source the LaTeX/XML body landed in the
+output uncommented — a Fortran compile error.  The fix prefixes each
+body line with `!< ` at parse time and stores the commented text in code
+nodes; serialize then emits compilable Fortran while the directive
+parser still sees the original markers.
+"""
 
 from Galacticus.Build.SourceTree import parse_code, serialize
 

@@ -1,5 +1,3 @@
-# Provides functions used for validation of models.
-# Andrew Benson (12-August-2024)
 """Functions for validating Galacticus model output against observational constraints.
 
 This module provides utilities to extract likelihood measures from model HDF5

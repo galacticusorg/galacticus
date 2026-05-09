@@ -1,11 +1,13 @@
-# Processes `eventHookStatic` directives: at each call site, synthesizes the
-# `call X(callWith)` ladder over every function that has opted into the
-# event via the named directive, and imports each function from its
-# providing module.  Also marks every hooked function public in its
-# enclosing module.
-# Andrew Benson (ported to Python 2026)
-#
-# Mirrors perl/Galacticus/Build/SourceTree/Process/EventHooksStatic.pm
+"""Processes `eventHookStatic` directives: at each call site, synthesizes the
+`call X(callWith)` ladder over every function that has opted into the
+event via the named directive, and imports each function from its
+providing module.  Also marks every hooked function public in its
+enclosing module.
+
+Andrew Benson (ported to Python 2026)
+
+Mirrors perl/Galacticus/Build/SourceTree/Process/EventHooksStatic.pm
+"""
 
 import os
 import pickle

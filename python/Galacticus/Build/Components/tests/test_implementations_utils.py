@@ -1,11 +1,12 @@
-# Tests for `Galacticus.Build.Components.Implementations.Utils`.
-#
-# Two pipeline hooks (`Implementation_Is_Active`,
-# `Implementation_Function_Iterator`) plus three free helpers shared with
-# sister modules (`has_real_evolvers`, `has_real_non_trivial_evolvers`,
-# `list_real_evolvers`).  The free helpers are pure predicates and the
-# main test target -- they're called from many emit sites and any
-# regression here cascades through the build.
+"""Tests for `Galacticus.Build.Components.Implementations.Utils`.
+
+Two pipeline hooks (`Implementation_Is_Active`,
+`Implementation_Function_Iterator`) plus three free helpers shared with
+sister modules (`has_real_evolvers`, `has_real_non_trivial_evolvers`,
+`list_real_evolvers`).  The free helpers are pure predicates and the
+main test target -- they're called from many emit sites and any
+regression here cascades through the build.
+"""
 
 from Galacticus.Build.Components.Implementations.Utils import (
     Implementation_Is_Active,

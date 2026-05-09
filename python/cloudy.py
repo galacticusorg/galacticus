@@ -1,5 +1,3 @@
-# Provides functions for working with Cloudy
-# Andrew Benson (22-April-2025)
 """Functions for downloading, building, and managing the Cloudy photoionization code.
 
 This module provides utilities for obtaining and compiling the

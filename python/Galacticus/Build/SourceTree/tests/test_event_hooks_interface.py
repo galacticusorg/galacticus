@@ -1,20 +1,21 @@
-# Regression test for `_parse_interface_arguments` in
-# `Galacticus.Build.SourceTree.Process.EventHooks`.
-#
-# Bug: the original implementation split each declaration line on the FIRST
-# `::`.  But Fortran attribute lists may contain `dimension(:)` (or
-# `dimension(:,:)`), and the colon inside the parens looks just like the
-# `::` separator to a naive split — so the parser locked onto the inner
-# colon and failed to find the real `::`, dropping the argument list.
-#
-# Concretely, the abstract-interface body for `events.hooks.p.F90` contains
-#
-#     real(c_double), dimension(:), intent(in   ) :: time
-#     class(treeNode), intent(inout) :: node
-#
-# The old splitter dropped `time`, leaving the rendered abstract interface
-# missing one of its arguments and yielding a Fortran syntax error.  The
-# fix splits on the LAST `::` instead.
+"""Regression test for `_parse_interface_arguments` in
+`Galacticus.Build.SourceTree.Process.EventHooks`.
+
+Bug: the original implementation split each declaration line on the FIRST
+`::`.  But Fortran attribute lists may contain `dimension(:)` (or
+`dimension(:,:)`), and the colon inside the parens looks just like the
+`::` separator to a naive split — so the parser locked onto the inner
+colon and failed to find the real `::`, dropping the argument list.
+
+Concretely, the abstract-interface body for `events.hooks.p.F90` contains
+
+    real(c_double), dimension(:), intent(in   ) :: time
+    class(treeNode), intent(inout) :: node
+
+The old splitter dropped `time`, leaving the rendered abstract interface
+missing one of its arguments and yielding a Fortran syntax error.  The
+fix splits on the LAST `::` instead.
+"""
 
 from Galacticus.Build.SourceTree.Process.EventHooks import _parse_interface_arguments
 

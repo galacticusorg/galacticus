@@ -1,9 +1,10 @@
-# Tests for `LibraryInterfaces.Pipeline`.
-#
-# Four pipeline stages enrich `ArgSpec` lists for the cross-language Galacticus
-# library wrapper.  Each test exercises one type-mapping branch end-to-end
-# rather than every internal helper -- the type mappings are the contract that
-# the rest of the build relies on.
+"""Tests for `LibraryInterfaces.Pipeline`.
+
+Four pipeline stages enrich `ArgSpec` lists for the cross-language Galacticus
+library wrapper.  Each test exercises one type-mapping branch end-to-end
+rather than every internal helper -- the type mappings are the contract that
+the rest of the build relies on.
+"""
 
 import pytest
 

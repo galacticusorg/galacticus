@@ -1,9 +1,11 @@
-# Provides a tree-based parser for Galacticus Fortran source files.
-# Andrew Benson (ported to Python 2026)
-#
-# Mirrors the subset of perl/Galacticus/Build/SourceTree.pm used by the
-# Galacticus build scripts, together with the Parse::Directives and
-# Parse::ModuleUses parsers that libraryInterfaces.py requires.
+"""Provides a tree-based parser for Galacticus Fortran source files.
+
+Andrew Benson (ported to Python 2026)
+
+Mirrors the subset of perl/Galacticus/Build/SourceTree.pm used by the
+Galacticus build scripts, together with the Parse::Directives and
+Parse::ModuleUses parsers that libraryInterfaces.py requires.
+"""
 
 import re
 import os

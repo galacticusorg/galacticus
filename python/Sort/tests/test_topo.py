@@ -1,11 +1,12 @@
-# Tests for `Sort.Topo.sort` (port of Perl Sort::Topo).
-#
-# Recent history (commits 4ca9596d, 62314942) shows the algorithm direction
-# was toggled twice during the port -- the canonical ordering convention is
-# subtle ("dependencies[X] = [Y]" reads as "X depends on Y, so Y emits
-# first"), and the related Perl module's docstring/algorithm mismatch
-# masked the issue for years.  These tests pin down the current convention
-# so any future regression is caught.
+"""Tests for `Sort.Topo.sort` (port of Perl Sort::Topo).
+
+Recent history (commits 4ca9596d, 62314942) shows the algorithm direction
+was toggled twice during the port -- the canonical ordering convention is
+subtle ("dependencies[X] = [Y]" reads as "X depends on Y, so Y emits
+first"), and the related Perl module's docstring/algorithm mismatch
+masked the issue for years.  These tests pin down the current convention
+so any future regression is caught.
+"""
 
 import pytest
 

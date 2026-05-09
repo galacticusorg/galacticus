@@ -1,10 +1,12 @@
-# Process hook registry and tree-processing driver.
-# Andrew Benson (ported to Python 2026)
-#
-# Mirrors the Galacticus::Build::SourceTree::ProcessTree() driver and the
-# %processHooks / %processDependencies / %postprocessHooks registries from
-# perl/Galacticus/Build/SourceTree.pm.  Each Process submodule registers
-# itself at import time via register_process() or register_postprocess().
+"""Process hook registry and tree-processing driver.
+
+Andrew Benson (ported to Python 2026)
+
+Mirrors the Galacticus::Build::SourceTree::ProcessTree() driver and the
+%processHooks / %processDependencies / %postprocessHooks registries from
+perl/Galacticus/Build/SourceTree.pm.  Each Process submodule registers
+itself at import time via register_process() or register_postprocess().
+"""
 
 
 

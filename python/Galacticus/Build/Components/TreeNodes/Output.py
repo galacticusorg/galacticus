@@ -1,11 +1,13 @@
-# `treeNode` HDF5-output methods.
-# Andrew Benson (ported to Python 2026)
-#
-# Mirrors perl/Galacticus/Build/Components/TreeNodes/Output.pm.  Four
-# hooks on the `functions` phase: `outputCount`, `outputNames`,
-# `output`, and `postOutput`.  Each emits boilerplate for the
-# node-level output properties (currently just `subsamplingWeight`)
-# and then delegates to every active component class member.
+"""`treeNode` HDF5-output methods.
+
+Andrew Benson (ported to Python 2026)
+
+Mirrors perl/Galacticus/Build/Components/TreeNodes/Output.pm.  Four
+hooks on the `functions` phase: `outputCount`, `outputNames`,
+`output`, and `postOutput`.  Each emits boilerplate for the
+node-level output properties (currently just `subsamplingWeight`)
+and then delegates to every active component class member.
+"""
 
 
 

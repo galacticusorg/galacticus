@@ -1,5 +1,7 @@
-# Provides extra list/dict utility functions.
-# Andrew Benson (ported to Python 2026)
+"""Provides extra list/dict utility functions.
+
+Andrew Benson (ported to Python 2026)
+"""
 from __future__ import annotations
 
 from typing import Any

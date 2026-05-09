@@ -1,10 +1,12 @@
-# Processes `metaPropertyDatabase` directives: walks every source file that
-# declares an `addMetaProperty` directive and synthesizes a
-# `subroutine metaPropertyNoCreator(…)` whose if/else-if ladder identifies
-# which functionClass implementation would create a given meta-property.
-# Andrew Benson (ported to Python 2026)
-#
-# Mirrors perl/Galacticus/Build/SourceTree/Process/MetaPropertyDatabase.pm
+"""Processes `metaPropertyDatabase` directives: walks every source file that
+declares an `addMetaProperty` directive and synthesizes a
+`subroutine metaPropertyNoCreator(…)` whose if/else-if ladder identifies
+which functionClass implementation would create a given meta-property.
+
+Andrew Benson (ported to Python 2026)
+
+Mirrors perl/Galacticus/Build/SourceTree/Process/MetaPropertyDatabase.pm
+"""
 
 import os
 import re

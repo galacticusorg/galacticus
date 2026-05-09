@@ -1,11 +1,13 @@
-# Per-class create/destroy/builder + meta-property add/count/name hooks.
-# Andrew Benson (ported to Python 2026)
-#
-# Mirrors perl/Galacticus/Build/Components/Classes/CreateDestroy.pm.
-# Seven `classIteratedFunctions` hooks: Initialization, Builder,
-# Finalization (small stubs); Class_Create_By_Interrupt (top-level
-# helper for createIfNeeded); plus Add/Count/Name_Meta_Property (one
-# function per meta-property type per class).
+"""Per-class create/destroy/builder + meta-property add/count/name hooks.
+
+Andrew Benson (ported to Python 2026)
+
+Mirrors perl/Galacticus/Build/Components/Classes/CreateDestroy.pm.
+Seven `classIteratedFunctions` hooks: Initialization, Builder,
+Finalization (small stubs); Class_Create_By_Interrupt (top-level
+helper for createIfNeeded); plus Add/Count/Name_Meta_Property (one
+function per meta-property type per class).
+"""
 
 
 

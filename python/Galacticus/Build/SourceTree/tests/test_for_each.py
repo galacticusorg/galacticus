@@ -1,27 +1,28 @@
-# Regression test for `process_for_each` in
-# `Galacticus.Build.SourceTree.Process.ForEach`.
-#
-# Bug: same shape as the `<allocate>` bug.  `<forEach variable="passed">`
-# is registered to run before `process_generics`, and uses the variable's
-# declaration to determine its rank.  For a generic-templated declaration
-#
-#     logical, allocatable {Type¦rank} :: passed
-#
-# the placeholder `{Type¦rank}` does not match `dimension(...)` at first-
-# pass time, so `_rank_from_declaration` returned 0 and the emitted
-# expansion of the directive's body had:
-#
-#   * no `do foreach__1=…` index loops
-#   * `{index}` replaced with an empty string
-#
-# Generics then cloned the subroutine subtree (and the emitted code with
-# it) for every instance.  The rank-1+ clones got
-# `result%note=result%note//value1` — `value1` is the rank-1 dummy
-# argument and `//` (string concat) requires scalar operands, so gfortran
-# rejected it.
-#
-# Fix: defer when the declaration still carries an unresolved
-# `¦`-bearing placeholder, mirroring the Allocate fix.
+"""Regression test for `process_for_each` in
+`Galacticus.Build.SourceTree.Process.ForEach`.
+
+Bug: same shape as the `<allocate>` bug.  `<forEach variable="passed">`
+is registered to run before `process_generics`, and uses the variable's
+declaration to determine its rank.  For a generic-templated declaration
+
+    logical, allocatable {Type¦rank} :: passed
+
+the placeholder `{Type¦rank}` does not match `dimension(...)` at first-
+pass time, so `_rank_from_declaration` returned 0 and the emitted
+expansion of the directive's body had:
+
+  * no `do foreach__1=…` index loops
+  * `{index}` replaced with an empty string
+
+Generics then cloned the subroutine subtree (and the emitted code with
+it) for every instance.  The rank-1+ clones got
+`result%note=result%note//value1` — `value1` is the rank-1 dummy
+argument and `//` (string concat) requires scalar operands, so gfortran
+rejected it.
+
+Fix: defer when the declaration still carries an unresolved
+`¦`-bearing placeholder, mirroring the Allocate fix.
+"""
 
 import pytest
 

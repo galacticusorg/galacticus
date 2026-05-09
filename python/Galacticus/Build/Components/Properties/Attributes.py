@@ -1,9 +1,11 @@
-# Generate `<class><Property>AttributeMatch` accessors per property
-# of a component class — return the list of implementations matching a
-# requested attribute requirement.
-# Andrew Benson (ported to Python 2026)
-#
-# Mirrors perl/Galacticus/Build/Components/Properties/Attributes.pm.
+"""Generate `<class><Property>AttributeMatch` accessors per property
+of a component class — return the list of implementations matching a
+requested attribute requirement.
+
+Andrew Benson (ported to Python 2026)
+
+Mirrors perl/Galacticus/Build/Components/Properties/Attributes.pm.
+"""
 
 
 

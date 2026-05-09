@@ -1,20 +1,21 @@
-# Tests for `Galacticus.Build.Directives` — file-based directive scanner.
-#
-# This module is the on-disk counterpart to the SourceTree-walking
-# `parse_directives`; it scans a Fortran source file for `!![...!!]` XML
-# directive blocks using a small state machine (see Directives.py:80-110).
-#
-# The canonical format in Galacticus source is multi-line:
-#
-#     !![
-#     <directive .../>
-#     !!]
-#
-# i.e. `!![` and `!!]` are block markers on their own lines, not an inline
-# wrapping syntax.  Several edge cases of that state machine — !-->
-# instrumentation lines, leading `!<` strip, &nbsp; substitution, multiple
-# directives per file, wildcard matching, conditions filter,
-# set_root_element_type — were previously untested.
+"""Tests for `Galacticus.Build.Directives` — file-based directive scanner.
+
+This module is the on-disk counterpart to the SourceTree-walking
+`parse_directives`; it scans a Fortran source file for `!![...!!]` XML
+directive blocks using a small state machine (see Directives.py:80-110).
+
+The canonical format in Galacticus source is multi-line:
+
+    !![
+    <directive .../>
+    !!]
+
+i.e. `!![` and `!!]` are block markers on their own lines, not an inline
+wrapping syntax.  Several edge cases of that state machine — !-->
+instrumentation lines, leading `!<` strip, &nbsp; substitution, multiple
+directives per file, wildcard matching, conditions filter,
+set_root_element_type — were previously untested.
+"""
 
 import pytest
 

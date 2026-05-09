@@ -1,13 +1,15 @@
-# Generate the on-demand "null" type-bound functions used by the
-# components-build pipeline.
-# Andrew Benson (ported to Python 2026)
-#
-# Mirrors perl/Galacticus/Build/Components/NullFunctions.pm.  A null
-# function is a placeholder type-bound implementation that satisfies a
-# Fortran type's contract for a property method (get / set / rate / scale
-# / analytic / inactive) when no real implementation is needed.  The
-# generated function names are deduplicated by a fingerprint key so that
-# any two callers asking for the same shape share one function.
+"""Generate the on-demand "null" type-bound functions used by the
+components-build pipeline.
+
+Andrew Benson (ported to Python 2026)
+
+Mirrors perl/Galacticus/Build/Components/NullFunctions.pm.  A null
+function is a placeholder type-bound implementation that satisfies a
+Fortran type's contract for a property method (get / set / rate / scale
+/ analytic / inactive) when no real implementation is needed.  The
+generated function names are deduplicated by a fingerprint key so that
+any two callers asking for the same shape share one function.
+"""
 
 
 

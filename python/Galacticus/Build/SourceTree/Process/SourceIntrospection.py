@@ -1,9 +1,11 @@
-# Expands `{introspection:location[:compact]}` placeholders in Fortran source
-# into an expression that reports the enclosing file/module/subroutine chain
-# and line number at runtime.
-# Andrew Benson (ported to Python 2026)
-#
-# Mirrors perl/Galacticus/Build/SourceTree/Process/SourceIntrospection.pm
+"""Expands `{introspection:location[:compact]}` placeholders in Fortran source
+into an expression that reports the enclosing file/module/subroutine chain
+and line number at runtime.
+
+Andrew Benson (ported to Python 2026)
+
+Mirrors perl/Galacticus/Build/SourceTree/Process/SourceIntrospection.pm
+"""
 
 import re
 

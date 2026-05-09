@@ -1,9 +1,11 @@
-# If the `-DOMPPROFILE` flag is in $GALACTICUS_FCFLAGS, wraps every
-# `!$omp critical(name)` directive listed in `$BUILDPATH/openMPCriticalSections.xml`
-# with timing calls that accumulate wait-time per critical section.
-# Andrew Benson (ported to Python 2026)
-#
-# Mirrors perl/Galacticus/Build/SourceTree/Process/ProfileOpenMP.pm
+"""If the `-DOMPPROFILE` flag is in $GALACTICUS_FCFLAGS, wraps every
+`!$omp critical(name)` directive listed in `$BUILDPATH/openMPCriticalSections.xml`
+with timing calls that accumulate wait-time per critical section.
+
+Andrew Benson (ported to Python 2026)
+
+Mirrors perl/Galacticus/Build/SourceTree/Process/ProfileOpenMP.pm
+"""
 
 import re
 import os

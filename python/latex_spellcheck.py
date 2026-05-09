@@ -1,7 +1,9 @@
 #!/usr/bin/env python3
-# Shared spell-checking logic for LaTeX and plain-text fragments.
-# Used by spellChecker.py and embeddedAnalyzer.py.
-# Andrew Benson (28-February-2023) [Python port]
+"""Shared spell-checking logic for LaTeX and plain-text fragments.
+
+Used by spellChecker.py and embeddedAnalyzer.py.
+Andrew Benson (28-February-2023) [Python port]
+"""
 from __future__ import annotations
 
 import os

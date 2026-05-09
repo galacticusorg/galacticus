@@ -1,13 +1,15 @@
-# Validation and default-population hooks for component property
-# attributes.
-# Andrew Benson (ported to Python 2026)
-#
-# Mirrors perl/Galacticus/Build/Components/Attributes.pm.  Registers four
-# pipeline hooks:
-#
-#   preValidate  → Validate_Deferreds_Functionless
-#   default      → Default_Functions
-#   postValidate → Validate_Boolean, Validate_Evolvable_Intrinsics
+"""Validation and default-population hooks for component property
+attributes.
+
+Andrew Benson (ported to Python 2026)
+
+Mirrors perl/Galacticus/Build/Components/Attributes.pm.  Registers four
+pipeline hooks:
+
+  preValidate  → Validate_Deferreds_Functionless
+  default      → Default_Functions
+  postValidate → Validate_Boolean, Validate_Evolvable_Intrinsics
+"""
 from __future__ import annotations
 
 

@@ -1,17 +1,18 @@
-# Tests for `Galacticus.Build.Components.Classes.Names` and
-# `Galacticus.Build.Components.Implementations.Names`.
-#
-# Each module owns one `<X>_Type` function that produces a Fortran type-name
-# accessor:
-#
-#   Class_Type           — `nodeComponent<Class>Type`
-#   Implementation_Type  — `nodeComponent<Class><Member>Type`
-#
-# Both register on the `classNames` / `implementationNames` hook owners.
-# The functions mutate `build['types']` to append a `procedure :: type`
-# binding whose body returns a static string label.
-#
-# Pure mutation; no I/O; small enough to exercise exhaustively.
+"""Tests for `Galacticus.Build.Components.Classes.Names` and
+`Galacticus.Build.Components.Implementations.Names`.
+
+Each module owns one `<X>_Type` function that produces a Fortran type-name
+accessor:
+
+  Class_Type           — `nodeComponent<Class>Type`
+  Implementation_Type  — `nodeComponent<Class><Member>Type`
+
+Both register on the `classNames` / `implementationNames` hook owners.
+The functions mutate `build['types']` to append a `procedure :: type`
+binding whose body returns a static string label.
+
+Pure mutation; no I/O; small enough to exercise exhaustively.
+"""
 
 from Galacticus.Build.Components.Classes.Names import Class_Type
 from Galacticus.Build.Components.Implementations.Names import Implementation_Type

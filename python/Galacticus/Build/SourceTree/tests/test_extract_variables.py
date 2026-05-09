@@ -1,19 +1,20 @@
-# Regression test for `Fortran.Utils.extract_variables`.
-#
-# Bug: `extract_variables` lowercased the entire post-`::` text up front,
-# which mangled string-literal initializers — a `character(len=56) ::
-# fileNameCoolingFunction='cooling/cooling_function_Atomic_CIE_Cloudy.hdf5'`
-# became
-# `character(len=56) :: filenamecoolingfunction='cooling/cooling_function_atomic_cie_cloudy.hdf5'`
-# in the emitted `.p.F90`.  Fortran is case-insensitive for identifiers but
-# the bytes inside a string literal are not, and on a case-sensitive
-# filesystem the lowercased filename does not exist, so the build runs but
-# the model fails to open its data file at runtime.
-#
-# The fix stashes string literals as opaque placeholders before any
-# lowercase/whitespace pass, and restores them at the end — which also
-# fixes the latent bug where a comma inside a string literal would split
-# the variable list incorrectly.
+"""Regression test for `Fortran.Utils.extract_variables`.
+
+Bug: `extract_variables` lowercased the entire post-`::` text up front,
+which mangled string-literal initializers — a `character(len=56) ::
+fileNameCoolingFunction='cooling/cooling_function_Atomic_CIE_Cloudy.hdf5'`
+became
+`character(len=56) :: filenamecoolingfunction='cooling/cooling_function_atomic_cie_cloudy.hdf5'`
+in the emitted `.p.F90`.  Fortran is case-insensitive for identifiers but
+the bytes inside a string literal are not, and on a case-sensitive
+filesystem the lowercased filename does not exist, so the build runs but
+the model fails to open its data file at runtime.
+
+The fix stashes string literals as opaque placeholders before any
+lowercase/whitespace pass, and restores them at the end — which also
+fixes the latent bug where a comma inside a string literal would split
+the variable list incorrectly.
+"""
 
 from Fortran.Utils import extract_variables
 

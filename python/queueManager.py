@@ -1,5 +1,7 @@
-# Provides functionality to manage jobs in queue managers (e.g. SLURM).
-# Andrew Benson (25-February-2025)
+"""Provides functionality to manage jobs in queue managers (e.g. SLURM).
+
+Andrew Benson (25-February-2025)
+"""
 import os
 import time
 import re

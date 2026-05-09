@@ -1,7 +1,9 @@
 #!/usr/bin/env python3
-# Top-level orchestration script for the dark matter constraint pipeline.
-# Python port of constraints/pipelines/darkMatter/pipeline.pl
-# Andrew Benson (ported to Python 2026)
+"""Top-level orchestration script for the dark matter constraint pipeline.
+
+Python port of constraints/pipelines/darkMatter/pipeline.pl
+Andrew Benson (ported to Python 2026)
+"""
 
 import argparse
 import datetime

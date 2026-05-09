@@ -1,23 +1,25 @@
-# Driver for the components-build pipeline.
-# Andrew Benson (ported to Python 2026)
-#
-# Mirrors perl/Galacticus/Build/Components.pm: the top-level `component`
-# handler invoked by scripts/build/buildCode.py.  The driver itself is
-# small — it owns three things:
-#
-#   1. `validate` — XSD-validate the directive body against
-#      schema/componentSchema.xsd.
-#   2. `parse`    — store each `<component>` directive's parsed body in
-#      `build['components']`, keyed by `<class><name>`.
-#   3. `generate` — run the phased hook pipeline (preValidate, default,
-#      gather, scatter, postValidate, content, types, interfaces,
-#      functions), then serialise the accumulated derived types,
-#      interfaces, module-scope variables, and functions into the
-#      Fortran source held on `build['content']`.
-#
-# Sub-modules under Galacticus.Build.Components.* register their own
-# functions on `Utils.component_utils` at import time; the driver simply
-# walks that registry.
+"""Driver for the components-build pipeline.
+
+Andrew Benson (ported to Python 2026)
+
+Mirrors perl/Galacticus/Build/Components.pm: the top-level `component`
+handler invoked by scripts/build/buildCode.py.  The driver itself is
+small — it owns three things:
+
+  1. `validate` — XSD-validate the directive body against
+     schema/componentSchema.xsd.
+  2. `parse`    — store each `<component>` directive's parsed body in
+     `build['components']`, keyed by `<class><name>`.
+  3. `generate` — run the phased hook pipeline (preValidate, default,
+     gather, scatter, postValidate, content, types, interfaces,
+     functions), then serialise the accumulated derived types,
+     interfaces, module-scope variables, and functions into the
+     Fortran source held on `build['content']`.
+
+Sub-modules under Galacticus.Build.Components.* register their own
+functions on `Utils.component_utils` at import time; the driver simply
+walks that registry.
+"""
 
 import logging
 import os

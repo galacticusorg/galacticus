@@ -1,12 +1,14 @@
-# Processes `stateStorable` directives: for each directive naming a base
-# class, synthesizes `XStateStore(self,…)` and `XStateRestore(self,…)`
-# subroutines that walk the class hierarchy, emitting per-variable
-# write/read of every non-excluded, state-storable member; also synthesizes
-# the `XClassRestore` / `XClassRestore1D` dispatchers that rebuild the
-# correct dynamic type on read.
-# Andrew Benson (ported to Python 2026)
-#
-# Mirrors perl/Galacticus/Build/SourceTree/Process/StateStorable.pm
+"""Processes `stateStorable` directives: for each directive naming a base
+class, synthesizes `XStateStore(self,…)` and `XStateRestore(self,…)`
+subroutines that walk the class hierarchy, emitting per-variable
+write/read of every non-excluded, state-storable member; also synthesizes
+the `XClassRestore` / `XClassRestore1D` dispatchers that rebuild the
+correct dynamic type on read.
+
+Andrew Benson (ported to Python 2026)
+
+Mirrors perl/Galacticus/Build/SourceTree/Process/StateStorable.pm
+"""
 
 import os
 import re

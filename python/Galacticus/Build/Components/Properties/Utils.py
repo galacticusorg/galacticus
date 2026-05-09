@@ -1,7 +1,9 @@
-# Per-property utilities + the `propertyIteratedFunctions` phase iterator.
-# Andrew Benson (ported to Python 2026)
-#
-# Mirrors perl/Galacticus/Build/Components/Properties/Utils.pm.
+"""Per-property utilities + the `propertyIteratedFunctions` phase iterator.
+
+Andrew Benson (ported to Python 2026)
+
+Mirrors perl/Galacticus/Build/Components/Properties/Utils.pm.
+"""
 
 
 

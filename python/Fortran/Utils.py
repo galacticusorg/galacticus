@@ -1,9 +1,11 @@
-# Provides utility functions and patterns for parsing Fortran source code.
-# Andrew Benson (ported to Python 2026)
-#
-# Mirrors the subset of perl/Fortran/Utils.pm used by the Galacticus build system.
-# The get_fortran_line() function lives in Galacticus.Build.FortranUtils; import
-# it from there when needed.
+"""Provides utility functions and patterns for parsing Fortran source code.
+
+Andrew Benson (ported to Python 2026)
+
+Mirrors the subset of perl/Fortran/Utils.pm used by the Galacticus build system.
+The get_fortran_line() function lives in Galacticus.Build.FortranUtils; import
+it from there when needed.
+"""
 
 import re
 

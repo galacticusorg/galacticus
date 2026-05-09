@@ -1,7 +1,9 @@
 #!/usr/bin/env python3
-# Analyze a variety of cosmological N-body simulations to extract statistics of interest.
-# Python port of constraints/pipelines/darkMatter/simulationsAnalyze.pl
-# Andrew Benson (ported to Python 2026)
+"""Analyze a variety of cosmological N-body simulations to extract statistics of interest.
+
+Python port of constraints/pipelines/darkMatter/simulationsAnalyze.pl
+Andrew Benson (ported to Python 2026)
+"""
 
 import argparse
 import math

@@ -1,11 +1,13 @@
-# Scan a Fortran source file for `!![…!!]` XML directive blocks on disk.
-# Andrew Benson (ported to Python 2026)
-#
-# Mirrors perl/Galacticus/Build/Directives.pm — specifically Extract_Directive
-# (incremental single-directive iterator) and Extract_Directives (return-all
-# wrapper).  This is distinct from SourceTree.Parse.Directives.parse_directives,
-# which walks an already-parsed AST; the functions here open a file on disk and
-# extract its directives without building a SourceTree.
+"""Scan a Fortran source file for `!![…!!]` XML directive blocks on disk.
+
+Andrew Benson (ported to Python 2026)
+
+Mirrors perl/Galacticus/Build/Directives.pm — specifically Extract_Directive
+(incremental single-directive iterator) and Extract_Directives (return-all
+wrapper).  This is distinct from SourceTree.Parse.Directives.parse_directives,
+which walks an already-parsed AST; the functions here open a file on disk and
+extract its directives without building a SourceTree.
+"""
 from __future__ import annotations
 
 import os

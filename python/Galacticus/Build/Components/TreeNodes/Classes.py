@@ -1,10 +1,12 @@
-# Per-class `<class>Count` and `<class>Get` methods on `treeNode`.
-# Andrew Benson (ported to Python 2026)
-#
-# Mirrors perl/Galacticus/Build/Components/TreeNodes/Classes.pm.  Two
-# `classIteratedFunctions` hooks — each runs once per component class
-# during the `Class_Function_Iterator` sub-iteration of the `functions`
-# phase.
+"""Per-class `<class>Count` and `<class>Get` methods on `treeNode`.
+
+Andrew Benson (ported to Python 2026)
+
+Mirrors perl/Galacticus/Build/Components/TreeNodes/Classes.pm.  Two
+`classIteratedFunctions` hooks — each runs once per component class
+during the `Class_Function_Iterator` sub-iteration of the `functions`
+phase.
+"""
 
 
 

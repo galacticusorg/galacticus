@@ -1,15 +1,17 @@
-# Components/Classes — per-class generators.
-# Andrew Benson (ported to Python 2026)
-#
-# Mirrors the perl/Galacticus/Build/Components/Classes/ directory.  The
-# parent module Classes.pm contributes `Gather_Classes` (a `gather`-phase
-# hook that groups component implementations by their class name and
-# populates `componentClasses` / `componentClassList` /
-# `componentClassListActive`) plus `Build_Component_Classes` (a `types`
-# phase hook that emits one `nodeComponent<Class>` Fortran type per class).
-# Only the small `Gather_Classes` piece is ported here for now — the type
-# builder and the per-class iterated hooks come with the full Classes/
-# port.
+"""Components/Classes — per-class generators.
+
+Andrew Benson (ported to Python 2026)
+
+Mirrors the perl/Galacticus/Build/Components/Classes/ directory.  The
+parent module Classes.pm contributes `Gather_Classes` (a `gather`-phase
+hook that groups component implementations by their class name and
+populates `componentClasses` / `componentClassList` /
+`componentClassListActive`) plus `Build_Component_Classes` (a `types`
+phase hook that emits one `nodeComponent<Class>` Fortran type per class).
+Only the small `Gather_Classes` piece is ported here for now — the type
+builder and the per-class iterated hooks come with the full Classes/
+port.
+"""
 
 import logging
 import os

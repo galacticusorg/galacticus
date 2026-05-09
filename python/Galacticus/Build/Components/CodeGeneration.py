@@ -1,7 +1,9 @@
-# Helper functions used during Fortran code generation for components.
-# Andrew Benson (ported to Python 2026)
-#
-# Mirrors perl/Galacticus/Build/Components/CodeGeneration.pm.
+"""Helper functions used during Fortran code generation for components.
+
+Andrew Benson (ported to Python 2026)
+
+Mirrors perl/Galacticus/Build/Components/CodeGeneration.pm.
+"""
 
 import re
 

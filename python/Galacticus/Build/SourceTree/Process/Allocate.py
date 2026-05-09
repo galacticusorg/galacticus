@@ -1,9 +1,11 @@
-# Processes `allocate` directives: emits an `allocate(var(…))` statement
-# whose rank is inferred from the variable's declaration and whose shape is
-# drawn from either a `shape=` or `size=` argument on the directive.
-# Andrew Benson (ported to Python 2026)
-#
-# Mirrors perl/Galacticus/Build/SourceTree/Process/Allocate.pm
+"""Processes `allocate` directives: emits an `allocate(var(…))` statement
+whose rank is inferred from the variable's declaration and whose shape is
+drawn from either a `shape=` or `size=` argument on the directive.
+
+Andrew Benson (ported to Python 2026)
+
+Mirrors perl/Galacticus/Build/SourceTree/Process/Allocate.pm
+"""
 
 
 

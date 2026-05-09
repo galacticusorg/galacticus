@@ -1,7 +1,9 @@
-# Linked-list code generation helpers for the functionClass pipeline.
-# Andrew Benson (ported to Python 2026)
-#
-# Mirrors perl/Galacticus/Build/SourceTree/Process/FunctionClass/LinkedList.pm
+"""Linked-list code generation helpers for the functionClass pipeline.
+
+Andrew Benson (ported to Python 2026)
+
+Mirrors perl/Galacticus/Build/SourceTree/Process/FunctionClass/LinkedList.pm
+"""
 
 
 

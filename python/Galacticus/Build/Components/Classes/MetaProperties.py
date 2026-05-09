@@ -1,8 +1,10 @@
-# Class-level meta-property accessors (get/set) plus the shared
-# `meta_property_types` data table.
-# Andrew Benson (ported to Python 2026)
-#
-# Mirrors perl/Galacticus/Build/Components/Classes/MetaProperties.pm.
+"""Class-level meta-property accessors (get/set) plus the shared
+`meta_property_types` data table.
+
+Andrew Benson (ported to Python 2026)
+
+Mirrors perl/Galacticus/Build/Components/Classes/MetaProperties.pm.
+"""
 
 
 

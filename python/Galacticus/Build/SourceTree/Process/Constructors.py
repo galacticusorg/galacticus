@@ -1,10 +1,12 @@
-# Processes `constructorAssign` directives: for each named variable, assigns
-# it to `self` (or pointer-assigns when prefixed with `*` / `*/`), allocates
-# allocatable-with-deferred-shape members, and bumps the reference count of
-# functionClass pointer members so the construction chain is correct.
-# Andrew Benson (ported to Python 2026)
-#
-# Mirrors perl/Galacticus/Build/SourceTree/Process/Constructors.pm
+"""Processes `constructorAssign` directives: for each named variable, assigns
+it to `self` (or pointer-assigns when prefixed with `*` / `*/`), allocates
+allocatable-with-deferred-shape members, and bumps the reference count of
+functionClass pointer members so the construction chain is correct.
+
+Andrew Benson (ported to Python 2026)
+
+Mirrors perl/Galacticus/Build/SourceTree/Process/Constructors.pm
+"""
 
 import os
 import re

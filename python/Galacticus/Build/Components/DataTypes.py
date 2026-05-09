@@ -1,8 +1,10 @@
-# Helpers for translating component-XML data descriptors into the matching
-# Fortran type / attribute strings.
-# Andrew Benson (ported to Python 2026)
-#
-# Mirrors perl/Galacticus/Build/Components/DataTypes.pm.
+"""Helpers for translating component-XML data descriptors into the matching
+Fortran type / attribute strings.
+
+Andrew Benson (ported to Python 2026)
+
+Mirrors perl/Galacticus/Build/Components/DataTypes.pm.
+"""
 
 
 

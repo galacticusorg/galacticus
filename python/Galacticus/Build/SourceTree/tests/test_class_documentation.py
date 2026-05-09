@@ -1,30 +1,31 @@
-# Regression test for `_populate_class_descriptions` in
-# `Galacticus.Build.SourceTree.Process.ClassDocumentation`.
-#
-# Bug: `<methods>` directives in parent classes are written as
-#
-#     <method name="orbit">
-#       <description>...</description>
-#     </method>
-#
-# while child classes use
-#
-#     <method method="parametersSelect" description="..."/>
-#
-# Our `xml_to_dict` keeps both forms verbatim — the parent's keyword
-# attribute lands in the `name` field, the child's in the `method` field.
-# Downstream code (`_resolve_method_bindings`,
-# `_compute_missing_and_generic`, plus the doc consumer
-# `scripts/doc/extractData.py`) only ever looked at `method:`, so the
-# parent's methods never made it into the `described_methods` set.  The
-# net effect: every parent's bound procedure (orbit,
-# densityContrastDefinition, …) appeared in the parent's
-# `<missingMethods>`, the consumer's inheritance walk found nothing in
-# the parent's descriptions, and the same methods stayed flagged as
-# missing in every derived class's `classes.xml`.
-#
-# Fix: when populating `descriptions`, promote `name` to `method` for
-# every method dict that doesn't already carry it.
+"""Regression test for `_populate_class_descriptions` in
+`Galacticus.Build.SourceTree.Process.ClassDocumentation`.
+
+Bug: `<methods>` directives in parent classes are written as
+
+    <method name="orbit">
+      <description>...</description>
+    </method>
+
+while child classes use
+
+    <method method="parametersSelect" description="..."/>
+
+Our `xml_to_dict` keeps both forms verbatim — the parent's keyword
+attribute lands in the `name` field, the child's in the `method` field.
+Downstream code (`_resolve_method_bindings`,
+`_compute_missing_and_generic`, plus the doc consumer
+`scripts/doc/extractData.py`) only ever looked at `method:`, so the
+parent's methods never made it into the `described_methods` set.  The
+net effect: every parent's bound procedure (orbit,
+densityContrastDefinition, …) appeared in the parent's
+`<missingMethods>`, the consumer's inheritance walk found nothing in
+the parent's descriptions, and the same methods stayed flagged as
+missing in every derived class's `classes.xml`.
+
+Fix: when populating `descriptions`, promote `name` to `method` for
+every method dict that doesn't already carry it.
+"""
 
 from Galacticus.Build.SourceTree.Process.ClassDocumentation import (
     _populate_class_descriptions,

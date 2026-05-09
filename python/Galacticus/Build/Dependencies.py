@@ -1,9 +1,11 @@
-# Topological sort of tasks described by `after` / `before` relations.
-# Andrew Benson (ported to Python 2026)
-#
-# Mirrors perl/Galacticus/Build/Dependencies.pm — specifically Dependency_Sort,
-# in its minimal subset used by SourceTree.Process.EventHooksStatic: no
-# `sortName` aliasing, no `re:` regex keys.
+"""Topological sort of tasks described by `after` / `before` relations.
+
+Andrew Benson (ported to Python 2026)
+
+Mirrors perl/Galacticus/Build/Dependencies.pm — specifically Dependency_Sort,
+in its minimal subset used by SourceTree.Process.EventHooksStatic: no
+`sortName` aliasing, no `re:` regex keys.
+"""
 from __future__ import annotations
 
 from Sort.Topo        import sort as topo_sort

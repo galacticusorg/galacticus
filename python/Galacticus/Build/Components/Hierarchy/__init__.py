@@ -1,9 +1,11 @@
-# Hierarchy initialization and finalization.
-# Andrew Benson (ported to Python 2026)
-#
-# Mirrors perl/Galacticus/Build/Components/Hierarchy.pm.  Two
-# `functions`-phase hooks emitting `nodeClassHierarchyInitialize` and
-# `nodeClassHierarchyFinalize`.
+"""Hierarchy initialization and finalization.
+
+Andrew Benson (ported to Python 2026)
+
+Mirrors perl/Galacticus/Build/Components/Hierarchy.pm.  Two
+`functions`-phase hooks emitting `nodeClassHierarchyInitialize` and
+`nodeClassHierarchyFinalize`.
+"""
 
 import re
 

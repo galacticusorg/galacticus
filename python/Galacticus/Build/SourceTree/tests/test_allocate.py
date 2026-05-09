@@ -1,28 +1,29 @@
-# Regression test for `process_allocate` in
-# `Galacticus.Build.SourceTree.Process.Allocate`.
-#
-# Bug: `process_allocate` is registered with `before=['generics']` so it
-# runs before generic-template expansion.  For a generic-templated
-# declaration like
-#
-#     logical, allocatable {Type¦rank} :: passed
-#     !![ <allocate variable="passed" size="value1"/> !!]
-#
-# the placeholder `{Type¦rank}` does NOT match `dimension(...)` at this
-# stage, so `_declaration_rank` returned 0 and emitted `allocate(passed)`
-# — no parentheses, no size.  Generics then cloned the entire subroutine
-# subtree (and the emitted code with it) per instance, including
-# rank-1+ instances where the cloned `, dimension(:) :: passed`
-# declaration leaves `allocate(passed)` invalid:
-#
-#     Error: Array specification required in ALLOCATE statement at (1)
-#
-# Fix: when allocate sees an unresolved `¦`-bearing placeholder in the
-# declaration's attributes / type / variables, DEFER (don't mark the
-# directive as processed and don't emit code).  Generics' clone-then-
-# reparse step preserves the `!![…!!]` markers of un-processed
-# directives, so the inner `process_tree` call on each cloned subtree
-# re-invokes `process_allocate` with a fully-resolved declaration.
+"""Regression test for `process_allocate` in
+`Galacticus.Build.SourceTree.Process.Allocate`.
+
+Bug: `process_allocate` is registered with `before=['generics']` so it
+runs before generic-template expansion.  For a generic-templated
+declaration like
+
+    logical, allocatable {Type¦rank} :: passed
+    !![ <allocate variable="passed" size="value1"/> !!]
+
+the placeholder `{Type¦rank}` does NOT match `dimension(...)` at this
+stage, so `_declaration_rank` returned 0 and emitted `allocate(passed)`
+— no parentheses, no size.  Generics then cloned the entire subroutine
+subtree (and the emitted code with it) per instance, including
+rank-1+ instances where the cloned `, dimension(:) :: passed`
+declaration leaves `allocate(passed)` invalid:
+
+    Error: Array specification required in ALLOCATE statement at (1)
+
+Fix: when allocate sees an unresolved `¦`-bearing placeholder in the
+declaration's attributes / type / variables, DEFER (don't mark the
+directive as processed and don't emit code).  Generics' clone-then-
+reparse step preserves the `!![…!!]` markers of un-processed
+directives, so the inner `process_tree` call on each cloned subtree
+re-invokes `process_allocate` with a fully-resolved declaration.
+"""
 
 import pytest
 

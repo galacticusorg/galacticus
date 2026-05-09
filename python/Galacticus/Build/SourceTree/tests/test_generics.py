@@ -1,23 +1,24 @@
-# Regression test for `_strip_processed_directive_content` in
-# `Galacticus.Build.SourceTree.Process.Generics`.
-#
-# Bug: when `_expand_subtree` clones a generic-templated subtree, it
-# blanks the firstChild content of every `processed=True` directive so
-# the reparse step doesn't recreate a fresh directive node and have
-# the inner `process_tree` re-emit its generated code (e.g. an
-# `<optionalArgument>` setter).  But that strip was over-eager — it
-# also blanked `<methods>` directives, which are tagged `processed=True`
-# by `nonProcessed.process_non_processed` purely to silence
-# `post_process_directives`'s safety check, NOT because they emit
-# code.  `<methods>` blocks carry the per-class method descriptions
-# that the inner `process_tree`'s `classDocumentation` pass relies on,
-# so stripping them caused every generic-expanded class
-# (e.g. `polyRankdouble`) to arrive at the doc consumer with empty
-# `<descriptions>` — producing spurious "missing method descriptions"
-# warnings for every type-bound procedure.
-#
-# Fix: short-circuit the strip when the directive's type is in
-# `is_non_processed_type`'s exemption list.
+"""Regression test for `_strip_processed_directive_content` in
+`Galacticus.Build.SourceTree.Process.Generics`.
+
+Bug: when `_expand_subtree` clones a generic-templated subtree, it
+blanks the firstChild content of every `processed=True` directive so
+the reparse step doesn't recreate a fresh directive node and have
+the inner `process_tree` re-emit its generated code (e.g. an
+`<optionalArgument>` setter).  But that strip was over-eager — it
+also blanked `<methods>` directives, which are tagged `processed=True`
+by `nonProcessed.process_non_processed` purely to silence
+`post_process_directives`'s safety check, NOT because they emit
+code.  `<methods>` blocks carry the per-class method descriptions
+that the inner `process_tree`'s `classDocumentation` pass relies on,
+so stripping them caused every generic-expanded class
+(e.g. `polyRankdouble`) to arrive at the doc consumer with empty
+`<descriptions>` — producing spurious "missing method descriptions"
+warnings for every type-bound procedure.
+
+Fix: short-circuit the strip when the directive's type is in
+`is_non_processed_type`'s exemption list.
+"""
 
 from Galacticus.Build.SourceTree.Process.Generics import (
     _strip_processed_directive_content,

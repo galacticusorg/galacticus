@@ -1,12 +1,14 @@
-# Processes `classDocumentation` directives (only during a documentation
-# build — gated on $GALACTICUS_BUILD_DOCS=yes): walks every `type` node in
-# the current tree (plus, for `objects.nodes.F90`, the associated
-# `.Inc` include files), builds a per-class record of methods + their
-# bound functions + argument declarations, and dumps the result to
-# `$BUILDPATH/<basename>.classes.xml`.
-# Andrew Benson (ported to Python 2026)
-#
-# Mirrors perl/Galacticus/Build/SourceTree/Process/ClassDocumentation.pm
+"""Processes `classDocumentation` directives (only during a documentation
+build — gated on $GALACTICUS_BUILD_DOCS=yes): walks every `type` node in
+the current tree (plus, for `objects.nodes.F90`, the associated
+`.Inc` include files), builds a per-class record of methods + their
+bound functions + argument declarations, and dumps the result to
+`$BUILDPATH/<basename>.classes.xml`.
+
+Andrew Benson (ported to Python 2026)
+
+Mirrors perl/Galacticus/Build/SourceTree/Process/ClassDocumentation.pm
+"""
 
 import copy
 import os

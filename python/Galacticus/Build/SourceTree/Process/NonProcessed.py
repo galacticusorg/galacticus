@@ -1,10 +1,12 @@
-# Marks a fixed list of directive types as processed so they do not trigger
-# the `post_process_directives` check — these directives are consumed by
-# other parts of the build (e.g. direct XML extractors), not by the
-# SourceTree Process pipeline.
-# Andrew Benson (ported to Python 2026)
-#
-# Mirrors perl/Galacticus/Build/SourceTree/Process/NonProcessed.pm
+"""Marks a fixed list of directive types as processed so they do not trigger
+the `post_process_directives` check — these directives are consumed by
+other parts of the build (e.g. direct XML extractors), not by the
+SourceTree Process pipeline.
+
+Andrew Benson (ported to Python 2026)
+
+Mirrors perl/Galacticus/Build/SourceTree/Process/NonProcessed.pm
+"""
 
 
 

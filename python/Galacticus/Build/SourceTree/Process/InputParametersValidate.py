@@ -1,9 +1,11 @@
-# Processes `inputParametersValidate` directives: emits a runtime check
-# against the `allowedParameters` list of the enclosing function-class
-# object, optionally with multi-parameter and extra-allowed-name lists.
-# Andrew Benson (ported to Python 2026)
-#
-# Mirrors perl/Galacticus/Build/SourceTree/Process/InputParametersValidate.pm
+"""Processes `inputParametersValidate` directives: emits a runtime check
+against the `allowedParameters` list of the enclosing function-class
+object, optionally with multi-parameter and extra-allowed-name lists.
+
+Andrew Benson (ported to Python 2026)
+
+Mirrors perl/Galacticus/Build/SourceTree/Process/InputParametersValidate.pm
+"""
 
 import os
 import re

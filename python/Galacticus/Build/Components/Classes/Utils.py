@@ -1,16 +1,18 @@
-# Driver for the `classIteratedFunctions` sub-iteration phase.
-# Andrew Benson (ported to Python 2026)
-#
-# Mirrors the small portion of perl/Galacticus/Build/Components/Classes/Utils.pm
-# that runs as part of the components-build pipeline:
-# `Class_Function_Iterator`.  This is itself a `functions`-phase hook that,
-# when invoked, walks the `component_utils` registry looking for
-# `classIteratedFunctions` entries and dispatches each function once per
-# component class.
-#
-# The remaining functions in the Perl Classes::Utils module
-# (`Class_Move`, `Class_Remove`, the main `functions`-phase group) belong
-# to a later port stage.
+"""Driver for the `classIteratedFunctions` sub-iteration phase.
+
+Andrew Benson (ported to Python 2026)
+
+Mirrors the small portion of perl/Galacticus/Build/Components/Classes/Utils.pm
+that runs as part of the components-build pipeline:
+`Class_Function_Iterator`.  This is itself a `functions`-phase hook that,
+when invoked, walks the `component_utils` registry looking for
+`classIteratedFunctions` entries and dispatches each function once per
+component class.
+
+The remaining functions in the Perl Classes::Utils module
+(`Class_Move`, `Class_Remove`, the main `functions`-phase group) belong
+to a later port stage.
+"""
 
 
 

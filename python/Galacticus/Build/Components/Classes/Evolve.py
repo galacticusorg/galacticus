@@ -1,8 +1,10 @@
-# Per-class evolution methods for `floatRank0` meta-properties:
-# rate / scale / inactive / analytic.
-# Andrew Benson (ported to Python 2026)
-#
-# Mirrors perl/Galacticus/Build/Components/Classes/Evolve.pm.
+"""Per-class evolution methods for `floatRank0` meta-properties:
+rate / scale / inactive / analytic.
+
+Andrew Benson (ported to Python 2026)
+
+Mirrors perl/Galacticus/Build/Components/Classes/Evolve.pm.
+"""
 
 import os
 

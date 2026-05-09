@@ -1,9 +1,11 @@
-# Processes `parameterMigration` directives: emits a `commitHash(i)="..."`
-# initialization block from `scripts/aux/migrations.xml` and adds the
-# backing character array declaration.
-# Andrew Benson (ported to Python 2026)
-#
-# Mirrors perl/Galacticus/Build/SourceTree/Process/ParameterMigration.pm
+"""Processes `parameterMigration` directives: emits a `commitHash(i)="..."`
+initialization block from `scripts/aux/migrations.xml` and adds the
+backing character array declaration.
+
+Andrew Benson (ported to Python 2026)
+
+Mirrors perl/Galacticus/Build/SourceTree/Process/ParameterMigration.pm
+"""
 
 import os
 import xml.etree.ElementTree as ET

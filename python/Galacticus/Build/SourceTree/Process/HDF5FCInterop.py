@@ -1,9 +1,11 @@
-# Rewrites `integer(kind=<hdf5 kind>)` declarations to C-interoperable kinds
-# using the build-time map at $BUILDPATH/hdf5FCInterop.dat, and imports the
-# required `ISO_C_Binding` symbols alongside.
-# Andrew Benson (ported to Python 2026)
-#
-# Mirrors perl/Galacticus/Build/SourceTree/Process/HDF5FCInterop.pm
+"""Rewrites `integer(kind=<hdf5 kind>)` declarations to C-interoperable kinds
+using the build-time map at $BUILDPATH/hdf5FCInterop.dat, and imports the
+required `ISO_C_Binding` symbols alongside.
+
+Andrew Benson (ported to Python 2026)
+
+Mirrors perl/Galacticus/Build/SourceTree/Process/HDF5FCInterop.pm
+"""
 
 import re
 import os
