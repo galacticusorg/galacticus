@@ -213,7 +213,7 @@ contains
 
     double precision function outflowRateIntegrand(radius)
       !!{
-      Integrand function for the ``Creasey et al. (2012)'' supernovae feedback calculation.
+      Integrand function for the \cite{creasey_how_2013} supernovae feedback calculation.
       !!}
       use :: Coordinates                 , only : coordinateCylindrical, assignment(=)
       use :: Numerical_Constants_Prefixes, only : mega

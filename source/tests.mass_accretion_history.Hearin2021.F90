@@ -18,12 +18,12 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
 !!{
-Contains a program which tests the Hearin (2021) halo mass formation history.
+Contains a program which tests the \cite{hearin_differentiable_2021} halo mass formation history.
 !!}
 
 program Test_Hearin2021_MAH
   !!{
-  Tests the Hearin (2021) halo mass formation history algorithm.
+  Tests the \cite{hearin_differentiable_2021} halo mass formation history algorithm.
   !!}
   use :: Dark_Matter_Halo_Mass_Accretion_Histories, only : darkMatterHaloMassAccretionHistoryHearin2021
   use :: Display                                  , only : displayVerbositySet                         , verbosityLevelStandard
