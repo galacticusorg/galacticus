@@ -104,11 +104,13 @@ contains
     {Type¦intrinsic}                        , intent(in   ) :: valueToFind
     integer         (c_size_t)                              :: jLower                 , jMidpoint, &
          &                                                     jUpper
-    logical                                                 :: isInside
+    logical                                                 :: isInside               , isAscending
 
+    ! Determine array ordering once; this is invariant for the call.
+    isAscending=arrayToSearch(size(arrayToSearch,kind=c_size_t)) >= arrayToSearch(1)
     ! Check whether valueToFind is outside range of arrayToSearch().
     isInside=.true.
-    if (arrayToSearch(size(arrayToSearch,kind=c_size_t)) >= arrayToSearch(1)) then ! arrayToSearch() is in ascending order.
+    if (isAscending) then ! arrayToSearch() is in ascending order.
        if      (valueToFind < arrayToSearch(1                                )) then
           isInside=.false.
           searchArray{Type¦label}=                                 0_c_size_t
@@ -131,7 +133,7 @@ contains
        jUpper=size(arrayToSearch,kind=c_size_t)+1
        do while (jUpper-jLower > 1)
           jMidpoint=(jUpper+jLower)/2
-          if ((arrayToSearch(size(arrayToSearch,kind=c_size_t)) >= arrayToSearch(1)) .eqv. (valueToFind >= arrayToSearch(jMidpoint))) then
+          if (isAscending .eqv. (valueToFind >= arrayToSearch(jMidpoint))) then
              jLower=jMidpoint
           else
              jUpper=jMidpoint
