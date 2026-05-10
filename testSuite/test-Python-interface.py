@@ -401,6 +401,39 @@ with safe_section("outputAnalysisTargetDataStandard"):
     check_eq("outputAnalysisScatterFunction1D exposes targetData_",
              'targetData_' in sig.parameters, True)
 
+# Stellar population spectra postprocessor builder (lookup impl) —
+# exercises BOTH new array-arg paths in a single constructor:
+#   * `type(varying_string), dimension(:) :: names` — Python list of
+#     str is encoded to ASCII at runtime, padded to the longest
+#     element, and shipped as a contiguous S{N} byte buffer plus
+#     count + per-element-length companions; the Fortran wrapper
+#     repacks into `type(varying_string), dimension(:)`.
+#   * `type(stellarPopulationSpectraPostprocessorList), dimension(:)
+#     :: postprocessors` — Galacticus's idiom for an array of
+#     polymorphic pointers; the Python wrapper builds parallel
+#     `(c_void_p * n)` and `(c_int * n)` ctypes arrays from each
+#     instance's `_glcObj` / `_classID`, and the Fortran wrapper
+#     rebuilds the wrapper-list via `stellarPopulationSpectra`
+#     `PostprocessorGetPtr` element-by-element.
+# `build(descriptor=...)` then exercises the class(...) return path on
+# top of all that, so the round-trip lands back in the right Python
+# subclass via _from_classID.
+with safe_section("stellarPopulationSpectraPostprocessorBuilderLookup"):
+    ppIdentity = galacticus.stellarPopulationSpectraPostprocessorIdentity ()
+    ppInoue    = galacticus.stellarPopulationSpectraPostprocessorInoue2014()
+    builder    = galacticus.stellarPopulationSpectraPostprocessorBuilderLookup(
+        names          = ['default', 'igm'         ],
+        postprocessors = [ppIdentity, ppInoue      ],
+    )
+    ppDefault = builder.build(descriptor='default')
+    ppIGM     = builder.build(descriptor='igm'    )
+    check_eq("build('default') resolves to identity subclass",
+             type(ppDefault).__name__,
+             'stellarPopulationSpectraPostprocessorIdentity')
+    check_eq("build('igm') resolves to Inoue2014 subclass",
+             type(ppIGM    ).__name__,
+             'stellarPopulationSpectraPostprocessorInoue2014')
+
 # Final summary and exit code.
 print(f"--- {_failures} failure(s) ---")
 sys.exit(1 if _failures else 0)

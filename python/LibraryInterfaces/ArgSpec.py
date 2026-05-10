@@ -52,6 +52,27 @@ class ArgSpec:
                                        # character arrays (`character(len=N),
                                        # dimension(:)`); 0 otherwise.
 
+    # Marker for `type(varying_string), dimension(:)` arrays.  These can't
+    # be packed at codegen time (no fixed per-element length), so the
+    # Python wrapper computes the maximum encoded length at runtime, pads
+    # to that width, and ships it through a flat byte buffer plus two
+    # c_size_t companions (count + per-element length).  The Fortran
+    # wrapper repacks into `type(varying_string), dimension(:)`.
+    varying_string_array: bool = False
+
+    # Marker for `type(<className>List), dimension(:)` arrays — Galacticus's
+    # idiom for "array of class(<className>Class)" (Fortran disallows arrays
+    # of polymorphic types directly).  Each element holds a `class(...)`
+    # pointer to a registered functionClass, so the Python wrapper ships
+    # parallel arrays of object pointers and class IDs (one pair per
+    # element); the Fortran wrapper rebuilds the list locally via the
+    # GetPtr helper, the same machinery the scalar `class(FooClass)` arg
+    # path uses.
+    polymorphic_list_array:    bool = False
+    polymorphic_list_class:    str  = ''   # e.g. 'modelParameter' (registered functionClass)
+    polymorphic_list_type:     str  = ''   # e.g. 'modelParameterList' (the wrapper struct)
+    polymorphic_list_component: str = ''   # e.g. 'modelParameter_' (component on the wrapper)
+
     # ctypes
     ctype:         str  = ''    # e.g. 'c_double', 'c_void_p', 'c_char_p', 'c_int'
     ctype_pointer: bool = False  # wrap as POINTER(ctype) — set by assign_c_attributes

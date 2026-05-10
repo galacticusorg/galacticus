@@ -214,5 +214,7 @@
     <radiativeTransferMatter/>
     <computationalDomain/>
     <distributionFunctionMultivariate/>
+    <posteriorSampleSimulation/>
+    <stellarPopulationSpectraPostprocessorBuilder/>
   </classes>
 </library>

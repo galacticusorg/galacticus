@@ -335,7 +335,40 @@ def _unsupported_arg(arg, lib_function_classes, *,
                 and attr == 'dimension(:)'
                 and _CHAR_LEN_RX_INTERFACES.match((arg.get('type') or '').strip())
             )
-            if is_supported_dim or is_supported_char_array:
+            # `type(varying_string), dimension(:)`: shipped via a flat
+            # contiguous byte buffer plus count + per-element-length
+            # companions; the wrapper builds a `type(varying_string),
+            # dimension(:)` for the inner call (Pipeline.py's
+            # build_python_reassignments / build_fortran_reassignments).
+            is_supported_vstring_array = (
+                intrinsic == 'type'
+                and (arg.get('type') or '').strip() == 'varying_string'
+                and attr == 'dimension(:)'
+            )
+            # `type(<class>List), dimension(:)`: Galacticus's idiom for
+            # an array of polymorphic pointers — each element is a
+            # wrapper struct whose `<class>_` component holds a
+            # `class(<class>Class), pointer`.  We support these when
+            # `<class>` is a registered functionClass; the wrapper ships
+            # parallel arrays of c_ptr + classID and rebuilds the list
+            # via `<class>GetPtr` element-by-element (same machinery as
+            # the scalar `class(...)` arg path).
+            type_spec = (arg.get('type') or '').strip()
+            # The shape is only recognised when the wrapper type is
+            # registered in `_SHARED_TYPE_MODULES` (Pipeline.py's
+            # gatekeeper); see the corresponding branch in
+            # `assign_c_types` for the rationale.  Other locally-defined
+            # `<class>List` structs that happen to share the naming
+            # convention fall through to the generic-rejection path.
+            is_supported_list_array = (
+                intrinsic == 'type'
+                and attr == 'dimension(:)'
+                and type_spec.endswith('List')
+                and type_spec[:-4] in lib_function_classes
+                and type_spec in _SHARED_TYPE_MODULES
+            )
+            if (is_supported_dim or is_supported_char_array
+                    or is_supported_vstring_array or is_supported_list_array):
                 if 'allocatable' in attrs:
                     return ('1D allocatable array argument'
                             ' (output arrays not yet supported)')
