@@ -3,7 +3,7 @@
 
 Andrew Benson 25-Mar-2012 (original Perl); Python port 2026.
 
-Usage: Extract_Contributors.py <galacticusDir> <outputFile>
+Usage: extractContributors.py <galacticusDir> <outputFile>
 """
 
 import os
@@ -83,7 +83,7 @@ def scan_file(file_path, marker_re, contributions, key):
 def main():
     if len(sys.argv) != 3:
         print(
-            'Usage: Extract_Contributors.py <galacticusDir> <outputFile>',
+            'Usage: extractContributors.py <galacticusDir> <outputFile>',
             file=sys.stderr,
         )
         sys.exit(1)
