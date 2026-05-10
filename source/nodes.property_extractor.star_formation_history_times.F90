@@ -48,7 +48,7 @@
   
   interface nodePropertyExtractorStarFormationHistoryTimes
      !!{
-     Constructors for the \refClass{nodePropertyExtractorStarFormationHistoryTimes} output analysis class.
+     Constructors for the \refClass{nodePropertyExtractorStarFormationHistoryTimes} property extractor class.
      !!}
      module procedure starFormationHistoryTimesConstructorParameters
      module procedure starFormationHistoryTimesConstructorInternal

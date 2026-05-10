@@ -159,7 +159,7 @@ contains
 
   function gelmanRubinConstructorInternal(thresholdHatR,burnCount,testCount,outlierCountMaximum,outlierSignificance,outlierLogLikelihoodOffset,reportCount,logFileName) result(self)
     !!{
-    Constructor for the \refClass{posteriorSampleConvergenceGelmanRubin} convergence class.
+    Constructor for the \refClass{posteriorSampleConvergenceGelmanRubin} posterior sampling convergence class.
     !!}
     use :: Error        , only : Error_Report
     use :: MPI_Utilities, only : mpiSelf

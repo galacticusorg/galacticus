@@ -92,7 +92,7 @@
 
   interface nodePropertyExtractorLightcone
      !!{
-     Constructors for the \refClass{nodePropertyExtractorLightcone} output extractor class.
+     Constructors for the \refClass{nodePropertyExtractorLightcone} property extractor class.
      !!}
      module procedure lightconeConstructorParameters
      module procedure lightconeConstructorInternal
@@ -102,7 +102,7 @@ contains
 
   function lightconeConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the \refClass{nodePropertyExtractorLightcone} output extractor property extractor class which takes a parameter set as input.
+    Constructor for the \refClass{nodePropertyExtractorLightcone} property extractor class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -159,7 +159,7 @@ contains
 
   function lightconeConstructorInternal(includeObservedRedshift,includeObservedPosition,includeAngularCoordinates,atCrossing,failIfNotInLightcone,cosmologyFunctions_,geometryLightcone_) result(self)
     !!{
-    Internal constructor for the \refClass{nodePropertyExtractorLightcone} output extractor property extractor class.
+    Internal constructor for the \refClass{nodePropertyExtractorLightcone} property extractor class.
     !!}
     use :: Numerical_Constants_Astronomical, only : degreesToRadians, megaParsec
     use :: Numerical_Constants_Prefixes    , only : kilo
@@ -244,7 +244,7 @@ contains
 
   subroutine lightconeDestructor(self)
     !!{
-    Destructor for the \refClass{nodePropertyExtractorLightcone} output extractor property extractor class.
+    Destructor for the \refClass{nodePropertyExtractorLightcone} property extractor class.
     !!}
     implicit none
     type(nodePropertyExtractorLightcone), intent(inout) :: self

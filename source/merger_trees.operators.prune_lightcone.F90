@@ -27,7 +27,7 @@
      Provides a pruning-by-lightcone operator on merger trees, \emph{intended for use with the newer approach, in which galaxies
      are evolved to precisely the time of lightcone crossing}. For the older approach (in which galaxies were evolved to one of a
      fixed set of snapshots, and then output into the section of the lightcone corresponding to that snapshot) see the
-     \refClass{mergerTreeOperatorPruneLightconeSnapshots} class.
+     \refClass{mergerTreeOperatorPruneLightconeSnapshots} merger tree operator class.
 
      Trees which have no nodes which lie within the lightcone are completely pruned away. If the parameter \mono{[splitTrees]} is
      set to \mono{true} then any parts of a merger tree which does intersect the lightcone that exist after the latest time at which a

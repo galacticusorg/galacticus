@@ -41,7 +41,7 @@
 
   interface nodePropertyExtractorMergedSubhaloProperties
      !!{
-     Constructors for the \refClass{nodePropertyExtractorMergedSubhaloProperties} output extractor class.
+     Constructors for the \refClass{nodePropertyExtractorMergedSubhaloProperties} property extractor class.
      !!}
      module procedure mergedSubhaloPropertiesConstructorParameters
      module procedure mergedSubhaloPropertiesConstructorInternal
@@ -67,7 +67,7 @@ contains
 
   function mergedSubhaloPropertiesConstructorInternal() result(self)
     !!{
-    Internal constructor for the \refClass{nodePropertyExtractorMergedSubhaloProperties} output extractor property extractor class.
+    Internal constructor for the \refClass{nodePropertyExtractorMergedSubhaloProperties} property extractor class.
     !!}
     use :: Kepler_Orbits, only : keplerOrbitTimeInitial     , keplerOrbitMassSatellite, keplerOrbitMassHost, keplerOrbitRadius, &
          &                       keplerOrbitRadiusPericenter, keplerOrbitTimeCurrent

@@ -48,7 +48,7 @@ Implements a node property extractor class for the \cite{bullock_profiles_2001} 
 
   interface nodePropertyExtractorSpinBullock
      !!{
-     Constructors for the \refClass{nodePropertyExtractorSpinBullock} output analysis class.
+     Constructors for the \refClass{nodePropertyExtractorSpinBullock} property extractor class.
      !!}
      module procedure spinBullockConstructorParameters
      module procedure spinBullockConstructorInternal
@@ -79,7 +79,7 @@ contains
 
   function spinBullockConstructorInternal(darkMatterHaloScale_) result(self)
     !!{
-    Internal constructor for the \refClass{nodePropertyExtractorSpinBullock} output analysis property extractor class.
+    Internal constructor for the \refClass{nodePropertyExtractorSpinBullock} property extractor class.
     !!}
     use :: Galacticus_Nodes, only : defaultSpinComponent
     implicit none
@@ -100,7 +100,7 @@ contains
 
   subroutine spinBullockDestructor(self)
     !!{
-    Destructor for the \refClass{nodePropertyExtractorSpinBullock} output analysis property extractor class.
+    Destructor for the \refClass{nodePropertyExtractorSpinBullock} property extractor class.
     !!}
     implicit none
     type(nodePropertyExtractorSpinBullock), intent(inout) :: self

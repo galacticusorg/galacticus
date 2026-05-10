@@ -51,7 +51,7 @@ Implements an orbital velocity output analysis property extractor class.
 
   interface nodePropertyExtractorVelocityOrbital
      !!{
-     Constructors for the \refClass{nodePropertyExtractorVelocityOrbital} output analysis class.
+     Constructors for the \refClass{nodePropertyExtractorVelocityOrbital} property extractor class.
      !!}
      module procedure velocityOrbitalConstructorParameters
   end interface nodePropertyExtractorVelocityOrbital
@@ -60,7 +60,7 @@ contains
 
   function velocityOrbitalConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the \refClass{nodePropertyExtractorVelocityOrbital} output analysis property extractor class which takes a parameter set as input.
+    Constructor for the \refClass{nodePropertyExtractorVelocityOrbital} property extractor class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none

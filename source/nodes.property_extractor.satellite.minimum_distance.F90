@@ -39,7 +39,7 @@
 
   interface nodePropertyExtractorSatelliteMinimumDistance
      !!{
-     Constructors for the \refClass{nodePropertyExtractorSatelliteMinimumDistance} output extractor class.
+     Constructors for the \refClass{nodePropertyExtractorSatelliteMinimumDistance} property extractor class.
      !!}
      module procedure satelliteMinimumDistanceConstructorParameters
      module procedure satelliteMinimumDistanceConstructorInternal
@@ -65,7 +65,7 @@ contains
 
   function satelliteMinimumDistanceConstructorInternal() result(self)
     !!{
-    Internal constructor for the \refClass{nodePropertyExtractorSatelliteMinimumDistance} output extractor property extractor class.
+    Internal constructor for the \refClass{nodePropertyExtractorSatelliteMinimumDistance} property extractor class.
     !!}
     implicit none
     type(nodePropertyExtractorSatelliteMinimumDistance) :: self

@@ -70,7 +70,7 @@
   
   interface nodePropertyExtractorSEDAGN
      !!{
-     Constructors for the \refClass{nodePropertyExtractorSEDAGN} output analysis class.
+     Constructors for the \refClass{nodePropertyExtractorSEDAGN} property extractor class.
      !!}
      module procedure sedAGNConstructorParameters
      module procedure sedAGNConstructorInternal

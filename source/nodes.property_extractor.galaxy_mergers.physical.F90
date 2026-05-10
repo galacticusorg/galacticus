@@ -41,7 +41,7 @@
 
   interface nodePropertyExtractorGalaxyMergersPhysical
      !!{
-     Constructors for the \refClass{nodePropertyExtractorGalaxyMergersPhysical} output extractor class.
+     Constructors for the \refClass{nodePropertyExtractorGalaxyMergersPhysical} property extractor class.
      !!}
      module procedure galaxyMergersPhysicalConstructorParameters
      module procedure galaxyMergersPhysicalConstructorInternal
@@ -67,7 +67,7 @@ contains
 
   function galaxyMergersPhysicalConstructorInternal() result(self)
     !!{
-    Internal constructor for the \refClass{nodePropertyExtractorGalaxyMergersPhysical} output extractor property extractor class.
+    Internal constructor for the \refClass{nodePropertyExtractorGalaxyMergersPhysical} property extractor class.
     !!}
     implicit none
     type(nodePropertyExtractorGalaxyMergersPhysical) :: self

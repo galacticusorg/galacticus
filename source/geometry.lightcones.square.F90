@@ -151,7 +151,7 @@
 
   interface geometryLightconeSquare
      !!{
-     Constructors for the \refClass{geometryLightconeSquare} dark matter halo spin distribution class.
+     Constructors for the \refClass{geometryLightconeSquare} lightcone geometry distribution class.
      !!}
      module procedure squareConstructorParameters
      module procedure squareConstructorInternal

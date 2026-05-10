@@ -21,7 +21,7 @@
   <nodePropertyExtractor name="nodePropertyExtractorStarFormationRateInterOutput">
    <description>
     A node property extractor which extracts the mean star formation rate between successive outputs. Intended to be paired with the
-    \refClass{nodeOperatorStarFormationRateInterOutput} class to compute those rates.
+    \refClass{nodeOperatorStarFormationRateInterOutput} node operator class to compute those rates.
    </description>
   </nodePropertyExtractor>
   !!]
@@ -43,7 +43,7 @@
 
   interface nodePropertyExtractorStarFormationRateInterOutput
      !!{
-     Constructors for the \refClass{nodePropertyExtractorStarFormationRateInterOutput} output extractor class.
+     Constructors for the \refClass{nodePropertyExtractorStarFormationRateInterOutput} property extractor class.
      !!}
      module procedure starFormationRateInterOutputConstructorParameters
      module procedure starFormationRateInterOutputConstructorInternal
@@ -69,7 +69,7 @@ contains
 
   function starFormationRateInterOutputConstructorInternal() result(self)
     !!{
-    Internal constructor for the \refClass{nodePropertyExtractorStarFormationRateInterOutput} output extractor property extractor class.
+    Internal constructor for the \refClass{nodePropertyExtractorStarFormationRateInterOutput} property extractor class.
     !!}
     implicit none
     type (nodePropertyExtractorStarFormationRateInterOutput) :: self

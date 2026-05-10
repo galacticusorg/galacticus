@@ -44,7 +44,7 @@
 
   interface nodePropertyExtractorJetPowerBlackHoles
      !!{
-     Constructors for the \refClass{nodePropertyExtractorJetPowerBlackHoles} output extractor class.
+     Constructors for the \refClass{nodePropertyExtractorJetPowerBlackHoles} property extractor class.
      !!}
      module procedure jetPowerBlackHolesConstructorParameters
      module procedure jetPowerBlackHolesConstructorInternal
@@ -78,7 +78,7 @@ contains
 
   function jetPowerBlackHolesConstructorInternal(blackHoleAccretionRate_,accretionDisks_) result(self)
     !!{
-    Internal constructor for the \refClass{nodePropertyExtractorJetPowerBlackHoles} node operator class.
+    Internal constructor for the \refClass{nodePropertyExtractorJetPowerBlackHoles} property extractor class.
     !!}
     implicit none
     type (nodePropertyExtractorJetPowerBlackHoles)                        :: self

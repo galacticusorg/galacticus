@@ -26,12 +26,12 @@
 
   !![
   <mergerTreeImporter name="mergerTreeImporterSussingHDF5">
-   <description>Importer for ``Sussing Merger Trees'' HDF5 format merger tree files (Thomas et al.; in prep.).</description>
+   <description>Importer for ``Sussing Merger Trees'' HDF5 format merger tree files \citep{srisawat_sussing_2013}.</description>
   </mergerTreeImporter>
   !!]
   type, extends(mergerTreeImporterSussing) :: mergerTreeImporterSussingHDF5
      !!{
-     A merger tree importer class for ``Sussing Merger Trees'' HDF5 format merger tree files (Thomas et al.; in prep.).
+     A merger tree importer class for ``Sussing Merger Trees'' HDF5 format merger tree files \citep{srisawat_sussing_2013}.
      !!}
      private
      class(cosmologicalMassVarianceClass), pointer :: cosmologicalMassVariance_ => null()
@@ -54,7 +54,7 @@ contains
 
   function sussingHDF5ConstructorParameters(parameters) result(self)
     !!{
-    Default constructor for the ``Sussing Merger Trees'' HDF5 format (Thomas et al.; in prep.) merger tree importer.
+    Constructor for the \refClass{mergerTreeImporterSussingHDF5} merger tree importer class that takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none

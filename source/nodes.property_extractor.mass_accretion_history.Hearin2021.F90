@@ -42,7 +42,7 @@ Implements a node property extractor class for parameters of the \cite{hearin_di
 
   interface nodePropertyExtractorMassAccretionHistoryHearin2021
      !!{
-     Constructors for the \refClass{nodePropertyExtractorMassAccretionHistoryHearin2021} output analysis class.
+     Constructors for the \refClass{nodePropertyExtractorMassAccretionHistoryHearin2021} property extractor class.
      !!}
      module procedure massAccretionHistoryHearin2021ConstructorParameters
   end interface nodePropertyExtractorMassAccretionHistoryHearin2021
@@ -51,7 +51,7 @@ contains
 
   function massAccretionHistoryHearin2021ConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the \refClass{nodePropertyExtractorMassAccretionHistoryHearin2021} node property extractor class which takes a parameter set as input.
+    Constructor for the \refClass{nodePropertyExtractorMassAccretionHistoryHearin2021} property extractor class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none

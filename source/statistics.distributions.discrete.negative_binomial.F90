@@ -87,7 +87,7 @@ contains
 
   function negativeBinomialConstructorInternal(probabilitySuccess,countFailures,randomNumberGenerator_) result(self)
     !!{
-    Constructor for the \refClass{distributionFunctionDiscrete1DNegativeBinomial} 1D distribution function class.
+    Constructor for the \refClass{distributionFunctionDiscrete1DNegativeBinomial} 1D discrete distribution function class.
     !!}
     use :: Error, only : Error_Report
     implicit none

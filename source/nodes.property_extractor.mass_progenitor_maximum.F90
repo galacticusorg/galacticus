@@ -41,7 +41,7 @@
 
   interface nodePropertyExtractorMassProgenitorMaximum
      !!{
-     Constructors for the \refClass{nodePropertyExtractorMassProgenitorMaximum} output extractor class.
+     Constructors for the \refClass{nodePropertyExtractorMassProgenitorMaximum} property extractor class.
      !!}
      module procedure massProgenitorMaximumConstructorParameters
      module procedure massProgenitorMaximumConstructorInternal
@@ -67,7 +67,7 @@ contains
 
   function massProgenitorMaximumConstructorInternal() result(self)
     !!{
-    Internal constructor for the \refClass{nodePropertyExtractorMassProgenitorMaximum} output extractor property extractor class.
+    Internal constructor for the \refClass{nodePropertyExtractorMassProgenitorMaximum} property extractor class.
     !!}
     use :: Galacticus_Nodes, only : defaultBasicComponent
     implicit none

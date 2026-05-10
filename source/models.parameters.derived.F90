@@ -46,7 +46,7 @@
 
   interface modelParameterDerived
      !!{
-     Constructors for the \refClass{modelParameterDerived} 1D distribution function class.
+     Constructors for the \refClass{modelParameterDerived} model parameter class.
      !!}
      module procedure derivedConstructorParameters
      module procedure derivedConstructorInternal

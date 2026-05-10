@@ -41,7 +41,7 @@
 
   interface nodePropertyExtractorRadiusBlackHoles
      !!{
-     Constructors for the \refClass{nodePropertyExtractorRadiusBlackHoles} output extractor class.
+     Constructors for the \refClass{nodePropertyExtractorRadiusBlackHoles} property extractor class.
      !!}
     module procedure radiusBlackHolesConstructorParameters
   end interface nodePropertyExtractorRadiusBlackHoles
@@ -71,7 +71,7 @@ contains
 
   function radiusBlackHolesConstructorInternal(blackHoleBinarySeparationGrowthRate_) result(self)
     !!{
-    Internal constructor for the \refClass{nodePropertyExtractorRadiusBlackHoles} node operator class.
+    Internal constructor for the \refClass{nodePropertyExtractorRadiusBlackHoles} property extractor class.
     !!}
     implicit none
     type (nodePropertyExtractorRadiusBlackHoles   )                        :: self

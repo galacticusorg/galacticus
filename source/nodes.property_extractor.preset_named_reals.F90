@@ -43,7 +43,7 @@
 
   interface nodePropertyExtractorPresetNamedReals
      !!{
-     Constructors for the \refClass{nodePropertyExtractorPresetNamedReals} output extractor class.
+     Constructors for the \refClass{nodePropertyExtractorPresetNamedReals} property extractor class.
      !!}
      module procedure presetNamedRealsConstructorParameters
      module procedure presetNamedRealsConstructorInternal
@@ -78,7 +78,7 @@ contains
 
   function presetNamedRealsConstructorInternal(presetnames) result(self)
     !!{
-    Internal constructor for the \refClass{nodePropertyExtractorPresetNamedReals} output extractor property extractor class.
+    Internal constructor for the \refClass{nodePropertyExtractorPresetNamedReals} property extractor class.
     !!}
     implicit none
     type   (nodePropertyExtractorPresetNamedReals)                              :: self

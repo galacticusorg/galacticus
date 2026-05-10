@@ -83,7 +83,7 @@ contains
   
   function enzoHydrostaticKinematicsConstructorInternal(massDistribution_) result(self)
     !!{
-    Constructor for the \refClass{kinematicsDistributionEnzoHydrostatic} kinematics distribution class.
+    Constructor for the \refClass{kinematicsDistributionEnzoHydrostatic} kinematic distribution class.
     !!}
     implicit none
     type (kinematicsDistributionEnzoHydrostatic)                        :: self

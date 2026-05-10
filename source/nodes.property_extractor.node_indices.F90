@@ -74,7 +74,7 @@ Implements a property extractor for basic node indices.
 
   interface nodePropertyExtractorNodeIndices
      !!{
-     Constructors for the \refClass{nodePropertyExtractorNodeIndices} output analysis class.
+     Constructors for the \refClass{nodePropertyExtractorNodeIndices} property extractor class.
      !!}
      module procedure nodeIndicesConstructorParameters
   end interface nodePropertyExtractorNodeIndices

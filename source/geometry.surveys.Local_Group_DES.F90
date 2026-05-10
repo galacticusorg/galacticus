@@ -53,7 +53,7 @@ contains
 
   function localGroupDESConstructorParameters(parameters) result (self)
     !!{
-    Constructor for the \refClass{surveyGeometryLocalGroupDES} conditional mass function class which takes a parameter set as input.
+    Constructor for the \refClass{surveyGeometryLocalGroupDES} survey geometry class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none

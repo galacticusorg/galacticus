@@ -83,7 +83,7 @@
 
   interface universeOperatorIntergalacticMediumStateEvolve
      !!{
-     Constructors for the \refClass{universeOperatorIntergalacticMediumStateEvolve} universeOperator.
+     Constructors for the \refClass{universeOperatorIntergalacticMediumStateEvolve} universe operator class.
      !!}
      module procedure intergalacticMediumStateEvolveConstructorParameters
      module procedure intergalacticMediumStateEvolveConstructorInternal
@@ -97,7 +97,7 @@ contains
 
   function intergalacticMediumStateEvolveConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the \refClass{universeOperatorIntergalacticMediumStateEvolve} universeOperator class which takes a parameter set as input.
+    Constructor for the \refClass{universeOperatorIntergalacticMediumStateEvolve} universe operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -183,7 +183,7 @@ contains
 
   function intergalacticMediumStateEvolveConstructorInternal(timeMinimum,timeMaximum,timeCountPerDecade,cosmologyParameters_,cosmologyFunctions_,linearGrowth_,cosmologicalMassVariance_,outputTimes_,gauntFactor_,atomicCrossSectionIonizationPhoto_,atomicIonizationPotential_,atomicRecombinationRateDielectronic_,atomicRecombinationRateRadiative_,atomicRecombinationRateRadiativeCooling_,atomicIonizationRateCollisional_,atomicExcitationRateCollisional_,intergalacticMediumState_,radiationField_) result(self)
     !!{
-    Internal constructor for the \refClass{universeOperatorIntergalacticMediumStateEvolve} universeOperator class.
+    Internal constructor for the \refClass{universeOperatorIntergalacticMediumStateEvolve} universe operator class.
     !!}
     use            :: Error                                , only : Error_Report
     use, intrinsic :: ISO_C_Binding                        , only : c_size_t
@@ -338,7 +338,7 @@ contains
 
    subroutine intergalacticMediumStateEvolveDestructor(self)
      !!{
-     Destructor for the \refClass{universeOperatorIntergalacticMediumStateEvolve} universeOperator class.
+     Destructor for the \refClass{universeOperatorIntergalacticMediumStateEvolve} universe operator class.
      !!}
      implicit none
      type(universeOperatorIntergalacticMediumStateEvolve), intent(inout) :: self

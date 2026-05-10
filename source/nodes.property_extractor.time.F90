@@ -41,7 +41,7 @@ Implements a cosmic time output analysis property extractor class.
 
   interface nodePropertyExtractorTime
      !!{
-     Constructors for the \refClass{nodePropertyExtractorTime} output analysis class.
+     Constructors for the \refClass{nodePropertyExtractorTime} property extractor class.
      !!}
      module procedure timeConstructorParameters
   end interface nodePropertyExtractorTime
@@ -50,7 +50,7 @@ contains
 
   function timeConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the \refClass{nodePropertyExtractorTime} output analysis property extractor class which takes a parameter set as input.
+    Constructor for the \refClass{nodePropertyExtractorTime} property extractor class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none

@@ -99,7 +99,7 @@ Implements a merger tree branching probability class using the algorithm of \cit
 
   interface mergerTreeBranchingProbabilityParkinsonColeHelly
      !!{
-     Constructors for the \refClass{mergerTreeBranchingProbabilityParkinsonColeHelly} merger tree builder class.
+     Constructors for the \refClass{mergerTreeBranchingProbabilityParkinsonColeHelly} merger tree branching probability class.
      !!}
      module procedure parkinsonColeHellyConstructorParameters
      module procedure parkinsonColeHellyConstructorInternal

@@ -49,7 +49,7 @@
 
   interface virialOrbitIsotropic
      !!{
-     Constructors for the \refClass{virialOrbitIsotropic} virial orbit class.
+     Constructors for the \refClass{virialOrbitIsotropic} virial orbits class.
      !!}
      module procedure isotropicConstructorParameters
      module procedure isotropicConstructorInternal
@@ -59,7 +59,7 @@ contains
 
   function isotropicConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the \refClass{virialOrbitIsotropic} satellite virial orbit class which takes a parameter set as input.
+    Constructor for the \refClass{virialOrbitIsotropic} virial orbits class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none

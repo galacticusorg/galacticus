@@ -105,7 +105,7 @@ contains
 
   subroutine fspsDestructor(self)
     !!{
-    Destructor for the \refClass{stellarPopulationSpectraFSPS} stellar population class.
+    Destructor for the \refClass{stellarPopulationSpectraFSPS} stellar population spectra class.
     !!}
     implicit none
     type(stellarPopulationSpectraFSPS), intent(inout) :: self

@@ -158,7 +158,7 @@ contains
   
   function gaussianEllipsoidConstructorInternal(scaleLength,axes,rotation,mass,dimensionless,componentType,massType) result(self)
     !!{
-    Constructor for the \refClass{massDistributionGaussianEllipsoid} convergence class.
+    Constructor for the \refClass{massDistributionGaussianEllipsoid} mass distribution class.
     !!}
     use :: Error               , only : Error_Report
     use :: Linear_Algebra      , only : vector       , assignment(=)

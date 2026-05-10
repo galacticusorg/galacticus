@@ -47,7 +47,7 @@ Implements a half-light radii property extractor class.
 
   interface nodePropertyExtractorRadiiHalfLightProperties
      !!{
-     Constructors for the \refClass{nodePropertyExtractorRadiiHalfLightProperties} output analysis class.
+     Constructors for the \refClass{nodePropertyExtractorRadiiHalfLightProperties} property extractor class.
      !!}
      module procedure radiiHalfLightPropertiesConstructorParameters
   end interface nodePropertyExtractorRadiiHalfLightProperties

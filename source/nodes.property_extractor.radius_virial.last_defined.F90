@@ -42,7 +42,7 @@ Implements a last-defined virial radius property extractor class.
 
   interface nodePropertyExtractorRadiusVirialLastDefined
      !!{
-     Constructors for the \refClass{nodePropertyExtractorRadiusVirialLastDefined} output analysis class.
+     Constructors for the \refClass{nodePropertyExtractorRadiusVirialLastDefined} property extractor class.
      !!}
      module procedure radiusVirialLastDefinedConstructorParameters
      module procedure radiusVirialLastDefinedConstructorInternal
@@ -52,7 +52,7 @@ contains
 
   function radiusVirialLastDefinedConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the \refClass{nodePropertyExtractorRadiusVirialLastDefined} output analysis property extractor class which takes a parameter set as input.
+    Constructor for the \refClass{nodePropertyExtractorRadiusVirialLastDefined} property extractor class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none

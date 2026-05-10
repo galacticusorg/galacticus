@@ -38,7 +38,7 @@
 
   interface nodePropertyExtractorNodeFormationTime
      !!{
-     Constructors for the \refClass{nodePropertyExtractorNodeFormationTime} output extractor class.
+     Constructors for the \refClass{nodePropertyExtractorNodeFormationTime} property extractor class.
      !!}
      module procedure nodeFormationTimeConstructorParameters
      module procedure nodeFormationTimeConstructorInternal
@@ -64,7 +64,7 @@ contains
 
   function nodeFormationTimeConstructorInternal() result(self)
     !!{
-    Internal constructor for the \refClass{nodePropertyExtractorNodeFormationTime} output extractor property extractor class.
+    Internal constructor for the \refClass{nodePropertyExtractorNodeFormationTime} property extractor class.
     !!}
     implicit none
     type(nodePropertyExtractorNodeFormationTime) :: self

@@ -57,7 +57,7 @@
       
       Since each \refClass{posteriorSampleLikelihoodClass} class may require a different set of parameters a \mono{[parameterMap]} parameter may be specified. If present, the number of \mono{[parameterMap]} parameters must
       equal the number of \mono{[posteriorSampleLikelihood]} parameters. Each such parameter should give a
-      (space-separated) list of the names of parameters (as defined in the \refClass{modelParameterActive} class) which should be
+      (space-separated) list of the names of parameters (as defined in the \refClass{modelParameterActive} model parameter class) which should be
       passed to the corresponding \mono{[posteriorSampleLikelihood]}. If no \mono{[parameterMap]} parameters are given then all parameters are passed to each \refClass{posteriorSampleLikelihoodClass} class.
       
       Similarly, a set of \mono{parameterInactiveMap} parameters may be given, to specify which (if any, an empty
@@ -89,7 +89,7 @@
 
   interface posteriorSampleLikelihoodIndependentLikelihoods
      !!{
-     Constructors for the \refClass{posteriorSampleLikelihoodIndependentLikelihoods} posterior sampling convergence class.
+     Constructors for the \refClass{posteriorSampleLikelihoodIndependentLikelihoods} posterior sampling likelihood class.
      !!}
      module procedure independentLikelihoodsConstructorParameters
      module procedure independentLikelihoodsConstructorInternal
@@ -99,7 +99,7 @@ contains
 
   function independentLikelihoodsConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the \refClass{posteriorSampleLikelihoodIndependentLikelihoods} posterior sampling convergence class which builds the object from a
+    Constructor for the \refClass{posteriorSampleLikelihoodIndependentLikelihoods} posterior sampling likelihood class which builds the object from a
     parameter set.
     !!}
     use :: Error           , only : Error_Report

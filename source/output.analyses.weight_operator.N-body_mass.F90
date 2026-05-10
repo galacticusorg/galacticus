@@ -42,7 +42,7 @@ halo mass distribution.
 
   interface outputAnalysisWeightOperatorNbodyMass
      !!{
-     Constructors for the \refClass{outputAnalysisWeightOperatorNbodyMass} output analysis class.
+     Constructors for the \refClass{outputAnalysisWeightOperatorNbodyMass} output analysis weight operator class.
      !!}
      module procedure nbodyMassConstructorParameters
      module procedure nbodyMassConstructorInternal
@@ -91,7 +91,7 @@ contains
 
   function nbodyMassConstructorInternal(rangeLower,rangeUpper,nodePropertyExtractor_,outputAnalysisPropertyOperator_,nbodyHaloMassError_) result (self)
     !!{
-    Internal constructor for the \refClass{outputAnalysisWeightOperatorNbodyMass} output analysis distribution operator class.
+    Internal constructor for the \refClass{outputAnalysisWeightOperatorNbodyMass} output analysis weight operator class.
     !!}
     use :: Error                   , only : Error_Report
     use :: Node_Property_Extractors, only : nodePropertyExtractorClass, nodePropertyExtractorScalar

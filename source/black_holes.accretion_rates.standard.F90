@@ -150,7 +150,7 @@ contains
 
   function standardConstructorInternal(bondiHoyleAccretionEnhancementHotHalo,bondiHoyleAccretionEnhancementSpheroid,bondiHoyleAccretionEnhancementNuclearStarCluster,bondiHoyleAccretionTemperatureSpheroid,bondiHoyleAccretionTemperatureNuclearStarCluster,bondiHoyleAccretionHotModeOnly,blackHoleBinarySeparationGrowthRate_,hotHaloTemperatureProfile_,accretionDisks_,coolingRadius_,darkMatterHaloScale_) result(self)
     !!{
-    Internal constructor for the \refClass{blackHoleAccretionRateStandard} node operator class.
+    Internal constructor for the \refClass{blackHoleAccretionRateStandard} black hole accretion rate class.
     !!}
     use :: Galacticus_Nodes, only : defaultHotHaloComponent
     implicit none

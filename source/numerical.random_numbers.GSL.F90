@@ -68,7 +68,7 @@
 
   interface randomNumberGeneratorGSL
      !!{
-     Constructors for the \refClass{randomNumberGeneratorGSL} merger tree evolve profiler class.
+     Constructors for the \refClass{randomNumberGeneratorGSL} random number generator class.
      !!}
      module procedure gslConstructorParameters
      module procedure gslConstructorInternal

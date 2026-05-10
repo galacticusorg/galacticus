@@ -53,7 +53,7 @@
 
   interface posteriorSampleLikelihoodIndpndntLklhdsSqntl
      !!{
-     Constructors for the \refClass{posteriorSampleLikelihoodIndpndntLklhdsSqntl} posterior sampling convergence class.
+     Constructors for the \refClass{posteriorSampleLikelihoodIndpndntLklhdsSqntl} posterior sampling likelihood class.
      !!}
      module procedure independentLikelihoodsSequentialConstructorParameters
      module procedure independentLikelihoodsSequentialConstructorInternal
@@ -65,7 +65,7 @@ contains
 
   function independentLikelihoodsSequentialConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the \refClass{posteriorSampleLikelihoodIndpndntLklhdsSqntl} posterior sampling convergence class which builds the object from a
+    Constructor for the \refClass{posteriorSampleLikelihoodIndpndntLklhdsSqntl} posterior sampling likelihood class which builds the object from a
     parameter set.
     !!}
     use :: Error           , only : Error_Report

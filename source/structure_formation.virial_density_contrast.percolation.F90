@@ -177,7 +177,7 @@ contains
 
   subroutine percolationDestructor(self)
     !!{
-    Destructor for the \refClass{virialDensityContrastPercolation} virial density contrast class.
+    Destructor for the \refClass{virialDensityContrastPercolation} dark matter halo virial density contrast class.
     !!}
     use :: Error, only : Error_Report
     implicit none

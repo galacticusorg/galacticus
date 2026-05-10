@@ -38,7 +38,7 @@
 
   interface nodePropertyExtractorSpinBlackHoles
      !!{
-     Constructors for the \refClass{nodePropertyExtractorSpinBlackHoles} output extractor class.
+     Constructors for the \refClass{nodePropertyExtractorSpinBlackHoles} property extractor class.
      !!}
      module procedure spinBlackHolesConstructorParameters
   end interface nodePropertyExtractorSpinBlackHoles

@@ -50,7 +50,7 @@ Implements a thermal Sunyaev-Zeldovich cosmological scaling corrector analysis p
 
   interface outputAnalysisPropertyOperatorCosmologySZ
      !!{
-     Constructors for the \refClass{outputAnalysisPropertyOperatorCosmologySZ} output analysis class.
+     Constructors for the \refClass{outputAnalysisPropertyOperatorCosmologySZ} output analysis property operator class.
      !!}
      module procedure csmlgySZConstructorParameters
      module procedure csmlgySZConstructorInternal

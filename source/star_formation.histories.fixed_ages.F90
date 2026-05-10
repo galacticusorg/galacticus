@@ -265,7 +265,7 @@ contains
 
   subroutine fixedAgesDestructor(self)
     !!{
-    Destructor for the \refClass{starFormationHistoryFixedAges} star formation histories class.
+    Destructor for the \refClass{starFormationHistoryFixedAges} star formation history class.
     !!}
     implicit none
     type(starFormationHistoryFixedAges), intent(inout) :: self

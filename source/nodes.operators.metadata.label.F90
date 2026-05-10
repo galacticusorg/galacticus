@@ -113,7 +113,7 @@ contains
   
   subroutine labelDestructor(self)
     !!{
-    Destructor for  the \refClass{nodeOperatorLabel} galactic filter class.
+    Destructor for  the \refClass{nodeOperatorLabel} node operator class.
     !!}
     implicit none
     type(nodeOperatorLabel), intent(inout) :: self

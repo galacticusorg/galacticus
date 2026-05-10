@@ -37,7 +37,7 @@ Implements an identity analysis weight operator class.
 
   interface outputAnalysisWeightOperatorIdentity
      !!{
-     Constructors for the \refClass{outputAnalysisWeightOperatorIdentity} output analysis class.
+     Constructors for the \refClass{outputAnalysisWeightOperatorIdentity} output analysis weight operator class.
      !!}
      module procedure identityConstructorParameters
   end interface outputAnalysisWeightOperatorIdentity

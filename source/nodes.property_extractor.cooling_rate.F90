@@ -48,7 +48,7 @@ Implements a cooling rate property extractor class.
 
   interface nodePropertyExtractorRateCooling
      !!{
-     Constructors for the \refClass{nodePropertyExtractorRateCooling} output analysis class.
+     Constructors for the \refClass{nodePropertyExtractorRateCooling} property extractor class.
      !!}
      module procedure rateCoolingConstructorParameters
      module procedure rateCoolingConstructorInternal

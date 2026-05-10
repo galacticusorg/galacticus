@@ -85,7 +85,7 @@ contains
 
   function acceleratorConstructorInternal(toleranceRelative,factorRadiusMaximum,darkMatterProfileDMO_) result(self)
     !!{
-    Internal constructor for the \refClass{darkMatterProfileDMOAccelerator} dark matter profile class.
+    Internal constructor for the \refClass{darkMatterProfileDMOAccelerator} dark matter halo profile class.
     !!}
     implicit none
     type            (darkMatterProfileDMOAccelerator)                        :: self

@@ -127,7 +127,7 @@ contains
 
   subroutine hummerDestructor(self)
     !!{
-    Destructor for the \refClass{atomicRecombinationRateRadiativeCoolingHummer} recombination cooling class.
+    Destructor for the \refClass{atomicRecombinationRateRadiativeCoolingHummer} atomic radiative recombination class.
     !!}
     implicit none
     type(atomicRecombinationRateRadiativeCoolingHummer), intent(inout) :: self

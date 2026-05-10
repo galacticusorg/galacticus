@@ -49,7 +49,7 @@
 
   interface nodePropertyExtractorVirialProperties
      !!{
-     Constructors for the \refClass{nodePropertyExtractorVirialProperties} output extractor class.
+     Constructors for the \refClass{nodePropertyExtractorVirialProperties} property extractor class.
      !!}
      module procedure virialPropertiesConstructorParameters
      module procedure virialPropertiesConstructorInternal
@@ -80,7 +80,7 @@ contains
 
   function virialPropertiesConstructorInternal(darkMatterHaloScale_) result(self)
     !!{
-    Internal constructor for the \refClass{nodePropertyExtractorVirialProperties} output extractor property extractor class.
+    Internal constructor for the \refClass{nodePropertyExtractorVirialProperties} property extractor class.
     !!}
     implicit none
     type (nodePropertyExtractorVirialProperties)                        :: self

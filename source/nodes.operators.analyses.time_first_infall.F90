@@ -25,7 +25,7 @@
   <nodeOperator name="nodeOperatorTimeFirstInfall">
     <description>
       A node operator class that tracks the time of first infall for a node. Intended to be paired with the
-      \refClass{nodePropertyExtractorTimeFirstInfall} class to extract these times for output.
+      \refClass{nodePropertyExtractorTimeFirstInfall} property extractor class to extract these times for output.
     </description>
   </nodeOperator>
   !!]

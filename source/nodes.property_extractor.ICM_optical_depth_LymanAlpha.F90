@@ -48,7 +48,7 @@
 
   interface nodePropertyExtractorICMOpticalDepthLymanAlpha
      !!{
-     Constructors for the \refClass{nodePropertyExtractorICMOpticalDepthLymanAlpha} output analysis class.
+     Constructors for the \refClass{nodePropertyExtractorICMOpticalDepthLymanAlpha} property extractor class.
      !!}
      module procedure icmOpticalDepthLymanAlphaConstructorParameters
      module procedure icmOpticalDepthLymanAlphaConstructorInternal

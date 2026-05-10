@@ -387,7 +387,7 @@ contains
 
   subroutine adaptiveDestructor(self)
     !!{
-    Destructor for the \refClass{starFormationHistoryAdaptive} star formation histories class.
+    Destructor for the \refClass{starFormationHistoryAdaptive} star formation history class.
     !!}
     implicit none
     type(starFormationHistoryAdaptive), intent(inout) :: self

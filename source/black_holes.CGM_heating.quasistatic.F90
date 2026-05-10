@@ -92,7 +92,7 @@ contains
 
   function quasistaticConstructorInternal(efficiencyHeating,blackHoleAccretionRate_,darkMatterHaloScale_,coolingRadius_) result(self)
     !!{
-    Internal constructor for the \refClass{blackHoleCGMHeatingQuasistatic} node operator class.
+    Internal constructor for the \refClass{blackHoleCGMHeatingQuasistatic} black hole winds class.
     !!}
     implicit none
     type            (blackHoleCGMHeatingQuasistatic)                        :: self

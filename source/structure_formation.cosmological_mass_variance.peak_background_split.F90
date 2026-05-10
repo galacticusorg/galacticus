@@ -112,7 +112,7 @@ contains
 
   function variancePeakBackgroundSplitConstructorInternal(factorMassEnvironment,haloEnvironment_,cosmologicalMassVariance_,cosmologyParameters_,cosmologyFunctions_) result(self)
     !!{
-    Internal constructor for the \refClass{cosmologicalMassVariancePeakBackgroundSplit} linear growth class.
+    Internal constructor for the \refClass{cosmologicalMassVariancePeakBackgroundSplit} cosmological mass variance class.
     !!}
     implicit none
     type            (cosmologicalMassVariancePeakBackgroundSplit)                        :: self
@@ -136,7 +136,7 @@ contains
 
   subroutine variancePeakBackgroundSplitDestructor(self)
     !!{
-    Destructor for the \refClass{cosmologicalMassVariancePeakBackgroundSplit} linear growth class.
+    Destructor for the \refClass{cosmologicalMassVariancePeakBackgroundSplit} cosmological mass variance class.
     !!}
     implicit none
     type(cosmologicalMassVariancePeakBackgroundSplit), intent(inout) :: self

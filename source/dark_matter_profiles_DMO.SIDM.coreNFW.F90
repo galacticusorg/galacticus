@@ -96,7 +96,7 @@ contains
 
   function sidmCoreNFWConstructorInternal(factorRadiusCore,darkMatterHaloScale_,darkMatterParticle_) result(self)
     !!{
-    Internal constructor for the \refClass{darkMatterProfileDMOSIDMCoreNFW} dark matter profile class.
+    Internal constructor for the \refClass{darkMatterProfileDMOSIDMCoreNFW} dark matter halo profile class.
     !!}
     use :: Dark_Matter_Particles, only : darkMatterParticleSelfInteractingDarkMatter
     implicit none

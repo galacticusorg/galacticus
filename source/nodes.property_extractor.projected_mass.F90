@@ -62,7 +62,7 @@
 
   interface nodePropertyExtractorProjectedMass
      !!{
-     Constructors for the \refClass{nodePropertyExtractorProjectedMass} output analysis class.
+     Constructors for the \refClass{nodePropertyExtractorProjectedMass} property extractor class.
      !!}
      module procedure projectedMassConstructorParameters
      module procedure projectedMassConstructorInternal

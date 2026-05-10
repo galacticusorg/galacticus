@@ -59,7 +59,7 @@
 
   interface nodePropertyExtractorPromptCusps
      !!{
-     Constructors for the \refClass{nodePropertyExtractorPromptCusps} output analysis class.
+     Constructors for the \refClass{nodePropertyExtractorPromptCusps} property extractor class.
      !!}
      module procedure promptCuspsConstructorParameters
      module procedure promptCuspsConstructorInternal

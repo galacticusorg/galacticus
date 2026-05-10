@@ -169,7 +169,7 @@ contains
 
   function fullySpecifiedConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the \refClass{mergerTreeConstructorFullySpecified} merger tree operator class which takes a parameter set as input.
+    Constructor for the \refClass{mergerTreeConstructorFullySpecified} merger tree constructor class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -206,7 +206,7 @@ contains
 
   function fullySpecifiedConstructorInternal(fileName,countRealizations,randomNumberGenerator_,mergerTreeSeeds_) result(self)
     !!{
-    Internal constructor for the \refClass{mergerTreeConstructorFullySpecified} merger tree operator class.
+    Internal constructor for the \refClass{mergerTreeConstructorFullySpecified} merger tree constructor class.
     !!}
     use :: Error             , only : Error_Report
     use :: IO_XML            , only : XML_Get_Elements_By_Tag_Name, XML_Parse

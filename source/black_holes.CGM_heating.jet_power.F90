@@ -87,7 +87,7 @@ contains
 
   function jetPowerConstructorInternal(efficiencyRadioMode,blackHoleAccretionRate_,accretionDisks_) result(self)
     !!{
-    Internal constructor for the \refClass{blackHoleCGMHeatingJetPower} node operator class.
+    Internal constructor for the \refClass{blackHoleCGMHeatingJetPower} black hole winds class.
     !!}
     implicit none
     type            (blackHoleCGMHeatingJetPower)                        :: self

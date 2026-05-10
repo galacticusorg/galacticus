@@ -38,7 +38,7 @@ Implements a min-max analysis property operator class.
 
   interface outputAnalysisPropertyOperatorMinMax
      !!{
-     Constructors for the \refClass{outputAnalysisPropertyOperatorMinMax} output analysis class.
+     Constructors for the \refClass{outputAnalysisPropertyOperatorMinMax} output analysis property operator class.
      !!}
      module procedure minMaxConstructorParameters
      module procedure minMaxConstructorInternal
@@ -78,7 +78,7 @@ contains
 
   function minMaxConstructorInternal(thresholdMinimum,thresholdMaximum) result (self)
     !!{
-    Internal constructor for the \refClass{outputAnalysisPropertyOperatorMinMax} output analysis distribution operator class.
+    Internal constructor for the \refClass{outputAnalysisPropertyOperatorMinMax} output analysis property operator class.
     !!}
     implicit none
     type            (outputAnalysisPropertyOperatorMinMax)                :: self

@@ -41,7 +41,7 @@
 
   interface outputAnalysisPropertyOperatorMetallicitySolarRelative
      !!{
-     Constructors for the \refClass{outputAnalysisPropertyOperatorMetallicitySolarRelative} output analysis class.
+     Constructors for the \refClass{outputAnalysisPropertyOperatorMetallicitySolarRelative} output analysis property operator class.
      !!}
      module procedure metallicitySolarRelativeConstructorParameters
      module procedure metallicitySolarRelativeConstructorInternal
@@ -76,7 +76,7 @@ contains
 
   function metallicitySolarRelativeConstructorInternal(atomicNumberElement) result (self)
     !!{
-    Internal constructor for the \refClass{outputAnalysisPropertyOperatorMetallicitySolarRelative} output analysis distribution operator class.
+    Internal constructor for the \refClass{outputAnalysisPropertyOperatorMetallicitySolarRelative} output analysis property operator class.
     !!}
     use :: Atomic_Data, only : Abundance_Pattern_Lookup
     implicit none

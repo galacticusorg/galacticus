@@ -57,7 +57,7 @@
   
   interface nodePropertyExtractorStarFormationHistoryMass
      !!{
-     Constructors for the \refClass{nodePropertyExtractorStarFormationHistoryMass} output analysis class.
+     Constructors for the \refClass{nodePropertyExtractorStarFormationHistoryMass} property extractor class.
      !!}
      module procedure starFormationHistoryMassConstructorParameters
      module procedure starFormationHistoryMassConstructorInternal

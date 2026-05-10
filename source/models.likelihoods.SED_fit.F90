@@ -88,7 +88,7 @@
 
   interface posteriorSampleLikelihoodSEDFit
      !!{
-     Constructors for the \refClass{posteriorSampleLikelihoodSEDFit} posterior sampling convergence class.
+     Constructors for the \refClass{posteriorSampleLikelihoodSEDFit} posterior sampling likelihood class.
      !!}
      module procedure sedFitConstructorParameters
      module procedure sedFitConstructorInternal
@@ -98,7 +98,7 @@ contains
 
   function sedFitConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the \refClass{posteriorSampleLikelihoodSEDFit} posterior sampling convergence class which builds the object from a
+    Constructor for the \refClass{posteriorSampleLikelihoodSEDFit} posterior sampling likelihood class which builds the object from a
     parameter set.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters

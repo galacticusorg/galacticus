@@ -40,7 +40,7 @@
 
   interface nodePropertyExtractorHierarchy
      !!{
-     Constructors for the \refClass{nodePropertyExtractorHierarchy} output extractor class.
+     Constructors for the \refClass{nodePropertyExtractorHierarchy} property extractor class.
      !!}
      module procedure hierarchyConstructorParameters
      module procedure hierarchyConstructorInternal
@@ -66,7 +66,7 @@ contains
 
   function hierarchyConstructorInternal() result(self)
     !!{
-    Internal constructor for the \refClass{nodePropertyExtractorHierarchy} output extractor property extractor class.
+    Internal constructor for the \refClass{nodePropertyExtractorHierarchy} property extractor class.
     !!}
     implicit none
     type(nodePropertyExtractorHierarchy) :: self

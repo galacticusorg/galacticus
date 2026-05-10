@@ -129,7 +129,7 @@ contains
 
   subroutine millenniumCSVDestructor(self)
     !!{
-    Destructor for the \refClass{nbodyImporterMillenniumCSV} importer class.
+    Destructor for the \refClass{nbodyImporterMillenniumCSV} N-body importer class.
     !!}
     implicit none
     type(nbodyImporterMillenniumCSV), intent(inout) :: self

@@ -63,7 +63,7 @@
 
   interface posteriorSampleSimulationStochasticDffrntlEvltn
      !!{
-     Constructors for the \refClass{posteriorSampleSimulationStochasticDffrntlEvltn} posterior sampling convergence class.
+     Constructors for the \refClass{posteriorSampleSimulationStochasticDffrntlEvltn} posterior sampling simulation class.
      !!}
      module procedure stochasticDifferentialEvolutionConstructorParameters
      module procedure stochasticDifferentialEvolutionConstructorInternal

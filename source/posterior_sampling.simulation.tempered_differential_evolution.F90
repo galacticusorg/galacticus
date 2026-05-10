@@ -79,7 +79,7 @@
 
   interface posteriorSampleSimulationTemperedDffrntlEvltn
      !!{
-     Constructors for the \refClass{posteriorSampleSimulationTemperedDffrntlEvltn} posterior sampling convergence class.
+     Constructors for the \refClass{posteriorSampleSimulationTemperedDffrntlEvltn} posterior sampling simulation class.
      !!}
      module procedure temperedDifferentialEvolutionConstructorParameters
      module procedure temperedDifferentialEvolutionConstructorInternal

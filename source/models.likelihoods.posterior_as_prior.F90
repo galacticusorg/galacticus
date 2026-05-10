@@ -247,7 +247,7 @@ contains
 
   subroutine posteriorAsPriorInitialize(self,modelParametersActive_)
     !!{
-    Initialize a \refClass{posteriorSampleLikelihoodPosteriorAsPrior} likelihood object.
+    Initialize a \refClass{posteriorSampleLikelihoodPosteriorAsPrior} posterior sampling likelihood object.
     !!}
     implicit none
     class           (posteriorSampleLikelihoodPosteriorAsPrior), intent(inout)               :: self

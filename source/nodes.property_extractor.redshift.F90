@@ -45,7 +45,7 @@ Implements a redshift property extractor class.
 
   interface nodePropertyExtractorRedshift
      !!{
-     Constructors for the \refClass{nodePropertyExtractorRedshift} output analysis class.
+     Constructors for the \refClass{nodePropertyExtractorRedshift} property extractor class.
      !!}
      module procedure redshiftConstructorParameters
      module procedure redshiftConstructorInternal

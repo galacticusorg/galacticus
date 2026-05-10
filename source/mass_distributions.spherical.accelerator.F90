@@ -138,7 +138,7 @@ contains
 
   subroutine sphericalAcceleratorDestructor(self)
     !!{
-    Destructor for the abstract \refClass{massDistributionSphericalAccelerator} class.
+    Destructor for the abstract \refClass{massDistributionSphericalAccelerator} mass distribution class.
     !!}
     implicit none
     type(massDistributionSphericalAccelerator), intent(inout) :: self

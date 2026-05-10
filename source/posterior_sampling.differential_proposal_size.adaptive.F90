@@ -161,7 +161,7 @@ contains
 
   function adaptiveConstructorInternal(logFileName,gammaInitial,gammaMinimum,gammaMaximum,gammaAdjustFactor,acceptanceRateMinimum,acceptanceRateMaximum,updateCount,outliersInAcceptanceRate,appendLog,restoreFromLog,flushLog) result(self)
     !!{
-    Constructor for the \refClass{posteriorSampleDffrntlEvltnProposalSizeAdaptive} differential evolution proposal size class.
+    Constructor for the \refClass{posteriorSampleDffrntlEvltnProposalSizeAdaptive} posterior sampling differential evolution random jump class.
     !!}
     use :: MPI_Utilities, only : mpiSelf, mpiBarrier
     implicit none

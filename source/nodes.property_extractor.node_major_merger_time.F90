@@ -38,7 +38,7 @@
 
   interface nodePropertyExtractorNodeMajorMergerTime
      !!{
-     Constructors for the \refClass{nodePropertyExtractorNodeMajorMergerTime} output extractor class.
+     Constructors for the \refClass{nodePropertyExtractorNodeMajorMergerTime} property extractor class.
      !!}
      module procedure nodeMajorMergerTimeConstructorParameters
      module procedure nodeMajorMergerTimeConstructorInternal
@@ -64,7 +64,7 @@ contains
 
   function nodeMajorMergerTimeConstructorInternal() result(self)
     !!{
-    Internal constructor for the \refClass{nodePropertyExtractorNodeMajorMergerTime} output extractor property extractor class.
+    Internal constructor for the \refClass{nodePropertyExtractorNodeMajorMergerTime} property extractor class.
     !!}
     implicit none
     type(nodePropertyExtractorNodeMajorMergerTime) :: self

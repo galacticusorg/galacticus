@@ -42,7 +42,7 @@
 
   interface nodePropertyExtractorMassAccretionRateBlackHoles
      !!{
-     Constructors for the \refClass{nodePropertyExtractorMassAccretionRateBlackHoles} output extractor class.
+     Constructors for the \refClass{nodePropertyExtractorMassAccretionRateBlackHoles} property extractor class.
      !!}
      module procedure massAccretionRateBlackHolesConstructorParameters
      module procedure massAccretionRateBlackHolesConstructorInternal
@@ -73,7 +73,7 @@ contains
 
   function massAccretionRateBlackHolesConstructorInternal(blackHoleAccretionRate_) result(self)
     !!{
-    Internal constructor for the \refClass{nodePropertyExtractorMassAccretionRateBlackHoles} node operator class.
+    Internal constructor for the \refClass{nodePropertyExtractorMassAccretionRateBlackHoles} property extractor class.
     !!}
     implicit none
     type (nodePropertyExtractorMassAccretionRateBlackHoles)                        :: self

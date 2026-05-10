@@ -47,7 +47,7 @@
 
   interface modelParameterInactive
      !!{
-     Constructors for the \refClass{modelParameterInactive} 1D distribution function class.
+     Constructors for the \refClass{modelParameterInactive} model parameter class.
      !!}
      module procedure inactiveConstructorParameters
      module procedure inactiveConstructorInternal

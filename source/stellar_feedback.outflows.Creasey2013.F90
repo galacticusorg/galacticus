@@ -124,7 +124,7 @@ contains
 
   subroutine creasey2013Destructor(self)
     !!{
-    Destructor for the \refClass{stellarFeedbackOutflowsCreasey2013} feedback in disks class.
+    Destructor for the \refClass{stellarFeedbackOutflowsCreasey2013} stellar feedback class.
     !!}
     implicit none
     type(stellarFeedbackOutflowsCreasey2013), intent(inout) :: self

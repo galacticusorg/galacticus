@@ -45,7 +45,7 @@ Implements a dark matter profile SIDM interaction radius property extractor clas
 
   interface nodePropertyExtractorDarkMatterProfileRadiusInteractionSIDM
      !!{
-     Constructors for the \refClass{nodePropertyExtractorDarkMatterProfileRadiusInteractionSIDM} output analysis class.
+     Constructors for the \refClass{nodePropertyExtractorDarkMatterProfileRadiusInteractionSIDM} property extractor class.
      !!}
      module procedure darkMatterProfileRadiusInteractionSIDMConstructorParameters
      module procedure darkMatterProfileRadiusInteractionSIDMConstructorInternal
@@ -55,7 +55,7 @@ contains
 
   function darkMatterProfileRadiusInteractionSIDMConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the \refClass{nodePropertyExtractorDarkMatterProfileRadiusInteractionSIDM} output analysis property extractor class which takes a parameter set as input.
+    Constructor for the \refClass{nodePropertyExtractorDarkMatterProfileRadiusInteractionSIDM} property extractor class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none

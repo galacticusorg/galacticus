@@ -88,7 +88,7 @@ contains
 
   function scaledConstructorInternal(scale,cosmologicalMassVariance_) result(self)
     !!{
-    Internal constructor for the \refClass{cosmologicalMassVarianceScaled} linear growth class.
+    Internal constructor for the \refClass{cosmologicalMassVarianceScaled} cosmological mass variance class.
     !!}
     implicit none
     type            (cosmologicalMassVarianceScaled)                        :: self
@@ -104,7 +104,7 @@ contains
 
   subroutine scaledDestructor(self)
     !!{
-    Destructor for the \refClass{cosmologicalMassVarianceScaled} linear growth class.
+    Destructor for the \refClass{cosmologicalMassVarianceScaled} cosmological mass variance class.
     !!}
     implicit none
     type   (cosmologicalMassVarianceScaled), intent(inout) :: self

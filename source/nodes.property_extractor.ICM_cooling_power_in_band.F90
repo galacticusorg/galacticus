@@ -57,7 +57,7 @@ Implements an intracluster medium cooling power in band property extractor class
 
   interface nodePropertyExtractorICMCoolingPowerInBand
      !!{
-     Constructors for the \refClass{nodePropertyExtractorICMCoolingPowerInBand} output analysis class.
+     Constructors for the \refClass{nodePropertyExtractorICMCoolingPowerInBand} property extractor class.
      !!}
      module procedure icmCoolingPowerInBandConstructorParameters
      module procedure icmCoolingPowerInBandConstructorInternal

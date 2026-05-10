@@ -45,7 +45,7 @@ Implements a hot mode accretion fraction rate property extractor class.
 
   interface nodePropertyExtractorFractionAccretionHotMode
      !!{
-     Constructors for the \refClass{nodePropertyExtractorFractionAccretionHotMode} output analysis class.
+     Constructors for the \refClass{nodePropertyExtractorFractionAccretionHotMode} property extractor class.
      !!}
      module procedure fractionAccretionHotModeConstructorParameters
      module procedure fractionAccretionHotModeConstructorInternal

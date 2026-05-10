@@ -38,7 +38,7 @@
 
   interface nodePropertyExtractorMassBlackHoles
      !!{
-     Constructors for the \refClass{nodePropertyExtractorMassBlackHoles} output extractor class.
+     Constructors for the \refClass{nodePropertyExtractorMassBlackHoles} property extractor class.
      !!}
      module procedure massBlackHolesConstructorParameters
   end interface nodePropertyExtractorMassBlackHoles

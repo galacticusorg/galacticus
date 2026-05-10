@@ -56,7 +56,7 @@
 
   interface virialOrbitMassReduced
      !!{
-     Constructors for the \refClass{virialOrbitMassReduced} virial orbit class.
+     Constructors for the \refClass{virialOrbitMassReduced} virial orbits class.
      !!}
      module procedure massReducedConstructorParameters
      module procedure massReducedConstructorInternal
@@ -66,7 +66,7 @@ contains
 
   function massReducedConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the \refClass{virialOrbitMassReduced} satellite virial orbit class which takes a parameter set as input.
+    Constructor for the \refClass{virialOrbitMassReduced} virial orbits class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none

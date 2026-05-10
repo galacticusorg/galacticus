@@ -134,7 +134,7 @@ contains
 
   subroutine haloMassFunctionDestructor(self)
     !!{
-    Destructor for the \refClass{mergerTreeBuildMassDistributionHaloMassFunction} merger tree halo mass sampling class.
+    Destructor for the \refClass{mergerTreeBuildMassDistributionHaloMassFunction} merger tree halo mass function sampling class.
     !!}
     implicit none
     type(mergerTreeBuildMassDistributionHaloMassFunction), intent(inout) :: self

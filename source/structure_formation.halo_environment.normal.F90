@@ -154,7 +154,7 @@ contains
 
   function normalConstructorInternal(time,cosmologyParameters_,cosmologyFunctions_,cosmologicalMassVariance_,linearGrowth_,criticalOverdensity_,radiusEnvironment,massEnvironment) result(self)
     !!{
-    Internal constructor for the \refClass{haloEnvironmentNormal} halo mass function class.
+    Internal constructor for the \refClass{haloEnvironmentNormal} halo environment class.
     !!}
     use :: Error_Functions         , only : Error_Function
     use :: Numerical_Constants_Math, only : Pi
@@ -251,7 +251,7 @@ contains
 
   subroutine normalDestructor(self)
     !!{
-    Destructor for the \refClass{haloEnvironmentNormal} halo mass function class.
+    Destructor for the \refClass{haloEnvironmentNormal} halo environment class.
     !!}
     use :: Events_Hooks, only : calculationResetEvent
     implicit none

@@ -60,7 +60,7 @@ contains
 
   function powerLawCumulativeLuminosityConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the \refClass{hiiRegionLuminosityFunctionPowerLaw} timescale for star formation class which takes a parameter set as
+    Constructor for the \refClass{hiiRegionLuminosityFunctionPowerLaw} HII region luminosity function class which takes a parameter set as
     input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
@@ -100,7 +100,7 @@ contains
 
   function powerLawCumulativeLuminosityConstructorInternal(rateHydrogenIonizingPhotonsMinimum,rateHydrogenIonizingPhotonsMaximum,exponent) result(self)
     !!{
-    Internal constructor for the \refClass{hiiRegionLuminosityFunctionPowerLaw} luminosity function class.
+    Internal constructor for the \refClass{hiiRegionLuminosityFunctionPowerLaw} HII region luminosity function class.
     !!}
     
     implicit none

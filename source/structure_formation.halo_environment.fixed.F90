@@ -122,7 +122,7 @@ contains
 
   function fixedHEConstructorInternal(cosmologyFunctions_,linearGrowth_,overdensity,radiusEnvironment,massEnvironment) result(self)
     !!{
-    Internal constructor for the \refClass{haloEnvironmentFixed} halo mass function class.
+    Internal constructor for the \refClass{haloEnvironmentFixed} halo environment class.
     !!}
     use :: Numerical_Constants_Math, only : Pi
     implicit none
@@ -166,7 +166,7 @@ contains
 
   subroutine fixedHEDestructor(self)
     !!{
-    Destructor for the \refClass{haloEnvironmentFixed} halo mass function class.
+    Destructor for the \refClass{haloEnvironmentFixed} halo environment class.
     !!}
     implicit none
     type(haloEnvironmentFixed), intent(inout) :: self

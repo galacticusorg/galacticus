@@ -44,7 +44,7 @@
 
   interface nodePropertyExtractorRadiativeEfficiencyBlackHoles
      !!{
-     Constructors for the \refClass{nodePropertyExtractorRadiativeEfficiencyBlackHoles} output extractor class.
+     Constructors for the \refClass{nodePropertyExtractorRadiativeEfficiencyBlackHoles} property extractor class.
      !!}
      module procedure radiativeEfficiencyBlackHolesConstructorParameters
      module procedure radiativeEfficiencyBlackHolesConstructorInternal
@@ -78,7 +78,7 @@ contains
 
   function radiativeEfficiencyBlackHolesConstructorInternal(blackHoleAccretionRate_,accretionDisks_) result(self)
     !!{
-    Internal constructor for the \refClass{nodePropertyExtractorRadiativeEfficiencyBlackHoles} node operator class.
+    Internal constructor for the \refClass{nodePropertyExtractorRadiativeEfficiencyBlackHoles} property extractor class.
     !!}
     implicit none
     type (nodePropertyExtractorRadiativeEfficiencyBlackHoles)                        :: self

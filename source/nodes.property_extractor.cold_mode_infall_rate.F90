@@ -45,7 +45,7 @@ Implements a cold mode infall rate property extractor class.
 
   interface nodePropertyExtractorRateInfallColdMode
      !!{
-     Constructors for the \refClass{nodePropertyExtractorRateInfallColdMode} output analysis class.
+     Constructors for the \refClass{nodePropertyExtractorRateInfallColdMode} property extractor class.
      !!}
      module procedure rateInfallColdModeConstructorParameters
      module procedure rateInfallColdModeConstructorInternal

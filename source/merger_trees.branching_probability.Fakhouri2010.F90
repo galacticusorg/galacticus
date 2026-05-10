@@ -61,7 +61,7 @@ Implements a merger tree branching probability class using the algorithm of \cit
 
   interface mergerTreeBranchingProbabilityFakhouri2010
      !!{
-     Constructors for the \refClass{mergerTreeBranchingProbabilityFakhouri2010} merger tree builder class.
+     Constructors for the \refClass{mergerTreeBranchingProbabilityFakhouri2010} merger tree branching probability class.
      !!}
      module procedure fakhouri2010ConstructorParameters
      module procedure fakhouri2010ConstructorInternal

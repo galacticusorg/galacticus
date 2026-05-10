@@ -39,7 +39,7 @@
 
   interface nodePropertyExtractorGalaxyMergerTreeMergerIndices
      !!{
-     Constructors for the \refClass{nodePropertyExtractorGalaxyMergerTreeMergerIndices} output extractor class.
+     Constructors for the \refClass{nodePropertyExtractorGalaxyMergerTreeMergerIndices} property extractor class.
      !!}
      module procedure galaxyMergerTreeMergerIndicesConstructorParameters
      module procedure galaxyMergerTreeMergerIndicesConstructorInternal
@@ -65,7 +65,7 @@ contains
 
   function galaxyMergerTreeMergerIndicesConstructorInternal() result(self)
     !!{
-    Internal constructor for the \refClass{nodePropertyExtractorGalaxyMergerTreeMergerIndices} output extractor property extractor class.
+    Internal constructor for the \refClass{nodePropertyExtractorGalaxyMergerTreeMergerIndices} property extractor class.
     !!}
     implicit none
     type(nodePropertyExtractorGalaxyMergerTreeMergerIndices) :: self

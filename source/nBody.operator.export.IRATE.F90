@@ -116,7 +116,7 @@ contains
 
   subroutine exportIRATEDestructor(self)
     !!{
-    Destructor for the \refClass{nbodyOperatorExportIRATE} importer class.
+    Destructor for the \refClass{nbodyOperatorExportIRATE} N-body operator class.
     !!}
     implicit none
     type(nbodyOperatorExportIRATE), intent(inout) :: self

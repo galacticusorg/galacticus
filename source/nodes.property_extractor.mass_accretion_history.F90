@@ -39,7 +39,7 @@
 
   interface nodePropertyExtractorMassAccretionHistory
      !!{
-     Constructors for the \refClass{nodePropertyExtractorMassAccretionHistory} output extractor class.
+     Constructors for the \refClass{nodePropertyExtractorMassAccretionHistory} property extractor class.
      !!}
      module procedure massAccretionHistoryConstructorParameters
      module procedure massAccretionHistoryConstructorInternal
@@ -65,7 +65,7 @@ contains
 
   function massAccretionHistoryConstructorInternal() result(self)
     !!{
-    Internal constructor for the \refClass{nodePropertyExtractorMassAccretionHistory} output extractor property extractor class.
+    Internal constructor for the \refClass{nodePropertyExtractorMassAccretionHistory} property extractor class.
     !!}
     implicit none
     type(nodePropertyExtractorMassAccretionHistory) :: self

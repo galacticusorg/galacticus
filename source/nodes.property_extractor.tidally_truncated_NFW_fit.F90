@@ -57,7 +57,7 @@ Implements a node property extractor that fits for a tidal truncation radius for
 
   interface nodePropertyExtractorTidallyTruncatedNFWFit
      !!{
-     Constructors for the \refClass{nodePropertyExtractorTidallyTruncatedNFWFit} output analysis class.
+     Constructors for the \refClass{nodePropertyExtractorTidallyTruncatedNFWFit} property extractor class.
      !!}
      module procedure tidallyTruncatedNFWFitConstructorParameters
      module procedure tidallyTruncatedNFWFitConstructorInternal
@@ -67,7 +67,7 @@ contains
 
   function tidallyTruncatedNFWFitConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the \refClass{nodePropertyExtractorTidallyTruncatedNFWFit} output analysis property extractor class which takes a parameter set as input.
+    Constructor for the \refClass{nodePropertyExtractorTidallyTruncatedNFWFit} property extractor class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -91,7 +91,7 @@ contains
 
   function tidallyTruncatedNFWFitConstructorInternal(darkMatterHaloScale_,darkMatterProfileDMO_) result(self)
     !!{
-    Internal constructor for the \refClass{nodePropertyExtractorTidallyTruncatedNFWFit} output analysis property extractor class.
+    Internal constructor for the \refClass{nodePropertyExtractorTidallyTruncatedNFWFit} property extractor class.
     !!}
     implicit none
     type (nodePropertyExtractorTidallyTruncatedNFWFit)                        :: self
@@ -117,7 +117,7 @@ contains
 
   subroutine tidallyTruncatedNFWFitDestructor(self)
     !!{
-    Destructor for the \refClass{nodePropertyExtractorTidallyTruncatedNFWFit} output analysis property extractor class.
+    Destructor for the \refClass{nodePropertyExtractorTidallyTruncatedNFWFit} property extractor class.
     !!}
     implicit none
     type(nodePropertyExtractorTidallyTruncatedNFWFit), intent(inout) :: self

@@ -41,7 +41,7 @@ Implements a half-stellar mass radius output analysis property extractor class.
 
   interface nodePropertyExtractorRadiusHalfMassStellar
      !!{
-     Constructors for the \refClass{nodePropertyExtractorRadiusHalfMassStellar} output analysis class.
+     Constructors for the \refClass{nodePropertyExtractorRadiusHalfMassStellar} property extractor class.
      !!}
      module procedure radiusHalfMassStellarConstructorParameters
   end interface nodePropertyExtractorRadiusHalfMassStellar
@@ -50,7 +50,7 @@ contains
 
   function radiusHalfMassStellarConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the \refClass{nodePropertyExtractorRadiusHalfMassStellar} output analysis property extractor class which takes a parameter set as input.
+    Constructor for the \refClass{nodePropertyExtractorRadiusHalfMassStellar} property extractor class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none

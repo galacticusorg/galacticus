@@ -49,7 +49,7 @@
 
   interface nodePropertyExtractorRadiusVelocityMaximum
      !!{
-     Constructors for the \refClass{nodePropertyExtractorRadiusVelocityMaximum} output analysis class.
+     Constructors for the \refClass{nodePropertyExtractorRadiusVelocityMaximum} property extractor class.
      !!}
      module procedure radiusVelocityMaximumConstructorParameters
      module procedure radiusVelocityMaximumConstructorInternal

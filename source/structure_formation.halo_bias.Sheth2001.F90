@@ -54,7 +54,7 @@ contains
 
   function sheth2001ConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the \refClass{darkMatterHaloBiasSheth2001} dark matter halo mass bias which builds the object from a parameter set.
+    Constructor for the \refClass{darkMatterHaloBiasSheth2001} dark matter halo bias class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none

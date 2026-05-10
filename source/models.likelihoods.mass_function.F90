@@ -79,7 +79,7 @@
 
   interface posteriorSampleLikelihoodMassFunction
      !!{
-     Constructors for the \refClass{posteriorSampleLikelihoodMassFunction} posterior sampling convergence class.
+     Constructors for the \refClass{posteriorSampleLikelihoodMassFunction} posterior sampling likelihood class.
      !!}
      module procedure massFunctionConstructorParameters
      module procedure massFunctionConstructorInternal
@@ -89,7 +89,7 @@ contains
 
   function massFunctionConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the \refClass{posteriorSampleLikelihoodMassFunction} posterior sampling convergence class which builds the object from a
+    Constructor for the \refClass{posteriorSampleLikelihoodMassFunction} posterior sampling likelihood class which builds the object from a
     parameter set.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters

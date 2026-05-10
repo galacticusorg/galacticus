@@ -137,7 +137,7 @@ contains
 
   subroutine irateDestructor(self)
     !!{
-    Destructor for the \refClass{nbodyImporterIRATE} importer class.
+    Destructor for the \refClass{nbodyImporterIRATE} N-body importer class.
     !!}
     implicit none
     type(nbodyImporterIRATE), intent(inout) :: self

@@ -89,7 +89,7 @@ contains
 
   function binomialConstructorInternal(probabilitySuccess,countTrials,randomNumberGenerator_) result(self)
     !!{
-    Constructor for the \refClass{distributionFunctionDiscrete1DBinomial} 1D distribution function class.
+    Constructor for the \refClass{distributionFunctionDiscrete1DBinomial} 1D discrete distribution function class.
     !!}
     use :: Error, only : Error_Report
     implicit none

@@ -65,7 +65,7 @@
   
   interface darkMatterProfileScaleRadiusPowerLaw
      !!{
-     Constructors for the \refClass{darkMatterProfileScaleRadiusPowerLaw} node operator class.
+     Constructors for the \refClass{darkMatterProfileScaleRadiusPowerLaw} dark matter halo profile scale radius class.
      !!}
      module procedure darkMatterProfileScalePowerLawConstructorParameters
      module procedure darkMatterProfileScalePowerLawConstructorInternal
@@ -75,7 +75,7 @@ contains
   
   function darkMatterProfileScalePowerLawConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the \refClass{darkMatterProfileScaleRadiusPowerLaw} dark matter profile scale radius class which
+    Constructor for the \refClass{darkMatterProfileScaleRadiusPowerLaw} dark matter halo profile scale radius class which
     takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
@@ -188,7 +188,7 @@ contains
 
   function darkMatterProfileScalePowerLawConstructorInternal(radiusLow,radiusHigh,radiusTransition,radiusWidth,massLow,massHigh,massTransition,massWidth,expansionFactorLow,expansionFactorHigh,expansionFactorTransition,expansionFactorWidth,scatter,cosmologyFunctions_,criticalOverdensity_,cosmologicalMassVariance_) result(self)
     !!{
-    Internal constructor for the \refClass{darkMatterProfileScaleRadiusPowerLaw} dark matter profile scale radius class.
+    Internal constructor for the \refClass{darkMatterProfileScaleRadiusPowerLaw} dark matter halo profile scale radius class.
     !!}
     implicit none
     type            (darkMatterProfileScaleRadiusPowerLaw)                        :: self

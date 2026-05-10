@@ -37,7 +37,7 @@
 
   interface posteriorSampleStoppingCriterionNever
      !!{
-     Constructors for the \refClass{posteriorSampleStoppingCriterionNever} posterior sampling convergence class.
+     Constructors for the \refClass{posteriorSampleStoppingCriterionNever} posterior sampling stopping class.
      !!}
      module procedure neverConstructorParameters
   end interface posteriorSampleStoppingCriterionNever

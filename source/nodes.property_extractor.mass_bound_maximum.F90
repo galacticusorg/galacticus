@@ -41,7 +41,7 @@
 
   interface nodePropertyExtractorMassBoundMaximum
      !!{
-     Constructors for the \refClass{nodePropertyExtractorMassBoundMaximum} output extractor class.
+     Constructors for the \refClass{nodePropertyExtractorMassBoundMaximum} property extractor class.
      !!}
      module procedure massBoundMaximumConstructorParameters
      module procedure massBoundMaximumConstructorInternal
@@ -67,7 +67,7 @@ contains
 
   function massBoundMaximumConstructorInternal() result(self)
     !!{
-    Internal constructor for the \refClass{nodePropertyExtractorMassBoundMaximum} output extractor property extractor class.
+    Internal constructor for the \refClass{nodePropertyExtractorMassBoundMaximum} property extractor class.
     !!}
     implicit none
     type(nodePropertyExtractorMassBoundMaximum) :: self

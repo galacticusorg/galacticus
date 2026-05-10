@@ -42,7 +42,7 @@ Implements a stellar mass effective radius node property extractor class.
 
   interface nodePropertyExtractorRadiusEffectiveStellar
      !!{
-     Constructors for the \refClass{nodePropertyExtractorRadiusEffectiveStellar} output analysis class.
+     Constructors for the \refClass{nodePropertyExtractorRadiusEffectiveStellar} property extractor class.
      !!}
      module procedure radiusEffectiveStellarConstructorParameters
   end interface nodePropertyExtractorRadiusEffectiveStellar
@@ -51,7 +51,7 @@ contains
 
   function radiusEffectiveStellarConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the \refClass{nodePropertyExtractorRadiusEffectiveStellar} output analysis property extractor class which takes a parameter set as input.
+    Constructor for the \refClass{nodePropertyExtractorRadiusEffectiveStellar} property extractor class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none

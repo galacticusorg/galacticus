@@ -47,7 +47,7 @@ Implements a radiusCooling property extractor class.
 
   interface nodePropertyExtractorRadiusCooling
      !!{
-     Constructors for the \refClass{nodePropertyExtractorRadiusCooling} output analysis class.
+     Constructors for the \refClass{nodePropertyExtractorRadiusCooling} property extractor class.
      !!}
      module procedure radiusCoolingConstructorParameters
      module procedure radiusCoolingConstructorInternal

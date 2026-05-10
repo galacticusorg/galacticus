@@ -51,7 +51,7 @@ Implements a ratio output analysis property extractor class.
 
   interface nodePropertyExtractorRatio
      !!{
-     Constructors for the \refClass{nodePropertyExtractorRatio} output analysis class.
+     Constructors for the \refClass{nodePropertyExtractorRatio} property extractor class.
      !!}
      module procedure ratioConstructorParameters
      module procedure ratioConstructorInternal
@@ -61,7 +61,7 @@ contains
 
   function ratioConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the \refClass{nodePropertyExtractorRatio} output analysis property extractor class which takes a parameter set as input.
+    Constructor for the \refClass{nodePropertyExtractorRatio} property extractor class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -95,7 +95,7 @@ contains
 
   function ratioConstructorInternal(name,description,propertyNumerator_,propertyDenominator_) result(self)
     !!{
-    Internal constructor for the \refClass{nodePropertyExtractorRatio} output analysis property extractor class.
+    Internal constructor for the \refClass{nodePropertyExtractorRatio} property extractor class.
     !!}
     use :: Error          , only : Error_Report
     use :: String_Handling, only : String_C_to_Fortran
@@ -131,7 +131,7 @@ contains
 
   subroutine ratioDestructor(self)
     !!{
-    Destructor for the \refClass{nodePropertyExtractorRatio} output analysis property extractor class.
+    Destructor for the \refClass{nodePropertyExtractorRatio} property extractor class.
     !!}
     implicit none
     type(nodePropertyExtractorRatio), intent(inout) :: self

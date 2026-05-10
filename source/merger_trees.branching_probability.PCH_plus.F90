@@ -48,7 +48,7 @@ Implements a merger tree branching probability class using the algorithm of \cit
 
   interface mergerTreeBranchingProbabilityPCHPlus
      !!{
-     Constructors for the \refClass{mergerTreeBranchingProbabilityPCHPlus} merger tree builder class.
+     Constructors for the \refClass{mergerTreeBranchingProbabilityPCHPlus} merger tree branching probability class.
      !!}
      module procedure pchPlusConstructorParameters
      module procedure pchPlusConstructorInternal

@@ -43,7 +43,7 @@ Implements a host index output analysis property extractor class.
 
   interface nodePropertyExtractorIndicesHost
      !!{
-     Constructors for the \refClass{nodePropertyExtractorIndicesHost} output analysis class.
+     Constructors for the \refClass{nodePropertyExtractorIndicesHost} property extractor class.
      !!}
      module procedure indicesHostConstructorParameters
      module procedure indicesHostConstructorInternal
@@ -53,7 +53,7 @@ contains
 
   function indicesHostConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the \refClass{nodePropertyExtractorIndicesHost} node property extractor class which takes a parameter set as input.
+    Constructor for the \refClass{nodePropertyExtractorIndicesHost} property extractor class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -78,7 +78,7 @@ contains
 
   function indicesHostConstructorInternal(topLevel) result(self)
     !!{
-    Internal constructor for the \refClass{nodePropertyExtractorIndicesHost} node property extractor class.
+    Internal constructor for the \refClass{nodePropertyExtractorIndicesHost} property extractor class.
     !!}
     implicit none
     type   (nodePropertyExtractorIndicesHost)                :: self

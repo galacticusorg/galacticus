@@ -45,7 +45,7 @@
 
   interface nodePropertyExtractorPeakHeight
      !!{
-     Constructors for the \refClass{nodePropertyExtractorPeakHeight} output extractor class.
+     Constructors for the \refClass{nodePropertyExtractorPeakHeight} property extractor class.
      !!}
      module procedure peakHeightConstructorParameters
      module procedure peakHeightConstructorInternal
@@ -82,7 +82,7 @@ contains
 
   function peakHeightConstructorInternal(criticalOverdensity_,cosmologicalMassVariance_,linearGrowth_) result(self)
     !!{
-    Internal constructor for the \refClass{nodePropertyExtractorPeakHeight} output extractor property extractor class.
+    Internal constructor for the \refClass{nodePropertyExtractorPeakHeight} property extractor class.
     !!}
     implicit none
     type (nodePropertyExtractorPeakHeight)                        :: self

@@ -76,7 +76,7 @@ contains
 
   function multipleConstructorInternal(darkMatterProfileDMOHost_,darkMatterProfileDMOSatellite_) result(self)
     !!{
-    Internal constructor for the \refClass{darkMatterProfileDMOMultiple} dark matter profile class.
+    Internal constructor for the \refClass{darkMatterProfileDMOMultiple} dark matter halo profile class.
     !!}
     implicit none
     type            (darkMatterProfileDMOMultiple)                        :: self

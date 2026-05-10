@@ -44,7 +44,7 @@ Implements a node property extractor for the most massive progenitor.
 
   interface nodePropertyExtractorMostMassiveProgenitor
      !!{
-     Constructors for the \refClass{nodePropertyExtractorMostMassiveProgenitor} output analysis class.
+     Constructors for the \refClass{nodePropertyExtractorMostMassiveProgenitor} property extractor class.
      !!}
      module procedure mostMassiveProgenitorConstructorParameters
      module procedure mostMassiveProgenitorConstructorInternal
@@ -54,7 +54,7 @@ contains
 
   function mostMassiveProgenitorConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the \refClass{nodePropertyExtractorMostMassiveProgenitor} node property extractor class which takes a parameter set as input.
+    Constructor for the \refClass{nodePropertyExtractorMostMassiveProgenitor} property extractor class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -70,7 +70,7 @@ contains
 
   function mostMassiveProgenitorConstructorInternal() result(self)
     !!{
-    Internal constructor for the \refClass{nodePropertyExtractorMostMassiveProgenitor} node property extractor class.
+    Internal constructor for the \refClass{nodePropertyExtractorMostMassiveProgenitor} property extractor class.
     !!}
     implicit none
     type(nodePropertyExtractorMostMassiveProgenitor) :: self
