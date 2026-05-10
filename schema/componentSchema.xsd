@@ -44,11 +44,6 @@
 	    </xs:all>
 	  </xs:complexType>
 	</xs:element>
-	<xs:element name="createFunction"                minOccurs="0" >
-	  <xs:complexType>
-	    <xs:attribute name="isDeferred" type="xs:boolean" use="required" />
-	  </xs:complexType>
-	</xs:element>
 	<xs:element name="properties"                  minOccurs="0" >
 	  <xs:complexType>
 	    <xs:sequence>

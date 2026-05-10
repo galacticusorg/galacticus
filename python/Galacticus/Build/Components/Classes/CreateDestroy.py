@@ -134,22 +134,6 @@ def Class_Create_By_Interrupt(build, class_dict):
 
     content = f"{name} => self%{name}(autoCreate=.true.)\n"
 
-    # Iterate through members carrying explicit createFunction overrides.
-    members_with_create = [
-        m for m in (class_dict.get('members') or [])
-        if 'createFunction' in m
-    ]
-    if members_with_create:
-        content += f"select type ({name})\n"
-        for member in members_with_create:
-            create_function = _resolve_create_function(name, member)
-            impl_type = type_name + _ucfirst(member['name'])
-            content += (
-                f"type is ({impl_type})\n"
-                f"   call {create_function}({name},timeEnd)\n"
-            )
-        content += "end select\n"
-
     function = {
         'type':        'void',
         'name':        name + 'CreateByInterrupt',
@@ -179,23 +163,6 @@ def Class_Create_By_Interrupt(build, class_dict):
         'content':     content,
     }
     build.setdefault('functions', []).append(function)
-
-
-def _resolve_create_function(class_name, member):
-    """Return the Fortran symbol to call from a `createIfNeeded`
-    interrupt branch for `member`.  Mirrors the conditional at
-    Classes/CreateDestroy.pm:201-213.
-    """
-    cf = member['createFunction']
-    if isinstance(cf, dict):
-        if cf.get('isDeferred'):
-            return (
-                class_name
-                + _ucfirst(member['name'])
-                + 'CreateFunction'
-            )
-        return cf.get('content', cf)
-    return cf
 
 
 def Class_Add_Meta_Property(build, class_dict):

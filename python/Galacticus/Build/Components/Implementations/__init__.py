@@ -53,9 +53,6 @@ _IMPLEMENTATION_DEFAULTS = {
             },
         },
     },
-    'createFunction': {
-        'isDeferred': 'booleanFalse',
-    },
     'output':         {
         'instances': 'all',
     },

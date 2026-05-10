@@ -1,5 +1,4 @@
-# Per-implementation lifecycle methods: initialize / destroy / builder /
-# createFunctionSet.
+# Per-implementation lifecycle methods: initialize / destroy / builder.
 # Andrew Benson (ported to Python 2026)
 #
 # Mirrors perl/Galacticus/Build/Components/Implementations/CreateDestroy.pm.
@@ -487,52 +486,6 @@ def Implementation_Builder(build, class_dict, member):
     _bind(build, impl_type, function, 'builder')
 
 
-def Implementation_Deferred_Create_Set(build, class_dict, member):
-    """Generate `<class><Member>CreateFunctionSet` when the member's
-    `createFunction` is deferred.  Mirrors `Implementation_Deferred_Create_Set`.
-    """
-    if not (member.get('createFunction') or {}).get('isDeferred'):
-        return
-
-    name       = class_dict['name']
-    cap_class  = _ucfirst(name)
-    cap_member = _ucfirst(member['name'])
-
-    function = {
-        'type':        'void',
-        'name':        f"{name}{cap_member}CreateFunctionSet",
-        'description': (
-            f"Set the create function for the \\mono{{{member['name']}}} "
-            f"implementation of the \\mono{{{name}}} component class."
-        ),
-        'variables':   [
-            {
-                'intrinsic': 'external',
-                'variables': ['createFunction'],
-            },
-        ],
-        'content': f"{name}{cap_member}CreateFunction => createFunction\n",
-    }
-
-    impl_type = 'nodeComponent' + cap_class + cap_member
-    build.setdefault('types', {}).setdefault(impl_type, {}) \
-                                  .setdefault('boundFunctions', []) \
-                                  .append({
-        'type':       'procedure',
-        'descriptor': function,
-        'name':       'createFunctionSet',
-        'pass':       'nopass',
-    })
-
-    # Module-scope function pointer that the setter assigns.
-    build.setdefault('variables', []).append({
-        'intrinsic':  'procedure',
-        'type':       '',
-        'attributes': ['pointer'],
-        'variables':  [f"{name}{cap_member}CreateFunction"],
-    })
-
-
 def _bind(build, type_name, function, method_name):
     build.setdefault('types', {}).setdefault(type_name, {}) \
                                   .setdefault('boundFunctions', []) \
@@ -557,5 +510,3 @@ register('implementationsCreateDestroy', 'implementationIteratedFunctions',
          Implementation_Builder)
 register('implementationsCreateDestroy', 'implementationIteratedFunctions',
          Implementation_Finalization)
-register('implementationsCreateDestroy', 'implementationIteratedFunctions',
-         Implementation_Deferred_Create_Set)
