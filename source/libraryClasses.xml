@@ -113,7 +113,26 @@
     <hotHaloRamPressureTimescale/>
     <hotHaloTemperatureProfile/>
     <kinematicsDistribution/>
-    <massDistribution/>
+    <massDistribution>
+      <massDistributionSphericalAdiabaticGnedin2004>
+	<constructor>
+	  <!-- The Gnedin 2004 adiabatic contraction impl takes a callback-injection escape hatch
+	       (a procedure-pointer plus paired class(*) state) that the parameter-driven path
+	       never uses (it sets all three to null).  Tell the wrapper to do the same. -->
+	  <argument name="initializationFunction" value="null"/>
+	  <argument name="initializationSelf"     value="null"/>
+	  <argument name="initializationArgument" value="null"/>
+	</constructor>
+      </massDistributionSphericalAdiabaticGnedin2004>
+      <massDistributionSphericalSIDMIsothermalBaryons>
+	<constructor>
+	  <!-- Same callback-injection escape hatch as adiabaticGnedin2004 above. -->
+	  <argument name="initializationFunction" value="null"/>
+	  <argument name="initializationSelf"     value="null"/>
+	  <argument name="initializationArgument" value="null"/>
+	</constructor>
+      </massDistributionSphericalSIDMIsothermalBaryons>
+    </massDistribution>
     <massDistributionHeating/>
     <massFunctionIncompleteness/>
     <mergerMassMovements/>

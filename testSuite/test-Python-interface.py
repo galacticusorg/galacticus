@@ -503,6 +503,32 @@ with safe_section("massDistributionSphericalScaler (abstract-intermediate arg)")
                  'massDistributionSphericalFiniteResolution'):
         check_eq(f"{impl} exposed", hasattr(galacticus, impl), True)
 
+# Null-filled constructor arg path — `<argument name="..." value="null"/>`
+# overrides in libraryClasses.xml tell the wrapper to drop callback-
+# injection escape-hatch args (a procedure-pointer plus paired class(*)
+# state slots) that the parameter-driven path of the impl already passes
+# as null.  Without the override, the procedure-pointer arg blocks the
+# whole impl at constructor-arg validation time.
+#
+# Both impls share three null-filled args
+# (initializationFunction / initializationSelf / initializationArgument);
+# constructing one of them end-to-end needs a stack of other
+# functionClass deps we don't initialise here, so the meaningful end-to-
+# end check is that the wrapper symbols exist (parallels the
+# `radiativeTransferMatter` smoke test above).
+with safe_section("value='null' constructor-arg overrides"):
+    for impl in ('massDistributionSphericalAdiabaticGnedin2004',
+                 'massDistributionSphericalSIDMIsothermalBaryons'):
+        check_eq(f"{impl} exposed", hasattr(galacticus, impl), True)
+        # And the three null-filled args really are absent from the
+        # Python signature — that's the contract the override promises.
+        sig = inspect.signature(getattr(galacticus, impl).__init__)
+        for arg_name in ('initializationFunction',
+                         'initializationSelf',
+                         'initializationArgument'):
+            check_eq(f"{impl}: {arg_name} not in signature",
+                     arg_name in sig.parameters, False)
+
 # Final summary and exit code.
 print(f"--- {_failures} failure(s) ---")
 sys.exit(1 if _failures else 0)

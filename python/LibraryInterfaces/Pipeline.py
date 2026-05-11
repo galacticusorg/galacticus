@@ -141,7 +141,8 @@ def _make_count_companion(name):
     )
 
 
-def assign_c_types(argument_list, lib_function_classes, class_hierarchy=None):
+def assign_c_types(argument_list, lib_function_classes, class_hierarchy=None,
+                   constructor_overrides=()):
     """Assign appropriate C types for each argument.
 
     Mirrors Perl assignCTypes().  Accepts a list of raw Fortran-declaration
@@ -156,9 +157,21 @@ def assign_c_types(argument_list, lib_function_classes, class_hierarchy=None):
     ``<base>Class`` get the function-class treatment too, with the
     intermediate type recorded as ``arg.narrowing_type`` for the Fortran
     emitter to ``select type``-narrow at runtime.
+
+    *constructor_overrides* is the impl's ``<constructor><argument …/></constructor>``
+    entries from libraryClasses.xml.  An entry with ``value="null"`` flags
+    the matching arg as null-filled: it's dropped from both the bind(c)
+    and the Python signatures (``fort_is_present`` / ``py_is_present`` set
+    False) and the Fortran wrapper declares a local null pointer that the
+    inner constructor receives in its place.  See ``is_null_filled`` on
+    :class:`ArgSpec` for the rationale.
     """
     if class_hierarchy is None:
         class_hierarchy = {}
+    null_filled_names = {
+        o.get('name') for o in constructor_overrides
+        if isinstance(o, dict) and o.get('value') == 'null' and o.get('name')
+    }
     new_list = []
     for raw in reversed(argument_list):
         arg = ArgSpec.from_raw(raw) if isinstance(raw, dict) else raw
@@ -167,6 +180,20 @@ def assign_c_types(argument_list, lib_function_classes, class_hierarchy=None):
         arg.fort_is_present       = True
         arg.py_is_present         = True
         arg.galacticus_is_present = True
+
+        # Null-fill override: drop the arg from both wrappers and have
+        # build_fortran_reassignments emit a local null pointer that the
+        # inner constructor receives instead.  Short-circuits the rest
+        # of the per-intrinsic dispatch — the ArgSpec carries no ctype
+        # because the bind(c) signature won't reference it.
+        if arg.name in null_filled_names:
+            arg.is_null_filled        = True
+            arg.fort_is_present       = False
+            arg.py_is_present         = False
+            arg.galacticus_is_present = True
+            arg.is_optional           = False
+            new_list.insert(0, arg)
+            continue
         arg.is_function_class     = False
         arg.is_optional           = bool('optional' in arg.attributes)
 
@@ -808,6 +835,41 @@ def build_fortran_reassignments(argument_list, func_class, implementation,
         name          = arg.name
         is_optional   = arg.is_optional
         opt_prefix    = f'if (present({name})) ' if is_optional else ''
+
+        if arg.is_null_filled:
+            # Null-fill override (`<argument name="..." value="null"/>`).
+            # The arg is invisible from both Python and the bind(c)
+            # signature; the inner constructor receives a local
+            # disassociated pointer whose declared type matches the
+            # original Fortran arg.  Supported intrinsics today:
+            #   procedure(<intf>), pointer :: name => null()
+            #   class(*), pointer :: name => null()
+            # `<intf>` (e.g. sphericalAdiabaticGnedin2004Initializor)
+            # is imported from the functionClass's own module, which is
+            # also where the impl's `abstract interface` block lives.
+            if intrinsic == 'procedure':
+                arg.fort_declarations = (
+                    f'procedure({type_spec_val}), pointer :: {name} => null()\n'
+                )
+                fc_module = func_class.get('module', '')
+                if fc_module and type_spec_val:
+                    arg.fort_modules.setdefault(fc_module, {})[type_spec_val] = 1
+            elif intrinsic == 'class' and type_spec_val == '*':
+                arg.fort_declarations = (
+                    f'class(*), pointer :: {name} => null()\n'
+                )
+            else:
+                # Other intrinsics aren't supported under value="null"
+                # today; if we ever extend coverage, the per-intrinsic
+                # declaration goes here.  Falling through with no
+                # declaration would silently break the inner call.
+                raise ValueError(
+                    f"value='null' override on argument '{name}' of "
+                    f"intrinsic '{intrinsic}'/type '{type_spec_val}' — "
+                    "only procedure and class(*) args are supported")
+            arg.fort_pass_as = name
+            new_list.insert(0, arg)
+            continue
 
         if arg.is_array and arg.array_rank == 2:
             # 2D deferred-shape numeric array.  bind(c) receives the

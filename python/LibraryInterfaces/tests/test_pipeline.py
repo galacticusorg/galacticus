@@ -568,6 +568,74 @@ def test_fortran_reassignments_function_class_uses_GetPtr_function():
     assert 'fooClass' in out[0].fort_modules['Foo']
 
 
+def test_assign_c_types_value_null_drops_arg_from_both_wrappers():
+    """`<argument name="..." value="null"/>` in constructor_overrides
+    flags the matching arg as null-filled: it disappears from both the
+    bind(c) and the Python signatures and the inner constructor still
+    receives it (via a local null pointer emitted by
+    build_fortran_reassignments)."""
+    raw = [
+        {'name': 'initializationFunction', 'intrinsic': 'procedure',
+         'type': 'someInitializor', 'attributes': ['intent(in)', 'pointer']},
+        {'name': 'initializationSelf',     'intrinsic': 'class',
+         'type': '*',                'attributes': ['intent(in)', 'pointer']},
+    ]
+    overrides = [
+        {'name': 'initializationFunction', 'value': 'null'},
+        {'name': 'initializationSelf',     'value': 'null'},
+    ]
+    out = assign_c_types(
+        raw, lib_function_classes={},
+        constructor_overrides=overrides,
+    )
+    assert [a.name for a in out] == ['initializationFunction', 'initializationSelf']
+    for arg in out:
+        assert arg.is_null_filled        is True
+        assert arg.fort_is_present       is False
+        assert arg.py_is_present         is False
+        assert arg.galacticus_is_present is True
+
+
+def test_fortran_reassignments_value_null_emits_local_null_pointer():
+    """A null-filled procedure-pointer arg gets a `procedure(<intf>),
+    pointer :: name => null()` declaration in the wrapper, with the
+    interface imported from the functionClass's own module.  Paired
+    class(*) args get `class(*), pointer :: name => null()`."""
+    proc = ArgSpec(
+        name='initializationFunction', intrinsic='procedure',
+        type_spec='sphericalAdiabaticGnedin2004Initializor',
+        is_null_filled=True,
+        fort_is_present=False, py_is_present=False,
+        galacticus_is_present=True,
+    )
+    star = ArgSpec(
+        name='initializationSelf', intrinsic='class', type_spec='*',
+        is_null_filled=True,
+        fort_is_present=False, py_is_present=False,
+        galacticus_is_present=True,
+    )
+    out = build_fortran_reassignments(
+        [proc, star],
+        func_class={'module': 'Mass_Distributions'},
+        implementation=None, extensions={}, module_uses_impls={},
+        lib_function_classes={},
+    )
+    proc_decl = out[0].fort_declarations
+    star_decl = out[1].fort_declarations
+    assert ('procedure(sphericalAdiabaticGnedin2004Initializor), pointer :: '
+            'initializationFunction => null()') in proc_decl
+    assert 'class(*), pointer :: initializationSelf => null()' in star_decl
+    # The procedure interface must be `use`-imported from the
+    # functionClass's own module (where the impl's abstract interface
+    # lives); the class(*) case needs no module.
+    assert ('sphericalAdiabaticGnedin2004Initializor'
+            in out[0].fort_modules['Mass_Distributions'])
+    assert 'Mass_Distributions' not in out[1].fort_modules
+    # The inner constructor receives the local pointer by name.
+    assert out[0].fort_pass_as == 'initializationFunction'
+    assert out[1].fort_pass_as == 'initializationSelf'
+
+
 def test_assign_c_types_class_intermediate_routes_through_base_GetPtr():
     """`class(<intermediate>)` whose extends-chain reaches a registered
     <base>Class is treated as a function-class arg keyed on <base>, with

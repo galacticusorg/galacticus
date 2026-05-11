@@ -270,6 +270,23 @@ def _unsupported_arg(arg, lib_function_classes, *,
       come back, etc.) than the input-array path does.
     """
     intrinsic = arg.get('intrinsic')
+    # A `<argument name="..." value="null"/>` override in libraryClasses.xml
+    # tells the wrapper to drop the arg and pass a local null pointer to
+    # the inner constructor instead — sufficient for the
+    # procedure-pointer + class(*) callback-injection escape hatch the
+    # parameter-driven paths of some impls already null out (see
+    # assign_c_types / build_fortran_reassignments).  Accept it for
+    # those two intrinsics regardless of the rest of this predicate.
+    if any(isinstance(o, dict)
+           and o.get('name') == arg.get('name')
+           and o.get('value') == 'null'
+           for o in constructor_overrides):
+        type_spec = (arg.get('type') or '').strip()
+        if intrinsic == 'procedure' \
+                or (intrinsic == 'class' and type_spec == '*'):
+            return None
+        return (f"value='null' override on {intrinsic}({type_spec}) — "
+                f"only procedure and class(*) args are supported")
     if intrinsic in ('complex', 'double complex'):
         return f"{intrinsic}({arg.get('type','')})"
     if intrinsic == 'procedure':
@@ -778,8 +795,18 @@ def interfaces_constructors(code, python, func_class, lib_function_classes,
     for impl in func_class.get('implementations', []):
         # Process argument list
         arg_list = impl.get('arguments', [])
+        # Pull the impl's libraryClasses.xml overrides (if any) into
+        # assign_c_types so it can recognise `value="null"` directives
+        # and drop the matching args from both wrappers before the
+        # Python/Fortran emitters see them.
+        impl_conf = func_class.get(impl['name'])
+        constructor_overrides = ()
+        if isinstance(impl_conf, dict):
+            constructor_overrides = as_array(
+                impl_conf.get('constructor', {}).get('argument', []))
         arg_list = assign_c_types(arg_list, lib_function_classes,
-                                  class_hierarchy=_CLASS_HIERARCHY)
+                                  class_hierarchy=_CLASS_HIERARCHY,
+                                  constructor_overrides=constructor_overrides)
         arg_list = assign_c_attributes(arg_list)
         arg_list = build_python_reassignments(arg_list)
         arg_list = build_fortran_reassignments(

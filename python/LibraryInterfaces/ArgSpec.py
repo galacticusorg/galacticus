@@ -100,6 +100,18 @@ class ArgSpec:
     # when no narrowing is needed (the plain `class(<base>Class)` case).
     narrowing_type: str = ''
 
+    # Marker for constructor args that libraryClasses.xml asks the
+    # wrapper to fill with a null pointer rather than expose to Python
+    # (`<argument name="..." value="null"/>`).  Used for callback-
+    # injection escape-hatch args — typically a `procedure(...), pointer`
+    # plus paired `class(*), pointer` slots — that the parameter-driven
+    # path of the impl already passes as null.  When set, the arg is
+    # dropped from the bind(c) signature (fort_is_present=False) and
+    # the Python signature (py_is_present=False); the Fortran wrapper
+    # declares a local pointer initialised to null() and passes that to
+    # the inner constructor (galacticus_is_present stays True).
+    is_null_filled: bool = False
+
     # Python ctypes
     py_is_present:   bool = True   # include in the Python argument list
     py_pass_as:      str  = ''     # expression to pass to c_lib (default: name)
