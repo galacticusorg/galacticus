@@ -530,11 +530,17 @@ def _process_implementations(func_class, directive_locations, state_storables,
         name_constructor = None
         ambiguous_internals = None
         args_constructor = []
+        impl_conf = None
 
         for node in SourceTree.walk_tree(tree):
             if node['type'] == class_name:
                 impl_name = node.get('directive', {}).get('name')
                 is_abstract = (node.get('directive', {}).get('abstract', 'no') == 'yes')
+                # Fetch the libraryClasses.xml override up front so the
+                # interface-block walk below can consult its
+                # `<constructor internal="..."/>` hint to disambiguate
+                # multiple Internal-suffixed module procedures.
+                impl_conf = func_class.get(impl_name)
 
             elif (impl_name
                   and node['type'] == 'interface'
@@ -566,10 +572,21 @@ def _process_implementations(func_class, directive_locations, state_storables,
                 elif len(candidates) > 1:
                     # Multiple Internal-suffixed constructors (e.g.
                     # darkMatterProfileConcentrationDuttonMaccio2014's
-                    # InternalType vs InternalDefined).  Stash for the
-                    # warning-and-skip below; leave name_constructor unset
-                    # so the impl is dropped from impls_list.
-                    ambiguous_internals = candidates
+                    # InternalType vs InternalDefined).  libraryClasses.xml
+                    # can disambiguate via
+                    # `<constructor internal="<chosen-name>"/>`; if a
+                    # valid hint is present, use it.  Otherwise stash
+                    # for the warning-and-skip below; leave
+                    # name_constructor unset so the impl is dropped
+                    # from impls_list.
+                    chosen = None
+                    if isinstance(impl_conf, dict):
+                        chosen = (impl_conf.get('constructor', {}) or {}) \
+                                 .get('internal')
+                    if chosen and chosen in candidates:
+                        name_constructor = chosen
+                    else:
+                        ambiguous_internals = candidates
 
             elif (name_constructor
                   and node['type'] == 'function'
@@ -612,7 +629,9 @@ def _process_implementations(func_class, directive_locations, state_storables,
         # classID is assigned to every file, even abstract/excluded ones (mirrors Perl).
         class_id += 1
 
-        impl_conf = func_class.get(impl_name)
+        # impl_conf was already fetched up front so the interface-block
+        # walk could consult the optional `<constructor internal=…/>`
+        # disambiguation hint.
         is_excluded = (isinstance(impl_conf, dict)
                        and impl_conf.get('exclude') == 'yes')
         if not is_abstract and not is_excluded:

@@ -601,6 +601,28 @@ with safe_section("computationalDomainVolumeIntegratorCartesian3D (dimension(3,2
     else:
         check_eq("ValueError on wrong shape", "no exception raised", "ValueError")
 
+# Ambiguous-Internal-constructor disambiguation —
+# `<constructor internal="..."/>` in libraryClasses.xml picks one
+# constructor when the impl exposes more than one
+# Internal-suffixed module procedure.  Without the hint, the generator
+# can't choose and skips the impl entirely.
+# `darkMatterProfileConcentrationDuttonMaccio2014` has two:
+# `InternalType` (keyed by a fit-type enum) and `InternalDefined`
+# (raw coefficients).  We expose the higher-level `InternalType` form.
+with safe_section("darkMatterProfileConcentrationDuttonMaccio2014 (internal=…)"):
+    check_eq("darkMatterProfileConcentrationDuttonMaccio2014 exposed",
+             hasattr(galacticus, 'darkMatterProfileConcentrationDuttonMaccio2014'),
+             True)
+    sig = inspect.signature(
+        galacticus.darkMatterProfileConcentrationDuttonMaccio2014.__init__)
+    # The chosen InternalType form takes `fitType` (enum) +
+    # cosmologyParameters_ / cosmologyFunctions_; the rejected
+    # InternalDefined form would have surfaced `a1`/`a2`/...
+    check_eq("fitType in signature (InternalType chosen)",
+             'fitType' in sig.parameters, True)
+    check_eq("a1 not in signature (InternalDefined rejected)",
+             'a1' in sig.parameters, False)
+
 # Null-filled constructor arg path — `<argument name="..." value="null"/>`
 # overrides in libraryClasses.xml tell the wrapper to drop callback-
 # injection escape-hatch args (a procedure-pointer plus paired class(*)

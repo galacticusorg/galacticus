@@ -66,7 +66,15 @@
     <darkMatterHaloMassAccretionHistory/>
     <darkMatterProfileScaleRadius/>
     <darkMatterProfileShape/>
-    <darkMatterProfileConcentration/>
+    <darkMatterProfileConcentration>
+      <darkMatterProfileConcentrationDuttonMaccio2014>
+	<!-- This impl has two Internal-suffixed module procedures
+	     (`InternalType` keyed by a fit-type enum, `InternalDefined`
+	     taking raw coefficients).  Pick the higher-level enum form
+	     for the library wrapper. -->
+	<constructor internal="duttonMaccio2014ConstructorInternalType"/>
+      </darkMatterProfileConcentrationDuttonMaccio2014>
+    </darkMatterProfileConcentration>
     <accretionHaloTotal/>
     <haloSpinDistribution/>
     <hotHaloOutflowReincorporation/>

@@ -128,7 +128,7 @@ def discover_function_classes(source_dir):
     return all_fcs, fc_files
 
 
-def parse_impls_in_file(impl_file, fc_name):
+def parse_impls_in_file(impl_file, fc_name, internal_selectors=None):
     """Walk *impl_file*'s SourceTree and return a list of dicts describing
     every concrete impl of *fc_name* found in it:
 
@@ -138,16 +138,28 @@ def parse_impls_in_file(impl_file, fc_name):
                               <impl exclude="yes"/> override which we don't
                               read here)
          'internals'  : list of *ConstructorInternal* names found in the
-                        impl's generic interface block (>1 ⇒ ambiguous).
+                        impl's generic interface block (>1 ⇒ ambiguous,
+                        unless *internal_selectors* names one of them).
+         'chosen_internal':
+                        the Internal constructor name picked by an
+                        `<constructor internal=…/>` hint when there are
+                        multiple candidates; None otherwise.
          'args'       : list of {name, intrinsic, type, attributes} dicts
                         for the chosen Internal constructor's arguments,
                         or [] if none could be resolved.
         }
 
+    *internal_selectors* is a ``dict impl_name -> chosen_internal_name``
+    built from libraryClasses.xml's
+    ``<constructor internal="…"/>`` attributes; mirrors the generator's
+    disambiguation hint.
+
     Mirrors the second pass of ``libraryInterfaces._process_implementations``
     (kept as a duplicate rather than an import to avoid coupling the audit
     to the generator's non-classification machinery).
     """
+    if internal_selectors is None:
+        internal_selectors = {}
     tree = SourceTree.parse_file(str(impl_file))
 
     impls            = []
@@ -157,13 +169,16 @@ def parse_impls_in_file(impl_file, fc_name):
     internals_seen   = []
     args_constructor = []
 
+    chosen_internal = None
+
     def _flush():
         if impl_name is not None:
             impls.append({
-                'name'       : impl_name,
-                'is_abstract': is_abstract,
-                'internals'  : list(internals_seen),
-                'args'       : list(args_constructor),
+                'name'            : impl_name,
+                'is_abstract'     : is_abstract,
+                'internals'       : list(internals_seen),
+                'chosen_internal' : chosen_internal,
+                'args'            : list(args_constructor),
             })
 
     for node in SourceTree.walk_tree(tree):
@@ -175,6 +190,7 @@ def parse_impls_in_file(impl_file, fc_name):
             name_constructor = None
             internals_seen   = []
             args_constructor = []
+            chosen_internal  = None
 
         elif (impl_name
               and node['type'] == 'interface'
@@ -188,6 +204,13 @@ def parse_impls_in_file(impl_file, fc_name):
                 child = child.get('sibling')
             if len(internals_seen) == 1:
                 name_constructor = internals_seen[0]
+            elif len(internals_seen) > 1:
+                # libraryClasses.xml can break the tie via
+                # `<constructor internal="…"/>`; mirrors the generator.
+                hinted = internal_selectors.get(impl_name)
+                if hinted and hinted in internals_seen:
+                    name_constructor = hinted
+                    chosen_internal  = hinted
 
         elif (name_constructor
               and node['type'] == 'function'
@@ -418,8 +441,12 @@ def aggregate_class(impls, all_fcs, registered, overrides, class_hierarchy=None,
 
     classified = []
     for impl in concrete:
-        if len(impl['internals']) > 1:
-            # Generator skips ambiguous-Internal impls; treat as pipeline-blocked.
+        if len(impl['internals']) > 1 and not impl.get('chosen_internal'):
+            # Generator skips genuinely ambiguous-Internal impls; treat
+            # as pipeline-blocked.  When libraryClasses.xml's
+            # `<constructor internal="…"/>` selector picked one, the
+            # chosen constructor's args were already parsed and we fall
+            # through to the normal classify_constructor path.
             classified.append((impl, set(),
                                [f"ambiguous Internal constructors: "
                                 f"{', '.join(impl['internals'])}"]))
@@ -502,7 +529,7 @@ def closure(audit, registered):
 
 def load_registered_classes(xml_path):
     """Parse libraryClasses.xml and return ``(registered, overrides, null_filled,
-    absent_filled)``.
+    absent_filled, internal_selectors)``.
 
     *registered* is the set of class tags inside ``<classes>``.
 
@@ -525,21 +552,30 @@ def load_registered_classes(xml_path):
     both the Python and the bind(c) signatures *and* from the inner
     call (the inner constructor must handle the absent case via its
     declared default).  Only valid for `optional` args.
+
+    *internal_selectors* is a dict ``impl_name -> chosen_internal_name``
+    extracted from ``<constructor internal="…"/>`` attributes.  Used
+    to pick one of several Internal-suffixed constructors when an
+    impl exposes more than one.
     """
     if not xml_path.exists():
-        return set(), {}, {}, {}
+        return set(), {}, {}, {}, {}
     classes_el = ET.parse(xml_path).getroot().find('classes')
     if classes_el is None:
-        return set(), {}, {}, {}
-    registered    = {child.tag for child in classes_el}
-    overrides     = defaultdict(set)
-    null_filled   = defaultdict(set)
-    absent_filled = defaultdict(set)
+        return set(), {}, {}, {}, {}
+    registered         = {child.tag for child in classes_el}
+    overrides          = defaultdict(set)
+    null_filled        = defaultdict(set)
+    absent_filled      = defaultdict(set)
+    internal_selectors = {}
     for class_el in classes_el:
         for impl_el in class_el:
             ctor_el = impl_el.find('constructor')
             if ctor_el is None:
                 continue
+            chosen = ctor_el.get('internal')
+            if chosen:
+                internal_selectors[impl_el.tag] = chosen
             for arg_el in ctor_el.findall('argument'):
                 arg_name = arg_el.get('name')
                 if not arg_name:
@@ -550,7 +586,8 @@ def load_registered_classes(xml_path):
                 if arg_el.get('value') == 'absent':
                     absent_filled[impl_el.tag].add(arg_name)
     return (registered, dict(overrides),
-            dict(null_filled), dict(absent_filled))
+            dict(null_filled), dict(absent_filled),
+            internal_selectors)
 
 
 def fmt_section(title):
@@ -562,7 +599,8 @@ def main():
     print("Discovering functionClasses…", file=sys.stderr)
     all_fcs, fc_files                                 = discover_function_classes(SOURCE_DIR)
     (registered, overrides,
-     null_filled, absent_filled)                      = load_registered_classes(LIB_XML)
+     null_filled, absent_filled,
+     internal_selectors)                              = load_registered_classes(LIB_XML)
     class_hierarchy                                   = build_type_hierarchy(SOURCE_DIR)
     print(f"  {len(all_fcs)} functionClass(es); "
           f"{len(registered)} currently registered.", file=sys.stderr)
@@ -573,7 +611,8 @@ def main():
               end='', file=sys.stderr)
         impls = []
         for path in sorted(fc_files.get(fc, [])):
-            impls.extend(parse_impls_in_file(path, fc))
+            impls.extend(parse_impls_in_file(
+                path, fc, internal_selectors=internal_selectors))
         audit[fc] = aggregate_class(impls, all_fcs, registered, overrides,
                                     class_hierarchy=class_hierarchy,
                                     null_filled=null_filled,
