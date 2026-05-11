@@ -56,6 +56,18 @@ jobs:
             flags+=(--refresh-all)
           fi
           python3 scripts/aux/bibliographyUpdate.py "${flags[@]}" --summary bibliographyChanges.md "${{ secrets.NASA_ADS_API_TOKEN }}"
+      - name: "Install bibtool"
+        if: ${{ env.adstoken != '' }}
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y bibtool
+      - name: "Tidy the bibliography"
+        if: ${{ env.adstoken != '' }}
+        run: |
+          bibtool -r scripts/aux/bibliography.rsc \
+                  -i doc/Galacticus.bib \
+                  -o doc/Galacticus.bib.tidy
+          mv doc/Galacticus.bib.tidy doc/Galacticus.bib
       - name: "Build PR body"
         if: ${{ ( env.appid != '' ) && ( env.adstoken != '' ) }}
         id: pr-body
