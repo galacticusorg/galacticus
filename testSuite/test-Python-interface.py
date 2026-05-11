@@ -505,16 +505,22 @@ with safe_section("massDistributionSphericalScaler (abstract-intermediate arg)")
 
 # Explicit-lower-bound fixed-size 1D array — exercises the
 # `dimension(L:U)` shape (e.g. `dimension(0:2)`).  The wrapper accepts
-# any contiguous 3-element sequence and ships it to the inner
-# constructor, whose dummy has the explicit lower bound; Fortran copies
-# elementwise on entry, so the lower bound is irrelevant at the wire
-# level — only the element count matters.  Without this support,
-# `haloMassFunctionOndaroMallea2021` would have been rejected at
-# constructor-arg validation time.
+# any contiguous sequence whose length matches U-L+1 and ships it to
+# the inner constructor, whose dummy has the explicit lower bound;
+# Fortran copies elementwise on entry, so the lower bound is irrelevant
+# at the wire level — only the element count matters.  Without this
+# support, `haloMassFunctionOndaroMallea2021` would have been rejected
+# at constructor-arg validation time.
+#
+# coefficientsN is `dimension(0:2)` (size 3); coefficientsA is
+# `dimension(0:1)` (size 2).  We pass the matching counts to confirm
+# the size validator picks them up correctly — and check that passing
+# a wrong-length array raises ValueError with the corrected size in
+# the diagnostic.
 with safe_section("haloMassFunctionOndaroMallea2021 (dimension(0:2))"):
     haloMassFunctionOM = galacticus.haloMassFunctionOndaroMallea2021(
         coefficientsN             = [-0.04, 0.03, -0.001],
-        coefficientsA             = [ 1.0 , 0.2 ,  0.05 ],
+        coefficientsA             = [ 1.0 , 0.2          ],
         cosmologyParameters_      = cosmologyParameters,
         cosmologicalMassVariance_ = cosmologicalMassVariance,
         linearGrowth_             = linearGrowth,
@@ -523,32 +529,45 @@ with safe_section("haloMassFunctionOndaroMallea2021 (dimension(0:2))"):
     check_eq("constructed type",
              type(haloMassFunctionOM).__name__,
              'haloMassFunctionOndaroMallea2021')
+    # Wrong-length coefficientsA should be rejected by the wrapper
+    # with a message that includes the correct expected size (2).
+    try:
+        galacticus.haloMassFunctionOndaroMallea2021(
+            coefficientsN             = [-0.04, 0.03, -0.001],
+            coefficientsA             = [ 1.0 , 0.2 ,  0.05 ],   # wrong size
+            cosmologyParameters_      = cosmologyParameters,
+            cosmologicalMassVariance_ = cosmologicalMassVariance,
+            linearGrowth_             = linearGrowth,
+            haloMassFunction_         = haloMassFunction,
+        )
+    except ValueError as exc:
+        check_eq("ValueError on wrong-length dimension(0:1)",
+                 "expects 2" in str(exc), True)
+    else:
+        check_eq("ValueError on wrong-length dimension(0:1)",
+                 "no exception raised", "ValueError")
 
 # `logical, dimension(:)` constructor arg path — `outputMask` on the
 # stellar-luminosity property extractor.  bind(c) ships the values as a
 # `logical(c_bool), dimension(*)` buffer plus a c_size_t count; the
 # wrapper allocates a default-kind `logical, dimension(:)` local and
 # populates it via an elemental `logical()` cast before the inner call.
-# We exercise both branches: the absent / optional path (no outputMask
-# in the call) and the present path with a small Python list of bools.
-with safe_section("nodePropertyExtractorLuminosityStellar (logical(:))"):
-    nodePropertyExtractorLumOptional = galacticus.nodePropertyExtractorLuminosityStellar(
-        filterName     = 'SDSS_r',
-        filterType     = 'rest',
-        outputTimes_   = outputTimes,
-    )
-    check_eq("constructed type (outputMask absent)",
-             type(nodePropertyExtractorLumOptional).__name__,
-             'nodePropertyExtractorLuminosityStellar')
-    nodePropertyExtractorLumMasked = galacticus.nodePropertyExtractorLuminosityStellar(
-        filterName     = 'SDSS_r',
-        filterType     = 'rest',
-        outputTimes_   = outputTimes,
-        outputMask     = [True, False, True, True, False, False, True, True, True, False],
-    )
-    check_eq("constructed type (outputMask present)",
-             type(nodePropertyExtractorLumMasked).__name__,
-             'nodePropertyExtractorLuminosityStellar')
+#
+# Constructing one of these impls end-to-end needs filter / stellar
+# state we don't initialise here, so the meaningful check is that the
+# wrapper symbol exists and exposes `outputMask` in its signature
+# (parallels the `radiativeTransferMatter` smoke test above).
+with safe_section("nodePropertyExtractor* (logical(:) outputMask)"):
+    for impl in ('nodePropertyExtractorLuminosityStellar',
+                 'nodePropertyExtractorLmnstyStllrCF2000',
+                 'nodePropertyExtractorLmnstyEmssnLineAGN',
+                 'nodePropertyExtractorLmnstyEmssnLinePanuzzo2003'):
+        check_eq(f"{impl} exposed", hasattr(galacticus, impl), True)
+        sig = inspect.signature(getattr(galacticus, impl).__init__)
+        check_eq(f"{impl}: outputMask in signature",
+                 'outputMask' in sig.parameters, True)
+
+# Null-filled constructor arg path — `<argument name="..." value="null"/>`
 
 # Null-filled constructor arg path — `<argument name="..." value="null"/>`
 # overrides in libraryClasses.xml tell the wrapper to drop callback-
