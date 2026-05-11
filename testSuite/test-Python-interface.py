@@ -180,6 +180,41 @@ with safe_section("nodePropertyExtractorNodeMajorMergerTime"):
     check_eq("type()"    , npe.type()    , 0)  # type(enumerationOutputAnalysisPropertyType    Type) → c_int
     check_eq("quantity()", npe.quantity(), 0)  # type(enumerationOutputAnalysisPropertyQuantityType) → c_int
 
+# Abstract-intermediate class-argument path — `galacticFilterHighPass`'s
+# constructor takes `class(nodePropertyExtractorScalar)`, which is an
+# *abstract* derived type extending the registered functionClass base
+# `nodePropertyExtractorClass`.  The wrapper now accepts these through
+# the base's `nodePropertyExtractorGetPtr` and narrows the polymorphic
+# pointer to the intermediate via a `select type` block at runtime.
+# Without the abstract-intermediate path, the whole galacticFilter
+# *Pass family (high / low / interval) would have been rejected at
+# constructor-arg validation time.  We pass a concrete
+# `nodePropertyExtractorNodeMajorMergerTime` (which extends
+# `nodePropertyExtractorScalar`) — the select-type match must succeed
+# at runtime for construction to complete without Error_Report.
+with safe_section("galacticFilterHighPass (abstract-intermediate arg)"):
+    gFilter = galacticus.galacticFilterHighPass(
+        threshold              = 1.0e12,
+        nodePropertyExtractor_ = npe,
+    )
+    check_eq("constructed type",
+             type(gFilter).__name__, 'galacticFilterHighPass')
+    # Confirm the sibling impls in the same family also expose
+    # constructors that accept the intermediate — they share the
+    # same pipeline path, so a single end-to-end construction is
+    # enough; the others just need to be importable.
+    check_eq("galacticFilterLowPass exposed",
+             hasattr(galacticus, 'galacticFilterLowPass'), True)
+    check_eq("galacticFilterIntervalPass exposed",
+             hasattr(galacticus, 'galacticFilterIntervalPass'), True)
+    # And the property-extractor-tree intermediates (DescendantNode,
+    # HostNode) take `class(nodePropertyExtractorScalar)` too —
+    # confirm they survived the constructor-arg validation.
+    check_eq("nodePropertyExtractorDescendantNode exposed",
+             hasattr(galacticus, 'nodePropertyExtractorDescendantNode'), True)
+    check_eq("nodePropertyExtractorHostNode exposed",
+             hasattr(galacticus, 'nodePropertyExtractorHostNode'), True)
+
 # Initial mass function — exercises `type(varying_string)` return-type path
 # (Fortran-side static c_char buffer + Python-side .decode("utf-8")).
 with safe_section("initialMassFunctionSalpeter1955"):
@@ -433,6 +468,40 @@ with safe_section("stellarPopulationSpectraPostprocessorBuilderLookup"):
     check_eq("build('igm') resolves to Inoue2014 subclass",
              type(ppIGM    ).__name__,
              'stellarPopulationSpectraPostprocessorInoue2014')
+
+# Abstract-intermediate class-argument path (massDistribution family) —
+# `massDistributionSphericalScaler`'s constructor takes
+# `class(massDistributionSpherical)`, the abstract intermediate that
+# extends the registered `massDistributionClass`.  We construct a
+# concrete spherical (`massDistributionZero` — dimensionless, no other
+# deps) and pass it through; the wrapper must route via
+# `massDistributionGetPtr` and successfully narrow to
+# `massDistributionSpherical` for construction to complete.
+#
+# Also confirms the related impls in the same family that hit the
+# intermediate-arg path are exposed.  `massDistributionCylindricalScaler`
+# takes `class(massDistributionCylindrical)` (a separate intermediate
+# under the same base) so it stresses the second branch of the
+# hierarchy walk.
+with safe_section("massDistributionSphericalScaler (abstract-intermediate arg)"):
+    massDistributionZero    = galacticus.massDistributionZero(dimensionless=True)
+    massDistributionScaler  = galacticus.massDistributionSphericalScaler(
+        factorScalingLength = 2.0,
+        factorScalingMass   = 3.0,
+        massDistribution_   = massDistributionZero,
+    )
+    check_eq("constructed type",
+             type(massDistributionScaler).__name__,
+             'massDistributionSphericalScaler')
+    # Other impls in the spherical / cylindrical intermediate families
+    # — every one of these required the abstract-intermediate path to
+    # survive constructor-arg validation.
+    for impl in ('massDistributionCylindricalScaler',
+                 'massDistributionSphericalDecaying',
+                 'massDistributionSphericalHeated',
+                 'massDistributionSphericalTruncated',
+                 'massDistributionSphericalFiniteResolution'):
+        check_eq(f"{impl} exposed", hasattr(galacticus, impl), True)
 
 # Final summary and exit code.
 print(f"--- {_failures} failure(s) ---")
