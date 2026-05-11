@@ -218,7 +218,7 @@ def parse_impls_in_file(impl_file, fc_name):
 # "Foo isn't a functionClass at all".
 # ---------------------------------------------------------------------------
 
-def classify_constructor(args, all_fcs, registered):
+def classify_constructor(args, all_fcs, registered, overridden_args=frozenset()):
     """Return ``(missing_deps, pipeline_reasons)``.
 
     *missing_deps* is the set of functionClass names this constructor depends
@@ -228,6 +228,10 @@ def classify_constructor(args, all_fcs, registered):
     *pipeline_reasons* is a list of human-readable strings describing
     arg types the generator can't handle today — empty iff every arg is
     pipeline-supported.
+
+    *overridden_args* is the set of constructor argument names for which
+    libraryClasses.xml supplies a ``<constructor><argument …/></constructor>``
+    type hint.  Those args bypass the ``class(*)`` blocker.
     """
     missing_deps     = set()
     pipeline_reasons = []
@@ -246,10 +250,10 @@ def classify_constructor(args, all_fcs, registered):
         if intrinsic == 'class':
             if type_spec == '*':
                 # class(*) needs an explicit override in libraryClasses.xml.
-                # This audit doesn't look up overrides (it would have to
-                # re-parse libraryClasses.xml structure), so flag it as a
-                # pipeline-ish blocker — the user knows from existing cases
-                # that a hint can resolve it.
+                # If a matching <argument> hint is supplied there, treat the
+                # arg as resolved; otherwise flag it as a pipeline blocker.
+                if name in overridden_args:
+                    continue
                 pipeline_reasons.append(
                     f"class(*) without override ({name})")
                 continue
@@ -332,7 +336,7 @@ def classify_constructor(args, all_fcs, registered):
     return missing_deps, pipeline_reasons
 
 
-def aggregate_class(impls, all_fcs, registered):
+def aggregate_class(impls, all_fcs, registered, overrides):
     """Reduce a list of impl dicts into a single class-level verdict.
 
     Status precedence: ready > missing-dep > pipeline-blocked > no-concrete-impls.
@@ -360,7 +364,9 @@ def aggregate_class(impls, all_fcs, registered):
                                [f"ambiguous Internal constructors: "
                                 f"{', '.join(impl['internals'])}"]))
             continue
-        deps, reasons = classify_constructor(impl['args'], all_fcs, registered)
+        deps, reasons = classify_constructor(
+            impl['args'], all_fcs, registered,
+            overrides.get(impl['name'], frozenset()))
         classified.append((impl, deps, reasons))
 
     ready = [(i, d, r) for (i, d, r) in classified if not r and not d]
@@ -430,13 +436,34 @@ def closure(audit, registered):
 # ---------------------------------------------------------------------------
 
 def load_registered_classes(xml_path):
-    """Parse libraryClasses.xml and return the set of class tags inside <classes>."""
+    """Parse libraryClasses.xml and return ``(registered, overrides)``.
+
+    *registered* is the set of class tags inside ``<classes>``.
+
+    *overrides* is a dict ``impl_name -> set(arg_names)`` listing constructor
+    arguments for which the XML supplies a ``<constructor><argument
+    name=… type=… module=…/></constructor>`` hint.  These hints resolve
+    otherwise-unsupported ``class(*)`` constructor args, so the audit must
+    treat the corresponding impls as ready rather than flagging the
+    ``class(*) without override`` blocker.
+    """
     if not xml_path.exists():
-        return set()
+        return set(), {}
     classes_el = ET.parse(xml_path).getroot().find('classes')
     if classes_el is None:
-        return set()
-    return {child.tag for child in classes_el}
+        return set(), {}
+    registered = {child.tag for child in classes_el}
+    overrides  = defaultdict(set)
+    for class_el in classes_el:
+        for impl_el in class_el:
+            ctor_el = impl_el.find('constructor')
+            if ctor_el is None:
+                continue
+            for arg_el in ctor_el.findall('argument'):
+                arg_name = arg_el.get('name')
+                if arg_name:
+                    overrides[impl_el.tag].add(arg_name)
+    return registered, dict(overrides)
 
 
 def fmt_section(title):
@@ -446,8 +473,8 @@ def fmt_section(title):
 
 def main():
     print("Discovering functionClasses…", file=sys.stderr)
-    all_fcs, fc_files = discover_function_classes(SOURCE_DIR)
-    registered        = load_registered_classes(LIB_XML)
+    all_fcs, fc_files     = discover_function_classes(SOURCE_DIR)
+    registered, overrides = load_registered_classes(LIB_XML)
     print(f"  {len(all_fcs)} functionClass(es); "
           f"{len(registered)} currently registered.", file=sys.stderr)
 
@@ -458,7 +485,7 @@ def main():
         impls = []
         for path in sorted(fc_files.get(fc, [])):
             impls.extend(parse_impls_in_file(path, fc))
-        audit[fc] = aggregate_class(impls, all_fcs, registered)
+        audit[fc] = aggregate_class(impls, all_fcs, registered, overrides)
     print("\n", file=sys.stderr)
 
     # Buckets.
