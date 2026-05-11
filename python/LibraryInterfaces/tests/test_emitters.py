@@ -82,6 +82,26 @@ def test_fortran_declarations_appends_extra_fort_declarations():
     assert 'type(treeNode), pointer :: n_' in out
 
 
+def test_fortran_declarations_skips_signature_decl_for_absent_args():
+    """Args with fort_is_present=False (e.g. null-filled overrides) must
+    not get the default `integer(c_int)` signature declaration — only
+    their `fort_declarations` block, which carries the local
+    null-pointer the inner constructor receives.  Emitting both would
+    declare the same name twice and trip gfortran with `VALUE attribute
+    conflicts with POINTER attribute`."""
+    args = [
+        ArgSpec(name='initializationFunction',
+                fort_is_present=False,
+                fort_declarations='procedure(someInitializor), pointer :: '
+                                  'initializationFunction => null()\n'),
+    ]
+    out = fortran_declarations(args)
+    assert 'integer(c_int)' not in out
+    assert ':: initializationFunction\n' not in out
+    assert ('procedure(someInitializor), pointer :: '
+            'initializationFunction => null()') in out
+
+
 def test_fortran_declarations_emits_GetPtr_interface_block():
     """Each distinct fort_function_class produces ONE interface block
     declaring the GetPtr function used to recover a typed pointer."""
