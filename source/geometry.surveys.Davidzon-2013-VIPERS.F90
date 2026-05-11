@@ -223,7 +223,7 @@ contains
     if (present(luminosity       )) call Error_Report(       '`luminosity` is not supported'//{introspection:location})
     if (present(starFormationRate)) call Error_Report('`starFormationRate` is not supported'//{introspection:location})
     ! Find the limiting distance for this mass. (See
-    ! constraints/dataAnalysis/stellarMassFunctions_VIPERS_z0_1/massDistanceRelation.pl for details.)
+    ! constraints/dataAnalysis/stellarMassFunctions_VIPERS_z0_1/massDistanceRelation.py for details.)
     if (present(mass)) then
        logarithmicMass=log10(mass)
        select case (self%redshiftBin)

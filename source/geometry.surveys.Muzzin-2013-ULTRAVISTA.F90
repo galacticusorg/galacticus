@@ -234,7 +234,7 @@ contains
     if (present(luminosity       )) call Error_Report(       '`luminosity` is not supported'//{introspection:location})
     if (present(starFormationRate)) call Error_Report('`starFormationRate` is not supported'//{introspection:location})
     ! Find the limiting redshift for this mass. (See
-    ! constraints/dataAnalysis/stellarMassFunctions_ULTRAVISTA_z0.2_4.0/massRedshiftRelation.pl for details.)
+    ! constraints/dataAnalysis/stellarMassFunctions_ULTRAVISTA_z0.2_4.0/massRedshiftRelation.py for details.)
     if (present(mass)) then
        logarithmicMass=log10(mass)
        redshift=-6076.22869161192d0+logarithmicMass*(3231.43806947672d0+logarithmicMass*(-686.81594922437d0+logarithmicMass*(72.9147764759627d0+logarithmicMass*(-3.86638121388152d0+logarithmicMass*(0.0819398410572916d0)))))

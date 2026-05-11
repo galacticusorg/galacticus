@@ -139,7 +139,7 @@ contains
     if (present(luminosity       )) call Error_Report(       '`luminosity` is not supported'//{introspection:location})
     if (present(starFormationRate)) call Error_Report('`starFormationRate` is not supported'//{introspection:location})
     ! Find the limiting distance for this mass completeness limits. (See
-    ! constraints/dataAnalysis/stellarMassFunction_SDSS_z0.07_Bernardi/massDistanceRelation.pl for details.)
+    ! constraints/dataAnalysis/stellarMassFunction_SDSS_z0.07_Bernardi/massDistanceRelation.py for details.)
     if (present(mass)) then
        ! Limit the mass to the range for which our empirical mass-distance relation is calibrated.
        logarithmicMass=max(8.0d0,min(12.5d0,log10(mass)))

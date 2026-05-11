@@ -212,7 +212,7 @@ contains
     if (present(luminosity       )) call Error_Report(       '`luminosity` is not supported'//{introspection:location})
     if (present(starFormationRate)) call Error_Report('`starFormationRate` is not supported'//{introspection:location})
     ! Find the limiting redshift for this mass using a fit derived from Millennium Simulation SAMs. (See
-    ! constraints/dataAnalysis/stellarMassFunction_SDSS_z0.07/massLuminosityRelation.pl for details.)
+    ! constraints/dataAnalysis/stellarMassFunction_SDSS_z0.07/massLuminosityRelation.py for details.)
     if (present(mass)) then
        logarithmicMass=log10(mass)
        redshift=                                   &
