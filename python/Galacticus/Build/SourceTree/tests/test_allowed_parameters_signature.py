@@ -1,25 +1,26 @@
-# Regression test for `_build_allowed_parameters_method`.
-#
-# Bug: when scanning a class's constructor function for `<objectBuilder>`
-# directives (so the auto-generated `*AllowedParameters` method can emit
-# the recursive `if (associated(self%X_)) call self%X_%allowedParameters
-# (allowedParameters,'parameters',.true.)` lines for every nested
-# functionClass member), the constructor-signature regex was
-#
-#     ^\s*(recursive)??\s+function\s+NAME\s*\(\s*parameters …
-#
-# The mandatory `\s+` in front of `function` meant that a constructor
-# WITHOUT a leading `recursive` keyword (the common case) didn't match
-# at all, and the constructor body was never walked.  The `objects`
-# accumulator stayed empty and the emitted `*AllowedParameters` method
-# silently dropped all the recursive child-class calls.  Real-world
-# impact: `mergerTreeOutputterAllowedParameters` (and many similar
-# `*Class` siblings) ended without the
-# `call self%galacticfilter_%allowedParameters(...)` lines and so
-# failed to forward parameter validation to nested objects.
-#
-# Fix: move the mandatory whitespace inside the optional group —
-# `(recursive\s+)?function NAME …`.
+r"""Regression test for `_build_allowed_parameters_method`.
+
+Bug: when scanning a class's constructor function for `<objectBuilder>`
+directives (so the auto-generated `*AllowedParameters` method can emit
+the recursive `if (associated(self%X_)) call self%X_%allowedParameters
+(allowedParameters,'parameters',.true.)` lines for every nested
+functionClass member), the constructor-signature regex was
+
+    ^\s*(recursive)??\s+function\s+NAME\s*\(\s*parameters …
+
+The mandatory `\s+` in front of `function` meant that a constructor
+WITHOUT a leading `recursive` keyword (the common case) didn't match
+at all, and the constructor body was never walked.  The `objects`
+accumulator stayed empty and the emitted `*AllowedParameters` method
+silently dropped all the recursive child-class calls.  Real-world
+impact: `mergerTreeOutputterAllowedParameters` (and many similar
+`*Class` siblings) ended without the
+`call self%galacticfilter_%allowedParameters(...)` lines and so
+failed to forward parameter validation to nested objects.
+
+Fix: move the mandatory whitespace inside the optional group —
+`(recursive\s+)?function NAME …`.
+"""
 
 import re
 

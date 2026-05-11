@@ -1,20 +1,22 @@
-# Per-implementation deferred-binding hooks.
-# Andrew Benson (ported to Python 2026)
-#
-# Mirrors perl/Galacticus/Build/Components/Implementations/Deferred.pm.
-#
-# Four `implementationIteratedFunctions` hooks per (class, member):
-#
-#   Implementation_Deferred_Binding_Pointers      — module-scope
-#       procedure pointer + IsSet flag for each deferred binding.
-#   Implementation_Deferred_Binding_Attachers     — `<...>DfrrdFnctnSet`
-#       method to attach a function to a deferred binding.
-#   Implementation_Deferred_Binding_Attach_Status — `<...>DfrrdFnctnIsSet`
-#       method to query attachment status.
-#   Implementation_Deferred_Binding_Wrappers      — wrapper method that
-#       calls through the deferred function pointer when set, falls
-#       back to a parent class's binding (if any), or emits an
-#       `Error_Report` if no fallback exists.
+"""Per-implementation deferred-binding hooks.
+
+Andrew Benson (ported to Python 2026)
+
+Mirrors perl/Galacticus/Build/Components/Implementations/Deferred.pm.
+
+Four `implementationIteratedFunctions` hooks per (class, member):
+
+  Implementation_Deferred_Binding_Pointers      — module-scope
+      procedure pointer + IsSet flag for each deferred binding.
+  Implementation_Deferred_Binding_Attachers     — `<...>DfrrdFnctnSet`
+      method to attach a function to a deferred binding.
+  Implementation_Deferred_Binding_Attach_Status — `<...>DfrrdFnctnIsSet`
+      method to query attachment status.
+  Implementation_Deferred_Binding_Wrappers      — wrapper method that
+      calls through the deferred function pointer when set, falls
+      back to a parent class's binding (if any), or emits an
+      `Error_Report` if no fallback exists.
+"""
 
 
 

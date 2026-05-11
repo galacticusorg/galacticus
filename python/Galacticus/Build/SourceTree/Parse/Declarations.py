@@ -1,8 +1,10 @@
-# Provides parsing of Fortran variable declaration lines.
-# Andrew Benson (ported to Python 2026)
-#
-# Mirrors the parseDeclaration() function from
-# perl/Galacticus/Build/SourceTree/Parse/Declarations.pm
+"""Provides parsing of Fortran variable declaration lines.
+
+Andrew Benson (ported to Python 2026)
+
+Mirrors the parseDeclaration() function from
+perl/Galacticus/Build/SourceTree/Parse/Declarations.pm
+"""
 
 import re
 import copy

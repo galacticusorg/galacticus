@@ -1,12 +1,14 @@
-# Deep-copy code generation helpers for the functionClass pipeline.
-# Andrew Benson (ported to Python 2026)
-#
-# Mirrors perl/Galacticus/Build/SourceTree/Process/FunctionClass/DeepCopy.pm
-# — all three exported functions (`deep_copy_copied_self_block`,
-# `generate_assignment_allocatable_code`, `deep_copy_declarations`).  Perl
-# aliases `$stateStorables` / `$deepCopyActions` from the parent package
-# at compile time; we take both as explicit parameters instead — cleaner
-# Python and decouples the helper from a global.
+"""Deep-copy code generation helpers for the functionClass pipeline.
+
+Andrew Benson (ported to Python 2026)
+
+Mirrors perl/Galacticus/Build/SourceTree/Process/FunctionClass/DeepCopy.pm
+— all three exported functions (`deep_copy_copied_self_block`,
+`generate_assignment_allocatable_code`, `deep_copy_declarations`).  Perl
+aliases `$stateStorables` / `$deepCopyActions` from the parent package
+at compile time; we take both as explicit parameters instead — cleaner
+Python and decouples the helper from a global.
+"""
 
 import re
 

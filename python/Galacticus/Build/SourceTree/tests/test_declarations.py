@@ -1,16 +1,17 @@
-# Regression tests for `Galacticus.Build.SourceTree.Parse.Declarations`.
-#
-# Covers two bug classes hit during the Perl->Python preprocessor port:
-#
-#   1. `parse_declaration` mishandled type-specs whose body itself contained
-#      `(`/`)` — e.g. `character(len=len(tagName))` was clipped at the first
-#      `)` to leave `len=len(tagName` as the type.  The fix moved to
-#      `extract_bracketed` so the OUTER paren group is matched correctly.
-#
-#   2. `declaration_exists` missed declarations stored as `name=initializer`
-#      tokens (e.g. `warnObjectBuilder0__=.false.`).  Without stripping the
-#      `=value` tail the lookup of `warnObjectBuilder0__` failed and the
-#      caller emitted a duplicate declaration in the same scope.
+"""Regression tests for `Galacticus.Build.SourceTree.Parse.Declarations`.
+
+Covers two bug classes hit during the Perl->Python preprocessor port:
+
+  1. `parse_declaration` mishandled type-specs whose body itself contained
+     `(`/`)` — e.g. `character(len=len(tagName))` was clipped at the first
+     `)` to leave `len=len(tagName` as the type.  The fix moved to
+     `extract_bracketed` so the OUTER paren group is matched correctly.
+
+  2. `declaration_exists` missed declarations stored as `name=initializer`
+     tokens (e.g. `warnObjectBuilder0__=.false.`).  Without stripping the
+     `=value` tail the lookup of `warnObjectBuilder0__` failed and the
+     caller emitted a duplicate declaration in the same scope.
+"""
 
 import pytest
 

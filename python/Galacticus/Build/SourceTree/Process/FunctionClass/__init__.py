@@ -1,22 +1,23 @@
-# Processes `functionClass` directives: the cornerstone of the Galacticus
-# functionClass infrastructure.  This is the first slice (D.7.3a) of a
-# three-part port of perl/Galacticus/Build/SourceTree/Process/FunctionClass.pm
-# (3105 Perl lines):
-#
-#   * D.7.3a (this PR) — scaffolding: directive collection, class
-#     discovery + topo-sort, small method stubs (stateStore / stateRestore /
-#     autoHook / destructor / objectType), and submodule file output.
-#     The heavy method-generation (buildDescriptorMethods,
-#     buildAllowedParametersMethod, etc.) and body-emission
-#     (generateTypeDefinition, generateConstructor,
-#     generateClassSubmodules, generateMethodFunctions,
-#     generateDocumentation) pathways are stubbed with NotImplementedError
-#     so the hook is installable and unit-testable today without
-#     pretending to emit a working class.
-#   * D.7.3b (next PR) — the generate_* body emitters.
-#   * D.7.3c (final PR) — the build_*_methods heavy lifters.
-#
-# Andrew Benson (ported to Python 2026)
+"""Processes `functionClass` directives: the cornerstone of the Galacticus
+functionClass infrastructure.  This is the first slice (D.7.3a) of a
+three-part port of perl/Galacticus/Build/SourceTree/Process/FunctionClass.pm
+(3105 Perl lines):
+
+  * D.7.3a (this PR) — scaffolding: directive collection, class
+    discovery + topo-sort, small method stubs (stateStore / stateRestore /
+    autoHook / destructor / objectType), and submodule file output.
+    The heavy method-generation (buildDescriptorMethods,
+    buildAllowedParametersMethod, etc.) and body-emission
+    (generateTypeDefinition, generateConstructor,
+    generateClassSubmodules, generateMethodFunctions,
+    generateDocumentation) pathways are stubbed with NotImplementedError
+    so the hook is installable and unit-testable today without
+    pretending to emit a working class.
+  * D.7.3b (next PR) — the generate_* body emitters.
+  * D.7.3c (final PR) — the build_*_methods heavy lifters.
+
+Andrew Benson (ported to Python 2026)
+"""
 
 import os
 import re

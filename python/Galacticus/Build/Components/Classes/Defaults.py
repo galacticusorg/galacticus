@@ -1,10 +1,12 @@
-# Class-default property accessors.
-# Andrew Benson (ported to Python 2026)
-#
-# Mirrors perl/Galacticus/Build/Components/Classes/Defaults.pm.  Three
-# `classIteratedFunctions` hooks emit per-class default-value getters:
-# `<prop>IsGettable`, `<prop>` (the default-value lookup), and
-# `<prop>RateGet` (a zero-rate fallback).
+"""Class-default property accessors.
+
+Andrew Benson (ported to Python 2026)
+
+Mirrors perl/Galacticus/Build/Components/Classes/Defaults.pm.  Three
+`classIteratedFunctions` hooks emit per-class default-value getters:
+`<prop>IsGettable`, `<prop>` (the default-value lookup), and
+`<prop>RateGet` (a zero-rate fallback).
+"""
 
 import re
 

@@ -1,7 +1,9 @@
-# Per-implementation lifecycle methods: initialize / destroy / builder.
-# Andrew Benson (ported to Python 2026)
-#
-# Mirrors perl/Galacticus/Build/Components/Implementations/CreateDestroy.pm.
+"""Per-implementation lifecycle methods: initialize / destroy / builder.
+
+Andrew Benson (ported to Python 2026)
+
+Mirrors perl/Galacticus/Build/Components/Implementations/CreateDestroy.pm.
+"""
 
 import re
 

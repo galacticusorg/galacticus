@@ -1,9 +1,11 @@
-# Processes `dependenciesInitialize` directives: reads the Galacticus
-# dependencies manifest and emits initialization calls populating the
-# dependency registry at runtime.
-# Andrew Benson (ported to Python 2026)
-#
-# Mirrors perl/Galacticus/Build/SourceTree/Process/Dependencies.pm
+"""Processes `dependenciesInitialize` directives: reads the Galacticus
+dependencies manifest and emits initialization calls populating the
+dependency registry at runtime.
+
+Andrew Benson (ported to Python 2026)
+
+Mirrors perl/Galacticus/Build/SourceTree/Process/Dependencies.pm
+"""
 
 import re
 import os

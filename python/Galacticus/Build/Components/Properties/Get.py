@@ -1,7 +1,9 @@
-# Per-property `<prop>` getters bound at the component level.
-# Andrew Benson (ported to Python 2026)
-#
-# Mirrors perl/Galacticus/Build/Components/Properties/Get.pm.
+"""Per-property `<prop>` getters bound at the component level.
+
+Andrew Benson (ported to Python 2026)
+
+Mirrors perl/Galacticus/Build/Components/Properties/Get.pm.
+"""
 
 
 

@@ -1,17 +1,19 @@
-# Build the `treeNode` class at the start of the components-build pipeline.
-# Andrew Benson (ported to Python 2026)
-#
-# Mirrors perl/Galacticus/Build/Components/TreeNodes.pm.  Two hooks:
-#
-#   types     → Build_Tree_Node_Class    — declares the `treeNode` Fortran
-#                                          type with all of its
-#                                          type-bound methods and data
-#                                          content (one allocatable array
-#                                          per active component class).
-#   functions → Insert_Interrupt_Interface — emits the `interruptTask`
-#                                            abstract interface used by
-#                                            differential-evolution
-#                                            interrupt handlers.
+"""Build the `treeNode` class at the start of the components-build pipeline.
+
+Andrew Benson (ported to Python 2026)
+
+Mirrors perl/Galacticus/Build/Components/TreeNodes.pm.  Two hooks:
+
+  types     → Build_Tree_Node_Class    — declares the `treeNode` Fortran
+                                         type with all of its
+                                         type-bound methods and data
+                                         content (one allocatable array
+                                         per active component class).
+  functions → Insert_Interrupt_Interface — emits the `interruptTask`
+                                           abstract interface used by
+                                           differential-evolution
+                                           interrupt handlers.
+"""
 
 
 

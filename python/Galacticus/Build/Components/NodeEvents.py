@@ -1,12 +1,14 @@
-# Build the `nodeEvent` class hierarchy and supporting (de)serialization.
-# Andrew Benson (ported to Python 2026)
-#
-# Mirrors perl/Galacticus/Build/Components/NodeEvents.pm.  Seven hooks:
-#
-#   types      → Build_Node_Event_Class
-#   interfaces → Node_Event_Task_Interface, Node_Event_Merge_Time_Set_Interface
-#   functions  → Node_Event_Non_Static_Size_Of, Node_Event_Serialize_Raw,
-#                Node_Event_Deserialize_Raw, Node_Event_Deserialize_Raw_Polymorphic
+"""Build the `nodeEvent` class hierarchy and supporting (de)serialization.
+
+Andrew Benson (ported to Python 2026)
+
+Mirrors perl/Galacticus/Build/Components/NodeEvents.pm.  Seven hooks:
+
+  types      → Build_Node_Event_Class
+  interfaces → Node_Event_Task_Interface, Node_Event_Merge_Time_Set_Interface
+  functions  → Node_Event_Non_Static_Size_Of, Node_Event_Serialize_Raw,
+               Node_Event_Deserialize_Raw, Node_Event_Deserialize_Raw_Polymorphic
+"""
 
 
 

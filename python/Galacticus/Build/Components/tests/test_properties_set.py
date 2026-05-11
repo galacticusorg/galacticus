@@ -1,18 +1,19 @@
-# Tests for `Galacticus.Build.Components.Properties.Set`.
-#
-# Three pipeline-hook functions emit Fortran type-bound procedures for
-# component property setters:
-#
-#   Build_Class_Setters  — `<prop>IsSettable` Boolean_False stub on the class type
-#   Bind_Set_Functions   — bind a user-supplied set function to the impl type
-#   Build_Set_Functions  — auto-generate a set function (rank 0 / rank 1 forms)
-#
-# Plus the helper `_is_deferred(prop, verb)` that all three rely on for
-# parsing the colon-separated `isDeferred` attribute string.
-#
-# This file was the subject of commit `9f98deae` ("Repair Group B WARTs in
-# Properties/Set"); the audit specifically called it out as needing
-# regression coverage.
+"""Tests for `Galacticus.Build.Components.Properties.Set`.
+
+Three pipeline-hook functions emit Fortran type-bound procedures for
+component property setters:
+
+  Build_Class_Setters  — `<prop>IsSettable` Boolean_False stub on the class type
+  Bind_Set_Functions   — bind a user-supplied set function to the impl type
+  Build_Set_Functions  — auto-generate a set function (rank 0 / rank 1 forms)
+
+Plus the helper `_is_deferred(prop, verb)` that all three rely on for
+parsing the colon-separated `isDeferred` attribute string.
+
+This file was the subject of commit `9f98deae` ("Repair Group B WARTs in
+Properties/Set"); the audit specifically called it out as needing
+regression coverage.
+"""
 
 from Galacticus.Build.Components.Properties.Set import (
     Build_Class_Setters,

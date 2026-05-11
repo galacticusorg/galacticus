@@ -1,24 +1,25 @@
-# Regression tests for `Galacticus.Build.SourceTree.Parse.Directives`.
-#
-# Three bug classes:
-#
-#   1. A single `!![ … !!]` block with multiple sibling tags must yield ONE
-#      directive node per tag.  An earlier draft passed the whole block to
-#      the XML parser, which auto-wrapped multi-sibling content in a
-#      synthetic `<root>` element — leaving a bogus `root` directive in the
-#      tree that `post_process_directives` then complained about.
-#
-#   2. A self-closing tag whose attributes contain `/` (typically URLs in
-#      `<reference>`) was missed by the original `<tag\s[^>]*\/>` regex,
-#      because `[^>]` was inadvertently overrestrictive on text containing
-#      `/`.  The fix uses `.` (any char incl. `/`) and matches Perl's
-#      regex.
-#
-#   3. `post_process_directives` must forgive directives whose type is in
-#      the NonProcessed exemption list (e.g. `<methods>` injected late by
-#      a code-generating hook) but must still flag any other unprocessed
-#      directive — that error is the build's safety net against typos in
-#      Process hook names.
+r"""Regression tests for `Galacticus.Build.SourceTree.Parse.Directives`.
+
+Three bug classes:
+
+  1. A single `!![ … !!]` block with multiple sibling tags must yield ONE
+     directive node per tag.  An earlier draft passed the whole block to
+     the XML parser, which auto-wrapped multi-sibling content in a
+     synthetic `<root>` element — leaving a bogus `root` directive in the
+     tree that `post_process_directives` then complained about.
+
+  2. A self-closing tag whose attributes contain `/` (typically URLs in
+     `<reference>`) was missed by the original `<tag\s[^>]*\/>` regex,
+     because `[^>]` was inadvertently overrestrictive on text containing
+     `/`.  The fix uses `.` (any char incl. `/`) and matches Perl's
+     regex.
+
+  3. `post_process_directives` must forgive directives whose type is in
+     the NonProcessed exemption list (e.g. `<methods>` injected late by
+     a code-generating hook) but must still flag any other unprocessed
+     directive — that error is the build's safety net against typos in
+     Process hook names.
+"""
 
 import pytest
 

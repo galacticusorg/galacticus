@@ -1,7 +1,9 @@
-# Component-to-component assignment operator.
-# Andrew Benson (ported to Python 2026)
-#
-# Mirrors perl/Galacticus/Build/Components/Hierarchy/Utils.pm.
+"""Component-to-component assignment operator.
+
+Andrew Benson (ported to Python 2026)
+
+Mirrors perl/Galacticus/Build/Components/Hierarchy/Utils.pm.
+"""
 
 
 

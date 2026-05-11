@@ -1,11 +1,13 @@
-# Per-property deferred-attribute hooks.
-# Andrew Benson (ported to Python 2026)
-#
-# Mirrors perl/Galacticus/Build/Components/Properties/Deferred.pm.
-# Four propertyIteratedFunctions hooks emit module-scope procedure
-# pointers + IsAttached flags + wrapper functions + attacher methods
-# for each `isDeferred` attribute (`get` / `set` / `rate`) on every
-# component property.
+"""Per-property deferred-attribute hooks.
+
+Andrew Benson (ported to Python 2026)
+
+Mirrors perl/Galacticus/Build/Components/Properties/Deferred.pm.
+Four propertyIteratedFunctions hooks emit module-scope procedure
+pointers + IsAttached flags + wrapper functions + attacher methods
+for each `isDeferred` attribute (`get` / `set` / `rate`) on every
+component property.
+"""
 
 
 

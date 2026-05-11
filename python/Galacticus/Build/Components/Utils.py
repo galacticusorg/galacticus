@@ -1,13 +1,15 @@
-# Shared helpers and global state for the components-build pipeline.
-# Andrew Benson (ported to Python 2026)
-#
-# Mirrors perl/Galacticus/Build/Components/Utils.pm.  Sub-modules register
-# themselves on the `component_utils` registry; the driver in
-# Galacticus.Build.Components walks that registry phase by phase.
-#
-# Module-level globals reproduce Perl's `our $foo` declarations
-# (`class_name_length_max`, etc.).  `Label_Lengths` populates them during
-# the `gather` phase; later phases read them for column-aligned output.
+"""Shared helpers and global state for the components-build pipeline.
+
+Andrew Benson (ported to Python 2026)
+
+Mirrors perl/Galacticus/Build/Components/Utils.pm.  Sub-modules register
+themselves on the `component_utils` registry; the driver in
+Galacticus.Build.Components walks that registry phase by phase.
+
+Module-level globals reproduce Perl's `our $foo` declarations
+(`class_name_length_max`, etc.).  `Label_Lengths` populates them during
+the `gather` phase; later phases read them for column-aligned output.
+"""
 from __future__ import annotations
 
 import logging

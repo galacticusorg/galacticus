@@ -1,6 +1,8 @@
-# Provides XML element-to-dict conversion utilities.
-# Mirrors Perl XML::Simple default behaviour, with optional KeyAttr and ForceArray support.
-# Andrew Benson (2026)
+"""Provides XML element-to-dict conversion utilities.
+
+Mirrors Perl XML::Simple default behaviour, with optional KeyAttr and ForceArray support.
+Andrew Benson (2026)
+"""
 from __future__ import annotations
 
 import xml.etree.ElementTree as ET

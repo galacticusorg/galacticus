@@ -1,10 +1,12 @@
-# If the `-DDEBUGHDF5` flag is in $GALACTICUS_FCFLAGS, replaces calls to
-# `hdf5Access%set()` / `hdf5Access%unset()` with explicit `IO_HDF5_Start_Locked`
-# / `IO_HDF5_End_Locked` calls, and injects the corresponding `use IO_HDF5`
-# in the enclosing subprogram.
-# Andrew Benson (ported to Python 2026)
-#
-# Mirrors perl/Galacticus/Build/SourceTree/Process/DebugHDF5.pm
+"""If the `-DDEBUGHDF5` flag is in $GALACTICUS_FCFLAGS, replaces calls to
+`hdf5Access%set()` / `hdf5Access%unset()` with explicit `IO_HDF5_Start_Locked`
+/ `IO_HDF5_End_Locked` calls, and injects the corresponding `use IO_HDF5`
+in the enclosing subprogram.
+
+Andrew Benson (ported to Python 2026)
+
+Mirrors perl/Galacticus/Build/SourceTree/Process/DebugHDF5.pm
+"""
 
 import re
 import os

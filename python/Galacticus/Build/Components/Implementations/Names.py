@@ -1,7 +1,9 @@
-# Per-implementation type-name accessor.
-# Andrew Benson (ported to Python 2026)
-#
-# Mirrors perl/Galacticus/Build/Components/Implementations/Names.pm.
+"""Per-implementation type-name accessor.
+
+Andrew Benson (ported to Python 2026)
+
+Mirrors perl/Galacticus/Build/Components/Implementations/Names.pm.
+"""
 from __future__ import annotations
 
 from Galacticus.Build.Components.Utils import register

@@ -1,13 +1,15 @@
-# Per-implementation utility hooks.
-# Andrew Benson (ported to Python 2026)
-#
-# Mirrors perl/Galacticus/Build/Components/Implementations/Utils.pm.
-# Two hooks on `functions`:
-#   - Implementation_Is_Active      — emits one `<member>IsActive`
-#                                     boolean accessor per (class, member).
-#   - Implementation_Function_Iterator — drives the
-#                                     `implementationIteratedFunctions`
-#                                     sub-iteration phase.
+"""Per-implementation utility hooks.
+
+Andrew Benson (ported to Python 2026)
+
+Mirrors perl/Galacticus/Build/Components/Implementations/Utils.pm.
+Two hooks on `functions`:
+  - Implementation_Is_Active      — emits one `<member>IsActive`
+                                    boolean accessor per (class, member).
+  - Implementation_Function_Iterator — drives the
+                                    `implementationIteratedFunctions`
+                                    sub-iteration phase.
+"""
 
 
 

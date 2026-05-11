@@ -1,29 +1,30 @@
-# Regression test for `_build_allowed_parameters_method`'s
-# objectBuilder → pointer-member matching.
-#
-# Bug: when the discovery pass walks each `<objectBuilder class="…"
-# name="X_" .../>` directive in a class's constructor and tries to
-# match it against the pointer declarations on the class type, the
-# loop iterated `dec.get('variables')` directly.  But
-# `parse_declaration` runs in `keep_qualifiers=True` mode here, so a
-# pointer-with-initializer declaration like
-#
-#     class(galacticFilterClass), pointer :: galacticFilter_ => null()
-#
-# arrives as `variables = ['galacticfilter_=>null()']` — the bare
-# pointer name with the `=>null()` tail still attached.  The loop
-# compared `v.lower() == striplc(d.get('name'))` (where
-# `d.get('name')` is the bare name `'galacticFilter_'`), so the
-# `=>null()` tail made the comparison fail, the `objects`
-# accumulator stayed empty, and the auto-generated
-# `*AllowedParameters` method silently dropped its
-# `if (associated(self%X_)) call self%X_%allowedParameters
-# (allowedParameters,'parameters',.true.)` recursive forwarding
-# lines.
-#
-# Fix: run each `v` through `strip_variable_name` to remove the
-# `=>...` / `=...` tail before the comparison (and store the bare
-# form in the accumulator).
+"""Regression test for `_build_allowed_parameters_method`'s
+objectBuilder → pointer-member matching.
+
+Bug: when the discovery pass walks each `<objectBuilder class="…"
+name="X_" .../>` directive in a class's constructor and tries to
+match it against the pointer declarations on the class type, the
+loop iterated `dec.get('variables')` directly.  But
+`parse_declaration` runs in `keep_qualifiers=True` mode here, so a
+pointer-with-initializer declaration like
+
+    class(galacticFilterClass), pointer :: galacticFilter_ => null()
+
+arrives as `variables = ['galacticfilter_=>null()']` — the bare
+pointer name with the `=>null()` tail still attached.  The loop
+compared `v.lower() == striplc(d.get('name'))` (where
+`d.get('name')` is the bare name `'galacticFilter_'`), so the
+`=>null()` tail made the comparison fail, the `objects`
+accumulator stayed empty, and the auto-generated
+`*AllowedParameters` method silently dropped its
+`if (associated(self%X_)) call self%X_%allowedParameters
+(allowedParameters,'parameters',.true.)` recursive forwarding
+lines.
+
+Fix: run each `v` through `strip_variable_name` to remove the
+`=>...` / `=...` tail before the comparison (and store the bare
+form in the accumulator).
+"""
 
 import inspect
 import re

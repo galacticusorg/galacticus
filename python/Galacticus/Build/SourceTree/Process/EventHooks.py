@@ -1,11 +1,13 @@
-# Processes `eventHookManager`, `eventHook`, and `openMP parallel` nodes
-# to synthesize the full event-hooks infrastructure: the hook / eventHook
-# types, attach / detach / isAttached methods, filter copy-in/copy-out/
-# restore subroutines, initializer, wait-time writer, per-call-site
-# dispatch blocks, and OpenMP-parallel wrappers.
-# Andrew Benson (ported to Python 2026)
-#
-# Mirrors perl/Galacticus/Build/SourceTree/Process/EventHooks.pm
+"""Processes `eventHookManager`, `eventHook`, and `openMP parallel` nodes
+to synthesize the full event-hooks infrastructure: the hook / eventHook
+types, attach / detach / isAttached methods, filter copy-in/copy-out/
+restore subroutines, initializer, wait-time writer, per-call-site
+dispatch blocks, and OpenMP-parallel wrappers.
+
+Andrew Benson (ported to Python 2026)
+
+Mirrors perl/Galacticus/Build/SourceTree/Process/EventHooks.pm
+"""
 
 import hashlib
 import io

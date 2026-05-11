@@ -1,20 +1,21 @@
-# Tests for `Galacticus.Build.Components.Utils`.
-#
-# This module is the central registry and helper-set for the components-build
-# pipeline.  It owns:
-#   - the `component_utils` hook registry (mutated at import time by every
-#     sister module via `register(...)`),
-#   - intrinsic / output-intrinsic type recognisers,
-#   - the `offset_name` Fortran-symbol builder (two arities),
-#   - the `pad_*` column-aligners (read module-level length-max globals),
-#   - `argument_list` for extracting Fortran argument names,
-#   - `apply_defaults` for recursive default-attribute population, and
-#   - `Label_Lengths` for computing those length-max globals.
-#
-# It carried zero coverage despite being on the critical path of every
-# components-build phase.  These tests pin the documented behaviour against
-# the Perl reference so any accidental change to a frequently-called primitive
-# is caught.
+"""Tests for `Galacticus.Build.Components.Utils`.
+
+This module is the central registry and helper-set for the components-build
+pipeline.  It owns:
+  - the `component_utils` hook registry (mutated at import time by every
+    sister module via `register(...)`),
+  - intrinsic / output-intrinsic type recognisers,
+  - the `offset_name` Fortran-symbol builder (two arities),
+  - the `pad_*` column-aligners (read module-level length-max globals),
+  - `argument_list` for extracting Fortran argument names,
+  - `apply_defaults` for recursive default-attribute population, and
+  - `Label_Lengths` for computing those length-max globals.
+
+It carried zero coverage despite being on the critical path of every
+components-build phase.  These tests pin the documented behaviour against
+the Perl reference so any accidental change to a frequently-called primitive
+is caught.
+"""
 
 import pytest
 

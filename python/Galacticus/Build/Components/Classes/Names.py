@@ -1,7 +1,9 @@
-# Per-class `<class>Type` name accessor.
-# Andrew Benson (ported to Python 2026)
-#
-# Mirrors perl/Galacticus/Build/Components/Classes/Names.pm.
+"""Per-class `<class>Type` name accessor.
+
+Andrew Benson (ported to Python 2026)
+
+Mirrors perl/Galacticus/Build/Components/Classes/Names.pm.
+"""
 from __future__ import annotations
 
 from Galacticus.Build.Components.Utils import register

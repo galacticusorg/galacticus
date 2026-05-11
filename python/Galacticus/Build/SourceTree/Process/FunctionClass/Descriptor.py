@@ -1,7 +1,9 @@
-# Descriptor-parameter utilities for the functionClass pipeline.
-# Andrew Benson (ported to Python 2026)
-#
-# Mirrors perl/Galacticus/Build/SourceTree/Process/FunctionClass/Descriptor.pm
+"""Descriptor-parameter utilities for the functionClass pipeline.
+
+Andrew Benson (ported to Python 2026)
+
+Mirrors perl/Galacticus/Build/SourceTree/Process/FunctionClass/Descriptor.pm
+"""
 
 import re
 

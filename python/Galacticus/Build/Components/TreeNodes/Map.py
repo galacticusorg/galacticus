@@ -1,24 +1,26 @@
-# `treeNode.map*` methods that apply a function across every component
-# of a node and reduce the results.
-# Andrew Benson (ported to Python 2026)
-#
-# Mirrors perl/Galacticus/Build/Components/TreeNodes/Map.pm.  Five hooks
-# on the `functions` phase:
-#
-#   Tree_Node_Map_Optimizations — enumeration constants for optimized
-#                                 map dispatch.
-#   Tree_Node_Map_Void          — simple void-returning map.
-#   Tree_Node_Map_Double0       — rank-0 double map with sum/product
-#                                 reduction.
-#   Tree_Node_Map_Double1       — rank-1 double map with sum/product
-#                                 reduction.
-#   Tree_Node_Map_TensorR2D3    — rank-2 dimension-3 tensor map with
-#                                 summation reduction.
-#
-# `Double0`, `Double1`, and `TensorR2D3` share a common shape: one
-# optimized branch per (boundFunction, reduction) pair drawn from any
-# bound function whose descriptor carries a `mappable` key, followed by
-# a generic fallback that switches on the reduction at run-time.
+"""`treeNode.map*` methods that apply a function across every component
+of a node and reduce the results.
+
+Andrew Benson (ported to Python 2026)
+
+Mirrors perl/Galacticus/Build/Components/TreeNodes/Map.pm.  Five hooks
+on the `functions` phase:
+
+  Tree_Node_Map_Optimizations — enumeration constants for optimized
+                                map dispatch.
+  Tree_Node_Map_Void          — simple void-returning map.
+  Tree_Node_Map_Double0       — rank-0 double map with sum/product
+                                reduction.
+  Tree_Node_Map_Double1       — rank-1 double map with sum/product
+                                reduction.
+  Tree_Node_Map_TensorR2D3    — rank-2 dimension-3 tensor map with
+                                summation reduction.
+
+`Double0`, `Double1`, and `TensorR2D3` share a common shape: one
+optimized branch per (boundFunction, reduction) pair drawn from any
+bound function whose descriptor carries a `mappable` key, followed by
+a generic fallback that switches on the reduction at run-time.
+"""
 
 
 

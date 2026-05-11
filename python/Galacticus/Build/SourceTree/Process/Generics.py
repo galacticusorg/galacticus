@@ -1,10 +1,12 @@
-# Processes `generic` directives: duplicates the following sibling subtree
-# once per `<instance>`, substituting generic placeholders of the form
-# `{identifier¦modifier}` or `{identifier¦modifier¦regex_from}` with the
-# instance's attribute values.
-# Andrew Benson (ported to Python 2026)
-#
-# Mirrors perl/Galacticus/Build/SourceTree/Process/Generics.pm
+"""Processes `generic` directives: duplicates the following sibling subtree
+once per `<instance>`, substituting generic placeholders of the form
+`{identifier¦modifier}` or `{identifier¦modifier¦regex_from}` with the
+instance's attribute values.
+
+Andrew Benson (ported to Python 2026)
+
+Mirrors perl/Galacticus/Build/SourceTree/Process/Generics.pm
+"""
 
 import copy
 import io

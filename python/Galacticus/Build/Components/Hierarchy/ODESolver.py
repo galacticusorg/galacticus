@@ -1,7 +1,9 @@
-# Generic-component ODE-solver helpers.
-# Andrew Benson (ported to Python 2026)
-#
-# Mirrors perl/Galacticus/Build/Components/Hierarchy/ODESolver.pm.
+"""Generic-component ODE-solver helpers.
+
+Andrew Benson (ported to Python 2026)
+
+Mirrors perl/Galacticus/Build/Components/Hierarchy/ODESolver.pm.
+"""
 
 
 

@@ -1,8 +1,10 @@
-# Per-property `<prop>Set` setters bound at the component level + the
-# class-level `<prop>IsSettable` boolean stub.
-# Andrew Benson (ported to Python 2026)
-#
-# Mirrors perl/Galacticus/Build/Components/Properties/Set.pm.
+"""Per-property `<prop>Set` setters bound at the component level + the
+class-level `<prop>IsSettable` boolean stub.
+
+Andrew Benson (ported to Python 2026)
+
+Mirrors perl/Galacticus/Build/Components/Properties/Set.pm.
+"""
 from __future__ import annotations
 
 from Galacticus.Build.Components.Utils      import (

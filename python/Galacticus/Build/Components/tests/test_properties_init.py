@@ -1,10 +1,11 @@
-# Tests for `Galacticus.Build.Components.Properties` (the package's
-# `__init__.py` validators and default-population hooks).
-#
-# Three of the seven hooks here are pure validators that the audit
-# specifically called out as needing regression coverage -- one of them
-# (`Property_Output_Validate`) was the subject of fix commit `83da4762`
-# ("Repair Property_Output_Validate rank>1 check").
+"""Tests for `Galacticus.Build.Components.Properties` (the package's
+`__init__.py` validators and default-population hooks).
+
+Three of the seven hooks here are pure validators that the audit
+specifically called out as needing regression coverage -- one of them
+(`Property_Output_Validate`) was the subject of fix commit `83da4762`
+("Repair Property_Output_Validate rank>1 check").
+"""
 
 import pytest
 

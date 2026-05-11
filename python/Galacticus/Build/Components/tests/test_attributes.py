@@ -1,16 +1,17 @@
-# Tests for `Galacticus.Build.Components.Attributes`.
-#
-# Four pipeline-hook validators that the components-build runs in
-# preValidate / default / postValidate phases:
-#
-#   Validate_Deferreds_Functionless  — forbid `xxxFunction` when xxx is deferred
-#   Default_Functions                — fill in default get/set/rate function dicts
-#   Validate_Boolean                 — coerce true/false strings to bools
-#   Validate_Evolvable_Intrinsics    — forbid evolvable non-double intrinsics
-#
-# This module was the subject of commit `f83dc402` which converted its
-# `sys.exit(...)` calls to `raise ValueError(...)`.  These tests pin both the
-# happy paths and every documented validation error.
+"""Tests for `Galacticus.Build.Components.Attributes`.
+
+Four pipeline-hook validators that the components-build runs in
+preValidate / default / postValidate phases:
+
+  Validate_Deferreds_Functionless  — forbid `xxxFunction` when xxx is deferred
+  Default_Functions                — fill in default get/set/rate function dicts
+  Validate_Boolean                 — coerce true/false strings to bools
+  Validate_Evolvable_Intrinsics    — forbid evolvable non-double intrinsics
+
+This module was the subject of commit `f83dc402` which converted its
+`sys.exit(...)` calls to `raise ValueError(...)`.  These tests pin both the
+happy paths and every documented validation error.
+"""
 
 import pytest
 

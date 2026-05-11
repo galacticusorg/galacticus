@@ -1,9 +1,11 @@
-# `treeNode` (de)serialization methods (ASCII / XML / raw binary).
-# Andrew Benson (ported to Python 2026)
-#
-# Mirrors perl/Galacticus/Build/Components/TreeNodes/Serialization.pm.
-# Four hooks on the `functions` phase: `serializeASCII`, `serializeXML`,
-# `serializeRaw`, and `deserializeRaw`.
+"""`treeNode` (de)serialization methods (ASCII / XML / raw binary).
+
+Andrew Benson (ported to Python 2026)
+
+Mirrors perl/Galacticus/Build/Components/TreeNodes/Serialization.pm.
+Four hooks on the `functions` phase: `serializeASCII`, `serializeXML`,
+`serializeRaw`, and `deserializeRaw`.
+"""
 
 
 

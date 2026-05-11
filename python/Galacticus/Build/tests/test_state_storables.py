@@ -1,12 +1,13 @@
-# Tests for `Galacticus.Build.StateStorables` shape-bridging helpers.
-#
-# `stateStorables.xml` is read back through `xml_to_dict()` and arrives in
-# any of five different shapes depending on which writer produced it
-# (XML::Simple ForceArray vs KeyAttr vs current Python writer; single vs
-# multiple entries).  These functions normalise all five shapes to a
-# consistent list-of-dicts representation; pinning that down with tests
-# is high-leverage because the function-class generation loop iterates
-# over their output.
+"""Tests for `Galacticus.Build.StateStorables` shape-bridging helpers.
+
+`stateStorables.xml` is read back through `xml_to_dict()` and arrives in
+any of five different shapes depending on which writer produced it
+(XML::Simple ForceArray vs KeyAttr vs current Python writer; single vs
+multiple entries).  These functions normalise all five shapes to a
+consistent list-of-dicts representation; pinning that down with tests
+is high-leverage because the function-class generation loop iterates
+over their output.
+"""
 
 from Galacticus.Build.StateStorables import (
     function_class_entries,

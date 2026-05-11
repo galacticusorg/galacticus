@@ -1,9 +1,11 @@
-# Processes `conditionalCall` directives: emits the full 2^N if-then ladder
-# over the set of argument conditions, calling the underlying routine once
-# per boolean combination with only the arguments whose condition is true.
-# Andrew Benson (ported to Python 2026)
-#
-# Mirrors perl/Galacticus/Build/SourceTree/Process/ConditionalCall.pm
+"""Processes `conditionalCall` directives: emits the full 2^N if-then ladder
+over the set of argument conditions, calling the underlying routine once
+per boolean combination with only the arguments whose condition is true.
+
+Andrew Benson (ported to Python 2026)
+
+Mirrors perl/Galacticus/Build/SourceTree/Process/ConditionalCall.pm
+"""
 
 import re
 

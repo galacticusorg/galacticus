@@ -1,10 +1,11 @@
-# Tests for `List.ExtraUtils` (port of Perl List::ExtraUtils).
-#
-# These functions are small, pure, and used widely across the codebase but
-# previously had zero coverage.  The intent of these tests is to lock down
-# the documented behaviour against the Perl reference (None handling,
-# scalar-vs-list dispatch, dict-keyed-vs-list-of-dicts coercion) so any
-# accidental change is caught.
+"""Tests for `List.ExtraUtils` (port of Perl List::ExtraUtils).
+
+These functions are small, pure, and used widely across the codebase but
+previously had zero coverage.  The intent of these tests is to lock down
+the documented behaviour against the Perl reference (None handling,
+scalar-vs-list dispatch, dict-keyed-vs-list-of-dicts coercion) so any
+accidental change is caught.
+"""
 
 from List.ExtraUtils import smart_push, as_array, hash_list, sorted_keys
 

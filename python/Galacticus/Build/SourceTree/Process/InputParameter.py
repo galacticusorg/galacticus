@@ -1,10 +1,12 @@
-# Processes `inputParameter` directives: emits the
-# `source%value('name', var, defaultValue=…, writeOutput=…)` call that binds
-# a Fortran variable to a named run-time parameter, and ensures the enclosing
-# subprogram imports `Input_Parameters`.
-# Andrew Benson (ported to Python 2026)
-#
-# Mirrors perl/Galacticus/Build/SourceTree/Process/InputParameter.pm
+"""Processes `inputParameter` directives: emits the
+`source%value('name', var, defaultValue=…, writeOutput=…)` call that binds
+a Fortran variable to a named run-time parameter, and ensures the enclosing
+subprogram imports `Input_Parameters`.
+
+Andrew Benson (ported to Python 2026)
+
+Mirrors perl/Galacticus/Build/SourceTree/Process/InputParameter.pm
+"""
 
 import os
 import re

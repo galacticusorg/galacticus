@@ -1,11 +1,13 @@
-# Processes `constant` directives: emits a Fortran `parameter` declaration
-# whose value is either given inline, extracted from a GSL symbol by
-# compiling-and-running a tiny C program, or similarly extracted from a
-# kernel header.  In documentation builds, also writes a per-file
-# `<constants>` XML manifest.
-# Andrew Benson (ported to Python 2026)
-#
-# Mirrors perl/Galacticus/Build/SourceTree/Process/Constants.pm
+"""Processes `constant` directives: emits a Fortran `parameter` declaration
+whose value is either given inline, extracted from a GSL symbol by
+compiling-and-running a tiny C program, or similarly extracted from a
+kernel header.  In documentation builds, also writes a per-file
+`<constants>` XML manifest.
+
+Andrew Benson (ported to Python 2026)
+
+Mirrors perl/Galacticus/Build/SourceTree/Process/Constants.pm
+"""
 
 import os
 import re

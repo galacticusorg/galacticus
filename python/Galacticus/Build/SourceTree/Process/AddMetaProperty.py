@@ -1,10 +1,12 @@
-# Processes `addMetaProperty` directives: emits a call to the
-# `add<Type>Rank<N>MetaProperty` method of the enclosing component
-# object, with a `<component>:<name>` prefix and the isCreator /
-# isEvolvable flags set per the directive.
-# Andrew Benson (ported to Python 2026)
-#
-# Mirrors perl/Galacticus/Build/SourceTree/Process/AddMetaProperty.pm
+"""Processes `addMetaProperty` directives: emits a call to the
+`add<Type>Rank<N>MetaProperty` method of the enclosing component
+object, with a `<component>:<name>` prefix and the isCreator /
+isEvolvable flags set per the directive.
+
+Andrew Benson (ported to Python 2026)
+
+Mirrors perl/Galacticus/Build/SourceTree/Process/AddMetaProperty.pm
+"""
 
 
 

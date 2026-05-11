@@ -1,14 +1,16 @@
-# Build the `nodeComponent` base type at the start of the components-build
-# pipeline.
-# Andrew Benson (ported to Python 2026)
-#
-# Mirrors perl/Galacticus/Build/Components/Components.pm: a single hook on
-# the `types` phase that defines `nodeComponent`, the abstract base type
-# every per-class component derives from.  The type carries the standard
-# set of ~25 type-bound methods (lifecycle, ODE solver, output, mass
-# distribution, …) plus six meta-property `add…` methods, and stores a
-# pointer back to its owning `treeNode` along with one allocatable array
-# per meta-property kind.
+"""Build the `nodeComponent` base type at the start of the components-build
+pipeline.
+
+Andrew Benson (ported to Python 2026)
+
+Mirrors perl/Galacticus/Build/Components/Components.pm: a single hook on
+the `types` phase that defines `nodeComponent`, the abstract base type
+every per-class component derives from.  The type carries the standard
+set of ~25 type-bound methods (lifecycle, ODE solver, output, mass
+distribution, …) plus six meta-property `add…` methods, and stores a
+pointer back to its owning `treeNode` along with one allocatable array
+per meta-property kind.
+"""
 
 
 

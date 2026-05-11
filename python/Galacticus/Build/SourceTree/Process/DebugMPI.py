@@ -1,8 +1,10 @@
-# If the `-DDEBUGMPI` flag is in $GALACTICUS_FCFLAGS, prefixes every
-# `mpiSelf%...` call and `call mpiBarrier()` with a debug write.
-# Andrew Benson (ported to Python 2026)
-#
-# Mirrors perl/Galacticus/Build/SourceTree/Process/DebugMPI.pm
+"""If the `-DDEBUGMPI` flag is in $GALACTICUS_FCFLAGS, prefixes every
+`mpiSelf%...` call and `call mpiBarrier()` with a debug write.
+
+Andrew Benson (ported to Python 2026)
+
+Mirrors perl/Galacticus/Build/SourceTree/Process/DebugMPI.pm
+"""
 
 import io
 import re

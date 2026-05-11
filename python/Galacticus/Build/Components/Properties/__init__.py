@@ -1,14 +1,16 @@
-# Components/Properties — per-property generators.
-# Andrew Benson (ported to Python 2026)
-#
-# Mirrors perl/Galacticus/Build/Components/Properties.pm.  Six hooks:
-#
-#   preValidate → Class_Defaults_Validate, Data_Validate
-#   default     → Property_Defaults
-#   validate    → Property_Output_Validate
-#   gather      → Class_Defaults_Gather
-#   scatter     → Class_Defaults_Scatter
-#   content     → Construct_Data
+"""Components/Properties — per-property generators.
+
+Andrew Benson (ported to Python 2026)
+
+Mirrors perl/Galacticus/Build/Components/Properties.pm.  Six hooks:
+
+  preValidate → Class_Defaults_Validate, Data_Validate
+  default     → Property_Defaults
+  validate    → Property_Output_Validate
+  gather      → Class_Defaults_Gather
+  scatter     → Class_Defaults_Scatter
+  content     → Construct_Data
+"""
 
 import logging
 import re

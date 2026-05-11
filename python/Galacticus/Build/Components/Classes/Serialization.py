@@ -1,7 +1,9 @@
-# Per-class generic ASCII-serialization stub.
-# Andrew Benson (ported to Python 2026)
-#
-# Mirrors perl/Galacticus/Build/Components/Classes/Serialization.pm.
+"""Per-class generic ASCII-serialization stub.
+
+Andrew Benson (ported to Python 2026)
+
+Mirrors perl/Galacticus/Build/Components/Classes/Serialization.pm.
+"""
 
 
 

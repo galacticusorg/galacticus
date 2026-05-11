@@ -1,17 +1,18 @@
-# Regression tests for `XML.Utils.xml_to_dict`.
-#
-# Bug: the original port called `.strip()` on every element's text without
-# distinguishing single-line from multi-line content.  For directive bodies
-# carrying Fortran code — `<forEach>…end if\n</forEach>`,
-# `<call>…\n</call>` — that stripped the trailing newline of the last line.
-# Downstream emitters concatenate the body with their own `end do\n` /
-# `end if\n` lines, producing invalid Fortran like `end ifend do`.
-#
-# Fix: keep multi-line text as-is (with its leading/trailing whitespace,
-# including the trailing newline) and only treat it as empty when it is
-# pure whitespace.  Single-line text continues to be stripped — many
-# directives have human-formatted text content (descriptions, parameter
-# values) that callers expect normalised.
+"""Regression tests for `XML.Utils.xml_to_dict`.
+
+Bug: the original port called `.strip()` on every element's text without
+distinguishing single-line from multi-line content.  For directive bodies
+carrying Fortran code — `<forEach>…end if\n</forEach>`,
+`<call>…\n</call>` — that stripped the trailing newline of the last line.
+Downstream emitters concatenate the body with their own `end do\n` /
+`end if\n` lines, producing invalid Fortran like `end ifend do`.
+
+Fix: keep multi-line text as-is (with its leading/trailing whitespace,
+including the trailing newline) and only treat it as empty when it is
+pure whitespace.  Single-line text continues to be stripped — many
+directives have human-formatted text content (descriptions, parameter
+values) that callers expect normalised.
+"""
 
 import xml.etree.ElementTree as ET
 from XML.Utils import xml_to_dict

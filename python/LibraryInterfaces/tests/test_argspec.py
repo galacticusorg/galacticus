@@ -1,8 +1,9 @@
-# Tests for `LibraryInterfaces.ArgSpec`.
-#
-# Tiny dataclass — but it's the IR shared across every emitter and
-# pipeline stage in the cross-language build, so the field defaults
-# and the `from_raw` adapter need to behave exactly as documented.
+"""Tests for `LibraryInterfaces.ArgSpec`.
+
+Tiny dataclass — but it's the IR shared across every emitter and
+pipeline stage in the cross-language build, so the field defaults
+and the `from_raw` adapter need to behave exactly as documented.
+"""
 
 from LibraryInterfaces.ArgSpec import ArgSpec
 

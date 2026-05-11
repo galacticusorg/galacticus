@@ -1,10 +1,12 @@
-# Processes `stateStore` and `stateRestore` directives: emits per-variable
-# serialize/deserialize calls to/from `stateFile`, and for stateRestore adds
-# a `wasAllocated_` tracker plus `use :: Error, only : Error_Report` so the
-# generated code can report an inconsistent state.
-# Andrew Benson (ported to Python 2026)
-#
-# Mirrors perl/Galacticus/Build/SourceTree/Process/StateStore.pm
+"""Processes `stateStore` and `stateRestore` directives: emits per-variable
+serialize/deserialize calls to/from `stateFile`, and for stateRestore adds
+a `wasAllocated_` tracker plus `use :: Error, only : Error_Report` so the
+generated code can report an inconsistent state.
+
+Andrew Benson (ported to Python 2026)
+
+Mirrors perl/Galacticus/Build/SourceTree/Process/StateStore.pm
+"""
 
 
 

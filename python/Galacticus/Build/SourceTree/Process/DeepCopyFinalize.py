@@ -1,8 +1,10 @@
-# Processes `deepCopyFinalize` directives: emits a call to `%deepCopyFinalize()`
-# for each named object and marks the directive as processed.
-# Andrew Benson (ported to Python 2026)
-#
-# Mirrors perl/Galacticus/Build/SourceTree/Process/DeepCopyFinalize.pm
+"""Processes `deepCopyFinalize` directives: emits a call to `%deepCopyFinalize()`
+for each named object and marks the directive as processed.
+
+Andrew Benson (ported to Python 2026)
+
+Mirrors perl/Galacticus/Build/SourceTree/Process/DeepCopyFinalize.pm
+"""
 
 
 

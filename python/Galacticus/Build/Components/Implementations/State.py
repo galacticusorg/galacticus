@@ -1,7 +1,9 @@
-# Per-implementation state variable + sizeOf accessor.
-# Andrew Benson (ported to Python 2026)
-#
-# Mirrors perl/Galacticus/Build/Components/Implementations/State.pm.
+"""Per-implementation state variable + sizeOf accessor.
+
+Andrew Benson (ported to Python 2026)
+
+Mirrors perl/Galacticus/Build/Components/Implementations/State.pm.
+"""
 
 
 

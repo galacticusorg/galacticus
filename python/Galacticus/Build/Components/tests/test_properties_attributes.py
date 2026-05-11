@@ -1,9 +1,10 @@
-# Tests for `Galacticus.Build.Components.Properties.Attributes`.
-#
-# Single hook `Attributes_Match(build, class_dict)` that emits one
-# `<class><Property>AttributeMatch` accessor per property of the class.
-# The accessor returns the list of implementations matching a requested
-# get/set/rate attribute requirement, used at runtime for filtering.
+"""Tests for `Galacticus.Build.Components.Properties.Attributes`.
+
+Single hook `Attributes_Match(build, class_dict)` that emits one
+`<class><Property>AttributeMatch` accessor per property of the class.
+The accessor returns the list of implementations matching a requested
+get/set/rate attribute requirement, used at runtime for filtering.
+"""
 
 from Galacticus.Build.Components.Properties.Attributes import Attributes_Match
 

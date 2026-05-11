@@ -1,13 +1,14 @@
-# Regression test for `is_non_processed_type`.
-#
-# Bug: directives like `<methods>` or `<optionalArgument>Task` are emitted by
-# code-generating Process hooks AFTER `nonProcessed` has run.  Without the
-# `is_non_processed_type` exemption they tripped `post_process_directives`'s
-# "directive 'foo' was not processed" check at the end of the pipeline.
-#
-# The exemption list is fixed (Methods, Workaround, Include, FunctionGlobal,
-# Component, RadiusSolverPlausibility, InterTreePositionInsert, Expiry,
-# Scoping) plus any directive whose type ends in `Task`.
+"""Regression test for `is_non_processed_type`.
+
+Bug: directives like `<methods>` or `<optionalArgument>Task` are emitted by
+code-generating Process hooks AFTER `nonProcessed` has run.  Without the
+`is_non_processed_type` exemption they tripped `post_process_directives`'s
+"directive 'foo' was not processed" check at the end of the pipeline.
+
+The exemption list is fixed (Methods, Workaround, Include, FunctionGlobal,
+Component, RadiusSolverPlausibility, InterTreePositionInsert, Expiry,
+Scoping) plus any directive whose type ends in `Task`.
+"""
 
 from Galacticus.Build.SourceTree.Process.NonProcessed import is_non_processed_type
 

@@ -1,8 +1,10 @@
-# Per-class output methods: dumpASCII, outputCount, outputNames,
-# postOutput, output.
-# Andrew Benson (ported to Python 2026)
-#
-# Mirrors perl/Galacticus/Build/Components/Classes/Output.pm.
+"""Per-class output methods: dumpASCII, outputCount, outputNames,
+postOutput, output.
+
+Andrew Benson (ported to Python 2026)
+
+Mirrors perl/Galacticus/Build/Components/Classes/Output.pm.
+"""
 
 import re
 

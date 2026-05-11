@@ -1,10 +1,12 @@
-# `treeNode` ODE-solver methods: serialize/deserialize count, values,
-# rates, scales, inactive/non-negative flags, plus the offsets builder.
-# Andrew Benson (ported to Python 2026)
-#
-# Mirrors perl/Galacticus/Build/Components/TreeNodes/ODESolver.pm.  Eleven
-# `functions`-phase hooks (one of which — `Tree_Node_ODE_Step_Initialize`
-# — itself emits four bound methods, one per quantity).
+"""`treeNode` ODE-solver methods: serialize/deserialize count, values,
+rates, scales, inactive/non-negative flags, plus the offsets builder.
+
+Andrew Benson (ported to Python 2026)
+
+Mirrors perl/Galacticus/Build/Components/TreeNodes/ODESolver.pm.  Eleven
+`functions`-phase hooks (one of which — `Tree_Node_ODE_Step_Initialize`
+— itself emits four bound methods, one per quantity).
+"""
 
 
 

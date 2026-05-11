@@ -1,6 +1,8 @@
-# Provides utilities for iterating over simulation data structures used as constraints.
-# Python port of perl/Galacticus/Constraints/Simulations.pm
-# Andrew Benson (ported to Python 2026)
+"""Provides utilities for iterating over simulation data structures used as constraints.
+
+Python port of perl/Galacticus/Constraints/Simulations.pm
+Andrew Benson (ported to Python 2026)
+"""
 
 import logging
 import os

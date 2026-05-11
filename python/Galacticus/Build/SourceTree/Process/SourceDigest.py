@@ -1,16 +1,17 @@
-# Processes `sourceDigest` directives: emits a C-interop character array
-# declaration bound to the per-build-target MD5 hash symbol (defined by
-# the Perl build system's `Find_Hash` chain), plus the matching
-# `use :: ISO_C_Binding, only : C_Char` import.
-#
-# Also provides `find_hash`, `hash_data_files`, `modification_time`, and
-# `update_modification_time` — the Makefile-side helpers used by
-# scripts/build/sourceDigests.* to compute per-file and composite MD5
-# digests (ported from the same Perl module).
-#
-# Andrew Benson (ported to Python 2026)
-#
-# Mirrors `perl/Galacticus/Build/SourceTree/Process/SourceDigest.pm`.
+"""Processes `sourceDigest` directives: emits a C-interop character array
+declaration bound to the per-build-target MD5 hash symbol (defined by
+the Perl build system's `Find_Hash` chain), plus the matching
+`use :: ISO_C_Binding, only : C_Char` import.
+
+Also provides `find_hash`, `hash_data_files`, `modification_time`, and
+`update_modification_time` — the Makefile-side helpers used by
+scripts/build/sourceDigests.* to compute per-file and composite MD5
+digests (ported from the same Perl module).
+
+Andrew Benson (ported to Python 2026)
+
+Mirrors `perl/Galacticus/Build/SourceTree/Process/SourceDigest.pm`.
+"""
 
 import base64
 import fcntl

@@ -1,11 +1,13 @@
-# Processes the functionClass lifecycle directives — objectBuilder,
-# objectDestructor, referenceCountIncrement, referenceAcquire,
-# referenceConstruct, deepCopy — by synthesising the appropriate
-# reference-counted get / release / build / copy code and wiring in the
-# required moduleUse imports and local declarations.
-# Andrew Benson (ported to Python 2026)
-#
-# Mirrors perl/Galacticus/Build/SourceTree/Process/ObjectBuilder.pm
+"""Processes the functionClass lifecycle directives — objectBuilder,
+objectDestructor, referenceCountIncrement, referenceAcquire,
+referenceConstruct, deepCopy — by synthesising the appropriate
+reference-counted get / release / build / copy code and wiring in the
+required moduleUse imports and local declarations.
+
+Andrew Benson (ported to Python 2026)
+
+Mirrors perl/Galacticus/Build/SourceTree/Process/ObjectBuilder.pm
+"""
 
 import os
 import re

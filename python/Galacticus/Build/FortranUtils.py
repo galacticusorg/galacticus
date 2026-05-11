@@ -1,5 +1,3 @@
-# Utility functions for reading and parsing Fortran source code.
-# Andrew Benson (ported to Python 2026)
 """Utility functions for reading and parsing Fortran source code.
 
 Provides helpers for iterating over logical Fortran lines (handling

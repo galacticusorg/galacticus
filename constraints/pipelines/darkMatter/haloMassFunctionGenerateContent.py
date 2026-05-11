@@ -1,7 +1,9 @@
 #!/usr/bin/env python3
-# Script to generate content for halo mass function constraint pipeline.
-# Python port of constraints/pipelines/darkMatter/haloMassFunctionGenerateContent.pl
-# Andrew Benson (ported to Python 2026)
+"""Script to generate content for halo mass function constraint pipeline.
+
+Python port of constraints/pipelines/darkMatter/haloMassFunctionGenerateContent.pl
+Andrew Benson (ported to Python 2026)
+"""
 
 import argparse
 import math

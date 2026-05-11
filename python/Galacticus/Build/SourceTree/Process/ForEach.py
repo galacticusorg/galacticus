@@ -1,9 +1,11 @@
-# Processes `forEach` directives: iterates over every element of a named
-# array of arbitrary rank, expanding `{index}` / `{{index}}` / `%index%`
-# placeholders in the directive's inline content.
-# Andrew Benson (ported to Python 2026)
-#
-# Mirrors perl/Galacticus/Build/SourceTree/Process/ForEach.pm
+"""Processes `forEach` directives: iterates over every element of a named
+array of arbitrary rank, expanding `{index}` / `{{index}}` / `%index%`
+placeholders in the directive's inline content.
+
+Andrew Benson (ported to Python 2026)
+
+Mirrors perl/Galacticus/Build/SourceTree/Process/ForEach.pm
+"""
 
 
 

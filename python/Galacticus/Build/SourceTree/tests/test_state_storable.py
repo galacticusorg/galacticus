@@ -1,13 +1,14 @@
-# Regression test for `_process_allocatable_intrinsic` in
-# `Galacticus.Build.SourceTree.Process.StateStorable`.
-#
-# Bug: `_process_allocatable_intrinsic` set `fragments['rank_seen']` to the
-# allocatable's rank, but its emitted body uses Fortran whole-array I/O
-# (`write (stateFile) self%name`) and never opens a `do iN=...` loop.
-# The caller bumped `rank_maximum` from `rank_seen` and therefore declared
-# `integer(c_size_t) :: i1, i2, i3` — `i2`/`i3` then triggered
-# `[-Wunused-variable]` warnings whenever the type's only multi-rank
-# member was an allocatable intrinsic.
+"""Regression test for `_process_allocatable_intrinsic` in
+`Galacticus.Build.SourceTree.Process.StateStorable`.
+
+Bug: `_process_allocatable_intrinsic` set `fragments['rank_seen']` to the
+allocatable's rank, but its emitted body uses Fortran whole-array I/O
+(`write (stateFile) self%name`) and never opens a `do iN=...` loop.
+The caller bumped `rank_maximum` from `rank_seen` and therefore declared
+`integer(c_size_t) :: i1, i2, i3` — `i2`/`i3` then triggered
+`[-Wunused-variable]` warnings whenever the type's only multi-rank
+member was an allocatable intrinsic.
+"""
 
 from Galacticus.Build.SourceTree.Process.StateStorable import (
     _process_allocatable_intrinsic,

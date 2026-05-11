@@ -1,8 +1,10 @@
-# LibraryInterfaces.Emitters — ten code-string emitter functions.
-# Andrew Benson (ported to Python with assistance from Claude 2026)
-#
-# All functions accept a list of fully-enriched ArgSpec objects (produced by
-# the four Pipeline stages) and return a code string or a list of strings.
+"""LibraryInterfaces.Emitters — ten code-string emitter functions.
+
+Andrew Benson (ported to Python with assistance from Claude 2026)
+
+All functions accept a list of fully-enriched ArgSpec objects (produced by
+the four Pipeline stages) and return a code string or a list of strings.
+"""
 
 import keyword
 import re

@@ -1,11 +1,13 @@
-# Processes `deepCopyActions` directives: for each directive naming a base
-# class, walks every derived (non-abstract) type in the same tree and
-# emits an `XDeepCopyActions(self)` subroutine whose `select type` branches
-# call the requested `setTo` / `methodCall` actions declared per level of
-# the inheritance chain.
-# Andrew Benson (ported to Python 2026)
-#
-# Mirrors perl/Galacticus/Build/SourceTree/Process/DeepCopyActions.pm
+"""Processes `deepCopyActions` directives: for each directive naming a base
+class, walks every derived (non-abstract) type in the same tree and
+emits an `XDeepCopyActions(self)` subroutine whose `select type` branches
+call the requested `setTo` / `methodCall` actions declared per level of
+the inheritance chain.
+
+Andrew Benson (ported to Python 2026)
+
+Mirrors perl/Galacticus/Build/SourceTree/Process/DeepCopyActions.pm
+"""
 
 import re
 

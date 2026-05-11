@@ -1,7 +1,9 @@
-# Provides utilities for working with Galacticus MCMC parameter chains.
-# Python port of the subset of perl/Galacticus/Constraints/Parameters.pm
-# used by the dark-matter constraint pipeline.
-# Andrew Benson (ported to Python 2026)
+"""Provides utilities for working with Galacticus MCMC parameter chains.
+
+Python port of the subset of perl/Galacticus/Constraints/Parameters.pm
+used by the dark-matter constraint pipeline.
+Andrew Benson (ported to Python 2026)
+"""
 
 import os
 

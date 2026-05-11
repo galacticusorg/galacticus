@@ -1,25 +1,26 @@
-# Regression test for `Galacticus.Build.Dependencies.dependency_sort`.
-#
-# Bug: `dependency_sort` mirrored Perl `Dependency_Sort`'s edge-building
-# pattern verbatim — for `X.after = Y` it pushed `dependencies[Y] += [X]`.
-# But Perl's `Sort::Topo` had a docstring/algorithm mismatch: the
-# docstring said `dependencies[X] = [Y]` meant "X depends on Y" (Y first),
-# while the actual algorithm emitted X *first*.  The two opposites
-# cancelled out so Perl callers got the right answer.
-#
-# Our Python `Sort.Topo` wraps `graphlib.TopologicalSorter`, which
-# matches the *standard* "X depends on Y → Y first" convention with no
-# such inversion.  Copying the Perl edges verbatim therefore produced
-# results inverted from natural English: `<eventHookStatic>` directives
-# tagged `after="other"` ended up BEFORE `other` in the emitted call
-# list.  In Galacticus that surfaced as e.g.
-# `Stellar_Luminosities_Initializor` being called before
-# `Stellar_Luminosities_Initialize` even though it had
-# `after="Stellar_Luminosities_Initialize"` — and the resulting code
-# crashed at runtime.
-#
-# Fix: build the edges the way the standard reading dictates —
-# `X.after = Y` → `deps[X] += [Y]` (X depends on Y, Y emitted first).
+"""Regression test for `Galacticus.Build.Dependencies.dependency_sort`.
+
+Bug: `dependency_sort` mirrored Perl `Dependency_Sort`'s edge-building
+pattern verbatim — for `X.after = Y` it pushed `dependencies[Y] += [X]`.
+But Perl's `Sort::Topo` had a docstring/algorithm mismatch: the
+docstring said `dependencies[X] = [Y]` meant "X depends on Y" (Y first),
+while the actual algorithm emitted X *first*.  The two opposites
+cancelled out so Perl callers got the right answer.
+
+Our Python `Sort.Topo` wraps `graphlib.TopologicalSorter`, which
+matches the *standard* "X depends on Y → Y first" convention with no
+such inversion.  Copying the Perl edges verbatim therefore produced
+results inverted from natural English: `<eventHookStatic>` directives
+tagged `after="other"` ended up BEFORE `other` in the emitted call
+list.  In Galacticus that surfaced as e.g.
+`Stellar_Luminosities_Initializor` being called before
+`Stellar_Luminosities_Initialize` even though it had
+`after="Stellar_Luminosities_Initialize"` — and the resulting code
+crashed at runtime.
+
+Fix: build the edges the way the standard reading dictates —
+`X.after = Y` → `deps[X] += [Y]` (X depends on Y, Y emitted first).
+"""
 
 from Galacticus.Build.Dependencies import dependency_sort
 

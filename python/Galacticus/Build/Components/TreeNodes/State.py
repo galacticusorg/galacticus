@@ -1,8 +1,10 @@
-# Generate `treeNodeSizeOf` — a method that reports the in-memory size of
-# a `treeNode` instance.
-# Andrew Benson (ported to Python 2026)
-#
-# Mirrors perl/Galacticus/Build/Components/TreeNodes/State.pm.
+"""Generate `treeNodeSizeOf` — a method that reports the in-memory size of
+a `treeNode` instance.
+
+Andrew Benson (ported to Python 2026)
+
+Mirrors perl/Galacticus/Build/Components/TreeNodes/State.pm.
+"""
 
 
 

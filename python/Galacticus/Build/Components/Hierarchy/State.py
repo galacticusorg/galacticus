@@ -1,7 +1,9 @@
-# Hierarchy initialisation state variable.
-# Andrew Benson (ported to Python 2026)
-#
-# Mirrors perl/Galacticus/Build/Components/Hierarchy/State.pm.
+"""Hierarchy initialisation state variable.
+
+Andrew Benson (ported to Python 2026)
+
+Mirrors perl/Galacticus/Build/Components/Hierarchy/State.pm.
+"""
 
 
 

@@ -1,10 +1,12 @@
-# Processes `optionalArgument` directives: clones the named argument's
-# declaration with an underscore-suffixed name, strips `optional`/`intent(...)`
-# attributes, and emits a setter that defaults the `_`-variable and copies in
-# the caller-supplied value when `present()`.
-# Andrew Benson (ported to Python 2026)
-#
-# Mirrors perl/Galacticus/Build/SourceTree/Process/OptionalArgument.pm
+"""Processes `optionalArgument` directives: clones the named argument's
+declaration with an underscore-suffixed name, strips `optional`/`intent(...)`
+attributes, and emits a setter that defaults the `_`-variable and copies in
+the caller-supplied value when `present()`.
+
+Andrew Benson (ported to Python 2026)
+
+Mirrors perl/Galacticus/Build/SourceTree/Process/OptionalArgument.pm
+"""
 
 import re
 
