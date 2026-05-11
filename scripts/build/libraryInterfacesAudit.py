@@ -52,6 +52,9 @@ import xml.etree.ElementTree as ET                     # noqa: E402
 
 from Galacticus.Build import SourceTree                # noqa: E402
 from LibraryInterfaces.Pipeline import _SHARED_TYPE_MODULES  # noqa: E402
+from LibraryInterfaces.Hierarchy import (                # noqa: E402
+    build_type_hierarchy, resolve_function_class_base,
+)
 
 
 # Match a fixed-size dimension(N) attribute (N a positive integer literal).
@@ -218,7 +221,8 @@ def parse_impls_in_file(impl_file, fc_name):
 # "Foo isn't a functionClass at all".
 # ---------------------------------------------------------------------------
 
-def classify_constructor(args, all_fcs, registered, overridden_args=frozenset()):
+def classify_constructor(args, all_fcs, registered, overridden_args=frozenset(),
+                         class_hierarchy=None):
     """Return ``(missing_deps, pipeline_reasons)``.
 
     *missing_deps* is the set of functionClass names this constructor depends
@@ -263,6 +267,18 @@ def classify_constructor(args, all_fcs, registered, overridden_args=frozenset())
                     if stem not in registered:
                         missing_deps.add(stem)
                     continue   # fc — registered or just missing-dep
+            # Abstract-intermediate: `class(<X>)` where <X>'s extends-chain
+            # reaches a registered <base>Class.  Mirrors the generator's
+            # handling — the pipeline routes through <base>GetPtr and
+            # narrows to <X> at runtime via `select type`.  Depend on the
+            # root <base>, propagating it as a missing-dep if needed.
+            if class_hierarchy:
+                base, _ = resolve_function_class_base(
+                    type_spec, class_hierarchy, set(all_fcs))
+                if base is not None:
+                    if base not in registered:
+                        missing_deps.add(base)
+                    continue
             # class(SomethingElse) — not a functionClass at all.
             pipeline_reasons.append(
                 f"class({type_spec}) — not a functionClass ({name})")
@@ -336,7 +352,7 @@ def classify_constructor(args, all_fcs, registered, overridden_args=frozenset())
     return missing_deps, pipeline_reasons
 
 
-def aggregate_class(impls, all_fcs, registered, overrides):
+def aggregate_class(impls, all_fcs, registered, overrides, class_hierarchy=None):
     """Reduce a list of impl dicts into a single class-level verdict.
 
     Status precedence: ready > missing-dep > pipeline-blocked > no-concrete-impls.
@@ -366,7 +382,8 @@ def aggregate_class(impls, all_fcs, registered, overrides):
             continue
         deps, reasons = classify_constructor(
             impl['args'], all_fcs, registered,
-            overrides.get(impl['name'], frozenset()))
+            overrides.get(impl['name'], frozenset()),
+            class_hierarchy=class_hierarchy)
         classified.append((impl, deps, reasons))
 
     ready = [(i, d, r) for (i, d, r) in classified if not r and not d]
@@ -475,6 +492,7 @@ def main():
     print("Discovering functionClasses…", file=sys.stderr)
     all_fcs, fc_files     = discover_function_classes(SOURCE_DIR)
     registered, overrides = load_registered_classes(LIB_XML)
+    class_hierarchy       = build_type_hierarchy(SOURCE_DIR)
     print(f"  {len(all_fcs)} functionClass(es); "
           f"{len(registered)} currently registered.", file=sys.stderr)
 
@@ -485,7 +503,8 @@ def main():
         impls = []
         for path in sorted(fc_files.get(fc, [])):
             impls.extend(parse_impls_in_file(path, fc))
-        audit[fc] = aggregate_class(impls, all_fcs, registered, overrides)
+        audit[fc] = aggregate_class(impls, all_fcs, registered, overrides,
+                                    class_hierarchy=class_hierarchy)
     print("\n", file=sys.stderr)
 
     # Buckets.

@@ -38,6 +38,9 @@ from LibraryInterfaces.Emitters import (
     python_call_code,
     python_safe_name,
 )
+_CLASS_HIERARCHY = {}
+
+
 def main():
     """Main entry point — mirrors libraryInterfaces.pl."""
 
@@ -48,6 +51,15 @@ def main():
     # Load XML configuration files
     build_path = os.environ.get('BUILDPATH', './work/build')
     exec_path = os.environ['GALACTICUS_EXEC_PATH']
+
+    # Scan source/ for the derived-type hierarchy so the pipeline can
+    # recognise `class(<intermediate>)` constructor args whose parent
+    # chain reaches a registered functionClass.  Built once, read by
+    # _unsupported_arg and passed into assign_c_types via the global.
+    global _CLASS_HIERARCHY
+    from LibraryInterfaces.Hierarchy import build_type_hierarchy
+    _CLASS_HIERARCHY = build_type_hierarchy(
+        os.path.join(exec_path, 'source'))
 
     directive_locations = _load_xml(os.path.join(build_path, 'directiveLocations.xml'), required=True)
     state_storables = _load_xml(os.path.join(build_path, 'stateStorables.xml'), required=True)
@@ -228,7 +240,7 @@ def _find_enum_module(enum_type, func_class):
 
 
 def _unsupported_arg(arg, lib_function_classes, *,
-                     constructor_overrides=()):
+                     constructor_overrides=(), class_hierarchy=None):
     """Return a human-readable reason if ``arg`` has a type the pipeline
     can't translate, otherwise ``None``.
 
@@ -298,8 +310,18 @@ def _unsupported_arg(arg, lib_function_classes, *,
                 return (f"class({type_spec}) — '{stem}' is not a registered "
                         f"functionClass in libraryClasses.xml")
         else:
-            return (f"class({type_spec}) — only registered functionClasses "
-                    f"and class(*) (with override) are supported")
+            # Abstract intermediate: a class whose extends-chain reaches
+            # a registered <base>Class is acceptable — the pipeline routes
+            # through <base>GetPtr and narrows to <intermediate> at
+            # runtime (see build_fortran_reassignments).
+            base = None
+            if class_hierarchy:
+                from LibraryInterfaces.Hierarchy import resolve_function_class_base
+                base, _ = resolve_function_class_base(
+                    type_spec, class_hierarchy, set(lib_function_classes.keys()))
+            if base is None:
+                return (f"class({type_spec}) — only registered functionClasses "
+                        f"and class(*) (with override) are supported")
     # Dimension check — same predicate for constructor and method args now
     # that both use the array-arg pipeline.  (Previously constructor-only,
     # which left method args producing broken-but-not-fatal Fortran when
@@ -384,26 +406,33 @@ def _unsupported_arg(arg, lib_function_classes, *,
 
 
 def _unsupported_constructor_arg(args, lib_function_classes,
-                                 constructor_overrides=()):
+                                 constructor_overrides=(),
+                                 class_hierarchy=None):
     """If any constructor argument is unsupported, return ``(name, reason)``;
     otherwise ``None``.  See :func:`_unsupported_arg` for the predicate."""
+    if class_hierarchy is None:
+        class_hierarchy = _CLASS_HIERARCHY
     for arg in args:
         reason = _unsupported_arg(
             arg, lib_function_classes,
             constructor_overrides=constructor_overrides,
+            class_hierarchy=class_hierarchy,
         )
         if reason:
             return arg['name'], reason
     return None
 
 
-def _unsupported_method_arg(args, lib_function_classes):
+def _unsupported_method_arg(args, lib_function_classes, class_hierarchy=None):
     """If any method argument is unsupported, return ``(name, reason)``;
     otherwise ``None``.  Methods don't have constructor-style overrides for
     ``class(*)``, so the override list is empty and any ``class(*)`` arg is
     rejected."""
+    if class_hierarchy is None:
+        class_hierarchy = _CLASS_HIERARCHY
     for arg in args:
-        reason = _unsupported_arg(arg, lib_function_classes)
+        reason = _unsupported_arg(arg, lib_function_classes,
+                                  class_hierarchy=class_hierarchy)
         if reason:
             return arg['name'], reason
     return None
@@ -749,7 +778,8 @@ def interfaces_constructors(code, python, func_class, lib_function_classes,
     for impl in func_class.get('implementations', []):
         # Process argument list
         arg_list = impl.get('arguments', [])
-        arg_list = assign_c_types(arg_list, lib_function_classes)
+        arg_list = assign_c_types(arg_list, lib_function_classes,
+                                  class_hierarchy=_CLASS_HIERARCHY)
         arg_list = assign_c_attributes(arg_list)
         arg_list = build_python_reassignments(arg_list)
         arg_list = build_fortran_reassignments(
@@ -1065,7 +1095,8 @@ def interfaces_methods(code, python, func_class, extensions, module_uses_impls,
             continue
 
         # Process arguments
-        arg_list = assign_c_types(arg_list, lib_function_classes or {})
+        arg_list = assign_c_types(arg_list, lib_function_classes or {},
+                                  class_hierarchy=_CLASS_HIERARCHY)
         arg_list = assign_c_attributes(arg_list)
         arg_list = build_python_reassignments(arg_list)
         arg_list = build_fortran_reassignments(arg_list, func_class, None,

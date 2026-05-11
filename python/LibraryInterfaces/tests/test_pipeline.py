@@ -568,6 +568,71 @@ def test_fortran_reassignments_function_class_uses_GetPtr_function():
     assert 'fooClass' in out[0].fort_modules['Foo']
 
 
+def test_assign_c_types_class_intermediate_routes_through_base_GetPtr():
+    """`class(<intermediate>)` whose extends-chain reaches a registered
+    <base>Class is treated as a function-class arg keyed on <base>, with
+    the intermediate recorded as the narrowing target."""
+    raw = [{'name': 'distribution', 'intrinsic': 'class',
+            'type': 'massDistributionSpherical',
+            'attributes': ['intent(in)']}]
+    hierarchy = {
+        'massDistributionSpherical': {'parent': 'massDistributionClass',
+                                      'module': 'Mass_Distributions'},
+    }
+    out = assign_c_types(
+        raw,
+        lib_function_classes={'massDistribution': {'module': 'Mass_Distributions'}},
+        class_hierarchy=hierarchy,
+    )
+    assert [a.name for a in out] == ['distribution', 'distribution_ID']
+    assert out[0].is_function_class    is True
+    assert out[0].narrowing_type       == 'massDistributionSpherical'
+    assert out[0].fort_function_class  == 'massDistribution'
+    assert out[1].name                 == 'distribution_ID'
+
+
+def test_fortran_reassignments_class_intermediate_emits_select_type_narrowing():
+    """An ArgSpec with narrowing_type set produces a `select type` block
+    that narrows the base GetPtr result to the intermediate, with an
+    Error_Report on type mismatch."""
+    parent = ArgSpec(
+        name='distribution', is_function_class=True,
+        type_spec='massDistributionSpherical',
+        narrowing_type='massDistributionSpherical',
+        fort_function_class='massDistribution',
+    )
+    out = build_fortran_reassignments(
+        [parent],
+        func_class={}, implementation=None,
+        extensions={}, module_uses_impls={},
+        lib_function_classes={'massDistribution': {'module': 'Mass_Distributions'}},
+    )
+    reassign = out[0].fort_reassignment
+    # The narrowing block recovers the base pointer, then `select type`-
+    # casts to the intermediate and aborts via Error_Report otherwise.
+    assert 'massDistributionGetPtr(distribution,distribution_ID)' in reassign
+    assert 'select type (distribution_base_)'            in reassign
+    assert 'class is (massDistributionSpherical)'        in reassign
+    assert 'distribution_ => distribution_base_'         in reassign
+    assert 'class default'                               in reassign
+    assert 'call Error_Report('                          in reassign
+    assert '{introspection:location}'                    in reassign
+    # Both the base class pointer and the narrowed intermediate are
+    # declared so the inner constructor sees the right declared type.
+    assert 'class(massDistributionClass), pointer :: distribution_base_' \
+        in out[0].fort_declarations
+    assert 'class(massDistributionSpherical), pointer :: distribution_' \
+        in out[0].fort_declarations
+    # The bind(c) wrapper passes the narrowed pointer.
+    assert out[0].fort_pass_as == 'distribution_'
+    # Required modules: Error (for Error_Report) and the FC's module
+    # (for both <base>Class and the intermediate type symbol).
+    assert 'Error_Report' in out[0].fort_modules.get('Error', {})
+    fc_mod = out[0].fort_modules.get('Mass_Distributions', {})
+    assert 'massDistributionClass'     in fc_mod
+    assert 'massDistributionSpherical' in fc_mod
+
+
 def test_fortran_reassignments_arbitrary_derived_type_uses_c_f_pointer():
     """Unknown derived types get c_f_pointer + a module declaration from
     func_class.module."""

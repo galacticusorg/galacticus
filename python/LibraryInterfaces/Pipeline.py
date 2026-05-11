@@ -30,6 +30,7 @@ import re
 from List.ExtraUtils import as_array
 from LibraryInterfaces.ArgSpec import ArgSpec
 from LibraryInterfaces.Emitters import python_safe_name
+from LibraryInterfaces.Hierarchy import resolve_function_class_base
 
 __all__ = [
     'assign_c_types', 'assign_c_attributes',
@@ -140,7 +141,7 @@ def _make_count_companion(name):
     )
 
 
-def assign_c_types(argument_list, lib_function_classes):
+def assign_c_types(argument_list, lib_function_classes, class_hierarchy=None):
     """Assign appropriate C types for each argument.
 
     Mirrors Perl assignCTypes().  Accepts a list of raw Fortran-declaration
@@ -148,7 +149,16 @@ def assign_c_types(argument_list, lib_function_classes):
     reverse so that the ``_ID`` companion argument for functionClass parameters
     can be inserted immediately after its parent without disturbing the rest
     of the list.
+
+    *class_hierarchy* is the type→parent map produced by
+    :func:`LibraryInterfaces.Hierarchy.build_type_hierarchy`.  When supplied,
+    ``class(<intermediate>)`` args whose extends-chain reaches a registered
+    ``<base>Class`` get the function-class treatment too, with the
+    intermediate type recorded as ``arg.narrowing_type`` for the Fortran
+    emitter to ``select type``-narrow at runtime.
     """
+    if class_hierarchy is None:
+        class_hierarchy = {}
     new_list = []
     for raw in reversed(argument_list):
         arg = ArgSpec.from_raw(raw) if isinstance(raw, dict) else raw
@@ -293,33 +303,55 @@ def assign_c_types(argument_list, lib_function_classes):
         elif intrinsic == 'class':
             arg.ctype     = 'c_void_p'
             arg.fort_type = 'type(c_ptr)'
-            # Check whether this is a functionClass argument.
-            if type_spec_val.endswith('Class'):
-                class_key = type_spec_val[:-5]  # strip trailing 'Class'
-                if class_key in lib_function_classes:
-                    arg.is_function_class = True
-                    # 'self' is dispatched via the method binding, not passed directly.
-                    if arg.name == 'self':
-                        arg.galacticus_is_present = False
-                    # Insert a companion _ID argument (carries the concrete class ID).
-                    arg_id = ArgSpec(
-                        name                  = arg.name + '_ID',
-                        intrinsic             = 'integer',
-                        attributes            = ['intent(in)'],
-                        ctype                 = 'c_int',
-                        fort_type             = 'integer(c_int)',
-                        fort_is_present       = True,
-                        py_is_present         = False,
-                        galacticus_is_present = False,
-                        is_optional           = False,
-                        is_function_class     = False,
-                    )
-                    if arg.is_optional:
-                        arg_id.attributes.append('optional')
-                        arg_id.is_optional = True
-                        arg_id.py_present  = python_safe_name(arg.name)
-                    # Insert _ID before the current front, then arg before that.
-                    new_list.insert(0, arg_id)
+            # Check whether this is a functionClass argument.  Two shapes
+            # qualify: the plain `class(<base>Class)` form (stem registered
+            # in libraryClasses.xml), or `class(<intermediate>)` where
+            # <intermediate>'s extends-chain reaches a registered
+            # <base>Class — in which case we route through <base>GetPtr and
+            # have build_fortran_reassignments insert a `select type`
+            # narrowing to the intermediate.
+            class_key      = None
+            narrowing_type = ''
+            if type_spec_val.endswith('Class') \
+                    and type_spec_val[:-5] in lib_function_classes:
+                class_key = type_spec_val[:-5]
+            elif class_hierarchy:
+                base, intermediate = resolve_function_class_base(
+                    type_spec_val, class_hierarchy,
+                    set(lib_function_classes.keys()))
+                if base is not None:
+                    class_key      = base
+                    narrowing_type = intermediate or ''
+            if class_key is not None:
+                arg.is_function_class   = True
+                arg.narrowing_type      = narrowing_type
+                # Record the registered <base> here so
+                # build_fortran_reassignments doesn't have to re-derive it
+                # (the abstract-intermediate path can't recover it from
+                # type_spec alone — only the hierarchy walk knows).
+                arg.fort_function_class = class_key
+                # 'self' is dispatched via the method binding, not passed directly.
+                if arg.name == 'self':
+                    arg.galacticus_is_present = False
+                # Insert a companion _ID argument (carries the concrete class ID).
+                arg_id = ArgSpec(
+                    name                  = arg.name + '_ID',
+                    intrinsic             = 'integer',
+                    attributes            = ['intent(in)'],
+                    ctype                 = 'c_int',
+                    fort_type             = 'integer(c_int)',
+                    fort_is_present       = True,
+                    py_is_present         = False,
+                    galacticus_is_present = False,
+                    is_optional           = False,
+                    is_function_class     = False,
+                )
+                if arg.is_optional:
+                    arg_id.attributes.append('optional')
+                    arg_id.is_optional = True
+                    arg_id.py_present  = python_safe_name(arg.name)
+                # Insert _ID before the current front, then arg before that.
+                new_list.insert(0, arg_id)
 
         # Detect 1D numeric arrays (deferred-shape or fixed-size) and set
         # is_array / array_size so the rest of the pipeline can recognise
@@ -1070,17 +1102,79 @@ def build_fortran_reassignments(argument_list, func_class, implementation,
                         arg.fort_modules.setdefault(mod, {})[type_spec_val] = 1
 
         elif arg.is_function_class:
-            # class(FooClass) -> class(FooClass) pointer via FooGetPtr(ptr, ID).
-            class_key = type_spec_val[:-5] if type_spec_val.endswith('Class') else type_spec_val
-            mod_name  = lib_function_classes.get(class_key, {}).get('module', '')
-            arg.fort_declarations  = f'class({type_spec_val}), pointer :: {name}_\n'
-            arg.fort_pass_as       = name + '_'
-            arg.fort_reassignment  = (
-                f'{opt_prefix}{name}_ => {class_key}GetPtr({name},{name}_ID)\n'
+            # Two shapes land here.  The simple case is `class(FooClass)`:
+            #   class(FooClass), pointer :: name_
+            #   name_ => FooGetPtr(name, name_ID)
+            #
+            # The abstract-intermediate case (arg.narrowing_type set) is
+            # `class(<intermediate>)` where <intermediate>'s extends-chain
+            # reaches a registered <base>Class.  The inner constructor
+            # wants a `class(<intermediate>), pointer`, so we recover the
+            # base pointer from <base>GetPtr and narrow with `select type`:
+            #   class(<base>Class    ), pointer :: name_base_
+            #   class(<intermediate> ), pointer :: name_
+            #   name_base_ => <base>GetPtr(name, name_ID)
+            #   select type (name_base_)
+            #   class is (<intermediate>)
+            #      name_ => name_base_
+            #   class default
+            #      call Error_Report('argument <name> is not of type <intermediate>'//{introspection:location})
+            #   end select
+            # Error_Report aborts with a clear diagnostic; the introspection
+            # tag is expanded later by the SourceTree introspection pass
+            # (same convention used by the GetPtr classID-default branch).
+            #
+            # assign_c_types stashes the registered <base> on
+            # arg.fort_function_class (the abstract-intermediate path
+            # can't recover it from type_spec alone — the hierarchy walk
+            # is the only place that knows).  Fall back to the
+            # strip-trailing-Class convention for the plain case so
+            # direct emitter callers (e.g. unit tests) keep working
+            # without first running through assign_c_types.
+            class_key = arg.fort_function_class or (
+                type_spec_val[:-5] if type_spec_val.endswith('Class')
+                else type_spec_val
             )
+            mod_name  = lib_function_classes.get(class_key, {}).get('module', '')
+            if arg.narrowing_type:
+                arg.fort_declarations = (
+                    f'class({class_key}Class), pointer :: {name}_base_\n'
+                    f'class({arg.narrowing_type}), pointer :: {name}_\n'
+                )
+                arg.fort_pass_as = name + '_'
+                narrow_body = (
+                    f'{name}_base_ => {class_key}GetPtr({name},{name}_ID)\n'
+                    f'select type ({name}_base_)\n'
+                    f'class is ({arg.narrowing_type})\n'
+                    f'   {name}_ => {name}_base_\n'
+                    f'class default\n'
+                    f"   call Error_Report('argument ''{name}'' is not of "
+                    f"type {arg.narrowing_type}'//{{introspection:location}})\n"
+                    f'end select\n'
+                )
+                if arg.is_optional:
+                    # Optional: skip the narrowing when the ID companion
+                    # is absent, leaving name_ as null() so the inner call's
+                    # `present()` check sees the same answer.
+                    arg.fort_reassignment = (
+                        f'if (present({name}_ID)) then\n {narrow_body}'
+                        f'else\n {name}_ => null()\nend if\n'
+                    )
+                else:
+                    arg.fort_reassignment = narrow_body
+                arg.fort_modules.setdefault('Error', {})['Error_Report'] = 1
+                if mod_name:
+                    arg.fort_modules.setdefault(mod_name, {})[f'{class_key}Class'] = 1
+                    arg.fort_modules.setdefault(mod_name, {})[arg.narrowing_type] = 1
+            else:
+                arg.fort_declarations  = f'class({type_spec_val}), pointer :: {name}_\n'
+                arg.fort_pass_as       = name + '_'
+                arg.fort_reassignment  = (
+                    f'{opt_prefix}{name}_ => {class_key}GetPtr({name},{name}_ID)\n'
+                )
+                if mod_name:
+                    arg.fort_modules.setdefault(mod_name, {})[type_spec_val] = 1
             arg.fort_function_class = class_key
-            if mod_name:
-                arg.fort_modules.setdefault(mod_name, {})[type_spec_val] = 1
 
         elif intrinsic == 'class' and type_spec_val == '*':
             # Unlimited polymorphic: look up the concrete type in libraryClasses config.

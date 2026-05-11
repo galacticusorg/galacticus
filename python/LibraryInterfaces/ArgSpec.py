@@ -90,6 +90,16 @@ class ArgSpec:
     fort_modules:        dict = field(default_factory=dict)  # {module: {symbol: 1}}
     fort_function_class: str  = ''    # class name for GetPtr interface blocks
 
+    # Marker for `class(<intermediate>)` constructor args where
+    # <intermediate> is an abstract Fortran type that itself extends a
+    # registered functionClass (e.g. `class(massDistributionSpherical)`,
+    # whose parent chain reaches `massDistributionClass`).  The wrapper
+    # accepts these through the root functionClass's GetPtr and then
+    # narrows the polymorphic pointer to the intermediate via a
+    # `select type` block emitted by build_fortran_reassignments.  Empty
+    # when no narrowing is needed (the plain `class(<base>Class)` case).
+    narrowing_type: str = ''
+
     # Python ctypes
     py_is_present:   bool = True   # include in the Python argument list
     py_pass_as:      str  = ''     # expression to pass to c_lib (default: name)
