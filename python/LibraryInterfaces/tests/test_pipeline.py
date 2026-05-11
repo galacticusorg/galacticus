@@ -568,6 +568,65 @@ def test_fortran_reassignments_function_class_uses_GetPtr_function():
     assert 'fooClass' in out[0].fort_modules['Foo']
 
 
+def test_assign_c_types_fixed_array_accepts_explicit_lower_bound():
+    """`double precision, dimension(0:2)` is fixed-size of length 3.
+    The bind(c) wrapper always uses default lower-bound declarations,
+    so we only care about the element count — the inner constructor's
+    explicit-lower-bound dummy copies the data elementwise on entry."""
+    raw = [{'name': 'coefficientsN', 'intrinsic': 'double precision',
+            'type': None, 'attributes': ['intent(in)', 'dimension(0:2)']}]
+    out = assign_c_types(raw, lib_function_classes={})
+    assert [a.name for a in out] == ['coefficientsN']
+    assert out[0].is_array   is True
+    assert out[0].array_size == 3
+
+
+def test_assign_c_types_logical_deferred_array_routes_through_c_bool():
+    """`logical, dimension(:)` is plumbed through the same 1D-array path
+    as numerics: a c_bool buffer plus a c_size_t count companion."""
+    raw = [{'name': 'outputMask', 'intrinsic': 'logical', 'type': None,
+            'attributes': ['intent(in)', 'dimension(:)']}]
+    out = assign_c_types(raw, lib_function_classes={})
+    assert [a.name for a in out] == ['outputMask', 'outputMask_count']
+    assert out[0].is_array     is True
+    assert out[0].array_size   is None
+    assert out[0].ctype        == 'c_bool'
+    assert out[0].fort_type    == 'logical(c_bool)'
+    # Count companion is the standard c_size_t one, same shape as the
+    # numeric/character paths.
+    assert out[1].ctype        == 'c_size_t'
+
+
+def test_fortran_reassignments_logical_array_emits_kind_narrowing_copy():
+    """A logical 1D array gets a local `logical, dimension(:), allocatable`
+    populated by an element-wise `logical()` cast from the c_bool buffer.
+    Optional args gate that conversion on `present(name)` so an absent
+    NULL pointer isn't indexed.  The inner method receives the local."""
+    raw_required = [{'name': 'mask', 'intrinsic': 'logical', 'type': None,
+                     'attributes': ['intent(in)', 'dimension(:)']}]
+    args = assign_c_types(raw_required, lib_function_classes={})
+    out = build_fortran_reassignments(
+        args, func_class={}, implementation=None,
+        extensions={}, module_uses_impls={},
+    )
+    decls = out[0].fort_declarations
+    reassign = out[0].fort_reassignment
+    assert 'logical, dimension(:), allocatable :: mask_F_' in decls
+    assert 'allocate(mask_F_(mask_count))' in reassign
+    assert 'mask_F_ = logical(mask(1:mask_count))' in reassign
+    assert out[0].fort_pass_as == 'mask_F_'
+    # Optional variant guards the allocation/copy on present().
+    raw_optional = [{'name': 'mask', 'intrinsic': 'logical', 'type': None,
+                     'attributes': ['intent(in)', 'dimension(:)', 'optional']}]
+    args = assign_c_types(raw_optional, lib_function_classes={})
+    out = build_fortran_reassignments(
+        args, func_class={}, implementation=None,
+        extensions={}, module_uses_impls={},
+    )
+    assert 'if (present(mask)) then'     in out[0].fort_reassignment
+    assert 'allocate(mask_F_(mask_count))' in out[0].fort_reassignment
+
+
 def test_assign_c_types_value_null_drops_arg_from_both_wrappers():
     """`<argument name="..." value="null"/>` in constructor_overrides
     flags the matching arg as null-filled: it disappears from both the

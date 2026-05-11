@@ -78,11 +78,30 @@ _SHARED_TYPE_MODULES = {
 }
 
 
-# Match a fixed-size 1D dimension attribute (e.g. dimension(3)).  Used to
+# Match a fixed-size 1D dimension attribute.  Accepts both the
+# default-lower-bound form `dimension(N)` (size N, bounds 1..N) and the
+# explicit-lower-bound form `dimension(L:U)` (size U-L+1).  Used to
 # distinguish a fixed-size array — whose length is known at codegen time
 # and so needs no count companion — from a deferred-shape dimension(:),
-# which does.
-_DIM_FIXED_RX = re.compile(r'^dimension\s*\(\s*(\d+)\s*\)$')
+# which does.  The wrapper always declares the bind(c) side with the
+# default lower bound; the inner constructor's dummy redeclares the
+# lower bound (Fortran copies elementwise from the actual argument's
+# shape into the dummy's), so callers don't have to care.
+_DIM_FIXED_RX = re.compile(
+    r'^dimension\s*\(\s*(?:(\d+)\s*:\s*)?(\d+)\s*\)$'
+)
+
+
+def _fixed_dim_size(attr):
+    """Return the element count encoded by a fixed-size 1D dimension
+    attribute (`dimension(N)` or `dimension(L:U)`), or None if *attr*
+    doesn't match the supported fixed-shape forms."""
+    m = _DIM_FIXED_RX.match(attr)
+    if not m:
+        return None
+    lower = int(m.group(1)) if m.group(1) is not None else 1
+    upper = int(m.group(2))
+    return upper - lower + 1
 
 # Match a `len=N` literal in a character type-spec, used to detect
 # fixed-length character arrays (e.g. `character(len=2), dimension(:)`).
@@ -395,10 +414,12 @@ def assign_c_types(argument_list, lib_function_classes, class_hierarchy=None,
         # array sets arg.char_len > 0; variable-len fell back to the
         # scalar path and is_array stays False).
         is_numeric_array_candidate = intrinsic in ('double precision', 'integer')
+        is_logical_array_candidate = intrinsic == 'logical'
         is_char_array_candidate    = intrinsic == 'character' and arg.char_len > 0
         is_vstr_array_candidate    = arg.varying_string_array
         is_list_array_candidate    = arg.polymorphic_list_array
-        if (is_numeric_array_candidate or is_char_array_candidate
+        if (is_numeric_array_candidate or is_logical_array_candidate
+                or is_char_array_candidate
                 or is_vstr_array_candidate or is_list_array_candidate):
             if 'dimension(:)' in arg.attributes:
                 arg.is_array   = True
@@ -428,16 +449,17 @@ def assign_c_types(argument_list, lib_function_classes, class_hierarchy=None,
                 new_list.insert(0, count_arg_2)
                 new_list.insert(0, count_arg_1)
             elif is_numeric_array_candidate:
-                # Fixed-size numeric arrays (`dimension(N)`) need no
-                # count companion; the length is in the dimension spec.
-                # Fixed-size character arrays aren't supported yet — the
-                # only registered class needing them was already covered
-                # by the deferred-shape path.
+                # Fixed-size numeric arrays (`dimension(N)` or
+                # `dimension(L:U)`) need no count companion; the length
+                # is in the dimension spec.  Fixed-size character arrays
+                # aren't supported yet — the only registered class
+                # needing them was already covered by the deferred-shape
+                # path.
                 for a in arg.attributes:
-                    m = _DIM_FIXED_RX.match(a)
-                    if m:
+                    size = _fixed_dim_size(a)
+                    if size is not None:
                         arg.is_array   = True
-                        arg.array_size = int(m.group(1))
+                        arg.array_size = size
                         break
 
         new_list.insert(0, arg)
@@ -802,6 +824,11 @@ _ARRAY_NUMPY_DTYPE = {
     'c_int'   : 'int32',
     'c_long'  : 'int64',
     'c_size_t': 'uint64',
+    # `c_bool` is one byte per element on every platform numpy supports;
+    # numpy's `bool_` dtype is also one byte, so the in-memory layout
+    # matches what the Fortran-side `logical(c_bool), dimension(*)`
+    # buffer expects.
+    'c_bool'  : 'bool_',
 }
 
 
@@ -1065,6 +1092,37 @@ def build_fortran_reassignments(argument_list, func_class, implementation,
                 )
             arg.fort_reassignment = reassign
             arg.fort_pass_as = f'{name}_F_'
+        elif arg.is_array and arg.intrinsic == 'logical':
+            # 1D deferred-shape logical array.  bind(c) signature has
+            # `logical(c_bool), dimension(*)` plus a c_size_t count; the
+            # inner method's dummy is the default logical kind (usually
+            # 4 bytes, vs c_bool's 1 byte), so we can't just slice the
+            # raw buffer.  Allocate a local of the right kind, copy
+            # element-wise via the elemental `logical()` cast, and pass
+            # the local to the inner.  Allocatable sidesteps any concern
+            # about forward-reference to the count dummy in an
+            # automatic-array size spec; the local is auto-deallocated
+            # on wrapper return.  Optionals gate the conversion on
+            # `present(name)` — when absent the bind(c) buffer is a
+            # NULL pointer and indexing it would segfault.  The inner
+            # call's `present(...)` check is handled at the fortran_call_code
+            # level (which omits absent optionals from the call), so
+            # there's no need to also gate the local's allocation here.
+            arg.fort_declarations = (
+                f'logical, dimension(:), allocatable :: {name}_F_\n'
+            )
+            reassign = (
+                f'allocate({name}_F_({name}_count))\n'
+                f'{name}_F_ = logical({name}(1:{name}_count))\n'
+            )
+            if is_optional:
+                reassign = (
+                    f'if (present({name})) then\n'
+                    f'   {reassign.replace(chr(10), chr(10) + "   ").rstrip()}\n'
+                    f'end if\n'
+                )
+            arg.fort_reassignment = reassign
+            arg.fort_pass_as      = f'{name}_F_'
         elif arg.is_array:
             # 1D numeric array.  Deferred-shape needs slicing — the bind(c)
             # signature has `dimension(*)` (assumed-size) plus a separate

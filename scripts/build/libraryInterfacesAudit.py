@@ -61,7 +61,9 @@ from LibraryInterfaces.Hierarchy import (                # noqa: E402
 # Same predicate the generator uses; duplicated here so the audit doesn't
 # have to import from libraryInterfaces.py (which would also drag in the
 # generator's unrelated emitter machinery).
-_DIM_FIXED_RX = re.compile(r'^dimension\s*\(\s*(\d+)\s*\)$')
+_DIM_FIXED_RX = re.compile(
+    r'^dimension\s*\(\s*(?:\d+\s*:\s*)?\d+\s*\)$'
+)
 
 # Match `len=N` in a character type-spec.  Used to recognise fixed-length
 # character arrays (`character(len=N), dimension(:)`), which the pipeline
@@ -338,6 +340,17 @@ def classify_constructor(args, all_fcs, registered, overridden_args=frozenset(),
                  and (dim_attr == 'dimension(:)'
                       or dim_attr == 'dimension(:,:)'
                       or _DIM_FIXED_RX.match(dim_attr)))
+                or
+                # 1D deferred-shape logical arrays piggyback on the
+                # numeric array path: the bind(c) side is a
+                # `logical(c_bool), dimension(*)` buffer plus a count
+                # companion; the wrapper repacks into a default-kind
+                # `logical, dimension(:)` local before the inner call
+                # (see build_fortran_reassignments).  Fixed-size /
+                # 2D logical aren't needed by any registered impl
+                # today, so they're deliberately not accepted.
+                (intrinsic == 'logical'
+                 and dim_attr == 'dimension(:)')
                 or
                 (intrinsic == 'character'
                  and dim_attr == 'dimension(:)'

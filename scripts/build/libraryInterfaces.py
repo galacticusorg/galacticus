@@ -198,8 +198,13 @@ _CLASS_RETURN_RX = re.compile(
 
 # Match a fixed-size 1D dimension(N) attribute on a constructor/method arg.
 # Mirrors Pipeline._DIM_FIXED_RX (kept locally so libraryInterfaces.py
+# stays usable standalone) — accepts both `dimension(N)` and the
+# explicit-lower-bound form `dimension(L:U)`.  Only the *match* is
+# checked here; this file doesn't compute the element count.
 # doesn't need to import a private name).
-_DIM_FIXED_RX_INTERFACES = re.compile(r'^dimension\s*\(\s*(\d+)\s*\)$')
+_DIM_FIXED_RX_INTERFACES = re.compile(
+    r'^dimension\s*\(\s*(?:\d+\s*:\s*)?\d+\s*\)$'
+)
 
 # Match `len=N` literal in a character type-spec.  Same regex as
 # Pipeline.py's `_CHAR_LEN_RX`; duplicated here to keep this module
@@ -364,6 +369,13 @@ def _unsupported_arg(arg, lib_function_classes, *,
                      or attr == 'dimension(:,:)'
                      or _DIM_FIXED_RX_INTERFACES.match(attr))
             )
+            # 1D deferred-shape logical: same plumbing as numeric 1D
+            # arrays, except build_fortran_reassignments emits a
+            # kind-narrowing copy from `logical(c_bool)` to the default
+            # `logical` kind that the inner method's dummy declares.
+            is_supported_logical = (
+                intrinsic == 'logical' and attr == 'dimension(:)'
+            )
             # Fixed-length character arrays (`character(len=N),
             # dimension(:)`) are supported at deferred shape: the bind(c)
             # boundary receives a contiguous count*N byte buffer plus a
@@ -406,7 +418,8 @@ def _unsupported_arg(arg, lib_function_classes, *,
                 and type_spec[:-4] in lib_function_classes
                 and type_spec in _SHARED_TYPE_MODULES
             )
-            if (is_supported_dim or is_supported_char_array
+            if (is_supported_dim or is_supported_logical
+                    or is_supported_char_array
                     or is_supported_vstring_array or is_supported_list_array):
                 if 'allocatable' in attrs:
                     return ('1D allocatable array argument'
