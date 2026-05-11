@@ -25,7 +25,7 @@
   <massDistribution name="massDistributionSphericalSIDMCoreNFW">
    <description>
      A mass distribution class implementing a cored-NFW dark matter halo profile to approximate the effects of SIDM based
-     on the model of Jiang et al. (2022). The profile is defined by the enclosed mass, with \citep{jiang_semi-analytic_2023}:
+     on the model of \cite{jiang_semi-analytic_2023}. The profile is defined by the enclosed mass, with \citep{jiang_semi-analytic_2023}:
      \begin{equation}
        M(r) = M_\mathrm{NFW}(r) \mathrm{tanh}\left(\frac{r}{r_\mathrm{c}}\right),
      \end{equation}
