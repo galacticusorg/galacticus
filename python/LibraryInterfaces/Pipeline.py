@@ -952,6 +952,19 @@ def build_fortran_reassignments(argument_list, func_class, implementation,
         is_optional   = arg.is_optional
         opt_prefix    = f'if (present({name})) ' if is_optional else ''
 
+        if arg.is_absent_filled:
+            # Absent-fill override (`<argument name="..." value="absent"/>`).
+            # The arg is invisible from Python, the bind(c) signature,
+            # AND the inner constructor call — galacticus_is_present is
+            # False so fortran_call_code's `make_call` excludes it.
+            # No Fortran declaration, no module import, no reassignment;
+            # otherwise the type-handling branches below would emit a
+            # spurious `use :: <fc_module>, only : <type>` for a type
+            # the wrapper neither declares nor passes (e.g. `vector` /
+            # `matrix` for the Gaussian-ellipsoid `axes` / `rotation`).
+            new_list.insert(0, arg)
+            continue
+
         if arg.is_null_filled:
             # Null-fill override (`<argument name="..." value="null"/>`).
             # The arg is invisible from both Python and the bind(c)

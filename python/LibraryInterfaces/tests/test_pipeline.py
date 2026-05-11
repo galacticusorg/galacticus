@@ -714,6 +714,28 @@ def test_assign_c_types_value_absent_drops_optional_arg_entirely():
     assert out[0].galacticus_is_present is False
 
 
+def test_fortran_reassignments_value_absent_emits_no_decl_or_use():
+    """An absent-filled arg must skip every type-handling branch in
+    build_fortran_reassignments — no declaration, no `use` import, no
+    reassignment.  Otherwise the generic-derived-type branch would
+    emit `use :: <fc_module>, only : <type>` for a type the wrapper
+    neither declares nor passes (e.g. `vector` from Mass_Distributions
+    when its real home is Linear_Algebra)."""
+    raw = [{'name': 'axes', 'intrinsic': 'type', 'type': 'vector',
+            'attributes': ['intent(in)', 'dimension(3)', 'optional']}]
+    overrides = [{'name': 'axes', 'value': 'absent'}]
+    args = assign_c_types(raw, lib_function_classes={},
+                          constructor_overrides=overrides)
+    out = build_fortran_reassignments(
+        args,
+        func_class={'module': 'Mass_Distributions'},
+        implementation=None, extensions={}, module_uses_impls={},
+    )
+    assert out[0].fort_declarations == ''
+    assert out[0].fort_reassignment == ''
+    assert out[0].fort_modules      == {}
+
+
 def test_assign_c_types_value_absent_rejects_non_optional_arg():
     """A value="absent" override on a non-optional arg is a hard
     error — the wrapper would silently drop a required arg otherwise,
