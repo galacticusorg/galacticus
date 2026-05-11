@@ -42,6 +42,22 @@ def test_ctypes_arg_types_falls_back_to_c_int_when_ctype_unset():
     assert ctypes_arg_types(args) == ['c_int']
 
 
+def test_ctypes_arg_types_skips_args_absent_from_bind_c_signature():
+    """Args with fort_is_present=False (e.g. null- or absent-filled
+    override drops) must NOT contribute to argtypes — ctypes uses the
+    list length to validate the call site, and a phantom entry would
+    surface as a confusing "this function takes at least N arguments"
+    TypeError when the Python wrapper passes the correct (smaller)
+    number of args to the bind(c) function."""
+    args = [
+        ArgSpec(name='keep',  ctype='c_double', fort_is_present=True),
+        ArgSpec(name='dropA', ctype='',         fort_is_present=False),
+        ArgSpec(name='dropB', ctype='c_int',    fort_is_present=False),
+        ArgSpec(name='also',  ctype='c_bool',   fort_is_present=True),
+    ]
+    assert ctypes_arg_types(args) == ['c_double', 'c_bool']
+
+
 # ---------------------------------------------------------------------------
 # fortran_arg_list
 # ---------------------------------------------------------------------------

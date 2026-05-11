@@ -50,10 +50,15 @@ def ctypes_arg_types(argument_list):
     """Generate ctypes argument type list.
 
     Returns a list of strings such as ``['c_double', 'POINTER(c_int)', …]``
-    suitable for assignment to ``c_lib.funcName.argtypes``.
+    suitable for assignment to ``c_lib.funcName.argtypes``.  Args with
+    ``fort_is_present=False`` (e.g. null- or absent-filled override
+    drops) are skipped — they don't appear in the bind(c) signature,
+    so they must not appear in the matching ``argtypes`` list either.
     """
     types = []
     for arg in argument_list:
+        if not arg.fort_is_present:
+            continue
         ctype = arg.ctype or 'c_int'
         if arg.ctype_pointer:
             ctype = f'POINTER({ctype})'
