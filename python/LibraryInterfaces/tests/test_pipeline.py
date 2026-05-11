@@ -693,6 +693,41 @@ def test_fortran_reassignments_logical_array_emits_kind_narrowing_copy():
     assert 'allocate(mask_F_(mask_count))' in out[0].fort_reassignment
 
 
+def test_assign_c_types_value_absent_drops_optional_arg_entirely():
+    """`<argument name="..." value="absent"/>` drops an *optional* arg
+    entirely — from Python, from bind(c), and from the inner call.
+    All three is_present flags go False; the inner constructor must
+    handle the absence via its built-in default."""
+    raw = [
+        {'name': 'axes', 'intrinsic': 'type', 'type': 'vector',
+         'attributes': ['intent(in)', 'dimension(3)', 'optional']},
+    ]
+    overrides = [{'name': 'axes', 'value': 'absent'}]
+    out = assign_c_types(
+        raw, lib_function_classes={},
+        constructor_overrides=overrides,
+    )
+    assert [a.name for a in out] == ['axes']
+    assert out[0].is_absent_filled     is True
+    assert out[0].fort_is_present      is False
+    assert out[0].py_is_present        is False
+    assert out[0].galacticus_is_present is False
+
+
+def test_assign_c_types_value_absent_rejects_non_optional_arg():
+    """A value="absent" override on a non-optional arg is a hard
+    error — the wrapper would silently drop a required arg otherwise,
+    causing the inner constructor to crash on access."""
+    raw = [{'name': 'axes', 'intrinsic': 'type', 'type': 'vector',
+            'attributes': ['intent(in)', 'dimension(3)']}]
+    overrides = [{'name': 'axes', 'value': 'absent'}]
+    import pytest
+    with pytest.raises(ValueError, match='value=.absent. override on '
+                                         'non-optional argument'):
+        assign_c_types(raw, lib_function_classes={},
+                       constructor_overrides=overrides)
+
+
 def test_assign_c_types_value_null_drops_arg_from_both_wrappers():
     """`<argument name="..." value="null"/>` in constructor_overrides
     flags the matching arg as null-filled: it disappears from both the

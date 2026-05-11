@@ -601,6 +601,26 @@ with safe_section("computationalDomainVolumeIntegratorCartesian3D (dimension(3,2
     else:
         check_eq("ValueError on wrong shape", "no exception raised", "ValueError")
 
+# Absent-fill constructor arg path — `<argument name="..." value="absent"/>`
+# overrides in libraryClasses.xml drop an *optional* arg entirely from
+# the Python signature, the bind(c) signature, AND the inner call.  The
+# inner constructor must handle the absence via its declared default.
+# Used here for `massDistributionGaussianEllipsoid`'s optional `axes`
+# arg (a `type(vector), dimension(3)` array whose vector type owns
+# GSL handles and can't cross the C interface cheaply); when absent
+# the impl falls back to identity-aligned principal axes.
+with safe_section("massDistributionGaussianEllipsoid (value='absent' axes)"):
+    massDistGE = galacticus.massDistributionGaussianEllipsoid(
+        scaleLength   = [1.0, 1.0, 1.0],
+        dimensionless = True,
+    )
+    check_eq("constructed type",
+             type(massDistGE).__name__,
+             'massDistributionGaussianEllipsoid')
+    # The dropped arg must not appear in the Python signature.
+    sig = inspect.signature(galacticus.massDistributionGaussianEllipsoid.__init__)
+    check_eq("axes not in signature", 'axes' in sig.parameters, False)
+
 # Null-filled constructor arg path — `<argument name="..." value="null"/>`
 # overrides in libraryClasses.xml tell the wrapper to drop callback-
 # injection escape-hatch args (a procedure-pointer plus paired class(*)

@@ -140,6 +140,15 @@
 	  <argument name="initializationArgument" value="null"/>
 	</constructor>
       </massDistributionSphericalSIDMIsothermalBaryons>
+      <massDistributionGaussianEllipsoid>
+	<constructor>
+	  <!-- The optional `axes` arg is a `type(vector), dimension(3)` array; the vector type
+	       owns dynamic state (GSL handles) and can't cross the C interface cheaply.  The
+	       inner constructor's absent-axes branch falls back to identity-aligned principal
+	       axes, which is the common case, so we drop the arg entirely. -->
+	  <argument name="axes" value="absent"/>
+	</constructor>
+      </massDistributionGaussianEllipsoid>
     </massDistribution>
     <massDistributionHeating/>
     <massFunctionIncompleteness/>

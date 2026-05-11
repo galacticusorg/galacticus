@@ -223,6 +223,10 @@ def assign_c_types(argument_list, lib_function_classes, class_hierarchy=None,
         o.get('name') for o in constructor_overrides
         if isinstance(o, dict) and o.get('value') == 'null' and o.get('name')
     }
+    absent_filled_names = {
+        o.get('name') for o in constructor_overrides
+        if isinstance(o, dict) and o.get('value') == 'absent' and o.get('name')
+    }
     new_list = []
     for raw in reversed(argument_list):
         arg = ArgSpec.from_raw(raw) if isinstance(raw, dict) else raw
@@ -242,6 +246,26 @@ def assign_c_types(argument_list, lib_function_classes, class_hierarchy=None,
             arg.fort_is_present       = False
             arg.py_is_present         = False
             arg.galacticus_is_present = True
+            arg.is_optional           = False
+            new_list.insert(0, arg)
+            continue
+
+        # Absent-fill override: drop the arg from both wrappers AND
+        # from the inner call.  Only valid for optional args — the
+        # inner constructor must handle the absence via its declared
+        # default behaviour (e.g. identity-aligned principal axes for
+        # the Gaussian ellipsoid's optional `axes`).  Detecting
+        # `is_optional` requires the `optional` attribute on the raw
+        # decl, which we've already captured in arg.attributes.
+        if arg.name in absent_filled_names:
+            if 'optional' not in arg.attributes:
+                raise ValueError(
+                    f"value='absent' override on non-optional argument "
+                    f"'{arg.name}' — only optional args may be dropped")
+            arg.is_absent_filled      = True
+            arg.fort_is_present       = False
+            arg.py_is_present         = False
+            arg.galacticus_is_present = False
             arg.is_optional           = False
             new_list.insert(0, arg)
             continue

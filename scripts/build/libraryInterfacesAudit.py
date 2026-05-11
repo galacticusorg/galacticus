@@ -227,7 +227,8 @@ def parse_impls_in_file(impl_file, fc_name):
 # ---------------------------------------------------------------------------
 
 def classify_constructor(args, all_fcs, registered, overridden_args=frozenset(),
-                         class_hierarchy=None, null_filled_args=frozenset()):
+                         class_hierarchy=None, null_filled_args=frozenset(),
+                         absent_filled_args=frozenset()):
     """Return ``(missing_deps, pipeline_reasons)``.
 
     *missing_deps* is the set of functionClass names this constructor depends
@@ -263,6 +264,18 @@ def classify_constructor(args, all_fcs, registered, overridden_args=frozenset(),
             pipeline_reasons.append(
                 f"value='null' override on unsupported intrinsic "
                 f"'{intrinsic}' ({name})")
+            continue
+
+        # `<argument name="..." value="absent"/>` drops an *optional*
+        # arg entirely — from Python, from bind(c), and from the inner
+        # call.  Accept any intrinsic so long as `optional` is set on
+        # the source decl.
+        if name in absent_filled_args:
+            if 'optional' in attrs:
+                continue
+            pipeline_reasons.append(
+                f"value='absent' override on non-optional argument "
+                f"({name})")
             continue
 
         if intrinsic in ('complex', 'double complex'):
@@ -383,7 +396,7 @@ def classify_constructor(args, all_fcs, registered, overridden_args=frozenset(),
 
 
 def aggregate_class(impls, all_fcs, registered, overrides, class_hierarchy=None,
-                    null_filled=None):
+                    null_filled=None, absent_filled=None):
     """Reduce a list of impl dicts into a single class-level verdict.
 
     Status precedence: ready > missing-dep > pipeline-blocked > no-concrete-impls.
@@ -416,7 +429,9 @@ def aggregate_class(impls, all_fcs, registered, overrides, class_hierarchy=None,
             overrides.get(impl['name'], frozenset()),
             class_hierarchy=class_hierarchy,
             null_filled_args=((null_filled or {})
-                              .get(impl['name'], frozenset())))
+                              .get(impl['name'], frozenset())),
+            absent_filled_args=((absent_filled or {})
+                                .get(impl['name'], frozenset())))
         classified.append((impl, deps, reasons))
 
     ready = [(i, d, r) for (i, d, r) in classified if not r and not d]
@@ -486,7 +501,8 @@ def closure(audit, registered):
 # ---------------------------------------------------------------------------
 
 def load_registered_classes(xml_path):
-    """Parse libraryClasses.xml and return ``(registered, overrides, null_filled)``.
+    """Parse libraryClasses.xml and return ``(registered, overrides, null_filled,
+    absent_filled)``.
 
     *registered* is the set of class tags inside ``<classes>``.
 
@@ -503,15 +519,22 @@ def load_registered_classes(xml_path):
     to the inner constructor), so the audit must skip the relevant
     blockers (procedure-pointer / unsupported ``class(*)`` etc.) for
     them.
+
+    *absent_filled* is a dict ``impl_name -> set(arg_names)`` for args
+    tagged ``value="absent"``: the wrapper drops them entirely from
+    both the Python and the bind(c) signatures *and* from the inner
+    call (the inner constructor must handle the absent case via its
+    declared default).  Only valid for `optional` args.
     """
     if not xml_path.exists():
-        return set(), {}, {}
+        return set(), {}, {}, {}
     classes_el = ET.parse(xml_path).getroot().find('classes')
     if classes_el is None:
-        return set(), {}, {}
-    registered  = {child.tag for child in classes_el}
-    overrides   = defaultdict(set)
-    null_filled = defaultdict(set)
+        return set(), {}, {}, {}
+    registered    = {child.tag for child in classes_el}
+    overrides     = defaultdict(set)
+    null_filled   = defaultdict(set)
+    absent_filled = defaultdict(set)
     for class_el in classes_el:
         for impl_el in class_el:
             ctor_el = impl_el.find('constructor')
@@ -524,7 +547,10 @@ def load_registered_classes(xml_path):
                 overrides[impl_el.tag].add(arg_name)
                 if arg_el.get('value') == 'null':
                     null_filled[impl_el.tag].add(arg_name)
-    return registered, dict(overrides), dict(null_filled)
+                if arg_el.get('value') == 'absent':
+                    absent_filled[impl_el.tag].add(arg_name)
+    return (registered, dict(overrides),
+            dict(null_filled), dict(absent_filled))
 
 
 def fmt_section(title):
@@ -534,9 +560,10 @@ def fmt_section(title):
 
 def main():
     print("Discovering functionClasses…", file=sys.stderr)
-    all_fcs, fc_files                  = discover_function_classes(SOURCE_DIR)
-    registered, overrides, null_filled = load_registered_classes(LIB_XML)
-    class_hierarchy                    = build_type_hierarchy(SOURCE_DIR)
+    all_fcs, fc_files                                 = discover_function_classes(SOURCE_DIR)
+    (registered, overrides,
+     null_filled, absent_filled)                      = load_registered_classes(LIB_XML)
+    class_hierarchy                                   = build_type_hierarchy(SOURCE_DIR)
     print(f"  {len(all_fcs)} functionClass(es); "
           f"{len(registered)} currently registered.", file=sys.stderr)
 
@@ -549,7 +576,8 @@ def main():
             impls.extend(parse_impls_in_file(path, fc))
         audit[fc] = aggregate_class(impls, all_fcs, registered, overrides,
                                     class_hierarchy=class_hierarchy,
-                                    null_filled=null_filled)
+                                    null_filled=null_filled,
+                                    absent_filled=absent_filled)
     print("\n", file=sys.stderr)
 
     # Buckets.

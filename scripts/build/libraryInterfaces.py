@@ -295,6 +295,19 @@ def _unsupported_arg(arg, lib_function_classes, *,
             return None
         return (f"value='null' override on {intrinsic}({type_spec}) — "
                 f"only procedure and class(*) args are supported")
+    # A `<argument name="..." value="absent"/>` override drops an
+    # *optional* arg entirely — from Python, from the bind(c) signature,
+    # and from the inner constructor call.  The inner's built-in default
+    # for the absent case must do the right thing.  Accept it for any
+    # intrinsic so long as the source arg carries `optional`.
+    if any(isinstance(o, dict)
+           and o.get('name') == arg.get('name')
+           and o.get('value') == 'absent'
+           for o in constructor_overrides):
+        if 'optional' in arg.get('attributes', []):
+            return None
+        return (f"value='absent' override on non-optional argument — only "
+                f"optional args may be dropped")
     if intrinsic in ('complex', 'double complex'):
         return f"{intrinsic}({arg.get('type','')})"
     if intrinsic == 'procedure':

@@ -118,6 +118,20 @@ class ArgSpec:
     # the inner constructor (galacticus_is_present stays True).
     is_null_filled: bool = False
 
+    # Marker for *optional* constructor args that libraryClasses.xml
+    # asks the wrapper to drop entirely (`<argument name="..." value="absent"/>`).
+    # Used for optional Fortran args whose absence triggers a sensible
+    # default in the inner constructor (e.g.
+    # `type(vector), dimension(3), optional :: axes` defaulting to the
+    # Cartesian basis vectors) but whose declared type isn't otherwise
+    # plumbable through the pipeline.  All three is_present flags go
+    # False — the arg vanishes from the Python signature, the bind(c)
+    # signature, and the inner constructor call.  The optional-arg
+    # `make_call(present_set)` mechanism in fortran_call_code already
+    # omits args with galacticus_is_present=False, so the inner sees
+    # the arg as not-present and falls back to its built-in default.
+    is_absent_filled: bool = False
+
     # Python ctypes
     py_is_present:   bool = True   # include in the Python argument list
     py_pass_as:      str  = ''     # expression to pass to c_lib (default: name)
