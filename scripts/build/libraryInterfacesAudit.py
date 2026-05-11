@@ -62,7 +62,10 @@ from LibraryInterfaces.Hierarchy import (                # noqa: E402
 # have to import from libraryInterfaces.py (which would also drag in the
 # generator's unrelated emitter machinery).
 _DIM_FIXED_RX = re.compile(
-    r'^dimension\s*\(\s*(?:\d+\s*:\s*)?\d+\s*\)$'
+    r'^dimension\s*\(\s*'
+    r'(?:\d+\s*:\s*)?\d+'
+    r'(?:\s*,\s*(?:\d+\s*:\s*)?\d+)*'
+    r'\s*\)$'
 )
 
 # Match `len=N` in a character type-spec.  Used to recognise fixed-length

@@ -568,6 +568,72 @@ def test_fortran_reassignments_function_class_uses_GetPtr_function():
     assert 'fooClass' in out[0].fort_modules['Foo']
 
 
+def test_assign_c_types_fixed_array_accepts_multi_rank_shape():
+    """`double precision, dimension(N,M[,K…])` is a fixed-shape rank-≥2
+    numeric array.  The bind(c) decl carries the full shape directly
+    (so no count companions are inserted); array_shape captures the
+    per-axis sizes for the Python wrapper's shape validator, and
+    array_size is the product (used as a tie-breaker / total count)."""
+    raw = [{'name': 'boundaries', 'intrinsic': 'double precision',
+            'type': None, 'attributes': ['intent(in)', 'dimension(3,2)']}]
+    out = assign_c_types(raw, lib_function_classes={})
+    # No count companions — array_shape carries the full shape.
+    assert [a.name for a in out] == ['boundaries']
+    assert out[0].is_array    is True
+    assert out[0].array_shape == (3, 2)
+    assert out[0].array_rank  == 2
+    assert out[0].array_size  == 6
+    # 3D case (e.g. Hearin2021Stochastic's `means: dimension(2,2,3)`).
+    raw = [{'name': 'means', 'intrinsic': 'double precision', 'type': None,
+            'attributes': ['intent(in)', 'dimension(2,2,3)']}]
+    out = assign_c_types(raw, lib_function_classes={})
+    assert out[0].array_shape == (2, 2, 3)
+    assert out[0].array_rank  == 3
+    assert out[0].array_size  == 12
+
+
+def test_python_reassignments_multi_rank_fixed_array_validates_shape():
+    """The Python wrapper for a multi-rank fixed-shape array calls
+    np.asfortranarray (column-major) and validates `.shape` against
+    the expected tuple — a `.size`-only check would silently accept
+    arbitrary reshape-equivalents."""
+    raw = [{'name': 'boundaries', 'intrinsic': 'double precision',
+            'type': None, 'attributes': ['intent(in)', 'dimension(3,2)']}]
+    args = assign_c_types(raw, lib_function_classes={})
+    args = assign_c_attributes(args)
+    out  = build_python_reassignments(args)
+    reassign = out[0].py_reassignment
+    assert 'np.asfortranarray(' in reassign
+    assert 'shape != (3, 2)'    in reassign
+    assert 'expects shape (3, 2)' in reassign
+    assert out[0].py_pass_as == \
+        'boundaries.ctypes.data_as(POINTER(c_double))'
+
+
+def test_fortran_reassignments_multi_rank_fixed_array_passes_through():
+    """A fixed-shape multi-rank array's bind(c) decl already carries
+    the full shape (via the unchanged `dimension(N,M)` attribute), so
+    build_fortran_reassignments must NOT emit the 2D-deferred reshape
+    block — the 2D-deferred branch's array_rank check has to be gated
+    on the absence of `array_shape`."""
+    raw = [{'name': 'boundaries', 'intrinsic': 'double precision',
+            'type': None, 'attributes': ['intent(in)', 'dimension(3,2)']}]
+    args = assign_c_types(raw, lib_function_classes={})
+    args = assign_c_attributes(args)
+    args = build_python_reassignments(args)
+    out  = build_fortran_reassignments(
+        args, func_class={}, implementation=None,
+        extensions={}, module_uses_impls={},
+    )
+    # No reshape, no allocate, no local _F_ buffer — just pass directly.
+    assert 'reshape'      not in out[0].fort_reassignment
+    assert 'allocate'     not in out[0].fort_reassignment
+    assert 'boundaries_F_' not in out[0].fort_declarations
+    # `dimension(3,2)` survived assign_c_attributes unchanged so the
+    # bind(c) decl is explicit-shape (no `dimension(*)` rewrite).
+    assert 'dimension(3,2)' in out[0].fort_attributes
+
+
 def test_assign_c_types_fixed_array_accepts_explicit_lower_bound():
     """`double precision, dimension(0:2)` is fixed-size of length 3.
     The bind(c) wrapper always uses default lower-bound declarations,

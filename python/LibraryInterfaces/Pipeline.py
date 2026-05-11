@@ -78,30 +78,62 @@ _SHARED_TYPE_MODULES = {
 }
 
 
-# Match a fixed-size 1D dimension attribute.  Accepts both the
-# default-lower-bound form `dimension(N)` (size N, bounds 1..N) and the
-# explicit-lower-bound form `dimension(L:U)` (size U-L+1).  Used to
-# distinguish a fixed-size array — whose length is known at codegen time
-# and so needs no count companion — from a deferred-shape dimension(:),
-# which does.  The wrapper always declares the bind(c) side with the
-# default lower bound; the inner constructor's dummy redeclares the
-# lower bound (Fortran copies elementwise from the actual argument's
-# shape into the dummy's), so callers don't have to care.
+# Match a fixed-size dimension attribute of any rank.  Each comma-
+# separated dim is either `N` (default lower bound 1) or `L:U` (explicit
+# lower bound).  Used to distinguish a fixed-size array — whose shape is
+# known at codegen time and so needs no count companions — from a
+# deferred-shape `dimension(:)` / `dimension(:,:)`, which do.  The
+# wrapper always declares the bind(c) side with default lower bounds;
+# the inner constructor's explicit-lower-bound dummy receives the data
+# via Fortran's elementwise copy on entry, so callers don't have to
+# care about base offsets.
 _DIM_FIXED_RX = re.compile(
-    r'^dimension\s*\(\s*(?:(\d+)\s*:\s*)?(\d+)\s*\)$'
+    r'^dimension\s*\(\s*'
+    r'(?:\d+\s*:\s*)?\d+'                      # first axis
+    r'(?:\s*,\s*(?:\d+\s*:\s*)?\d+)*'          # additional axes
+    r'\s*\)$'
+)
+# Pulls one axis out of a fixed-shape attr's inner csv.
+_DIM_AXIS_RX = re.compile(
+    r'^\s*(?:(\d+)\s*:\s*)?(\d+)\s*$'
 )
 
 
-def _fixed_dim_size(attr):
-    """Return the element count encoded by a fixed-size 1D dimension
-    attribute (`dimension(N)` or `dimension(L:U)`), or None if *attr*
-    doesn't match the supported fixed-shape forms."""
-    m = _DIM_FIXED_RX.match(attr)
-    if not m:
+def _fixed_dim_shape(attr):
+    """Return the per-axis element counts encoded by a fixed-shape
+    dimension attribute as a tuple, or ``None`` if *attr* doesn't match
+    a supported fixed-shape form.  Handles `dimension(N)`, `dimension(L:U)`,
+    and multi-rank forms like `dimension(N, M)` / `dimension(N, M, K)`
+    (each axis independently default-lower-bound or explicit `L:U`)."""
+    if not _DIM_FIXED_RX.match(attr):
         return None
-    lower = int(m.group(1)) if m.group(1) is not None else 1
-    upper = int(m.group(2))
-    return upper - lower + 1
+    inner = attr[attr.index('(') + 1 : attr.rindex(')')]
+    dims = []
+    for part in inner.split(','):
+        m = _DIM_AXIS_RX.match(part)
+        if not m:
+            return None
+        lower = int(m.group(1)) if m.group(1) is not None else 1
+        upper = int(m.group(2))
+        dims.append(upper - lower + 1)
+    return tuple(dims)
+
+
+def _fixed_dim_size(attr):
+    """Return the total element count encoded by a fixed-shape 1D
+    dimension attribute, or None if *attr* doesn't match.  Provided as
+    a thin wrapper over :func:`_fixed_dim_shape` so call-sites that
+    only care about total length stay terse."""
+    shape = _fixed_dim_shape(attr)
+    return None if shape is None else _shape_product(shape)
+
+
+def _shape_product(shape):
+    """Element count for a fixed-shape tuple."""
+    n = 1
+    for d in shape:
+        n *= d
+    return n
 
 # Match a `len=N` literal in a character type-spec, used to detect
 # fixed-length character arrays (e.g. `character(len=2), dimension(:)`).
@@ -449,17 +481,24 @@ def assign_c_types(argument_list, lib_function_classes, class_hierarchy=None,
                 new_list.insert(0, count_arg_2)
                 new_list.insert(0, count_arg_1)
             elif is_numeric_array_candidate:
-                # Fixed-size numeric arrays (`dimension(N)` or
-                # `dimension(L:U)`) need no count companion; the length
-                # is in the dimension spec.  Fixed-size character arrays
-                # aren't supported yet — the only registered class
-                # needing them was already covered by the deferred-shape
-                # path.
+                # Fixed-shape numeric arrays (`dimension(N)`,
+                # `dimension(L:U)`, or multi-rank `dimension(N1,N2,...)`)
+                # need no count companion; every axis size is in the
+                # dimension spec.  For 1D we record `array_size` only;
+                # for rank > 1 we also record `array_shape` so the
+                # Python wrapper can validate ndim/shape rather than
+                # only the total element count.  Fixed-size character
+                # arrays aren't supported yet — the only registered
+                # class needing them was already covered by the
+                # deferred-shape path.
                 for a in arg.attributes:
-                    size = _fixed_dim_size(a)
-                    if size is not None:
-                        arg.is_array   = True
-                        arg.array_size = size
+                    shape = _fixed_dim_shape(a)
+                    if shape is not None:
+                        arg.is_array    = True
+                        arg.array_size  = _shape_product(shape)
+                        if len(shape) > 1:
+                            arg.array_shape = shape
+                            arg.array_rank  = len(shape)
                         break
 
         new_list.insert(0, arg)
@@ -553,14 +592,17 @@ def build_python_reassignments(argument_list):
                 arg.py_pass_as    = name + '._glcObj'
                 arg_id.py_pass_as = name + '._classID'
             new_list.insert(0, arg_id)        # unshift _ID back
-        elif arg.is_array and arg.array_rank == 2:
+        elif arg.is_array and arg.array_rank == 2 and not arg.array_shape:
             # 2D deferred-shape numeric array.  Convert input to a
             # contiguous Fortran-order numpy array (column-major) so the
             # raw byte layout matches Fortran's `dimension(N, M)`
             # convention; pass the data pointer plus shape[0]/shape[1]
             # as the two count companions, in the same order they sit at
             # the front of new_list (count_1 then count_2 — see
-            # assign_c_types).  For optional args, the conversion is
+            # assign_c_types).  `array_shape` non-empty signals a
+            # fixed-shape array — there are no count companions to pop
+            # (assign_c_types didn't insert them), and the fixed-shape
+            # branch further down handles those.  For optional args, the conversion is
             # gated on the input not being None — otherwise
             # `np.asarray(None, dtype=...)` produces a 0D scalar that
             # `np.asfortranarray` then promotes to 1D, tripping the
@@ -786,8 +828,31 @@ def build_python_reassignments(argument_list):
                         f'{safe}.ctypes.data_as(POINTER({arg.ctype}))'
                     )
                 new_list.insert(0, count_arg)
+            elif arg.array_shape:
+                # Fixed-shape multi-rank numeric array (e.g.
+                # `dimension(3,2)`, `dimension(2,2,3)`).  Convert to a
+                # Fortran-ordered (column-major) contiguous buffer so
+                # the raw byte layout matches Fortran's shape spec;
+                # validate `.shape` against the expected tuple — a
+                # `.size`-only check would accept arbitrary
+                # reshape-equivalent inputs.  No count companions are
+                # needed: the bind(c) declaration carries the full
+                # shape, and the inner constructor's dummy is
+                # explicit-shape.
+                expected_shape = tuple(arg.array_shape)
+                arg.py_reassignment = (
+                    f'    {safe} = np.asfortranarray('
+                    f'np.asarray({safe}, dtype=np.{np_dtype}))\n'
+                    f'    if {safe}.shape != {expected_shape}:\n'
+                    f'        raise ValueError('
+                    f'f"{arg.name} expects shape {expected_shape}, got '
+                    f'{{{safe}.shape}}")\n'
+                )
+                arg.py_pass_as = (
+                    f'{safe}.ctypes.data_as(POINTER({arg.ctype}))'
+                )
             else:
-                # Fixed-size: `array_size` is the literal length.
+                # Fixed-size 1D: `array_size` is the literal length.
                 arg.py_reassignment = (
                     f'    {safe} = np.ascontiguousarray({safe},'
                     f' dtype=np.{np_dtype})\n'
@@ -898,7 +963,7 @@ def build_fortran_reassignments(argument_list, func_class, implementation,
             new_list.insert(0, arg)
             continue
 
-        if arg.is_array and arg.array_rank == 2:
+        if arg.is_array and arg.array_rank == 2 and not arg.array_shape:
             # 2D deferred-shape numeric array.  bind(c) receives the
             # buffer as a flat `dimension(*)` block plus two c_size_t
             # counts.  Allocate a `dimension(:,:)` local of the right
@@ -908,6 +973,10 @@ def build_fortran_reassignments(argument_list, func_class, implementation,
             # sidesteps any concerns about forward-referencing the
             # dummy counts in an automatic-array size spec, and the
             # local is auto-deallocated when the wrapper returns.
+            # `array_shape` non-empty signals a fixed-shape array
+            # whose bind(c) declaration already carries the full
+            # rank-N shape (see the fall-through `elif arg.is_array`
+            # branch below) — no reshape is needed.
             #
             # Optional args are gated on `present(...)` because the
             # bind(c) buffer is a NULL pointer when the user passed

@@ -50,6 +50,12 @@ class ArgSpec:
     array_rank:        int  = 1        # 1 for `dimension(:)` / `dimension(N)`
                                        # / character(len=N) arrays; 2 for
                                        # `dimension(:,:)` 2D numeric.
+    array_shape:       tuple = ()      # per-axis element counts for fixed-
+                                       # shape multi-rank numeric arrays
+                                       # (e.g. (3, 2) for `dimension(3,2)`,
+                                       # (2, 2, 3) for `dimension(2,2,3)`).
+                                       # Empty for 1D fixed (use array_size)
+                                       # and deferred-shape arrays.
     char_len:          int  = 0        # per-element length for fixed-length
                                        # character arrays (`character(len=N),
                                        # dimension(:)`); 0 otherwise.

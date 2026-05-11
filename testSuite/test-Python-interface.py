@@ -567,7 +567,39 @@ with safe_section("nodePropertyExtractor* (logical(:) outputMask)"):
         check_eq(f"{impl}: outputMask in signature",
                  'outputMask' in sig.parameters, True)
 
-# Null-filled constructor arg path — `<argument name="..." value="null"/>`
+# Multi-rank fixed-shape numeric array constructor arg —
+# `double precision, dimension(N, M[, K…])`.  The wrapper converts the
+# user's nested-list / numpy input to a Fortran-order (column-major)
+# buffer, validates `.shape` matches the expected tuple, and passes
+# the contiguous data pointer to the bind(c) function whose dummy is
+# declared with the full fixed shape.  No count companions are
+# inserted — every axis size is baked into the bind(c) declaration.
+#
+# `computationalDomainVolumeIntegratorCartesian3D` takes a single
+# `boundaries: dimension(3,2)` arg encoding {x,y,z}{min,max}.  We
+# construct with a unit-thick cuboid (1*2*3=6) and round-trip `volume()`
+# to confirm both that the column-major byte layout matches Fortran's
+# convention and that the shape validator allows the correct shape
+# (a wrong shape should raise ValueError).
+with safe_section("computationalDomainVolumeIntegratorCartesian3D (dimension(3,2))"):
+    cdomInteg = galacticus.computationalDomainVolumeIntegratorCartesian3D(
+        boundaries = [[0.0, 1.0],    # xMin, xMax
+                      [0.0, 2.0],    # yMin, yMax
+                      [0.0, 3.0]],   # zMin, zMax
+    )
+    check("volume()", cdomInteg.volume(), 1.0 * 2.0 * 3.0)
+    # Wrong-shape input is rejected with a message naming the expected
+    # tuple (proves the validator uses array_shape, not just .size).
+    try:
+        galacticus.computationalDomainVolumeIntegratorCartesian3D(
+            boundaries = [[0.0, 1.0, 5.0],    # wrong axis count
+                          [0.0, 2.0, 5.0]],
+        )
+    except ValueError as exc:
+        check_eq("ValueError on wrong shape",
+                 "expects shape (3, 2)" in str(exc), True)
+    else:
+        check_eq("ValueError on wrong shape", "no exception raised", "ValueError")
 
 # Null-filled constructor arg path — `<argument name="..." value="null"/>`
 # overrides in libraryClasses.xml tell the wrapper to drop callback-

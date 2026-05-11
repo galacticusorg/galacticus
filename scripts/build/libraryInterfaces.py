@@ -203,7 +203,10 @@ _CLASS_RETURN_RX = re.compile(
 # checked here; this file doesn't compute the element count.
 # doesn't need to import a private name).
 _DIM_FIXED_RX_INTERFACES = re.compile(
-    r'^dimension\s*\(\s*(?:\d+\s*:\s*)?\d+\s*\)$'
+    r'^dimension\s*\(\s*'
+    r'(?:\d+\s*:\s*)?\d+'
+    r'(?:\s*,\s*(?:\d+\s*:\s*)?\d+)*'
+    r'\s*\)$'
 )
 
 # Match `len=N` literal in a character type-spec.  Same regex as
