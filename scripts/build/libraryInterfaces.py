@@ -1300,9 +1300,16 @@ end subroutine {class_name}DestructorL
     # class body emitted by interfaces_python_classes.  Default-True via
     # getattr keeps every constructor-built object on the destroy path
     # without each constructor having to set the flag.
+    #
+    # The `_glcObj` guard handles partially-constructed objects: if
+    # `__init__` raised (e.g. a size-validator ValueError before the
+    # bind(c) constructor ran), Python still GCs the half-built
+    # instance and calls __del__; without the guard we'd dereference
+    # the missing attribute and surface an unrelated AttributeError
+    # at interpreter shutdown.
     py_destructor = f'''# Destructor
 def __del__(self):
-    if getattr(self, '_owned', True):
+    if getattr(self, '_owned', True) and hasattr(self, '_glcObj'):
         c_lib.{class_name}DestructorL(self._glcObj,self._classID)
 '''
     python['units'].setdefault(class_name, {}).setdefault('subUnits', []).append({
