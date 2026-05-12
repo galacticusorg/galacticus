@@ -333,6 +333,37 @@ with safe_section("nodeOperatorPositionInterpolated"):
     check_eq("constructed type",
              type(nopi).__name__, 'nodeOperatorPositionInterpolated')
 
+# `mergerTreeImporter` — exercises the kind-aliased integer method
+# *return* types.  `treeCount` / `nodeCount` / `subhaloTraceCount`
+# declare `integer(kind=c_size_t)` and `treeIndex` declares
+# `integer(kind=kind_int8)`.  Before the alias normalisation in
+# `_normalize_method_return_type`, the generator's return-type switch
+# only had branches for the unprefixed `integer(c_size_t)` /
+# `integer(c_long)` forms, so these methods fell through and were
+# dropped with an "unsupported method return type" caution.
+#
+# Calling these end-to-end needs an HDF5 merger-tree file (they each
+# call `galacticusForestIndicesRead` on first use, which opens the
+# file), so the meaningful check is the wrapper-exposure level — the
+# same pattern used for `radiativeTransferMatter` above.  We also pin
+# the negative case (`subhaloTraceCount` stays skipped because its
+# `class(nodeData)` arg is in the deferred non-fc-hierarchy bucket) so
+# accidentally widening the predicate without the related work is
+# caught.
+with safe_section("mergerTreeImporter (kind-aliased integer returns)"):
+    check_eq("mergerTreeImporterGalacticus exposed",
+             hasattr(galacticus, 'mergerTreeImporterGalacticus'), True)
+    for method in ('treeCount', 'treeIndex', 'nodeCount'):
+        check_eq(f"mergerTreeImporterGalacticus.{method} exposed",
+                 hasattr(galacticus.mergerTreeImporterGalacticus, method),
+                 True)
+    # `subhaloTraceCount` survived the return-type fix but still has the
+    # `class(nodeData)` arg blocker (non-fc hierarchy — out of scope).
+    check_eq("subhaloTraceCount stays skipped (class(nodeData) arg)",
+             hasattr(galacticus.mergerTreeImporterGalacticus,
+                     'subhaloTraceCount'),
+             False)
+
 # Fixed-length character-array constructor argument — exercises the
 # `character(len=N), dimension(:)` pipeline path.  The
 # `radiativeTransferMatterAtomic` constructor takes
