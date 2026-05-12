@@ -87,6 +87,21 @@ _ARRAY_RETURN_RX = re.compile(
     re.IGNORECASE,
 )
 
+# Mirror of libraryInterfaces._DYNAMIC_ARRAY_RETURN_RX — covers
+# 1D allocatable returns (`double precision, allocatable, dimension(:)`)
+# and dynamic-size returns (`double precision, dimension(self%X)` etc.).
+# Same template handles both: a save-target allocatable + c_ptr/c_size_t
+# out-companions.  Excludes literal-integer extents (those are
+# `_ARRAY_RETURN_RX`'s territory).
+_DYNAMIC_ARRAY_RETURN_RX = re.compile(
+    r'^(double\s+precision|integer)'
+    r'(?:\s*,\s*allocatable)?'
+    r'\s*,\s*dimension\s*\(\s*'
+    r'(?!\s*\d+\s*\))'
+    r'([^,)]+)\s*\)\s*$',                 # forbid commas — 1D only
+    re.IGNORECASE,
+)
+
 # Scalar return types the generator handles outright (no per-type plumbing
 # beyond the ISO_C_Binding kind selection).  Kept as a literal set so any
 # trivial new alias added to the generator's switch must also be mirrored
@@ -457,9 +472,11 @@ def classify_constructor(args, all_fcs, registered, overridden_args=frozenset(),
             elif 'allocatable' in attrs:
                 pipeline_reasons.append(
                     f"allocatable array ({name})")
-            elif 'intent(in)' not in attrs:
-                pipeline_reasons.append(
-                    f"non-intent(in) array ({name})")
+            # Non-allocatable `intent(inout)` / `intent(out)` arrays are
+            # accepted now — the in-place-mutable-buffer path passes the
+            # caller's numpy buffer straight through and the inner
+            # Galacticus method mutates it in place.  See the matching
+            # branch in libraryInterfaces._unsupported_arg.
             continue
 
         if intrinsic == 'procedure':
@@ -641,6 +658,8 @@ def classify_method_return(ret_type, all_fcs, registered,
     if _ENUM_RETURN_RX.match(ret):
         return set(), []
     if _ARRAY_RETURN_RX.match(ret):
+        return set(), []
+    if _DYNAMIC_ARRAY_RETURN_RX.match(ret):
         return set(), []
     m = _CLASS_RETURN_RX.match(ret)
     if m:

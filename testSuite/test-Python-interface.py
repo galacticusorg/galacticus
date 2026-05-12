@@ -680,6 +680,99 @@ with safe_section("value='null' constructor-arg overrides"):
             check_eq(f"{impl}: {arg_name} not in signature",
                      arg_name in sig.parameters, False)
 
+# Dynamic-size 1D array method return — exercises the save-buffer-plus-
+# (c_ptr, c_size_t)-companions protocol that lowers `<type>double
+# precision, dimension(self%X)</type>` (and the allocatable-return
+# variant `<type>double precision, allocatable, dimension(:)</type>`)
+# to a subroutine wrapper.  Before this path landed, both shapes were
+# dropped with an "unsupported method return type" caution because the
+# return-type switch in interfaces_methods only handled fixed-size
+# numeric returns (`dimension(<integer>)`).
+#
+# `posteriorSampleStateSimple::get()` returns
+# `double precision, dimension(self%parameterCount)`.  We exercise
+# round-trip: parameterCountSet allocates the inner vector,
+# update sets it, get reads it back.  The returned numpy array is a
+# *copy* of the Fortran-side save buffer (so subsequent calls don't
+# alias old data), so its values must persist across additional method
+# invocations.
+with safe_section("posteriorSampleStateSimple (dynamic-size return)"):
+    pss   = galacticus.posteriorSampleStateSimple(acceptedStateCount=10)
+    pss.parameterCountSet(parameterCount=4)
+    pss.update(stateNew=[1.0, 2.5, 7.0, -3.0],
+               logState=False, isConverged=False)
+    arr   = pss.get()
+    check_eq("get() return type",  type(arr).__name__, 'ndarray')
+    check_eq("get() return size",  arr.size,           4)
+    check_eq("get() return dtype", str(arr.dtype),     'float64')
+    check   ("get()[0]",           float(arr[0]),  1.0)
+    check   ("get()[1]",           float(arr[1]),  2.5)
+    check   ("get()[2]",           float(arr[2]),  7.0)
+    check   ("get()[3]",           float(arr[3]), -3.0)
+    # Returned array survives a subsequent `update` because the wrapper
+    # `.copy()`s before handing the buffer to Python; without the copy
+    # the next call would overwrite the save-target buffer and alias
+    # the previous return.
+    pss.update(stateNew=[9.0, 8.0, 7.0, 6.0],
+               logState=False, isConverged=False)
+    check   ("first array unchanged after re-update", float(arr[0]), 1.0)
+    arr2  = pss.get()
+    check_eq("re-update visible",                     float(arr2[0]), 9.0)
+
+# Allocatable-array method return — same save-buffer codegen as the
+# dynamic-size case above, just with an `allocatable, dimension(:)`
+# return type instead of `dimension(self%X)`.  Constructing
+# `starFormationHistoryMetallicitySplit` end-to-end needs an
+# `outputTimes_` plus a clutch of scalar args, all of which we already
+# have in scope from earlier sections.  The `metallicityBoundaries()`
+# method returns `self%metallicityTable(:)` (which the inner constructor
+# stores as the supplied boundaries + a sentinel high value), so the
+# array we get back is the user-supplied boundaries plus one extra
+# element.
+with safe_section("starFormationHistoryMetallicitySplit (allocatable return)"):
+    sfh = galacticus.starFormationHistoryMetallicitySplit(
+        outputTimes_         = outputTimesL,
+        timeStep             = 1.0,
+        timeStepFine         = 0.1,
+        timeFine             = 0.5,
+        massScaleAbsolute    = 1.0e6,
+        metallicityBoundaries= [0.001, 0.01, 0.1],
+    )
+    bounds = sfh.metallicityBoundaries()
+    check_eq("metallicityBoundaries() return type",
+             type(bounds).__name__, 'ndarray')
+    # Inner stores boundaries plus a sentinel `huge(1.0d0)` ⇒ size 4
+    # for our 3-element input.
+    check_eq("metallicityBoundaries() length",  bounds.size, 4)
+    check   ("metallicityBoundaries()[0]",      float(bounds[0]), 0.001)
+    check   ("metallicityBoundaries()[1]",      float(bounds[1]), 0.01)
+    check   ("metallicityBoundaries()[2]",      float(bounds[2]), 0.1)
+
+# In-place mutable buffer arg — exercises the path that accepts
+# `intent(inout)` / `intent(out)` non-allocatable array args.  Before
+# this landed, the predicate rejected any array arg without
+# `intent(in)` with an "output arrays not yet supported" caution.  The
+# Python wrapper passes the numpy buffer's data pointer straight to
+# bind(c), so the inner Galacticus method's in-place mutations are
+# visible in the caller's array as long as the caller already passed a
+# contiguous float64 numpy array (which the wrapper's
+# `np.ascontiguousarray` returns unchanged in that case).
+#
+# `outputAnalysisDistributionNormalizerUnitarity::normalize` divides
+# `distribution` by its sum.  Picking input values whose sum is non-zero
+# means we expect each element to land at its own value over the sum.
+with safe_section("outputAnalysisDistributionNormalizerUnitarity (in-place inout)"):
+    norm = galacticus.outputAnalysisDistributionNormalizerUnitarity()
+    dist = np.array([2.0, 4.0, 6.0], dtype=np.float64)
+    norm.normalize(
+        distribution        = dist,
+        propertyValueMinimum= np.array([0.0, 1.0, 2.0]),
+        propertyValueMaximum= np.array([1.0, 2.0, 3.0]),
+    )
+    check("dist[0] after normalize", float(dist[0]), 2.0 / 12.0)
+    check("dist[1] after normalize", float(dist[1]), 4.0 / 12.0)
+    check("dist[2] after normalize", float(dist[2]), 6.0 / 12.0)
+
 # Final summary and exit code.
 print(f"--- {_failures} failure(s) ---")
 sys.exit(1 if _failures else 0)
