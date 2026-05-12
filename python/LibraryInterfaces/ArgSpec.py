@@ -50,6 +50,12 @@ class ArgSpec:
     array_rank:        int  = 1        # 1 for `dimension(:)` / `dimension(N)`
                                        # / character(len=N) arrays; 2 for
                                        # `dimension(:,:)` 2D numeric.
+    array_shape:       tuple = ()      # per-axis element counts for fixed-
+                                       # shape multi-rank numeric arrays
+                                       # (e.g. (3, 2) for `dimension(3,2)`,
+                                       # (2, 2, 3) for `dimension(2,2,3)`).
+                                       # Empty for 1D fixed (use array_size)
+                                       # and deferred-shape arrays.
     char_len:          int  = 0        # per-element length for fixed-length
                                        # character arrays (`character(len=N),
                                        # dimension(:)`); 0 otherwise.
@@ -89,6 +95,42 @@ class ArgSpec:
     fort_iso_c_symbols:  list = field(default_factory=list)  # extra ISO_C_Binding symbols
     fort_modules:        dict = field(default_factory=dict)  # {module: {symbol: 1}}
     fort_function_class: str  = ''    # class name for GetPtr interface blocks
+
+    # Marker for `class(<intermediate>)` constructor args where
+    # <intermediate> is an abstract Fortran type that itself extends a
+    # registered functionClass (e.g. `class(massDistributionSpherical)`,
+    # whose parent chain reaches `massDistributionClass`).  The wrapper
+    # accepts these through the root functionClass's GetPtr and then
+    # narrows the polymorphic pointer to the intermediate via a
+    # `select type` block emitted by build_fortran_reassignments.  Empty
+    # when no narrowing is needed (the plain `class(<base>Class)` case).
+    narrowing_type: str = ''
+
+    # Marker for constructor args that libraryClasses.xml asks the
+    # wrapper to fill with a null pointer rather than expose to Python
+    # (`<argument name="..." value="null"/>`).  Used for callback-
+    # injection escape-hatch args — typically a `procedure(...), pointer`
+    # plus paired `class(*), pointer` slots — that the parameter-driven
+    # path of the impl already passes as null.  When set, the arg is
+    # dropped from the bind(c) signature (fort_is_present=False) and
+    # the Python signature (py_is_present=False); the Fortran wrapper
+    # declares a local pointer initialised to null() and passes that to
+    # the inner constructor (galacticus_is_present stays True).
+    is_null_filled: bool = False
+
+    # Marker for *optional* constructor args that libraryClasses.xml
+    # asks the wrapper to drop entirely (`<argument name="..." value="absent"/>`).
+    # Used for optional Fortran args whose absence triggers a sensible
+    # default in the inner constructor (e.g.
+    # `type(vector), dimension(3), optional :: axes` defaulting to the
+    # Cartesian basis vectors) but whose declared type isn't otherwise
+    # plumbable through the pipeline.  All three is_present flags go
+    # False — the arg vanishes from the Python signature, the bind(c)
+    # signature, and the inner constructor call.  The optional-arg
+    # `make_call(present_set)` mechanism in fortran_call_code already
+    # omits args with galacticus_is_present=False, so the inner sees
+    # the arg as not-present and falls back to its built-in default.
+    is_absent_filled: bool = False
 
     # Python ctypes
     py_is_present:   bool = True   # include in the Python argument list

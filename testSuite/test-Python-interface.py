@@ -180,6 +180,41 @@ with safe_section("nodePropertyExtractorNodeMajorMergerTime"):
     check_eq("type()"    , npe.type()    , 0)  # type(enumerationOutputAnalysisPropertyType    Type) → c_int
     check_eq("quantity()", npe.quantity(), 0)  # type(enumerationOutputAnalysisPropertyQuantityType) → c_int
 
+# Abstract-intermediate class-argument path — `galacticFilterHighPass`'s
+# constructor takes `class(nodePropertyExtractorScalar)`, which is an
+# *abstract* derived type extending the registered functionClass base
+# `nodePropertyExtractorClass`.  The wrapper now accepts these through
+# the base's `nodePropertyExtractorGetPtr` and narrows the polymorphic
+# pointer to the intermediate via a `select type` block at runtime.
+# Without the abstract-intermediate path, the whole galacticFilter
+# *Pass family (high / low / interval) would have been rejected at
+# constructor-arg validation time.  We pass a concrete
+# `nodePropertyExtractorNodeMajorMergerTime` (which extends
+# `nodePropertyExtractorScalar`) — the select-type match must succeed
+# at runtime for construction to complete without Error_Report.
+with safe_section("galacticFilterHighPass (abstract-intermediate arg)"):
+    gFilter = galacticus.galacticFilterHighPass(
+        threshold              = 1.0e12,
+        nodePropertyExtractor_ = npe,
+    )
+    check_eq("constructed type",
+             type(gFilter).__name__, 'galacticFilterHighPass')
+    # Confirm the sibling impls in the same family also expose
+    # constructors that accept the intermediate — they share the
+    # same pipeline path, so a single end-to-end construction is
+    # enough; the others just need to be importable.
+    check_eq("galacticFilterLowPass exposed",
+             hasattr(galacticus, 'galacticFilterLowPass'), True)
+    check_eq("galacticFilterIntervalPass exposed",
+             hasattr(galacticus, 'galacticFilterIntervalPass'), True)
+    # And the property-extractor-tree intermediates (DescendantNode,
+    # HostNode) take `class(nodePropertyExtractorScalar)` too —
+    # confirm they survived the constructor-arg validation.
+    check_eq("nodePropertyExtractorDescendantNode exposed",
+             hasattr(galacticus, 'nodePropertyExtractorDescendantNode'), True)
+    check_eq("nodePropertyExtractorHostNode exposed",
+             hasattr(galacticus, 'nodePropertyExtractorHostNode'), True)
+
 # Initial mass function — exercises `type(varying_string)` return-type path
 # (Fortran-side static c_char buffer + Python-side .decode("utf-8")).
 with safe_section("initialMassFunctionSalpeter1955"):
@@ -433,6 +468,186 @@ with safe_section("stellarPopulationSpectraPostprocessorBuilderLookup"):
     check_eq("build('igm') resolves to Inoue2014 subclass",
              type(ppIGM    ).__name__,
              'stellarPopulationSpectraPostprocessorInoue2014')
+
+# Abstract-intermediate class-argument path (massDistribution family) —
+# `massDistributionSphericalScaler`'s constructor takes
+# `class(massDistributionSpherical)`, the abstract intermediate that
+# extends the registered `massDistributionClass`.  We construct a
+# concrete spherical (`massDistributionZero` — dimensionless, no other
+# deps) and pass it through; the wrapper must route via
+# `massDistributionGetPtr` and successfully narrow to
+# `massDistributionSpherical` for construction to complete.
+#
+# Also confirms the related impls in the same family that hit the
+# intermediate-arg path are exposed.  `massDistributionCylindricalScaler`
+# takes `class(massDistributionCylindrical)` (a separate intermediate
+# under the same base) so it stresses the second branch of the
+# hierarchy walk.
+with safe_section("massDistributionSphericalScaler (abstract-intermediate arg)"):
+    massDistributionZero    = galacticus.massDistributionZero(dimensionless=True)
+    massDistributionScaler  = galacticus.massDistributionSphericalScaler(
+        factorScalingLength = 2.0,
+        factorScalingMass   = 3.0,
+        massDistribution_   = massDistributionZero,
+    )
+    check_eq("constructed type",
+             type(massDistributionScaler).__name__,
+             'massDistributionSphericalScaler')
+    # Other impls in the spherical / cylindrical intermediate families
+    # — every one of these required the abstract-intermediate path to
+    # survive constructor-arg validation.
+    for impl in ('massDistributionCylindricalScaler',
+                 'massDistributionSphericalDecaying',
+                 'massDistributionSphericalHeated',
+                 'massDistributionSphericalTruncated',
+                 'massDistributionSphericalFiniteResolution'):
+        check_eq(f"{impl} exposed", hasattr(galacticus, impl), True)
+
+# Explicit-lower-bound fixed-size 1D array — exercises the
+# `dimension(L:U)` shape (e.g. `dimension(0:2)`).  The wrapper accepts
+# any contiguous sequence whose length matches U-L+1 and ships it to
+# the inner constructor, whose dummy has the explicit lower bound;
+# Fortran copies elementwise on entry, so the lower bound is irrelevant
+# at the wire level — only the element count matters.  Without this
+# support, `haloMassFunctionOndaroMallea2021` would have been rejected
+# at constructor-arg validation time.
+#
+# coefficientsN is `dimension(0:2)` (size 3); coefficientsA is
+# `dimension(0:1)` (size 2).  We pass the matching counts to confirm
+# the size validator picks them up correctly — and check that passing
+# a wrong-length array raises ValueError with the corrected size in
+# the diagnostic.
+with safe_section("haloMassFunctionOndaroMallea2021 (dimension(0:2))"):
+    haloMassFunctionOM = galacticus.haloMassFunctionOndaroMallea2021(
+        coefficientsN             = [-0.04, 0.03, -0.001],
+        coefficientsA             = [ 1.0 , 0.2          ],
+        cosmologyParameters_      = cosmologyParameters,
+        cosmologicalMassVariance_ = cosmologicalMassVariance,
+        linearGrowth_             = linearGrowth,
+        haloMassFunction_         = haloMassFunction,
+    )
+    check_eq("constructed type",
+             type(haloMassFunctionOM).__name__,
+             'haloMassFunctionOndaroMallea2021')
+    # Wrong-length coefficientsA should be rejected by the wrapper
+    # with a message that includes the correct expected size (2).
+    try:
+        galacticus.haloMassFunctionOndaroMallea2021(
+            coefficientsN             = [-0.04, 0.03, -0.001],
+            coefficientsA             = [ 1.0 , 0.2 ,  0.05 ],   # wrong size
+            cosmologyParameters_      = cosmologyParameters,
+            cosmologicalMassVariance_ = cosmologicalMassVariance,
+            linearGrowth_             = linearGrowth,
+            haloMassFunction_         = haloMassFunction,
+        )
+    except ValueError as exc:
+        check_eq("ValueError on wrong-length dimension(0:1)",
+                 "expects 2" in str(exc), True)
+    else:
+        check_eq("ValueError on wrong-length dimension(0:1)",
+                 "no exception raised", "ValueError")
+
+# `logical, dimension(:)` constructor arg path — `outputMask` on the
+# stellar-luminosity property extractor.  bind(c) ships the values as a
+# `logical(c_bool), dimension(*)` buffer plus a c_size_t count; the
+# wrapper allocates a default-kind `logical, dimension(:)` local and
+# populates it via an elemental `logical()` cast before the inner call.
+#
+# Constructing one of these impls end-to-end needs filter / stellar
+# state we don't initialise here, so the meaningful check is that the
+# wrapper symbol exists and exposes `outputMask` in its signature
+# (parallels the `radiativeTransferMatter` smoke test above).
+with safe_section("nodePropertyExtractor* (logical(:) outputMask)"):
+    for impl in ('nodePropertyExtractorLuminosityStellar',
+                 'nodePropertyExtractorLmnstyStllrCF2000',
+                 'nodePropertyExtractorLmnstyEmssnLineAGN',
+                 'nodePropertyExtractorLmnstyEmssnLinePanuzzo2003'):
+        check_eq(f"{impl} exposed", hasattr(galacticus, impl), True)
+        sig = inspect.signature(getattr(galacticus, impl).__init__)
+        check_eq(f"{impl}: outputMask in signature",
+                 'outputMask' in sig.parameters, True)
+
+# Multi-rank fixed-shape numeric array constructor arg —
+# `double precision, dimension(N, M[, K…])`.  The wrapper converts the
+# user's nested-list / numpy input to a Fortran-order (column-major)
+# buffer, validates `.shape` matches the expected tuple, and passes
+# the contiguous data pointer to the bind(c) function whose dummy is
+# declared with the full fixed shape.  No count companions are
+# inserted — every axis size is baked into the bind(c) declaration.
+#
+# `computationalDomainVolumeIntegratorCartesian3D` takes a single
+# `boundaries: dimension(3,2)` arg encoding {x,y,z}{min,max}.  We
+# construct with a unit-thick cuboid (1*2*3=6) and round-trip `volume()`
+# to confirm both that the column-major byte layout matches Fortran's
+# convention and that the shape validator allows the correct shape
+# (a wrong shape should raise ValueError).
+with safe_section("computationalDomainVolumeIntegratorCartesian3D (dimension(3,2))"):
+    cdomInteg = galacticus.computationalDomainVolumeIntegratorCartesian3D(
+        boundaries = [[0.0, 1.0],    # xMin, xMax
+                      [0.0, 2.0],    # yMin, yMax
+                      [0.0, 3.0]],   # zMin, zMax
+    )
+    check("volume()", cdomInteg.volume(), 1.0 * 2.0 * 3.0)
+    # Wrong-shape input is rejected with a message naming the expected
+    # tuple (proves the validator uses array_shape, not just .size).
+    try:
+        galacticus.computationalDomainVolumeIntegratorCartesian3D(
+            boundaries = [[0.0, 1.0, 5.0],    # wrong axis count
+                          [0.0, 2.0, 5.0]],
+        )
+    except ValueError as exc:
+        check_eq("ValueError on wrong shape",
+                 "expects shape (3, 2)" in str(exc), True)
+    else:
+        check_eq("ValueError on wrong shape", "no exception raised", "ValueError")
+
+# Ambiguous-Internal-constructor disambiguation —
+# `<constructor internal="..."/>` in libraryClasses.xml picks one
+# constructor when the impl exposes more than one
+# Internal-suffixed module procedure.  Without the hint, the generator
+# can't choose and skips the impl entirely.
+# `darkMatterProfileConcentrationDuttonMaccio2014` has two:
+# `InternalType` (keyed by a fit-type enum) and `InternalDefined`
+# (raw coefficients).  We expose the higher-level `InternalType` form.
+with safe_section("darkMatterProfileConcentrationDuttonMaccio2014 (internal=…)"):
+    check_eq("darkMatterProfileConcentrationDuttonMaccio2014 exposed",
+             hasattr(galacticus, 'darkMatterProfileConcentrationDuttonMaccio2014'),
+             True)
+    sig = inspect.signature(
+        galacticus.darkMatterProfileConcentrationDuttonMaccio2014.__init__)
+    # The chosen InternalType form takes `fitType` (enum) +
+    # cosmologyParameters_ / cosmologyFunctions_; the rejected
+    # InternalDefined form would have surfaced `a1`/`a2`/...
+    check_eq("fitType in signature (InternalType chosen)",
+             'fitType' in sig.parameters, True)
+    check_eq("a1 not in signature (InternalDefined rejected)",
+             'a1' in sig.parameters, False)
+
+# Null-filled constructor arg path — `<argument name="..." value="null"/>`
+# overrides in libraryClasses.xml tell the wrapper to drop callback-
+# injection escape-hatch args (a procedure-pointer plus paired class(*)
+# state slots) that the parameter-driven path of the impl already passes
+# as null.  Without the override, the procedure-pointer arg blocks the
+# whole impl at constructor-arg validation time.
+#
+# Both impls share three null-filled args
+# (initializationFunction / initializationSelf / initializationArgument);
+# constructing one of them end-to-end needs a stack of other
+# functionClass deps we don't initialise here, so the meaningful end-to-
+# end check is that the wrapper symbols exist (parallels the
+# `radiativeTransferMatter` smoke test above).
+with safe_section("value='null' constructor-arg overrides"):
+    for impl in ('massDistributionSphericalAdiabaticGnedin2004',
+                 'massDistributionSphericalSIDMIsothermalBaryons'):
+        check_eq(f"{impl} exposed", hasattr(galacticus, impl), True)
+        # And the three null-filled args really are absent from the
+        # Python signature — that's the contract the override promises.
+        sig = inspect.signature(getattr(galacticus, impl).__init__)
+        for arg_name in ('initializationFunction',
+                         'initializationSelf',
+                         'initializationArgument'):
+            check_eq(f"{impl}: {arg_name} not in signature",
+                     arg_name in sig.parameters, False)
 
 # Final summary and exit code.
 print(f"--- {_failures} failure(s) ---")

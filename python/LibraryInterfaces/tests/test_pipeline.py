@@ -568,6 +568,321 @@ def test_fortran_reassignments_function_class_uses_GetPtr_function():
     assert 'fooClass' in out[0].fort_modules['Foo']
 
 
+def test_assign_c_types_fixed_array_accepts_multi_rank_shape():
+    """`double precision, dimension(N,M[,K…])` is a fixed-shape rank-≥2
+    numeric array.  The bind(c) decl carries the full shape directly
+    (so no count companions are inserted); array_shape captures the
+    per-axis sizes for the Python wrapper's shape validator, and
+    array_size is the product (used as a tie-breaker / total count)."""
+    raw = [{'name': 'boundaries', 'intrinsic': 'double precision',
+            'type': None, 'attributes': ['intent(in)', 'dimension(3,2)']}]
+    out = assign_c_types(raw, lib_function_classes={})
+    # No count companions — array_shape carries the full shape.
+    assert [a.name for a in out] == ['boundaries']
+    assert out[0].is_array    is True
+    assert out[0].array_shape == (3, 2)
+    assert out[0].array_rank  == 2
+    assert out[0].array_size  == 6
+    # 3D case (e.g. Hearin2021Stochastic's `means: dimension(2,2,3)`).
+    raw = [{'name': 'means', 'intrinsic': 'double precision', 'type': None,
+            'attributes': ['intent(in)', 'dimension(2,2,3)']}]
+    out = assign_c_types(raw, lib_function_classes={})
+    assert out[0].array_shape == (2, 2, 3)
+    assert out[0].array_rank  == 3
+    assert out[0].array_size  == 12
+
+
+def test_python_reassignments_multi_rank_fixed_array_validates_shape():
+    """The Python wrapper for a multi-rank fixed-shape array calls
+    np.asfortranarray (column-major) and validates `.shape` against
+    the expected tuple — a `.size`-only check would silently accept
+    arbitrary reshape-equivalents."""
+    raw = [{'name': 'boundaries', 'intrinsic': 'double precision',
+            'type': None, 'attributes': ['intent(in)', 'dimension(3,2)']}]
+    args = assign_c_types(raw, lib_function_classes={})
+    args = assign_c_attributes(args)
+    out  = build_python_reassignments(args)
+    reassign = out[0].py_reassignment
+    assert 'np.asfortranarray(' in reassign
+    assert 'shape != (3, 2)'    in reassign
+    assert 'expects shape (3, 2)' in reassign
+    assert out[0].py_pass_as == \
+        'boundaries.ctypes.data_as(POINTER(c_double))'
+
+
+def test_fortran_reassignments_multi_rank_fixed_array_passes_through():
+    """A fixed-shape multi-rank array's bind(c) decl already carries
+    the full shape (via the unchanged `dimension(N,M)` attribute), so
+    build_fortran_reassignments must NOT emit the 2D-deferred reshape
+    block — the 2D-deferred branch's array_rank check has to be gated
+    on the absence of `array_shape`."""
+    raw = [{'name': 'boundaries', 'intrinsic': 'double precision',
+            'type': None, 'attributes': ['intent(in)', 'dimension(3,2)']}]
+    args = assign_c_types(raw, lib_function_classes={})
+    args = assign_c_attributes(args)
+    args = build_python_reassignments(args)
+    out  = build_fortran_reassignments(
+        args, func_class={}, implementation=None,
+        extensions={}, module_uses_impls={},
+    )
+    # No reshape, no allocate, no local _F_ buffer — just pass directly.
+    assert 'reshape'      not in out[0].fort_reassignment
+    assert 'allocate'     not in out[0].fort_reassignment
+    assert 'boundaries_F_' not in out[0].fort_declarations
+    # `dimension(3,2)` survived assign_c_attributes unchanged so the
+    # bind(c) decl is explicit-shape (no `dimension(*)` rewrite).
+    assert 'dimension(3,2)' in out[0].fort_attributes
+
+
+def test_assign_c_types_fixed_array_accepts_explicit_lower_bound():
+    """`double precision, dimension(0:2)` is fixed-size of length 3.
+    The bind(c) wrapper always uses default lower-bound declarations,
+    so we only care about the element count — the inner constructor's
+    explicit-lower-bound dummy copies the data elementwise on entry."""
+    raw = [{'name': 'coefficientsN', 'intrinsic': 'double precision',
+            'type': None, 'attributes': ['intent(in)', 'dimension(0:2)']}]
+    out = assign_c_types(raw, lib_function_classes={})
+    assert [a.name for a in out] == ['coefficientsN']
+    assert out[0].is_array   is True
+    assert out[0].array_size == 3
+
+
+def test_assign_c_types_logical_deferred_array_routes_through_c_bool():
+    """`logical, dimension(:)` is plumbed through the same 1D-array path
+    as numerics: a c_bool buffer plus a c_size_t count companion."""
+    raw = [{'name': 'outputMask', 'intrinsic': 'logical', 'type': None,
+            'attributes': ['intent(in)', 'dimension(:)']}]
+    out = assign_c_types(raw, lib_function_classes={})
+    assert [a.name for a in out] == ['outputMask', 'outputMask_count']
+    assert out[0].is_array     is True
+    assert out[0].array_size   is None
+    assert out[0].ctype        == 'c_bool'
+    assert out[0].fort_type    == 'logical(c_bool)'
+    # Count companion is the standard c_size_t one, same shape as the
+    # numeric/character paths.
+    assert out[1].ctype        == 'c_size_t'
+
+
+def test_fortran_reassignments_logical_array_emits_kind_narrowing_copy():
+    """A logical 1D array gets a local `logical, dimension(:), allocatable`
+    populated by an element-wise `logical()` cast from the c_bool buffer.
+    Optional args gate that conversion on `present(name)` so an absent
+    NULL pointer isn't indexed.  The inner method receives the local."""
+    raw_required = [{'name': 'mask', 'intrinsic': 'logical', 'type': None,
+                     'attributes': ['intent(in)', 'dimension(:)']}]
+    args = assign_c_types(raw_required, lib_function_classes={})
+    out = build_fortran_reassignments(
+        args, func_class={}, implementation=None,
+        extensions={}, module_uses_impls={},
+    )
+    decls = out[0].fort_declarations
+    reassign = out[0].fort_reassignment
+    assert 'logical, dimension(:), allocatable :: mask_F_' in decls
+    assert 'allocate(mask_F_(mask_count))' in reassign
+    assert 'mask_F_ = logical(mask(1:mask_count))' in reassign
+    assert out[0].fort_pass_as == 'mask_F_'
+    # Optional variant guards the allocation/copy on present().
+    raw_optional = [{'name': 'mask', 'intrinsic': 'logical', 'type': None,
+                     'attributes': ['intent(in)', 'dimension(:)', 'optional']}]
+    args = assign_c_types(raw_optional, lib_function_classes={})
+    out = build_fortran_reassignments(
+        args, func_class={}, implementation=None,
+        extensions={}, module_uses_impls={},
+    )
+    assert 'if (present(mask)) then'     in out[0].fort_reassignment
+    assert 'allocate(mask_F_(mask_count))' in out[0].fort_reassignment
+
+
+def test_assign_c_types_value_absent_drops_optional_arg_entirely():
+    """`<argument name="..." value="absent"/>` drops an *optional* arg
+    entirely — from Python, from bind(c), and from the inner call.
+    All three is_present flags go False; the inner constructor must
+    handle the absence via its built-in default."""
+    raw = [
+        {'name': 'axes', 'intrinsic': 'type', 'type': 'vector',
+         'attributes': ['intent(in)', 'dimension(3)', 'optional']},
+    ]
+    overrides = [{'name': 'axes', 'value': 'absent'}]
+    out = assign_c_types(
+        raw, lib_function_classes={},
+        constructor_overrides=overrides,
+    )
+    assert [a.name for a in out] == ['axes']
+    assert out[0].is_absent_filled     is True
+    assert out[0].fort_is_present      is False
+    assert out[0].py_is_present        is False
+    assert out[0].galacticus_is_present is False
+
+
+def test_fortran_reassignments_value_absent_emits_no_decl_or_use():
+    """An absent-filled arg must skip every type-handling branch in
+    build_fortran_reassignments — no declaration, no `use` import, no
+    reassignment.  Otherwise the generic-derived-type branch would
+    emit `use :: <fc_module>, only : <type>` for a type the wrapper
+    neither declares nor passes (e.g. `vector` from Mass_Distributions
+    when its real home is Linear_Algebra)."""
+    raw = [{'name': 'axes', 'intrinsic': 'type', 'type': 'vector',
+            'attributes': ['intent(in)', 'dimension(3)', 'optional']}]
+    overrides = [{'name': 'axes', 'value': 'absent'}]
+    args = assign_c_types(raw, lib_function_classes={},
+                          constructor_overrides=overrides)
+    out = build_fortran_reassignments(
+        args,
+        func_class={'module': 'Mass_Distributions'},
+        implementation=None, extensions={}, module_uses_impls={},
+    )
+    assert out[0].fort_declarations == ''
+    assert out[0].fort_reassignment == ''
+    assert out[0].fort_modules      == {}
+
+
+def test_assign_c_types_value_absent_rejects_non_optional_arg():
+    """A value="absent" override on a non-optional arg is a hard
+    error — the wrapper would silently drop a required arg otherwise,
+    causing the inner constructor to crash on access."""
+    raw = [{'name': 'axes', 'intrinsic': 'type', 'type': 'vector',
+            'attributes': ['intent(in)', 'dimension(3)']}]
+    overrides = [{'name': 'axes', 'value': 'absent'}]
+    import pytest
+    with pytest.raises(ValueError, match='value=.absent. override on '
+                                         'non-optional argument'):
+        assign_c_types(raw, lib_function_classes={},
+                       constructor_overrides=overrides)
+
+
+def test_assign_c_types_value_null_drops_arg_from_both_wrappers():
+    """`<argument name="..." value="null"/>` in constructor_overrides
+    flags the matching arg as null-filled: it disappears from both the
+    bind(c) and the Python signatures and the inner constructor still
+    receives it (via a local null pointer emitted by
+    build_fortran_reassignments)."""
+    raw = [
+        {'name': 'initializationFunction', 'intrinsic': 'procedure',
+         'type': 'someInitializor', 'attributes': ['intent(in)', 'pointer']},
+        {'name': 'initializationSelf',     'intrinsic': 'class',
+         'type': '*',                'attributes': ['intent(in)', 'pointer']},
+    ]
+    overrides = [
+        {'name': 'initializationFunction', 'value': 'null'},
+        {'name': 'initializationSelf',     'value': 'null'},
+    ]
+    out = assign_c_types(
+        raw, lib_function_classes={},
+        constructor_overrides=overrides,
+    )
+    assert [a.name for a in out] == ['initializationFunction', 'initializationSelf']
+    for arg in out:
+        assert arg.is_null_filled        is True
+        assert arg.fort_is_present       is False
+        assert arg.py_is_present         is False
+        assert arg.galacticus_is_present is True
+
+
+def test_fortran_reassignments_value_null_emits_local_null_pointer():
+    """A null-filled procedure-pointer arg gets a `procedure(<intf>),
+    pointer :: name => null()` declaration in the wrapper, with the
+    interface imported from the functionClass's own module.  Paired
+    class(*) args get `class(*), pointer :: name => null()`."""
+    proc = ArgSpec(
+        name='initializationFunction', intrinsic='procedure',
+        type_spec='sphericalAdiabaticGnedin2004Initializor',
+        is_null_filled=True,
+        fort_is_present=False, py_is_present=False,
+        galacticus_is_present=True,
+    )
+    star = ArgSpec(
+        name='initializationSelf', intrinsic='class', type_spec='*',
+        is_null_filled=True,
+        fort_is_present=False, py_is_present=False,
+        galacticus_is_present=True,
+    )
+    out = build_fortran_reassignments(
+        [proc, star],
+        func_class={'module': 'Mass_Distributions'},
+        implementation=None, extensions={}, module_uses_impls={},
+        lib_function_classes={},
+    )
+    proc_decl = out[0].fort_declarations
+    star_decl = out[1].fort_declarations
+    assert ('procedure(sphericalAdiabaticGnedin2004Initializor), pointer :: '
+            'initializationFunction => null()') in proc_decl
+    assert 'class(*), pointer :: initializationSelf => null()' in star_decl
+    # The procedure interface must be `use`-imported from the
+    # functionClass's own module (where the impl's abstract interface
+    # lives); the class(*) case needs no module.
+    assert ('sphericalAdiabaticGnedin2004Initializor'
+            in out[0].fort_modules['Mass_Distributions'])
+    assert 'Mass_Distributions' not in out[1].fort_modules
+    # The inner constructor receives the local pointer by name.
+    assert out[0].fort_pass_as == 'initializationFunction'
+    assert out[1].fort_pass_as == 'initializationSelf'
+
+
+def test_assign_c_types_class_intermediate_routes_through_base_GetPtr():
+    """`class(<intermediate>)` whose extends-chain reaches a registered
+    <base>Class is treated as a function-class arg keyed on <base>, with
+    the intermediate recorded as the narrowing target."""
+    raw = [{'name': 'distribution', 'intrinsic': 'class',
+            'type': 'massDistributionSpherical',
+            'attributes': ['intent(in)']}]
+    hierarchy = {
+        'massDistributionSpherical': {'parent': 'massDistributionClass',
+                                      'module': 'Mass_Distributions'},
+    }
+    out = assign_c_types(
+        raw,
+        lib_function_classes={'massDistribution': {'module': 'Mass_Distributions'}},
+        class_hierarchy=hierarchy,
+    )
+    assert [a.name for a in out] == ['distribution', 'distribution_ID']
+    assert out[0].is_function_class    is True
+    assert out[0].narrowing_type       == 'massDistributionSpherical'
+    assert out[0].fort_function_class  == 'massDistribution'
+    assert out[1].name                 == 'distribution_ID'
+
+
+def test_fortran_reassignments_class_intermediate_emits_select_type_narrowing():
+    """An ArgSpec with narrowing_type set produces a `select type` block
+    that narrows the base GetPtr result to the intermediate, with an
+    Error_Report on type mismatch."""
+    parent = ArgSpec(
+        name='distribution', is_function_class=True,
+        type_spec='massDistributionSpherical',
+        narrowing_type='massDistributionSpherical',
+        fort_function_class='massDistribution',
+    )
+    out = build_fortran_reassignments(
+        [parent],
+        func_class={}, implementation=None,
+        extensions={}, module_uses_impls={},
+        lib_function_classes={'massDistribution': {'module': 'Mass_Distributions'}},
+    )
+    reassign = out[0].fort_reassignment
+    # The narrowing block recovers the base pointer, then `select type`-
+    # casts to the intermediate and aborts via Error_Report otherwise.
+    assert 'massDistributionGetPtr(distribution,distribution_ID)' in reassign
+    assert 'select type (distribution_base_)'            in reassign
+    assert 'class is (massDistributionSpherical)'        in reassign
+    assert 'distribution_ => distribution_base_'         in reassign
+    assert 'class default'                               in reassign
+    assert 'call Error_Report('                          in reassign
+    assert '{introspection:location}'                    in reassign
+    # Both the base class pointer and the narrowed intermediate are
+    # declared so the inner constructor sees the right declared type.
+    assert 'class(massDistributionClass), pointer :: distribution_base_' \
+        in out[0].fort_declarations
+    assert 'class(massDistributionSpherical), pointer :: distribution_' \
+        in out[0].fort_declarations
+    # The bind(c) wrapper passes the narrowed pointer.
+    assert out[0].fort_pass_as == 'distribution_'
+    # Required modules: Error (for Error_Report) and the FC's module
+    # (for both <base>Class and the intermediate type symbol).
+    assert 'Error_Report' in out[0].fort_modules.get('Error', {})
+    fc_mod = out[0].fort_modules.get('Mass_Distributions', {})
+    assert 'massDistributionClass'     in fc_mod
+    assert 'massDistributionSpherical' in fc_mod
+
+
 def test_fortran_reassignments_arbitrary_derived_type_uses_c_f_pointer():
     """Unknown derived types get c_f_pointer + a module declaration from
     func_class.module."""

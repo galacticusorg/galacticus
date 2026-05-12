@@ -30,6 +30,7 @@ import re
 from List.ExtraUtils import as_array
 from LibraryInterfaces.ArgSpec import ArgSpec
 from LibraryInterfaces.Emitters import python_safe_name
+from LibraryInterfaces.Hierarchy import resolve_function_class_base
 
 __all__ = [
     'assign_c_types', 'assign_c_attributes',
@@ -77,11 +78,62 @@ _SHARED_TYPE_MODULES = {
 }
 
 
-# Match a fixed-size 1D dimension attribute (e.g. dimension(3)).  Used to
-# distinguish a fixed-size array — whose length is known at codegen time
-# and so needs no count companion — from a deferred-shape dimension(:),
-# which does.
-_DIM_FIXED_RX = re.compile(r'^dimension\s*\(\s*(\d+)\s*\)$')
+# Match a fixed-size dimension attribute of any rank.  Each comma-
+# separated dim is either `N` (default lower bound 1) or `L:U` (explicit
+# lower bound).  Used to distinguish a fixed-size array — whose shape is
+# known at codegen time and so needs no count companions — from a
+# deferred-shape `dimension(:)` / `dimension(:,:)`, which do.  The
+# wrapper always declares the bind(c) side with default lower bounds;
+# the inner constructor's explicit-lower-bound dummy receives the data
+# via Fortran's elementwise copy on entry, so callers don't have to
+# care about base offsets.
+_DIM_FIXED_RX = re.compile(
+    r'^dimension\s*\(\s*'
+    r'(?:\d+\s*:\s*)?\d+'                      # first axis
+    r'(?:\s*,\s*(?:\d+\s*:\s*)?\d+)*'          # additional axes
+    r'\s*\)$'
+)
+# Pulls one axis out of a fixed-shape attr's inner csv.
+_DIM_AXIS_RX = re.compile(
+    r'^\s*(?:(\d+)\s*:\s*)?(\d+)\s*$'
+)
+
+
+def _fixed_dim_shape(attr):
+    """Return the per-axis element counts encoded by a fixed-shape
+    dimension attribute as a tuple, or ``None`` if *attr* doesn't match
+    a supported fixed-shape form.  Handles `dimension(N)`, `dimension(L:U)`,
+    and multi-rank forms like `dimension(N, M)` / `dimension(N, M, K)`
+    (each axis independently default-lower-bound or explicit `L:U`)."""
+    if not _DIM_FIXED_RX.match(attr):
+        return None
+    inner = attr[attr.index('(') + 1 : attr.rindex(')')]
+    dims = []
+    for part in inner.split(','):
+        m = _DIM_AXIS_RX.match(part)
+        if not m:
+            return None
+        lower = int(m.group(1)) if m.group(1) is not None else 1
+        upper = int(m.group(2))
+        dims.append(upper - lower + 1)
+    return tuple(dims)
+
+
+def _fixed_dim_size(attr):
+    """Return the total element count encoded by a fixed-shape 1D
+    dimension attribute, or None if *attr* doesn't match.  Provided as
+    a thin wrapper over :func:`_fixed_dim_shape` so call-sites that
+    only care about total length stay terse."""
+    shape = _fixed_dim_shape(attr)
+    return None if shape is None else _shape_product(shape)
+
+
+def _shape_product(shape):
+    """Element count for a fixed-shape tuple."""
+    n = 1
+    for d in shape:
+        n *= d
+    return n
 
 # Match a `len=N` literal in a character type-spec, used to detect
 # fixed-length character arrays (e.g. `character(len=2), dimension(:)`).
@@ -140,7 +192,8 @@ def _make_count_companion(name):
     )
 
 
-def assign_c_types(argument_list, lib_function_classes):
+def assign_c_types(argument_list, lib_function_classes, class_hierarchy=None,
+                   constructor_overrides=()):
     """Assign appropriate C types for each argument.
 
     Mirrors Perl assignCTypes().  Accepts a list of raw Fortran-declaration
@@ -148,7 +201,32 @@ def assign_c_types(argument_list, lib_function_classes):
     reverse so that the ``_ID`` companion argument for functionClass parameters
     can be inserted immediately after its parent without disturbing the rest
     of the list.
+
+    *class_hierarchy* is the type→parent map produced by
+    :func:`LibraryInterfaces.Hierarchy.build_type_hierarchy`.  When supplied,
+    ``class(<intermediate>)`` args whose extends-chain reaches a registered
+    ``<base>Class`` get the function-class treatment too, with the
+    intermediate type recorded as ``arg.narrowing_type`` for the Fortran
+    emitter to ``select type``-narrow at runtime.
+
+    *constructor_overrides* is the impl's ``<constructor><argument …/></constructor>``
+    entries from libraryClasses.xml.  An entry with ``value="null"`` flags
+    the matching arg as null-filled: it's dropped from both the bind(c)
+    and the Python signatures (``fort_is_present`` / ``py_is_present`` set
+    False) and the Fortran wrapper declares a local null pointer that the
+    inner constructor receives in its place.  See ``is_null_filled`` on
+    :class:`ArgSpec` for the rationale.
     """
+    if class_hierarchy is None:
+        class_hierarchy = {}
+    null_filled_names = {
+        o.get('name') for o in constructor_overrides
+        if isinstance(o, dict) and o.get('value') == 'null' and o.get('name')
+    }
+    absent_filled_names = {
+        o.get('name') for o in constructor_overrides
+        if isinstance(o, dict) and o.get('value') == 'absent' and o.get('name')
+    }
     new_list = []
     for raw in reversed(argument_list):
         arg = ArgSpec.from_raw(raw) if isinstance(raw, dict) else raw
@@ -157,6 +235,40 @@ def assign_c_types(argument_list, lib_function_classes):
         arg.fort_is_present       = True
         arg.py_is_present         = True
         arg.galacticus_is_present = True
+
+        # Null-fill override: drop the arg from both wrappers and have
+        # build_fortran_reassignments emit a local null pointer that the
+        # inner constructor receives instead.  Short-circuits the rest
+        # of the per-intrinsic dispatch — the ArgSpec carries no ctype
+        # because the bind(c) signature won't reference it.
+        if arg.name in null_filled_names:
+            arg.is_null_filled        = True
+            arg.fort_is_present       = False
+            arg.py_is_present         = False
+            arg.galacticus_is_present = True
+            arg.is_optional           = False
+            new_list.insert(0, arg)
+            continue
+
+        # Absent-fill override: drop the arg from both wrappers AND
+        # from the inner call.  Only valid for optional args — the
+        # inner constructor must handle the absence via its declared
+        # default behaviour (e.g. identity-aligned principal axes for
+        # the Gaussian ellipsoid's optional `axes`).  Detecting
+        # `is_optional` requires the `optional` attribute on the raw
+        # decl, which we've already captured in arg.attributes.
+        if arg.name in absent_filled_names:
+            if 'optional' not in arg.attributes:
+                raise ValueError(
+                    f"value='absent' override on non-optional argument "
+                    f"'{arg.name}' — only optional args may be dropped")
+            arg.is_absent_filled      = True
+            arg.fort_is_present       = False
+            arg.py_is_present         = False
+            arg.galacticus_is_present = False
+            arg.is_optional           = False
+            new_list.insert(0, arg)
+            continue
         arg.is_function_class     = False
         arg.is_optional           = bool('optional' in arg.attributes)
 
@@ -293,33 +405,55 @@ def assign_c_types(argument_list, lib_function_classes):
         elif intrinsic == 'class':
             arg.ctype     = 'c_void_p'
             arg.fort_type = 'type(c_ptr)'
-            # Check whether this is a functionClass argument.
-            if type_spec_val.endswith('Class'):
-                class_key = type_spec_val[:-5]  # strip trailing 'Class'
-                if class_key in lib_function_classes:
-                    arg.is_function_class = True
-                    # 'self' is dispatched via the method binding, not passed directly.
-                    if arg.name == 'self':
-                        arg.galacticus_is_present = False
-                    # Insert a companion _ID argument (carries the concrete class ID).
-                    arg_id = ArgSpec(
-                        name                  = arg.name + '_ID',
-                        intrinsic             = 'integer',
-                        attributes            = ['intent(in)'],
-                        ctype                 = 'c_int',
-                        fort_type             = 'integer(c_int)',
-                        fort_is_present       = True,
-                        py_is_present         = False,
-                        galacticus_is_present = False,
-                        is_optional           = False,
-                        is_function_class     = False,
-                    )
-                    if arg.is_optional:
-                        arg_id.attributes.append('optional')
-                        arg_id.is_optional = True
-                        arg_id.py_present  = python_safe_name(arg.name)
-                    # Insert _ID before the current front, then arg before that.
-                    new_list.insert(0, arg_id)
+            # Check whether this is a functionClass argument.  Two shapes
+            # qualify: the plain `class(<base>Class)` form (stem registered
+            # in libraryClasses.xml), or `class(<intermediate>)` where
+            # <intermediate>'s extends-chain reaches a registered
+            # <base>Class — in which case we route through <base>GetPtr and
+            # have build_fortran_reassignments insert a `select type`
+            # narrowing to the intermediate.
+            class_key      = None
+            narrowing_type = ''
+            if type_spec_val.endswith('Class') \
+                    and type_spec_val[:-5] in lib_function_classes:
+                class_key = type_spec_val[:-5]
+            elif class_hierarchy:
+                base, intermediate = resolve_function_class_base(
+                    type_spec_val, class_hierarchy,
+                    set(lib_function_classes.keys()))
+                if base is not None:
+                    class_key      = base
+                    narrowing_type = intermediate or ''
+            if class_key is not None:
+                arg.is_function_class   = True
+                arg.narrowing_type      = narrowing_type
+                # Record the registered <base> here so
+                # build_fortran_reassignments doesn't have to re-derive it
+                # (the abstract-intermediate path can't recover it from
+                # type_spec alone — only the hierarchy walk knows).
+                arg.fort_function_class = class_key
+                # 'self' is dispatched via the method binding, not passed directly.
+                if arg.name == 'self':
+                    arg.galacticus_is_present = False
+                # Insert a companion _ID argument (carries the concrete class ID).
+                arg_id = ArgSpec(
+                    name                  = arg.name + '_ID',
+                    intrinsic             = 'integer',
+                    attributes            = ['intent(in)'],
+                    ctype                 = 'c_int',
+                    fort_type             = 'integer(c_int)',
+                    fort_is_present       = True,
+                    py_is_present         = False,
+                    galacticus_is_present = False,
+                    is_optional           = False,
+                    is_function_class     = False,
+                )
+                if arg.is_optional:
+                    arg_id.attributes.append('optional')
+                    arg_id.is_optional = True
+                    arg_id.py_present  = python_safe_name(arg.name)
+                # Insert _ID before the current front, then arg before that.
+                new_list.insert(0, arg_id)
 
         # Detect 1D numeric arrays (deferred-shape or fixed-size) and set
         # is_array / array_size so the rest of the pipeline can recognise
@@ -336,10 +470,12 @@ def assign_c_types(argument_list, lib_function_classes):
         # array sets arg.char_len > 0; variable-len fell back to the
         # scalar path and is_array stays False).
         is_numeric_array_candidate = intrinsic in ('double precision', 'integer')
+        is_logical_array_candidate = intrinsic == 'logical'
         is_char_array_candidate    = intrinsic == 'character' and arg.char_len > 0
         is_vstr_array_candidate    = arg.varying_string_array
         is_list_array_candidate    = arg.polymorphic_list_array
-        if (is_numeric_array_candidate or is_char_array_candidate
+        if (is_numeric_array_candidate or is_logical_array_candidate
+                or is_char_array_candidate
                 or is_vstr_array_candidate or is_list_array_candidate):
             if 'dimension(:)' in arg.attributes:
                 arg.is_array   = True
@@ -369,16 +505,24 @@ def assign_c_types(argument_list, lib_function_classes):
                 new_list.insert(0, count_arg_2)
                 new_list.insert(0, count_arg_1)
             elif is_numeric_array_candidate:
-                # Fixed-size numeric arrays (`dimension(N)`) need no
-                # count companion; the length is in the dimension spec.
-                # Fixed-size character arrays aren't supported yet — the
-                # only registered class needing them was already covered
-                # by the deferred-shape path.
+                # Fixed-shape numeric arrays (`dimension(N)`,
+                # `dimension(L:U)`, or multi-rank `dimension(N1,N2,...)`)
+                # need no count companion; every axis size is in the
+                # dimension spec.  For 1D we record `array_size` only;
+                # for rank > 1 we also record `array_shape` so the
+                # Python wrapper can validate ndim/shape rather than
+                # only the total element count.  Fixed-size character
+                # arrays aren't supported yet — the only registered
+                # class needing them was already covered by the
+                # deferred-shape path.
                 for a in arg.attributes:
-                    m = _DIM_FIXED_RX.match(a)
-                    if m:
-                        arg.is_array   = True
-                        arg.array_size = int(m.group(1))
+                    shape = _fixed_dim_shape(a)
+                    if shape is not None:
+                        arg.is_array    = True
+                        arg.array_size  = _shape_product(shape)
+                        if len(shape) > 1:
+                            arg.array_shape = shape
+                            arg.array_rank  = len(shape)
                         break
 
         new_list.insert(0, arg)
@@ -472,14 +616,17 @@ def build_python_reassignments(argument_list):
                 arg.py_pass_as    = name + '._glcObj'
                 arg_id.py_pass_as = name + '._classID'
             new_list.insert(0, arg_id)        # unshift _ID back
-        elif arg.is_array and arg.array_rank == 2:
+        elif arg.is_array and arg.array_rank == 2 and not arg.array_shape:
             # 2D deferred-shape numeric array.  Convert input to a
             # contiguous Fortran-order numpy array (column-major) so the
             # raw byte layout matches Fortran's `dimension(N, M)`
             # convention; pass the data pointer plus shape[0]/shape[1]
             # as the two count companions, in the same order they sit at
             # the front of new_list (count_1 then count_2 — see
-            # assign_c_types).  For optional args, the conversion is
+            # assign_c_types).  `array_shape` non-empty signals a
+            # fixed-shape array — there are no count companions to pop
+            # (assign_c_types didn't insert them), and the fixed-shape
+            # branch further down handles those.  For optional args, the conversion is
             # gated on the input not being None — otherwise
             # `np.asarray(None, dtype=...)` produces a 0D scalar that
             # `np.asfortranarray` then promotes to 1D, tripping the
@@ -705,8 +852,31 @@ def build_python_reassignments(argument_list):
                         f'{safe}.ctypes.data_as(POINTER({arg.ctype}))'
                     )
                 new_list.insert(0, count_arg)
+            elif arg.array_shape:
+                # Fixed-shape multi-rank numeric array (e.g.
+                # `dimension(3,2)`, `dimension(2,2,3)`).  Convert to a
+                # Fortran-ordered (column-major) contiguous buffer so
+                # the raw byte layout matches Fortran's shape spec;
+                # validate `.shape` against the expected tuple — a
+                # `.size`-only check would accept arbitrary
+                # reshape-equivalent inputs.  No count companions are
+                # needed: the bind(c) declaration carries the full
+                # shape, and the inner constructor's dummy is
+                # explicit-shape.
+                expected_shape = tuple(arg.array_shape)
+                arg.py_reassignment = (
+                    f'    {safe} = np.asfortranarray('
+                    f'np.asarray({safe}, dtype=np.{np_dtype}))\n'
+                    f'    if {safe}.shape != {expected_shape}:\n'
+                    f'        raise ValueError('
+                    f'f"{arg.name} expects shape {expected_shape}, got '
+                    f'{{{safe}.shape}}")\n'
+                )
+                arg.py_pass_as = (
+                    f'{safe}.ctypes.data_as(POINTER({arg.ctype}))'
+                )
             else:
-                # Fixed-size: `array_size` is the literal length.
+                # Fixed-size 1D: `array_size` is the literal length.
                 arg.py_reassignment = (
                     f'    {safe} = np.ascontiguousarray({safe},'
                     f' dtype=np.{np_dtype})\n'
@@ -743,6 +913,11 @@ _ARRAY_NUMPY_DTYPE = {
     'c_int'   : 'int32',
     'c_long'  : 'int64',
     'c_size_t': 'uint64',
+    # `c_bool` is one byte per element on every platform numpy supports;
+    # numpy's `bool_` dtype is also one byte, so the in-memory layout
+    # matches what the Fortran-side `logical(c_bool), dimension(*)`
+    # buffer expects.
+    'c_bool'  : 'bool_',
 }
 
 
@@ -777,7 +952,55 @@ def build_fortran_reassignments(argument_list, func_class, implementation,
         is_optional   = arg.is_optional
         opt_prefix    = f'if (present({name})) ' if is_optional else ''
 
-        if arg.is_array and arg.array_rank == 2:
+        if arg.is_absent_filled:
+            # Absent-fill override (`<argument name="..." value="absent"/>`).
+            # The arg is invisible from Python, the bind(c) signature,
+            # AND the inner constructor call — galacticus_is_present is
+            # False so fortran_call_code's `make_call` excludes it.
+            # No Fortran declaration, no module import, no reassignment;
+            # otherwise the type-handling branches below would emit a
+            # spurious `use :: <fc_module>, only : <type>` for a type
+            # the wrapper neither declares nor passes (e.g. `vector` /
+            # `matrix` for the Gaussian-ellipsoid `axes` / `rotation`).
+            new_list.insert(0, arg)
+            continue
+
+        if arg.is_null_filled:
+            # Null-fill override (`<argument name="..." value="null"/>`).
+            # The arg is invisible from both Python and the bind(c)
+            # signature; the inner constructor receives a local
+            # disassociated pointer whose declared type matches the
+            # original Fortran arg.  Supported intrinsics today:
+            #   procedure(<intf>), pointer :: name => null()
+            #   class(*), pointer :: name => null()
+            # `<intf>` (e.g. sphericalAdiabaticGnedin2004Initializor)
+            # is imported from the functionClass's own module, which is
+            # also where the impl's `abstract interface` block lives.
+            if intrinsic == 'procedure':
+                arg.fort_declarations = (
+                    f'procedure({type_spec_val}), pointer :: {name} => null()\n'
+                )
+                fc_module = func_class.get('module', '')
+                if fc_module and type_spec_val:
+                    arg.fort_modules.setdefault(fc_module, {})[type_spec_val] = 1
+            elif intrinsic == 'class' and type_spec_val == '*':
+                arg.fort_declarations = (
+                    f'class(*), pointer :: {name} => null()\n'
+                )
+            else:
+                # Other intrinsics aren't supported under value="null"
+                # today; if we ever extend coverage, the per-intrinsic
+                # declaration goes here.  Falling through with no
+                # declaration would silently break the inner call.
+                raise ValueError(
+                    f"value='null' override on argument '{name}' of "
+                    f"intrinsic '{intrinsic}'/type '{type_spec_val}' — "
+                    "only procedure and class(*) args are supported")
+            arg.fort_pass_as = name
+            new_list.insert(0, arg)
+            continue
+
+        if arg.is_array and arg.array_rank == 2 and not arg.array_shape:
             # 2D deferred-shape numeric array.  bind(c) receives the
             # buffer as a flat `dimension(*)` block plus two c_size_t
             # counts.  Allocate a `dimension(:,:)` local of the right
@@ -787,6 +1010,10 @@ def build_fortran_reassignments(argument_list, func_class, implementation,
             # sidesteps any concerns about forward-referencing the
             # dummy counts in an automatic-array size spec, and the
             # local is auto-deallocated when the wrapper returns.
+            # `array_shape` non-empty signals a fixed-shape array
+            # whose bind(c) declaration already carries the full
+            # rank-N shape (see the fall-through `elif arg.is_array`
+            # branch below) — no reshape is needed.
             #
             # Optional args are gated on `present(...)` because the
             # bind(c) buffer is a NULL pointer when the user passed
@@ -971,6 +1198,37 @@ def build_fortran_reassignments(argument_list, func_class, implementation,
                 )
             arg.fort_reassignment = reassign
             arg.fort_pass_as = f'{name}_F_'
+        elif arg.is_array and arg.intrinsic == 'logical':
+            # 1D deferred-shape logical array.  bind(c) signature has
+            # `logical(c_bool), dimension(*)` plus a c_size_t count; the
+            # inner method's dummy is the default logical kind (usually
+            # 4 bytes, vs c_bool's 1 byte), so we can't just slice the
+            # raw buffer.  Allocate a local of the right kind, copy
+            # element-wise via the elemental `logical()` cast, and pass
+            # the local to the inner.  Allocatable sidesteps any concern
+            # about forward-reference to the count dummy in an
+            # automatic-array size spec; the local is auto-deallocated
+            # on wrapper return.  Optionals gate the conversion on
+            # `present(name)` — when absent the bind(c) buffer is a
+            # NULL pointer and indexing it would segfault.  The inner
+            # call's `present(...)` check is handled at the fortran_call_code
+            # level (which omits absent optionals from the call), so
+            # there's no need to also gate the local's allocation here.
+            arg.fort_declarations = (
+                f'logical, dimension(:), allocatable :: {name}_F_\n'
+            )
+            reassign = (
+                f'allocate({name}_F_({name}_count))\n'
+                f'{name}_F_ = logical({name}(1:{name}_count))\n'
+            )
+            if is_optional:
+                reassign = (
+                    f'if (present({name})) then\n'
+                    f'   {reassign.replace(chr(10), chr(10) + "   ").rstrip()}\n'
+                    f'end if\n'
+                )
+            arg.fort_reassignment = reassign
+            arg.fort_pass_as      = f'{name}_F_'
         elif arg.is_array:
             # 1D numeric array.  Deferred-shape needs slicing — the bind(c)
             # signature has `dimension(*)` (assumed-size) plus a separate
@@ -1070,17 +1328,79 @@ def build_fortran_reassignments(argument_list, func_class, implementation,
                         arg.fort_modules.setdefault(mod, {})[type_spec_val] = 1
 
         elif arg.is_function_class:
-            # class(FooClass) -> class(FooClass) pointer via FooGetPtr(ptr, ID).
-            class_key = type_spec_val[:-5] if type_spec_val.endswith('Class') else type_spec_val
-            mod_name  = lib_function_classes.get(class_key, {}).get('module', '')
-            arg.fort_declarations  = f'class({type_spec_val}), pointer :: {name}_\n'
-            arg.fort_pass_as       = name + '_'
-            arg.fort_reassignment  = (
-                f'{opt_prefix}{name}_ => {class_key}GetPtr({name},{name}_ID)\n'
+            # Two shapes land here.  The simple case is `class(FooClass)`:
+            #   class(FooClass), pointer :: name_
+            #   name_ => FooGetPtr(name, name_ID)
+            #
+            # The abstract-intermediate case (arg.narrowing_type set) is
+            # `class(<intermediate>)` where <intermediate>'s extends-chain
+            # reaches a registered <base>Class.  The inner constructor
+            # wants a `class(<intermediate>), pointer`, so we recover the
+            # base pointer from <base>GetPtr and narrow with `select type`:
+            #   class(<base>Class    ), pointer :: name_base_
+            #   class(<intermediate> ), pointer :: name_
+            #   name_base_ => <base>GetPtr(name, name_ID)
+            #   select type (name_base_)
+            #   class is (<intermediate>)
+            #      name_ => name_base_
+            #   class default
+            #      call Error_Report('argument <name> is not of type <intermediate>'//{introspection:location})
+            #   end select
+            # Error_Report aborts with a clear diagnostic; the introspection
+            # tag is expanded later by the SourceTree introspection pass
+            # (same convention used by the GetPtr classID-default branch).
+            #
+            # assign_c_types stashes the registered <base> on
+            # arg.fort_function_class (the abstract-intermediate path
+            # can't recover it from type_spec alone — the hierarchy walk
+            # is the only place that knows).  Fall back to the
+            # strip-trailing-Class convention for the plain case so
+            # direct emitter callers (e.g. unit tests) keep working
+            # without first running through assign_c_types.
+            class_key = arg.fort_function_class or (
+                type_spec_val[:-5] if type_spec_val.endswith('Class')
+                else type_spec_val
             )
+            mod_name  = lib_function_classes.get(class_key, {}).get('module', '')
+            if arg.narrowing_type:
+                arg.fort_declarations = (
+                    f'class({class_key}Class), pointer :: {name}_base_\n'
+                    f'class({arg.narrowing_type}), pointer :: {name}_\n'
+                )
+                arg.fort_pass_as = name + '_'
+                narrow_body = (
+                    f'{name}_base_ => {class_key}GetPtr({name},{name}_ID)\n'
+                    f'select type ({name}_base_)\n'
+                    f'class is ({arg.narrowing_type})\n'
+                    f'   {name}_ => {name}_base_\n'
+                    f'class default\n'
+                    f"   call Error_Report('argument ''{name}'' is not of "
+                    f"type {arg.narrowing_type}'//{{introspection:location}})\n"
+                    f'end select\n'
+                )
+                if arg.is_optional:
+                    # Optional: skip the narrowing when the ID companion
+                    # is absent, leaving name_ as null() so the inner call's
+                    # `present()` check sees the same answer.
+                    arg.fort_reassignment = (
+                        f'if (present({name}_ID)) then\n {narrow_body}'
+                        f'else\n {name}_ => null()\nend if\n'
+                    )
+                else:
+                    arg.fort_reassignment = narrow_body
+                arg.fort_modules.setdefault('Error', {})['Error_Report'] = 1
+                if mod_name:
+                    arg.fort_modules.setdefault(mod_name, {})[f'{class_key}Class'] = 1
+                    arg.fort_modules.setdefault(mod_name, {})[arg.narrowing_type] = 1
+            else:
+                arg.fort_declarations  = f'class({type_spec_val}), pointer :: {name}_\n'
+                arg.fort_pass_as       = name + '_'
+                arg.fort_reassignment  = (
+                    f'{opt_prefix}{name}_ => {class_key}GetPtr({name},{name}_ID)\n'
+                )
+                if mod_name:
+                    arg.fort_modules.setdefault(mod_name, {})[type_spec_val] = 1
             arg.fort_function_class = class_key
-            if mod_name:
-                arg.fort_modules.setdefault(mod_name, {})[type_spec_val] = 1
 
         elif intrinsic == 'class' and type_spec_val == '*':
             # Unlimited polymorphic: look up the concrete type in libraryClasses config.

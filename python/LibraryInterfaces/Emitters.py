@@ -50,10 +50,15 @@ def ctypes_arg_types(argument_list):
     """Generate ctypes argument type list.
 
     Returns a list of strings such as ``['c_double', 'POINTER(c_int)', …]``
-    suitable for assignment to ``c_lib.funcName.argtypes``.
+    suitable for assignment to ``c_lib.funcName.argtypes``.  Args with
+    ``fort_is_present=False`` (e.g. null- or absent-filled override
+    drops) are skipped — they don't appear in the bind(c) signature,
+    so they must not appear in the matching ``argtypes`` list either.
     """
     types = []
     for arg in argument_list:
+        if not arg.fort_is_present:
+            continue
         ctype = arg.ctype or 'c_int'
         if arg.ctype_pointer:
             ctype = f'POINTER({ctype})'
@@ -82,6 +87,18 @@ def fortran_declarations(argument_list):
     function_classes = {}   # {className: True} — deduplicates interface blocks
 
     for arg in argument_list:
+        # Skip args that don't appear in the bind(c) signature
+        # (fort_is_present=False).  These are typically null-filled
+        # constructor overrides whose local-pointer declaration lives
+        # entirely in `fort_declarations`; emitting the default
+        # `integer(c_int)` line for them would shadow that local and
+        # produce conflicting declarations of the same name.
+        if not arg.fort_is_present:
+            if arg.fort_declarations:
+                code += arg.fort_declarations
+            if arg.fort_function_class:
+                function_classes[arg.fort_function_class] = True
+            continue
         attr_str  = (', ' + ', '.join(arg.fort_attributes)) if arg.fort_attributes else ''
         fort_type = arg.fort_type or 'integer(c_int)'
         code += f'  {fort_type}{attr_str} :: {arg.name}\n'

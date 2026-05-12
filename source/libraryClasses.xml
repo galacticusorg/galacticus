@@ -21,7 +21,15 @@
     <galacticFilter/>
     <nodePropertyExtractor/>
     <virialOrbit/>
-    <geometryLightcone/>
+    <geometryLightcone>
+      <geometryLightconeSquare>
+	<constructor>
+	  <!-- The square lightcone class uses an unlimited polymorphic object in the constructor. We must provide a concrete
+	       type for it here to allow it to be passed via a C-style interface. -->
+	  <argument name="nodeOperator_" type="nodeOperatorClass" module="Nodes_Operators"/>
+	</constructor>
+      </geometryLightconeSquare>
+    </geometryLightcone>
     <starFormationRateDisks/>
     <starFormationRateSpheroids/>
     <starFormationRateNuclearStarClusters/>
@@ -58,7 +66,15 @@
     <darkMatterHaloMassAccretionHistory/>
     <darkMatterProfileScaleRadius/>
     <darkMatterProfileShape/>
-    <darkMatterProfileConcentration/>
+    <darkMatterProfileConcentration>
+      <darkMatterProfileConcentrationDuttonMaccio2014>
+	<!-- This impl has two Internal-suffixed module procedures
+	     (`InternalType` keyed by a fit-type enum, `InternalDefined`
+	     taking raw coefficients).  Pick the higher-level enum form
+	     for the library wrapper. -->
+	<constructor internal="duttonMaccio2014ConstructorInternalType"/>
+      </darkMatterProfileConcentrationDuttonMaccio2014>
+    </darkMatterProfileConcentration>
     <accretionHaloTotal/>
     <haloSpinDistribution/>
     <hotHaloOutflowReincorporation/>
@@ -113,7 +129,26 @@
     <hotHaloRamPressureTimescale/>
     <hotHaloTemperatureProfile/>
     <kinematicsDistribution/>
-    <massDistribution/>
+    <massDistribution>
+      <massDistributionSphericalAdiabaticGnedin2004>
+	<constructor>
+	  <!-- The Gnedin 2004 adiabatic contraction impl takes a callback-injection escape hatch
+	       (a procedure-pointer plus paired class(*) state) that the parameter-driven path
+	       never uses (it sets all three to null).  Tell the wrapper to do the same. -->
+	  <argument name="initializationFunction" value="null"/>
+	  <argument name="initializationSelf"     value="null"/>
+	  <argument name="initializationArgument" value="null"/>
+	</constructor>
+      </massDistributionSphericalAdiabaticGnedin2004>
+      <massDistributionSphericalSIDMIsothermalBaryons>
+	<constructor>
+	  <!-- Same callback-injection escape hatch as adiabaticGnedin2004 above. -->
+	  <argument name="initializationFunction" value="null"/>
+	  <argument name="initializationSelf"     value="null"/>
+	  <argument name="initializationArgument" value="null"/>
+	</constructor>
+      </massDistributionSphericalSIDMIsothermalBaryons>
+    </massDistribution>
     <massDistributionHeating/>
     <massFunctionIncompleteness/>
     <mergerMassMovements/>
@@ -140,7 +175,22 @@
     <nodeOperator/>
     <nuclearStarClusterGrowthRates/>
     <operatorUnary/>
-    <outputAnalysis/>
+    <outputAnalysis>
+      <outputAnalysisHIVsHaloMassRelationPadmanabhan2017>
+	<constructor>
+	  <!-- This output analysis class uses an unlimited polymorphic object in the constructor. We must provide a concrete
+	       type for it here to allow it to be passed via a C-style interface. -->
+	  <argument name="percolationObjects_" type="percolationObjects" module="Virial_Density_Contrast_Percolation_Utilities"/>
+	</constructor>
+      </outputAnalysisHIVsHaloMassRelationPadmanabhan2017>
+      <outputAnalysisSpinDistributionBett2007>
+	<constructor>
+	  <!-- This output analysis class uses an unlimited polymorphic object in the constructor. We must provide a concrete
+	       type for it here to allow it to be passed via a C-style interface. -->
+	  <argument name="percolationObjects_" type="percolationObjects" module="Virial_Density_Contrast_Percolation_Utilities"/>
+	</constructor>
+      </outputAnalysisSpinDistributionBett2007>
+    </outputAnalysis>
     <outputAnalysisDistributionNormalizer/>
     <outputAnalysisDistributionOperator/>
     <outputAnalysisMolecularRatio/>
@@ -156,7 +206,15 @@
     <posteriorSampleStateInitialize/>
     <posteriorSampleStoppingCriterion/>
     <posteriorSamples/>
-    <radiationField/>
+    <radiationField>
+      <radiationFieldIntergalacticBackgroundInternal>
+	<constructor>
+	  <!-- The intergalactic background internal radiation field class uses an unlimited polymorphic object in the
+	       constructor. We must provide a concrete type for it here to allow it to be passed via a C-style interface. -->
+	  <argument name="accretionDiskSpectra_" type="accretionDiskSpectraClass" module="Accretion_Disk_Spectra"/>
+	</constructor>
+      </radiationFieldIntergalacticBackgroundInternal>
+    </radiationField>
     <radiativeTransferConvergence/>
     <radiativeTransferOutputter/>
     <radiativeTransferSource/>

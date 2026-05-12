@@ -38,6 +38,9 @@ from LibraryInterfaces.Emitters import (
     python_call_code,
     python_safe_name,
 )
+_CLASS_HIERARCHY = {}
+
+
 def main():
     """Main entry point — mirrors libraryInterfaces.pl."""
 
@@ -48,6 +51,15 @@ def main():
     # Load XML configuration files
     build_path = os.environ.get('BUILDPATH', './work/build')
     exec_path = os.environ['GALACTICUS_EXEC_PATH']
+
+    # Scan source/ for the derived-type hierarchy so the pipeline can
+    # recognise `class(<intermediate>)` constructor args whose parent
+    # chain reaches a registered functionClass.  Built once, read by
+    # _unsupported_arg and passed into assign_c_types via the global.
+    global _CLASS_HIERARCHY
+    from LibraryInterfaces.Hierarchy import build_type_hierarchy
+    _CLASS_HIERARCHY = build_type_hierarchy(
+        os.path.join(exec_path, 'source'))
 
     directive_locations = _load_xml(os.path.join(build_path, 'directiveLocations.xml'), required=True)
     state_storables = _load_xml(os.path.join(build_path, 'stateStorables.xml'), required=True)
@@ -186,8 +198,16 @@ _CLASS_RETURN_RX = re.compile(
 
 # Match a fixed-size 1D dimension(N) attribute on a constructor/method arg.
 # Mirrors Pipeline._DIM_FIXED_RX (kept locally so libraryInterfaces.py
+# stays usable standalone) — accepts both `dimension(N)` and the
+# explicit-lower-bound form `dimension(L:U)`.  Only the *match* is
+# checked here; this file doesn't compute the element count.
 # doesn't need to import a private name).
-_DIM_FIXED_RX_INTERFACES = re.compile(r'^dimension\s*\(\s*(\d+)\s*\)$')
+_DIM_FIXED_RX_INTERFACES = re.compile(
+    r'^dimension\s*\(\s*'
+    r'(?:\d+\s*:\s*)?\d+'
+    r'(?:\s*,\s*(?:\d+\s*:\s*)?\d+)*'
+    r'\s*\)$'
+)
 
 # Match `len=N` literal in a character type-spec.  Same regex as
 # Pipeline.py's `_CHAR_LEN_RX`; duplicated here to keep this module
@@ -228,7 +248,7 @@ def _find_enum_module(enum_type, func_class):
 
 
 def _unsupported_arg(arg, lib_function_classes, *,
-                     constructor_overrides=()):
+                     constructor_overrides=(), class_hierarchy=None):
     """Return a human-readable reason if ``arg`` has a type the pipeline
     can't translate, otherwise ``None``.
 
@@ -258,6 +278,36 @@ def _unsupported_arg(arg, lib_function_classes, *,
       come back, etc.) than the input-array path does.
     """
     intrinsic = arg.get('intrinsic')
+    # A `<argument name="..." value="null"/>` override in libraryClasses.xml
+    # tells the wrapper to drop the arg and pass a local null pointer to
+    # the inner constructor instead — sufficient for the
+    # procedure-pointer + class(*) callback-injection escape hatch the
+    # parameter-driven paths of some impls already null out (see
+    # assign_c_types / build_fortran_reassignments).  Accept it for
+    # those two intrinsics regardless of the rest of this predicate.
+    if any(isinstance(o, dict)
+           and o.get('name') == arg.get('name')
+           and o.get('value') == 'null'
+           for o in constructor_overrides):
+        type_spec = (arg.get('type') or '').strip()
+        if intrinsic == 'procedure' \
+                or (intrinsic == 'class' and type_spec == '*'):
+            return None
+        return (f"value='null' override on {intrinsic}({type_spec}) — "
+                f"only procedure and class(*) args are supported")
+    # A `<argument name="..." value="absent"/>` override drops an
+    # *optional* arg entirely — from Python, from the bind(c) signature,
+    # and from the inner constructor call.  The inner's built-in default
+    # for the absent case must do the right thing.  Accept it for any
+    # intrinsic so long as the source arg carries `optional`.
+    if any(isinstance(o, dict)
+           and o.get('name') == arg.get('name')
+           and o.get('value') == 'absent'
+           for o in constructor_overrides):
+        if 'optional' in arg.get('attributes', []):
+            return None
+        return (f"value='absent' override on non-optional argument — only "
+                f"optional args may be dropped")
     if intrinsic in ('complex', 'double complex'):
         return f"{intrinsic}({arg.get('type','')})"
     if intrinsic == 'procedure':
@@ -298,8 +348,18 @@ def _unsupported_arg(arg, lib_function_classes, *,
                 return (f"class({type_spec}) — '{stem}' is not a registered "
                         f"functionClass in libraryClasses.xml")
         else:
-            return (f"class({type_spec}) — only registered functionClasses "
-                    f"and class(*) (with override) are supported")
+            # Abstract intermediate: a class whose extends-chain reaches
+            # a registered <base>Class is acceptable — the pipeline routes
+            # through <base>GetPtr and narrows to <intermediate> at
+            # runtime (see build_fortran_reassignments).
+            base = None
+            if class_hierarchy:
+                from LibraryInterfaces.Hierarchy import resolve_function_class_base
+                base, _ = resolve_function_class_base(
+                    type_spec, class_hierarchy, set(lib_function_classes.keys()))
+            if base is None:
+                return (f"class({type_spec}) — only registered functionClasses "
+                        f"and class(*) (with override) are supported")
     # Dimension check — same predicate for constructor and method args now
     # that both use the array-arg pipeline.  (Previously constructor-only,
     # which left method args producing broken-but-not-fatal Fortran when
@@ -324,6 +384,13 @@ def _unsupported_arg(arg, lib_function_classes, *,
                 and (attr == 'dimension(:)'
                      or attr == 'dimension(:,:)'
                      or _DIM_FIXED_RX_INTERFACES.match(attr))
+            )
+            # 1D deferred-shape logical: same plumbing as numeric 1D
+            # arrays, except build_fortran_reassignments emits a
+            # kind-narrowing copy from `logical(c_bool)` to the default
+            # `logical` kind that the inner method's dummy declares.
+            is_supported_logical = (
+                intrinsic == 'logical' and attr == 'dimension(:)'
             )
             # Fixed-length character arrays (`character(len=N),
             # dimension(:)`) are supported at deferred shape: the bind(c)
@@ -367,7 +434,8 @@ def _unsupported_arg(arg, lib_function_classes, *,
                 and type_spec[:-4] in lib_function_classes
                 and type_spec in _SHARED_TYPE_MODULES
             )
-            if (is_supported_dim or is_supported_char_array
+            if (is_supported_dim or is_supported_logical
+                    or is_supported_char_array
                     or is_supported_vstring_array or is_supported_list_array):
                 if 'allocatable' in attrs:
                     return ('1D allocatable array argument'
@@ -384,26 +452,33 @@ def _unsupported_arg(arg, lib_function_classes, *,
 
 
 def _unsupported_constructor_arg(args, lib_function_classes,
-                                 constructor_overrides=()):
+                                 constructor_overrides=(),
+                                 class_hierarchy=None):
     """If any constructor argument is unsupported, return ``(name, reason)``;
     otherwise ``None``.  See :func:`_unsupported_arg` for the predicate."""
+    if class_hierarchy is None:
+        class_hierarchy = _CLASS_HIERARCHY
     for arg in args:
         reason = _unsupported_arg(
             arg, lib_function_classes,
             constructor_overrides=constructor_overrides,
+            class_hierarchy=class_hierarchy,
         )
         if reason:
             return arg['name'], reason
     return None
 
 
-def _unsupported_method_arg(args, lib_function_classes):
+def _unsupported_method_arg(args, lib_function_classes, class_hierarchy=None):
     """If any method argument is unsupported, return ``(name, reason)``;
     otherwise ``None``.  Methods don't have constructor-style overrides for
     ``class(*)``, so the override list is empty and any ``class(*)`` arg is
     rejected."""
+    if class_hierarchy is None:
+        class_hierarchy = _CLASS_HIERARCHY
     for arg in args:
-        reason = _unsupported_arg(arg, lib_function_classes)
+        reason = _unsupported_arg(arg, lib_function_classes,
+                                  class_hierarchy=class_hierarchy)
         if reason:
             return arg['name'], reason
     return None
@@ -455,11 +530,17 @@ def _process_implementations(func_class, directive_locations, state_storables,
         name_constructor = None
         ambiguous_internals = None
         args_constructor = []
+        impl_conf = None
 
         for node in SourceTree.walk_tree(tree):
             if node['type'] == class_name:
                 impl_name = node.get('directive', {}).get('name')
                 is_abstract = (node.get('directive', {}).get('abstract', 'no') == 'yes')
+                # Fetch the libraryClasses.xml override up front so the
+                # interface-block walk below can consult its
+                # `<constructor internal="..."/>` hint to disambiguate
+                # multiple Internal-suffixed module procedures.
+                impl_conf = func_class.get(impl_name)
 
             elif (impl_name
                   and node['type'] == 'interface'
@@ -491,10 +572,21 @@ def _process_implementations(func_class, directive_locations, state_storables,
                 elif len(candidates) > 1:
                     # Multiple Internal-suffixed constructors (e.g.
                     # darkMatterProfileConcentrationDuttonMaccio2014's
-                    # InternalType vs InternalDefined).  Stash for the
-                    # warning-and-skip below; leave name_constructor unset
-                    # so the impl is dropped from impls_list.
-                    ambiguous_internals = candidates
+                    # InternalType vs InternalDefined).  libraryClasses.xml
+                    # can disambiguate via
+                    # `<constructor internal="<chosen-name>"/>`; if a
+                    # valid hint is present, use it.  Otherwise stash
+                    # for the warning-and-skip below; leave
+                    # name_constructor unset so the impl is dropped
+                    # from impls_list.
+                    chosen = None
+                    if isinstance(impl_conf, dict):
+                        chosen = (impl_conf.get('constructor', {}) or {}) \
+                                 .get('internal')
+                    if chosen and chosen in candidates:
+                        name_constructor = chosen
+                    else:
+                        ambiguous_internals = candidates
 
             elif (name_constructor
                   and node['type'] == 'function'
@@ -537,7 +629,9 @@ def _process_implementations(func_class, directive_locations, state_storables,
         # classID is assigned to every file, even abstract/excluded ones (mirrors Perl).
         class_id += 1
 
-        impl_conf = func_class.get(impl_name)
+        # impl_conf was already fetched up front so the interface-block
+        # walk could consult the optional `<constructor internal=…/>`
+        # disambiguation hint.
         is_excluded = (isinstance(impl_conf, dict)
                        and impl_conf.get('exclude') == 'yes')
         if not is_abstract and not is_excluded:
@@ -749,7 +843,18 @@ def interfaces_constructors(code, python, func_class, lib_function_classes,
     for impl in func_class.get('implementations', []):
         # Process argument list
         arg_list = impl.get('arguments', [])
-        arg_list = assign_c_types(arg_list, lib_function_classes)
+        # Pull the impl's libraryClasses.xml overrides (if any) into
+        # assign_c_types so it can recognise `value="null"` directives
+        # and drop the matching args from both wrappers before the
+        # Python/Fortran emitters see them.
+        impl_conf = func_class.get(impl['name'])
+        constructor_overrides = ()
+        if isinstance(impl_conf, dict):
+            constructor_overrides = as_array(
+                impl_conf.get('constructor', {}).get('argument', []))
+        arg_list = assign_c_types(arg_list, lib_function_classes,
+                                  class_hierarchy=_CLASS_HIERARCHY,
+                                  constructor_overrides=constructor_overrides)
         arg_list = assign_c_attributes(arg_list)
         arg_list = build_python_reassignments(arg_list)
         arg_list = build_fortran_reassignments(
@@ -1065,7 +1170,8 @@ def interfaces_methods(code, python, func_class, extensions, module_uses_impls,
             continue
 
         # Process arguments
-        arg_list = assign_c_types(arg_list, lib_function_classes or {})
+        arg_list = assign_c_types(arg_list, lib_function_classes or {},
+                                  class_hierarchy=_CLASS_HIERARCHY)
         arg_list = assign_c_attributes(arg_list)
         arg_list = build_python_reassignments(arg_list)
         arg_list = build_fortran_reassignments(arg_list, func_class, None,
@@ -1229,9 +1335,16 @@ end subroutine {class_name}DestructorL
     # class body emitted by interfaces_python_classes.  Default-True via
     # getattr keeps every constructor-built object on the destroy path
     # without each constructor having to set the flag.
+    #
+    # The `_glcObj` guard handles partially-constructed objects: if
+    # `__init__` raised (e.g. a size-validator ValueError before the
+    # bind(c) constructor ran), Python still GCs the half-built
+    # instance and calls __del__; without the guard we'd dereference
+    # the missing attribute and surface an unrelated AttributeError
+    # at interpreter shutdown.
     py_destructor = f'''# Destructor
 def __del__(self):
-    if getattr(self, '_owned', True):
+    if getattr(self, '_owned', True) and hasattr(self, '_glcObj'):
         c_lib.{class_name}DestructorL(self._glcObj,self._classID)
 '''
     python['units'].setdefault(class_name, {}).setdefault('subUnits', []).append({

@@ -52,13 +52,21 @@ import xml.etree.ElementTree as ET                     # noqa: E402
 
 from Galacticus.Build import SourceTree                # noqa: E402
 from LibraryInterfaces.Pipeline import _SHARED_TYPE_MODULES  # noqa: E402
+from LibraryInterfaces.Hierarchy import (                # noqa: E402
+    build_type_hierarchy, resolve_function_class_base,
+)
 
 
 # Match a fixed-size dimension(N) attribute (N a positive integer literal).
 # Same predicate the generator uses; duplicated here so the audit doesn't
 # have to import from libraryInterfaces.py (which would also drag in the
 # generator's unrelated emitter machinery).
-_DIM_FIXED_RX = re.compile(r'^dimension\s*\(\s*(\d+)\s*\)$')
+_DIM_FIXED_RX = re.compile(
+    r'^dimension\s*\(\s*'
+    r'(?:\d+\s*:\s*)?\d+'
+    r'(?:\s*,\s*(?:\d+\s*:\s*)?\d+)*'
+    r'\s*\)$'
+)
 
 # Match `len=N` in a character type-spec.  Used to recognise fixed-length
 # character arrays (`character(len=N), dimension(:)`), which the pipeline
@@ -120,7 +128,7 @@ def discover_function_classes(source_dir):
     return all_fcs, fc_files
 
 
-def parse_impls_in_file(impl_file, fc_name):
+def parse_impls_in_file(impl_file, fc_name, internal_selectors=None):
     """Walk *impl_file*'s SourceTree and return a list of dicts describing
     every concrete impl of *fc_name* found in it:
 
@@ -130,16 +138,28 @@ def parse_impls_in_file(impl_file, fc_name):
                               <impl exclude="yes"/> override which we don't
                               read here)
          'internals'  : list of *ConstructorInternal* names found in the
-                        impl's generic interface block (>1 ⇒ ambiguous).
+                        impl's generic interface block (>1 ⇒ ambiguous,
+                        unless *internal_selectors* names one of them).
+         'chosen_internal':
+                        the Internal constructor name picked by an
+                        `<constructor internal=…/>` hint when there are
+                        multiple candidates; None otherwise.
          'args'       : list of {name, intrinsic, type, attributes} dicts
                         for the chosen Internal constructor's arguments,
                         or [] if none could be resolved.
         }
 
+    *internal_selectors* is a ``dict impl_name -> chosen_internal_name``
+    built from libraryClasses.xml's
+    ``<constructor internal="…"/>`` attributes; mirrors the generator's
+    disambiguation hint.
+
     Mirrors the second pass of ``libraryInterfaces._process_implementations``
     (kept as a duplicate rather than an import to avoid coupling the audit
     to the generator's non-classification machinery).
     """
+    if internal_selectors is None:
+        internal_selectors = {}
     tree = SourceTree.parse_file(str(impl_file))
 
     impls            = []
@@ -149,13 +169,16 @@ def parse_impls_in_file(impl_file, fc_name):
     internals_seen   = []
     args_constructor = []
 
+    chosen_internal = None
+
     def _flush():
         if impl_name is not None:
             impls.append({
-                'name'       : impl_name,
-                'is_abstract': is_abstract,
-                'internals'  : list(internals_seen),
-                'args'       : list(args_constructor),
+                'name'            : impl_name,
+                'is_abstract'     : is_abstract,
+                'internals'       : list(internals_seen),
+                'chosen_internal' : chosen_internal,
+                'args'            : list(args_constructor),
             })
 
     for node in SourceTree.walk_tree(tree):
@@ -167,6 +190,7 @@ def parse_impls_in_file(impl_file, fc_name):
             name_constructor = None
             internals_seen   = []
             args_constructor = []
+            chosen_internal  = None
 
         elif (impl_name
               and node['type'] == 'interface'
@@ -180,6 +204,13 @@ def parse_impls_in_file(impl_file, fc_name):
                 child = child.get('sibling')
             if len(internals_seen) == 1:
                 name_constructor = internals_seen[0]
+            elif len(internals_seen) > 1:
+                # libraryClasses.xml can break the tie via
+                # `<constructor internal="…"/>`; mirrors the generator.
+                hinted = internal_selectors.get(impl_name)
+                if hinted and hinted in internals_seen:
+                    name_constructor = hinted
+                    chosen_internal  = hinted
 
         elif (name_constructor
               and node['type'] == 'function'
@@ -218,7 +249,9 @@ def parse_impls_in_file(impl_file, fc_name):
 # "Foo isn't a functionClass at all".
 # ---------------------------------------------------------------------------
 
-def classify_constructor(args, all_fcs, registered):
+def classify_constructor(args, all_fcs, registered, overridden_args=frozenset(),
+                         class_hierarchy=None, null_filled_args=frozenset(),
+                         absent_filled_args=frozenset()):
     """Return ``(missing_deps, pipeline_reasons)``.
 
     *missing_deps* is the set of functionClass names this constructor depends
@@ -228,6 +261,10 @@ def classify_constructor(args, all_fcs, registered):
     *pipeline_reasons* is a list of human-readable strings describing
     arg types the generator can't handle today — empty iff every arg is
     pipeline-supported.
+
+    *overridden_args* is the set of constructor argument names for which
+    libraryClasses.xml supplies a ``<constructor><argument …/></constructor>``
+    type hint.  Those args bypass the ``class(*)`` blocker.
     """
     missing_deps     = set()
     pipeline_reasons = []
@@ -238,6 +275,32 @@ def classify_constructor(args, all_fcs, registered):
         attrs     = list(arg.get('attributes', []))
         type_spec = (arg.get('type') or '').strip()
 
+        # `<argument name="..." value="null"/>` overrides drop the arg
+        # entirely (the wrapper passes a local null pointer to the
+        # inner constructor).  Skip every per-intrinsic blocker for
+        # these names — they don't appear in the bind(c) signature.
+        # Mirrors the generator's _unsupported_arg short-circuit.
+        if name in null_filled_args:
+            if intrinsic == 'procedure' \
+                    or (intrinsic == 'class' and type_spec == '*'):
+                continue
+            pipeline_reasons.append(
+                f"value='null' override on unsupported intrinsic "
+                f"'{intrinsic}' ({name})")
+            continue
+
+        # `<argument name="..." value="absent"/>` drops an *optional*
+        # arg entirely — from Python, from bind(c), and from the inner
+        # call.  Accept any intrinsic so long as `optional` is set on
+        # the source decl.
+        if name in absent_filled_args:
+            if 'optional' in attrs:
+                continue
+            pipeline_reasons.append(
+                f"value='absent' override on non-optional argument "
+                f"({name})")
+            continue
+
         if intrinsic in ('complex', 'double complex'):
             pipeline_reasons.append(
                 f"complex arg ({name}: {intrinsic}({type_spec}))")
@@ -246,10 +309,10 @@ def classify_constructor(args, all_fcs, registered):
         if intrinsic == 'class':
             if type_spec == '*':
                 # class(*) needs an explicit override in libraryClasses.xml.
-                # This audit doesn't look up overrides (it would have to
-                # re-parse libraryClasses.xml structure), so flag it as a
-                # pipeline-ish blocker — the user knows from existing cases
-                # that a hint can resolve it.
+                # If a matching <argument> hint is supplied there, treat the
+                # arg as resolved; otherwise flag it as a pipeline blocker.
+                if name in overridden_args:
+                    continue
                 pipeline_reasons.append(
                     f"class(*) without override ({name})")
                 continue
@@ -259,6 +322,18 @@ def classify_constructor(args, all_fcs, registered):
                     if stem not in registered:
                         missing_deps.add(stem)
                     continue   # fc — registered or just missing-dep
+            # Abstract-intermediate: `class(<X>)` where <X>'s extends-chain
+            # reaches a registered <base>Class.  Mirrors the generator's
+            # handling — the pipeline routes through <base>GetPtr and
+            # narrows to <X> at runtime via `select type`.  Depend on the
+            # root <base>, propagating it as a missing-dep if needed.
+            if class_hierarchy:
+                base, _ = resolve_function_class_base(
+                    type_spec, class_hierarchy, set(all_fcs))
+                if base is not None:
+                    if base not in registered:
+                        missing_deps.add(base)
+                    continue
             # class(SomethingElse) — not a functionClass at all.
             pipeline_reasons.append(
                 f"class({type_spec}) — not a functionClass ({name})")
@@ -305,6 +380,17 @@ def classify_constructor(args, all_fcs, registered):
                       or dim_attr == 'dimension(:,:)'
                       or _DIM_FIXED_RX.match(dim_attr)))
                 or
+                # 1D deferred-shape logical arrays piggyback on the
+                # numeric array path: the bind(c) side is a
+                # `logical(c_bool), dimension(*)` buffer plus a count
+                # companion; the wrapper repacks into a default-kind
+                # `logical, dimension(:)` local before the inner call
+                # (see build_fortran_reassignments).  Fixed-size /
+                # 2D logical aren't needed by any registered impl
+                # today, so they're deliberately not accepted.
+                (intrinsic == 'logical'
+                 and dim_attr == 'dimension(:)')
+                or
                 (intrinsic == 'character'
                  and dim_attr == 'dimension(:)'
                  and _CHAR_LEN_RX.match(type_spec))
@@ -332,7 +418,8 @@ def classify_constructor(args, all_fcs, registered):
     return missing_deps, pipeline_reasons
 
 
-def aggregate_class(impls, all_fcs, registered):
+def aggregate_class(impls, all_fcs, registered, overrides, class_hierarchy=None,
+                    null_filled=None, absent_filled=None):
     """Reduce a list of impl dicts into a single class-level verdict.
 
     Status precedence: ready > missing-dep > pipeline-blocked > no-concrete-impls.
@@ -354,13 +441,24 @@ def aggregate_class(impls, all_fcs, registered):
 
     classified = []
     for impl in concrete:
-        if len(impl['internals']) > 1:
-            # Generator skips ambiguous-Internal impls; treat as pipeline-blocked.
+        if len(impl['internals']) > 1 and not impl.get('chosen_internal'):
+            # Generator skips genuinely ambiguous-Internal impls; treat
+            # as pipeline-blocked.  When libraryClasses.xml's
+            # `<constructor internal="…"/>` selector picked one, the
+            # chosen constructor's args were already parsed and we fall
+            # through to the normal classify_constructor path.
             classified.append((impl, set(),
                                [f"ambiguous Internal constructors: "
                                 f"{', '.join(impl['internals'])}"]))
             continue
-        deps, reasons = classify_constructor(impl['args'], all_fcs, registered)
+        deps, reasons = classify_constructor(
+            impl['args'], all_fcs, registered,
+            overrides.get(impl['name'], frozenset()),
+            class_hierarchy=class_hierarchy,
+            null_filled_args=((null_filled or {})
+                              .get(impl['name'], frozenset())),
+            absent_filled_args=((absent_filled or {})
+                                .get(impl['name'], frozenset())))
         classified.append((impl, deps, reasons))
 
     ready = [(i, d, r) for (i, d, r) in classified if not r and not d]
@@ -430,13 +528,66 @@ def closure(audit, registered):
 # ---------------------------------------------------------------------------
 
 def load_registered_classes(xml_path):
-    """Parse libraryClasses.xml and return the set of class tags inside <classes>."""
+    """Parse libraryClasses.xml and return ``(registered, overrides, null_filled,
+    absent_filled, internal_selectors)``.
+
+    *registered* is the set of class tags inside ``<classes>``.
+
+    *overrides* is a dict ``impl_name -> set(arg_names)`` listing constructor
+    arguments for which the XML supplies a ``<constructor><argument
+    name=… type=… module=…/></constructor>`` hint.  These hints resolve
+    otherwise-unsupported ``class(*)`` constructor args, so the audit must
+    treat the corresponding impls as ready rather than flagging the
+    ``class(*) without override`` blocker.
+
+    *null_filled* is a dict ``impl_name -> set(arg_names)`` listing
+    constructor arguments tagged with ``value="null"``.  Those args are
+    dropped from the wrapper entirely (a local null pointer is passed
+    to the inner constructor), so the audit must skip the relevant
+    blockers (procedure-pointer / unsupported ``class(*)`` etc.) for
+    them.
+
+    *absent_filled* is a dict ``impl_name -> set(arg_names)`` for args
+    tagged ``value="absent"``: the wrapper drops them entirely from
+    both the Python and the bind(c) signatures *and* from the inner
+    call (the inner constructor must handle the absent case via its
+    declared default).  Only valid for `optional` args.
+
+    *internal_selectors* is a dict ``impl_name -> chosen_internal_name``
+    extracted from ``<constructor internal="…"/>`` attributes.  Used
+    to pick one of several Internal-suffixed constructors when an
+    impl exposes more than one.
+    """
     if not xml_path.exists():
-        return set()
+        return set(), {}, {}, {}, {}
     classes_el = ET.parse(xml_path).getroot().find('classes')
     if classes_el is None:
-        return set()
-    return {child.tag for child in classes_el}
+        return set(), {}, {}, {}, {}
+    registered         = {child.tag for child in classes_el}
+    overrides          = defaultdict(set)
+    null_filled        = defaultdict(set)
+    absent_filled      = defaultdict(set)
+    internal_selectors = {}
+    for class_el in classes_el:
+        for impl_el in class_el:
+            ctor_el = impl_el.find('constructor')
+            if ctor_el is None:
+                continue
+            chosen = ctor_el.get('internal')
+            if chosen:
+                internal_selectors[impl_el.tag] = chosen
+            for arg_el in ctor_el.findall('argument'):
+                arg_name = arg_el.get('name')
+                if not arg_name:
+                    continue
+                overrides[impl_el.tag].add(arg_name)
+                if arg_el.get('value') == 'null':
+                    null_filled[impl_el.tag].add(arg_name)
+                if arg_el.get('value') == 'absent':
+                    absent_filled[impl_el.tag].add(arg_name)
+    return (registered, dict(overrides),
+            dict(null_filled), dict(absent_filled),
+            internal_selectors)
 
 
 def fmt_section(title):
@@ -446,8 +597,11 @@ def fmt_section(title):
 
 def main():
     print("Discovering functionClasses…", file=sys.stderr)
-    all_fcs, fc_files = discover_function_classes(SOURCE_DIR)
-    registered        = load_registered_classes(LIB_XML)
+    all_fcs, fc_files                                 = discover_function_classes(SOURCE_DIR)
+    (registered, overrides,
+     null_filled, absent_filled,
+     internal_selectors)                              = load_registered_classes(LIB_XML)
+    class_hierarchy                                   = build_type_hierarchy(SOURCE_DIR)
     print(f"  {len(all_fcs)} functionClass(es); "
           f"{len(registered)} currently registered.", file=sys.stderr)
 
@@ -457,8 +611,12 @@ def main():
               end='', file=sys.stderr)
         impls = []
         for path in sorted(fc_files.get(fc, [])):
-            impls.extend(parse_impls_in_file(path, fc))
-        audit[fc] = aggregate_class(impls, all_fcs, registered)
+            impls.extend(parse_impls_in_file(
+                path, fc, internal_selectors=internal_selectors))
+        audit[fc] = aggregate_class(impls, all_fcs, registered, overrides,
+                                    class_hierarchy=class_hierarchy,
+                                    null_filled=null_filled,
+                                    absent_filled=absent_filled)
     print("\n", file=sys.stderr)
 
     # Buckets.
