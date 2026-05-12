@@ -693,13 +693,14 @@ with safe_section("value='null' constructor-arg overrides"):
 # `double precision, allocatable, dimension(:)` — a vector of initial
 # parameter guesses derived from the supplied empirical points.  With
 # `assumeZeroVarianceAtZeroLag=True` the inner method allocates
-# `C(2)` and fills it with
-# ``[semiVariances(size(...)), separations(size(...)/2)]``, so the
-# returned array's contents are predictable from the inputs alone (no
-# MPI / state / file dependency).  We also check the save-buffer
-# lifetime contract: the wrapper `.copy()`s before returning, so a
-# subsequent call to the same method on the same object doesn't
-# overwrite the previous return value.
+# `C(2)`, fills it with
+# ``[semiVariances(size(...)), separations(size(...)/2)]``, then
+# converts to logarithmic form via ``C=log(C)`` — so the returned
+# array's contents are predictable from the inputs alone (no MPI /
+# state / file dependency).  We also check the save-buffer lifetime
+# contract: the wrapper `.copy()`s before returning, so a subsequent
+# call to the same method on the same object doesn't overwrite the
+# previous return value.
 with safe_section("variogramExponential (allocatable / dynamic-size return)"):
     vg = galacticus.variogramExponential(
         variogramFitOption          = 0,     # `mean` (first enum entry, 0-based)
@@ -708,13 +709,14 @@ with safe_section("variogramExponential (allocatable / dynamic-size return)"):
     seps_a    = np.array([0.1, 0.5, 1.0], dtype=np.float64)
     semivar_a = np.array([0.2, 0.4, 0.8], dtype=np.float64)
     arr_a     = vg.modelInitialGuess(separations=seps_a, semiVariances=semivar_a)
-    # Inner: C = [semiVariances(3), separations(3/2)] = [semiVariances(3), separations(1)]
-    #         (Fortran integer division, 1-indexed).
+    # Inner: C = log([semiVariances(3), separations(3/2)])
+    #         = log([semiVariances(3), separations(1)])    (Fortran integer
+    #         division, 1-indexed).
     check_eq("modelInitialGuess() return type",  type(arr_a).__name__, 'ndarray')
     check_eq("modelInitialGuess() return size",  arr_a.size,           2)
     check_eq("modelInitialGuess() return dtype", str(arr_a.dtype),     'float64')
-    check   ("modelInitialGuess()[0]",  float(arr_a[0]),  0.8)
-    check   ("modelInitialGuess()[1]",  float(arr_a[1]),  0.1)
+    check   ("modelInitialGuess()[0]",  float(arr_a[0]),  np.log(0.8))
+    check   ("modelInitialGuess()[1]",  float(arr_a[1]),  np.log(0.1))
     # Save-buffer lifetime: call again with different inputs, then
     # confirm the first array is unchanged.  Without the `.copy()` in
     # the wrapper, arr_a would alias the save-target buffer and pick up
@@ -722,9 +724,9 @@ with safe_section("variogramExponential (allocatable / dynamic-size return)"):
     seps_b    = np.array([2.0, 3.0, 4.0], dtype=np.float64)
     semivar_b = np.array([0.05, 0.1, 0.2], dtype=np.float64)
     arr_b     = vg.modelInitialGuess(separations=seps_b, semiVariances=semivar_b)
-    check_eq("first array unchanged after re-call",  float(arr_a[0]), 0.8)
-    check   ("second call return[0]",                float(arr_b[0]), 0.2)
-    check   ("second call return[1]",                float(arr_b[1]), 2.0)
+    check   ("first array unchanged after re-call",  float(arr_a[0]), np.log(0.8))
+    check   ("second call return[0]",                float(arr_b[0]), np.log(0.2))
+    check   ("second call return[1]",                float(arr_b[1]), np.log(2.0))
 
 # Allocatable-array method return — same save-buffer codegen as the
 # dynamic-size case above, just with an `allocatable, dimension(:)`
