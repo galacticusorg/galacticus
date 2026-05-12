@@ -245,7 +245,25 @@ _DYNAMIC_ARRAY_RETURN_RX = re.compile(
     r'(?:\s*,\s*allocatable)?'
     r'\s*,\s*dimension\s*\(\s*'
     r'(?!\s*\d+\s*\))'                    # exclude `dimension(<literal>)`
-    r'([^,)]+)\s*\)\s*$',                 # forbid commas — 1D only
+    r'([^,]+)\s*\)\s*$',                  # forbid top-level commas — 1D
+                                          # only — but allow internal parens
+                                          # so `dimension(size(X))`,
+                                          # `dimension(self%X)` etc. match.
+    re.IGNORECASE,
+)
+
+# 2D variant of the dynamic/allocatable array return — `dimension(:,:)`
+# or `dimension(<expr1>,<expr2>)`.  Same save-buffer codegen, plus a
+# second `c_size_t` size companion so Python can reshape the flat
+# byte buffer with the right column-major layout (Fortran convention).
+# Captures (intrinsic, extent1, extent2); extents are diagnostic only,
+# the wrapper template doesn't reference them.
+_DYNAMIC_ARRAY_RETURN_2D_RX = re.compile(
+    r'^(double\s+precision|integer)'
+    r'(?:\s*,\s*allocatable)?'
+    r'\s*,\s*dimension\s*\(\s*'
+    r'([^,]+)\s*,\s*([^,]+)'              # two comma-separated extents
+    r'\s*\)\s*$',
     re.IGNORECASE,
 )
 
@@ -1021,7 +1039,8 @@ def interfaces_methods(code, python, func_class, extensions, module_uses_impls,
         result_extra_clib_argtypes = []   # matching ctypes wrappers
         result_python_class_wrap  = None  # (parent_class, out_id_var) or None
         result_python_array_wrap  = None  # (size, elem_ctype, elem_dtype) or None
-        result_python_dyn_array_wrap = None  # (elem_ctype, elem_dtype) for save-buffer returns
+        result_python_dyn_array_wrap = None  # (elem_ctype, elem_dtype) for save-buffer 1D returns
+        result_python_dyn_array_2d_wrap = None  # (elem_ctype, elem_dtype) for save-buffer 2D returns
         result_is_subroutine      = False # force `subroutine` even when method_type != "void"
         if method_type == "double precision":
             method_type_c                        = "real(c_double)"
@@ -1263,6 +1282,53 @@ def interfaces_methods(code, python, func_class, extensions, module_uses_impls,
                                           'POINTER(c_size_t)']
             result_python_dyn_array_wrap = (elem_ctype, elem_dtype)
             result_is_subroutine       = True
+        elif _DYNAMIC_ARRAY_RETURN_2D_RX.match(method_type):
+            # 2D variant of the allocatable / dynamic-size array return
+            # — same save-target buffer trick as the 1D case above, with
+            # one extra `c_size_t` size companion so Python can reshape
+            # the flat byte buffer to the right (size1, size2).  Fortran
+            # stores 2D arrays in column-major order; the Python wrapper
+            # uses `reshape((size1, size2), order='F')` so the indexing
+            # convention matches the inner method.
+            m = _DYNAMIC_ARRAY_RETURN_2D_RX.match(method_type)
+            arr_intrinsic_raw = m.group(1).lower()
+            arr_intrinsic     = re.sub(r'\s+', ' ', arr_intrinsic_raw)
+            if arr_intrinsic == 'double precision':
+                elem_ctype, elem_fort, elem_dtype = ('c_double',
+                                                    'real(c_double)',
+                                                    'float64')
+            else:
+                elem_ctype, elem_fort, elem_dtype = ('c_int',
+                                                    'integer(c_int)',
+                                                    'int32')
+            isoImports[elem_ctype]    = 1
+            isoImports['c_ptr']       = 1
+            isoImports['c_size_t']    = 1
+            isoImports['c_loc']       = 1
+            method_type_c              = ''      # subroutine, no return type
+            clib_res_type              = None
+            result_call_target         = 'glcResult_'
+            result_extra_declarations  = (
+                f'  {elem_fort}, dimension(:,:), allocatable, save, target'
+                f' :: glcResult_\n'
+                f'  type(c_ptr),       intent(out) :: glcDataPtr_\n'
+                f'  integer(c_size_t), intent(out) :: glcSize1_\n'
+                f'  integer(c_size_t), intent(out) :: glcSize2_\n'
+            )
+            result_post_call_code      = (
+                f'  glcSize1_   = size(glcResult_, dim=1, kind=c_size_t)\n'
+                f'  glcSize2_   = size(glcResult_, dim=2, kind=c_size_t)\n'
+                f'  glcDataPtr_ = c_loc(glcResult_)\n'
+            )
+            result_pre_call_code       = (
+                f'  if (allocated(glcResult_)) deallocate(glcResult_)\n'
+            )
+            result_extra_fort_args     = ['glcDataPtr_', 'glcSize1_', 'glcSize2_']
+            result_extra_clib_argtypes = ['POINTER(c_void_p)',
+                                          'POINTER(c_size_t)',
+                                          'POINTER(c_size_t)']
+            result_python_dyn_array_2d_wrap = (elem_ctype, elem_dtype)
+            result_is_subroutine       = True
         elif method_type == "void":
             pass
         else:
@@ -1399,6 +1465,38 @@ end {procedure} {method_name_c}
                 + f'    _glcArr_ = np.zeros({arr_size}, dtype=np.{elem_dtype})\n'
                 + f'    c_lib.{method_name_c}({",".join(py_call_args)})\n'
                 + f'    return _glcArr_\n'
+            )
+        elif result_python_dyn_array_2d_wrap:
+            # 2D allocatable / dynamic-size array return.  Same shape as
+            # the 1D path below, with one extra size companion and a
+            # `reshape((s1, s2), order='F')` on the Python side so the
+            # column-major Fortran storage maps to the right numpy
+            # indexing.
+            elem_ctype, elem_dtype = result_python_dyn_array_2d_wrap
+            py_call_args = []
+            for a in arg_list:
+                if not a.fort_is_present:
+                    continue
+                py_call_args.append(a.py_pass_as if a.py_pass_as else python_safe_name(a.name))
+            py_call_args.append('byref(_glcDataPtr_)')
+            py_call_args.append('byref(_glcSize1_)')
+            py_call_args.append('byref(_glcSize2_)')
+            reassignments_block = ''.join(a.py_reassignment for a in arg_list)
+            py_call = (
+                reassignments_block
+                + f'    _glcDataPtr_ = c_void_p()\n'
+                + f'    _glcSize1_   = c_size_t()\n'
+                + f'    _glcSize2_   = c_size_t()\n'
+                + f'    c_lib.{method_name_c}({",".join(py_call_args)})\n'
+                # `from_address` over the save buffer; reshape in
+                # column-major order to match the Fortran-side
+                # (size1, size2) layout; `.copy()` materialises a fresh
+                # numpy-owned array so the caller's reference survives
+                # subsequent calls to the same method.
+                + f'    return np.ctypeslib.as_array(\n'
+                + f'        ({elem_ctype} * (_glcSize1_.value * _glcSize2_.value))'
+                + f'.from_address(_glcDataPtr_.value)\n'
+                + f'    ).reshape((_glcSize1_.value, _glcSize2_.value), order="F").copy()\n'
             )
         elif result_python_dyn_array_wrap:
             # Allocatable / dynamic-size 1D array return.  The Fortran

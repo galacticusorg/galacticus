@@ -98,7 +98,22 @@ _DYNAMIC_ARRAY_RETURN_RX = re.compile(
     r'(?:\s*,\s*allocatable)?'
     r'\s*,\s*dimension\s*\(\s*'
     r'(?!\s*\d+\s*\))'
-    r'([^,)]+)\s*\)\s*$',                 # forbid commas — 1D only
+    r'([^,]+)\s*\)\s*$',                  # forbid top-level commas — 1D
+                                          # only — but allow internal parens
+                                          # so `dimension(size(X))` etc.
+                                          # match.
+    re.IGNORECASE,
+)
+
+# 2D variant of the dynamic/allocatable array return — same save-buffer
+# codegen plus a second size companion; see the matching regex in
+# libraryInterfaces.py for the rationale.
+_DYNAMIC_ARRAY_RETURN_2D_RX = re.compile(
+    r'^(double\s+precision|integer)'
+    r'(?:\s*,\s*allocatable)?'
+    r'\s*,\s*dimension\s*\(\s*'
+    r'([^,]+)\s*,\s*([^,]+)'
+    r'\s*\)\s*$',
     re.IGNORECASE,
 )
 
@@ -660,6 +675,8 @@ def classify_method_return(ret_type, all_fcs, registered,
     if _ARRAY_RETURN_RX.match(ret):
         return set(), []
     if _DYNAMIC_ARRAY_RETURN_RX.match(ret):
+        return set(), []
+    if _DYNAMIC_ARRAY_RETURN_2D_RX.match(ret):
         return set(), []
     m = _CLASS_RETURN_RX.match(ret)
     if m:

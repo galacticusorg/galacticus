@@ -756,6 +756,56 @@ with safe_section("starFormationHistoryMetallicitySplit (allocatable return)"):
     check   ("metallicityBoundaries()[0]",      float(bounds[0]), 0.001)
     check   ("metallicityBoundaries()[1]",      float(bounds[1]), 0.01)
     check   ("metallicityBoundaries()[2]",      float(bounds[2]), 0.1)
+    # 2D-allocatable-array return — `starFormationHistory::masses` returns
+    # `double precision, allocatable, dimension(:,:)`.  Calling it
+    # end-to-end needs a populated `treeNode` plus a `type(history)`
+    # value, both of which require heavy setup; just confirm the wrapper
+    # exposes the method and the Python signature carries the user-visible
+    # args (the bind(c) companion args — `glcDataPtr_` + the two size
+    # companions — are hidden by the wrapper template).
+    sig = inspect.signature(galacticus.starFormationHistoryMetallicitySplit.masses)
+    check_eq("masses() exposed",
+             'masses' in dir(galacticus.starFormationHistoryMetallicitySplit), True)
+    for arg_name in ('node', 'starFormationHistory'):
+        check_eq(f"masses(): {arg_name} in signature",
+                 arg_name in sig.parameters, True)
+    check_eq("masses(): glcDataPtr_ hidden",
+             'glcDataPtr_' in sig.parameters, False)
+    check_eq("masses(): glcSize1_ hidden",
+             'glcSize1_' in sig.parameters, False)
+
+# Nested-paren dynamic-size return — exercises the regex fix that lets
+# the dynamic-size-array return-type recogniser match shapes with
+# nested parens like `dimension(size(<arg>))` in addition to the
+# already-supported `dimension(self%X)`.  Affected methods all need
+# heavy deps (treeNode / posteriorSampleState / lists of model
+# parameters) to call end-to-end, so we check at the wrapper-exposure
+# level: each method must be present with its user-visible args, and
+# the synthetic bind(c) companion args (`glcDataPtr_`, `glcSize_`)
+# must be hidden by the wrapper template.
+with safe_section("nested-paren dynamic-size returns (exposure)"):
+    cases = [
+        ('outputAnalysisDistributionOperatorIdentity', 'operateScalar',
+         ('propertyValue', 'propertyValueMinimum', 'propertyValueMaximum',
+          'outputIndex', 'node')),
+        ('outputAnalysisDistributionOperatorIdentity', 'operateDistribution',
+         ('distribution', 'propertyValueMinimum', 'propertyValueMaximum',
+          'outputIndex', 'node')),
+        ('posteriorSampleDffrntlEvltnRandomJumpSimple', 'sample',
+         ('modelParameters_', 'simulationState')),
+    ]
+    for cls_name, method_name, expected_args in cases:
+        cls = getattr(galacticus, cls_name)
+        check_eq(f"{cls_name}.{method_name} exposed",
+                 hasattr(cls, method_name), True)
+        sig = inspect.signature(getattr(cls, method_name))
+        for arg in expected_args:
+            check_eq(f"{cls_name}.{method_name}: {arg} in signature",
+                     arg in sig.parameters, True)
+        check_eq(f"{cls_name}.{method_name}: glcDataPtr_ hidden",
+                 'glcDataPtr_' in sig.parameters, False)
+        check_eq(f"{cls_name}.{method_name}: glcSize_ hidden",
+                 'glcSize_' in sig.parameters, False)
 
 # In-place mutable buffer arg — exercises the path that accepts
 # `intent(inout)` / `intent(out)` non-allocatable array args.  Before
