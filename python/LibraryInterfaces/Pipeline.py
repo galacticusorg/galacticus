@@ -293,6 +293,16 @@ def assign_c_types(argument_list, lib_function_classes, class_hierarchy=None,
         if intrinsic == 'double precision':
             arg.ctype     = 'c_double'
             arg.fort_type = 'real(c_double)'
+        elif intrinsic == 'real':
+            # Default-kind `real` is REAL(4) on every platform Galacticus
+            # targets; the matching C-interop kind is `c_float`.  Without
+            # this branch a scalar `real` arg fell through to the
+            # ArgSpec default of `c_int`, and the emitted wrapper
+            # declared a 4-byte INTEGER where the inner method expected
+            # a 4-byte REAL — broken at compile time (see
+            # `posteriorSampleLikelihood::evaluate`'s `timeEvaluate`).
+            arg.ctype     = 'c_float'
+            arg.fort_type = 'real(c_float)'
         elif intrinsic == 'integer':
             # Default kind maps to c_int; explicit C-interop kinds (c_long,
             # c_size_t) pass through with matching ctypes wrappers so that
@@ -910,6 +920,7 @@ def build_python_reassignments(argument_list):
 # in assign_c_types.
 _ARRAY_NUMPY_DTYPE = {
     'c_double': 'float64',
+    'c_float' : 'float32',
     'c_int'   : 'int32',
     'c_long'  : 'int64',
     'c_size_t': 'uint64',
