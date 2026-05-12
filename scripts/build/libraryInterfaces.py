@@ -221,6 +221,34 @@ _ARRAY_RETURN_RX = re.compile(
     re.IGNORECASE,
 )
 
+# Aliases the return-type switch in interfaces_methods accepts as synonyms.
+# Galacticus source uses several spellings for the same C-interop integer
+# kind (`integer(kind=c_size_t)` vs the unprefixed `integer(c_size_t)`,
+# `integer(kind=kind_int8)` for the SELECTED_INT_KIND(18) 64-bit kind),
+# and the switch only had branches for the unprefixed forms.  Normalising
+# here keeps the switch terse — and mirrors the precedent on the *arg*
+# side in Pipeline.py (assign_c_types treats `kind_int8` as a `c_long`
+# alias).
+_RETURN_TYPE_ALIASES = {
+    'integer(kind=c_size_t)' : 'integer(c_size_t)',
+    'integer(kind=c_long)'   : 'integer(c_long)',
+    # `kind_int8 = SELECTED_INT_KIND(18)` lives in Kind_Numbers; on every
+    # supported platform it resolves to a Fortran kind value of 8, which
+    # is the same width as `c_long` on Linux/macOS (both 8 bytes).  Use
+    # `c_long` as the bind(c) carrier — that's what assign_c_types
+    # already does for the arg-side spelling, so the calling convention
+    # stays consistent across constructor args and method returns.
+    'integer(kind=kind_int8)': 'integer(c_long)',
+    'integer(kind_int8)'     : 'integer(c_long)',
+}
+
+
+def _normalize_method_return_type(ret_type):
+    """Collapse equivalent return-type spellings to the canonical form
+    the :func:`interfaces_methods` switch handles natively.  Anything
+    not in :data:`_RETURN_TYPE_ALIASES` passes through unchanged."""
+    return _RETURN_TYPE_ALIASES.get(ret_type.strip(), ret_type)
+
 
 def _find_enum_module(enum_type, func_class):
     """Locate the Fortran module that exports *enum_type* (an
@@ -927,7 +955,8 @@ def interfaces_methods(code, python, func_class, extensions, module_uses_impls,
 
     methods_to_delete = []
     for method_name, method_spec in func_class.get('methods', {}).items():
-        method_type = method_spec.get('type', 'void')
+        method_type = _normalize_method_return_type(
+            method_spec.get('type', 'void'))
 
         # Build argument list for method
         arg_list = [

@@ -96,6 +96,17 @@ _SCALAR_RETURN_OK = frozenset({
     'integer(c_size_t)', 'logical', 'type(varying_string)',
 })
 
+# Mirror of libraryInterfaces._RETURN_TYPE_ALIASES — accepted spellings the
+# generator normalises before its return-type switch.  Duplicated here for
+# the same reason the rest of the predicate is duplicated (audit stays
+# usable standalone); both tables MUST stay in sync.
+_RETURN_TYPE_ALIASES = {
+    'integer(kind=c_size_t)' : 'integer(c_size_t)',
+    'integer(kind=c_long)'   : 'integer(c_long)',
+    'integer(kind=kind_int8)': 'integer(c_long)',
+    'integer(kind_int8)'     : 'integer(c_long)',
+}
+
 
 # Match a fixed-size dimension(N) attribute (N a positive integer literal).
 # Same predicate the generator uses; duplicated here so the audit doesn't
@@ -624,7 +635,7 @@ def classify_method_return(ret_type, all_fcs, registered,
     instead, so they participate in the closure analysis the same way
     class-typed constructor args do.
     """
-    ret = ret_type.strip()
+    ret = _RETURN_TYPE_ALIASES.get(ret_type.strip(), ret_type.strip())
     if ret in _SCALAR_RETURN_OK:
         return set(), []
     if _ENUM_RETURN_RX.match(ret):
