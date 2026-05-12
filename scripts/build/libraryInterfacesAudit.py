@@ -1,10 +1,13 @@
 #!/usr/bin/env python3
 """Audit which functionClasses can be exposed via the Python interface.
 
-Walks ``source/`` to discover every Galacticus ``<functionClass>`` directive
-and every concrete implementation of each one, parses each impl's
-``ConstructorInternal`` argument list, and classifies the *class as a whole*
-(union of its concrete impls' classifications) into one of three buckets:
+Two passes:
+
+1. **Constructors.**  Walk ``source/`` to discover every Galacticus
+   ``<functionClass>`` directive and every concrete implementation of
+   each one, parse each impl's ``ConstructorInternal`` argument list,
+   and classify the *class as a whole* (union of its concrete impls'
+   classifications) into one of three buckets:
 
   READY              — at least one concrete impl's constructor uses only
                        pipeline-supported arg types and depends only on
@@ -25,6 +28,16 @@ and every concrete implementation of each one, parses each impl's
                        procedure pointers, etc.).  Grouped by blocker so
                        you can see which feature would unblock the most
                        classes.
+
+2. **Methods.**  Walk every ``<method>`` directive on every registered
+   functionClass, parse its return-type and ``<argument>`` list, and
+   classify each method individually.  Blockers are split into
+   *in-scope* and *out-of-scope* buckets — the latter are deferred
+   categories the team has explicitly chosen not to tackle yet
+   (``type(treeNode)``-style internal derived types, non-fc class
+   hierarchies); see :func:`_is_out_of_scope_reason` for the predicate.
+   Both buckets are reported separately so the in-scope worklist
+   doesn't get drowned out by the deferred backlog.
 
 The script is standalone — it doesn't require ``directiveLocations.xml`` to
 be built first.  It does need the rest of the python/ tree on PYTHONPATH
@@ -51,10 +64,37 @@ sys.path.insert(0, str(REPO_ROOT / 'python'))
 import xml.etree.ElementTree as ET                     # noqa: E402
 
 from Galacticus.Build import SourceTree                # noqa: E402
+from Galacticus.Build.SourceTree.Parse import Declarations  # noqa: E402
 from LibraryInterfaces.Pipeline import _SHARED_TYPE_MODULES  # noqa: E402
 from LibraryInterfaces.Hierarchy import (                # noqa: E402
     build_type_hierarchy, resolve_function_class_base,
 )
+
+
+# Method return-type recognisers — mirror libraryInterfaces._ENUM_RETURN_RX /
+# _CLASS_RETURN_RX / _ARRAY_RETURN_RX so the audit's verdict matches the
+# generator without having to import from libraryInterfaces.py.
+_ENUM_RETURN_RX = re.compile(
+    r'^type\s*\(\s*(enumeration[a-z0-9_]+type)\s*\)$',
+    re.IGNORECASE,
+)
+_CLASS_RETURN_RX = re.compile(
+    r'^class\s*\(\s*([a-z][a-zA-Z0-9_]*Class)\s*\)$',
+    re.IGNORECASE,
+)
+_ARRAY_RETURN_RX = re.compile(
+    r'^(double\s+precision|integer)\s*,\s*dimension\s*\(\s*\d+\s*\)\s*$',
+    re.IGNORECASE,
+)
+
+# Scalar return types the generator handles outright (no per-type plumbing
+# beyond the ISO_C_Binding kind selection).  Kept as a literal set so any
+# trivial new alias added to the generator's switch must also be mirrored
+# here — otherwise the audit and the generator disagree on what compiles.
+_SCALAR_RETURN_OK = frozenset({
+    'void', 'double precision', 'integer', 'integer(c_long)',
+    'integer(c_size_t)', 'logical', 'type(varying_string)',
+})
 
 
 # Match a fixed-size dimension(N) attribute (N a positive integer literal).
@@ -494,6 +534,206 @@ def aggregate_class(impls, all_fcs, registered, overrides, class_hierarchy=None,
 
 
 # ---------------------------------------------------------------------------
+# Methods: discover every `<method>` directive on every functionClass, parse
+# its return-type and arg list, and classify each one with the same
+# predicate the generator uses.  An "out-of-scope" tag marks reasons that
+# the team has explicitly deferred (`type(treeNode)` and other internal
+# derived types, non-functionClass polymorphic hierarchies); see
+# :func:`_is_out_of_scope_reason` for the predicate.
+# ---------------------------------------------------------------------------
+
+# Match a `<method name="…">…</method>` block inside a functionClass
+# directive's body.  Bodies contain other XML elements (description, type,
+# argument, …); `[\s\S]*?` keeps the inner match minimal without choking on
+# the embedded `<…>` markup.
+_METHOD_RX   = re.compile(
+    r'<method\s+name="(?P<name>[^"]+)"[^>]*>(?P<body>[\s\S]*?)</method>'
+)
+_M_TYPE_RX   = re.compile(r'<type>([^<]+)</type>')
+_M_ARG_RX    = re.compile(r'<argument>([^<]+)</argument>')
+_FC_BLOCK_RX = re.compile(
+    r'<functionClass>(?P<body>[\s\S]*?)</functionClass>'
+)
+_FC_NAME_RX  = re.compile(r'<name>([^<]+)</name>')
+
+
+def discover_methods(source_dir, all_fcs):
+    """Return ``{fc_name: [{'name': …, 'return': str, 'args': [decl, …]}, …]}``
+    where each *decl* is the dict produced by
+    :func:`Declarations.parse_declaration` (so the per-arg shape matches
+    what :func:`classify_constructor` already consumes).
+
+    Methods are extracted by regex from the `<functionClass>…</functionClass>`
+    body — the SourceTree pass that the impl walk uses would surface the
+    same data, but at ~5× the cost (every functionClass file would have to
+    be parsed in full).  The regex form is enough because the directive
+    markup is uniformly XML-like and the audit only needs the method
+    signature, not the surrounding Fortran.
+    """
+    methods = defaultdict(list)
+    for path in sorted(source_dir.glob('*.F90')):
+        text = path.read_text(errors='replace')
+        for fc_match in _FC_BLOCK_RX.finditer(text):
+            body    = fc_match.group('body')
+            name_m  = _FC_NAME_RX.search(body)
+            if not name_m:
+                continue
+            fc = name_m.group(1).strip()
+            if fc not in all_fcs:
+                continue
+            for mm in _METHOD_RX.finditer(body):
+                mbody    = mm.group('body')
+                t_m      = _M_TYPE_RX.search(mbody)
+                ret_type = (t_m.group(1).strip() if t_m else 'void')
+                args     = []
+                for am in _M_ARG_RX.finditer(mbody):
+                    decl = Declarations.parse_declaration(am.group(1))
+                    if not decl:
+                        # An <argument> line the Fortran parser refused —
+                        # surface it as a synthetic blocker rather than
+                        # silently swallowing it (otherwise an obviously
+                        # broken method would look ready).
+                        args.append({'name': '?',
+                                     'intrinsic': '?',
+                                     'type': am.group(1).strip(),
+                                     'attributes': []})
+                        continue
+                    for var_name in decl.get('variableNames', []):
+                        args.append({
+                            'name'     : var_name,
+                            'intrinsic': decl.get('intrinsic'),
+                            'type'     : decl.get('type'),
+                            'attributes': decl.get('attributes', []),
+                        })
+                methods[fc].append({
+                    'name'   : mm.group('name'),
+                    'return' : ret_type,
+                    'args'   : args,
+                })
+    return methods
+
+
+def classify_method_return(ret_type, all_fcs, registered,
+                           class_hierarchy=None):
+    """Return ``(missing_deps, reasons)`` for a method's return type.
+
+    Mirrors the return-type switch in
+    ``libraryInterfaces.interfaces_methods`` — anything not handled there
+    surfaces here as a pipeline blocker.  Class-typed returns whose stem is
+    a known-but-unregistered functionClass are reported as a missing dep
+    instead, so they participate in the closure analysis the same way
+    class-typed constructor args do.
+    """
+    ret = ret_type.strip()
+    if ret in _SCALAR_RETURN_OK:
+        return set(), []
+    if _ENUM_RETURN_RX.match(ret):
+        return set(), []
+    if _ARRAY_RETURN_RX.match(ret):
+        return set(), []
+    m = _CLASS_RETURN_RX.match(ret)
+    if m:
+        stem = m.group(1)[:-5]   # strip trailing "Class"
+        if stem in all_fcs:
+            if stem not in registered:
+                return {stem}, []
+            return set(), []
+        return set(), [
+            f"class(non-fc) return ({ret} — '{stem}' is not a registered "
+            f"functionClass)"
+        ]
+    # Tag common sub-categories so the report's `re.split(r'\s+\(', …)`
+    # bucketing tells the distinct backlogs apart.  The "kind=" alias path
+    # is a one-liner in the generator's switch; the deferred-shape and
+    # dynamic-size return-array paths each need a real out-buffer
+    # protocol; the scalar `type(<X>)` returns are the deferred internal-
+    # derived-type / pointer-return cases.
+    if re.match(r'^integer\s*\(\s*kind\s*=', ret, re.IGNORECASE):
+        return set(), [f"kind-alias return type ({ret})"]
+    if re.search(r'allocatable', ret, re.IGNORECASE) \
+            and re.search(r'dimension', ret, re.IGNORECASE):
+        return set(), [f"allocatable-array return type ({ret})"]
+    if re.search(r'dimension\s*\(\s*[a-z_]', ret, re.IGNORECASE):
+        # `dimension(self%…)` / `dimension(size(…))` etc. — extent
+        # computed from runtime state rather than a literal integer.
+        return set(), [f"dynamic-size array return type ({ret})"]
+    if re.match(r'^type\s*\(', ret, re.IGNORECASE):
+        # Includes `type(abundances)`, `type(mergerTree), pointer`, … —
+        # the internal-derived-type / pointer-return cases that
+        # _is_out_of_scope_reason flags as deferred.
+        return set(), [f"scalar derived-type return type ({ret})"]
+    return set(), [f"unsupported return type ({ret})"]
+
+
+# Categorise a blocker reason for the in-scope vs deferred split in the
+# method report.  "Out-of-scope" tracks the team decision to defer
+# `type(treeNode)`, the other internal derived types, and non-fc class
+# hierarchies; everything else (kind aliases, deferred-shape return
+# arrays, dynamic-size returns, output-array args, procedure-pointer args,
+# class(*) in methods, complex args, …) stays in-scope.
+def _is_out_of_scope_reason(reason):
+    """True if the blocker is one of the categories deferred to a later
+    pass.  Used purely for report bucketing; classify_method_return /
+    classify_constructor stay agnostic so the unfiltered classification
+    is still available to callers."""
+    # class(<X>) where X isn't a registered fc (incl. the abstract-
+    # intermediate-failed variant emitted by classify_constructor /
+    # classify_method_return).  Catches "class(non-fc) return …",
+    # "class(<X>) — not a functionClass …", and "class(<X>) — only
+    # registered functionClasses and class(*) (with override) are
+    # supported".
+    if re.search(r'class\s*\([^)]*\)\s*(?:—|--)', reason):
+        # …but not class(*), which is in-scope (it just needs a method-
+        # side override hook).
+        if not re.search(r'class\s*\(\s*\*\s*\)', reason):
+            return True
+    if 'class(non-fc) return' in reason:
+        return True
+    # Scalar `type(<X>)` returns/args where X isn't varying_string or an
+    # enumeration*Type — those are the internal-derived-type cases.
+    # `unsupported return type (type(<X>))` and `class(<X>List) …` array
+    # cases both come through here.
+    m = re.search(r'type\s*\(\s*([a-zA-Z_][a-zA-Z0-9_]*)\s*\)', reason)
+    if m:
+        stem = m.group(1)
+        if stem == 'varying_string':
+            return False
+        if re.match(r'enumeration[a-z0-9_]+type$', stem, re.IGNORECASE):
+            return False
+        return True
+    return False
+
+
+def aggregate_methods(methods_by_fc, all_fcs, registered,
+                      class_hierarchy=None):
+    """Classify every method on every functionClass.
+
+    Returns ``{fc: [{'method': method_dict, 'deps': set, 'reasons': list}, …]}``.
+    Empty `deps` AND `reasons` mean the method is ready; anything else
+    means the generator would drop it (or, if only `deps`, that it would
+    become reachable once the named functionClasses are registered).
+    """
+    out = {}
+    for fc, methods in methods_by_fc.items():
+        rows = []
+        for m in methods:
+            ret_deps, ret_reasons = classify_method_return(
+                m['return'], all_fcs, registered,
+                class_hierarchy=class_hierarchy)
+            arg_deps, arg_reasons = classify_constructor(
+                m['args'], all_fcs, registered,
+                overridden_args=frozenset(),
+                class_hierarchy=class_hierarchy)
+            rows.append({
+                'method' : m,
+                'deps'   : ret_deps | arg_deps,
+                'reasons': list(ret_reasons) + list(arg_reasons),
+            })
+        out[fc] = rows
+    return out
+
+
+# ---------------------------------------------------------------------------
 # Closure analysis: starting from the currently-registered set, iteratively
 # pull in any class whose unmet deps have been satisfied.  Reports the
 # total reach and the order in which classes get pulled in.
@@ -765,6 +1005,139 @@ def main():
         print(fmt_section(
             f"NO-CONCRETE-IMPLS ({len(no_impls)}) — abstract bases only"))
         print(f"  {', '.join(no_impls)}")
+
+    # ------------------------------------------------------------------
+    # Methods pass — classify every `<method>` directive on every
+    # functionClass and report what the generator would drop.  See
+    # :func:`classify_method_return`, :func:`aggregate_methods`, and
+    # :func:`_is_out_of_scope_reason` for the predicates.
+    # ------------------------------------------------------------------
+    print("Discovering methods…", file=sys.stderr)
+    methods_by_fc = discover_methods(SOURCE_DIR, all_fcs)
+    method_audit  = aggregate_methods(
+        methods_by_fc, all_fcs, registered,
+        class_hierarchy=class_hierarchy)
+
+    # Aggregates: counts by status, separated into in-scope vs out-of-scope
+    # blockers so the report tracks the two backlogs independently.
+    n_total           = 0
+    n_ready           = 0
+    n_blocked_inscope = 0
+    n_blocked_oos     = 0
+    n_missing_dep     = 0
+    in_scope_buckets  = defaultdict(set)   # head -> set((fc, method))
+    oos_buckets       = defaultdict(set)
+    dropped_in_built  = []                 # rows for registered classes only
+    for fc, rows in method_audit.items():
+        for row in rows:
+            n_total += 1
+            mname = row['method']['name']
+            if not row['reasons'] and not row['deps']:
+                n_ready += 1
+                continue
+            if row['reasons']:
+                # In-scope iff *every* reason is in-scope; mixed cases get
+                # tagged in-scope so the in-scope worklist sees them too.
+                any_in_scope = any(not _is_out_of_scope_reason(r)
+                                   for r in row['reasons'])
+                for r in row['reasons']:
+                    head = re.split(r'\s+\(', r, maxsplit=1)[0]
+                    if _is_out_of_scope_reason(r):
+                        oos_buckets[head].add((fc, mname))
+                    else:
+                        in_scope_buckets[head].add((fc, mname))
+                if any_in_scope:
+                    n_blocked_inscope += 1
+                else:
+                    n_blocked_oos += 1
+            else:
+                # deps only — would be ready once the dep is registered.
+                n_missing_dep += 1
+            if fc in registered and (row['reasons'] or row['deps']):
+                # Choose a single summary line, in-scope reasons preferred.
+                summary = None
+                for r in row['reasons']:
+                    if not _is_out_of_scope_reason(r):
+                        summary = r
+                        break
+                if summary is None:
+                    summary = (row['reasons'][0] if row['reasons']
+                               else 'missing dep(s): '
+                                    + ', '.join(sorted(row['deps'])))
+                dropped_in_built.append((fc, mname, summary,
+                                         any(_is_out_of_scope_reason(r)
+                                             for r in row['reasons'])
+                                         and not any(not _is_out_of_scope_reason(r)
+                                                     for r in row['reasons'])))
+
+    n_total_classes_with_methods = len(method_audit)
+    print(fmt_section("Methods — summary"))
+    print(f"  Total method directives:  {n_total} "
+          f"across {n_total_classes_with_methods} functionClasses")
+    if n_total:
+        print(f"  Ready:                    {n_ready} "
+              f"({100*n_ready//n_total}%)")
+        print(f"  Missing-dep:              {n_missing_dep}")
+        print(f"  In-scope blocked:         {n_blocked_inscope}")
+        print(f"  Out-of-scope blocked:     {n_blocked_oos} "
+              f"(deferred — treeNode / other internal derived types /"
+              f" non-fc class hierarchies)")
+
+    # Top in-scope blockers — what the team can actually work on next.
+    print(fmt_section(
+        f"METHOD BLOCKERS — in-scope ({sum(len(v) for v in in_scope_buckets.values())}"
+        f" method occurrences)"))
+    if in_scope_buckets:
+        for head, occs in sorted(in_scope_buckets.items(),
+                                 key=lambda kv: -len(kv[1])):
+            n_classes = len({fc for fc, _ in occs})
+            print(f"  {len(occs):4d}  ({n_classes:3d} classes)  {head}")
+    else:
+        print("  (none — every method's in-scope path is unblocked)")
+
+    # Same shape, for the deferred bucket so the size of the future
+    # backlog is visible at a glance.
+    print(fmt_section(
+        f"METHOD BLOCKERS — out-of-scope (deferred)"))
+    if oos_buckets:
+        for head, occs in sorted(oos_buckets.items(),
+                                 key=lambda kv: -len(kv[1])):
+            n_classes = len({fc for fc, _ in occs})
+            print(f"  {len(occs):4d}  ({n_classes:3d} classes)  {head}")
+    else:
+        print("  (none)")
+
+    # Dropped methods on registered classes — the actual loss in today's
+    # built library, mirroring the DROPPED IMPLS section above.  Separated
+    # by in-scope vs out-of-scope so the actionable list isn't drowned by
+    # the deferred backlog.
+    dropped_in_scope = [r for r in dropped_in_built if not r[3]]
+    dropped_oos      = [r for r in dropped_in_built if     r[3]]
+    print(fmt_section(
+        f"DROPPED METHODS — in-scope ({len(dropped_in_scope)}) on registered classes"))
+    if dropped_in_scope:
+        label_width = max(
+            (len(f"  {fc} :: {m}") for fc, m, _, _ in dropped_in_scope),
+            default=0,
+        )
+        for fc, mname, summary, _ in dropped_in_scope:
+            label = f"  {fc} :: {mname}"
+            print(f"{label.ljust(label_width)}  {summary}")
+    else:
+        print("  (none — every in-scope method on a registered class is built)")
+
+    print(fmt_section(
+        f"DROPPED METHODS — out-of-scope (deferred, {len(dropped_oos)}) on registered classes"))
+    if dropped_oos:
+        # Don't enumerate the whole list — too long to be useful.  Just
+        # surface the per-class drop count so the report stays scannable.
+        by_class = defaultdict(int)
+        for fc, _, _, _ in dropped_oos:
+            by_class[fc] += 1
+        for fc in sorted(by_class, key=lambda k: -by_class[k]):
+            print(f"  {fc:50s}  {by_class[fc]:3d} method(s)")
+    else:
+        print("  (none)")
 
 
 if __name__ == '__main__':
