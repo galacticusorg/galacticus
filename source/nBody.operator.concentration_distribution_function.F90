@@ -26,7 +26,12 @@
   
   !![
   <nbodyOperator name="nbodyOperatorConcentrationDistributionFunction">
-   <description>An N-body data operator which computes the halo concentration distribution function by binning halos as a function of concentration within a specified mass and concentration range. Mass limits are set by \mono{[massMinimum]} and \mono{[massMaximum]}, concentration limits and binning by \mono{[concentrationMinimum]}, \mono{[concentrationMaximum]}, and \mono{[concentrationCountPerDecade]}.</description>
+    <description>
+      An N-body data operator which computes the halo concentration distribution function by binning halos as a function of
+      concentration within a specified mass and concentration range. Mass limits and binning are set by \mono{[massMinimum]} ,
+      \mono{[massMaximum]}, and \mono{[massCountPerDecade]}, concentration limits and binning by \mono{[concentrationMinimum]},
+      \mono{[concentrationMaximum]}, and \mono{[concentrationCountPerDecade]}.
+    </description>
   </nbodyOperator>
   !!]
   type, extends(nbodyOperatorClass) :: nbodyOperatorConcentrationDistributionFunction
@@ -37,7 +42,7 @@
      class           (cosmologyParametersClass), pointer :: cosmologyParameters_        => null()
      double precision                                    :: massMinimum                          , massMaximum         , &
           &                                                 concentrationMinimum                 , concentrationMaximum
-     integer         (c_size_t                )          :: concentrationCountPerDecade
+     integer         (c_size_t                )          :: concentrationCountPerDecade          , massCountPerDecade
      type            (varying_string          )          :: simulationReference                  , simulationURL       , &
           &                                                 description
    contains
@@ -66,7 +71,7 @@ contains
     class           (cosmologyParametersClass                      ), pointer       :: cosmologyParameters_
     double precision                                                                :: massMinimum                , massMaximum         , &
           &                                                                            concentrationMinimum       , concentrationMaximum
-    integer         (c_size_t                                      )                :: concentrationCountPerDecade
+    integer         (c_size_t                                      )                :: concentrationCountPerDecade, massCountPerDecade
     type            (varying_string                                )                :: simulationReference        , simulationURL       , &
          &                                                                             description
 
@@ -80,6 +85,11 @@ contains
       <name>massMaximum</name>
       <source>parameters</source>
       <description>The maximum halo mass (in $\mathrm{M}_\odot$) above which halos are excluded from the concentration distribution function.</description>
+    </inputParameter>
+    <inputParameter>
+      <name>massCountPerDecade</name>
+      <source>parameters</source>
+      <description>The number of logarithmic bins per decade of mass used when constructing the concentration distribution function.</description>
     </inputParameter>
     <inputParameter>
       <name>concentrationMinimum</name>
@@ -113,7 +123,7 @@ contains
     </inputParameter>
     <objectBuilder class="cosmologyParameters" name="cosmologyParameters_" source="parameters"/>
     !!]
-    self=nbodyOperatorConcentrationDistributionFunction(massMinimum,massMaximum,concentrationMinimum,concentrationMaximum,concentrationCountPerDecade,description,simulationReference,simulationURL,cosmologyParameters_)
+    self=nbodyOperatorConcentrationDistributionFunction(massMinimum,massMaximum,massCountPerDecade,concentrationMinimum,concentrationMaximum,concentrationCountPerDecade,description,simulationReference,simulationURL,cosmologyParameters_)
     !![
     <inputParametersValidate source="parameters"/>
     <objectDestructor name="cosmologyParameters_"/>
@@ -121,7 +131,7 @@ contains
     return
   end function concentrationDistributionFunctionConstructorParameters
 
-  function concentrationDistributionFunctionConstructorInternal(massMinimum,massMaximum,concentrationMinimum,concentrationMaximum,concentrationCountPerDecade,description,simulationReference,simulationURL,cosmologyParameters_) result (self)
+  function concentrationDistributionFunctionConstructorInternal(massMinimum,massMaximum,massCountPerDecade,concentrationMinimum,concentrationMaximum,concentrationCountPerDecade,description,simulationReference,simulationURL,cosmologyParameters_) result (self)
     !!{
     Internal constructor for the \refClass{nbodyOperatorConcentrationDistributionFunction} N-body operator class.
     !!}
@@ -129,12 +139,12 @@ contains
     type            (nbodyOperatorConcentrationDistributionFunction)                        :: self
     double precision                                                , intent(in   )         :: massMinimum                , massMaximum         , &
          &                                                                                     concentrationMinimum       , concentrationMaximum
-    integer         (c_size_t                                      ), intent(in   )         :: concentrationCountPerDecade
+    integer         (c_size_t                                      ), intent(in   )         :: concentrationCountPerDecade, massCountPerDecade
     type            (varying_string                                ), intent(in   )         :: simulationReference        , simulationURL       , &
          &                                                                                     description
     class           (cosmologyParametersClass                      ), intent(in   ), target :: cosmologyParameters_
     !![
-    <constructorAssign variables="massMinimum, massMaximum, concentrationMinimum, concentrationMaximum, concentrationCountPerDecade, description, simulationReference, simulationURL, *cosmologyParameters_"/>
+    <constructorAssign variables="massMinimum, massMaximum, massCountPerDecade, concentrationMinimum, concentrationMaximum, concentrationCountPerDecade, description, simulationReference, simulationURL, *cosmologyParameters_"/>
     !!]
     
     return
@@ -159,7 +169,7 @@ contains
     !!}
     use    :: Dates_and_Times   , only : Formatted_Date_and_Time
     use    :: Display           , only : displayCounter         , displayCounterClear   , displayIndent, displayMessage, &
-         &                              displayUnindent        , verbosityLevelStandard
+         &                               displayUnindent        , verbosityLevelStandard
     use    :: Error             , only : Error_Report
     use    :: IO_HDF5           , only : hdf5Object
     use    :: HDF5_Access       , only : hdf5Access
@@ -170,18 +180,21 @@ contains
     use    :: Numerical_Ranges  , only : Make_Range             , rangeTypeLogarithmic
     !$ use :: OMP_Lib           , only : OMP_Get_Thread_Num
     implicit none
-    class           (nbodyOperatorConcentrationDistributionFunction), intent(inout)               :: self
-    type            (nBodyData                                     ), intent(inout), dimension(:) :: simulations
-    double precision                                                , allocatable  , dimension(:) :: concentrationDistributionFunction, concentrationBin
-    double precision                                                , pointer      , dimension(:) :: mass                             , radiusVirial      , &
-         &                                                                                           radiusScale
-    double precision                                                , allocatable  , dimension(:) :: concentration
-    integer         (c_size_t                                      ), allocatable  , dimension(:) :: countBin
-    integer         (c_size_t                                      )                              :: iSimulation                      , concentrationCount, &
-         &                                                                                           i                                , j
-    integer                                                                                       :: k
-    double precision                                                                              :: binWidthInverse
-    type            (hdf5Object                                    )                              :: cosmologyGroup                   , simulationGroup
+    class           (nbodyOperatorConcentrationDistributionFunction), intent(inout)                 :: self
+    type            (nBodyData                                     ), intent(inout), dimension(:  ) :: simulations
+    double precision                                                , allocatable  , dimension(:  ) :: concentrationBin                 , concentration      , &
+         &                                                                                             massBin
+    double precision                                                , allocatable  , dimension(:,:) :: concentrationDistributionFunction
+    double precision                                                , pointer      , dimension(:  ) :: mass                             , radiusVirial       , &
+         &                                                                                             radiusScale
+    integer         (c_size_t                                      ), allocatable  , dimension(:,:) :: countBin
+    integer         (c_size_t                                      )                                :: iSimulation                      , concentrationCount , &
+         &                                                                                             i                                , j                  , &
+         &                                                                                             k                                , massCount
+    integer                                                                                         :: m
+    double precision                                                                                :: binWidthInverseConcentration     , binWidthInverseMass, &
+         &                                                                                             countTotal
+    type            (hdf5Object                                    )                                :: cosmologyGroup                   , simulationGroup
 
 #ifdef USEMPI
     if (mpiSelf%isMaster()) then
@@ -190,13 +203,17 @@ contains
 #ifdef USEMPI
     end if
 #endif
-    ! Construct bins in mass.
+    ! Construct bins in mass and concentration.
+    massCount         =int(log10(self%massMaximum         /self%massMinimum         )*dble(self%massCountPerDecade         ),kind=c_size_t)
     concentrationCount=int(log10(self%concentrationMaximum/self%concentrationMinimum)*dble(self%concentrationCountPerDecade),kind=c_size_t)
-    allocate(concentrationBin                 (concentrationCount))
-    allocate(concentrationDistributionFunction(concentrationCount))
-    allocate(countBin                         (concentrationCount))
-    concentrationBin=Make_Range(self%concentrationMinimum,self%concentrationMaximum,int(concentrationCount),rangeTypeLogarithmic,rangeBinned=.true.)
-    binWidthInverse =1.0d0/log10(concentrationBin(2)/concentrationBin(1))
+    allocate(massBin                          (massCount                   ))
+    allocate(concentrationBin                 (          concentrationCount))
+    allocate(concentrationDistributionFunction(massCount,concentrationCount))
+    allocate(countBin                         (massCount,concentrationCount))
+    massBin                     =Make_Range(self%massMinimum         ,self%massMaximum         ,int(massCount         ),rangeTypeLogarithmic,rangeBinned=.true.)
+    concentrationBin            =Make_Range(self%concentrationMinimum,self%concentrationMaximum,int(concentrationCount),rangeTypeLogarithmic,rangeBinned=.true.)
+    binWidthInverseMass         =1.0d0/log10(massBin         (2)/massBin         (1))
+    binWidthInverseConcentration=1.0d0/log10(concentrationBin(2)/concentrationBin(1))
     ! Iterate over simulations.
     do iSimulation=1_c_size_t,size(simulations)
 #ifdef USEMPI
@@ -244,17 +261,22 @@ contains
           ! If running under MPI with N processes, process only every Nth particle.
           if (mod(i,mpiSelf%count()) /= mpiSelf%rank()) cycle
 #endif
-          ! Skip particles not in the mass range.
+          ! Skip halos not in the mass range.
           if     (                            &
                &   mass(i) < self%massMinimum &
                &  .or.                        &
                &   mass(i) > self%massMaximum &
                & ) cycle
           ! Accumulate particles into bins.
-          j=floor(log10(concentration(i)/self%concentrationMinimum)*binWidthInverse)+1
-          if (j >= 1 .and. j <= concentrationCount)  &
-               & countBin(j)=+countBin  (j) &
-               &             +1_c_size_t
+          j=floor(log10(mass         (i)/self%massMinimum         )*binWidthInverseMass         )+1
+          k=floor(log10(concentration(i)/self%concentrationMinimum)*binWidthInverseConcentration)+1
+          if     (                                      &
+               &   j >= 1 .and. j <= massCount          &
+               &  .and.                                 &
+               &   k >= 1 .and. k <= concentrationCount &
+               & )                                      &
+               & countBin(j,k)=+countBin  (j,k)         &
+               &               +1_c_size_t
           ! Update progress.
           !$ if (OMP_Get_Thread_Num() == 0) then
 #ifdef USEMPI
@@ -286,10 +308,16 @@ contains
        countBin=mpiSelf%sum(countBin)
 #endif
        ! Normalize the distribution function.
-       concentrationDistributionFunction=dble(countBin)*binWidthInverse/log(10.0d0)/dble(sum(countBin))
+       do i=1_c_size_t,massCount
+          countTotal                            =dble(sum(countBin(i,:)))
+          if (countTotal <= 0.0d0) cycle
+          concentrationDistributionFunction(i,:)=dble(    countBin(i,:) )*binWidthInverseConcentration/log(10.0d0)/countTotal
+       end do
 #ifdef USEMPI
        if (mpiSelf%isMaster()) then
 #endif
+          !$ call hdf5Access%set()
+          call simulations(iSimulation)%analysis%writeDataset  (massBin                          ,'mass'                             )
           call simulations(iSimulation)%analysis%writeDataset  (concentrationBin                 ,'concentration'                    )
           call simulations(iSimulation)%analysis%writeDataset  (countBin                         ,'count'                            )
           call simulations(iSimulation)%analysis%writeDataset  (concentrationDistributionFunction,'concentrationDistributionFunction')
@@ -302,14 +330,14 @@ contains
           simulationGroup=simulations(iSimulation)%analysis%openGroup('simulation')
           call simulationGroup%writeAttribute(self%simulationReference,'reference')
           call simulationGroup%writeAttribute(self%simulationURL      ,'URL'      )
-          do k=1,simulations(iSimulation)%attributesInteger%size()
-             call simulationGroup%writeAttribute(simulations(iSimulation)%attributesInteger%value(k),char(simulations(iSimulation)%attributesInteger%key(k)))
+          do m=1,simulations(iSimulation)%attributesInteger%size()
+             call simulationGroup%writeAttribute(simulations(iSimulation)%attributesInteger%value(m),char(simulations(iSimulation)%attributesInteger%key(m)))
           end do
-          do k=1,simulations(iSimulation)%attributesReal   %size()
-             call simulationGroup%writeAttribute(simulations(iSimulation)%attributesReal   %value(k),char(simulations(iSimulation)%attributesReal   %key(k)))
+          do m=1,simulations(iSimulation)%attributesReal   %size()
+             call simulationGroup%writeAttribute(simulations(iSimulation)%attributesReal   %value(m),char(simulations(iSimulation)%attributesReal   %key(m)))
           end do
-          do k=1,simulations(iSimulation)%attributesText   %size()
-             call simulationGroup%writeAttribute(simulations(iSimulation)%attributesText   %value(k),char(simulations(iSimulation)%attributesText   %key(k)))
+          do m=1,simulations(iSimulation)%attributesText   %size()
+             call simulationGroup%writeAttribute(simulations(iSimulation)%attributesText   %value(m),char(simulations(iSimulation)%attributesText   %key(m)))
           end do
           !$ call hdf5Access%unset()
 #ifdef USEMPI
