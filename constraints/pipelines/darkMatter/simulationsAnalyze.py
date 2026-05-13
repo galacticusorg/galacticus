@@ -1373,12 +1373,14 @@ def store_results(active_analyses, entries, options):
                 res_name   = entry['resolution']['name']
                 sim_name   = entry['simulation']['name']
                 realization = entry['realization']
+                dst_dir = (data_path + '/static/darkMatter/'
+                           + suite_name + '/' + group_name + '/' + res_name + '/'
+                           + sim_name + '/' + realization)
+                os.makedirs(dst_dir, exist_ok=True)
                 for epoch in entry['resolution']['epochs']:
                     rl = epoch['redshiftLabel']
                     src = entry['path'] + f'haloMassFunction_{rl}:MPI0000.hdf5'
-                    dst = (data_path + '/static/darkMatter/haloMassFunction_'
-                           + suite_name + '_' + group_name + '_' + res_name + '_'
-                           + sim_name + '_' + realization + '_' + rl + '.hdf5')
+                    dst = dst_dir + f'/haloMassFunction_{rl}.hdf5'
                     shutil.copy(src, dst)
 
         elif step_id == 'progenitorMassFunction':
@@ -1392,9 +1394,11 @@ def store_results(active_analyses, entries, options):
                 epoch_parent = epoch_progenitors.pop(0)
                 rl = epoch_parent['redshiftLabel']
                 src = entry['path'] + f'progenitorMassFunction_{rl}:MPI0000.hdf5'
-                dst = (data_path + '/static/darkMatter/progenitorMassFunction_'
-                       + suite_name + '_' + group_name + '_' + res_name + '_'
-                       + sim_name + '_' + realization + '_' + rl + '.hdf5')
+                dst_dir = (data_path + '/static/darkMatter/'
+                           + suite_name + '/' + group_name + '/' + res_name + '/'
+                           + sim_name + '/' + realization)
+                os.makedirs(dst_dir, exist_ok=True)
+                dst = dst_dir + f'/progenitorMassFunction_{rl}.hdf5'
                 shutil.copy(src, dst)
 
         elif step_id == 'concentrationDistributionFunction':
@@ -1404,12 +1408,14 @@ def store_results(active_analyses, entries, options):
                 res_name   = entry['resolution']['name']
                 sim_name   = entry['simulation']['name']
                 realization = entry['realization']
+                dst_dir = (data_path + '/static/darkMatter/'
+                           + suite_name + '/' + group_name + '/' + res_name + '/'
+                           + sim_name + '/' + realization)
+                os.makedirs(dst_dir, exist_ok=True)
                 for epoch in entry['resolution']['epochs']:
                     rl = epoch['redshiftLabel']
                     src = entry['path'] + f'concentrationDistributionFunction_{rl}:MPI0000.hdf5'
-                    dst = (data_path + '/static/darkMatter/concentrationDistributionFunction_'
-                           + suite_name + '_' + group_name + '_' + res_name + '_'
-                           + sim_name + '_' + realization + '_' + rl + '.hdf5')
+                    dst = dst_dir + f'/concentrationDistributionFunction_{rl}.hdf5'
                     shutil.copy(src, dst)
 
         elif step_id == 'spinDistributionFunction':
@@ -1419,12 +1425,14 @@ def store_results(active_analyses, entries, options):
                 res_name   = entry['resolution']['name']
                 sim_name   = entry['simulation']['name']
                 realization = entry['realization']
+                dst_dir = (data_path + '/static/darkMatter/'
+                           + suite_name + '/' + group_name + '/' + res_name + '/'
+                           + sim_name + '/' + realization)
+                os.makedirs(dst_dir, exist_ok=True)
                 for epoch in entry['resolution']['epochs']:
                     rl = epoch['redshiftLabel']
                     src = entry['path'] + f'spinDistributionFunction_{rl}:MPI0000.hdf5'
-                    dst = (data_path + '/static/darkMatter/spinDistributionFunction_'
-                           + suite_name + '_' + group_name + '_' + res_name + '_'
-                           + sim_name + '_' + realization + '_' + rl + '.hdf5')
+                    dst = dst_dir + f'/spinDistributionFunction_{rl}.hdf5'
                     shutil.copy(src, dst)
 
         elif step_id == 'subhaloStatistics':
@@ -1442,9 +1450,9 @@ def store_results(active_analyses, entries, options):
 
                 for epoch in entry['resolution']['epochs']:
                     rl    = epoch['redshiftLabel']
-                    label = f'{suite_name}_{group_name}_{res_name}_{sim_name}_{rl}'
+                    key   = (suite_name, group_name, res_name, sim_name, rl)
 
-                    stat = subhalo_stats.setdefault(label, {
+                    stat = subhalo_stats.setdefault(key, {
                         'redshift':           epoch['redshift'],
                         'reference':          reference,
                         'referenceURL':       url,
@@ -1473,7 +1481,7 @@ def store_results(active_analyses, entries, options):
                             }
                         else:
                             if not np.array_equal(mass_ratio, stat['smf']['massRatio']):
-                                raise ValueError(f'mass ratios do not align for {label}')
+                                raise ValueError(f'mass ratios do not align for {key}')
                         stat['smf']['count']        += count.astype(float)
                         stat['smf']['massFunction'] += mf
                         stat['smf']['massHost']      = np.append(stat['smf']['massHost'], mass_host)
@@ -1493,7 +1501,7 @@ def store_results(active_analyses, entries, options):
                             }
                         else:
                             if not np.array_equal(rad_ratio, stat['srf']['radiusRatio']):
-                                raise ValueError(f'radius ratios do not align for {label}')
+                                raise ValueError(f'radius ratios do not align for {key}')
                         stat['srf']['count']             += count_r.astype(float)
                         stat['srf']['radialDistribution'] += radial
 
@@ -1514,7 +1522,7 @@ def store_results(active_analyses, entries, options):
                             }
                         else:
                             if not np.array_equal(mass_v, stat['svf']['mass']):
-                                raise ValueError(f'mass arrays do not align for {label}')
+                                raise ValueError(f'mass arrays do not align for {key}')
                         nonzero = np.where(vmax_mean > 0.0)[0]
                         stat['svf']['count']                     += count_v.astype(float)
                         if nonzero.size > 0:
@@ -1523,8 +1531,13 @@ def store_results(active_analyses, entries, options):
                         stat['svf']['velocityMaximumMeanSquared'] += vmax_mean ** 2
                         stat['svf']['velocityMaximumMeanVariance'] += vmax_err ** 2
 
-            # Generate output for each label.
-            for label, stat in subhalo_stats.items():
+            # Generate output for each simulation/epoch.
+            for key, stat in subhalo_stats.items():
+                suite_name, group_name, res_name, sim_name, rl = key
+                dst_dir = (data_path + '/static/darkMatter/'
+                           + suite_name + '/' + group_name + '/' + res_name + '/'
+                           + sim_name)
+                os.makedirs(dst_dir, exist_ok=True)
                 n = stat['countRealizations']
                 stat['smf']['count']        /= n
                 stat['smf']['massFunction'] /= n
@@ -1552,13 +1565,13 @@ def store_results(active_analyses, entries, options):
                     mass_host = np.append(mass_host, mass_host)
                 tree_weights = np.ones_like(mass_host)
 
-                host_file = data_path + f'/static/darkMatter/hostHaloMasses_{label}.hdf5'
+                host_file = dst_dir + f'/hostHaloMasses_{rl}.hdf5'
                 with h5py.File(host_file, 'w') as hdf:
                     hdf.create_dataset('treeRootMass', data=mass_host,    maxshape=(None,))
                     hdf.create_dataset('treeWeight',   data=tree_weights, maxshape=(None,))
 
                 z_str = f'{stat["redshift"]:.3f}'
-                store_file = data_path + f'/static/darkMatter/subhaloDistributions_{label}.hdf5'
+                store_file = dst_dir + f'/subhaloDistributions_{rl}.hdf5'
                 with h5py.File(store_file, 'w') as hdf:
                     hdf.attrs['label']        = stat['label']
                     hdf.attrs['redshift']     = stat['redshift']
