@@ -1146,7 +1146,7 @@ def main():
         fh.write(config_closer)
 
     with open(output_dir + 'haloMassFunctionConfigResume.xml', 'w') as fh:
-        config_likelihood_resume = res.sub(r'(<appendSamples\s+value=")false("\/>)',r'\1true\2',config_likelihood)
+        config_likelihood_resume = re.sub(r'(<appendSamples\s+value=")false("\/>)',r'\1true\2',config_likelihood)
         fh.write(config_opener)
         fh.write(config_likelihood_resume)
         fh.write(config_resumer)
