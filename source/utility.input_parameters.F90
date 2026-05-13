@@ -2291,10 +2291,10 @@ contains
           expression=getTextContent(valueElement)
           !$omp end critical (FoX_DOM_Access)
           if (expression(1:1) == "=" .and. evaluate_) then
-             {Type¦match¦^(Integer|Long|Double|Character|VarStr)$¦if (.true.) then¦if (.false.) then}
+             {Type¦match¦^(Integer|Long|Double|Logical|Character|VarStr)$¦if (.true.) then¦if (.false.) then}
                 {Type¦match¦^Integer|Long¦isInteger=.true.¦isInteger=.false.}
                 {Type¦match¦^Double$¦isDouble=.true.¦isDouble=.false.}
-                {Type¦match¦^(Character|VarStr)¦isText=.true.¦isText=.false.}
+                {Type¦match¦^(Logical|Character|VarStr)¦isText=.true.¦isText=.false.}
                 ! This is an expression, and we have a scalar, floating point or text type - it can be evaluated.             
                 !! Mark this parameter as being evaluated and store its original content. This allows the parameter to be reset to
                 !! its original (unevaluated) state if necessary.
