@@ -31,7 +31,8 @@ module Error_Functions
   use, intrinsic :: ISO_C_Binding, only : c_double
   implicit none
   private
-  public :: Error_Function, Error_Function_Complementary, erfApproximate, Faddeeva
+  public :: Error_Function           , Error_Function_Complementary, erfApproximate, Faddeeva, &
+       &    Error_Function_Difference
 
   interface Error_Function
      module procedure Error_Function_Real
@@ -224,7 +225,7 @@ contains
     real(kind=kind_quad), parameter     :: a               =8.00_kind_quad*(PiQuadPrecision-3.0_kind_quad)/3.0_kind_quad/PiQuadPrecision/(4.0_kind_quad-PiQuadPrecision)
     ! Value above which erf(x)=1 to quad precision.
     real(kind=kind_quad), parameter     :: xMaximum        =8.75_kind_quad
-
+    
     if (x > xMaximum) then
        erfApproximateQuad=1.0_kind_quad
     else
@@ -233,4 +234,62 @@ contains
     return
   end function erfApproximateQuad
 
+  double precision function Error_Function_Difference(x1,x2) result(difference)
+    !!{
+    Evaluates the difference in the error function at the given arguments, $\mathrm{erf}(x_2)-\mathrm{erf}(x_1)$. Utiliizes
+    symmetries of the error function and the complementary error function to maintain accuracy.
+    !!}
+    use :: Error       , only : Error_Report
+    use :: Kind_Numbers, only : kind_quad   , kind_dble
+    implicit none
+    double precision, intent(in   ) :: x1              , x2
+    double precision, parameter     :: tolerance=1.0d-6
+    double precision                :: erf1            , erf2
+
+    ! Validate input.
+    difference=0.0d0
+    if (x2 == x1) return
+    if (x2 <  x1) call Error_Report('x₂ ≥ x₁ is required'//{introspection:location})
+    ! First try simply evaluating the difference.
+    erf1      =+erf(x1)
+    erf2      =+erf(x2)
+    difference=+erf2    &
+         &     -erf1
+    ! Check if a non-zero result was found.
+    if (difference > 0.0d0) return
+    ! Check if we are close to +∞.
+    if (erf2 > +1.0d0-tolerance) then
+       erf2      =+erfc(x2)
+       erf1      =+erfc(x1)
+       difference=-erf2 &
+            &     +erf1
+       if (difference > 0.0d0) return
+       ! Try using quad precision.
+       difference=real(                                                &
+            &               +erfApproximate(real(+x2,kind=kind_quad))  &
+            &               -erfApproximate(real(+x1,kind=kind_quad)), &
+            &          kind=kind_dble                                  &
+            &         )
+       if (difference > 0.0d0) return
+    end if
+    ! Check if we are close to -∞.
+    if (erf1 < -1.0d0+tolerance) then
+       erf1      =+erfc(-x1)
+       erf2      =+erfc(-x2)
+       difference=+erf2      &
+            &     -erf1
+       if (difference > 0.0d0) return
+
+       ! Try using quad precision.
+       difference=real(                                                &
+            &               -erfApproximate(real(-x2,kind=kind_quad))  &
+            &               +erfApproximate(real(-x1,kind=kind_quad)), &
+            &          kind=kind_dble                                  &
+            &         )
+       if (difference > 0.0d0) return
+    end if
+    ! Nothing has worked - return 0.
+    return
+  end function Error_Function_Difference
+  
 end module Error_Functions

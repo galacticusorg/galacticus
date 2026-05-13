@@ -31,7 +31,7 @@ program Test_Math_Special_Functions
   use :: Binomial_Coefficients   , only : Binomial_Coefficient
   use :: Dilogarithms            , only : Dilogarithm
   use :: Display                 , only : displayVerbositySet              , verbosityLevelStandard
-  use :: Error_Functions         , only : Error_Function
+  use :: Error_Functions         , only : Error_Function                   , Error_Function_Difference
   use :: Exponential_Integrals   , only : Cosine_Integral                  , Sine_Integral
   use :: Factorials              , only : Factorial                        , Logarithmic_Double_Factorial
   use :: Beta_Functions          , only : Beta_Function                    , Beta_Function_Incomplete_Normalized
@@ -793,6 +793,14 @@ program Test_Math_Special_Functions
        &      relTol=dcmplx(1.0d-6,1.0d-6)&
        &     )
 
+  ! Test difference in error functions for extreme values. Target computed using Mathematica.
+  call Assert(                                                                                     &
+       &      "difference in error functions"                                                    , &
+       &      [Error_Function_Difference(11.9d0,12.1d0),Error_Function_Difference(-12.1,-11.9d0)], &
+       &      [1.480425801261648772d-63                ,1.480425801261648772d-63                ], &
+       &      relTol=1.0d-6                                                                        &
+       &      )
+  
   ! Test binomial coefficients.
   call Assert(                                                                                                                                                                               &
        &             "binomial coefficient, ₂C₁, ₁₀C₃, ₋₂C₀, ₋₂C₁₀, ₋₂C₂₀, ₋₂C₂₀₀"                                                                                                         , &
