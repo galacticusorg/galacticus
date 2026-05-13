@@ -434,6 +434,7 @@ contains
 #ifdef USEMPI
        if (mpiSelf%isMaster()) then
 #endif
+          !$ call hdf5Access%set()
           resultsGroup=simulations(iSimulation)%analysis%openGroup("progenitorOrderStatistics","Order statistics of progenitor halo masses.")
           call resultsGroup%writeDataset  (massParentBin            ,'massParent'               )
           call resultsGroup%writeDataset  (massRatioProgenitorBin   ,'massRatioProgenitor'      )

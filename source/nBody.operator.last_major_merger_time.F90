@@ -419,6 +419,7 @@ contains
 #ifdef USEMPI
        if (mpiSelf%isMaster()) then
 #endif
+          !$ call hdf5Access%set()
           resultsGroup=simulations(iSimulation)%analysis%openGroup("timeLastMajorMerger","Last major merger times of halos.")
           call resultsGroup%writeDataset  (massParentBin            ,'massParent'    )
           call resultsGroup%writeDataset  (redshiftMergerBin        ,'redshiftMerger')
