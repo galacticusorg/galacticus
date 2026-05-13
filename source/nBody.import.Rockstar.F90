@@ -526,7 +526,7 @@ contains
                         &                          columnsInteger(27:34), &
                         &                          columnsReal   (35:54)
                 case (3)
-                   ! Newer layout with "Tidal_Force" in column 35 and 58 columns total.
+                   ! Newer layout with "Tidal_Force" in column 35 and 59 columns total.
                    read (line,*,ioStat=lineStatus) columnsReal   ( 0   ), &
                         &                          columnsInteger( 1   ), &
                         &                          columnsReal   ( 2   ), &
@@ -683,6 +683,12 @@ contains
              case (rockstarColumnSpin      %ID)
                 columnName='spin'
              case (rockstarColumnrs        %ID)
+                columnName='radiusScale'
+                propertiesReal(jReal)%property=+propertiesReal(jReal)                     %property                           &
+                     &                         *                                           expansionFactor                    &
+                     &                         /self                 %cosmologyParameters_%HubbleConstant(hubbleUnitsLittleH) &
+                     &                         /kilo
+             case (rockstarColumnRs_Klypin %ID)
                 columnName='radiusScale'
                 propertiesReal(jReal)%property=+propertiesReal(jReal)                     %property                           &
                      &                         *                                           expansionFactor                    &
