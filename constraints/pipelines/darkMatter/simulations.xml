@@ -707,6 +707,10 @@
      	  <massHostLogMin   value="  12.0                                           "/>
      	  <massHostLogMax   value="  12.3                                           "/>
 	</haloMassFunction>
+	<progenitorMassFunction>
+	  <treeMasses        value="file"/>
+	  <countReplications value="10"  />
+	</progenitorMassFunction>
       </resolution>
       <resolution name="resolutionX8">
 	<simulation name="WDM:3keV">

@@ -56,6 +56,10 @@ def _parse_args():
                         help='Number of nodes for the haloMassFunction MCMC job (default: 16)')
     parser.add_argument('--haloMassFunctionPPN',   default=32, type=int,
                         help='Processors per node for the haloMassFunction MCMC job (default: 32)')
+    parser.add_argument('--progenitorMassFunctionNodes', default=16, type=int,
+                        help='Number of nodes for the progenitorMassFunction MCMC job (default: 16)')
+    parser.add_argument('--progenitorMassFunctionPPN',   default=32, type=int,
+                        help='Processors per node for the progenitorMassFunction MCMC job (default: 32)')
     parser.add_argument('--countParticlesMinimum', default=300, type=int,
                         help='Minimum particles per halo (default: 300); forwarded to sub-scripts')
     parser.add_argument('--select',             default=None, action='append',
@@ -217,7 +221,13 @@ def main():
             'nodes':       options['haloMassFunctionNodes'],
             'postprocess': True,
         },
-    ]
+        {
+            'label':       'progenitorMassFunction',
+            'ppn':         options['progenitorMassFunctionPPN'],
+            'nodes':       options['progenitorMassFunctionNodes'],
+            'postprocess': True,
+        }, 
+   ]
 
     params_determined = {}
 
