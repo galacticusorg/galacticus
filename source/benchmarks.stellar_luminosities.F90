@@ -25,8 +25,8 @@ program Benchmark_Stellar_Populations_Luminosities
   !!{
   Benchmarking of stellar population luminosity calculations.
   !!}
-  use, intrinsic :: ISO_Fortran_Env                           , only : output_unit
   use            :: Abundances_Structure                      , only : abundances                                    , metallicityTypeLinearByMassSolar
+  use            :: Benchmark_Utilities                       , only : Benchmark_Report
   use            :: Cosmology_Functions                       , only : cosmologyFunctionsMatterLambda
   use            :: Cosmology_Parameters                      , only : cosmologyParametersSimple
   use            :: Display                                   , only : displayVerbositySet                           , verbosityLevelWorking
@@ -71,12 +71,8 @@ program Benchmark_Stellar_Populations_Luminosities
   type            (cosmologyFunctionsMatterLambda                )                                         :: cosmologyFunctions_
   type            (stellarPopulationBroadBandLuminositiesStandard)                                         :: stellarPopulationBroadBandLuminosities_
   integer                                                                                                  :: trial                                             , i
-  integer         (kind=kind_int8                                )                                         :: countStart                                        , countEnd                , &
-       &                                                                                                      countRate
+  integer         (kind=kind_int8                                )                                         :: countStart                                        , countEnd
   integer         (kind=kind_int8                                ), dimension(trialCount                 ) :: trialTime
-  character       (len =   3                                     )                                         :: units
-  double precision                                                                                         :: timeMean                                          , timeStandardDeviation   , &
-       &                                                                                                      timeMeanError
 
   parameters=inputParameters()
   call displayVerbositySet(verbosityLevelWorking)
@@ -205,16 +201,6 @@ program Benchmark_Stellar_Populations_Luminosities
           &                                                                                       )                       &
           &                                                                                      )
   end do
-  ! Get clock units.
-  call System_Clock(countStart,countRate)
-  select case (countRate)
-  case (      1000)
-     units="ms"
-  case (   1000000)
-     units="μs"
-  case (1000000000)
-     units="ns"
-  end select
   ! Begin trials.
   do trial=1,trialCount
      call System_Clock(countStart)
@@ -223,17 +209,8 @@ program Benchmark_Stellar_Populations_Luminosities
      trialTime(trial)=+countEnd   &
           &           -countStart
   end do
-  ! Compute mean and standard deviation of benchmark time. Skip the first two evaluations as they include start-up overheads.
-  timeMean             =+       dble(sum(trialTime(3:trialCount)   ))/dble(trialCount-2)
-  timeStandardDeviation=+sqrt(+(dble(sum(trialTime(3:trialCount)**2))/dble(trialCount-2)-timeMean**2) &
-       &                      *                                       dble(trialCount-2)              &
-       &                      /                                       dble(trialCount-3)              &
-       &                     )
-  timeMeanError        =+timeStandardDeviation                                                        &
-       &                /sqrt(                                        dble(trialCount-2)              &
-       &                     )
-  ! Report benchmark information.
-  write (output_unit,'(a,1x,a,1x,a,f12.1,1x,f12.1,1x,a1,a2,a1)') 'BENCHMARK','stellarPopulationInterpolation','"Stellar population interpolation"',timeMean,timeMeanError,'"',trim(adjustl(units)),'"'
+  ! Report benchmark information. Auto-units mode: display in raw ticks scaled to ms/μs/ns by count_rate.
+  call Benchmark_Report('stellarLuminosities','luminositiesEvaluation','Stellar population interpolation',trialTime)
   ! Clean up.
   call parameters%destroy()
 end program Benchmark_Stellar_Populations_Luminosities

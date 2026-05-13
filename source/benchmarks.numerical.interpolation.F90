@@ -34,6 +34,8 @@ compiler cannot dead-code-eliminate the interpolation results.
 program Benchmark_Numerical_Interpolation
   use, intrinsic :: ISO_Fortran_Env        , only : output_unit
   use, intrinsic :: ISO_C_Binding          , only : c_size_t
+  use            :: Benchmark_Utilities    , only : Benchmark_Report   , Benchmark_Seed_RNG    , &
+       &                                            Benchmark_Sink_Add , Benchmark_Sink_Print
   use            :: Display                , only : displayVerbositySet, verbosityLevelStandard
   use            :: Kind_Numbers           , only : kind_int8
   use            :: Numerical_Interpolation, only : interpolator       , interpolator2D        , &
@@ -47,23 +49,10 @@ program Benchmark_Numerical_Interpolation
   integer        , parameter :: queryCount    =4096     ! Size of the precomputed query-point array (power of 2 for cheap masking).
   integer        , parameter :: queryMask     =queryCount-1
 
-  ! Clock rate (ticks per second). All per-call times are converted explicitly to ns.
-  integer        (kind=kind_int8) :: countRate
-
-  ! Accumulated sink (printed at the end so calls cannot be elided).
-  double precision :: sink=0.0d0
-
   call displayVerbositySet(verbosityLevelStandard)
 
-  call System_Clock(count_rate=countRate)
-  if (countRate <= 0_kind_int8) then
-     write (output_unit,'(a)') 'ERROR: System_Clock returned a non-positive tick rate; cannot benchmark.'
-     stop 1
-  end if
-
-  write (output_unit,'(a,i0,a,i0,a)') '# Benchmark configuration: trialCount=',trialCount, &
-       &                              ' innerCount=',innerCount,' (first 2 trials dropped)'
-  write (output_unit,'(a,i0,a)'     ) '# System_Clock rate: ',countRate,' ticks/s (all times reported in ns/call)'
+  write (output_unit,'(a,i0,a,i0,a,i0,a)') '# Benchmark configuration: trialCount=',trialCount, &
+       &                                   ' innerCount=',innerCount,' warmupTrials=',warmupTrials,' (dropped)'
 
   ! 1D linear interpolations across a range of array sizes and access patterns.
   call benchmarkInterpolate1D(           10,gsl_interp_linear ,sequential=.true. ,id="interp1D_linear_N10_seq"     ,description="1D linear interp, N=10, sequential access"     )
@@ -83,9 +72,9 @@ program Benchmark_Numerical_Interpolation
   ! 2D bilinear.
   call benchmarkInterpolate2D (           50                                     ,id="interp2D_N50x50_rand"        ,description="2D bilinear interp, 50x50, random access"      )
 
-  ! Print the sink. This MUST be observable to the outside world or the optimizer
-  ! is free to elide the entire benchmark.
-  write (output_unit,'(a,es16.8)') '# Checksum (do not optimize away): ',sink
+  ! Make the accumulated checksum externally observable. This MUST happen or the
+  ! optimizer is free to elide the entire benchmark.
+  call Benchmark_Sink_Print()
 
 contains
 
@@ -144,54 +133,6 @@ contains
     return
   end subroutine buildQueries
 
-  subroutine seedRandom()
-    !!{
-    Seed the intrinsic RNG deterministically so the random-access scenarios are
-    reproducible from run to run.
-    !!}
-    integer              :: seedSize
-    integer, allocatable :: seed(:)
-    integer              :: i
-
-    call random_seed(size=seedSize)
-    allocate(seed(seedSize))
-    do i=1,seedSize
-       seed(i)=20260513+i
-    end do
-    call random_seed(put=seed)
-    deallocate(seed)
-    return
-  end subroutine seedRandom
-
-  subroutine reportTiming(id,description,trialTime)
-    !!{
-    Compute and report the per-call mean time (in ns) and its standard error,
-    following the line format used by other Galacticus benchmark programs.
-    !!}
-    character      (len=*       )  , intent(in   )                       :: id, description
-    integer        (kind=kind_int8), intent(in   ), dimension(trialCount) :: trialTime
-    integer                                                              :: kept
-    double precision                                                     :: meanTicks    , varTicks   , stdErrTicks, &
-         &                                                                  ticksToNs    , meanPerCall, stdErrPerCall
-
-    kept         =trialCount-warmupTrials
-    meanTicks    =       dble(sum(trialTime(warmupTrials+1:trialCount)   ))/dble(kept)
-    varTicks     =max(0.0d0,                                                                                          &
-         &            (dble(sum(trialTime(warmupTrials+1:trialCount)**2))/dble(kept)-meanTicks**2)*                    &
-         &            dble(kept)/dble(max(kept-1,1))                                                                   &
-         &           )
-    stdErrTicks  =sqrt(varTicks/dble(kept))
-    ! Convert (ticks per trial) -> (ns per single call). countRate is ticks/s, so 1 tick = 1e9/countRate ns;
-    ! divide by innerCount to get per-call.
-    ticksToNs    =1.0d9/dble(countRate)
-    meanPerCall  =meanTicks  *ticksToNs/dble(innerCount)
-    stdErrPerCall=stdErrTicks*ticksToNs/dble(innerCount)
-    write (output_unit,'(a,1x,a,1x,a,1x,a,1x,f14.3,1x,f14.3,1x,a)') &
-         & 'BENCHMARK','numericalInterpolation',trim(id),'"'//trim(description)//'"', &
-         & meanPerCall,stdErrPerCall,'"ns/call"'
-    return
-  end subroutine reportTiming
-
   subroutine benchmarkInterpolate1D(n,interpType,sequential,id,description)
     integer        , intent(in   )                :: n, interpType
     logical        , intent(in   )                :: sequential
@@ -203,7 +144,7 @@ contains
     integer                                       :: trial, i
     double precision                              :: acc, v
 
-    call seedRandom()
+    call Benchmark_Seed_RNG()
     call buildArray  (n,x,y)
     allocate(queries(0:queryCount-1))
     call buildQueries(queryCount,x(1),x(n),sequential,queries)
@@ -212,7 +153,7 @@ contains
     ! Warm the interpolator (in particular trigger lazy initialization for
     ! linear-only deferred-init paths) and prime the accelerator.
     v=interp_%interpolate(queries(0))
-    sink=sink+v
+    call Benchmark_Sink_Add(v)
 
     do trial=1,trialCount
        acc=0.0d0
@@ -222,10 +163,11 @@ contains
        end do
        call System_Clock(countEnd)
        trialTime(trial)=countEnd-countStart
-       sink           =sink+acc                ! Force the optimizer to keep 'acc'.
+       call Benchmark_Sink_Add(acc)            ! Force the optimizer to keep 'acc'.
     end do
 
-    call reportTiming(id,description,trialTime)
+    call Benchmark_Report('numericalInterpolation',id,description,trialTime, &
+         &                warmupTrials=warmupTrials,innerCount=innerCount,unitsLabel='ns/call')
     deallocate(x,y,queries)
     return
   end subroutine benchmarkInterpolate1D
@@ -242,14 +184,14 @@ contains
     double precision, dimension(0:1)              :: h
     double precision                              :: acc
 
-    call seedRandom()
+    call Benchmark_Seed_RNG()
     call buildArray  (n,x,y)
     allocate(queries(0:queryCount-1))
     call buildQueries(queryCount,x(1),x(n),.false.,queries)
     interp_=interpolator(x,y)
 
     call interp_%linearFactors(queries(0),idx,h)
-    sink=sink+h(0)+h(1)+dble(idx)
+    call Benchmark_Sink_Add(h(0)+h(1)+dble(idx))
 
     do trial=1,trialCount
        acc=0.0d0
@@ -260,10 +202,11 @@ contains
        end do
        call System_Clock(countEnd)
        trialTime(trial)=countEnd-countStart
-       sink           =sink+acc
+       call Benchmark_Sink_Add(acc)
     end do
 
-    call reportTiming(id,description,trialTime)
+    call Benchmark_Report('numericalInterpolation',id,description,trialTime, &
+         &                warmupTrials=warmupTrials,innerCount=innerCount,unitsLabel='ns/call')
     deallocate(x,y,queries)
     return
   end subroutine benchmarkLinearFactors
@@ -278,14 +221,14 @@ contains
     integer                                       :: trial, i
     integer        (c_size_t      )              :: idx, accInt
 
-    call seedRandom()
+    call Benchmark_Seed_RNG()
     call buildArray  (n,x,y)
     allocate(queries(0:queryCount-1))
     call buildQueries(queryCount,x(1),x(n),.false.,queries)
     interp_=interpolator(x,y)
 
     idx=interp_%locate(queries(0))
-    sink=sink+dble(idx)
+    call Benchmark_Sink_Add(dble(idx))
 
     do trial=1,trialCount
        accInt=0_c_size_t
@@ -296,10 +239,11 @@ contains
        end do
        call System_Clock(countEnd)
        trialTime(trial)=countEnd-countStart
-       sink           =sink+dble(accInt)
+       call Benchmark_Sink_Add(dble(accInt))
     end do
 
-    call reportTiming(id,description,trialTime)
+    call Benchmark_Report('numericalInterpolation',id,description,trialTime, &
+         &                warmupTrials=warmupTrials,innerCount=innerCount,unitsLabel='ns/call')
     deallocate(x,y,queries)
     return
   end subroutine benchmarkLocate
@@ -315,7 +259,7 @@ contains
     integer                                       :: trial, i, j
     double precision                              :: acc, v
 
-    call seedRandom()
+    call Benchmark_Seed_RNG()
     ! Build the x and y axes. buildArray writes both an x and a y; we only need its
     ! monotonically increasing first array, so the second is discarded after each call.
     call buildArray(n,x,yIgnored); deallocate(yIgnored)
@@ -332,7 +276,7 @@ contains
     interp_=interpolator2D(x,y,z)
 
     v=interp_%interpolate(qx(0),qy(0))
-    sink=sink+v
+    call Benchmark_Sink_Add(v)
 
     do trial=1,trialCount
        acc=0.0d0
@@ -342,10 +286,11 @@ contains
        end do
        call System_Clock(countEnd)
        trialTime(trial)=countEnd-countStart
-       sink           =sink+acc
+       call Benchmark_Sink_Add(acc)
     end do
 
-    call reportTiming(id,description,trialTime)
+    call Benchmark_Report('numericalInterpolation',id,description,trialTime, &
+         &                warmupTrials=warmupTrials,innerCount=innerCount,unitsLabel='ns/call')
     deallocate(x,y,z,qx,qy)
     return
   end subroutine benchmarkInterpolate2D
