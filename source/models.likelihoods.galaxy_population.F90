@@ -26,10 +26,11 @@
 
   !![
   <posteriorSampleLikelihood name="posteriorSampleLikelihoodGalaxyPopulation">
-   <description>A posterior sampling likelihood class which evaluates the likelihood of \glc\ galaxy formation model outputs
-   against observational constraints, supporting parallelized model evaluation across MPI process groups. The number of
-   collaborative MPI groups is set by \mono{[evaluationsPerThread]}, with analysis storage controlled by \mono{[storeResults]} and
-   model randomization by \mono{[randomize]}.</description>
+   <description>
+    A posterior sampling likelihood class which evaluates the likelihood of \glc\ galaxy formation model outputs
+    against observational constraints, supporting parallelized model evaluation across MPI process groups. The number of
+    collaborative MPI groups is set by \mono{[countCollaborativeGroups]}, with analysis storage controlled by \mono{[storeResults]}.    
+   </description>
   </posteriorSampleLikelihood>
   !!]
   type, extends(posteriorSampleLikelihoodBaseParameters) :: posteriorSampleLikelihoodGalaxyPopulation
