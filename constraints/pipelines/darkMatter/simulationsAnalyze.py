@@ -10,6 +10,7 @@ import math
 import os
 import re
 import shutil
+import time
 from datetime import datetime
 
 import h5py
@@ -46,8 +47,17 @@ def _find_or_create(parent, tag):
 
 
 # ---------------------------------------------------------------------------
-# Job submission helpers
+# File helpers
 # ---------------------------------------------------------------------------
+
+def wait_for_file(path, timeout=30):
+    """Wait for a file to exist."""
+    start_time = time.time()
+    while not os.path.exists(path):
+        if time.time() - start_time > timeout:
+            raise TimeoutError(f"File {path} not found within {timeout} seconds.")
+        time.sleep(1)
+    return True
 
 # ---------------------------------------------------------------------------
 # Active-step resolution
@@ -661,9 +671,10 @@ def symphony_postprocess_set_volume(entry, jobs, options):
         entry[rl]['massPrimary'] = mass_primary
 
         halos_file = entry['path'] + f'nonFlyby_{rl}_subVolume0_0_0.hdf5'
-        with h5py.File(halos_file, 'r+') as hdf:
-            hdf['Snapshot00001/HaloCatalog'].attrs['boxSize']   = box_size
-            hdf['SimulationProperties'].attrs['boxSize']         = box_size
+        if wait_for_file(halos_file):
+            with h5py.File(halos_file, 'r+') as hdf:
+                hdf['Snapshot00001/HaloCatalog'].attrs['boxSize']   = box_size
+                hdf['SimulationProperties'].attrs['boxSize']         = box_size
 
 
 def symphony_postprocess_mass_function(entry, jobs, options):
