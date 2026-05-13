@@ -397,12 +397,15 @@ contains
 #ifdef USEMPI
        if (mpiSelf%isMaster()) then
 #endif
+          !$ call hdf5Access%set()
           call simulations(iSimulation)%analysis%writeDataset  (massParentBin            ,'massParent'            )
           call simulations(iSimulation)%analysis%writeDataset  (massRatioProgenitorBin   ,'massRatioProgenitor'   )
           call simulations(iSimulation)%analysis%writeDataset  (redshiftProgenitor       ,'redshiftProgenitor'    )
           call simulations(iSimulation)%analysis%writeAttribute(redshiftParent           ,'redshiftParent'        )
           call simulations(iSimulation)%analysis%writeDataset  (countBin                 ,'count'                 )
+          call simulations(iSimulation)%analysis%writeDataset  (countParentBin           ,'countParent'           )
           call simulations(iSimulation)%analysis%writeDataset  (progenitorMassFunction   ,'progenitorMassFunction')
+          call simulations(iSimulation)%analysis%writeAttribute(binRatioWidthInverse     ,"massRatioDelteInverse" )
           call simulations(iSimulation)%analysis%writeAttribute(self%description         ,"description"           )
           call simulations(iSimulation)%analysis%writeAttribute(Formatted_Date_and_Time(),"timestamp"             )
           cosmologyGroup=simulations(iSimulation)%analysis%openGroup('cosmology')
