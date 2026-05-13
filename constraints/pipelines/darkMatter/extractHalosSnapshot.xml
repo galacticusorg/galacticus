@@ -13,7 +13,7 @@
   <nbodyImporter value="IRATE">
     <fileName value="" />
     <snapshot value="1"/>
-    <properties value="particleID alwaysIsolated expansionFactor massVirial hostedRootID"/>
+    <properties value="particleID descendantID snapshotID alwaysIsolated expansionFactor massVirial radiusVirial radiusScale spin hostedRootID"/>
   </nbodyImporter>
 
   <nbodyOperator value="sequence">
@@ -23,7 +23,7 @@
       <rangeHigh     value="1              1.0001         "/>
     </nbodyOperator>
     <nbodyOperator value="deleteProperties">
-      <propertyNames value="alwaysIsolated expansionFactor"/>
+      <propertyNames value="alwaysIsolated"/>
     </nbodyOperator>
     <nbodyOperator value="exportIRATE">
       <fileName value=""/>

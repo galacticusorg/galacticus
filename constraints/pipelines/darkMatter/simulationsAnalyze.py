@@ -59,6 +59,15 @@ def _build_active_steps(active_analyses):
     if 'haloMassFunction' in active_analyses:
         for step in ('identifyAlwaysIsolated', 'extractHalos', 'massFunctions'):
             active_steps.setdefault(step, []).append('haloMassFunction')
+    if 'progenitorMassFunction' in active_analyses:
+        for step in ('identifyAlwaysIsolated', 'extractHalos', 'progenitorMassFunctions'):
+            active_steps.setdefault(step, []).append('haloMassFunction')
+    if 'concentrationDistributionFunction' in active_analyses:
+        for step in ('identifyAlwaysIsolated', 'extractHalos', 'concentrationDistributionFunctions'):
+            active_steps.setdefault(step, []).append('concentrationDistributionFunction')
+    if 'spinDistributionFunction' in active_analyses:
+        for step in ('identifyAlwaysIsolated', 'extractHalos', 'spinDistributionFunctions'):
+            active_steps.setdefault(step, []).append('spinDistributionFunction')
     if 'subhaloStatistics' in active_analyses:
         for step in ('identifyAlwaysIsolated', 'extractSubhalos', 'subhaloFunctions'):
             active_steps.setdefault(step, []).append('subhaloStatistics')
@@ -96,7 +105,7 @@ def _run_hooks(hook_key, step_id, entries, suites_cfg, manager, options):
 
 
 # ---------------------------------------------------------------------------
-# Symphony / COZMIC processor stubs  (implemented in later steps)
+# Symphony / COZMIC processors
 # ---------------------------------------------------------------------------
 
 def symphony_process_identify_always_isolated(entry, expansion_factor, parameters, options):
@@ -122,7 +131,7 @@ def symphony_process_identify_always_isolated(entry, expansion_factor, parameter
     # Remove position/radius/velocity properties from the delete-properties operator
     # (they must be kept so downstream operators can use them).
     nb_ops    = parameters.find('nbodyOperator').findall('nbodyOperator')
-    keep_out  = {'position', 'radiusScale', 'radiusVirial', 'velocityMaximum'}
+    keep_out  = {'position', 'radiusScale', 'radiusVirial', 'spin', 'velocityMaximum'}
     to_delete = [p for p in nb_ops[3].find('propertyNames').get('value', '').split()
                  if p not in keep_out]
     nb_ops[3].find('propertyNames').set('value', ' '.join(to_delete))
@@ -277,10 +286,10 @@ def symphony_process_extract_halos(entry, expansion_factor, parameters, options)
     with open(primary_file, 'w') as fh:
         fh.write(ET.tostring(primary_root, encoding='unicode'))
 
-    # Append virial/scale radii and position to the importer property list.
+    # Append virial/scale radii, spin and position to the importer property list.
     importer = parameters.find('nbodyImporter')
     props    = importer.find('properties').get('value', '')
-    importer.find('properties').set('value', props + ' radiusScale radiusVirial position')
+    importer.find('properties').set('value', props + ' radiusScale radiusVirial spin position')
 
     # Extend the delete-properties operator to also remove distanceFromPoint.
     nb_ops = parameters.find('nbodyOperator').findall('nbodyOperator')
@@ -346,6 +355,49 @@ def symphony_process_extract_subhalos(entry, expansion_factor, parameters, optio
 
     parent.insert(1, dist_op)
     parent.insert(2, filt_op)
+
+
+def symphony_process_progenitor_mass_function(entry, expansion_factor, parameters, options):
+    """Filter on primary host halo progenitors for progenitor mass functions."""
+    redshift     = 1.0 / expansion_factor - 1.0
+    rl           = f'z{redshift:.3f}'
+    primary_file = entry['path'] + f'primaryHalo_{rl}.xml'
+
+    print(f"Processing progenitors of primary halo for {entry['suite']['name']} : "
+          f"{entry['group']['name']} : {entry['simulation']['name']} : "
+          f"{entry['realization']}")
+
+    # Read primary halo ID from primaryHalo XML.
+    primary_root  = ET.parse(primary_file).getroot()
+    primary_id = primary_root.get('i')
+
+    # Splice in an operator to filter on the hostedRootID matching the primary halo.
+    parent = parameters.find('nbodyOperator')
+    filt_op = ET.Element('nbodyOperator', value='filterProperties')
+    ET.SubElement(filt_op, 'propertyNames', value='hostedRootID')
+    ET.SubElement(filt_op, 'rangeLow',  value=str(primary_id))
+    ET.SubElement(filt_op, 'rangeHigh', value=str(primary_id))
+    parent.insert(1, filt_op)
+
+    # Set reasonable mass and mass ratio ranges.
+    hmf = entry['resolution'].get('haloMassFunction', {})
+    mass_host_log_min = float(hmf.get('massHostLogMin', {}).get('value', ''))
+    mass_host_log_max = float(hmf.get('massHostLogMax', {}).get('value', ''))
+    nbody_ops = parameters.findall('nbodyOperator/nbodyOperator')
+    for nbody_op in nbody_ops:
+        op_type = nbody_op.attrib['value']
+        if op_type == 'addAttributes' or op_type == 'filterProperties':
+            continue
+        mass_parent_min = nbody_op.find('massParentMinimum')
+        mass_parent_max = nbody_op.find('massParentMaximum')
+        mass_parent_count = float(nbody_op.find('massParentCountPerDecade').attrib['value'])
+        mass_host_log_upper = max(mass_host_log_min+2.0/mass_parent_count,mass_host_log_max)
+        mass_parent_min.set('value',str(10**mass_host_log_min))
+        mass_parent_max.set('value',str(10**mass_host_log_upper))
+        if op_type == 'progenitorMassFunction' or op_type == 'progenitorOrderStatistics':
+            mass_ratio_min = nbody_op.find('massRatioProgenitorMinimum')
+            mass_ratio_minimum = 10.0 ** (int(math.log10(entry['massMinimum']/10**mass_host_log_max)))
+            mass_ratio_min.set('value',str(mass_ratio_minimum))
 
 
 def symphony_process_subhalo_functions(entry, expansion_factor, parameters, options):
@@ -646,11 +698,11 @@ def symphony_postprocess_mass_function(entry, jobs, options):
 
 SUITES = {
     'MDPL': {
-        'analyses': ['haloMassFunction'],
+        'analyses': ['haloMassFunction', 'progenitorMassFunction', 'concentrationDistributionFunction', 'spinDistributionFunction'],
         'steps':    {},
     },
     'Symphony': {
-        'analyses': ['haloMassFunction', 'subhaloStatistics'],
+        'analyses': ['haloMassFunction', 'progenitorMassFunction', 'concentrationDistributionFunction', 'spinDistributionFunction', 'subhaloStatistics'],
         'steps': {
             'identifyAlwaysIsolated': {
                 'processParameters': symphony_process_identify_always_isolated,
@@ -677,6 +729,9 @@ SUITES = {
             },
             'massFunctions': {
                 'postprocess': [symphony_postprocess_mass_function],
+            },
+            'progenitorMassFunctions': {
+                'processParameters': symphony_process_progenitor_mass_function,
             },
             'subhaloFunctions': {
                 'processParameters': symphony_process_subhalo_functions,
@@ -708,7 +763,7 @@ def step_identify_always_isolated(entries, suites_cfg, active_steps, manager, op
             {
                 'expansionFactor': a,
                 'redshift':        z,
-                'redshiftLabel':   f'z{z:.3f}',
+                'redshiftLabel':   f'z{z:.3f}'
             }
             for a, z in zip(
                 entry['resolution']['expansionFactors'],
@@ -772,7 +827,7 @@ def step_identify_always_isolated(entries, suites_cfg, active_steps, manager, op
                         'walltime':   '8:00:00',
                         'mpi':        'no',
                     })
-
+                    
     submit_jobs(manager, jobs)
 
 
@@ -802,12 +857,12 @@ def step_extract_halos(entries, suites_cfg, active_steps, manager, options, omp_
                         root.find('nbodyImporter/fileName').set(
                             'value', entry['path'] + f'alwaysIsolated_subVolume{i}_{j}_{k}.hdf5')
                         root.find('nbodyImporter/properties').set(
-                            'value', 'particleID isFlyby expansionFactor massVirial hostedRootID')
+                            'value', 'particleID descendantID snapshotID isFlyby expansionFactor massVirial radiusVirial radiusScale spin hostedRootID')
                         nb_ops = root.find('nbodyOperator').findall('nbodyOperator')
                         nb_ops[0].find('propertyNames').set('value', 'isFlyby expansionFactor')
                         nb_ops[0].find('rangeLow' ).set('value', f'0 {af_low}')
                         nb_ops[0].find('rangeHigh').set('value', f'0 {af_high}')
-                        nb_ops[1].find('propertyNames').set('value', 'isFlyby expansionFactor')
+                        nb_ops[1].find('propertyNames').set('value', 'isFlyby')
                         nb_ops[2].find('fileName').set(
                             'value', entry['path'] + f'nonFlyby_{rl}_subVolume{i}_{j}_{k}.hdf5')
                         nb_ops[2].find('redshift').set('value', str(epoch['redshift']))
@@ -966,6 +1021,231 @@ def step_mass_functions(entries, suites_cfg, active_steps, manager, options, omp
     submit_jobs(manager, jobs)
 
 
+def step_progenitor_mass_functions(entries, suites_cfg, active_steps, manager, options, omp_threads):
+    """Compute progenitor halo mass functions by combining all subvolumes."""
+    jobs = []
+    for entry in entries:
+        suite_name      = entry['suite']['name']
+        group_name      = entry['group']['name']
+        simulation_name = entry['simulation']['name']
+        n_sub           = int(entry['resolution']['subvolumes'])
+        proc            = suites_cfg.get(suite_name, {}).get('steps', {}).get('progenitorMassFunctions', {}).get('processParameters')
+
+        # Determine the parent and progenitor redshifts.
+        if len(entry['resolution']['epochs']) < 2:
+            raise ValueError(f"Progenitor mass function analysis requires at least two epochs for suite '{suite_name}', group '{group_name}', simulation '{simulation_name}'")
+        if 'snapshots' not in entry['resolution']:
+            raise KeyError(f"Snapshots not provided for suite '{suite_name}', group '{group_name}', simulation '{simulation_name}'")
+        snapshot_progenitors = sorted(entry['resolution']['snapshots'], key=lambda x: -int(x))
+        snapshot_parent = snapshot_progenitors.pop(0)
+        epoch_progenitors = sorted(entry['resolution']['epochs'], key=lambda x: x['redshift'])
+        epoch_parent = epoch_progenitors.pop(0)
+        rl = epoch_parent['redshiftLabel']
+
+        # Determine suitable mass ratio ranges.
+        entry['massRatioMaximum'] = 10.0
+        entry['massRatioMinimum'] = entry['massMinimum']/entry['massMaximum']
+        
+        # Collect importers for each subvolume that has a tree file.
+        importers = [
+            entry['path'] + f"nonFlyby_{entry['resolution']['epochs'][l]['redshiftLabel']}_subVolume{i}_{j}_{k}.hdf5"
+            for i in range(n_sub)
+            for j in range(n_sub)
+            for k in range(n_sub)
+            for l in range(len(entry['resolution']['epochs']))
+            if os.path.exists(entry['path'] + f'tree_{i}_{j}_{k}.dat')
+        ]
+
+        if os.path.exists(entry['path'] + f'progenitorMassFunction_{rl}:MPI0000.hdf5'):
+            continue
+
+        root = _parse_param_xml(options['pipelinePath'] + 'progenitorMassFunctionCompute.xml')
+
+        # Replace the merge importer's children with one child per subvolume.
+        merge_el = root.find('nbodyImporter')
+        for child in merge_el.findall('nbodyImporter'):
+            merge_el.remove(child)
+        for fname in importers:
+            imp_el = ET.SubElement(merge_el, 'nbodyImporter', value='IRATE')
+            ET.SubElement(imp_el, 'fileName',   value=fname)
+            ET.SubElement(imp_el, 'snapshot',   value='1')
+            ET.SubElement(imp_el, 'properties', value='particleID descendantID massVirial expansionFactor hostedRootID snapshotID')
+
+        _find_or_create(root, 'outputFileName').set(
+            'value', entry['path'] + f'progenitorMassFunction_{rl}.hdf5')
+        nb_ops = root.find('nbodyOperator').findall('nbodyOperator')
+        nb_ops[0].find('values').set('value', str(entry['resolution']['massParticle']))
+        for i in range(1,5):
+            nb_ops[i].find('simulationReference').set('value', entry['group']['metaData']['reference'])
+            nb_ops[i].find('simulationURL'      ).set('value', entry['group']['metaData']['url'      ])
+            nb_ops[i].find('massParentMinimum'  ).set('value', str(entry['massMinimum']))
+            nb_ops[i].find('massParentMaximum'  ).set('value', str(entry['massMaximum']))
+            nb_ops[i].find('snapshotParents'    ).set('value', str(snapshot_parent))
+            if i <= 2:
+                nb_ops[i].find('massRatioProgenitorMinimum').set('value', str(entry['massRatioMinimum']))
+                nb_ops[i].find('massRatioProgenitorMaximum').set('value', str(entry['massRatioMaximum']))
+                nb_ops[i].find('snapshotsProgenitors'      ).set('value', " ".join(snapshot_progenitors))
+            nb_ops[i].find('description'        ).set('value',
+                f'Progenitor mass function of non-flyby halos for the '
+                f'{entry["suite"]["name"]} {entry["group"]["name"]} '
+                f'{entry["simulation"]["name"]} {rl} simulation')
+        if proc:
+            proc(entry, epoch_parent['expansionFactor'], root, options)
+
+        param_file = entry['path'] + f'progenitorMassFunction_{rl}.xml'
+        _write_param_xml(root, param_file)
+        jobs.append({
+            'command':    os.environ['GALACTICUS_EXEC_PATH'] + '/Galacticus.exe ' + param_file,
+            'launchFile': entry['path'] + f'progenitorMassFunction_{rl}.sh',
+            'logFile':    entry['path'] + f'progenitorMassFunction_{rl}.log',
+            'label':                      f'progenitorMassFunction_{rl}',
+            'ppn':        omp_threads,
+            'ompThreads': omp_threads,
+            'nodes':      1,
+            'mem':        '32G',
+            'walltime':   '8:00:00',
+            'mpi':        'no',
+        })
+
+        submit_jobs(manager, jobs)
+
+
+def step_concentration_distribution_functions(entries, suites_cfg, active_steps, manager, options, omp_threads):
+    """Compute concentration distribution functions by combining all subvolumes for each epoch."""
+    jobs = []
+    for entry in entries:
+        suite_name = entry['suite']['name']
+        n_sub      = int(entry['resolution']['subvolumes'])
+        proc       = suites_cfg.get(suite_name, {}).get('steps', {}).get('concentrationDistributionFunctions', {}).get('processParameters')
+
+        for epoch in entry['resolution']['epochs']:
+            rl = epoch['redshiftLabel']
+
+            # Collect importers for each subvolume that has a tree file.
+            importers = [
+                entry['path'] + f'nonFlyby_{rl}_subVolume{i}_{j}_{k}.hdf5'
+                for i in range(n_sub)
+                for j in range(n_sub)
+                for k in range(n_sub)
+                if os.path.exists(entry['path'] + f'tree_{i}_{j}_{k}.dat')
+            ]
+
+            if os.path.exists(entry['path'] + f'concentrationDistributionFunction_{rl}:MPI0000.hdf5'):
+                continue
+
+            root = _parse_param_xml(options['pipelinePath'] + 'concentrationDistributionFunctionCompute.xml')
+
+            # Replace the merge importer's children with one child per subvolume.
+            merge_el = root.find('nbodyImporter')
+            for child in merge_el.findall('nbodyImporter'):
+                merge_el.remove(child)
+            for fname in importers:
+                imp_el = ET.SubElement(merge_el, 'nbodyImporter', value='IRATE')
+                ET.SubElement(imp_el, 'fileName',   value=fname)
+                ET.SubElement(imp_el, 'snapshot',   value='1')
+                ET.SubElement(imp_el, 'properties', value='massVirial radiusVirial radiusScale')
+
+            _find_or_create(root, 'outputFileName').set(
+                'value', entry['path'] + f'concentrationDistributionFunction_{rl}.hdf5')
+            nb_ops = root.find('nbodyOperator').findall('nbodyOperator')
+            nb_ops[0].find('values').set('value', str(entry['resolution']['massParticle']))
+            nb_ops[1].find('simulationReference').set('value', entry['group']['metaData']['reference'])
+            nb_ops[1].find('simulationURL'      ).set('value', entry['group']['metaData']['url'      ])
+            nb_ops[1].find('massMinimum'        ).set('value', str(entry['massMinimum']))
+            nb_ops[1].find('massMaximum'        ).set('value', str(entry['massMaximum']))
+            nb_ops[1].find('description'        ).set('value',
+                f'Concentration distribution function of non-flyby halos for the '
+                f'{entry["suite"]["name"]} {entry["group"]["name"]} '
+                f'{entry["simulation"]["name"]} {rl} simulation')
+            if proc:
+                proc(entry, epoch['expansionFactor'], root, options)
+
+            param_file = entry['path'] + f'concentrationDistributionFunction_{rl}.xml'
+            _write_param_xml(root, param_file)
+            jobs.append({
+                'command':    os.environ['GALACTICUS_EXEC_PATH'] + '/Galacticus.exe ' + param_file,
+                'launchFile': entry['path'] + f'concentrationDistributionFunction_{rl}.sh',
+                'logFile':    entry['path'] + f'concentrationDistributionFunction_{rl}.log',
+                'label':                      f'concentrationDistributionFunction_{rl}',
+                'ppn':        omp_threads,
+                'ompThreads': omp_threads,
+                'nodes':      1,
+                'mem':        '8G',
+                'walltime':   '8:00:00',
+                'mpi':        'no',
+            })
+
+    submit_jobs(manager, jobs)
+
+
+def step_spin_distribution_functions(entries, suites_cfg, active_steps, manager, options, omp_threads):
+    """Compute spin distribution functions by combining all subvolumes for each epoch."""
+    jobs = []
+    for entry in entries:
+        suite_name = entry['suite']['name']
+        n_sub      = int(entry['resolution']['subvolumes'])
+        proc       = suites_cfg.get(suite_name, {}).get('steps', {}).get('spinDistributionFunctions', {}).get('processParameters')
+
+        for epoch in entry['resolution']['epochs']:
+            rl = epoch['redshiftLabel']
+
+            # Collect importers for each subvolume that has a tree file.
+            importers = [
+                entry['path'] + f'nonFlyby_{rl}_subVolume{i}_{j}_{k}.hdf5'
+                for i in range(n_sub)
+                for j in range(n_sub)
+                for k in range(n_sub)
+                if os.path.exists(entry['path'] + f'tree_{i}_{j}_{k}.dat')
+            ]
+
+            if os.path.exists(entry['path'] + f'spinDistributionFunction_{rl}:MPI0000.hdf5'):
+                continue
+
+            root = _parse_param_xml(options['pipelinePath'] + 'spinDistributionFunctionCompute.xml')
+
+            # Replace the merge importer's children with one child per subvolume.
+            merge_el = root.find('nbodyImporter')
+            for child in merge_el.findall('nbodyImporter'):
+                merge_el.remove(child)
+            for fname in importers:
+                imp_el = ET.SubElement(merge_el, 'nbodyImporter', value='IRATE')
+                ET.SubElement(imp_el, 'fileName',   value=fname)
+                ET.SubElement(imp_el, 'snapshot',   value='1')
+                ET.SubElement(imp_el, 'properties', value='massVirial spin')
+
+            _find_or_create(root, 'outputFileName').set(
+                'value', entry['path'] + f'spinDistributionFunction_{rl}.hdf5')
+            nb_ops = root.find('nbodyOperator').findall('nbodyOperator')
+            nb_ops[0].find('values').set('value', str(entry['resolution']['massParticle']))
+            nb_ops[1].find('simulationReference').set('value', entry['group']['metaData']['reference'])
+            nb_ops[1].find('simulationURL'      ).set('value', entry['group']['metaData']['url'      ])
+            nb_ops[1].find('massMinimum'        ).set('value', str(entry['massMinimum']))
+            nb_ops[1].find('massMaximum'        ).set('value', str(entry['massMaximum']))
+            nb_ops[1].find('description'        ).set('value',
+                f'Spin distribution function of non-flyby halos for the '
+                f'{entry["suite"]["name"]} {entry["group"]["name"]} '
+                f'{entry["simulation"]["name"]} {rl} simulation')
+            if proc:
+                proc(entry, epoch['expansionFactor'], root, options)
+
+            param_file = entry['path'] + f'spinDistributionFunction_{rl}.xml'
+            _write_param_xml(root, param_file)
+            jobs.append({
+                'command':    os.environ['GALACTICUS_EXEC_PATH'] + '/Galacticus.exe ' + param_file,
+                'launchFile': entry['path'] + f'spinDistributionFunction_{rl}.sh',
+                'logFile':    entry['path'] + f'spinDistributionFunction_{rl}.log',
+                'label':                      f'spinDistributionFunction_{rl}',
+                'ppn':        omp_threads,
+                'ompThreads': omp_threads,
+                'nodes':      1,
+                'mem':        '8G',
+                'walltime':   '8:00:00',
+                'mpi':        'no',
+            })
+
+    submit_jobs(manager, jobs)
+
+
 def step_subhalo_functions(entries, suites_cfg, active_steps, manager, options, omp_threads):
     """Compute subhalo mass, radial, and velocity-maximum functions for each epoch."""
     jobs = []
@@ -1043,11 +1323,14 @@ def step_subhalo_functions(entries, suites_cfg, active_steps, manager, options, 
 
 
 STEP_FUNCTIONS = {
-    'identifyAlwaysIsolated': step_identify_always_isolated,
-    'extractHalos':           step_extract_halos,
-    'extractSubhalos':        step_extract_subhalos,
-    'massFunctions':          step_mass_functions,
-    'subhaloFunctions':       step_subhalo_functions,
+    'identifyAlwaysIsolated':             step_identify_always_isolated,
+    'extractHalos':                       step_extract_halos,
+    'extractSubhalos':                    step_extract_subhalos,
+    'massFunctions':                      step_mass_functions,
+    'concentrationDistributionFunctions': step_concentration_distribution_functions,
+    'spinDistributionFunctions':          step_spin_distribution_functions,
+    'progenitorMassFunctions':            step_progenitor_mass_functions,
+    'subhaloFunctions':                   step_subhalo_functions,
 }
 
 STEP_IDS = [
@@ -1055,16 +1338,19 @@ STEP_IDS = [
     'extractHalos',
     'extractSubhalos',
     'massFunctions',
+    'progenitorMassFunctions',
+    'concentrationDistributionFunctions',
+    'spinDistributionFunctions',
     'subhaloFunctions',
 ]
 
 
 # ---------------------------------------------------------------------------
-# Results storage stub  (implemented in later steps)
+# Results storage
 # ---------------------------------------------------------------------------
 
 def store_results(active_analyses, entries, options):
-    """Copy halo mass functions and aggregate subhalo statistics to the data repo."""
+    """Copy halo mass functions, progenitor mass functions and aggregate subhalo statistics to the data repo."""
     data_path = os.environ.get('GALACTICUS_DATA_PATH', '')
 
     for step_id in active_analyses:
@@ -1080,6 +1366,52 @@ def store_results(active_analyses, entries, options):
                     rl = epoch['redshiftLabel']
                     src = entry['path'] + f'haloMassFunction_{rl}:MPI0000.hdf5'
                     dst = (data_path + '/static/darkMatter/haloMassFunction_'
+                           + suite_name + '_' + group_name + '_' + res_name + '_'
+                           + sim_name + '_' + realization + '_' + rl + '.hdf5')
+                    shutil.copy(src, dst)
+
+        elif step_id == 'progenitorMassFunction':
+            for entry in entries:
+                suite_name = entry['suite']['name']
+                group_name = entry['group']['name']
+                res_name   = entry['resolution']['name']
+                sim_name   = entry['simulation']['name']
+                realization = entry['realization']
+                epoch_progenitors = sorted(entry['resolution']['epochs'], key=lambda x: x['redshift'])
+                epoch_parent = epoch_progenitors.pop(0)
+                rl = epoch_parent['redshiftLabel']
+                src = entry['path'] + f'progenitorMassFunction_{rl}:MPI0000.hdf5'
+                dst = (data_path + '/static/darkMatter/progenitorMassFunction_'
+                       + suite_name + '_' + group_name + '_' + res_name + '_'
+                       + sim_name + '_' + realization + '_' + rl + '.hdf5')
+                shutil.copy(src, dst)
+
+        elif step_id == 'concentrationDistributionFunction':
+            for entry in entries:
+                suite_name = entry['suite']['name']
+                group_name = entry['group']['name']
+                res_name   = entry['resolution']['name']
+                sim_name   = entry['simulation']['name']
+                realization = entry['realization']
+                for epoch in entry['resolution']['epochs']:
+                    rl = epoch['redshiftLabel']
+                    src = entry['path'] + f'concentrationDistributionFunction_{rl}:MPI0000.hdf5'
+                    dst = (data_path + '/static/darkMatter/concentrationDistributionFunction_'
+                           + suite_name + '_' + group_name + '_' + res_name + '_'
+                           + sim_name + '_' + realization + '_' + rl + '.hdf5')
+                    shutil.copy(src, dst)
+
+        elif step_id == 'spinDistributionFunction':
+            for entry in entries:
+                suite_name = entry['suite']['name']
+                group_name = entry['group']['name']
+                res_name   = entry['resolution']['name']
+                sim_name   = entry['simulation']['name']
+                realization = entry['realization']
+                for epoch in entry['resolution']['epochs']:
+                    rl = epoch['redshiftLabel']
+                    src = entry['path'] + f'spinDistributionFunction_{rl}:MPI0000.hdf5'
+                    dst = (data_path + '/static/darkMatter/spinDistributionFunction_'
                            + suite_name + '_' + group_name + '_' + res_name + '_'
                            + sim_name + '_' + realization + '_' + rl + '.hdf5')
                     shutil.copy(src, dst)
@@ -1258,7 +1590,7 @@ def _parse_args():
                         help='Path to the simulation data directory')
     parser.add_argument('--pipelinePath', required=True,
                         help='Path to pipeline configuration files')
-    parser.add_argument('--analyses', default='haloMassFunction,subhaloStatistics',
+    parser.add_argument('--analyses', default='haloMassFunction,progenitorMassFunction,concentrationDistributionFunction,spinDistributionFunction,subhaloStatistics',
                         help='Comma-separated list of analyses to perform')
     parser.add_argument('--ompThreads', default='max',
                         help='Number of OpenMP threads, or "max" to use the queue config value')

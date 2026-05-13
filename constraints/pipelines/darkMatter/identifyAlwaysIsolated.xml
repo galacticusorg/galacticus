@@ -11,8 +11,8 @@
   <task value="NBodyAnalyze"/>
 
   <nbodyImporter value="rockstar">
-    <fileName    value="tree_0_0_0.dat"                                        />
-    <readColumns value="scale id desc_id pid upid mmp Mvir Rvir X Y Z Snap_num"/>
+    <fileName    value="tree_0_0_0.dat"                                                       />
+    <readColumns value="scale id desc_id pid upid mmp Mvir Rvir Rs_Klypin Spin X Y Z Snap_num"/>
   </nbodyImporter>
 
   <nbodyOperator value="sequence">
@@ -26,7 +26,7 @@
       <missingHalosAreFatal value="false"/>
     </nbodyOperator>
     <nbodyOperator value="deleteProperties">
-      <propertyNames value="descendantID hostID isolatedHostID isMostMassiveProgenitor radiusVirial position snapshotID"/>
+      <propertyNames value="hostID isolatedHostID isMostMassiveProgenitor position"/>
     </nbodyOperator>
     <nbodyOperator value="exportIRATE">
       <fileName value="alwaysIsolated_subVolume0_0_0.hdf5"/>
