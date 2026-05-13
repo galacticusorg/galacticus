@@ -221,6 +221,80 @@ _ARRAY_RETURN_RX = re.compile(
     re.IGNORECASE,
 )
 
+# Match a 1D *dynamic-size* numeric array RETURN type — anything with a
+# `dimension(:)`-like attribute whose extent isn't a literal integer.
+# Two source-level shapes share this codegen template:
+#
+#   * `double precision, allocatable, dimension(:)` — inner method
+#     returns an allocatable array; we capture it into a save-target
+#     buffer on assignment and convey c_loc + size back to Python.
+#
+#   * `double precision, dimension(self%X)` / `dimension(size(Y))` —
+#     inner method returns a fixed-shape array whose extent is computed
+#     at runtime from `self` or another arg.  Fortran 2003 auto-realloc
+#     on assignment to an allocatable LHS handles both shapes
+#     identically, so we route both through the same wrapper.
+#
+# The leading lookahead skips literal-integer extents (those are the
+# fixed-size case `_ARRAY_RETURN_RX` already handles).  Captures
+# (intrinsic, extent-expression) — the extent expression is only kept
+# for diagnostics; the wrapper template doesn't reference it (the
+# save-target's size is whatever the assignment produces).
+_DYNAMIC_ARRAY_RETURN_RX = re.compile(
+    r'^(double\s+precision|integer)'
+    r'(?:\s*,\s*allocatable)?'
+    r'\s*,\s*dimension\s*\(\s*'
+    r'(?!\s*\d+\s*\))'                    # exclude `dimension(<literal>)`
+    r'([^,]+)\s*\)\s*$',                  # forbid top-level commas — 1D
+                                          # only — but allow internal parens
+                                          # so `dimension(size(X))`,
+                                          # `dimension(self%X)` etc. match.
+    re.IGNORECASE,
+)
+
+# 2D variant of the dynamic/allocatable array return — `dimension(:,:)`
+# or `dimension(<expr1>,<expr2>)`.  Same save-buffer codegen, plus a
+# second `c_size_t` size companion so Python can reshape the flat
+# byte buffer with the right column-major layout (Fortran convention).
+# Captures (intrinsic, extent1, extent2); extents are diagnostic only,
+# the wrapper template doesn't reference them.
+_DYNAMIC_ARRAY_RETURN_2D_RX = re.compile(
+    r'^(double\s+precision|integer)'
+    r'(?:\s*,\s*allocatable)?'
+    r'\s*,\s*dimension\s*\(\s*'
+    r'([^,]+)\s*,\s*([^,]+)'              # two comma-separated extents
+    r'\s*\)\s*$',
+    re.IGNORECASE,
+)
+
+# Aliases the return-type switch in interfaces_methods accepts as synonyms.
+# Galacticus source uses several spellings for the same C-interop integer
+# kind (`integer(kind=c_size_t)` vs the unprefixed `integer(c_size_t)`,
+# `integer(kind=kind_int8)` for the SELECTED_INT_KIND(18) 64-bit kind),
+# and the switch only had branches for the unprefixed forms.  Normalising
+# here keeps the switch terse — and mirrors the precedent on the *arg*
+# side in Pipeline.py (assign_c_types treats `kind_int8` as a `c_long`
+# alias).
+_RETURN_TYPE_ALIASES = {
+    'integer(kind=c_size_t)' : 'integer(c_size_t)',
+    'integer(kind=c_long)'   : 'integer(c_long)',
+    # `kind_int8 = SELECTED_INT_KIND(18)` lives in Kind_Numbers; on every
+    # supported platform it resolves to a Fortran kind value of 8, which
+    # is the same width as `c_long` on Linux/macOS (both 8 bytes).  Use
+    # `c_long` as the bind(c) carrier — that's what assign_c_types
+    # already does for the arg-side spelling, so the calling convention
+    # stays consistent across constructor args and method returns.
+    'integer(kind=kind_int8)': 'integer(c_long)',
+    'integer(kind_int8)'     : 'integer(c_long)',
+}
+
+
+def _normalize_method_return_type(ret_type):
+    """Collapse equivalent return-type spellings to the canonical form
+    the :func:`interfaces_methods` switch handles natively.  Anything
+    not in :data:`_RETURN_TYPE_ALIASES` passes through unchanged."""
+    return _RETURN_TYPE_ALIASES.get(ret_type.strip(), ret_type)
+
 
 def _find_enum_module(enum_type, func_class):
     """Locate the Fortran module that exports *enum_type* (an
@@ -440,9 +514,16 @@ def _unsupported_arg(arg, lib_function_classes, *,
                 if 'allocatable' in attrs:
                     return ('1D allocatable array argument'
                             ' (output arrays not yet supported)')
-                if 'intent(in)' not in attrs:
-                    return ('non-intent(in) array argument'
-                            ' (output arrays not yet supported)')
+                # `intent(inout)` / `intent(out)` non-allocatable arrays
+                # are accepted via the in-place-mutable-buffer path: the
+                # Python wrapper's `np.ascontiguousarray` round-trip
+                # preserves contiguity, and the inner Galacticus method
+                # mutates the buffer in place.  Callers passing a
+                # already-contiguous numpy array of the right dtype see
+                # the mutations directly (no extra copy); callers passing
+                # a list or wrong-dtype array see mutations on the
+                # wrapper-side copy, which they can re-read via the
+                # method's return value where applicable.
                 continue
             return ('dimensioned argument'
                     ' (only 1D deferred-shape or fixed-size numeric input,'
@@ -927,7 +1008,8 @@ def interfaces_methods(code, python, func_class, extensions, module_uses_impls,
 
     methods_to_delete = []
     for method_name, method_spec in func_class.get('methods', {}).items():
-        method_type = method_spec.get('type', 'void')
+        method_type = _normalize_method_return_type(
+            method_spec.get('type', 'void'))
 
         # Build argument list for method
         arg_list = [
@@ -948,7 +1030,8 @@ def interfaces_methods(code, python, func_class, extensions, module_uses_impls,
         result_conversion_close   = ""
         result_extra_module_uses  = ""
         result_extra_declarations = ""
-        result_post_call_code     = ""
+        result_pre_call_code      = ""    # emitted before the inner call
+        result_post_call_code     = ""    # emitted after the inner call
         result_call_target        = method_name_c
         result_assign_op          = '='   # `=>` for pointer-returning methods (class(...))
         result_python_decode      = False
@@ -956,6 +1039,8 @@ def interfaces_methods(code, python, func_class, extensions, module_uses_impls,
         result_extra_clib_argtypes = []   # matching ctypes wrappers
         result_python_class_wrap  = None  # (parent_class, out_id_var) or None
         result_python_array_wrap  = None  # (size, elem_ctype, elem_dtype) or None
+        result_python_dyn_array_wrap = None  # (elem_ctype, elem_dtype) for save-buffer 1D returns
+        result_python_dyn_array_2d_wrap = None  # (elem_ctype, elem_dtype) for save-buffer 2D returns
         result_is_subroutine      = False # force `subroutine` even when method_type != "void"
         if method_type == "double precision":
             method_type_c                        = "real(c_double)"
@@ -1129,6 +1214,121 @@ def interfaces_methods(code, python, func_class, extensions, module_uses_impls,
             result_extra_clib_argtypes = [f'POINTER({elem_ctype})']
             result_python_array_wrap   = (arr_size, elem_ctype, elem_dtype)
             result_is_subroutine       = True
+        elif _DYNAMIC_ARRAY_RETURN_RX.match(method_type):
+            # Returned 1D allocatable or dynamic-size numeric array.
+            # Covers both source-level shapes:
+            #
+            #   <type>double precision, allocatable, dimension(:)</type>
+            #   <type>double precision, dimension(self%parameterCount)</type>
+            #
+            # bind(c) functions can't return arrays, so we lower to a
+            # subroutine with two intent(out) companions — a c_ptr that
+            # the wrapper sets to c_loc(glcResult_) and a c_size_t that
+            # the wrapper sets to size(glcResult_).  glcResult_ is a
+            # function-local `save, target` allocatable; Fortran 2003
+            # auto-realloc on assignment resizes it to the inner method's
+            # result shape on every call (both for genuinely allocatable
+            # results and for fixed-shape-but-runtime-extent results).
+            #
+            # On the Python side we wrap the (ptr, size) pair into a
+            # numpy view and *copy* before returning — the save buffer
+            # is overwritten on the next call to the same method, so
+            # holding a reference to it past the next call would alias
+            # to fresh data.  Mirrors the `varying_string` return
+            # convention (same buffer-lifetime contract; different
+            # element type).
+            m = _DYNAMIC_ARRAY_RETURN_RX.match(method_type)
+            arr_intrinsic_raw = m.group(1).lower()
+            arr_intrinsic     = re.sub(r'\s+', ' ', arr_intrinsic_raw)
+            if arr_intrinsic == 'double precision':
+                elem_ctype, elem_fort, elem_dtype = ('c_double',
+                                                    'real(c_double)',
+                                                    'float64')
+            else:
+                elem_ctype, elem_fort, elem_dtype = ('c_int',
+                                                    'integer(c_int)',
+                                                    'int32')
+            isoImports[elem_ctype]    = 1
+            isoImports['c_ptr']       = 1
+            isoImports['c_size_t']    = 1
+            isoImports['c_loc']       = 1
+            method_type_c              = ''      # subroutine, no return type
+            clib_res_type              = None
+            result_call_target         = 'glcResult_'
+            # The save-target buffer is a function-local allocatable; on
+            # entry we deallocate any prior contents (the previous call's
+            # data is no longer needed — Python copied it) and then let
+            # the assignment auto-allocate to the new shape.
+            result_extra_declarations  = (
+                f'  {elem_fort}, dimension(:), allocatable, save, target'
+                f' :: glcResult_\n'
+                f'  type(c_ptr),       intent(out) :: glcDataPtr_\n'
+                f'  integer(c_size_t), intent(out) :: glcSize_\n'
+            )
+            result_post_call_code      = (
+                f'  glcSize_    = size(glcResult_, kind=c_size_t)\n'
+                f'  glcDataPtr_ = c_loc(glcResult_)\n'
+            )
+            # Buffer hygiene: a previous call may have left glcResult_
+            # allocated to a different shape; deallocate so the next
+            # assignment auto-allocates cleanly (Fortran 2003 auto-realloc
+            # would also handle a same-shape reuse, but we want to free
+            # any unused-memory excess too).
+            result_pre_call_code       = (
+                f'  if (allocated(glcResult_)) deallocate(glcResult_)\n'
+            )
+            result_extra_fort_args     = ['glcDataPtr_', 'glcSize_']
+            result_extra_clib_argtypes = ['POINTER(c_void_p)',
+                                          'POINTER(c_size_t)']
+            result_python_dyn_array_wrap = (elem_ctype, elem_dtype)
+            result_is_subroutine       = True
+        elif _DYNAMIC_ARRAY_RETURN_2D_RX.match(method_type):
+            # 2D variant of the allocatable / dynamic-size array return
+            # — same save-target buffer trick as the 1D case above, with
+            # one extra `c_size_t` size companion so Python can reshape
+            # the flat byte buffer to the right (size1, size2).  Fortran
+            # stores 2D arrays in column-major order; the Python wrapper
+            # uses `reshape((size1, size2), order='F')` so the indexing
+            # convention matches the inner method.
+            m = _DYNAMIC_ARRAY_RETURN_2D_RX.match(method_type)
+            arr_intrinsic_raw = m.group(1).lower()
+            arr_intrinsic     = re.sub(r'\s+', ' ', arr_intrinsic_raw)
+            if arr_intrinsic == 'double precision':
+                elem_ctype, elem_fort, elem_dtype = ('c_double',
+                                                    'real(c_double)',
+                                                    'float64')
+            else:
+                elem_ctype, elem_fort, elem_dtype = ('c_int',
+                                                    'integer(c_int)',
+                                                    'int32')
+            isoImports[elem_ctype]    = 1
+            isoImports['c_ptr']       = 1
+            isoImports['c_size_t']    = 1
+            isoImports['c_loc']       = 1
+            method_type_c              = ''      # subroutine, no return type
+            clib_res_type              = None
+            result_call_target         = 'glcResult_'
+            result_extra_declarations  = (
+                f'  {elem_fort}, dimension(:,:), allocatable, save, target'
+                f' :: glcResult_\n'
+                f'  type(c_ptr),       intent(out) :: glcDataPtr_\n'
+                f'  integer(c_size_t), intent(out) :: glcSize1_\n'
+                f'  integer(c_size_t), intent(out) :: glcSize2_\n'
+            )
+            result_post_call_code      = (
+                f'  glcSize1_   = size(glcResult_, dim=1, kind=c_size_t)\n'
+                f'  glcSize2_   = size(glcResult_, dim=2, kind=c_size_t)\n'
+                f'  glcDataPtr_ = c_loc(glcResult_)\n'
+            )
+            result_pre_call_code       = (
+                f'  if (allocated(glcResult_)) deallocate(glcResult_)\n'
+            )
+            result_extra_fort_args     = ['glcDataPtr_', 'glcSize1_', 'glcSize2_']
+            result_extra_clib_argtypes = ['POINTER(c_void_p)',
+                                          'POINTER(c_size_t)',
+                                          'POINTER(c_size_t)']
+            result_python_dyn_array_2d_wrap = (elem_ctype, elem_dtype)
+            result_is_subroutine       = True
         elif method_type == "void":
             pass
         else:
@@ -1196,7 +1396,11 @@ def interfaces_methods(code, python, func_class, extensions, module_uses_impls,
         call_code = fortran_call_code(arg_list,
                                      f'{call_lhs} {result_conversion_open} self_%{method_name}( &\n',
                                      f'&){result_conversion_close}\n', '&')
-        call_code += result_post_call_code
+        # `result_pre_call_code` is for setup that must happen between the
+        # arg-reassignments block and the inner call (currently: the
+        # save-buffer deallocate for the dynamic-array-return path).  Goes
+        # *before* call_code; `result_post_call_code` goes after as usual.
+        call_code = result_pre_call_code + call_code + result_post_call_code
 
         fort_method = f'''{procedure} {method_name_c}({','.join(fort_args)}) bind(c,name='{method_name_c}')
   use :: {func_class.get('module')}, only : {class_name}Class
@@ -1261,6 +1465,73 @@ end {procedure} {method_name_c}
                 + f'    _glcArr_ = np.zeros({arr_size}, dtype=np.{elem_dtype})\n'
                 + f'    c_lib.{method_name_c}({",".join(py_call_args)})\n'
                 + f'    return _glcArr_\n'
+            )
+        elif result_python_dyn_array_2d_wrap:
+            # 2D allocatable / dynamic-size array return.  Same shape as
+            # the 1D path below, with one extra size companion and a
+            # `reshape((s1, s2), order='F')` on the Python side so the
+            # column-major Fortran storage maps to the right numpy
+            # indexing.
+            elem_ctype, elem_dtype = result_python_dyn_array_2d_wrap
+            py_call_args = []
+            for a in arg_list:
+                if not a.fort_is_present:
+                    continue
+                py_call_args.append(a.py_pass_as if a.py_pass_as else python_safe_name(a.name))
+            py_call_args.append('byref(_glcDataPtr_)')
+            py_call_args.append('byref(_glcSize1_)')
+            py_call_args.append('byref(_glcSize2_)')
+            reassignments_block = ''.join(a.py_reassignment for a in arg_list)
+            py_call = (
+                reassignments_block
+                + f'    _glcDataPtr_ = c_void_p()\n'
+                + f'    _glcSize1_   = c_size_t()\n'
+                + f'    _glcSize2_   = c_size_t()\n'
+                + f'    c_lib.{method_name_c}({",".join(py_call_args)})\n'
+                # `from_address` over the save buffer; reshape in
+                # column-major order to match the Fortran-side
+                # (size1, size2) layout; `.copy()` materialises a fresh
+                # numpy-owned array so the caller's reference survives
+                # subsequent calls to the same method.
+                + f'    return np.ctypeslib.as_array(\n'
+                + f'        ({elem_ctype} * (_glcSize1_.value * _glcSize2_.value))'
+                + f'.from_address(_glcDataPtr_.value)\n'
+                + f'    ).reshape((_glcSize1_.value, _glcSize2_.value), order="F").copy()\n'
+            )
+        elif result_python_dyn_array_wrap:
+            # Allocatable / dynamic-size 1D array return.  The Fortran
+            # wrapper writes the buffer's c_loc into a c_void_p out-param
+            # and the element count into a c_size_t out-param; we wrap
+            # them into a numpy view and *copy* before returning, because
+            # the save-target buffer on the Fortran side is overwritten
+            # on the next call to this method (mirrors the
+            # `varying_string`-return convention: bytes are valid until
+            # the next call).
+            #
+            # Optional-arg branching isn't supported on this path either;
+            # the current set of dynamic-array-return methods have no
+            # optional args.
+            elem_ctype, elem_dtype = result_python_dyn_array_wrap
+            py_call_args = []
+            for a in arg_list:
+                if not a.fort_is_present:
+                    continue
+                py_call_args.append(a.py_pass_as if a.py_pass_as else python_safe_name(a.name))
+            py_call_args.append('byref(_glcDataPtr_)')
+            py_call_args.append('byref(_glcSize_)')
+            reassignments_block = ''.join(a.py_reassignment for a in arg_list)
+            py_call = (
+                reassignments_block
+                + f'    _glcDataPtr_ = c_void_p()\n'
+                + f'    _glcSize_    = c_size_t()\n'
+                + f'    c_lib.{method_name_c}({",".join(py_call_args)})\n'
+                # `from_address` builds a numpy array view over the
+                # save buffer's bytes; `.copy()` materialises a fresh
+                # numpy-owned array so the caller's reference survives
+                # subsequent calls to the same method.
+                + f'    return np.ctypeslib.as_array(\n'
+                + f'        ({elem_ctype} * _glcSize_.value).from_address(_glcDataPtr_.value)\n'
+                + f'    ).copy()\n'
             )
         else:
             # Reassignments (numpy conversion, optional-arg unpacking, …)

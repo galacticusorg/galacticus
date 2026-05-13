@@ -281,7 +281,21 @@ def python_call_code(argument_list, call):
                     args.append(pa)
                 else:
                     ctype = arg.ctype or 'c_void_p'
-                    args.append(f'{ctype}({pa})')
+                    # Skip the wrap if `pa` is already a `{ctype}(...)`
+                    # call.  Hidden count companions for non-optional
+                    # array args are pre-wrapped by
+                    # build_python_reassignments (so the all-non-optional
+                    # code path emits a working call too); without this
+                    # guard a method with a *mix* of optional and
+                    # non-optional arrays would emit
+                    # `c_size_t(c_size_t(arr.size))` for the non-optional
+                    # count companion sitting in the optional region,
+                    # which ctypes rejects as 'c_ulong object cannot be
+                    # interpreted as an integer'.
+                    if pa.startswith(f'{ctype}('):
+                        args.append(pa)
+                    else:
+                        args.append(f'{ctype}({pa})')
             else:
                 args.append(pa)
         return f"{indent}{call}({','.join(args)})\n"

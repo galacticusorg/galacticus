@@ -333,6 +333,37 @@ with safe_section("nodeOperatorPositionInterpolated"):
     check_eq("constructed type",
              type(nopi).__name__, 'nodeOperatorPositionInterpolated')
 
+# `mergerTreeImporter` — exercises the kind-aliased integer method
+# *return* types.  `treeCount` / `nodeCount` / `subhaloTraceCount`
+# declare `integer(kind=c_size_t)` and `treeIndex` declares
+# `integer(kind=kind_int8)`.  Before the alias normalisation in
+# `_normalize_method_return_type`, the generator's return-type switch
+# only had branches for the unprefixed `integer(c_size_t)` /
+# `integer(c_long)` forms, so these methods fell through and were
+# dropped with an "unsupported method return type" caution.
+#
+# Calling these end-to-end needs an HDF5 merger-tree file (they each
+# call `galacticusForestIndicesRead` on first use, which opens the
+# file), so the meaningful check is the wrapper-exposure level — the
+# same pattern used for `radiativeTransferMatter` above.  We also pin
+# the negative case (`subhaloTraceCount` stays skipped because its
+# `class(nodeData)` arg is in the deferred non-fc-hierarchy bucket) so
+# accidentally widening the predicate without the related work is
+# caught.
+with safe_section("mergerTreeImporter (kind-aliased integer returns)"):
+    check_eq("mergerTreeImporterGalacticus exposed",
+             hasattr(galacticus, 'mergerTreeImporterGalacticus'), True)
+    for method in ('treeCount', 'treeIndex', 'nodeCount'):
+        check_eq(f"mergerTreeImporterGalacticus.{method} exposed",
+                 hasattr(galacticus.mergerTreeImporterGalacticus, method),
+                 True)
+    # `subhaloTraceCount` survived the return-type fix but still has the
+    # `class(nodeData)` arg blocker (non-fc hierarchy — out of scope).
+    check_eq("subhaloTraceCount stays skipped (class(nodeData) arg)",
+             hasattr(galacticus.mergerTreeImporterGalacticus,
+                     'subhaloTraceCount'),
+             False)
+
 # Fixed-length character-array constructor argument — exercises the
 # `character(len=N), dimension(:)` pipeline path.  The
 # `radiativeTransferMatterAtomic` constructor takes
@@ -648,6 +679,140 @@ with safe_section("value='null' constructor-arg overrides"):
                          'initializationArgument'):
             check_eq(f"{impl}: {arg_name} not in signature",
                      arg_name in sig.parameters, False)
+
+# Dynamic-size / allocatable 1D array method return — exercises the
+# save-buffer-plus-(c_ptr, c_size_t)-companions protocol that lowers
+# `<type>double precision, allocatable, dimension(:)</type>` (and the
+# `<type>double precision, dimension(self%X)</type>` variant) to a
+# subroutine wrapper.  Before this path landed, both shapes were
+# dropped with an "unsupported method return type" caution because the
+# return-type switch in interfaces_methods only handled fixed-size
+# numeric returns (`dimension(<integer>)`).
+#
+# `variogramExponential::modelInitialGuess` returns
+# `double precision, allocatable, dimension(:)` — a vector of initial
+# parameter guesses derived from the supplied empirical points.  With
+# `assumeZeroVarianceAtZeroLag=True` the inner method allocates
+# `C(2)`, fills it with
+# ``[semiVariances(size(...)), separations(size(...)/2)]``, then
+# converts to logarithmic form via ``C=log(C)`` — so the returned
+# array's contents are predictable from the inputs alone (no MPI /
+# state / file dependency).  We also check the save-buffer lifetime
+# contract: the wrapper `.copy()`s before returning, so a subsequent
+# call to the same method on the same object doesn't overwrite the
+# previous return value.
+with safe_section("variogramExponential (allocatable / dynamic-size return)"):
+    vg = galacticus.variogramExponential(
+        variogramFitOption          = 0,     # `mean` (first enum entry, 0-based)
+        assumeZeroVarianceAtZeroLag = True,
+    )
+    seps_a    = np.array([0.1, 0.5, 1.0], dtype=np.float64)
+    semivar_a = np.array([0.2, 0.4, 0.8], dtype=np.float64)
+    arr_a     = vg.modelInitialGuess(separations=seps_a, semiVariances=semivar_a)
+    # Inner: C = log([semiVariances(3), separations(3/2)])
+    #         = log([semiVariances(3), separations(1)])    (Fortran integer
+    #         division, 1-indexed).
+    check_eq("modelInitialGuess() return type",  type(arr_a).__name__, 'ndarray')
+    check_eq("modelInitialGuess() return size",  arr_a.size,           2)
+    check_eq("modelInitialGuess() return dtype", str(arr_a.dtype),     'float64')
+    check   ("modelInitialGuess()[0]",  float(arr_a[0]),  np.log(0.8))
+    check   ("modelInitialGuess()[1]",  float(arr_a[1]),  np.log(0.1))
+    # Save-buffer lifetime: call again with different inputs, then
+    # confirm the first array is unchanged.  Without the `.copy()` in
+    # the wrapper, arr_a would alias the save-target buffer and pick up
+    # the new call's values.
+    seps_b    = np.array([2.0, 3.0, 4.0], dtype=np.float64)
+    semivar_b = np.array([0.05, 0.1, 0.2], dtype=np.float64)
+    arr_b     = vg.modelInitialGuess(separations=seps_b, semiVariances=semivar_b)
+    check   ("first array unchanged after re-call",  float(arr_a[0]), np.log(0.8))
+    check   ("second call return[0]",                float(arr_b[0]), np.log(0.2))
+    check   ("second call return[1]",                float(arr_b[1]), np.log(2.0))
+
+# Allocatable-array method return — same save-buffer codegen as the
+# dynamic-size case above, just with an `allocatable, dimension(:)`
+# return type instead of `dimension(self%X)`.  Constructing
+# `starFormationHistoryMetallicitySplit` end-to-end needs an
+# `outputTimes_` plus a clutch of scalar args, all of which we already
+# have in scope from earlier sections.  The `metallicityBoundaries()`
+# method returns `self%metallicityTable(:)` (which the inner constructor
+# stores as the supplied boundaries + a sentinel high value), so the
+# array we get back is the user-supplied boundaries plus one extra
+# element.
+with safe_section("starFormationHistoryMetallicitySplit (allocatable return)"):
+    sfh = galacticus.starFormationHistoryMetallicitySplit(
+        outputTimes_         = outputTimesL,
+        timeStep             = 1.0,
+        timeStepFine         = 0.1,
+        timeFine             = 0.5,
+        massScaleAbsolute    = 1.0e6,
+        metallicityBoundaries= [0.001, 0.01, 0.1],
+    )
+    bounds = sfh.metallicityBoundaries()
+    check_eq("metallicityBoundaries() return type",
+             type(bounds).__name__, 'ndarray')
+    # Inner stores boundaries plus a sentinel `huge(1.0d0)` ⇒ size 4
+    # for our 3-element input.
+    check_eq("metallicityBoundaries() length",  bounds.size, 4)
+    check   ("metallicityBoundaries()[0]",      float(bounds[0]), 0.001)
+    check   ("metallicityBoundaries()[1]",      float(bounds[1]), 0.01)
+    check   ("metallicityBoundaries()[2]",      float(bounds[2]), 0.1)
+    # 2D-allocatable-array return — `starFormationHistory::masses` returns
+    # `double precision, allocatable, dimension(:,:)`.  Calling it
+    # end-to-end needs a populated `treeNode` plus a `type(history)`
+    # value, both of which require heavy setup; just confirm the wrapper
+    # exposes the method.  (We deliberately avoid `inspect.signature` /
+    # `__code__` introspection here — some build environments have
+    # returned the bound method as something `inspect` refuses to
+    # introspect; `hasattr` is the safe minimum check.)
+    check_eq("masses() exposed",
+             hasattr(galacticus.starFormationHistoryMetallicitySplit, 'masses'),
+             True)
+
+# Nested-paren dynamic-size return — exercises the regex fix that lets
+# the dynamic-size-array return-type recogniser match shapes with
+# nested parens like `dimension(size(<arg>))` in addition to the
+# already-supported `dimension(self%X)`.  Affected methods all need
+# heavy deps (treeNode / posteriorSampleState / lists of model
+# parameters) to call end-to-end, so we just check at the
+# wrapper-exposure level: each method must be present on the
+# appropriate Python class.  (See the comment in the `masses` block
+# above on why we avoid `inspect.signature`-based argument
+# introspection here.)
+with safe_section("nested-paren dynamic-size returns (exposure)"):
+    cases = [
+        ('outputAnalysisDistributionOperatorIdentity'   , 'operateScalar'      ),
+        ('outputAnalysisDistributionOperatorIdentity'   , 'operateDistribution'),
+        ('posteriorSampleDffrntlEvltnRandomJumpSimple'  , 'sample'             ),
+    ]
+    for cls_name, method_name in cases:
+        cls = getattr(galacticus, cls_name)
+        check_eq(f"{cls_name}.{method_name} exposed",
+                 hasattr(cls, method_name), True)
+
+# In-place mutable buffer arg — exercises the path that accepts
+# `intent(inout)` / `intent(out)` non-allocatable array args.  Before
+# this landed, the predicate rejected any array arg without
+# `intent(in)` with an "output arrays not yet supported" caution.  The
+# Python wrapper passes the numpy buffer's data pointer straight to
+# bind(c), so the inner Galacticus method's in-place mutations are
+# visible in the caller's array as long as the caller already passed a
+# contiguous float64 numpy array (which the wrapper's
+# `np.ascontiguousarray` returns unchanged in that case).
+#
+# `outputAnalysisDistributionNormalizerUnitarity::normalize` divides
+# `distribution` by its sum.  Picking input values whose sum is non-zero
+# means we expect each element to land at its own value over the sum.
+with safe_section("outputAnalysisDistributionNormalizerUnitarity (in-place inout)"):
+    norm = galacticus.outputAnalysisDistributionNormalizerUnitarity()
+    dist = np.array([2.0, 4.0, 6.0], dtype=np.float64)
+    norm.normalize(
+        distribution        = dist,
+        propertyValueMinimum= np.array([0.0, 1.0, 2.0]),
+        propertyValueMaximum= np.array([1.0, 2.0, 3.0]),
+    )
+    check("dist[0] after normalize", float(dist[0]), 2.0 / 12.0)
+    check("dist[1] after normalize", float(dist[1]), 4.0 / 12.0)
+    check("dist[2] after normalize", float(dist[2]), 6.0 / 12.0)
 
 # Final summary and exit code.
 print(f"--- {_failures} failure(s) ---")
