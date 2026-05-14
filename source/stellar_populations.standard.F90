@@ -501,12 +501,13 @@ contains
     double precision                                                           :: maximumMass       , minimumMass     , &
          &                                                                        metallicity
     character       (len=20                           )                        :: progressMessage
-    type            (varying_string                   )                        :: fileName          , descriptorString
-    logical                                                                    :: makeFile
-    type            (lockDescriptor                   )                        :: lock
 
     ! Compute the property if not already done.
     if (.not.property%computed) then
+     coldPathScope: block
+       type   (varying_string) :: fileName, descriptorString
+       type   (lockDescriptor) :: lock
+       logical                 :: makeFile
        ! Check for previously computed data.
        makeFile=.false.
        fileName=inputPath(pathTypeDataDynamic)//'stellarPopulations/'//property%label//'_'//self%hashedDescriptor(includeSourceDigest=.true.,includeFileModificationTimes=.true.)//'.hdf5'
@@ -658,6 +659,7 @@ contains
        property%interpolatorAge        =interpolator(property%age        ,extrapolationType=extrapolationTypeExtrapolate)
        ! Record that this IMF has now been tabulated.
        property%computed=.true.
+     end block coldPathScope
     end if
     ! Interpolate to get the derivative in the property at two adjacent metallicities.
     metallicity=max(Abundances_Get_Metallicity(abundances_),0.0d0)
