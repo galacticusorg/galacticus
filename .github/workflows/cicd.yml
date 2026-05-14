@@ -1787,6 +1787,9 @@ jobs:
           echo "GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
           echo "PYTHONPATH=$GITHUB_WORKSPACE/galacticus/python" >> $GITHUB_ENV
           echo "DEBIAN_FRONTEND=noninteractive" >> $GITHUB_ENV
+          # Prepend /opt/local/bin so the MacPorts-installed `python3` (with numpy) is
+          # picked up ahead of the runner's pre-installed Python, which lacks numpy.
+          echo "PATH=/opt/local/bin:$PATH" >> $GITHUB_ENV
       - name: Install Python
         run: |
           sudo port install python312 py312-numpy
