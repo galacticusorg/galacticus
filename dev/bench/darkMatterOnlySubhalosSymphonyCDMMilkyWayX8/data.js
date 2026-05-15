@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1778543418282,
+  "lastUpdate": 1778825535564,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Dark matter-only subhalos benchmarks (Symphony Milky Way resolutionX8)": [
@@ -2095,6 +2095,45 @@ window.BENCHMARK_DATA = {
           {
             "name": "Dark Matter Only Subhalos (Symphony CDM resolution X8 Milky Way) - Likelihood - subhaloVelocityMaximumMean",
             "value": 46.542850907630175,
+            "unit": "-logℒ"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abenson@carnegiescience.edu",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "abenson@carnegiescience.edu",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "distinct": true,
+          "id": "40dae4d6b28b3f643ae5fbde551c362eaeb94608",
+          "message": "feat: Expand the parameter description for disk angular momentum factor\n\nNow includes a note on what this would be for a fully self-gravitating, razor-thin exponential disk.",
+          "timestamp": "2026-05-14T10:17:06-07:00",
+          "tree_id": "680e78977f28e87593aa4d48d3968c7acaa3a508",
+          "url": "https://github.com/galacticusorg/galacticus/commit/40dae4d6b28b3f643ae5fbde551c362eaeb94608"
+        },
+        "date": 1778825535022,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Dark Matter Only Subhalos (Symphony CDM resolution X8 Milky Way) - Likelihood - subhaloMassFunction",
+            "value": 2.6117173859455756,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Dark Matter Only Subhalos (Symphony CDM resolution X8 Milky Way) - Likelihood - subhaloRadialDistribution",
+            "value": 4.606481496950775,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Dark Matter Only Subhalos (Symphony CDM resolution X8 Milky Way) - Likelihood - subhaloVelocityMaximumMean",
+            "value": 46.87206518930892,
             "unit": "-logℒ"
           }
         ]
