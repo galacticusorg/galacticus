@@ -56,3 +56,4 @@ __pycache__
 .pytest_cache
 .DS_Store
 .vscode
+.ipynb_checkpoints
