@@ -175,7 +175,7 @@ contains
        ! Get the logarithm of the mass.
        logarithmicMass=log10(mass)
        ! Find the median line width for this mass. (See
-       ! constraints/dataAnalysis/hiMassFunction_ALFALFA_z0.00/lineWidthMassRelation.pl for details.)
+       ! constraints/dataAnalysis/hiMassFunction_ALFALFA_z0.00/lineWidthMassRelation.py for details.)
        lineWidth=10.0d0**(lineWidthCoefficient0+lineWidthCoefficient1*logarithmicMass)
        ! Compute the limiting integrated flux using equation (A1) of Martin et al. (2010).
        if (lineWidth < lineWidthCharacteristic) then

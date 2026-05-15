@@ -116,6 +116,7 @@ with open('Galacticus.bib', 'r', encoding='utf-8', errors='replace') as ifile, \
         line = line.replace('\u2013', '--')
         line = line.replace('\u2212', '-')
         line = line.replace('\u2014', '-')
+        line = line.replace('\u2500', '-')
 
         # Accents.
         line = line.replace('Ç', r'\c{C}')

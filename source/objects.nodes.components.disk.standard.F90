@@ -341,7 +341,7 @@ contains
        !![
        <inputParameter>
          <name>ratioAngularMomentumSolverRadius</name>
-         <defaultSource>($I_1/I_2$ where $I_n=\int_0^\infty \Sigma(R) R^n \mathrm{d}R$, where $\Sigma(R)$ is the disk surface density profile, unless either $I_1$ or $I_2$ is infinite, in which case a default of $1/2$ is used instead.)</defaultSource>
+         <defaultSource>(Assuming a flat rotation curve this ratio is $I_1/I_2$ where $I_n=\int_0^\infty \Sigma(R) R^n \mathrm{d}R$, where $\Sigma(R)$ is the disk surface density profile, unless either $I_1$ or $I_2$ is infinite, in which case a default of $1/2$ is used instead. For a fully self-gravitating, razor-thin exponential disk a ratio of $0.6679$ would be found instead.)</defaultSource>
          <defaultValue>ratioAngularMomentumSolverRadiusDefault</defaultValue>
          <description>The assumed ratio of the specific angular momentum at the structure solver radius to the mean specific angular momentum of the standard disk component.</description>
          <source>subParameters</source>

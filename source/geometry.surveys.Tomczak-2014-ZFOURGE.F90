@@ -235,7 +235,7 @@ contains
     if (present(luminosity       )) call Error_Report(       '`luminosity` is not supported'//{introspection:location})
     if (present(starFormationRate)) call Error_Report('`starFormationRate` is not supported'//{introspection:location})
     ! Find the limiting redshift for this mass. (See
-    ! constraints/dataAnalysis/stellarMassFunctions_ZFOURGE_z0.2_2.5/massRedshiftRelation.pl for details.)
+    ! constraints/dataAnalysis/stellarMassFunctions_ZFOURGE_z0.2_2.5/massRedshiftRelation.py for details.)
     if (present(mass)) then
        logarithmicMass=log10(mass)
        select case (field)
