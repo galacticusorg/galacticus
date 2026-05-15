@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1778543487981,
+  "lastUpdate": 1778825591209,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Dark matter-only subhalos benchmarks (COZMIC Milky Way WDM 6.5keV resolutionX8)": [
@@ -2095,6 +2095,45 @@ window.BENCHMARK_DATA = {
           {
             "name": "Dark Matter Only Subhalos (COZMIC WDM:6.5keV resolution X8 Milky Way) - Likelihood - subhaloVelocityMaximumMean",
             "value": 39.90425136801479,
+            "unit": "-logℒ"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abenson@carnegiescience.edu",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "abenson@carnegiescience.edu",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "distinct": true,
+          "id": "40dae4d6b28b3f643ae5fbde551c362eaeb94608",
+          "message": "feat: Expand the parameter description for disk angular momentum factor\n\nNow includes a note on what this would be for a fully self-gravitating, razor-thin exponential disk.",
+          "timestamp": "2026-05-14T10:17:06-07:00",
+          "tree_id": "680e78977f28e87593aa4d48d3968c7acaa3a508",
+          "url": "https://github.com/galacticusorg/galacticus/commit/40dae4d6b28b3f643ae5fbde551c362eaeb94608"
+        },
+        "date": 1778825590415,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Dark Matter Only Subhalos (COZMIC WDM:6.5keV resolution X8 Milky Way) - Likelihood - subhaloMassFunction",
+            "value": 8.036685977565813,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Dark Matter Only Subhalos (COZMIC WDM:6.5keV resolution X8 Milky Way) - Likelihood - subhaloRadialDistribution",
+            "value": 28.968876844485038,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Dark Matter Only Subhalos (COZMIC WDM:6.5keV resolution X8 Milky Way) - Likelihood - subhaloVelocityMaximumMean",
+            "value": 34.51271935609328,
             "unit": "-logℒ"
           }
         ]
