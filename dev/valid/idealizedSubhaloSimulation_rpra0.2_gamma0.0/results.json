@@ -4,12 +4,12 @@ window.ANALYSES_DATA = {
     "commit": {
         "author": {
             "name": "Andrew Benson",
-            "email": "abenson@obs.carnegiescience.edu"
+            "email": "abenson@carnegiescience.edu"
         },
-        "id": "211b550a51594169472fd70565771a1f8fe6ced1",
-        "message": "fix: Update comments to reflect names of Python-ported scripts\n",
-        "timestamp": "2026-05-11 07:47:53-07:00",
-        "url": "https://github.com/galacticusorg/galacticus/commit/211b550a51594169472fd70565771a1f8fe6ced1"
+        "id": "40dae4d6b28b3f643ae5fbde551c362eaeb94608",
+        "message": "feat: Expand the parameter description for disk angular momentum factor\n\nNow includes a note on what this would be for a fully self-gravitating, razor-thin exponential disk.\n",
+        "timestamp": "2026-05-14 10:17:06-07:00",
+        "url": "https://github.com/galacticusorg/galacticus/commit/40dae4d6b28b3f643ae5fbde551c362eaeb94608"
     },
     "results": [
         {
