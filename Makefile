@@ -181,8 +181,12 @@ ifeq '$(GALACTICUS_OBJECTS_DEBUG)' 'yes'
 FCFLAGS += -DOBJECTDEBUG
 endif
 
-# List of additional Makefiles which contain dependency information
-MAKE_DEPS = $(BUILDPATH)/Makefile_Module_Dependencies $(BUILDPATH)/Makefile_Use_Dependencies $(BUILDPATH)/Makefile_Include_Dependencies $(BUILDPATH)/Makefile_Library_Dependencies
+# List of additional Makefiles which contain dependency information. The library interface dependencies are only needed for
+# library builds, so are added below conditionally - generating them is slow and unnecessary for regular (or MPI) builds.
+MAKE_DEPS = $(BUILDPATH)/Makefile_Module_Dependencies $(BUILDPATH)/Makefile_Use_Dependencies $(BUILDPATH)/Makefile_Include_Dependencies
+ifeq '$(GALACTICUS_BUILD_OPTION)' 'lib'
+MAKE_DEPS += $(BUILDPATH)/Makefile_Library_Dependencies
+endif
 
 # Get versions of build tools.
 FCCOMPILER_VERSION = `$(FCCOMPILER) -v 2>&1`
@@ -564,7 +568,10 @@ $(BUILDPATH)/%.m : ./source/%.F90
 	$(CCOMPILER) -c $(BUILDPATH)/$*.md5s.c -o $(BUILDPATH)/$*.md5s.o $(CFLAGS)
 	$(CONDORLINKER) $(FCCOMPILER) `cat $*.d` $(BUILDPATH)/$*.parameters.o $(BUILDPATH)/$*.md5s.o -o $*.exe$(SUFFIX) $(FCFLAGS) `scripts/build/libraryDependencies.py $*.exe $(FCFLAGS)` 2>&1 | ./scripts/build/postprocessLinker.py
 
-# Library.
+# Library. These rules generate Fortran interface wrappers and their dependencies for the shared library build; the generator
+# scripts (libraryInterfaces.py, libraryInterfacesDependencies.py) are slow, so we only activate them when actually performing
+# a library build.
+ifeq '$(GALACTICUS_BUILD_OPTION)' 'lib'
 -include $(BUILDPATH)/Makefile_Library_Dependencies
 $(BUILDPATH)/Makefile_Library_Dependencies: $(BUILDPATH)/libgalacticus.Inc ./scripts/build/libraryInterfacesDependencies.py
 	./scripts/build/libraryInterfacesDependencies.py
@@ -577,6 +584,7 @@ $(BUILDPATH)/libgalacticus.p.Inc : $(BUILDPATH)/libgalacticus.p.Inc.up
 $(BUILDPATH)/libgalacticus.inc : $(BUILDPATH)/libgalacticus.p.Inc Makefile
 	sed -E s/'^([[:space:]]*)!(.*)'/'\1\/\*\2\*\/'/ $(BUILDPATH)/libgalacticus.p.Inc | cpp -nostdinc -C | sed -E s/'^([[:space:]]*)\/\*(.*)\*\/'/'\1!\2'/ > $(BUILDPATH)/libgalacticus.tmp
 	mv -f $(BUILDPATH)/libgalacticus.tmp $(BUILDPATH)/libgalacticus.inc
+endif
 libgalacticus.so: $(BUILDPATH)/libgalacticus.o $(BUILDPATH)/libgalacticus_classes.d
 	./scripts/build/parameterDependencies.py `pwd` libgalacticus.o
 	$(FCCOMPILER) -c $(BUILDPATH)/libgalacticus.parameters.F90 -o $(BUILDPATH)/libgalacticus.parameters.o $(FCFLAGS)
@@ -664,7 +672,13 @@ $(BUILDPATH)/Makefile_Module_Dependencies: ./scripts/build/moduleDependencies.py
 	@mkdir -p $(BUILDPATH)
 	./scripts/build/moduleDependencies.py `pwd`
 
-$(BUILDPATH)/Makefile_Use_Dependencies: ./scripts/build/useDependencies.py $(BUILDPATH)/directiveLocations.xml $(BUILDPATH)/Makefile_Directives $(BUILDPATH)/Makefile_Include_Dependencies $(BUILDPATH)/Makefile_Library_Dependencies $(BUILDPATH)/libgalacticus.Inc $(ALLSOURCESINC)
+# For library builds, useDependencies.py must scan the generated library wrapper sources under $(BUILDPATH)/libgalacticus/, so
+# we make it depend on the library include generation. For non-library builds we skip this, since the wrapper sources are not
+# needed and the generators (libraryInterfaces.py, libraryInterfacesDependencies.py) are slow.
+ifeq '$(GALACTICUS_BUILD_OPTION)' 'lib'
+USE_DEPS_LIBRARY_PREREQS = $(BUILDPATH)/Makefile_Library_Dependencies $(BUILDPATH)/libgalacticus.Inc
+endif
+$(BUILDPATH)/Makefile_Use_Dependencies: ./scripts/build/useDependencies.py $(BUILDPATH)/directiveLocations.xml $(BUILDPATH)/Makefile_Directives $(BUILDPATH)/Makefile_Include_Dependencies $(USE_DEPS_LIBRARY_PREREQS) $(ALLSOURCESINC)
 	@mkdir -p $(BUILDPATH)
 	./scripts/build/useDependencies.py `pwd`
 
