@@ -491,9 +491,11 @@ contains
     type            (populationTable                  ), intent(inout)         :: property
     double precision                                   , dimension(2)          :: metallicityFactors, rate            , &
          &                                                                        propertyCumulative, age
+    double precision                                   , dimension(0:1,2)      :: ageFactors
     type            (inputParameters                  ), save                  :: descriptor
     !$omp threadprivate(descriptor)
     integer         (c_size_t                         )                        :: metallicityIndex
+    integer         (c_size_t                         ), dimension(2)          :: ageIndex
     type            (integratorCompositeGaussKronrod1D)                        :: integrator_
     integer                                                                    :: fileFormat        , iAge            , &
          &                                                                        iMetallicity      , loopCount       , &
@@ -669,14 +671,23 @@ contains
     else
        call property%interpolatorMetallicity%linearFactors(metallicity,metallicityIndex,metallicityFactors)
     end if
-    ! Interpolate in age at both metallicities.
+    ! Interpolate in age at both metallicities. The age interpolator is linear
+    ! (and constructed with no interpolationType override), so the locate+weights
+    ! returned by linearFactors are sufficient to compute the result manually.
+    ! Computing them once per age, then forming each metallicity slice as a cheap
+    ! weighted sum, halves the number of interpolator method calls relative to
+    ! calling %interpolate four times.
     age=[ageMinimum,ageMaximum]
+    do iAge=1,2
+       if (age(iAge) > 0.0d0) call property%interpolatorAge%linearFactors(age(iAge),ageIndex(iAge),ageFactors(:,iAge))
+    end do
     do iMetallicity=0,1
        if (metallicityFactors(iMetallicity+1) /= 0.0d0) then
           ! Get average property between ageMinimum and ageMaximum.
           do iAge=1,2
              if (age(iAge) > 0.0d0) then
-                propertyCumulative(iAge)=property%interpolatorAge%interpolate(age(iAge),property%property(:,metallicityIndex+iMetallicity))
+                propertyCumulative(iAge)=+ageFactors(0,iAge)*property%property(ageIndex(iAge)  ,metallicityIndex+iMetallicity) &
+                     &                   +ageFactors(1,iAge)*property%property(ageIndex(iAge)+1,metallicityIndex+iMetallicity)
              else
                 propertyCumulative(iAge)=0.0d0
              end if
