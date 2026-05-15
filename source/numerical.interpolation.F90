@@ -201,7 +201,12 @@ module Numerical_Interpolation
      type            (enumerationExtrapolationTypeType)             , dimension(2) :: extrapolationType
      integer         (c_size_t                        )                            :: countArray
      logical                                                                       :: initialized                , interpolatable
-     double precision                                  , allocatable, dimension(:) :: x                          , y 
+     ! Cached hot-path scalars, set by the constructor and copied in assignment.
+     ! These avoid repeated indirect access to self%x(1), self%x(countArray), and
+     ! self%extrapolationType(:)%ID on every linearFactors call.
+     double precision                                                              :: xLow                       , xHigh
+     integer                                                                       :: extrapolationTypeLowID     , extrapolationTypeHighID
+     double precision                                  , allocatable, dimension(:) :: x                          , y
    contains
      !![
      <methods>
@@ -347,6 +352,11 @@ contains
     end if
     ! Determine if the data is interpolatable.
     self%interpolatable=self%countArray > 1
+    ! Cache hot-path scalars to avoid indirect access during linearFactors.
+    self%xLow                   =self%x(1                            )
+    self%xHigh                  =self%x(self%countArray              )
+    self%extrapolationTypeLowID =self%extrapolationType(1)%ID
+    self%extrapolationTypeHighID=self%extrapolationType(2)%ID
     ! Allocate GSL interpolation objects.
     call self%GSLAllocate()
     return
@@ -457,15 +467,19 @@ contains
     class(interpolator), intent(inout) :: self
     class(interpolator), intent(in   ) :: from
     
-    self%interpManager      =  from%interpManager
-    self%interpAccelManager =  from%interpAccelManager
-    self%interp_            => from%interp_
-    self%interpAccel_       => from%interpAccel_
-    self%interpolationType  =  from%interpolationType
-    self%extrapolationType  =  from%extrapolationType
-    self%countArray         =  from%countArray
-    self%initialized        =  from%initialized
-    self%interpolatable     =  from%interpolatable
+    self%interpManager           =  from%interpManager
+    self%interpAccelManager      =  from%interpAccelManager
+    self%interp_                 => from%interp_
+    self%interpAccel_            => from%interpAccel_
+    self%interpolationType       =  from%interpolationType
+    self%extrapolationType       =  from%extrapolationType
+    self%countArray              =  from%countArray
+    self%initialized             =  from%initialized
+    self%interpolatable          =  from%interpolatable
+    self%xLow                    =  from%xLow
+    self%xHigh                   =  from%xHigh
+    self%extrapolationTypeLowID  =  from%extrapolationTypeLowID
+    self%extrapolationTypeHighID =  from%extrapolationTypeHighID
     if (allocated(self%gsl_interp_type)) deallocate(self%gsl_interp_type                            )
     if (allocated(from%gsl_interp_type))   allocate(self%gsl_interp_type,source=from%gsl_interp_type)
     if (allocated(self%x              )) deallocate(self%x                                          )
@@ -519,49 +533,29 @@ contains
     double precision                                              :: x_
 
     call self%assertInterpolatable()
-    ! Handle extrapolation types.
-    if (x > self%x(self%countArray)) then
-       ! Extrapolate to high values.
-       select case (self%extrapolationType(2)%ID)
+    ! Hot-path: x lies within the tabulated range, so no extrapolation logic is
+    ! needed. The cached bounds avoid two indirect array reads per call.
+    if (x >= self%xLow .and. x <= self%xHigh) then
+       x_=x
+    else if (x > self%xHigh) then
+       ! Extrapolate to high values. Use the cached id rather than dereferencing
+       ! self%extrapolationType(2)%ID on every call.
+       select case (self%extrapolationTypeHighID)
        case (extrapolationTypeExtrapolate%ID)
           x_=     x
        case (extrapolationTypeFix        %ID)
-          x_=self%x(self%countArray)
+          x_=self%xHigh
        case (extrapolationTypeZero       %ID)
           i =self%countArray-1
           h =0.0d0
           return
        case (extrapolationTypeAbort      %ID)
-          if (x > self%x(self%countArray)*(1.0d0+rangeTolerance)) then
+          if (x > self%xHigh*(1.0d0+rangeTolerance)) then
              i =0
              h =0.0d0
              call Error_Report('extrapolation is not allowed'//{introspection:location})
           else
-             x_=self%x(self%countArray)
-          end if
-       case default
-          i =0
-          h =0.0d0
-          call Error_Report('unknown extrapolation type'  //{introspection:location})
-       end select
-    else if (x < self%x(              1)) then
-       ! Extrapolate to low values.
-       select case (self%extrapolationType(1)%ID)
-       case (extrapolationTypeExtrapolate%ID)
-          x_=     x
-       case (extrapolationTypeFix        %ID)
-          x_=self%x(              1)
-       case (extrapolationTypeZero       %ID)
-          i =1
-          h =0.0d0
-          return
-       case (extrapolationTypeAbort      %ID)
-          if (x < self%x(              1)*(1.0d0-rangeTolerance)) then
-             i =0
-             h =0.0d0
-             call Error_Report('extrapolation is not allowed'//{introspection:location})
-          else
-             x_=self%x(              1)
+             x_=self%xHigh
           end if
        case default
           i =0
@@ -569,8 +563,29 @@ contains
           call Error_Report('unknown extrapolation type'  //{introspection:location})
        end select
     else
-       ! No extrapolation needed.
-       x_=x
+       ! Extrapolate to low values (x < self%xLow).
+       select case (self%extrapolationTypeLowID)
+       case (extrapolationTypeExtrapolate%ID)
+          x_=     x
+       case (extrapolationTypeFix        %ID)
+          x_=self%xLow
+       case (extrapolationTypeZero       %ID)
+          i =1
+          h =0.0d0
+          return
+       case (extrapolationTypeAbort      %ID)
+          if (x < self%xLow*(1.0d0-rangeTolerance)) then
+             i =0
+             h =0.0d0
+             call Error_Report('extrapolation is not allowed'//{introspection:location})
+          else
+             x_=self%xLow
+          end if
+       case default
+          i =0
+          h =0.0d0
+          call Error_Report('unknown extrapolation type'  //{introspection:location})
+       end select
     end if
     i=self%locate(x_)
     call self%linearWeights(x_,i,h)
