@@ -55,7 +55,7 @@ jobs:
           if [[ "${{ steps.mode.outputs.refresh_all }}" == "true" ]]; then
             flags+=(--refresh-all)
           fi
-          python3 scripts/aux/bibliographyUpdate.py "${flags[@]}" --summary bibliographyChanges.md "${{ secrets.NASA_ADS_API_TOKEN }}"
+          python3 scripts/aux/bibliographyUpdate.py "${flags[@]}" --summary "$RUNNER_TEMP/bibliographyChanges.md" "${{ secrets.NASA_ADS_API_TOKEN }}"
       - name: "Install bibtool"
         if: ${{ env.adstoken != '' }}
         run: |
@@ -74,8 +74,8 @@ jobs:
         run: |
           {
             echo 'body<<__PR_BODY_EOF__'
-            if [[ -s bibliographyChanges.md ]]; then
-              cat bibliographyChanges.md
+            if [[ -s "$RUNNER_TEMP/bibliographyChanges.md" ]]; then
+              cat "$RUNNER_TEMP/bibliographyChanges.md"
             else
               echo "No changes detected."
             fi
