@@ -1,38 +1,8 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1778940732790,
+  "lastUpdate": 1778974440080,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Dark matter-only subhalos benchmarks": [
-      {
-        "commit": {
-          "author": {
-            "email": "abensonca@gmail.com",
-            "name": "Andrew Benson",
-            "username": "abensonca"
-          },
-          "committer": {
-            "email": "noreply@github.com",
-            "name": "GitHub",
-            "username": "web-flow"
-          },
-          "distinct": true,
-          "id": "24c26b9cc018c6af608fa4294f2ace3e89b1482b",
-          "message": "Merge pull request #821 from galacticusorg/fixRemoveObsoleteMassDistribution\n\nRemove obselete `massDistribution__` objects and initialization functions",
-          "timestamp": "2025-04-01T02:31:36Z",
-          "tree_id": "f99e0995a4ed28f5841618acfea6d5219fbf8f94",
-          "url": "https://github.com/galacticusorg/galacticus/commit/24c26b9cc018c6af608fa4294f2ace3e89b1482b"
-        },
-        "date": 1743498644431,
-        "tool": "customSmallerIsBetter",
-        "benches": [
-          {
-            "name": "Dark Matter Only Subhalos - Wall Time",
-            "value": 53.572,
-            "unit": "seconds",
-            "range": 0.0771466136653177
-          }
-        ]
-      },
       {
         "commit": {
           "author": {
@@ -8784,6 +8754,34 @@ window.BENCHMARK_DATA = {
             "name": "Dark Matter Only Subhalos - Likelihood - subhaloVelocityMaximumMean",
             "value": 10428.353255622053,
             "unit": "-logℒ"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "name": "Claude",
+            "username": "claude",
+            "email": "noreply@anthropic.com"
+          },
+          "committer": {
+            "name": "Claude",
+            "username": "claude",
+            "email": "noreply@anthropic.com"
+          },
+          "id": "970a6b1c6c7d3a381cb92ee3da3ebe408343e098",
+          "message": "fix: Use the deploy app token for the bleeding-edge tag push\n\nThe Update-Release-Tag job generated an app token and tried to use it by\nsetting GITHUB_TOKEN in the step env, but git itself doesn't read\nGITHUB_TOKEN — actions/checkout had already persisted the default\nworkflow token into .git/config as an http.extraheader, and that is what\ngit push was actually authenticating with.  Non-workflow tag pushes\nsucceeded because the default token carries contents:write; pushes whose\ncommit touched .github/workflows/* failed because that token never\ncarries workflows:write.\n\nGenerate the token before checkout and pass it via the checkout step's\n`token:` input so it is the one persisted into .git/config.  Also\ndeclare permission-contents: write explicitly — the v3 action narrows\nthe issued token to the permission-* inputs supplied, so workflows alone\nwould have dropped contents.",
+          "timestamp": "2026-05-16T15:26:08Z",
+          "url": "https://github.com/galacticusorg/galacticus/commit/970a6b1c6c7d3a381cb92ee3da3ebe408343e098"
+        },
+        "date": 1778974436083,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Dark Matter Only Subhalos - Wall Time",
+            "value": 52.71,
+            "range": "0.11695298200559116",
+            "unit": "seconds"
           }
         ]
       }
