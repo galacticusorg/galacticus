@@ -3,13 +3,13 @@ window.ANALYSES_DATA = {
     "parameterFile": "testSuite/parameters/validate_darkMatterOnlySubHalos_decayingDarkMatter.xml",
     "commit": {
         "author": {
-            "name": "Andrew Benson",
-            "email": "abenson@obs.carnegiescience.edu"
+            "name": "Claude",
+            "email": "noreply@anthropic.com"
         },
-        "id": "82462a1fbf030125f0b1538612bc433191ccf531",
-        "message": "Merge pull request #1117 from galacticusorg/featValidatePkShape\n\nAdds validation of the `power` dataset",
-        "timestamp": "2026-05-15 08:37:36-07:00",
-        "url": "https://github.com/galacticusorg/galacticus/commit/82462a1fbf030125f0b1538612bc433191ccf531"
+        "id": "970a6b1c6c7d3a381cb92ee3da3ebe408343e098",
+        "message": "fix: Use the deploy app token for the bleeding-edge tag push\n\nThe Update-Release-Tag job generated an app token and tried to use it by\nsetting GITHUB_TOKEN in the step env, but git itself doesn't read\nGITHUB_TOKEN — actions/checkout had already persisted the default\nworkflow token into .git/config as an http.extraheader, and that is what\ngit push was actually authenticating with.  Non-workflow tag pushes\nsucceeded because the default token carries contents:write; pushes whose\ncommit touched .github/workflows/* failed because that token never\ncarries workflows:write.\n\nGenerate the token before checkout and pass it via the checkout step's\n`token:` input so it is the one persisted into .git/config.  Also\ndeclare permission-contents: write explicitly — the v3 action narrows\nthe issued token to the permission-* inputs supplied, so workflows alone\nwould have dropped contents.\n",
+        "timestamp": "2026-05-16 15:26:08+00:00",
+        "url": "https://github.com/galacticusorg/galacticus/commit/970a6b1c6c7d3a381cb92ee3da3ebe408343e098"
     },
     "results": [
         {
@@ -22,7 +22,7 @@ window.ANALYSES_DATA = {
                 "targetLabel": "Mau et al. (DES), 2022",
                 "comment": "Analysis of subhalo bound mass cumulative distribution function",
                 "description": "Subhalo bound mass cumulative distribution function (τ=20.0 Gyr; vₖ=20.0 km/s)",
-                "logLikelihood": "5.620106205357762",
+                "logLikelihood": "5.945011002978583",
                 "type": "function1D"
             },
             "data": {
@@ -38,11 +38,11 @@ window.ANALYSES_DATA = {
                     7742636826.811277
                 ],
                 "yDataset": [
-                    34.40112338721328,
-                    29.046648098859595,
-                    19.410501581069695,
-                    10.19598506181569,
-                    9.92715503900187,
+                    35.184384441701866,
+                    29.22632840812268,
+                    19.50525910166588,
+                    10.290742582411875,
+                    9.927155039001889,
                     5.907469358167266,
                     4.2141208493790145,
                     1.7047713138016054,
@@ -82,7 +82,7 @@ window.ANALYSES_DATA = {
                 "targetLabel": "Mau et al. (DES), 2022",
                 "comment": "Analysis of subhalo orbital radius cumulative distribution function",
                 "description": "Subhalo orbital radius cumulative distribution function (τ=20.0 Gyr; vₖ=20.0 km/s)",
-                "logLikelihood": "5.588862576439948",
+                "logLikelihood": "5.381264292479525",
                 "type": "function1D"
             },
             "data": {
@@ -102,11 +102,11 @@ window.ANALYSES_DATA = {
                     0.0,
                     0.08333333333333333,
                     0.9120436772288825,
-                    14.037327945969531,
-                    27.24893052751611,
-                    35.63507952059738,
-                    35.63507952059738,
-                    35.63507952059738
+                    14.640908691195003,
+                    27.85251127274157,
+                    36.418340575085914,
+                    36.418340575085914,
+                    36.418340575085914
                 ],
                 "yDatasetTarget": [
                     0.0,
