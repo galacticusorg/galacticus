@@ -54,23 +54,23 @@ program Tests_Halo_Mass_Function_Environmental_Average
   double precision                                                              , parameter            :: massMinimum                         =1.0d6, massMaximum                    =1.0d12
   double precision                                                              , dimension(massCount) :: mass                                      , massFunction                          , &
        &                                                                                                  massFunctionEnvironmentAveraged
-  type            (cosmologyParametersSimple                                   )                       :: cosmologyParameters_
-  type            (cosmologyFunctionsMatterLambda                              )                       :: cosmologyFunctions_
-  type            (cosmologicalMassVarianceFilteredPower                       )                       :: cosmologicalMassVariance_
-  type            (cosmologicalMassVariancePeakBackgroundSplit                 )                       :: cosmologicalMassVarianceConditioned_
-  type            (linearGrowthCollisionlessMatter                             )                       :: linearGrowth_
-  type            (powerSpectrumWindowFunctionTopHat                           )                       :: powerSpectrumWindowFunction_
-  type            (powerSpectrumPrimordialPowerLaw                             )                       :: powerSpectrumPrimordial_
-  type            (transferFunctionCAMB                                        )                       :: transferFunction_
-  type            (powerSpectrumPrimordialTransferredSimple                    )                       :: powerSpectrumPrimordialTransferred_
-  type            (darkMatterParticleCDM                                       )                       :: darkMatterParticle_
-  type            (criticalOverdensitySphericalCollapseClsnlssMttrCsmlgclCnstnt)                       :: criticalOverdensity_
-  type            (criticalOverdensityPeakBackgroundSplit                      )                       :: criticalOverdensityConditioned_
-  type            (haloMassFunctionPressSchechter                              )                       :: haloMassFunction_                   , haloMassFunctionConditioned_
-  type            (haloMassFunctionEnvironmentAveraged                         )                       :: haloMassFunctionEnvironmentAveraged_
-  type            (haloEnvironmentNormal                                       )                       :: haloEnvironment_
-  type            (excursionSetBarrierCriticalOverdensity                      )                       :: excursionSetBarrier_                , excursionSetBarrierConditioned_
-  type            (excursionSetFirstCrossingLinearBarrier                      )                       :: excursionSetFirstCrossing_          , excursionSetFirstCrossingConditioned_
+  type            (cosmologyParametersSimple                                   ), pointer              :: cosmologyParameters_
+  type            (cosmologyFunctionsMatterLambda                              ), pointer              :: cosmologyFunctions_
+  type            (cosmologicalMassVarianceFilteredPower                       ), pointer              :: cosmologicalMassVariance_
+  type            (cosmologicalMassVariancePeakBackgroundSplit                 ), pointer              :: cosmologicalMassVarianceConditioned_
+  type            (linearGrowthCollisionlessMatter                             ), pointer              :: linearGrowth_
+  type            (powerSpectrumWindowFunctionTopHat                           ), pointer              :: powerSpectrumWindowFunction_
+  type            (powerSpectrumPrimordialPowerLaw                             ), pointer              :: powerSpectrumPrimordial_
+  type            (transferFunctionCAMB                                        ), pointer              :: transferFunction_
+  type            (powerSpectrumPrimordialTransferredSimple                    ), pointer              :: powerSpectrumPrimordialTransferred_
+  type            (darkMatterParticleCDM                                       ), pointer              :: darkMatterParticle_
+  type            (criticalOverdensitySphericalCollapseClsnlssMttrCsmlgclCnstnt), pointer              :: criticalOverdensity_
+  type            (criticalOverdensityPeakBackgroundSplit                      ), pointer              :: criticalOverdensityConditioned_
+  type            (haloMassFunctionPressSchechter                              ), pointer              :: haloMassFunction_                   , haloMassFunctionConditioned_
+  type            (haloMassFunctionEnvironmentAveraged                         ), pointer              :: haloMassFunctionEnvironmentAveraged_
+  type            (haloEnvironmentNormal                                       ), pointer              :: haloEnvironment_
+  type            (excursionSetBarrierCriticalOverdensity                      ), pointer              :: excursionSetBarrier_                , excursionSetBarrierConditioned_
+  type            (excursionSetFirstCrossingLinearBarrier                      ), pointer              :: excursionSetFirstCrossing_          , excursionSetFirstCrossingConditioned_
   type            (treeNode                                                    ), pointer              :: node
   type            (mergerTree                                                  )                       :: tree
   class           (nodeComponentBasic                                          ), pointer              :: basic
@@ -88,6 +88,26 @@ program Tests_Halo_Mass_Function_Environmental_Average
   ! Begin unit tests.
   call Unit_Tests_Begin_Group("Halo mass function: environment-averaged")
   ! Construct required objects.
+  allocate(cosmologyParameters_                 )
+  allocate(cosmologyFunctions_                  )
+  allocate(cosmologicalMassVariance_            )
+  allocate(cosmologicalMassVarianceConditioned_ )
+  allocate(linearGrowth_                        )
+  allocate(powerSpectrumWindowFunction_         )
+  allocate(powerSpectrumPrimordial_             )
+  allocate(transferFunction_                    )
+  allocate(powerSpectrumPrimordialTransferred_  )
+  allocate(darkMatterParticle_                  )
+  allocate(criticalOverdensity_                 )
+  allocate(criticalOverdensityConditioned_      )
+  allocate(haloMassFunction_                    )
+  allocate(haloMassFunctionConditioned_         )
+  allocate(haloMassFunctionEnvironmentAveraged_ )
+  allocate(haloEnvironment_                     )
+  allocate(excursionSetBarrier_                 )
+  allocate(excursionSetBarrierConditioned_      )
+  allocate(excursionSetFirstCrossing_           )
+  allocate(excursionSetFirstCrossingConditioned_)
   !![
   <referenceConstruct object="darkMatterParticle_"                 >
    <constructor>
@@ -301,6 +321,31 @@ program Tests_Halo_Mass_Function_Environmental_Average
      massFunctionEnvironmentAveraged(i)=haloMassFunctionEnvironmentAveraged_%differential(time,mass(i),node)
   end do
   call Assert('⟨n(M|δ)⟩ₑₙᵥ = n(M) for Press-Schechter mass function',massFunction,massFunctionEnvironmentAveraged,relTol=1.0d-4)
+  ! Clean up.
+  call node%destroy()
+  deallocate(node)
+  !![
+  <objectDestructor name="cosmologyParameters_"                 />
+  <objectDestructor name="cosmologyFunctions_"                  />
+  <objectDestructor name="cosmologicalMassVariance_"            />
+  <objectDestructor name="cosmologicalMassVarianceConditioned_" />
+  <objectDestructor name="linearGrowth_"                        />
+  <objectDestructor name="powerSpectrumWindowFunction_"         />
+  <objectDestructor name="powerSpectrumPrimordial_"             />
+  <objectDestructor name="transferFunction_"                    />
+  <objectDestructor name="powerSpectrumPrimordialTransferred_"  />
+  <objectDestructor name="darkMatterParticle_"                  />
+  <objectDestructor name="criticalOverdensity_"                 />
+  <objectDestructor name="criticalOverdensityConditioned_"      />
+  <objectDestructor name="haloMassFunction_"                    />
+  <objectDestructor name="haloMassFunctionConditioned_"         />
+  <objectDestructor name="haloMassFunctionEnvironmentAveraged_" />
+  <objectDestructor name="haloEnvironment_"                     />
+  <objectDestructor name="excursionSetBarrier_"                 />
+  <objectDestructor name="excursionSetBarrierConditioned_"      />
+  <objectDestructor name="excursionSetFirstCrossing_"           />
+  <objectDestructor name="excursionSetFirstCrossingConditioned_"/>
+  !!]
   ! End unit tests.
   call Unit_Tests_End_Group               ()
   call Unit_Tests_Finish                  ()

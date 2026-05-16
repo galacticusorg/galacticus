@@ -169,6 +169,8 @@ program Test_Cooling_Functions
   call Unit_Tests_End_Group       ()
   call Unit_Tests_Finish          ()
   ! Clean up.
+  call node%destroy()
+  deallocate(node)
   call Node_Components_Thread_Uninitialize()
   call Node_Components_Uninitialize       ()
 end program Test_Cooling_Functions

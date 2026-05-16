@@ -210,6 +210,9 @@ program Test_Correa2015_Concentration
      concentration(i)=darkMatterProfileConcentration_%concentration(node)
   end do
   call Assert('concentration',concentration,concentrationTarget,relTol=2.0d-3)
+  ! Clean up.
+  call node%destroy()
+  deallocate(node)
   ! End unit tests.
   call Unit_Tests_End_Group               ()
   call Unit_Tests_Finish                  ()

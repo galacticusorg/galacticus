@@ -59,6 +59,9 @@ module Merger_Tree_Outputters
     <description>Finalize the output of merger trees, flushing any buffered data to persistent storage and performing any post-processing required after all trees have been serialized.</description>
     <type>void</type>
     <pass>yes</pass>
+    <code>
+     !$GLC attributes unused :: self
+    </code>
    </method>
    <method name="reduce" >
     <description>Reduce the object onto another object of the class.</description>

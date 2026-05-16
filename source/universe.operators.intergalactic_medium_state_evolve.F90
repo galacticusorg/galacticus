@@ -398,7 +398,7 @@ contains
      use            :: Numerical_Constants_Math, only : Pi
      use            :: Numerical_ODE_Solvers   , only : odeSolver
      implicit none
-     class           (universeEvent     ), intent(in   )            :: event
+     class           (universeEvent     ), intent(inout)            :: event
      type            (universe          ), intent(inout)            :: universe_
      type            (universeEvent     ), pointer                  :: newEvent
      double precision                    , parameter                :: odeToleranceAbsolute =1.0d-3     ,                 &
@@ -503,35 +503,24 @@ contains
            igmGroup=outputFile%openGroup('igmProperties', 'Properties of the intergalactic medium.')
            call igmGroup  %writeDataset  (self%redshift            ,'redshift'        ,'Redshift [].'                                  ,datasetReturned=igmDataset)
            call igmDataset%writeAttribute(0.0d0                    ,'unitsInSI'                                                                                   )
-           call igmDataset%close()
            call igmGroup  %writeDataset  (self%temperature         ,'temperature'     ,'Temperature of the IGM [K].'                   ,datasetReturned=igmDataset)
            call igmDataset%writeAttribute(1.0d0                    ,'unitsInSI'                                                                                   )
-           call igmDataset%close()
            call igmGroup  %writeDataset  (self%densityHydrogen(:,1),'densityHydrogen1','Density of H1 in the IGM [m⁻³].'               ,datasetReturned=igmDataset)
            call igmDataset%writeAttribute(1.0d0                    ,'unitsInSI'                                                                                   )
-           call igmDataset%close()
            call igmGroup  %writeDataset  (self%densityHydrogen(:,2),'densityHydrogen2','Density of H2 in the IGM [m⁻³].'               ,datasetReturned=igmDataset)
            call igmDataset%writeAttribute(1.0d0                    ,'unitsInSI'                                                                                   )
-           call igmDataset%close()
            call igmGroup  %writeDataset  (self%densityHelium  (:,1),'densityHelium1'  ,'Density of He1 in the IGM [m⁻³].'              ,datasetReturned=igmDataset)
            call igmDataset%writeAttribute(1.0d0                    ,'unitsInSI'                                                                                   )
-           call igmDataset%close()
            call igmGroup  %writeDataset  (self%densityHelium  (:,2),'densityHelium2'  ,'Density of He2 in the IGM [m⁻³].'              ,datasetReturned=igmDataset)
            call igmDataset%writeAttribute(1.0d0                    ,'unitsInSI'                                                                                   )
-           call igmDataset%close()
            call igmGroup  %writeDataset  (self%densityHelium  (:,3),'densityHelium3'  ,'Density of He3 in the IGM [m⁻³].'              ,datasetReturned=igmDataset)
            call igmDataset%writeAttribute(1.0d0                    ,'unitsInSI'                                                                                   )
-           call igmDataset%close()
            call igmGroup  %writeDataset  (self%clumpingFactor      ,'clumpingFactor'  ,'Clumping factor in the IGM [].'                ,datasetReturned=igmDataset)
            call igmDataset%writeAttribute(1.0d0                    ,'unitsInSI'                                                                                   )
-           call igmDataset%close()
            call igmGroup  %writeDataset  (self%opticalDepth        ,'opticalDepth'    ,'Electron scattering optical depth from z=0 [].',datasetReturned=igmDataset)
            call igmDataset%writeAttribute(1.0d0                    ,'unitsInSI'                                                                                   )
-           call igmDataset%close()
            call igmGroup  %writeDataset  (self%massFiltering       ,'filteringMass'   ,'Filtering mass in the IGM [M☉].'               ,datasetReturned=igmDataset)
            call igmDataset%writeAttribute(1.0d0                    ,'unitsInSI'                                                                                   )
-           call igmDataset%close()
-           call igmGroup  %close()
            !$ call hdf5Access%unset()
         end if
         ! Store the past history to the default IGM state class.

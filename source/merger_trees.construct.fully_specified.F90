@@ -44,6 +44,7 @@
   use :: IO_XML                  , only : xmlNodeList
   use :: Numerical_Random_Numbers, only : randomNumberGeneratorClass
   use :: Merger_Tree_Seeds       , only : mergerTreeSeedsClass
+  use :: Resource_Manager        , only : resourceManager
 
   !![
   <mergerTreeConstructor name="mergerTreeConstructorFullySpecified">
@@ -126,9 +127,6 @@
     The parameter \mono{[countRealizations]} (defaulting to 1) controls how many merger tree realizations are
     simulated for each input tree.
    </description>
-   <deepCopy>
-     <increment variables="document%copyCount" atomic="yes"/>
-   </deepCopy>
    <runTimeFileDependencies paths="fileName"/>
   </mergerTreeConstructor>
   !!]
@@ -140,6 +138,7 @@
      class  (randomNumberGeneratorClass), pointer                   :: randomNumberGenerator_ => null()
      class  (mergerTreeSeedsClass      ), pointer                   :: mergerTreeSeeds_       => null()
      type   (varying_string            )                            :: fileName
+     type   (resourceManager           )                            :: documentManager
      type   (documentContainer         ), pointer                   :: document               => null()
      type   (xmlNodeList               ), allocatable, dimension(:) :: trees
      integer(c_size_t                  )                            :: treeCount                       , countRealizations
@@ -150,11 +149,12 @@
 
   type :: documentContainer
      !!{
-     A container for XML document.
+     A container for XML documents.
      !!}
      private
-     type   (node), pointer :: doc       => null()
-     integer                :: copyCount =  0
+     type(node), pointer :: doc => null()
+   contains
+     final :: documentContainerDestructor
   end type documentContainer
 
   interface mergerTreeConstructorFullySpecified
@@ -214,13 +214,14 @@ contains
     use :: Display           , only : displayGreen                , displayReset
     use :: ISO_Varying_String, only : varying_string              , var_str     , operator(//)
     implicit none
-    type   (mergerTreeConstructorFullySpecified)                        :: self
-    type   (varying_string                     ), intent(in   )         :: fileName
-    integer(c_size_t                           ), intent(in   )         :: countRealizations
-    class  (randomNumberGeneratorClass         ), intent(in   ), target :: randomNumberGenerator_
-    class  (mergerTreeSeedsClass               ), intent(in   ), target :: mergerTreeSeeds_
-    integer                                                             :: ioErr
-    type   (varying_string                     )                        :: message
+    type   (mergerTreeConstructorFullySpecified)                         :: self
+    type   (varying_string                     ), intent(in   )          :: fileName
+    integer(c_size_t                           ), intent(in   )          :: countRealizations
+    class  (randomNumberGeneratorClass         ), intent(in   ), target  :: randomNumberGenerator_
+    class  (mergerTreeSeedsClass               ), intent(in   ), target  :: mergerTreeSeeds_
+    class  (*                                  )               , pointer :: dummyPointer_
+    integer                                                              :: ioErr
+    type   (varying_string                     )                         :: message
     !![
     <constructorAssign variables="fileName, countRealizations, *randomNumberGenerator_, *mergerTreeSeeds_"/>
     !!]
@@ -238,7 +239,15 @@ contains
        end if
        call Error_Report(message//{introspection:location})
     end if
-    self%document%copyCount = 1
+    !![
+    <workaround type="gfortran" PR="105807" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=105807">
+      <description>ICE when passing a derived type component to a class(*) function argument.</description>
+    !!]
+    dummyPointer_        => self%document
+    self%documentManager =  resourceManager(dummyPointer_)
+    !![
+    </workaround>
+    !!]
     ! Get the list of trees.
     call XML_Get_Elements_By_Tag_Name(self%document%doc,"tree",self%trees)
     ! Count the number of trees.
@@ -253,22 +262,9 @@ contains
     !!{
     Destructor for the \refClass{mergerTreeConstructorFullySpecified} merger tree constructor class.
     !!}
-    use :: FoX_DOM, only : destroy
     implicit none
     type(mergerTreeConstructorFullySpecified), intent(inout) :: self
 
-    ! Reduce the count of document copies.
-    if (associated(self%document)) then
-       !$omp atomic
-       self%document%copyCount=self%document%copyCount-1
-       ! Destroy the XML document only if the count of document copies decreases to 0.
-       if (self%document%copyCount == 0) then
-          !$omp critical (FoX_DOM_Access)
-          call destroy(self%document%doc)
-          if (associated(self%document)) deallocate(self%document)
-          !$omp end critical (FoX_DOM_Access)
-       end if
-    end if
     !![
     <objectDestructor name="self%randomNumberGenerator_"/>
     <objectDestructor name="self%mergerTreeSeeds_"      />
@@ -457,3 +453,15 @@ contains
     end function nodeLookup
 
   end function fullySpecifiedConstruct
+
+  subroutine documentContainerDestructor(self)
+    !!{
+    Destroy a \mono{documentContainer} object.
+    !!}
+    use :: FoX_DOM, only : destroy
+    implicit none
+    type(documentContainer), intent(inout) :: self
+
+    call destroy(self%doc)
+    return
+  end subroutine documentContainerDestructor

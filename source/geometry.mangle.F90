@@ -299,9 +299,8 @@ contains
     if (present(solidAngleFileName).and.File_Exists(solidAngleFileName)) then
        call File_Lock(solidAngleFileName,fileLock,lockIsShared=.true.)
        !$ call hdf5Access%set  ()
-       call solidAngleFile%openFile         (solidAngleFileName,overWrite=.false.                 ,readOnly=.true.)
-       call solidAngleFile%readDatasetStatic('solidAngle'      ,          geometryMangleSolidAngle                )
-       call solidAngleFile%close            (                                                                     )
+       solidAngleFile=hdf5Object(solidAngleFileName,overWrite=.false.,readOnly=.true.)
+       call solidAngleFile%readDatasetStatic('solidAngle',geometryMangleSolidAngle)
        !$ call hdf5Access%unset()
        call File_Unlock(fileLock)
        return
@@ -339,11 +338,10 @@ contains
     if (present(solidAngleFileName)) then
        call File_Lock(solidAngleFileName,fileLock,lockIsShared=.false.)
        !$ call hdf5Access%set  ()
-       call solidAngleFile%openFile      (            solidAngleFileName           ,overWrite=.true.      )
+       solidAngleFile=hdf5Object(solidAngleFileName,overWrite=.true.)
        call solidAngleFile%writeAttribute(String_Join(fileNames               ,":"),          'files'     )
        call solidAngleFile%writeDataset  (            geometryMangleSolidAngle     ,          'solidAngle')
        call solidAngleFile%flush         (                                                                )
-       call solidAngleFile%close         (                                                                )
        !$ call hdf5Access%unset()
        call File_Unlock(fileLock)
     end if
@@ -386,7 +384,7 @@ contains
     if (present(angularPowerFileName).and.File_Exists(angularPowerFileName)) then
        call File_Lock(angularPowerFileName,fileLock,lockIsShared=.true.)
        !$ call hdf5Access%set  ()
-       call angularPowerFile      %openFile         (angularPowerFileName                   ,readOnly=.true.        )
+       angularPowerFile=hdf5Object(angularPowerFileName,readOnly=.true.)
        l=0
        do p=1,size(fileNames)
           do q=p,size(fileNames)
@@ -394,8 +392,7 @@ contains
              call angularPowerFile%readDatasetStatic(char(var_str('Cl_')//(p-1)//'_'//(q-1)),geometryMangleAngularPower(l,:))
           end do
        end do
-       call angularPowerFile      %flush            (                                                               )
-       call angularPowerFile      %close            (                                                               )
+       call angularPowerFile%flush()
        !$ call hdf5Access%unset()
        call File_Unlock(fileLock)
        return
@@ -461,17 +458,16 @@ contains
     if (present(angularPowerFileName)) then
        call File_Lock(angularPowerFileName,fileLock,lockIsShared=.false.)
        !$ call hdf5Access%set  ()
-       call angularPowerFile      %openFile      (            angularPowerFileName                ,overWrite=.true.                                 )
-       call angularPowerFile      %writeAttribute(String_Join(fileNames                      ,":"),          'files'                                )
+       angularPowerFile=hdf5Object(angularPowerFileName,overWrite=.true.)
+       call angularPowerFile%writeAttribute(String_Join(fileNames,":"),'files')
        l=0
        do p=1,size(fileNames)
           do q=p,size(fileNames)
              l=l+1
-             call angularPowerFile%writeDataset  (            geometryMangleAngularPower(l,:)     ,          char(var_str('Cl_')//(p-1)//'_'//(q-1)))
+             call angularPowerFile%writeDataset(geometryMangleAngularPower(l,:),char(var_str('Cl_')//(p-1)//'_'//(q-1)))
           end do
        end do
-       call angularPowerFile      %flush         (                                                                                                  )
-       call angularPowerFile      %close         (                                                                                                  )
+       call angularPowerFile%flush()
        !$ call hdf5Access%unset()
        call File_Unlock(fileLock)
     end if

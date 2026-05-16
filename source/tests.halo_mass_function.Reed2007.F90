@@ -35,6 +35,7 @@ program Tests_Halo_Mass_Function_Reed2007
   use :: Events_Hooks                        , only : eventsHooksInitialize
   use :: File_Utilities                      , only : Count_Lines_In_File
   use :: Halo_Mass_Functions                 , only : haloMassFunctionReed2007
+  use :: IO_HDF5                             , only : ioHDF5AccessInitialize
   use :: Linear_Growth                       , only : linearGrowthCollisionlessMatter
   use :: Power_Spectra_Primordial            , only : powerSpectrumPrimordialPowerLaw
   use :: Power_Spectra_Primordial_Transferred, only : powerSpectrumPrimordialTransferredSimple
@@ -69,6 +70,8 @@ program Tests_Halo_Mass_Function_Reed2007
   call displayVerbositySet(verbosityLevelStandard)
   ! Initialize event hooks.
   call eventsHooksInitialize()
+  ! Initialize HDF5 lock.
+  call ioHDF5AccessInitialize()
   ! Begin unit tests.
   call Unit_Tests_Begin_Group("Halo mass function: Reed et al. (2007)")
   ! Construct required objects.
@@ -190,7 +193,8 @@ program Tests_Halo_Mass_Function_Reed2007
      end select
      time=cosmologyFunctions_%cosmicTime(cosmologyFunctions_%expansionFactorFromRedshift(redshift))
      ! Determine number of masses in reference data file and allocate arrays.
-     massCount=Count_Lines_In_File(char(var_str('testSuite/data/haloMassFunction/reed2007MassFunction_z')//int(redshift)//'.txt'))-1
+     fileName=var_str('testSuite/data/haloMassFunction/reed2007MassFunction_z')//int(redshift)//'.txt'
+     massCount=Count_Lines_In_File(fileName)-1
      allocate(mass            (massCount))
      allocate(massFunction    (massCount))
      allocate(massFunctionReed(massCount))

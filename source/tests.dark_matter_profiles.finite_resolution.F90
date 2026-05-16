@@ -236,6 +236,8 @@ program Test_Dark_Matter_Profiles_Finite_Resolution
        &             energyNumerical, &
        &      relTol=+3.0d-3          &
        &     )
+  call node_%destroy()
+  deallocate(node_)
   !![
   <objectDestructor name="massDistribution_"                         />
   <objectDestructor name="massDistributionFiniteResolutionNFW_"      />

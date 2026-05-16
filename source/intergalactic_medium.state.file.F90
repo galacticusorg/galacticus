@@ -253,11 +253,11 @@ contains
     if (self%dataRead) return
     block
       type(hdf5Object) :: file
-
+      
       if (.not.File_Exists(self%fileName)) call Error_Report('Unable to find intergalactic medium state file "' //char(self%fileName)//'"'//{introspection:location})
       !$ call hdf5Access%set()
       ! Open the file.
-      call file%openFile(self%fileName,readOnly=.true.)
+      file=hdf5Object(self%fileName,readOnly=.true.)
       ! Check the file format version of the file.
       call file%readAttribute('fileFormat',fileFormatVersion)
       if (fileFormatVersion /= fileFormatVersionCurrent) call Error_Report('file format version is out of date'//{introspection:location})
@@ -274,7 +274,6 @@ contains
       call file%readDataset('hIonizedFraction' ,self%ionizedHydrogenFractionTable)
       call file%readDataset('heIonizedFraction',self%ionizedHeliumFractionTable  )
       call file%readDataset('matterTemperature',self%temperatureTable            )
-      call file%close      (                                                     )
       !$ call hdf5Access%unset()
       self%redshiftCount=size(self%timeTable)
       ! Convert redshifts to times.

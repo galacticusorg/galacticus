@@ -56,7 +56,7 @@ jobs:
   Build-Executable-Linux:
     if: ${{ github.event_name != 'pull_request' || !github.event.pull_request.draft }}
     runs-on: ubuntu-latest
-    container: ghcr.io/galacticusorg/buildenv:latest
+    container: ghcr.io/galacticusorg/buildenv:gfortranFinalization
     steps:
       - run: echo "The job was automatically triggered by a ${{ github.event_name }} event."
       - run: echo "This job is now running on a ${{ runner.os }} server."
@@ -106,7 +106,7 @@ jobs:
   Build-Executable-Linux-Non-Static:
     if: ${{ github.event_name != 'pull_request' || !github.event.pull_request.draft }}
     runs-on: ubuntu-latest
-    container: ghcr.io/galacticusorg/buildenv:latest
+    container: ghcr.io/galacticusorg/buildenv:gfortranFinalization
     steps:
       - run: echo "The job was automatically triggered by a ${{ github.event_name }} event."
       - run: echo "This job is now running on a ${{ runner.os }} server."
@@ -144,7 +144,7 @@ jobs:
   Build-Executables-Instrumented-Linux:
     if: ${{ github.event_name != 'pull_request' || !github.event.pull_request.draft }}
     runs-on: ubuntu-latest
-    container: ghcr.io/galacticusorg/buildenv:latest
+    container: ghcr.io/galacticusorg/buildenv:gfortranFinalization
     steps:
       - run: echo "The job was automatically triggered by a ${{ github.event_name }} event."
       - run: echo "This job is now running on a ${{ runner.os }} server."
@@ -175,7 +175,7 @@ jobs:
   Build-Executable-DMO-Linux:
     if: ${{ github.event_name != 'pull_request' || !github.event.pull_request.draft }}
     runs-on: ubuntu-latest
-    container: ghcr.io/galacticusorg/buildenv:latest
+    container: ghcr.io/galacticusorg/buildenv:gfortranFinalization
     steps:
       - run: echo "The job was automatically triggered by a ${{ github.event_name }} event."
       - run: echo "This job is now running on a ${{ runner.os }} server."
@@ -204,7 +204,7 @@ jobs:
   Build-Executables-MPI-Linux:
     if: ${{ github.event_name != 'pull_request' || !github.event.pull_request.draft }}
     runs-on: ubuntu-latest
-    container: ghcr.io/galacticusorg/buildenv:latest
+    container: ghcr.io/galacticusorg/buildenv:gfortranFinalization
     steps:
       - run: echo "The job was automatically triggered by a ${{ github.event_name }} event."
       - run: echo "This job is now running on a ${{ runner.os }} server."
@@ -237,7 +237,7 @@ jobs:
   Build-Executables-Debugging-Linux:
     if: ${{ github.event_name != 'pull_request' || !github.event.pull_request.draft }}
     runs-on: ubuntu-latest
-    container: ghcr.io/galacticusorg/buildenv:latest
+    container: ghcr.io/galacticusorg/buildenv:gfortranFinalization
     steps:
       - run: echo "The job was automatically triggered by a ${{ github.event_name }} event."
       - run: echo "This job is now running on a ${{ runner.os }} server."
@@ -266,7 +266,7 @@ jobs:
   Build-Library-Linux:
     if: ${{ github.event_name != 'pull_request' || !github.event.pull_request.draft }}
     runs-on: ubuntu-latest
-    container: ghcr.io/galacticusorg/buildenv:latest
+    container: ghcr.io/galacticusorg/buildenv:gfortranFinalization
     steps:
       - run: echo "The job was automatically triggered by a ${{ github.event_name }} event."
       - run: echo "This job is now running on a ${{ runner.os }} server."
@@ -342,7 +342,7 @@ jobs:
   Build-Documentation-Linux:
     if: ${{ github.event_name != 'pull_request' || !github.event.pull_request.draft }}
     runs-on: ubuntu-latest
-    container: ghcr.io/galacticusorg/buildenv:latest
+    container: ghcr.io/galacticusorg/buildenv:gfortranFinalization
     steps:
       - run: echo "The job was automatically triggered by a ${{ github.event_name }} event."
       - run: echo "This job is now running on a ${{ runner.os }} server."
@@ -373,7 +373,7 @@ jobs:
   ### Tools
   Build-Tools:
     runs-on: ubuntu-latest
-    container: ghcr.io/galacticusorg/buildenv:latest
+    container: ghcr.io/galacticusorg/buildenv:gfortranFinalization
     needs: Build-Executable-Linux
     steps:
       - run: echo "The job was automatically triggered by a ${{ github.event_name }} event."
@@ -592,13 +592,6 @@ jobs:
       - name: Build tools
         id: buildTools
         run: |
-          export GALACTICUS_EXEC_PATH=`pwd`
-          export FCCOMPILER=gfortran-12
-          export CCOMPILER=gcc-15
-          export CPPCOMPILER=g++-15
-          export GALACTICUS_FCFLAGS="-fintrinsic-modules-path /usr/local/include -L/usr/local/lib -L/opt/local/lib"
-          export GALACTICUS_CFLAGS="-I/usr/local/include -I/opt/local/include"
-          export GALACTICUS_CPPFLAGS="-I/usr/local/include -I/opt/local/include"
           classVersion=`awk '{if ($1 == "class:") print $2}' ${GALACTICUS_EXEC_PATH}/aux/dependencies.yml`
           cambVersion=`awk '{if ($1 == "camb:") print $2}' ${GALACTICUS_EXEC_PATH}/aux/dependencies.yml`
           forutilsVersion=`awk '{if ($1 == "forutils:") print $2}' ${GALACTICUS_EXEC_PATH}/aux/dependencies.yml`
@@ -622,7 +615,8 @@ jobs:
           $GALACTICUS_EXEC_PATH/scripts/build/staticRelinker.py `grep -E '\-o cloudy.exe' $GALACTICUS_EXEC_PATH/build.log`
           cd $GALACTICUS_DATA_PATH/dynamic/fsps-${fspsVersion}/src
           $GALACTICUS_EXEC_PATH/scripts/build/staticRelinker.py `grep -E '\-o autosps.exe' $GALACTICUS_EXEC_PATH/build.log`
-          cd $GALACTICUS_DATA_PATH/dynamic/mangle-${mangleVersion}/bin/
+          cd $GALACTICUS_DATA_PATH/dynamic/mangle-${mangleVersion}/src/
+          cp ../bin/harmonize .
           $GALACTICUS_EXEC_PATH/scripts/build/staticRelinker.py `grep -E '\-o harmonize' $GALACTICUS_EXEC_PATH/build.log`
           echo "camb=${GALACTICUS_DATA_PATH}/dynamic/CAMB-${cambVersion}/fortran/camb" >> "$GITHUB_OUTPUT"
           echo "axioncamb=${GALACTICUS_DATA_PATH}/dynamic/AxionCAMB/camb" >> "$GITHUB_OUTPUT"
@@ -689,13 +683,6 @@ jobs:
       - name: Build tools
         id: buildTools
         run: |
-          export GALACTICUS_EXEC_PATH=`pwd`
-          export FCCOMPILER=gfortran-12
-          export CCOMPILER=gcc-15
-          export CPPCOMPILER=g++-15
-          export GALACTICUS_FCFLAGS="-fintrinsic-modules-path /usr/local/include -L/usr/local/lib -L/opt/local/lib"
-          export GALACTICUS_CFLAGS="-I/usr/local/include -I/opt/local/include"
-          export GALACTICUS_CPPFLAGS="-I/usr/local/include -I/opt/local/include"
           classVersion=`awk '{if ($1 == "class:") print $2}' ${GALACTICUS_EXEC_PATH}/aux/dependencies.yml`
           cambVersion=`awk '{if ($1 == "camb:") print $2}' ${GALACTICUS_EXEC_PATH}/aux/dependencies.yml`
           forutilsVersion=`awk '{if ($1 == "forutils:") print $2}' ${GALACTICUS_EXEC_PATH}/aux/dependencies.yml`
@@ -719,7 +706,8 @@ jobs:
           $GALACTICUS_EXEC_PATH/scripts/build/staticRelinker.py `grep -E '\-o cloudy.exe' $GALACTICUS_EXEC_PATH/build.log`
           cd $GALACTICUS_DATA_PATH/dynamic/fsps-${fspsVersion}/src
           $GALACTICUS_EXEC_PATH/scripts/build/staticRelinker.py `grep -E '\-o autosps.exe' $GALACTICUS_EXEC_PATH/build.log`
-          cd $GALACTICUS_DATA_PATH/dynamic/mangle-${mangleVersion}/bin/
+          cd $GALACTICUS_DATA_PATH/dynamic/mangle-${mangleVersion}/src
+          cp ../bin/harmonize .
           $GALACTICUS_EXEC_PATH/scripts/build/staticRelinker.py `grep -E '\-o harmonize' $GALACTICUS_EXEC_PATH/build.log`
           echo "camb=${GALACTICUS_DATA_PATH}/dynamic/CAMB-${cambVersion}/fortran/camb" >> "$GITHUB_OUTPUT"
           echo "axioncamb=${GALACTICUS_DATA_PATH}/dynamic/AxionCAMB/camb" >> "$GITHUB_OUTPUT"
@@ -877,7 +865,7 @@ jobs:
   # Watch for updates
   Watch-Updates:
     runs-on: ubuntu-latest
-    container: ghcr.io/galacticusorg/buildenv:latest
+    container: ghcr.io/galacticusorg/buildenv:gfortranFinalization
     steps:
       - run: echo "The job was automatically triggered by a ${{ github.event_name }} event."
       - run: echo "This job is now running on a ${{ runner.os }} server."
@@ -1636,7 +1624,7 @@ jobs:
   ## Emulation
   Emulation-Subhalos:
     runs-on: ubuntu-latest
-    container: ghcr.io/galacticusorg/buildenv:latest
+    container: ghcr.io/galacticusorg/buildenv:gfortranFinalization
     needs: Build-Executable-DMO-Linux
     steps:
       - run: echo "The job was automatically triggered by a ${{ github.event_name }} event."
@@ -1702,7 +1690,7 @@ jobs:
   ## Python Interface
   Python-Interface:
     runs-on: ubuntu-latest
-    container: ghcr.io/galacticusorg/buildenv:latest
+    container: ghcr.io/galacticusorg/buildenv:gfortranFinalization
     needs: Build-Library-Linux
     steps:
       - run: echo "The job was automatically triggered by a ${{ github.event_name }} event."

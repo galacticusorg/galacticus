@@ -254,6 +254,7 @@ contains
     use :: Display                 , only : displayIndent     , displayUnindent
     use :: Error                   , only : errorStatusSuccess
     use :: Output_HDF5             , only : outputFile
+    use :: HDF5_Access             , only : hdf5Access
     use :: Galacticus_Nodes        , only : treeNode
     use :: IO_HDF5                 , only : hdf5Object
     use :: Numerical_Constants_Math, only : Pi
@@ -326,6 +327,7 @@ contains
     call self%excursionSetFirstCrossing_%coordinatedMPI(.false.)
 #endif
     ! Write results to the output file.
+    !$ call hdf5Access%set()
     outputGroup=outputFile%openGroup(char(self%outputGroup),'Group containing data relating to the excursion set problem.')
     call outputGroup%writeDataset(mass                    ,'mass'                    ,'The mass of the halo [M☉]'                       )
     call outputGroup%writeDataset(time                    ,'time'                    ,'The cosmic time [Gyr]'                           )
@@ -336,7 +338,7 @@ contains
     call outputGroup%writeDataset(firstCrossingProbability,'firstCrossingProbability','The first crossing probability'                  )
     call outputGroup%writeDataset(massFunctionDifferential,'massFunction'            ,'The halo mass function [Mpc⁻³ M☉⁻¹]'             )
     call outputGroup%writeDataset(firstCrossingRate       ,'firstCrossingRate'       ,'The first crossing rate [Gyr⁻¹]'                 )
-    call outputGroup%close()
+    !$ call hdf5Access%unset()
     ! Deallocate arrays.
     deallocate(mass                    )
     deallocate(variance                )

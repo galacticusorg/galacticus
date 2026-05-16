@@ -164,7 +164,7 @@ if post_process_parts:
     compile_command += ' ' + ' '.join(post_process_parts)
 
 print(f"Relinking with: {compile_command}")
-subprocess.run(compile_command, shell=True)
+status = subprocess.run(compile_command, shell=True)
 
 # Restore any temporarily moved dylibs.
 if mv_libs:
@@ -173,3 +173,6 @@ if mv_libs:
     ) + "'"
     print("Must restore temporarily moved dylibs (requires sudo):")
     subprocess.run(mv_cmd, shell=True)
+
+# Exit with status.
+sys.exit(status.returncode)

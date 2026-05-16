@@ -43,12 +43,12 @@ program Test_Dark_Matter_Profiles_Tidal_Tracks
   use :: Unit_Tests                , only : Assert                                                        , Skip                             , Unit_Tests_Begin_Group             , Unit_Tests_End_Group          , &
           &                                 Unit_Tests_Finish
   implicit none
-  type            (darkMatterHaloScaleVirialDensityContrastDefinition            )            :: darkMatterHaloScale_
-  type            (cosmologyParametersSimple                                     )            :: cosmologyParameters_
-  type            (cosmologyFunctionsMatterLambda                                )            :: cosmologyFunctions_
-  type            (virialDensityContrastSphericalCollapseClsnlssMttrCsmlgclCnstnt)            :: virialDensityContrast_
-  type            (darkMatterProfileDMONFW                                       )            :: darkMatterProfileNFW_
-  type            (darkMatterProfileDMOPenarrubia2010                            )            :: darkMatterProfilePenarrubia2010_
+  type            (darkMatterHaloScaleVirialDensityContrastDefinition            ), pointer   :: darkMatterHaloScale_
+  type            (cosmologyParametersSimple                                     ), pointer   :: cosmologyParameters_
+  type            (cosmologyFunctionsMatterLambda                                ), pointer   :: cosmologyFunctions_
+  type            (virialDensityContrastSphericalCollapseClsnlssMttrCsmlgclCnstnt), pointer   :: virialDensityContrast_
+  type            (darkMatterProfileDMONFW                                       ), pointer   :: darkMatterProfileNFW_
+  type            (darkMatterProfileDMOPenarrubia2010                            ), pointer   :: darkMatterProfilePenarrubia2010_
   type            (treeNode                                                      ), pointer   :: node_
   class           (nodeComponentBasic                                            ), pointer   :: basic_
   class           (nodeComponentDarkMatterProfile                                ), pointer   :: darkMatterProfile_
@@ -76,6 +76,12 @@ program Test_Dark_Matter_Profiles_Tidal_Tracks
   basic_                           =>  node_               %basic            (autoCreate=.true.)
   darkMatterProfile_               =>  node_               %darkMatterProfile(autoCreate=.true.)
   satellite_                       =>  node_               %satellite        (autoCreate=.true.)
+  allocate(darkMatterHaloScale_            )
+  allocate(cosmologyParameters_            )
+  allocate(cosmologyFunctions_             )
+  allocate(virialDensityContrast_          )
+  allocate(darkMatterProfileNFW_           )
+  allocate(darkMatterProfilePenarrubia2010_)
   !![
   <referenceConstruct object="cosmologyParameters_"            >
    <constructor>
@@ -193,8 +199,19 @@ program Test_Dark_Matter_Profiles_Tidal_Tracks
   <objectDestructor name="massDistributionNFW_"           />
   <objectDestructor name="massDistributionPenarrubia2010_"/>
   !!]
-  call Unit_Tests_End_Group               ()
-  call Unit_Tests_Finish                  ()
+  call Unit_Tests_End_Group()
+  call Unit_Tests_Finish   ()
+  ! Clean up.
+  call node_%destroy()
+  deallocate(node_)
+  !![
+  <objectDestructor name="darkMatterHaloScale_"            />
+  <objectDestructor name="cosmologyParameters_"            />
+  <objectDestructor name="cosmologyFunctions_"             />
+  <objectDestructor name="virialDensityContrast_"          />
+  <objectDestructor name="darkMatterProfileNFW_"           />
+  <objectDestructor name="darkMatterProfilePenarrubia2010_"/>
+  !!]
   call Node_Components_Thread_Uninitialize()
   call Node_Components_Uninitialize       ()
   call nodeClassHierarchyFinalize         ()

@@ -159,7 +159,6 @@ contains
     double precision                                 , parameter     :: odeToleranceAbsolute         =   1.0d-10, odeToleranceRelative     =1.0d-10
     integer                                          , parameter     :: growthTablePointsPerDecade   =1000
     double precision                                 , dimension(2)  :: growthFactorODEVariables
-    type            (odeSolver                      ), allocatable   :: solver
     logical                                                          :: remakeTable
     integer                                                          :: i
     double precision                                                 :: expansionFactorMatterDominant           , growthFactorDerivative           , &
@@ -217,17 +216,18 @@ contains
                &                                                               )                  &
                &                                                              )                   &
                &                    )
-          allocate(solver)
-          solver=odeSolver(2_c_size_t,growthFactorODEs,toleranceAbsolute=odeToleranceAbsolute,toleranceRelative=odeToleranceRelative)    
-          do i=2,growthTableNumberPoints
-             timeNow                    =growthFactor          %x(i-1)
-             growthFactorODEVariables(1)=growthFactor          %y(i-1)
-             growthFactorODEVariables(2)=growthFactorDerivative
-             call solver      %solve   (timeNow,growthFactor%x(i),growthFactorODEVariables     )
-             call growthFactor%populate(                          growthFactorODEVariables(1),i)
-             growthFactorDerivative=growthFactorODEVariables(2)
-          end do
-          deallocate(solver)
+          block
+            type(odeSolver) :: solver
+            solver=odeSolver(2_c_size_t,growthFactorODEs,toleranceAbsolute=odeToleranceAbsolute,toleranceRelative=odeToleranceRelative)
+            do i=2,growthTableNumberPoints
+               timeNow                    =growthFactor          %x(i-1)
+               growthFactorODEVariables(1)=growthFactor          %y(i-1)
+               growthFactorODEVariables(2)=growthFactorDerivative
+               call solver      %solve   (timeNow,growthFactor%x(i),growthFactorODEVariables     )
+               call growthFactor%populate(                          growthFactorODEVariables(1),i)
+               growthFactorDerivative=growthFactorODEVariables(2)
+            end do
+          end block
           ! Normalize to growth factor of unity at present day.
           linearGrowthFactorPresent=growthFactor%interpolate(timePresent)
           call growthFactor%populate(reshape(growthFactor%ys(),[growthTableNumberPoints])/linearGrowthFactorPresent)

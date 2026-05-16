@@ -71,44 +71,52 @@ contains
     use :: System_Download   , only : download
     use :: System_Compilers  , only : compiler         , compilerOptions      , languageFortran
     implicit none
-    type   (varying_string), intent(  out)           :: cambPath, cambVersion
-    logical                , intent(in   ), optional :: static
-    integer                                          :: status
-    type   (varying_string)                          :: command , forutilsVersion
-    type   (lockDescriptor)                          :: fileLock
+    type     (varying_string), intent(  out)           :: cambPath       , cambVersion
+    logical                  , intent(in   ), optional :: static
+    integer                                            :: status
+    type     (varying_string)                          :: command        , forutilsVersion , &
+         &                                                makeFile       , makeFileForUtils, &
+         &                                                tarBall        , executable
+    type     (lockDescriptor)                          :: fileLock
+    character(len=128       )                          :: tarBallForUtils
     !![
     <optionalArgument name="static" defaultsTo=".false." />
     !!]
 
     ! Set path and version
-    cambVersion    =dependencyVersion("camb"    )
-    forutilsVersion=dependencyVersion("forutils")
-    cambPath       =inputPath(pathTypeDataDynamic)//"CAMB-"//cambVersion//"/fortran/"
+    cambVersion     =dependencyVersion("camb"    )
+    forutilsVersion =dependencyVersion("forutils")
+    cambPath        =inputPath(pathTypeDataDynamic)//"CAMB-"//cambVersion//"/fortran/"
+    executable      =cambPath//"camb"
+    makeFile        =cambPath//"Makefile"
+    makeFileForUtils=cambPath//"../forutils/Makefile"
+    tarBall         =inputPath(pathTypeDataDynamic)//"CAMB_"//char(cambVersion)//".tar.gz"
+    tarBallForUtils =cambPath//"../forutils_"//char(forutilsVersion)//".tar.gz"
     ! Build the CAMB code.
-    if (.not.File_Exists(cambPath//"camb")) then
+    if (.not.File_Exists(executable)) then
        call Directory_Make(     cambPath                                       )
        call File_Lock     (char(cambPath//"camb"),fileLock,lockIsShared=.false.)
        ! Unpack the code.
-       if (.not.File_Exists(cambPath//"Makefile")) then
+       if (.not.File_Exists(makeFile)) then
           ! Download CAMB if necessary.
-          if (.not.File_Exists(inputPath(pathTypeDataDynamic)//"CAMB_"//char(cambVersion)//".tar.gz")) then
+          if (.not.File_Exists(tarBall)) then
              call displayMessage("downloading CAMB code....",verbosityLevelWorking)
              call download("https://github.com/cmbant/CAMB/archive/refs/tags/"//char(cambVersion)//".tar.gz",char(inputPath(pathTypeDataDynamic))//"CAMB_"//char(cambVersion)//".tar.gz",status=status,retries=5,retryWait=60)
-             if (status /= 0 .or. .not.File_Exists(inputPath(pathTypeDataDynamic)//"CAMB_"//char(cambVersion)//".tar.gz")) call Error_Report("unable to download CAMB"//{introspection:location})
+             if (status /= 0 .or. .not.File_Exists(tarBall)) call Error_Report("unable to download CAMB"//{introspection:location})
           end if
           call displayMessage("unpacking CAMB code....",verbosityLevelWorking)
           call System_Command_Do("tar -x -v -z -C "//inputPath(pathTypeDataDynamic)//" -f "//inputPath(pathTypeDataDynamic)//"CAMB_"//char(cambVersion)//".tar.gz",status);
           if (status /= 0 .or. .not.File_Exists(cambPath)) call Error_Report('failed to unpack CAMB code'//{introspection:location})
           ! Download the "forutils" package if necessary.
-          if (.not.File_Exists(cambPath//"../forutils/Makefile")) then
-             if (.not.File_Exists(cambPath//"../forutils_"//char(forutilsVersion)//".tar.gz")) then
+          if (.not.File_Exists(makeFileForUtils)) then
+             if (.not.File_Exists(tarBallForUtils)) then
                 call displayMessage("downloading forutils code....",verbosityLevelWorking)
-                call download("https://github.com/cmbant/forutils/archive/refs/tags/"//char(forutilsVersion)//".tar.gz",char(cambPath)//"../forutils_"//char(forutilsVersion)//".tar.gz",status=status,retries=5,retryWait=60)
-                if (status /= 0 .or. .not.File_Exists(cambPath//"../forutils_"//char(forutilsVersion)//".tar.gz")) call Error_Report("unable to download forutils"//{introspection:location})
+                call download("https://github.com/cmbant/forutils/archive/refs/tags/"//char(forutilsVersion)//".tar.gz",trim(tarBallForUtils),status=status,retries=5,retryWait=60)
+                if (status /= 0 .or. .not.File_Exists(tarBallForUtils)) call Error_Report("unable to download forutils"//{introspection:location})
              end if
              call displayMessage("unpacking forutils code....",verbosityLevelWorking)
              call System_Command_Do("tar -x -v -z -C "//cambPath//"../forutils -f "//cambPath//"../forutils_"//char(forutilsVersion)//".tar.gz --strip-components 1");          
-             if (status /= 0 .or. .not.File_Exists(cambPath//"../forutils/Makefile")) call Error_Report('failed to unpack forutils code'//{introspection:location})
+             if (status /= 0 .or. .not.File_Exists(makeFileForUtils)) call Error_Report('failed to unpack forutils code'//{introspection:location})
           end if
        end if       
        call displayMessage("compiling CAMB code",verbosityLevelWorking)
@@ -129,8 +137,8 @@ contains
     Run CAMB as necessary to compute transfer functions.
     !!}
     use            :: Cosmology_Parameters            , only : cosmologyParametersClass    , hubbleUnitsLittleH
-    use            :: File_Utilities                  , only : Count_Lines_In_File         , Directory_Make     , File_Exists   , File_Lock     , &
-         &                                                     File_Path                   , File_Remove        , File_Unlock   , lockDescriptor, &
+    use            :: File_Utilities                  , only : Count_Lines_In_File         , Directory_Make                  , File_Exists   , File_Lock     , &
+         &                                                     File_Path                   , File_Remove                     , File_Unlock   , lockDescriptor, &
          &                                                     File_Name_Temporary
     use            :: Error                           , only : Error_Report
     use            :: Input_Paths                     , only : inputPath                   , pathTypeDataDynamic
@@ -139,49 +147,49 @@ contains
     use            :: HDF5_Access                     , only : hdf5Access
     use            :: IO_HDF5                         , only : hdf5Object
     use, intrinsic :: ISO_C_Binding                   , only : c_size_t
-    use            :: ISO_Varying_String              , only : assignment(=)               , char               , extract       , len           , &
-          &                                                    operator(//)                , operator(==)       , varying_string
+    use            :: ISO_Varying_String              , only : assignment(=)               , char                            , extract       , len           , &
+          &                                                    operator(//)                , operator(==)                    , varying_string
     use            :: Input_Parameters                , only : inputParameters
     use            :: Numerical_Constants_Astronomical, only : heliumByMassPrimordial
     use            :: Numerical_Interpolation         , only : GSL_Interp_cSpline
     use            :: Sorting                         , only : sortIndex
     use            :: String_Handling                 , only : String_C_To_Fortran         , operator(//)
     use            :: System_Command                  , only : System_Command_Do
-    use            :: Table_Labels                    , only : extrapolationTypeExtrapolate
+    use            :: Table_Labels                    , only : extrapolationTypeExtrapolate, enumerationExtrapolationTypeType
     use            :: Tables                          , only : table                       , table1DGeneric
     implicit none
-    class           (cosmologyParametersClass), intent(inout)                   :: cosmologyParameters_
-    double precision                          , intent(in   ), dimension(:    ) :: redshifts
-    double precision                          , intent(in   )                   :: wavenumberRequired                      , wavenumberMaximum
-    integer                                   , intent(in   ), optional         :: countPerDecade
-    type            (varying_string          ), intent(  out), optional         :: fileName
-    type            (table1DGeneric          ), intent(  out), optional         :: transferFunctionDarkMatter              , transferFunctionBaryons
-    logical                                   , intent(inout), optional         :: wavenumberMaximumReached
-    double precision                          , allocatable  , dimension(:    ) :: wavenumbers                             , wavenumbersLogarithmic  , &
-         &                                                                         transferFunctionLogarithmic             , redshiftsCombined
-    double precision                          , allocatable  , dimension(:,:,:) :: transferFunctions
-    character       (len= 9                  ), allocatable  , dimension(:    ) :: redshiftLabels                          , redshiftLabelsCombined
-    integer         (c_size_t                ), allocatable  , dimension(:    ) :: redshiftRanks                           , redshiftRanksCombined
-    type            (varying_string          ), allocatable  , dimension(:    ) :: datasetNames
-    integer         (hsize_t                 ), parameter                       :: chunkSize                   =100_hsize_t
-    type            (lockDescriptor          )                                  :: fileLock
-    character       (len=255                 )                                  :: cambTransferLine
-    type            (varying_string          )                                  :: cambPath                                , cambVersion             , &
-         &                                                                         parameterFile                           , outputRoot
-    double precision                                                            :: wavenumberCAMB
-    integer                                                                     :: status                                  , cambParameterFile       , &
-         &                                                                         i                                       , cambTransferFile        , &
-         &                                                                         j                                       , countRedshiftsUnique
-    integer         (c_size_t                )                                  :: countWavenumber
-    type            (hdf5Object              )                                  :: cambOutput                              , parametersGroup         , &
-         &                                                                         extrapolationWavenumberGroup            , extrapolationGroup      , &
-         &                                                                         speciesGroup
-    character       (len=32                  )                                  :: parameterLabel                          , datasetName             , &
-         &                                                                         redshiftLabel                           , indexLabel
-    type            (varying_string          )                                  :: uniqueLabel                             , workPath                , &
-         &                                                                         transferFileName                        , fileName_
-    type            (inputParameters         )                                  :: descriptor
-    logical                                                                     :: allEpochsFound
+    class           (cosmologyParametersClass        ), intent(inout)                   :: cosmologyParameters_
+    double precision                                  , intent(in   ), dimension(:    ) :: redshifts
+    double precision                                  , intent(in   )                   :: wavenumberRequired                      , wavenumberMaximum
+    integer                                           , intent(in   ), optional         :: countPerDecade
+    type            (varying_string                  ), intent(  out), optional         :: fileName
+    type            (table1DGeneric                  ), intent(  out), optional         :: transferFunctionDarkMatter              , transferFunctionBaryons
+    logical                                           , intent(inout), optional         :: wavenumberMaximumReached
+    double precision                                  , allocatable  , dimension(:    ) :: wavenumbers                             , wavenumbersLogarithmic  , &
+         &                                                                                 transferFunctionLogarithmic             , redshiftsCombined
+    double precision                                  , allocatable  , dimension(:,:,:) :: transferFunctions
+    character       (len= 9                          ), allocatable  , dimension(:    ) :: redshiftLabels                          , redshiftLabelsCombined
+    integer         (c_size_t                        ), allocatable  , dimension(:    ) :: redshiftRanks                           , redshiftRanksCombined
+    type            (varying_string                  ), allocatable  , dimension(:    ) :: datasetNames
+    type            (enumerationExtrapolationTypeType)               , dimension(2    ) :: extrapolationType
+    integer         (hsize_t                         ), parameter                       :: chunkSize                   =100_hsize_t
+    type            (lockDescriptor                  )                                  :: fileLock
+    character       (len=255                         )                                  :: cambTransferLine
+    type            (varying_string                  )                                  :: cambPath                                , cambVersion             , &
+         &                                                                                 parameterFile                           , outputRoot
+    double precision                                                                    :: wavenumberCAMB
+    integer                                                                             :: status                                  , cambParameterFile       , &
+         &                                                                                 i                                       , cambTransferFile        , &
+         &                                                                                 j                                       , countRedshiftsUnique
+    integer         (c_size_t                        )                                  :: countWavenumber
+    type            (hdf5Object                      )                                  :: cambOutput
+    character       (len=32                          )                                  :: parameterLabel                          , datasetName             , &
+         &                                                                                 redshiftLabel                           , indexLabel              , &
+         &                                                                                 extracted
+    type            (varying_string                  )                                  :: uniqueLabel                             , workPath                , &
+         &                                                                                 transferFileName                        , fileName_
+    type            (inputParameters                 )                                  :: descriptor
+    logical                                                                             :: allEpochsFound
     !![
     <optionalArgument name="countPerDecade" defaultsTo="0"/>
     !!]
@@ -208,10 +216,10 @@ contains
          &      String_C_To_Fortran(cambSourceDigest)
     call descriptor%destroy()
     ! Build the file name.
-    fileName_=char(inputPath(pathTypeDataDynamic))                       // &
-         &                  'largeScaleStructure/transfer_function_CAMB_'// &
-         &                  Hash_MD5(uniqueLabel)                        // &
-         &                  '.hdf5'
+    fileName_=inputPath(pathTypeDataDynamic)               // &
+         &    'largeScaleStructure/transfer_function_CAMB_'// &
+         &    Hash_MD5(uniqueLabel         )               // &
+         &    '.hdf5'
     if (present(fileName)) fileName=fileName_
     ! Create the directory.
     call Directory_Make(File_Path(fileName_))
@@ -221,51 +229,53 @@ contains
     allEpochsFound=.false.
     if (File_Exists(fileName_)) then
        allEpochsFound=.true.
-       !$ call hdf5Access%set()
-       call    cambOutput%openFile(char(fileName_))
-       call    cambOutput%readDataset           ('wavenumber'  ,wavenumbers                                 )
-       allocate(transferFunctions(size(wavenumbers),2,size(redshifts)))
-       speciesGroup=cambOutput%openGroup('darkMatter')
-       do i=1,size(redshifts)
-          datasetName='transferFunctionZ'//trim(adjustl(redshiftLabels(redshiftRanks(i))))
-          if (speciesGroup%hasDataset(datasetName)) then
-             call speciesGroup%readDatasetStatic(datasetName,transferFunctions(:,cambSpeciesDarkMatter%ID,i))
-          else
-             allEpochsFound=.false.
-          end if
-       end do
-       call speciesGroup%close()
-       speciesGroup=cambOutput%openGroup('baryons')
-       do i=1,size(redshifts)
-          datasetName='transferFunctionZ'//trim(adjustl(redshiftLabels(redshiftRanks(i))))
-          if (speciesGroup%hasDataset(datasetName)) then
-             call speciesGroup%readDatasetStatic(datasetName,transferFunctions(:,cambSpeciesBaryons   %ID,i))
-          else
-             allEpochsFound=.false.
-          end if
-       end do
-       call   speciesGroup%close()
-       call   cambOutput  %close()
-       !$ call hdf5Access  %unset()
+       block
+         type(hdf5Object) :: speciesGroup
+         !$ call hdf5Access%set()
+         cambOutput=hdf5Object(char(fileName_))
+         call cambOutput%readDataset('wavenumber',wavenumbers)
+         allocate(transferFunctions(size(wavenumbers),2,size(redshifts)))
+         speciesGroup=cambOutput%openGroup('darkMatter')
+         do i=1,size(redshifts)
+            datasetName='transferFunctionZ'//trim(adjustl(redshiftLabels(redshiftRanks(i))))
+            if (speciesGroup%hasDataset(datasetName)) then
+               call speciesGroup%readDatasetStatic(datasetName,transferFunctions(:,cambSpeciesDarkMatter%ID,i))
+            else
+               allEpochsFound=.false.
+            end if
+         end do
+         speciesGroup=cambOutput%openGroup('baryons')
+         do i=1,size(redshifts)
+            datasetName='transferFunctionZ'//trim(adjustl(redshiftLabels(redshiftRanks(i))))
+            if (speciesGroup%hasDataset(datasetName)) then
+               call speciesGroup%readDatasetStatic(datasetName,transferFunctions(:,cambSpeciesBaryons   %ID,i))
+            else
+               allEpochsFound=.false.
+            end if
+         end do
+         !$ call hdf5Access%unset()
+       end block
     end if
     if (.not.allocated(wavenumbers) .or. wavenumberRequired > wavenumbers(size(wavenumbers)) .or. .not.allEpochsFound) then
        ! If the wavenumber if out of range, or if not all requested epochs exist within the file, recompute the CAMB transfer function.
        ! Find all existing epochs in the file, create a union of these and the requested epochs.
        if (File_Exists(fileName_)) then
-          !$ call hdf5Access%set       (               )
-          call    cambOutput%openFile  (char(fileName_))
-          speciesGroup=cambOutput%openGroup('darkMatter')
-          call    speciesGroup%datasets(datasetNames   )
-          call    speciesGroup%close   (               )
-          call    cambOutput  %close   (               )
-          !$ call hdf5Access  %unset   (               )
+          block
+            type(hdf5Object) :: speciesGroup
+            !$ call hdf5Access%set()
+            cambOutput  =hdf5Object(char(fileName_))
+            speciesGroup=cambOutput%openGroup('darkMatter')
+            call    speciesGroup%datasets(datasetNames)
+            !$ call hdf5Access  %unset   (            )
+          end block
        else
           allocate(datasetNames(0))
        end if
        allocate(redshiftsCombined(size(redshifts)+size(datasetNames)))
        redshiftsCombined(1:size(redshifts))=redshifts
        do i=1,size(datasetNames)
-          if (extract(datasetNames(i),1,17) == 'transferFunctionZ') then
+          extracted=extract(datasetNames(i),1,17)
+          if (trim(extracted) == 'transferFunctionZ') then
              redshiftLabel=extract(datasetNames(i),18,len(datasetNames(i)))
              read (redshiftLabel,*) redshiftsCombined(size(redshifts)+i)
           else
@@ -445,93 +455,90 @@ contains
        wavenumbers=+wavenumbers                                                   &
             &      *cosmologyParameters_%HubbleConstant(units=hubbleUnitsLittleH)
        ! Construct the output HDF5 file.
-       !$ call hdf5Access  %set     (                                          )
-       call    cambOutput  %openFile(char(fileName_),objectsOverwritable=.true.)
-       call    cambOutput  %writeAttribute('Transfer functions created by CAMB.','description')
-       call    cambOutput  %writeAttribute(cambFormatVersionCurrent,'fileFormat')
-       call    cambOutput  %writeDataset(wavenumbers    ,'wavenumber'                                  ,chunkSize=chunkSize,appendTo=.not.  cambOutput%hasDataset('wavenumber'))
-       speciesGroup=cambOutput%openGroup('darkMatter','Group containing transfer functions for dark matter.')
-       do i=1,countRedshiftsUnique
-          datasetName='transferFunctionZ'//trim(adjustl(redshiftLabelsCombined(i)))
-          call speciesGroup%writeDataset(transferFunctions(:,cambSpeciesDarkMatter%ID,i),datasetName,chunkSize=chunkSize,appendTo=.not.speciesGroup%hasDataset(datasetName ))
-       end do
-       call speciesGroup%close()
-       speciesGroup=cambOutput%openGroup('baryons'   ,'Group containing transfer functions for baryons.'    )
-       do i=1,countRedshiftsUnique
-          datasetName='transferFunctionZ'//trim(adjustl(redshiftLabelsCombined(i)))
-          call speciesGroup%writeDataset(transferFunctions(:,cambSpeciesBaryons   %ID,i),datasetName,chunkSize=chunkSize,appendTo=.not.speciesGroup%hasDataset(datasetName ))
-       end do
-       call speciesGroup%close()
-       parametersGroup=cambOutput%openGroup('parameters')
-       call parametersGroup%writeAttribute(cosmologyParameters_%HubbleConstant (),'HubbleConstant' )
-       call parametersGroup%writeAttribute(cosmologyParameters_%OmegaBaryon    (),'OmegaBaryon'    )
-       call parametersGroup%writeAttribute(cosmologyParameters_%OmegaDarkEnergy(),'OmegaDarkEnergy')
-       call parametersGroup%writeAttribute(cosmologyParameters_%OmegaMatter    (),'OmegaMatter'    )
-       call parametersGroup%writeAttribute(cosmologyParameters_%temperatureCMB (),'temperatureCMB' )
-       call parametersGroup%close()
-       extrapolationGroup          =cambOutput        %openGroup('extrapolation')
-       extrapolationWavenumberGroup=extrapolationGroup%openGroup('wavenumber'   )
-       call    extrapolationWavenumberGroup%writeAttribute('extrapolate','low' )
-       call    extrapolationWavenumberGroup%writeAttribute('extrapolate','high')
-       call    extrapolationWavenumberGroup%close()
-       call    extrapolationGroup          %close()
-       call    cambOutput                  %close()
-       !$ call hdf5Access                  %unset()
+       block
+         type(hdf5Object) :: speciesGroup      , parametersGroup             , &
+              &              extrapolationGroup, extrapolationWavenumberGroup
+         !$ call hdf5Access%set()
+         cambOutput=hdf5Object(char(fileName_),objectsOverwritable=.true.)
+         call cambOutput%writeAttribute('Transfer functions created by CAMB.','description')
+         call cambOutput%writeAttribute(cambFormatVersionCurrent,'fileFormat')
+         call cambOutput%writeDataset  (wavenumbers             ,'wavenumber'                                  ,chunkSize=chunkSize,appendTo=.not.  cambOutput%hasDataset('wavenumber'))
+         speciesGroup=cambOutput%openGroup('darkMatter','Group containing transfer functions for dark matter.')
+         do i=1,countRedshiftsUnique
+            datasetName='transferFunctionZ'//trim(adjustl(redshiftLabelsCombined(i)))
+            call speciesGroup%writeDataset(transferFunctions(:,cambSpeciesDarkMatter%ID,i),datasetName,chunkSize=chunkSize,appendTo=.not.speciesGroup%hasDataset(datasetName ))
+         end do
+         speciesGroup=cambOutput%openGroup('baryons'   ,'Group containing transfer functions for baryons.'    )
+         do i=1,countRedshiftsUnique
+            datasetName='transferFunctionZ'//trim(adjustl(redshiftLabelsCombined(i)))
+            call speciesGroup%writeDataset(transferFunctions(:,cambSpeciesBaryons   %ID,i),datasetName,chunkSize=chunkSize,appendTo=.not.speciesGroup%hasDataset(datasetName ))
+         end do
+         parametersGroup=cambOutput%openGroup('parameters')
+         call parametersGroup%writeAttribute(cosmologyParameters_%HubbleConstant (),'HubbleConstant' )
+         call parametersGroup%writeAttribute(cosmologyParameters_%OmegaBaryon    (),'OmegaBaryon'    )
+         call parametersGroup%writeAttribute(cosmologyParameters_%OmegaDarkEnergy(),'OmegaDarkEnergy')
+         call parametersGroup%writeAttribute(cosmologyParameters_%OmegaMatter    (),'OmegaMatter'    )
+         call parametersGroup%writeAttribute(cosmologyParameters_%temperatureCMB (),'temperatureCMB' )
+         extrapolationGroup          =cambOutput        %openGroup('extrapolation')
+         extrapolationWavenumberGroup=extrapolationGroup%openGroup('wavenumber'   )
+         call    extrapolationWavenumberGroup%writeAttribute('extrapolate','low' )
+         call    extrapolationWavenumberGroup%writeAttribute('extrapolate','high')
+         !$ call hdf5Access                  %unset()
+       end block
+       deallocate(redshiftsCombined,redshiftRanksCombined,redshiftLabelsCombined)
     end if
     ! If necessary, construct tables of transfer functions.
     if (present(transferFunctionDarkMatter)) then
-       !$ call hdf5Access%set()
-       call cambOutput%openFile(char(fileName_))
-       call cambOutput%readDataset('wavenumber',wavenumbersLogarithmic)
-       wavenumbersLogarithmic=log(wavenumbersLogarithmic)
-       call transferFunctionDarkMatter%create(                                                 &
-            &                                                   wavenumbersLogarithmic       , &
-            &                                 tableCount       =size(redshifts)              , &
-            &                                 extrapolationType=[                              &
-            &                                                    extrapolationTypeExtrapolate, &
-            &                                                    extrapolationTypeExtrapolate  &
-            &                                                   ]                            , &
-            &                                 interpolationType=GSL_Interp_cSpline             &
-            &                                )
-       deallocate(wavenumbersLogarithmic)
-       speciesGroup=cambOutput%openGroup('darkMatter')
-       do i=1,size(redshifts)
-          datasetName='transferFunctionZ'//trim(adjustl(redshiftLabels(i)))
-          call speciesGroup%readDataset(datasetName,transferFunctionLogarithmic)
-          transferFunctionLogarithmic=log(transferFunctionLogarithmic)
-          call transferFunctionDarkMatter%populate(transferFunctionLogarithmic,table=int(redshiftRanks(i)))
-          deallocate(transferFunctionLogarithmic)
-       end do
-       call    speciesGroup%close()
-       call    cambOutput  %close()
-       !$ call hdf5Access  %unset()
+       block
+         type(hdf5Object) :: speciesGroup
+         !$ call hdf5Access%set()
+         cambOutput=hdf5Object(char(fileName_))
+         call cambOutput%readDataset('wavenumber',wavenumbersLogarithmic)
+         wavenumbersLogarithmic=log(wavenumbersLogarithmic)
+         extrapolationType     =extrapolationTypeExtrapolate
+         call transferFunctionDarkMatter%create(                                          &
+              &                                                   wavenumbersLogarithmic, &
+              &                                 tableCount       =size(redshifts)       , &
+              &                                 extrapolationType=extrapolationType     , &
+              &                                 interpolationType=GSL_Interp_cSpline      &
+              &                                )
+         deallocate(wavenumbersLogarithmic)
+         speciesGroup=cambOutput%openGroup('darkMatter')
+         do i=1,size(redshifts)
+            datasetName='transferFunctionZ'//trim(adjustl(redshiftLabels(i)))
+            call speciesGroup%readDataset(datasetName,transferFunctionLogarithmic)
+            transferFunctionLogarithmic=log(transferFunctionLogarithmic)
+            call transferFunctionDarkMatter%populate(transferFunctionLogarithmic,table=int(redshiftRanks(i)))
+            deallocate(transferFunctionLogarithmic)
+         end do
+         !$ call hdf5Access%unset()
+       end block
     end if
     if (present(transferFunctionBaryons)) then
-       !$ call hdf5Access%set()
-       call    cambOutput%openFile(char(fileName_))
-       call    cambOutput%readDataset('wavenumber',wavenumbersLogarithmic)
-       wavenumbersLogarithmic=log(wavenumbersLogarithmic)
-       call transferFunctionBaryons   %create(                                                 &
-            &                                                   wavenumbersLogarithmic       , &
-            &                                 tableCount       =size(redshifts)              , &
-            &                                 extrapolationType=[                              &
-            &                                                    extrapolationTypeExtrapolate, &
-            &                                                    extrapolationTypeExtrapolate  &
-            &                                                   ]                            , &
-            &                                 interpolationType=GSL_Interp_cSpline             &
-            &                                )
-       deallocate(wavenumbersLogarithmic)
-       speciesGroup=cambOutput%openGroup('baryons')
-       do i=1,size(redshifts)
-          datasetName='transferFunctionZ'//trim(adjustl(redshiftLabels(i)))
-          call speciesGroup%readDataset(datasetName,transferFunctionLogarithmic)
-          transferFunctionLogarithmic=log(transferFunctionLogarithmic)
-          call transferFunctionBaryons   %populate(transferFunctionLogarithmic,table=int(redshiftRanks(i)))
-          deallocate(transferFunctionLogarithmic)
-       end do
-       call    speciesGroup%close()
-       call    cambOutput  %close()
-       !$ call hdf5Access  %unset()
+       block
+         type(hdf5Object) :: speciesGroup
+         !$ call hdf5Access%set()
+         cambOutput=hdf5Object(char(fileName_))
+         call cambOutput%readDataset('wavenumber',wavenumbersLogarithmic)
+         wavenumbersLogarithmic=log(wavenumbersLogarithmic)
+         extrapolationType     =extrapolationTypeExtrapolate
+         call transferFunctionBaryons   %create(                                          &
+              &                                                   wavenumbersLogarithmic, &
+              &                                 tableCount       =size(redshifts)       , &
+              &                                 extrapolationType=extrapolationType     , &
+              &                                 interpolationType=GSL_Interp_cSpline      &
+              &                                )
+         deallocate(wavenumbersLogarithmic)
+         speciesGroup=cambOutput%openGroup('baryons')
+         do i=1,size(redshifts)
+            datasetName='transferFunctionZ'//trim(adjustl(redshiftLabels(i)))
+            call speciesGroup%readDataset(datasetName,transferFunctionLogarithmic)
+            transferFunctionLogarithmic=log(transferFunctionLogarithmic)
+            call transferFunctionBaryons   %populate(transferFunctionLogarithmic,table=int(redshiftRanks(i)))
+            deallocate(transferFunctionLogarithmic)
+         end do
+         !$ call hdf5Access%unset()
+       end block
     end if
     ! Unlock the file.
     call File_Unlock(fileLock)

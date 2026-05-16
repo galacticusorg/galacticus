@@ -202,23 +202,28 @@ contains
     implicit none
     class           (mergerTreeBuildMassesFixedMass), intent(inout)                            :: self
     double precision                                , intent(in   )                            :: time
-    double precision                                , intent(  out), allocatable, dimension(:) :: mass       , weight     , &
-         &                                                                                        massMinimum, massMaximum
-    type            (rootFinder                    )                                           :: finder
+    double precision                                , intent(  out), allocatable, dimension(:) :: mass                     , weight     , &
+         &                                                                                        massMinimum              , massMaximum
+    type            (rootFinder                    ), save                                     :: finder
+    logical                                         , save                                     :: finderConstructed=.false.
+    !$omp threadprivate(finder,finderConstructed)
     type            (mergerTree                    )                                           :: tree
     type            (treeNode                      ), pointer                                  :: node
     class           (nodeComponentBasic            ), pointer                                  :: basic
-    integer                                                                                    :: indexStart , i
+    integer                                                                                    :: indexStart               , i
     !$GLC attributes unused :: weight
 
-    finder=rootFinder(                                               &
-         &            rootFunction       =massEnclosed             , &
-         &            toleranceAbsolute  =1.0d-6                   , &
-         &            toleranceRelative  =1.0d-6                   , &
-         &            rangeExpandUpward  =2.0d+0                   , &
-         &            rangeExpandDownward=0.5d+0                   , &
-         &            rangeExpandType    =rangeExpandMultiplicative  &
-         &           )
+    if (.not.finderConstructed) then 
+       finder           =rootFinder(                                               &
+            &                       rootFunction       =massEnclosed             , &
+            &                       toleranceAbsolute  =1.0d-6                   , &
+            &                       toleranceRelative  =1.0d-6                   , &
+            &                       rangeExpandUpward  =2.0d+0                   , &
+            &                       rangeExpandDownward=0.5d+0                   , &
+            &                       rangeExpandType    =rangeExpandMultiplicative  &
+            &                      )
+       finderConstructed=.true.
+    end if
     ! Restart the random number sequence.
     tree%index=1
     allocate(tree%randomNumberGenerator_,mold=self%randomNumberGenerator_)

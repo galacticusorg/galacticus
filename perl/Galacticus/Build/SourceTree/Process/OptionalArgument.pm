@@ -39,7 +39,9 @@ sub Process_OptionalArguments {
 		    :
 		    $_	 
 	    }
-	    @{$declaration->{'attributes'}};   
+	    @{$declaration->{'attributes'}};
+	    $declaration->{'preprocessor'} = $node->{'directive'}->{'if'}
+	        if ( exists($node->{'directive'}->{'if'}) );
 	    &Galacticus::Build::SourceTree::Parse::Declarations::AddDeclarations($node->{'parent'},[$declaration]);
 	    # Generate setting code for the optional argument.
 	    my $setter       = "   ! Auto-generated optional argument setter\n";

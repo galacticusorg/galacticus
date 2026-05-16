@@ -54,8 +54,13 @@ sub Parse_ModuleUses {
 		    my $isIntrinsic = $3;
 		    my $moduleName  = $5;
 		    my $only        = $7;
-		    push(@moduleOrder,$moduleName)
-			unless ( grep {$_ eq $moduleName} @moduleOrder );
+		    unless ( grep {$_ eq $moduleName} @moduleOrder ) {
+			if ( $isIntrinsic ) {
+			    unshift(@moduleOrder,$moduleName);
+			} else {
+			    push   (@moduleOrder,$moduleName);
+			}
+		    }
 		    $moduleUses->{$moduleName}->{'openMP'} = $isOpenMP ? 1 : 0;
 		    if ( $isIntrinsic ) {
 			$moduleUses->{$moduleName}->{'intrinsic'} = 1;
@@ -216,8 +221,13 @@ sub AddUses {
     # OpenMP, then we need to keep it as not-OpenMP - furthermore we need to do this on a per-symbol basis, requiring that we have
     # OpenMP and conditions status per symbol and reproduce this correctly when updating the code).
     foreach my $moduleName ( sort(keys(%{$moduleUses->{'moduleUse'}})) ) {
-	push(@{$usesNode->{'moduleOrder'}},$moduleName)
-	    unless ( grep {$_ eq $moduleName} @{$usesNode->{'moduleOrder'}} );
+	unless ( grep {$_ eq $moduleName} @{$usesNode->{'moduleOrder'}} ) {
+	    if ( $moduleUses->{'moduleUse'}->{$moduleName}->{'intrinsic' } ) {
+		unshift(@{$usesNode->{'moduleOrder'}},$moduleName);
+	    } else{
+		push   (@{$usesNode->{'moduleOrder'}},$moduleName);
+	    }
+	}
 	$usesNode->{'moduleUse'}->{$moduleName}->{'openMP'    } = $moduleUses->{'moduleUse'}->{$moduleName}->{'openMP'    };
 	$usesNode->{'moduleUse'}->{$moduleName}->{'intrinsic' } = $moduleUses->{'moduleUse'}->{$moduleName}->{'intrinsic' };
 	$usesNode->{'moduleUse'}->{$moduleName}->{'conditions'} = $moduleUses->{'moduleUse'}->{$moduleName}->{'conditions'};

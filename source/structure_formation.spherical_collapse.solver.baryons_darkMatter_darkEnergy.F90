@@ -296,6 +296,7 @@ contains
           linearGrowth_ => null()
        end if
        !$omp end critical(sphericalCollapseSolverBrynsDrkMttrDrkEnrgyDeepCopy)
+       !$omp barrier
        !$omp do schedule(dynamic)
        do iTime=1,countTimes
           if (iTime >= iTimeMinimum .and. iTime <= iTimeMaximum) then

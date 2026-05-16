@@ -203,6 +203,14 @@ for line in sys.stdin:
                 drop_buffer = True
                 break
 
+    # Versions of gfortran ≥ 12 (which include a complete implementation of finalization) emit spurious warnings related to
+    # internal finalizers - ignore them.
+    m = re.search(
+        r"^_F\.DA\d+",
+        line)
+    if m:
+        drop_buffer = True
+
     # Unused function attributes.
     m = re.match(r'^\s*\d+\s*\|\s*subroutine\s+([a-z0-9_]+)', line, re.IGNORECASE)
     if m:

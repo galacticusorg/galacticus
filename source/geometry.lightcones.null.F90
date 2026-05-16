@@ -173,8 +173,8 @@ contains
     Return the time of the next lightcone crossing for this node.
     !!}
     implicit none
-    class           (geometryLightconeNull), intent(inout)                                      :: self
-    type            (treeNode             ), intent(inout)                                      :: node
+    class           (geometryLightconeNull), intent(inout), target                              :: self
+    type            (treeNode             ), intent(inout), target                              :: node
     double precision                       , intent(in   )                                      :: timeStart    , timeEnd
     double precision                       , intent(inout), dimension(:), allocatable, optional :: timesCrossing
     !$GLC attributes unused :: self, node, timeStart, timeEnd, timesCrossing

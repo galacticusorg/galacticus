@@ -264,14 +264,13 @@ contains
     integer                                                                                    :: i                                    , j
     
     !$ call hdf5Access%set  ()
-    call        dataFile%openFile     (fileName                                   ,readOnly=.true.                          )
-    call        dataFile%readDataset  ('massStellar'                              ,         massesStellar                   )
-    if (size(massesStellar) == 1)                                                                                             &
-         & call dataFile%readAttribute('binWidth'                                 ,         massesStellarBinWidthLogarithmic)
-    call        dataFile%readDataset  ('starFormingMainSequenceFunction'          ,         meanValueTarget                 )
-    call        dataFile%readDataset  ('starFormingMainSequenceFunctionCovariance',         meanCovarianceTarget            )
-    call        dataFile%readAttribute('labelTarget'                              ,         targetLabel                     )
-    call        dataFile%close        (                                                                                     )
+    dataFile=hdf5Object(fileName,readOnly=.true.)
+    call        dataFile%readDataset  ('massStellar'                              ,massesStellar                   )
+    if (size(massesStellar) == 1)                                                                                    &
+         & call dataFile%readAttribute('binWidth'                                 ,massesStellarBinWidthLogarithmic)
+    call        dataFile%readDataset  ('starFormingMainSequenceFunction'          ,meanValueTarget                 )
+    call        dataFile%readDataset  ('starFormingMainSequenceFunctionCovariance',meanCovarianceTarget            )
+    call        dataFile%readAttribute('labelTarget'                              ,targetLabel                     )
     !$ call hdf5Access%unset()
     ! Convert to logarithmic specific star formation rate.
     do i=1,size(meanCovarianceTarget,dim=1)

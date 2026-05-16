@@ -74,4 +74,7 @@ program Test_Perfect_Hashes
   call Unit_Tests_End_Group()
   call Unit_Tests_Finish()
 
+  ! Clean up.
+  deallocate(bucketCount)
+  
 end program Test_Perfect_Hashes
