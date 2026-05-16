@@ -1,38 +1,8 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1778825527229,
+  "lastUpdate": 1778940723351,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Dark matter-only subhalos benchmarks": [
-      {
-        "commit": {
-          "author": {
-            "email": "abensonca@gmail.com",
-            "name": "Andrew Benson",
-            "username": "abensonca"
-          },
-          "committer": {
-            "email": "noreply@github.com",
-            "name": "GitHub",
-            "username": "web-flow"
-          },
-          "distinct": true,
-          "id": "b746d2d7f2b9819423a1a950de5fa514bebe0621",
-          "message": "Merge pull request #818 from sachiwee/AGN_EL\n\nExtractor for emission line luminosities from narrow line regions of galaxies",
-          "timestamp": "2025-03-29T17:03:42Z",
-          "tree_id": "93a2d667f5a302edab7608099c203f3c3a6917e2",
-          "url": "https://github.com/galacticusorg/galacticus/commit/b746d2d7f2b9819423a1a950de5fa514bebe0621"
-        },
-        "date": 1743291108897,
-        "tool": "customSmallerIsBetter",
-        "benches": [
-          {
-            "name": "Dark Matter Only Subhalos - Wall Time",
-            "value": 54.544,
-            "unit": "seconds",
-            "range": 0.132183206194855
-          }
-        ]
-      },
       {
         "commit": {
           "author": {
@@ -8784,6 +8754,36 @@ window.BENCHMARK_DATA = {
             "name": "Dark Matter Only Subhalos - Likelihood - subhaloVelocityMaximumMean",
             "value": 10572.48895919124,
             "unit": "-logℒ"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abenson@obs.carnegiescience.edu",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "82462a1fbf030125f0b1538612bc433191ccf531",
+          "message": "Merge pull request #1117 from galacticusorg/featValidatePkShape\n\nAdds validation of the `power` dataset",
+          "timestamp": "2026-05-15T08:37:36-07:00",
+          "tree_id": "5b06bd69f57b6bd8e7b15b42307be4c4db586ec1",
+          "url": "https://github.com/galacticusorg/galacticus/commit/82462a1fbf030125f0b1538612bc433191ccf531"
+        },
+        "date": 1778940719177,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Dark Matter Only Subhalos - Wall Time",
+            "value": 43.791000000000004,
+            "range": "0.05267731959771678",
+            "unit": "seconds"
           }
         ]
       }
