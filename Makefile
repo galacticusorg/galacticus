@@ -36,6 +36,10 @@ export BUILDPATH ?= ./work/build
 export SUFFIX ?=
 endif
 
+# Convenience flag: non-empty when this is a shared-library build. Use via `ifneq ($(IS_LIB_BUILD),)` to gate
+# library-only logic (PIC flags, library interface generation, dependency prereqs).
+IS_LIB_BUILD := $(filter lib,$(GALACTICUS_BUILD_OPTION))
+
 # Preprocessor:
 PREPROCESSOR ?= cpp
 
@@ -121,7 +125,7 @@ export CFLAGS
 CPPFLAGS += -DBUILDPATH=\'$(BUILDPATH)\' -I./source/ -I$(BUILDPATH)/ ${GALACTICUS_CPPFLAGS}
 
 # Detect library compile.
-ifeq '$(GALACTICUS_BUILD_OPTION)' 'lib'
+ifneq ($(IS_LIB_BUILD),)
 FCFLAGS       += -fPIC
 FCFLAGS_NOOPT += -fPIC
 F77FLAGS      += -fPIC
@@ -181,8 +185,12 @@ ifeq '$(GALACTICUS_OBJECTS_DEBUG)' 'yes'
 FCFLAGS += -DOBJECTDEBUG
 endif
 
-# List of additional Makefiles which contain dependency information
-MAKE_DEPS = $(BUILDPATH)/Makefile_Module_Dependencies $(BUILDPATH)/Makefile_Use_Dependencies $(BUILDPATH)/Makefile_Include_Dependencies $(BUILDPATH)/Makefile_Library_Dependencies
+# List of additional Makefiles which contain dependency information. The library interface dependencies are only needed for
+# library builds, so are added below conditionally - generating them is slow and unnecessary for regular (or MPI) builds.
+MAKE_DEPS = $(BUILDPATH)/Makefile_Module_Dependencies $(BUILDPATH)/Makefile_Use_Dependencies $(BUILDPATH)/Makefile_Include_Dependencies
+ifneq ($(IS_LIB_BUILD),)
+MAKE_DEPS += $(BUILDPATH)/Makefile_Library_Dependencies
+endif
 
 # Get versions of build tools.
 FCCOMPILER_VERSION = `$(FCCOMPILER) -v 2>&1`
@@ -564,7 +572,10 @@ $(BUILDPATH)/%.m : ./source/%.F90
 	$(CCOMPILER) -c $(BUILDPATH)/$*.md5s.c -o $(BUILDPATH)/$*.md5s.o $(CFLAGS)
 	$(CONDORLINKER) $(FCCOMPILER) `cat $*.d` $(BUILDPATH)/$*.parameters.o $(BUILDPATH)/$*.md5s.o -o $*.exe$(SUFFIX) $(FCFLAGS) `scripts/build/libraryDependencies.py $*.exe $(FCFLAGS)` 2>&1 | ./scripts/build/postprocessLinker.py
 
-# Library.
+# Library. These rules generate Fortran interface wrappers and their dependencies for the shared library build; the generator
+# scripts (libraryInterfaces.py, libraryInterfacesDependencies.py) are slow, so we only activate them when actually performing
+# a library build.
+ifneq ($(IS_LIB_BUILD),)
 -include $(BUILDPATH)/Makefile_Library_Dependencies
 $(BUILDPATH)/Makefile_Library_Dependencies: $(BUILDPATH)/libgalacticus.Inc ./scripts/build/libraryInterfacesDependencies.py
 	./scripts/build/libraryInterfacesDependencies.py
@@ -592,6 +603,7 @@ libgalacticus.so: $(BUILDPATH)/libgalacticus.o $(BUILDPATH)/libgalacticus_classe
 	./scripts/build/sourceDigests.py `pwd` libgalacticus.o $$useLocks
 	$(CCOMPILER) -c $(BUILDPATH)/libgalacticus.md5s.c -o $(BUILDPATH)/libgalacticus.md5s.o $(CFLAGS)
 	$(FCCOMPILER) -shared `sort -u $(BUILDPATH)/libgalacticus.d $(BUILDPATH)/libgalacticus_classes.d` $(BUILDPATH)/libgalacticus.parameters.o $(BUILDPATH)/libgalacticus.md5s.o -o libgalacticus.so $(FCFLAGS) `scripts/build/libraryDependencies.py libgalacticus.o $(FCFLAGS)`
+endif
 
 # Ensure that we don't delete object files which make considers to be intermediate
 .PRECIOUS: $(BUILDPATH)/%.p.F90 $(BUILDPATH)/%.p.F90.up $(BUILDPATH)/%.Inc $(BUILDPATH)/%.Inc.up $(BUILDPATH)/%.d
@@ -664,7 +676,13 @@ $(BUILDPATH)/Makefile_Module_Dependencies: ./scripts/build/moduleDependencies.py
 	@mkdir -p $(BUILDPATH)
 	./scripts/build/moduleDependencies.py `pwd`
 
-$(BUILDPATH)/Makefile_Use_Dependencies: ./scripts/build/useDependencies.py $(BUILDPATH)/directiveLocations.xml $(BUILDPATH)/Makefile_Directives $(BUILDPATH)/Makefile_Include_Dependencies $(BUILDPATH)/Makefile_Library_Dependencies $(BUILDPATH)/libgalacticus.Inc $(ALLSOURCESINC)
+# For library builds, useDependencies.py must scan the generated library wrapper sources under $(BUILDPATH)/libgalacticus/, so
+# we make it depend on the library include generation. For non-library builds we skip this, since the wrapper sources are not
+# needed and the generators (libraryInterfaces.py, libraryInterfacesDependencies.py) are slow.
+ifneq ($(IS_LIB_BUILD),)
+USE_DEPS_LIBRARY_PREREQS = $(BUILDPATH)/Makefile_Library_Dependencies $(BUILDPATH)/libgalacticus.Inc
+endif
+$(BUILDPATH)/Makefile_Use_Dependencies: ./scripts/build/useDependencies.py $(BUILDPATH)/directiveLocations.xml $(BUILDPATH)/Makefile_Directives $(BUILDPATH)/Makefile_Include_Dependencies $(USE_DEPS_LIBRARY_PREREQS) $(ALLSOURCESINC)
 	@mkdir -p $(BUILDPATH)
 	./scripts/build/useDependencies.py `pwd`
 

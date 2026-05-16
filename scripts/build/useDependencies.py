@@ -705,7 +705,11 @@ def _source_files_to_process(root_source_dir, build_path):
             full = os.path.join(root_source, entry)
             if os.path.isdir(full):
                 directories.append(full)
-    directories.append(os.path.join(build_path, 'libgalacticus'))
+    # The libgalacticus subdirectory contains auto-generated Fortran wrappers produced by libraryInterfaces.py; it only exists
+    # for library builds. Skip it gracefully when absent so that non-library builds don't fail here.
+    libgalacticus_dir = os.path.join(build_path, 'libgalacticus')
+    if os.path.isdir(libgalacticus_dir):
+        directories.append(libgalacticus_dir)
 
     # Perl strips `<root>/source` or `$BUILDPATH` prefixes to derive the
     # per-file `subDirectoryName` field.  Matching regex:
