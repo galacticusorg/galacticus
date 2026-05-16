@@ -43,10 +43,10 @@ program Benchmark_Numerical_Interpolation
   implicit none
 
   ! Benchmark control.
-  integer        , parameter :: trialCount    =100      ! Outer trials over which we report mean and standard error.
-  integer        , parameter :: warmupTrials  =  2      ! Trials at the start dropped to absorb cache/branch-predictor warmup.
-  integer        , parameter :: innerCount    =100000   ! Inner loop iterations per trial (amortizes clock resolution).
-  integer        , parameter :: queryCount    =4096     ! Size of the precomputed query-point array (power of 2 for cheap masking).
+  integer        , parameter :: trialCount    =   100       ! Outer trials over which we report mean and standard error.
+  integer        , parameter :: warmupTrials  =     2       ! Trials at the start dropped to absorb cache/branch-predictor warmup.
+  integer        , parameter :: innerCount    =100000       ! Inner loop iterations per trial (amortizes clock resolution).
+  integer        , parameter :: queryCount    =  4096       ! Size of the precomputed query-point array (power of 2 for cheap masking).
   integer        , parameter :: queryMask     =queryCount-1
 
   call displayVerbositySet(verbosityLevelStandard)
@@ -55,22 +55,22 @@ program Benchmark_Numerical_Interpolation
        &                                   ' innerCount=',innerCount,' warmupTrials=',warmupTrials,' (dropped)'
 
   ! 1D linear interpolations across a range of array sizes and access patterns.
-  call benchmarkInterpolate1D(           10,gsl_interp_linear ,sequential=.true. ,id="interp1D_linear_N10_seq"     ,description="1D linear interp, N=10, sequential access"     )
-  call benchmarkInterpolate1D(           10,gsl_interp_linear ,sequential=.false.,id="interp1D_linear_N10_rand"    ,description="1D linear interp, N=10, random access"         )
-  call benchmarkInterpolate1D(          100,gsl_interp_linear ,sequential=.true. ,id="interp1D_linear_N100_seq"    ,description="1D linear interp, N=100, sequential access"    )
-  call benchmarkInterpolate1D(          100,gsl_interp_linear ,sequential=.false.,id="interp1D_linear_N100_rand"   ,description="1D linear interp, N=100, random access"        )
-  call benchmarkInterpolate1D(        10000,gsl_interp_linear ,sequential=.true. ,id="interp1D_linear_N10000_seq"  ,description="1D linear interp, N=10000, sequential access"  )
-  call benchmarkInterpolate1D(        10000,gsl_interp_linear ,sequential=.false.,id="interp1D_linear_N10000_rand" ,description="1D linear interp, N=10000, random access"      )
+  call benchmarkInterpolate1D(   10,gsl_interp_linear ,sequential=.true. ,id="interp1D_linear_N10_seq"    ,description="1D linear interp, N=10, sequential access"   )
+  call benchmarkInterpolate1D(   10,gsl_interp_linear ,sequential=.false.,id="interp1D_linear_N10_rand"   ,description="1D linear interp, N=10, random access"       )
+  call benchmarkInterpolate1D(  100,gsl_interp_linear ,sequential=.true. ,id="interp1D_linear_N100_seq"   ,description="1D linear interp, N=100, sequential access"  )
+  call benchmarkInterpolate1D(  100,gsl_interp_linear ,sequential=.false.,id="interp1D_linear_N100_rand"  ,description="1D linear interp, N=100, random access"      )
+  call benchmarkInterpolate1D(10000,gsl_interp_linear ,sequential=.true. ,id="interp1D_linear_N10000_seq" ,description="1D linear interp, N=10000, sequential access")
+  call benchmarkInterpolate1D(10000,gsl_interp_linear ,sequential=.false.,id="interp1D_linear_N10000_rand",description="1D linear interp, N=10000, random access"    )
 
   ! 1D cspline path (smaller iteration count: spline eval is heavier per call).
-  call benchmarkInterpolate1D(          100,gsl_interp_cspline,sequential=.false.,id="interp1D_cspline_N100_rand"  ,description="1D cspline interp, N=100, random access"       )
+  call benchmarkInterpolate1D(  100,gsl_interp_cspline,sequential=.false.,id="interp1D_cspline_N100_rand" ,description="1D cspline interp, N=100, random access"     )
 
   ! Sub-primitives.
-  call benchmarkLinearFactors (          100                                     ,id="linearFactors_N100_rand"     ,description="1D linearFactors, N=100, random access"        )
-  call benchmarkLocate        (          100                                     ,id="locate_N100_rand"            ,description="1D locate, N=100, random access"               )
+  call benchmarkLinearFactors ( 100                                      ,id="linearFactors_N100_rand"    ,description="1D linearFactors, N=100, random access"      )
+  call benchmarkLocate        ( 100                                      ,id="locate_N100_rand"           ,description="1D locate, N=100, random access"             )
 
   ! 2D bilinear.
-  call benchmarkInterpolate2D (           50                                     ,id="interp2D_N50x50_rand"        ,description="2D bilinear interp, 50x50, random access"      )
+  call benchmarkInterpolate2D (  50                                      ,id="interp2D_N50x50_rand"       ,description="2D bilinear interp, 50x50, random access"    )
 
   ! Make the accumulated checksum externally observable. This MUST happen or the
   ! optimizer is free to elide the entire benchmark.
@@ -85,14 +85,15 @@ contains
     interpolator cannot exploit uniform-grid shortcuts (and so that linear and
     cubic splines have distinguishable behavior).
     !!}
-    integer                                              , intent(in   ) :: n
-    double precision                , allocatable, dimension(:), intent(  out) :: x, y
-    integer                                                                   :: i
-    double precision                                                          :: t
+    integer                                    , intent(in   ) :: n
+    double precision, allocatable, dimension(:), intent(  out) :: x, y
+    integer                                                    :: i
+    double precision                                           :: t
 
     allocate(x(n),y(n))
     do i=1,n
-       t   =dble(i-1)/dble(n-1)
+       t      =+dble(i-1) &
+            &  /dble(n-1)
        ! Non-uniform but strictly increasing parametrization.
        x(i)=t+0.1d0*t*(1.0d0-t)
        y(i)=sin(6.0d0*t)+0.5d0*cos(2.5d0*t)
@@ -108,17 +109,18 @@ contains
     hit its cached index). Otherwise the points are uniformly random, which forces
     the accelerator to fall back to a binary search on every call.
     !!}
-    integer        , intent(in   )                  :: n
-    double precision, intent(in   )                  :: xMin, xMax
-    logical        , intent(in   )                  :: sequential
+    integer         , intent(in   )                   :: n
+    double precision, intent(in   )                   :: xMin      , xMax
+    logical         , intent(in   )                   :: sequential
     double precision, intent(  out), dimension(0:n-1) :: queries
-    integer                                          :: i
+    integer                                           :: i
     double precision                                  :: t
-    double precision, dimension(:), allocatable      :: r
+    double precision, allocatable  , dimension( :   ) :: r
 
     if (sequential) then
        do i=0,n-1
-          t          =dble(i)/dble(n)
+          t      =+dble(i) &
+               &  /dble(n)
           ! Step monotonically through (xMin,xMax), shrunk slightly so we stay strictly in-range.
           queries(i)=xMin+(xMax-xMin)*(0.001d0+0.998d0*t)
        end do
@@ -134,18 +136,19 @@ contains
   end subroutine buildQueries
 
   subroutine benchmarkInterpolate1D(n,interpType,sequential,id,description)
-    integer        , intent(in   )                :: n, interpType
-    logical        , intent(in   )                :: sequential
-    character      (len=*), intent(in   )         :: id, description
-    type            (interpolator   )              :: interp_
-    double precision, allocatable, dimension(:)   :: x, y, queries
-    integer        (kind=kind_int8)              :: countStart, countEnd
-    integer        (kind=kind_int8), dimension(trialCount) :: trialTime
-    integer                                       :: trial, i
-    double precision                              :: acc, v
+    integer                         , intent(in   )                      :: n         , interpType
+    logical                         , intent(in   )                      :: sequential
+    character       (len=*         ), intent(in   )                      :: id        , description
+    type            (interpolator  )                                     :: interp_
+    double precision                , allocatable, dimension(:         ) :: x         , y          , &
+         &                                                                  queries
+    integer         (kind=kind_int8)                                     :: countStart, countEnd
+    integer         (kind=kind_int8)             , dimension(trialCount) :: trialTime
+    integer                                                              :: trial     , i
+    double precision                                                     :: acc       , v
 
     call Benchmark_Seed_RNG()
-    call buildArray  (n,x,y)
+    call buildArray(n,x,y)
     allocate(queries(0:queryCount-1))
     call buildQueries(queryCount,x(1),x(n),sequential,queries)
     interp_=interpolator(x,y,interpolationType=interpType)
@@ -154,7 +157,6 @@ contains
     ! linear-only deferred-init paths) and prime the accelerator.
     v=interp_%interpolate(queries(0))
     call Benchmark_Sink_Add(v)
-
     do trial=1,trialCount
        acc=0.0d0
        call System_Clock(countStart)
@@ -165,7 +167,6 @@ contains
        trialTime(trial)=countEnd-countStart
        call Benchmark_Sink_Add(acc)            ! Force the optimizer to keep 'acc'.
     end do
-
     call Benchmark_Report('numericalInterpolation',id,description,trialTime, &
          &                warmupTrials=warmupTrials,innerCount=innerCount,unitsLabel='ns/call')
     deallocate(x,y,queries)
@@ -173,16 +174,17 @@ contains
   end subroutine benchmarkInterpolate1D
 
   subroutine benchmarkLinearFactors(n,id,description)
-    integer        , intent(in   )                :: n
-    character      (len=*), intent(in   )         :: id, description
-    type            (interpolator   )              :: interp_
-    double precision, allocatable, dimension(:)   :: x, y, queries
-    integer        (kind=kind_int8)              :: countStart, countEnd
-    integer        (kind=kind_int8), dimension(trialCount) :: trialTime
-    integer                                       :: trial, i
-    integer        (c_size_t      )              :: idx
-    double precision, dimension(0:1)              :: h
-    double precision                              :: acc
+    integer                         , intent(in   )                      :: n
+    character       (len=*         ), intent(in   )                      :: id        , description
+    type            (interpolator  )                                     :: interp_
+    double precision                , allocatable, dimension(:         ) :: x         , y          , &
+         &                                                                  queries
+    integer         (kind=kind_int8)                                     :: countStart, countEnd
+    integer         (kind=kind_int8)             , dimension(trialCount) :: trialTime
+    integer                                                              :: trial     , i
+    integer         (c_size_t      )                                     :: idx
+    double precision                             , dimension(0:1       ) :: h
+    double precision                                                     :: acc
 
     call Benchmark_Seed_RNG()
     call buildArray  (n,x,y)
@@ -212,14 +214,15 @@ contains
   end subroutine benchmarkLinearFactors
 
   subroutine benchmarkLocate(n,id,description)
-    integer        , intent(in   )                :: n
-    character      (len=*), intent(in   )         :: id, description
-    type            (interpolator   )              :: interp_
-    double precision, allocatable, dimension(:)   :: x, y, queries
-    integer        (kind=kind_int8)              :: countStart, countEnd
-    integer        (kind=kind_int8), dimension(trialCount) :: trialTime
-    integer                                       :: trial, i
-    integer        (c_size_t      )              :: idx, accInt
+    integer                         , intent(in   )                      :: n
+    character       (len=*         ), intent(in   )                      :: id        , description
+    type            (interpolator  )                                     :: interp_
+    double precision                , allocatable, dimension(:         ) :: x         , y          , &
+         &                                                                  queries
+    integer         (kind=kind_int8)                                     :: countStart, countEnd
+    integer         (kind=kind_int8)             , dimension(trialCount) :: trialTime
+    integer                                                              :: trial     , i
+    integer         (c_size_t      )                                     :: idx       , accInt
 
     call Benchmark_Seed_RNG()
     call buildArray  (n,x,y)
@@ -249,15 +252,18 @@ contains
   end subroutine benchmarkLocate
 
   subroutine benchmarkInterpolate2D(n,id,description)
-    integer        , intent(in   )                :: n
-    character      (len=*), intent(in   )         :: id, description
-    type            (interpolator2D )              :: interp_
-    double precision, allocatable, dimension(:)   :: x, y, yIgnored, qx, qy
-    double precision, allocatable, dimension(:,:) :: z
-    integer        (kind=kind_int8)              :: countStart, countEnd
-    integer        (kind=kind_int8), dimension(trialCount) :: trialTime
-    integer                                       :: trial, i, j
-    double precision                              :: acc, v
+    integer                         , intent(in   )                      :: n
+    character       (len=*         ), intent(in   )                      :: id        , description
+    type            (interpolator2D)                                     :: interp_
+    double precision                , allocatable, dimension(:         ) :: x         , y          , &
+         &                                                                  qx        , qy         , &
+         &                                                                  yIgnored
+    double precision                , allocatable, dimension(:,:       ) :: z
+    integer         (kind=kind_int8)                                     :: countStart, countEnd
+    integer         (kind=kind_int8)             , dimension(trialCount) :: trialTime
+    integer                                                              :: trial     , i          , &
+         &j
+    double precision                                                     :: acc       , v
 
     call Benchmark_Seed_RNG()
     ! Build the x and y axes. buildArray writes both an x and a y; we only need its

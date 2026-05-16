@@ -193,7 +193,7 @@ module Numerical_Interpolation
      Type providing interpolation in 1-D arrays.
      !!}
      private
-     type            (resourceManager                 )                            :: interpManager              , interpAccelManager
+     type            (resourceManager                 )                            :: interpManager                  , interpAccelManager
      type            (gslInterpWrapper                ), pointer                   :: interp_           => null()
      type            (gslInterpAccelWrapper           ), pointer                   :: interpAccel_      => null()
      type            (c_ptr                           ), allocatable               :: gsl_interp_type
@@ -204,9 +204,9 @@ module Numerical_Interpolation
      ! sequential or near-sequential queries by skipping the binary search when
      ! the cached bracket still contains the queried x. Initialized to 1 so that
      ! the cache always points to a valid bracket once countArray > 1.
-     integer         (c_size_t                        )                            :: iCache_           =1_c_size_t
-     logical                                                                       :: initialized                , interpolatable
-     double precision                                  , allocatable, dimension(:) :: x                          , y
+     integer         (c_size_t                        )                            :: iCache_           =  1_c_size_t
+     logical                                                                       :: initialized                    , interpolatable
+     double precision                                  , allocatable, dimension(:) :: x                              , y
    contains
      !![
      <methods>
@@ -353,7 +353,7 @@ contains
     ! Determine if the data is interpolatable.
     self%interpolatable=self%countArray > 1
     ! Reset the locate cache to point at the first valid bracket.
-    self%iCache_=1_c_size_t
+    self%iCache_       =1_c_size_t
     ! Allocate GSL interpolation objects.
     call self%GSLAllocate()
     return
@@ -879,10 +879,10 @@ contains
     i=self%iCache_
     if      (x <  self%x(i  )) then
        ! Below the cached bracket: search the lower half.
-       i=interpolatorBinarySearch(self%x,x,1_c_size_t,i                          )
+       i=interpolatorBinarySearch(self%x,x,1_c_size_t,i              )
     else if (x >= self%x(i+1)) then
        ! At or above the cached bracket's upper end: search the upper half.
-       i=interpolatorBinarySearch(self%x,x,i         ,self%countArray            )
+       i=interpolatorBinarySearch(self%x,x,i         ,self%countArray)
     end if
     ! Clamp defensively into [1, N-1] and refresh the cache.
     i           =max(min(i,self%countArray-1_c_size_t),1_c_size_t)

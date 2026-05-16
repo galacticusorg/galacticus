@@ -60,7 +60,7 @@ contains
     \begin{description}
     \item[Auto units (\mono{unitsLabel} absent):] the displayed value is the
       raw mean tick count per trial. The unit label is auto-picked from the
-      \mono{System\_Clock} \mono{count\_rate}: \mono{ms}, \mono{μs} or
+      \mono{System\_Clock} \mono{count\_rate}: \mono{ms}, $\mu$\mono{s} or
       \mono{ns} at $10^3$, $10^6$, or $10^9$ ticks/s respectively, falling
       back to \mono{ticks} otherwise. Matches the original convention used by
       legacy benchmark programs.
@@ -74,16 +74,19 @@ contains
     \mono{innerCount} also divides the result in the auto-units branch, in
     case a caller wants per-iteration timings without an explicit label.
     !!}
-    character      (len=*         )                , intent(in   )           :: suite       , id        , description
-    integer        (kind=kind_int8), dimension(:)  , intent(in   )           :: trialTime
-    integer                                        , intent(in   ), optional :: warmupTrials, innerCount
-    character      (len=*         )                , intent(in   ), optional :: unitsLabel
-    integer                                                                  :: warmup_     , innerCount_, kept       , &
-         &                                                                      totalTrials
-    integer        (kind=kind_int8)                                          :: countRate
-    double precision                                                         :: meanTicks   , varTicks   , stdErrTicks, &
-         &                                                                      mean        , stdErr     , scale
-    character      (len=16        )                                          :: units_
+    use :: Error             , only : Error_Report
+    use :: ISO_Varying_String, only : operator(//), var_str
+    use :: String_Handling   , only : operator(//)
+    character       (len=*         )                , intent(in   )           :: suite       , id         , description
+    integer         (kind=kind_int8), dimension(:)  , intent(in   )           :: trialTime
+    integer                                         , intent(in   ), optional :: warmupTrials, innerCount
+    character       (len=*         )                , intent(in   ), optional :: unitsLabel
+    integer                                                                   :: warmup_     , innerCount_, kept       , &
+         &                                                                       totalTrials
+    integer         (kind=kind_int8)                                          :: countRate
+    double precision                                                          :: meanTicks   , varTicks   , stdErrTicks, &
+         &                                                                       mean        , stdErr     , scale
+    character       (len=16        )                                          :: units_
 
     warmup_    =2
     innerCount_=1
@@ -92,16 +95,12 @@ contains
 
     totalTrials=size(trialTime)
     kept       =totalTrials-warmup_
-    if (kept < 2) then
-       write (output_unit,'(a,i0,a,i0,a)') 'ERROR: Benchmark_Report needs >= 2 trials after warmup (have ', &
-            &                              totalTrials,', warmup=',warmup_,')'
-       stop 1
-    end if
+    if (kept < 2) call Error_Report(var_str('Benchmark_Report needs >= 2 trials after warmup (have ')//totalTrials//', warmup='//warmup_//')'//{introspection:location})
 
-    meanTicks  =       dble(sum(trialTime(warmup_+1:totalTrials)   ))/dble(kept)
-    varTicks   =max(0.0d0,                                                                                  &
-         &          (dble(sum(trialTime(warmup_+1:totalTrials)**2))/dble(kept)-meanTicks**2)                 &
-         &           *dble(kept)/dble(kept-1)                                                               &
+    meanTicks  =      dble(sum(trialTime(warmup_+1:totalTrials)   ))/dble(kept)
+    varTicks   =max(  0.0d0,                                                                  &
+         &          ( dble(sum(trialTime(warmup_+1:totalTrials)**2))/dble(kept)-meanTicks**2) &
+         &           *dble(kept)/dble(kept-1)                                                 &
          &         )
     stdErrTicks=sqrt(varTicks/dble(kept))
 
@@ -167,7 +166,7 @@ contains
     !!{
     Add a value to the module-level checksum sink. Microbenchmarks should
     pass evaluation results to this routine so that the optimizer cannot
-    dead-code-eliminate the work. Call \mono{Benchmark_Sink_Print} once
+    dead-code-eliminate the work. Call \mono{Benchmark\_Sink\_Print} once
     before the program exits to make the accumulated value externally
     observable.
     !!}
@@ -181,8 +180,9 @@ contains
     !!{
     Print the accumulated checksum sink. Must be called once before the
     program exits, or the optimizer is free to elide every
-    \mono{Benchmark_Sink_Add} call.
+    \mono{Benchmark\_Sink\_Add} call.
     !!}
+    
     write (output_unit,'(a,es16.8)') '# Benchmark checksum (do not optimize away): ',sink_
     return
   end subroutine Benchmark_Sink_Print
