@@ -36,7 +36,7 @@
       <fileName value="%DATASTATICPATH%/darkMatter/haloMasses_Caterpillar_LX14.hdf5"/>
     </mergerTreeBuildMasses>
   </mergerTreeBuildMasses>
-   <mergerTreeBuildController value="subsample">
+  <mergerTreeBuildController value="subsample">
     <massThreshold value="1.0e9"/>
     <subsamplingRateAtThreshold value="1.0"/>
     <exponent value="1.0"/>
