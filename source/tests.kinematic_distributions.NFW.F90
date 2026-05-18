@@ -34,6 +34,7 @@ program Test_Kinematic_Distributions_NFW
   use :: Events_Hooks      , only : eventsHooksInitialize
   use :: IO_HDF5           , only : ioHDF5AccessInitialize
   use :: Mass_Distributions, only : massDistributionClass , massDistributionNFW   , kinematicsDistributionClass, kinematicsDistributionNFW
+  use :: Numerical_Ranges  , only : Make_Range            , rangeTypeLogarithmic
   use :: Unit_Tests        , only : Assert                , Unit_Tests_Begin_Group, Unit_Tests_End_Group       , Unit_Tests_Finish
   implicit none
   integer                                                  , parameter              :: radiusCount             =301
@@ -44,8 +45,7 @@ program Test_Kinematic_Distributions_NFW
   double precision                                         , dimension(radiusCount)  :: radiusScaleFree        , velocityDispersionExact, &
        &                                                                                velocityDispersionSeries, errorRelative
   double precision                                                                   :: errorRelativeMaximum   , errorRelativeRMS       , &
-       &                                                                                radiusErrorMaximum     , logRadiusMinimum       , &
-       &                                                                                logRadiusMaximum
+       &                                                                                radiusErrorMaximum
   integer                                                                            :: i                      , iErrorMaximum
   character       (len=128                    )                                      :: message
 
@@ -80,11 +80,7 @@ program Test_Kinematic_Distributions_NFW
   end select
 
   ! Build a logarithmic grid in scale-free radius covering the range likely to be encountered in subhalo evolution.
-  logRadiusMinimum=log(radiusScaleFreeMinimum)
-  logRadiusMaximum=log(radiusScaleFreeMaximum)
-  do i=1,radiusCount
-     radiusScaleFree(i)=exp(logRadiusMinimum+(logRadiusMaximum-logRadiusMinimum)*dble(i-1)/dble(radiusCount-1))
-  end do
+  radiusScaleFree=Make_Range(radiusScaleFreeMinimum,radiusScaleFreeMaximum,radiusCount,rangeTypeLogarithmic)
 
   ! Evaluate the 1D velocity dispersion from both forms. The third argument to velocityDispersion1D must be the same target
   ! as the second so that the self-gravitating NFW analytic branch is taken inside the kinematicsDistributionNFW.
@@ -108,10 +104,10 @@ program Test_Kinematic_Distributions_NFW
   write (message,'(a,e13.6           )') '  RMS     relative error: ',errorRelativeRMS
   call displayMessage(trim(message))
 
-  ! Assert that the series approximation matches the exact form to better than 0.1% everywhere on the test grid. This
-  ! threshold is loose by design; the printed worst-case error above is the figure to use when deciding whether to make the
-  ! series form the production default.
-  call Assert("Series approximation matches exact (relative)",errorRelative,spread(0.0d0,1,radiusCount),absTol=1.0d-3)
+  ! Assert that the series approximation matches the exact form to better than 10⁻⁵ everywhere on the test grid. The observed
+  ! maximum is ~5×10⁻⁶ near r/r_s≈0.3 (the join between the expansions around 0 and around 1/2), so this threshold gives a
+  ! small headroom for compiler/optimization variation while still catching genuine accuracy regressions.
+  call Assert("Series approximation matches exact (relative)",errorRelative,spread(0.0d0,1,radiusCount),absTol=1.0d-5)
 
   ! Clean up.
   deallocate(massDistribution_)

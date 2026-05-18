@@ -60,8 +60,8 @@ contains
     !![
     <inputParameter>
     <name>useSeriesApproximation</name>
-    <defaultValue>.false.</defaultValue>
-    <description>If true, use a fast series approximation to the velocity dispersion profile in an NFW mass distribution.</description>
+    <defaultValue>.true.</defaultValue>
+    <description>If true, use a fast series approximation to the velocity dispersion profile in an NFW mass distribution. The approximation matches the exact (dilogarithm-based) form to better than $5\times 10^{-6}$ in relative terms across $r/r_\mathrm{s} \in [10^{-4},10^4]$ (see \mono{tests.kinematic\_distributions.NFW}).</description>
     <source>parameters</source>
     </inputParameter>
     !!]
