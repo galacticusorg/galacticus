@@ -32,8 +32,15 @@ The scenarios are intentionally aligned with code paths in
 \begin{description}
 \item[\mono{*\_bracket}] hits \mono{rootFinderFindRange} (two endpoint
   evaluations).
-\item[\mono{*\_bracket\_values}] hits \mono{rootFinderFindRangeValues} (no
-  endpoint evaluations---wrapper cache should be used for both).
+\item[\mono{*\_bracket\_values}] hits \mono{rootFinderFindRangeValues}: the
+  caller precomputes both endpoint function values (so \mono{find} performs
+  no endpoint evaluations of its own; instead the wrapper's cache serves
+  them on the first two GSL callbacks). The two caller-side \mono{fQuad}
+  evaluations sit inside the timed region, just as they do for the
+  \mono{*\_bracket} scenario (where the same two evaluations happen inside
+  \mono{find}), so the difference between the two scenarios is the cost of
+  wrapper-cache hits versus the cost of evaluating those same endpoints
+  through \mono{rootFinderFindRange}'s procedure-pointer call path.
 \item[\mono{*\_bracket\_valueLow}] hits \mono{rootFinderFindRangeValueLow}
   (one endpoint evaluation).
 \item[\mono{*\_guess}] hits \mono{rootFinderFindGuess} (the degenerate
@@ -168,8 +175,17 @@ contains
     Time \mono{find(rootRange,rootRangeValues)} where both endpoint function
     values are precomputed by the caller. Hits the
     \mono{rootFinderFindRangeValues} entry point and avoids any duplicate
-    evaluation of the user function at the bracket ends. The wrapper's cache
-    of endpoint values should also be used by the first two GSL calls.
+    evaluation of the user function at the bracket ends inside \mono{find}.
+    The wrapper's cache of endpoint values should also be used by the first
+    two GSL calls.
+
+    The two caller-side \mono{fQuad} evaluations are deliberately inside the
+    timed region: they represent the real cost a caller pays to use this
+    entry point. The matching \mono{*\_bracket} scenario pays the same two
+    evaluations inside \mono{rootFinderFindRange}, so the comparison between
+    the two scenarios isolates "wrapper cache hit" vs.\ "wrapper cache miss
+    plus procedure-pointer call to \mono{finderFunction}" rather than
+    introducing or removing user-function calls.
     !!}
     integer                         , intent(in   )                      :: solverType
     character       (len=*         ), intent(in   )                      :: id        , description
