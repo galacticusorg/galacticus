@@ -18,103 +18,22 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
 !!{
-Module providing root-callback functions and shared state for the rootFinder
-benchmark program. Kept separate from the program unit so the callbacks can be
-passed as procedure(...) actual arguments to \refClass{rootFinder} without
-running into Fortran restrictions on procedure pointers to internal procedures.
-!!}
-
-module Benchmark_Root_Finder_Functions
-  !!{
-  Callbacks and shared state for the \refClass{rootFinder} benchmark.
-
-  The functions read a single module-level shift, \mono{bmShift}, which is
-  rewritten by the benchmark driver before every call. This perturbs the
-  problem (so the optimizer cannot constant-fold the solver chain) and keeps
-  the cache state of \mono{rootFinder}'s wrapper realistic from one call to
-  the next.
-  !!}
-  implicit none
-  private
-  public :: bmShift, fQuad, fQuadDerivative, fQuadBoth, fFar
-
-  ! Module-level shift consumed by every callback. Updated by the benchmark
-  ! driver immediately before each find() invocation.
-  double precision, save :: bmShift=0.0d0
-
-contains
-
-  double precision function fQuad(x)
-    !!{
-    Quadratic with a single root in the interval $[0,3]$.
-
-    $f(x) = (x - (\mathrm{bmShift}+1))(x + 5)$ has roots at $x=\mathrm{bmShift}+1$
-    and $x=-5$. With $\mathrm{bmShift} \in [-0.4,0.4]$ the in-bracket root sits
-    in $[0.6,1.4]$.
-    !!}
-    double precision, intent(in   ) :: x
-
-    fQuad=(x-(bmShift+1.0d0))*(x+5.0d0)
-    return
-  end function fQuad
-
-  double precision function fQuadDerivative(x)
-    !!{
-    Derivative of \mono{fQuad}.
-    !!}
-    double precision, intent(in   ) :: x
-
-    fQuadDerivative=2.0d0*x+5.0d0-(bmShift+1.0d0)
-    return
-  end function fQuadDerivative
-
-  subroutine fQuadBoth(x,f,df)
-    !!{
-    Combined value and derivative of \mono{fQuad}.
-    !!}
-    double precision, intent(in   ) :: x
-    double precision, intent(  out) :: f, df
-
-    f =(x-(bmShift+1.0d0))*(x+5.0d0)
-    df=2.0d0*x+5.0d0-(bmShift+1.0d0)
-    return
-  end subroutine fQuadBoth
-
-  double precision function fFar(x)
-    !!{
-    Linear function with its root far above a typical initial guess.
-
-    $f(x) = x - (\mathrm{bmShift}+10)$. With $\mathrm{bmShift} \in [-0.4,0.4]$
-    the root lies in $[9.6,10.4]$. Used in expansion benchmarks where the
-    initial bracket/guess is intentionally below the root so the bracket
-    expansion loop is exercised.
-    !!}
-    double precision, intent(in   ) :: x
-
-    fFar=x-(bmShift+10.0d0)
-    return
-  end function fFar
-
-end module Benchmark_Root_Finder_Functions
-
-
-!!{
 Contains a program to benchmark the \refClass{rootFinder} class.
 
-Each scenario constructs a rootFinder configured for a particular solver type
+Each scenario constructs a \mono{rootFinder} configured for a particular solver type
 and entry point. A precomputed deterministic array of per-call shifts perturbs
 the underlying function on every call so the optimizer cannot constant-fold
 the solver chain and the wrapper's endpoint-value cache sees realistic
-turnover. An inner loop of many find() calls per timed trial amortizes
+turnover. An inner loop of many \mono{find()} calls per timed trial amortizes
 \mono{System\_Clock} resolution.
 
 The scenarios are intentionally aligned with code paths in
-\mono{numerical.root\_finder.F90} that we plan to optimize:
+\mono{numerical.root\_finder.F90}:
 \begin{description}
 \item[\mono{*\_bracket}] hits \mono{rootFinderFindRange} (two endpoint
   evaluations).
 \item[\mono{*\_bracket\_values}] hits \mono{rootFinderFindRangeValues} (no
-  endpoint evaluations — wrapper cache should be used for both).
+  endpoint evaluations---wrapper cache should be used for both).
 \item[\mono{*\_bracket\_valueLow}] hits \mono{rootFinderFindRangeValueLow}
   (one endpoint evaluation).
 \item[\mono{*\_guess}] hits \mono{rootFinderFindGuess} (the degenerate
@@ -129,29 +48,29 @@ and printed at the end so the compiler cannot dead-code-eliminate the work.
 !!}
 
 program Benchmark_Numerical_Root_Finder
-  use, intrinsic :: ISO_Fortran_Env             , only : output_unit
-  use            :: Benchmark_Utilities         , only : Benchmark_Report             , Benchmark_Seed_RNG           , &
-       &                                                 Benchmark_Sink_Add           , Benchmark_Sink_Print
-  use            :: Benchmark_Root_Finder_Functions, only : bmShift                   , fQuad                        , &
-       &                                                    fQuadDerivative           , fQuadBoth                    , &
+  use, intrinsic :: ISO_Fortran_Env                , only : output_unit
+  use            :: Benchmark_Utilities            , only : Benchmark_Report             , Benchmark_Seed_RNG           , &
+       &                                                    Benchmark_Sink_Add           , Benchmark_Sink_Print
+  use            :: Benchmark_Root_Finder_Functions, only : bmShift                      , fQuad                        , &
+       &                                                    fQuadDerivative              , fQuadBoth                    , &
        &                                                    fFar
-  use            :: Display                     , only : displayVerbositySet          , verbosityLevelStandard
-  use            :: Kind_Numbers                , only : kind_int8
-  use            :: Root_Finder                 , only : rootFinder                                                  , &
-       &                                                 gsl_root_fsolver_brent       , gsl_root_fsolver_bisection   , &
-       &                                                 gsl_root_fsolver_falsepos    , gsl_root_fdfsolver_newton    , &
-       &                                                 gsl_root_fdfsolver_steffenson                               , &
-       &                                                 rangeExpandMultiplicative    , rangeExpandAdditive          , &
-       &                                                 rangeExpandSignExpectNegative, rangeExpandSignExpectPositive, &
-       &                                                 enumerationRangeExpandType   , stoppingCriterionDelta
+  use            :: Display                        , only : displayVerbositySet          , verbosityLevelStandard
+  use            :: Kind_Numbers                   , only : kind_int8
+  use            :: Root_Finder                    , only : rootFinder                                                  , &
+       &                                                    gsl_root_fsolver_brent       , gsl_root_fsolver_bisection   , &
+       &                                                    gsl_root_fsolver_falsepos    , gsl_root_fdfsolver_newton    , &
+       &                                                    gsl_root_fdfsolver_steffenson                               , &
+       &                                                    rangeExpandMultiplicative    , rangeExpandAdditive          , &
+       &                                                    rangeExpandSignExpectNegative, rangeExpandSignExpectPositive, &
+       &                                                    enumerationRangeExpandType   , stoppingCriterionDelta
   implicit none
 
   ! Benchmark control.
-  integer        , parameter :: trialCount   =  100      ! Outer trials over which we report mean and standard error.
-  integer        , parameter :: warmupTrials =    2      ! Trials dropped to absorb cache / branch-predictor / lazy-init warmup.
-  integer        , parameter :: innerCount   = 1000      ! find() calls per trial — heavier than a single interp() so we use fewer.
-  integer        , parameter :: shiftCount   = 4096      ! Size of the precomputed shift array (power of 2 for cheap masking).
-  integer        , parameter :: shiftMask    = shiftCount-1
+  integer         , parameter                 :: trialCount   =  100      ! Outer trials over which we report mean and standard error.
+  integer         , parameter                 :: warmupTrials =    2      ! Trials dropped to absorb cache / branch-predictor / lazy-init warmup.
+  integer         , parameter                 :: innerCount   = 1000      ! find() calls per trial — heavier than a single interp() so we use fewer.
+  integer         , parameter                 :: shiftCount   = 4096      ! Size of the precomputed shift array (power of 2 for cheap masking).
+  integer         , parameter                 :: shiftMask    = shiftCount-1
 
   double precision, dimension(0:shiftCount-1) :: shifts_
 
@@ -163,19 +82,19 @@ program Benchmark_Numerical_Root_Finder
   call buildShifts()
 
   ! Bracketed entry points — root well inside the bracket, no expansion.
-  call benchmarkBracket        (gsl_root_fsolver_brent    ,id="rootFinder_brent_bracket"           ,description="Brent solver, bracket given"                            )
-  call benchmarkBracketValues  (gsl_root_fsolver_brent    ,id="rootFinder_brent_bracket_values"    ,description="Brent solver, bracket + both f-values given"           )
-  call benchmarkBracketValueLow(gsl_root_fsolver_brent    ,id="rootFinder_brent_bracket_valueLow"  ,description="Brent solver, bracket + f(lower) given"                 )
-  call benchmarkBracket        (gsl_root_fsolver_bisection,id="rootFinder_bisection_bracket"       ,description="Bisection solver, bracket given"                        )
-  call benchmarkBracket        (gsl_root_fsolver_falsepos ,id="rootFinder_falsepos_bracket"        ,description="False-position solver, bracket given"                   )
+  call benchmarkBracket        (gsl_root_fsolver_brent       ,id="rootFinder_brent_bracket"         ,description="Brent solver, bracket given"                          )
+  call benchmarkBracketValues  (gsl_root_fsolver_brent       ,id="rootFinder_brent_bracket_values"  ,description="Brent solver, bracket + both f-values given"          )
+  call benchmarkBracketValueLow(gsl_root_fsolver_brent       ,id="rootFinder_brent_bracket_valueLow",description="Brent solver, bracket + f(lower) given"               )
+  call benchmarkBracket        (gsl_root_fsolver_bisection   ,id="rootFinder_bisection_bracket"     ,description="Bisection solver, bracket given"                      )
+  call benchmarkBracket        (gsl_root_fsolver_falsepos    ,id="rootFinder_falsepos_bracket"      ,description="False-position solver, bracket given"                 )
 
   ! Guess entry point with bracket expansion (root well outside the initial guess).
-  call benchmarkGuessExpand    (rangeExpandMultiplicative ,id="rootFinder_brent_guess_multExpand"  ,description="Brent solver, single guess + multiplicative expansion"  )
-  call benchmarkGuessExpand    (rangeExpandAdditive       ,id="rootFinder_brent_guess_addExpand"   ,description="Brent solver, single guess + additive expansion"        )
+  call benchmarkGuessExpand    (rangeExpandMultiplicative    ,id="rootFinder_brent_guess_multExpand",description="Brent solver, single guess + multiplicative expansion")
+  call benchmarkGuessExpand    (rangeExpandAdditive          ,id="rootFinder_brent_guess_addExpand" ,description="Brent solver, single guess + additive expansion"      )
 
   ! Derivative-based solvers (no wrapper cache; exercises gsl_root_fdfsolver path).
-  call benchmarkDerivative     (gsl_root_fdfsolver_newton    ,id="rootFinder_newton_guess"         ,description="Newton solver, single guess"                            )
-  call benchmarkDerivative     (gsl_root_fdfsolver_steffenson,id="rootFinder_steffenson_guess"     ,description="Steffenson solver, single guess"                        )
+  call benchmarkDerivative     (gsl_root_fdfsolver_newton    ,id="rootFinder_newton_guess"          ,description="Newton solver, single guess"                          )
+  call benchmarkDerivative     (gsl_root_fdfsolver_steffenson,id="rootFinder_steffenson_guess"      ,description="Steffenson solver, single guess"                      )
 
   ! Make the accumulated checksum externally observable so the optimizer
   ! cannot elide the benchmark.
@@ -214,11 +133,11 @@ contains
     double precision                                                     :: acc       , root
     double precision                             , dimension(2)          :: bracket
 
-    finder_=rootFinder(                                  &
-         &             rootFunction     =fQuad         , &
-         &             solverType       =solverType    , &
-         &             toleranceAbsolute=0.0d0         , &
-         &             toleranceRelative=1.0d-7         &
+    finder_=rootFinder(                              &
+         &             rootFunction     =fQuad     , &
+         &             solverType       =solverType, &
+         &             toleranceAbsolute=0.0d0     , &
+         &             toleranceRelative=1.0d-7      &
          &            )
     bracket=[0.0d0,3.0d0]
 
@@ -261,11 +180,11 @@ contains
     double precision                                                     :: acc       , root
     double precision                             , dimension(2)          :: bracket   , bracketValues
 
-    finder_=rootFinder(                                  &
-         &             rootFunction     =fQuad         , &
-         &             solverType       =solverType    , &
-         &             toleranceAbsolute=0.0d0         , &
-         &             toleranceRelative=1.0d-7         &
+    finder_=rootFinder(                              &
+         &             rootFunction     =fQuad     , &
+         &             solverType       =solverType, &
+         &             toleranceAbsolute=0.0d0     , &
+         &             toleranceRelative=1.0d-7      &
          &            )
     bracket=[0.0d0,3.0d0]
 
@@ -306,15 +225,15 @@ contains
     integer         (kind=kind_int8)                                     :: countStart, countEnd
     integer         (kind=kind_int8)             , dimension(trialCount) :: trialTime
     integer                                                              :: trial     , i
-    double precision                                                     :: acc       , root  , &
+    double precision                                                     :: acc       , root       , &
          &                                                                  fLower
     double precision                             , dimension(2)          :: bracket
 
-    finder_=rootFinder(                                  &
-         &             rootFunction     =fQuad         , &
-         &             solverType       =solverType    , &
-         &             toleranceAbsolute=0.0d0         , &
-         &             toleranceRelative=1.0d-7         &
+    finder_=rootFinder(                              &
+         &             rootFunction     =fQuad     , &
+         &             solverType       =solverType, &
+         &             toleranceAbsolute=0.0d0     , &
+         &             toleranceRelative=1.0d-7      &
          &            )
     bracket=[0.0d0,3.0d0]
 
@@ -351,22 +270,22 @@ contains
     \mono{rangeExpandAdditive} and \mono{rangeExpandUpward}=2 the upper
     bracket grows by 2 each step.
     !!}
-    type            (enumerationRangeExpandType), intent(in   )            :: expandType
-    character       (len=*                     ), intent(in   )            :: id        , description
-    type            (rootFinder                )                           :: finder_
-    integer         (kind=kind_int8            )                           :: countStart, countEnd
-    integer         (kind=kind_int8            ), dimension(trialCount)    :: trialTime
-    integer                                                                :: trial     , i
-    double precision                                                       :: acc       , root
+    type            (enumerationRangeExpandType), intent(in   )         :: expandType
+    character       (len=*                     ), intent(in   )         :: id        , description
+    type            (rootFinder                )                        :: finder_
+    integer         (kind=kind_int8            )                        :: countStart, countEnd
+    integer         (kind=kind_int8            ), dimension(trialCount) :: trialTime
+    integer                                                             :: trial     , i
+    double precision                                                    :: acc       , root
 
-    finder_=rootFinder(                                                          &
-         &             rootFunction                 =fFar                      , &
-         &             solverType                   =gsl_root_fsolver_brent    , &
-         &             toleranceAbsolute            =0.0d0                     , &
-         &             toleranceRelative            =1.0d-7                    , &
-         &             rangeExpandType              =expandType                , &
-         &             rangeExpandUpward            =2.0d0                     , &
-         &             rangeExpandDownward          =1.0d0                     , &
+    finder_=rootFinder(                                                             &
+         &             rootFunction                 =fFar                         , &
+         &             solverType                   =gsl_root_fsolver_brent       , &
+         &             toleranceAbsolute            =0.0d0                        , &
+         &             toleranceRelative            =1.0d-7                       , &
+         &             rangeExpandType              =expandType                   , &
+         &             rangeExpandUpward            =2.0d0                        , &
+         &             rangeExpandDownward          =1.0d0                        , &
          &             rangeExpandUpwardSignExpect  =rangeExpandSignExpectPositive, &
          &             rangeExpandDownwardSignExpect=rangeExpandSignExpectNegative  &
          &            )
@@ -406,14 +325,14 @@ contains
     integer                                                              :: trial     , i
     double precision                                                     :: acc       , root
 
-    finder_=rootFinder(                                          &
-         &             rootFunction          =fQuad            , &
-         &             rootFunctionDerivative=fQuadDerivative  , &
-         &             rootFunctionBoth      =fQuadBoth        , &
-         &             solverType            =solverType       , &
-         &             toleranceAbsolute     =0.0d0            , &
-         &             toleranceRelative     =1.0d-7           , &
-         &             stoppingCriterion     =stoppingCriterionDelta &
+    finder_=rootFinder(                                               &
+         &             rootFunction          =fQuad                 , &
+         &             rootFunctionDerivative=fQuadDerivative       , &
+         &             rootFunctionBoth      =fQuadBoth             , &
+         &             solverType            =solverType            , &
+         &             toleranceAbsolute     =0.0d0                 , &
+         &             toleranceRelative     =1.0d-7                , &
+         &             stoppingCriterion     =stoppingCriterionDelta  &
          &            )
 
     bmShift=shifts_(0)

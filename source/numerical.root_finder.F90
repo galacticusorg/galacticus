@@ -207,9 +207,9 @@ module Root_Finder
   ! List of currently active root finders. 'currentFinder' is a hot-path
   ! pointer into 'currentFinders' at the active depth; the GSL wrappers
   ! follow it on every callback instead of indexing the array each time.
-  integer                                            :: currentFinderIndex=0
-  type   (rootFinderList), allocatable, dimension(:), target :: currentFinders
-  type   (rootFinderList), pointer                   :: currentFinder     =>null()
+  integer                                                     :: currentFinderIndex =  0
+  type   (rootFinderList), allocatable, dimension(:), target  :: currentFinders
+  type   (rootFinderList)                           , pointer :: currentFinder      => null()
   !$omp threadprivate(currentFinders,currentFinderIndex,currentFinder)
 
   interface
@@ -721,9 +721,9 @@ contains
        end select
        if (.not.rangeLowerAsExpected) then
           if (present(status)) then
-             status            =errorStatusOutOfRange
+             status        =errorStatusOutOfRange
              call popCurrentFinder()
-             rootFinderFind    =self%rangeDownwardLimit
+             rootFinderFind=self%rangeDownwardLimit
              return
           else
              message='root function has incorrect sign at downward limit'
@@ -752,9 +752,9 @@ contains
        end select
        if (.not.rangeUpperAsExpected) then
           if (present(status)) then
-             status            =errorStatusOutOfRange
+             status        =errorStatusOutOfRange
              call popCurrentFinder()
-             rootFinderFind    =self%rangeUpwardLimit
+             rootFinderFind=self%rangeUpwardLimit
              return
           else
              message='root function has incorrect sign at upward limit'
