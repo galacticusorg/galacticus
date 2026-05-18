@@ -597,7 +597,8 @@ contains
     integer                                                                       :: iteration             , statusActual
     double precision                                                              :: xHigh                 , xLow                , xRoot               , &
          &                                                                           xRootPrevious         , fLow                , fHigh               , &
-         &                                                                           fDownwardLimit        , fUpwardLimit
+         &                                                                           fDownwardLimit        , fUpwardLimit                              , &
+         &                                                                           signExpectDown        , signExpectUp
     type            (varying_string      ), save                                  :: message
     !$omp threadprivate(message)
     character       (len= 30             )                                        :: label
@@ -784,24 +785,29 @@ contains
           fHigh=rootRangeValues(2)
        end if
        if (report_) call displayIndent("expanding range")
+       ! Encode the sign expectations as ±1/0 multipliers so the per-iteration test below collapses
+       ! to a single multiply + compare. "Negative" → -1, "positive" → +1, "none" → 0 (which makes
+       ! the product never exceed zero, matching the original .false. result for that case).
+       select case (self%rangeExpandDownwardSignExpect%ID)
+       case (rangeExpandSignExpectNegative%ID)
+          signExpectDown=-1.0d0
+       case (rangeExpandSignExpectPositive%ID)
+          signExpectDown=+1.0d0
+       case default
+          signExpectDown= 0.0d0
+       end select
+       select case (self%rangeExpandUpwardSignExpect%ID)
+       case (rangeExpandSignExpectNegative%ID)
+          signExpectUp  =-1.0d0
+       case (rangeExpandSignExpectPositive%ID)
+          signExpectUp  =+1.0d0
+       case default
+          signExpectUp  = 0.0d0
+       end select
        do while (sign(1.0d0,fLow)*sign(1.0d0,fHigh) > 0.0d0 .and. fLow /= 0.0d0 .and. fHigh /= 0.0d0)
-          rangeChanged=.false.
-          select case (self%rangeExpandDownwardSignExpect%ID)
-          case (rangeExpandSignExpectNegative%ID)
-             rangeLowerAsExpected=(fLow  < 0.0d0)
-          case (rangeExpandSignExpectPositive%ID)
-             rangeLowerAsExpected=(fLow  > 0.0d0)
-          case default
-             rangeLowerAsExpected=.false.
-          end select
-          select case (self%rangeExpandUpwardSignExpect  %ID)
-          case (rangeExpandSignExpectNegative%ID)
-             rangeUpperAsExpected=(fHigh < 0.0d0)
-          case (rangeExpandSignExpectPositive%ID)
-             rangeUpperAsExpected=(fHigh > 0.0d0)
-          case default
-             rangeUpperAsExpected=.false.
-          end select
+          rangeChanged        =.false.
+          rangeLowerAsExpected=(signExpectDown*fLow  > 0.0d0)
+          rangeUpperAsExpected=(signExpectUp  *fHigh > 0.0d0)
           if (report_) call reportState(includeExpectations=.true.)
           select case (self%rangeExpandType%ID)
           case (rangeExpandAdditive      %ID)
