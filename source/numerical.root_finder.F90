@@ -207,6 +207,15 @@ module Root_Finder
   ! List of currently active root finders. 'currentFinder' is a hot-path
   ! pointer into 'currentFinders' at the active depth; the GSL wrappers
   ! follow it on every callback instead of indexing the array each time.
+  !
+  ! Lifetime invariant for 'currentFinder': it is (re)bound on entry to
+  ! 'rootFinderFind' AFTER any growth of 'currentFinders' for this frame
+  ! has happened, and rebound by 'popCurrentFinder' from
+  ! 'currentFinders(currentFinderIndex)' on every exit (normal or early)
+  ! so that, after a recursive call that grew the array, the caller's
+  ! pointer is refreshed against the new array before control returns.
+  ! No other code path resizes 'currentFinders', so the pointer cannot
+  ! dangle for a frame that is currently using it.
   integer                                                     :: currentFinderIndex =  0
   type   (rootFinderList), allocatable, dimension(:), target  :: currentFinders
   type   (rootFinderList)                           , pointer :: currentFinder      => null()
@@ -623,6 +632,12 @@ contains
        allocate(currentFinders(findersIncrement))
     end if
     currentFinders(currentFinderIndex)%finder => self
+    ! Bind 'currentFinder' to the (now stable) array slot. Any growth of
+    ! 'currentFinders' for this frame has already happened in the block
+    ! above; no later code path in 'rootFinderFind' resizes the array, so
+    ! this pointer remains valid for the lifetime of this frame except
+    ! across recursive calls — where 'popCurrentFinder' re-derives it
+    ! from the (possibly grown) array before control returns here.
     currentFinder                             => currentFinders(currentFinderIndex)
     ! Initialize the root finder variables if necessary.
     if (self%useDerivative) then
@@ -1059,6 +1074,13 @@ contains
       Decrement the active-finder stack pointer and restore the
       module-level \mono{currentFinder} pointer to the parent's slot
       (or nullify it when the stack is empty).
+
+      The pointer is re-derived from \mono{currentFinders(currentFinderIndex)},
+      not restored from a saved value, so if the array was grown by the
+      child frame this routine is exiting from, the parent's
+      \mono{currentFinder} is rebound against the new array before
+      control returns to the parent. This is what keeps the pointer
+      from dangling across recursive root-finding calls.
       !!}
       implicit none
 
