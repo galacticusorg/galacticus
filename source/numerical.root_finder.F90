@@ -496,7 +496,13 @@ contains
        rootRangeValues=-huge(0.0d0)
     else
        rootRangeValues(1)=self%finderFunction(rootRange(1))
-       rootRangeValues(2)=self%finderFunction(rootRange(2))
+       if (rootRange(2) == rootRange(1)) then
+          ! Degenerate bracket (typical when dispatched from rootFinderFindGuess) — avoid the
+          ! redundant evaluation of the user function at the same point.
+          rootRangeValues(2)=rootRangeValues(1)
+       else
+          rootRangeValues(2)=self%finderFunction(rootRange(2))
+       end if
     end if
     rootFinderFindRange=self%find(rootRange,rootRangeValues,report,status)
     return
