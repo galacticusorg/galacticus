@@ -208,7 +208,7 @@ module Root_Finder
   ! pointer into 'currentFinders' at the active depth; the GSL wrappers
   ! follow it on every callback instead of indexing the array each time.
   integer                                            :: currentFinderIndex=0
-  type   (rootFinderList), allocatable, dimension(:) :: currentFinders
+  type   (rootFinderList), allocatable, dimension(:), target :: currentFinders
   type   (rootFinderList), pointer                   :: currentFinder     =>null()
   !$omp threadprivate(currentFinders,currentFinderIndex,currentFinder)
 
