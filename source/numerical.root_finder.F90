@@ -796,7 +796,7 @@ contains
           case default
              rangeUpperAsExpected=.false.
           end select
-          call reportState(includeExpectations=.true.)
+          if (report_) call reportState(includeExpectations=.true.)
           select case (self%rangeExpandType%ID)
           case (rangeExpandAdditive      %ID)
              if     (                                  &
@@ -957,7 +957,7 @@ contains
              end if
           end if
        end do
-       call reportState(includeExpectations=.false.)
+       if (report_) call reportState(includeExpectations=.false.)
        if (report_) call displayUnindent("done")
        ! Store the values of the function at the lower and upper extremes of the range.
        currentFinders(currentFinderIndex)%xLowInitial    =xLow
@@ -1046,12 +1046,12 @@ contains
 
     subroutine reportState(includeExpectations)
       !!{
-      Report on the state of the root finder.
+      Report on the state of the root finder. Callers must guard with
+      \mono{if (report\_)} — the routine itself no longer tests \mono{report\_}.
       !!}
       implicit none
       logical, intent(in   ) :: includeExpectations
-      
-      if (.not.report_) return
+
       write (label,'(e12.6,a2,e12.6)') xLow,", ",fLow
       message="xLow , fLow  = "//trim(label)
       if (includeExpectations .and. self%rangeExpandDownwardSignExpect /= rangeExpandSignExpectNone) then
