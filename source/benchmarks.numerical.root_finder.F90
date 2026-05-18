@@ -143,7 +143,7 @@ program Benchmark_Numerical_Root_Finder
        &                                                 gsl_root_fdfsolver_steffenson                               , &
        &                                                 rangeExpandMultiplicative    , rangeExpandAdditive          , &
        &                                                 rangeExpandSignExpectNegative, rangeExpandSignExpectPositive, &
-       &                                                 enumerationRangeExpandType
+       &                                                 enumerationRangeExpandType   , stoppingCriterionDelta
   implicit none
 
   ! Benchmark control.
@@ -412,7 +412,8 @@ contains
          &             rootFunctionBoth      =fQuadBoth        , &
          &             solverType            =solverType       , &
          &             toleranceAbsolute     =0.0d0            , &
-         &             toleranceRelative     =1.0d-7             &
+         &             toleranceRelative     =1.0d-7           , &
+         &             stoppingCriterion     =stoppingCriterionDelta &
          &            )
 
     bmShift=shifts_(0)
