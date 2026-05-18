@@ -16,7 +16,7 @@
   </componentDisk>
   <componentHotHalo value="null">
   </componentHotHalo>
-  <componentSatellite value="orbiting"/>
+  <componentSatellite value="null"/>
   <componentSpheroid value="null">
   </componentSpheroid>
   <componentSpin value="null"/>
