@@ -1120,6 +1120,29 @@ def satellite_bound_mass_initializor(input_doc, parameters, is_grid):
         parent.remove(init_type)
 
 
+def satellite_orbit_initializor(input_doc, parameters, is_grid):
+    """Move acceptUnboundOrbits from component to nodeOperator."""
+    accept_type_nodes = parameters.xpath(".//componentSatellite/acceptUnboundOrbits[@value]")
+    if len(accept_type_nodes) == 0:
+        return
+    for accept_type in accept_type_nodes:
+        parent = accept_type.getparent()
+        value = accept_type.get("value")
+        print(f"   translate special './/componentSatellite/acceptUnboundOrbits[@value=\"{value}\"]'")
+        # Remove the old node.
+        parent.remove(accept_type)
+        # Find the nodeOperator.
+        operator_nodes = parameters.xpath('//nodeOperator[@value="satelliteOrbit"]')
+        if len(operator_nodes) == 0:
+            raise RuntimeError('no nodeOperator[@value="satelliteOrbit"] exists')
+        for operator_node in operator_nodes:
+            # Create new acceptUnboundOrbits element.
+            new_elem = etree.Element("acceptUnboundOrbits")
+            new_elem.set("value", value)
+            # Insert new element.
+            operator_node.append(new_elem)
+
+
 def disk_very_simple_analytic_solver(input_doc, parameters, is_grid):
     """Migrate the legacy 'verySimple' disk analytic solver from the disk component to a nodeOperator."""
     disks = parameters.xpath(
@@ -1260,6 +1283,7 @@ SPECIAL_FUNCTIONS = {
     "hot_halo_standard_ram_pressure_stripping": hot_halo_standard_ram_pressure_stripping,
     "satellite_bound_mass_initializor": satellite_bound_mass_initializor,
     "disk_very_simple_analytic_solver": disk_very_simple_analytic_solver,
+    "satellite_orbit_initializor": satellite_orbit_initializor,
 }
 
 
