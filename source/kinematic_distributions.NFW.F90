@@ -188,10 +188,12 @@ contains
                    coefficient(7)=(-1271.0d0+2520.0d0*logRadius)/211680.0d0
                    coefficient(8)=(  341.0d0- 360.0d0*logRadius)/ 43200.0d0
                 end if
-                ! Evaluate the polynomial via Horner's method, avoiding the temporary radiusPower array and its build-up loop.
+                ! Evaluate the polynomial via Horner's method.
                 velocityDispersionSquare=coefficient(maximumExpansionOrder+1)
                 do i=maximumExpansionOrder,1,-1
-                   velocityDispersionSquare=velocityDispersionSquare*x+coefficient(i)
+                   velocityDispersionSquare=+velocityDispersionSquare    &
+                        &                   *x                           &
+                        &                   +coefficient             (i)
                 end do
              end if
           else

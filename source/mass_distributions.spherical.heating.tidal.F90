@@ -168,19 +168,19 @@ contains
     if (radius > 0.0d0) then
        call self%specificEnergyTerms(radius,massDistribution_,energyPerturbationFirstOrder,energyPerturbationSecondOrder,densityLogSlope,velocityDispersion1D)
        if (energyPerturbationSecondOrder > 0.0d0) then
-          energySpecificGradient=+(                                                                                                                                                                &
-               &                   +energyPerturbationFirstOrder *  2.0d0                                                                                                                          & !   dlog[r²    ]/dlog(r) term
-               &                   +energyPerturbationSecondOrder*(                                                                                                                                &
-               &                                                   -0.5d0                                                                                                                          & ! ⎧ dlog[σ_r(r)]/dlog[r] term
-               &                                                   *densityLogSlope                                                                                                                & ! ⎥
-               &                                                   -0.5d0                                                                                                                          & ! ⎥ Assumes the Jeans equation in
-               &                                                   *gravitationalConstant_internal                                                                                                 & ! ⎥ spherical symmetry with anisotropy
-               &                                                   *massDistribution_%massEnclosedBySphere                        (radius                                                     )    & ! ⎥ parameter β=0. Would be better to
-               &                                                   /                                                               radius                                                          & ! ⎥ have this provided by the
-               &                                                   /velocityDispersion1D                                                                                                       **2 & ! ⎩ darkMatterProfileDMO class.
-               &                                                   +1.0d0                                                                                                                          & !   dlog[r     ]/dlog(r) term
-               &                                                  )                                                                                                                                &
-               &                  )                                                                                                                                                                &
+          energySpecificGradient=+(                                                                                   &
+               &                   +energyPerturbationFirstOrder *  2.0d0                                             & !   dlog[r²    ]/dlog(r) term
+               &                   +energyPerturbationSecondOrder*(                                                   &
+               &                                                   -0.5d0                                             & ! ⎧ dlog[σ_r(r)]/dlog[r] term
+               &                                                   *densityLogSlope                                   & ! ⎥
+               &                                                   -0.5d0                                             & ! ⎥ Assumes the Jeans equation in
+               &                                                   *gravitationalConstant_internal                    & ! ⎥ spherical symmetry with anisotropy
+               &                                                   *massDistribution_%massEnclosedBySphere(radius)    & ! ⎥ parameter β=0. Would be better to
+               &                                                   /                                       radius     & ! ⎥ have this provided by the
+               &                                                   /velocityDispersion1D                          **2 & ! ⎩ darkMatterProfileDMO class.
+               &                                                   +1.0d0                                             & !   dlog[r     ]/dlog(r) term
+               &                                                  )                                                   &
+               &                  )                                                                                   &
                &                 /radius
        else
           energySpecificGradient=+  energyPerturbationFirstOrder *  2.0d0                                                                                                                          & !   dlog[r²    ]/dlog(r) term
