@@ -50,7 +50,11 @@
   <mergerTreeImporter name="mergerTreeImporterGalacticus">
     <description>
     A merger tree importer class which imports trees from an HDF5 file. HDF5 file should follow the general purpose format
-    described \href{https://github.com/galacticusorg/galacticus/wiki/Merger-Tree-File-Format}{here}.
+    described \href{https://github.com/galacticusorg/galacticus/wiki/Merger-Tree-File-Format}{here}. To generate HDF5 files
+    in this format from merger tree data produced by a variety of tree builders (e.g.\ \mono{Rockstar}/\mono{ConsistentTrees}),
+    the \mono{astrosylva} tool (\href{https://github.com/galacticusorg/astrosylva}{GitHub};
+    \href{https://pypi.org/project/astrosylva/}{PyPI};
+    \href{https://astrosylva.readthedocs.io/en/latest/}{documentation}) can be used.
     </description>
   </mergerTreeImporter>
   !!]
