@@ -430,27 +430,11 @@ contains
     !!{
     Act on a merger between nodes.
     !!}
-    use :: Galacticus_Nodes, only : nodeComponentSatellite
-    use :: Kepler_Orbits   , only : keplerOrbit
-    use :: Coordinates     , only : assignment(=)
     implicit none
-    class           (nodeOperatorSatelliteOrbit), intent(inout) :: self
-    type            (treeNode                  ), intent(inout) :: node
-    class           (nodeComponentSatellite    ), pointer       :: satellite
-    type            (keplerOrbit               )                :: orbit
-    double precision                            , dimension(3)  :: position , velocity
+    class(nodeOperatorSatelliteOrbit), intent(inout) :: self
+    type (treeNode                  ), intent(inout) :: node
 
-    if (.not.self%trackPreInfallOrbit  ) return
-    if (     node%isOnMainBranch     ()) return
     call subhaloOrbitInitialize(self,node)
-    satellite => node     %satellite  ()
-    orbit     =  satellite%virialOrbit()
-    if (orbit%isDefined()) then
-       position=orbit%position()
-       velocity=orbit%velocity()
-       call satellite%positionSet(position)
-       call satellite%velocitySet(velocity)
-    end if
     return
   end subroutine satelliteOrbitNodeMerge
 
