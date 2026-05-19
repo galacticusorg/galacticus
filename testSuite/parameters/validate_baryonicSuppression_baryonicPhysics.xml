@@ -70,16 +70,11 @@
     <!-- Halo concentrations -->
     <nodeOperator value="darkMatterProfileScaleSet"        />
     <nodeOperator value="darkMatterProfileScaleInterpolate"/>
-    <!-- Spins are computed using the angular momentum random walk model of Benson, Behrens, & Lu     -->
-    <!-- (2020; MNRAS; 496; 3371; http://adsabs.harvard.edu/abs/2020MNRAS.496.3371B).                 -->
-    <!-- The best fit-value for the mass exponent is taken from here                                  -->
-    <!-- https://github.com/galacticusorg/galacticus/wiki/Constraints:-Halo-spins-and-concentrations. -->
-    <!-- and is offset for fix to Keplerian orbit propagation                                         -->
-    <nodeOperator value="haloAngularMomentumVitvitska2002">
-      <exponentMass                    value="1.92527794238468"/>
-      <angularMomentumVarianceSpecific value="0.00100000000000"/>
-    </nodeOperator>
+    <nodeOperator value="haloAngularMomentumRandom"/>
     <nodeOperator value="haloAngularMomentumInterpolate"/>
+    <!-- Satellite evolution -->
+    <nodeOperator value="satelliteMergingTime"/>
+    <nodeOperator value="satelliteMassLoss"/>
     <!-- CGM physics -->
     <nodeOperator value="CGMAccretion">
       <allowNegativeCGMMass value="true"/>
