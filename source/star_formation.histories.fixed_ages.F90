@@ -749,7 +749,7 @@ contains
        times_=timesCrossing(1)+starFormationHistory%time
        times=pack(times_,times_ > 0.0d0)
     else
-       ! Truncation is now allowed - return all times.
+       ! Truncation is not allowed - return all times.
        allocate(times(self%countAges+1))
        times=timesCrossing(1)+starFormationHistory%time
     end if
