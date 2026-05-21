@@ -53,8 +53,7 @@
   </darkMatterProfile>
   
   <!-- Galaxy merger options -->
-  <mergerMassMovements value="simple">
-    <destinationGasMinorMerger value="disk"/>
+  <mergerMassMovements value="verySimple">
     <massRatioMajorMerger      value="2.0" />
   </mergerMassMovements>
   <mergerRemnantSize value="cole2000">
