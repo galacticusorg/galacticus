@@ -541,7 +541,7 @@ contains
             call file%readDataset(     'scaleLength'  ,self%accelerationScaleLength)
             call file%readDataset(     'acceleration' ,self%accelerationVector     )
             !$ call hdf5Access%unset()
-            call File_Unlock(fileLock)
+            call File_Unlock(fileLock,sync=.false.)
             exit
          else if (iLock == 1) then
             ! The table does not yet exist. Release the shared lock and retry under an exclusive lock so
