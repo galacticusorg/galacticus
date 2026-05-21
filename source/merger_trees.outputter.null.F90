@@ -61,29 +61,31 @@ contains
     return
   end function nullConstructorParameters
 
-  subroutine nullOutputTree(self,tree,indexOutput,time)
+  subroutine nullOutputTree(self,tree,indexOutput,time,outputType)
     !!{
     Perform no output.
     !!}
     implicit none
-    class           (mergerTreeOutputterNull), intent(inout)         :: self
-    type            (mergerTree             ), intent(inout), target :: tree
-    integer         (c_size_t               ), intent(in   )         :: indexOutput
-    double precision                         , intent(in   )         :: time
-    !$GLC attributes unused :: self, tree, indexOutput, time
+    class           (mergerTreeOutputterNull       ), intent(inout)           :: self
+    type            (mergerTree                    ), intent(inout), target   :: tree
+    integer         (c_size_t                      ), intent(in   )           :: indexOutput
+    double precision                                , intent(in   )           :: time
+    type            (enumerationOutputGroupTypeType), intent(in   ), optional :: outputType
+    !$GLC attributes unused :: self, tree, indexOutput, time, outputType
 
     return
   end subroutine nullOutputTree
 
-  subroutine nullOutputNode(self,node,indexOutput)
+  subroutine nullOutputNode(self,node,indexOutput,outputType)
     !!{
     Perform no output.
     !!}
     implicit none
-    class           (mergerTreeOutputterNull), intent(inout) :: self
-    type            (treeNode               ), intent(inout) :: node
-    integer         (c_size_t               ), intent(in   ) :: indexOutput
-    !$GLC attributes unused :: self, node, indexOutput
+    class  (mergerTreeOutputterNull       ), intent(inout)           :: self
+    type   (treeNode                      ), intent(inout)           :: node
+    integer(c_size_t                      ), intent(in   )           :: indexOutput
+    type   (enumerationOutputGroupTypeType), intent(in   ), optional :: outputType
+    !$GLC attributes unused :: self, node, indexOutput, outputType
 
     return
   end subroutine nullOutputNode

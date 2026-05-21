@@ -129,38 +129,40 @@ contains
     return
   end subroutine multiDestructor
 
-  subroutine multiOutputTree(self,tree,indexOutput,time)
+  subroutine multiOutputTree(self,tree,indexOutput,time,outputType)
     !!{
     Output from all outputters.
     !!}
     implicit none
-    class           (mergerTreeOutputterMulti), intent(inout)         :: self
-    type            (mergerTree              ), intent(inout), target :: tree
-    integer         (c_size_t                ), intent(in   )         :: indexOutput
-    double precision                          , intent(in   )         :: time
-    type            (multiOutputterList      ), pointer               :: outputter_
+    class           (mergerTreeOutputterMulti      ), intent(inout)           :: self
+    type            (mergerTree                    ), intent(inout), target   :: tree
+    integer         (c_size_t                      ), intent(in   )           :: indexOutput
+    double precision                                , intent(in   )           :: time
+    type            (enumerationOutputGroupTypeType), intent(in   ), optional :: outputType
+    type            (multiOutputterList            ), pointer                 :: outputter_
 
     outputter_ => self%outputters
     do while (associated(outputter_))
-       call outputter_%outputter_%outputTree(tree,indexOutput,time)
+       call outputter_%outputter_%outputTree(tree,indexOutput,time,outputType)
        outputter_ => outputter_%next
     end do
     return
   end subroutine multiOutputTree
 
-  subroutine multiOutputNode(self,node,indexOutput)
+  subroutine multiOutputNode(self,node,indexOutput,outputType)
     !!{
     Output from all outputters.
     !!}
     implicit none
-    class  (mergerTreeOutputterMulti), intent(inout) :: self
-    type   (treeNode                ), intent(inout) :: node
-    integer(c_size_t                ), intent(in   ) :: indexOutput
-    type   (multiOutputterList      ), pointer       :: outputter_
+    class  (mergerTreeOutputterMulti      ), intent(inout)           :: self
+    type   (treeNode                      ), intent(inout)           :: node
+    integer(c_size_t                      ), intent(in   )           :: indexOutput
+    type   (enumerationOutputGroupTypeType), intent(in   ), optional :: outputType
+    type   (multiOutputterList            ), pointer                 :: outputter_
 
     outputter_ => self%outputters
     do while (associated(outputter_))
-       call outputter_%outputter_%outputNode(node,indexOutput)
+       call outputter_%outputter_%outputNode(node,indexOutput,outputType)
        outputter_ => outputter_%next
     end do
     return

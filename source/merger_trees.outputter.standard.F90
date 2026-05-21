@@ -33,9 +33,10 @@
      !!{
      Type used for output group information.
      !!}
-     logical             :: doubleAttributesWritten, integerAttributesWritten, &
-          &                 opened
-     type   (hdf5Object) :: hdf5Group              , nodeDataGroup
+     logical                                 :: doubleAttributesWritten, integerAttributesWritten, &
+          &                                     opened
+     type   (hdf5Object                    ) :: hdf5Group              , nodeDataGroup
+     type   (enumerationOutputGroupTypeType) :: type_
    contains
      !![
      <methods>
@@ -225,7 +226,7 @@ contains
     return
   end subroutine standardDestructor
 
-  subroutine standardOutputTree(self,tree,indexOutput,time)
+  subroutine standardOutputTree(self,tree,indexOutput,time,outputType)
     !!{
     Write properties of nodes in \mono{tree} to the \glc\ output file.
     !!}
@@ -236,20 +237,24 @@ contains
     use, intrinsic :: ISO_C_Binding      , only : c_size_t
     use            :: Merger_Tree_Walkers, only : mergerTreeWalkerAllNodes
     implicit none
-    class           (mergerTreeOutputterStandard), intent(inout)          :: self
-    type            (mergerTree                 ), intent(inout), target  :: tree
-    integer         (c_size_t                   ), intent(in   )          :: indexOutput
-    double precision                             , intent(in   )          :: time
-    type            (treeNode                   )               , pointer :: node
-    integer         (kind=hsize_t               ), dimension(1)           :: referenceLength , referenceStart
-    class           (nodeComponentBasic         )               , pointer :: basic
-    type            (mergerTree                 )               , pointer :: currentTree
-    type            (mergerTreeWalkerAllNodes   )                         :: treeWalker
-    integer                                                               :: iProperty
-    type            (hdf5Object                 )                         :: toDataset
-
+    class           (mergerTreeOutputterStandard   ), intent(inout)           :: self
+    type            (mergerTree                    ), intent(inout), target   :: tree
+    integer         (c_size_t                      ), intent(in   )           :: indexOutput
+    double precision                                , intent(in   )           :: time
+    type            (enumerationOutputGroupTypeType), intent(in   ), optional :: outputType
+    type            (treeNode                      )               , pointer  :: node
+    integer         (kind=hsize_t                  ), dimension(1)            :: referenceLength , referenceStart
+    class           (nodeComponentBasic            )               , pointer  :: basic
+    type            (mergerTree                    )               , pointer  :: currentTree
+    type            (mergerTreeWalkerAllNodes      )                          :: treeWalker
+    integer                                                                   :: iProperty
+    type            (hdf5Object                    )                          :: toDataset
+    !![
+    <optionalArgument name="outputType" defaultsTo="outputGroupTypeTree"/>
+    !!]
+    
     ! Create an output group.
-    call self%outputGroupCreate(indexOutput,time)
+    call self%outputGroupCreate(indexOutput,time,outputType_)
     ! Iterate over trees.
     currentTree => tree
     do while (associated(currentTree))
@@ -333,20 +338,24 @@ contains
     return
   end subroutine standardOutputTree
 
-  subroutine standardOutputNode(self,node,indexOutput)
+  subroutine standardOutputNode(self,node,indexOutput,outputType)
     !!{
     Output a single node.
     !!}
     use :: Galacticus_Nodes, only : nodeComponentBasic
     implicit none
-    class  (mergerTreeOutputterStandard), intent(inout) :: self
-    type   (treeNode                   ), intent(inout) :: node
-    integer(c_size_t                   ), intent(in   ) :: indexOutput
-    class  (nodeComponentBasic         ), pointer       :: basic
-    
+    class  (mergerTreeOutputterStandard   ), intent(inout)           :: self
+    type   (treeNode                      ), intent(inout)           :: node
+    integer(c_size_t                      ), intent(in   )           :: indexOutput
+    type   (enumerationOutputGroupTypeType), intent(in   ), optional :: outputType
+    class  (nodeComponentBasic            ), pointer                 :: basic
+    !![
+    <optionalArgument name="outputType" defaultsTo="outputGroupTypeNode"/>
+    !!]
+
     ! Create an output group.
     basic => node%basic()
-    call self%outputGroupCreate(indexOutput,basic%time())
+    call self%outputGroupCreate(indexOutput,basic%time(),outputType_)
     ! Initialize output buffers.
     ! Count up the number of properties to be output.
     call self%propertiesCount       (basic%time(),node)
@@ -1212,7 +1221,7 @@ contains
     return
   end subroutine standardPropertyNamesEstablish
 
-  subroutine standardOutputGroupCreate(self,indexOutput,time)
+  subroutine standardOutputGroupCreate(self,indexOutput,time,outputType)
     !!{
     Create a group in which to store this output.
     !!}
@@ -1222,13 +1231,14 @@ contains
     use            :: Numerical_Constants_Astronomical, only : gigaYear    , megaParsec
     use            :: String_Handling                 , only : operator(//)
     implicit none
-    class           (mergerTreeOutputterStandard), intent(inout)               :: self
-    integer         (c_size_t                   ), intent(in   )               :: indexOutput
-    double precision                             , intent(in   )               :: time
-    type            (outputGroup                ), allocatable  , dimension(:) :: outputGroupsTemporary
-    type            (varying_string             )                              :: description          , groupName
-    double precision                                                           :: expansionFactor      , distanceComoving
-    integer                                                                    :: i
+    class           (mergerTreeOutputterStandard   ), intent(inout)               :: self
+    integer         (c_size_t                      ), intent(in   )               :: indexOutput
+    double precision                                , intent(in   )               :: time
+    type            (enumerationOutputGroupTypeType), intent(in   ), optional     :: outputType
+    type            (outputGroup                   ), allocatable  , dimension(:) :: outputGroupsTemporary
+    type            (varying_string                )                              :: description          , groupName
+    double precision                                                              :: expansionFactor      , distanceComoving
+    integer                                                                       :: i
     
     !$ call hdf5Access%set()
     ! Ensure group ID space is large enough.
@@ -1283,6 +1293,8 @@ contains
        self%outputGroups(indexOutput)%opened                  =.true.
        self%outputGroups(indexOutput)%integerAttributesWritten=.false.
        self%outputGroups(indexOutput)%doubleAttributesWritten =.false.
+       ! Record the "type" of output for this group.
+       call self%outputGroups(indexOutput)%hdf5Group%writeAttribute(enumerationOutputGroupTypeDecode(outputType,includePrefix=.false.),'outputType')
        ! Add the time to this group.
        expansionFactor    =+self%cosmologyFunctions_%expansionFactor (time)
        if (expansionFactor > 1.0d0) then
