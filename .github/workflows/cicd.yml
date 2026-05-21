@@ -68,6 +68,9 @@ jobs:
           echo "GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
           echo "GALACTICUS_FCFLAGS=$GALACTICUS_FCFLAGS -static" >> $GITHUB_ENV
           echo "DEBIAN_FRONTEND=noninteractive" >> $GITHUB_ENV
+      - name: "Install build profiling tools"
+        # GNU `time` provides the per-task peak memory measurements used by the build profiler.
+        run: apt-get install --yes time || { apt-get update && apt-get install --yes time ; }
       - name: Build the code
         run: |
           cd $GALACTICUS_EXEC_PATH
