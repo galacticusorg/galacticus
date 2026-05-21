@@ -848,11 +848,10 @@ contains
     disk => node%disk()
     select type (disk)
     class is (nodeComponentDiskStandard)
-       spheroid => node%spheroid()
+       spheroid => node    %spheroid  (                 )
        ! Find the node to merge with.
-       nodeHost     => node%mergesWith  (                 )
-       diskHost     => nodeHost%disk    (autoCreate=.true.)
-       spheroidHost => nodeHost%spheroid(autoCreate=.true.)
+       nodeHost => node    %mergesWith(                 )
+       diskHost => nodeHost%disk      (autoCreate=.true.)
        ! Get specific angular momentum of the disk material.
        if (                                               disk%massGas()+disk%massStellar() > 0.0d0) then
           specificAngularMomentum=disk%angularMomentum()/(disk%massGas()+disk%massStellar())
@@ -861,6 +860,12 @@ contains
        end if
        ! Get mass movement descriptors.
        call mergerMassMovements_%get(node,destinationGasSatellite,destinationStarsSatellite,destinationGasHost,destinationStarsHost,mergerIsMajor)
+       ! Get the host spheroid component if needed (creating it if needed).
+       if     (                                                              &
+            &   destinationGasSatellite  %ID == destinationMergerSpheroid%ID &
+            &  .or.                                                          &
+            &   destinationStarsSatellite%ID == destinationMergerSpheroid%ID &
+            & ) spheroidHost => nodeHost%spheroid(autoCreate=.true.)
        ! Move the gas component of the standard disk to the host.
        select case (destinationGasSatellite%ID)
        case (destinationMergerDisk%ID)
