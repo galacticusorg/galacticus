@@ -83,8 +83,8 @@ sfrMaximum  = np.max(properties['galaxyMergerTreeTotalStarFormationRate'])
 sizeScale = 300.0
 
 # Iterate over branches.
-for indexBranch in range(len(properties['galaxyMergerTreeCount'])):
-    for indexNode in range(indexStart[indexBranch],indexEnd[indexBranch]):
+for branch_start, branch_end in zip(indexStart, indexEnd):
+    for indexNode in range(branch_start, branch_end):
         # Determine a color for this node based no its star formation rate.
         nodeColor = colors[int((countColors-1)*properties['galaxyMergerTreeTotalStarFormationRate'][indexNode]/sfrMaximum)]
         # Determine a size for the node based on its mass.
@@ -96,7 +96,7 @@ for indexBranch in range(len(properties['galaxyMergerTreeCount'])):
         nodesSize  = np.append(nodesSize ,nodeSize                                     )
         nodesColor.append(nodeColor)
         # Add an edge (except for the final node in the branch) connecting to the next node.
-        if indexNode < indexEnd[indexBranch]-1:
+        if indexNode < branch_end-1:
             edges.append((countNodes,countNodes+1))
         # Increment the count of nodes.
         countNodes += 1
@@ -106,13 +106,13 @@ xOffsetMerger = 0.05
 
 # Iterate over mergers in order of decreasing time.
 order = np.flip(np.argsort(properties['galaxyMergerTreeMergeTime']))
-for indexMerger in range(len(order)):
+for orderIndex in order:
     # Find the nodes participating in this merger.
-    indexSatellite = np.nonzero(properties['galaxyMergerTreeNodeIndex'] == properties['galaxyMergerTreeMergeSatelliteIndex'][order[indexMerger]])[0][0]
-    indexCentral   = np.nonzero(properties['galaxyMergerTreeNodeIndex'] == properties['galaxyMergerTreeMergeCentralIndex'  ][order[indexMerger]])[0][0]
+    indexSatellite = np.nonzero(properties['galaxyMergerTreeNodeIndex'] == properties['galaxyMergerTreeMergeSatelliteIndex'][orderIndex])[0][0]
+    indexCentral   = np.nonzero(properties['galaxyMergerTreeNodeIndex'] == properties['galaxyMergerTreeMergeCentralIndex'  ][orderIndex])[0][0]
     # Find the corresponding branches for these nodes. For the central we find just the final node in the branch.
     branchSatellite  = (indexNodes < indexEnd[indexSatellite]) & (indexNodes >= indexStart[indexSatellite])
-    branchCentralEnd = (indexNodes < indexEnd[indexCentral  ]) & (indexNodes >= indexStart[indexCentral  ]) & (properties['galaxyMergerTreeTime'] == properties['galaxyMergerTreeMergeTime'][order[indexMerger]])
+    branchCentralEnd = (indexNodes < indexEnd[indexCentral  ]) & (indexNodes >= indexStart[indexCentral  ]) & (properties['galaxyMergerTreeTime'] == properties['galaxyMergerTreeMergeTime'][orderIndex])
     # Determine the amount by which to shift the satellite branch in the x-direction.
     xShift = (properties['galaxyMergerTreeMassStellarTotal'][branchSatellite][-1]/massMaximum)**(1.0/2.0)
     # Find all othr nodes that must be shift to make space for this branch.
@@ -128,9 +128,9 @@ for indexMerger in range(len(order)):
 plt.rcParams['font.size'] = 18
 fig, ax = plt.subplots(figsize=(10,15))
 # Iterate over edges, drawing lines between the connected nodes.
-for indexEdge in range(len(edges)):
-    edgeX = (nodesX[edges[indexEdge][0]],nodesX[edges[indexEdge][1]])
-    edgeY = (nodesY[edges[indexEdge][0]],nodesY[edges[indexEdge][1]])
+for src, dst in edges:
+    edgeX = (nodesX[src], nodesX[dst])
+    edgeY = (nodesY[src], nodesY[dst])
     ax.plot(edgeX,edgeY,marker='',linestyle='-',color='#aaaaaa',zorder=10)
 # Add points showing the nodes.
 ax.scatter(nodesX,nodesY,nodesSize,zorder=20,color=nodesColor)

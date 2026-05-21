@@ -3,7 +3,7 @@
 
 Andrew Benson 25-Mar-2012 (original Perl); Python port 2026.
 
-Usage: Extract_Contributors.py <galacticusDir> <outputFile>
+Usage: extractContributors.py <galacticusDir> <outputFile>
 """
 
 import os
@@ -12,9 +12,7 @@ import sys
 from collections import defaultdict
 from pathlib import Path
 
-_exec_path = os.environ.get('GALACTICUS_EXEC_PATH', os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..')))
-sys.path.insert(0, os.path.join(_exec_path, 'python'))
-from latex_utils import latex_encode  # noqa: E402
+from latex_utils import latex_encode
 
 # Mapping of accented/special characters to their LaTeX equivalents.
 ACCENT_MAP = {
@@ -85,7 +83,7 @@ def scan_file(file_path, marker_re, contributions, key):
 def main():
     if len(sys.argv) != 3:
         print(
-            'Usage: Extract_Contributors.py <galacticusDir> <outputFile>',
+            'Usage: extractContributors.py <galacticusDir> <outputFile>',
             file=sys.stderr,
         )
         sys.exit(1)

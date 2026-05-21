@@ -53,7 +53,6 @@ module Node_Component_Hot_Halo_Standard
    <class>hotHalo</class>
    <name>standard</name>
    <isDefault>true</isDefault>
-   <createFunction isDeferred="true" />
    <properties>
     <property>
       <name>isInitialized</name>
@@ -66,56 +65,56 @@ module Node_Component_Hot_Halo_Standard
       <type>double</type>
       <rank>0</rank>
       <attributes isSettable="true" isGettable="true" isEvolvable="true" createIfNeeded="true" isNonNegative="true" />
-      <output unitsInSI="massSolar" comment="Mass of gas in the hot halo."/>
+      <output unitsInSI="massSolar" unitsDescription="Solar masses" unitsQuantity="solMass" comment="Mass of gas in the hot halo."/>
     </property>
     <property>
       <name>abundances</name>
       <type>abundances</type>
       <rank>0</rank>
       <attributes isSettable="true" isGettable="true" isEvolvable="true" createIfNeeded="true" isNonNegative="true" />
-      <output unitsInSI="massSolar" comment="Mass of metals in the hot phase of the hot halo."/>
+      <output unitsInSI="massSolar" unitsDescription="Solar masses" unitsQuantity="solMass" comment="Mass of metals in the hot phase of the hot halo."/>
     </property>
     <property>
       <name>chemicals</name>
       <type>chemicalAbundances</type>
       <rank>0</rank>
       <attributes isSettable="true" isGettable="true" isEvolvable="true" createIfNeeded="true" isNonNegative="true" />
-      <output unitsInSI="massSolar" comment="Mass of chemicals in the hot phase of the hot halo."/>
+      <output unitsInSI="massSolar" unitsDescription="Solar masses" unitsQuantity="solMass" comment="Mass of chemicals in the hot phase of the hot halo."/>
     </property>
     <property>
       <name>angularMomentum</name>
       <type>double</type>
       <rank>0</rank>
       <attributes isSettable="true" isGettable="true" isEvolvable="true" createIfNeeded="true" isNonNegative="true" />
-      <output unitsInSI="massSolar*megaParsec*kilo" comment="Angular momentum of gas in the hot halo."/>
+      <output unitsInSI="massSolar*megaParsec*kilo" unitsDescription="Msun Mpc km/s" unitsQuantity="solMass Mpc km/s" comment="Angular momentum of gas in the hot halo."/>
     </property>
     <property>
       <name>outflowedMass</name>
       <type>double</type>
       <rank>0</rank>
       <attributes isSettable="true" isGettable="true" isEvolvable="true" isNonNegative="true" />
-      <output unitsInSI="massSolar" comment="Mass of outflowed gas in the hot halo."/>
+      <output unitsInSI="massSolar" unitsDescription="Solar masses" unitsQuantity="solMass" comment="Mass of outflowed gas in the hot halo."/>
     </property>
     <property>
       <name>outflowedAngularMomentum</name>
       <type>double</type>
       <rank>0</rank>
       <attributes isSettable="true" isGettable="true" isEvolvable="true" isNonNegative="true" />
-      <output unitsInSI="massSolar*megaParsec*kilo" comment="Angular momentum of outflowed gas in the hot halo."/>
+      <output unitsInSI="massSolar*megaParsec*kilo" unitsDescription="Msun Mpc km/s" unitsQuantity="solMass Mpc km/s" comment="Angular momentum of outflowed gas in the hot halo."/>
     </property>
     <property>
       <name>outflowedAbundances</name>
       <type>abundances</type>
       <rank>0</rank>
       <attributes isSettable="true" isGettable="true" isEvolvable="true" isNonNegative="true" />
-      <output unitsInSI="massSolar" comment="Mass of metals in the outflowed phase of the hot halo."/>
+      <output unitsInSI="massSolar" unitsDescription="Solar masses" unitsQuantity="solMass" comment="Mass of metals in the outflowed phase of the hot halo."/>
     </property>
     <property>
       <name>outflowedChemicals</name>
       <type>chemicalAbundances</type>
       <rank>0</rank>
       <attributes isSettable="true" isGettable="true" isEvolvable="true" isNonNegative="true" />
-      <output unitsInSI="massSolar" comment="Mass of chemicals in the outflowed phase of the hot halo."/>
+      <output unitsInSI="massSolar" unitsDescription="Solar masses" unitsQuantity="solMass" comment="Mass of chemicals in the outflowed phase of the hot halo."/>
     </property>
     <property>
       <name>outflowingMass</name>
@@ -140,21 +139,21 @@ module Node_Component_Hot_Halo_Standard
       <type>double</type>
       <rank>0</rank>
       <attributes isSettable="true" isGettable="true" isEvolvable="true" createIfNeeded="true" isNonNegative="true" />
-      <output unitsInSI="massSolar" comment="Mass of gas that failed to accrete into the hot halo."/>
+      <output unitsInSI="massSolar" unitsDescription="Solar masses" unitsQuantity="solMass" comment="Mass of gas that failed to accrete into the hot halo."/>
     </property>
     <property>
       <name>unaccretedAbundances</name>
       <type>abundances</type>
       <rank>0</rank>
       <attributes isSettable="true" isGettable="true" isEvolvable="true" createIfNeeded="true" isNonNegative="true" />
-      <output unitsInSI="massSolar" comment="Mass of metals that failed to accrete into the hot halo."/>
+      <output unitsInSI="massSolar" unitsDescription="Solar masses" unitsQuantity="solMass" comment="Mass of metals that failed to accrete into the hot halo."/>
     </property>
     <property>
       <name>outerRadius</name>
       <type>double</type>
       <rank>0</rank>
       <attributes isSettable="true" isGettable="true" isEvolvable="true" isDeferred="get" isNonNegative="true" />
-      <output unitsInSI="megaParsec" comment="Outer radius of the hot halo."/>
+      <output unitsInSI="megaParsec" unitsDescription="Mpc" unitsQuantity="Mpc" comment="Outer radius of the hot halo."/>
     </property>
     <property>
       <name>strippedMass</name>
@@ -325,8 +324,6 @@ contains
        call hotHalo%           outflowingMassRateFunction(Node_Component_Hot_Halo_Standard_Outflowing_Mass_Rate      )
        call hotHalo%outflowingAngularMomentumRateFunction(Node_Component_Hot_Halo_Standard_Outflowing_Ang_Mom_Rate   )
        call hotHalo%     outflowingAbundancesRateFunction(Node_Component_Hot_Halo_Standard_Outflowing_Abundances_Rate)
-       ! Bind a creation function.
-       call hotHalo%                    createFunctionSet(Node_Component_Hot_Halo_Standard_Initializor               )
        ! Bind the mass distribution function.
        Node_Component_Hot_Halo_Standard_Mass_Distribution_ => Node_Component_Hot_Halo_Standard_Mass_Distribution
        call hotHalo%             massDistributionFunction(Node_Component_Hot_Halo_Standard_Mass_Distribution_        )

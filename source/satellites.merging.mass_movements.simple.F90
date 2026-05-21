@@ -139,7 +139,7 @@ contains
 
   subroutine simpleDestructor(self)
     !!{
-    Destructor for the \refClass{mergerMassMovementsSimple} satellite merger mass movements class
+    Destructor for the \refClass{mergerMassMovementsSimple} merger mass movements class
     !!}
     use :: Events_Hooks, only : calculationResetEvent, satelliteMergerEvent
     implicit none

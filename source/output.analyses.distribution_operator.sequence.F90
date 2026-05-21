@@ -52,7 +52,7 @@ Implements a sequence output analysis distribution operator class.
 
   interface outputAnalysisDistributionOperatorSequence
      !!{
-     Constructors for the \refClass{outputAnalysisDistributionOperatorSequence} output analysis class.
+     Constructors for the \refClass{outputAnalysisDistributionOperatorSequence} output analysis distribution operator class.
      !!}
      module procedure sequenceConstructorParameters
      module procedure sequenceConstructorInternal

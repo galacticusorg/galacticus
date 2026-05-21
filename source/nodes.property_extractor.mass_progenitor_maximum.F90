@@ -36,11 +36,12 @@
      procedure :: name        => massProgenitorMaximumName
      procedure :: description => massProgenitorMaximumDescription
      procedure :: unitsInSI   => massProgenitorMaximumUnitsInSI
+     procedure :: units       => massProgenitorMaximumUnits
   end type nodePropertyExtractorMassProgenitorMaximum
 
   interface nodePropertyExtractorMassProgenitorMaximum
      !!{
-     Constructors for the \refClass{nodePropertyExtractorMassProgenitorMaximum} output extractor class.
+     Constructors for the \refClass{nodePropertyExtractorMassProgenitorMaximum} property extractor class.
      !!}
      module procedure massProgenitorMaximumConstructorParameters
      module procedure massProgenitorMaximumConstructorInternal
@@ -66,7 +67,7 @@ contains
 
   function massProgenitorMaximumConstructorInternal() result(self)
     !!{
-    Internal constructor for the \refClass{nodePropertyExtractorMassProgenitorMaximum} output extractor property extractor class.
+    Internal constructor for the \refClass{nodePropertyExtractorMassProgenitorMaximum} property extractor class.
     !!}
     use :: Galacticus_Nodes, only : defaultBasicComponent
     implicit none
@@ -133,3 +134,16 @@ contains
     massProgenitorMaximumUnitsInSI=massSolar
     return
   end function massProgenitorMaximumUnitsInSI
+
+  function massProgenitorMaximumUnits(self) result(units)
+    !!{
+    Return the units of the massProgenitorMaximum property.
+    !!}
+    use :: Units_MetaData, only : unitType
+    implicit none
+    type (unitType                                  )                :: units
+    class(nodePropertyExtractorMassProgenitorMaximum), intent(inout) :: self
+
+    units=unitType(self%unitsInSI(),description='Solar masses',quantity='solMass')
+    return
+  end function massProgenitorMaximumUnits

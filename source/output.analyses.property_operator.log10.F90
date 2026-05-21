@@ -37,7 +37,7 @@ Implements an log10 output analysis property operator class.
 
   interface outputAnalysisPropertyOperatorLog10
      !!{
-     Constructors for the \refClass{outputAnalysisPropertyOperatorLog10} output analysis class.
+     Constructors for the \refClass{outputAnalysisPropertyOperatorLog10} output analysis property operator class.
      !!}
      module procedure log10ConstructorParameters
   end interface outputAnalysisPropertyOperatorLog10

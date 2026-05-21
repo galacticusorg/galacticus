@@ -40,11 +40,12 @@ Implements a property extractor class that extracts the redshift at which a \gls
      procedure :: name        => redshiftLastIsolatedName
      procedure :: description => redshiftLastIsolatedDescription
      procedure :: unitsInSI   => redshiftLastIsolatedUnitsInSI
+     procedure :: units       => redshiftLastIsolatedUnits
   end type nodePropertyExtractorRedshiftLastIsolated
 
   interface nodePropertyExtractorRedshiftLastIsolated
      !!{
-     Constructors for the \refClass{nodePropertyExtractorRedshiftLastIsolated} output analysis class.
+     Constructors for the \refClass{nodePropertyExtractorRedshiftLastIsolated} property extractor class.
      !!}
      module procedure redshiftLastIsolatedConstructorParameters
      module procedure redshiftLastIsolatedConstructorInternal
@@ -155,7 +156,20 @@ contains
     class(nodePropertyExtractorRedshiftLastIsolated), intent(inout) :: self
     !$GLC attributes unused :: self
 
-    redshiftLastIsolatedUnitsInSI=0.0d0
+    redshiftLastIsolatedUnitsInSI=1.0d0
     return
   end function redshiftLastIsolatedUnitsInSI
 
+  function redshiftLastIsolatedUnits(self) result(units)
+    !!{
+    Return the units of the redshiftLastIsolated property.
+    !!}
+    use :: Units_MetaData, only : unitType
+    implicit none
+    type (unitType                                 )                :: units
+    class(nodePropertyExtractorRedshiftLastIsolated), intent(inout) :: self
+    !$GLC attributes unused :: self
+
+    units=unitType(1.0d0)
+    return
+  end function redshiftLastIsolatedUnits

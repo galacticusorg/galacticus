@@ -63,7 +63,7 @@
   
   interface darkMatterProfileScaleRadiusRandomWalk
      !!{
-     Constructors for the \refClass{darkMatterProfileScaleRadiusRandomWalk} node operator class.
+     Constructors for the \refClass{darkMatterProfileScaleRadiusRandomWalk} dark matter halo profile scale radius class.
      !!}
      module procedure darkMatterProfileScaleRandomWalkConstructorParameters
      module procedure darkMatterProfileScaleRandomWalkConstructorInternal
@@ -80,7 +80,7 @@ contains
   
   function darkMatterProfileScaleRandomWalkConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the \refClass{darkMatterProfileScaleRadiusRandomWalk} dark matter profile scale radius class which
+    Constructor for the \refClass{darkMatterProfileScaleRadiusRandomWalk} dark matter halo profile scale radius class which
     takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
@@ -115,7 +115,7 @@ contains
 
   function darkMatterProfileScaleRandomWalkConstructorInternal(energyVarianceSpecific,darkMatterProfileScaleRadius_,darkMatterProfileDMO_,darkMatterHaloScale_) result(self)
     !!{
-    Internal constructor for the \refClass{darkMatterProfileScaleRadiusRandomWalk} dark matter profile scale radius class.
+    Internal constructor for the \refClass{darkMatterProfileScaleRadiusRandomWalk} dark matter halo profile scale radius class.
     !!}
     implicit none
     type            (darkMatterProfileScaleRadiusRandomWalk)                        :: self
@@ -157,11 +157,13 @@ contains
     class           (darkMatterProfileScaleRadiusRandomWalk), intent(inout), target  :: self
     type            (treeNode                              ), intent(inout), target  :: node
     class           (nodeComponentDarkMatterProfile        )               , pointer :: darkMatterProfileChild
-    class           (nodeComponentBasic                    )               , pointer :: basic                 , basicChild
-    class           (massDistributionClass                 )               , pointer :: massDistribution_     , massDistributionChild_
-    type            (rootFinder                            )                         :: finder
-    double precision                                                                 :: energyPerturbation    , radiusScaleOriginal   , &
-         &                                                                              energyScaleChild      , energyScale           , &
+    class           (nodeComponentBasic                    )               , pointer :: basic                         , basicChild
+    class           (massDistributionClass                 )               , pointer :: massDistribution_             , massDistributionChild_
+    type            (rootFinder                            ), save                   :: finder
+    logical                                                 , save                   :: finderConstructed     =.false.
+    !$omp threadprivate(finder,finderConstructed)
+    double precision                                                                 :: energyPerturbation            , radiusScaleOriginal   , &
+         &                                                                              energyScaleChild              , energyScale           , &
          &                                                                              radiusVirialChild
 
     ! Set the scale radius to that given by the lower level scale radius class.
@@ -205,16 +207,19 @@ contains
                &              *node%hostTree%randomNumberGenerator_%standardNormalSample()
        end if
        ! Solve for the new scale radius that gives us this energy.
-       finder=rootFinder(                                                             &
-            &            rootFunction                 =energyRoot                   , &
-            &            toleranceAbsolute            =1.0d-6                       , &
-            &            toleranceRelative            =1.0d-6                       , &
-            &            rangeExpandUpward            =2.0d+0                       , &
-            &            rangeExpandDownward          =0.5d+0                       , &
-            &            rangeExpandType              =rangeExpandMultiplicative    , &
-            &            rangeExpandUpwardSignExpect  =rangeExpandSignExpectPositive, &
-            &            rangeExpandDownwardSignExpect=rangeExpandSignExpectNegative  &
-            &           )
+       if (.not.finderConstructed) then 
+          finder=rootFinder(                                                             &
+               &            rootFunction                 =energyRoot                   , &
+               &            toleranceAbsolute            =1.0d-6                       , &
+               &            toleranceRelative            =1.0d-6                       , &
+               &            rangeExpandUpward            =2.0d+0                       , &
+               &            rangeExpandDownward          =0.5d+0                       , &
+               &            rangeExpandType              =rangeExpandMultiplicative    , &
+               &            rangeExpandUpwardSignExpect  =rangeExpandSignExpectPositive, &
+               &            rangeExpandDownwardSignExpect=rangeExpandSignExpectNegative  &
+               &           )
+          finderConstructed=.true.
+       end if
        self_               =>  self
        node_               =>  node
        darkMatterProfile_  =>  node                                   %darkMatterProfile (autoCreate=.true.                    )

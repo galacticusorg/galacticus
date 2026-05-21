@@ -90,7 +90,7 @@ contains
 
   function stateRestoredConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the \refClass{mergerTreeConstructorStateRestored} merger tree operator class which takes a parameter set as input.
+    Constructor for the \refClass{mergerTreeConstructorStateRestored} merger tree constructor class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -121,7 +121,7 @@ contains
 
   function stateRestoredConstructorInternal(fileName,randomNumberGenerator_,mergerTreeSeeds_) result(self)
     !!{
-    Internal constructor for the \refClass{mergerTreeConstructorStateRestored} merger tree operator class.
+    Internal constructor for the \refClass{mergerTreeConstructorStateRestored} merger tree constructor class.
     !!}
     implicit none
     type (mergerTreeConstructorStateRestored)                        :: self

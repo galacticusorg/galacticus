@@ -5,9 +5,8 @@
   <formatVersion>2</formatVersion>
   <lastModified revision="61711340399619cdd6d89322db6e90ce228d3d93" time="2026-04-14T18:10:17"/>
 
-
   <simulation ignoreWarnings="true">
-    <massParticle value="=1.2e9/([cosmologyParameters::HubbleConstant]/100.0)" ignoreWarnings="true"/>
+    <massParticle value="=1.2e9/([cosmologyParameters/HubbleConstant]/100.0)" ignoreWarnings="true"/>
   </simulation>
 
 </parameters>

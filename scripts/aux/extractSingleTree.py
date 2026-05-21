@@ -93,10 +93,10 @@ if "particleIndexStart" in fromFile[halosName]:
     particleIndexStart = fromFile[halosName]['particleIndexStart'][start[0]:end[0]]
     particleIndexCount = fromFile[halosName]['particleIndexCount'][start[0]:end[0]]
     indices = set()
-    for i in range(len(particleIndexStart)):
-        if particleIndexStart[i] < 0:
+    for start_idx, count in zip(particleIndexStart, particleIndexCount):
+        if start_idx < 0:
             continue
-        indices.update(list(range(particleIndexStart[i],particleIndexStart[i]+particleIndexCount[i]+1)))
+        indices.update(list(range(start_idx, start_idx + count + 1)))
     indices = np.sort(np.array(list(indices)))
     toFile.create_group("particles")
     for name, h5obj in fromFile['particles'].items():
@@ -106,10 +106,10 @@ if "particleIndexStart" in fromFile[halosName]:
         dataset = fromFile['particles'][name][indices]
         toFile["particles"].create_dataset(name,data=dataset)
     particleIndexStartNew = particleIndexStart
-    for i in range(len(particleIndexStartNew)):
-        if particleIndexStartNew[i] < 0:
+    for i, start_idx in enumerate(particleIndexStartNew):
+        if start_idx < 0:
             continue
-        particleIndexStartNew[i] = np.nonzero(indices == particleIndexStart[i])[0][0]
+        particleIndexStartNew[i] = np.nonzero(indices == start_idx)[0][0]
     toFile[halosName].create_dataset("particleIndexStart",data=particleIndexStartNew)
     toFile[halosName].create_dataset("particleIndexCount",data=particleIndexCount   )
     print("...done")

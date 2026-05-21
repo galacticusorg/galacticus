@@ -97,20 +97,26 @@ program Test_String_Utilities
   call Assert('convert to subscript'  ,char(String_Subscript  ("Result=(+10293-84756)?")),"Result₌₍₊₁₀₂₉₃₋₈₄₇₅₆₎?")
   
   ! Test Levenshtein distance.
-  call Assert(                                                  &
-       &      'measure Levenshtein distance'                  , &
-       &      [                                                 &
-       &       String_Levenshtein_Distance('kitten','sitting'), &
-       &       String_Levenshtein_Distance('grapes','wine'   ), &
-       &       String_Levenshtein_Distance('monkey','human'  ), &
-       &       String_Levenshtein_Distance('lead'  ,'gold'   )  &
-       &      ]                                               , &
-       &      [                                                 &
-       &       3                                              , &
-       &       5                                              , &
-       &       6                                              , &
-       &       3                                                &
-       &      ]                                                 &
+  call Assert(                                                       &
+       &      'measure Levenshtein distance'                       , &
+       &      [                                                      &
+       &       String_Levenshtein_Distance('kitten'   ,'sitting'  ), &
+       &       String_Levenshtein_Distance('flaw'     ,'lawn'     ), &
+       &       String_Levenshtein_Distance('grapes'   ,'wine'     ), &
+       &       String_Levenshtein_Distance('monkey'   ,'human'    ), &
+       &       String_Levenshtein_Distance('Sunday'   ,'Saturday' ), &
+       &       String_Levenshtein_Distance('intention','execution'), &
+       &       String_Levenshtein_Distance('lead'     ,'gold'     )  &
+       &      ]                                                    , &
+       &      [                                                      &
+       &       3                                                   , &
+       &       2                                                   , &
+       &       5                                                   , &
+       &       6                                                   , &
+       &       3                                                   , &
+       &       5                                                   , &
+       &       3                                                     &
+       &      ]                                                      &
        &     )
 
   ! Pretty-print an XML string.

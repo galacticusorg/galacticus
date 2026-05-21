@@ -41,7 +41,7 @@
 
   interface massDistributionHeatingNull
      !!{
-     Constructors for the \refClass{massDistributionHeatingNull} mass distribution class.
+     Constructors for the \refClass{massDistributionHeatingNull} mass distribution heating class.
      !!}
      module procedure nullConstructorParameters
   end interface massDistributionHeatingNull
@@ -50,7 +50,7 @@ contains
 
   function nullConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the \refClass{massDistributionHeatingNull} mass distribution class which builds the object from a parameter
+    Constructor for the \refClass{massDistributionHeatingNull} mass distribution heating class which builds the object from a parameter
     set.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters

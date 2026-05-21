@@ -160,6 +160,7 @@ contains
     use :: Numerical_Constants_Astronomical          , only : massSolar
     use :: Output_Analyses_Options                   , only : outputAnalysisCovarianceModelBinomial
     use :: Output_Analysis_Distribution_Operators    , only : outputAnalysisDistributionOperatorRandomErrorPlynml
+    use :: Output_Analysis_Target_Data               , only : outputAnalysisTargetDataStandard
     use :: Output_Analysis_Property_Operators        , only : outputAnalysisPropertyOperatorAntiLog10            , outputAnalysisPropertyOperatorCsmlgyLmnstyDstnc, outputAnalysisPropertyOperatorFilterHighPass   , outputAnalysisPropertyOperatorLog10, &
           &                                                   outputAnalysisPropertyOperatorMetallicity12LogNH   , outputAnalysisPropertyOperatorSequence         , outputAnalysisPropertyOperatorSystmtcPolynomial, propertyOperatorList
     use :: Output_Analysis_Utilities                 , only : Output_Analysis_Output_Weight_Survey_Volume
@@ -212,18 +213,18 @@ contains
     integer         (c_size_t                                           )                                :: iBin                                                    , binCount
     type            (hdf5Object                                         )                                :: dataFile
     integer                                                                                              :: indexOxygen
+    type            (outputAnalysisTargetDataStandard)                              :: outputAnalysisTargetData_
     !![
     <constructorAssign variables="metallicitySystematicErrorPolynomialCoefficient, systematicErrorPolynomialCoefficient, randomErrorPolynomialCoefficient, randomErrorMinimum, randomErrorMaximum, fractionGasThreshold, *cosmologyFunctions_, *starFormationRateDisks_, *starFormationRateSpheroids_"/>
     !!]
     
     ! Read masses at which fraction was measured.
     !$ call hdf5Access%set()
-    call dataFile%openFile   (char(inputPath(pathTypeDataStatic))//"observations/abundances/massMetallicityRelationBlanc2019.hdf5",readOnly=.true.             )
-    call dataFile%readDataset("massStellar"                                                                                       ,         masses             )
-    call dataFile%readDataset("abundanceOxygenMean"                                                                               ,         functionValueTarget)
-    call dataFile%readDataset("abundanceOxygen16PercentCI"                                                                        ,         function16Target   )
-    call dataFile%readDataset("abundanceOxygen84PercentCI"                                                                        ,         function84Target   )
-    call dataFile%close      (                                                                                                                                 )
+    dataFile=hdf5Object(char(inputPath(pathTypeDataStatic))//"observations/abundances/massMetallicityRelationBlanc2019.hdf5",readOnly=.true.)
+    call dataFile%readDataset("massStellar"               ,masses             )
+    call dataFile%readDataset("abundanceOxygenMean"       ,functionValueTarget)
+    call dataFile%readDataset("abundanceOxygen16PercentCI",function16Target   )
+    call dataFile%readDataset("abundanceOxygen84PercentCI",function84Target   )
     !$ call hdf5Access%unset()
     ! Construct survey geometry. Use a lower redshift limit than actually used by Blanc et al. to ensure that low mass bins have non-zero weight.
     allocate(surveyGeometry_)
@@ -401,17 +402,30 @@ contains
     <referenceConstruct object="outputAnalysisWeightPropertyExtractor_"                 constructor="nodePropertyExtractorMetallicityISM             (Abundances_Index_From_Name('O')                              )"/>
     !!]
     ! Build the object.
+    outputAnalysisTargetData_=outputAnalysisTargetDataStandard(                                                                          &
+         &                                                     xAxisLabel      =var_str('$M_\star/\mathrm{M}_\odot$'                  ), &
+         &                                                     yAxisLabel      =var_str('$\langle 12+[\mathrm{O}/\mathrm{H}] \rangle$'), &
+         &                                                     xAxisIsLog      =.true.                                                 , &
+         &                                                     yAxisIsLog      =.false.                                                , &
+         &                                                     targetLabel     =var_str('Blanc et al. (2017)'                         ), &
+         &                                                     valueTarget     =functionValueTarget                                    , &
+         &                                                     covarianceTarget=functionCovarianceTarget                                 &
+         &                                                    )
     self%outputAnalysisMeanFunction1D=outputAnalysisMeanFunction1D(                                                         &
          &                                                         var_str('massMetallicityBlanc2019'                    ), &
          &                                                         var_str('Mass-metallicity relation'                   ), &
          &                                                         var_str('massStellar'                                 ), &
          &                                                         var_str('Stellar mass'                                ), &
          &                                                         var_str('M☉'                                          ), &
+         &                                                         var_str('solMass'                                     ), &
+         &                                                         .false.                                                , &
          &                                                         massSolar                                              , &
          &                                                         var_str('metallicityMean'                             ), &
          &                                                         var_str('Mean metallicity'                            ), &
          &                                                         var_str('dimensionless'                               ), &
-         &                                                         0.0d0                                                  , &
+         &                                                         var_str(' '                                           ), &
+         &                                                         .false.                                                , &
+         &                                                         1.0d0                                                  , &
          &                                                         log10(masses)                                          , &
          &                                                         bufferCount                                            , &
          &                                                         outputWeight                                           , &
@@ -429,13 +443,7 @@ contains
          &                                                         covarianceBinomialMassHaloMinimum                      , &
          &                                                         covarianceBinomialMassHaloMaximum                      , &
          &                                                         likelihoodNormalize                                    , &
-         &                                                         var_str('$M_\star/\mathrm{M}_\odot$')                  , &
-         &                                                         var_str('$\langle 12+[\mathrm{O}/\mathrm{H}] \rangle$'), &
-         &                                                         .true.                                                 , &
-         &                                                         .false.                                                , &
-         &                                                         var_str('Blanc et al. (2017)')                         , &
-         &                                                         functionValueTarget                                    , &
-         &                                                         functionCovarianceTarget                                 &
+         &                                                         outputAnalysisTargetData_                                &
          &                                                        )
     ! Clean up.
     !![

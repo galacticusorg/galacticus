@@ -50,12 +50,37 @@ contains
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
-    type(mergerTreeBuildMassesSampledDistributionUniform)                :: self
-    type(inputParameters                                ), intent(inout) :: parameters
-
-    self%mergerTreeBuildMassesSampledDistribution=mergerTreeBuildMassesSampledDistribution(parameters)
+    type           (mergerTreeBuildMassesSampledDistributionUniform )                :: self
+    type           (inputParameters                                 ), intent(inout) :: parameters
+    class           (mergerTreeBuildMassDistributionClass           ), pointer       :: mergerTreeBuildMassDistribution_
+    double precision                                                                 :: massTreeMinimum                 , massTreeMaximum, &
+         &                                                                              treesPerDecade
+    
+    !![
+    <inputParameter>
+      <name>massTreeMinimum</name>
+      <defaultValue>1.0d10</defaultValue>
+      <description>The minimum mass of merger tree base halos to consider when sampled masses from a distribution, in units of $M_\odot$.</description>
+      <source>parameters</source>
+    </inputParameter>
+    <inputParameter>
+      <name>massTreeMaximum</name>
+      <defaultValue>1.0d15</defaultValue>
+      <description>The maximum mass of merger tree base halos to consider when sampled masses from a distribution, in units of $M_\odot$.</description>
+      <source>parameters</source>
+    </inputParameter>
+    <inputParameter>
+      <name>treesPerDecade</name>
+      <defaultValue>10.0d0</defaultValue>
+      <description>The number of merger trees masses to sample per decade of base halo mass.</description>
+      <source>parameters</source>
+    </inputParameter>
+    <objectBuilder class="mergerTreeBuildMassDistribution" name="mergerTreeBuildMassDistribution_" source="parameters"/>
+    !!]
+    self=mergerTreeBuildMassesSampledDistributionUniform(massTreeMinimum,massTreeMaximum,treesPerDecade,mergerTreeBuildMassDistribution_)
     !![
     <inputParametersValidate source="parameters"/>
+    <objectDestructor name="mergerTreeBuildMassDistribution_"/>
     !!]
     return
   end function sampledDistributionUniformConstructorParameters
@@ -64,6 +89,8 @@ contains
     !!{
     Internal constructor for the \refClass{mergerTreeBuildMassesSampledDistributionUniform} merger tree masses class.
     !!}
+    use :: Display, only : displayMessage, verbosityLevelWarn
+    use :: Error  , only : Error_Report
     implicit none
     type            (mergerTreeBuildMassesSampledDistributionUniform)                        :: self
     class           (mergerTreeBuildMassDistributionClass           ), intent(in   ), target :: mergerTreeBuildMassDistribution_
@@ -73,6 +100,17 @@ contains
     <constructorAssign variables="massTreeMinimum, massTreeMaximum, treesPerDecade, *mergerTreeBuildMassDistribution_"/>
     !!]
 
+    if (self%massTreeMaximum >= 1.0d16              )                                               &
+         & call displayMessage(                                                                     &
+         &                     '[massHaloMaximum] > 10¹⁶ - this seems very large and may lead '//   &
+         &                     'to failures in merger tree construction'                         ,  &
+         &                     verbosityLevelWarn                                                   &
+         &                    )
+    if (self%massTreeMaximum <= self%massTreeMinimum)                                               &
+         & call Error_Report  (                                                                     &
+         &                     '[massHaloMaximum] > [massHaloMinimum] is required'             //   &
+         &                     {introspection:location}                                             &
+         &                    )
     return
   end function sampledDistributionUniformConstructorInternal
 

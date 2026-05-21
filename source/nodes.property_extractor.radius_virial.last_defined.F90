@@ -37,11 +37,12 @@ Implements a last-defined virial radius property extractor class.
      procedure :: name        => radiusVirialLastDefinedName
      procedure :: description => radiusVirialLastDefinedDescription
      procedure :: unitsInSI   => radiusVirialLastDefinedUnitsInSI
+     procedure :: units       => radiusVirialLastDefinedUnits
   end type nodePropertyExtractorRadiusVirialLastDefined
 
   interface nodePropertyExtractorRadiusVirialLastDefined
      !!{
-     Constructors for the \refClass{nodePropertyExtractorRadiusVirialLastDefined} output analysis class.
+     Constructors for the \refClass{nodePropertyExtractorRadiusVirialLastDefined} property extractor class.
      !!}
      module procedure radiusVirialLastDefinedConstructorParameters
      module procedure radiusVirialLastDefinedConstructorInternal
@@ -51,7 +52,7 @@ contains
 
   function radiusVirialLastDefinedConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the \refClass{nodePropertyExtractorRadiusVirialLastDefined} output analysis property extractor class which takes a parameter set as input.
+    Constructor for the \refClass{nodePropertyExtractorRadiusVirialLastDefined} property extractor class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -133,3 +134,17 @@ contains
     radiusVirialLastDefinedUnitsInSI=megaParsec
     return
   end function radiusVirialLastDefinedUnitsInSI
+
+  function radiusVirialLastDefinedUnits(self) result(units)
+    !!{
+    Return the units of the radiusVirialLastDefined property.
+    !!}
+    use :: Units_MetaData, only : unitType
+    implicit none
+    type (unitType                                    )                :: units
+    class(nodePropertyExtractorRadiusVirialLastDefined), intent(inout) :: self
+    !$GLC attributes unused :: self
+
+    units=unitType(self%unitsInSI(),description='Mpc',quantity='Mpc')
+    return
+  end function radiusVirialLastDefinedUnits

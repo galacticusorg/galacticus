@@ -40,7 +40,7 @@ module Node_Component_Position_Cartesian
       <type>double</type>
       <rank>1</rank>
       <attributes isSettable="true" isGettable="true" isEvolvable="true" />
-      <output labels="[X,Y,Z]" unitsInSI="megaParsec" comment="Position of the node (in physical coordinates)."/>
+      <output labels="[X,Y,Z]" unitsInSI="megaParsec" unitsDescription="Mpc" unitsQuantity="Mpc" comment="Position of the node (in physical coordinates)."/>
       <classDefault>[0.0d0,0.0d0,0.0d0]</classDefault>
     </property>
     <property>
@@ -48,7 +48,7 @@ module Node_Component_Position_Cartesian
       <type>double</type>
       <rank>1</rank>
       <attributes isSettable="true" isGettable="true" isEvolvable="true" />
-      <output labels="[X,Y,Z]" unitsInSI="kilo" comment="Velocity of the node (in physical coordinates)."/>
+      <output labels="[X,Y,Z]" unitsInSI="kilo" unitsDescription="km/s" unitsQuantity="km/s" comment="Velocity of the node (in physical coordinates)."/>
       <classDefault>[0.0d0,0.0d0,0.0d0]</classDefault>
     </property>
     <property>

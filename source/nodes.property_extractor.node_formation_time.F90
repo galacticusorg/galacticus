@@ -33,11 +33,12 @@
      procedure :: name        => nodeFormationTimeName
      procedure :: description => nodeFormationTimeDescription
      procedure :: unitsInSI   => nodeFormationTimeUnitsInSI
+     procedure :: units       => nodeFormationTimeUnits
   end type nodePropertyExtractorNodeFormationTime
 
   interface nodePropertyExtractorNodeFormationTime
      !!{
-     Constructors for the \refClass{nodePropertyExtractorNodeFormationTime} output extractor class.
+     Constructors for the \refClass{nodePropertyExtractorNodeFormationTime} property extractor class.
      !!}
      module procedure nodeFormationTimeConstructorParameters
      module procedure nodeFormationTimeConstructorInternal
@@ -63,7 +64,7 @@ contains
 
   function nodeFormationTimeConstructorInternal() result(self)
     !!{
-    Internal constructor for the \refClass{nodePropertyExtractorNodeFormationTime} output extractor property extractor class.
+    Internal constructor for the \refClass{nodePropertyExtractorNodeFormationTime} property extractor class.
     !!}
     implicit none
     type(nodePropertyExtractorNodeFormationTime) :: self
@@ -129,3 +130,17 @@ contains
     nodeFormationTimeUnitsInSI=gigaYear
     return
   end function nodeFormationTimeUnitsInSI
+
+  function nodeFormationTimeUnits(self) result(units)
+    !!{
+    Return the units of the nodeFormationTime property.
+    !!}
+    use :: Units_MetaData, only : unitType
+    implicit none
+    type (unitType                              )                :: units
+    class(nodePropertyExtractorNodeFormationTime), intent(inout) :: self
+    !$GLC attributes unused :: self
+
+    units=unitType(self%unitsInSI(),description='Gyr',quantity='Gyr')
+    return
+  end function nodeFormationTimeUnits

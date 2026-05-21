@@ -218,7 +218,7 @@ contains
             &              isNew    =.true.               , &
             &              verbosity=verbosityLevelWorking  &
             &             )
-       !$omp parallel private(expansionFactor,epsilonPerturbationMaximum,epsilonPerturbationMinimum,epsilonPerturbation,timeInitial,timeRange,maximumExpansionTime,expansionFactorExpansionMaximum,q,y,timeEnergyFixed,a,b,x,linearGrowth_)       
+       !$omp parallel private(expansionFactor,epsilonPerturbationMaximum,epsilonPerturbationMinimum,epsilonPerturbation,normalization,timeInitial,timeRange,maximumExpansionTime,expansionFactorExpansionMaximum,q,y,timeEnergyFixed,a,b,x,linearGrowth_)
        !$omp critical(sphericalCollapseSolveCllnlssMttrDrkEnrgyDeepCopy)
        allocate(cosmologyFunctions_,mold=self%cosmologyFunctions_)
        !![
@@ -237,6 +237,7 @@ contains
           linearGrowth_ => null()
        end if
        !$omp end critical(sphericalCollapseSolveCllnlssMttrDrkEnrgyDeepCopy)
+       !$omp barrier
        !$omp do schedule(dynamic)
        do iTime=1,countTimes
           call displayCounter(                                                        &
@@ -255,7 +256,7 @@ contains
           OmegaMatterEpochal    =cosmologyFunctions_%omegaMatterEpochal    (expansionFactor=expansionFactor)
           OmegaDarkEnergyEpochal=cosmologyFunctions_%omegaDarkEnergyEpochal(expansionFactor=expansionFactor)
           hubbleTimeEpochal     =cosmologyFunctions_%expansionRate         (                expansionFactor)
-          time_                  =sphericalCollapse_%x                     (                iTime          )
+          time_                 =sphericalCollapse_ %x                     (                iTime          )
           ! Check dark energy equation of state is within acceptable range.
           if (cosmologyFunctions_%equationOfStateDarkEnergy(time=time_) >= -1.0d0/3.0d0) &
                & call Error_Report('ω<-⅓ required'//{introspection:location})

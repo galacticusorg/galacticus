@@ -43,7 +43,7 @@ radius.
 
   interface hotHaloColdModeCoreRadiiVirialFraction
      !!{
-     Constructors for the \refClass{hotHaloColdModeCoreRadiiVirialFraction} hot halo mass distribution core radius class.
+     Constructors for the \refClass{hotHaloColdModeCoreRadiiVirialFraction} cold mode hot halo mass distribution core radius class.
      !!}
      module procedure virialRadiusFractionConstructorParameters
      module procedure virialRadiusFractionConstructorInternal

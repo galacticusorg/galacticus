@@ -68,7 +68,7 @@
 
   interface cosmologicalVelocityFieldFilteredPower
      !!{
-     Constructors for the \refClass{cosmologicalVelocityFieldFilteredPower} cosmological mass variance class.
+     Constructors for the \refClass{cosmologicalVelocityFieldFilteredPower} cosmological velocity field class.
      !!}
      module procedure filteredPowerConstructorParameters
      module procedure filteredPowerConstructorInternal
@@ -78,7 +78,7 @@ contains
 
   function filteredPowerConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the \refClass{cosmologicalVelocityFieldFilteredPower} cosmological mass variance class which takes a parameter set as input.
+    Constructor for the \refClass{cosmologicalVelocityFieldFilteredPower} cosmological velocity field class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -121,7 +121,7 @@ contains
 
   function filteredPowerConstructorInternal(wavenumberMaximum,cosmologyParameters_,cosmologyFunctions_,linearGrowth_,powerSpectrum_,powerSpectrumWindowFunction_,correlationFunctionTwoPoint_) result(self)
     !!{
-    Internal constructor for the \refClass{cosmologicalVelocityFieldFilteredPower} linear growth class.
+    Internal constructor for the \refClass{cosmologicalVelocityFieldFilteredPower} cosmological velocity field class.
     !!}
     implicit none
     type            (cosmologicalVelocityFieldFilteredPower)                        :: self
@@ -141,7 +141,7 @@ contains
 
   subroutine filteredPowerDestructor(self)
     !!{
-    Destructor for the \refClass{cosmologicalVelocityFieldFilteredPower} linear growth class.
+    Destructor for the \refClass{cosmologicalVelocityFieldFilteredPower} cosmological velocity field class.
     !!}
     implicit none
     type   (cosmologicalVelocityFieldFilteredPower), intent(inout) :: self
@@ -256,10 +256,10 @@ contains
       implicit none
       double precision, intent(in   ) :: wavenumber
 
-      powerIntegrand=+  self%powerSpectrum_              %power(wavenumber,time)        &
-           &         *(                                                                 &
-           &           +self%powerSpectrumWindowFunction_%value(wavenumber,mass)        &
-           &           *                                        wavenumber      **(1+j) &
+      powerIntegrand=+  self%powerSpectrum_              %power(wavenumber     ,time)        &
+           &         *(                                                                      &
+           &           +self%powerSpectrumWindowFunction_%value(wavenumber,mass,time)        &
+           &           *                                        wavenumber           **(1+j) &
            &          )**2    
       return
     end function powerIntegrand
@@ -330,17 +330,17 @@ contains
       implicit none
       double precision, intent(in   ) :: wavenumber
       
-      velocityDispersionIntegrand=+    self%powerSpectrum_              %power(wavenumber                   ,time)                        &
-           &                      *(                                                                                                      &
-           &                        +(                                                                                                    &
-           &                          +self%powerSpectrumWindowFunction_%value(wavenumber                   ,mass1)**2*peakCorrection1**2 &
-           &                          +self%powerSpectrumWindowFunction_%value(wavenumber                   ,mass2)**2*peakCorrection2**2 &
-           &                         )                                                                                                    &
-           &                        /3.0d0                                                                                                & ! Convert from 3D to 1D dispersion.
-           &                        -2.0d0                                                                                                &
-           &                        *  self%powerSpectrumWindowFunction_%value(wavenumber                   ,mass1)   *peakCorrection1    &
-           &                        *  self%powerSpectrumWindowFunction_%value(wavenumber                   ,mass2)   *peakCorrection2    &
-           &                        *  K                                      (wavenumber*separationComoving      )                       &
+      velocityDispersionIntegrand=+    self%powerSpectrum_              %power(wavenumber                        ,time)                        &
+           &                      *(                                                                                                           &
+           &                        +(                                                                                                         &
+           &                          +self%powerSpectrumWindowFunction_%value(wavenumber                   ,mass1,time)**2*peakCorrection1**2 &
+           &                          +self%powerSpectrumWindowFunction_%value(wavenumber                   ,mass2,time)**2*peakCorrection2**2 &
+           &                         )                                                                                                         &
+           &                        /3.0d0                                                                                                     & ! Convert from 3D to 1D dispersion.
+           &                        -2.0d0                                                                                                     &
+           &                        *  self%powerSpectrumWindowFunction_%value(wavenumber                   ,mass1,time)   *peakCorrection1    &
+           &                        *  self%powerSpectrumWindowFunction_%value(wavenumber                   ,mass2,time)   *peakCorrection2    &
+           &                        *  K                                      (wavenumber*separationComoving           )                       &
            &                       )
       return
     end function velocityDispersionIntegrand

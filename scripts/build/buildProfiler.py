@@ -68,19 +68,19 @@ with open(args.buildLogFile) as f:
             time_latest = stop_time
         # Simplify the command to a more human-readable form where possible.
         elements = command.split()
-        if len(elements) > 1 and elements[0] == "./scripts/build/preprocess.pl":
+        if len(elements) > 1 and elements[0] == "./scripts/build/preprocess.py":
             elements[1] = elements[1].replace("source/", "")
             command = elements[1] + " (preprocess)"
         elif len(elements) > 4 and elements[0] == "gfortran":
             elements[4] = elements[4].replace("./work/build/", "")
             command = elements[4] + " (compile)"
-        elif len(elements) > 2 and elements[0] == "./scripts/build/sourceDigests.pl":
+        elif len(elements) > 2 and elements[0] == "./scripts/build/sourceDigests.py":
             elements[2] = elements[2].replace("./work/build/", "").replace("'", "")
             command = elements[2] + " (source digests)"
-        elif len(elements) > 2 and elements[0] == "./scripts/build/parameterDependencies.pl":
+        elif len(elements) > 2 and elements[0] == "./scripts/build/parameterDependencies.py":
             elements[2] = elements[2].replace("./work/build/", "").replace("'", "")
             command = elements[2] + " (parameter dependencies)"
-        elif len(elements) > 2 and elements[0] == "./scripts/build/buildCode.pl":
+        elif len(elements) > 2 and elements[0] == "./scripts/build/buildCode.py":
             elements[2] = elements[2].replace("./work/build/", "").replace("'", "")
             command = elements[2] + " (build)"
         elif len(elements) > 8 and elements[1] == "-MRegexp::Common":

@@ -150,7 +150,7 @@ contains
 
   subroutine bryanNorman1998Destructor(self)
     !!{
-    Destructor for the \refClass{virialDensityContrastBryanNorman1998} virial density contrast class.
+    Destructor for the \refClass{virialDensityContrastBryanNorman1998} dark matter halo virial density contrast class.
     !!}
     implicit none
     type(virialDensityContrastBryanNorman1998), intent(inout) :: self

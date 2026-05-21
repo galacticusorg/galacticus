@@ -43,11 +43,12 @@ Implements an ISM metallicity output analysis property extractor class.
      procedure :: name        => metallicityISMName
      procedure :: description => metallicityISMDescription
      procedure :: unitsInSI   => metallicityISMUnitsInSI
+     procedure :: units       => metallicityISMUnits
   end type nodePropertyExtractorMetallicityISM
 
   interface nodePropertyExtractorMetallicityISM
      !!{
-     Constructors for the \refClass{nodePropertyExtractorMetallicityISM} output analysis class.
+     Constructors for the \refClass{nodePropertyExtractorMetallicityISM} property extractor class.
      !!}
      module procedure metallicityISMConstructorParameters
      module procedure metallicityISMConstructorInternal
@@ -57,7 +58,7 @@ contains
 
   function metallicityISMConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the \refClass{nodePropertyExtractorMetallicityISM} output analysis property extractor class which takes a parameter set as input.
+    Constructor for the \refClass{nodePropertyExtractorMetallicityISM} property extractor class which takes a parameter set as input.
     !!}
     use :: Abundances_Structure, only : Abundances_Index_From_Name
     use :: Input_Parameters    , only : inputParameter            , inputParameters
@@ -86,7 +87,7 @@ contains
 
   function metallicityISMConstructorInternal(indexElement) result(self)
     !!{
-    Internal constructor for the \refClass{nodePropertyExtractorMetallicityISM} output analysis property extractor class.
+    Internal constructor for the \refClass{nodePropertyExtractorMetallicityISM} property extractor class.
     !!}
     use :: Abundances_Structure, only : Abundances_Names
     implicit none
@@ -178,6 +179,20 @@ contains
     class(nodePropertyExtractorMetallicityISM), intent(inout) :: self
     !$GLC attributes unused :: self
 
-    metallicityISMUnitsInSI=0.0d0
+    metallicityISMUnitsInSI=1.0d0
     return
   end function metallicityISMUnitsInSI
+
+  function metallicityISMUnits(self) result(units)
+    !!{
+    Return the units of the metallicityISM property.
+    !!}
+    use :: Units_MetaData, only : unitType
+    implicit none
+    type (unitType                           )                :: units
+    class(nodePropertyExtractorMetallicityISM), intent(inout) :: self
+    !$GLC attributes unused :: self
+
+    units=unitType(self%unitsInSI())
+    return
+  end function metallicityISMUnits

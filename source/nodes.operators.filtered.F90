@@ -51,7 +51,7 @@ contains
 
   function filteredConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the \refClass{nodeOperatorFiltered} node operator property process class which takes a parameter set as input.
+    Constructor for the \refClass{nodeOperatorFiltered} node operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     use :: Error           , only : Error_Report
@@ -71,7 +71,7 @@ contains
 
   function filteredConstructorInternal(processes,galacticFilter_) result(self)
     !!{
-    Internal constructor for the \refClass{nodeOperatorFiltered} output process property process class.
+    Internal constructor for the \refClass{nodeOperatorFiltered} node operator class.
     !!}
     implicit none
     type (nodeOperatorFiltered)                        :: self
@@ -87,7 +87,7 @@ contains
 
   subroutine filteredDestructor(self)
     !!{
-    Destructor for the \refClass{nodeOperatorFiltered} output process property process class.
+    Destructor for the \refClass{nodeOperatorFiltered} node operator class.
     !!}
     implicit none
     type(nodeOperatorFiltered), intent(inout) :: self

@@ -11,10 +11,8 @@ import re
 import sys
 import xml.etree.ElementTree as ET
 
-_exec_path = os.environ.get('GALACTICUS_EXEC_PATH', os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..')))
-sys.path.insert(0, os.path.join(_exec_path, 'python'))
-from latex_utils import latex_encode  # noqa: E402
-from list_utils  import as_array      # noqa: E402
+from latex_utils      import latex_encode
+from List.ExtraUtils  import as_array
 
 
 # ---------------------------------------------------------------------------
@@ -67,16 +65,22 @@ def xml_simple_in(path):
 # ---------------------------------------------------------------------------
 
 FUNCTION_CLASS_EXCLUDES = {
-    'allowedParameters', 'autoHook', 'deepCopy', 'deepCopyReset',
-    'descriptor', 'hashedDescriptor', 'objectType', 'stateRestore', 'stateStore',
+    'allowedParameters', 'autoHook', 'deepCopy', 'deepCopyFinalize',
+    'deepCopyReset', 'descriptor', 'destructor', 'hashedDescriptor',
+    'objectType', 'stateRestore', 'stateStore', 'assignment(=)',
 }
+_FUNCTION_CLASS_EXCLUDES_LC = {n.lower() for n in FUNCTION_CLASS_EXCLUDES}
 
 
 def declaration_builder(type_val, variables=True):
     """Build a \\mono{...} LaTeX string for a Fortran type declaration.
 
     Port of Perl declarationBuilder().  type_val is either a dict (complex type)
-    or the string 'subroutine'.
+    or one of the literal strings 'subroutine' / 'void' for the void-return
+    case.  Both string forms appear in the wild — `_process_function` emits
+    `'subroutine'` (the AST node type) for type-bound subroutine bindings,
+    and FunctionClass auto-generated method stubs (autoHook, descriptor,
+    deepCopy, …) carry `'void'` straight from the directive.
     """
     if isinstance(type_val, dict):
         inner = type_val.get('intrinsic', '')
@@ -90,7 +94,7 @@ def declaration_builder(type_val, variables=True):
             vs = as_array(type_val.get('variables'))
             if vs:
                 inner += ' :: ' + ', '.join(latex_encode(v) for v in vs)
-    elif type_val == 'subroutine':
+    elif type_val in ('subroutine', 'void'):
         inner = 'void'
     else:
         raise ValueError(f'declaration_builder: unknown type {type_val!r}')
@@ -163,6 +167,15 @@ def main():
 
         remaining = []
         for method in missing_methods:
+            # Auto-generated functionClass methods (autoHook, descriptor,
+            # deepCopy, stateStore, …) are inherent to every functionClass —
+            # they are emitted by the build's FunctionClass processor, not
+            # described anywhere in the source.  Treat them as resolved so
+            # they don't surface as "missing method descriptions" warnings
+            # for every concrete child class.
+            if (classes[class_name]['isFunctionClass']
+                    and method.lower() in _FUNCTION_CLASS_EXCLUDES_LC):
+                continue
             found = False
             ancestor = parent_name
             while ancestor:

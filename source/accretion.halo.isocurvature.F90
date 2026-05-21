@@ -24,6 +24,7 @@
 
   use :: Cosmological_Density_Field     , only : criticalOverdensityClass
   use :: Cosmology_Parameters           , only : cosmologyParametersClass
+  use :: Cosmology_Functions            , only : cosmologyFunctionsClass
   use :: Linear_Growth                  , only : linearGrowthClass
   use :: Power_Spectrum_Window_Functions, only : powerSpectrumWindowFunctionTopHat
   use :: Tables                         , only : table1DGeneric
@@ -65,6 +66,7 @@
      private
      class           (accretionHaloClass               ), pointer :: accretionHalo_               => null()
      class           (cosmologyParametersClass         ), pointer :: cosmologyParameters_         => null()
+     class           (cosmologyFunctionsClass          ), pointer :: cosmologyFunctions_          => null()
      class           (criticalOverdensityClass         ), pointer :: criticalOverdensity_         => null()
      class           (linearGrowthClass                ), pointer :: linearGrowth_                => null()
      type            (powerSpectrumWindowFunctionTopHat), pointer :: powerSpectrumWindowFunction_ => null()
@@ -108,8 +110,8 @@
 
   ! Submodule-scope variables used in integrands.
   class           (accretionHaloIsocurvature), pointer   :: self_
-  double precision                                       :: massSmoothing_
-  !$omp threadprivate(self_,massSmoothing_)
+  double precision                                       :: massSmoothing_, time_
+  !$omp threadprivate(self_,massSmoothing_,time_)
   
 contains
 
@@ -123,6 +125,7 @@ contains
     type   (inputParameters          ), intent(inout) :: parameters
     class  (accretionHaloClass       ), pointer       :: accretionHalo_
     class  (cosmologyParametersClass ), pointer       :: cosmologyParameters_
+    class  (cosmologyFunctionsClass  ), pointer       :: cosmologyFunctions_
     class  (criticalOverdensityClass ), pointer       :: criticalOverdensity_
     class  (linearGrowthClass        ), pointer       :: linearGrowth_
     integer                                           :: countPerDecade
@@ -136,21 +139,23 @@ contains
     </inputParameter>
     <objectBuilder class="accretionHalo"       name="accretionHalo_"       source="parameters"/>
     <objectBuilder class="cosmologyParameters" name="cosmologyParameters_" source="parameters"/>
+    <objectBuilder class="cosmologyFunctions"  name="cosmologyFunctions_"  source="parameters"/>
     <objectBuilder class="criticalOverdensity" name="criticalOverdensity_" source="parameters"/>
     <objectBuilder class="linearGrowth"        name="linearGrowth_"        source="parameters"/>
     !!]
-    self=accretionHaloIsocurvature(countPerDecade,accretionHalo_,cosmologyParameters_,criticalOverdensity_,linearGrowth_)
+    self=accretionHaloIsocurvature(countPerDecade,accretionHalo_,cosmologyParameters_,cosmologyFunctions_,criticalOverdensity_,linearGrowth_)
     !![
     <inputParametersValidate source="parameters"/>
     <objectDestructor name="accretionHalo_"      />
     <objectDestructor name="cosmologyParameters_"/>
+    <objectDestructor name="cosmologyFunctions_" />
     <objectDestructor name="criticalOverdensity_"/>
     <objectDestructor name="linearGrowth_"       />
    !!]
     return
   end function isocurvatureConstructorParameters
 
-  function isocurvatureConstructorInternal(countPerDecade,accretionHalo_,cosmologyParameters_,criticalOverdensity_,linearGrowth_) result(self)
+  function isocurvatureConstructorInternal(countPerDecade,accretionHalo_,cosmologyParameters_,cosmologyFunctions_,criticalOverdensity_,linearGrowth_) result(self)
     !!{
     Internal constructor for the \refClass{accretionHaloIsocurvature} halo accretion class.
     !!}
@@ -159,11 +164,12 @@ contains
     type   (accretionHaloIsocurvature), target                :: self
     class  (accretionHaloClass       ), intent(in   ), target :: accretionHalo_
     class  (cosmologyParametersClass ), intent(in   ), target :: cosmologyParameters_
+    class  (cosmologyFunctionsClass  ), intent(in   ), target :: cosmologyFunctions_
     class  (criticalOverdensityClass ), intent(in   ), target :: criticalOverdensity_
     class  (linearGrowthClass        ), intent(in   ), target :: linearGrowth_
     integer                           , intent(in   )         :: countPerDecade
     !![
-    <constructorAssign variables="countPerDecade, *accretionHalo_, *cosmologyParameters_, *criticalOverdensity_, *linearGrowth_"/>
+    <constructorAssign variables="countPerDecade, *accretionHalo_, *cosmologyParameters_, *cosmologyFunctions_, *criticalOverdensity_, *linearGrowth_"/>
     !!]
 
     ! Set initialization state.
@@ -199,6 +205,7 @@ contains
     !![
     <objectDestructor name="self%accretionHalo_"              />
     <objectDestructor name="self%cosmologyParameters_"        />
+    <objectDestructor name="self%cosmologyFunctions_"         />
     <objectDestructor name="self%powerSpectrumWindowFunction_"/>
     <objectDestructor name="self%criticalOverdensity_"        />
     <objectDestructor name="self%linearGrowth_"               />
@@ -442,6 +449,7 @@ contains
        integratorDirect   =  integrator(integrandDirect,toleranceRelative=toleranceRelative)
        integratorCross    =  integrator(integrandCross ,toleranceRelative=toleranceRelative)
        self_              => self
+       time_              =  self%cosmologyFunctions_%cosmicTime(1.0d0)
        countPointsInTable =  int(log10(self%massMaximum/self%massMinimum)*dble(countPointsPerDecade))+1
        mass               =  Make_Range(self%massMinimum,self%massMaximum,countPointsInTable,rangeTypeLogarithmic)
        allocate(correlation(countPointsInTable))
@@ -502,11 +510,11 @@ contains
     implicit none
     double precision, intent(in   ) :: wavenumber
 
-    integrandDirect=+4.0d0                                                                             &
-         &          *Pi                                                                                &
-         &          *                                                   wavenumber                 **2 &
-         &          *self_%powerSpectrumWindowFunction_%value      (    wavenumber ,massSmoothing_)**2 &
-         &          *self_%perturbationsDarkMatter     %interpolate(log(wavenumber)               )**2
+    integrandDirect=+4.0d0                                                                                   &
+         &          *Pi                                                                                      &
+         &          *                                                   wavenumber                       **2 &
+         &          *self_%powerSpectrumWindowFunction_%value      (    wavenumber ,massSmoothing_,time_)**2 &
+         &          *self_%perturbationsDarkMatter     %interpolate(log(wavenumber)                     )**2
     return
   end function integrandDirect
 
@@ -521,14 +529,14 @@ contains
     implicit none
     double precision, intent(in   ) :: wavenumber
 
-    integrandCross=+4.0d0                                                                               &
-         &         *Pi                                                                                  &
-         &         *                                                     wavenumber                 **2 &
-         &         *  self_%powerSpectrumWindowFunction_%value      (    wavenumber ,massSmoothing_)**2 &
-         &         *(                                                                                   &
-         &           +self_%perturbationsBaryons        %interpolate(log(wavenumber)               )    &
-         &           -self_%perturbationsDarkMatter     %interpolate(log(wavenumber)               )    &
-         &         )                                                                                    &
-         &         *  self_%perturbationsDarkMatter     %interpolate(log(wavenumber)               )
+    integrandCross=+4.0d0                                                                                     &
+         &         *Pi                                                                                        &
+         &         *                                                     wavenumber                       **2 &
+         &         *  self_%powerSpectrumWindowFunction_%value      (    wavenumber ,massSmoothing_,time_)**2 &
+         &         *(                                                                                         &
+         &           +self_%perturbationsBaryons        %interpolate(log(wavenumber)                     )    &
+         &           -self_%perturbationsDarkMatter     %interpolate(log(wavenumber)                     )    &
+         &         )                                                                                          &
+         &         *  self_%perturbationsDarkMatter     %interpolate(log(wavenumber)                     )
     return
   end function integrandCross

@@ -62,8 +62,7 @@ contains
 
   function betaProfileConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the \refClass{hotHaloMassDistributionBetaProfile} hot halo mass distributionclass which builds the object from a
-    parameter set.
+    Constructor for the \refClass{hotHaloMassDistributionBetaProfile} hot halo mass distribution class which takes a parameter set as input.
     !!}
     use :: Array_Utilities , only : operator(.intersection.)
     use :: Error           , only : Component_List          , Error_Report

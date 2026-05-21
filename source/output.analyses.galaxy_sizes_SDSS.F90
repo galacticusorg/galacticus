@@ -126,6 +126,7 @@ contains
     use :: Numerical_Constants_Prefixes            , only : kilo                                         , milli
     use :: Output_Analyses_Options                 , only : outputAnalysisCovarianceModelPoisson
     use :: Output_Analysis_Distribution_Normalizers, only : normalizerList                               , outputAnalysisDistributionNormalizerBinWidth  , outputAnalysisDistributionNormalizerSequence   , outputAnalysisDistributionNormalizerUnitarity
+    use :: Output_Analysis_Target_Data             , only : outputAnalysisTargetDataStandard
     use :: Output_Analysis_Distribution_Operators  , only : distributionOperatorList                     , lensedPropertySize                            , outputAnalysisDistributionOperatorClass        , outputAnalysisDistributionOperatorDiskSizeInclntn, &
           &                                                 outputAnalysisDistributionOperatorGrvtnlLnsng, outputAnalysisDistributionOperatorIdentity    , outputAnalysisDistributionOperatorSequence
     use :: Output_Analysis_Property_Operators      , only : outputAnalysisPropertyOperatorAntiLog10      , outputAnalysisPropertyOperatorCsmlgyAnglrDstnc, outputAnalysisPropertyOperatorCsmlgyLmnstyDstnc, outputAnalysisPropertyOperatorLog10              , &
@@ -183,6 +184,7 @@ contains
          &                                                                                            massStellarMaximumLogarithmic
     type            (varying_string                                 )                              :: description
     logical                                                                                        :: isLateType
+    type            (outputAnalysisTargetDataStandard)                              :: outputAnalysisTargetData_
     !![
     <constructorAssign variables="distributionNumber, massStellarRatio, sizeSourceLensing, *cosmologyFunctions_, *gravitationalLensing_"/>
     !!]
@@ -192,17 +194,15 @@ contains
     ! Construct sizes matched to those used by  Shen et al. (2003). Also read stellar mass and Sersic index ranges.
     write (distributionName,'(a,i2.2)') 'distribution',distributionNumber
     !$ call hdf5Access%set()
-    call dataFile    %openFile     (char(inputPath(pathTypeDataStatic)//'observations/galaxySizes/Galaxy_Sizes_By_Mass_SDSS_Shen_2003.hdf5'),readOnly=.true.             )
-    distribution=dataFile%openGroup(distributionName)
-    call distribution%readDataset  (                                         'radius'                                                       ,         radii              )
-    call distribution%readDataset  (                                         'radiusFunction'                                               ,         functionValueTarget)
-    call distribution%readDataset  (                                         'radiusFunctionError'                                          ,         functionErrorTarget)
-    call distribution%readAttribute(                                         'massMinimum'                                                  ,         massStellarMinimum )
-    call distribution%readAttribute(                                         'massMaximum'                                                  ,         massStellarMaximum )
-    call distribution%readAttribute(                                         'sersicIndexMinimum'                                           ,         indexSersicMinimum )
-    call distribution%readAttribute(                                         'sersicIndexMaximum'                                           ,         indexSersicMaximum )
-    call distribution%close        (                                                                                                                                     )
-    call dataFile    %close        (                                                                                                                                     )
+    dataFile    =hdf5Object          (char(inputPath(pathTypeDataStatic)//'observations/galaxySizes/Galaxy_Sizes_By_Mass_SDSS_Shen_2003.hdf5'),readOnly=.true.)
+    distribution=dataFile  %openGroup(distributionName                                                                                                        )
+    call distribution%readDataset  ('radius'             ,radii              )
+    call distribution%readDataset  ('radiusFunction'     ,functionValueTarget)
+    call distribution%readDataset  ('radiusFunctionError',functionErrorTarget)
+    call distribution%readAttribute('massMinimum'        ,massStellarMinimum )
+    call distribution%readAttribute('massMaximum'        ,massStellarMaximum )
+    call distribution%readAttribute('sersicIndexMinimum' ,indexSersicMinimum )
+    call distribution%readAttribute('sersicIndexMaximum' ,indexSersicMaximum )
     !$ call hdf5Access%unset()
     self %binCount=size(radii)
     allocate(functionCovarianceTarget(self%binCount,self%binCount))
@@ -418,6 +418,15 @@ contains
     write (massStellarMinimumLogarithmic,'(f5.2)') log10(massStellarMinimum)
     write (massStellarMaximumLogarithmic,'(f5.2)') log10(massStellarMaximum)
     description=description//"$"//trim(adjustl(massStellarMinimumLogarithmic))//" < \log_{10}(M_\star/\mathrm{M}_\odot) < "//trim(adjustl(massStellarMaximumLogarithmic))//"$"
+    outputAnalysisTargetData_=outputAnalysisTargetDataStandard(                                                                       &
+         &                                                     xAxisLabel      =var_str('$r_{1/2}/\mathrm{kpc}$'                   ), &
+         &                                                     yAxisLabel      =var_str('$\mathrm{d}p/\mathrm{d}\log_{10} r_{1/2}$'), &
+         &                                                     xAxisIsLog      =.true.                                              , &
+         &                                                     yAxisIsLog      =.false.                                             , &
+         &                                                     targetLabel     =var_str('Shen et al. (2003)')                       , &
+         &                                                     valueTarget     =functionValueTarget                                 , &
+         &                                                     covarianceTarget=functionCovarianceTarget                              &
+         &                                                    )
     self%outputAnalysisVolumeFunction1D=                                                          &
          & outputAnalysisVolumeFunction1D(                                                        &
          &                                var_str('galaxySizesSDSS')//trim(distributionName)    , &
@@ -425,11 +434,15 @@ contains
          &                                var_str('radius'                                     ), &
          &                                var_str('Radius at the bin center'                   ), &
          &                                var_str('kpc'                                        ), &
+         &                                var_str('kpc'                                        ), &
+         &                                .false.                                               , &
          &                                milli*megaParsec                                      , &
          &                                var_str('galaxySizesSDSSFunction'                    ), &
          &                                var_str('Galaxy size function averaged over each bin'), &
          &                                var_str('dimensionless'                              ), &
-         &                                0.0d0                                                 , &
+         &                                var_str(' '                                          ), &
+         &                                .false.                                               , &
+         &                                1.0d0                                                 , &
          &                                log10(radii)                                          , &
          &                                0_c_size_t                                            , &
          &                                outputWeight                                          , &
@@ -446,13 +459,7 @@ contains
          &                                covarianceBinomialMassHaloMinimum                     , &
          &                                covarianceBinomialMassHaloMaximum                     , &
          &                                .false.                                               , &
-         &                                var_str('$r_{1/2}/\mathrm{kpc}$'                   )  , &
-         &                                var_str('$\mathrm{d}p/\mathrm{d}\log_{10} r_{1/2}$')  , &
-         &                                .true.                                                , &
-         &                                .false.                                               , &
-         &                                var_str('Shen et al. (2003)')                         , &
-         &                                functionValueTarget                                   , &
-         &                                functionCovarianceTarget                                &
+         &                                outputAnalysisTargetData_                               &
          &                               )
     !![
     <objectDestructor name="surveyGeometry_"                                 />

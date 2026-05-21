@@ -98,6 +98,7 @@ contains
     !!]
 
     self%initialized=.false.
+    allocate(self%integrator_)
     self%integrator_=integrator(nagashima2005NumberIntegrand,toleranceRelative=1.0d-3)
     return
   end function nagashima2005ConstructorInternal

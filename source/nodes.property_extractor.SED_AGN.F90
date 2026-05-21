@@ -65,11 +65,12 @@
      procedure :: names                   => sedAGNNames
      procedure :: descriptions            => sedAGNDescriptions
      procedure :: unitsInSI               => sedAGNUnitsInSI
+     procedure :: units       => sEDAGNUnits
   end type nodePropertyExtractorSEDAGN
   
   interface nodePropertyExtractorSEDAGN
      !!{
-     Constructors for the \refClass{nodePropertyExtractorSEDAGN} output analysis class.
+     Constructors for the \refClass{nodePropertyExtractorSEDAGN} property extractor class.
      !!}
      module procedure sedAGNConstructorParameters
      module procedure sedAGNConstructorInternal
@@ -340,7 +341,7 @@ contains
     return
   end function sedAGNWavelengths
 
-  subroutine sedAGNColumnDescriptions(self,descriptions,values,valuesDescription,valuesUnitsInSI,time)
+  subroutine sedAGNColumnDescriptions(self,descriptions,values,valuesDescription,valuesUnits,time)
     !!{
     Return column descriptions of the \mono{sedAGN} property.
     !!}
@@ -351,7 +352,7 @@ contains
     type            (varying_string             ), intent(inout), dimension(:), allocatable :: descriptions
     double precision                             , intent(inout), dimension(:), allocatable :: values 
     type            (varying_string             ), intent(  out)                            :: valuesDescription
-    double precision                             , intent(  out)                            :: valuesUnitsInSI
+    type            (unitType                   ), intent(  out)                            :: valuesUnits
     integer         (c_size_t                   )                                           :: i
     character       (len=18                     )                                           :: label
     !$GLC attributes unused :: self, time
@@ -364,7 +365,7 @@ contains
        descriptions(i)=trim(label)
     end do
     valuesDescription=var_str('Wavelengths at which the SED is tabulated [in units of Å].')
-    valuesUnitsInSI  =1.0d0/metersToAngstroms
+    valuesUnits      =unitType(1.0d0/metersToAngstroms,"Angstroms","angstroms",.false.)
     return
   end subroutine sedAGNColumnDescriptions
 
@@ -383,3 +384,20 @@ contains
     unitsInSI(1)=luminositySolar
     return
   end function sedAGNUnitsInSI
+
+  function sEDAGNUnits(self,time) result(units)
+    !!{
+    Return the units of the sEDAGN properties.
+    !!}
+    use :: Numerical_Constants_Astronomical, only : luminositySolar
+    use :: Units_MetaData                  , only : unitType
+    implicit none
+    type            (unitType                   ), dimension(:), allocatable :: units
+    class           (nodePropertyExtractorSEDAGN), intent(inout)             :: self
+    double precision                             , intent(in   ), optional   :: time
+    !$GLC attributes unused :: self, time
+
+    allocate(units(1))
+    units(1)=unitType(luminositySolar,description='L☉',quantity='solLum')
+    return
+  end function sEDAGNUnits

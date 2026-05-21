@@ -164,10 +164,7 @@ contains
     type (varying_string                   ), allocatable, dimension(:), intent(inout) :: mangleFiles
 
     allocate(mangleFiles(1))
-    mangleFiles=                                               &
-         &      [                                              &
-         &       self%mangleDirectory()//"zoneOfAvoidance.ply" &
-         &      ]
+    mangleFiles(1)=self%mangleDirectory()//"zoneOfAvoidance.ply"
     return
   end subroutine localGroupClassicalMangleFiles
 

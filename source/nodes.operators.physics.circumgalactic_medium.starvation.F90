@@ -115,7 +115,7 @@ contains
 
   subroutine cgmStarvationDestructor(self)    
     !!{
-    Destructor for the \refClass{nodeOperatorCGMStarvation} class.
+    Destructor for the \refClass{nodeOperatorCGMStarvation} node operator class.
     !!}
     implicit none
     type(nodeOperatorCGMStarvation), intent(inout) :: self

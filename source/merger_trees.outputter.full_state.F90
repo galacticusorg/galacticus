@@ -26,7 +26,7 @@
    <description>
     A merger tree outputter class that outputs the full state of merger trees to allow later postprocessing. Complete tree data in
     output in raw binary format to the file specified as \mono{[fileName]}. This can be later re-read and
-    post-processed using the \refClass{taskPostprocessForests} class.
+    post-processed using the \refClass{taskPostprocessForests} task class.
    </description>
   </mergerTreeOutputter>
   !!]

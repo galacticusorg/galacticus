@@ -82,7 +82,7 @@ contains
 
   function spheroidTrackingConstructorInternal(growthRatioToStellarSpheroid,starFormationRateSpheroids_) result(self)
     !!{
-    Internal constructor for the \refClass{blackHoleAccretionRateSpheroidTracking} node operator class.
+    Internal constructor for the \refClass{blackHoleAccretionRateSpheroidTracking} black hole accretion rate class.
     !!}
     implicit none
     type            (blackHoleAccretionRateSpheroidTracking)                        :: self

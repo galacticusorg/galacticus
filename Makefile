@@ -2,6 +2,15 @@
 #
 # Andrew Benson (06-Feb-2010)
 
+# Detect Operating System
+UNAME_S := $(shell uname -s)
+
+# Conditional assignment for macOS
+ifeq ($(UNAME_S),Darwin)
+    # For MacOS we must set LC_ALL=C to avoid problems with non-UTF8 characters and sed.
+    export LC_ALL=C
+endif
+
 # Build option.
 GALACTICUS_BUILD_OPTION ?= default
 ifdef  BUILDPATH
@@ -27,8 +36,19 @@ export BUILDPATH ?= ./work/build
 export SUFFIX ?=
 endif
 
+# Convenience flag: non-empty when this is a shared-library build. Use via `ifneq ($(IS_LIB_BUILD),)` to gate
+# library-only logic (PIC flags, library interface generation, dependency prereqs).
+IS_LIB_BUILD := $(filter lib,$(GALACTICUS_BUILD_OPTION))
+
 # Preprocessor:
 PREPROCESSOR ?= cpp
+
+# Make the Galacticus python tree importable for any python3 process the
+# Makefile launches.  This replaces the per-module
+# `sys.path.insert(0, $GALACTICUS_EXEC_PATH/python)` shims that the
+# scripts under scripts/build/ used to carry, and complements (does not
+# require) `pip install -e .` -- either is sufficient on its own.
+export PYTHONPATH := $(CURDIR)/python$(if $(PYTHONPATH),:$(PYTHONPATH))
 
 # Profiling options.
 ifeq '$(GALACTICUS_BUILD_OPTION)' 'compileprof'
@@ -105,7 +125,7 @@ export CFLAGS
 CPPFLAGS += -DBUILDPATH=\'$(BUILDPATH)\' -I./source/ -I$(BUILDPATH)/ ${GALACTICUS_CPPFLAGS}
 
 # Detect library compile.
-ifeq '$(GALACTICUS_BUILD_OPTION)' 'lib'
+ifneq ($(IS_LIB_BUILD),)
 FCFLAGS       += -fPIC
 FCFLAGS_NOOPT += -fPIC
 F77FLAGS      += -fPIC
@@ -117,11 +137,13 @@ endif
 ifeq '$(GALACTICUS_BUILD_OPTION)' 'gprof'
 FCFLAGS       += -pg
 FCFLAGS_NOOPT += -pg
+F77FLAGS      += -pg
 CFLAGS        += -pg
 CPPFLAGS      += -pg
 else
 FCFLAGS       += -g
 FCFLAGS_NOOPT += -g
+F77FLAGS      += -g
 CFLAGS        += -g
 CPPFLAGS      += -g
 endif
@@ -163,8 +185,12 @@ ifeq '$(GALACTICUS_OBJECTS_DEBUG)' 'yes'
 FCFLAGS += -DOBJECTDEBUG
 endif
 
-# List of additional Makefiles which contain dependency information
-MAKE_DEPS = $(BUILDPATH)/Makefile_Module_Dependencies $(BUILDPATH)/Makefile_Use_Dependencies $(BUILDPATH)/Makefile_Include_Dependencies $(BUILDPATH)/Makefile_Library_Dependencies
+# List of additional Makefiles which contain dependency information. The library interface dependencies are only needed for
+# library builds, so are added below conditionally - generating them is slow and unnecessary for regular (or MPI) builds.
+MAKE_DEPS = $(BUILDPATH)/Makefile_Module_Dependencies $(BUILDPATH)/Makefile_Use_Dependencies $(BUILDPATH)/Makefile_Include_Dependencies
+ifneq ($(IS_LIB_BUILD),)
+MAKE_DEPS += $(BUILDPATH)/Makefile_Library_Dependencies
+endif
 
 # Get versions of build tools.
 FCCOMPILER_VERSION = `$(FCCOMPILER) -v 2>&1`
@@ -190,7 +216,7 @@ ALLSOURCESINC = $(wildcard source/*.[fF]90 source/*.Inc source/*.h source/*.c so
 # build the module file.
 vpath %.F90 source
 $(BUILDPATH)/%.p.F90.up : source/%.F90 $(BUILDPATH)/hdf5FCInterop.dat $(BUILDPATH)/openMPCriticalSections.xml
-	./scripts/build/preprocess.pl source/$*.F90 $(BUILDPATH)/$*.p.F90
+	./scripts/build/preprocess.py source/$*.F90 $(BUILDPATH)/$*.p.F90
 $(BUILDPATH)/%.p.F90 : $(BUILDPATH)/%.p.F90.up
 	@true
 $(BUILDPATH)/%.o : $(BUILDPATH)/%.p.F90 $(BUILDPATH)/%.m $(BUILDPATH)/%.d $(BUILDPATH)/%.fl Makefile
@@ -348,6 +374,11 @@ vpath %.cpp source
 $(BUILDPATH)/%.o : %.cpp $(BUILDPATH)/%.d $(BUILDPATH)/%.fl Makefile
 	$(CPPCOMPILER) -c $< -o $(BUILDPATH)/$*.o $(CPPFLAGS)
 
+# Rules for the QHull library. Use the C++17 standard for these files since they are not compatible with later C++ standards
+# (triggering 'template-id not allowed for constructor' errors)
+$(BUILDPATH)/qhull.o : source/qhull.cpp
+	$(CPPCOMPILER) -c source/qhull.cpp -o $(BUILDPATH)/qhull.o $(CPPFLAGS) -std=gnu++17
+
 # Rules for FFTLog library.
 source/FFTlog/cdgamma.f source/FFTlog/drfftb.f source/FFTlog/drffti.f source/FFTlog/drfftf.f: source/FFTlog/fftlog.f
 source/FFTlog/fftlog.f:
@@ -381,7 +412,7 @@ source/FFTlog/fftlog.f:
 	 patch < ../drfftf.f.patch; \
 	 patch < ../drffti.f.patch; \
 	 cd -; \
-	 ./scripts/build/useDependencies.pl `pwd`; \
+	 ./scripts/build/useDependencies.py `pwd`; \
 	fi
 	echo $(BUILDPATH)/FFTlog/cdgamma.o > $(BUILDPATH)/FFTlog/cdgamma.d
 	echo $(BUILDPATH)/FFTlog/drfftb.o  > $(BUILDPATH)/FFTlog/drfftb.d
@@ -393,9 +424,13 @@ $(BUILDPATH)/FFTlog/%.o: ./source/FFTlog/%.f Makefile
 	@mkdir -p $(BUILDPATH)/moduleBuild
 	$(FCCOMPILER) -c $< -o $(BUILDPATH)/FFTlog/$*.o $(F77FLAGS) -Wno-argument-mismatch -std=legacy
 
-# Object (*.o) files are built by compiling Fortran (*.f) source files.
+# Object (*.o) files are built by compiling Fortran (*.[fF]) source files.
 vpath %.f source
 $(BUILDPATH)/%.o : %.f $(BUILDPATH)/%.d $(BUILDPATH)/%.fl Makefile
+	@mkdir -p $(BUILDPATH)/moduleBuild
+	$(FCCOMPILER) -c $< -o $(BUILDPATH)/$*.o $(F77FLAGS)
+vpath %.F source
+$(BUILDPATH)/%.o : %.F $(BUILDPATH)/%.d $(BUILDPATH)/%.fl Makefile
 	@mkdir -p $(BUILDPATH)/moduleBuild
 	$(FCCOMPILER) -c $< -o $(BUILDPATH)/$*.o $(F77FLAGS)
 
@@ -408,11 +443,11 @@ $(BUILDPATH)/pFq/pfq.new.o : ./source/pFq/pfq.new.f Makefile
 # Rule for running *.Inc files through the preprocessor. We strip out single quote characters in comment lines to avoid spurious
 # complaints from the preprocessor.
 $(BUILDPATH)/%.Inc.up : ./source/%.Inc $(BUILDPATH)/hdf5FCInterop.dat $(BUILDPATH)/openMPCriticalSections.xml
-	./scripts/build/preprocess.pl ./source/$*.Inc $(BUILDPATH)/$*.Inc
+	./scripts/build/preprocess.py ./source/$*.Inc $(BUILDPATH)/$*.Inc
 $(BUILDPATH)/%.Inc : $(BUILDPATH)/%.Inc.up
 	@true
 $(BUILDPATH)/%.inc : $(BUILDPATH)/%.Inc Makefile
-	perl -MRegexp::Common -ne '$$l=$$_;$$l =~ s/($$RE{comment}{Fortran}{-keep})/\/\*$$4\*\/$$5/; print $$l' $< | cpp -nostdinc -C | perl -MRegexp::Common -ne '$$l=$$_;$$l =~ s/($$RE{comment}{C}{-keep})/!$$4/; print $$l' > $(BUILDPATH)/$*.tmp
+	sed -E s/'^([[:space:]]*)!(.*)'/'\1\/\*\2\*\/'/ $< | cpp -nostdinc -C | sed -E s/'^([[:space:]]*)\/\*(.*)\*\/'/'\1!\2'/ > $(BUILDPATH)/$*.tmp
 	mv -f $(BUILDPATH)/$*.tmp $(BUILDPATH)/$*.inc
 
 # Dependency files (*.d) are created as empty files by default. Normally this rule is overruled by a specific set of rules in the
@@ -425,6 +460,13 @@ $(BUILDPATH)/%.d : ./source/%.F90
 	 mv $(BUILDPATH)/$*.d~ $(BUILDPATH)/$*.d ; \
 	fi
 $(BUILDPATH)/%.d : ./source/%.f
+	@echo $(BUILDPATH)/$*.o > $(BUILDPATH)/$*.d~
+	@if cmp -s $(BUILDPATH)/$*.d $(BUILDPATH)/$*.d~ ; then \
+	 rm $(BUILDPATH)/$*.d~ ; \
+	else \
+	 mv $(BUILDPATH)/$*.d~ $(BUILDPATH)/$*.d ; \
+	fi
+$(BUILDPATH)/%.d : ./source/%.F
 	@echo $(BUILDPATH)/$*.o > $(BUILDPATH)/$*.d~
 	@if cmp -s $(BUILDPATH)/$*.d $(BUILDPATH)/$*.d~ ; then \
 	 rm $(BUILDPATH)/$*.d~ ; \
@@ -446,6 +488,13 @@ $(BUILDPATH)/%.d : ./source/%.cpp
 	 mv $(BUILDPATH)/$*.d~ $(BUILDPATH)/$*.d ; \
 	fi
 %.d : %.f
+	@echo $*.o > $*.d~
+	@if cmp -s $*.d $*.d~ ; then \
+	 rm $*.d~ ; \
+	else \
+	 mv $*.d~ $*.d ; \
+	fi
+%.d : %.F
 	@echo $*.o > $*.d~
 	@if cmp -s $*.d $*.d~ ; then \
 	 rm $*.d~ ; \
@@ -475,6 +524,8 @@ $(BUILDPATH)/%.d : ./source/%.cpp
 $(BUILDPATH)/%.fl : ./source/%.F90
 	@touch $(BUILDPATH)/$*.fl
 $(BUILDPATH)/%.fl : ./source/%.f
+	@touch $(BUILDPATH)/$*.fl
+$(BUILDPATH)/%.fl : ./source/%.F
 	@touch $(BUILDPATH)/$*.fl
 $(BUILDPATH)/%.fl : ./source/%.c
 	@touch $(BUILDPATH)/$*.fl
@@ -506,7 +557,7 @@ $(BUILDPATH)/%.m : ./source/%.F90
 # Executables (*.exe) are built by linking together all of the object files (*.o) specified in the associated dependency (*.d)
 # file.
 %.exe: $(BUILDPATH)/%.o $(BUILDPATH)/%.d `cat $(BUILDPATH)/$*.d` $(MAKE_DEPS)
-	./scripts/build/parameterDependencies.pl `pwd` $*.exe
+	./scripts/build/parameterDependencies.py `pwd` $*.exe
 	$(FCCOMPILER) -c $(BUILDPATH)/$*.parameters.F90 -o $(BUILDPATH)/$*.parameters.o $(FCFLAGS)
 	@if echo "$(MAKEFLAGS)" | grep -q -E -- ' -j1( |$$)'; then \
 	 useLocks=no; \
@@ -517,25 +568,28 @@ $(BUILDPATH)/%.m : ./source/%.F90
 	else \
 	 useLocks=no; \
 	fi; \
-	./scripts/build/sourceDigests.pl `pwd` $*.exe $$useLocks
+	./scripts/build/sourceDigests.py `pwd` $*.exe $$useLocks
 	$(CCOMPILER) -c $(BUILDPATH)/$*.md5s.c -o $(BUILDPATH)/$*.md5s.o $(CFLAGS)
 	$(CONDORLINKER) $(FCCOMPILER) `cat $*.d` $(BUILDPATH)/$*.parameters.o $(BUILDPATH)/$*.md5s.o -o $*.exe$(SUFFIX) $(FCFLAGS) `scripts/build/libraryDependencies.py $*.exe $(FCFLAGS)` 2>&1 | ./scripts/build/postprocessLinker.py
 
-# Library.
--include $(BUILDPATH)/Makefile_Library_Dependencies 
-$(BUILDPATH)/Makefile_Library_Dependencies:
+# Library. These rules generate Fortran interface wrappers and their dependencies for the shared library build; the generator
+# scripts (libraryInterfaces.py, libraryInterfacesDependencies.py) are slow, so we only activate them when actually performing
+# a library build.
+ifneq ($(IS_LIB_BUILD),)
+-include $(BUILDPATH)/Makefile_Library_Dependencies
+$(BUILDPATH)/Makefile_Library_Dependencies: $(BUILDPATH)/libgalacticus.Inc ./scripts/build/libraryInterfacesDependencies.py
 	./scripts/build/libraryInterfacesDependencies.py
-$(BUILDPATH)/libgalacticus.Inc: $(BUILDPATH)/directiveLocations.xml $(BUILDPATH)/stateStorables.xml
-	./scripts/build/libraryInterfaces.pl
+$(BUILDPATH)/libgalacticus.Inc: $(BUILDPATH)/directiveLocations.xml $(BUILDPATH)/stateStorables.xml ./source/libraryClasses.xml ./scripts/build/libraryInterfaces.py ./python/LibraryInterfaces/Pipeline.py ./python/LibraryInterfaces/Emitters.py ./python/LibraryInterfaces/ArgSpec.py
+	./scripts/build/libraryInterfaces.py
 $(BUILDPATH)/libgalacticus.p.Inc.up : $(BUILDPATH)/libgalacticus.Inc $(BUILDPATH)/hdf5FCInterop.dat $(BUILDPATH)/openMPCriticalSections.xml
-	./scripts/build/preprocess.pl $(BUILDPATH)/libgalacticus.Inc $(BUILDPATH)/libgalacticus.p.Inc
+	./scripts/build/preprocess.py $(BUILDPATH)/libgalacticus.Inc $(BUILDPATH)/libgalacticus.p.Inc
 $(BUILDPATH)/libgalacticus.p.Inc : $(BUILDPATH)/libgalacticus.p.Inc.up
 	@true
 $(BUILDPATH)/libgalacticus.inc : $(BUILDPATH)/libgalacticus.p.Inc Makefile
-	perl -MRegexp::Common -ne '$$l=$$_;$$l =~ s/($$RE{comment}{Fortran}{-keep})/\/\*$$4\*\/$$5/; print $$l' $(BUILDPATH)/libgalacticus.p.Inc | cpp -nostdinc -C | perl -MRegexp::Common -ne '$$l=$$_;$$l =~ s/($$RE{comment}{C}{-keep})/!$$4/; print $$l' > $(BUILDPATH)/libgalacticus.tmp
+	sed -E s/'^([[:space:]]*)!(.*)'/'\1\/\*\2\*\/'/ $(BUILDPATH)/libgalacticus.p.Inc | cpp -nostdinc -C | sed -E s/'^([[:space:]]*)\/\*(.*)\*\/'/'\1!\2'/ > $(BUILDPATH)/libgalacticus.tmp
 	mv -f $(BUILDPATH)/libgalacticus.tmp $(BUILDPATH)/libgalacticus.inc
 libgalacticus.so: $(BUILDPATH)/libgalacticus.o $(BUILDPATH)/libgalacticus_classes.d
-	./scripts/build/parameterDependencies.pl `pwd` libgalacticus.o
+	./scripts/build/parameterDependencies.py `pwd` libgalacticus.o
 	$(FCCOMPILER) -c $(BUILDPATH)/libgalacticus.parameters.F90 -o $(BUILDPATH)/libgalacticus.parameters.o $(FCFLAGS)
 	@if echo "$(MAKEFLAGS)" | grep -q -E -- ' -j1( |$$)'; then \
 	 useLocks=no; \
@@ -546,9 +600,10 @@ libgalacticus.so: $(BUILDPATH)/libgalacticus.o $(BUILDPATH)/libgalacticus_classe
 	else \
 	 useLocks=no; \
 	fi; \
-	./scripts/build/sourceDigests.pl `pwd` libgalacticus.o $$useLocks
+	./scripts/build/sourceDigests.py `pwd` libgalacticus.o $$useLocks
 	$(CCOMPILER) -c $(BUILDPATH)/libgalacticus.md5s.c -o $(BUILDPATH)/libgalacticus.md5s.o $(CFLAGS)
 	$(FCCOMPILER) -shared `sort -u $(BUILDPATH)/libgalacticus.d $(BUILDPATH)/libgalacticus_classes.d` $(BUILDPATH)/libgalacticus.parameters.o $(BUILDPATH)/libgalacticus.md5s.o -o libgalacticus.so $(FCFLAGS) `scripts/build/libraryDependencies.py libgalacticus.o $(FCFLAGS)`
+endif
 
 # Ensure that we don't delete object files which make considers to be intermediate
 .PRECIOUS: $(BUILDPATH)/%.p.F90 $(BUILDPATH)/%.p.F90.up $(BUILDPATH)/%.Inc $(BUILDPATH)/%.Inc.up $(BUILDPATH)/%.d
@@ -617,19 +672,25 @@ tidy:
 all: deps $(all_exes)
 
 # Rules for building dependency Makefiles.
-$(BUILDPATH)/Makefile_Module_Dependencies: ./scripts/build/moduleDependencies.pl $(BUILDPATH)/directiveLocations.xml $(BUILDPATH)/Makefile_Directives $(BUILDPATH)/Makefile_Include_Dependencies $(ALLSOURCESINC)
+$(BUILDPATH)/Makefile_Module_Dependencies: ./scripts/build/moduleDependencies.py $(BUILDPATH)/directiveLocations.xml $(BUILDPATH)/Makefile_Directives $(BUILDPATH)/Makefile_Include_Dependencies $(ALLSOURCESINC)
 	@mkdir -p $(BUILDPATH)
-	./scripts/build/moduleDependencies.pl `pwd`
+	./scripts/build/moduleDependencies.py `pwd`
 
-$(BUILDPATH)/Makefile_Use_Dependencies: ./scripts/build/useDependencies.pl $(BUILDPATH)/directiveLocations.xml $(BUILDPATH)/Makefile_Directives $(BUILDPATH)/Makefile_Include_Dependencies $(BUILDPATH)/Makefile_Library_Dependencies $(BUILDPATH)/libgalacticus.Inc $(ALLSOURCESINC)
+# For library builds, useDependencies.py must scan the generated library wrapper sources under $(BUILDPATH)/libgalacticus/, so
+# we make it depend on the library include generation. For non-library builds we skip this, since the wrapper sources are not
+# needed and the generators (libraryInterfaces.py, libraryInterfacesDependencies.py) are slow.
+ifneq ($(IS_LIB_BUILD),)
+USE_DEPS_LIBRARY_PREREQS = $(BUILDPATH)/Makefile_Library_Dependencies $(BUILDPATH)/libgalacticus.Inc
+endif
+$(BUILDPATH)/Makefile_Use_Dependencies: ./scripts/build/useDependencies.py $(BUILDPATH)/directiveLocations.xml $(BUILDPATH)/Makefile_Directives $(BUILDPATH)/Makefile_Include_Dependencies $(USE_DEPS_LIBRARY_PREREQS) $(ALLSOURCESINC)
 	@mkdir -p $(BUILDPATH)
-	./scripts/build/useDependencies.pl `pwd`
+	./scripts/build/useDependencies.py `pwd`
 
-$(BUILDPATH)/Makefile_Directives: ./scripts/build/codeDirectivesParse.pl $(ALLSOURCES)
+$(BUILDPATH)/Makefile_Directives: ./scripts/build/codeDirectivesParse.py $(ALLSOURCES)
 	@mkdir -p $(BUILDPATH)
-	./scripts/build/codeDirectivesParse.pl `pwd`
-	./scripts/build/stateStorables.pl `pwd`
-	./scripts/build/deepCopyActions.pl `pwd`
+	./scripts/build/codeDirectivesParse.py `pwd`
+	./scripts/build/stateStorables.py `pwd`
+	./scripts/build/deepCopyActions.py `pwd`
 
 $(BUILDPATH)/Makefile_Include_Dependencies: ./scripts/build/includeDependencies.py $(ALLSOURCES)
 	@mkdir -p $(BUILDPATH)

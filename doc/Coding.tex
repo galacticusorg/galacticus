@@ -6,97 +6,97 @@ The hierarchy of classes describing a merger tree node and its galaxy (i.e. \mon
 
 \subsection{Variable Definitions}\label{sec:nodeBuilderVariableDefinitions}
 
-Throughout the node objects builder code, Fortran variables are defined using a common specification. This is a simple hash containing the following entries:
+Throughout the node objects builder code, Fortran variables are defined using a common specification. This is a Python \mono{dict} containing the following entries:
 \begin{description}
-  \item[intrinsic] a string specifying the intrinsic Fortran type (\mono{integer}, \mono{logical}, \mono{real}, \mono{double precision}, \mono{complex}, \mono{double complex}, \mono{type}, \mono{class}, \mono{procedure});
-  \item[type] \emph{[optional, except for \mono{type} and \mono{class} intrinsics]} a string specifying the type of the variables;
-  \item[attributes] an array of strings specifying all attributes of the variables;
-  \item[variables] an array of strings giving the names of the variables.
+  \item[\mono{intrinsic}] a string specifying the intrinsic Fortran type (\mono{integer}, \mono{logical}, \mono{real}, \mono{double precision}, \mono{complex}, \mono{double complex}, \mono{type}, \mono{class}, \mono{procedure});
+  \item[\mono{type}] \emph{[optional, except for \mono{type} and \mono{class} intrinsics]} a string specifying the type of the variables;
+  \item[\mono{attributes}] a list of strings specifying all attributes of the variables;
+  \item[\mono{variables}] a list of strings giving the names of the variables.
 \end{description}
 For example, rank-1, long integer arguments which will not be modified in their function would be specified as:
 \begin{verbatim}
 {
-  intrinsic  => "integer", 
-  type       => "kind_int8",
-  attributes => [ "dimension(:)", "intent(in)" ],
-  variables  => [ "argument1", "argument2" ]
+    'intrinsic':  'integer',
+    'type':       'kind_int8',
+    'attributes': ['dimension(:)', 'intent(in)'],
+    'variables':  ['argument1', 'argument2'],
 }
 \end{verbatim}
 
-\subsection{The \mono{\$build} Data Structure}
+\subsection{The \mono{build} Data Structure}
 
-The \mono{\$build} data structure is used to accumulate all objects, variables, interfaces, and functions needed to build the class hierarchy used to represent nodes and components in \glc. At the end of the node objects build process, this object is processed to generate the required Fortran code. The following subsections describe how to add information to this object.
+The \mono{build} data structure (a Python \mono{dict}) is used to accumulate all objects, variables, interfaces, and functions needed to build the class hierarchy used to represent nodes and components in \glc. The build pipeline lives under \mono{python/Galacticus/Build/Components/} and is driven by \mono{scripts/build/buildCode.py}; sub-modules register hooks that mutate \mono{build} during a sequence of named phases (\mono{preValidate}, \mono{default}, \mono{gather}, \mono{scatter}, \mono{postValidate}, \mono{content}, \mono{types}, \mono{interfaces}, \mono{functions}). At the end of the node objects build process, this dict is processed to generate the required Fortran code, which is appended to \mono{build['content']}. The following subsections describe how to add information to it.
 
 \subsubsection{Component Classes and Implementations}
 
-A reference to a hash of structures which define all component classes, keyed by class name, is provided as \mono{\$build->\{'componentClasses'\}}. Each component class structure has the form:
+A \mono{dict} of structures defining all component classes, keyed by class name, is provided as \mono{build['componentClasses']}. Each component class structure has the form:
 \begin{verbatim}
 {
- name    => <name of the class>,
- members => <reference to a hash of structures which define all member implementation of the class>
+    'name':    <name of the class>,
+    'members': <dict of structures defining all member implementations of the class>,
 }
 \end{verbatim}
 Each member implementation structure has the form:
 \begin{verbatim}
 {
- name       =>             <name of the implementation>,
- properties => property => <reference to a hash of structures which define all properties of this implementation>
+    'name':       <name of the implementation>,
+    'properties': <dict of structures defining all properties of this implementation>,
 }
 \end{verbatim}
 
 \subsubsection{Types}\label{sec:buildHierarchyTypes}
 
-Definitions of derived types are accumulated to the hash \mono{\$build->\{'types'\}}, with the key of each entry being the derived type's name. Each derived type structure has the form:
+Definitions of derived types are accumulated in the \mono{dict} \mono{build['types']}, with the key of each entry being the derived type's name. Each derived type structure has the form:
 \begin{verbatim}
 {
- name           => <name of the derived type>
- comment        => <a description of the type>
- isPublic       => <1 if the class should have public visbility, 0 otherwise>
- dataContent    => <variable list containing all data for this class>
- boundFunctions => 
-  [
-   {
-    type        => <procedure|generic>
-    descriptor  => <a function descriptor data structure> [optional]
-    name        => <name of the bound method>
-    function    => <name of function to bind to> [optional; not required if descriptor is provided]
-    description => <LaTeX-syntax description of the method> [optional; not required if descriptor is provided]
-    returnType  => <LaTeX-syntax return type of the method> [optional; not required if descriptor is provided]
-    arguments   => <LaTeX-syntax definition of all arguments to the method> [optional; not required if descriptor is provided]
-   }
-  ]
+    'name':           <name of the derived type>,
+    'comment':        <a description of the type>,
+    'isPublic':       <True if the class should have public visibility, False otherwise>,
+    'dataContent':    <list of variable definitions containing all data for this class>,
+    'boundFunctions': [
+        {
+            'type':        <'procedure'|'generic'>,
+            'descriptor':  <a function descriptor dict> [optional],
+            'name':        <name of the bound method>,
+            'function':    <name of function to bind to> [optional; not required if descriptor is provided],
+            'description': <LaTeX-syntax description of the method> [optional; not required if descriptor is provided],
+            'returnType':  <LaTeX-syntax return type of the method> [optional; not required if descriptor is provided],
+            'arguments':   <LaTeX-syntax definition of all arguments to the method> [optional; not required if descriptor is provided],
+        },
+    ],
 }
 \end{verbatim}
 The preferred approach is to provide a function descriptor (see \S\ref{sec:buildHierarchyFunctions}), and to omit the \mono{function}, \mono{description}, \mono{returnType}, and \mono{arguments} entries (which will be inferred from the function descriptor). The \mono{function}, \mono{description}, \mono{returnType}, and \mono{arguments} entries will eventually be deprecated in favor of the \mono{descriptor} entry.
 
 \subsubsection{Interfaces}\label{sec:buildHierarchyInterfaces}
 
-Definitions of interfaces are accumulated to the hash \mono{\$build->\{interfaces\}}, with the key of each entry being the interfaces name. Each interface structure has the form:
+Definitions of interfaces are accumulated in the \mono{dict} \mono{build['interfaces']}, with the key of each entry being the interface's name. Each interface structure has the form:
 \begin{verbatim}
 {
- name           => <name of the interface>
- comment        => <a description of the interface>
- intrinsic      => <the intrinsic type of the function (or "void" for a subroutine)> 
- data           => <variable list containing all arguments for this interface>
+    'name':      <name of the interface>,
+    'comment':   <a description of the interface>,
+    'intrinsic': <the intrinsic type of the function (or 'void' for a subroutine)>,
+    'data':      <list of variable definitions containing all arguments for this interface>,
+}
 \end{verbatim}
 
 \subsubsection{Functions}\label{sec:buildHierarchyFunctions}
 
-Definitions of functions are accumulated either to the list \mono{\$build->\{'functions'\}} or are included as the \mono{descriptor} in a derived type structure (this is the preferred method for functions that \emph{are} bound to a derived type; see \S\ref{sec:buildHierarchyTypes}). Each function structure has the form:
+Definitions of functions are accumulated either in the list \mono{build['functions']} or are included as the \mono{descriptor} in a derived type structure (this is the preferred method for functions that \emph{are} bound to a derived type; see \S\ref{sec:buildHierarchyTypes}). Each function structure has the form:
 \begin{verbatim}
 {
- type        => <the type of function>
- name        => <function name>
- description => <LaTeX-syntax description of the function>
- modules     => <list of names of modules required by the function> [optional]
- variables   => <list of variables required by the function> [optional]
- content     => <the code of the function (excluding opener, closer, and variable definitions)>
+    'type':        <the type of function>,
+    'name':        <function name>,
+    'description': <LaTeX-syntax description of the function>,
+    'modules':     <list of names of modules required by the function> [optional],
+    'variables':   <list of variable definitions required by the function> [optional],
+    'content':     <the code of the function (excluding opener, closer, and variable definitions)>,
 }
 \end{verbatim}
 
 \subsubsection{Module-scope Variables}
 
-Any module-scope variables can be pushed to the array \mono{\@\{\$build->\{'variables'\}\}}, using the usual definition format described in \S\ref{sec:nodeBuilderVariableDefinitions}.
+Any module-scope variables can be appended to the list \mono{build['variables']} (e.g.\ \mono{build['variables'].append(\{...\})}), using the usual definition format described in \S\ref{sec:nodeBuilderVariableDefinitions}.
 
 \section{Galacticus Preprocessor Directives}\label{sec:sourceTreePreprocessor}
 
@@ -344,7 +344,7 @@ module Cosmology_Parameters
   !# <enumeration>
   !#  <name>hubbleUnits</name>
   !#  <description>Specifies the units for the Hubble constant.</description>
-  !#  <visibility>public</visbility>
+  !#  <visibility>public</visibility>
   !#  <validator>yes</validator>
   !#  <encodeFunction>yes</encodeFunction>
   !#  <entry label="standard" />

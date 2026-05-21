@@ -34,11 +34,12 @@
      procedure :: names        => galaxyMergerTreeMergerPhysicalNames
      procedure :: descriptions => galaxyMergerTreeMergerPhysicalDescriptions
      procedure :: unitsInSI    => galaxyMergerTreeMergerPhysicalUnitsInSI
+     procedure :: units        => galaxyMergerTreeMergerPhysicalUnits
   end type nodePropertyExtractorGalaxyMergerTreeMergerPhysical
 
   interface nodePropertyExtractorGalaxyMergerTreeMergerPhysical
      !!{
-     Constructors for the \refClass{nodePropertyExtractorGalaxyMergerTreeMergerPhysical} output extractor class.
+     Constructors for the \refClass{nodePropertyExtractorGalaxyMergerTreeMergerPhysical} property extractor class.
      !!}
      module procedure galaxyMergerTreeMergerPhysicalConstructorParameters
      module procedure galaxyMergerTreeMergerPhysicalConstructorInternal
@@ -64,7 +65,7 @@ contains
 
   function galaxyMergerTreeMergerPhysicalConstructorInternal() result(self)
     !!{
-    Internal constructor for the \refClass{nodePropertyExtractorGalaxyMergerTreeMergerPhysical} output extractor property extractor class.
+    Internal constructor for the \refClass{nodePropertyExtractorGalaxyMergerTreeMergerPhysical} property extractor class.
     !!}
     implicit none
     type(nodePropertyExtractorGalaxyMergerTreeMergerPhysical) :: self
@@ -140,7 +141,7 @@ contains
     !!{
     Return the units of the \mono{galaxyMergerTreeMergerPhysical} properties in the SI system.
     !!}
-    use :: Numerical_Constants_Astronomical, only : gigaYear, massSolar
+    use :: Numerical_Constants_Astronomical, only : gigaYear
     implicit none
     double precision                                                     , dimension(:) , allocatable :: unitsInSI
     class           (nodePropertyExtractorGalaxyMergerTreeMergerPhysical), intent(inout)              :: self
@@ -150,3 +151,19 @@ contains
     unitsInSI(1)=gigaYear
     return
   end function galaxyMergerTreeMergerPhysicalUnitsInSI
+
+  function galaxyMergerTreeMergerPhysicalUnits(self) result(units)
+    !!{
+    Return the units of the galaxyMergerTreeMergerPhysical properties.
+    !!}
+    use :: Units_MetaData                  , only : unitType
+    use :: Numerical_Constants_Astronomical, only : gigaYear
+    implicit none
+    type (unitType                                           ), dimension(:), allocatable :: units
+    class(nodePropertyExtractorGalaxyMergerTreeMergerPhysical), intent(inout)             :: self
+    !$GLC attributes unused :: self
+
+    allocate(units(1))
+    units(1)=unitType(gigaYear,description='Gyr',quantity='Gyr')
+    return
+  end function galaxyMergerTreeMergerPhysicalUnits

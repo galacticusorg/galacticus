@@ -47,7 +47,7 @@ module Node_Component_Halo_Angular_Momentum_Vector
       <type>double</type>
       <rank>1</rank>
       <attributes isSettable="true" isGettable="true" isEvolvable="true" />
-      <output labels="[X,Y,Z]" unitsInSI="massSolar*megaParsec*kilo" comment="Angular momentum vector of the DMO halo."/>
+      <output labels="[X,Y,Z]" unitsInSI="massSolar*megaParsec*kilo" unitsDescription="Msun Mpc km/s" unitsQuantity="solMass Mpc km/s" comment="Angular momentum vector of the DMO halo."/>
       <classDefault>[0.0d0,0.0d0,0.0d0]</classDefault>
     </property>
     <property>

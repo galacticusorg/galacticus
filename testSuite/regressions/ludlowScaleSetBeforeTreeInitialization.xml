@@ -137,8 +137,10 @@
   <mergerTreeMassResolution value="fixed">
     <massResolution value="1.0e10"/>
   </mergerTreeMassResolution>
+
   <!-- Substructure hierarchy options -->
   <mergerTreeNodeMerger value="singleLevelHierarchy"/>
+
   <!-- Dark matter halo structure options -->
   <darkMatterProfile value="darkMatterOnly"/>
   <darkMatterProfileDMO value="heated">
@@ -217,6 +219,10 @@
   <hotHaloRamPressureStripping value="font2008"/>
   <hotHaloRamPressureForce value="font2008"/>
   <hotHaloRamPressureTimescale value="ramPressureAcceleration"/>
+
+  <!-- Galaxy tidal stripping options -->
+  <satelliteTidalField value="null"/>
+
   <!-- Galactic structure solver options -->
   <galacticStructureSolver value="simple"/>
   <!-- Galactic disk dynamics options -->
@@ -233,6 +239,7 @@
     <recycledFraction value="0.46"/>
     <metalYield value="0.035"/>
   </stellarPopulation>
+
   <!-- Accretion disk properties -->
   <accretionDisks value="switched">
     <accretionRateThinDiskMaximum value="0.30"/>

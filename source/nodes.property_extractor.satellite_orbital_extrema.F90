@@ -47,11 +47,12 @@ Implements satellite orbital extrema property extractor class.
      procedure :: names        => satelliteOrbitalExtremaNames
      procedure :: descriptions => satelliteOrbitalExtremaDescriptions
      procedure :: unitsInSI    => satelliteOrbitalExtremaUnitsInSI
+     procedure :: units       => satelliteOrbitalExtremaUnits
   end type nodePropertyExtractorSatelliteOrbitalExtrema
 
   interface nodePropertyExtractorSatelliteOrbitalExtrema
      !!{
-     Constructors for the \refClass{nodePropertyExtractorSatelliteOrbitalExtrema} output analysis class.
+     Constructors for the \refClass{nodePropertyExtractorSatelliteOrbitalExtrema} property extractor class.
      !!}
      module procedure satelliteOrbitalExtremaConstructorParameters
      module procedure satelliteOrbitalExtremaConstructorInternal
@@ -121,7 +122,7 @@ contains
 
   subroutine satelliteOrbitalExtremaDestructor(self)
     !!{
-    Destructor for the \refClass{nodePropertyExtractorSatelliteOrbitalExtrema} node property extractor class.
+    Destructor for the \refClass{nodePropertyExtractorSatelliteOrbitalExtrema} property extractor class.
     !!}
     implicit none
     type(nodePropertyExtractorSatelliteOrbitalExtrema), intent(inout) :: self
@@ -254,3 +255,26 @@ contains
     return
   end function satelliteOrbitalExtremaUnitsInSI
 
+  function satelliteOrbitalExtremaUnits(self,time) result(units)
+    !!{
+    Return the units of the satelliteOrbitalExtrema properties.
+    !!}
+    use :: Numerical_Constants_Astronomical, only : megaParsec
+    use :: Numerical_Constants_Prefixes    , only : kilo
+    use :: Units_MetaData                  , only : unitType
+    implicit none
+    type            (unitType                                    ), dimension(:), allocatable :: units
+    class           (nodePropertyExtractorSatelliteOrbitalExtrema), intent(inout)             :: self
+    double precision                                              , intent(in   )             :: time
+
+    allocate(units(self%elementCount_))
+    if (self%extractPericenter) then
+       units(self%offsetPericenter  )=unitType(megaParsec,'Mpc' ,'Mpc' )
+       units(self%offsetPericenter+1)=unitType(kilo      ,'km/s','km/s')
+    end if
+    if (self%extractApocenter ) then
+       units(self%offsetApocenter   )=unitType(megaParsec,'Mpc' ,'Mpc' )
+       units(self%offsetApocenter +1)=unitType(kilo      ,'km/s','km/s')
+    end if
+    return
+  end function satelliteOrbitalExtremaUnits

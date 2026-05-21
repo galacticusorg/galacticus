@@ -34,11 +34,12 @@
      procedure :: names        => galaxyMergerTreeMergerIndicesNames
      procedure :: descriptions => galaxyMergerTreeMergerIndicesDescriptions
      procedure :: unitsInSI    => galaxyMergerTreeMergerIndicesUnitsInSI
+     procedure :: units        => galaxyMergerTreeMergerIndicesUnits
   end type nodePropertyExtractorGalaxyMergerTreeMergerIndices
 
   interface nodePropertyExtractorGalaxyMergerTreeMergerIndices
      !!{
-     Constructors for the \refClass{nodePropertyExtractorGalaxyMergerTreeMergerIndices} output extractor class.
+     Constructors for the \refClass{nodePropertyExtractorGalaxyMergerTreeMergerIndices} property extractor class.
      !!}
      module procedure galaxyMergerTreeMergerIndicesConstructorParameters
      module procedure galaxyMergerTreeMergerIndicesConstructorInternal
@@ -64,7 +65,7 @@ contains
 
   function galaxyMergerTreeMergerIndicesConstructorInternal() result(self)
     !!{
-    Internal constructor for the \refClass{nodePropertyExtractorGalaxyMergerTreeMergerIndices} output extractor property extractor class.
+    Internal constructor for the \refClass{nodePropertyExtractorGalaxyMergerTreeMergerIndices} property extractor class.
     !!}
     implicit none
     type(nodePropertyExtractorGalaxyMergerTreeMergerIndices) :: self
@@ -151,6 +152,24 @@ contains
     !$GLC attributes unused :: self
 
     allocate(unitsInSI(2))
-    unitsInSI=0.0d0
+    unitsInSI=1.0d0
     return
   end function galaxyMergerTreeMergerIndicesUnitsInSI
+
+  function galaxyMergerTreeMergerIndicesUnits(self) result(units)
+    !!{
+    Return the units of the galaxyMergerTreeMergerIndices properties.
+    !!}
+    use :: Units_MetaData, only : unitType
+    implicit none
+    type   (unitType                                          ), dimension(:), allocatable :: units
+    class  (nodePropertyExtractorGalaxyMergerTreeMergerIndices), intent(inout)             :: self
+    integer                                                                                :: i
+    !$GLC attributes unused :: self
+
+    allocate(units(2))
+    do i=1,2
+       units(i)=unitType(1.0d0)
+    end do
+    return
+  end function galaxyMergerTreeMergerIndicesUnits

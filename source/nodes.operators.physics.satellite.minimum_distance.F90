@@ -28,7 +28,7 @@
    <description>Options for which host halo to compute the minimum distance to.</description>
    <encodeFunction>yes</encodeFunction>
    <validator>yes</validator>
-   <visibility>private</visibility>
+   <visibility>public</visibility>
    <entry label="immediateHost"/>
    <entry label="isolatedHost" />
   </enumeration>

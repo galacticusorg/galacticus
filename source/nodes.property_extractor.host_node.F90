@@ -38,11 +38,12 @@ Implements an output analysis property extractor class that extracts a property 
      procedure :: name        => hostNodeName
      procedure :: description => hostNodeDescription
      procedure :: unitsInSI   => hostNodeUnitsInSI
+     procedure :: units       => hostNodeUnits
   end type nodePropertyExtractorHostNode
 
   interface nodePropertyExtractorHostNode
      !!{
-     Constructors for the \refClass{nodePropertyExtractorHostNode} node property extractor class.
+     Constructors for the \refClass{nodePropertyExtractorHostNode} property extractor class.
      !!}
      module procedure hostNodeConstructorParameters
      module procedure hostNodeConstructorInternal
@@ -52,7 +53,7 @@ contains
 
   function hostNodeConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the \refClass{nodePropertyExtractorHostNode} node property extractor class which takes a parameter set as input.
+    Constructor for the \refClass{nodePropertyExtractorHostNode} property extractor class which takes a parameter set as input.
     !!}
     use :: Error           , only : Error_Report
     use :: Input_Parameters, only : inputParameters
@@ -79,7 +80,7 @@ contains
 
   function hostNodeConstructorInternal(nodePropertyExtractor_) result(self)
     !!{
-    Internal constructor for the \refClass{nodePropertyExtractorHostNode} node property extractor class.
+    Internal constructor for the \refClass{nodePropertyExtractorHostNode} property extractor class.
     !!}
     implicit none
     type (nodePropertyExtractorHostNode)                        :: self
@@ -93,7 +94,7 @@ contains
   
   subroutine hostNodeDestructor(self)
     !!{
-    Destructor for the \refClass{nodePropertyExtractorHostNode} node property extractor class.
+    Destructor for the \refClass{nodePropertyExtractorHostNode} property extractor class.
     !!}
     implicit none
     type(nodePropertyExtractorHostNode), intent(inout) :: self
@@ -157,3 +158,16 @@ contains
     hostNodeUnitsInSI=self%nodePropertyExtractor_%unitsInSI()
     return
   end function hostNodeUnitsInSI
+
+  function hostNodeUnits(self) result(units)
+    !!{
+    Return the units of the hostNode property.
+    !!}
+    use :: Units_MetaData, only : unitType
+    implicit none
+    type (unitType                     )                :: units
+    class(nodePropertyExtractorHostNode), intent(inout) :: self
+
+    units=self%nodePropertyExtractor_%units()
+    return
+  end function hostNodeUnits

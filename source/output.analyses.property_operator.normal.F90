@@ -44,7 +44,7 @@
 
   interface outputAnalysisPropertyOperatorNormal
      !!{
-     Constructors for the \refClass{outputAnalysisPropertyOperatorNormal} output analysis class.
+     Constructors for the \refClass{outputAnalysisPropertyOperatorNormal} output analysis property operator class.
      !!}
      module procedure normalConstructorParameters
      module procedure normalConstructorInternal
@@ -103,7 +103,7 @@ contains
 
   function normalConstructorInternal(rangeLower,rangeUpper,extentLower,extentUpper,rootVariance) result (self)
     !!{
-    Internal constructor for the \refClass{outputAnalysisPropertyOperatorNormal} output analysis distribution operator class.
+    Internal constructor for the \refClass{outputAnalysisPropertyOperatorNormal} output analysis property operator class.
     !!}
     implicit none
     type            (outputAnalysisPropertyOperatorNormal)                :: self

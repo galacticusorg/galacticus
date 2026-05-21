@@ -71,7 +71,7 @@
 
   interface posteriorSampleSimulationParticleSwarm
      !!{
-     Constructors for the \refClass{posteriorSampleSimulationParticleSwarm} posterior sampling convergence class.
+     Constructors for the \refClass{posteriorSampleSimulationParticleSwarm} posterior sampling simulation class.
      !!}
      module procedure particleSwarmConstructorParameters
      module procedure particleSwarmConstructorInternal

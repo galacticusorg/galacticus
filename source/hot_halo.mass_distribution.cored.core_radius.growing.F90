@@ -140,7 +140,7 @@ contains
 
   subroutine growingDestructor(self)
     !!{
-    Destructor for the \refClass{hotHaloMassDistributionCoreRadiusGrowing} hot halo mass distribution class.
+    Destructor for the \refClass{hotHaloMassDistributionCoreRadiusGrowing} hot halo mass distribution core radius class.
     !!}
     implicit none
     type(hotHaloMassDistributionCoreRadiusGrowing), intent(inout) :: self

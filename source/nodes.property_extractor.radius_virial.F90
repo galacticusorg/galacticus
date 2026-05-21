@@ -55,11 +55,12 @@ Implements a virial radius output analysis property extractor class.
      procedure :: name        => radiusVirialName
      procedure :: description => radiusVirialDescription
      procedure :: unitsInSI   => radiusVirialUnitsInSI
+     procedure :: units       => radiusVirialUnits
   end type nodePropertyExtractorRadiusVirial
 
   interface nodePropertyExtractorRadiusVirial
      !!{
-     Constructors for the \refClass{nodePropertyExtractorRadiusVirial} output analysis class.
+     Constructors for the \refClass{nodePropertyExtractorRadiusVirial} property extractor class.
      !!}
      module procedure radiusVirialConstructorParameters
      module procedure radiusVirialConstructorInternal
@@ -69,7 +70,7 @@ contains
 
   function radiusVirialConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the \refClass{nodePropertyExtractorRadiusVirial} output analysis property extractor class which takes a parameter set as input.
+    Constructor for the \refClass{nodePropertyExtractorRadiusVirial} property extractor class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -108,7 +109,7 @@ contains
 
   function radiusVirialConstructorInternal(useLastIsolatedTime,cosmologyFunctions_,cosmologyParameters_,darkMatterProfileDMO_,virialDensityContrast_,virialDensityContrastDefinition_) result(self)
     !!{
-    Internal constructor for the \refClass{nodePropertyExtractorRadiusVirial} output analysis property extractor class.
+    Internal constructor for the \refClass{nodePropertyExtractorRadiusVirial} property extractor class.
     !!}
     implicit none
     type   (nodePropertyExtractorRadiusVirial)                        :: self
@@ -126,7 +127,7 @@ contains
 
   subroutine radiusVirialDestructor(self)
     !!{
-    Destructor for the \refClass{nodePropertyExtractorRadiusVirial} output analysis property extractor class.
+    Destructor for the \refClass{nodePropertyExtractorRadiusVirial} property extractor class.
     !!}
     implicit none
     type(nodePropertyExtractorRadiusVirial), intent(inout) :: self
@@ -213,3 +214,17 @@ contains
     radiusVirialUnitsInSI=megaParsec
     return
   end function radiusVirialUnitsInSI
+
+  function radiusVirialUnits(self) result(units)
+    !!{
+    Return the units of the radiusVirial property.
+    !!}
+    use :: Units_MetaData, only : unitType
+    implicit none
+    type (unitType                         )                :: units
+    class(nodePropertyExtractorRadiusVirial), intent(inout) :: self
+    !$GLC attributes unused :: self
+
+    units=unitType(self%unitsInSI(),description='Mpc',quantity='Mpc')
+    return
+  end function radiusVirialUnits

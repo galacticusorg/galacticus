@@ -14,31 +14,4 @@
     <temperatureCMB  value=" 2.725480"/>
   </cosmologyParameters>
 
-  <!-- Power spectrum options -->
-  <powerSpectrumPrimordial value="powerLaw">
-    <index               value="0.960"/>
-    <wavenumberReference value="1.000"/>
-    <running             value="0.000"/>
-  </powerSpectrumPrimordial>
-  <powerSpectrumWindowFunction value="ETHOS">
-    <cW   value="=[haloMassFunctionParameters::cW]"  />
-    <beta value="=[haloMassFunctionParameters::beta]"/>
-  </powerSpectrumWindowFunction>
-  <cosmologicalMassVariance value="peakBackgroundSplit">
-    <cosmologicalMassVariance value="filteredPower">
-      <sigma_8         value="0.820" />
-      <tolerance       value="4.0e-4"/>
-      <toleranceTopHat value="2.0e-4"/>
-      <nonMonotonicIsFatal value="false"/>
-    </cosmologicalMassVariance>
-  </cosmologicalMassVariance>
-  <powerSpectrumPrimordialTransferred value="simple"/>
-
-  <!-- Structure formation options -->
-  <linearGrowth          value="collisionlessMatter"                      />
-  <criticalOverdensity   value="peakBackgroundSplit"                       >
-    <criticalOverdensity value="sphericalCollapseClsnlssMttrCsmlgclCnstnt"/>
-  </criticalOverdensity>
-  <virialDensityContrast value="sphericalCollapseClsnlssMttrCsmlgclCnstnt"/>
-
 </parameters>

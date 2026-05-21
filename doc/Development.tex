@@ -14,15 +14,11 @@ Interdependencies between source files, together with requirements for auto-gene
 
 \subsubsection{Code Directive Parsing}\label{sec:buildDiscoveryDirectives}
 
-The modular nature of \glc\ is enabled through the use of directives embedded within the source code (XML documents embedded as comment lines starting with a special tag) which instruct the build system how to link together the various functions. Parsing of these directives is handled by the \mono{codeDirectivesParse.pl}\index{codeDirectivesParse.pl@\mono{codeDirectivesParse.pl}} script.
+The modular nature of \glc\ is enabled through the use of directives embedded within the source code (XML documents embedded as comment lines starting with a special tag) which instruct the build system how to link together the various functions. Parsing of these directives is handled by the \mono{codeDirectivesParse.py}\index{codeDirectivesParse.py@\mono{codeDirectivesParse.py}} script.
 
 For \mono{include} directives (which generate files that get included into the source), the script generates \mono{\$(BUILDPATH)/*.xml} files which describe the directive, and \mono{\$(BUILDPATH)/Makefile\_Directives} which contains rules for building those include files.
 
 The script also outputs a file \mono{\$(BUILDPATH)/directiveLocations.xml} which provides list of files that contain each directive. This is used by other scripts to permit rapid processing of files associated with each directive.
-
-\subsubsection{Allocatable Arrays}\label{sec:buildDiscoverAllocatables}
-
-Types and ranks of allocatable arrays required by the \glc\ are discovered by the \mono{allocatableArrays.pl}\index{allocatableArrays.pl@\mono{allocatableArrays.pl}} script. Source files are parsed for dimensionful, allocatable intrinsic types. All such combinations of type and rank are stored to a file \mono{\$(BUILDPATH)/allocatableArrays.xml}. The content of this file is later used to build appropriate memory allocation and deallocation functions (see \S\ref{sec:buildGenerationMemory}).
 
 \subsubsection{Executable Files}\index{files!executable}\index{executable files}\label{sec:buildExecutables}
 
@@ -30,7 +26,7 @@ Files which produce executables (including the \mono{Galacticus.exe} executable)
 
 \subsubsection{Modules Provided}\index{modules!provided}\index{provided modules}\label{sec:buildModulesProvided}
 
-Determination of which files provide which Fortran modules is carried out by the \mono{scripts/build/moduleDependencies.pl}\index{moduleDependencies.pl@\mono{moduleDependencies.pl}} script, which generates rules describing these dependencies (and how to build the module file by compiling the corresponding source file) and writes them to \mono{\$(BUILDPATH)/Makefile\_Module\_Dependencies}\index{Makefile_Module_Dependencies@\mono{Makefile\_Module\_Dependencies}}.
+Determination of which files provide which Fortran modules is carried out by the \mono{scripts/build/moduleDependencies.py}\index{moduleDependencies.py@\mono{moduleDependencies.py}} script, which generates rules describing these dependencies (and how to build the module file by compiling the corresponding source file) and writes them to \mono{\$(BUILDPATH)/Makefile\_Module\_Dependencies}\index{Makefile_Module_Dependencies@\mono{Makefile\_Module\_Dependencies}}.
 
 Additionally, rules are generated which describe how to build the following classes of file:
 \begin{description}
@@ -41,7 +37,7 @@ Additionally, rules are generated which describe how to build the following clas
 
 \subsubsection{Modules Used}\index{modules!used}\index{used modules}\label{sec:buildModulesUsed}
 
-Determination of which files use which Fortran modules is carried out by the \mono{scripts/build/useDependencies.pl}\index{useDependencies.pl@\mono{useDependencies.pl}} script, which generates rules describing these dependencies and writes them to \mono{\$(BUILDPATH)/Makefile\_Use\_Dependencies}\index{Makefile_Use_Dependencies@\mono{Makefile\_Use\_Dependencies}}.
+Determination of which files use which Fortran modules is carried out by the \mono{scripts/build/useDependencies.py}\index{useDependencies.py@\mono{useDependencies.py}} script, which generates rules describing these dependencies and writes them to \mono{\$(BUILDPATH)/Makefile\_Use\_Dependencies}\index{Makefile_Use_Dependencies@\mono{Makefile\_Use\_Dependencies}}.
 
 Additionally, rules are generated which describe how to build the following classes of file:
 \begin{description}
@@ -58,25 +54,19 @@ All Fortran and C/C++ source files in the \mono{source} directory are parsed. Fi
 
 \subsubsection{Parameter Dependencies}\index{parameters!dependencies}\label{sec:parameterDependencies}
 
-All runtime parameters upon which a given executable may depend are discovered by the \mono{scripts/build/parameterDependencies.pl}\index{parameterDependencies.pl@\mono{parameterDependencies.pl}} script, which generates XML files listing these parameters and writes them to \mono{\$(BUILDPATH)/\textless executableName\textgreater.parameters.xml}\index{*.parameters.xml@\mono{*.parameters.xml}}. All Fortran and C++ files in the \mono{source} directory are parsed, and embedded parameter definitions (i.e. embedded XML blocks in lines beginning ``!\@'' for Fortran or ``//\@'' for C++ with root element \mono{inputParameter}) are identified. Any files included into a source file are also searched. In the case of Fortran source files, \mono{source/*.F90}, the corresponding preprocessed file, \mono{\$(BUILDPATH)/*.p.F90}, will be searched for parameter dependencies.
+All runtime parameters upon which a given executable may depend are discovered by the \mono{scripts/build/parameterDependencies.py}\index{parameterDependencies.py@\mono{parameterDependencies.py}} script, which generates XML files listing these parameters and writes them to \mono{\$(BUILDPATH)/\textless executableName\textgreater.parameters.xml}\index{*.parameters.xml@\mono{*.parameters.xml}}. All Fortran and C++ files in the \mono{source} directory are parsed, and embedded parameter definitions (i.e. embedded XML blocks in lines beginning ``!\@'' for Fortran or ``//\@'' for C++ with root element \mono{inputParameter}) are identified. Any files included into a source file are also searched. In the case of Fortran source files, \mono{source/*.F90}, the corresponding preprocessed file, \mono{\$(BUILDPATH)/*.p.F90}, will be searched for parameter dependencies.
 
 \subsection{Code Generation}
 
 During build, code is generated automatically. Much of this is to link together functions within \glc\ (thereby permitting the modular nature of \glc), but also includes generation of various utility functions. All code generation is described below.
 
-\subsubsection{Memory Management Functions}\label{sec:buildGenerationMemory}
-
-Functions for allocation and deallocation of intrinsic-type arrays are generated by the \mono{memoryManagementFunctions.pl}\index{memoryManagementFunctions.pl@\mono{memoryManagementFunctions.pl}} script. Utilizing the list of such types in the \mono{\$(BUILDPATH)/allocatableArrays.xml} file (see \S\ref{sec:buildDiscoverAllocatables}) overloaded functions are created for each type. These memory management functions keep track of the total amount of memory allocated.
-
-\mono{memoryManagementFunctions.pl}\index{memoryManagementFunctions.pl@\mono{memoryManagementFunctions.pl}}
- 
 \subsubsection{Directives}\label{sec:codeBuildIncludeDirectives}
 
-Generation of code to implement the functionality of \mono{include} directives is carried out by the \mono{buildCode.pl}\index{buildCode.pl@\mono{buildCode.pl}} script. This script simply reads an XML file generated by the \mono{codeDirectivesParse.pl} (see \S\ref{sec:buildDiscoveryDirectives}), calls the appropriate function to generate the necessary code, passes this through the preprocessor (see \S\ref{sec:sourceTreePreprocessor}), and outputs the result to the appropriate include file.
+Generation of code to implement the functionality of \mono{include} directives is carried out by the \mono{buildCode.py}\index{buildCode.py@\mono{buildCode.py}} script. This script simply reads an XML file generated by the \mono{codeDirectivesParse.py} (see \S\ref{sec:buildDiscoveryDirectives}), calls the appropriate function to generate the necessary code, passes this through the preprocessor (see \S\ref{sec:sourceTreePreprocessor}), and outputs the result to the appropriate include file.
 
 \subsubsection{Pre-processing and Post-processing}\label{sec:codeBuildPrePostProcess}
 
-Before being compiled, all Fortran source files are passed through a tree-based preprocessor. The functionality of this preprocessor is described in \S\ref{sec:sourceTreePreprocessor}. The preprocessor is invoked on each source file by the \mono{preprocess.pl}\index{preprocess.pl@\mono{preprocess.pl}} script, which takes a \mono{source/*.F90} file as input and outputs a preprocessed file \mono{\$(BUILDPATH)/*.p.F90}.
+Before being compiled, all Fortran source files are passed through a tree-based preprocessor. The functionality of this preprocessor is described in \S\ref{sec:sourceTreePreprocessor}. The preprocessor is invoked on each source file by the \mono{preprocess.py}\index{preprocess.py@\mono{preprocess.py}} script, which takes a \mono{source/*.F90} file as input and outputs a preprocessed file \mono{\$(BUILDPATH)/*.p.F90}.
 
 Output from the \mono{gfortran} compiler is directed through the \mono{postprocess.py}\index{postprocess.py@\mono{postprocess.py}} script. This script currently performs the following functions:
 \begin{itemize}
@@ -91,31 +81,25 @@ All files involved in the build process are summarized below.
 
 \begin{description}
 
-\item[\mono{scripts/build/allocatableArrays.pl}\index{allocatableArrays.pl@\mono{allocatableArrays.pl}}:] Discovers dimensionful, allocatable, intrinsic-typed arrays in the source code, and generates a summary of their types and ranks to the file \mono{\$(BUILDPATH)/allocatableArrays.xml} (see \S\ref{sec:buildDiscoverAllocatables});
-  
-\item[\mono{scripts/build/buildCode.pl}\index{buildCode.pl@\mono{buildCode.pl}}:] Acts upon \mono{include} directives embedded in the source code and generates the corresponding include file (see \S\ref{sec:codeBuildIncludeDirectives});
+\item[\mono{scripts/build/buildCode.py}\index{buildCode.py@\mono{buildCode.py}}:] Acts upon \mono{include} directives embedded in the source code and generates the corresponding include file (see \S\ref{sec:codeBuildIncludeDirectives});
 
-\item[\mono{scripts/build/codeDirectivesParse.pl}\index{codeDirectivesParse.pl@\mono{codeDirectivesParse.pl}}:] Discovers and parses directives embedded in source files. Generates \mono{make} rules for the resulting dependencies, a file providing a mapping of which files contain each directive, and rule files describing how to build each include file resulting from a \mono{include} directive;
+\item[\mono{scripts/build/codeDirectivesParse.py}\index{codeDirectivesParse.py@\mono{codeDirectivesParse.py}}:] Discovers and parses directives embedded in source files. Generates \mono{make} rules for the resulting dependencies, a file providing a mapping of which files contain each directive, and rule files describing how to build each include file resulting from a \mono{include} directive;
 
 \item[\mono{scripts/build/includeDependencies.py}\index{includeDependencies.py@\mono{includeDependencies.py}}:] Discovers (and generates rules for) dependencies between files arising from the use of ``\mono{include}'' statements (see \S\ref{sec:buildIncludeDeps});
   
-\item[\mono{scripts/build/executableSize.pl\index{executableSize.pl@\mono{executableSize.pl}}}:] Generates a file containing details of the size of each generated executable which can be used at runtime for memory reporting (see \S\ref{sec:buildExecutables});
-
 \item[\mono{scripts/build/findExecutables.py\index{findExecutables.py@\mono{findExecutables.py}}}:] Discovers (and generates rules for) files which generate executables (see \S\ref{sec:buildExecutables});
 
 \item[\mono{scripts/build/libraryDependencies.py}\index{libraryDependencies.py@\mono{libraryDependencies.py}}:] Determines the set of libraries that must be linked with each executable, and ensures they are ordered correctly for static linking;
 
-\item[\mono{scripts/build/memoryManagementFunctions.pl}\index{memoryManagementFunctions.pl@\mono{memoryManagementFunctions.pl}}:] Generates memory allocation/deallocation functions for allocatable intrinsic arrays (see \S\ref{sec:buildGenerationMemory});
+\item[\mono{scripts/build/moduleDependencies.py}\index{moduleDependencies.py@\mono{moduleDependencies.py}}:] Discovers (and generates rules for) dependencies of module files on their source file statements (see \S\ref{sec:buildModulesProvided});
 
-\item[\mono{scripts/build/moduleDependencies.pl}\index{moduleDependencies.pl@\mono{moduleDependencies.pl}}:] Discovers (and generates rules for) dependencies of module files on their source file statements (see \S\ref{sec:buildModulesProvided});
-
-\item[\mono{scripts/build/parameterDependencies.pl}\index{parameterDependencies.pl@\mono{parameterDependencies.pl}}:] Determines all parameters upon which a given executable depends (see \S\ref{sec:parameterDependencies});
+\item[\mono{scripts/build/parameterDependencies.py}\index{parameterDependencies.py@\mono{parameterDependencies.py}}:] Determines all parameters upon which a given executable depends (see \S\ref{sec:parameterDependencies});
 
 \item[\mono{scripts/build/postprocess.py}\index{postprocess.py@\mono{postprocess.py}}:] Postprocesses the output of the \mono{gfortran} compiler to remove spurious warnings and provide line numbers in warning/error reports that point into the unpreprocessed source files (see \S\ref{sec:codeBuildPrePostProcess});
 
-\item[\mono{scripts/build/preprocess.pl}\index{preprocess.pl@\mono{preprocess.pl}}:] Preprocesses Fortran source code to provide various extended functionality (see \S\ref{sec:codeBuildPrePostProcess});
+\item[\mono{scripts/build/preprocess.py}\index{preprocess.py@\mono{preprocess.py}}:] Preprocesses Fortran source code to provide various extended functionality (see \S\ref{sec:codeBuildPrePostProcess});
 
-\item[\mono{scripts/build/useDependencies.pl}\index{useDependencies.pl@\mono{useDependencies.pl}}:] Discovers (and generates rules for) dependencies between files originating from module \mono{use} statements (see \S\ref{sec:buildModulesUsed});
+\item[\mono{scripts/build/useDependencies.py}\index{useDependencies.py@\mono{useDependencies.py}}:] Discovers (and generates rules for) dependencies between files originating from module \mono{use} statements (see \S\ref{sec:buildModulesUsed});
   
 \item[\mono{\$(BUILDPATH)/Makefile\_All\_Execs}\index{Makefile_All_Execs@\mono{Makefile\_All\_Execs}}:] Contains rules describing how to build the executable file for each distinct program---generated by \mono{scripts/build/findExecutables.py}\index{findExecutables.py@\mono{findExecutables.py}} (see \S\ref{sec:buildExecutables});
 
@@ -128,8 +112,6 @@ All files involved in the build process are summarized below.
 \item[\mono{\$(BUILDPATH)/Makefile\_Module\_Dependencies}\index{Makefile_Module_Dependencies@\mono{Makefile\_Module\_Dependencies}}:] Contains rules which describe how to build module files from their source files (see \S\ref{sec:buildModulesProvided});
 
 \item[\mono{\$(BUILDPATH)/Makefile\_Use\_Dependencies}\index{Makefile_Use_Dependencies@\mono{Makefile\_Use\_Dependencies}}:] Contains rules which describe dependencies between source file originating from module \mono{use} statements (see \S\ref{sec:buildModulesUsed});
-
-\item[\mono{\$(BUILDPATH)/allocatableArrays.xml}\index{allocatableArrays.xml files@\mono{allocatableArrays.xml} files}:] Contains a summary of the types and ranks of dimensionful, allocatable, intrinsic-type arrays for which memory allocation/deallocation functions will be generated (see \S\ref{sec:buildDiscoverAllocatables});
 
 \item[\mono{\$(BUILDPATH)/directiveLocations.xml}\index{directiveLocations.xml files@\mono{directiveLocations.xml} files}:] Contains a map of which files contain each code directive (see \S\ref{sec:buildDiscoveryDirectives});
 
@@ -149,9 +131,7 @@ All files involved in the build process are summarized below.
 
 \item[\mono{\$(BUILDPATH)/*.p.F90}\index{*.p.F90 files@\mono{*.p.F90} files}:] Preprocessed Fortran source files (see \S\ref{sec:codeBuildPrePostProcess});
 
-\item[\mono{\$(BUILDPATH)/*.parameters.xml}\index{*.parameters.xml files@\mono{*.parameters.xml} files}:] Contain lists of parameters upon which an executable depends (see \S\ref{sec:parameterDependencies});
-
-\item[\mono{\$(BUILDPATH)/*.size}\index{*.size files@\mono{*.size} files}:] Contain the size of each executable file built, and are used at runtime for memory reporting purposes---generated by \mono{scripts/build/executableSize.pl}\index{executableSize.pl@\mono{executableSize.pl}} (see \S\ref{sec:buildExecutables}).
+\item[\mono{\$(BUILDPATH)/*.parameters.xml}\index{*.parameters.xml files@\mono{*.parameters.xml} files}:] Contain lists of parameters upon which an executable depends (see \S\ref{sec:parameterDependencies}).
 \end{description}
 
 \subsection{Profiling the Build}\index{profiling!build}\index{build profiling}
@@ -162,7 +142,7 @@ make -j16 GALACTICUS_BUILD_OPTION=compileprof Galacticus.exe >& build.log
 \end{verbatim}
 Every command run by \mono{Make} will be timed and the timing results output. In the above these outputs are collected to the \mono{build.log} file. Timing result lines begin \mono{++Task:} followed by the start and end times of the task in, and then the command run. While you can look through these manually a script is provided that generates a report from these timing data as a web page. For example:
 \begin{verbatim}
-./scripts/build/buildProfiler.pl build.log profile.html --durationMinimum 10
+./scripts/build/buildProfiler.py build.log profile.html --durationMinimum 10
 \end{verbatim}
 will parse timing data from \mono{build.log} and generate a web page \mono{profile.html} showing the results. In this case the \mono{--durationMinimum 10} option specifies that only commands which took 10 or more seconds to run should be included in the report. (Reducing this limit will lead to a very long report.)
 

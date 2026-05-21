@@ -52,7 +52,7 @@
 
   interface mergerTreeBuilderSmoothAccretion
      !!{
-     Constructors for the \refClass{mergerTreeBuilderSmoothAccretion} merger tree constructor class.
+     Constructors for the \refClass{mergerTreeBuilderSmoothAccretion} merger tree builder class.
      !!}
      module procedure smoothAccretionConstructorParameters
      module procedure smoothAccretionConstructorInternal
@@ -62,7 +62,7 @@ contains
 
   function smoothAccretionConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the \refClass{mergerTreeBuilderSmoothAccretion} merger tree operator class which takes a parameter set as input.
+    Constructor for the \refClass{mergerTreeBuilderSmoothAccretion} merger tree builder class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -109,7 +109,7 @@ contains
 
   function smoothAccretionConstructorInternal(massHaloDeclineFactor,timeEarliest,cosmologyFunctions_,darkMatterHaloMassAccretionHistory_,mergerTreeMassResolution_) result(self)
     !!{
-    Internal constructor for the \refClass{mergerTreeBuilderSmoothAccretion} merger tree operator class.
+    Internal constructor for the \refClass{mergerTreeBuilderSmoothAccretion} merger tree builder class.
     !!}
     implicit none
     type            (mergerTreeBuilderSmoothAccretion       )                        :: self
@@ -131,7 +131,7 @@ contains
 
   subroutine smoothAccretionDestructor(self)
     !!{
-    Destructor for the \refClass{mergerTreeBuilderSmoothAccretion} merger tree constructor class.
+    Destructor for the \refClass{mergerTreeBuilderSmoothAccretion} merger tree builder class.
     !!}
     implicit none
     type(mergerTreeBuilderSmoothAccretion), intent(inout) :: self

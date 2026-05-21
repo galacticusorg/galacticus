@@ -150,7 +150,7 @@ contains
 
   subroutine sphericalTruncatedDestructor(self)
     !!{
-    Destructor for the abstract \refClass{massDistributionSphericalTruncated} class.
+    Destructor for the abstract \refClass{massDistributionSphericalTruncated} mass distribution class.
     !!}
     implicit none
     type(massDistributionSphericalTruncated), intent(inout) :: self

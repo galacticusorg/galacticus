@@ -1,0 +1,44 @@
+<parameters formatVersion="2">
+  <errorWaitTime value="0" />
+  <lastModified revision="d4bf2d8db876eb8e44d94e1672bc36a6ea8135cc" time="2025-09-03T18:23:58" />
+  <nbodyImporter value="merge">
+  </nbodyImporter>
+  <nbodyOperator value="sequence">
+    <nbodyOperator value="addAttributes">
+      <names value="massParticle" />
+      <values value="" />
+    </nbodyOperator>
+    <nbodyOperator value="distanceFromPoint">
+      <point value="" />
+    </nbodyOperator>
+    <nbodyOperator value="subhaloMassFunction">
+      <description value="" />
+      <massHost value=""/>
+      <massCountPerDecade value="3" />
+      <massRatioMaximum value="1.0" />
+      <massRatioMinimum value="1.0e-4" />
+      <simulationReference value="" />
+      <simulationURL value="" />
+    </nbodyOperator>
+    <nbodyOperator value="subhaloRadiusFunction">
+      <description value="" />
+      <radiusVirialHost value=""/>
+      <massMinimum value=""/>
+      <radiusCountPerDecade value="5" />
+      <radiusRatioMaximum value="1.0" />
+      <radiusRatioMinimum value="1.0e-2" />
+      <simulationReference value="" />
+      <simulationURL value="" />
+    </nbodyOperator>
+    <nbodyOperator value="subhaloVelocityMaximumMeanFunction">
+      <description value="" />
+      <massCountPerDecade value="5" />
+      <massMaximum value="" />
+      <massMinimum value="" />
+      <simulationReference value="" />
+      <simulationURL value="" />
+    </nbodyOperator>
+  </nbodyOperator>
+  <outputFileName value="" />
+  <task value="NBodyAnalyze" />
+</parameters>

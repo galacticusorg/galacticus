@@ -39,7 +39,7 @@
 
   interface darkMatterProfileScaleRadiusLudlow2014
      !!{
-     Constructors for the \refClass{darkMatterProfileScaleRadiusLudlow2014} dark matter halo profile concentration class.
+     Constructors for the \refClass{darkMatterProfileScaleRadiusLudlow2014} dark matter halo profile scale radius class.
      !!}
      module procedure ludlow2014ConstructorParameters
      module procedure ludlow2014ConstructorInternal
@@ -65,7 +65,7 @@ contains
 
   function ludlow2014ConstructorInternal(C,f,timeFormationSeekDelta,cosmologyFunctions_,cosmologyParameters_,darkMatterProfileScaleRadius_,virialDensityContrast_,darkMatterProfileDMO_,darkMatterHaloScale_) result(self)
     !!{
-    Constructor for the \refClass{darkMatterProfileScaleRadiusLudlow2014} dark matter halo profile concentration class.
+    Constructor for the \refClass{darkMatterProfileScaleRadiusLudlow2014} dark matter halo profile scale radius class.
     !!}
     implicit none
     type            (darkMatterProfileScaleRadiusLudlow2014)                        :: self

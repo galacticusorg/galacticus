@@ -41,7 +41,7 @@
 
   interface mergerTreeMassResolutionScaled
      !!{
-     Constructors for the \refClass{mergerTreeMassResolutionScaled} merger tree resolution class.
+     Constructors for the \refClass{mergerTreeMassResolutionScaled} merger tree building mass resolution class.
      !!}
      module procedure scaledConstructorParameters
      module procedure scaledConstructorInternal

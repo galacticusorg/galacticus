@@ -56,11 +56,12 @@ Implements a halo mass output analysis property extractor class.
      procedure :: name        => massHaloName
      procedure :: description => massHaloDescription
      procedure :: unitsInSI   => massHaloUnitsInSI
+     procedure :: units       => massHaloUnits
   end type nodePropertyExtractorMassHalo
 
   interface nodePropertyExtractorMassHalo
      !!{
-     Constructors for the \refClass{nodePropertyExtractorMassHalo} output analysis class.
+     Constructors for the \refClass{nodePropertyExtractorMassHalo} property extractor class.
      !!}
      module procedure massHaloConstructorParameters
      module procedure massHaloConstructorInternal
@@ -70,7 +71,7 @@ contains
 
   function massHaloConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the \refClass{nodePropertyExtractorMassHalo} output analysis property extractor class which takes a parameter set as input.
+    Constructor for the \refClass{nodePropertyExtractorMassHalo} property extractor class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -109,7 +110,7 @@ contains
 
   function massHaloConstructorInternal(useLastIsolatedTime,cosmologyFunctions_,cosmologyParameters_,darkMatterProfileDMO_,virialDensityContrast_,virialDensityContrastDefinition_) result(self)
     !!{
-    Internal constructor for the \refClass{nodePropertyExtractorMassHalo} output analysis property extractor class.
+    Internal constructor for the \refClass{nodePropertyExtractorMassHalo} property extractor class.
     !!}
     implicit none
     type   (nodePropertyExtractorMassHalo)                        :: self
@@ -127,7 +128,7 @@ contains
 
   subroutine massHaloDestructor(self)
     !!{
-    Destructor for the \refClass{nodePropertyExtractorMassHalo} output analysis property extractor class.
+    Destructor for the \refClass{nodePropertyExtractorMassHalo} property extractor class.
     !!}
     implicit none
     type(nodePropertyExtractorMassHalo), intent(inout) :: self
@@ -202,7 +203,7 @@ contains
 
   double precision function massHaloUnitsInSI(self)
     !!{
-    Return the units of the massHalo property in the SI system.
+    Return the units of the halo mass property in the SI system.
     !!}
     use :: Numerical_Constants_Astronomical, only : massSolar
     implicit none
@@ -212,3 +213,16 @@ contains
     massHaloUnitsInSI=massSolar
     return
   end function massHaloUnitsInSI
+
+  function massHaloUnits(self) result(units)
+    !!{
+    Return the units of the halo mass property.
+    !!}
+    use :: Units_MetaData, only : unitType
+    implicit none
+    type (unitType                     )                :: units
+    class(nodePropertyExtractorMassHalo), intent(inout) :: self
+
+    units=unitType(self%unitsInSI(),description='Solar masses',quantity='solMass')
+    return
+  end function massHaloUnits

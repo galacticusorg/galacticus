@@ -27,7 +27,7 @@
   !![
   <darkMatterProfileDMO name="darkMatterProfileDMOTruncated">
     <description>
-      Truncated dark matter halo profiles are built via the \refClass{massDistributionSphericalTruncated} class.
+      Truncated dark matter halo profiles are built via the \refClass{massDistributionSphericalTruncated} mass distribution class.
     </description>
   </darkMatterProfileDMO>
   !!]
@@ -102,7 +102,7 @@ contains
 
   function truncatedConstructorInternal(radiusFractionalTruncateMinimum,radiusFractionalTruncateMaximum,nonAnalyticSolver,darkMatterProfileDMO_,darkMatterHaloScale_) result(self)
     !!{
-    Internal constructor for the \refClass{darkMatterProfileDMOTruncated} dark matter profile class.
+    Internal constructor for the \refClass{darkMatterProfileDMOTruncated} dark matter halo profile class.
     !!}
     use :: Error             , only : Error_Report
     use :: Mass_Distributions, only : enumerationNonAnalyticSolversIsValid

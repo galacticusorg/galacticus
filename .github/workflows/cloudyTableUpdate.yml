@@ -137,7 +137,7 @@ jobs:
           cd $GALACTICUS_EXEC_PATH
           # Galacticus test codes always return exit status 0; detect failure via log
           if grep -q "FAILED: Cloudy CIE cooling function" test.log; then
-            python3 scripts/aux/updateCoolingFunctionTestValue.py test.log source/tests.cooling_functions.F90
+            PYTHONPATH=$GITHUB_WORKSPACE/python python3 scripts/aux/updateCoolingFunctionTestValue.py test.log source/tests.cooling_functions.F90
           fi
       - name: Generate app token
         if: ${{ env.appid != '' }}

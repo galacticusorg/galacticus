@@ -9,12 +9,34 @@
     <powerSpectrumWindowFunction/>
     <transferFunction/>
     <powerSpectrumPrimordialTransferred/>
+    <powerSpectrum/>
+    <powerSpectrumNonlinear/>
     <linearGrowth/>
+    <mergerTreeBranchingProbability/>
     <intergalacticMediumState/>
     <intergalacticMediumFilteringMass/>
     <cosmologicalMassVariance/>
     <haloEnvironment/>
     <criticalOverdensity/>
+    <galacticFilter/>
+    <nodePropertyExtractor/>
+    <virialOrbit/>
+    <geometryLightcone>
+      <geometryLightconeSquare>
+	<constructor>
+	  <!-- The square lightcone class uses an unlimited polymorphic object in the constructor. We must provide a concrete
+	       type for it here to allow it to be passed via a C-style interface. -->
+	  <argument name="nodeOperator_" type="nodeOperatorClass" module="Nodes_Operators"/>
+	</constructor>
+      </geometryLightconeSquare>
+    </geometryLightcone>
+    <starFormationRateDisks/>
+    <starFormationRateSpheroids/>
+    <starFormationRateNuclearStarClusters/>
+    <randomNumberGenerator/>
+    <outputTimes/>
+    <surveyGeometry/>
+    <mergerTreeMassResolution/>
     <virialDensityContrast>
       <virialDensityContrastPercolation>
 	<constructor>
@@ -28,10 +50,7 @@
     <excursionSetFirstCrossing/>
     <nbodyHaloMassError/>
     <darkMatterHaloScale/>
-    <darkMatterProfileDMO>
-      <darkMatterProfileDMOAccretionFlowShi2016             exclude="yes"/>
-      <darkMatterProfileDMOAccretionFlowCorrelationFunction exclude="yes"/>
-    </darkMatterProfileDMO>
+    <darkMatterProfileDMO/>
     <darkMatterProfileHeating>
       <darkMatterProfileHeatingImpulsiveOutflow>
 	<constructor>
@@ -42,5 +61,218 @@
       </darkMatterProfileHeatingImpulsiveOutflow>
     </darkMatterProfileHeating>
     <haloMassFunction/>
+    <darkMatterHaloBias/>
+    <correlationFunctionTwoPoint/>
+    <darkMatterHaloMassAccretionHistory/>
+    <darkMatterProfileScaleRadius/>
+    <darkMatterProfileShape/>
+    <darkMatterProfileConcentration>
+      <darkMatterProfileConcentrationDuttonMaccio2014>
+	<!-- This impl has two Internal-suffixed module procedures
+	     (`InternalType` keyed by a fit-type enum, `InternalDefined`
+	     taking raw coefficients).  Pick the higher-level enum form
+	     for the library wrapper. -->
+	<constructor internal="duttonMaccio2014ConstructorInternalType"/>
+      </darkMatterProfileConcentrationDuttonMaccio2014>
+    </darkMatterProfileConcentration>
+    <accretionHaloTotal/>
+    <haloSpinDistribution/>
+    <hotHaloOutflowReincorporation/>
+    <initialMassFunction/>
+    <radiativeTransferPhotonPacket/>
+    <accretionDisks/>
+    <accretionHalo/>
+    <atomicCrossSectionIonizationPhoto/>
+    <atomicExcitationRateCollisional/>
+    <atomicIonizationPotential/>
+    <atomicIonizationRateCollisional/>
+    <atomicRecombinationRateDielectronic/>
+    <atomicRecombinationRateRadiative/>
+    <blackHoleAccretionRate/>
+    <blackHoleBinaryInitialSeparation/>
+    <blackHoleBinaryMerger/>
+    <blackHoleBinaryRecoil/>
+    <blackHoleBinarySeparationGrowthRate/>
+    <blackHoleSeeds/>
+    <chemicalReactionRate/>
+    <chemicalState/>
+    <circumgalacticMediumHeating/>
+    <coldModeInfallRate/>
+    <computationalDomainVolumeIntegrator/>
+    <conditionalMassFunction/>
+    <coolingFunction/>
+    <coolingInfallTorque/>
+    <coolingRate/>
+    <coolingSpecificAngularMomentum/>
+    <coolingTimeAvailable/>
+    <cosmologicalVelocityField/>
+    <darkMatterHaloMassLossRate/>
+    <darkMatterProfile/>
+    <distributionFunction1D/>
+    <distributionFunctionDiscrete1D/>
+    <evolveForestsWorkShare/>
+    <freefallTimeAvailable/>
+    <galacticDynamicsBarInstability/>
+    <galacticStructureSolver/>
+    <gravitationalLensing/>
+    <haloModelPowerSpectrumModifier/>
+    <hiiRegionDensityDistribution/>
+    <hiiRegionEscapeFraction/>
+    <hiiRegionLuminosityFunction/>
+    <hiiRegionMassFunction/>
+    <hotHaloColdModeCoreRadii/>
+    <hotHaloMassDistribution/>
+    <hotHaloMassDistributionCoreRadius/>
+    <hotHaloOutflowStripping/>
+    <hotHaloRamPressureForce/>
+    <hotHaloRamPressureStripping/>
+    <hotHaloRamPressureTimescale/>
+    <hotHaloTemperatureProfile/>
+    <kinematicsDistribution/>
+    <massDistribution>
+      <massDistributionSphericalAdiabaticGnedin2004>
+	<constructor>
+	  <!-- The Gnedin 2004 adiabatic contraction impl takes a callback-injection escape hatch
+	       (a procedure-pointer plus paired class(*) state) that the parameter-driven path
+	       never uses (it sets all three to null).  Tell the wrapper to do the same. -->
+	  <argument name="initializationFunction" value="null"/>
+	  <argument name="initializationSelf"     value="null"/>
+	  <argument name="initializationArgument" value="null"/>
+	</constructor>
+      </massDistributionSphericalAdiabaticGnedin2004>
+      <massDistributionSphericalSIDMIsothermalBaryons>
+	<constructor>
+	  <!-- Same callback-injection escape hatch as adiabaticGnedin2004 above. -->
+	  <argument name="initializationFunction" value="null"/>
+	  <argument name="initializationSelf"     value="null"/>
+	  <argument name="initializationArgument" value="null"/>
+	</constructor>
+      </massDistributionSphericalSIDMIsothermalBaryons>
+    </massDistribution>
+    <massDistributionHeating/>
+    <massFunctionIncompleteness/>
+    <mergerMassMovements/>
+    <mergerRemnantSize/>
+    <mergerTreeBranchingProbabilityModifier/>
+    <mergerTreeBuildController/>
+    <mergerTreeBuildMassDistribution/>
+    <mergerTreeBuildMasses/>
+    <mergerTreeBuilder/>
+    <mergerTreeEvolveConcurrency/>
+    <mergerTreeEvolveProfiler/>
+    <mergerTreeEvolveTimestep/>
+    <mergerTreeFilter/>
+    <mergerTreeImporter/>
+    <mergerTreeNodeMerger/>
+    <mergerTreeOperator/>
+    <mergerTreeOutputter/>
+    <mergerTreeSeeds/>
+    <mergerTreeWalker/>
+    <metaTreeProcessingTime/>
+    <modelParameter/>
+    <nbodyImporter/>
+    <nbodyOperator/>
+    <nodeOperator/>
+    <nuclearStarClusterGrowthRates/>
+    <operatorUnary/>
+    <outputAnalysis>
+      <outputAnalysisHIVsHaloMassRelationPadmanabhan2017>
+	<constructor>
+	  <!-- This output analysis class uses an unlimited polymorphic object in the constructor. We must provide a concrete
+	       type for it here to allow it to be passed via a C-style interface. -->
+	  <argument name="percolationObjects_" type="percolationObjects" module="Virial_Density_Contrast_Percolation_Utilities"/>
+	</constructor>
+      </outputAnalysisHIVsHaloMassRelationPadmanabhan2017>
+      <outputAnalysisSpinDistributionBett2007>
+	<constructor>
+	  <!-- This output analysis class uses an unlimited polymorphic object in the constructor. We must provide a concrete
+	       type for it here to allow it to be passed via a C-style interface. -->
+	  <argument name="percolationObjects_" type="percolationObjects" module="Virial_Density_Contrast_Percolation_Utilities"/>
+	</constructor>
+      </outputAnalysisSpinDistributionBett2007>
+    </outputAnalysis>
+    <outputAnalysisDistributionNormalizer/>
+    <outputAnalysisDistributionOperator/>
+    <outputAnalysisMolecularRatio/>
+    <outputAnalysisPropertyOperator/>
+    <outputAnalysisTargetData/>
+    <outputAnalysisWeightOperator/>
+    <posteriorSampleConvergence/>
+    <posteriorSampleDffrntlEvltnProposalSize/>
+    <posteriorSampleDffrntlEvltnPrpslSzTmpExp/>
+    <posteriorSampleDffrntlEvltnRandomJump/>
+    <posteriorSampleLikelihood/>
+    <posteriorSampleState/>
+    <posteriorSampleStateInitialize/>
+    <posteriorSampleStoppingCriterion/>
+    <posteriorSamples/>
+    <radiationField>
+      <radiationFieldIntergalacticBackgroundInternal>
+	<constructor>
+	  <!-- The intergalactic background internal radiation field class uses an unlimited polymorphic object in the
+	       constructor. We must provide a concrete type for it here to allow it to be passed via a C-style interface. -->
+	  <argument name="accretionDiskSpectra_" type="accretionDiskSpectraClass" module="Accretion_Disk_Spectra"/>
+	</constructor>
+      </radiationFieldIntergalacticBackgroundInternal>
+    </radiationField>
+    <radiativeTransferConvergence/>
+    <radiativeTransferOutputter/>
+    <radiativeTransferSource/>
+    <radiativeTransferSpectrum/>
+    <satelliteDecelerationSIDM/>
+    <satelliteDynamicalFriction/>
+    <satelliteEvaporationSIDM/>
+    <satelliteMassBoundInitializor/>
+    <satelliteMergingTimescales/>
+    <satelliteOrphanDistribution/>
+    <satelliteTidalField/>
+    <satelliteTidalHeatingRate/>
+    <satelliteTidalStripping/>
+    <sphericalCollapseSolver/>
+    <starFormationActiveMass/>
+    <starFormationHistory/>
+    <starFormationRateSurfaceDensityDisks/>
+    <starFormationTimescale/>
+    <stellarAstrophysics/>
+    <stellarFeedback/>
+    <stellarFeedbackOutflows/>
+    <stellarPopulationBroadBandLuminosities/>
+    <stellarPopulationSpectra/>
+    <stellarPopulationSpectraPostprocessor/>
+    <stellarSpectraDustAttenuation/>
+    <stellarTracks/>
+    <supernovaePopulationIII/>
+    <supernovaeTypeIa/>
+    <task/>
+    <unevolvedSubhaloMassFunction/>
+    <universeOperator/>
+    <variogram/>
+    <accretionDiskSpectra/>
+    <atomicRecombinationRateRadiativeCooling/>
+    <blackHoleCGMHeating/>
+    <blackHoleWind/>
+    <coolingTime/>
+    <freefallRadius/>
+    <gauntFactor/>
+    <hotHaloColdModeMassDistribution/>
+    <mergerProgenitorProperties/>
+    <mergerTreeConstructor/>
+    <mergerTreeInitializor/>
+    <mergerTreeNodeEvolver/>
+    <ramPressureStripping/>
+    <satelliteTidalStrippingRadius/>
+    <stellarPopulation/>
+    <stellarWinds/>
+    <tidalStripping/>
+    <coolingRadius/>
+    <mergerTreeEvolver/>
+    <stellarPopulationSelector/>
+    <coolingInfallRadius/>
+    <stellarPopulationProperties/>
+    <radiativeTransferMatter/>
+    <computationalDomain/>
+    <distributionFunctionMultivariate/>
+    <posteriorSampleSimulation/>
+    <stellarPopulationSpectraPostprocessorBuilder/>
   </classes>
 </library>

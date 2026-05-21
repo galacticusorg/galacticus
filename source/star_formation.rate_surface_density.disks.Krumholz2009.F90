@@ -167,7 +167,7 @@ contains
 
   function krumholz2009ConstructorInternal(frequencyStarFormation,clumpingFactorMolecularComplex,molecularFractionFast,assumeMonotonicSurfaceDensity) result(self)
     !!{
-    Internal constructor for the \refClass{starFormationRateSurfaceDensityDisksKrumholz2009} star formation surface density rate from disks class.
+    Internal constructor for the \refClass{starFormationRateSurfaceDensityDisksKrumholz2009} star formation surface density rate in disks class.
     !!}
     use :: Abundances_Structure                      , only : unitAbundances
     use :: Table_Labels                              , only : extrapolationTypeFix
@@ -242,7 +242,7 @@ contains
 
   subroutine krumholz2009Destructor(self)
     !!{
-    Destructor for the \refClass{starFormationRateSurfaceDensityDisksKrumholz2009} star formation surface density rate from disks class.
+    Destructor for the \refClass{starFormationRateSurfaceDensityDisksKrumholz2009} star formation surface density rate in disks class.
     !!}
     use :: Events_Hooks, only : calculationResetEvent
     implicit none

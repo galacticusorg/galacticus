@@ -3,6 +3,13 @@
 # Build the Galacticus documentation.
 # Andrew Benson (20-February-2011)
 
+# Make the Galacticus python tree importable for the python3 invocations
+# below (extractData.py, extractContributors.py, codeAnalyzer.py,
+# constants.py all import internal modules like `latex_utils` and
+# `build.fortran_utils`).  Mirrors the PYTHONPATH wiring in the Makefile
+# and the CI workflows that invoke `python3 scripts/...` directly.
+export PYTHONPATH="${GALACTICUS_EXEC_PATH:-$(pwd)}/python${PYTHONPATH:+:$PYTHONPATH}"
+
 # Set defaults.
 PPN=1
 FORCE=yes

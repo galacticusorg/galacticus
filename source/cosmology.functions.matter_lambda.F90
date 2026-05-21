@@ -809,7 +809,7 @@ contains
 
     ! Choose present day as default - will be used if no other densities present (i.e. Einstein-de Sitter).
     matterLambdaDominationEpochMatter=1.0d0
-    if (self%cosmologyParameters_%OmegaDarkEnergy()/=0.0d0) then
+    if (self%cosmologyParameters_%OmegaDarkEnergy() /= 0.0d0) then
        ! Find the expansion factor of matter-dark energy equality.
        aMatterEquality=self%equalityEpochMatterDarkEnergy(requestTypeExpansionFactor)
        ! Find the earlier expansion factor at which matter dominates by the specified amount (ratio of matter
@@ -1244,7 +1244,7 @@ contains
     implicit none
     class           (cosmologyFunctionsMatterLambda), intent(inout) :: self
     double precision                                , intent(in   ) :: time
-    type            (integrator                    ), allocatable   :: integrator_
+    type            (integrator                    )                :: integrator_
 
     integrator_                                =integrator           (integrandParticleHorizon,toleranceRelative=1.0d-6)
     matterLambdaDistanceParticleHorizonComoving=integrator_%integrate(0.0d0                   ,                  time  )

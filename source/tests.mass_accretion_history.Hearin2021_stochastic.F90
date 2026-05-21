@@ -18,12 +18,12 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
 !!{
-Contains a program which tests the Hearin (2021) stochastic halo mass formation history.
+Contains a program which tests the \cite{hearin_differentiable_2021} stochastic halo mass formation history.
 !!}
 
 program Test_Hearin2021_Stochastic_MAH
   !!{
-  Tests the Hearin (2021) halo mass formation history algorithm.
+  Tests the \cite{hearin_differentiable_2021} halo mass formation history algorithm.
   !!}
   use, intrinsic :: ISO_C_Binding                            , only : c_long
   use            :: Dark_Matter_Halo_Mass_Accretion_Histories, only : darkMatterHaloMassAccretionHistoryHearin2021Stochastic
@@ -34,7 +34,7 @@ program Test_Hearin2021_Stochastic_MAH
   use            :: Input_Paths                              , only : inputPath                                             , pathTypeExec
   use            :: Galacticus_Nodes                         , only : nodeClassHierarchyInitialize                          , nodeComponentBasic               , treeNode , mergerTree
   use            :: Input_Parameters                         , only : inputParameters
-  use            :: ISO_Varying_String                       , only : char
+  use            :: ISO_Varying_String                       , only : char                                                  , varying_string                   , operator(//)
   use            :: Node_Components                          , only : Node_Components_Initialize                            , Node_Components_Thread_Initialize, Node_Components_Thread_Uninitialize, Node_Components_Uninitialize
   use            :: Numerical_Random_Numbers                 , only : randomNumberGeneratorGSL
   use            :: Unit_Tests                               , only : Assert                                                , Unit_Tests_Begin_Group           , Unit_Tests_End_Group               , Unit_Tests_Finish
@@ -76,7 +76,8 @@ program Test_Hearin2021_Stochastic_MAH
        &                                                                                                                       ]                                                      , &
        &                                                                                                                       [2,2,3,3]                                                &
        &                                                                                                                      )
-  
+    type            (varying_string                                    )                                   :: referenceFileName
+
   ! Set verbosity level.
   call displayVerbositySet(verbosityLevelStandard)
   ! Begin unit tests.
@@ -151,8 +152,9 @@ program Test_Hearin2021_Stochastic_MAH
   call basicEarly%timeSet(13.8d0        )
   call basicLate %timeSet(13.8d0        )
   ! Open the reference file produced by Andrew Hearin's "diffmah" code and read the parameter values used.
-  countTimes=Count_Lines_In_File(char(inputPath(pathTypeExec))//'testSuite/data/hearin2021MAHMean.txt',comment_char='#')
-  open(newUnit=referenceFile,file=char(inputPath(pathTypeExec))//'testSuite/data/hearin2021MAHMean.txt',status='old',form='formatted')
+  referenceFilename=inputPath(pathTypeExec)//'testSuite/data/hearin2021MAHMean.txt'
+  countTimes=Count_Lines_In_File(referenceFilename,comment_char='#')
+  open(newUnit=referenceFile,file=char(referenceFilename),status='old',form='formatted')
   do i=1,7
      read (referenceFile,'(a)') line
   end do
@@ -170,6 +172,7 @@ program Test_Hearin2021_Stochastic_MAH
   call Assert('mass accretion history (late-forming)' ,massLateTarget ,massLateRecovered ,relTol=1.0d-6)
   ! End unit tests.
   close(referenceFile)
+  deallocate(massLateTarget,massEarlyTarget,massLateRecovered,massEarlyRecovered)
   call Unit_Tests_End_Group               ()
   call Unit_Tests_Finish                  ()
   call Node_Components_Thread_Uninitialize()

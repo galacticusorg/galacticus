@@ -49,6 +49,12 @@ module Math_Operators_Unary
      <pass>yes</pass>
      <argument>double precision, intent(in   ) :: f</argument>
    </method>
+   <method name="jacobian" >
+     <description>Compute the Jacobian of the operation.</description>
+     <type>double precision</type>
+     <pass>yes</pass>
+     <argument>double precision, intent(in   ) :: x</argument>
+   </method>
   </functionClass>
   !!]
 

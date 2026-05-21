@@ -42,7 +42,7 @@ As described above, \glc\ requires a file of parameters to be given as a command
    .
    .
    .
-   <parameter6Name value="=10.0*[parameter4Name::subParameter1Name]"/>
+   <parameter6Name value="=10.0*[parameter4Name/subParameter1Name]"/>
  </parameters>
 \end{verbatim}
 Each named element must have a \mono{value} attribute (preferred), or else contains a value element, which contains the desired value. The value can be a number, word or an array of space-separated numbers or words. Parameters are used to control the values of numerical parameters and also to select methods and other options. In many cases, if a parameter is not specified in the file a default value (hard coded into \glc) will be used instead. The default values have been chosen to produce a realistic model of galaxy formation, but may change as \glc\ evolves. Parameters may have sub-parameters embedded within them, as in the example above.
@@ -74,9 +74,9 @@ A parameter value can be given by a math expression\footnote{This functionality 
 
 Lastly, a text parameter can also be evaluated by starting it with an initial ``\mono{=}''. For text parameters, other parameters can be referenced and their values are simply inserted. So, for example:
 \begin{verbatim}
-<outputFileName value="=myFile_m[%5.2f|darkMatterParticle::mass]keV.hdf5"/>
+<outputFileName value="=myFile_m[%5.2f|darkMatterParticle/mass]keV.hdf5"/>
 \end{verbatim}
-would set the output file name by replacing ``\mono{[\%5.2f|darkMatterParticle::mass]}'' in the above with the value of the dark matter particle mass. Note that, for these text parameter substitutions a format specifier must be given---in this case ``\mono{\%5.2f}''---which specifies how to format the parameter before inserting it into the value. The \href{https://www.w3resource.com/c-programming/stdio/c_library_method_sprintf.php}{format specifier} should follow standard C conventions. Currently the \mono{s}, \mono{d}, \mono{f}, and\mono{e} specifiers are supported.
+would set the output file name by replacing ``\mono{[\%5.2f|darkMatterParticle/mass]}'' in the above with the value of the dark matter particle mass. Note that, for these text parameter substitutions a format specifier must be given---in this case ``\mono{\%5.2f}''---which specifies how to format the parameter before inserting it into the value. The \href{https://www.w3resource.com/c-programming/stdio/c_library_method_sprintf.php}{format specifier} should follow standard C conventions. Currently the \mono{s}, \mono{d}, \mono{f}, and \mono{e} specifiers are supported.
 
 The optional \mono{version} element specifies which version of \glc\ this parameter file is intended for. The optional \mono{formatVersion} element specifies the parameter file version number (the current standard for parameter files is version 2). While optional, these elements can be useful when migrating parameter files between versions of \glc.
 
@@ -134,7 +134,7 @@ No output (and an exit value of 0) indicates a valid parameter file. Invalid par
 
 Some scripts are provided which assist in the generation of parameter files. These are located in the \mono{scripts/parameters/} folder and are detailed below:
 \begin{description}
-\item [\mono{cosmologicalParametersMonteCarlo.pl}] This script will generate a set of cosmological parameters drawn at random from the WMAP-9 constraints \citep{hinshaw_nine-year_2012}. It uses the covariance matrix (currently defined in \mono{data/Cosmological\_Parameters\_WMAP-9.xml}) to produce correlated random variables\footnote{Note that this does not capture the full details of the correlations between parameters, since it uses just the covariance matrix. For a more accurate calculation the full Monte Carlo Markov Chains used in the WMAP-9 parameter fitting should be used instead.}. The generated parameters are printed to standard output as \glc-compatible XML.
+\item [\mono{cosmologicalParametersMonteCarlo.py}] This script will generate a set of cosmological parameters drawn at random from the WMAP-9 constraints \citep{hinshaw_nine-year_2012}. It uses the covariance matrix (currently defined in \mono{data/Cosmological\_Parameters\_WMAP-9.xml}) to produce correlated random variables\footnote{Note that this does not capture the full details of the correlations between parameters, since it uses just the covariance matrix. For a more accurate calculation the full Monte Carlo Markov Chains used in the WMAP-9 parameter fitting should be used instead.}. The generated parameters are printed to standard output as \glc-compatible XML.
 \end{description}
 
 \subsection{Changing Parameter Files}\index{parameters!changing}
@@ -397,7 +397,7 @@ Output is controlled by parameters given within the \mono{mergerTreeOutput} sect
 
 \subsubsection{nodeData group}\label{sec:nodeDataGroup}\hyperdef{sec}{nodeDataGroup}{}
 
-The \mono{nodeData} group contains all data from nodes in all merger trees. The group consists of a collection of datasets each of which lists a property of all nodes in the trees which exist at the output time. Where relevant, each dataset contains an attribute, \mono{unitsInSI}, which gives the units\index{units} of the dataset in the SI system.
+The \mono{nodeData} group contains all data from nodes in all merger trees. The group consists of a collection of datasets each of which lists a property of all nodes in the trees which exist at the output time. Where relevant, each dataset contains an attribute, \mono{units}, which is a composite HDF5 data-type containing the units\index{units} of the dataset in the SI system as \mono{unitsInSI}, a human-readable description of the units as \mono{description}, an \mono{astropy.units}-parseable description of the units as \mono{quantity}, and \mono{isComoving} which is \mono{1} if the units are in comoving coordinates, and \mono{0} otherwise.
 
 \subsubsection{mergerTree datasets}\label{sec:mergerTreeDatasets}
 
@@ -405,7 +405,7 @@ To allow locating of nodes belonging to a given merger tree in the datasets in t
 
 \subsubsection{mergerTree subgroups}\label{sec:mergerTreeSubgroups}
 
-These subgroups will be present if the \mono{[mergerTreeOutputReferences]} parameter is set to true. Each \mono{mergerTree} subgroup contains HDF5 references to all data on a single merger tree. The group consists of a collection of scalar references each of which points to the appropriate region of the corresponding dataset in the \mono{nodeData} group. Additionally, the \mono{volumeWeight} attribute of this group gives the weight (in Mpc$^{-3}$) which should be assigned to this tree (and all nodes in it) to create a volume-averaged sample. (A second attribute, \mono{volumeWeightUnitsInSI}, gives the units of \mono{volumeWeight} in the SI system.)
+These subgroups will be present if the \mono{[mergerTreeOutputReferences]} parameter is set to true. Each \mono{mergerTree} subgroup contains HDF5 references to all data on a single merger tree. The group consists of a collection of scalar references each of which points to the appropriate region of the corresponding dataset in the \mono{nodeData} group. Additionally, the \mono{volumeWeight} attribute of this group gives the weight (in Mpc$^{-3}$) which should be assigned to this tree (and all nodes in it) to create a volume-averaged sample. (A second attribute, \mono{units}, gives the units of \mono{volumeWeight} in the SI system, along with human-readable, \mono{astropy.units}-parseable descriptions, and a boolean indicating that these are in comoving coordinates.)
 
 \section{On-the-fly Analyses}\label{sec:onTheFlyAnalyses}\index{analyis!on-the-fly}
 
@@ -435,9 +435,18 @@ The resulting mass function is written to the output file in a group named ``\mo
 \item [\mono{massFunctionTarget}] The observed mass function from \cite{baldry_galaxy_2012};
 \item [\mono{massFunctionCovarianceTarget}] The covariance matrix for the observed mass function from \cite{baldry_galaxy_2012}.
 \end{description}
-The output group also contains a ``\mono{logLikelihood}'' attribute which gives the log-likelihood of the model given this data. Additional attributes provide a description of the analysis that allows a simple plot comparing the \glc\ and observed mass functions to be made using:
+The output group also contains a ``\mono{logLikelihood}'' attribute
+which gives the log-likelihood of the model given this data.
+Additional attributes provide a description of the analysis that
+allows a simple plot comparing the \glc\ and observed mass functions
+to be made using the
+\href{https://github.com/galacticusorg/dendros}{Dendros} package.
+Dendros auto-discovers on-the-fly analyses in a \glc\ output file
+and produces comparison plots.
+Dendros is available on \href{https://pypi.org/project/dendros/}{PyPI}
+and can be installed via:
 \begin{verbatim}
-./scripts/analysis/analysesPlot.py <outputFileName>
+pip install dendros
 \end{verbatim}
 
 Multiple on-the-fly analyses can be performed, by simply grouping them inside a ``\mono{multi}'' \refClass{outputAnalysisClass}, e.g.:
@@ -468,11 +477,11 @@ Suppose, for example, that we wish to construct a luminosity function of galaxie
 
 \section{Running Grids of Models}\label{sec:RunningGrids}
 
-You can easily write your own scripts to generate parameter files and run \glc\ on these files. An example of such a script is \mono{scripts/aux/launch.pl}. This script will loop over a sequence of parameter values, generate appropriate parameter files, run \glc\ using those parameters and analyze the results. This script currently supports running of \glc\ on a local machine, via a PBS queue (as multiple jobs or a single job), or on a \href{https://research.cs.wisc.edu/htcondor/}{{\normalfont \scshape Condor}}\index{Condor} cluster. To run the script simply enter:
+You can easily write your own scripts to generate parameter files and run \glc\ on these files. An example of such a script is \mono{scripts/aux/launch.py}. This script will loop over a sequence of parameter values, generate appropriate parameter files, run \glc\ using those parameters and analyze the results. This script currently supports running of \glc\ on a local machine, via a PBS queue (as multiple jobs or a single job), or on a \href{https://research.cs.wisc.edu/htcondor/}{{\normalfont \scshape Condor}}\index{Condor} cluster. To run the script simply enter:
 \begin{verbatim}
- ./scripts/aux/launch.pl <runFile>
+ ./scripts/aux/launch.py <runFile>
 \end{verbatim}
-This will launch a single instance of the script. Multiple instances can be launched and will share the work load (i.e. they will not attempt to run a model which another instance is already running or has finished). If multiple instances are to be launched on multiple machines a command line option to \mono{launch.pl} can be used to ensure that they do not duplicate work. Adding \mono{-{}-instance 2:4} for example will tell the script to run only the second model from each block of four models it finds. Launching for \mono{launch.pl} scripts on four different machines with \mono{-{}-instance 1:4}, \mono{-{}-instance 2:4}, \mono{-{}-instance 3:4} and \mono{-{}-instance 4:4} will then divide the models between those machines.
+This will launch a single instance of the script. Multiple instances can be launched and will share the work load (i.e. they will not attempt to run a model which another instance is already running or has finished). If multiple instances are to be launched on multiple machines a command line option to \mono{launch.py} can be used to ensure that they do not duplicate work. Adding \mono{-{}-instance 2:4} for example will tell the script to run only the second model from each block of four models it finds. Launching for \mono{launch.py} scripts on four different machines with \mono{-{}-instance 1:4}, \mono{-{}-instance 2:4}, \mono{-{}-instance 3:4} and \mono{-{}-instance 4:4} will then divide the models between those machines.
 
 The \mono{runFile} is an XML file with the following structure:
 \begin{verbatim}
@@ -668,6 +677,18 @@ The name and e-mail address in the \mono{contact} section will be stored in any 
 \section{Writing Data To a Temporary File}\index{output!temporary}
 
 When running \glc\ on a compute cluster it is often advantageous to have output written to a local scratch disk during run time and only moved to networked storage after the run is complete. (Otherwise, \glc\ will perform many small writes to networked storage which can result in extremely slow run times.) To do this, simply set the parameter \mono{[galacticusOutputScratchFileName]} to the full path of a file to write to on local scratch space. During the run, data will be written to this file. After the run is finished, \glc\ will move this file to its permanent location as specified by the parameter \mono{[galacticusOutputFileName]}.
+
+\section{Error Handling}
+
+If something goes wrong and \glc\ fails, it will attempt to provide an error report, including a backtrace of where in the code the error happened, and will list any previously suppressed warning messages which may have occurred.
+
+\subsection{Backtraces}
+
+You can also request a backtrace from the code at any time by sending signal \mono{SIGUSR1} to a running \glc\ process. To do use, issue the command:
+\begin{verbatim}
+kill -SIGUSR1 <pid>
+\end{verbatim}
+from the command line, where \mono{\textless pid\textgreater} is the process ID of the running \glc\ process.
 
 \section{Restarting A Crashed Run}\label{sec:Restarting}\hyperdef{sec}{Restarting}{}
 

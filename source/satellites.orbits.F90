@@ -80,9 +80,11 @@ contains
     integer                                    , intent(  out), optional :: errorCode
     class           (darkMatterHaloScaleClass ), intent(inout)           :: darkMatterHaloScale_
     class           (nodeComponentBasic       )               , pointer  :: basicHost
-    double precision                           , parameter               :: toleranceAbsolute    =0.0d0, toleranceRelative=1.0d-6, &
+    double precision                           , parameter               :: toleranceAbsolute    =0.0d0  , toleranceRelative=1.0d-6, &
          &                                                                  factorRadiusLarge    =1.0d6
-    type            (rootFinder               )                          :: finder
+    type            (rootFinder               ), save                    :: finder
+    logical                                    , save                    :: finderConstructed    =.false.
+    !$omp threadprivate(finder,finderConstructed)
     type            (keplerOrbit              )                          :: orbitCurrent
     double precision                                                     :: potential
 
@@ -110,16 +112,19 @@ contains
        Satellite_Orbit_Equivalent_Circular_Orbit_Radius=-1.0d0
        if (present(errorCode)) errorCode=errorCodeNoEquivalentOrbit
     else
-       finder        =rootFinder(                                                                &
-            &                    rootFunction                 =Equivalent_Circular_Orbit_Solver, &
-            &                    toleranceAbsolute            =toleranceAbsolute               , &
-            &                    toleranceRelative            =toleranceRelative               , &
-            &                    rangeExpandUpward            =2.0d0                           , &
-            &                    rangeExpandDownward          =0.5d0                           , &
-            &                    rangeExpandDownwardSignExpect=rangeExpandSignExpectNegative   , &
-            &                    rangeExpandUpwardSignExpect  =rangeExpandSignExpectPositive   , &
-            &                    rangeExpandType              =rangeExpandMultiplicative         &
-            &                   )
+       if (.not.finderConstructed) then
+          finder           =rootFinder(                                                                &
+               &                       rootFunction                 =Equivalent_Circular_Orbit_Solver, &
+               &                       toleranceAbsolute            =toleranceAbsolute               , &
+               &                       toleranceRelative            =toleranceRelative               , &
+               &                       rangeExpandUpward            =2.0d0                           , &
+               &                       rangeExpandDownward          =0.5d0                           , &
+               &                       rangeExpandDownwardSignExpect=rangeExpandSignExpectNegative   , &
+               &                       rangeExpandUpwardSignExpect  =rangeExpandSignExpectPositive   , &
+               &                       rangeExpandType              =rangeExpandMultiplicative         &
+               &                      )
+          finderConstructed=.true.
+          end if
        Satellite_Orbit_Equivalent_Circular_Orbit_Radius=finder%find(rootGuess=radiusVirial__)
        if (present(errorCode)) errorCode=errorCodeSuccess
     end if

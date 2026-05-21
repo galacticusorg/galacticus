@@ -10,9 +10,7 @@ import tempfile
 from datetime import datetime, timezone
 from lxml import etree
 
-_exec_path = os.environ.get('GALACTICUS_EXEC_PATH', os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..')))
-sys.path.insert(0, os.path.join(_exec_path, 'python'))
-from list_utils import as_array  # noqa: E402
+from List.ExtraUtils import as_array
 
 
 def parse_arguments():

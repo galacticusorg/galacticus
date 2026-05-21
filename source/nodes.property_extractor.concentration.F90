@@ -56,11 +56,12 @@ Implements a concentration output analysis property extractor class.
      procedure :: name        => concentrationName
      procedure :: description => concentrationDescription
      procedure :: unitsInSI   => concentrationUnitsInSI
+     procedure :: units       => concentrationUnits
   end type nodePropertyExtractorConcentration
 
   interface nodePropertyExtractorConcentration
      !!{
-     Constructors for the \refClass{nodePropertyExtractorConcentration} output analysis class.
+     Constructors for the \refClass{nodePropertyExtractorConcentration} property extractor class.
      !!}
      module procedure concentrationConstructorParameters
      module procedure concentrationConstructorInternal
@@ -70,7 +71,7 @@ contains
 
   function concentrationConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the \refClass{nodePropertyExtractorConcentration} output analysis property extractor class which takes a parameter set as input.
+    Constructor for the \refClass{nodePropertyExtractorConcentration} property extractor class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -109,7 +110,7 @@ contains
 
   function concentrationConstructorInternal(useLastIsolatedTime,cosmologyParameters_,cosmologyFunctions_,darkMatterProfileDMO_,virialDensityContrast_,virialDensityContrastDefinition_) result(self)
     !!{
-    Internal constructor for the \refClass{nodePropertyExtractorConcentration} output analysis property extractor class.
+    Internal constructor for the \refClass{nodePropertyExtractorConcentration} property extractor class.
     !!}
     implicit none
     type   (nodePropertyExtractorConcentration)                        :: self
@@ -127,7 +128,7 @@ contains
 
   subroutine concentrationDestructor(self)
     !!{
-    Destructor for the \refClass{nodePropertyExtractorConcentration} output analysis property extractor class.
+    Destructor for the \refClass{nodePropertyExtractorConcentration} property extractor class.
     !!}
     implicit none
     type(nodePropertyExtractorConcentration), intent(inout) :: self
@@ -214,7 +215,20 @@ contains
     class(nodePropertyExtractorConcentration), intent(inout) :: self
     !$GLC attributes unused :: self
 
-    concentrationUnitsInSI=0.0d0
+    concentrationUnitsInSI=1.0d0
     return
   end function concentrationUnitsInSI
 
+  function concentrationUnits(self) result(units)
+    !!{
+    Return the units of the concentration property.
+    !!}
+    use :: Units_MetaData, only : unitType
+    implicit none
+    type (unitType                          )                :: units
+    class(nodePropertyExtractorConcentration), intent(inout) :: self
+    !$GLC attributes unused :: self
+
+    units=unitType(1.0d0)
+    return
+  end function concentrationUnits

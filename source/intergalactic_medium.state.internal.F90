@@ -20,7 +20,7 @@
 !+ Contributions to this file made by: Daniel McAndrew.
 
   !!{
-  An implementation of the intergalactic medium state class for an internal model of instantaneous and full reionization.
+  An implementation of the \gls{igm} state class for an internal model of instantaneous and full reionization.
   !!}
 
   use :: Numerical_Interpolation, only : interpolator
@@ -51,7 +51,7 @@
 
   interface intergalacticMediumStateInternal
      !!{
-     Constructors for the internal intergalactic medium state class.
+     Constructors for the internal \gls{igm} state class.
      !!}
      module procedure internalConstructorParameters
      module procedure internalConstructorInternal
@@ -329,9 +329,9 @@ contains
 
   subroutine internalStateSet(self,time,densityHydrogen1,densityHydrogen2,densityHelium1,densityHelium2,densityHelium3,temperature,massFiltering)
     !!{
-    Set state in the internal intergalactic medium state class.
+    Set state in the internal \gls{igm} state class.
     !!}
-    use :: Error            , only : Error_Report
+    use :: Error, only : Error_Report
     implicit none
     class           (*), intent(inout)               :: self
     double precision   , intent(in   ), dimension(:) :: time            , densityHydrogen1, &

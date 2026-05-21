@@ -45,11 +45,11 @@ program Test_Dark_Matter_Profiles_Zhao1996
   use :: Unit_Tests                , only : Assert                                                        , Unit_Tests_Begin_Group           , Unit_Tests_End_Group               , Unit_Tests_Finish
   use :: Error                     , only : Error_Report
   implicit none
-  type            (darkMatterHaloScaleVirialDensityContrastDefinition            )                        :: darkMatterHaloScale_
-  type            (cosmologyParametersSimple                                     )                        :: cosmologyParameters_
-  type            (cosmologyFunctionsMatterLambda                                )                        :: cosmologyFunctions_
-  type            (virialDensityContrastSphericalCollapseClsnlssMttrCsmlgclCnstnt)                        :: virialDensityContrast_
-  type            (darkMatterProfileDMOZhao1996                                  ), target                :: darkMatterProfileZhao1996General_           , darkMatterProfileZhao1996NFW_        , &
+  type            (darkMatterHaloScaleVirialDensityContrastDefinition            ), pointer               :: darkMatterHaloScale_
+  type            (cosmologyParametersSimple                                     ), pointer               :: cosmologyParameters_
+  type            (cosmologyFunctionsMatterLambda                                ), pointer               :: cosmologyFunctions_
+  type            (virialDensityContrastSphericalCollapseClsnlssMttrCsmlgclCnstnt), pointer               :: virialDensityContrast_
+  type            (darkMatterProfileDMOZhao1996                                  ), pointer               :: darkMatterProfileZhao1996General_           , darkMatterProfileZhao1996NFW_        , &
        &                                                                                                     darkMatterProfileZhao1996CoredNFW_          , darkMatterProfileZhao1996Gamma0_5NFW_, &
        &                                                                                                     darkMatterProfileZhao1996Gamma1_5NFW_
   class           (darkMatterProfileDMOClass                                     ), pointer               :: darkMatterProfileZhao1996_
@@ -81,6 +81,15 @@ program Test_Dark_Matter_Profiles_Zhao1996
   node_              =>  treeNode                  (                 )
   basic_             =>  node_   %basic            (autoCreate=.true.)
   darkMatterProfile_ =>  node_   %darkMatterProfile(autoCreate=.true.)
+  allocate(darkMatterHaloScale_                 )
+  allocate(cosmologyParameters_                 )
+  allocate(cosmologyFunctions_                  )
+  allocate(virialDensityContrast_               )
+  allocate(darkMatterProfileZhao1996General_    )
+  allocate(darkMatterProfileZhao1996NFW_        )  
+  allocate(darkMatterProfileZhao1996CoredNFW_   )
+  allocate(darkMatterProfileZhao1996Gamma0_5NFW_)
+  allocate(darkMatterProfileZhao1996Gamma1_5NFW_)
   !![
   <referenceConstruct object="cosmologyParameters_"                 >
    <constructor>
@@ -241,8 +250,22 @@ program Test_Dark_Matter_Profiles_Zhao1996
      !!]
      call Unit_Tests_End_Group            ()
   end do
-  call Unit_Tests_End_Group               ()
-  call Unit_Tests_Finish                  ()
+  call Unit_Tests_End_Group()
+  call Unit_Tests_Finish   ()
+  ! Clean up.
+  call node_%destroy()
+  deallocate(node_)
+  !![
+  <objectDestructor name="darkMatterHaloScale_"                 />
+  <objectDestructor name="cosmologyParameters_"                 />
+  <objectDestructor name="cosmologyFunctions_"                  />
+  <objectDestructor name="virialDensityContrast_"               />
+  <objectDestructor name="darkMatterProfileZhao1996General_"    />
+  <objectDestructor name="darkMatterProfileZhao1996NFW_"        />  
+  <objectDestructor name="darkMatterProfileZhao1996CoredNFW_"   />
+  <objectDestructor name="darkMatterProfileZhao1996Gamma0_5NFW_"/>
+  <objectDestructor name="darkMatterProfileZhao1996Gamma1_5NFW_"/>
+  !!]
   call Node_Components_Thread_Uninitialize()
   call Node_Components_Uninitialize       ()
   call nodeClassHierarchyFinalize         ()

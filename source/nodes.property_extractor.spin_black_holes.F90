@@ -33,11 +33,12 @@
      procedure :: names        => spinBlackHolesNames
      procedure :: descriptions => spinBlackHolesDescriptions
      procedure :: unitsInSI    => spinBlackHolesUnitsInSI
+     procedure :: units       => spinBlackHolesUnits
   end type nodePropertyExtractorSpinBlackHoles
 
   interface nodePropertyExtractorSpinBlackHoles
      !!{
-     Constructors for the \refClass{nodePropertyExtractorSpinBlackHoles} output extractor class.
+     Constructors for the \refClass{nodePropertyExtractorSpinBlackHoles} property extractor class.
      !!}
      module procedure spinBlackHolesConstructorParameters
   end interface nodePropertyExtractorSpinBlackHoles
@@ -135,3 +136,23 @@ contains
     unitsInSI(1)=1.0d0
     return
   end function spinBlackHolesUnitsInSI
+
+  function spinBlackHolesUnits(self) result(units)
+    !!{
+    Return the units of the spinBlackHoles properties.
+    !!}
+    use :: Units_MetaData, only : unitType
+    implicit none
+    type            (unitType                           ), dimension(:) , allocatable :: units
+    class           (nodePropertyExtractorSpinBlackHoles), intent(inout)              :: self
+    double precision                                     , dimension(:) , allocatable :: siValues
+    integer                                                                           :: i
+    !$GLC attributes unused :: self
+
+    siValues=self%unitsInSI()
+    allocate(units(size(siValues)))
+    do i=1,size(siValues)
+       units(i)=unitType(siValues(i))
+    end do
+    return
+  end function spinBlackHolesUnits

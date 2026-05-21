@@ -70,7 +70,7 @@ contains
 
   function starFormationHistoryConstructorInternal(starFormationHistory_) result(self)
     !!{
-    Internal constructor for the \refClass{mergerTreeEvolveTimestepStarFormationHistory} merger tree timestepping class.
+    Internal constructor for the \refClass{mergerTreeEvolveTimestepStarFormationHistory} merger tree evolution timestep class.
     !!}
     implicit none
     type (mergerTreeEvolveTimestepStarFormationHistory)                        :: self
@@ -84,7 +84,7 @@ contains
 
   subroutine starFormationHistoryDestructor(self)
     !!{
-    Destructor for the \refClass{mergerTreeEvolveTimestepStarFormationHistory} merger tree timestepping class.
+    Destructor for the \refClass{mergerTreeEvolveTimestepStarFormationHistory} merger tree evolution timestep class.
     !!}
     implicit none
     type(mergerTreeEvolveTimestepStarFormationHistory), intent(inout) :: self

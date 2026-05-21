@@ -204,13 +204,14 @@ contains
     if      (                            &
          &   present(scaleLength  )      &
          &  ) then
-       self%scaleLength         =scaleLength
+       self%scaleLength=scaleLength
     else if (                            &
          &   present(concentration).and. &
          &   present(virialRadius )      &
          &  ) then
        self%scaleLength=virialRadius/concentration
     else
+       self%scaleLength=0.0d0
        call Error_Report('no means to determine scale length'//{introspection:location})
     end if
     ! Determine density normalization.
@@ -225,6 +226,7 @@ contains
        radiusScaleFree          =+virialRadius/self%scaleLength
        self%densityNormalization=+mass/4.0d0/Pi/self%scaleLength**3/(log(1.0d0+radiusScaleFree)-radiusScaleFree/(1.0d0+radiusScaleFree))
     else
+       self%densityNormalization=+0.00
        call Error_Report('either "densityNormalization", or "mass" and "virialRadius" must be specified'//{introspection:location})
     end if
     ! Determine if profile is dimensionless.
@@ -291,15 +293,16 @@ contains
        else
           call Error_Report('gradient is divergent at r=0'//{introspection:location})
        end if
+    else if (logarithmic_) then
+       ! Closed form for the logarithmic slope: dln ρ/dln r = -(1+3x)/(1+x) with x=r/r_s.
+       densityGradientRadial=-(1.0d0+3.0d0*radiusScaleFree)   &
+            &                /(1.0d0+      radiusScaleFree)
     else
        densityGradientRadial=-self       %densityNormalization &
             &                /self       %scaleLength          &
             &                /             radiusScaleFree **2 &
             &                *(1.0d0+3.0d0*radiusScaleFree)    &
             &                /(1.0d0+      radiusScaleFree)**3
-       if (logarithmic_) densityGradientRadial=+            densityGradientRadial              &
-            &                                  /self       %density              (coordinates) &
-            &                                  *coordinates%rSpherical           (           )
     end if
     return
   end function nfwDensityGradientRadial

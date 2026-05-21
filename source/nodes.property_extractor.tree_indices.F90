@@ -35,11 +35,12 @@ Implements merger tree index property extractor class.
      procedure :: extract     => indicesTreeExtract
      procedure :: name        => indicesTreeName
      procedure :: description => indicesTreeDescription
+     procedure :: units       => indicesTreeUnits
   end type nodePropertyExtractorIndicesTree
 
   interface nodePropertyExtractorIndicesTree
      !!{
-     Constructors for the \refClass{nodePropertyExtractorIndicesTree} output analysis class.
+     Constructors for the \refClass{nodePropertyExtractorIndicesTree} property extractor class.
      !!}
      module procedure indicesTreeConstructorParameters
   end interface nodePropertyExtractorIndicesTree
@@ -48,7 +49,7 @@ contains
 
   function indicesTreeConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the \refClass{nodePropertyExtractorIndicesTree} node property extractor class which takes a parameter set as input.
+    Constructor for the \refClass{nodePropertyExtractorIndicesTree} property extractor class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -105,3 +106,16 @@ contains
     return
   end function indicesTreeDescription
 
+  function indicesTreeUnits(self) result(units)
+    !!{
+    Return the units of the indicesTree property.
+    !!}
+    use :: Units_MetaData, only : unitType
+    implicit none
+    type (unitType                        )                :: units
+    class(nodePropertyExtractorIndicesTree), intent(inout) :: self
+    !$GLC attributes unused :: self
+
+    units=unitType(1.0d0)
+    return
+  end function indicesTreeUnits

@@ -43,4 +43,6 @@
     <temperatureCMB  value=" 2.725480"/>
   </cosmologyParameters>
 
+  <outputFileName value="galacticus.hdf5"/>
+
 </parameters>

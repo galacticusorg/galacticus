@@ -1142,6 +1142,12 @@ def validateAGN(grid,args):
     print("   Missing outputs: "+str(modelsMissingOutput))
     print("     Missing lines: "+str(modelsMissingLine  ))
 
+def writeUnitsAttribute(dataset, unitsInSI, description="", quantity="", isComoving=0):
+    """Write a compound 'units' HDF5 attribute matching the Galacticus unitType layout."""
+    unit_dtype = np.dtype([('unitsInSI', '<f8'), ('description', 'S512'), ('quantity', 'S512'), ('isComoving', '<i4')])
+    unit_data  = np.array([(unitsInSI, description.encode('utf-8'), quantity.encode('utf-8'), isComoving)], dtype=unit_dtype)
+    dataset.attrs.create('units', data=unit_data, dtype=unit_dtype)
+
 def outputSSP(grid,args):
     # Output the results of the Cloudy calculations for SSPs.
     # Write the line data to file.
@@ -1156,22 +1162,18 @@ def outputSSP(grid,args):
     datasetMetallicity     = tableFile.create_dataset('metallicity'               ,data=10.0**grid['logMetallicities'       ])
     datasetDensityHydrogen = tableFile.create_dataset('densityHydrogen'           ,data=10.0**grid['logHydrogenDensities'   ])
     datasetAge            .attrs['description'] = "Age of the stellar population."
-    datasetAge            .attrs['units'      ] = "Gyr"
-    datasetAge            .attrs['unitsInSI'  ] = secondsPerGyr
+    writeUnitsAttribute(datasetAge            , secondsPerGyr  , description="Gyr"              , quantity="Gyr"              )
     datasetMetallicity    .attrs['description'] = "Metallicity relative to Solar."
     datasetDensityHydrogen.attrs['description'] = "Hydrogen density."
-    datasetDensityHydrogen.attrs['units'      ] = "cm¯³"
-    datasetDensityHydrogen.attrs['unitsInSI'  ] = mega
+    writeUnitsAttribute(datasetDensityHydrogen, mega           , description="cm\u00af\u00b3"   , quantity="cm\u00af\u00b3"   )
     if args.normalization == "ionizingLuminosity":
         datasetIonizationLuminosityHydrogen = tableFile.create_dataset('ionizingLuminosityHydrogen',data=10.0**grid['logHydrogenLuminosities'])
         datasetIonizationLuminosityHydrogen.attrs['description'] = "Hydrogen ionizing photon emission rate."
-        datasetIonizationLuminosityHydrogen.attrs['units'      ] = "photons s¯¹"
-        datasetIonizationLuminosityHydrogen.attrs['unitsInSI'  ] = one
+        writeUnitsAttribute(datasetIonizationLuminosityHydrogen, one     , description="photons s\u00af\u00b9"  , quantity="photons s\u00af\u00b9"  )
     elif args.normalization == "massStellar":
         datasetMassStellar = tableFile.create_dataset('massStellar',data=10.0**grid['logStellarMasses'])
         datasetMassStellar.attrs['description'] = "Zero-age stellar mass of the HII region."
-        datasetMassStellar.attrs['units'      ] = "M☉"
-        datasetMassStellar.attrs['unitsInSI'  ] = massSolar
+        writeUnitsAttribute(datasetMassStellar, massSolar      , description="M\u2609"          , quantity="Msun"             )
     else:
         sys.exit("Expected `normalization` of `ionizingLuminosity` or `massStellar`")
     # Write index in the tables for each iterable.
@@ -1182,8 +1184,7 @@ def outputSSP(grid,args):
     # Write table of ionizing rates per unit mass of stars formed.
     datasetNormalization = tableFile.create_dataset('ionizingLuminosityHydrogenNormalized',data=grid['ionizingLuminosityPerMass'])
     datasetNormalization.attrs['description'] = "Hydrogen ionizing photon emission rate per unit mass of stars."
-    datasetNormalization.attrs['units'      ] = "photons s¯¹ M☉¯¹"
-    datasetNormalization.attrs['unitsInSI'  ] = 1.0/massSolar    
+    writeUnitsAttribute(datasetNormalization  , 1.0/massSolar  , description="photons s\u00af\u00b9 M\u2609\u00af\u00b9", quantity="photons s\u00af\u00b9 Msun\u00af\u00b9")
     # Write line data. Note that the grids are transposed for output in order to match the ordering produced by the original
     # (Perl-based) version of this script.
     lineGroup = tableFile.create_group('lines')
@@ -1195,8 +1196,7 @@ def outputSSP(grid,args):
         lineName    = lineList[lineLabel]
         datasetLine = lineGroup.create_dataset(lineName,data=np.transpose(grid['lineData'][lineName]['luminosity']))
         datasetLine.attrs['description'] = "Energy radiated by a unit area of cloud into 4 π sr."
-        datasetLine.attrs['units'      ] = "erg cm¯² s¯¹"
-        datasetLine.attrs['unitsInSI'  ] = unitsIntensity
+        writeUnitsAttribute(datasetLine       , unitsIntensity , description="erg cm\u00af\u00b2 s\u00af\u00b9" , quantity="erg cm\u00af\u00b2 s\u00af\u00b9" )
         datasetLine.attrs['wavelength' ] = grid['lineData'][lineName]['wavelength']
 
 def outputAGN(grid,args):
@@ -1217,8 +1217,7 @@ def outputAGN(grid,args):
     datasetMetallicity        .attrs['description'] = "Metallicity relative to Solar."
     datasetIonizationParameter.attrs['description'] = "Ionization parameter."
     datasetDensityHydrogen    .attrs['description'] = "Hydrogen density."
-    datasetDensityHydrogen    .attrs['units'      ] = "cm¯³"
-    datasetDensityHydrogen    .attrs['unitsInSI'  ] = mega
+    writeUnitsAttribute(datasetDensityHydrogen    , mega           , description="cm\u00af\u00b3"                , quantity="cm\u00af\u00b3"                )
     # Write index in the tables for each iterable.
     i = 0
     for iterable in grid['names']:
@@ -1235,8 +1234,7 @@ def outputAGN(grid,args):
         lineName    = lineList[lineLabel]
         datasetLine = lineGroup.create_dataset(lineName,data=np.transpose(grid['lineData'][lineName]['luminosity']))
         datasetLine.attrs['description'] = "Energy radiated by a unit area of cloud into 4 π sr."
-        datasetLine.attrs['units'      ] = "erg cm¯² s¯¹"
-        datasetLine.attrs['unitsInSI'  ] = unitsIntensity
+        writeUnitsAttribute(datasetLine           , unitsIntensity , description="erg cm\u00af\u00b2 s\u00af\u00b9" , quantity="erg cm\u00af\u00b2 s\u00af\u00b9" )
         datasetLine.attrs['wavelength' ] = grid['lineData'][lineName]['wavelength']
 
 # Determine the version of Cloudy in use by Galacticus.

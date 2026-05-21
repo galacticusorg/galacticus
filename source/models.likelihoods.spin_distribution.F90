@@ -71,7 +71,7 @@
 
   interface posteriorSampleLikelihoodSpinDistribution
      !!{
-     Constructors for the \refClass{posteriorSampleLikelihoodSpinDistribution} posterior sampling convergence class.
+     Constructors for the \refClass{posteriorSampleLikelihoodSpinDistribution} posterior sampling likelihood class.
      !!}
      module procedure spinDistributionConstructorParameters
      module procedure spinDistributionConstructorInternal
@@ -81,7 +81,7 @@ contains
 
   function spinDistributionConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the \refClass{posteriorSampleLikelihoodSpinDistribution} posterior sampling convergence class which builds the object from a
+    Constructor for the \refClass{posteriorSampleLikelihoodSpinDistribution} posterior sampling likelihood class which builds the object from a
     parameter set.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
@@ -194,11 +194,10 @@ contains
          &                                                         )
     ! Read the target spin distribution from file.
     !$ call hdf5Access%set()
-    call spinDistributionFile%openFile   (trim(fileName),readOnly=.true.)
+    spinDistributionFile=hdf5Object(trim(fileName),readOnly=.true.)
     call spinDistributionFile%readDataset("spinParameter"    ,self%spin             )
     call spinDistributionFile%readDataset("distribution"     ,self%distribution     )
     call spinDistributionFile%readDataset("distributionError",self%distributionError)
-    call spinDistributionFile%close()
     !$ call hdf5Access%unset()
     ! Compute spin ranges for bins.
     spinIntervalLogarithmic=+log(                            &

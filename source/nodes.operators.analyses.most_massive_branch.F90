@@ -25,7 +25,7 @@
   <nodeOperator name="nodeOperatorBranchMostMassive">
     <description>
       A node operator class that determines if a node is on the most massive branch of its tree. Intended to be paired with the
-      \refClass{nodePropertyExtractorBranchMostMassive} class to extract this meta-data for output.
+      \refClass{nodePropertyExtractorBranchMostMassive} property extractor class to extract this meta-data for output.
     </description>
   </nodeOperator>
   !!]

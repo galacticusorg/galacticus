@@ -38,11 +38,12 @@
      procedure :: names        => trackOutflowedMassNames
      procedure :: descriptions => trackOutflowedMassDescriptions
      procedure :: unitsInSI    => trackOutflowedMassUnitsInSI
+     procedure :: units       => trackOutflowedMassUnits
   end type nodePropertyExtractorTrackOutflowedMass
 
   interface nodePropertyExtractorTrackOutflowedMass
      !!{
-     Constructors for the \refClass{nodePropertyExtractorTrackOutflowedMass} output analysis class.
+     Constructors for the \refClass{nodePropertyExtractorTrackOutflowedMass} property extractor class.
      !!}
      module procedure trackOutflowedMassConstructorParameters
      module procedure trackOutflowedMassConstructorInternal
@@ -172,4 +173,24 @@ contains
     trackOutflowedMassUnitsInSI=massSolar
     return
   end function trackOutflowedMassUnitsInSI
-  
+
+  function trackOutflowedMassUnits(self,time) result(units)
+    !!{
+    Return the units of the trackOutflowedMass properties.
+    !!}
+    use :: Units_MetaData, only : unitType
+    implicit none
+    type            (unitType                               ), dimension(:), allocatable :: units
+    class           (nodePropertyExtractorTrackOutflowedMass), intent(inout)             :: self
+    double precision                                         , intent(in   )             :: time
+    double precision                                         , dimension(:), allocatable :: siValues
+    integer                                                                              :: i
+    !$GLC attributes unused :: self
+
+    siValues=self%unitsInSI(time)
+    allocate(units(size(siValues)))
+    do i=1,size(siValues)
+       units(i)=unitType(siValues(i),description='Solar masses',quantity='solMass')
+    end do
+    return
+  end function trackOutflowedMassUnits

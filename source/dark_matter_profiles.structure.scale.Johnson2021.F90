@@ -187,7 +187,7 @@
   
   interface darkMatterProfileScaleRadiusJohnson2021
      !!{
-     Constructors for the \refClass{darkMatterProfileScaleRadiusJohnson2021} node operator class.
+     Constructors for the \refClass{darkMatterProfileScaleRadiusJohnson2021} dark matter halo profile scale radius class.
      !!}
      module procedure darkMatterProfileScaleJohnson2021ConstructorParameters
      module procedure darkMatterProfileScaleJohnson2021ConstructorInternal
@@ -204,7 +204,7 @@ contains
   
   function darkMatterProfileScaleJohnson2021ConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the \refClass{darkMatterProfileScaleRadiusJohnson2021} dark matter profile scale radius class which
+    Constructor for the \refClass{darkMatterProfileScaleRadiusJohnson2021} dark matter halo profile scale radius class which
     takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
@@ -342,7 +342,7 @@ contains
 
   function darkMatterProfileScaleJohnson2021ConstructorInternal(massExponent,peakHeightExponent,energyBoost,unresolvedEnergy,factorMassResolution,scatter,scatterExcess,correlationRateDecay,correlationExponent,countSampleEnergyUnresolved,mainBranchOnly,applySubsamplingWeights,acceptUnboundOrbits,includeUnresolvedVariance,cosmologyFunctions_,darkMatterProfileScaleRadius_,darkMatterHaloScale_,darkMatterProfileDMO_,virialOrbit_,mergerTreeMassResolution_,criticalOverdensity_,cosmologicalMassVariance_) result(self)
     !!{
-    Internal constructor for the \refClass{darkMatterProfileScaleRadiusJohnson2021} dark matter profile scale radius class.
+    Internal constructor for the \refClass{darkMatterProfileScaleRadiusJohnson2021} dark matter halo profile scale radius class.
     !!}
     implicit none
     type            (darkMatterProfileScaleRadiusJohnson2021)                        :: self
@@ -435,23 +435,28 @@ contains
          &                                                                                    factorGrowthOrbital                            , factorGrowthInternal             , &
          &                                                                                    energySample                                   , peakHeight                       , &
          &                                                                                    energyVariance                                 , weightSubsampling
-    type            (rootFinder                             )                              :: finder
+    type            (rootFinder                             ), save                        :: finder
+    logical                                                  , save                        :: finderConstructed                       =.false.
+    !$omp threadprivate(finder,finderConstructed)
     type            (keplerOrbit                            )                              :: orbit
     type            (matrix                                 )                              :: cholesky_
-    
+        
     ! Get the resolution of the tree.
     massResolution=self%mergerTreeMassResolution_%resolution(node%hostTree)
     ! Build a root finder to find scale radii.
-    finder=rootFinder(                                                             &
-         &            rootFunction                 =radiusScaleRoot              , &
-         &            toleranceAbsolute            =1.0d-6                       , &
-         &            toleranceRelative            =1.0d-3                       , &
-         &            rangeExpandDownward          =0.5d+0                       , &
-         &            rangeExpandUpward            =2.0d+0                       , &
-         &            rangeExpandType              =rangeExpandMultiplicative    , &
-         &            rangeExpandDownwardSignExpect=rangeExpandSignExpectPositive, &
-         &            rangeExpandUpwardSignExpect  =rangeExpandSignExpectNegative  &
-         &           )
+    if (.not.finderConstructed) then 
+       finder           =rootFinder(                                                             &
+            &                       rootFunction                 =radiusScaleRoot              , &
+            &                       toleranceAbsolute            =1.0d-6                       , &
+            &                       toleranceRelative            =1.0d-3                       , &
+            &                       rangeExpandDownward          =0.5d+0                       , &
+            &                       rangeExpandUpward            =2.0d+0                       , &
+            &                       rangeExpandType              =rangeExpandMultiplicative    , &
+            &                       rangeExpandDownwardSignExpect=rangeExpandSignExpectPositive, &
+            &                       rangeExpandUpwardSignExpect  =rangeExpandSignExpectNegative  &
+            &                      )
+       finderConstructed=.true.
+    end if
     ! Create the dark matter profile component.
     darkMatterProfile => node%darkMatterProfile(autoCreate=.true.)
     ! If this node has no children, is below the mass at which we apply our energy model, or is not on the main branch and our

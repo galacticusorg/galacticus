@@ -108,7 +108,7 @@ contains
 
   subroutine inSituDestructor(self)
     !!{
-    Destructor for the \refClass{starFormationHistoryInSitu} star formation histories class.
+    Destructor for the \refClass{starFormationHistoryInSitu} star formation history class.
     !!}
     implicit none
     type(starFormationHistoryInSitu), intent(inout) :: self

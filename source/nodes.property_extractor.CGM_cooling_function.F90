@@ -72,11 +72,12 @@
      procedure :: names              => cgmCoolingFunctionNames
      procedure :: descriptions       => cgmCoolingFunctionDescriptions
      procedure :: unitsInSI          => cgmCoolingFunctionUnitsInSI
+     procedure :: units              => cGMCoolingFunctionUnits
   end type nodePropertyExtractorCGMCoolingFunction
 
   interface nodePropertyExtractorCGMCoolingFunction
      !!{
-     Constructors for the \refClass{nodePropertyExtractorCGMCoolingFunction} output analysis class.
+     Constructors for the \refClass{nodePropertyExtractorCGMCoolingFunction} property extractor class.
      !!}
      module procedure cgmCoolingFunctionConstructorParameters
      module procedure cgmCoolingFunctionConstructorInternal
@@ -441,23 +442,25 @@ contains
     return
   end subroutine cgmCoolingFunctionDescriptions
 
-  subroutine cgmCoolingFunctionColumnDescriptions(self,descriptions,values,valuesDescription,valuesUnitsInSI,time)
+  subroutine cgmCoolingFunctionColumnDescriptions(self,descriptions,values,valuesDescription,valuesUnits,time)
     !!{
     Return column descriptions of the \mono{cgmCoolingFunction} property.
     !!}
+    use            :: Units_MetaData, only : unitType
+    use, intrinsic :: ISO_C_Binding , only : c_int
     implicit none
     class           (nodePropertyExtractorCGMCoolingFunction), intent(inout)                            :: self
     double precision                                         , intent(in   ), optional                  :: time
     type            (varying_string                         ), intent(inout), dimension(:), allocatable :: descriptions
-    double precision                                         , intent(inout), dimension(:), allocatable :: values 
+    double precision                                         , intent(inout), dimension(:), allocatable :: values
     type            (varying_string                         ), intent(  out)                            :: valuesDescription
-    double precision                                         , intent(  out)                            :: valuesUnitsInSI
+    type            (unitType                               ), intent(  out)                            :: valuesUnits
     !$GLC attributes unused :: time
 
     allocate(descriptions(self%radiiCount))
     allocate(values      (              0))
     valuesDescription=var_str('')
-    valuesUnitsInSI  =0.0d0
+    valuesUnits      =unitType(0.0d0)
     descriptions     =self%radii%name
     return
   end subroutine cgmCoolingFunctionColumnDescriptions
@@ -484,3 +487,24 @@ contains
     return
   end function cgmCoolingFunctionUnitsInSI
 
+  function cGMCoolingFunctionUnits(self,time) result(units)
+    !!{
+    Return the units of the cGMCoolingFunction properties.
+    !!}
+    use :: Numerical_Constants_Astronomical, only : megaParsec
+    use :: Numerical_Constants_Prefixes    , only : centi
+    use :: Numerical_Constants_Units       , only : ergs
+    use :: Units_MetaData                  , only : unitType
+    implicit none
+    type            (unitType                               ), dimension(:), allocatable :: units
+    class           (nodePropertyExtractorCGMCoolingFunction), intent(inout)             :: self
+    double precision                                         , intent(in   ), optional   :: time
+
+    allocate(units(self%elementCount_))
+    units       (1)=unitType(ergs *centi     **3,description='ergs cm³',quantity='ergs cm^3')
+    if (self%includeRadii  )                                              &
+         & units(2)=unitType(      megaParsec   ,description='Mpc     ',quantity='Mpc'      )
+    if (self%includeDensity)                                              &
+         & units(3)=unitType(1.0d0/centi     **3,description='cm⁻³'    ,quantity='cm^-3'    )
+    return
+  end function cGMCoolingFunctionUnits

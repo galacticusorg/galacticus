@@ -40,7 +40,7 @@
 
   interface mergerTreeMassResolutionFixed
      !!{
-     Constructors for the \refClass{mergerTreeMassResolutionFixed} merger tree resolution class.
+     Constructors for the \refClass{mergerTreeMassResolutionFixed} merger tree building mass resolution class.
      !!}
      module procedure fixedConstructorParameters
      module procedure fixedConstructorInternal

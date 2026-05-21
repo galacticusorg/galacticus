@@ -87,16 +87,17 @@ for runPass in range(2):
             statusMessage += "FAILED: number of nodes in output changed after state retrieve\n"
             failed         = True
 
-        datasets = list(storeData.keys())
-        for dataset in datasets:
-            storeDataset    = storeData[dataset][storeTreeStart:storeTreeStart + storeTreeSize]
-            retrieveDataset = retrieveData[dataset][:]
-            equal           = np.all(storeDataset == retrieveDataset)
-            if not equal:
-                statusMessage += f"FAILED: dataset '{dataset}' changed after state retrieve\n"
-                statusMessage += f"   before --> {storeDataset}\n"
-                statusMessage += f"   after  --> {retrieveDataset}\n"
-                failed         = True
+        if not failed:
+            datasets = list(storeData.keys())
+            for dataset in datasets:
+                storeDataset    = storeData[dataset][storeTreeStart:storeTreeStart + storeTreeSize]
+                retrieveDataset = retrieveData[dataset][:]
+                equal           = np.all(storeDataset == retrieveDataset)
+                if not equal:
+                    statusMessage += f"FAILED: dataset '{dataset}' changed after state retrieve\n"
+                    statusMessage += f"   before --> {storeDataset}\n"
+                    statusMessage += f"   after  --> {retrieveDataset}\n"
+                    failed         = True
 
     if failed:
         if runPass == 1:

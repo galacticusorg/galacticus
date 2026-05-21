@@ -52,28 +52,28 @@ module Node_Component_Spheroid_Very_Simple
       <type>double</type>
       <rank>0</rank>
       <attributes isSettable="true" isGettable="true" isEvolvable="true" createIfNeeded="true" />
-      <output unitsInSI="massSolar" comment="Mass of stars in the very simple spheroid."/>
+      <output unitsInSI="massSolar" unitsDescription="Solar masses" unitsQuantity="solMass" comment="Mass of stars in the very simple spheroid."/>
     </property>
     <property>
       <name>abundancesStellar</name>
       <type>abundances</type>
       <rank>0</rank>
       <attributes isSettable="true" isGettable="true" isEvolvable="true" createIfNeeded="true" />
-      <output unitsInSI="massSolar" comment="Mass of metals in the stellar phase of the very simple spheroid."/>
+      <output unitsInSI="massSolar" unitsDescription="Solar masses" unitsQuantity="solMass" comment="Mass of metals in the stellar phase of the very simple spheroid."/>
     </property>
     <property>
       <name>massGas</name>
       <type>double</type>
       <rank>0</rank>
       <attributes isSettable="true" isGettable="true" isEvolvable="true" createIfNeeded="true" />
-      <output unitsInSI="massSolar" comment="Mass of gas in the very simple spheroid."/>
+      <output unitsInSI="massSolar" unitsDescription="Solar masses" unitsQuantity="solMass" comment="Mass of gas in the very simple spheroid."/>
     </property>
     <property>
       <name>abundancesGas</name>
       <type>abundances</type>
       <rank>0</rank>
       <attributes isSettable="true" isGettable="true" isEvolvable="true" createIfNeeded="true"  />
-      <output unitsInSI="massSolar" comment="Mass of metals in the gas phase of the very simple spheroid."/>
+      <output unitsInSI="massSolar" unitsDescription="Solar masses" unitsQuantity="solMass" comment="Mass of metals in the gas phase of the very simple spheroid."/>
     </property>
     <property>
       <name>stellarPropertiesHistory</name>
@@ -86,14 +86,14 @@ module Node_Component_Spheroid_Very_Simple
       <type>stellarLuminosities</type>
       <rank>0</rank>
       <attributes isSettable="true" isGettable="true" isEvolvable="true" />
-      <output unitsInSI="luminosityZeroPointAB" comment="Luminosity of spheroid stars."/>
+      <output unitsInSI="luminosityZeroPointAB" unitsDescription="AB-magnitude zero point" unitsQuantity="4.465920e17 W/Hz" comment="Luminosity of spheroid stars."/>
     </property>
     <property>
       <name>radius</name>
       <type>double</type>
       <rank>0</rank>
       <attributes isSettable="true" isGettable="true" isEvolvable="false" />
-      <output unitsInSI="megaparsec" comment="Radial scale length in the spheroid."/>
+      <output unitsInSI="megaparsec" unitsDescription="Mpc" unitsQuantity="Mpc" comment="Radial scale length in the spheroid."/>
     </property>
     <property>
       <name>halfMassRadius</name>
@@ -107,7 +107,7 @@ module Node_Component_Spheroid_Very_Simple
       <type>double</type>
       <rank>0</rank>
       <attributes isSettable="true" isGettable="true" isEvolvable="false" />
-      <output unitsInSI="kilo" comment="Circular velocity of the spheroid."/>
+      <output unitsInSI="kilo" unitsDescription="km/s" unitsQuantity="km/s" comment="Circular velocity of the spheroid."/>
     </property>
    </properties>
    <bindings>

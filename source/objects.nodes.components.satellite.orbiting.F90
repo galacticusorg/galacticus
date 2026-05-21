@@ -43,14 +43,13 @@ module Node_Component_Satellite_Orbiting
    <class>satellite</class>
    <name>orbiting</name>
    <isDefault>false</isDefault>
-   <createFunction isDeferred="true" />
    <properties>
     <property>
       <name>position</name>
       <type>double</type>
       <rank>1</rank>
       <attributes isSettable="true" isGettable="true" isEvolvable="true" />
-      <output labels="[X,Y,Z]" unitsInSI="megaParsec" comment="Orbital position of the node relative to its immediate host (sub-)halo."/>
+      <output labels="[X,Y,Z]" unitsInSI="megaParsec" unitsDescription="Mpc" unitsQuantity="Mpc" comment="Orbital position of the node relative to its immediate host (sub-)halo."/>
       <classDefault>[0.0d0,0.0d0,0.0d0]</classDefault>
     </property>
     <property>
@@ -58,7 +57,7 @@ module Node_Component_Satellite_Orbiting
       <type>double</type>
       <rank>1</rank>
       <attributes isSettable="true" isGettable="true" isEvolvable="true" />
-      <output labels="[X,Y,Z]" unitsInSI="kilo" comment="Orbital velocity of the node relative to its immediate host (sub-)halo."/>
+      <output labels="[X,Y,Z]" unitsInSI="kilo" unitsDescription="km/s" unitsQuantity="km/s" comment="Orbital velocity of the node relative to its immediate host (sub-)halo."/>
       <classDefault>[0.0d0,0.0d0,0.0d0]</classDefault>
     </property>
     <property>
@@ -81,7 +80,7 @@ module Node_Component_Satellite_Orbiting
       <rank>0</rank>
       <attributes isSettable="true" isGettable="true" isEvolvable="true" />
       <classDefault>selfBasic%mass()</classDefault>
-      <output unitsInSI="massSolar" comment="Bound mass of the node."/>
+      <output unitsInSI="massSolar" unitsDescription="Solar masses" unitsQuantity="solMass" comment="Bound mass of the node."/>
     </property>
     <property>
       <name>virialOrbit</name>
@@ -100,7 +99,7 @@ module Node_Component_Satellite_Orbiting
       <type>double</type>
       <rank>0</rank>
       <attributes isSettable="true" isGettable="true" isEvolvable="true" />
-      <output unitsInSI="kilo**2/megaParsec**2" comment="Specific energy/radius² of satellite in units of (km/s)²/Mpc²."/>
+      <output unitsInSI="kilo**2/megaParsec**2" unitsDescription="(km/s/Mpc)²" unitsQuantity="km^2/(s^2 Mpc^2)" comment="Specific energy/radius² of satellite in units of (km/s)²/Mpc²."/>
     </property>
    </properties>
   </component>
@@ -150,8 +149,6 @@ contains
        ! Specify the function to use for setting virial orbits.
        call satellite%virialOrbitSetFunction(Node_Component_Satellite_Orbiting_Virial_Orbit_Set)
        call satellite%virialOrbitFunction   (Node_Component_Satellite_Orbiting_Virial_Orbit    )
-       ! Bind a creation function.
-       call satellite%createFunctionSet     (Node_Component_Satellite_Orbiting_Initializor     )
     end if
     return
   end subroutine Node_Component_Satellite_Orbiting_Initialize
@@ -299,20 +296,6 @@ contains
     end select
     return
   end subroutine Node_Component_Satellite_Orbiting_Scale_Set
-
-  subroutine Node_Component_Satellite_Orbiting_Initializor(self,timeEnd)
-    !!{
-    Initializes an orbiting satellite component.
-    !!}
-    use :: Galacticus_Nodes, only : nodeComponentSatelliteOrbiting
-    implicit none
-    type            (nodeComponentSatelliteOrbiting), intent(inout)           :: self
-    double precision                                , intent(in   ), optional :: timeEnd
-    !$GLC attributes unused :: timeEnd
-
-    call Node_Component_Satellite_Orbiting_Create(self%hostNode)
-    return
-  end subroutine Node_Component_Satellite_Orbiting_Initializor
 
   !![
   <nodeMergerTask function="Node_Component_Satellite_Orbiting_Create"/>

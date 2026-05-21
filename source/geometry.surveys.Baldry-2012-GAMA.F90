@@ -135,7 +135,7 @@ contains
 
   subroutine baldry2012GAMADestructor(self)
     !!{
-    Destructor for the \refClass{surveyGeometryBaldry2012GAMA} geometry class.
+    Destructor for the \refClass{surveyGeometryBaldry2012GAMA} survey geometry class.
     !!}
     implicit none
     type(surveyGeometryBaldry2012GAMA), intent(inout) :: self
@@ -226,12 +226,9 @@ contains
     type (varying_string              ), allocatable, dimension(:), intent(inout) :: mangleFiles
 
     allocate(mangleFiles(3))
-    mangleFiles=                                                   &
-         &      [                                                  &
-         &       self%mangleDirectory()//"angularGeometryG09.ply", &
-         &       self%mangleDirectory()//"angularGeometryG12.ply", &
-         &       self%mangleDirectory()//"angularGeometryG15.ply"  &
-         &      ]
+    mangleFiles(1)=self%mangleDirectory()//"angularGeometryG09.ply"
+    mangleFiles(2)=self%mangleDirectory()//"angularGeometryG12.ply"
+    mangleFiles(3)=self%mangleDirectory()//"angularGeometryG15.ply"
     return
   end subroutine baldry2012GAMAMangleFiles
 

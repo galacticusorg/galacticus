@@ -163,7 +163,7 @@ contains
 
   subroutine correa2015Destructor(self)
     !!{
-    Destructor for the \refClass{darkMatterProfileConcentrationCorrea2015} dark matter profile concentration class.
+    Destructor for the \refClass{darkMatterProfileConcentrationCorrea2015} dark matter halo profile concentration class.
     !!}
     implicit none
     type(darkMatterProfileConcentrationCorrea2015), intent(inout) :: self

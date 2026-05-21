@@ -48,6 +48,14 @@ module Galacticus_Nodes
   public :: nodeClassHierarchyInitialize    , nodeClassHierarchyFinalize, Galacticus_Nodes_Unique_ID_Set, interruptTask   , &
        &    nodeEventBuildFromRaw           , propertyEvaluate          , propertyActive                , propertyInactive, &
        &    massDistributionCalculationReset, massDistributionsLast     , massDistributionsDestroy
+
+  type, public :: nodeHierarchyWrapper
+     !!{
+     Wrapper class for managing the node class hierarchy.
+     !!}
+   contains
+     final :: nodeHierarchyWrapperDestructor
+  end type nodeHierarchyWrapper
   
   type, public :: treeNodeList
      !!{
@@ -145,16 +153,19 @@ module Galacticus_Nodes
    contains
      !![
      <methods>
-       <method description="Create a \mono{treeEvent} object in this universe." method="createEvent"/>
-       <method description="Remove a \mono{treeEvent} from this universe."      method="removeEvent"/>
-       <method description="Pop a \mono{mergerTree} from this universe."        method="popTree"    />
-       <method description="Pop a \mono{mergerTree} from this universe."        method="pushTree"   />
+       <method description="Create a \mono{treeEvent} object in this universe." method="createEvent"  />
+       <method description="Remove a \mono{treeEvent} from this universe."      method="removeEvent"  />
+       <method description="Pop a \mono{mergerTree} from this universe."        method="popTree"      />
+       <method description="Pop a \mono{mergerTree} from this universe."        method="pushTree"     />
+       <method description="Assign universe objects."                                            method="assignment(=)"/>
      </methods>
      !!]
-     procedure :: createEvent => universeCreateEvent
-     procedure :: removeEvent => universeRemoveEvent
-     procedure :: popTree     => universePopTree
-     procedure :: pushTree    => universePushTree
+     procedure :: createEvent   => universeCreateEvent
+     procedure :: removeEvent   => universeRemoveEvent
+     procedure :: popTree       => universePopTree
+     procedure :: pushTree      => universePushTree
+     procedure ::                  universeAssign
+     generic   :: assignment(=) => universeAssign
   end type universe
 
   interface universe
@@ -181,7 +192,7 @@ module Galacticus_Nodes
   abstract interface
      logical function universeEventTask(event,universe_)
        import universeEvent, universe
-       class  (universeEvent), intent(in   ) :: event
+       class  (universeEvent), intent(inout) :: event
        type   (universe     ), intent(inout) :: universe_
      end function universeEventTask
   end interface
@@ -1519,8 +1530,6 @@ module Galacticus_Nodes
           call tree%nodeBase%destroyBranch()
           deallocate(tree%nodeBase)
        end if
-       ! Destroy the HDF5 group associated with this tree.
-       call tree%hdf5Group%destroy()
        ! Destroy any events attached to this tree.
        event => tree%event
        do while (associated(event))
@@ -1834,6 +1843,27 @@ module Galacticus_Nodes
     return
   end subroutine universePushTree
 
+  subroutine universeAssign(self,from)
+    !!{
+    Perform assignment of universes.
+    !!}
+    implicit none
+    class(universe), intent(inout) :: self
+    class(universe), intent(in   ) :: from
+
+    self%allTreesBuilt =  from%allTreesBuilt
+    self%attributes    =  from%attributes
+    self%trees         => from%trees
+    self%event         => from%event
+    self%uniqueID      =  from%uniqueID
+    if (allocated(self%lock)) deallocate(self%lock)
+    if (allocated(from%lock)) then
+       allocate(self%lock)
+       self%lock=from%lock
+    end if
+    return
+  end subroutine universeAssign
+
   logical function propertyActive(propertyType)
     !!{
     Returns true if active property evaluate is underway.
@@ -1908,5 +1938,17 @@ module Galacticus_Nodes
     end do
     return
   end subroutine massDistributionsDestroy
+
+  subroutine nodeHierarchyWrapperDestructor(self)
+    !!{
+    Destructor for the node hierarchy wrapper class that handles finalization of the node class hierarchy.
+    !!}
+    implicit none
+    type(nodeHierarchyWrapper), intent(inout) :: self
+    !$GLC attributes unused :: self
+
+    call nodeClassHierarchyFinalize()
+    return
+  end subroutine nodeHierarchyWrapperDestructor
   
 end module Galacticus_Nodes

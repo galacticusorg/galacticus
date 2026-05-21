@@ -91,7 +91,7 @@
 
   interface posteriorSampleLikelihoodPrjctdCorrelationFunction
      !!{
-     Constructors for the \refClass{posteriorSampleLikelihoodPrjctdCorrelationFunction} posterior sampling convergence class.
+     Constructors for the \refClass{posteriorSampleLikelihoodPrjctdCorrelationFunction} posterior sampling likelihood class.
      !!}
      module procedure projectedCorrelationFunctionConstructorParameters
      module procedure projectedCorrelationFunctionConstructorInternal
@@ -101,7 +101,7 @@ contains
 
   function projectedCorrelationFunctionConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the \refClass{posteriorSampleLikelihoodPrjctdCorrelationFunction} posterior sampling convergence class which builds the object from a
+    Constructor for the \refClass{posteriorSampleLikelihoodPrjctdCorrelationFunction} posterior sampling likelihood class which builds the object from a
     parameter set.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
@@ -200,7 +200,7 @@ contains
 
     ! Read the projected correlation function file.
     !$ call hdf5Access%set()
-    call file%openFile(char(inputPath(pathTypeDataStatic))//fileName,readOnly=.true.)
+    file=hdf5Object(char(inputPath(pathTypeDataStatic))//fileName,readOnly=.true.)
     call file%readDataset("separation"                          ,self%separation                          )
     call file%readDataset("projectedCorrelationFunctionObserved",self%projectedCorrelationFunctionObserved)
     call file%readDataset("covariance"                          ,self%covarianceMatrix                    )
@@ -212,7 +212,6 @@ contains
        allocate(self%integralConstraint,mold=self%projectedCorrelationFunctionObserved)
        self%integralConstraint=1.0d0
     end if
-    call file%close()
     !$ call hdf5Access%unset()
     ! Allocate storage for the model projected correlation function.
     allocate(self%projectedCorrelationFunction(size(self%separation),size(self%massMinimum)))
@@ -223,7 +222,7 @@ contains
 
   subroutine projectedCorrelationFunctionDestructor(self)
     !!{
-    Destructor for the \refClass{posteriorSampleLikelihoodPrjctdCorrelationFunction} class.
+    Destructor for the \refClass{posteriorSampleLikelihoodPrjctdCorrelationFunction} posterior sampling likelihood class.
     !!}
     implicit none
     type(posteriorSampleLikelihoodPrjctdCorrelationFunction), intent(inout) :: self
