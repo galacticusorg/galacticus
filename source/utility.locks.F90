@@ -238,7 +238,7 @@ contains
     ! Determine the ID of the current thread using a local variable. The shared `self%ownerThread` must be updated in a single
     ! assignment: writing a default of `0` and then overriding it via the OpenMP-conditional line would briefly expose an owner
     ! ID of `0` to other threads, which a concurrent `ownedByThread()` call from thread 0 would mistake for ownership.
-    ownerThread=0
+    ownerThread   =0
     !$ ownerThread=OMP_Get_Thread_Num()
     !$ call OMP_Set_Lock(self%lock)
     self%ownerThread=ownerThread
@@ -258,7 +258,7 @@ contains
     !$ success=OMP_Test_Lock(self%lock)
     if (.not.success) return
     ! Set the owner thread ID via a local variable so that `self%ownerThread` is updated in a single assignment (see `ompLockSet`).
-    ownerThread=0
+    ownerThread   =0
     !$ ownerThread=OMP_Get_Thread_Num()
     self%ownerThread=ownerThread
     return
