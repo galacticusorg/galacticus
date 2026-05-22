@@ -39,7 +39,8 @@ contains
           &                           lockDescriptor
     use :: Error             , only : Error_Report
     use :: Input_Paths       , only : inputPath        , pathTypeDataDynamic  , pathTypeDataStatic
-    use :: ISO_Varying_String, only : assignment(=)    , char                 , operator(//)      , varying_string
+    use :: ISO_Varying_String, only : assignment(=)    , char                 , operator(//)      , varying_string, &
+         &                            var_str
     use :: System_Command    , only : System_Command_Do
     use :: System_Download   , only : download
     use :: System_Compilers  , only : compiler         , languageFortran
@@ -70,7 +71,15 @@ contains
           pathFor=recfastPath//"recfast.for"
           if (.not.File_Exists(pathFor)) then
              call displayMessage("downloading RecFast code....",verbosityLevelWorking)
-             call download("https://www.astro.ubc.ca/people/scott/recfast.for",pathFor,retries=5,retryWait=60)
+             call download(                                                                                                                        &
+                  &                   [                                                                                                            &
+                  &                    var_str("https://www.astro.ubc.ca/people/scott/recfast.for"                                              ), &
+                  &                    var_str("https://web.archive.org/web/20250818121544im_/https://www.astro.ubc.ca/people/scott/recfast.for")  &
+                  &                   ]                                                                                                          , &
+                  &                   pathFor                                                                                                    , &
+                  &        retries  = 5                                                                                                          , &
+                  &        retryWait=60                                                                                                            &
+                  &       )
              if (.not.File_Exists(pathFor)) &
                   & call Error_Report("failed to download RecFast code"//{introspection:location})
           end if
