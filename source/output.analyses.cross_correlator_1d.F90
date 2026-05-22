@@ -32,7 +32,7 @@ mass function) output analysis class.
   use               :: Output_Analysis_Property_Operators      , only : outputAnalysisPropertyOperatorClass
   use               :: Output_Analysis_Weight_Operators        , only : outputAnalysisWeightOperatorClass
   use               :: Output_Times                            , only : outputTimesClass
-  use               :: Output_Analyses_Options                 , only : enumerationOutputAnalysisCovarianceModelType
+  use               :: Output_Analyses_Options                 , only : enumerationOutputAnalysisCovarianceModelType, enumerationOutputAnalysisStateType
 
   !![
   <outputAnalysis name="outputAnalysisCrossCorrelator1D">
@@ -58,6 +58,7 @@ mass function) output analysis class.
      class           (outputAnalysisDistributionNormalizerClass   ), pointer                     :: outputAnalysisDistributionNormalizer_ => null()
      class           (galacticFilterClass                         ), pointer                     :: galacticFilter_                       => null()
      class           (outputTimesClass                            ), pointer                     :: outputTimes_                          => null()
+     type            (enumerationOutputAnalysisStateType          )                              :: state
      double precision                                              , dimension(:,:), allocatable :: outputWeight                                   , functionCovariance                                         , &
           &                                                                                         weightMainBranch
      double precision                                              , dimension(:  ), allocatable :: binCenter                                      , weightMainBranchCross
@@ -69,13 +70,15 @@ mass function) output analysis class.
      double precision                                                                            :: covarianceBinomialMassHaloMinimum              , covarianceBinomialMassHaloMaximum                          , &
           &                                                                                         covarianceModelHaloMassMinimumLogarithmic      , covarianceModelHaloMassIntervalLogarithmicInverse          , &
           &                                                                                         binWidth
-     logical                                                                                     :: finalized
+     logical                                                                                     :: finalized                                      , report
+     type            (varying_string                              )                              :: reportLabel
      !$ integer      (omp_lock_kind                               )                              :: accumulateLock
    contains
      !![
      <methods>
        <method description="Return the results of the volume function operator." method="results"         />
        <method description="Finalize the analysis of this function."             method="finalizeAnalysis"/>
+       <method description="Activate/deactivate reporting."                      method="setReporting"    />
      </methods>
      !!]
      final     ::                     crossCorrelator1DDestructor
@@ -84,6 +87,7 @@ mass function) output analysis class.
      procedure :: results          => crossCorrelator1DResults
      procedure :: reduce           => crossCorrelator1DReduce
      procedure :: finalizeAnalysis => crossCorrelator1DFinalizeAnalysis
+     procedure :: setReporting     => crossCorrelator1DSetReporting
   end type outputAnalysisCrossCorrelator1D
 
   interface outputAnalysisCrossCorrelator1D
@@ -319,7 +323,10 @@ contains
     self%finalized=.false.
     ! Initialize OpenMP accumulation lock.
     !$ call OMP_Init_Lock(self%accumulateLock)
-   return
+    ! Initialize reporting state.
+    self%report     =.false.
+    self%reportLabel="unknown"
+    return
   end function crossCorrelator1DConstructorInternal
 
   subroutine crossCorrelator1DDestructor(self)
@@ -350,9 +357,12 @@ contains
     !!{
     Implement a crossCorrelator1D output analysis.
     !!}
+    use    :: Display                 , only : displayMessage
     use    :: Galacticus_Nodes        , only : nodeComponentBasic                   , treeNode
     use    :: Node_Property_Extractors, only : nodePropertyExtractorScalar
-    use    :: Output_Analyses_Options , only : outputAnalysisCovarianceModelBinomial, enumerationOutputAnalysisPropertyTypeType, enumerationOutputAnalysisPropertyQuantityType
+    use    :: Output_Analyses_Options , only : outputAnalysisCovarianceModelBinomial, enumerationOutputAnalysisPropertyTypeType, enumerationOutputAnalysisPropertyQuantityType, outputAnalysisState, &
+         &                                     enumerationOutputAnalysisStateDecode , enumerationOutputAnalysisStateType
+    use    :: String_Handling         , only : operator(//)
     !$ use :: OMP_Lib                 , only : OMP_Set_Lock                         , OMP_Unset_Lock
     implicit none
     class           (outputAnalysisCrossCorrelator1D              ), intent(inout)                 :: self
@@ -365,6 +375,7 @@ contains
          &                                                                                            propertyValueIntrinsic, weightValue2
     type            (enumerationOutputAnalysisPropertyTypeType    )                                :: propertyType 
     type            (enumerationOutputAnalysisPropertyQuantityType)                                :: propertyQuantity
+    type            (enumerationOutputAnalysisStateType           )                                :: state
     integer         (c_size_t                                     )                                :: j                     , k           , &
          &                                                                                            indexHaloMass
 
@@ -391,6 +402,18 @@ contains
     ! Apply output weights.
     distribution(1:self%binCount)=+distribution              (1:self%binCount        ) &
          &                        *self        %outputWeight ( :             ,iOutput)
+    ! Report on state changes.
+    if (self%report) then
+       state=outputAnalysisState(distribution(1:self%binCount))
+       if (state /= self%state) then
+          block
+            type(varying_string) :: message
+            message="report: "//self%reportLabel//": state change: "//enumerationOutputAnalysisStateDecode(self%state,includePrefix=.false.)//" → "//enumerationOutputAnalysisStateDecode(state,includePrefix=.false.)//" [node: "//node%uniqueID()//"]"
+            call displayMessage(message)
+          end block
+          self%state=state
+       end if
+    end if
     ! Compute the weights.
     weightValue1=node%hostTree%volumeWeight
     weightValue2=node%hostTree%volumeWeight
@@ -569,3 +592,20 @@ contains
     end if
     return
   end subroutine crossCorrelator1DResults
+
+  subroutine crossCorrelator1DSetReporting(self,report,reportLabel)
+    !!{
+    Activate/deactivate reporting.
+    !!}
+    use :: ISO_Varying_String     , only : assignment(=)
+    use :: Output_Analyses_Options, only : outputAnalysisStateUnknown
+    implicit none
+    class    (outputAnalysisCrossCorrelator1D), intent(inout)           :: self
+    logical                                   , intent(in   )           :: report
+    character(len=*                          ), intent(in   ), optional :: reportLabel
+
+    self%report=report
+    if (present(reportLabel)) self%reportLabel=reportLabel
+    if (        report      ) self%state      =outputAnalysisStateUnknown
+    return
+  end subroutine crossCorrelator1DSetReporting

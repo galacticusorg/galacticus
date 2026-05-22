@@ -32,7 +32,7 @@ mass function) output analysis class.
   use               :: Output_Analysis_Property_Operators      , only : outputAnalysisPropertyOperatorClass
   use               :: Output_Analysis_Weight_Operators        , only : outputAnalysisWeightOperatorClass
   use               :: Output_Times                            , only : outputTimesClass
-  use               :: Output_Analyses_Options                 , only : enumerationOutputAnalysisCovarianceModelType
+  use               :: Output_Analyses_Options                 , only : enumerationOutputAnalysisCovarianceModelType, enumerationOutputAnalysisStateType
   !![
   <outputAnalysis name="outputAnalysisVolumeFunction1D">
    <description>
@@ -93,7 +93,7 @@ mass function) output analysis class.
           &                                                                                         distributionLabel                              , distributionComment                              , &
           &                                                                                         propertyUnits                                  , distributionUnits                                , &
           &                                                                                         xAxisLabel                                     , yAxisLabel                                       , &
-          &                                                                                         targetLabel
+          &                                                                                         targetLabel                                    , reportLabel
      double precision                                                                            :: propertyUnitsInSI                              , distributionUnitsInSI
      class           (nodePropertyExtractorClass                  ), pointer                     :: nodePropertyExtractor_                => null()
      class           (outputAnalysisPropertyOperatorClass         ), pointer                     :: outputAnalysisPropertyOperator_       => null()                                                   , &
@@ -112,18 +112,21 @@ mass function) output analysis class.
      integer         (c_size_t                                    )                              :: binCount                                       , bufferCount                                      , &
           &                                                                                         binCountTotal                                  , covarianceModelBinomialBinCount
      type            (enumerationOutputAnalysisCovarianceModelType)                              :: covarianceModel
+     type            (enumerationOutputAnalysisStateType          )                              :: state
      integer                                                                                     :: covarianceBinomialBinsPerDecade
      double precision                                                                            :: covarianceBinomialMassHaloMinimum              , covarianceBinomialMassHaloMaximum                , &
           &                                                                                         covarianceModelHaloMassMinimumLogarithmic      , covarianceModelHaloMassIntervalLogarithmicInverse, &
           &                                                                                         binWidth
      logical                                                                                     :: finalized                                      , xAxisIsLog                                       , &
-          &                                                                                         yAxisIsLog                                     , likelihoodNormalize
+          &                                                                                         yAxisIsLog                                     , likelihoodNormalize                              , &
+          &                                                                                         report
      !$ integer      (omp_lock_kind                               )                              :: accumulateLock
    contains
      !![
      <methods>
        <method description="Return the results of the volume function operator." method="results"         />
        <method description="Finalize the analysis of this function."             method="finalizeAnalysis"/>
+       <method description="Activate/deactivate reporting."                      method="setReporting"    />
      </methods>
      !!]
      final     ::                     volumeFunction1DDestructor
@@ -133,6 +136,7 @@ mass function) output analysis class.
      procedure :: reduce           => volumeFunction1DReduce
      procedure :: logLikelihood    => volumeFunction1DLogLikelihood
      procedure :: finalizeAnalysis => volumeFunction1DFinalizeAnalysis
+     procedure :: setReporting     => volumeFunction1DSetReporting
   end type outputAnalysisVolumeFunction1D
 
   interface outputAnalysisVolumeFunction1D
@@ -535,6 +539,9 @@ contains
     self%finalized=.false.
     ! Initialize OpenMP accumulation lock.
     !$ call OMP_Init_Lock(self%accumulateLock)
+    ! Initialize reporting state.
+    self%report     =.false.
+    self%reportLabel="unknown"
    return
   end function volumeFunction1DConstructorInternal
 
@@ -565,9 +572,12 @@ contains
     !!{
     Implement a volumeFunction1D output analysis.
     !!}
+    use    :: Display                 , only : displayMessage
     use    :: Galacticus_Nodes        , only : nodeComponentBasic                   , treeNode
     use    :: Node_Property_Extractors, only : nodePropertyExtractorScalar
-    use    :: Output_Analyses_Options , only : outputAnalysisCovarianceModelBinomial, enumerationOutputAnalysisPropertyTypeType, enumerationOutputAnalysisPropertyQuantityType
+    use    :: Output_Analyses_Options , only : outputAnalysisCovarianceModelBinomial, enumerationOutputAnalysisPropertyTypeType, enumerationOutputAnalysisPropertyQuantityType, outputAnalysisState, &
+         &                                     enumerationOutputAnalysisStateDecode , enumerationOutputAnalysisStateType
+    use    :: String_Handling         , only : operator(//)
     !$ use :: OMP_Lib                 , only : OMP_Set_Lock                         , OMP_Unset_Lock
     implicit none
     class           (outputAnalysisVolumeFunction1D               ), intent(inout)                 :: self
@@ -580,6 +590,7 @@ contains
          &                                                                                            propertyValueIntrinsic
     type            (enumerationOutputAnalysisPropertyTypeType    )                                :: propertyType 
     type            (enumerationOutputAnalysisPropertyQuantityType)                                :: propertyQuantity
+    type            (enumerationOutputAnalysisStateType           )                                :: state
     integer         (c_size_t                                     )                                :: j                     , k            , &
          &                                                                                            indexHaloMass
 
@@ -611,6 +622,18 @@ contains
     distribution(1:self%binCount)=+distribution              (1:self%binCount        ) &
          &                        *self        %outputWeight ( :             ,iOutput) &
          &                        *weightValue
+    ! Report on state changes.
+    if (self%report) then
+       state=outputAnalysisState(distribution(1:self%binCount))
+       if (state /= self%state) then
+          block
+            type(varying_string) :: message
+            message="report: "//self%reportLabel//": state change: "//enumerationOutputAnalysisStateDecode(self%state,includePrefix=.false.)//" → "//enumerationOutputAnalysisStateDecode(state,includePrefix=.false.)//" [node: "//node%uniqueID()//"]"
+            call displayMessage(message)
+          end block
+          self%state=state
+       end if
+    end if
     ! Accumulate the property, including weights from both the host tree and the output. Note that we accumulate only the
     ! non-buffer bins of the distribution.
     !$ call OMP_Set_Lock(self%accumulateLock)
@@ -657,22 +680,50 @@ contains
     !!{
     Implement a volumeFunction1D output analysis reduction.
     !!}
+    use    :: Display                , only : displayMessage                       , displayIndent , displayUnindent
     use    :: Error                  , only : Error_Report
     use    :: Output_Analyses_Options, only : outputAnalysisCovarianceModelBinomial
     !$ use :: OMP_Lib                , only : OMP_Set_Lock                         , OMP_Unset_Lock
     implicit none
-    class(outputAnalysisVolumeFunction1D), intent(inout) :: self
-    class(outputAnalysisClass           ), intent(inout) :: reduced
-
+    class    (outputAnalysisVolumeFunction1D), intent(inout) :: self
+    class    (outputAnalysisClass           ), intent(inout) :: reduced
+    type     (varying_string                )                :: message
+    character(len=30                        )                :: label
+    integer                                                  :: i
+    
     select type (reduced)
     class is (outputAnalysisVolumeFunction1D)
        !$ call OMP_Set_Lock(reduced%accumulateLock)
+       if (self%report) call displayIndent('begin reduction lock: '//char(self%reportLabel))
+       if (self%report) then
+          message="report: "//self%reportLabel//": reduce: pre"
+          call displayIndent(message)
+          call displayMessage("i    value        reduced     ")
+          call displayMessage("---- ------------ ------------")
+          do i=1,size(self%functionValue)
+             write (label,'(i4,1x,e12.6,1x,e12.6)') i,self%functionValue(i),reduced%functionValue(i)
+             call displayMessage(label)
+          end do
+          call displayUnindent("done")
+       end if
        if (self%covarianceModel == outputAnalysisCovarianceModelBinomial) then
           reduced%weightMainBranch       =reduced%weightMainBranch       +self%weightMainBranch
           reduced%weightMainBranchSquared=reduced%weightMainBranchSquared+self%weightMainBranchSquared
        end if
        reduced%functionCovariance        =reduced%functionCovariance     +self%functionCovariance
        reduced%functionValue             =reduced%functionValue          +self%functionValue
+       if (self%report) then
+          message="report: "//self%reportLabel//": reduce: post"
+          call displayIndent(message)
+          call displayMessage("i    value        reduced     ")
+          call displayMessage("---- ------------ ------------")
+          do i=1,size(self%functionValue)
+             write (label,'(i4,1x,e12.6,1x,e12.6)') i,self%functionValue(i),reduced%functionValue(i)
+             call displayMessage(label)
+          end do
+          call displayUnindent("done")
+       end if
+       if (self%report) call displayUnindent('end reduction lock: '//char(self%reportLabel))
        !$ call OMP_Unset_Lock(reduced%accumulateLock)
     class default
        call Error_Report('incorrect class'//{introspection:location})
@@ -896,3 +947,20 @@ contains
     end if
     return
   end function volumeFunction1DLogLikelihood
+
+  subroutine volumeFunction1DSetReporting(self,report,reportLabel)
+    !!{
+    Activate/deactivate reporting.
+    !!}
+    use :: ISO_Varying_String     , only : assignment(=)
+    use :: Output_Analyses_Options, only : outputAnalysisStateUnknown
+    implicit none
+    class    (outputAnalysisVolumeFunction1D), intent(inout)           :: self
+    logical                                  , intent(in   )           :: report
+    character(len=*                         ), intent(in   ), optional :: reportLabel
+
+    self%report=report
+    if (present(reportLabel)) self%reportLabel=reportLabel
+    if (        report      ) self%state      =outputAnalysisStateUnknown
+    return
+  end subroutine volumeFunction1DSetReporting
