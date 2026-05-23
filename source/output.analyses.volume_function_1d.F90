@@ -110,7 +110,8 @@ mass function) output analysis class.
           &                                                                                         functionCovarianceTarget1D
      double precision                                              , dimension(:  ), allocatable :: binMinimum                                     , binMaximum
      integer         (c_size_t                                    )                              :: binCount                                       , bufferCount                                      , &
-          &                                                                                         binCountTotal                                  , covarianceModelBinomialBinCount
+          &                                                                                         binCountTotal                                  , covarianceModelBinomialBinCount                  , &
+          &                                                                                         reportCount                                    , reportCountInRange
      type            (enumerationOutputAnalysisCovarianceModelType)                              :: covarianceModel
      type            (enumerationOutputAnalysisStateType          )                              :: state
      integer                                                                                     :: covarianceBinomialBinsPerDecade
@@ -540,8 +541,10 @@ contains
     ! Initialize OpenMP accumulation lock.
     !$ call OMP_Init_Lock(self%accumulateLock)
     ! Initialize reporting state.
-    self%report     =.false.
-    self%reportLabel="unknown"
+    self%report            =.false.
+    self%reportLabel       ="unknown"
+    self%reportCount       =0_c_size_t
+    self%reportCountInRange=0_c_size_t
    return
   end function volumeFunction1DConstructorInternal
 
@@ -622,9 +625,29 @@ contains
     distribution(1:self%binCount)=+distribution              (1:self%binCount        ) &
          &                        *self        %outputWeight ( :             ,iOutput) &
          &                        *weightValue
-    ! Report on state changes.
+    ! Report on node.
     if (self%report) then
-       state=outputAnalysisState(distribution(1:self%binCount))
+       block
+         character(len=96) :: message
+         
+         write (message,'(a,2(1x,i8),5(1x,e12.6))') "report: node:",node%hostTree%index,node%index(),propertyValueIntrinsic,propertyValue,sum(self%outputWeight(:,iOutput)),node%hostTree%volumeWeight,weightValue
+         call displayMessage(message)
+       end block
+    end if
+    ! Accumulate the property, including weights from both the host tree and the output. Note that we accumulate only the
+    ! non-buffer bins of the distribution.
+    !$ call OMP_Set_Lock(self%accumulateLock)
+    self%functionValue=+self%functionValue+distribution(1:self%binCount)
+    ! Report on state changes and count in-range nodes.
+    if (self%report) then
+       self         %reportCount       =self%reportCount       +1_c_size_t
+       if     (                                                            &
+            &   propertyValue > self%binMinimum(     1       )             &
+            &  .and.                                                       &
+            &   propertyValue < self%binMaximum(self%binCount)             &
+            & ) self%reportCountInRange=self%reportCountInRange+1_c_size_t
+       ! Check for state changes.
+       state=outputAnalysisState(self%functionValue)
        if (state /= self%state) then
           block
             type(varying_string) :: message
@@ -634,10 +657,6 @@ contains
           self%state=state
        end if
     end if
-    ! Accumulate the property, including weights from both the host tree and the output. Note that we accumulate only the
-    ! non-buffer bins of the distribution.
-    !$ call OMP_Set_Lock(self%accumulateLock)
-    self%functionValue=+self%functionValue+distribution(1:self%binCount)
     !$ call OMP_Unset_Lock(self%accumulateLock)
     ! Accumulate covariance. If using the binomial model for main branch galaxies, handle them separately.
     if (node%isOnMainBranch() .and. self%covarianceModel == outputAnalysisCovarianceModelBinomial) then
@@ -683,6 +702,7 @@ contains
     use    :: Display                , only : displayMessage                       , displayIndent , displayUnindent
     use    :: Error                  , only : Error_Report
     use    :: Output_Analyses_Options, only : outputAnalysisCovarianceModelBinomial
+    use    :: String_Handling        , only : operator(//)
     !$ use :: OMP_Lib                , only : OMP_Set_Lock                         , OMP_Unset_Lock
     implicit none
     class    (outputAnalysisVolumeFunction1D), intent(inout) :: self
@@ -696,7 +716,7 @@ contains
        !$ call OMP_Set_Lock(reduced%accumulateLock)
        if (self%report) call displayIndent('begin reduction lock: '//char(self%reportLabel))
        if (self%report) then
-          message="report: "//self%reportLabel//": reduce: pre"
+          message="report: "//self%reportLabel//": reduce: pre [nodes total/in-range = "//self%reportCount//" / "//self%reportCountInRange//"]"
           call displayIndent(message)
           call displayMessage("i    value        reduced     ")
           call displayMessage("---- ------------ ------------")

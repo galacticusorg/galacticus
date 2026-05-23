@@ -32,7 +32,7 @@ mass function) output analysis class.
   use               :: Output_Analysis_Property_Operators      , only : outputAnalysisPropertyOperatorClass
   use               :: Output_Analysis_Weight_Operators        , only : outputAnalysisWeightOperatorClass
   use               :: Output_Times                            , only : outputTimesClass
-  use               :: Output_Analyses_Options                 , only : enumerationOutputAnalysisCovarianceModelType, enumerationOutputAnalysisStateType
+  use               :: Output_Analyses_Options                 , only : enumerationOutputAnalysisCovarianceModelType
 
   !![
   <outputAnalysis name="outputAnalysisCrossCorrelator1D">
@@ -58,7 +58,6 @@ mass function) output analysis class.
      class           (outputAnalysisDistributionNormalizerClass   ), pointer                     :: outputAnalysisDistributionNormalizer_ => null()
      class           (galacticFilterClass                         ), pointer                     :: galacticFilter_                       => null()
      class           (outputTimesClass                            ), pointer                     :: outputTimes_                          => null()
-     type            (enumerationOutputAnalysisStateType          )                              :: state
      double precision                                              , dimension(:,:), allocatable :: outputWeight                                   , functionCovariance                                         , &
           &                                                                                         weightMainBranch
      double precision                                              , dimension(:  ), allocatable :: binCenter                                      , weightMainBranchCross
@@ -360,8 +359,7 @@ contains
     use    :: Display                 , only : displayMessage
     use    :: Galacticus_Nodes        , only : nodeComponentBasic                   , treeNode
     use    :: Node_Property_Extractors, only : nodePropertyExtractorScalar
-    use    :: Output_Analyses_Options , only : outputAnalysisCovarianceModelBinomial, enumerationOutputAnalysisPropertyTypeType, enumerationOutputAnalysisPropertyQuantityType, outputAnalysisState, &
-         &                                     enumerationOutputAnalysisStateDecode , enumerationOutputAnalysisStateType
+    use    :: Output_Analyses_Options , only : outputAnalysisCovarianceModelBinomial, enumerationOutputAnalysisPropertyTypeType, enumerationOutputAnalysisPropertyQuantityType
     use    :: String_Handling         , only : operator(//)
     !$ use :: OMP_Lib                 , only : OMP_Set_Lock                         , OMP_Unset_Lock
     implicit none
@@ -375,7 +373,6 @@ contains
          &                                                                                            propertyValueIntrinsic, weightValue2
     type            (enumerationOutputAnalysisPropertyTypeType    )                                :: propertyType 
     type            (enumerationOutputAnalysisPropertyQuantityType)                                :: propertyQuantity
-    type            (enumerationOutputAnalysisStateType           )                                :: state
     integer         (c_size_t                                     )                                :: j                     , k           , &
          &                                                                                            indexHaloMass
 
@@ -402,18 +399,6 @@ contains
     ! Apply output weights.
     distribution(1:self%binCount)=+distribution              (1:self%binCount        ) &
          &                        *self        %outputWeight ( :             ,iOutput)
-    ! Report on state changes.
-    if (self%report) then
-       state=outputAnalysisState(distribution(1:self%binCount))
-       if (state /= self%state) then
-          block
-            type(varying_string) :: message
-            message="report: "//self%reportLabel//": state change: "//enumerationOutputAnalysisStateDecode(self%state,includePrefix=.false.)//" → "//enumerationOutputAnalysisStateDecode(state,includePrefix=.false.)//" [node: "//node%uniqueID()//"]"
-            call displayMessage(message)
-          end block
-          self%state=state
-       end if
-    end if
     ! Compute the weights.
     weightValue1=node%hostTree%volumeWeight
     weightValue2=node%hostTree%volumeWeight
@@ -597,8 +582,7 @@ contains
     !!{
     Activate/deactivate reporting.
     !!}
-    use :: ISO_Varying_String     , only : assignment(=)
-    use :: Output_Analyses_Options, only : outputAnalysisStateUnknown
+    use :: ISO_Varying_String, only : assignment(=)
     implicit none
     class    (outputAnalysisCrossCorrelator1D), intent(inout)           :: self
     logical                                   , intent(in   )           :: report
@@ -606,6 +590,5 @@ contains
 
     self%report=report
     if (present(reportLabel)) self%reportLabel=reportLabel
-    if (        report      ) self%state      =outputAnalysisStateUnknown
     return
   end subroutine crossCorrelator1DSetReporting
