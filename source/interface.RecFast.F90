@@ -70,18 +70,16 @@ contains
           ! Download the code if not already downloaded.
           pathFor=recfastPath//"recfast.for"
           if (.not.File_Exists(pathFor)) then
-             call displayMessage("downloading RecFast code....",verbosityLevelWorking)
-             call download(                                                                                                                        &
-                  &                   [                                                                                                            &
-                  &                    var_str("https://www.astro.ubc.ca/people/scott/recfast.for"                                              ), &
-                  &                    var_str("https://web.archive.org/web/20250818121544im_/https://www.astro.ubc.ca/people/scott/recfast.for")  &
-                  &                   ]                                                                                                          , &
-                  &                   pathFor                                                                                                    , &
-                  &        retries  = 5                                                                                                          , &
-                  &        retryWait=60                                                                                                            &
-                  &       )
-             if (.not.File_Exists(pathFor)) &
+             block
+               type(varying_string), dimension(2) :: urls
+
+               call displayMessage("downloading RecFast code....",verbosityLevelWorking)
+               urls(1)=var_str("https://www.astro.ubc.ca/people/scott/recfast.for"                                              )
+               urls(2)=var_str("https://web.archive.org/web/20250818121544im_/https://www.astro.ubc.ca/people/scott/recfast.for")
+               call download(urls,pathFor,retries=5,retryWait=10)
+               if (.not.File_Exists(pathFor)) &
                   & call Error_Report("failed to download RecFast code"//{introspection:location})
+             end block
           end if
           call displayMessage("patching RecFast code....",verbosityLevelWorking)
           command="cp "//inputPath(pathTypeDataStatic)//"patches/RecFast/recfast.for.patch "//recfastPath//"; cd "//recfastPath//"; patch < recfast.for.patch"
