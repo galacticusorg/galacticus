@@ -79,8 +79,10 @@ contains
     type   (varying_string), intent(in   )           :: url    , outputFileName
     integer                , intent(in   ), optional :: retries, retryWait
     integer                , intent(  out), optional :: status
+    type   (varying_string), dimension(1)            :: urls
 
-    call downloadMultiple([url],char(outputFileName),retries,retryWait,status)
+    urls(1)=url
+    call downloadMultiple(urls,char(outputFileName),retries,retryWait,status)
     return
   end subroutine downloadVarStrVarStr
 
@@ -94,8 +96,10 @@ contains
     character(len=*         ), intent(in   )           :: outputFileName
     integer                  , intent(in   ), optional :: retries       , retryWait
     integer                  , intent(  out), optional :: status
+    type   (varying_string), dimension(1)            :: urls
 
-    call downloadMultiple([url],outputFileName,retries,retryWait,status)
+    urls(1)=url
+    call downloadMultiple(urls,outputFileName,retries,retryWait,status)
     return
   end subroutine downloadVarStrChar
 
@@ -103,14 +107,16 @@ contains
     !!{
     Download content from the given {\normalfont url} to the given \mono{outputFileName}.
     !!}
-    use :: ISO_Varying_String, only : char, var_str, varying_string
+    use :: ISO_Varying_String, only : char, var_str, varying_string, assignment(=)
     implicit none
     character(len=*         ), intent(in   )           :: url
     type     (varying_string), intent(in   )           :: outputFileName
     integer                  , intent(in   ), optional :: retries       , retryWait
     integer                  , intent(  out), optional :: status
+    type     (varying_string), dimension(1)            :: urls
 
-    call downloadMultiple([var_str(url)],char(outputFileName),retries,retryWait,status)
+    urls(1)=url
+    call downloadMultiple(urls,char(outputFileName),retries,retryWait,status)
     return
   end subroutine downloadCharVarStr
 
@@ -118,13 +124,15 @@ contains
     !!{
     Download content from the given {\normalfont url} to the given \mono{outputFileName}.
     !!}
-    use :: ISO_Varying_String, only : var_str
+    use :: ISO_Varying_String, only : varying_string, assignment(=)
     implicit none
-    character(len=*), intent(in   )           :: url    , outputFileName
-    integer         , intent(in   ), optional :: retries, retryWait
-    integer         , intent(  out), optional :: status
+    character(len=*         ), intent(in   )           :: url    , outputFileName
+    integer                  , intent(in   ), optional :: retries, retryWait
+    integer                  , intent(  out), optional :: status
+    type     (varying_string), dimension(1)            :: urls
 
-    call downloadMultiple([var_str(url)],outputFileName,retries,retryWait,status)
+    urls(1)=url
+    call downloadMultiple(urls,outputFileName,retries,retryWait,status)
     return
   end subroutine downloadCharChar
 
@@ -162,14 +170,19 @@ contains
     !!{
     Download content from the first available URL in {\normalfont url} to the given \mono{outputFileName}.
     !!}
-    use :: ISO_Varying_String, only : char, var_str, varying_string
+    use :: ISO_Varying_String, only : char, varying_string, assignment(=)
     implicit none
-    character(len=*         ), intent(in   ), dimension(:) :: url
-    type     (varying_string), intent(in   )               :: outputFileName
-    integer                  , intent(in   ), optional     :: retries       , retryWait
-    integer                  , intent(  out), optional     :: status
+    character(len=*         ), intent(in   ), dimension(:        ) :: url
+    type     (varying_string), intent(in   )                       :: outputFileName
+    integer                  , intent(in   ), optional             :: retries       , retryWait
+    integer                  , intent(  out), optional             :: status
+    type     (varying_string)               , dimension(size(url)) :: urls
+    integer                                                        :: i
 
-    call downloadMultiple(var_str(url),char(outputFileName),retries,retryWait,status)
+    do i=1,size(url)
+       urls(i)=url(i)
+    end do
+    call downloadMultiple(urls,char(outputFileName),retries,retryWait,status)
     return
   end subroutine downloadCharArrayVarStr
 
@@ -177,14 +190,19 @@ contains
     !!{
     Download content from the first available URL in {\normalfont url} to the given \mono{outputFileName}.
     !!}
-    use :: ISO_Varying_String, only : var_str
+    use :: ISO_Varying_String, only : varying_string, assignment(=)
     implicit none
-    character(len=*), intent(in   ), dimension(:) :: url
-    character(len=*), intent(in   )               :: outputFileName
-    integer         , intent(in   ), optional     :: retries       , retryWait
-    integer         , intent(  out), optional     :: status
+    character(len=*       ), intent(in   ), dimension(:        ) :: url
+    character(len=*       ), intent(in   )                       :: outputFileName
+    integer                , intent(in   ), optional             :: retries       , retryWait
+    integer                , intent(  out), optional             :: status
+    type   (varying_string)               , dimension(size(url)) :: urls
+    integer                                                      :: i
 
-    call downloadMultiple(var_str(url),outputFileName,retries,retryWait,status)
+    do i=1,size(url)
+       urls(i)=url(i)
+    end do
+    call downloadMultiple(urls,outputFileName,retries,retryWait,status)
     return
   end subroutine downloadCharArrayChar
 
