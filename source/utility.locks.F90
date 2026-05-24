@@ -343,11 +343,16 @@ contains
     !!}
     !$ use :: OMP_Lib, only : OMP_Get_Thread_Num, OMP_Set_Lock
     implicit none
-    class(ompLock), intent(inout) :: self
+    class  (ompLock), intent(inout) :: self
+    integer                         :: ownerThread
 
+    ! Determine the ID of the current thread using a local variable. The shared `self%ownerThread` must be updated in a single
+    ! assignment: writing a default of `0` and then overriding it via the OpenMP-conditional line would briefly expose an owner
+    ! ID of `0` to other threads, which a concurrent `ownedByThread()` call from thread 0 would mistake for ownership.
+    ownerThread   =0
+    !$ ownerThread=OMP_Get_Thread_Num()
     !$ call OMP_Set_Lock(self%lock)
-    self%ownerThread=0
-    !$ self%ownerThread=OMP_Get_Thread_Num()
+    self%ownerThread=ownerThread
     return
   end subroutine ompLockSet
 
@@ -357,13 +362,16 @@ contains
     !!}
     !$ use :: OMP_Lib, only : OMP_Get_Thread_Num, OMP_Test_Lock
     implicit none
-    class(ompLock), intent(inout) :: self
+    class  (ompLock), intent(inout) :: self
+    integer                         :: ownerThread
 
     success=.true.
     !$ success=OMP_Test_Lock(self%lock)
     if (.not.success) return
-    self%ownerThread=0
-    !$ self%ownerThread=OMP_Get_Thread_Num()
+    ! Set the owner thread ID via a local variable so that `self%ownerThread` is updated in a single assignment (see `ompLockSet`).
+    ownerThread   =0
+    !$ ownerThread=OMP_Get_Thread_Num()
+    self%ownerThread=ownerThread
     return
   end function ompLockSetNonBlocking
 
