@@ -293,15 +293,16 @@ contains
        else
           call Error_Report('gradient is divergent at r=0'//{introspection:location})
        end if
+    else if (logarithmic_) then
+       ! Closed form for the logarithmic slope: dln ρ/dln r = -(1+3x)/(1+x) with x=r/r_s.
+       densityGradientRadial=-(1.0d0+3.0d0*radiusScaleFree)   &
+            &                /(1.0d0+      radiusScaleFree)
     else
        densityGradientRadial=-self       %densityNormalization &
             &                /self       %scaleLength          &
             &                /             radiusScaleFree **2 &
             &                *(1.0d0+3.0d0*radiusScaleFree)    &
             &                /(1.0d0+      radiusScaleFree)**3
-       if (logarithmic_) densityGradientRadial=+            densityGradientRadial              &
-            &                                  /self       %density              (coordinates) &
-            &                                  *coordinates%rSpherical           (           )
     end if
     return
   end function nfwDensityGradientRadial

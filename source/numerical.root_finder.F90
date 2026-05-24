@@ -204,10 +204,22 @@ module Root_Finder
           &                                   fLowInitial             , fHighInitial
   end type rootFinderList
 
-  ! List of currently active root finders.
-  integer                                            :: currentFinderIndex=0
-  type   (rootFinderList), allocatable, dimension(:) :: currentFinders
-  !$omp threadprivate(currentFinders,currentFinderIndex)
+  ! List of currently active root finders. 'currentFinder' is a hot-path
+  ! pointer into 'currentFinders' at the active depth; the GSL wrappers
+  ! follow it on every callback instead of indexing the array each time.
+  !
+  ! Lifetime invariant for 'currentFinder': it is (re)bound on entry to
+  ! 'rootFinderFind' AFTER any growth of 'currentFinders' for this frame
+  ! has happened, and rebound by 'popCurrentFinder' from
+  ! 'currentFinders(currentFinderIndex)' on every exit (normal or early)
+  ! so that, after a recursive call that grew the array, the caller's
+  ! pointer is refreshed against the new array before control returns.
+  ! No other code path resizes 'currentFinders', so the pointer cannot
+  ! dangle for a frame that is currently using it.
+  integer                                                     :: currentFinderIndex =  0
+  type   (rootFinderList), allocatable, dimension(:), target  :: currentFinders
+  type   (rootFinderList)                           , pointer :: currentFinder      => null()
+  !$omp threadprivate(currentFinders,currentFinderIndex,currentFinder)
 
   interface
      function gsl_root_fsolver_alloc(T) bind(c,name='gsl_root_fsolver_alloc')
@@ -496,7 +508,13 @@ contains
        rootRangeValues=-huge(0.0d0)
     else
        rootRangeValues(1)=self%finderFunction(rootRange(1))
-       rootRangeValues(2)=self%finderFunction(rootRange(2))
+       if (rootRange(2) == rootRange(1)) then
+          ! Degenerate bracket (typical when dispatched from rootFinderFindGuess) — avoid the
+          ! redundant evaluation of the user function at the same point.
+          rootRangeValues(2)=rootRangeValues(1)
+       else
+          rootRangeValues(2)=self%finderFunction(rootRange(2))
+       end if
     end if
     rootFinderFindRange=self%find(rootRange,rootRangeValues,report,status)
     return
@@ -614,6 +632,13 @@ contains
        allocate(currentFinders(findersIncrement))
     end if
     currentFinders(currentFinderIndex)%finder => self
+    ! Bind 'currentFinder' to the (now stable) array slot. Any growth of
+    ! 'currentFinders' for this frame has already happened in the block
+    ! above; no later code path in 'rootFinderFind' resizes the array, so
+    ! this pointer remains valid for the lifetime of this frame except
+    ! across recursive calls — where 'popCurrentFinder' re-derives it
+    ! from the (possibly grown) array before control returns here.
+    currentFinder                             => currentFinders(currentFinderIndex)
     ! Initialize the root finder variables if necessary.
     if (self%useDerivative) then
        if (.not.self%functionInitialized.or.self%resetRequired) then
@@ -711,9 +736,9 @@ contains
        end select
        if (.not.rangeLowerAsExpected) then
           if (present(status)) then
-             status            =errorStatusOutOfRange
-             currentFinderIndex=currentFinderIndex-1
-             rootFinderFind    =self%rangeDownwardLimit
+             status        =errorStatusOutOfRange
+             call popCurrentFinder()
+             rootFinderFind=self%rangeDownwardLimit
              return
           else
              message='root function has incorrect sign at downward limit'
@@ -742,9 +767,9 @@ contains
        end select
        if (.not.rangeUpperAsExpected) then
           if (present(status)) then
-             status            =errorStatusOutOfRange
-             currentFinderIndex=currentFinderIndex-1
-             rootFinderFind    =self%rangeUpwardLimit
+             status        =errorStatusOutOfRange
+             call popCurrentFinder()
+             rootFinderFind=self%rangeUpwardLimit
              return
           else
              message='root function has incorrect sign at upward limit'
@@ -768,8 +793,8 @@ contains
        xRoot       =0.5d0*(xLow+xHigh)
        statusActual=GSL_Root_fdfSolver_Set(self%solver%gsl,self%gslFunction%gsl,xRoot)
     else
-       currentFinders(currentFinderIndex)%lowInitialUsed =.true.
-       currentFinders(currentFinderIndex)%highInitialUsed=.true.
+       currentFinder%lowInitialUsed =.true.
+       currentFinder%highInitialUsed=.true.
        fLow=rootRangeValues(1)
        if (xHigh == xLow) then
           ! If a root guess was used, the initial xHigh will equal xLow, so we can avoid re-evaluating the function here.
@@ -796,7 +821,7 @@ contains
           case default
              rangeUpperAsExpected=.false.
           end select
-          call reportState(includeExpectations=.true.)
+          if (report_) call reportState(includeExpectations=.true.)
           select case (self%rangeExpandType%ID)
           case (rangeExpandAdditive      %ID)
              if     (                                  &
@@ -921,7 +946,7 @@ contains
              end if
              if (present(status)) then
                 status=errorStatusOutOfRange
-                currentFinderIndex=currentFinderIndex-1
+                call popCurrentFinder()
                 return
              else
                 fLow =self%finderFunction(xLow )
@@ -957,15 +982,15 @@ contains
              end if
           end if
        end do
-       call reportState(includeExpectations=.false.)
+       if (report_) call reportState(includeExpectations=.false.)
        if (report_) call displayUnindent("done")
        ! Store the values of the function at the lower and upper extremes of the range.
-       currentFinders(currentFinderIndex)%xLowInitial    =xLow
-       currentFinders(currentFinderIndex)%xHighInitial   =xHigh
-       currentFinders(currentFinderIndex)%fLowInitial    =fLow
-       currentFinders(currentFinderIndex)%fHighInitial   =fHigh
-       currentFinders(currentFinderIndex)%lowInitialUsed =.false.
-       currentFinders(currentFinderIndex)%highInitialUsed=.false.
+       currentFinder%xLowInitial    =xLow
+       currentFinder%xHighInitial   =xHigh
+       currentFinder%fLowInitial    =fLow
+       currentFinder%fHighInitial   =fHigh
+       currentFinder%lowInitialUsed =.false.
+       currentFinder%highInitialUsed=.false.
        ! Set the initial range for the solver.
        statusActual=GSL_Root_fSolver_Set(self%solver%gsl,self%gslFunction%gsl,xLow,xHigh)
     end if
@@ -1037,21 +1062,45 @@ contains
     ! Reset error handler.
     if (present(status)) call GSL_Error_Handler_Abort_On()
     ! Restore state.
-    currentFinderIndex=currentFinderIndex-1
+    call popCurrentFinder()
     ! Finish reporting.
     if (report_) call displayUnindent("done")
     return
 
   contains
 
+    subroutine popCurrentFinder()
+      !!{
+      Decrement the active-finder stack pointer and restore the
+      module-level \mono{currentFinder} pointer to the parent's slot
+      (or nullify it when the stack is empty).
+
+      The pointer is re-derived from \mono{currentFinders(currentFinderIndex)},
+      not restored from a saved value, so if the array was grown by the
+      child frame this routine is exiting from, the parent's
+      \mono{currentFinder} is rebound against the new array before
+      control returns to the parent. This is what keeps the pointer
+      from dangling across recursive root-finding calls.
+      !!}
+      implicit none
+
+      currentFinderIndex=currentFinderIndex-1
+      if (currentFinderIndex > 0) then
+         currentFinder => currentFinders(currentFinderIndex)
+      else
+         currentFinder => null()
+      end if
+      return
+    end subroutine popCurrentFinder
+
     subroutine reportState(includeExpectations)
       !!{
-      Report on the state of the root finder.
+      Report on the state of the root finder. Callers must guard with
+      \mono{if (report\_)} — the routine itself no longer tests \mono{report\_}.
       !!}
       implicit none
       logical, intent(in   ) :: includeExpectations
-      
-      if (.not.report_) return
+
       write (label,'(e12.6,a2,e12.6)') xLow,", ",fLow
       message="xLow , fLow  = "//trim(label)
       if (includeExpectations .and. self%rangeExpandDownwardSignExpect /= rangeExpandSignExpectNone) then
@@ -1259,15 +1308,15 @@ contains
     real(c_double)                       :: rootFunctionWrapper
 
     ! Attempt to use previously computed solutions if possible.
-    if      (.not.currentFinders(currentFinderIndex)%lowInitialUsed  .and. x == currentFinders(currentFinderIndex)%xLowInitial ) then
-       rootFunctionWrapper=currentFinders(currentFinderIndex)%fLowInitial
-       currentFinders(currentFinderIndex)%lowInitialUsed =.true.
-    else if (.not.currentFinders(currentFinderIndex)%highInitialUsed .and. x == currentFinders(currentFinderIndex)%xHighInitial) then
-       rootFunctionWrapper=currentFinders(currentFinderIndex)%fHighInitial
-       currentFinders(currentFinderIndex)%highInitialUsed=.true.
+    if      (.not.currentFinder%lowInitialUsed  .and. x == currentFinder%xLowInitial ) then
+       rootFunctionWrapper=currentFinder%fLowInitial
+       currentFinder%lowInitialUsed =.true.
+    else if (.not.currentFinder%highInitialUsed .and. x == currentFinder%xHighInitial) then
+       rootFunctionWrapper=currentFinder%fHighInitial
+       currentFinder%highInitialUsed=.true.
     else
        ! No previously computed solution available - evaluate the function.
-       rootFunctionWrapper=currentFinders(currentFinderIndex)%finder%finderFunction(x)
+       rootFunctionWrapper=currentFinder%finder%finderFunction(x)
     end if
     return
   end function rootFunctionWrapper
@@ -1280,7 +1329,7 @@ contains
     real(c_double)                       :: rootFunctionDerivativeWrapper
     real(c_double), intent(in   ), value :: x
 
-    rootFunctionDerivativeWrapper=currentFinders(currentFinderIndex)%finder%finderFunctionDerivative(x)
+    rootFunctionDerivativeWrapper=currentFinder%finder%finderFunctionDerivative(x)
     return
   end function rootFunctionDerivativeWrapper
 
@@ -1294,7 +1343,7 @@ contains
     type(c_ptr   ), intent(in   ), value :: parameters
     !$GLC attributes unused :: parameters
 
-    call currentFinders(currentFinderIndex)%finder%finderFunctionBoth(x,f,df)
+    call currentFinder%finder%finderFunctionBoth(x,f,df)
     return
   end subroutine rootFunctionBothWrapper
 

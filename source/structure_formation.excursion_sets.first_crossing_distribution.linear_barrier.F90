@@ -155,10 +155,10 @@ contains
     use :: Numerical_Constants_Math, only : Pi
     implicit none
     class           (excursionSetFirstCrossingLinearBarrier), intent(inout) :: self
-    double precision                                        , intent(in   ) :: variance                   , varianceProgenitor, &
+    double precision                                        , intent(in   ) :: variance             , varianceProgenitor, &
          &                                                                     time
     type            (treeNode                              ), intent(inout) :: node
-    double precision                                                        :: timeProgenitor             , massProgenitor    , &
+    double precision                                                        :: timeProgenitor       , massProgenitor    , &
          &                                                                     growthFactorEffective
 
     if (variance >= varianceProgenitor) then
