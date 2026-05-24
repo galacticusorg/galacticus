@@ -2354,19 +2354,20 @@ jobs:
     env: 
       appid: ${{ secrets.DEPLOY_APP_ID }}
     steps:
-      - name: Check out repository code
-        uses: actions/checkout@v6
       - uses: actions/create-github-app-token@v3
         if: ${{ env.appid != '' }}
         id: generate-token
         with:
           app-id: ${{ secrets.DEPLOY_APP_ID }}
           private-key: ${{ secrets.DEPLOY_APP_PRIVATE_KEY }}
+          permission-contents: write
           permission-workflows: write
+      - name: Check out repository code
+        uses: actions/checkout@v6
+        with:
+          token: ${{ steps.generate-token.outputs.token }}
       - name: Update tag
         run: |
           git tag -f bleeding-edge
           git push origin -f bleeding-edge
-        env:
-          GITHUB_TOKEN: ${{ steps.generate-token.outputs.token }}
       - run: echo "This job's status is ${{ job.status }}."
