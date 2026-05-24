@@ -626,9 +626,6 @@ contains
     double precision                                             , allocatable  , dimension(:) :: times
     type            (hdf5Object                                 ), allocatable  , dimension(:) :: parametersGroups
     integer         (c_size_t                                   )                              :: indexOutput         , countTemplates
-    type            (lockDescriptor                             )                              :: fileLock
-    type            (hdf5Object                                 )                              :: file
-    type            (varying_string                             )                              :: fileName
     character       (len=16                                     )                              :: label
 
     if      (self%starFormationHistory_%ageDistribution() == starFormationHistoryAgesFixed         ) then
@@ -657,67 +654,72 @@ contains
     ! Ensure that the templates have been built for this index.
     if (.not.allocated(self%templates                                      )) allocate(self%templates(countTemplates))
     if (.not.allocated(self%templates(indexTemplate)%emissionLineLuminosity)) then
-       ! Construct the file name.
-       fileName=inputPath(pathTypeDataDynamic)                                          // &
-            &        'stellarPopulations/'                                              // &
-            &        self%objectType             (                                     )// &
-            &        '_'                                                                // &
-            &        self%historyHashedDescriptor(node,indexOutput,starFormationHistory)// &
-            &        '_'                                                                // &
-            &        indexTemplate                                                      // &
-            &        '.hdf5'
-       ! Store the file name used to the output file parameters group for this object.
-       !$ call hdf5Access%set()
-       if (self%parametersGroupPath /= "") then
-          call outputFile%openGroupPath(char(self%parametersGroupPath),parametersGroups)
-          call parametersGroups(size(parametersGroups))%writeAttribute(fileName,char(var_str('meta:luminosityEmissionLineMatrixFileName')//indexTemplate))
-       end if
-       !$ call hdf5Access%unset()
-       ! Check if the templates can be retrieved from file.
-       !! Always obtain the file lock before the hdf5Access lock to avoid deadlocks between OpenMP threads.
-       call Directory_Make(File_Path(fileName))
-       call File_Lock(fileName,fileLock,lockIsShared=.false.)
-       if (File_Exists(fileName)) then
-          !$ call hdf5Access%set()
-          file=hdf5Object(char(fileName))
-          if (file%hasDataset('luminosityTemplate')) then
-             if (self%starFormationHistory_%ageDistribution() == starFormationHistoryAgesFixed) then
-                call displayMessage("reading emission line luminosity tabulation from file '"                                        //fileName//"'",verbosityLevelWorking)
-             else
-                !$omp critical(gfortranInternalIO)
-                write (label,'(f12.8)') self%outputTimes_%time(indexOutput)
-                !$omp end critical(gfortranInternalIO)
-                call displayMessage("reading emission line luminosity tabulation for time "//trim(adjustl(label))//" Gyr from file '"//fileName//"'",verbosityLevelWorking)
-             end if
-             call file%readDataset('luminosityTemplate',self%templates(indexTemplate)%emissionLineLuminosity)
-          end if
-          !$ call hdf5Access%unset()
-       end if
-       if (.not.allocated(self%templates(indexTemplate)%emissionLineLuminosity)) then
-          basic                                                => node%basic         (                                                                                    )
-          self%templates(indexTemplate)%emissionLineLuminosity =  self%luminosityMean(basic%time(),node,indexTemplate,starFormationHistory,parallelize=.true.,times_=times)
-          if (self%starFormationHistory_%ageDistribution() == starFormationHistoryAgesFixed) then
-             call displayMessage("storing emission line luminosity tabulation to file '"                                        //fileName//"'",verbosityLevelWorking)
-          else
-             !$omp critical(gfortranInternalIO)
-             write (label,'(f12.8)') self%outputTimes_%time(indexOutput)
-             !$omp end critical(gfortranInternalIO)
-             call displayMessage("storing emission line luminosity tabulation for time "//trim(adjustl(label))//" Gyr to file '"//fileName//"'",verbosityLevelWorking)
-          end if
-          !$ call hdf5Access%set()
-          file=hdf5Object(char(fileName),overWrite=.false.,readOnly=.false.)
-          call    file%writeDataset(self %templates             (indexTemplate)%emissionLineLuminosity      ,'luminosityTemplate','A matrix mapping star formation history to emission line luminosities.' )
-          call    file%writeDataset(self %lineNames                                                         ,'lineNames'         ,'The names of the emission lines'                                        )
-          call    file%writeDataset(self %wavelengths                                                       ,'wavelengths'       ,'The wavelengths of the emission lines [Å]'                              )
-          call    file%writeDataset(self %metallicityBoundaries                                             ,'metallicity'       ,'The metallicities at which the star formation history is tabulated [Z☉]')
-          if (self%starFormationHistory_%ageDistribution() == starFormationHistoryAgesFixed) then
-             call file%writeDataset(basic%time                  (             )                       -times,'ages'              ,'The ages at which the star formation history is tabulated [Gyr]'        )
-          else
-             call file%writeDataset(      times                                                             ,'time'              ,'The times at which the star formation history is tabulated [Gyr]'       )
-          end if
-          !$ call hdf5Access%unset()
-       end if
-       call File_Unlock(fileLock)
+       coldPathScope: block
+         type(lockDescriptor) :: fileLock
+         type(hdf5Object    ) :: file
+         type(varying_string) :: fileName
+         ! Construct the file name.
+         fileName=inputPath(pathTypeDataDynamic)                                          // &
+              &        'stellarPopulations/'                                              // &
+              &        self%objectType             (                                     )// &
+              &        '_'                                                                // &
+              &        self%historyHashedDescriptor(node,indexOutput,starFormationHistory)// &
+              &        '_'                                                                // &
+              &        indexTemplate                                                      // &
+              &        '.hdf5'
+         ! Store the file name used to the output file parameters group for this object.
+         !$ call hdf5Access%set()
+         if (self%parametersGroupPath /= "") then
+            call outputFile%openGroupPath(char(self%parametersGroupPath),parametersGroups)
+            call parametersGroups(size(parametersGroups))%writeAttribute(fileName,char(var_str('meta:luminosityEmissionLineMatrixFileName')//indexTemplate))
+         end if
+         !$ call hdf5Access%unset()
+         ! Check if the templates can be retrieved from file.
+         !! Always obtain the file lock before the hdf5Access lock to avoid deadlocks between OpenMP threads.
+         call Directory_Make(File_Path(fileName))
+         call File_Lock(fileName,fileLock,lockIsShared=.false.)
+         if (File_Exists(fileName)) then
+            !$ call hdf5Access%set()
+            file=hdf5Object(char(fileName))
+            if (file%hasDataset('luminosityTemplate')) then
+               if (self%starFormationHistory_%ageDistribution() == starFormationHistoryAgesFixed) then
+                  call displayMessage("reading emission line luminosity tabulation from file '"                                        //fileName//"'",verbosityLevelWorking)
+               else
+                  !$omp critical(gfortranInternalIO)
+                  write (label,'(f12.8)') self%outputTimes_%time(indexOutput)
+                  !$omp end critical(gfortranInternalIO)
+                  call displayMessage("reading emission line luminosity tabulation for time "//trim(adjustl(label))//" Gyr from file '"//fileName//"'",verbosityLevelWorking)
+               end if
+               call file%readDataset('luminosityTemplate',self%templates(indexTemplate)%emissionLineLuminosity)
+            end if
+            !$ call hdf5Access%unset()
+         end if
+         if (.not.allocated(self%templates(indexTemplate)%emissionLineLuminosity)) then
+            basic                                                => node%basic         (                                                                                    )
+            self%templates(indexTemplate)%emissionLineLuminosity =  self%luminosityMean(basic%time(),node,indexTemplate,starFormationHistory,parallelize=.true.,times_=times)
+            if (self%starFormationHistory_%ageDistribution() == starFormationHistoryAgesFixed) then
+               call displayMessage("storing emission line luminosity tabulation to file '"                                        //fileName//"'",verbosityLevelWorking)
+            else
+               !$omp critical(gfortranInternalIO)
+               write (label,'(f12.8)') self%outputTimes_%time(indexOutput)
+               !$omp end critical(gfortranInternalIO)
+               call displayMessage("storing emission line luminosity tabulation for time "//trim(adjustl(label))//" Gyr to file '"//fileName//"'",verbosityLevelWorking)
+            end if
+            !$ call hdf5Access%set()
+            file=hdf5Object(char(fileName),overWrite=.false.,readOnly=.false.)
+            call    file%writeDataset(self %templates             (indexTemplate)%emissionLineLuminosity      ,'luminosityTemplate','A matrix mapping star formation history to emission line luminosities.' )
+            call    file%writeDataset(self %lineNames                                                         ,'lineNames'         ,'The names of the emission lines'                                        )
+            call    file%writeDataset(self %wavelengths                                                       ,'wavelengths'       ,'The wavelengths of the emission lines [Å]'                              )
+            call    file%writeDataset(self %metallicityBoundaries                                             ,'metallicity'       ,'The metallicities at which the star formation history is tabulated [Z☉]')
+            if (self%starFormationHistory_%ageDistribution() == starFormationHistoryAgesFixed) then
+               call file%writeDataset(basic%time                  (             )                       -times,'ages'              ,'The ages at which the star formation history is tabulated [Gyr]'        )
+            else
+               call file%writeDataset(      times                                                             ,'time'              ,'The times at which the star formation history is tabulated [Gyr]'       )
+            end if
+            !$ call hdf5Access%unset()
+         end if
+         call File_Unlock(fileLock)
+       end block coldPathScope
     end if
     return
   end function emissionLineLuminosityIndexTemplateNode
