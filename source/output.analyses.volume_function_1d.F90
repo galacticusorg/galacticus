@@ -625,15 +625,6 @@ contains
     distribution(1:self%binCount)=+distribution              (1:self%binCount        ) &
          &                        *self        %outputWeight ( :             ,iOutput) &
          &                        *weightValue
-    ! Report on node.
-    if (self%report) then
-       block
-         character(len=96) :: message
-         
-         write (message,'(a,2(1x,i8),5(1x,e12.6))') "report: node:",node%hostTree%index,node%index(),propertyValueIntrinsic,propertyValue,sum(self%outputWeight(:,iOutput)),node%hostTree%volumeWeight,weightValue
-         call displayMessage(message)
-       end block
-    end if
     ! Accumulate the property, including weights from both the host tree and the output. Note that we accumulate only the
     ! non-buffer bins of the distribution.
     !$ call OMP_Set_Lock(self%accumulateLock)
