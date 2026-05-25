@@ -22,9 +22,11 @@ Implements an N-body dark matter halo mass error class in which
 errors are a power-law in halo mass.
 !!}
 
+  use :: Cosmology_Functions, only : cosmologyFunctions, cosmologyFunctionsClass
+
   !![
   <nbodyHaloMassError name="nbodyHaloMassErrorPowerLaw">
-   <description>An N-body dark matter halo mass error class in which the fractional mass uncertainty is modeled as a power-law function of halo mass, useful for parameterizing simulation resolution effects. The model is characterized by the normalization parameters $\sigma_{12}$ and $\sigma_\infty$, and the power-law exponent with respect to mass.</description>
+   <description>An N-body dark matter halo mass error class in which the fractional mass uncertainty is modeled as a power-law function of halo mass, useful for parameterizing simulation resolution effects. The model is characterized by the normalization parameters $\sigma_{12}$ and $\sigma_\infty$, and the power-law exponent with respect to mass. Optionally, correlations between mass errors of pairs of halos may be modeled as a power-law in the ratio of halo masses and expansion factors: $C_{12} = C_0 [M_2/M_1]^\alpha [(1+z_2)/(1+z_1)]^\beta$. If this option is disabled (the default), a trivial correlation model is used in which the correlation is unity for halos with identical mass and time, and zero otherwise.</description>
   </nbodyHaloMassError>
   !!]
   type, extends(nbodyHaloMassErrorClass) :: nbodyHaloMassErrorPowerLaw
@@ -32,10 +34,14 @@ errors are a power-law in halo mass.
      An N-body halo mass error class in which errors are a power-law in halo mass.
      !!}
      private
-     double precision :: normalizationSquared          , exponent     , &
-          &              fractionalErrorHighMassSquared, normalization, &
-          &              fractionalErrorHighMass
+     class           (cosmologyFunctionsClass), pointer :: cosmologyFunctions_            => null()
+     double precision                                   :: normalizationSquared                    , exponent                   , &
+          &                                                fractionalErrorHighMassSquared          , normalization              , &
+          &                                                fractionalErrorHighMass                 , correlationNormalization   , &
+          &                                                correlationMassExponent                 , correlationRedshiftExponent
+     logical                                            :: correlationModelTrivial
    contains
+     final     ::                    powerLawDestructor
      procedure :: errorFractional => powerLawErrorFractional
      procedure :: correlation     => powerLawCorrelation
   end type nbodyHaloMassErrorPowerLaw
@@ -61,8 +67,11 @@ contains
     implicit none
     type            (nbodyHaloMassErrorPowerLaw)                :: self
     type            (inputParameters           ), intent(inout) :: parameters
-    double precision                                            :: normalization, fractionalErrorHighMass, &
-         &                                                         exponent
+    class           (cosmologyFunctionsClass   ), pointer       :: cosmologyFunctions_
+    double precision                                            :: normalization              , fractionalErrorHighMass, &
+         &                                                         exponent                   , correlationNormalization, &
+         &                                                         correlationMassExponent    , correlationRedshiftExponent
+    logical                                                     :: correlationModelTrivial
 
     ! Check and read parameters.
     !![
@@ -88,30 +97,102 @@ contains
        where $\sigma_{12}=$\mono{[normalization]}, and $\gamma=$\mono{[exponent]}.
       </description>
     </inputParameter>
+    <inputParameter>
+      <name>correlationModelTrivial</name>
+      <source>parameters</source>
+      <defaultValue>.true.</defaultValue>
+      <description>If true, the correlation between mass errors of pairs of halos is unity for halos with identical mass and time, and zero otherwise. If false, a power-law correlation model in mass ratio and expansion factor ratio is used instead.</description>
+    </inputParameter>
     !!]
-    self=nbodyHaloMassErrorPowerLaw(normalization,exponent,fractionalErrorHighMass)
+    if (correlationModelTrivial) then
+       self=nbodyHaloMassErrorPowerLaw(normalization,exponent,fractionalErrorHighMass,correlationModelTrivial)
+    else
+       !![
+       <inputParameter>
+         <name>correlationNormalization</name>
+         <source>parameters</source>
+         <defaultValue>0.0d0</defaultValue>
+         <description>Variable $C_0$ in the model for the correlation between halo mass errors: $C_{12} = C_0 [M_2/M_1]^\alpha [(1+z_2)/(1+z_1)]^\beta$.</description>
+       </inputParameter>
+       <inputParameter>
+         <name>correlationMassExponent</name>
+         <source>parameters</source>
+         <defaultValue>0.0d0</defaultValue>
+         <description>Variable $\alpha$ in the model for the correlation between halo mass errors: $C_{12} = C_0 [M_2/M_1]^\alpha [(1+z_2)/(1+z_1)]^\beta$.</description>
+       </inputParameter>
+       <inputParameter>
+         <name>correlationRedshiftExponent</name>
+         <source>parameters</source>
+         <defaultValue>0.0d0</defaultValue>
+         <description>Variable $\beta$ in the model for the correlation between halo mass errors: $C_{12} = C_0 [M_2/M_1]^\alpha [(1+z_2)/(1+z_1)]^\beta$.</description>
+       </inputParameter>
+       <objectBuilder class="cosmologyFunctions" name="cosmologyFunctions_" source="parameters"/>
+       !!]
+       self=nbodyHaloMassErrorPowerLaw(normalization,exponent,fractionalErrorHighMass,correlationModelTrivial,correlationNormalization,correlationMassExponent,correlationRedshiftExponent,cosmologyFunctions_)
+       !![
+       <objectDestructor name="cosmologyFunctions_"/>
+       !!]
+    end if
     !![
     <inputParametersValidate source="parameters"/>
     !!]
     return
   end function nbodyHaloMassErrorPowerLawConstructorParameters
 
-  function nbodyHaloMassErrorPowerLawConstructorInternal(normalization,exponent,fractionalErrorHighMass) result(self)
+  function nbodyHaloMassErrorPowerLawConstructorInternal(normalization,exponent,fractionalErrorHighMass,correlationModelTrivial,correlationNormalization,correlationMassExponent,correlationRedshiftExponent,cosmologyFunctions_) result(self)
     !!{
     Internal constructor for the \refClass{nbodyHaloMassErrorPowerLaw} N-body halo mass error class.
     !!}
+    use :: Error, only : Error_Report
     implicit none
-    type            (nbodyHaloMassErrorPowerLaw)                :: self
-    double precision                            , intent(in   ) :: normalization          , exponent, &
-         &                                                         fractionalErrorHighMass
+    type            (nbodyHaloMassErrorPowerLaw)                                  :: self
+    double precision                            , intent(in   )                   :: normalization              , exponent                   , &
+         &                                                                           fractionalErrorHighMass
+    logical                                     , intent(in   )                   :: correlationModelTrivial
+    double precision                            , intent(in   ), optional         :: correlationNormalization   , correlationMassExponent    , &
+         &                                                                           correlationRedshiftExponent
+    class           (cosmologyFunctionsClass   ), intent(in   ), optional, target :: cosmologyFunctions_
     !![
-    <constructorAssign variables="normalization, exponent, fractionalErrorHighMass"/>
+    <constructorAssign variables="normalization, exponent, fractionalErrorHighMass, correlationModelTrivial"/>
     !!]
 
     self%normalizationSquared          =normalization          **2
     self%fractionalErrorHighMassSquared=fractionalErrorHighMass**2
+    if (correlationModelTrivial) then
+       self%correlationNormalization    =  0.0d0
+       self%correlationMassExponent     =  0.0d0
+       self%correlationRedshiftExponent =  0.0d0
+       self%cosmologyFunctions_         => null()
+    else
+       if (.not.(present(correlationNormalization).and.present(correlationMassExponent).and.present(correlationRedshiftExponent))) &
+            & call Error_Report('all parameters of correlation model must be provided'//{introspection:location})
+       if (.not.present(cosmologyFunctions_)) &
+            & call Error_Report('cosmology functions must be provided for correlation model'//{introspection:location})
+       self%correlationNormalization    =  correlationNormalization
+       self%correlationMassExponent     =  correlationMassExponent
+       self%correlationRedshiftExponent =  correlationRedshiftExponent
+       self%cosmologyFunctions_         => cosmologyFunctions_
+       !![
+       <referenceCountIncrement owner="self" isResult="yes" object="cosmologyFunctions_"/>
+       !!]
+    end if
     return
   end function nbodyHaloMassErrorPowerLawConstructorInternal
+
+  subroutine powerLawDestructor(self)
+    !!{
+    Destructor for the \refClass{nbodyHaloMassErrorPowerLaw} N-body halo mass error class.
+    !!}
+    implicit none
+    type(nbodyHaloMassErrorPowerLaw), intent(inout) :: self
+
+    if (associated(self%cosmologyFunctions_)) then
+       !![
+       <objectDestructor name="self%cosmologyFunctions_"/>
+       !!]
+    end if
+    return
+  end subroutine powerLawDestructor
 
   double precision function powerLawErrorFractional(self,node)
     !!{
@@ -141,22 +222,36 @@ contains
     !!}
     use :: Galacticus_Nodes, only : nodeComponentBasic, treeNode
     implicit none
-    class(nbodyHaloMassErrorPowerLaw), intent(inout) :: self
-    type (treeNode                  ), intent(inout) :: node1 , node2
-    class(nodeComponentBasic        ), pointer       :: basic1, basic2
-    !$GLC attributes unused :: self
+    class           (nbodyHaloMassErrorPowerLaw), intent(inout) :: self
+    type            (treeNode                  ), intent(inout) :: node1    , node2
+    class           (nodeComponentBasic        ), pointer       :: basic1   , basic2
+    double precision                                            :: massRatio, expansionFactorRatio
 
     basic1 => node1%basic()
     basic2 => node2%basic()
-    if     (                                &
-         &   basic1%mass() == basic2%mass() &
-         &  .and.                           &
-         &   basic1%time() == basic2%time() &
-         & ) then
-       powerLawCorrelation=1.0d0
+    if (self%correlationModelTrivial) then
+       if     (                                &
+            &   basic1%mass() == basic2%mass() &
+            &  .and.                           &
+            &   basic1%time() == basic2%time() &
+            & ) then
+          powerLawCorrelation=1.0d0
+       else
+          powerLawCorrelation=0.0d0
+       end if
     else
-       powerLawCorrelation=0.0d0
+       ! Extract mass and expansion factor ratios.
+       massRatio            =  +                                         basic2%mass ()  &
+            &                  /                                         basic1%mass ()
+       expansionFactorRatio =  +self%cosmologyFunctions_%expansionFactor(basic2%time ()) &
+            &                  /self%cosmologyFunctions_%expansionFactor(basic1%time ())
+       ! Ensure ratios are below unity, invert otherwise.
+       if (           massRatio > 1.0d0)            massRatio=1.0d0/           massRatio
+       if (expansionFactorRatio > 1.0d0) expansionFactorRatio=1.0d0/expansionFactorRatio
+       ! Evaluate the correlation.
+       powerLawCorrelation  =  +self%correlationNormalization                                   &
+            &                  *                    massRatio**self%correlationMassExponent     &
+            &                  *         expansionFactorRatio**self%correlationRedshiftExponent
     end if
     return
   end function powerLawCorrelation
-
