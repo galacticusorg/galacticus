@@ -98,11 +98,13 @@ contains
     double precision                            , intent(  out)                                           :: boxLength
     complex         (c_double_complex          ), intent(  out), dimension(gridCount,gridCount,gridCount) :: windowFunction1         , windowFunction2
     double precision                            ,                dimension(3                            ) :: origin                  , position1              , &
-         &                                                                                                   position2
+         &                                                                                                   position2               , direction
     integer                                                                                               :: i
     double precision                                                                                      :: comovingDistanceMaximum1, comovingDistanceMaximum2, &
          &                                                                                                   comovingDistanceMinimum1, comovingDistanceMinimum2, &
-         &                                                                                                   distance1               , distance2
+         &                                                                                                   distance1               , distance2               , &
+         &                                                                                                   sinTheta                , cosTheta                , &
+         &                                                                                                   sinPhi                  , cosPhi
 #ifdef FFTW3AVAIL
     type            (c_ptr                     )                                                          :: plan
 #endif
@@ -157,9 +159,14 @@ contains
             &         comovingDistanceMinimum1                , &
             &         comovingDistanceMinimum2                  &
             &        )
-       ! Convert to Cartesian coordinates.
-       position1=distance1*[sin(self%randomTheta(i))*cos(self%randomPhi(i)),sin(self%randomTheta(i))*sin(self%randomPhi(i)),cos(self%randomTheta(i))]+origin
-       position2=distance2*[sin(self%randomTheta(i))*cos(self%randomPhi(i)),sin(self%randomTheta(i))*sin(self%randomPhi(i)),cos(self%randomTheta(i))]+origin
+       ! Convert to Cartesian coordinates. Both positions lie along the same ray, so build the unit direction vector once.
+       sinTheta =sin(self%randomTheta(i))
+       cosTheta =cos(self%randomTheta(i))
+       sinPhi   =sin(self%randomPhi  (i))
+       cosPhi   =cos(self%randomPhi  (i))
+       direction=[sinTheta*cosPhi,sinTheta*sinPhi,cosTheta]
+       position1=distance1*direction+origin
+       position2=distance2*direction+origin
        ! Apply to the mesh.
        call Meshes_Apply_Point(selectionFunction1,boxLength,position1,pointWeight=cmplx(1.0d0,0.0d0,kind=c_double_complex),cloudType=cloudTypeTriangular)
        call Meshes_Apply_Point(selectionFunction2,boxLength,position2,pointWeight=cmplx(1.0d0,0.0d0,kind=c_double_complex),cloudType=cloudTypeTriangular)
