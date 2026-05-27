@@ -143,13 +143,6 @@ contains
     return
   end subroutine lookupDestructor
 
-  !![
-  <workaround type="gfortran" PR="93422" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=93422">
-   <description>
-    If the function name is used as the result variable, instead of using "result(postprocessor)", this PR is triggered.
-   </description>
-  </workaround>
-  !!]
   function lookupBuild(self,descriptor) result(postprocessor)
     !!{
     Return a stellar population spectra postprocessor by lookup via name.
