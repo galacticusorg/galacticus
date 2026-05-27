@@ -53,6 +53,7 @@
   </darkMatterProfile>
   
   <!-- Galaxy merger options -->
+  <satelliteMergingTimescales value="infinite"/>
   <mergerMassMovements value="verySimple">
     <massRatioMajorMerger      value="2.0" />
   </mergerMassMovements>
@@ -73,7 +74,6 @@
     <nodeOperator value="haloAngularMomentumInterpolate"/>
     <!-- Satellite evolution -->
     <nodeOperator value="satelliteMergingTime"/>
-    <nodeOperator value="satelliteMassLoss"/>
     <!-- CGM physics -->
     <nodeOperator value="CGMAccretion">
       <allowNegativeCGMMass value="true"/>
