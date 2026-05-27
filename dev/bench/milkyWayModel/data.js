@@ -1,38 +1,8 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1778974527598,
+  "lastUpdate": 1779870418546,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Milky Way model benchmarks": [
-      {
-        "commit": {
-          "author": {
-            "email": "abenson@carnegiescience.edu",
-            "name": "Andrew Benson",
-            "username": "abensonca"
-          },
-          "committer": {
-            "email": "abenson@carnegiescience.edu",
-            "name": "Andrew Benson",
-            "username": "abensonca"
-          },
-          "distinct": true,
-          "id": "26e24f89883a9b6f941f5eb4b69e4835b80e44ea",
-          "message": "fix: Ensure directory exists before attempting to lock a file in it",
-          "timestamp": "2025-04-02T20:33:26-07:00",
-          "tree_id": "b05a2e1b2cd8b43318f14393cdeea328aad68b67",
-          "url": "https://github.com/galacticusorg/galacticus/commit/26e24f89883a9b6f941f5eb4b69e4835b80e44ea"
-        },
-        "date": 1743674533546,
-        "tool": "customSmallerIsBetter",
-        "benches": [
-          {
-            "name": "Milky Way model - Wall Time",
-            "value": 33.784,
-            "unit": "seconds",
-            "range": 0.0387091720395994
-          }
-        ]
-      },
       {
         "commit": {
           "author": {
@@ -10700,6 +10670,36 @@ window.BENCHMARK_DATA = {
             "name": "Milky Way model - Likelihood - localGroupStellarMassHaloMassRelation",
             "value": 6.681269742153939,
             "unit": "-logℒ"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abenson@obs.carnegiescience.edu",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "abenson@obs.carnegiescience.edu",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "distinct": true,
+          "id": "d6e53e0a189efe9404011acc080503a4f481eff7",
+          "message": "chore: remove stale gfortran workaround note in lookup builder\n\nKeep the actual workaround since it actually fits with code style.",
+          "timestamp": "2026-05-26T18:43:35-07:00",
+          "tree_id": "decafb77a2b7dee2a2821e35cfeed7d1b31b7320",
+          "url": "https://github.com/galacticusorg/galacticus/commit/d6e53e0a189efe9404011acc080503a4f481eff7"
+        },
+        "date": 1779870417589,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Milky Way model - Wall Time",
+            "value": 58.65999999999999,
+            "range": "0.18755799103210702",
+            "unit": "seconds"
           }
         ]
       }
