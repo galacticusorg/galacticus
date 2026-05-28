@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1779870482289,
+  "lastUpdate": 1779948048839,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Dark matter-only subhalos benchmarks (COZMIC Milky Way WDM 3keV resolutionX8)": [
@@ -2249,6 +2249,45 @@ window.BENCHMARK_DATA = {
           {
             "name": "Dark Matter Only Subhalos (COZMIC WDM:3keV resolution X8 Milky Way) - Likelihood - subhaloVelocityMaximumMean",
             "value": 720.7731057621187,
+            "unit": "-logℒ"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abenson@obs.carnegiescience.edu",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "abenson@obs.carnegiescience.edu",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "distinct": true,
+          "id": "ea894079180f7f0814daecb7380ed55a48532645",
+          "message": "chore: remove stale gfortran workaround note in stellar populations\n\nKeep the actual workaround as it complies with codeing standards.",
+          "timestamp": "2026-05-27T07:26:55-07:00",
+          "tree_id": "0c29a2802f7cf482dabc796672eac3fab3ab4057",
+          "url": "https://github.com/galacticusorg/galacticus/commit/ea894079180f7f0814daecb7380ed55a48532645"
+        },
+        "date": 1779948048203,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Dark Matter Only Subhalos (COZMIC WDM:3keV resolution X8 Milky Way) - Likelihood - subhaloMassFunction",
+            "value": 46.813094663000065,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Dark Matter Only Subhalos (COZMIC WDM:3keV resolution X8 Milky Way) - Likelihood - subhaloRadialDistribution",
+            "value": 69.40912055929225,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Dark Matter Only Subhalos (COZMIC WDM:3keV resolution X8 Milky Way) - Likelihood - subhaloVelocityMaximumMean",
+            "value": 785.5861525586361,
             "unit": "-logℒ"
           }
         ]
