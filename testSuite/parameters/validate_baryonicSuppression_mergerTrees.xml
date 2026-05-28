@@ -60,7 +60,7 @@
   <mergerTreeBuildMasses value="sampledDistributionUniform">
     <massTreeMinimum value="1.0e4"/>
     <massTreeMaximum value="1.0e9"/>
-    <treesPerDecade  value="200"  />
+    <treesPerDecade  value="150"  />
   </mergerTreeBuildMasses>
   <mergerTreeBuildMassDistribution value="powerLaw">
     <exponent value="1.0"/>
