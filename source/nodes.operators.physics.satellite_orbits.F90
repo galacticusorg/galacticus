@@ -38,7 +38,8 @@
      private
      class  (virialOrbitClass                   ), pointer :: virialOrbit_                   => null()
      class  (satelliteMassBoundInitializorClass ), pointer :: satelliteMassBoundInitializor_ => null()
-     logical                                               :: trackPreInfallOrbit                     , acceptUnboundOrbits
+     logical                                               :: trackPreInfallOrbit                     , acceptUnboundOrbits, &
+          &                                                   initializeOnly
      integer                                               :: rateGrowthMassBoundID
    contains
      final     ::                          satelliteOrbitDestructor
@@ -78,7 +79,8 @@ contains
     type   (inputParameters                   ), intent(inout) :: parameters
     class  (virialOrbitClass                  ), pointer       :: virialOrbit_
     class  (satelliteMassBoundInitializorClass), pointer       :: satelliteMassBoundInitializor_
-    logical                                                    :: trackPreInfallOrbit           , acceptUnboundOrbits
+    logical                                                    :: trackPreInfallOrbit           , acceptUnboundOrbits, &
+         &                                                        initializeOnly
 
     !![
     <inputParameter>
@@ -93,10 +95,16 @@ contains
       <description>If true, accept unbound virial orbits for satellites, otherwise reject them.</description>
       <source>parameters</source>
     </inputParameter>
+    <inputParameter>
+      <name>initializeOnly</name>
+      <defaultValue>.false.</defaultValue>
+      <description>If true, orbits are initialized, but not evolved.</description>
+      <source>parameters</source>
+    </inputParameter>
     <objectBuilder class="virialOrbit"                   name="virialOrbit_"                   source="parameters"/>
     <objectBuilder class="satelliteMassBoundInitializor" name="satelliteMassBoundInitializor_" source="parameters"/>
     !!]
-    self=nodeOperatorSatelliteOrbit(trackPreInfallOrbit,acceptUnboundOrbits,virialOrbit_,satelliteMassBoundInitializor_)
+    self=nodeOperatorSatelliteOrbit(trackPreInfallOrbit,acceptUnboundOrbits,initializeOnly,virialOrbit_,satelliteMassBoundInitializor_)
     !![
     <inputParametersValidate source="parameters"/>
     <objectDestructor name="virialOrbit_"                  />
@@ -105,7 +113,7 @@ contains
     return
   end function satelliteOrbitConstructorParameters
   
-  function satelliteOrbitConstructorInternal(trackPreInfallOrbit,acceptUnboundOrbits,virialOrbit_,satelliteMassBoundInitializor_) result(self)
+  function satelliteOrbitConstructorInternal(trackPreInfallOrbit,acceptUnboundOrbits,initializeOnly,virialOrbit_,satelliteMassBoundInitializor_) result(self)
     !!{
     Internal constructor for the \refClass{nodeOperatorSatelliteOrbit} node operator class.
     !!}
@@ -113,11 +121,12 @@ contains
     use :: Input_Parameters, only : inputParameters
     implicit none
     type   (nodeOperatorSatelliteOrbit        )                        :: self
-    logical                                    , intent(in   )         :: trackPreInfallOrbit           , acceptUnboundOrbits
+    logical                                    , intent(in   )         :: trackPreInfallOrbit           , acceptUnboundOrbits, &
+         &                                                                initializeOnly
     class  (virialOrbitClass                  ), intent(in   ), target :: virialOrbit_
     class  (satelliteMassBoundInitializorClass), intent(in   ), target :: satelliteMassBoundInitializor_
     !![
-    <constructorAssign variables="trackPreInfallOrbit, acceptUnboundOrbits, *virialOrbit_, *satelliteMassBoundInitializor_"/>
+    <constructorAssign variables="trackPreInfallOrbit, acceptUnboundOrbits, initializeOnly, *virialOrbit_, *satelliteMassBoundInitializor_"/>
     !!]
 
     ! Validate.
@@ -136,11 +145,11 @@ contains
     !!{
     Attach to the subhalo orbit initialization event.
     !!}
-    use :: Events_Hooks, only : subhaloOrbitInitializationEvent, openMPThreadBindingAllLevels
+    use :: Events_Hooks, only : subhaloOrbitInitializationEvent, openMPThreadBindingAtLevel
     implicit none
     class(nodeOperatorSatelliteOrbit), intent(inout) :: self
 
-    call subhaloOrbitInitializationEvent%attach(self,subhaloOrbitInitialize,openMPThreadBindingAllLevels,label='nodeOperatorSatelliteOrbits')
+    call subhaloOrbitInitializationEvent%attach(self,subhaloOrbitInitialize,openMPThreadBindingAtLevel,label='nodeOperatorSatelliteOrbits')
     return
   end subroutine satelliteOrbitAutoHook
 
@@ -175,7 +184,7 @@ contains
     type   (treeNode              ), pointer                 :: nodeHost
     type   (keplerOrbit           )                          :: orbit
     logical                                                  :: isNewSatellite, orbitIsDefined_
-   
+    
     select type (self)
     class is (nodeOperatorSatelliteOrbit)
        ! Get the satellite component.
@@ -417,6 +426,7 @@ contains
 
     if (.not.self%trackPreInfallOrbit  ) return
     if (     node%isOnMainBranch     ()) return
+    if (     self%initializeOnly       ) return
     satellite       => node       %satellite()
     satelliteParent => node%parent%satellite()   
     call        satellite%              positionSet(                           satelliteParent%position                 (                          ))
@@ -468,6 +478,8 @@ contains
     ! Ignore the main branch, and non-satellites unless we are tracking pre-infall orbits.
     if     (                                   &
          &          node%isOnMainBranch     () &
+         &  .or.                               &
+         &          self%initializeOnly        &
          &  .or.                               &
          &   (                                 &
          &     .not.self%trackPreInfallOrbit   &
