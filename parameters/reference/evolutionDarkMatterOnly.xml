@@ -12,8 +12,7 @@
   <componentDarkMatterProfile value="scale"   />
   <componentDisk              value="null"    />
   <componentHotHalo           value="null"    />
-  <componentSatellite         value="orbiting">
-  </componentSatellite>
+  <componentSatellite         value="orbiting"/>
   <componentSpheroid          value="null"    />
   <componentSpin              value="vector"  />
 
@@ -51,8 +50,8 @@
     <nodeOperator value="subsubhaloPromotion"   />
     <!-- Subhalo orbits -->
     <nodeOperator value="satelliteOrbit">
-
-  <acceptUnboundOrbits value="false"/></nodeOperator>
+      <acceptUnboundOrbits value="false"/>
+    </nodeOperator>
     <nodeOperator value="satelliteDynamicalFriction"       />
     <nodeOperator value="satelliteTidalMassLoss"           />
     <nodeOperator value="satelliteTidalHeating"            />
