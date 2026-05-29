@@ -134,6 +134,11 @@ contains
           call reportSpecifierError(specifiers(i)%name,message)
        end if
        call String_Split_Words(radiusDefinition,char(descriptors(i)),':',bracketing="{}")
+       ! Default weights.
+       specifiers(i)%weightBy             =weightByMass
+       specifiers(i)%weightByIndex        =weightIndexNull
+       specifiers(i)%integralWeightBy     =weightByMass
+       specifiers(i)%integralWeightByIndex=weightIndexNull
        ! Detect cases which specify radius via a mass or light fraction. In either case, extract the fraction.
        if (extract(radiusDefinition(1),1,22) == 'galacticLightFraction{'     ) call extractFraction(specifiers(i)%name,radiusDefinition(1),22,fractionDefinition)
        if (extract(radiusDefinition(1),1,21) == 'galacticMassFraction{'      ) call extractFraction(specifiers(i)%name,radiusDefinition(1),21,fractionDefinition)
