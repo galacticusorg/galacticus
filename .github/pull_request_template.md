@@ -13,4 +13,4 @@
 ## Checklist
 - [ ] I ran relevant tests (or explain why not):
 - [ ] I updated documentation/comments if needed
-- [ ] If this PR is from a fork: I enabled ?Allow edits from maintainers?
+- [ ] If this PR is from a fork: I enabled 'Allow edits from maintainers'
