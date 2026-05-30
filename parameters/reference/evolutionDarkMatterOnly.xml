@@ -3,7 +3,7 @@
 
 <parameters>
   <formatVersion>2</formatVersion>
-  <lastModified revision="61711340399619cdd6d89322db6e90ce228d3d93" time="2026-04-14T18:10:17"/>
+  <lastModified revision="23263e8c1dfc569099e2c1fbdedbc04ed6446e59" time="2026-05-18T15:53:57"/>
 
   
   <!-- Component selection -->
@@ -12,9 +12,7 @@
   <componentDarkMatterProfile value="scale"   />
   <componentDisk              value="null"    />
   <componentHotHalo           value="null"    />
-  <componentSatellite         value="orbiting">
-    <acceptUnboundOrbits value="false"/>
-  </componentSatellite>
+  <componentSatellite         value="orbiting"/>
   <componentSpheroid          value="null"    />
   <componentSpin              value="vector"  />
 
@@ -51,7 +49,9 @@
     <!-- Subhalo hierarchy -->
     <nodeOperator value="subsubhaloPromotion"   />
     <!-- Subhalo orbits -->
-    <nodeOperator value="satelliteOrbit"                   />
+    <nodeOperator value="satelliteOrbit">
+      <acceptUnboundOrbits value="false"/>
+    </nodeOperator>
     <nodeOperator value="satelliteDynamicalFriction"       />
     <nodeOperator value="satelliteTidalMassLoss"           />
     <nodeOperator value="satelliteTidalHeating"            />

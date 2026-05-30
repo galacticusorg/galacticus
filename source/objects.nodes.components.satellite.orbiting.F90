@@ -26,15 +26,12 @@ module Node_Component_Satellite_Orbiting
   !!{
   Implements the orbiting satellite component.
   !!}
-  use :: Dark_Matter_Halo_Scales          , only : darkMatterHaloScaleClass
-  use :: Kepler_Orbits                    , only : keplerOrbit
-  use :: Satellites_Bound_Mass_Initialize , only : satelliteMassBoundInitializorClass
-  use :: Tensors                          , only : tensorRank2Dimension3Symmetric
-  use :: Virial_Orbits                    , only : virialOrbit                       , virialOrbitClass
+  use :: Dark_Matter_Halo_Scales, only : darkMatterHaloScaleClass
+  use :: Kepler_Orbits          , only : keplerOrbit
+  use :: Tensors                , only : tensorRank2Dimension3Symmetric
   implicit none
   private
-  public :: Node_Component_Satellite_Orbiting_Scale_Set        , Node_Component_Satellite_Orbiting_Create             , &
-       &    Node_Component_Satellite_Orbiting_Tree_Initialize  , Node_Component_Satellite_Orbiting_Initialize         , &
+  public :: Node_Component_Satellite_Orbiting_Scale_Set        , Node_Component_Satellite_Orbiting_Initialize         , &
        &    Node_Component_Satellite_Orbiting_Thread_Initialize, Node_Component_Satellite_Orbiting_Thread_Uninitialize, &
        &    Node_Component_Satellite_Orbiting_State_Store      , Node_Component_Satellite_Orbiting_State_Restore
   
@@ -106,10 +103,8 @@ module Node_Component_Satellite_Orbiting
   !!]
 
   ! Objects used by this module.
-  class(darkMatterHaloScaleClass           ), pointer :: darkMatterHaloScale_
-  class(virialOrbitClass                   ), pointer :: virialOrbit_
-  class(satelliteMassBoundInitializorClass ), pointer :: satelliteMassBoundInitializor_
-  !$omp threadprivate(darkMatterHaloScale_,virialOrbit_,satelliteMassBoundInitializor_)
+  class(darkMatterHaloScaleClass), pointer :: darkMatterHaloScale_
+  !$omp threadprivate(darkMatterHaloScale_)
 
   ! Option controlling whether or not unbound virial orbits are acceptable.
   logical :: acceptUnboundOrbits
@@ -160,7 +155,6 @@ contains
     !!{
     Initializes the tree node orbiting satellite module.
     !!}
-    use :: Error           , only : Error_Report
     use :: Galacticus_Nodes, only : defaultSatelliteComponent
     use :: Input_Parameters, only : inputParameters
     use :: Events_Hooks    , only : satellitePreHostChangeEvent, nodePromotionEvent, openMPThreadBindingAtLevel, subhaloPromotionEvent, &
@@ -175,16 +169,12 @@ contains
        ! Find our parameters.
        subParameters=parameters%subParameters('componentSatellite')
        !![
-       <objectBuilder class="darkMatterHaloScale"          name="darkMatterHaloScale_"          source="subParameters"/>
-       <objectBuilder class="virialOrbit"                  name="virialOrbit_"                  source="subParameters"/>
-       <objectBuilder class="satelliteMassBoundInitializor" name="satelliteMassBoundInitializor_" source="subParameters"/>
+       <objectBuilder class="darkMatterHaloScale" name="darkMatterHaloScale_" source="subParameters"/>
        !!]
        dependenciesSubhaloPromotion(1)=dependencyExact(dependencyDirectionBefore,'mergerTreeNodeEvolver')
        call       subhaloPromotionEvent%attach(thread,subhaloPromotion      ,openMPThreadBindingAtLevel,label='nodeComponentSatelliteOrbiting',dependencies=dependenciesSubhaloPromotion)
        call          nodePromotionEvent%attach(thread,nodePromotion         ,openMPThreadBindingAtLevel,label='nodeComponentSatelliteOrbiting'                                          )
        call satellitePreHostChangeEvent%attach(thread,satellitePreHostChange,openMPThreadBindingAtLevel,label='nodeComponentSatelliteOrbiting'                                          )
-       ! Check that the virial orbit class supports setting of angular coordinates.
-       if (.not.virialOrbit_%isAngularlyResolved()) call Error_Report('"orbiting" satellite component requires a virialOrbit class which provides angularly-resolved orbits'//{introspection:location})
     end if
     return
   end subroutine Node_Component_Satellite_Orbiting_Thread_Initialize
@@ -202,9 +192,7 @@ contains
 
     if (defaultSatelliteComponent%orbitingIsActive()) then
        !![
-       <objectDestructor name="darkMatterHaloScale_"          />
-       <objectDestructor name="virialOrbit_"                  />
-       <objectDestructor name="satelliteMassBoundInitializor_"/>
+       <objectDestructor name="darkMatterHaloScale_"/>
        !!]
        if (      subhaloPromotionEvent%isAttached(thread,subhaloPromotion      )) call       subhaloPromotionEvent%detach(thread,subhaloPromotion      )
        if (satellitePreHostChangeEvent%isAttached(thread,satellitePreHostChange)) call satellitePreHostChangeEvent%detach(thread,satellitePreHostChange)
@@ -212,28 +200,6 @@ contains
    end if
     return
   end subroutine Node_Component_Satellite_Orbiting_Thread_Uninitialize
-
-  !![
-  <mergerTreeInitializeTask function="Node_Component_Satellite_Orbiting_Tree_Initialize"/>
-  !!]
-  subroutine Node_Component_Satellite_Orbiting_Tree_Initialize(node)
-    !!{
-    Initialize the orbiting satellite component.
-    !!}
-    use :: Galacticus_Nodes, only : treeNode, nodeComponentSatellite
-    implicit none
-    type (treeNode              ), pointer, intent(inout) :: node
-    class(nodeComponentSatellite), pointer                :: satellite
-
-    if (node%isSatellite()) then
-       satellite => node%satellite()
-       select type (satellite)
-       type is (nodeComponentSatellite)
-          call Node_Component_Satellite_Orbiting_Create(node)
-       end select
-    end if
-    return
-  end subroutine Node_Component_Satellite_Orbiting_Tree_Initialize
 
   !![
   <scaleSetTask function="Node_Component_Satellite_Orbiting_Scale_Set"/>
@@ -296,57 +262,6 @@ contains
     end select
     return
   end subroutine Node_Component_Satellite_Orbiting_Scale_Set
-
-  !![
-  <nodeMergerTask function="Node_Component_Satellite_Orbiting_Create"/>
-  !!]
-  subroutine Node_Component_Satellite_Orbiting_Create(node)
-    !!{
-    Create a satellite orbit component and assign initial position, velocity, orbit, and tidal heating quantities. (The initial
-    bound mass is automatically set to the original halo mass by virtue of that being the class default).
-    !!}
-    use :: Galacticus_Nodes, only : defaultSatelliteComponent, nodeComponentSatellite, nodeComponentSatelliteOrbiting, treeNode
-    implicit none
-    type            (treeNode              ), intent(inout) :: node
-    type            (treeNode              ), pointer       :: nodeHost
-    class           (nodeComponentSatellite), pointer       :: satellite
-    logical                                                 :: isNewSatellite
-    type            (keplerOrbit           )                :: orbit
-
-    ! Return immediately if this method is not active.
-    if (.not.defaultSatelliteComponent%orbitingIsActive()) return
-    ! Get the satellite component.
-    satellite => node%satellite()
-    ! Determine if the satellite component exists already.
-    isNewSatellite=.false.
-    select type (satellite)
-    type is (nodeComponentSatellite)
-       isNewSatellite=.true.
-    end select
-    ! If this is a new satellite, create the component and set the bound mass.
-    if (isNewSatellite) then
-       satellite => node%satellite(autoCreate=.true.)
-       ! Set the initial bound mass of this satellite.
-       call Node_Component_Satellite_Orbiting_Bound_Mass_Initialize(satellite,node)
-    end if
-    ! Create an orbit for the satellite if needed.
-    select type (satellite)
-    class is (nodeComponentSatelliteOrbiting)
-       orbit=satellite%virialOrbitValue()
-       if (.not.orbit%isDefined()) then
-          ! Get an orbit for this satellite.
-          if (node%isSatellite()) then
-             nodeHost => node%parent
-          else
-             nodeHost => node%parent%firstChild
-          end if
-          orbit=virialOrbit_%orbit(node,nodeHost,acceptUnboundOrbits)          
-          ! Store the orbit.
-          call satellite%virialOrbitSet(orbit)          
-       end if
-    end select
-    return
-  end subroutine Node_Component_Satellite_Orbiting_Create
   
   subroutine nodePromotion(self,node)
     !!{
@@ -451,7 +366,19 @@ contains
     if (orbit%isDefined().or.selfNode%isSatellite().or.(.not.selfNode%isPrimaryProgenitor().and.associated(selfNode%parent))) then
        if (.not.orbit%isDefined()) then
           ! Orbit has not been defined - define it now.
-          call Node_Component_Satellite_Orbiting_Create(selfNode)
+          !![
+          <eventHook name="subhaloOrbitInitialization">
+	    <import>
+              <module name="Galacticus_Nodes" symbols="treeNode"/>
+	    </import>
+	    <interface>
+              type   (treeNode), intent(inout)           :: selfNode
+	      logical          , intent(in   ), optional :: orbitIsDefined
+	    </interface>
+	    <callWith>selfNode,orbitIsDefined=.false.</callWith>
+	  </eventHook>
+	  !!]
+	  ! Extract the orbit for return.
           orbit=self%virialOrbitValue()
        end if
     else
@@ -493,22 +420,6 @@ contains
     return
   end subroutine Node_Component_Satellite_Orbiting_Virial_Orbit_Set
 
-  subroutine Node_Component_Satellite_Orbiting_Bound_Mass_Initialize(satellite,node)
-    !!{
-    Set the initial bound mass of the satellite.
-    !!}
-    use :: Galacticus_Nodes, only : nodeComponentSatellite, nodeComponentSatelliteOrbiting, treeNode
-    implicit none
-    class(nodeComponentSatellite), intent(inout) :: satellite
-    type (treeNode              ), intent(inout) :: node
-
-    select type (satellite)
-    class is (nodeComponentSatelliteOrbiting)
-       call satellite%boundMassSet(satelliteMassBoundInitializor_%massBound(node))
-    end select
-    return
-  end subroutine Node_Component_Satellite_Orbiting_Bound_Mass_Initialize
-
   !![
   <stateStoreTask function="Node_Component_Satellite_Orbiting_State_Store"/>
   !!]
@@ -525,7 +436,7 @@ contains
 
     call displayMessage('Storing state for: componentSatellite -> orbiting',verbosity=verbosityLevelInfo)
     !![
-    <stateStore variables="darkMatterHaloScale_ virialOrbit_ satelliteMassBoundInitializor_"/>
+    <stateStore variables="darkMatterHaloScale_"/>
     !!]
     return
   end subroutine Node_Component_Satellite_Orbiting_State_Store
@@ -546,7 +457,7 @@ contains
 
     call displayMessage('Retrieving state for: componentSatellite -> orbiting',verbosity=verbosityLevelInfo)
     !![
-    <stateRestore variables="darkMatterHaloScale_ virialOrbit_ satelliteMassBoundInitializor_"/>
+    <stateRestore variables="darkMatterHaloScale_"/>
     !!]
     return
   end subroutine Node_Component_Satellite_Orbiting_State_Restore

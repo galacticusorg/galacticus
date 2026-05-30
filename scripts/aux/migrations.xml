@@ -279,6 +279,9 @@
   <migration commit="13ffc8779d109a773f8cf7d85d4008541207f8e8">
     <translation function="disk_very_simple_analytic_solver"/>
   </migration>
+  <migration commit="3148b72923e0261deb472182fee74ccd1a9a7a13">
+    <translation function="satellite_orbit_initializor"/>
+  </migration>
 
   <!-- Known default values for parameters -->
   <default parameter="componentBlackHole"             value="standard"        />
