@@ -42,6 +42,13 @@ def gradient_color(fraction, gradient):
     return f"#{r:02x}{g:02x}{b:02x}{a:02x}"
 
 
+def format_memory(kilobytes):
+    """Return a human-readable memory size, or 'n/a' if the size is unknown."""
+    if kilobytes is None or kilobytes < 0:
+        return "n/a"
+    return f"{kilobytes / 1024.0:.1f} MB"
+
+
 # Parse profiling information from the file.
 tasks        = []
 time_earliest = None
@@ -49,12 +56,16 @@ time_latest   = None
 
 with open(args.buildLogFile) as f:
     for line in f:
-        m = re.match(r'^\+\+Task: \{([\s\d\+\-:]+)\|([\s\d\+\-:]+)\} \'(.*)', line)
+        m = re.match(r'^\+\+Task: \{([\s\d\+\-:]+)\|([\s\d\+\-:]+)(?:\|(-?\d+))?\} \'(.*)', line)
         if not m:
             continue
-        start_str = m.group(1).strip()
-        stop_str  = m.group(2).strip()
-        command   = m.group(3)
+        start_str  = m.group(1).strip()
+        stop_str   = m.group(2).strip()
+        memory_str = m.group(3)
+        command    = m.group(4)
+        # Peak resident set size of the task, in kilobytes. The profiler reports -1 (or, in older
+        # build logs, omits the field entirely) when memory usage could not be measured.
+        memory_kb  = int(memory_str) if memory_str is not None else -1
         start_time = datetime.fromisoformat(start_str)
         stop_time  = datetime.fromisoformat(stop_str)
         duration   = (stop_time - start_time).total_seconds()
@@ -95,11 +106,15 @@ with open(args.buildLogFile) as f:
             'description': command,
             'startTime':   start_time,
             'endTime':     stop_time,
+            'memoryKB':    memory_kb,
         })
 
 if not tasks:
     print("No tasks found in build log.", file=sys.stderr)
     raise SystemExit(1)
+
+# Determine whether any memory usage information is available.
+memory_available = any(task['memoryKB'] > 0 for task in tasks)
 
 # Find the maximum time (in seconds) for the build.
 time_maximum = 0
@@ -145,6 +160,24 @@ for task in tasks:
         task_maximum = task
 if task_maximum is not None:
     task_maximum['isMaximumCost'] = True
+
+# Estimate the peak memory usage of the build. For each second of the build, sum the peak resident
+# set sizes of all tasks running at that time. This is an upper bound on the true concurrent memory
+# usage, since the peak usage of each task need not occur simultaneously.
+memory_peak      = 0
+memory_peak_time = 0
+if memory_available:
+    memory_diff = [0] * (time_maximum + 2)
+    for task in tasks:
+        if task['memoryKB'] > 0:
+            memory_diff[task['start']]     += task['memoryKB']
+            memory_diff[task['end']   + 1] -= task['memoryKB']
+    current = 0
+    for i in range(time_maximum + 1):
+        current += memory_diff[i]
+        if current > memory_peak:
+            memory_peak      = current
+            memory_peak_time = i
 
 # Create output.
 gradient = {
@@ -198,6 +231,12 @@ with open(args.profileFile, 'w') as out:
     # Table of build profile.
     out.write("<body>\n")
     out.write(f"Total compile time = {time_maximum} seconds<p>\n")
+    if memory_available:
+        out.write(
+            f"Estimated peak memory usage = {format_memory(memory_peak)} "
+            f"(at {memory_peak_time} seconds, summed over tasks running for "
+            f"{args.durationMinimum} seconds or longer)<p>\n"
+        )
     out.write(
         f"Build profile (all tasks which ran for {args.durationMinimum} seconds or longer: "
         f"{100.0 * cost_total / time_maximum:5.2f}% of total time)<br>\n"
@@ -211,13 +250,28 @@ with open(args.profileFile, 'w') as out:
     tasks_ordered = sorted(tasks, key=lambda t: t['cost'], reverse=True)
     out.write("Task costs (ordered)<br>\n")
     out.write("<table>\n")
+    out.write("<tr><th>Task</th><th>Cost</th><th></th><th>Peak memory</th></tr>\n")
     for task in tasks_ordered:
         out.write(
             f"<tr><td>{task['description']}</td>"
             f"<td>{task['cost']:7.2f}</td>"
-            f"<td>({100.0 * task['cost'] / time_maximum:5.2f}%)</td></tr>\n"
+            f"<td>({100.0 * task['cost'] / time_maximum:5.2f}%)</td>"
+            f"<td>{format_memory(task['memoryKB'])}</td></tr>\n"
         )
     out.write("</table>\n")
+
+    # Table of task memory usage, ordered from most to least memory-hungry.
+    if memory_available:
+        tasks_by_memory = sorted(tasks, key=lambda t: t['memoryKB'], reverse=True)
+        out.write("<p>Task peak memory (ordered)<br>\n")
+        out.write("<table>\n")
+        out.write("<tr><th>Task</th><th>Peak memory</th></tr>\n")
+        for task in tasks_by_memory:
+            out.write(
+                f"<tr><td>{task['description']}</td>"
+                f"<td>{format_memory(task['memoryKB'])}</td></tr>\n"
+            )
+        out.write("</table>\n")
     # One color per second of the build; shared across all task rows.
     colors = [
         gradient_color(thread_count[i] / thread_count_maximum, gradient)
