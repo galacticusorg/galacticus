@@ -22,7 +22,8 @@
   objects binned by some property) output analysis class.
   !!}
 
-  use :: ISO_Varying_String, only : varying_string
+  use :: ISO_Varying_String     , only : varying_string
+  use :: Output_Analyses_Options, only : enumerationOutputAnalysisStateType
 
   !![
   <outputAnalysis name="outputAnalysisMeanFunction1D">
@@ -45,8 +46,9 @@
           &                                                                                         meanLabel                                      , meanComment                                     , &
           &                                                                                         propertyUnits                                  , meanUnits                                       , &
           &                                                                                         xAxisLabel                                     , yAxisLabel                                      , &
-          &                                                                                         targetLabel
+          &                                                                                         targetLabel                                    , reportLabel
      type            (enumerationOutputAnalysisCovarianceModelType)                              :: covarianceModel
+     type            (enumerationOutputAnalysisStateType          )                              :: state
      double precision                                                                            :: propertyUnitsInSI                              , meanUnitsInSI
      class           (outputTimesClass                            ), pointer                     :: outputTimes_                          => null()
      class           (nodePropertyExtractorClass                  ), pointer                     :: nodePropertyExtractor_                => null(), outputAnalysisWeightPropertyExtractor_ => null()
@@ -64,7 +66,8 @@
      double precision                                                                            :: covarianceBinomialMassHaloMinimum              , covarianceBinomialMassHaloMaximum                , &
           &                                                                                         binWidth
      logical                                                                                     :: finalized                                      , likelihoodNormalize                              , &
-          &                                                                                         xAxisIsLog                                     , yAxisIsLog
+          &                                                                                         xAxisIsLog                                     , yAxisIsLog                                       , &
+          &                                                                                         report
      integer                                                                                     :: covarianceBinomialBinsPerDecade
      integer         (c_size_t                                    )                              :: bufferCount
    contains
@@ -72,6 +75,7 @@
      <methods>
        <method description="Return the results of the mean function operator." method="results"         />
        <method description="Finalize analysis of the mean function operator."  method="finalizeAnalysis"/>
+       <method description="Activate/deactivate reporting."                    method="setReporting"    />
      </methods>
      !!]
      final     ::                     meanFunction1DDestructor
@@ -81,6 +85,7 @@
      procedure :: reduce           => meanFunction1DReduce
      procedure :: results          => meanFunction1DResults
      procedure :: logLikelihood    => meanFunction1DLogLikelihood
+     procedure :: setReporting     => meanFunction1DSetReporting
   end type outputAnalysisMeanFunction1D
 
   interface outputAnalysisMeanFunction1D
@@ -438,6 +443,9 @@ contains
     self       %outputWeight          =reshape(outputWeight        ,[size(outputWeight        )])
     ! Mark as unfinalized.
     self%finalized=.false.
+    ! Initialize reporting state.
+    self%report     =.false.
+    self%reportLabel="unknown"
     ! Set normalization state for likelihood.
     self%likelihoodNormalize=.true.
     if (present(likelihoodNormalize)) self%likelihoodNormalize=likelihoodNormalize
@@ -661,11 +669,14 @@ contains
     !!{
     Finalize analysis of a \mono{meanFunction1D} output analysis.
     !!}
+    use    :: Display, only : displayMessage, displayIndent , displayUnindent
     implicit none
     class           (outputAnalysisMeanFunction1D), intent(inout)                 :: self
     double precision                              , allocatable  , dimension(:  ) :: unweightedValue     , weightedValue
     double precision                              , allocatable  , dimension(:,:) :: unweightedCovariance, weightedCovariance, &
          &                                                                           crossCovariance
+    type            (varying_string              )                                :: message
+    character       (len=43                      )                                :: label
     integer         (c_size_t                    )                                :: i                   , j
 
     ! If already finalized, no need to do anything.
@@ -675,15 +686,38 @@ contains
     call self%volumeFunctionUnweighted%results(binCenter=self%binCenter,functionValue=unweightedValue,functionCovariance=unweightedCovariance)
     call self%volumeFunctionWeighted  %results(                         functionValue=weightedValue  ,functionCovariance=weightedCovariance  )
     call self%crossCovariance         %results(                                                       functionCovariance=crossCovariance     )
+    ! Report if required.
+    if (self%report) then
+       message="report: "//self%reportLabel//": finalize"
+       call displayIndent(message)
+       call displayMessage("i    unweighted   weighted    ")
+       call displayMessage("---- ------------ ------------")
+       do i=1,size(unweightedValue)
+          write (label,'(i4,1x,e12.6,1x,e12.6)') i,unweightedValue(i),weightedValue(i)
+          call displayMessage(trim(label))
+       end do
+       call displayUnindent("done")
+    end if
     ! Estimate covariance of ratio using Taylor series expansion approach
     ! (e.g. http://math.stackexchange.com/questions/40713/calculating-the-variance-of-the-ratio-of-random-variables).
     allocate(self%meanValue     (size(self%binCenter)                     ))
     allocate(self%meanCovariance(size(self%binCenter),size(self%binCenter)))
     self%meanValue     =0.0d0
     self%meanCovariance=0.0d0
+    ! Report if required.
+    if (self%report) then
+       message="report: "//self%reportLabel//": mean"
+       call displayIndent(message)
+       call displayMessage("i    unweighted   weighted     mean        ")
+       call displayMessage("---- ------------ ------------ ------------")
+    end if
     do i=1,size(self%binCenter)
        if (unweightedValue(i) > 0.0d0) then
           self%meanValue(i)=weightedValue(i)/unweightedValue(i)
+          if (self%report) then
+             write (label,'(i4,1x,e12.6,1x,e12.6,1x,e12.6)') i,unweightedValue(i),weightedValue(i),self%meanValue(i)
+             call displayMessage(label)
+          end if
           do j=i,size(self%binCenter)
              if (unweightedValue(j) > 0.0d0) then
                 self%meanCovariance(i,j)=+(                                                                                                      &
@@ -699,6 +733,7 @@ contains
           end do
        end if
     end do
+    if (self%report) call displayUnindent("done")
     return
   end subroutine meanFunction1DFinalizeAnalysis
 
@@ -843,3 +878,27 @@ contains
     end if
     return
   end function meanFunction1DLogLikelihood
+
+  subroutine meanFunction1DSetReporting(self,report,reportLabel)
+    !!{
+    Activate/deactivate reporting.
+    !!}
+    use :: ISO_Varying_String     , only : assignment(=)
+    use :: Output_Analyses_Options, only : outputAnalysisStateUnknown
+    implicit none
+    class    (outputAnalysisMeanFunction1D), intent(inout)           :: self
+    logical                                , intent(in   )           :: report
+    character(len=*                       ), intent(in   ), optional :: reportLabel
+
+    self%report=report
+    if (present(reportLabel)) then
+       self%reportLabel=reportLabel
+    else
+       self%reportLabel="unknown"
+    end if
+    if (report) self%state=outputAnalysisStateUnknown
+    call self%volumeFunctionUnweighted%setReporting(report,char(self%reportLabel)//' [mean; unweighted]')
+    call self%volumeFunctionWeighted  %setReporting(report,char(self%reportLabel)//' [mean; weighted]'  )
+    call self%crossCovariance         %setReporting(report,char(self%reportLabel)//' [mean; cross]'     )
+    return
+  end subroutine meanFunction1DSetReporting

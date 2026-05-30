@@ -59,4 +59,38 @@ module Output_Analyses_Options
   </enumeration>
   !!]
 
+  !![
+  <enumeration>
+   <name>outputAnalysisState</name>
+   <description>Output analyses states.</description>
+   <encodeFunction>yes</encodeFunction>
+   <decodeFunction>yes</decodeFunction>
+   <entry label="unknown" />
+   <entry label="zero"    />
+   <entry label="positive"/>
+   <entry label="negative"/>
+  </enumeration>
+  !!]
+
+contains
+
+  function outputAnalysisState(distribution) result(state)
+    !!{
+    Determine the state of an output analysis distribution.
+    !!}
+    implicit none
+    type            (enumerationOutputAnalysisStateType)               :: state
+    double precision                                    , dimension(:) :: distribution
+
+    state=outputAnalysisStateUnknown
+    if      (all(distribution == 0.0d0)) then
+       state=outputAnalysisStateZero
+    else if (all(distribution >= 0.0d0)) then
+       state=outputAnalysisStatePositive
+    else if (all(distribution <= 0.0d0)) then
+       state=outputAnalysisStateNegative
+    end if
+    return
+  end function outputAnalysisState
+  
 end module Output_Analyses_Options

@@ -69,13 +69,15 @@ mass function) output analysis class.
      double precision                                                                            :: covarianceBinomialMassHaloMinimum              , covarianceBinomialMassHaloMaximum                          , &
           &                                                                                         covarianceModelHaloMassMinimumLogarithmic      , covarianceModelHaloMassIntervalLogarithmicInverse          , &
           &                                                                                         binWidth
-     logical                                                                                     :: finalized
+     logical                                                                                     :: finalized                                      , report
+     type            (varying_string                              )                              :: reportLabel
      !$ type         (ompLock                                     )                              :: accumulateLock
    contains
      !![
      <methods>
        <method description="Return the results of the volume function operator." method="results"         />
        <method description="Finalize the analysis of this function."             method="finalizeAnalysis"/>
+       <method description="Activate/deactivate reporting."                      method="setReporting"    />
      </methods>
      !!]
      final     ::                     crossCorrelator1DDestructor
@@ -84,6 +86,7 @@ mass function) output analysis class.
      procedure :: results          => crossCorrelator1DResults
      procedure :: reduce           => crossCorrelator1DReduce
      procedure :: finalizeAnalysis => crossCorrelator1DFinalizeAnalysis
+     procedure :: setReporting     => crossCorrelator1DSetReporting
   end type outputAnalysisCrossCorrelator1D
 
   interface outputAnalysisCrossCorrelator1D
@@ -318,7 +321,10 @@ contains
     self%finalized=.false.
     ! Initialize OpenMP accumulation lock.
     !$ self%accumulateLock=ompLock()
-   return
+    ! Initialize reporting state.
+    self%report     =.false.
+    self%reportLabel="unknown"
+    return
   end function crossCorrelator1DConstructorInternal
 
   subroutine crossCorrelator1DDestructor(self)
@@ -346,9 +352,11 @@ contains
     !!{
     Implement a crossCorrelator1D output analysis.
     !!}
+    use :: Display                 , only : displayMessage
     use :: Galacticus_Nodes        , only : nodeComponentBasic                   , treeNode
     use :: Node_Property_Extractors, only : nodePropertyExtractorScalar
     use :: Output_Analyses_Options , only : outputAnalysisCovarianceModelBinomial, enumerationOutputAnalysisPropertyTypeType, enumerationOutputAnalysisPropertyQuantityType
+    use :: String_Handling         , only : operator(//)
     implicit none
     class           (outputAnalysisCrossCorrelator1D              ), intent(inout)                 :: self
     type            (treeNode                                     ), intent(inout)                 :: node
@@ -561,3 +569,18 @@ contains
     end if
     return
   end subroutine crossCorrelator1DResults
+
+  subroutine crossCorrelator1DSetReporting(self,report,reportLabel)
+    !!{
+    Activate/deactivate reporting.
+    !!}
+    use :: ISO_Varying_String, only : assignment(=)
+    implicit none
+    class    (outputAnalysisCrossCorrelator1D), intent(inout)           :: self
+    logical                                   , intent(in   )           :: report
+    character(len=*                          ), intent(in   ), optional :: reportLabel
+
+    self%report=report
+    if (present(reportLabel)) self%reportLabel=reportLabel
+    return
+  end subroutine crossCorrelator1DSetReporting
