@@ -323,12 +323,14 @@ contains
     use :: String_Handling, only : String_Lower_Case
     implicit none
     integer          , intent(in   ), optional :: atomicNumber
-    character(len=* ), intent(in   ), optional :: name         , shortLabel
-    integer                                    :: iAtom
+    character(len=* ), intent(in   ), optional :: name           , shortLabel
+    integer                                    :: iAtom          , atomCount
     character(len=20)                          :: nameLowerCase
+    character(len=:) , allocatable             :: shortLabelTrim , nameTrim
 
     ! Ensure the module is initialized.
     call Atomic_Data_Initialize
+    atomCount=size(atoms)
 
     ! Look up by atomic number if present.
     if (present(atomicNumber)) then
@@ -338,8 +340,9 @@ contains
 
     ! Look up by short label if present.
     if (present(shortLabel)) then
-       do iAtom=1,size(atoms)
-          if (trim(atoms(iAtom)%shortLabel) == trim(shortLabel)) then
+       shortLabelTrim=trim(shortLabel)
+       do iAtom=1,atomCount
+          if (trim(atoms(iAtom)%shortLabel) == shortLabelTrim) then
              Atom_Lookup=iAtom
              return
           end if
@@ -349,8 +352,9 @@ contains
     ! Look up by name if present.
     if (present(name)) then
        nameLowerCase=String_Lower_Case(name)
-       do iAtom=1,size(atoms)
-          if (trim(atoms(iAtom)%name) == trim(nameLowerCase)) then
+       nameTrim=trim(nameLowerCase)
+       do iAtom=1,atomCount
+          if (trim(atoms(iAtom)%name) == nameTrim) then
              Atom_Lookup=iAtom
              return
           end if
