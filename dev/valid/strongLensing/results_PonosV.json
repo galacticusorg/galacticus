@@ -6,10 +6,10 @@ window.PONOSV_DATA = {
             "name": "Andrew Benson",
             "email": "abenson@obs.carnegiescience.edu"
         },
-        "id": "ea894079180f7f0814daecb7380ed55a48532645",
-        "message": "chore: remove stale gfortran workaround note in stellar populations\n\nKeep the actual workaround as it complies with codeing standards.\n",
-        "timestamp": "2026-05-27 07:26:55-07:00",
-        "url": "https://github.com/galacticusorg/galacticus/commit/ea894079180f7f0814daecb7380ed55a48532645"
+        "id": "d5877a89b6b73b008e860f86df9ea90a5f5d3ba8",
+        "message": "Merge pull request #1136 from galacticusorg/fixBHMSigmaReport\n\nSet default weights when decoding radius specifiers",
+        "timestamp": "2026-05-29 16:52:07-07:00",
+        "url": "https://github.com/galacticusorg/galacticus/commit/d5877a89b6b73b008e860f86df9ea90a5f5d3ba8"
     },
     "surfaceDensity": {
         "percentageBelow": 39.285714285714285,
@@ -17,8 +17,8 @@ window.PONOSV_DATA = {
         "target": 0.006
     },
     "slope": {
-        "percentageBelow": 63.63636363636363,
-        "percentageAbove": 36.36363636363637,
+        "percentageBelow": 60.0,
+        "percentageAbove": 40.0,
         "target": 0.85
     }
 }
