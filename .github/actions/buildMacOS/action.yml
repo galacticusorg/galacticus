@@ -14,9 +14,9 @@ runs:
         echo "PATH=$PATH:/opt/local/bin:/usr/local/bin" >> $GITHUB_ENV
         echo "PERL_MM_USE_DEFAULT=1" >> $GITHUB_ENV
         echo "GALACTICUS_EXEC_PATH=`pwd`" >> $GITHUB_ENV
-        echo "FCCOMPILER=/opt/gcc-16/bin/gfortran-16" >> $GITHUB_ENV
-        echo "CCOMPILER=/opt/gcc-16/bin/gcc-16" >> $GITHUB_ENV
-        echo "CPPCOMPILER=/opt/gcc-16/bin/g++-16" >> $GITHUB_ENV
+        echo "FCCOMPILER=/opt/gcc-16/bin/gfortran" >> $GITHUB_ENV
+        echo "CCOMPILER=/opt/gcc-16/bin/gcc" >> $GITHUB_ENV
+        echo "CPPCOMPILER=/opt/gcc-16/bin/g++" >> $GITHUB_ENV
         echo "BUILDPATH=./work/build" >> $GITHUB_ENV
         if [[ "${ver[0]}" -eq 13 ]]; then
           # For MacOS 13 force use of the classic linker as the new linker does not support the '-commons' option - see https://trac.macports.org/ticket/68194#comment:15
