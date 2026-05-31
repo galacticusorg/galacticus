@@ -176,6 +176,7 @@ runs:
         tar xvfz ann_1.1.2.tar.gz
         cd ann_1.1.2
         sed -E -i~ "s|C\+\+ = g\+\+|C\+\+ = $CPPCOMPILER|" Make-config
+        sed -E -i~ "s|CFLAGS = \-O3|CFLAGS = \-O3 \-std=gnu\+\+17|" Make-config
         make macosx-g++
         sudo cp bin/* /usr/local/bin/.
         sudo cp lib/* /usr/local/lib/.
