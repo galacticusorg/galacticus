@@ -67,8 +67,27 @@ compile_command = ' '.join(compile_parts)
 is_gcc      = False
 is_gfortran = False
 is_gpp      = False
-mv_libs     = []
-mv_dir      = None
+
+# Compiler runtime libraries that the compiler driver links implicitly and for which there is no
+# dedicated '-static-lib*' option (unlike libgfortran, libgcc, and libstdc++). When these are linked
+# statically (by naming their '.a' archive) any coexisting dynamic library must be temporarily moved
+# aside so the linker uses the static archive rather than preferring the dynamic one.
+hide_dylib_libraries = ('quadmath', 'gomp')
+
+# Full paths of dynamic libraries to temporarily move aside before relinking. A set, so that each is
+# recorded (and therefore moved) at most once even if encountered repeatedly.
+dylibs_to_hide = set()
+
+def register_dylibs_to_hide(static_lib_path, library_name):
+    """Record the dynamic versions of `library_name` that sit alongside its static archive, so they
+    can be temporarily moved aside to force the linker to use the static archive."""
+    directory = os.path.dirname(static_lib_path)
+    if not directory or not os.path.isdir(directory):
+        return
+    pattern = re.compile(r'^lib' + re.escape(library_name) + r'(\.\d+)*\.dylib$')
+    for fname in os.listdir(directory):
+        if pattern.match(fname):
+            dylibs_to_hide.add(os.path.join(directory, fname))
 
 try:
     otool_out = subprocess.run(
@@ -121,16 +140,8 @@ for line in otool_out.splitlines():
             compile_command = re.sub(r'-l' + escaped + '(\s|$)', static_name + ' ', compile_command)
         else:
             compile_command += ' ' + static_name
-            if library_name == 'quadmath':
-                mv_dir = os.path.dirname(dynamic_name)
-                for fname in os.listdir(mv_dir):
-                    if re.match(r'^libquadmath.*\.dylib', fname):
-                        mv_libs.append(fname)
-                mv_cmd = "sudo -- sh -c '" + '; '.join(
-                    "mv "+shlex.quote(f"{mv_dir}/{f}")+" "+shlex.quote(f"{mv_dir}/{f}~") for f in mv_libs
-                ) + "'"
-                print("Must move dylibs temporarily (requires sudo):")
-                subprocess.run(mv_cmd, shell=True)
+            if library_name in hide_dylib_libraries:
+                register_dylibs_to_hide(static_name, library_name)
     else:
         found      = False
         candidates = []
@@ -164,6 +175,8 @@ for line in otool_out.splitlines():
                     compile_command = re.sub(r'-l' + escaped + '( |$)', candidate + ' ', compile_command)
                 else:
                     compile_command += ' ' + candidate
+                    if library_name in hide_dylib_libraries:
+                        register_dylibs_to_hide(candidate, library_name)
                 found = True
                 break
         if not found:
@@ -181,15 +194,26 @@ if is_gpp:
 if post_process_parts:
     compile_command += ' ' + ' '.join(post_process_parts)
 
+# Temporarily move aside any dynamic libraries that would otherwise be preferred over the static
+# archives being linked, forcing the linker to use the static versions. They are restored below.
+if dylibs_to_hide:
+    print("Must move dylibs temporarily (requires sudo):")
+    for dylib in sorted(dylibs_to_hide):
+        print(f"   {dylib} -> {dylib}~")
+    mv_cmd = "sudo -- sh -c '" + '; '.join(
+        "mv " + shlex.quote(dylib) + " " + shlex.quote(dylib + "~") for dylib in sorted(dylibs_to_hide)
+    ) + "'"
+    subprocess.run(mv_cmd, shell=True)
+
 print(f"Relinking with: {compile_command}")
 status = subprocess.run(compile_command, shell=True)
 
-# Restore any temporarily moved dylibs.
-if mv_libs:
-    mv_cmd = "sudo -- sh -c '" + '; '.join(
-        "mv "+shlex.quote(f"{mv_dir}/{f}~")+" "+shlex.quote(f"{mv_dir}/{f}") for f in mv_libs
-    ) + "'"
+# Restore any temporarily moved dynamic libraries.
+if dylibs_to_hide:
     print("Must restore temporarily moved dylibs (requires sudo):")
+    mv_cmd = "sudo -- sh -c '" + '; '.join(
+        "mv " + shlex.quote(dylib + "~") + " " + shlex.quote(dylib) for dylib in sorted(dylibs_to_hide)
+    ) + "'"
     subprocess.run(mv_cmd, shell=True)
 
 # Exit with status.
