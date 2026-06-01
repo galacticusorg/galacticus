@@ -132,13 +132,31 @@ for line in otool_out.splitlines():
                 print("Must move dylibs temporarily (requires sudo):")
                 subprocess.run(mv_cmd, shell=True)
     else:
-        found     = False
+        found      = False
+        candidates = []
+        # First, ask the compiler (the first token of the link command) where its own copy of the
+        # static library lives. This locates runtime libraries such as libgomp.a and libquadmath.a
+        # that reside in the compiler's installation directory (e.g. /opt/gcc-16/lib/...) rather
+        # than in a standard system location, without having to hard-code that path.
+        if compile_parts:
+            try:
+                printed = subprocess.run(
+                    [compile_parts[0], f"-print-file-name=lib{library_name}.a"],
+                    capture_output=True, text=True
+                ).stdout.strip()
+            except (FileNotFoundError, OSError):
+                printed = ''
+            # '-print-file-name' echoes back the bare library name if it is not found, so only
+            # accept the result if it is an absolute path.
+            if printed and os.path.isabs(printed):
+                candidates.append(printed)
+        # Next, search standard system locations and any directories on LD_LIBRARY_PATH.
         locations = ['/usr/local/lib']
         ld_path   = os.environ.get('LD_LIBRARY_PATH', '')
         if ld_path:
             locations.extend(ld_path.split(':'))
-        for loc in locations:
-            candidate = os.path.join(loc, f"lib{library_name}.a")
+        candidates.extend(os.path.join(loc, f"lib{library_name}.a") for loc in locations)
+        for candidate in candidates:
             if os.path.exists(candidate):
                 print(f" -> Found static library at '{candidate}'")
                 escaped = re.escape(library_name_original)
