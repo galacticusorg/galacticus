@@ -59,7 +59,7 @@ contains
     use :: Error             , only : Error_Report
     use :: Input_Paths       , only : inputPath        , pathTypeDataDynamic  , pathTypeDataStatic
     use :: ISO_Varying_String, only : assignment(=)    , char                 , operator(//)      , varying_string
-    use :: String_Handling   , only : operator(//)
+    use :: String_Handling   , only : operator(//)     , stringSubstitute
     use :: System_Command    , only : System_Command_Do
     use :: System_Download   , only : download
     use :: System_Compilers  , only : compiler         , compilerOptions      , languageFortran
@@ -146,7 +146,7 @@ contains
 #ifndef __aarch64__
             &  '-mcmodel=medium '                                                                                                                           // & ! Larger memory model required except on Arm64.
 #endif
-            &  char(compilerOptions(languageFortran))//'"; sed -i~ -E s/"gfortran"/"'//char(compiler(languageFortran))//'"/ Makefile; make clean; make -j 1'
+            &  char(compilerOptions(languageFortran))//'"; sed -i~ -E s/"gfortran"/"'//char(stringSubstitute(compiler(languageFortran),"/","\/"))//'"/ Makefile; make clean; make -j 1'
        call System_Command_Do(command,status)
        if (.not.File_Exists(execPath) .or. status /= 0) call Error_Report("failed to build autosps.exe code"//{introspection:location})
     end if

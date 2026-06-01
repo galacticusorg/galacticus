@@ -124,7 +124,7 @@ contains
           end if
        end if       
        call displayMessage("compiling CAMB code",verbosityLevelWorking)
-       command='cd '//cambPath//'; sed -E -i~ s/"ifortErr[[:space:]]*=.*"/"ifortErr = 1"/ Makefile; sed -E -i~ s/"gfortErr[[:space:]]*=.*"/"gfortErr = 0"/ Makefile; sed -E -i~ s/"gfortran"/"'//compiler(languageFortran)//'"/ Makefile; sed -E -i~ s/"gfortran"/"'//compiler(languageFortran)//'"/ ../forutils/Makefile_compiler; sed -E -i~ s/"^FFLAGS[[:space:]]*\+=[[:space:]]*\-march=native"/"FFLAGS+="/ Makefile; sed -E -i~ s/"^FFLAGS[[:space:]]*=[[:space:]]*.*"/"FFLAGS = -cpp -Ofast -fopenmp '//stringSubstitute(compilerOptions(languageFortran),"/","\/")
+       command='cd '//cambPath//'; sed -E -i~ s/"ifortErr[[:space:]]*=.*"/"ifortErr = 1"/ Makefile; sed -E -i~ s/"gfortErr[[:space:]]*=.*"/"gfortErr = 0"/ Makefile; sed -E -i~ s/"gfortran"/"'//stringSubstitute(compiler(languageFortran),"/","\/")//'"/ Makefile; sed -E -i~ s/"gfortran"/"'//stringSubstitute(compiler(languageFortran),"/","\/")//'"/ ../forutils/Makefile_compiler; sed -E -i~ s/"^FFLAGS[[:space:]]*\+=[[:space:]]*\-march=native"/"FFLAGS+="/ Makefile; sed -E -i~ s/"^FFLAGS[[:space:]]*=[[:space:]]*.*"/"FFLAGS = -cpp -Ofast -fopenmp '//stringSubstitute(compilerOptions(languageFortran),"/","\/")
        if (static_) command=command//" -static -Wl,--whole-archive -lpthread -ldl -Wl,--no-whole-archive"
        command=command//'"/ Makefile'
        if (static_) command=command//'; cp $GALACTICUS_EXEC_PATH/source/utility.OpenMP.workaround.c '//cambPath//'; gcc -DSTATIC -c utility.OpenMP.workaround.c -o utility.OpenMP.workaround.o; sed -E -i~ s/"\-o camb$"/"utility\.OpenMP\.workaround\.o \-o camb"/ Makefile_main'

@@ -95,7 +95,7 @@ contains
           if (status /= 0                                  ) call Error_Report("failed to patch Cloudy code"//{introspection:location})
           call System_Command_Do('sed -i~ -E s/"\\\$res[[:space:]]+\.=[[:space:]]+\"native \""/"print \"skip march=native as it breaks the build\\n\""/ '//cloudyPath//'/source/capabilities.pl',status)
           if (status /= 0                                  ) call Error_Report("failed to patch Cloudy code"//{introspection:location})
-          call System_Command_Do('sed -i~ -E s/"which[[:space:]]+g\+\+"/"which '//compiler(languageCPlusPlus)//'"/ '//cloudyPath//'/source/Makefile',status)
+          call System_Command_Do('sed -i~ -E s/"which[[:space:]]+g\+\+"/"which '//stringSubstitute(compiler(languageCPlusPlus),"/","\/")//'"/ '//cloudyPath//'/source/Makefile',status)
           if (status /= 0                                  ) call Error_Report("failed to patch Cloudy code"//{introspection:location})
        end if
        ! Build the code.
