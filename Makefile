@@ -193,6 +193,18 @@ $(BUILDPATH)/%.p.F90.up : source/%.F90 $(BUILDPATH)/hdf5FCInterop.dat $(BUILDPAT
 	./scripts/build/preprocess.pl source/$*.F90 $(BUILDPATH)/$*.p.F90
 $(BUILDPATH)/%.p.F90 : $(BUILDPATH)/%.p.F90.up
 	@true
+# Work around a gfortran (GCC) internal compiler error in the AArch64 (Apple Silicon) back-end. With
+# gfortran 16 the constructors of some output analysis classes trigger:
+#   internal compiler error: in aarch64_function_arg_alignment, at config/aarch64/aarch64.cc
+# during the RTL "expand" pass, while laying out procedure arguments. This is a compiler bug (not an
+# error in our code) - see https://gcc.gnu.org/bugzilla/show_bug.cgi?id=124146. The ICE is present at
+# -O1 and above, so we compile the affected object files at -O0 to avoid it (this flag is appended
+# after the global -O3, and so takes precedence). Add further object files to this list if they are
+# found to trigger the same ICE; these overrides can be removed once the upstream bug is fixed.
+FCFLAGS_AARCH64_ICE_OBJECTS = \
+	$(BUILDPATH)/output.analyses.volume_function_1d.o
+$(FCFLAGS_AARCH64_ICE_OBJECTS): FCFLAGS += -O0
+
 $(BUILDPATH)/%.o : $(BUILDPATH)/%.p.F90 $(BUILDPATH)/%.m $(BUILDPATH)/%.d $(BUILDPATH)/%.fl Makefile
 	@mkdir -p $(BUILDPATH)/moduleBuild
 	$(FCCOMPILER) -c $(BUILDPATH)/$*.p.F90 -o $(BUILDPATH)/$*.o $(FCFLAGS) 2>&1 | ./scripts/build/postprocess.py $(BUILDPATH)/$*.p.F90
