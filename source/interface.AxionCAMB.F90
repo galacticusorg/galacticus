@@ -98,9 +98,6 @@ contains
        end if
        call displayMessage("compiling AxionCAMB code",verbosityLevelWorking)
        command='cd '//axionCambPath//'; sed -E -i~ s/"Ini_Read_Double\('//"'"//'omega_axion'//"'"//'\)\/\(P%H0\/100\)\*\*2"/"Ini_Read_Double\('//"'"//'omega_axion'//"'"//'\)"/ inidriver_axion.F90; sed -E -i~ s/"^F90C[[:space:]]*=[[:space:]]*[[:alpha:]]+"/"F90C = '//stringSubstitute(compiler(languageFortran),"/","\/")//'\nFFLAGS = -O3 '// &
-#if defined(__APPLE__) && defined(__aarch64__)
-            &  '-fno-section-anchors '// & ! Work around "addend too big for relocation" assembler errors caused by GCC's section anchors on Apple Silicon (Darwin/AArch64); see https://github.com/iains/gcc-darwin-arm64/issues/52.
-#endif
             &  stringSubstitute(compilerOptions(languageFortran),"/","\/")
        if (static_) command=command//" -static -Wl,--whole-archive -lpthread -Wl,--no-whole-archive"
        command=command//'"/ Makefile; find . -name "*.f90" | xargs sed -E -i~ s/"error stop"/"error stop "/; make -j1 camb'
