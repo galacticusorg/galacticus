@@ -28,10 +28,13 @@
 #ifdef __GLIBC__
 #if ( __GLIBC__ == 2 && __GLIBC_MINOR__ >= 34 ) || __GLIBC__ > 2
 #include "pthread.h"
-#define nullptr ((void*)0)
 
 void pthread_workaround() {
-  pthread_mutex_destroy((pthread_mutex_t *) nullptr);
+  /* Reference the address of pthread_mutex_destroy() (without calling it) so that the static linker */
+  /* includes the symbol in the executable. The `volatile` qualifier and the read below prevent the  */
+  /* reference from being optimized away. This function is never actually called.                    */
+  static int (* volatile keep)(pthread_mutex_t *) = pthread_mutex_destroy;
+  (void) keep;
 }
 
 #endif
