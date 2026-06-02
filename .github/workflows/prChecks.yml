@@ -85,7 +85,7 @@ jobs:
   Validate-Python-Scripts:
     if: ${{ github.event_name != 'pull_request' || !github.event.pull_request.draft }}
     runs-on: ubuntu-latest
-    container: ghcr.io/galacticusorg/buildenv:gfortranFinalization
+    container: ghcr.io/galacticusorg/buildenv:latest
     steps:
       - uses: actions/checkout@v6
       - name: "Set environmental variables"
@@ -116,7 +116,7 @@ jobs:
   Fortran-Static-Analysis:
     if: ${{ github.event_name != 'pull_request' || !github.event.pull_request.draft }}
     runs-on: ubuntu-latest
-    container: ghcr.io/galacticusorg/buildenv:gfortranFinalization
+    container: ghcr.io/galacticusorg/buildenv:latest
     steps:
       - uses: actions/checkout@v6
       - name: "Set environmental variables"
@@ -147,7 +147,7 @@ jobs:
   Embedded-XML-LaTeX:
     if: ${{ github.event_name != 'pull_request' || !github.event.pull_request.draft }}
     runs-on: ubuntu-latest
-    container: ghcr.io/galacticusorg/buildenv:gfortranFinalization
+    container: ghcr.io/galacticusorg/buildenv:latest
     steps:
       - name: Check out repository code
         uses: actions/checkout@v6
@@ -211,7 +211,7 @@ jobs:
   Spell-Check-LaTeX:
     if: ${{ github.event_name != 'pull_request' || !github.event.pull_request.draft }}
     runs-on: ubuntu-latest
-    container: ghcr.io/galacticusorg/buildenv:gfortranFinalization
+    container: ghcr.io/galacticusorg/buildenv:latest
     steps:
       - name: Check out repository code
         uses: actions/checkout@v6
