@@ -221,6 +221,7 @@ contains
     type            (hdf5Object                  )                                        :: file
     type            (lockDescriptor              )                                        :: fileLock
     character       (len=16                      )                                        :: name
+    integer                                                                               :: iLock
     !![
     <constructorAssign variables="timeStepMinimum, countTimeStepsMaximum, metallicityMinimum, metallicityMaximum, countMetallicities, massScaleAbsolute, *outputTimes_"/>
     !!]
@@ -260,130 +261,142 @@ contains
           self%metallicityTable(countMetallicities+1)=metallicityInfinite
        end select
     end if
-    ! Construct the time bins and rebinning strategy to be used for each output.
+    ! Construct the time bins and rebinning strategy to be used for each output. Two passes are made: the
+    ! first holds a shared lock (allowing concurrent reads of an existing file), while the second holds an
+    ! exclusive lock. Building and writing the file are skipped on the first pass so that writes occur only
+    ! while an exclusive lock is held, avoiding corruption from concurrent writers.
     fileName=inputPath(pathTypeDataDynamic)//"starFormation/"//self%objectType()//"_"//self%hashedDescriptor(includeSourceDigest=.true.)//".hdf5"
     allocate(self%intervals(self%outputTimes_%count()))
-    if (File_Exists(fileName)) then
-       call File_Lock(fileName,fileLock,lockIsShared=.true.)
-       !$ call hdf5Access%set()
-       call file%openFile(fileName,readOnly=.true.)
-       do iOutput=1,self%outputTimes_%count()
-          write (name,'(a,i4.4)') 'times'   ,iOutput
-          call file%readDataset(name,self%intervals(iOutput)%time    )
-          write (name,'(a,i4.4)') 'indexMap',iOutput
-          call file%readDataset(name,self%intervals(iOutput)%indexMap)       
-       end do
-       call file%close()
-       !$ call hdf5Access%unset()
-       call File_Unlock(fileLock)
-    else
-       call Directory_Make(inputPath(pathTypeDataDynamic)//"/starFormation")
-       call File_Lock(char(fileName),fileLock,lockIsShared=.false.)
-       do iOutput=1,self%outputTimes_%count()
-          ! Our start time is either the minimum timestep size (for the first output), or the end time of the timesteps of the
-          ! previous output, plus the minimum timestep.
-          if (iOutput == 1) then
-             timeStart=self%timeStepMinimum
-          else
-             timeStart=self%timeStepMinimum+self%intervals(iOutput-1)%time(size(self%intervals(iOutput-1)%time))
-          end if
-          timeEnd      =self%outputTimes_%time(iOutput)
-          countTimesNew=int((timeEnd-timeStart)/self%timeStepMinimum)+2
-          ! Construct new timesteps to span the the current output time.
-          !! Allocate sufficient space for timesteps and copy in the previous timesteps.
-          if (iOutput == 1) then
-             allocate(timesNew(countTimesNew))
-             allocate(indexMap(countTimesNew))
-             iStart                                          =                                     1
-          else
-             allocate(timesNew(countTimesNew+size(self%intervals(iOutput-1)%time)))
-             allocate(indexMap(countTimesNew+size(self%intervals(iOutput-1)%time)))
-             timesNew(1:size(self%intervals(iOutput-1)%time))=     self%intervals(iOutput-1)%time
-             iStart                                          =size(self%intervals(iOutput-1)%time)+1
-          end if
-          !! Construct a mapping of indices between the current and previous interval.
-          indexMap=0_c_size_t
-          do iInterval=1,iStart-1
-             indexMap(iInterval)=iInterval
+    ! Ensure the directory exists before locking, since the lock file is created alongside the data file.
+    call Directory_Make(inputPath(pathTypeDataDynamic)//"/starFormation")
+    ! Always obtain the file lock before the hdf5Access lock to avoid deadlocks between OpenMP threads.
+    do iLock=1,2
+       call File_Lock(fileName,fileLock,lockIsShared=iLock == 1)
+       if (File_Exists(fileName)) then
+          !$ call hdf5Access%set()
+          call file%openFile(fileName,readOnly=.true.)
+          do iOutput=1,self%outputTimes_%count()
+             write (name,'(a,i4.4)') 'times'   ,iOutput
+             call file%readDataset(name,self%intervals(iOutput)%time    )
+             write (name,'(a,i4.4)') 'indexMap',iOutput
+             call file%readDataset(name,self%intervals(iOutput)%indexMap)
           end do
-          !! Set times for the new timesteps.
-          do iNew=0,countTimesNew-1
-             timesNew(iNew+iStart)=timeStart+dble(iNew)*self%timeStepMinimum
-          end do
-          !! Iteratively remove timesteps until we have no more than the permitted maximum.
-          do while (size(timesNew) > self%countTimeStepsMaximum)
-             ! Evaluate our heuristic metric for which steps to combine. Our metric is that the logarithmic interval size, Δt/age
-             ! should be minimized. We therefore find the global minimum of this metric across all current intervals, and then find the
-             ! consecutive pair of intervals which, when combined, result in the smallest increase in the global minimum.
-             !! First, find the global minimum value of our metric.
-             metricMinimumGlobal=huge(0.0d0)
-             do iInterval=1,size(timesNew)
-                timeEnd=timesNew(iInterval)
-                if (iInterval == 1) then
-                   timeStart=0.0d0
-                else
-                   timeStart=timesNew(iInterval-1)
-                end if
-                metric             =+(                  timeEnd         -timeStart) &
-                     &              /(self%outputTimes_%time   (iOutput)-timeStart)
-                metricMinimumGlobal=min(metric,metricMinimumGlobal)
-             end do
-             !! Determine which consecutive pair of intervals which, when combined, will result in the minimum increase in the global
-             !! minimum metric
-             iCombine           =-1
-             metricChangeMinimum=huge(0.0d0)
-             do iInterval=2,size(timesNew)
-                ! Metric if combined.
-                timeEnd=timesNew(iInterval)
-                if (iInterval == 2) then
-                   timeStart=0.0d0
-                else
-                   timeStart=timesNew(iInterval-2)
-                end if
-                metric=+(                  timeEnd         -timeStart) &
-                     & /(self%outputTimes_%time   (iOutput)-timeStart)
-                ! Change in the global metric minimum
-                metricChange=+metric              &
-                     &       -metricMinimumGlobal
-                if (metricChange < metricChangeMinimum) then
-                   metricChangeMinimum=metricChange
-                   iCombine=iInterval
-                end if
-             end do
-             if (iCombine == -1) call Error_Report('no interval found - this should not happen'//{introspection:location})
-             ! Combine the intervals.
-             allocate(timesNewTmp(size(timesNew)-1))
-             allocate(indexMapTmp(size(timesNew)-1))
-             if (iCombine > 2) then
-                timesNewTmp(1:iCombine-2)=timesNew(1:iCombine-2)
-                indexMapTmp(1:iCombine-2)=indexMap(1:iCombine-2)
+          call file%close()
+          !$ call hdf5Access%unset()
+          call File_Unlock(fileLock)
+          exit
+       else if (iLock == 1) then
+          ! The file does not yet exist. Release the shared lock and retry under an exclusive lock so that
+          ! the file can be built and written safely.
+          call File_Unlock(fileLock,sync=.false.)
+          cycle
+       else
+          do iOutput=1,self%outputTimes_%count()
+             ! Our start time is either the minimum timestep size (for the first output), or the end time of the timesteps of the
+             ! previous output, plus the minimum timestep.
+             if (iOutput == 1) then
+                timeStart=self%timeStepMinimum
+             else
+                timeStart=self%timeStepMinimum+self%intervals(iOutput-1)%time(size(self%intervals(iOutput-1)%time))
              end if
-             timesNewTmp(iCombine-1:size(timesNewTmp))=timesNew(iCombine:size(timesNew))
-             indexMapTmp(iCombine-1:size(indexMapTmp))=indexMap(iCombine:size(indexMap))
-             ! Capture the final index if necessary.
-             if (iCombine > 1 .and. indexMap(iCombine) == 0) indexMapTmp(iCombine-1)=indexMap(iCombine-1)
-             deallocate(timesNew)
-             deallocate(indexMap)
-             call move_alloc(timesNewTmp,timesNew)
-             call move_alloc(indexMapTmp,indexMap)
+             timeEnd      =self%outputTimes_%time(iOutput)
+             countTimesNew=int((timeEnd-timeStart)/self%timeStepMinimum)+2
+             ! Construct new timesteps to span the the current output time.
+             !! Allocate sufficient space for timesteps and copy in the previous timesteps.
+             if (iOutput == 1) then
+                allocate(timesNew(countTimesNew))
+                allocate(indexMap(countTimesNew))
+                iStart                                          =                                     1
+             else
+                allocate(timesNew(countTimesNew+size(self%intervals(iOutput-1)%time)))
+                allocate(indexMap(countTimesNew+size(self%intervals(iOutput-1)%time)))
+                timesNew(1:size(self%intervals(iOutput-1)%time))=     self%intervals(iOutput-1)%time
+                iStart                                          =size(self%intervals(iOutput-1)%time)+1
+             end if
+             !! Construct a mapping of indices between the current and previous interval.
+             indexMap=0_c_size_t
+             do iInterval=1,iStart-1
+                indexMap(iInterval)=iInterval
+             end do
+             !! Set times for the new timesteps.
+             do iNew=0,countTimesNew-1
+                timesNew(iNew+iStart)=timeStart+dble(iNew)*self%timeStepMinimum
+             end do
+             !! Iteratively remove timesteps until we have no more than the permitted maximum.
+             do while (size(timesNew) > self%countTimeStepsMaximum)
+                ! Evaluate our heuristic metric for which steps to combine. Our metric is that the logarithmic interval size, Δt/age
+                ! should be minimized. We therefore find the global minimum of this metric across all current intervals, and then find the
+                ! consecutive pair of intervals which, when combined, result in the smallest increase in the global minimum.
+                !! First, find the global minimum value of our metric.
+                metricMinimumGlobal=huge(0.0d0)
+                do iInterval=1,size(timesNew)
+                   timeEnd=timesNew(iInterval)
+                   if (iInterval == 1) then
+                      timeStart=0.0d0
+                   else
+                      timeStart=timesNew(iInterval-1)
+                   end if
+                   metric             =+(                  timeEnd         -timeStart) &
+                        &              /(self%outputTimes_%time   (iOutput)-timeStart)
+                   metricMinimumGlobal=min(metric,metricMinimumGlobal)
+                end do
+                !! Determine which consecutive pair of intervals which, when combined, will result in the minimum increase in the global
+                !! minimum metric
+                iCombine           =-1
+                metricChangeMinimum=huge(0.0d0)
+                do iInterval=2,size(timesNew)
+                   ! Metric if combined.
+                   timeEnd=timesNew(iInterval)
+                   if (iInterval == 2) then
+                      timeStart=0.0d0
+                   else
+                      timeStart=timesNew(iInterval-2)
+                   end if
+                   metric=+(                  timeEnd         -timeStart) &
+                        & /(self%outputTimes_%time   (iOutput)-timeStart)
+                   ! Change in the global metric minimum
+                   metricChange=+metric              &
+                        &       -metricMinimumGlobal
+                   if (metricChange < metricChangeMinimum) then
+                      metricChangeMinimum=metricChange
+                      iCombine=iInterval
+                   end if
+                end do
+                if (iCombine == -1) call Error_Report('no interval found - this should not happen'//{introspection:location})
+                ! Combine the intervals.
+                allocate(timesNewTmp(size(timesNew)-1))
+                allocate(indexMapTmp(size(timesNew)-1))
+                if (iCombine > 2) then
+                   timesNewTmp(1:iCombine-2)=timesNew(1:iCombine-2)
+                   indexMapTmp(1:iCombine-2)=indexMap(1:iCombine-2)
+                end if
+                timesNewTmp(iCombine-1:size(timesNewTmp))=timesNew(iCombine:size(timesNew))
+                indexMapTmp(iCombine-1:size(indexMapTmp))=indexMap(iCombine:size(indexMap))
+                ! Capture the final index if necessary.
+                if (iCombine > 1 .and. indexMap(iCombine) == 0) indexMapTmp(iCombine-1)=indexMap(iCombine-1)
+                deallocate(timesNew)
+                deallocate(indexMap)
+                call move_alloc(timesNewTmp,timesNew)
+                call move_alloc(indexMapTmp,indexMap)
+             end do
+             ! Number of intervals is now equal to or less than the maximum permitted. Store these intervals, and the map from the
+             ! previous output's intervals.
+             call move_alloc(timesNew,self%intervals(iOutput)%time    )
+             call move_alloc(indexMap,self%intervals(iOutput)%indexMap)
           end do
-          ! Number of intervals is now equal to or less than the maximum permitted. Store these intervals, and the map from the
-          ! previous output's intervals.
-          call move_alloc(timesNew,self%intervals(iOutput)%time    )
-          call move_alloc(indexMap,self%intervals(iOutput)%indexMap)
-       end do
-       !$ call hdf5Access%set()
-       call file%openFile(char(fileName),overWrite=.false.,readOnly=.false.)
-       do iOutput=1,self%outputTimes_%count()
-          write (name,'(a,i4.4)') 'times'   ,iOutput
-          call file%writeDataset(self%intervals(iOutput)%time    ,name)
-          write (name,'(a,i4.4)') 'indexMap',iOutput
-          call file%writeDataset(self%intervals(iOutput)%indexMap,name)       
-       end do
-       call file%close()
-       !$ call hdf5Access%unset()
-       call File_Unlock(fileLock)
-    end if
+          !$ call hdf5Access%set()
+          call file%openFile(char(fileName),overWrite=.false.,readOnly=.false.)
+          do iOutput=1,self%outputTimes_%count()
+             write (name,'(a,i4.4)') 'times'   ,iOutput
+             call file%writeDataset(self%intervals(iOutput)%time    ,name)
+             write (name,'(a,i4.4)') 'indexMap',iOutput
+             call file%writeDataset(self%intervals(iOutput)%indexMap,name)
+          end do
+          call file%close()
+          !$ call hdf5Access%unset()
+          call File_Unlock(fileLock)
+       end if
+    end do
     return
   end function adaptiveConstructorInternal
 
