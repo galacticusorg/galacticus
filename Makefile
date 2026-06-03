@@ -139,6 +139,12 @@ CPPFLAGS      += -fPIC
 # 16+) and is applied only to library builds.
 FCFLAGS       += -ftrampoline-impl=heap
 FCFLAGS_NOOPT += -ftrampoline-impl=heap
+# The `-z noexecstack` linker option (used below when linking libgalacticus.so) is specific to GNU ld.
+# Apple's linker does not understand it, and Mach-O has no executable-stack marking to begin with, so set
+# it only on non-Darwin (Linux) systems.
+ifneq ($(UNAME_S),Darwin)
+LINKNOEXECSTACK := -Wl,-z,noexecstack
+endif
 endif
 
 # Detect GProf compile.
@@ -635,7 +641,7 @@ libgalacticus.so: $(BUILDPATH)/libgalacticus.o $(BUILDPATH)/libgalacticus_classe
 # GNU Fortran emits stack-based trampolines). Newer kernels/loaders refuse to `dlopen()` such a library,
 # causing the Python interface to fail with "cannot enable executable stack as shared object requires:
 # Invalid argument". This flag is applied only to the library link, leaving executable builds unchanged.
-	$(FCCOMPILER) -shared -Wl,-z,noexecstack `sort -u $(BUILDPATH)/libgalacticus.d $(BUILDPATH)/libgalacticus_classes.d` $(BUILDPATH)/libgalacticus.parameters.o $(BUILDPATH)/libgalacticus.md5s.o -o libgalacticus.so $(FCFLAGS) `scripts/build/libraryDependencies.py libgalacticus.o $(FCFLAGS)`
+	$(FCCOMPILER) -shared $(LINKNOEXECSTACK) `sort -u $(BUILDPATH)/libgalacticus.d $(BUILDPATH)/libgalacticus_classes.d` $(BUILDPATH)/libgalacticus.parameters.o $(BUILDPATH)/libgalacticus.md5s.o -o libgalacticus.so $(FCFLAGS) `scripts/build/libraryDependencies.py libgalacticus.o $(FCFLAGS)`
 endif
 
 # Ensure that we don't delete object files which make considers to be intermediate
