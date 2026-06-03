@@ -30,7 +30,28 @@ if not xdiff.is_file():
     urllib.request.urlretrieve("https://hg.sr.ht/~nolda/xdiff/archive/2.4.tar.gz", tarFile)
     tarball = tarfile.open(tarFile)
     tarball.extractall(dynamicPath)
-    tarball.close() 
+    tarball.close()
+
+# `xdiff` imports the `blessings` module solely for optional colored terminal output. That package is
+# unmaintained and unavailable on recent Python versions. If it is not installed, drop a minimal no-op shim
+# into xdiff's own directory (which is first on its `sys.path` when run as a script) so that the
+# `from blessings import Terminal` import succeeds, with styling becoming a pass-through.
+blessingsShim = Path(xdiffPath+"/blessings.py")
+try:
+    import blessings
+    if blessingsShim.is_file():
+        blessingsShim.unlink()
+except ImportError:
+    blessingsShim.write_text(
+        "class _NoStyle(str):\n"
+        "    def __call__(self, text=''):\n"
+        "        return text\n"
+        "class Terminal:\n"
+        "    def __init__(self, *args, **kwargs):\n"
+        "        pass\n"
+        "    def __getattr__(self, name):\n"
+        "        return _NoStyle()\n"
+    )
 
 # Create list of file names to compare.
 fileNames    = [ args.parameterFile1, args.parameterFile2 ]
