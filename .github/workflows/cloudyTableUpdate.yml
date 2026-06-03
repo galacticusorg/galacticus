@@ -33,7 +33,7 @@ jobs:
             oldVersion="${{ inputs.old_cloudy_version }}"
             echo "updated=true" >> "$GITHUB_OUTPUT"
           else
-            oldVersion=$(git diff ${{ github.event.before }} ${{ github.sha }} -- aux/dependencies.yml | grep '^-cloudy:' | awk '{print $2}')
+            oldVersion=$(git diff ${{ github.event.before }} ${{ github.sha }} -- aux/dependencies.yml | grep '^-cloudy:' | awk '{print $2}' || true)
             if [ -n "${oldVersion}" ] && [ "${oldVersion}" != "${newVersion}" ]; then
               echo "updated=true" >> "$GITHUB_OUTPUT"
             else
