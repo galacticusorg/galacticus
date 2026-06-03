@@ -45,7 +45,7 @@ for model in models:
     subprocess.run(f"mkdir -p outputs/memoryLeaks/{model['label']}", shell=True)
 
     if hasMPI:
-        mpiPrefix = f"export OMP_NUM_THREADS={model['mpi']['threads']}; mpirun --allow-run-as-root --n {model['mpi']['processes']} "
+        mpiPrefix = f"export OMP_NUM_THREADS={model['mpi']['threads']}; mpirun --oversubscribe --allow-run-as-root --n {model['mpi']['processes']} "
     else:
         mpiPrefix = ""
 

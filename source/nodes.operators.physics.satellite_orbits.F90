@@ -119,10 +119,10 @@ contains
     type            (treeNode                  )               , pointer :: nodeHost
     class           (nodeComponentBasic        )               , pointer :: basicHost            , basicProgenitor
     class           (nodeComponentSatellite    )               , pointer :: satellite            , satelliteProgenitor
-    type            (odeSolver                 ), allocatable            :: solver
     double precision                            , dimension(3)           :: positionProgenitor   , velocityProgenitor, &
          &                                                                  positionDescendent   , velocityEffective
     double precision                            , dimension(6)           :: phaseSpaceCoordinates
+    type            (odeSolver                 )                         :: solver
     type            (keplerOrbit               )                         :: orbit
     double precision                                                     :: time                 , timeProgenitor     , &
          &                                                                  timeDescendent       , massBoundDescendent, &
@@ -145,7 +145,6 @@ contains
     massBound          =  satellite     %boundMass  (                 )
     time               =  basicHost     %time       (                 )
     ! Integrate the orbit backward in time to each progenitor halo.
-    allocate(solver)
     solver         =  odeSolver(6_c_size_t,orbitalODEs,toleranceRelative=1.0d-3,toleranceAbsolute=1.0d-6)
     self_          => self
     do while (associated(nodeProgenitor))
@@ -182,7 +181,6 @@ contains
        time           =  timeProgenitor
        nodeProgenitor => nodeProgenitor%firstChild
     end do
-    deallocate(solver)
     return
   end subroutine satelliteOrbitNodeInitialize
   

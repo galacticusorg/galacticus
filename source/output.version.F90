@@ -114,7 +114,7 @@ contains
     character(len= 41       )          :: gitHashDatasets
     character(len=128       )          :: textBufferFixed
     type     (hdf5Object    )          :: versionGroup
-    type     (varying_string)          :: runTime
+    type     (varying_string)          :: runTime        , inputPathStatic
 #ifndef GIT2AVAIL
     integer                            :: status         , hashUnit
     type     (varying_string)          :: hashFileName
@@ -136,10 +136,11 @@ contains
     call versionGroup%writeAttribute(     runTime   ,'runStartTime')
 #ifdef GIT2AVAIL
     ! Use the git2 library to get the hash of the datasets repo.
-    call repoHeadHash(char(inputPath(pathTypeDataStatic))//c_null_char,gitHashDatasets)
+    inputPathStatic=inputPath(pathTypeDataStatic)
+    call repoHeadHash(char(inputPathStatic)//c_null_char,gitHashDatasets)
     gitHashDatasets=char(String_C_to_Fortran(gitHashDatasets))
 #else
-    ! Git2 library is not available. If we have the command line `git` installed, use it insted.
+    ! Git2 library is not available. If we have the command line `git` installed, use it instead.
     gitHashDatasets="unknown"
     hashFileName   =File_Name_Temporary("repoHash.txt")
     call System_Command_Do("cd "//char(inputPath(pathTypeDataStatic))//"; if which git > /dev/null && git rev-parse --is-inside-work-tree > /dev/null 2>&1 ; then git rev-parse HEAD > "//char(hashFileName)//"; else echo unknown > "//char(hashFileName)//"; fi",iStatus=status)
@@ -172,9 +173,6 @@ contains
        call destroy(doc)
        !$omp end critical (FoX_DOM_Access)
     end if
-
-    ! Close the version group.
-    call versionGroup%close()
     !$ call hdf5Access%unset()
     return
   end subroutine Version_Output
@@ -204,7 +202,6 @@ contains
     versionGroup   =outputFile%openGroup('Version')
     call versionGroup%writeAttribute(runTime        ,'runEndTime' )
     call versionGroup%writeAttribute(timeRunDuration,'runDuration')
-    call versionGroup%close         (                             )
     !$ call hdf5Access%unset()
     return
   end subroutine Version_Finalize

@@ -231,6 +231,8 @@ program Test_NFW96_Concentration_Dark_Energy
      call Assert(char(message),ourConcentration,chardenConcentrationZ3(iMass),relTol=0.01d0)
   end do
   ! End unit tests.
+  call node%destroy()
+  deallocate(node)
   call Unit_Tests_End_Group               ()
   call Unit_Tests_Finish                  ()
   call Node_Components_Thread_Uninitialize()

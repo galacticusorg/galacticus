@@ -219,12 +219,15 @@ contains
     !!}
     use :: Coordinates, only : coordinateSpherical, assignment(=)
     implicit none
-    type (coordinateSpherical          )                :: coordinatesDarkMatter
-    class(massDistributionPatejLoeb2015), intent(inout) :: self
-    class(coordinate                   ), intent(in   ) :: coordinates
+    type            (coordinateSpherical          )                :: coordinatesDarkMatter
+    class           (massDistributionPatejLoeb2015), intent(inout) :: self
+    class           (coordinate                   ), intent(in   ) :: coordinates
+    class           (coordinate                   ), allocatable   :: coordinates_
+    double precision                                               :: scaleFactor
 
-    coordinatesDarkMatter=coordinates                                                      &
-         &                *(coordinates%rSpherical()/self%radiusShock)**(self%gamma-1.0d0)
+    scaleFactor=(coordinates%rSpherical()/self%radiusShock)**(self%gamma-1.0d0)
+    call coordinates%scale(scaleFactor,coordinates_)
+    coordinatesDarkMatter=coordinates_
     return
   end function patejLoeb2015CoordinatesDarkMatter
 

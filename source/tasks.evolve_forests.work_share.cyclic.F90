@@ -17,7 +17,7 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !$ use :: OMP_Lib, only : omp_lock_kind
+  !$ use :: Locks, only : ompLock
 
   !![
   <evolveForestsWorkShare name="evolveForestsWorkShareCyclic">
@@ -29,11 +29,10 @@
      Implementation of a forest evolution work sharing class in which forests are assigned by cycling through processes.
      !!}
      private
-     !$ integer(omp_lock_kind)                            :: lock
-     integer   (c_size_t     ), allocatable, dimension(:) :: treeNumber_
-     logical                                              :: utilizeOpenMPThreads, first
+     !$ type(ompLock )                            :: lock
+     integer(c_size_t), allocatable, dimension(:) :: treeNumber_
+     logical                                      :: utilizeOpenMPThreads, first
    contains
-     final     ::                 cyclicDestructor
      procedure :: forestNumber => cyclicForestNumber
   end type evolveForestsWorkShareCyclic
 
@@ -73,20 +72,9 @@ contains
 
     self%first               =.true.
     self%utilizeOpenMPThreads=.true.
-    !$ call OMP_Init_Lock(self%lock)
+    !$ self%lock             =ompLock()
     return
   end function cyclicConstructorInternal
-
-  subroutine cyclicDestructor(self)
-    !!{
-    Destructor for the \refClass{evolveForestsWorkShareCyclic} forest evolution work sharing class.
-    !!}
-    implicit none
-    type(evolveForestsWorkShareCyclic), intent(inout) :: self
-
-    !$ call OMP_Destroy_Lock(self%lock)
-    return
-  end subroutine cyclicDestructor
 
   function cyclicForestNumber(self,utilizeOpenMPThreads)
     !!{
@@ -99,7 +87,7 @@ contains
     logical                              , intent(in   ) :: utilizeOpenMPThreads
     integer(c_size_t                    )                :: i
 
-    !$ call OMP_Set_Lock(self%lock)
+    !$ call self%lock%set()
     if (self%first) then
        self%utilizeOpenMPThreads=utilizeOpenMPThreads
        self%first               =.false.
@@ -112,7 +100,7 @@ contains
     else
        if (self%utilizeOpenMPThreads .neqv. utilizeOpenMPThreads) call Error_Report('"cyclic" work share can not support transitions between utilizing/not utilizing OpenMP threads'//{introspection:location})
     end if
-    !$ call OMP_Unset_Lock(self%lock)
+    !$ call self%lock%unset()
     self%treeNumber_(self%workerID(utilizeOpenMPThreads))=+self%treeNumber_(self%workerID   (utilizeOpenMPThreads)) &
          &                                                +                 self%workerCount(utilizeOpenMPThreads)
     cyclicForestNumber                                   =+self%treeNumber_(self%workerID   (utilizeOpenMPThreads))

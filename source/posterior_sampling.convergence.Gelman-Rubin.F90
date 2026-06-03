@@ -22,7 +22,17 @@
   !!}
 
   use :: ISO_Varying_String, only : varying_string
+  use :: Resource_Manager  , only : resourceManager
 
+  type :: fileShared
+     !!{
+     Wrapper type to manage shared file resource.
+     !!}
+     integer :: unit
+   contains
+     final :: fileSharedDestructor
+  end type fileShared
+  
   !![
   <posteriorSampleConvergence name="posteriorSampleConvergenceGelmanRubin">
    <description>
@@ -47,16 +57,18 @@
      Implementation of a posterior sampling convergence class which implements the Gelman-Rubin statistic.
      !!}
      private
-     double precision                                            :: thresholdHatR             , outlierSignificance         , &
-          &                                                         outlierLogLikelihoodOffset
-     integer                                                     :: burnCount                 , testCount                   , &
-          &                                                         stepCount                 , outlierCountMaximum         , &
-          &                                                         reportCount               , estimateCount               , &
-          &                                                         logFileUnit               , convergedAtStepCount
-     logical                                                     :: converged                 , logFileIsOpen       =.false.
-     type            (varying_string)                            :: logFileName
-     double precision                , allocatable, dimension(:) :: correctedHatR
-     logical                         , allocatable, dimension(:) :: chainMask
+     double precision                                             :: thresholdHatR                       , outlierSignificance, &
+          &                                                          outlierLogLikelihoodOffset
+     integer                                                      :: burnCount                           , testCount          , &
+          &                                                          stepCount                           , outlierCountMaximum, &
+          &                                                          reportCount                         , estimateCount      , &
+          &                                                          convergedAtStepCount
+     logical                                                      :: converged
+     type            (varying_string )                            :: logFileName
+     type            (fileShared     ), pointer                   :: logFile                    => null()
+     type            (resourceManager)                            :: logFileManager
+     double precision                 , allocatable, dimension(:) :: correctedHatR
+     logical                          , allocatable, dimension(:) :: chainMask
    contains
      !![
      <methods>
@@ -64,7 +76,6 @@
        <method description="Return the target convergence measure, $\hat{R}$." method="convergenceMeasureTarget" />
      </methods>
      !!]
-     final     ::                             gelmanRubinDestructor
      procedure :: isConverged              => gelmanRubinIsConverged
      procedure :: convergedAtStep          => gelmanRubinConvergedAtStep
      procedure :: reset                    => gelmanRubinReset
@@ -168,6 +179,7 @@ contains
     integer                                                , intent(in   ) :: burnCount                 , testCount          , &
          &                                                                    outlierCountMaximum       , reportCount
     type            (varying_string                       ), intent(in   ) :: logFileName
+    class           (*                                    ), pointer       :: dummyPointer_
     !![
     <constructorAssign variables="thresholdHatR,burnCount,testCount,outlierCountMaximum,outlierSignificance,outlierLogLikelihoodOffset,reportCount,logFileName"/>
     !!]
@@ -182,26 +194,20 @@ contains
     if (mpiSelf%count()-self%outlierCountMaximum < 3) call Error_Report('maximum number of outliers is too large'//{introspection:location})
     ! Open log file.
     if (mpiSelf%isMaster()) then
-       open(newUnit=self%logFileUnit,file=char(logFileName),form='formatted',status='unknown')
-       self%logFileIsOpen=.true.
-    else
-       self%logFileIsOpen=.false.
+       allocate(self%logFile)
+       !![
+       <workaround type="gfortran" PR="105807" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=105807">
+	 <description>ICE when passing a derived type component to a class(*) function argument.</description>
+       !!]
+       dummyPointer_       => self%logFile
+       self%logFileManager =  resourceManager(dummyPointer_)
+       !![
+       </workaround>
+       !!]
+       open(newUnit=self%logFile%unit,file=char(logFileName),form='formatted',status='unknown')
     end if
     return
   end function gelmanRubinConstructorInternal
-
-  subroutine gelmanRubinDestructor(self)
-    !!{
-    Destroy a Gelman-Rubin convergence object.
-    !!}
-    use :: MPI_Utilities, only : mpiSelf
-    implicit none
-    type(posteriorSampleConvergenceGelmanRubin), intent(inout) :: self
-
-    ! Close the log file.
-    if (mpiSelf%isMaster().and.self%logFileIsOpen) close(self%logFileUnit)
-    return
-  end subroutine gelmanRubinDestructor
 
   logical function gelmanRubinIsConverged(self,simulationState,logLikelihood)
     !!{
@@ -480,9 +486,9 @@ contains
              call displayMessage('no outlier chains')
           end if
        end if
-       write (self%logFileUnit,*) "outliers    ",simulationState%count(),self%chainMask
-       write (self%logFileUnit,*) "convergence ",simulationState%count(),minval(self%correctedHatR),maxval(self%correctedHatR),self%correctedHatR
-       call flush(self%logFileUnit)
+       write (self%logFile%unit,*) "outliers    ",simulationState%count(),self%chainMask
+       write (self%logFile%unit,*) "convergence ",simulationState%count(),minval(self%correctedHatR),maxval(self%correctedHatR),self%correctedHatR
+       call flush(self%logFile%unit)
     end if
     return
   end function gelmanRubinIsConverged
@@ -569,3 +575,14 @@ contains
     gelmanRubinConvergenceMeasureTarget=self%thresholdHatR
     return
   end function gelmanRubinConvergenceMeasureTarget
+
+  subroutine fileSharedDestructor(self)
+    !!{
+    Destructor for shared file objects.
+    !!}
+    implicit none
+    type(fileShared), intent(inout) :: self
+
+    close(self%unit)
+    return
+  end subroutine fileSharedDestructor

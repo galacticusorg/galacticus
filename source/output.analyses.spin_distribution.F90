@@ -330,7 +330,7 @@ contains
          &                                                                                time
 
     !$ call hdf5Access%set  ()
-    call dataFile%openFile(fileName,readOnly=.true.)
+    dataFile       =hdf5Object(fileName,readOnly=.true.)
     simulationGroup=dataFile       %openGroup('simulation0001')
     attributesGroup=simulationGroup%openGroup('simulation'    )
     call simulationGroup%readDataset  ('spin'                              ,spin                              )
@@ -344,9 +344,6 @@ contains
     call attributesGroup%readAttribute('timeRecent'                        ,timeRecent                        )
     call attributesGroup%readAttribute('particleCountMinimum'              ,particleCountMinimum              )
     call attributesGroup%readAttribute('energyEstimateParticleCountMaximum',energyEstimateParticleCountMaximum)
-    call attributesGroup%close        (                                                                       )
-    call simulationGroup%close        (                                                                       )
-    call dataFile       %close        (                                                                       )
     !$ call hdf5Access%unset()
     ! Compute a (diagonal) covariance matrix from the counts.
     allocate(functionCovarianceTarget(size(functionValueTarget),size(functionValueTarget)))

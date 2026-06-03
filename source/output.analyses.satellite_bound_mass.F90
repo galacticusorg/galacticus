@@ -24,7 +24,7 @@
   !!}
 
   use    :: Numerical_Interpolation, only : interpolator
-  !$ use :: OMP_Lib, only : omp_lock_kind
+  !$ use :: Locks                  , only : ompLock
 
   !![
   <outputAnalysis name="outputAnalysisSatelliteBoundMass">
@@ -39,7 +39,7 @@
      class           (outputTimesClass), pointer                   :: outputTimes_             => null()
      type            (varying_string  )                            :: fileName
      type            (interpolator    )                            :: interpolator_                     , interpolatorError_
-     !$ integer      (omp_lock_kind   )                            :: accumulateLock
+     !$ type         (ompLock         )                            :: accumulateLock
      double precision                                              :: logLikelihood_
      double precision                                              :: relativeModelUncertainty          , boundMassInitial
      double precision                  , dimension(:), allocatable :: time                              , fractionBoundMass              , &
@@ -121,11 +121,10 @@ contains
 
     ! Read properties from the file.
     !$ call hdf5Access%set()
-    call file%openFile   (char(fileName)  ,readOnly=.true.        )
-    call file%readDataset('time'          ,         time          )
-    call file%readDataset('boundMass'     ,         boundMass     )
-    call file%readDataset('boundMassError',         boundMassError)
-    call file%close      (                                        )
+    file=hdf5Object(char(fileName),readOnly=.true.)
+    call file%readDataset('time'          ,time          )
+    call file%readDataset('boundMass'     ,boundMass     )
+    call file%readDataset('boundMassError',boundMassError)
     !$ call hdf5Access%unset()
     allocate(fractionBoundMass     (size(boundMass)))
     allocate(fractionBoundMassError(size(boundMass)))
@@ -144,7 +143,7 @@ contains
        self%fractionBoundMassTarget        (i)=exp(self%interpolator_     %interpolate(outputTimes_%time(i)))
        self%varianceFractionBoundMassTarget(i)=exp(self%interpolatorError_%interpolate(outputTimes_%time(i)))**2
     end do
-    !$ call OMP_Init_Lock(self%accumulateLock)
+    !$ self%accumulateLock=ompLock()
     self%fractionBoundMass=0.0d0
     self%logLikelihood_   =0.0d0
     return
@@ -154,14 +153,12 @@ contains
     !!{
     Destructor for the \refClass{outputAnalysisSatelliteBoundMass} output analysis class.
     !!}
-    !$ use :: OMP_Lib, only : OMP_Destroy_Lock
     implicit none
     type(outputAnalysisSatelliteBoundMass), intent(inout) :: self
 
     !![
     <objectDestructor name="self%outputTimes_"/>
     !!]
-    !$ call OMP_Destroy_Lock(self%accumulateLock)
     return
   end subroutine satelliteBoundMassDestructor
 
@@ -169,9 +166,8 @@ contains
     !!{
     Analyze the maximum velocity tidal track.
     !!}
-    use    :: Galacticus_Nodes        , only : nodeComponentSatellite
-    use    :: Numerical_Constants_Math, only : Pi
-    !$ use :: OMP_Lib                 , only : OMP_Set_Lock          , OMP_Unset_Lock
+    use :: Galacticus_Nodes        , only : nodeComponentSatellite
+    use :: Numerical_Constants_Math, only : Pi
     implicit none
     class           (outputAnalysisSatelliteBoundMass), intent(inout) :: self
     type            (treeNode                        ), intent(inout) :: node
@@ -185,7 +181,6 @@ contains
     satellite         =>  node     %satellite       ()
     fractionMassBound =  +satellite%boundMass       () &
          &               /self     %boundMassInitial
-    !$ call OMP_Set_Lock(self%accumulateLock)
     self%fractionBoundMass(iOutput)=fractionMassBound
     ! Add model uncertainty.
     varianceFractionBoundMass      =+  self%varianceFractionBoundMassTarget(iOutput) &
@@ -203,7 +198,6 @@ contains
          &                            /             varianceFractionBoundMass        &
          &                            +log(2.0d0*Pi*varianceFractionBoundMass)       &
          &                           )
-    !$ call OMP_Unset_Lock(self%accumulateLock)
     return
   end subroutine satelliteBoundMassAnalyze
 
@@ -211,18 +205,17 @@ contains
     !!{
     Reduce over the maximum velocity tidal track output analysis.
     !!}
-    use    :: Error  , only : Error_Report
-    !$ use :: OMP_Lib, only : OMP_Set_Lock, OMP_Unset_Lock
+    use :: Error, only : Error_Report
     implicit none
     class(outputAnalysisSatelliteBoundMass), intent(inout) :: self
     class(outputAnalysisClass             ), intent(inout) :: reduced
 
     select type (reduced)
     class is (outputAnalysisSatelliteBoundMass)
-       !$ call OMP_Set_Lock(reduced%accumulateLock)       
+       !$ call reduced%accumulateLock%set()       
        reduced%fractionBoundMass=reduced%fractionBoundMass+self%fractionBoundMass
        reduced%logLikelihood_   =reduced%logLikelihood_   +self%logLikelihood_
-       !$ call OMP_Unset_Lock(reduced%accumulateLock)
+       !$ call reduced%accumulateLock%unset()
     class default
        call Error_Report('incorrect class'//{introspection:location})
     end select
@@ -275,19 +268,12 @@ contains
     call analysisGroup%writeDataset  (self%time                   ,'time'                   ,'Time'                           ,datasetReturned=dataset)
     call dataset      %writeAttribute('Gyr'                       ,'units'                                                                            )
     call dataset      %writeAttribute(gigaYear                    ,'unitsInSI'                                                                        )
-    call dataset      %close         (                                                                                                                )
     call analysisGroup%writeDataset  (self%fractionBoundMass      ,'fractionBoundMass'      ,'Fraction of bound mass'         ,datasetReturned=dataset)
     call dataset      %writeAttribute(' '                         ,'units'                                                                            )
     call dataset      %writeAttribute(1.0d0                       ,'unitsInSI'                                                                        )
-    call dataset      %close         (                                                                                                                )
     call analysisGroup%writeDataset  (self%fractionBoundMassTarget,'fractionBoundMassTarget','Fraction of bound mass [target]',datasetReturned=dataset)
     call dataset      %writeAttribute(' '                         ,'units'                                                                            )
     call dataset      %writeAttribute(1.0d0                       ,'unitsInSI'                                                                        )
-    call dataset      %close         (                                                                                                                )
-    call analysisGroup%close         (                                                                                                                )
-    if (present(groupName)) &
-         & call subGroup%close       (                                                                                                                )
-    call analysesGroup%close         (                                                                                                                )
     !$ call hdf5Access%unset()
     return
   end subroutine satelliteBoundMassFinalize

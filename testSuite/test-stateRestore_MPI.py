@@ -30,7 +30,7 @@ for runPass in range(2):
     # Run full store model.
     subprocess.run("rm -f outputs/state.state*:MPI* outputs/state.gsl.state*:MPI*", shell=True)
     status = subprocess.run(
-        f"export OMP_NUM_THREADS=1; cd ..; mpirun -np 8{allowRunAsRoot} Galacticus.exe testSuite/parameters/state/store.xml",
+        f"export OMP_NUM_THREADS=1; cd ..; mpirun --oversubscribe -np 8{allowRunAsRoot} Galacticus.exe testSuite/parameters/state/store.xml",
         shell=True
     )
     if status.returncode != 0:
@@ -60,7 +60,7 @@ for runPass in range(2):
 
     # Run the restore model.
     status = subprocess.run(
-        f"export OMP_NUM_THREADS=1; cd ..; mpirun -np 1{allowRunAsRoot} Galacticus.exe testSuite/parameters/state/retrieve.xml",
+        f"export OMP_NUM_THREADS=1; cd ..; mpirun --oversubscribe -np 1{allowRunAsRoot} Galacticus.exe testSuite/parameters/state/retrieve.xml",
         shell=True
     )
     if status.returncode != 0:

@@ -167,9 +167,6 @@ contains
     type (varying_string             ), allocatable, dimension(:), intent(inout) :: mangleFiles
 
     allocate(mangleFiles(1))
-    mangleFiles=                                                &
-         &      [                                               &
-         &       self%mangleDirectory()//"darkEnergySurvey.ply" &
-         &      ]
+    mangleFiles(1)=self%mangleDirectory()//"darkEnergySurvey.ply"
     return
   end subroutine localGroupDESMangleFiles

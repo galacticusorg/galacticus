@@ -51,7 +51,7 @@ module Hashes
   public :: {Type¦label}Hash
 
   type :: {Type¦label}Container
-  private
+     private
      {Type¦intrinsic}{Type¦attributes} :: object {Type¦initializor}
   end type {Type¦label}Container
 
@@ -68,19 +68,22 @@ module Hashes
    contains
      !![
      <methods>
-       <method description="Initialize the hash."                                                                      method="initialize"/>
-       <method description="Set the value of a key in the hash."                                                       method="set"       />
-       <method description="Delete a key from the hash."                                                               method="delete"    />
-       <method description="Return the value for the given key."                                                       method="value"     />
-       <method description="Return the key of the \mono{indexValue}$^\mathrm{th}$ entry in the hash." method="key"       />
-       <method description="Return an array of all keys in the hash."                                                  method="keys"      />
-       <method description="Return an array of all values in the hash."                                                method="values"    />
-       <method description="Return true if the specified key exists in the hash."                                      method="exists"    />
-       <method description="Return the number of keys in the hash."                                                    method="size"      />
-       <method description="Destroy the hash."                                                                         method="destroy"   />
+       <method description="Initialize the hash."                                                                      method="initialize"   />
+       <method description="Set the value of a key in the hash."                                                       method="set"          />
+       <method description="Delete a key from the hash."                                                               method="delete"       />
+       <method description="Return the value for the given key."                                                       method="value"        />
+       <method description="Return the key of the \mono{indexValue}$^\mathrm{th}$ entry in the hash."                  method="key"          />
+       <method description="Return an array of all keys in the hash."                                                  method="keys"         />
+       <method description="Return an array of all values in the hash."                                                method="values"       />
+       <method description="Return true if the specified key exists in the hash."                                      method="exists"       />
+       <method description="Return the number of keys in the hash."                                                    method="size"         />
+       <method description="Destroy the hash."                                                                         method="destroy"      />
+       <method description="Assign hash objects."                                                                      method="assignment(=)"/>
      </methods>
      !!]
      final     ::                             {Type¦label}Destructor
+     procedure ::                             {Type¦label}Assign
+     generic   :: assignment(=)            => {Type¦label}Assign
      procedure :: initialize               => {Type¦label}Initialize
      procedure :: {Type¦label}SetVarStr
      procedure :: {Type¦label}SetChar
@@ -138,6 +141,36 @@ contains
     if (allocated(self%hashKeys  )) deallocate(self%hashKeys  )
     return
   end subroutine {Type¦label}Initialize
+
+  subroutine {Type¦label}Assign(to,from)
+    !!{
+    Assignment operator for hashes.
+    !!}
+    implicit none
+    class  ({Type¦label}Hash), intent(  out) :: to
+    class  ({Type¦label}Hash), intent(in   ) :: from
+    integer                                  :: i
+
+    to%allocatedSize=from%allocatedSize
+    to%elementCount =from%elementCount
+    to%indexPrevious=from%indexPrevious
+    to%keyPrevious  =from%keyPrevious
+    if (allocated(to  %hashValues)) deallocate(to%hashValues                       )
+    if (allocated(to  %hashKeys  )) deallocate(to%hashKeys                         )
+    if (allocated(from%hashValues)) then
+       allocate(to%hashValues(size(from%hashValues)))
+       do i=1,size(from%hashValues)
+          to%hashValues(i)=from%hashValues(i)
+       end do
+    end if
+    if (allocated(from%hashKeys  )) then
+       allocate(to%hashKeys(size(from%hashKeys)))
+       do i=1,size(from%hashKeys)
+          to%hashKeys(i)=from%hashKeys(i)
+       end do
+    end if
+    return
+  end subroutine {Type¦label}Assign
 
   integer function {Type¦label}Size(self)
     !!{

@@ -120,11 +120,6 @@ module Merger_Tree_Read_Importers
     <pass>yes</pass>
     <argument>type(varying_string), intent(in   ) :: fileName</argument>
    </method>
-   <method name="close" >
-    <description>Closes the currently open merger tree file and releases any associated resources held by the importer.</description>
-    <type>void</type>
-    <pass>yes</pass>
-   </method>
    <method name="treesHaveSubhalos" >
     <description>Returns a Boolean integer specifying whether or not the trees have subhalos.</description>
     <type>integer</type>

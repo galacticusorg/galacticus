@@ -114,7 +114,6 @@ contains
     !!]
 
     self%parameters=inputParameters(parameters)
-    call self%parameters%parametersGroupCopy(parameters)
     if (.not.self%nbodyImporter_%isHDF5()) self%storeBackToImported=.false.
     return
   end function nbodyAnalyzeConstructorInternal
@@ -161,7 +160,6 @@ contains
     !$ call hdf5Access%set()
     do i=1,size(simulations)
        if (.not.self%storeBackToImported) then
-          if (simulations(i)%analysis%isOpen()) call simulations(i)%analysis%close()
           write (label,'(a,i4.4)') 'simulation',i
           simulations(i)%analysis=outputFile%openGroup(label)
           call simulations(i)%analysis%writeAttribute(simulations(i)%label,'label')
@@ -170,12 +168,6 @@ contains
     !$ call hdf5Access%unset()
     ! Operate on the N-body data.
     call self%nbodyOperator_%operate(simulations)
-    ! Close the analysis group.
-    !$ call hdf5Access%set()
-    do i=1,size(simulations)
-       if (simulations(i)%analysis%isOpen()) call simulations(i)%analysis%close()
-    end do
-    !$ call hdf5Access%unset()
     ! Done.
     call Node_Components_Thread_Uninitialize()
     if (present(status)) status=errorStatusSuccess

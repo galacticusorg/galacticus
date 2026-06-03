@@ -268,9 +268,8 @@ contains
        ! Always obtain the file lock before the hdf5Access lock to avoid deadlocks between OpenMP threads.
        call File_Lock(char(fileName),fileLock,lockIsShared=.true.)
        !$ call hdf5Access%set()
-       call file%openFile   (char(fileName    )           )
-       call file%readDataset(     'covariance' ,covariance)
-       call file%close      (                             )
+       file=hdf5Object(char(fileName))
+       call file%readDataset('covariance',covariance)
        !$ call hdf5Access%unset()
        call File_Unlock(fileLock)
     else
@@ -300,9 +299,8 @@ contains
        ! Always obtain the file lock before the hdf5Access lock to avoid deadlocks between OpenMP threads.
        call File_Lock(char(fileName),fileLock,lockIsShared=.true.)
        !$ call hdf5Access%set()
-       call file%openFile    (char(fileName  )             )
-       call file%writeDataset(     covariance ,'covariance')
-       call file%close       (                             )
+       file=hdf5Object(char(fileName))
+       call file%writeDataset(covariance,'covariance')
        !$ call hdf5Access%unset()
        call File_Unlock(fileLock)
     end if
@@ -632,8 +630,8 @@ contains
     !!}
     use :: Error, only : Error_Report
     implicit none
-    class           (geometryLightconeCylindrical), intent(inout)                                      :: self
-    type            (treeNode                    ), intent(inout)                                      :: node
+    class           (geometryLightconeCylindrical), intent(inout), target                              :: self
+    type            (treeNode                    ), intent(inout), target                              :: node
     double precision                              , intent(in   )                                      :: timeStart    , timeEnd
     double precision                              , intent(inout), dimension(:), allocatable, optional :: timesCrossing
    !$GLC attributes unused :: self, node, timeStart, timeEnd, timesCrossing

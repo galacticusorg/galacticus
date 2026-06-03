@@ -197,28 +197,28 @@ contains
     use :: Input_Paths       , only : inputPath            , pathTypeDataStatic
     use :: IO_XML            , only : XML_Array_Read_Static, XML_Get_First_Element_By_Tag_Name, XML_Get_Elements_By_Tag_Name, XML_Parse         , &
          &                            xmlNodeList
-    use :: ISO_Varying_String, only : char                 , varying_string                   , assignment(=)
+    use :: ISO_Varying_String, only : char                 , varying_string                   , assignment(=)               , operator(//)
     use :: String_Handling   , only : String_Lower_Case    , char
     implicit none
-    type            (Node          )              , pointer     :: abundanceTypeElement, doc              , &
+    type            (Node          )              , pointer     :: abundanceTypeElement, doc                , &
          &                                                         atom                , element
     type            (xmlNodeList   ), dimension(:), allocatable :: elementList
     integer                         , dimension(1)              :: elementValueInteger
     double precision                , dimension(1)              :: elementValueDouble
-    integer                                                     :: atomicNumber        , iAbundancePattern, &
+    integer                                                     :: atomicNumber        , iAbundancePattern  , &
          &                                                         iAtom               , ioErr
     double precision                                            :: abundance           , totalMass
     character       (len=100       )                            :: abundanceType
-    type            (varying_string)                            :: fileName
+    type            (varying_string)                            :: fileName            , abundancePatternFile
 
     ! Check if module is initialized.
     !$omp critical(atomicDataInitialize)
     if (.not.atomicDataInitialized) then
 
        ! Read in the atomic data.
-       fileName=char(inputPath(pathTypeDataStatic))//"abundances/Atomic_Data.xml"
+       fileName=inputPath(pathTypeDataStatic)//"abundances/Atomic_Data.xml"
        !$omp critical (FoX_DOM_Access)
-       doc => XML_Parse(char(fileName),iostat=ioErr)
+       doc => XML_Parse(fileName,iostat=ioErr)
        if (ioErr /= 0) call Error_Report('Unable to parse data file'//{introspection:location})
 
        ! Get list of all element elements.
@@ -255,7 +255,8 @@ contains
        do iAbundancePattern=1,abundancePatternCount
 
           ! Parse the abundance pattern file.
-          doc => XML_Parse(char(inputPath(pathTypeDataStatic))//abundancePatternFiles(iAbundancePattern),iostat=ioErr)
+          abundancePatternFile=inputPath(pathTypeDataStatic)//abundancePatternFiles(iAbundancePattern)
+          doc => XML_Parse(abundancePatternFile,iostat=ioErr)
           if (ioErr /= 0) call Error_Report('Unable to parse data file'//{introspection:location})
 
           ! Get list of all element elements.

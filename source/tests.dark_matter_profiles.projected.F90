@@ -45,13 +45,13 @@ program Test_Dark_Matter_Profiles_Projected
   use            :: Multi_Counters            , only : multiCounter
   use            :: ISO_Varying_String        , only : varying_string                                                , assignment(=)                        , var_str
   implicit none
-  type            (darkMatterHaloScaleVirialDensityContrastDefinition            )                          :: darkMatterHaloScale_
-  type            (cosmologyParametersSimple                                     )                          :: cosmologyParameters_
-  type            (cosmologyFunctionsMatterLambda                                )                          :: cosmologyFunctions_
-  type            (virialDensityContrastSphericalCollapseClsnlssMttrCsmlgclCnstnt)                          :: virialDensityContrast_
-  type            (darkMatterProfileDMONFW                                       )                          :: darkMatterProfileDMO_
-  type            (nodePropertyExtractorProjectedMass                            )                          :: nodePropertyExtractorProjectedMass_
-  type            (nodePropertyExtractorProjectedDensity                         )                          :: nodePropertyExtractorProjectedDensity_
+  type            (darkMatterHaloScaleVirialDensityContrastDefinition            ), pointer                 :: darkMatterHaloScale_
+  type            (cosmologyParametersSimple                                     ), pointer                 :: cosmologyParameters_
+  type            (cosmologyFunctionsMatterLambda                                ), pointer                 :: cosmologyFunctions_
+  type            (virialDensityContrastSphericalCollapseClsnlssMttrCsmlgclCnstnt), pointer                 :: virialDensityContrast_
+  type            (darkMatterProfileDMONFW                                       ), pointer                 :: darkMatterProfileDMO_
+  type            (nodePropertyExtractorProjectedMass                            ), pointer                 :: nodePropertyExtractorProjectedMass_
+  type            (nodePropertyExtractorProjectedDensity                         ), pointer                 :: nodePropertyExtractorProjectedDensity_
   type            (treeNode                                                      ), pointer                 :: node__
   class           (nodeComponentBasic                                            ), pointer                 :: basic__
   class           (nodeComponentDarkMatterProfile                                ), pointer                 :: darkMatterProfile__
@@ -65,12 +65,19 @@ program Test_Dark_Matter_Profiles_Projected
   
   call displayVerbositySet(verbosityLevelStandard)
   call Unit_Tests_Begin_Group("Projected dark matter profiles")
-  parameters=inputParameters(var_str('testSuite/parameters/darkMatterProfilesProjected.xml'))
+  parameters=inputParameters('testSuite/parameters/darkMatterProfilesProjected.xml')
   call eventsHooksInitialize()
   call Functions_Global_Set             (          )
   call nodeClassHierarchyInitialize     (parameters)
   call Node_Components_Initialize       (parameters)
   call Node_Components_Thread_Initialize(parameters)
+  allocate(darkMatterHaloScale_                  )
+  allocate(cosmologyParameters_                  )
+  allocate(cosmologyFunctions_                   )
+  allocate(virialDensityContrast_                )
+  allocate(darkMatterProfileDMO_                 )
+  allocate(nodePropertyExtractorProjectedMass_   )
+  allocate(nodePropertyExtractorProjectedDensity_)
   !![
   <referenceConstruct object="cosmologyParameters_"  >
    <constructor>
@@ -157,8 +164,20 @@ program Test_Dark_Matter_Profiles_Projected
   massProjected   =nodePropertyExtractorProjectedMass_   %extract(node__,basic__%time(),instance)  
   call Assert("Projected density",densityProjected(:,1),[8.09887d13,3.89131d13,1.53862d13],relTol=2.0d-3)
   call Assert("Projected mass"   ,   massProjected(:,1),[1.02724d11,2.34537d11,4.62114d11],relTol=2.0d-3)
-  call Unit_Tests_End_Group               ()
-  call Unit_Tests_Finish                  ()
+  call Unit_Tests_End_Group()
+  call Unit_Tests_Finish   ()
+  ! Clean up.
+  call node__%destroy()
+  deallocate(node__)
+  !![
+  <objectDestructor name="darkMatterHaloScale_"                  />
+  <objectDestructor name="cosmologyParameters_"                  />
+  <objectDestructor name="cosmologyFunctions_"                   />
+  <objectDestructor name="virialDensityContrast_"                />
+  <objectDestructor name="darkMatterProfileDMO_"                 />
+  <objectDestructor name="nodePropertyExtractorProjectedMass_"   />
+  <objectDestructor name="nodePropertyExtractorProjectedDensity_"/>
+  !!]
   call Node_Components_Thread_Uninitialize()
   call Node_Components_Uninitialize       ()
   call nodeClassHierarchyFinalize         ()

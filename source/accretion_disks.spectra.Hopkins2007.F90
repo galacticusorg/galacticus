@@ -171,14 +171,13 @@ contains
     makeFile=.false.
     if (File_Exists(self%fileName)) then
        !$ call hdf5Access%set()
-       call file%openFile(char(self%fileName),readOnly=.true.)
+       file=hdf5Object(char(self%fileName),readOnly=.true.)
        if (file%hasAttribute('fileFormat')) then
           call file%readAttribute('fileFormat',fileFormatCurrentFile,allowPseudoScalar=.true.)
           makeFile=fileFormatCurrentFile /= fileFormatCurrent
        else
           makeFile=.true.
        end if
-       call file%close()
        !$ call hdf5Access%unset()
     else
        makeFile=.true.
@@ -232,26 +231,22 @@ contains
        call displayCounterClear(verbosity=verbosityLevelWorking)
        ! Store the data to file.
        !$ call hdf5Access%set()
-       call file   %openFile      (char(self%fileName)                             ,overWrite      =.true. )
+       file=hdf5Object(char(self%fileName),overWrite=.true.)
        call file   %writeDataset  (wavelength               ,"wavelength"          ,datasetReturned=dataset)
        call dataset%writeAttribute("Angstroms (Å)"          ,"units"                                       )
        call dataset%writeAttribute(1.0d0/metersToAngstroms  ,"unitsInSI"                                   )
-       call dataset%close         (                                                                        )
        call file   %writeDataset  (luminosityBolometric     ,"bolometricLuminosity",datasetReturned=dataset)
        call dataset%writeAttribute("Solar luminosities (L☉)","units"                                       )
        call dataset%writeAttribute(luminositySolar          ,"unitsInSI"                                   )
-       call dataset%close         (                                                                        )
        call file   %writeDataset  (SED                      ,"SED"                 ,datasetReturned=dataset)
        call dataset%writeAttribute("L☉/Hz"                  ,"units"                                       )
        call dataset%writeAttribute(luminositySolar          ,"unitsInSI"                                   )
-       call dataset%close         (                                                                        )
        ! Add some metadata.
        call file%writeAttribute("Computed using agn_spectrum.c downloaded from  http://www.tapir.caltech.edu/~phopkins/Site/qlf.html","source"      )
        call file%writeAttribute("http://adsabs.harvard.edu/abs/2007ApJ...654..731H"                                                  ,"URL"         )
        call file%writeAttribute("Hopkins et al. (2007)"                                                                              ,"reference"   )
        call file%writeAttribute(Formatted_Date_and_Time()                                                                            ,"creationTime")
        call file%writeAttribute(fileFormatCurrent                                                                                    ,"fileFormat"  )
-       call file%close         (                                                                                                                    )
        !$ call hdf5Access%unset()
        call File_Unlock(self%fileLock)
        call displayUnindent('done',verbosity=verbosityLevelWorking)

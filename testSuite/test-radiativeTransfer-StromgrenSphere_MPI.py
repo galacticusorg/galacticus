@@ -12,8 +12,9 @@ PI = np.pi
 
 # Parse command line options.
 parser = argparse.ArgumentParser()
-parser.add_argument("--processesPerNode", type=int, default=1   )
-parser.add_argument("--allowRunAsRoot"  , type=str, default="no")
+parser.add_argument("--processesPerNode", type=int, default=1    )
+parser.add_argument("--allowRunAsRoot"  , type=str, default="no" )
+parser.add_argument("--oversubscribe"   , type=str, default="yes")
 args, _ = parser.parse_known_args()
 
 # We need at least 2 processes to run this test.
@@ -23,9 +24,11 @@ if args.processesPerNode < 2:
 
 allowRunAsRoot = " --allow-run-as-root" if args.allowRunAsRoot == "yes" else ""
 
+oversubscribe  = " --oversubscribe"     if args.oversubscribe  == "yes" else ""
+
 # Run the calculation.
 status = subprocess.run(
-    f"cd ..; mpirun -np {args.processesPerNode}{allowRunAsRoot} Galacticus.exe testSuite/parameters/test-radiativeTransfer-StromgrenSphere.xml",
+    f"cd ..; mpirun -np {args.processesPerNode}{allowRunAsRoot}{oversubscribe} Galacticus.exe testSuite/parameters/test-radiativeTransfer-StromgrenSphere.xml",
     shell=True
 )
 if status.returncode != 0:

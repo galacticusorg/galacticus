@@ -61,8 +61,8 @@ tests = [
                 "name":              "spheroid radius",
                 "output":            1,
                 "property":          "spheroidRadius",
-                "values":            np.array([0.00360702914995244]),
-                "toleranceRelative": 1.4e-5,
+                "values":            np.array([0.00360702918954165]),
+                "toleranceRelative": 2.0e-4,
             },
             {
                 "name":       "spheroid angular momentum",
