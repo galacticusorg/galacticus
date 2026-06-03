@@ -50,7 +50,7 @@ contains
 
   function alwaysConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the \refClass{posteriorSampleConvergenceAlways} merger tree halo mass function sampling class which builds the object from a parameter set.
+    Constructor for the \refClass{posteriorSampleConvergenceAlways} posterior sampling convergence class which builds the object from a parameter set.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none

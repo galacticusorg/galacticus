@@ -75,7 +75,7 @@ contains
 
   function multiConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the \refClass{nodeOperatorMulti} node operator property process class which takes a parameter set as input.
+    Constructor for the \refClass{nodeOperatorMulti} node operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -106,7 +106,7 @@ contains
 
   function multiConstructorInternal(processes) result(self)
     !!{
-    Internal constructor for the \refClass{nodeOperatorMulti} output process property process class.
+    Internal constructor for the \refClass{nodeOperatorMulti} node operator class.
     !!}
     implicit none
     type(nodeOperatorMulti)                         :: self
@@ -126,7 +126,7 @@ contains
 
   subroutine multiDestructor(self)
     !!{
-    Destructor for the \refClass{nodeOperatorMulti} output process property process class.
+    Destructor for the \refClass{nodeOperatorMulti} node operator class.
     !!}
     implicit none
     type(nodeOperatorMulti), intent(inout) :: self

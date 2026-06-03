@@ -82,11 +82,12 @@ Implements an emission line luminosity node property extractor class.
      procedure :: name        => lmnstyEmssnLinePanuzzo2003Name
      procedure :: description => lmnstyEmssnLinePanuzzo2003Description
      procedure :: unitsInSI   => lmnstyEmssnLinePanuzzo2003UnitsInSI
+     procedure :: units       => lmnstyEmssnLinePanuzzo2003Units
   end type nodePropertyExtractorLmnstyEmssnLinePanuzzo2003
 
   interface nodePropertyExtractorLmnstyEmssnLinePanuzzo2003
      !!{
-     Constructors for the \refClass{nodePropertyExtractorLmnstyEmssnLinePanuzzo2003} output analysis class.
+     Constructors for the \refClass{nodePropertyExtractorLmnstyEmssnLinePanuzzo2003} property extractor class.
      !!}
      module procedure lmnstyEmssnLinePanuzzo2003ConstructorParameters
      module procedure lmnstyEmssnLinePanuzzo2003ConstructorInternal
@@ -125,7 +126,7 @@ contains
 
   function lmnstyEmssnLinePanuzzo2003ConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the \refClass{nodePropertyExtractorLmnstyEmssnLinePanuzzo2003} output analysis property extractor class which takes a parameter set as input.
+    Constructor for the \refClass{nodePropertyExtractorLmnstyEmssnLinePanuzzo2003} property extractor class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -169,7 +170,7 @@ contains
 
   function lmnstyEmssnLinePanuzzo2003ConstructorInternal(starFormationRateDisks_,starFormationRateSpheroids_,stellarSpectraDustAttenuation_,outputTimes_,lineNames,depthOpticalISMCoefficient,outputMask) result(self)
     !!{
-    Internal constructor for the \refClass{nodePropertyExtractorLmnstyEmssnLinePanuzzo2003} output analysis property extractor class.
+    Internal constructor for the \refClass{nodePropertyExtractorLmnstyEmssnLinePanuzzo2003} property extractor class.
     !!}
     use            :: Error                         , only : Error_Report
     use            :: Input_Paths                   , only : inputPath              , pathTypeDataStatic
@@ -271,7 +272,7 @@ contains
 
   subroutine lmnstyEmssnLinePanuzzo2003Destructor(self)
     !!{
-    Destructor for the \refClass{nodePropertyExtractorLmnstyEmssnLinePanuzzo2003} output analysis property extractor class.
+    Destructor for the \refClass{nodePropertyExtractorLmnstyEmssnLinePanuzzo2003} property extractor class.
     !!}
     implicit none
     type(nodePropertyExtractorLmnstyEmssnLinePanuzzo2003), intent(inout) :: self
@@ -627,3 +628,16 @@ contains
     lmnstyEmssnLinePanuzzo2003UnitsInSI=ergs
     return
   end function lmnstyEmssnLinePanuzzo2003UnitsInSI
+
+  function lmnstyEmssnLinePanuzzo2003Units(self) result(units)
+    !!{
+    Return the units of the lmnstyEmssnLinePanuzzo2003 property.
+    !!}
+    use :: Units_MetaData, only : unitType
+    implicit none
+    type (unitType                                       )                :: units
+    class(nodePropertyExtractorLmnstyEmssnLinePanuzzo2003), intent(inout) :: self
+
+    units=unitType(self%unitsInSI(),description='ergs',quantity='erg')
+    return
+  end function lmnstyEmssnLinePanuzzo2003Units

@@ -82,7 +82,7 @@ contains
 
   function standardConstructorInternal(efficiency,darkMatterHaloScale_) result(self)
     !!{
-    Internal constructor for the \refClass{hotHaloOutflowStrippingStandard} class.
+    Internal constructor for the \refClass{hotHaloOutflowStrippingStandard} hot halo outflow stripping class.
     !!}
     implicit none
     type            (hotHaloOutflowStrippingStandard)                        :: self
@@ -97,7 +97,7 @@ contains
 
   subroutine standardDestructor(self)
     !!{
-    Destructor for the \refClass{hotHaloOutflowStrippingStandard} class.
+    Destructor for the \refClass{hotHaloOutflowStrippingStandard} hot halo outflow stripping class.
     !!}
     implicit none
     type(hotHaloOutflowStrippingStandard), intent(inout) :: self

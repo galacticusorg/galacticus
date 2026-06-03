@@ -43,11 +43,12 @@ Implements an ISM metallicity output analysis property extractor class.
      procedure :: name        => metallicityStellarName
      procedure :: description => metallicityStellarDescription
      procedure :: unitsInSI   => metallicityStellarUnitsInSI
+     procedure :: units       => metallicityStellarUnits
   end type nodePropertyExtractorMetallicityStellar
 
   interface nodePropertyExtractorMetallicityStellar
      !!{
-     Constructors for the \refClass{nodePropertyExtractorMetallicityStellar} output analysis class.
+     Constructors for the \refClass{nodePropertyExtractorMetallicityStellar} property extractor class.
      !!}
      module procedure metallicityStellarConstructorParameters
      module procedure metallicityStellarConstructorInternal
@@ -57,7 +58,7 @@ contains
 
   function metallicityStellarConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the \refClass{nodePropertyExtractorMetallicityStellar} output analysis property extractor class which takes a parameter set as input.
+    Constructor for the \refClass{nodePropertyExtractorMetallicityStellar} property extractor class which takes a parameter set as input.
     !!}
     use :: Abundances_Structure, only : Abundances_Index_From_Name
     use :: Input_Parameters    , only : inputParameter            , inputParameters
@@ -86,7 +87,7 @@ contains
 
   function metallicityStellarConstructorInternal(indexElement) result(self)
     !!{
-    Internal constructor for the \refClass{nodePropertyExtractorMetallicityStellar} output analysis property extractor class.
+    Internal constructor for the \refClass{nodePropertyExtractorMetallicityStellar} property extractor class.
     !!}
     use :: Abundances_Structure, only : Abundances_Names
     implicit none
@@ -177,6 +178,20 @@ contains
     class(nodePropertyExtractorMetallicityStellar), intent(inout) :: self
     !$GLC attributes unused :: self
 
-    metallicityStellarUnitsInSI=0.0d0
+    metallicityStellarUnitsInSI=1.0d0
     return
   end function metallicityStellarUnitsInSI
+
+  function metallicityStellarUnits(self) result(units)
+    !!{
+    Return the units of the metallicityStellar property.
+    !!}
+    use :: Units_MetaData, only : unitType
+    implicit none
+    type (unitType                               )                :: units
+    class(nodePropertyExtractorMetallicityStellar), intent(inout) :: self
+    !$GLC attributes unused :: self
+
+    units=unitType(self%unitsInSI())
+    return
+  end function metallicityStellarUnits

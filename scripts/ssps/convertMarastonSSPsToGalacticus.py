@@ -5,7 +5,6 @@
 import os
 import re
 import subprocess
-import sys
 import numpy as np
 import h5py
 

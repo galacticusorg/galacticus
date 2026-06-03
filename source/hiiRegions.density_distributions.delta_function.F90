@@ -56,7 +56,7 @@ contains
 
   function deltaFunctionConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the \refClass{hiiRegionDensityDistributionDeltaFunction} class.
+    Constructor for the \refClass{hiiRegionDensityDistributionDeltaFunction} HII region density distribution class.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -81,7 +81,7 @@ contains
 
   function deltaFunctionConstructorInternal(densityHydrogen) result(self)
     !!{
-    Internal constructor for the \refClass{hiiRegionDensityDistributionDeltaFunction} class.
+    Internal constructor for the \refClass{hiiRegionDensityDistributionDeltaFunction} HII region density distribution class.
     !!}
     
     implicit none

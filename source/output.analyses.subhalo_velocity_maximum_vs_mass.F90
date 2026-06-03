@@ -217,6 +217,7 @@ contains
     use :: Numerical_Ranges                      , only : Make_Range                                , rangeTypeLinear
     use :: Output_Analyses_Options               , only : outputAnalysisCovarianceModelPoisson
     use :: Output_Analysis_Distribution_Operators, only : outputAnalysisDistributionOperatorIdentity
+    use :: Output_Analysis_Target_Data           , only : outputAnalysisTargetDataStandard
     use :: Output_Analysis_Property_Operators    , only : outputAnalysisPropertyOperatorAntiLog10   , outputAnalysisPropertyOperatorLog10, outputAnalysisPropertyOperatorIdentity
     use :: Output_Analysis_Weight_Operators      , only : outputAnalysisWeightOperatorSubsampling
     use :: Output_Times                          , only : outputTimesClass
@@ -253,6 +254,7 @@ contains
     double precision                                            , allocatable  , dimension(:  )           :: masses
     double precision                                            , allocatable  , dimension(:,:)           :: outputWeight
     integer         (c_size_t                                  )                                          :: i
+    type            (outputAnalysisTargetDataStandard          )                                          :: outputAnalysisTargetData_
     !![
     <constructorAssign variables="*cosmologyFunctions_, *virialDensityContrastDefinition_, *cosmologyParameters_, *virialDensityContrast_, *darkMatterProfileDMO_, massMinimum, massMaximum, countMasses"/>
     !!]
@@ -327,16 +329,29 @@ contains
        end if
     end do
     ! Construct the mean function analyzer.
+    outputAnalysisTargetData_=outputAnalysisTargetDataStandard(                                                                                    &
+         &                                                      xAxisLabel      =var_str('$M_\mathrm{bound}/\mathrm{M}_\odot$'                  ), &
+         &                                                      yAxisLabel      =var_str('$\langle V_\mathrm{max} \rangle / \hbox{km s}^{-1}$'  ), &
+         &                                                      xAxisIsLog      =.true.                                                          , &
+         &                                                      yAxisIsLog      =.true.                                                          , &
+         &                                                      targetLabel     =labelTarget                                                     , &
+         &                                                      valueTarget     =functionTarget                                                  , &
+         &                                                      covarianceTarget=functionCovarianceTarget                                          &
+         &                                                    )
     self%outputAnalysisMeanFunction1D=outputAnalysisMeanFunction1D(                                                                                       &
          &                                                                              var_str('subhaloVelocityMaximumMean'                           ), &
          &                                                                              var_str('Subhalo mean maximum velocity vs. bound mass relation'), &
          &                                                                              var_str('massBound'                                            ), &
          &                                                                              var_str('Halo bound mass'                                      ), &
-         &                                                                              var_str('M☉'                                                  ), &
+         &                                                                              var_str('M☉'                                                   ), &
+         &                                                                              var_str('solMass'                                              ), &
+         &                                                                              .false.                                                         , &
          &                                                                              massSolar                                                       , &
          &                                                                              var_str('velocityMaximumMean'                                  ), &
          &                                                                              var_str('Mean velocity maximum'                                ), &
          &                                                                              var_str('km/s'                                                 ), &
+         &                                                                              var_str('km/s'                                                 ), &
+         &                                                                              .false.                                                         , &
          &                                                                              kilo                                                            , &
          &                                                                              masses                                                          , &
          &                                                                              0_c_size_t                                                      , &
@@ -352,13 +367,7 @@ contains
          &                                                                              outputTimes_                                                    , &
          &                                                                              outputAnalysisCovarianceModelPoisson                            , &
          &                                                         likelihoodNormalize =.false.                                                         , &
-         &                                                         xAxisLabel          =var_str('$M_\mathrm{bound}/\mathrm{M}_\odot$'                  ), &
-         &                                                         yAxisLabel          =var_str('$\langle V_\mathrm{max} \rangle / \hbox{km s}^{-1}$'  ), &
-         &                                                         xAxisIsLog          =.true.                                                          , &
-         &                                                         yAxisIsLog          =.true.                                                          , &
-         &                                                         targetLabel         =labelTarget                                                     , &
-         &                                                         meanValueTarget     =functionTarget                                                  , &
-         &                                                         meanCovarianceTarget=functionCovarianceTarget                                          &
+         &                                                         targetData_         =outputAnalysisTargetData_                                         &
          &                                                        )
     !![
     <objectDestructor name="nodePropertyExtractorMassBound_"       />
@@ -416,11 +425,11 @@ contains
 
     ! Count the number of non-zero bins.
     countNonZero=0
-    do i=1,size(self%meanValueTarget)
-       if     (                                         &
-            &   self%meanValueTarget     (i  ) <= 0.0d0 &
-            &  .or.                                     &
-            &   self%meanCovarianceTarget(i,i) <= 0.0d0 &
+    do i=1,size(self%targetData_%valueTarget)
+       if     (                                                 &
+            &   self%targetData_%valueTarget     (i  ) <= 0.0d0 &
+            &  .or.                                             &
+            &   self%targetData_%covarianceTarget(i,i) <= 0.0d0 &
             & ) cycle
        countNonZero=countNonZero+1
     end do
@@ -430,15 +439,15 @@ contains
     velocityMeanDifference=0.0d0
     velocityMeanCovariance=0.0d0
     j=0
-    do i=1,size(self%meanValueTarget)
-       if     (                                         &
-            &   self%meanValueTarget     (i  ) <= 0.0d0 &
-            &  .or.                                     &
-            &   self%meanCovarianceTarget(i,i) <= 0.0d0 &
+    do i=1,size(self%targetData_%valueTarget)
+       if     (                                                 &
+            &   self%targetData_%valueTarget     (i  ) <= 0.0d0 &
+            &  .or.                                             &
+            &   self%targetData_%covarianceTarget(i,i) <= 0.0d0 &
             & ) cycle
        j=j+1
-       velocityMeanDifference(j  )=self%meanValue     (i  )-self%meanValueTarget     (i  )
-       velocityMeanCovariance(j,j)=self%meanCovariance(i,i)+self%meanCovarianceTarget(i,i)
+       velocityMeanDifference(j  )=self%meanValue     (i  )-self%targetData_%valueTarget     (i  )
+       velocityMeanCovariance(j,j)=self%meanCovariance(i,i)+self%targetData_%covarianceTarget(i,i)
     end do
     ! Construct residual vector and covariance matrix.
     residual  =vector(velocityMeanDifference)

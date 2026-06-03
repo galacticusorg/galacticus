@@ -1,0 +1,16 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<parameters>
+  <formatVersion>2</formatVersion>
+  <lastModified revision="23263e8c1dfc569099e2c1fbdedbc04ed6446e59" time="2026-05-18T15:53:57"/>
+
+  <!-- Cosmological parameters and options -->
+  <cosmologyFunctions  value="matterLambda"/>
+  <cosmologyParameters value="simple"       >
+    <HubbleConstant  value="70.000000"/>
+    <OmegaMatter     value=" 0.286000"/>
+    <OmegaDarkEnergy value=" 0.714000"/>
+    <OmegaBaryon     value=" 0.047000"/>
+    <temperatureCMB  value=" 2.725480"/>
+  </cosmologyParameters>
+
+</parameters>

@@ -115,6 +115,7 @@ module Tables
        <method description="Return an array of all $y$-values. If \mono{table} is specified then the \mono{table}$^\mathrm{th}$ table is used for the $y$-values, otherwise the first table is used." method="ys" />
        <method description="Return the effective value of $x$ to use in table interpolations." method="xEffective"/>
        <method description="Return the weights to be applied to the table to integrate (using the trapezium rule) between \mono{x0} and \mono{x1}." method="integrationWeights" />
+       <method description="Assign \mono{table1d} objects." method="assignment(=)" />
      </methods>
      !!]
      procedure(Table1D_Interpolate ), deferred :: interpolate
@@ -187,20 +188,22 @@ module Tables
        <method description="Reinitialize the interpolator." method="interpolatorReinitialize" />
        <method description="Deep copy the interpolators." method="interpolatorDeepCopy" />
        <method description="Initialize the interpolator." method="interpolatorInitialize" />
+       <method description="Return the second derivative of the tabulated function." method="interpolateSecondGradient" />
      </methods>
      !!]
-     final     ::                             Table_Generic_1D_Destructor
-     procedure :: create                   => Table_Generic_1D_Create
-     procedure :: destroy                  => Table_Generic_1D_Destroy
-     procedure :: populate_                => Table_Generic_1D_Populate
-     procedure :: populateSingle_          => Table_Generic_1D_Populate_Single
-     generic   :: populate                 => populate_                                 , &
-          &                                   populateSingle_
-     procedure :: interpolate              => Table_Generic_1D_Interpolate
-     procedure :: interpolateGradient      => Table_Generic_1D_Interpolate_Gradient
-     procedure :: interpolatorInitialize   => Table_Generic_1D_Interpolator_Initialize
-     procedure :: interpolatorReinitialize => Table_Generic_1D_Interpolator_Reinitialize
-     procedure :: interpolatorDeepCopy     => Table_Generic_1D_Interpolator_Deep_Copy
+     final     ::                              Table_Generic_1D_Destructor
+     procedure :: create                    => Table_Generic_1D_Create
+     procedure :: destroy                   => Table_Generic_1D_Destroy
+     procedure :: populate_                 => Table_Generic_1D_Populate
+     procedure :: populateSingle_           => Table_Generic_1D_Populate_Single
+     generic   :: populate                  => populate_                                   , &
+          &                                    populateSingle_
+     procedure :: interpolate               => Table_Generic_1D_Interpolate
+     procedure :: interpolateGradient       => Table_Generic_1D_Interpolate_Gradient
+     procedure :: interpolateSecondGradient => Table_Generic_1D_Interpolate_Second_Gradient
+     procedure :: interpolatorInitialize    => Table_Generic_1D_Interpolator_Initialize
+     procedure :: interpolatorReinitialize  => Table_Generic_1D_Interpolator_Reinitialize
+     procedure :: interpolatorDeepCopy      => Table_Generic_1D_Interpolator_Deep_Copy
   end type table1DGeneric
 
   type, extends(table1D) :: table1DLinearLinear
@@ -1048,6 +1051,30 @@ contains
     Table_Generic_1D_Interpolate_Gradient=self%interpolators(interpolator_)%interpolator_%derivative(self%xEffective(x,status),self%yv(:,table_))
     return
   end function Table_Generic_1D_Interpolate_Gradient
+
+  double precision function Table_Generic_1D_Interpolate_Second_Gradient(self,x,table)
+    !!{
+    Perform generic interpolation in a generic 1D table.
+    !!}
+    use :: Numerical_Interpolation, only : GSL_Interp_Linear
+    implicit none
+    class           (table1DGeneric), intent(inout)           :: self
+    double precision                , intent(in   )           :: x
+    integer                         , intent(in   ), optional :: table
+    integer                                                   :: interpolator_
+    !![
+    <optionalArgument name="table" defaultsTo="1"/>
+    !!]
+    
+    call self%interpolatorInitialize(table_)
+    if (self%interpolationType == GSL_Interp_Linear) then
+       interpolator_=1
+    else
+       interpolator_=table_
+    end if
+    Table_Generic_1D_Interpolate_Second_Gradient=self%interpolators(interpolator_)%interpolator_%secondDerivative(self%xEffective(x),self%yv(:,table_))
+    return
+  end function Table_Generic_1D_Interpolate_Second_Gradient
 
   subroutine Table_Generic_1D_Interpolator_Reinitialize(self)
     !!{

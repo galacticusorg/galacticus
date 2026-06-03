@@ -97,6 +97,19 @@ module Numerical_Interpolation
        real   (c_double)               :: d
      end function gsl_interp_eval_deriv_e
      
+     function gsl_interp_eval_deriv2_e(interp,xa,ya,x,acc,d2) bind(c,name='gsl_interp_eval_deriv2_e')
+       !!{
+       Template for GSL interface interpolation function.
+       !!}
+       import c_ptr, c_size_t, c_int, c_double
+       integer(c_int   )               :: gsl_interp_eval_deriv2_e
+       type   (c_ptr   ), value        :: interp
+       real   (c_double), dimension(*) :: xa                     , ya
+       real   (c_double), value        :: x
+       type   (c_ptr   ), value        :: acc
+       real   (c_double)               :: d2
+     end function gsl_interp_eval_deriv2_e
+     
      subroutine gsl_interp_free(interp) bind(c,name='gsl_interp_free')
        !!{
        Template for GSL interface interpolation free function.
@@ -180,21 +193,27 @@ module Numerical_Interpolation
      Type providing interpolation in 1-D arrays.
      !!}
      private
-     type            (resourceManager                 )                            :: interpManager              , interpAccelManager
+     type            (resourceManager                 )                            :: interpManager                  , interpAccelManager
      type            (gslInterpWrapper                ), pointer                   :: interp_           => null()
      type            (gslInterpAccelWrapper           ), pointer                   :: interpAccel_      => null()
      type            (c_ptr                           ), allocatable               :: gsl_interp_type
      integer                                                                       :: interpolationType
      type            (enumerationExtrapolationTypeType)             , dimension(2) :: extrapolationType
      integer         (c_size_t                        )                            :: countArray
-     logical                                                                       :: initialized                , interpolatable
-     double precision                                  , allocatable, dimension(:) :: x                          , y 
+     ! Cached lower bracket index, used by interpolatorLocate to accelerate
+     ! sequential or near-sequential queries by skipping the binary search when
+     ! the cached bracket still contains the queried x. Initialized to 1 so that
+     ! the cache always points to a valid bracket once countArray > 1.
+     integer         (c_size_t                        )                            :: iCache_           =  1_c_size_t
+     logical                                                                       :: initialized                    , interpolatable
+     double precision                                  , allocatable, dimension(:) :: x                              , y
    contains
      !![
      <methods>
        <method description="Interpolate in the tabulated function."                                                 method="interpolate"         />
        <method description="Interpolate the derivative in the tabulated function."                                  method="derivative"          />
-       <method description="Locate the position in the array corresponding to the given \mono{x}." method="locate"              />
+       <method description="Interpolate the second derivative in the tabulated function."                           method="secondDerivative"    />
+       <method description="Locate the position in the array corresponding to the given \mono{x}."                  method="locate"              />
        <method description="Return factors required to perform a linear interpolation."                             method="linearFactors"       />
        <method description="Return weights required to perform a linear interpolation."                             method="linearWeights"       />
        <method description="Allocate GSL objects."                                                                  method="gslAllocate"         />
@@ -214,6 +233,10 @@ module Numerical_Interpolation
      procedure ::                         interpolatorDerivativeNoYa
      generic   :: derivative           => interpolatorDerivative            , &
           &                               interpolatorDerivativeNoYa
+     procedure ::                         interpolatorSecondDerivative
+     procedure ::                         interpolatorSecondDerivativeNoYa
+     generic   :: secondDerivative     => interpolatorSecondDerivative      , &
+          &                               interpolatorSecondDerivativeNoYa
      procedure :: linearFactors        => interpolatorLinearFactors
      procedure :: linearWeights        => interpolatorLinearWeights
      procedure :: locate               => interpolatorLocate
@@ -329,6 +352,8 @@ contains
     end if
     ! Determine if the data is interpolatable.
     self%interpolatable=self%countArray > 1
+    ! Reset the locate cache to point at the first valid bracket.
+    self%iCache_       =1_c_size_t
     ! Allocate GSL interpolation objects.
     call self%GSLAllocate()
     return
@@ -446,6 +471,7 @@ contains
     self%interpolationType  =  from%interpolationType
     self%extrapolationType  =  from%extrapolationType
     self%countArray         =  from%countArray
+    self%iCache_            =  from%iCache_
     self%initialized        =  from%initialized
     self%interpolatable     =  from%interpolatable
     if (allocated(self%gsl_interp_type)) deallocate(self%gsl_interp_type                            )
@@ -753,10 +779,87 @@ contains
     end if
     return
   end function interpolatorDerivative
+
+  double precision function interpolatorSecondDerivativeNoYa(self,x)
+    !!{
+    Interpolate the second derivative of the function to \mono{x}.
+    !!}
+    use :: Error, only : Error_Report
+    implicit none
+    class           (interpolator  ), intent(inout) :: self
+    double precision                , intent(in   ) :: x
+
+    if (allocated(self%y)) then
+       interpolatorSecondDerivativeNoYa=self%secondDerivative(x,self%y)
+    else
+       interpolatorSecondDerivativeNoYa=0.0d0
+       call Error_Report("no y() array specified"//{introspection:location})       
+    end if
+    return
+  end function interpolatorSecondDerivativeNoYa
   
+  double precision function interpolatorSecondDerivative(self,x,ya)
+    !!{
+    Interpolate the second derivative of the function to \mono{x}.
+    !!}
+    use            :: Error             , only : Error_Report
+    use, intrinsic :: ISO_C_Binding     , only : c_size_t
+    use            :: Interface_GSL     , only : GSL_EDom
+    use            :: ISO_Varying_String, only : assignment(=)          , operator(//)                , varying_string
+    use            :: Table_Labels      , only : extrapolationTypeAbort , extrapolationTypeExtrapolate, extrapolationTypeFix, extrapolationTypeZero
+    implicit none
+    class           (interpolator                    ), intent(inout)               :: self
+    double precision                                  , intent(in   )               :: x
+    double precision                                  , intent(in   ), dimension(:) :: ya
+    type            (varying_string                  )                              :: message
+    type            (enumerationExtrapolationTypeType)                              :: extrapolationType
+    integer         (c_int                           )                              :: statusGSL
+    double precision                                                                :: x_
+
+    call self%assertInterpolatable()
+    if (.not.self%initialized) call self%GSLInitialize(ya)
+    ! If extrapolation is allowed, check if this is necessary.
+    if (x > self%x(self%countArray)) then
+       extrapolationType=self%extrapolationType(2)
+    else
+       extrapolationType=self%extrapolationType(1)
+    end if
+    x_=x
+    select case (extrapolationType%ID)
+    case (extrapolationTypeExtrapolate%ID,extrapolationTypeFix%ID)
+       if (x < self%x(1              )) x_=self%x(1              )
+       if (x > self%x(self%countArray)) x_=self%x(self%countArray)
+    end select
+    ! Do the interpolation.
+    statusGSL=gsl_interp_eval_deriv2_e(self%interp_%gsl,self%x,ya,x_,self%interpAccel_%gsl,interpolatorSecondDerivative)
+    if (statusGSL /= 0) then
+       select case (statusGSL)
+       case (GSL_EDom)
+          if (extrapolationType == extrapolationTypeZero) then
+             ! Return zero outside of the tabulated range.
+             interpolatorSecondDerivative=0.0d0
+             return
+          end if
+          message='requested point is outside of allowed range'
+       case default
+          message='interpolation failed for unknown reason'
+       end select
+       call Error_Report(message//{introspection:location})
+    end if
+    return
+  end function interpolatorSecondDerivative
+    
   function interpolatorLocate(self,x,closest) result(i)
     !!{
-    Locate the element in the table for interpolation of \mono{x}.
+    Locate the lower bracket index $i$ such that $x_i \le x < x_{i+1}$ for the
+    queried \mono{x}, returning $i$ in $[1, N-1]$.
+
+    Uses a cached last-returned index to accelerate sequential and near-
+    sequential access patterns: if the cached bracket still contains \mono{x},
+    return it immediately; otherwise binary-search the appropriate half-range
+    and update the cache. This is the pure-Fortran analogue of GSL's
+    \mono{gsl\_interp\_accel\_find} but avoids the foreign-function call cost
+    and lets the compiler inline the body.
     !!}
     implicit none
     integer         (c_size_t    )                          :: i
@@ -766,19 +869,57 @@ contains
     !![
     <optionalArgument name="closest" defaultsTo=".false."/>
     !!]
-    
+
     ! If array has just one point, always return it.
     if (self%countArray == 1_c_size_t) then
        i=1_c_size_t
        return
     end if
-    ! Do the interpolation.
-    i=gsl_interp_accel_find(self%interpAccel_%gsl,self%x,self%countArray,x)+1_c_size_t
-    i=max(min(i,self%countArray-1_c_size_t),1_c_size_t)
+    ! Test the cached bracket; otherwise binary-search the appropriate half.
+    i=self%iCache_
+    if      (x <  self%x(i  )) then
+       ! Below the cached bracket: search the lower half.
+       i=interpolatorBinarySearch(self%x,x,1_c_size_t,i              )
+    else if (x >= self%x(i+1)) then
+       ! At or above the cached bracket's upper end: search the upper half.
+       i=interpolatorBinarySearch(self%x,x,i         ,self%countArray)
+    end if
+    ! Clamp defensively into [1, N-1] and refresh the cache.
+    i           =max(min(i,self%countArray-1_c_size_t),1_c_size_t)
+    self%iCache_=i
     ! If we want the closest point, find it.
     if (closest_ .and. abs(x-self%x(i+1)) < abs(x-self%x(i))) i=i+1_c_size_t
     return
   end function interpolatorLocate
+
+  function interpolatorBinarySearch(xa,x,loIn,hiIn) result(lo)
+    !!{
+    Return the largest index \mono{lo} in $[\mathrm{loIn}, \mathrm{hiIn}-1]$
+    for which $\mathrm{xa(lo)} \le x$, assuming \mono{xa} is monotonically
+    increasing. Mirrors the semantics of GSL's \mono{gsl\_interp\_bsearch}
+    (with one-based Fortran indexing) so that it can be used as a drop-in
+    replacement for the accelerated locate path without changing observable
+    behavior for in-range or out-of-range queries.
+    !!}
+    implicit none
+    integer         (c_size_t)                              :: lo
+    double precision          , intent(in   ), dimension(:) :: xa
+    double precision          , intent(in   )               :: x
+    integer         (c_size_t), intent(in   )               :: loIn, hiIn
+    integer         (c_size_t)                              :: hi  , mid
+
+    lo=loIn
+    hi=hiIn
+    do while (hi-lo > 1_c_size_t)
+       mid=lo+(hi-lo)/2_c_size_t
+       if (xa(mid) > x) then
+          hi=mid
+       else
+          lo=mid
+       end if
+    end do
+    return
+  end function interpolatorBinarySearch
 
   function interpolator2DConstructor(x,y,z) result(self)
     !!{

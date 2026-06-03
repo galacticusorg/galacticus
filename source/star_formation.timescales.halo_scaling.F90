@@ -75,7 +75,7 @@ contains
 
   function haloScalingConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the \refClass{starFormationTimescaleHaloScaling} timescale for star formation feedback class which takes a
+    Constructor for the \refClass{starFormationTimescaleHaloScaling} timescale for star formation class which takes a
     parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters

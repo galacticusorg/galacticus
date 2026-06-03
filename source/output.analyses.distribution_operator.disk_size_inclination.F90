@@ -43,7 +43,7 @@
 
   interface outputAnalysisDistributionOperatorDiskSizeInclntn
      !!{
-     Constructors for the \refClass{outputAnalysisDistributionOperatorDiskSizeInclntn} output distribution operator class.
+     Constructors for the \refClass{outputAnalysisDistributionOperatorDiskSizeInclntn} output analysis distribution operator class.
      !!}
      module procedure diskSizeInclinationConstructorParameters
      module procedure diskSizeInclinationConstructorInternal
@@ -57,7 +57,7 @@ contains
 
   function diskSizeInclinationConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the \refClass{outputAnalysisDistributionOperatorDiskSizeInclntn} output analysis distribution operator operator class which takes a parameter set as input.
+    Constructor for the \refClass{outputAnalysisDistributionOperatorDiskSizeInclntn} output analysis distribution operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -151,7 +151,7 @@ contains
 
   subroutine diskSizeInclinationDestructor(self)
     !!{
-    Destructor for the \refClass{outputAnalysisDistributionOperatorDiskSizeInclntn} output analysis distribution operator operator class.
+    Destructor for the \refClass{outputAnalysisDistributionOperatorDiskSizeInclntn} output analysis distribution operator class.
     !!}
     implicit none
     type(outputAnalysisDistributionOperatorDiskSizeInclntn), intent(inout) :: self

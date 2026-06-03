@@ -55,7 +55,7 @@
 
   interface variogramSpherical
      !!{
-     Constructors for the \refClass{variogramSpherical} posterior sampling likelihood class.
+     Constructors for the \refClass{variogramSpherical} variogram class.
      !!}
      module procedure sphericalConstructorParameters
      module procedure sphericalConstructorInternal

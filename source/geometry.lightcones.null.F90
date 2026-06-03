@@ -52,7 +52,7 @@
 
   interface geometryLightconeNull
      !!{
-     Constructors for the \refClass{geometryLightconeNull} dark matter halo spin distribution class.
+     Constructors for the \refClass{geometryLightconeNull} lightcone geometry distribution class.
      !!}
      module procedure nullConstructorParameters
   end interface geometryLightconeNull

@@ -159,8 +159,8 @@ contains
     double precision                                                                                                 :: distributionMinimum  , distributionMaximum, &
          &                                                                                                              distributionMedian   , radius
     integer                                                                                                          :: j
-    logical :: first
-    !$GLC attributes unused ::  self, modelLikelihood
+    logical                                                                                                          :: first
+    !$GLC attributes unused :: modelLikelihood
 
     ! No knowledge of evaluation time.
     timeEvaluatePrevious=-1.0d0
@@ -193,11 +193,11 @@ contains
           state(j)=+self%randomNumberGenerator_%standardNormalSample() &
                &   *                            radius
           if (self%usePriorMedian) then
-             state(j)=+     state        (j) &
+             state(j)=+   state        (j)                                           &
                   &   +distributionMedian
           else
-             state(j)=+     state        (j) &
-                  &   +self%stateInitial (j)
+             state(j)=+   state        (j)                                           &
+                  &   +modelParameters_(j)%modelParameter_%map(self%stateInitial(j))
           end if
        end do
     end do

@@ -171,6 +171,7 @@ contains
     use :: Output_Analyses_Options                 , only : outputAnalysisCovarianceModelBinomial
     use :: Output_Analysis_Distribution_Normalizers, only : outputAnalysisDistributionNormalizerIdentity
     use :: Output_Analysis_Distribution_Operators  , only : outputAnalysisDistributionOperatorRandomErrorPlynml
+    use :: Output_Analysis_Target_Data             , only : outputAnalysisTargetDataStandard
     use :: Output_Analysis_Property_Operators      , only : outputAnalysisPropertyOperatorAntiLog10             , outputAnalysisPropertyOperatorLog10         , outputAnalysisPropertyOperatorSequence, outputAnalysisPropertyOperatorSystmtcPolynomial, &
           &                                                 outputAnalysisPropertyOperatorBoolean               , outputAnalysisPropertyOperatorFilterHighPass, propertyOperatorList
     use :: Output_Analysis_Weight_Operators        , only : outputAnalysisWeightOperatorSubsampling
@@ -212,6 +213,7 @@ contains
     double precision                                                     , parameter                     :: massStellarThreshold                            =+1.0d+0
     integer         (c_size_t                                           )                                :: i                                                           , bufferCount
     type            (hdf5Object                                         )                                :: fileData
+    type            (outputAnalysisTargetDataStandard)                              :: outputAnalysisTargetData_
     !![
     <constructorAssign variables="*outputTimes_, randomErrorPolynomialCoefficient, systematicErrorPolynomialCoefficient, massStellarSystematicErrorPolynomialCoefficient, covarianceBinomialBinsPerDecade, covarianceBinomialMassHaloMinimum, covarianceBinomialMassHaloMaximum, randomErrorMinimum, randomErrorMaximum, positionType"/>
     !!]
@@ -363,6 +365,15 @@ contains
     allocate(outputAnalysisMeanFunction1D :: self%outputAnalysis_)
     select type (outputAnalysis_ => self%outputAnalysis_)
     type is (outputAnalysisMeanFunction1D)
+       outputAnalysisTargetData_=outputAnalysisTargetDataStandard(                                                                &
+           &                                                      xAxisLabel      =var_str('$M_\mathrm{halo}/\mathrm{M}_\odot$'), &
+           &                                                      yAxisLabel      =var_str('$f_\mathrm{occupied}$'             ), &
+           &                                                      xAxisIsLog      =.true.                                       , &
+           &                                                      yAxisIsLog      =.false.                                      , &
+           &                                                      targetLabel     =var_str('Nadler et al. (2020)'              ), &
+           &                                                      valueTarget     =functionValueTarget                          , &
+           &                                                      covarianceTarget=functionCovarianceTarget                       &
+           &                                                     )
        !![
        <referenceConstruct isResult="yes" object="outputAnalysis_">
 	 <constructor>
@@ -372,11 +383,15 @@ contains
 	   &amp;                        var_str('massHalo'                                             ), &amp;
 	   &amp;                        var_str('Halo mass at the bin center'                          ), &amp;
 	   &amp;                        var_str('M☉'                                                   ), &amp;
+	   &amp;                        var_str('solMass'                                              ), &amp;
+	   &amp;                        .false.                                                         , &amp;
 	   &amp;                        massSolar                                                       , &amp;
 	   &amp;                        var_str('fractionOccupation'                                   ), &amp;
            &amp;                        var_str('Occupation fraction'                                  ), &amp;
            &amp;                        var_str('dimensionless'                                        ), &amp;
-           &amp;                        0.0d0                                                           , &amp;
+           &amp;                        var_str(' '                                                    ), &amp;
+           &amp;                        .false.                                                         , &amp;
+           &amp;                        1.0d0                                                           , &amp;
 	   &amp;                        masses                                                          , &amp;
 	   &amp;                        bufferCount                                                     , &amp;
 	   &amp;                        outputWeight                                                    , &amp;
@@ -394,13 +409,7 @@ contains
 	   &amp;                        covarianceBinomialMassHaloMinimum                               , &amp;
 	   &amp;                        covarianceBinomialMassHaloMaximum                               , &amp;
            &amp;                        likelihoodNormalize                                             , &amp;
-           &amp;                        var_str('$M_\mathrm{halo}/\mathrm{M}_\odot$'                   ), &amp;
-           &amp;                        var_str('$f_\mathrm{occupied}$'                                ), &amp;
-           &amp;                        .true.                                                          , &amp;
-           &amp;                        .false.                                                         , &amp;
-           &amp;                        var_str('Nadler et al. (2020)'                                 ), &amp;
-           &amp;                        functionValueTarget                                             , &amp;
-           &amp;                        functionCovarianceTarget                                          &amp;
+           &amp;                        outputAnalysisTargetData_                                         &amp;
 	   &amp;                       )
 	 </constructor>
        </referenceConstruct>

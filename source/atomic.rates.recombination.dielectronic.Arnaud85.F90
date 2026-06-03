@@ -223,7 +223,7 @@ contains
 
   function arnaud1985ConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the \refClass{atomicRecombinationRateDielectronicArnaud1985} atomic ionization potential class which builds the object from a
+    Constructor for the \refClass{atomicRecombinationRateDielectronicArnaud1985} atomic dielectronic recombination rate class which builds the object from a
     parameter set.
     !!}
     use :: Input_Parameters, only : inputParameters

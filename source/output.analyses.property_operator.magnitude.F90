@@ -37,7 +37,7 @@ Implements an output analysis property operator class which converts luminosity 
 
   interface outputAnalysisPropertyOperatorMagnitude
      !!{
-     Constructors for the \refClass{outputAnalysisPropertyOperatorMagnitude} output analysis class.
+     Constructors for the \refClass{outputAnalysisPropertyOperatorMagnitude} output analysis property operator class.
      !!}
      module procedure magnitudeConstructorParameters
   end interface outputAnalysisPropertyOperatorMagnitude

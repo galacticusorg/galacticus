@@ -36,11 +36,12 @@ Implements a property extractor class that extracts the radius enclosing the cur
      procedure :: name        => radiusBoundMassName
      procedure :: description => radiusBoundMassDescription
      procedure :: unitsInSI   => radiusBoundMassUnitsInSI
+     procedure :: units       => radiusBoundMassUnits
   end type nodePropertyExtractorRadiusBoundMass
 
   interface nodePropertyExtractorRadiusBoundMass
      !!{
-     Constructors for the \refClass{nodePropertyExtractorRadiusBoundMass} output analysis class.
+     Constructors for the \refClass{nodePropertyExtractorRadiusBoundMass} property extractor class.
      !!}
      module procedure radiusBoundMassConstructorParameters
   end interface nodePropertyExtractorRadiusBoundMass
@@ -132,4 +133,16 @@ contains
     return
   end function radiusBoundMassUnitsInSI
 
+  function radiusBoundMassUnits(self) result(units)
+    !!{
+    Return the units of the radiusBoundMass property.
+    !!}
+    use :: Units_MetaData, only : unitType
+    implicit none
+    type (unitType                            )                :: units
+    class(nodePropertyExtractorRadiusBoundMass), intent(inout) :: self
+    !$GLC attributes unused :: self
 
+    units=unitType(self%unitsInSI(),description='Mpc',quantity='Mpc')
+    return
+  end function radiusBoundMassUnits

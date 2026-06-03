@@ -229,7 +229,11 @@ contains
     class           (distributionFunction1DLogNormal), intent(inout) :: self
     double precision                                 , intent(in   ) :: x
 
-    logNormalCumulative=self%distributionFunction1DNormal%cumulative(log(x))
+    if (x <= 0.0d0) then
+       logNormalCumulative=0.0d0
+    else
+       logNormalCumulative=self%distributionFunction1DNormal%cumulative(log(x))
+    end if
     return
   end function logNormalCumulative
 

@@ -43,7 +43,7 @@
   
   interface circumgalacticMediumHeatingAGNFeedback
      !!{
-     Constructors for the \refClass{circumgalacticMediumHeatingAGNFeedback} class.
+     Constructors for the \refClass{circumgalacticMediumHeatingAGNFeedback} circumgalactic medium heating class.
      !!}
      module procedure agnFeedbackConstructorParameters
      module procedure agnFeedbackConstructorInternal
@@ -53,7 +53,7 @@ contains
 
   function agnFeedbackConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the \refClass{circumgalacticMediumHeatingAGNFeedback} class which takes a parameter list as input.
+    Constructor for the \refClass{circumgalacticMediumHeatingAGNFeedback} circumgalactic medium heating class which takes a parameter list as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -75,7 +75,7 @@ contains
 
   function agnFeedbackConstructorInternal(blackHoleCGMHeating_) result(self)
     !!{
-    Internal constructor for the \refClass{circumgalacticMediumHeatingAGNFeedback} node operator class.
+    Internal constructor for the \refClass{circumgalacticMediumHeatingAGNFeedback} circumgalactic medium heating class.
     !!}
     implicit none
     type (circumgalacticMediumHeatingAGNFeedback)                        :: self
@@ -89,7 +89,7 @@ contains
 
   subroutine agnFeedbackDestructor(self)
     !!{
-    Destructor for the \refClass{circumgalacticMediumHeatingAGNFeedback} node operator class.
+    Destructor for the \refClass{circumgalacticMediumHeatingAGNFeedback} circumgalactic medium heating class.
     !!}
     implicit none
     type(circumgalacticMediumHeatingAGNFeedback), intent(inout) :: self

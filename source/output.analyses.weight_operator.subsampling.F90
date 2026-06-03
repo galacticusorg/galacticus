@@ -38,7 +38,7 @@ Implements a subsampling weight operator class.
 
   interface outputAnalysisWeightOperatorSubsampling
      !!{
-     Constructors for the \refClass{outputAnalysisWeightOperatorSubsampling} output analysis class.
+     Constructors for the \refClass{outputAnalysisWeightOperatorSubsampling} output analysis weight operator class.
      !!}
      module procedure subsamplingConstructorParameters
   end interface outputAnalysisWeightOperatorSubsampling

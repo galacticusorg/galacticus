@@ -68,7 +68,7 @@
 
   interface randomNumberGeneratorGSL
      !!{
-     Constructors for the \refClass{randomNumberGeneratorGSL} merger tree evolve profiler class.
+     Constructors for the \refClass{randomNumberGeneratorGSL} random number generator class.
      !!}
      module procedure gslConstructorParameters
      module procedure gslConstructorInternal
@@ -300,7 +300,8 @@ contains
 #endif
     end if
     call GSL_RNG_Set(self%randomNumberGenerator%rng,seed__)
-    self%seed_=seed__
+    self%seed_ =seed__
+    self%seed__=seed__
     return
   end function gslConstructorInternal
   

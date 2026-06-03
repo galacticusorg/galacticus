@@ -198,7 +198,7 @@ contains
 
   subroutine sphericalSIDMIsothermalBaryonsDestructor(self)
     !!{
-    Destructor for the abstract \refClass{massDistributionSphericalSIDMIsothermalBaryons} class.
+    Destructor for the abstract \refClass{massDistributionSphericalSIDMIsothermalBaryons} mass distribution class.
     !!}
     implicit none
     type(massDistributionSphericalSIDMIsothermalBaryons), intent(inout) :: self

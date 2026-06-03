@@ -44,7 +44,7 @@
 
   interface posteriorSampleStoppingCriterionStepCount
      !!{
-     Constructors for the \refClass{posteriorSampleStoppingCriterionStepCount} posterior sampling convergence class.
+     Constructors for the \refClass{posteriorSampleStoppingCriterionStepCount} posterior sampling stopping class.
      !!}
      module procedure stepCountConstructorParameters
      module procedure stepCountConstructorInternal

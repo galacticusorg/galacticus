@@ -51,7 +51,7 @@ Implements a weight operator class in which the weight is multiplied by an integ
 
   interface outputAnalysisWeightOperatorNormal
      !!{
-     Constructors for the \refClass{outputAnalysisWeightOperatorNormal} output analysis class.
+     Constructors for the \refClass{outputAnalysisWeightOperatorNormal} output analysis weight operator class.
      !!}
      module procedure normalConstructorParameters
      module procedure normalConstructorInternal
@@ -104,7 +104,7 @@ contains
 
   function normalConstructorInternal(rangeLower,rangeUpper,rootVariance_,nodePropertyExtractor_,outputAnalysisPropertyOperator_) result (self)
     !!{
-    Internal constructor for the \refClass{outputAnalysisWeightOperatorNormal} output analysis distribution operator class.
+    Internal constructor for the \refClass{outputAnalysisWeightOperatorNormal} output analysis weight operator class.
     !!}
     use :: Error                   , only : Error_Report
     use :: Node_Property_Extractors, only : nodePropertyExtractorClass, nodePropertyExtractorScalar

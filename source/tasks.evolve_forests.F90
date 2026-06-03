@@ -445,6 +445,7 @@ contains
     use               :: Memory_Reporting        , only : reportMemoryUsage
     use               :: Merger_Tree_Construction, only : mergerTreeStateFromFile
     use               :: Merger_Tree_Walkers     , only : mergerTreeWalkerAllNodes
+    use               :: Merger_Tree_Outputters  , only : outputGroupTypeSnapshot
     use               :: Node_Components         , only : Node_Components_Thread_Initialize, Node_Components_Thread_Uninitialize
     use               :: Node_Events_Inter_Tree  , only : Inter_Tree_Event_Post_Evolve
     !$ use            :: OMP_Lib                 , only : OMP_Destroy_Lock                 , OMP_Get_Thread_Num                 , OMP_Init_Lock  , omp_lock_kind
@@ -805,7 +806,7 @@ contains
                 message="Output tree data at t="//trim(label)//" Gyr"
                 call displayMessage(message)
                 if (associated(tree)) then
-                   call mergerTreeOutputter_%outputTree(tree,iOutput,evolveToTime)
+                   call mergerTreeOutputter_%outputTree(tree,iOutput,evolveToTime,outputGroupTypeSnapshot)
                    ! Perform any extra output and post-output processing on nodes.
                    treeWalkerAll=mergerTreeWalkerAllNodes(tree,spanForest=.true.)
                    do while (treeWalkerAll%next(node))

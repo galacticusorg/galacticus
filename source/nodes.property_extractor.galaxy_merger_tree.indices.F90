@@ -34,11 +34,12 @@
      procedure :: names        => galaxyMergerTreeIndicesNames
      procedure :: descriptions => galaxyMergerTreeIndicesDescriptions
      procedure :: unitsInSI    => galaxyMergerTreeIndicesUnitsInSI
+     procedure :: units        => galaxyMergerTreeIndicesUnits
   end type nodePropertyExtractorGalaxyMergerTreeIndices
 
   interface nodePropertyExtractorGalaxyMergerTreeIndices
      !!{
-     Constructors for the \refClass{nodePropertyExtractorGalaxyMergerTreeIndices} output extractor class.
+     Constructors for the \refClass{nodePropertyExtractorGalaxyMergerTreeIndices} property extractor class.
      !!}
      module procedure galaxyMergerTreeIndicesConstructorParameters
      module procedure galaxyMergerTreeIndicesConstructorInternal
@@ -64,7 +65,7 @@ contains
 
   function galaxyMergerTreeIndicesConstructorInternal() result(self)
     !!{
-    Internal constructor for the \refClass{nodePropertyExtractorGalaxyMergerTreeIndices} output extractor property extractor class.
+    Internal constructor for the \refClass{nodePropertyExtractorGalaxyMergerTreeIndices} property extractor class.
     !!}
     implicit none
     type(nodePropertyExtractorGalaxyMergerTreeIndices) :: self
@@ -151,6 +152,24 @@ contains
     !$GLC attributes unused :: self
 
     allocate(unitsInSI(2))
-    unitsInSI=0.0d0
+    unitsInSI=1.0d0
     return
   end function galaxyMergerTreeIndicesUnitsInSI
+
+  function galaxyMergerTreeIndicesUnits(self) result(units)
+    !!{
+    Return the units of the galaxyMergerTreeIndices properties.
+    !!}
+    use :: Units_MetaData, only : unitType
+    implicit none
+    type   (unitType                                    ), dimension(:) , allocatable :: units
+    class  (nodePropertyExtractorGalaxyMergerTreeIndices), intent(inout)              :: self
+    integer                                                                           :: i
+    !$GLC attributes unused :: self
+
+    allocate(units(2))
+    do i=1,2
+       units(i)=unitType(1.0d0)
+    end do
+    return
+  end function galaxyMergerTreeIndicesUnits

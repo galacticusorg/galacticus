@@ -34,7 +34,7 @@
   !!]
   type, extends(darkMatterProfileClass) :: darkMatterProfileSIDMIsothermal
      !!{
-     A dark matter halo profile class implementing profiles for self-interacting dark matter following the ``isothermal'' model of Jiang et al. (2022).
+     A dark matter halo profile class implementing profiles for self-interacting dark matter following the ``isothermal'' model of \cite{jiang_semi-analytic_2023}.
      !!}
      private
      class(darkMatterProfileClass ), pointer :: darkMatterProfile_  => null()
@@ -80,7 +80,7 @@ contains
 
   function sidmIsothermalConstructorInternal(darkMatterProfile_,darkMatterParticle_) result(self)
     !!{
-    Internal constructor for the \refClass{darkMatterProfileSIDMIsothermal} dark matter profile class.
+    Internal constructor for the \refClass{darkMatterProfileSIDMIsothermal} dark matter halo profile class.
     !!}
     use :: Dark_Matter_Particles, only : darkMatterParticleSelfInteractingDarkMatter
     implicit none

@@ -54,7 +54,7 @@
 
   interface darkMatterProfileShapeKlypin2015
      !!{
-     Constructors for the \refClass{darkMatterProfileShapeKlypin2015} dark matter halo profile shape parameter class.
+     Constructors for the \refClass{darkMatterProfileShapeKlypin2015} dark matter halo profile shape class.
      !!}
      module procedure klypin2015ConstructorParameters
      module procedure klypin2015ConstructorInternal

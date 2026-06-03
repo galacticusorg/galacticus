@@ -34,11 +34,12 @@
      procedure :: name        => satelliteMinimumDistanceName
      procedure :: description => satelliteMinimumDistanceDescription
      procedure :: unitsInSI   => satelliteMinimumDistanceUnitsInSI
+     procedure :: units       => satelliteMinimumDistanceUnits
   end type nodePropertyExtractorSatelliteMinimumDistance
 
   interface nodePropertyExtractorSatelliteMinimumDistance
      !!{
-     Constructors for the \refClass{nodePropertyExtractorSatelliteMinimumDistance} output extractor class.
+     Constructors for the \refClass{nodePropertyExtractorSatelliteMinimumDistance} property extractor class.
      !!}
      module procedure satelliteMinimumDistanceConstructorParameters
      module procedure satelliteMinimumDistanceConstructorInternal
@@ -64,7 +65,7 @@ contains
 
   function satelliteMinimumDistanceConstructorInternal() result(self)
     !!{
-    Internal constructor for the \refClass{nodePropertyExtractorSatelliteMinimumDistance} output extractor property extractor class.
+    Internal constructor for the \refClass{nodePropertyExtractorSatelliteMinimumDistance} property extractor class.
     !!}
     implicit none
     type(nodePropertyExtractorSatelliteMinimumDistance) :: self
@@ -134,3 +135,17 @@ contains
     satelliteMinimumDistanceUnitsInSI=megaParsec
     return
   end function satelliteMinimumDistanceUnitsInSI
+
+  function satelliteMinimumDistanceUnits(self) result(units)
+    !!{
+    Return the units of the satelliteMinimumDistance property.
+    !!}
+    use :: Units_MetaData, only : unitType
+    implicit none
+    type (unitType                                     )                :: units
+    class(nodePropertyExtractorSatelliteMinimumDistance), intent(inout) :: self
+    !$GLC attributes unused :: self
+
+    units=unitType(self%unitsInSI(),description='Mpc',quantity='Mpc')
+    return
+  end function satelliteMinimumDistanceUnits

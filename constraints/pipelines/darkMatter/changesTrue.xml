@@ -1,0 +1,5 @@
+<changes>
+  <change type="replaceWith" path="cosmologicalMassVariance" target="cosmologicalMassVariance/cosmologicalMassVariance"/>
+  <change type="replaceWith" path="haloMassFunction" target="haloMassFunction/haloMassFunction/haloMassFunction/haloMassFunction"/>
+  <change type="update" path="outputFileName" append="true" value="_true"/>
+</changes>

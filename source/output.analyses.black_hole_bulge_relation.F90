@@ -126,6 +126,7 @@ contains
     use :: Output_Analysis_Distribution_Operators, only : outputAnalysisDistributionOperatorRandomErrorPlynml
     use :: Output_Analysis_Property_Operators    , only : outputAnalysisPropertyOperatorAntiLog10            , outputAnalysisPropertyOperatorCsmlgyLmnstyDstnc, outputAnalysisPropertyOperatorLog10, outputAnalysisPropertyOperatorMinMax, &
           &                                               outputAnalysisPropertyOperatorSequence             , outputAnalysisPropertyOperatorSystmtcPolynomial, propertyOperatorList
+    use :: Output_Analysis_Target_Data           , only : outputAnalysisTargetDataStandard
     use :: Output_Analysis_Weight_Operators      , only : outputAnalysisWeightOperatorIdentity
     use :: Output_Times                          , only : outputTimesClass
     implicit none
@@ -159,6 +160,7 @@ contains
     integer         (c_size_t                                           )                                :: iOutput                                                 , i
     type            (hdf5Object                                         )                                :: dataFile
     type            (varying_string                                     )                                :: targetLabel
+    type            (outputAnalysisTargetDataStandard)                              :: outputAnalysisTargetData_
     !![
     <constructorAssign variables="systematicErrorPolynomialCoefficient, randomErrorPolynomialCoefficient, randomErrorMinimum, randomErrorMaximum, *cosmologyFunctions_, *outputTimes_"/>
     !!]
@@ -285,16 +287,29 @@ contains
     <referenceConstruct object="outputAnalysisWeightPropertyExtractor_"           constructor="nodePropertyExtractorMassBlackHole             (                                                                          )"/>
     !!]
     ! Build the object.
+    outputAnalysisTargetData_=outputAnalysisTargetDataStandard(                                                                                    &
+         &                                                     xAxisLabel      =var_str('$M_{\star,\mathrm{bulge}}$ [M$_\odot$]'                ), &
+         &                                                     yAxisLabel      =var_str('$\langle \log_{10} M_\bullet/\mathrm{M}_\odot \rangle$'), &
+         &                                                     xAxisIsLog      =.true.                                                           , &
+         &                                                     yAxisIsLog      =.false.                                                          , &
+         &                                                     targetLabel     =targetLabel                                                      , &
+         &                                                     valueTarget     =functionValueTarget                                              , &
+         &                                                     covarianceTarget=functionCovarianceTarget                                           &
+         &                                                    )
     self%outputAnalysisMeanFunction1D=outputAnalysisMeanFunction1D(                                                                   &
          &                                                         var_str('blackHoleBulgeRelation'                                ), &
          &                                                         var_str('Black hole mass-bulge mass relation'                   ), &
          &                                                         var_str('massStellarSpheroid'                                   ), &
          &                                                         var_str('Stellar mass of spheroid'                              ), &
          &                                                         var_str('M☉'                                                    ), &
+         &                                                         var_str('solMass'                                               ), &
+         &                                                         .false.                                                          , &
          &                                                         massSolar                                                        , &
          &                                                         var_str('massBlackHole'                                         ), &
          &                                                         var_str('Mean logarithmic (base-10) mass of central black hole' ), &
          &                                                         var_str('M☉'                                                    ), &
+         &                                                         var_str('solMass'                                               ), &
+         &                                                         .false.                                                          , &
          &                                                         massSolar                                                        , &
          &                                                         masses                                                           , &
          &                                                         bufferCount                                                      , &
@@ -313,13 +328,7 @@ contains
          &                                                         covarianceBinomialMassHaloMinimum                                , &
          &                                                         covarianceBinomialMassHaloMaximum                                , &
          &                                                         likelihoodNormalize                                              , &
-         &                                                         var_str('$M_{\star,\mathrm{bulge}}$ [M$_\odot$]'                ), &
-         &                                                         var_str('$\langle \log_{10} M_\bullet/\mathrm{M}_\odot \rangle$'), &
-         &                                                         .true.                                                           , &
-         &                                                         .false.                                                          , &
-         &                                                         targetLabel                                                      , &
-         &                                                         functionValueTarget                                              , &
-         &                                                         functionCovarianceTarget                                           &
+         &                                                         outputAnalysisTargetData_                                          &
          &                                                        )
     ! Clean up.
     !![

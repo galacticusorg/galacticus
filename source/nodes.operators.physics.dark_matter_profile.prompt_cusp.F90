@@ -223,7 +223,7 @@ contains
 
   subroutine darkMatterProfilePromptCuspsDestructor(self)
     !!{
-    Destructor for the \refClass{nodeOperatorDarkMatterProfilePromptCusps} dark matter halo profile scale radius class.
+    Destructor for the \refClass{nodeOperatorDarkMatterProfilePromptCusps} node operator class.
     !!}
     implicit none
     type(nodeOperatorDarkMatterProfilePromptCusps), intent(inout) :: self

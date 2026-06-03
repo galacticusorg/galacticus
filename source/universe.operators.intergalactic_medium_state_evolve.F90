@@ -83,7 +83,7 @@
 
   interface universeOperatorIntergalacticMediumStateEvolve
      !!{
-     Constructors for the \refClass{universeOperatorIntergalacticMediumStateEvolve} universeOperator.
+     Constructors for the \refClass{universeOperatorIntergalacticMediumStateEvolve} universe operator class.
      !!}
      module procedure intergalacticMediumStateEvolveConstructorParameters
      module procedure intergalacticMediumStateEvolveConstructorInternal
@@ -97,7 +97,7 @@ contains
 
   function intergalacticMediumStateEvolveConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the \refClass{universeOperatorIntergalacticMediumStateEvolve} universeOperator class which takes a parameter set as input.
+    Constructor for the \refClass{universeOperatorIntergalacticMediumStateEvolve} universe operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -183,7 +183,7 @@ contains
 
   function intergalacticMediumStateEvolveConstructorInternal(timeMinimum,timeMaximum,timeCountPerDecade,cosmologyParameters_,cosmologyFunctions_,linearGrowth_,cosmologicalMassVariance_,outputTimes_,gauntFactor_,atomicCrossSectionIonizationPhoto_,atomicIonizationPotential_,atomicRecombinationRateDielectronic_,atomicRecombinationRateRadiative_,atomicRecombinationRateRadiativeCooling_,atomicIonizationRateCollisional_,atomicExcitationRateCollisional_,intergalacticMediumState_,radiationField_) result(self)
     !!{
-    Internal constructor for the \refClass{universeOperatorIntergalacticMediumStateEvolve} universeOperator class.
+    Internal constructor for the \refClass{universeOperatorIntergalacticMediumStateEvolve} universe operator class.
     !!}
     use            :: Error                                , only : Error_Report
     use, intrinsic :: ISO_C_Binding                        , only : c_size_t
@@ -338,7 +338,7 @@ contains
 
    subroutine intergalacticMediumStateEvolveDestructor(self)
      !!{
-     Destructor for the \refClass{universeOperatorIntergalacticMediumStateEvolve} universeOperator class.
+     Destructor for the \refClass{universeOperatorIntergalacticMediumStateEvolve} universe operator class.
      !!}
      implicit none
      type(universeOperatorIntergalacticMediumStateEvolve), intent(inout) :: self
@@ -385,18 +385,20 @@ contains
      !!{
      Update the properties for a given universe.
      !!}
-     use            :: Arrays_Search           , only : searchArrayClosest
-     use            :: Display                 , only : displayIndent     , displayMessage, displayUnindent
-     use            :: Error                   , only : Error_Report
-     use            :: Output_HDF5             , only : outputFile
-     use            :: Galacticus_Nodes        , only : mergerTree        , mergerTreeList, nodeComponentBasic, treeNode, &
-          &                                             universe          , universeEvent
-     use            :: HDF5_Access             , only : hdf5Access
-     use            :: IO_HDF5                 , only : hdf5Object
-     use, intrinsic :: ISO_C_Binding           , only : c_size_t
-     use            :: ISO_Varying_String      , only : varying_string
-     use            :: Numerical_Constants_Math, only : Pi
-     use            :: Numerical_ODE_Solvers   , only : odeSolver
+     use            :: Arrays_Search                   , only : searchArrayClosest
+     use            :: Display                         , only : displayIndent     , displayMessage, displayUnindent
+     use            :: Error                           , only : Error_Report
+     use            :: Output_HDF5                     , only : outputFile
+     use            :: Galacticus_Nodes                , only : mergerTree        , mergerTreeList, nodeComponentBasic, treeNode, &
+          &                                                     universe          , universeEvent
+     use            :: HDF5_Access                     , only : hdf5Access
+     use            :: IO_HDF5                         , only : hdf5Object
+     use, intrinsic :: ISO_C_Binding                   , only : c_size_t
+     use            :: ISO_Varying_String              , only : varying_string
+     use            :: Numerical_Constants_Math        , only : Pi
+     use            :: Numerical_Constants_Astronomical, only : massSolar
+     use            :: Numerical_ODE_Solvers           , only : odeSolver
+     use            :: Units_MetaData                  , only : unitType
      implicit none
      class           (universeEvent     ), intent(inout)            :: event
      type            (universe          ), intent(inout)            :: universe_
@@ -502,25 +504,25 @@ contains
            !$ call hdf5Access%set()
            igmGroup=outputFile%openGroup('igmProperties', 'Properties of the intergalactic medium.')
            call igmGroup  %writeDataset  (self%redshift            ,'redshift'        ,'Redshift [].'                                  ,datasetReturned=igmDataset)
-           call igmDataset%writeAttribute(0.0d0                    ,'unitsInSI'                                                                                   )
+           call igmDataset%writeAttribute(unitType(1.0d0                             ),'units')
            call igmGroup  %writeDataset  (self%temperature         ,'temperature'     ,'Temperature of the IGM [K].'                   ,datasetReturned=igmDataset)
-           call igmDataset%writeAttribute(1.0d0                    ,'unitsInSI'                                                                                   )
+           call igmDataset%writeAttribute(unitType(1.0d0    ,"Kelvin"      ,"K"      ),'units')
            call igmGroup  %writeDataset  (self%densityHydrogen(:,1),'densityHydrogen1','Density of H1 in the IGM [m⁻³].'               ,datasetReturned=igmDataset)
-           call igmDataset%writeAttribute(1.0d0                    ,'unitsInSI'                                                                                   )
+           call igmDataset%writeAttribute(unitType(1.0d0    ,"m⁻³"         ,"m^-3"   ),'units')
            call igmGroup  %writeDataset  (self%densityHydrogen(:,2),'densityHydrogen2','Density of H2 in the IGM [m⁻³].'               ,datasetReturned=igmDataset)
-           call igmDataset%writeAttribute(1.0d0                    ,'unitsInSI'                                                                                   )
+           call igmDataset%writeAttribute(unitType(1.0d0    ,"m⁻³"         ,"m^-3"   ),'units')
            call igmGroup  %writeDataset  (self%densityHelium  (:,1),'densityHelium1'  ,'Density of He1 in the IGM [m⁻³].'              ,datasetReturned=igmDataset)
-           call igmDataset%writeAttribute(1.0d0                    ,'unitsInSI'                                                                                   )
+           call igmDataset%writeAttribute(unitType(1.0d0    ,"m⁻³"         ,"m^-3"   ),'units')
            call igmGroup  %writeDataset  (self%densityHelium  (:,2),'densityHelium2'  ,'Density of He2 in the IGM [m⁻³].'              ,datasetReturned=igmDataset)
-           call igmDataset%writeAttribute(1.0d0                    ,'unitsInSI'                                                                                   )
+           call igmDataset%writeAttribute(unitType(1.0d0    ,"m⁻³"         ,"m^-3"   ),'units')
            call igmGroup  %writeDataset  (self%densityHelium  (:,3),'densityHelium3'  ,'Density of He3 in the IGM [m⁻³].'              ,datasetReturned=igmDataset)
-           call igmDataset%writeAttribute(1.0d0                    ,'unitsInSI'                                                                                   )
+           call igmDataset%writeAttribute(unitType(1.0d0    ,"m⁻³"         ,"m^-3"   ),'units')
            call igmGroup  %writeDataset  (self%clumpingFactor      ,'clumpingFactor'  ,'Clumping factor in the IGM [].'                ,datasetReturned=igmDataset)
-           call igmDataset%writeAttribute(1.0d0                    ,'unitsInSI'                                                                                   )
+           call igmDataset%writeAttribute(unitType(1.0d0                             ),'units')
            call igmGroup  %writeDataset  (self%opticalDepth        ,'opticalDepth'    ,'Electron scattering optical depth from z=0 [].',datasetReturned=igmDataset)
-           call igmDataset%writeAttribute(1.0d0                    ,'unitsInSI'                                                                                   )
+           call igmDataset%writeAttribute(unitType(1.0d0                             ),'units')
            call igmGroup  %writeDataset  (self%massFiltering       ,'filteringMass'   ,'Filtering mass in the IGM [M☉].'               ,datasetReturned=igmDataset)
-           call igmDataset%writeAttribute(1.0d0                    ,'unitsInSI'                                                                                   )
+           call igmDataset%writeAttribute(unitType(massSolar,"Solar masses","solMass"),'units')
            !$ call hdf5Access%unset()
         end if
         ! Store the past history to the default IGM state class.

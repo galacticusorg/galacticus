@@ -162,6 +162,7 @@ contains
     use, intrinsic :: ISO_C_Binding                   , only : c_size_t
     use            :: Numerical_Constants_Astronomical, only : massSolar
     use            :: Numerical_Constants_Prefixes    , only : kilo
+    use            :: Units_MetaData                  , only : unitType
     use            :: Numerical_Ranges                , only : Make_Range           , rangeTypeLogarithmic
     use            :: String_Handling                 , only : operator(//)
     implicit none
@@ -258,11 +259,11 @@ contains
        call outputGroup   %writeAttribute(epochRedshift                   (    iOutput),'outputRedshift'                                                                                                   )
        call outputGroup   %writeAttribute(epochTime                       (    iOutput),'outputTime'                                                                                                       )
        call outputGroup   %writeDataset  (mass                                         ,'mass'                            ,'The mass.'                                             ,datasetReturned=dataset)
-       call dataset       %writeAttribute(massSolar                                    ,'unitsInSI'                                                                                                        )
+       call dataset       %writeAttribute(unitType(massSolar,"Solar masses","solMass"),'units')
        call outputGroup   %writeDataset  (velocityDispersion1D            (:  ,iOutput),'velocityDispersion1D'            ,'The 1-D velocity dispersion.'                          ,datasetReturned=dataset)
-       call dataset       %writeAttribute(kilo                                         ,'unitsInSI'                                                                                                        )
+       call dataset       %writeAttribute(unitType(kilo     ,"km/s"        ,"km/s"   ),'units')
        call outputGroup   %writeDataset  (velocityDispersion1DMergingHalos(:,:,iOutput),'velocityDispersion1DMergingHalos','The 1-D velocity dispersion of pairs of merging halos.',datasetReturned=dataset)
-       call dataset       %writeAttribute(kilo                                         ,'unitsInSI'                                                                                                        )
+       call dataset       %writeAttribute(unitType(kilo     ,"km/s"        ,"km/s"   ),'units')
     end do
     !$ call hdf5Access%unset()
     if (present(status)) status=errorStatusSuccess

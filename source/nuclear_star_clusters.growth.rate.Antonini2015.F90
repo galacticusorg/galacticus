@@ -90,7 +90,7 @@ contains
 
   function antonini2015ConstructorInternal(efficiency,starFormationRateSpheroids_) result(self)
     !!{
-    Internal constructor for the \refClass{nuclearStarClusterGrowthRatesAntonini2015} gas inflow rate from NSCs class.
+    Internal constructor for the \refClass{nuclearStarClusterGrowthRatesAntonini2015} gas inflow rate in \glspl{nsc} class.
     !!}
     implicit none
     type            (nuclearStarClusterGrowthRatesAntonini2015)                        :: self
@@ -104,7 +104,7 @@ contains
 
   subroutine antonini2015Destructor(self)
     !!{
-    Destructor for the \refClass{nuclearStarClusterGrowthRatesAntonini2015} class
+    Destructor for the \refClass{nuclearStarClusterGrowthRatesAntonini2015} gas inflow rate in \glspl{nsc} class
     !!}
     implicit none
     type(nuclearStarClusterGrowthRatesAntonini2015), intent(inout) :: self

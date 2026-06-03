@@ -47,7 +47,7 @@ module Node_Component_Disk_Very_Simple_Size
       <type>double</type>
       <rank>0</rank>
       <attributes isSettable="true" isGettable="true" isEvolvable="false" />
-      <output unitsInSI="megaparsec" comment="Radial scale length in the disk."/>
+      <output unitsInSI="megaParsec" unitsDescription="Mpc" unitsQuantity="Mpc" comment="Radial scale length in the disk."/>
     </property>
     <property>
       <name>halfMassRadius</name>
@@ -61,7 +61,7 @@ module Node_Component_Disk_Very_Simple_Size
       <type>double</type>
       <rank>0</rank>
       <attributes isSettable="true" isGettable="true" isEvolvable="false" />
-      <output unitsInSI="kilo" comment="Circular velocity of the disk."/>
+      <output unitsInSI="kilo" unitsDescription="km/s" unitsQuantity="km/s" comment="Circular velocity of the disk."/>
     </property>
    </properties>
    <bindings>

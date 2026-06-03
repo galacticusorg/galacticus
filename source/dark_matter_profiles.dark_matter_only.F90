@@ -31,7 +31,7 @@
   !!]
   type, extends(darkMatterProfileClass) :: darkMatterProfileDarkMatterOnly
      !!{
-     A dark matter halo profile class implementing non-dark-matter-only dark matter halo profiles which are unchanged from their dark-matter-only counterpart.
+     A class implementing non-dark-matter-only dark matter halo profiles which are unchanged from their dark-matter-only counterpart.
      !!}
      private
      class           (cosmologyParametersClass ), pointer :: cosmologyParameters_                           => null()
@@ -90,7 +90,7 @@ contains
 
   function darkMatterOnlyConstructorInternal(chandrasekharIntegralComputeVelocityDispersion,cosmologyParameters_,darkMatterProfileDMO_) result(self)
     !!{
-    Internal constructor for the \refClass{darkMatterProfileDarkMatterOnly} dark matter profile class.
+    Internal constructor for the \refClass{darkMatterProfileDarkMatterOnly} non-dark-matter-only dark matter halo profile class.
     !!}
     implicit none
     type   (darkMatterProfileDarkMatterOnly)                        :: self
@@ -110,7 +110,7 @@ contains
 
   subroutine darkMatterOnlyDestructor(self)
     !!{
-    Destructor for the \refClass{darkMatterProfileDarkMatterOnly} dark matter halo profile class.
+    Destructor for the \refClass{darkMatterProfileDarkMatterOnly} non-dark-matter-only dark matter halo profile class.
     !!}
     implicit none
     type(darkMatterProfileDarkMatterOnly), intent(inout) :: self

@@ -38,7 +38,7 @@ program Test_Dark_Matter_Profiles_Heated
   \end{eqnarray}
   where $y=r_\mathrm{i}/r_\mathrm{h}$.  
   !!}
-  use :: Coordinates                     , only : coordinateSpherical
+  use :: Coordinates                     , only : coordinateSpherical                                              , assignment(=)
   use :: Cosmology_Parameters            , only : cosmologyParametersSimple
   use :: Cosmology_Functions             , only : cosmologyFunctionsMatterLambda
   use :: Dark_Matter_Particles           , only : darkMatterParticleSelfInteractingDarkMatter                      , darkMatterParticleCDM
@@ -50,7 +50,7 @@ program Test_Dark_Matter_Profiles_Heated
   use :: Events_Hooks                    , only : eventsHooksInitialize
   use :: Galacticus_Nodes                , only : nodeClassHierarchyFinalize                                       , nodeClassHierarchyInitialize       , nodeComponentBasic                      , nodeComponentSatellite             , &
        &                                          treeNode
-  use :: ISO_Varying_String              , only : varying_string
+  use :: ISO_Varying_String              , only : varying_string                                                   , assignment(=)
   use :: Input_Parameters                , only : inputParameters
   use :: Numerical_Constants_Astronomical, only : gravitationalConstant_internal
   use :: Numerical_Constants_Math        , only : Pi

@@ -204,7 +204,7 @@ contains
 
   function blitz2006ConstructorInternal(velocityDispersionDiskGas,heightToRadialScaleDisk,surfaceDensityCritical,surfaceDensityExponent,starFormationFrequencyNormalization,pressureCharacteristic,pressureExponent,assumeMonotonicSurfaceDensity,useTabulation) result(self)
     !!{
-    Internal constructor for the \refClass{starFormationRateSurfaceDensityDisksBlitz2006} star formation surface density rate from disks class.
+    Internal constructor for the \refClass{starFormationRateSurfaceDensityDisksBlitz2006} star formation surface density rate in disks class.
     !!}
     use :: Error                           , only : Error_Report
     use :: Input_Paths                     , only : inputPath                , pathTypeDataDynamic

@@ -100,7 +100,7 @@ contains
     use :: Nodes_Labels, only : nodeLabelRegister
     implicit none
     type   (nodeOperatorLabel  )                        :: self
-    type   (varying_string     ), intent(inout)         :: label
+    type   (varying_string     ), intent(in   )         :: label
     logical                     , intent(in   )         :: onInitialize   , onPostEvolution
     class  (galacticFilterClass), intent(in   ), target :: galacticFilter_
     !![
@@ -113,7 +113,7 @@ contains
   
   subroutine labelDestructor(self)
     !!{
-    Destructor for  the \refClass{nodeOperatorLabel} galactic filter class.
+    Destructor for  the \refClass{nodeOperatorLabel} node operator class.
     !!}
     implicit none
     type(nodeOperatorLabel), intent(inout) :: self

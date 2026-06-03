@@ -56,14 +56,14 @@ nodeIndexMaximum = np.max(trees['original']['nodeIndex'])
 nodeIndexOffset  = int(10**np.ceil(np.log10(nodeIndexMaximum)))
 
 # Iterate through nodes in the new tree.
-for i in range(len(trees['new']['nodeIndex'])):
+for i, node_index in enumerate(trees['new']['nodeIndex']):
     if i % 1000 == 0:
         print(f"Processing node {i} of {len(trees['new']['nodeIndex'])}")
     # Find the corresponding node in the original tree.
-    matchedNode = trees['original']['nodeIndex'] == trees['new']['nodeIndex'][i]
+    matchedNode = trees['original']['nodeIndex'] == node_index
     if np.count_nonzero(matchedNode) == 0:
         # No match - check if this is a clone.
-        if trees['new']['nodeIndex'][i] > nodeIndexOffset:
+        if node_index > nodeIndexOffset:
             # Clone.
             continue
         else:

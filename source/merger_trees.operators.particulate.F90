@@ -41,7 +41,7 @@
    <description>Options for selection of nodes to particulate.</description>
    <encodeFunction>yes</encodeFunction>
    <validator>yes</validator>
-   <visibility>private</visibility>
+   <visibility>public</visibility>
    <entry label="all"        />
    <entry label="hosts"      />
    <entry label="satellites" />
@@ -54,7 +54,7 @@
    <description>Options for softening kernel in particulate.</description>
    <encodeFunction>yes</encodeFunction>
    <validator>yes</validator>
-   <visibility>private</visibility>
+   <visibility>public</visibility>
    <entry label="delta"  />
    <entry label="plummer"/>
    <entry label="gadget" />

@@ -18,7 +18,7 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
   !!{
-  An implementation of adiabaticGnedin2004 dark matter halo profiles.
+  An implementation of \cite{gnedin_response_2004} non-dark-matter-only dark matter halo profiles.
   !!}
 
   use :: Cosmology_Parameters      , only : cosmologyParameters              , cosmologyParametersClass
@@ -29,7 +29,7 @@
   !![
   <darkMatterProfile name="darkMatterProfileAdiabaticGnedin2004">
    <description>
-    A dark matter profile class which applies adiabatic contraction to dark matter profiles using the model of \cite{gnedin_response_2004}, building \refClass{massDistributionSphericalAdiabaticGnedin2004} objects. The shape of the contraction is governed by parameters \mono{[A]}, \mono{[omega]}, and the pivot radius \mono{[radiusFractionalPivot]}, with numerical accuracy controlled by \mono{[toleranceRelative]}.
+    A non-dark-matter-only dark matter profile class which applies adiabatic contraction to dark matter profiles using the model of \cite{gnedin_response_2004}, building \refClass{massDistributionSphericalAdiabaticGnedin2004} objects. The shape of the contraction is governed by parameters \mono{[A]}, \mono{[omega]}, and the pivot radius \mono{[radiusFractionalPivot]}, with numerical accuracy controlled by \mono{[toleranceRelative]}.
    </description>
   </darkMatterProfile>
   !!]
@@ -126,7 +126,7 @@ contains
 
   function adiabaticGnedin2004ConstructorInternal(A,omega,radiusFractionalPivot,toleranceRelative,nonAnalyticSolver,cosmologyParameters_,darkMatterHaloScale_,darkMatterProfileDMO_) result(self)
     !!{
-    Internal constructor for the \refClass{darkMatterProfileAdiabaticGnedin2004} dark matter profile class.
+    Internal constructor for the \refClass{darkMatterProfileAdiabaticGnedin2004} non-dark-matter-only dark matter halo profile class.
     !!}
     use :: Mass_Distributions, only : enumerationNonAnalyticSolversIsValid
     use :: Error             , only : Error_Report
@@ -153,7 +153,7 @@ contains
 
   subroutine adiabaticGnedin2004Destructor(self)
     !!{
-    Destructor for the \refClass{darkMatterProfileAdiabaticGnedin2004} dark matter halo profile class.
+    Destructor for the \refClass{darkMatterProfileAdiabaticGnedin2004} non-dark-matter-only dark matter halo profile class.
     !!}
     implicit none
     type(darkMatterProfileAdiabaticGnedin2004), intent(inout) :: self

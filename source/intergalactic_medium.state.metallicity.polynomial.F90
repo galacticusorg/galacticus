@@ -32,7 +32,7 @@
   !!]
   type, extends(intergalacticMediumStateClass) :: intergalacticMediumStateMetallicityPolynomial
      !!{
-     An intergalactic medium state class which provides a fixed metallicity for the \gls{igm}, given by \mono{[metallicity]}.
+     An \gls{igm} state class which provides a fixed metallicity for the \gls{igm}, given by \mono{[metallicity]}.
      !!}
      private
      class           (intergalacticMediumStateClass), pointer :: intergalacticMediumState_ => null()
@@ -49,7 +49,7 @@
 
   interface intergalacticMediumStateMetallicityPolynomial
      !!{
-     Constructors for the \refClass{intergalacticMediumStateMetallicityPolynomial} intergalactic medium state class.
+     Constructors for the \refClass{intergalacticMediumStateMetallicityPolynomial} \gls{igm} state class.
      !!}
      module procedure metallicityPolynomialIGMConstructorParameters
      module procedure metallicityPolynomialIGMConstructorInternal

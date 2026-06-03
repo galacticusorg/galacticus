@@ -38,11 +38,12 @@
      procedure :: names        => presetNamedRealsNames
      procedure :: descriptions => presetNamedRealsDescriptions
      procedure :: unitsInSI    => presetNamedRealsUnitsInSI
+     procedure :: units       => presetNamedRealsUnits
   end type nodePropertyExtractorPresetNamedReals
 
   interface nodePropertyExtractorPresetNamedReals
      !!{
-     Constructors for the \refClass{nodePropertyExtractorPresetNamedReals} output extractor class.
+     Constructors for the \refClass{nodePropertyExtractorPresetNamedReals} property extractor class.
      !!}
      module procedure presetNamedRealsConstructorParameters
      module procedure presetNamedRealsConstructorInternal
@@ -77,7 +78,7 @@ contains
 
   function presetNamedRealsConstructorInternal(presetnames) result(self)
     !!{
-    Internal constructor for the \refClass{nodePropertyExtractorPresetNamedReals} output extractor property extractor class.
+    Internal constructor for the \refClass{nodePropertyExtractorPresetNamedReals} property extractor class.
     !!}
     implicit none
     type   (nodePropertyExtractorPresetNamedReals)                              :: self
@@ -166,16 +167,33 @@ contains
     !!{
     Return the units of the \mono{presetNamedReals} properties in the SI system.
     !!}
-    use :: Numerical_Constants_Astronomical, only : megaParsec
-    use :: Numerical_Constants_Prefixes    , only : kilo
     implicit none
     double precision                                       , dimension(:) , allocatable :: presetNamedRealsUnitsInSI
     class           (nodePropertyExtractorPresetNamedReals), intent(inout)              :: self
     double precision                                       , intent(in   )              :: time
-   !$GLC attributes unused :: time
+    !$GLC attributes unused :: time
 
     allocate(presetNamedRealsUnitsInSI(size(self%presetNames)))
     presetNamedRealsUnitsInSI=-1.0d0
     return
   end function presetNamedRealsUnitsInSI
 
+  function presetNamedRealsUnits(self,time) result(units)
+    !!{
+    Return the units of the presetNamedReals properties.
+    !!}
+    use :: Units_MetaData, only : unitType
+    implicit none
+    type            (unitType                             ), dimension(:) , allocatable :: units
+    class           (nodePropertyExtractorPresetNamedReals), intent(inout)              :: self
+    double precision                                       , intent(in   )              :: time
+    double precision                                       , dimension(:) , allocatable :: siValues
+    integer                                                                             :: i
+
+    siValues=self%unitsInSI(time)
+    allocate(units(size(siValues)))
+    do i=1,size(siValues)
+       units(i)=unitType(-1.0d0)
+    end do
+    return
+  end function presetNamedRealsUnits

@@ -129,6 +129,7 @@ contains
     use :: Numerical_Constants_Units             , only : electronVolt                                       , ergs
     use :: Numerical_Ranges                      , only : Make_Range                                         , rangeTypeLinear
     use :: Output_Analyses_Options               , only : outputAnalysisCovarianceModelBinomial
+    use :: Output_Analysis_Target_Data           , only : outputAnalysisTargetDataStandard
     use :: Output_Analysis_Distribution_Operators, only : outputAnalysisDistributionOperatorRandomErrorPlynml
     use :: Output_Analysis_Property_Operators    , only : outputAnalysisPropertyOperatorAntiLog10            , outputAnalysisPropertyOperatorLog10    , outputAnalysisPropertyOperatorSequence, outputAnalysisPropertyOperatorSystmtcPolynomial, &
           &                                               propertyOperatorList
@@ -165,6 +166,7 @@ contains
     double precision                                                     , parameter                     :: temperatureMinimum                              =0.1d0  , temperatureMaximum                   =1.0d01, &
          &                                                                                                  countTemperaturesPerDecade                      =5.0d0
     integer         (c_size_t                                           )                                :: iOutput                                                 , countTemperatures
+    type            (outputAnalysisTargetDataStandard)                              :: outputAnalysisTargetData_
     !![
     <constructorAssign variables="systematicErrorPolynomialCoefficient, randomErrorPolynomialCoefficient, randomErrorMinimum, randomErrorMaximum, *cosmologyFunctions_, *darkMatterHaloScale_, *coolingFunction_"/>
     !!]
@@ -254,16 +256,26 @@ contains
     <referenceConstruct object="outputAnalysisWeightPropertyExtractor_"           constructor="nodePropertyExtractorICMXRayLuminosity         (cosmologyFunctions_,darkMatterHaloScale_,coolingFunction_                                                    )"/>
     !!]
     ! Build the object.
+    outputAnalysisTargetData_=outputAnalysisTargetDataStandard(                                                                                               &
+         &                                                     xAxisLabel      =var_str('$T_\mathrm{ICM}$ [keV]'                                           ), &
+         &                                                     yAxisLabel      =var_str('$\langle \log_{10} L_\mathrm{ICM}/\mathrm{ergs\, s}^{-1} \rangle$'), &
+         &                                                     xAxisIsLog      =.true.                                                                      , &
+         &                                                     yAxisIsLog      =.false.                                                                       &
+         &                                                    )
     self%outputAnalysisMeanFunction1D=outputAnalysisMeanFunction1D(                                                                              &
          &                                                         var_str('icmXrayLuminosityTemperature'                                     ), &
          &                                                         var_str('ICM X-ray luminosity-temperature relation'                        ), &
          &                                                         var_str('temperatureICMXray'                                               ), &
          &                                                         var_str('X-ray temperature of the ICM'                                     ), &
          &                                                         var_str('keV'                                                              ), &
+         &                                                         var_str('keV'                                                              ), &
+         &                                                         .false.                                                                     , &
          &                                                         kilo*electronVolt                                                           , &
          &                                                         var_str('luminosityICMXray'                                                ), &
          &                                                         var_str('Mean logarithmic (base-10) X-ray luminosity of the ICM'           ), &
          &                                                         var_str('ergs/s'                                                           ), &
+         &                                                         var_str('erg/s'                                                            ), &
+         &                                                         .false.                                                                     , &
          &                                                         ergs                                                                        , &
          &                                                         temperatures                                                                , &
          &                                                         bufferCount                                                                 , &
@@ -282,10 +294,7 @@ contains
          &                                                         covarianceBinomialMassHaloMinimum                                           , &
          &                                                         covarianceBinomialMassHaloMaximum                                           , &
          &                                                         likelihoodNormalize                                                         , &
-         &                                                         var_str('$T_\mathrm{ICM}$ [keV]'                                           ), &
-         &                                                         var_str('$\langle \log_{10} L_\mathrm{ICM}/\mathrm{ergs\, s}^{-1} \rangle$'), &
-         &                                                         .true.                                                                      , &
-         &                                                         .false.                                                                       &
+         &                                                         outputAnalysisTargetData_                                                     &
          &                                                        )
     ! Clean up.
     !![

@@ -148,7 +148,7 @@ contains
 
   function kennicuttSchmidtConstructorInternal(normalization,exponent,truncate,exponentTruncated,velocityDispersionDiskGas,toomreParameterCritical) result(self)
     !!{
-    Internal constructor for the \refClass{starFormationRateSurfaceDensityDisksKennicuttSchmidt} star formation surface density rate from disks class.
+    Internal constructor for the \refClass{starFormationRateSurfaceDensityDisksKennicuttSchmidt} star formation surface density rate in disks class.
     !!}
     use :: Numerical_Constants_Prefixes, only : mega
     implicit none

@@ -42,11 +42,12 @@ Implements a half-light radii property extractor class.
      procedure :: names        => radiiHalfLightPropertiesNames
      procedure :: descriptions => radiiHalfLightPropertiesDescriptions
      procedure :: unitsInSI    => radiiHalfLightPropertiesUnitsInSI
+     procedure :: units       => radiiHalfLightPropertiesUnits
   end type nodePropertyExtractorRadiiHalfLightProperties
 
   interface nodePropertyExtractorRadiiHalfLightProperties
      !!{
-     Constructors for the \refClass{nodePropertyExtractorRadiiHalfLightProperties} output analysis class.
+     Constructors for the \refClass{nodePropertyExtractorRadiiHalfLightProperties} property extractor class.
      !!}
      module procedure radiiHalfLightPropertiesConstructorParameters
   end interface nodePropertyExtractorRadiiHalfLightProperties
@@ -186,3 +187,24 @@ contains
     return
   end function radiiHalfLightPropertiesUnitsInSI
 
+  function radiiHalfLightPropertiesUnits(self,time) result(units)
+    !!{
+    Return the units of the radiiHalfLightProperties properties.
+    !!}
+    use :: Units_MetaData                  , only : unitType
+    use :: Numerical_Constants_Astronomical, only : massSolar              , megaParsec
+    use :: Stellar_Luminosities_Structure  , only : unitStellarLuminosities
+    implicit none
+    type            (unitType                                     ), dimension(:), allocatable :: units
+    class           (nodePropertyExtractorRadiiHalfLightProperties), intent(inout)             :: self
+    double precision                                               , intent(in   )             :: time
+    integer                                                                                    :: i
+    !$GLC attributes unused :: self
+
+    allocate(units(2*unitStellarLuminosities%luminosityOutputCount(time)))
+    do i=0,unitStellarLuminosities%luminosityOutputCount(time)-1
+       units(2*i+1)=unitType(megaParsec,description='Mpc',quantity='Mpc'    )
+       units(2*i+2)=unitType(massSolar ,description='M☉' ,quantity='solMass')
+    end do
+    return
+  end function radiiHalfLightPropertiesUnits

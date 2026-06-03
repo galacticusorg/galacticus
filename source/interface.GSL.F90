@@ -32,11 +32,12 @@ module Interface_GSL
   Interfaces with low-level aspects of the GSL library.
   !!}
   use, intrinsic :: ISO_C_Binding, only : c_funptr, c_ptr     , c_double, c_int, &
-       &                                  c_char  , c_null_ptr
+       &                                  c_char  , c_null_ptr, c_size_t
   private
   public :: gslFunction        , gslFunctionFdF        , gslFunctionDestroy, &
        &    gslFunctionTemplate, gslFunctionFdFTemplate, gslSetErrorHandler, &
-       &    gslFileOpen        , gslFileClose          , gslFunctionWrapper
+       &    gslFileOpen        , gslFileClose          , gslFunctionWrapper, &
+       &    gslErrorDecode
 
   abstract interface
      !!{
@@ -126,6 +127,16 @@ module Interface_GSL
        integer(c_int)        :: gslFileCloseC
        type   (c_ptr), value :: stream
      end function gslFileCloseC
+ 
+     subroutine gslErrorDecoder(gsl_errno,gsl_str,gsl_strlen) bind(c,name='gslErrorDecoder')
+       !!{
+       Template for a C function that returns a string describing a GSL error.
+       !!}
+       import c_int, c_char, c_size_t
+       integer  (c_int   ), value        :: gsl_errno
+       character(c_char  ), dimension(*) :: gsl_str
+       integer  (c_size_t), value        :: gsl_strlen
+     end subroutine gslErrorDecoder
   end interface
 
   interface gslSetErrorHandler
@@ -266,6 +277,25 @@ contains
     call gslFunctionDestructor(f)
     return
   end subroutine gslFunctionDestroy
+
+  function gslErrorDecode(errorNumber) result(description)
+    !!{
+    Decode a GSL error number.
+    !!}
+    use, intrinsic :: ISO_C_Binding     , only : c_f_pointer
+    use            :: ISO_Varying_String, only : varying_string     , assignment(=)
+    use            :: String_Handling   , only : String_C_to_Fortran
+    implicit none
+    type     (varying_string)                               :: description
+    integer                  , intent(in   )                :: errorNumber
+    integer  (c_size_t      ), parameter                    :: descriptionLength=128
+
+    character(c_char        ), dimension(descriptionLength) :: description_
+    
+    call gslErrorDecoder(errorNumber,description_,descriptionLength)
+    description=String_C_to_Fortran(description_)
+    return
+  end function gslErrorDecode
 
   subroutine gslFunctionWrapperDestructor(self)
     !!{

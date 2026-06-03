@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Changes file to switch to using a top-hat window function for the cosmological mass variance -->
+<changes>
+  <change type="replace" path="powerSpectrumWindowFunction">
+    <powerSpectrumWindowFunction value="topHat"/>
+  </change>
+</changes>

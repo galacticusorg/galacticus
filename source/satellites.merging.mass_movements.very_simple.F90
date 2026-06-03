@@ -112,7 +112,7 @@ contains
 
   subroutine verySimpleDestructor(self)
     !!{
-    Destructor for the \refClass{mergerMassMovementsVerySimple} dark matter halo profile class.
+    Destructor for the \refClass{mergerMassMovementsVerySimple} merger mass movements class.
     !!}
     use :: Events_Hooks, only : calculationResetEvent, satelliteMergerEvent
     implicit none

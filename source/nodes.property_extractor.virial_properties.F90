@@ -44,11 +44,12 @@
      procedure :: names        => virialPropertiesNames
      procedure :: descriptions => virialPropertiesDescriptions
      procedure :: unitsInSI    => virialPropertiesUnitsInSI
+     procedure :: units       => virialPropertiesUnits
   end type nodePropertyExtractorVirialProperties
 
   interface nodePropertyExtractorVirialProperties
      !!{
-     Constructors for the \refClass{nodePropertyExtractorVirialProperties} output extractor class.
+     Constructors for the \refClass{nodePropertyExtractorVirialProperties} property extractor class.
      !!}
      module procedure virialPropertiesConstructorParameters
      module procedure virialPropertiesConstructorInternal
@@ -79,7 +80,7 @@ contains
 
   function virialPropertiesConstructorInternal(darkMatterHaloScale_) result(self)
     !!{
-    Internal constructor for the \refClass{nodePropertyExtractorVirialProperties} output extractor property extractor class.
+    Internal constructor for the \refClass{nodePropertyExtractorVirialProperties} property extractor class.
     !!}
     implicit none
     type (nodePropertyExtractorVirialProperties)                        :: self
@@ -193,3 +194,22 @@ contains
     return
   end function virialPropertiesUnitsInSI
 
+  function virialPropertiesUnits(self,time) result(units)
+    !!{
+    Return the units of the virialProperties properties.
+    !!}
+    use :: Units_MetaData, only : unitType
+    implicit none
+    type            (unitType                             ), dimension(:), allocatable :: units
+    class           (nodePropertyExtractorVirialProperties), intent(inout)             :: self
+    double precision                                       , intent(in   )             :: time
+    double precision                                       , dimension(:), allocatable :: siValues
+    !$GLC attributes unused :: self
+
+    siValues=self%unitsInSI(time)
+    allocate(units(3))
+    units(1)=unitType(siValues(1),description='Mpc' ,quantity='Mpc' )
+    units(2)=unitType(siValues(2),description='km/s',quantity='km/s')
+    units(3)=unitType(siValues(3),description='K'   ,quantity='K'   )
+    return
+  end function virialPropertiesUnits

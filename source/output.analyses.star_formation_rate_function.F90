@@ -273,6 +273,7 @@ contains
     use :: Numerical_Constants_Astronomical        , only : massSolar                                  , megaParsec, gigaYear
     use :: Output_Analyses_Options                 , only : outputAnalysisCovarianceModelBinomial
     use :: Output_Analysis_Distribution_Normalizers, only : normalizerList                             , outputAnalysisDistributionNormalizerBinWidth, outputAnalysisDistributionNormalizerLog10ToLog , outputAnalysisDistributionNormalizerSequence
+    use :: Output_Analysis_Target_Data             , only : outputAnalysisTargetDataStandard
     use :: Output_Analysis_Property_Operators      , only : outputAnalysisPropertyOperatorAntiLog10    , outputAnalysisPropertyOperatorClass         , outputAnalysisPropertyOperatorCsmlgyLmnstyDstnc, outputAnalysisPropertyOperatorLog10         , &
           &                                                 outputAnalysisPropertyOperatorSequence     , propertyOperatorList
     use :: Output_Analysis_Utilities               , only : Output_Analysis_Output_Weight_Survey_Volume
@@ -310,6 +311,7 @@ contains
     double precision                                                 , parameter                               :: bufferWidthLogarithmic                          =3.0d0
     integer         (c_size_t                                       ), parameter                               :: bufferCountMinimum                              =5
     integer         (c_size_t                                       )                                          :: iBin                                                  , bufferCount
+    type            (outputAnalysisTargetDataStandard)                              :: outputAnalysisTargetData_
     !![
     <constructorAssign variables="starFormationRates, *surveyGeometry_, *cosmologyFunctions_, *cosmologyFunctionsData, *starFormationRateDisks_, *starFormationRateSpheroids_, *starFormationRateNuclearStarClusters_"/>
     !!]
@@ -383,6 +385,15 @@ contains
     ! convolution operations on the distribution function are unaffected by edge effects.
     bufferCount=max(int(bufferWidthLogarithmic/log10(starFormationRates(2)/starFormationRates(1)))+1,bufferCountMinimum)
     ! Construct the object. We convert starFormationRates to log10(starFormationRates) here.
+    outputAnalysisTargetData_=outputAnalysisTargetDataStandard(                                                                                                       &
+         &                                                     xAxisLabel      =var_str('$\log_{10}(\dot{M}_\star/\mathrm{M}_\odot) \mathrm{Gyr}^{-1}$'            ), &
+         &                                                     yAxisLabel      =var_str('$\mathrm{d}n/\mathrm{d}\log_\mathrm{e} \dot{M}_\star / \mathrm{Mpc}^{-3}$'), &
+         &                                                     xAxisIsLog      =.true.                                                                              , &
+         &                                                     yAxisIsLog      =.true.                                                                              , &
+         &                                                     targetLabel     =targetLabel                                                                         , &
+         &                                                     valueTarget     =functionValueTarget                                                                 , &
+         &                                                     covarianceTarget=functionCovarianceTarget                                                              &
+         &                                                    )
     self%outputAnalysisVolumeFunction1D=                                                                                        &
          & outputAnalysisVolumeFunction1D(                                                                                      &
          &                                'starFormationRateFunction'//label                                                  , &
@@ -390,10 +401,14 @@ contains
          &                                var_str('starFormationRate'                                                        ), &
          &                                var_str('Star formation rate at the bin center'                                    ), &
          &                                var_str('M☉/Gyr'                                                                   ), &
+         &                                var_str('solMass/Gyr'                                                              ), &
+         &                                .false.                                                                             , &
          &                                massSolar/gigaYear                                                                  , &
          &                                var_str('starFormationRateFunction'                                                ), &
          &                                var_str('Star formation rate function averaged over each bin '                     ), &
          &                                var_str('Mpc⁻³'                                                                    ), &
+         &                                var_str('Mpc^-3'                                                                   ), &
+         &                                .true.                                                                              , &
          &                                megaParsec**(-3)                                                                    , &
          &                                log10(starFormationRates)                                                           , &
          &                                bufferCount                                                                         , &
@@ -411,13 +426,7 @@ contains
          &                                covarianceBinomialMassHaloMinimum                                                   , &
          &                                covarianceBinomialMassHaloMaximum                                                   , &
          &                                .false.                                                                             , &
-         &                                var_str('$\log_{10}(\dot{M}_\star/\mathrm{M}_\odot) \mathrm{Gyr}^{-1}$'              ), &
-         &                                var_str('$\mathrm{d}n/\mathrm{d}\log_\mathrm{e} \dot{M}_\star / \mathrm{Mpc}^{-3}$'), &
-         &                                .true.                                                                              , &
-         &                                .true.                                                                              , &
-         &                                targetLabel                                                                         , &
-         &                                functionValueTarget                                                                 , &
-         &                                functionCovarianceTarget                                                              &
+         &                                outputAnalysisTargetData_                                                             &
          &                               )
     ! Clean up.
     !![

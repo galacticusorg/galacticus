@@ -30,7 +30,7 @@
   <darkMatterProfileDMO name="darkMatterProfileDMOTruncatedExponential">
     <description>
       Exponentially truncated dark matter halo profiles \cite{kazantzidis_2006} are constructed via the
-      \refClass{massDistributionSphericalTruncatedExponential} class.
+      \refClass{massDistributionSphericalTruncatedExponential} mass distribution class.
     </description>
   </darkMatterProfileDMO>
   !!]
@@ -99,7 +99,7 @@ contains
 
   function truncatedExponentialConstructorInternal(radiusFractionalDecay,nonAnalyticSolver,darkMatterProfileDMO_,darkMatterHaloScale_) result(self)
     !!{
-    Internal constructor for the \refClass{darkMatterProfileDMOTruncatedExponential} dark matter profile class.
+    Internal constructor for the \refClass{darkMatterProfileDMOTruncatedExponential} dark matter halo profile class.
     !!}
     use :: Error             , only : Error_Report
     use :: Mass_Distributions, only : enumerationNonAnalyticSolversIsValid

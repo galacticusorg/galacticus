@@ -3,7 +3,6 @@
 # Andrew Benson (15-September-2010)
 
 import os
-import sys
 import numpy as np
 import xml.etree.ElementTree as ET
 from xml.dom import minidom

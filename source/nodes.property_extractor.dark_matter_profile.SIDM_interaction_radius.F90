@@ -40,11 +40,12 @@ Implements a dark matter profile SIDM interaction radius property extractor clas
      procedure :: name        => darkMatterProfileRadiusInteractionSIDMName
      procedure :: description => darkMatterProfileRadiusInteractionSIDMDescription
      procedure :: unitsInSI   => darkMatterProfileRadiusInteractionSIDMUnitsInSI
+     procedure :: units       => darkMatterProfileRadiusInteractionSIDMUnits
   end type nodePropertyExtractorDarkMatterProfileRadiusInteractionSIDM
 
   interface nodePropertyExtractorDarkMatterProfileRadiusInteractionSIDM
      !!{
-     Constructors for the \refClass{nodePropertyExtractorDarkMatterProfileRadiusInteractionSIDM} output analysis class.
+     Constructors for the \refClass{nodePropertyExtractorDarkMatterProfileRadiusInteractionSIDM} property extractor class.
      !!}
      module procedure darkMatterProfileRadiusInteractionSIDMConstructorParameters
      module procedure darkMatterProfileRadiusInteractionSIDMConstructorInternal
@@ -54,7 +55,7 @@ contains
 
   function darkMatterProfileRadiusInteractionSIDMConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the \refClass{nodePropertyExtractorDarkMatterProfileRadiusInteractionSIDM} output analysis property extractor class which takes a parameter set as input.
+    Constructor for the \refClass{nodePropertyExtractorDarkMatterProfileRadiusInteractionSIDM} property extractor class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -162,3 +163,16 @@ contains
     darkMatterProfileRadiusInteractionSIDMUnitsInSI=megaParsec
     return
   end function darkMatterProfileRadiusInteractionSIDMUnitsInSI
+
+  function darkMatterProfileRadiusInteractionSIDMUnits(self) result(units)
+    !!{
+    Return the units of the darkMatterProfileRadiusInteractionSIDM property.
+    !!}
+    use :: Units_MetaData, only : unitType
+    implicit none
+    type (unitType                                                   )                :: units
+    class(nodePropertyExtractorDarkMatterProfileRadiusInteractionSIDM), intent(inout) :: self
+
+    units=unitType(self%unitsInSI(),description='Mpc',quantity='Mpc')
+    return
+  end function darkMatterProfileRadiusInteractionSIDMUnits

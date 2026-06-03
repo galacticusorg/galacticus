@@ -205,11 +205,15 @@ contains
          &                                                         var_str('massHalo'                                  ), &
          &                                                         var_str('Halo mass [M₂₀₀c]'                         ), &
          &                                                         var_str('M☉'                                        ), &
+         &                                                         var_str('solMass'                                   ), &
+         &                                                         .false.                                              , &
          &                                                         massSolar                                            , &
          &                                                         var_str('log10Concentration'                        ), &
          &                                                         var_str('log₁₀ of Concentration [log₁₀(r₂₀₀c/rs)]'  ), &
          &                                                         var_str(' '                                         ), &
-         &                                                         0.0d0                                                , &
+         &                                                         var_str(' '                                         ), &
+         &                                                         .false.                                              , &
+         &                                                         1.0d0                                                , &
          &                                                         massHaloLogarithmic                                  , &
          &                                                         5_c_size_t                                           , &
          &                                                         outputWeight                                         , &

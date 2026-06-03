@@ -41,7 +41,7 @@
 
   interface massDistributionHeatingTwoBodyRelaxation
      !!{
-     Constructors for the \refClass{massDistributionHeatingTwoBodyRelaxation} mass distribution class.
+     Constructors for the \refClass{massDistributionHeatingTwoBodyRelaxation} mass distribution heating class.
      !!}
      module procedure twoBodyRelaxationConstructorParameters
      module procedure twoBodyRelaxationConstructorInternal
@@ -51,7 +51,7 @@ contains
 
   function twoBodyRelaxationConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the \refClass{massDistributionHeatingTwoBodyRelaxation} mass distribution class which builds the object from a parameter
+    Constructor for the \refClass{massDistributionHeatingTwoBodyRelaxation} mass distribution heating class which builds the object from a parameter
     set.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
@@ -92,7 +92,7 @@ contains
   
   function twoBodyRelaxationConstructorInternal(massParticle,lengthSoftening,timeRelaxing,efficiency) result(self)
     !!{
-    Constructor for the \refClass{massDistributionHeatingTwoBodyRelaxation} dark matter profile heating class.
+    Constructor for the \refClass{massDistributionHeatingTwoBodyRelaxation} mass distribution heating class.
     !!}
     implicit none
     type             (massDistributionHeatingTwoBodyRelaxation)                :: self

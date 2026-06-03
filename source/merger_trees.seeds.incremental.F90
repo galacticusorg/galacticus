@@ -30,7 +30,7 @@ Implements a merger tree random number seed in which the seed increases incremen
       \refClass{randomNumberGeneratorClass} object in the parameter file by incrementing by a small number (e.g. 1, or any number
       less than the total number of trees simulated) will result in significant overlap in seed values for trees between the two
       models. To avoid this, either increment the random seed by a number larger than the total number of trees run, or consider
-      using the \refClass{mergerTreeSeedsRandom} class to generate seeds instead.
+      using the \refClass{mergerTreeSeedsRandom} merger tree seed class to generate seeds instead.
     </description>
   </mergerTreeSeeds>
   !!]

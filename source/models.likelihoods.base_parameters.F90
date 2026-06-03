@@ -106,12 +106,19 @@ contains
     type     (inputParameters                        ), pointer                       :: parameters_           , subParameters_
     character(len=1024                               )                                :: labelIndex            , labelValue              , &
          &                                                                               parameterValue
+    logical                                                                           :: namesMatch
 
     ! On first call we must build pointers to all parameter nodes which will be modified as a function of chain state.
     if (.not.allocated(self%modelParametersActive_)) then
        allocate(self%modelParametersActive_(size(modelParametersActive_)))
        do i=1,size(modelParametersActive_)
-          parameterCount=String_Count_Words(char(modelParametersActive_(i)%modelParameter_%name()),"/")
+          ! Check for duplicated parameters.
+          do j=1,size(modelParametersActive_)
+             namesMatch=modelParametersActive_(i)%modelParameter_%name() == modelParametersActive_(j)%modelParameter_%name()
+             if (namesMatch .and. i /= j) &
+                  & call Error_Report("duplicated active parameter name '"//char(modelParametersActive_(i)%modelParameter_%name())//"'"//{introspection:location})
+          end do
+          parameterCount=String_Count_Words(modelParametersActive_(i)%modelParameter_%name(),"/")
           allocate(parameterNames(parameterCount))
           call String_Split_Words(parameterNames,char(modelParametersActive_(i)%modelParameter_%name()),"/")
           allocate(parameters_)
@@ -150,6 +157,7 @@ contains
                 ! This is the final parameter - so get and store a pointer to its node.
                 self%modelParametersActive_(i)%parameter_   => parameters_%node         (char(parameterNames(j)),requireValue=.true. ,copyInstance=instance)
                 self%modelParametersActive_(i)%indexElement =  indexElement
+                self%modelParametersActive_(i)%definition   =  modelParametersActive_(i)%modelParameter_%name()
              else
                 ! This is an intermediate parameter, get the appropriate sub-parameters.
                 allocate  (subParameters_)
@@ -167,7 +175,13 @@ contains
     if (.not.allocated(self%modelParametersInactive_)) then
        allocate(self%modelParametersInactive_(size(modelParametersInactive_)))
        do i=1,size(modelParametersInactive_)
-          parameterCount=String_Count_Words(char(modelParametersInactive_(i)%modelParameter_%name()),"/")
+          ! Check for duplicated parameters.
+          do j=1,size(modelParametersInactive_)
+             namesMatch=modelParametersInactive_(i)%modelParameter_%name() == modelParametersInactive_(j)%modelParameter_%name()
+             if (namesMatch .and. i /= j) &
+                  & call Error_Report("duplicated inactive parameter name '"//char(modelParametersInactive_(i)%modelParameter_%name())//"'"//{introspection:location})
+          end do
+          parameterCount=String_Count_Words(modelParametersInactive_(i)%modelParameter_%name(),"/")
           allocate(parameterNames(parameterCount))
           call String_Split_Words(parameterNames,char(modelParametersInactive_(i)%modelParameter_%name()),"/")
           allocate(parameters_)
@@ -267,15 +281,13 @@ contains
     ! Update parameter values.
     if (report_ .and. self%reportState) call displayIndent("State:")
     do i=1,size(modelParametersActive_)
-       if (report_ .and. self%reportState) &
-            & call displayMessage(char(modelParametersActive_(i)%modelParameter_%name())//" = "//char(self%modelParametersActive_(i)%parameter_%get()))
        if (self%modelParametersActive_(i)%indexElement == 0) then
           ! Simply overwrite the parameter.
           call self%modelParametersActive_(i)%parameter_%set(modelParametersActive_(i)%modelParameter_%unmap(stateVector(i)))
        else
           ! Overwrite only the indexed parameter in the list.
           parameterText =self%modelParametersActive_(i)%parameter_%get()
-          parameterCount=String_Count_Words(char(parameterText))
+          parameterCount=String_Count_Words(parameterText)
           if (self%modelParametersActive_(i)%indexElement > parameterCount)                           &
                & call Error_Report(                                                                   &
                &                   var_str('attempt to access non-existant element {')             // &
@@ -292,12 +304,14 @@ contains
           call self%modelParametersActive_(i)%parameter_%set(String_Join(parameterNames," "))
           deallocate(parameterNames)
        end if
+       if (report_ .and. self%reportState) &
+            & call displayMessage(char(modelParametersActive_(i)%modelParameter_%name())//" = "//char(self%modelParametersActive_(i)%parameter_%get()))
     end do
     ! Resolve dependencies in derived parameters.
     if (size(modelParametersInactive_) > 0) then
        do i=1,size(modelParametersInactive_)
           select type (modelParameter_ => modelParametersInactive_(i)%modelParameter_)
-             class is (modelParameterDerived)
+          class is (modelParameterDerived)
              self%modelParametersInactive_(i)%definition=modelParameter_%definition()
              self%modelParametersInactive_(i)%resolved  =.false.
           end select
@@ -361,14 +375,23 @@ contains
 #endif
                    if (self%modelParametersInactive_(i)%indexElement == 0) then
                       ! Simply overwrite the parameter.
-                      call self%modelParametersInactive_(i)%parameter_%set(valueDerived)
+                      if (modelParameter_%isInteger()) then
+                         write (valueText,'(i24)') int(valueDerived)
+                         call self%modelParametersInactive_(i)%parameter_%set(var_str(valueText   ))
+                      else
+                         call self%modelParametersInactive_(i)%parameter_%set(        valueDerived )
+                      end if
                    else
                       ! Overwrite only the indexed parameter in the list.
                       parameterText =self%modelParametersInactive_(i)%parameter_%get()
-                      parameterCount=String_Count_Words(char(parameterText))
+                      parameterCount=String_Count_Words(parameterText)
                       allocate(parameterNames(parameterCount))
                       call String_Split_Words(parameterNames,char(parameterText))
-                      write (valueText,'(e24.16)') valueDerived
+                      if (modelParameter_%isInteger()) then
+                         write (valueText,'(i24   )') valueDerived
+                      else
+                         write (valueText,'(e24.16)') valueDerived
+                      end if
                       parameterNames(self%modelParametersInactive_(i)%indexElement)=trim(valueText)
                       call self%modelParametersInactive_(i)%parameter_%set(String_Join(parameterNames," "))
                       deallocate(parameterNames)

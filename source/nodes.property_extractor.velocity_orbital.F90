@@ -46,11 +46,12 @@ Implements an orbital velocity output analysis property extractor class.
      procedure :: names        => velocityOrbitalNames
      procedure :: descriptions => velocityOrbitalDescriptions
      procedure :: unitsInSI    => velocityOrbitalUnitsInSI
+     procedure :: units       => velocityOrbitalUnits
   end type nodePropertyExtractorVelocityOrbital
 
   interface nodePropertyExtractorVelocityOrbital
      !!{
-     Constructors for the \refClass{nodePropertyExtractorVelocityOrbital} output analysis class.
+     Constructors for the \refClass{nodePropertyExtractorVelocityOrbital} property extractor class.
      !!}
      module procedure velocityOrbitalConstructorParameters
   end interface nodePropertyExtractorVelocityOrbital
@@ -59,7 +60,7 @@ contains
 
   function velocityOrbitalConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the \refClass{nodePropertyExtractorVelocityOrbital} output analysis property extractor class which takes a parameter set as input.
+    Constructor for the \refClass{nodePropertyExtractorVelocityOrbital} property extractor class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -186,3 +187,24 @@ contains
     velocityOrbitalUnitsInSI=kilo
     return
   end function velocityOrbitalUnitsInSI
+
+  function velocityOrbitalUnits(self,time) result(units)
+    !!{
+    Return the units of the velocityOrbital properties.
+    !!}
+    use :: Units_MetaData, only : unitType
+    implicit none
+    type            (unitType                            ), dimension(:), allocatable :: units
+    class           (nodePropertyExtractorVelocityOrbital), intent(inout)             :: self
+    double precision                                      , intent(in   )             :: time
+    double precision                                      , dimension(:), allocatable :: siValues
+    integer                                                                           :: i
+    !$GLC attributes unused :: self
+
+    siValues=self%unitsInSI(time)
+    allocate(units(size(siValues)))
+    do i=1,size(siValues)
+       units(i)=unitType(siValues(i),description='km/s',quantity='km/s')
+    end do
+    return
+  end function velocityOrbitalUnits

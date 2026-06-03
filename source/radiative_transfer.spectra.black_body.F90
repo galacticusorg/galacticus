@@ -78,7 +78,7 @@ contains
 
   function blackBodyConstructorInternal(temperature,luminosityBolometric) result(self)
     !!{
-    Internal constructor for the \refClass{radiativeTransferSpectrumBlackBody} radiative transfer photon packet class.
+    Internal constructor for the \refClass{radiativeTransferSpectrumBlackBody} radiative transfer spectrum class.
     !!}
     use :: Thermodynamics_Radiation, only : Blackbody_Radiance
     implicit none

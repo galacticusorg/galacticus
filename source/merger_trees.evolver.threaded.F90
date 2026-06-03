@@ -43,7 +43,7 @@
   !![
   <mergerTreeEvolver name="mergerTreeEvolverThreaded">
    <description>
-    An OpenMP threaded merger tree evolver. This class extends the \refClass{mergerTreeEvolverStandard} class. To evolve the tree,
+    An OpenMP threaded merger tree evolver. This class extends the \refClass{mergerTreeEvolverStandard} merger tree evolver class. To evolve the tree,
     a list of evolvable nodes is constructed and then a set of parallel threads is spawned which take nodes from that list, evolve
     them, and add them to a second list for postprocessing. This repeats until tree evolution is completed.
     </description>

@@ -36,11 +36,12 @@
      procedure :: names        => galaxyMergersPhysicalNames
      procedure :: descriptions => galaxyMergersPhysicalDescriptions
      procedure :: unitsInSI    => galaxyMergersPhysicalUnitsInSI
+     procedure :: units        => galaxyMergersPhysicalUnits
   end type nodePropertyExtractorGalaxyMergersPhysical
 
   interface nodePropertyExtractorGalaxyMergersPhysical
      !!{
-     Constructors for the \refClass{nodePropertyExtractorGalaxyMergersPhysical} output extractor class.
+     Constructors for the \refClass{nodePropertyExtractorGalaxyMergersPhysical} property extractor class.
      !!}
      module procedure galaxyMergersPhysicalConstructorParameters
      module procedure galaxyMergersPhysicalConstructorInternal
@@ -66,7 +67,7 @@ contains
 
   function galaxyMergersPhysicalConstructorInternal() result(self)
     !!{
-    Internal constructor for the \refClass{nodePropertyExtractorGalaxyMergersPhysical} output extractor property extractor class.
+    Internal constructor for the \refClass{nodePropertyExtractorGalaxyMergersPhysical} property extractor class.
     !!}
     implicit none
     type(nodePropertyExtractorGalaxyMergersPhysical) :: self
@@ -178,3 +179,23 @@ contains
     unitsInSI(5)=massSolar
     return
   end function galaxyMergersPhysicalUnitsInSI
+
+  function galaxyMergersPhysicalUnits(self) result(units)
+    !!{
+    Return the units of the galaxyMergersPhysical properties.
+    !!}
+    use :: Numerical_Constants_Astronomical, only : gigaYear, massSolar
+    use :: Units_MetaData                  , only : unitType
+    implicit none
+    type            (unitType                                  ), dimension(:), allocatable :: units
+    class           (nodePropertyExtractorGalaxyMergersPhysical), intent(inout)             :: self
+    !$GLC attributes unused :: self
+
+    allocate(units(5))
+    units(1)=unitType(gigaYear ,description='Gyr'         ,quantity='Gyr'    )
+    units(2)=unitType(massSolar,description='Solar masses',quantity='solMass')
+    units(3)=unitType(massSolar,description='Solar masses',quantity='solMass')
+    units(4)=unitType(massSolar,description='Solar masses',quantity='solMass')
+    units(5)=unitType(massSolar,description='Solar masses',quantity='solMass')
+    return
+  end function galaxyMergersPhysicalUnits

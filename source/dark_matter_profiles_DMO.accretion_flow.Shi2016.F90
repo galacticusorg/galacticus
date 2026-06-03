@@ -112,7 +112,7 @@ contains
 
   function accretionFlowShi2016ConstructorInternal(scaleFactorVelocity,cosmologyFunctions_,criticalOverdensity_,cosmologicalMassVariance_,darkMatterProfileDMO_,darkMatterHaloScale_,darkMatterHaloMassAccretionHistory_,sphericalCollapseSolver_) result(self)
     !!{
-    Internal constructor for the \refClass{darkMatterProfileDMOAccretionFlowShi2016} dark matter profile class.
+    Internal constructor for the \refClass{darkMatterProfileDMOAccretionFlowShi2016} dark matter halo profile class.
     !!}
     implicit none
     type            (darkMatterProfileDMOAccretionFlowShi2016)                        :: self
@@ -133,7 +133,7 @@ contains
 
   subroutine accretionFlowShi2016Destructor(self)
     !!{
-    Destructor for the \refClass{darkMatterProfileDMOAccretionFlowShi2016} dark matter profile class.
+    Destructor for the \refClass{darkMatterProfileDMOAccretionFlowShi2016} dark matter halo profile class.
     !!}
     implicit none
     type(darkMatterProfileDMOAccretionFlowShi2016), intent(inout) :: self

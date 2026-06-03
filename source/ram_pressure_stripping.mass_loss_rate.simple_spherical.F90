@@ -67,8 +67,7 @@ contains
 
   function simpleSphericalConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the \refClass{ramPressureStrippingSimpleSpherical} timescale for star formation feedback in spheroids class which
-    takes a parameter set as input.
+    Constructor for the \refClass{ramPressureStrippingSimpleSpherical} model of ram pressure stripping of spheroids class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none

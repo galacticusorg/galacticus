@@ -35,7 +35,7 @@
   <task name="taskPostprocessForests">
     <description>
       A task which postprocesses galaxies within a set of merger tree forests. This task assumes that a prior model was run, with
-      raw forest data written to file using the \refClass{mergerTreeOutputterFullState} class. The name of that file is specified
+      raw forest data written to file using the \refClass{mergerTreeOutputterFullState} merger tree outputter class. The name of that file is specified
       via the \mono{fileName} parameter. Forests data will be re-read, and re-output. Note that you should use
       the \emph{exact same} parameter file (other than changing the \mono{task}, and possibly removing the use of
       the \refClass{mergerTreeOutputterFullState} outputter) as was used to run the original model. This ensures that the raw data

@@ -154,7 +154,7 @@ contains
 
   function normalConstructorInternal(time,cosmologyParameters_,cosmologyFunctions_,cosmologicalMassVariance_,linearGrowth_,criticalOverdensity_,radiusEnvironment,massEnvironment) result(self)
     !!{
-    Internal constructor for the \refClass{haloEnvironmentNormal} halo mass function class.
+    Internal constructor for the \refClass{haloEnvironmentNormal} halo environment class.
     !!}
     use :: Error_Functions         , only : Error_Function
     use :: Numerical_Constants_Math, only : Pi
@@ -251,7 +251,7 @@ contains
 
   subroutine normalDestructor(self)
     !!{
-    Destructor for the \refClass{haloEnvironmentNormal} halo mass function class.
+    Destructor for the \refClass{haloEnvironmentNormal} halo environment class.
     !!}
     use :: Events_Hooks, only : calculationResetEvent
     implicit none
@@ -315,21 +315,21 @@ contains
              ! The variance on the mass scale of the tree exceeds that of the environment. Therefore, the overdensity is
              ! drawn from the distribution expected for the background scale given that it has not collapsed to become a halo on
              ! any larger scale.
-             self%overdensityPrevious=+self%distributionOverdensity       %sample   (                                                                &
-                  &                                                                  randomNumberGenerator_=node %hostTree%randomNumberGenerator_    &
+             self%overdensityPrevious=+self%distributionOverdensity       %sample   (                                                             &
+                  &                                                                  randomNumberGenerator_=node%hostTree%randomNumberGenerator_  &
                   &                                                                 )
           else
              ! The variance on the mass scale of the tree is less than that of the background. Given that the base halo of the tree
              ! collapsed into a halo of mass Mₜ>Mₑ, the distribution of overdensities on the scale of Mₑ is just a Gaussian, with
              ! mean of δ_c, and variance equal to the difference in variance between the two scales.
-             self%overdensityPrevious=+self%distributionOverdensityMassive%sample   (                                                                &
-                  &                                                                  randomNumberGenerator_=node %hostTree%randomNumberGenerator_    &
-                  &                                                                 )                                                                &
-                  &                   *sqrt(                                                                                                         &
-                  &                         +self                          %variance                                                                 &
-                  &                         -                               variance                                                                 &
-                  &                        )                                                                                                         &
-                  &                   +      self%criticalOverdensity_      %value  (time                 =basic         %time                 ())
+             self%overdensityPrevious=+self%distributionOverdensityMassive%sample   (                                                             &
+                  &                                                                  randomNumberGenerator_=node%hostTree%randomNumberGenerator_  &
+                  &                                                                 )                                                             &
+                  &                   *sqrt(                                                                                                      &
+                  &                         +self                          %variance                                                              &
+                  &                         -                               variance                                                              &
+                  &                        )                                                                                                      &
+                  &                   +      self%criticalOverdensity_      %value  (time                  =self%time                           )
           end if
           call node%hostTree%properties%set(self%propertyName,self%overdensityPrevious)
        end if

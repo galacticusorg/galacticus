@@ -301,6 +301,7 @@ contains
     use :: Numerical_Constants_Astronomical      , only : gigaYear                                   , massSolar
     use :: Output_Analyses_Options               , only : outputAnalysisCovarianceModelBinomial
     use :: Output_Analysis_Distribution_Operators, only : outputAnalysisDistributionOperatorClass
+    use :: Output_Analysis_Target_Data           , only : outputAnalysisTargetDataStandard
     use :: Output_Analysis_Property_Operators    , only : outputAnalysisPropertyOperatorAntiLog10    , outputAnalysisPropertyOperatorClass   , outputAnalysisPropertyOperatorCsmlgyLmnstyDstnc, outputAnalysisPropertyOperatorLog10, &
           &                                               outputAnalysisPropertyOperatorNormal       , outputAnalysisPropertyOperatorSequence, propertyOperatorList
     use :: Output_Analysis_Weight_Operators      , only : outputAnalysisWeightOperatorIdentity
@@ -339,6 +340,7 @@ contains
     integer         (c_size_t                                       ), parameter                                    :: bufferCountMinimum                              =5
     integer         (c_size_t                                       )                                               :: iBin                                                        , bufferCount                                         , &
          &                                                                                                             countMasses
+         type            (outputAnalysisTargetDataStandard)                              :: outputAnalysisTargetData_
     !![
     <constructorAssign variables="starFormationRateSpecificQuiescentLogarithmic, starFormationRateSpecificLogarithmicError, *surveyGeometry_, *cosmologyFunctions_, *cosmologyFunctionsData, *starFormationRateDisks_, *starFormationRateSpheroids_, *starFormationRateNuclearStarClusters_"/>
     !!]
@@ -467,6 +469,15 @@ contains
     ! convolution operations on the distribution function are unaffected by edge effects.
     bufferCount=max(int(bufferWidthLogarithmic/log10(massesStellar(2)/massesStellar(1)))+1,bufferCountMinimum)
     ! Construct the object.
+    outputAnalysisTargetData_=outputAnalysisTargetDataStandard(                                                            &
+         &                                                     xAxisLabel      =var_str('$M_\star\, [\mathrm{M}_\odot]$'), &
+         &                                                     yAxisLabel      =var_str('$f_\mathrm{q}$'                ), &
+         &                                                     xAxisIsLog      =.true.                                   , &
+         &                                                     yAxisIsLog      =.true.                                   , &
+         &                                                     targetLabel     =targetLabel                              , &
+         &                                                     valueTarget     =meanValueTarget                          , &
+         &                                                     covarianceTarget=meanCovarianceTarget                       &
+         &                                                    )
     self%outputAnalysisMeanFunction1D=                                                                    &
          & outputAnalysisMeanFunction1D(                                                                  &
          &                              var_str('quiescentFraction')//label                             , &
@@ -474,10 +485,14 @@ contains
          &                              var_str('massStellar'                                          ), &
          &                              var_str('Stellar mass at the bin center'                       ), &
          &                              var_str('$\mathrm{M}_\odot$'                                   ), &
+         &                              var_str('solMass'                                              ), &
+         &                              .false.                                                         , &
          &                              massSolar                                                       , &
          &                              var_str('fractionQuiescent'                                    ), &
          &                              var_str('Fraction of queiscent galaxies averaged over each bin'), &
          &                              var_str(' '                                                    ), &
+         &                              var_str(' '                                                    ), &
+         &                              .false.                                                         , &
          &                              1.0d0                                                           , &
          &                              log10(massesStellar)                                            , &
          &                              bufferCount                                                     , &
@@ -496,13 +511,7 @@ contains
          &                              covarianceBinomialMassHaloMinimum                               , &
          &                              covarianceBinomialMassHaloMaximum                               , &
          &                              .false.                                                         , &
-         &                              var_str('$M_\star\, [\mathrm{M}_\odot]$'                       ), &
-         &                              var_str('$f_\mathrm{q}$'                                       ), &
-         &                              .true.                                                          , &
-         &                              .true.                                                          , &
-         &                              targetLabel                                                     , &
-         &                              meanValueTarget                                                 , &
-         &                              meanCovarianceTarget                                              &
+         &                              outputAnalysisTargetData_                                         &
          &                             )
     !![
     <objectDestructor name="outputAnalysisPropertyOperatorCsmlgyLmnstyDstnc_"/>

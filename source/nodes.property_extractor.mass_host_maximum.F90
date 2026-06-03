@@ -36,11 +36,12 @@
      procedure :: name        => massHostMaximumName
      procedure :: description => massHostMaximumDescription
      procedure :: unitsInSI   => massHostMaximumUnitsInSI
+     procedure :: units       => massHostMaximumUnits
   end type nodePropertyExtractorMassHostMaximum
 
   interface nodePropertyExtractorMassHostMaximum
      !!{
-     Constructors for the \refClass{nodePropertyExtractorMassHostMaximum} output extractor class.
+     Constructors for the \refClass{nodePropertyExtractorMassHostMaximum} property extractor class.
      !!}
      module procedure massHostMaximumConstructorParameters
      module procedure massHostMaximumConstructorInternal
@@ -66,7 +67,7 @@ contains
 
   function massHostMaximumConstructorInternal() result(self)
     !!{
-    Internal constructor for the \refClass{nodePropertyExtractorMassHostMaximum} output extractor property extractor class.
+    Internal constructor for the \refClass{nodePropertyExtractorMassHostMaximum} property extractor class.
     !!}
     use :: Galacticus_Nodes, only : defaultBasicComponent
     implicit none
@@ -123,7 +124,7 @@ contains
 
   double precision function massHostMaximumUnitsInSI(self)
     !!{
-    Return the units of the \mono{massHostMaximum} properties in the SI system.
+    Return the units of the maximum host mass property in the SI system.
     !!}
     use :: Numerical_Constants_Astronomical, only : massSolar
     implicit none
@@ -133,3 +134,17 @@ contains
     massHostMaximumUnitsInSI=massSolar
     return
   end function massHostMaximumUnitsInSI
+
+  function massHostMaximumUnits(self) result(units)
+    !!{
+    Return the units of the maximum host mass property.
+    !!}
+    use :: Units_MetaData, only : unitType
+    implicit none
+    type (unitType                            )                :: units
+    class(nodePropertyExtractorMassHostMaximum), intent(inout) :: self
+    !$GLC attributes unused :: self
+
+    units=unitType(self%unitsInSI(),description='Solar masses',quantity='solMass')
+    return
+  end function massHostMaximumUnits

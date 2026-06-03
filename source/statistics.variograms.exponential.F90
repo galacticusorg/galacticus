@@ -55,7 +55,7 @@
 
   interface variogramExponential
      !!{
-     Constructors for the \refClass{variogramExponential} posterior sampling likelihood class.
+     Constructors for the \refClass{variogramExponential} variogram class.
      !!}
      module procedure exponentialConstructorParameters
      module procedure exponentialConstructorInternal

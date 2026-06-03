@@ -117,7 +117,7 @@ contains
 
   function accretionFlowCorrelationFunctionConstructorInternal(scaleFactorVelocity,cosmologyFunctions_,criticalOverdensity_,cosmologicalMassVariance_,darkMatterHaloBias_,correlationFunctionTwoPoint_,darkMatterProfileDMO_,darkMatterHaloScale_,linearGrowth_) result(self)
     !!{
-    Internal constructor for the \refClass{darkMatterProfileDMOAccretionFlowCorrelationFunction} dark matter profile class.
+    Internal constructor for the \refClass{darkMatterProfileDMOAccretionFlowCorrelationFunction} dark matter halo profile class.
     !!}
     implicit none
     type            (darkMatterProfileDMOAccretionFlowCorrelationFunction)                        :: self
@@ -139,7 +139,7 @@ contains
 
   subroutine accretionFlowCorrelationFunctionDestructor(self)
     !!{
-    Destructor for the \refClass{darkMatterProfileDMOAccretionFlowCorrelationFunction} dark matter profile class.
+    Destructor for the \refClass{darkMatterProfileDMOAccretionFlowCorrelationFunction} dark matter halo profile class.
     !!}
     implicit none
     type(darkMatterProfileDMOAccretionFlowCorrelationFunction), intent(inout) :: self

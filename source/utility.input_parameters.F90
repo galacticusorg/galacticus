@@ -337,10 +337,8 @@ contains
     Constructor for the \mono{inputParameters} class from an XML file
     specified as a variable length string.
     !!}
-    use :: FoX_dom           , only : node
-    use :: ISO_Varying_String, only : char                             , extract    , operator(==)
     use :: IO_XML            , only : XML_Get_First_Element_By_Tag_Name
-    use :: FoX_dom           , only : node                             , parseString
+    use :: FoX_DOM           , only : node                             , parseString
     use :: ISO_Varying_String, only : char                             , extract    , operator(==), assignment(=)
     implicit none
     type     (inputParameters)                                           :: self
@@ -389,16 +387,17 @@ contains
     !!}
     use :: Display           , only : displayGreen                     , displayReset
     use :: File_Utilities    , only : File_Exists
-    use :: FoX_dom           , only : node                             , getAttribute, setAttribute          , getParentNode, &
-         &                            removeChild                      , getNodeName , hasAttribute          , appendChild  , &
-         &                            importNode                       , insertBefore, getNextSibling        , destroy      , &
-         &                            getExceptionCode                 , inException , DOMException          , cloneNode    , &
+    use :: FoX_DOM           , only : node                             , getAttribute    , setAttribute          , getParentNode, &
+         &                            removeChild                      , getNodeName     , hasAttribute          , appendChild  , &
+         &                            importNode                       , insertBefore    , getNextSibling        , destroy      , &
+         &                            getExceptionCode                 , inException     , DOMException          , cloneNode    , &
          &                            getNodeType                      , ELEMENT_NODE
     use :: Error             , only : Error_Report
-    use :: IO_XML            , only : XML_Get_First_Element_By_Tag_Name, XML_Parse   , XML_Get_Child_Elements, xmlNodeList  , &
+    use :: IO_XML            , only : XML_Get_First_Element_By_Tag_Name, XML_Parse       , XML_Get_Child_Elements, xmlNodeList  , &
          &                            XML_Path_Exists
-    use :: ISO_Varying_String, only : trim                             , char        , assignment(=)         , operator(//) , &
-         &                            operator(==)                     , index       , extract
+    use :: ISO_Varying_String, only : trim                             , char            , assignment(=)         , operator(//) , &
+         &                            operator(==)                     , index           , extract
+    use :: String_Handling   , only : operator(//)
     implicit none
     type     (inputParameters)                                        :: self
     character(len=*          )              , intent(in   )           :: fileName
@@ -413,8 +412,12 @@ contains
          &                                                               newNode              , changeSiblingNode, &
          &                                                               targetNode           , clonedNode
     integer                                                           :: errorStatus          , i                , &
-         &                                                               j                    , k
-    logical                                                           :: append
+         &                                                               j                    , k                , &
+         &                                                               exceptionCode
+    type     (DOMException   )                                        :: exception
+    type     (varying_string )                                        :: errorMessage         , fileNameFailed
+    logical                                                           :: parseSuccess         , isException      , &
+         &                                                               append
     type     (varying_string )                                        :: changePath           , targetPath       , &
          &                                                               valueUpdated
     character(len=32         )                                        :: changeType
@@ -423,14 +426,20 @@ contains
     if (.not.File_Exists(fileName)) call Error_Report("parameter file '"//trim(fileName)//"' does not exist"//{introspection:location})
     ! Open and parse the data file.
     !$omp critical (FoX_DOM_Access)
-    doc => XML_Parse(fileName,iostat=errorStatus)
+    doc           => XML_Parse(fileName,iostat=errorStatus,ex=exception,fileNameCurrent=fileNameFailed)
+    isException   =  inException(exception)
+    exceptionCode =  getExceptionCode(exception)
+    !$omp end critical (FoX_DOM_Access)
+    parseSuccess  =  .true.
+    errorMessage  =  ''
+    if (isException) then
+       parseSuccess=.false.
+       errorMessage=errorMessage//char(10)//'exception raised [code='//exceptionCode//']'
+    end if
     if (errorStatus /= 0) then
        if (File_Exists(fileName)) then
-          call Error_Report(                                                                                                                                                                &
-               &            'Unable to parse parameter file: "'//trim(fileName)//'"'//char(10)//                                                                                            &
-               &            displayGreen()//"HELP:"//displayReset()//" check that the XML in this file is valid (e.g. `xmllint --noout "//trim(fileName)//"` will display any XML errors"// &
-               &            {introspection:location}                                                                                                                                        &
-               &           )
+          parseSuccess=.false.
+          errorMessage=errorMessage//char(10)//'I/O error [code='//errorStatus//']'
        else
           call Error_Report(                                                                                                                                                                &
                &            'Unable to find parameter file: "' //trim(fileName)//'"'//                                                                                                      &
@@ -438,6 +447,13 @@ contains
                &           )
        end if
     end if
+    if (.not.parseSuccess)                                                                                                                                                                   &
+         & call Error_Report(                                                                                                                                                                &
+         &                   'Unable to parse parameter file: "'//trim(fileName)//'" {"'//fileNameFailed//'"}: '//errorMessage//char(10)//                                                   &
+         &                   displayGreen()//"HELP:"//displayReset()//" check that the XML in this file is valid (e.g. `xmllint --noout "//trim(fileName)//"` will display any XML errors"// &
+         &                   {introspection:location}                                                                                                                                        &
+         &                  )
+    !$omp critical (FoX_DOM_Access)
     parameterNode => XML_Get_First_Element_By_Tag_Name(              &
          &                                             doc         , &
          &                                             'parameters'  &
@@ -447,7 +463,7 @@ contains
     if (present(changeFiles).and.size(changeFiles) > 0) then
        do i=1,size(changeFiles)
           !$omp critical (FoX_DOM_Access)
-          changesDoc =>  XML_Parse(char(changeFiles(i)),iostat=errorStatus)
+          changesDoc =>  XML_Parse(changeFiles(i),iostat=errorStatus)
           !$omp end critical (FoX_DOM_Access)
           if (errorStatus /= 0) then
              if (File_Exists(changeFiles(i))) then
@@ -662,7 +678,7 @@ contains
          &                                                               threadSafe
     type     (resourceManager)              , intent(in   ), optional :: documentManager
     type     (documentWrapper), pointer     , intent(in   ), optional :: document
-    type     (varying_string )                                        :: message                    , inputPathC
+    type     (varying_string )                                        :: message
     type     (node           ), pointer                               :: lastModifiedNode           , revisionNode       , &
          &                                                               strictNode
     logical                                                           :: hasRevision                , hasStrict          , &
@@ -674,6 +690,7 @@ contains
     character(len=41         )                                        :: commitHashSelf
     character(len=42         )                                        :: commitHashSelf_
     integer                                                           :: i
+    type     (varying_string )                                        :: inputPathC
 #endif
     type     (varying_string ), dimension(:), allocatable  , save     :: allowedParameterNamesGlobal
     !$omp threadprivate(allowedParameterNamesGlobal)
@@ -835,7 +852,7 @@ contains
                 end if
              else if (any(isAncestorOfParameters == 0)) then
                 ! Parameter file is missing migrations - issue a warning.
-                message="parameter file may be missing important parameter updates - consider updating by running:"//char(10)//char(10)//"              ./scripts/aux/parametersMigrate.pl "//trim(fileName)//" newParameterFile.xml"
+                message="parameter file may be missing important parameter updates - consider updating by running:"//char(10)//char(10)//"              ./scripts/aux/parametersMigrate.py "//trim(fileName)//" newParameterFile.xml"
                 if (self%strict) then
                    call Error_Report(message//{introspection:location})
                 else
@@ -1052,9 +1069,9 @@ contains
              !! Extract the string being compared to.
              valueTest=trim(condition)
              ! Get the value of the parameter.
-             countNames=String_Count_Words(parameterName,":")
+             countNames=String_Count_Words(parameterName,"/")
              allocate(parameterNames(countNames))
-             call String_Split_Words(parameterNames,parameterName,":")
+             call String_Split_Words(parameterNames,parameterName,"/")
              parameterLeafName=parameterNames(countNames)
              parameterTest => currentParameter
              if (trim(parameterNames(1)) /= "." .and. trim(parameterNames(1)) /= "..") then
@@ -1441,8 +1458,8 @@ contains
     use :: FoX_DOM           , only : setAttribute
     use :: ISO_Varying_String, only : char
     implicit none
-    class    (inputParameter), intent(inout) :: self
-    type     (varying_string), intent(in   ) :: value
+    class(inputParameter), intent(inout) :: self
+    type (varying_string), intent(in   ) :: value
 
     !$omp critical (FoX_DOM_Access)
     call setAttribute(self%content,"value",char(value))
@@ -1973,9 +1990,9 @@ contains
     character(len=parameterLengthMaximum), dimension(:) , allocatable :: parameterNames
     integer                                                           :: countNames       , i
     
-    countNames=String_Count_Words(parameterPath,":")
+    countNames=String_Count_Words(parameterPath,"/")
     allocate(parameterNames(countNames))
-    call String_Split_Words(parameterNames,parameterPath,":")
+    call String_Split_Words(parameterNames,parameterPath,"/")
     parameterName  =  parameterNames(countNames)
     subParameters  => null          (          )
     if (trim(parameterNames(1)) /= "." .and. trim(parameterNames(1)) /= "..") then
@@ -2217,7 +2234,7 @@ contains
     logical                                                                             :: hasValueAttribute  , hasValueElement , &
          &                                                                                 isException        , isPresent       , &
          &                                                                                 isDouble           , isText          , &
-         &                                                                                 haveDefault
+         &                                                                                 isInteger          , haveDefault
     character       (len=parameterLengthMaximum              )                          :: expression         , parameterName   , &
          &                                                                                 workText           , content         , &
          &                                                                                 workValueText      , formatSpecifier , &
@@ -2274,9 +2291,10 @@ contains
           expression=getTextContent(valueElement)
           !$omp end critical (FoX_DOM_Access)
           if (expression(1:1) == "=" .and. evaluate_) then
-             {Type¦match¦^(Double|Character|VarStr)$¦if (.true.) then¦if (.false.) then}
+             {Type¦match¦^(Integer|Long|Double|Logical|Character|VarStr)$¦if (.true.) then¦if (.false.) then}
+                {Type¦match¦^Integer|Long¦isInteger=.true.¦isInteger=.false.}
                 {Type¦match¦^Double$¦isDouble=.true.¦isDouble=.false.}
-                {Type¦match¦^(Character|VarStr)¦isText=.true.¦isText=.false.}
+                {Type¦match¦^(Logical|Character|VarStr)¦isText=.true.¦isText=.false.}
                 ! This is an expression, and we have a scalar, floating point or text type - it can be evaluated.             
                 !! Mark this parameter as being evaluated and store its original content. This allows the parameter to be reset to
                 !! its original (unevaluated) state if necessary.
@@ -2309,7 +2327,7 @@ contains
                       else
                          call Error_Report('inserted parameters must have a format specifier'//{introspection:location})
                       end if
-                   else if (isDouble) then
+                   else if (isDouble.or.isInteger) then
                       haveDefault=index(parameterName,"|") > 0
                       if (haveDefault) then
                          defaultValue =parameterName(  index(parameterName,"|")+1:len_trim(parameterName))
@@ -2328,6 +2346,10 @@ contains
                          call parentParameters%value(trim(parameterLeafName),workValueText   )
                       end if
                       deallocate(parentParameters)
+                   else if (isInteger .and. haveDefault) then
+                      ! The parameter does not exist, but a default value is available - use that default.
+                      read (defaultValue,*) workValueInteger
+                      deallocate(parentParameters)
                    else if (isDouble .and. haveDefault) then
                       ! The parameter does not exist, but a default value is available - use that default.
                       read (defaultValue,*) workValueDouble
@@ -2340,6 +2362,8 @@ contains
                    end if
                    if (isDouble) then
                       write (workText,'(e24.16)') workValueDouble
+                   else if (isInteger) then
+                      write (workText,'(i24)'   ) workValueInteger
                    else if (isText) then
                       if      (parameterType == inputParameterTypeDouble ) then
                          write (worktext,formatSpecifier) workValueDouble
@@ -2352,13 +2376,18 @@ contains
                    expression=expression(1:index(expression,"[")-1)//trim(adjustl(workText))//expression(index(expression,"]")+1:len_trim(expression))
                 end do
                 !! Evaluate the expression.
-                if (isDouble) then
+                if (isDouble .or. isInteger) then
 #ifdef MATHEVALAVAIL
                    evaluator=Evaluator_Create_(trim(expression))
                    if (evaluator == 0) call Error_Report("failed to parse expression '"//trim(expression)//"' - see https://galacticusorg.github.io/libmatheval/doc/evaluator_005fcreate.html for supported operators and functions"//{introspection:location})
                    workValueDouble=Evaluator_Evaluate_(evaluator,0,"",0.0d0)
                    call Evaluator_Destroy_(evaluator)
-                   call parameterNode%set(workValueDouble)
+                   if (isDouble) then
+                      call parameterNode%set(workValueDouble)
+                   else if (isInteger) then
+                      write (workValueText,'(i24)') int(workValueDouble,kind=c_size_t)
+                      call parameterNode%set(var_str(trim(workValueText)))
+                   end if
                    !$omp critical (FoX_DOM_Access)
                    valueElement => getAttributeNode(parameterNode%content,"value")
                    !$omp end critical (FoX_DOM_Access)

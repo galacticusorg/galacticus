@@ -17,7 +17,15 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
+!!{
+Contains a program which tests that tree branch destruction correctly avoids dangling pointers.
+!!}
+
 program Tests_Tree_Branch_Destroy
+  !!{
+  Tests that destroying a branch of a merger tree correctly updates sibling and parent pointers in the remaining nodes,
+  avoiding dangling pointer references that would trigger errors under memory-checking tools such as Valgrind.
+  !!}
   use :: Display         , only : displayVerbositySet   , verbosityLevelStandard
   use :: Galacticus_Nodes, only : mergerTree            , treeNode              , treeNodeList
   use :: Input_Parameters, only : inputParameters

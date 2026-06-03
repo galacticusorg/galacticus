@@ -90,7 +90,7 @@ contains
 
   function multiConstructorInternal(outputters) result(self)
     !!{
-    Internal constructor for the \refClass{radiativeTransferOutputterMulti} analysis class.
+    Internal constructor for the \refClass{radiativeTransferOutputterMulti} radiative transfer outputter class.
     !!}
     implicit none
     type(radiativeTransferOutputterMulti)                        :: self
@@ -110,7 +110,7 @@ contains
 
   subroutine multiDestructor(self)
     !!{
-    Destructor for the \refClass{radiativeTransferOutputterMulti} analysis class.
+    Destructor for the \refClass{radiativeTransferOutputterMulti} radiative transfer outputter class.
     !!}
     implicit none
     type(radiativeTransferOutputterMulti), intent(inout) :: self

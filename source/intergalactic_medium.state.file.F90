@@ -20,7 +20,7 @@
 !+    Contributions to this file made by:  Luiz Felippe S. Rodrigues.
 
   !!{
-  An implementation of the intergalactic medium state class in which state is read from file.
+  An implementation of the \gls{igm} state class in which state is read from file.
   !!}
 
   use :: Numerical_Interpolation, only : interpolator
@@ -32,7 +32,7 @@
   !![
   <intergalacticMediumState name="intergalacticMediumStateFile">
    <description>
-    An intergalactic medium state class which reads the state of the intergalactic medium from a file and interpolates in the
+    An \gls{igm} state class which reads the state of the intergalactic medium from a file and interpolates in the
     tabulated results. The HDF5 file containing the table should have the following form:
     \begin{verbatim}
     HDF5 "igmState.hdf5" {
@@ -164,7 +164,7 @@
 
   interface intergalacticMediumStateFile
      !!{
-     Constructors for the file intergalactic medium state class.
+     Constructors for the file \gls{igm} state class.
      !!}
      module procedure fileConstructorParameters
      module procedure fileConstructorInternal

@@ -40,11 +40,12 @@
      procedure :: names        => peakHeightNames
      procedure :: descriptions => peakHeightDescriptions
      procedure :: unitsInSI    => peakHeightUnitsInSI
+     procedure :: units       => peakHeightUnits
   end type nodePropertyExtractorPeakHeight
 
   interface nodePropertyExtractorPeakHeight
      !!{
-     Constructors for the \refClass{nodePropertyExtractorPeakHeight} output extractor class.
+     Constructors for the \refClass{nodePropertyExtractorPeakHeight} property extractor class.
      !!}
      module procedure peakHeightConstructorParameters
      module procedure peakHeightConstructorInternal
@@ -81,7 +82,7 @@ contains
 
   function peakHeightConstructorInternal(criticalOverdensity_,cosmologicalMassVariance_,linearGrowth_) result(self)
     !!{
-    Internal constructor for the \refClass{nodePropertyExtractorPeakHeight} output extractor property extractor class.
+    Internal constructor for the \refClass{nodePropertyExtractorPeakHeight} property extractor class.
     !!}
     implicit none
     type (nodePropertyExtractorPeakHeight)                        :: self
@@ -202,6 +203,24 @@ contains
     !$GLC attributes unused :: self, time
 
     allocate(peakHeightUnitsInSI(4))
-    peakHeightUnitsInSI=[0.0d0,0.0d0,0.0d0,0.0d0]
+    peakHeightUnitsInSI=[1.0d0,1.0d0,1.0d0,1.0d0]
     return
   end function peakHeightUnitsInSI
+
+  function peakHeightUnits(self,time) result(units)
+    !!{
+    Return the units of the peakHeight properties.
+    !!}
+    use :: Units_MetaData, only : unitType
+    implicit none
+    type            (unitType                       ), dimension(:), allocatable :: units
+    class           (nodePropertyExtractorPeakHeight), intent(inout)             :: self
+    double precision                                 , intent(in   )             :: time
+    integer                                                                      :: i
+
+    allocate(units(4))
+    do i=1,4
+       units(i)=unitType(1.0d0)
+    end do
+    return
+  end function peakHeightUnits

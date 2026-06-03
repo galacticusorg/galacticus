@@ -154,7 +154,7 @@ contains
 
   subroutine baugh2005Destructor(self)
     !!{
-    Destructor for the \refClass{mergerMassMovementsBaugh2005} dark matter halo profile class.
+    Destructor for the \refClass{mergerMassMovementsBaugh2005} merger mass movements class.
     !!}
     use :: Events_Hooks, only : calculationResetEvent, satelliteMergerEvent
     implicit none

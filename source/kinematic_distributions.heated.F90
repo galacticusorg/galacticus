@@ -109,7 +109,7 @@ contains
   
   function heatedConstructorInternal(nonAnalyticSolver,velocityDispersionApproximate,toleranceRelativeVelocityDispersion,toleranceRelativeVelocityDispersionMaximum) result(self)
     !!{
-    Constructor for the \refClass{kinematicsDistributionHeated} kinematics distribution class.
+    Constructor for the \refClass{kinematicsDistributionHeated} kinematic distribution class.
     !!}
     implicit none
     type            (kinematicsDistributionHeated     )                :: self

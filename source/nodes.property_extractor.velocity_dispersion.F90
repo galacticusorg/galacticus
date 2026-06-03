@@ -67,11 +67,12 @@
      procedure :: names              => velocityDispersionNames
      procedure :: descriptions       => velocityDispersionDescriptions
      procedure :: unitsInSI          => velocityDispersionUnitsInSI
+     procedure :: units       => velocityDispersionUnits
   end type nodePropertyExtractorVelocityDispersion
 
   interface nodePropertyExtractorVelocityDispersion
      !!{
-     Constructors for the \refClass{nodePropertyExtractorVelocityDispersion} output analysis class.
+     Constructors for the \refClass{nodePropertyExtractorVelocityDispersion} property extractor class.
      !!}
      module procedure velocityDispersionConstructorParameters
      module procedure velocityDispersionConstructorInternal
@@ -460,23 +461,25 @@ contains
     return
   end subroutine velocityDispersionDescriptions
 
-  subroutine velocityDispersionColumnDescriptions(self,descriptions,values,valuesDescription,valuesUnitsInSI,time)
+  subroutine velocityDispersionColumnDescriptions(self,descriptions,values,valuesDescription,valuesUnits,time)
     !!{
     Return column descriptions of the \mono{velocityDispersion} property.
     !!}
+    use            :: Units_MetaData, only : unitType
+    use, intrinsic :: ISO_C_Binding , only : c_int
     implicit none
     class           (nodePropertyExtractorVelocityDispersion), intent(inout)                            :: self
     double precision                                         , intent(in   ), optional                  :: time
     type            (varying_string                         ), intent(inout), dimension(:), allocatable :: descriptions
     double precision                                         , intent(inout), dimension(:), allocatable :: values
     type            (varying_string                         ), intent(  out)                            :: valuesDescription
-    double precision                                         , intent(  out)                            :: valuesUnitsInSI
+    type            (unitType                               ), intent(  out)                            :: valuesUnits
     !$GLC attributes unused :: time
 
     allocate(descriptions(self%radiiCount))
     allocate(values      (              0))
     valuesDescription=var_str('')
-    valuesUnitsInSI  =0.0d0
+    valuesUnits      =unitType(0.0d0)
     descriptions     =self%radii%name
     return
   end subroutine velocityDispersionColumnDescriptions
@@ -769,3 +772,24 @@ contains
     end if
     return
   end function velocityDispersionVelocityDensityIntegrand
+
+  function velocityDispersionUnits(self,time) result(units)
+    !!{
+    Return the units of the velocityDispersion properties.
+    !!}
+    use :: Units_MetaData, only : unitType
+    implicit none
+    type            (unitType                               ), dimension(:) , allocatable :: units
+    class           (nodePropertyExtractorVelocityDispersion), intent(inout)              :: self
+    double precision                                         , intent(in   ), optional    :: time
+    double precision                                         , dimension(:) , allocatable :: siValues
+    integer                                                                               :: i
+    !$GLC attributes unused :: self
+
+    siValues=self%unitsInSI(time)
+    allocate(units(size(siValues)))
+    do i=1,size(siValues)
+       units(i)=unitType(siValues(i),description='km/s',quantity='km/s')
+    end do
+    return
+  end function velocityDispersionUnits

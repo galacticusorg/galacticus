@@ -40,7 +40,7 @@
 
   interface nodePropertyExtractorBlackHoleFormationChannel
      !!{
-     Constructors for the \refClass{nodePropertyExtractorBlackHoleFormationChannel} node property extractor class.
+     Constructors for the \refClass{nodePropertyExtractorBlackHoleFormationChannel} property extractor class.
      !!}
      module procedure blackHoleFormationChannelConstructorParameters
      module procedure blackHoleFormationChannelConstructorInternal
@@ -50,7 +50,7 @@ contains
 
   function blackHoleFormationChannelConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the \refClass{nodePropertyExtractorBlackHoleFormationChannel} node property extractor class which takes a parameter set as input.
+    Constructor for the \refClass{nodePropertyExtractorBlackHoleFormationChannel} property extractor class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -66,7 +66,7 @@ contains
 
   function blackHoleFormationChannelConstructorInternal() result(self)
     !!{
-    Internal constructor for the \refClass{nodePropertyExtractorBlackHoleFormationChannel} node property extractor class.
+    Internal constructor for the \refClass{nodePropertyExtractorBlackHoleFormationChannel} property extractor class.
     !!}
     implicit none
     type(nodePropertyExtractorBlackHoleFormationChannel) :: self

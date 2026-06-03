@@ -149,7 +149,7 @@ contains
 
   subroutine sphericalAccretionFlowDestructor(self)
     !!{
-    Destructor for the abstract \refClass{massDistributionSphericalAccretionFlow} class.
+    Destructor for the abstract \refClass{massDistributionSphericalAccretionFlow} mass distribution class.
     !!}
     implicit none
     type(massDistributionSphericalAccretionFlow), intent(inout) :: self

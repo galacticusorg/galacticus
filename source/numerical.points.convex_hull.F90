@@ -49,8 +49,9 @@ module Points_Convex_Hull
      !!{
      Type used to wrap \href{http://www.qhull.org}{qhull} convex hull objects.
      !!}
-     type(qhull          ), pointer :: qhull_       => null()
-     type(resourceManager)          :: qhullManager
+     type            (qhull          ), pointer                       :: qhull_          => null()
+     type            (resourceManager)                                :: qhullManager
+     double precision                   , dimension(:,:), allocatable :: pointsSubsample
    contains
      !![
      <methods>
@@ -78,7 +79,7 @@ module Points_Convex_Hull
        !!{
        Interface to the C++ convex hull constructor.
        !!}
-       import c_ptr, c_double, c_long, c_int
+       import c_ptr, c_double, c_int, c_long
        type   (c_ptr   )                 :: convexHullConstructorC
        integer(c_long  ), value          :: n
        real   (c_double), dimension(:,:) :: points
@@ -113,24 +114,34 @@ module Points_Convex_Hull
   
 contains
 
-  function convexHullConstructor(points) result(self)
+  function convexHullConstructor(points,allowSubsampling,randomNumberGenerator_) result(self)
     !!{
     Constructor for \mono{convexHull} objects.
     !!}
 #ifdef QHULLAVAIL
-    use :: Error, only : Error_Report
+    use, intrinsic :: ISO_C_Binding           , only : c_size_t                  , c_long
+    use            :: Error                   , only : Error_Report
+    use            :: Sorting                 , only : sortIndex
 #endif
+    use            :: Numerical_Random_Numbers, only : randomNumberGeneratorClass
     implicit none
-    type            (convexHull)                                :: self
-    double precision            , dimension(:,:), intent(in   ) :: points    
+    type            (convexHull                )                                :: self
+    double precision                            , dimension(:,:), intent(in   ) :: points
+    logical                                     , optional      , intent(in   ) :: allowSubsampling
+    class           (randomNumberGeneratorClass), optional      , intent(inout) :: randomNumberGenerator_
 #ifdef QHULLAVAIL
-    integer                                                     :: status
-    class           (*         ), pointer                       :: dummyPointer_
-    
+    double precision                            , dimension(  :), allocatable   :: rankRandom
+    integer         (c_size_t                  ), dimension(  :), allocatable   :: order
+    integer         (c_long                    ), parameter                     :: countMaximum          =250000000_c_long
+    class           (*                         ), pointer                       :: dummyPointer_
+    integer                                                                     :: status
+    integer         (c_size_t                  )                                :: countPoints                     , i
+    !![
+    <optionalArgument name="allowSubsampling" defaultsTo=".false."/>
+    !!]
+
     if (size(points,dim=1) /= 3) call Error_Report('3D points are required'//{introspection:location})
     allocate(self%qhull_)
-    self%qhull_%qhull_=convexHullConstructorC(size(points,dim=2,kind=c_long),points,status)
-    if (status /= 0) call Error_Report('convex hull construction failed'//{introspection:location})
     !![
     <workaround type="gfortran" PR="105807" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=105807">
       <description>ICE when passing a derived type component to a class(*) function argument.</description>
@@ -140,6 +151,35 @@ contains
     !![
     </workaround>
     !!]
+    countPoints=size(points,dim=2,kind=c_size_t)
+    if (countPoints > countMaximum) then
+       ! QHull uses a standard `c_int` for the number of points and other internal values. If we have more points than that, our
+       ! only option is to subsample - if that is permitted. We limit the size of the subsample to 250,000,000 - this seems to
+       ! allow QHull to work without overflows. Note that we retain the subsample of points in `self` - the QHull library retains
+       ! only a pointer to the points and so we must maintain this subsample for as long as the convex hull is needed.
+       if (allowSubsampling_) then          
+          ! Generate a random ordering of points.
+          if (.not.present(randomNumberGenerator_)) call Error_Report('subsampling requires a random number generator'//{introspection:location})
+          allocate(rankRandom(countPoints))
+          do i=1_c_size_t,countPoints
+             rankRandom(i)=randomNumberGenerator_%uniformSample()
+          end do
+          allocate(order(countPoints))
+          order=sortIndex(rankRandom)
+          deallocate(rankRandom)
+          allocate(self%pointsSubsample(3,countMaximum))
+          do i=1,countMaximum
+             self%pointsSubsample(:,i)=points(:,order(i))
+          end do
+          deallocate(order)
+          self%qhull_%qhull_=convexHullConstructorC(countMaximum,self%pointsSubsample,status)
+       else
+          call Error_Report('too many points for convex hull construction - you could set `allowSubsampling=.true.` to construct a convex hull from a subsample of points (consisting of a random sample of points with size equal to the maximum allowed)'//{introspection:location})
+       end if
+    else
+       self%qhull_%qhull_=convexHullConstructorC(size(points,dim=2,kind=c_long),points,status)
+    end if
+    if (status /= 0) call Error_Report('convex hull construction failed'//{introspection:location}) 
 #else
     !$GLC attributes unused :: points
     self%qhull_ => null()

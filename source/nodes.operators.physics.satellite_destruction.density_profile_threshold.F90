@@ -50,7 +50,7 @@
      Constructors for the \refClass{nodeOperatorSatelliteDestructionDensityProfileThreshold} node operator class.
      !!}
      module procedure satelliteDestructionDensityProfileThresholdCnstrctrPrmtrs
-     module procedure satelliteDestructionDensityProfileThresholdCnstrctrIntrnl
+     module procedure satelliteDestructionDensityProfileThresholdCnstrctrInternal
   end interface nodeOperatorSatelliteDestructionDensityProfileThreshold
 
   ! Submodule-scope pointer to self, used in callback functions.
@@ -86,7 +86,7 @@ contains
     return
   end function satelliteDestructionDensityProfileThresholdCnstrctrPrmtrs
 
-  function satelliteDestructionDensityProfileThresholdCnstrctrIntrnl(fractionDensityProfileVirialFraction,darkMatterHaloScale_) result(self)
+  function satelliteDestructionDensityProfileThresholdCnstrctrInternal(fractionDensityProfileVirialFraction,darkMatterHaloScale_) result(self)
     !!{
     Internal constructor for the \refClass{nodeOperatorSatelliteDestructionDensityProfileThreshold} node operator class.
     !!}
@@ -99,7 +99,7 @@ contains
     !!]
     
     return
-  end function satelliteDestructionDensityProfileThresholdCnstrctrIntrnl
+  end function satelliteDestructionDensityProfileThresholdCnstrctrInternal
 
   subroutine satelliteDestructionDensityProfileThresholdDestructor(self)
     !!{

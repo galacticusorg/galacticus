@@ -25,7 +25,7 @@
   <nodeOperator name="nodeOperatorFilteredMainBranch">
     <description>
       A node operator class that applies only to main branch nodes during tree initialization only. This uses a fast algorithm to
-      determine main branch status, so is more efficient that using the \refClass{nodeOperatorFiltered} class along with a
+      determine main branch status, so is more efficient that using the \refClass{nodeOperatorFiltered} node operator class along with a
       \refClass{galacticFilterMainBranch} filter.
     </description>
   </nodeOperator>

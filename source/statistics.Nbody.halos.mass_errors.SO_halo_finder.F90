@@ -49,13 +49,13 @@ implements a model for errors in spherical overdensity halo finders.
      !!{
      Constructors for the \refClass{nbodyHaloMassErrorSOHaloFinder} N-body halo mass error class.
      !!}
-     module procedure soHaloFinderParameters
-     module procedure soHaloFinderInternal
+     module procedure soHaloFinderConstructorParameters
+     module procedure soHaloFinderConstructorInternal
   end interface nbodyHaloMassErrorSOHaloFinder
 
 contains
 
-  function soHaloFinderParameters(parameters) result(self)
+  function soHaloFinderConstructorParameters(parameters) result(self)
     !!{
     Constructor for the \refClass{nbodyHaloMassErrorSOHaloFinder} N-body halo mass error class which takes a parameter set as input.
     !!}
@@ -84,9 +84,9 @@ contains
     <objectDestructor name="darkMatterProfileDMO_"/>
     !!]
     return
-  end function soHaloFinderParameters
+  end function soHaloFinderConstructorParameters
 
-  function soHaloFinderInternal(darkMatterHaloScale_,darkMatterProfileDMO_,massParticle) result(self)
+  function soHaloFinderConstructorInternal(darkMatterHaloScale_,darkMatterProfileDMO_,massParticle) result(self)
     !!{
     Internal constructor for the \refClass{nbodyHaloMassErrorSOHaloFinder} N-body halo mass error class.
     !!}
@@ -100,7 +100,7 @@ contains
     !!]
 
     return
-  end function soHaloFinderInternal
+  end function soHaloFinderConstructorInternal
 
   subroutine soHaloFinderDestructor(self)
     !!{

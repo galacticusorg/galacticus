@@ -55,7 +55,7 @@ jobs:
           if [[ "${{ steps.mode.outputs.refresh_all }}" == "true" ]]; then
             flags+=(--refresh-all)
           fi
-          python3 scripts/aux/bibliographyUpdate.py "${flags[@]}" --summary "$RUNNER_TEMP/bibliographyChanges.md" "${{ secrets.NASA_ADS_API_TOKEN }}"
+          PYTHONPATH=$GITHUB_WORKSPACE/python python3 scripts/aux/bibliographyUpdate.py "${flags[@]}" --summary "$RUNNER_TEMP/bibliographyChanges.md" "${{ secrets.NASA_ADS_API_TOKEN }}"
       - name: "Install bibtool"
         if: ${{ env.adstoken != '' }}
         run: |

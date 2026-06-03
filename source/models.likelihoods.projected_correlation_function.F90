@@ -91,7 +91,7 @@
 
   interface posteriorSampleLikelihoodPrjctdCorrelationFunction
      !!{
-     Constructors for the \refClass{posteriorSampleLikelihoodPrjctdCorrelationFunction} posterior sampling convergence class.
+     Constructors for the \refClass{posteriorSampleLikelihoodPrjctdCorrelationFunction} posterior sampling likelihood class.
      !!}
      module procedure projectedCorrelationFunctionConstructorParameters
      module procedure projectedCorrelationFunctionConstructorInternal
@@ -101,7 +101,7 @@ contains
 
   function projectedCorrelationFunctionConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the \refClass{posteriorSampleLikelihoodPrjctdCorrelationFunction} posterior sampling convergence class which builds the object from a
+    Constructor for the \refClass{posteriorSampleLikelihoodPrjctdCorrelationFunction} posterior sampling likelihood class which builds the object from a
     parameter set.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
@@ -222,7 +222,7 @@ contains
 
   subroutine projectedCorrelationFunctionDestructor(self)
     !!{
-    Destructor for the \refClass{posteriorSampleLikelihoodPrjctdCorrelationFunction} class.
+    Destructor for the \refClass{posteriorSampleLikelihoodPrjctdCorrelationFunction} posterior sampling likelihood class.
     !!}
     implicit none
     type(posteriorSampleLikelihoodPrjctdCorrelationFunction), intent(inout) :: self

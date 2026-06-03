@@ -1,7 +1,7 @@
 <?xml version='1.0' encoding='UTF-8'?>
 <parameters>
   <formatVersion>2</formatVersion>
-  <lastModified revision="61711340399619cdd6d89322db6e90ce228d3d93" time="2026-04-14T18:10:17"/>
+  <lastModified revision="23263e8c1dfc569099e2c1fbdedbc04ed6446e59" time="2026-05-18T15:53:57"/>
 
   
   <!-- Task and output -->
@@ -11,26 +11,50 @@
    <pointsPerDecade                     value="10.0"           />
    <includeMassAccretionRate            value="false"          />
    <includeUnevolvedSubhaloMassFunction value="false"          />
+   <errorsAreFatal                      value="false"          />
   </task>
+
+  <!-- Switch of irrelevant components -->
+  <componentBasic             value="standard"/>
+  <componentDarkMatterProfile value="scale"   />
+  <componentBlackHole         value="null"    />
+  <componentDisk              value="null"    />
+  <componentHotHalo           value="null"    />
+  <componentSatellite         value="null"    />
+  <componentSpheroid          value="null"    />
+  <componentSpin              value="null"    />
+  <hotHaloMassDistribution    value="null"    />
 
   <!-- N-body error model -->
   <nbodyHaloMassError value="trenti2010">
-    <massParticle value="=[simulation::massParticle]"/>
+    <massParticle value="=[massParticleAtResolution]"/>
   </nbodyHaloMassError>
 
   <!-- Halo mass function -->
-  <haloMassFunction value="errorConvolved">
-    <errorFractionalMaximum value="1.0e+0"/>
-    <toleranceRelative      value="1.0e-5"/>
-    <haloMassFunction value="shethTormenPlus">
-      <a             value="=[haloMassFunctionParameters::a]"            />
-      <b             value="=[haloMassFunctionParameters::b]"            />
-      <c             value="=[haloMassFunctionParameters::c]"            />
-      <d             value="=[haloMassFunctionParameters::d]"            />
-      <p             value="=[haloMassFunctionParameters::p]"            />
-      <q             value="=[haloMassFunctionParameters::q]"            />
-      <normalization value="=[haloMassFunctionParameters::normalization]"/>
+  <haloMassFunction value="accelerator">
+    <haloMassFunction value="detectionEfficiency">
+      <massMinimum             value="=[detectionMassMinimumParticleCount]*[massParticleAtResolution]"/>
+      <efficiencyAtMassMinimum value="=[detectionEfficiencyAtMassMinimum]"                            />
+      <exponentMass            value="=[detectionExponentMass]"                                       />
+      <exponentRedshift        value="=[detectionExponentRedshift]"                                   />
+	<haloMassFunction value="errorConvolved">
+	  <tolerateIntegrationFailure value="true"/>
+	  <errorFractionalMaximum value="1.0e+0"/>
+	  <toleranceRelative value="1.0e-4"/>
+	  <haloMassFunction value="simulationVariance">
+	    <lengthSimulationCube value="=[simulation/lengthCube]"/>
+	    <perturbationFractional value="=[perturbationFractional]"/>
+	    <haloMassFunction value="bhattacharya2011">
+	      <a value="=[haloMassFunctionParameters/a]"/>
+	      <b value="=[haloMassFunctionParameters/b]"/>
+	      <c value="=[haloMassFunctionParameters/c]"/>
+	      <p value="=[haloMassFunctionParameters/p]"/>
+	      <q value="=[haloMassFunctionParameters/q]"/>
+	      <normalization value="=[haloMassFunctionParameters/normalization]"/>
+	    </haloMassFunction>
+	  </haloMassFunction>
+	</haloMassFunction>
+      
     </haloMassFunction>
   </haloMassFunction>
-
 </parameters>

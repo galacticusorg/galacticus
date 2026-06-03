@@ -83,7 +83,7 @@ contains
     
   function kinematicsSphericalScalerConstructorInternal(factorScalingLength,factorScalingMass,kinematicsDistribution_) result(self)
     !!{
-    Constructor for the \refClass{kinematicsDistributionSphericalScaler} convergence class.
+    Constructor for the \refClass{kinematicsDistributionSphericalScaler} kinematic distribution class.
     !!}
     implicit none
     type            (kinematicsDistributionSphericalScaler)                        :: self
@@ -98,7 +98,7 @@ contains
 
   subroutine kinematicsSphericalScalerDestructor(self)
     !!{
-    Destructor for the \refClass{kinematicsDistributionSphericalScaler} mass distribution class.
+    Destructor for the \refClass{kinematicsDistributionSphericalScaler} kinematic distribution class.
     !!}
     implicit none
     type(kinematicsDistributionSphericalScaler), intent(inout) :: self

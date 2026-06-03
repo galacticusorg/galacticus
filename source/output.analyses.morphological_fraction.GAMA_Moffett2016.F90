@@ -143,6 +143,7 @@ contains
     use :: Output_Analysis_Distribution_Operators, only : outputAnalysisDistributionOperatorRandomErrorPlynml
     use :: Output_Analysis_Property_Operators    , only : outputAnalysisPropertyOperatorAntiLog10            , outputAnalysisPropertyOperatorCsmlgyLmnstyDstnc, outputAnalysisPropertyOperatorLog10, outputAnalysisPropertyOperatorNormal, &
           &                                               outputAnalysisPropertyOperatorSequence             , outputAnalysisPropertyOperatorSystmtcPolynomial, propertyOperatorList
+    use :: Output_Analysis_Target_Data           , only : outputAnalysisTargetDataStandard
     use :: Output_Analysis_Utilities             , only : Output_Analysis_Output_Weight_Survey_Volume
     use :: Output_Analysis_Weight_Operators      , only : outputAnalysisWeightOperatorIdentity
     use :: Output_Times                          , only : outputTimesClass
@@ -182,6 +183,7 @@ contains
     integer         (c_size_t                                             )                                :: iBin                                                                   , binCount
     type            (hdf5Object                                           )                                :: dataFile
     double precision                                                                                       :: probit                                                                 , sqrtArg
+    type            (outputAnalysisTargetDataStandard)                              :: outputAnalysisTargetData_
     !![
     <constructorAssign variables="ratioEarlyType, ratioEarlyTypeError, systematicErrorPolynomialCoefficient, randomErrorPolynomialCoefficient, randomErrorMinimum, randomErrorMaximum, *cosmologyFunctions_"/>
     !!]
@@ -356,17 +358,30 @@ contains
     <referenceConstruct object="outputAnalysisWeightPropertyExtractor_"           constructor="nodePropertyExtractorMassStellarMorphology(                                                                          )"/>
     !!]
     ! Build the object.
+    outputAnalysisTargetData_=outputAnalysisTargetDataStandard(                                                         &
+         &                                                     xAxisLabel      =var_str('$M_\star/\mathrm{M}_\odot$'),  &
+         &                                                     yAxisLabel      =var_str('$f_\mathrm{early}$'        ),  &
+         &                                                     xAxisIsLog      =.true.                               ,  &
+         &                                                     yAxisIsLog      =.false.                              ,  &
+         &                                                     targetLabel     =var_str('Moffett et al. (2016)'     ),  &
+         &                                                     valueTarget     =functionValueTarget                  ,  &
+         &                                                     covarianceTarget=functionCovarianceTarget                &
+         &                                                    )
     self%outputAnalysisMeanFunction1D=outputAnalysisMeanFunction1D(                                                 &
          &                                                         var_str('morphologicalFractionGAMAMoffett2016'), &
          &                                                         var_str('Early-type fraction'                 ), &
          &                                                         var_str('massStellar'                         ), &
          &                                                         var_str('Stellar mass'                        ), &
          &                                                         var_str('M☉'                                  ), &
+         &                                                         var_str('solMass'                             ), &
+         &                                                         .false.                                        , &
          &                                                         massSolar                                      , &
          &                                                         var_str('earlyTypeFraction'                   ), &
          &                                                         var_str('Early-type fraction'                 ), &
          &                                                         var_str(' '                                   ), &
-         &                                                         0.0d0                                          , &
+         &                                                         var_str(' '                                   ), &
+         &                                                         .false.                                        , &
+         &                                                         1.0d0                                          , &
          &                                                         log10(masses)                                  , &
          &                                                         bufferCount                                    , &
          &                                                         outputWeight                                   , &
@@ -384,13 +399,7 @@ contains
          &                                                         covarianceBinomialMassHaloMinimum              , &
          &                                                         covarianceBinomialMassHaloMaximum              , &
          &                                                         likelihoodNormalize                            , &
-         &                                                         var_str('$M_\star/\mathrm{M}_\odot$')          , &
-         &                                                         var_str('$f_\mathrm{early}$'        )          , &
-         &                                                         .true.                                         , &
-         &                                                         .false.                                        , &
-         &                                                         var_str('Moffett et al. (2016)')               , &
-         &                                                         functionValueTarget                            , &
-         &                                                         functionCovarianceTarget                         &
+         &                                                         outputAnalysisTargetData_                        &
          &                                                        )
     ! Clean up.
     !![
@@ -472,9 +481,10 @@ contains
     !!{
     Implement a \mono{morphologicalFractionGAMAMoffett2016} output analysis finalization.
     !!}
-    use :: Output_HDF5, only : outputFile
-    use :: HDF5_Access, only : hdf5Access
-    use :: IO_HDF5    , only : hdf5Object
+    use :: Output_HDF5   , only : outputFile
+    use :: HDF5_Access   , only : hdf5Access
+    use :: IO_HDF5       , only : hdf5Object
+    use :: Units_MetaData, only : unitType
     implicit none
     class(outputAnalysisMorphologicalFractionGAMAMoffett2016), intent(inout)           :: self
     type (varying_string                                    ), intent(in   ), optional :: groupName
@@ -502,26 +512,20 @@ contains
     call analysisGroup%writeAttribute(     char(self%    meanLabel)//"ErrorUpperTarget",'yErrorUpperTarget'                                                                                             )
     ! Write computed datasets.
     call analysisGroup%writeDataset  (          self%binCenter                         ,char(self%propertyLabel)                    ,char(self%propertyComment)                 ,datasetReturned=dataset)
-    call dataset      %writeAttribute(     char(self%propertyUnits    )                ,'units'                                                                                                         )
-    call dataset      %writeAttribute(          self%propertyUnitsInSI                 ,'unitsInSI'                                                                                                     )
+    call dataset      %writeAttribute(unitType(self%propertyUnitsInSI,description=     char(self%propertyUnits)  ,quantity=     char(self%propertyQuantity)       ,isComoving=self%propertyIsComoving),'units')
     call analysisGroup%writeDataset  (          self%meanValue                         ,char(self%    meanLabel)                    ,char(self%    meanComment)                 ,datasetReturned=dataset)
-    call dataset      %writeAttribute(     char(self%    meanUnits    )                ,'units'                                                                                                         )
-    call dataset      %writeAttribute(          self%meanUnitsInSI                     ,'unitsInSI'                                                                                                     )
+    call dataset      %writeAttribute(unitType(self%meanUnitsInSI    ,description=     char(self%meanUnits    )  ,quantity=     char(self%meanQuantity    )       ,isComoving=self%meanIsComoving    ),'units')
     call analysisGroup%writeDataset  (          self%meanCovariance                    ,char(self%    meanLabel)//"Covariance"      ,char(self%    meanComment)//" [covariance]",datasetReturned=dataset)
-    call dataset      %writeAttribute("["//char(self%    meanUnits    )//"]²"          ,'units'                                                                                                         )
-    call dataset      %writeAttribute(          self%    meanUnitsInSI   **2           ,'unitsInSI'                                                                                                     )
+    call dataset      %writeAttribute(unitType(self%meanUnitsInSI**2 ,description="["//char(self%meanUnits)//"]²",quantity="("//char(self%meanQuantity    )//")^2",isComoving=self%meanIsComoving    ),'units')
     ! Include the log-likelihood and target dataset.
     call analysisGroup%writeAttribute(          self%logLikelihood()                   ,'logLikelihood'                                                                                                 )
     call analysisGroup%writeAttribute(     char(self%targetLabel      )                ,'targetLabel'                                                                                                   )
     call analysisGroup%writeDataset  (          self%meanValueTarget                   ,char(self%    meanLabel)//"Target"          ,char(self%    meanComment)                 ,datasetReturned=dataset)
-    call dataset      %writeAttribute(     char(self%    meanUnits    )                ,'units'                                                                                                         )
-    call dataset      %writeAttribute(          self%meanUnitsInSI                     ,'unitsInSI'                                                                                                     )
+    call dataset      %writeAttribute(unitType(self%meanUnitsInSI,description=char(self%meanUnits),quantity=char(self%meanQuantity),isComoving=self%meanIsComoving),'units')
     call analysisGroup%writeDataset  (          self%functionErrorLowerTarget          ,char(self%    meanLabel)//"ErrorLowerTarget",char(self%    meanComment)                 ,datasetReturned=dataset)
-    call dataset      %writeAttribute(     char(self%    meanUnits    )                ,'units'                                                                                                         )
-    call dataset      %writeAttribute(          self%meanUnitsInSI                     ,'unitsInSI'                                                                                                     )
+    call dataset      %writeAttribute(unitType(self%meanUnitsInSI,description=char(self%meanUnits),quantity=char(self%meanQuantity),isComoving=self%meanIsComoving),'units')
     call analysisGroup%writeDataset  (          self%functionErrorUpperTarget          ,char(self%    meanLabel)//"ErrorUpperTarget",char(self%    meanComment)                 ,datasetReturned=dataset)
-    call dataset      %writeAttribute(     char(self%    meanUnits    )                ,'units'                                                                                                         )
-    call dataset      %writeAttribute(          self%meanUnitsInSI                     ,'unitsInSI'                                                                                                     )
+    call dataset      %writeAttribute(unitType(self%meanUnitsInSI,description=char(self%meanUnits),quantity=char(self%meanQuantity),isComoving=self%meanIsComoving),'units')
     !$ call hdf5Access%unset()
     return
   end subroutine morphologicalFractionGAMAMoffett2016Finalize

@@ -394,11 +394,15 @@ contains
        &amp;                         var_str('massBoundRatio')                          , &amp;
        &amp;                         var_str('Ratio of subhalo bound mass to host mass'), &amp;
        &amp;                         var_str(' ')                                       , &amp;
+       &amp;                         var_str(' ')                                       , &amp;
+       &amp;                         .false.                                            , &amp;
        &amp;                         1.0d0                                              , &amp;
        &amp;                         var_str('massFunction')                            , &amp;
        &amp;                         var_str('Differential subhalo mass function')      , &amp;
        &amp;                         var_str(' ')                                       , &amp;
-       &amp;                         0.0d0                                              , &amp;
+       &amp;                         var_str(' ')                                       , &amp;
+       &amp;                         .false.                                            , &amp;
+       &amp;                         1.0d0                                              , &amp;
        &amp;                         massRatios                                         , &amp;
        &amp;                         0_c_size_t                                         , &amp;
        &amp;                         outputWeightSubhalos                               , &amp;
@@ -422,11 +426,15 @@ contains
        &amp;                         var_str(' ')                                       , &amp;
        &amp;                         var_str(' ')                                       , &amp;
        &amp;                         var_str(' ')                                       , &amp;
-       &amp;                         0.0d0                                              , &amp;
+       &amp;                         var_str(' ')                                       , &amp;
+       &amp;                         .false.                                            , &amp;
+       &amp;                         1.0d0                                              , &amp;
        &amp;                         var_str(' ')                                       , &amp;
        &amp;                         var_str(' ')                                       , &amp;
        &amp;                         var_str(' ')                                       , &amp;
-       &amp;                         0.0d0                                              , &amp;
+       &amp;                         var_str(' ')                                       , &amp;
+       &amp;                         .false.                                            , &amp;
+       &amp;                         1.0d0                                              , &amp;
        &amp;                         massesHosts                                        , &amp;
        &amp;                         0_c_size_t                                         , &amp;
        &amp;                         outputWeightHosts                                  , &amp;
@@ -553,6 +561,7 @@ contains
     use :: HDF5_Access                     , only : hdf5Access
     use :: IO_HDF5                         , only : hdf5Object
     use :: Numerical_Constants_Astronomical, only : massSolar
+    use :: Units_MetaData                  , only : unitType
     implicit none
     class(outputAnalysisSubhaloMassFunction), intent(inout)           :: self
     type (varying_string                   ), intent(in   ), optional :: groupName
@@ -580,8 +589,7 @@ contains
     call analysisGroup   %writeAttribute('massFunction'                       ,'yDataset'                                                                                            )
     call analysisGroup   %writeAttribute('massFunctionCovariance'             ,'yCovariance'                                                                                         )
     call analysisGroup   %writeDataset  (self%massRatios                      ,'massRatio'                   ,'Mass ratio at the bin center'                 ,datasetReturned=dataset)
-    call dataset         %writeAttribute(' '                                  ,'units'                                                                                               )
-    call dataset         %writeAttribute(1.0d0                                ,'unitsInSI'                                                                                           )
+    call dataset         %writeAttribute(unitType(1.0d0),'units'                                                                                               )
     call analysisGroup   %writeDataset  (self%massFunction                    ,'massFunction'                ,'Subhalo number per bin [model]'                                       )
     call analysisGroup   %writeDataset  (self%covariance                      ,'massFunctionCovariance'      ,'Subhalo number per bin [model; covariance]'                           )
     if (allocated(self%massFunctionTarget)) then

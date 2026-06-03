@@ -53,7 +53,7 @@ contains
 
   function twoBodyRelaxationConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the \refClass{darkMatterProfileHeatingTwoBodyRelaxation} dark matter profile heating scales class which takes a parameter set as input.
+    Constructor for the \refClass{darkMatterProfileHeatingTwoBodyRelaxation} dark matter profile heating class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -93,7 +93,7 @@ contains
 
   function twoBodyRelaxationConstructorInternal(massParticle,lengthSoftening,timeStart,efficiency) result(self)
     !!{
-    Internal constructor for the \refClass{darkMatterProfileHeatingTwoBodyRelaxation} dark matter profile heating scales class.
+    Internal constructor for the \refClass{darkMatterProfileHeatingTwoBodyRelaxation} dark matter profile heating class.
     !!}
     implicit none
     type            (darkMatterProfileHeatingTwoBodyRelaxation)                :: self

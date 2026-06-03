@@ -100,7 +100,7 @@ contains
 
   subroutine fixedDestructor(self)
     !!{
-    Destructor for the \refClass{atomicRecombinationRateRadiativeCoolingFixed} recombination cooling class.
+    Destructor for the \refClass{atomicRecombinationRateRadiativeCoolingFixed} atomic radiative recombination class.
     !!}
     implicit none
     type(atomicRecombinationRateRadiativeCoolingFixed), intent(inout) :: self

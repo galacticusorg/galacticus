@@ -980,19 +980,21 @@ contains
     return
   end function Stellar_Luminosities_Output_Count_Get
 
-  subroutine Stellar_Luminosities_Output_Names(self,integerProperty,integerProperties,doubleProperty,doubleProperties,time,prefix,comment,unitsInSI)
+  subroutine Stellar_Luminosities_Output_Names(self,integerProperty,integerProperties,doubleProperty,doubleProperties,time,prefix,comment,unitsInSI,unitsDescription,unitsQuantity)
     !!{
     Assign names to output buffers for a \mono{stellarLuminosities} object.
     !!}
     use :: ISO_Varying_String                , only : assignment(=)        , operator(//)        , trim
     use :: Merger_Tree_Outputter_Buffer_Types, only : outputPropertyInteger, outputPropertyDouble
+    use :: Units_MetaData                    , only : unitType
     implicit none
     class           (stellarLuminosities  )              , intent(in   ) :: self
     double precision                                     , intent(in   ) :: time
     integer                                              , intent(inout) :: doubleProperty   , integerProperty
     type            (outputPropertyInteger), dimension(:), intent(inout) :: integerProperties
     type            (outputPropertyDouble ), dimension(:), intent(inout) :: doubleProperties
-    character       (len=*                )              , intent(in   ) :: comment          , prefix
+    character       (len=*                )              , intent(in   ) :: comment          , prefix         , &
+         &                                                                  unitsDescription  , unitsQuantity
     double precision                                     , intent(in   ) :: unitsInSI
     integer                                                              :: i
     !$GLC attributes unused :: self, integerProperty, integerProperties
@@ -1003,7 +1005,7 @@ contains
              doubleProperty=doubleProperty+1
              doubleProperties(doubleProperty)%name     =trim(prefix )// ':'//trim(luminosityName(i))
              doubleProperties(doubleProperty)%comment  =trim(comment)//' ['//trim(luminosityName(i))//']'
-             doubleProperties(doubleProperty)%unitsInSI=unitsInSI
+             doubleProperties(doubleProperty)%units    =unitType(unitsInSI,unitsDescription,unitsQuantity)
              call doubleProperties(doubleProperty)%metaDataRank0%set('wavelengthEffective',luminosityWavelengthEffective(i))
              call doubleProperties(doubleProperty)%metaDataRank0%set('vegaOffset'         ,luminosityVegaOffset         (i))
           end if

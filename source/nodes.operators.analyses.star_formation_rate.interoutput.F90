@@ -31,7 +31,7 @@
   <nodeOperator name="nodeOperatorStarFormationRateInterOutput">
     <description>
       A node operator class that tracks the mean star formation rate between successive outputs. Intended to be paired with the
-      \refClass{nodePropertyExtractorStarFormationRateInterOutput} class to extract those rates for output.
+      \refClass{nodePropertyExtractorStarFormationRateInterOutput} property extractor class to extract those rates for output.
     </description>
   </nodeOperator>
   !!]

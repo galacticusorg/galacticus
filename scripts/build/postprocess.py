@@ -1,5 +1,4 @@
 #!/usr/bin/env python3
-import os
 import re
 import sys
 
@@ -59,27 +58,42 @@ unit_name = None
 try:
     with open(preprocessed_source, 'r', errors='replace') as fh:
         # Regexes from Fortran::Utils for unit openers.
+        # Unit-opener regexes — used only to extract the unit NAME so we can
+        # later associate `!$GLC attributes unused :: …` directives with the
+        # correct enclosing routine.  We deliberately do NOT match the
+        # argument list: the original Perl regex used a nested
+        # `(?:\(\s*(?:[a-zA-Z0-9_{}¦,\s]*)\))*` for the argument list, and
+        # the equivalent Python pattern has Python's NFA engine backtracking
+        # exponentially when a long generated line of identifier+whitespace
+        # characters never produces a `function`/`subroutine` match.  The
+        # argument-list capture isn't read anywhere downstream, so dropping
+        # it is purely a simplification, not a behaviour change.  Each
+        # alternation has its trailing `\s+` folded inside the group so
+        # `(?:opt\s+)*` cannot fight with a separate `\s*` for the same
+        # whitespace, and the type-spec is `?` (one or zero) rather than
+        # `*` (a Fortran function has at most one return-type qualifier).
         _label = r'[a-zA-Z0-9_{}¦]+'
-        _arg   = r'[a-zA-Z0-9_{}¦,\s]*'
         _unit_openers = {
-            'subroutine'     : (1, re.compile(
-                r'^\s*(?:pure\s+|elemental\s+|recursive\s+|module\s+)*\s*subroutine\s+(' + _label + r')\s*(?:\(\s*(?:' + _arg + r')\))*',
-                re.IGNORECASE)),
-            'function'       : (5, re.compile(
-                r'^\s*(?:pure\s+|elemental\s+|recursive\s+|module\s+)*\s*(?:real|integer|double\s+precision|double\s+complex|character|logical)*\s*(?:\((?:(?:kind|len)=)?[\w\d]*\))*\s*function\s+(' + _label + r')\s*(?:\(\s*(?:' + _arg + r')\))*',
-                re.IGNORECASE)),
-            'moduleProcedure': (0, re.compile(
-                r'^\s*module\s+procedure\s+(' + _label + r')', re.IGNORECASE)),
+            'subroutine': re.compile(
+                r'^\s*(?:(?:impure|pure|elemental|recursive|module)\s+)*'
+                r'subroutine\s+(' + _label + r')',
+                re.IGNORECASE),
+            'function': re.compile(
+                r'^\s*(?:(?:impure|pure|elemental|recursive|module)\s+)*'
+                r'(?:(?:real|integer|double\s+precision|double\s+complex|'
+                r'character|logical)\s*(?:\([^)]*\))?\s*)?'
+                r'function\s+(' + _label + r')',
+                re.IGNORECASE),
+            'moduleProcedure': re.compile(
+                r'^\s*module\s+procedure\s+(' + _label + r')',
+                re.IGNORECASE),
         }
         for line in fh:
-            for utype, (gidx, regex) in _unit_openers.items():
+            for regex in _unit_openers.values():
                 matches = regex.match(line)
                 if matches:
-                    # group(1) is always the unit name in our simplified regexes above
-                    try:
-                        unit_name = matches.group(1).lower()
-                    except IndexError:
-                        pass
+                    unit_name = matches.group(1).lower()
+                    break   # don't run the remaining regexes — they can't match too
 
             m = re.match(
                 r'^\s*!\$GLC\s+function\s+attributes\s+unused\s*::\s*([a-zA-Z0-9_,\s]+)\s*$',
@@ -138,16 +152,21 @@ procedure_name = None
 pointer_name   = None
 bogus_uninit   = {}
 
-# Simplified unit-opener regexes for matching inside compiler output lines.
+# Unit-opener regexes for matching inside compiler output lines.  Same
+# simplification as the source-file pre-scan above — see the comment there
+# for why nested unbounded quantifiers were dropped.
 _label_p = r'[a-zA-Z0-9_{}¦]+'
-_arg_p   = r'[a-zA-Z0-9_{}¦,\s]*'
 _opener_re = {
-    'subroutine': (1, re.compile(
-        r'^\s*(?:pure\s+|elemental\s+|recursive\s+|module\s+)*\s*subroutine\s+(' + _label_p + r')',
-        re.IGNORECASE)),
-    'function': (1, re.compile(
-        r'^\s*(?:pure\s+|elemental\s+|recursive\s+|module\s+)*\s*(?:real|integer|double\s+precision|double\s+complex|character|logical)*\s*(?:\((?:(?:kind|len)=)?[\w\d]*\))*\s*function\s+(' + _label_p + r')',
-        re.IGNORECASE)),
+    'subroutine': re.compile(
+        r'^\s*(?:(?:impure|pure|elemental|recursive|module)\s+)*'
+        r'subroutine\s+(' + _label_p + r')',
+        re.IGNORECASE),
+    'function': re.compile(
+        r'^\s*(?:(?:impure|pure|elemental|recursive|module)\s+)*'
+        r'(?:(?:real|integer|double\s+precision|double\s+complex|'
+        r'character|logical)\s*(?:\([^)]*\))?\s*)?'
+        r'function\s+(' + _label_p + r')',
+        re.IGNORECASE),
 }
 
 for line in sys.stdin:
@@ -224,10 +243,11 @@ for line in sys.stdin:
     m = re.match(r'^\s*\d+\s*\|\s*(.+)', line)
     if m:
         opener_text = m.group(1)
-        for utype, (_, regex) in _opener_re.items():
+        for regex in _opener_re.values():
             mm = regex.match(opener_text)
             if mm:
                 procedure_name = mm.group(1).lower()
+                break
 
     if re.match(r'^<stdin>:\d+:\d+:', line):
         procedure_name = 'stdin'

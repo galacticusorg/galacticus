@@ -86,7 +86,7 @@ contains
 
   function buildConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the \refClass{mergerTreeConstructorBuild} merger tree operator class which takes a parameter set as input.
+    Constructor for the \refClass{mergerTreeConstructorBuild} merger tree constructor class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter         , inputParameters
     implicit none

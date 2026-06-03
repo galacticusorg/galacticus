@@ -57,7 +57,7 @@
 
   interface posteriorSampleSimulationGrid
      !!{
-     Constructors for the \refClass{posteriorSampleSimulationGrid} posterior sampling convergence class.
+     Constructors for the \refClass{posteriorSampleSimulationGrid} posterior sampling simulation class.
      !!}
      module procedure gridConstructorParameters
      module procedure gridConstructorInternal
@@ -85,7 +85,7 @@ contains
     class  (posteriorSamplesClass         ), pointer                     :: posteriorSamples_
     type   (varying_string                )                              :: logFileRoot               , message
     integer                                                              :: inactiveParameterCount    , activeParameterCount  , &
-         &                                                                  iInactive                 , iActive, &
+         &                                                                  iInactive                 , iActive               , &
          &                                                                  logFlushCount             , i
     logical                                                              :: appendLogs                , outputLikelihoods
 

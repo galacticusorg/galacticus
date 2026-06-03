@@ -29,6 +29,14 @@ models = [
             "threads":   1,
         },
     },
+    {
+        "label":      "MCMCHMF",
+        "parameters": "testSuite/parameters/memoryLeakMCMCHMFConfig.xml",
+        "mpi": {
+            "processes": 4,
+            "threads":   1,
+        },
+    }
 ]
 
 overallStatus = "SUCCESS"
@@ -97,6 +105,7 @@ for model in models:
             fFile = frameFinal.findtext("file", "(UNKNOWN)")
             fLine = frameFinal.findtext("line", "(UNKNOWN)")
             print(f"\t\tMemory leak ({kind}) for model '{model['label']}' in: '{fFile}' line {fLine}")
+            print(error)
             overallStatus = "FAILED"
 
 print(f"{overallStatus}: memory leaks")

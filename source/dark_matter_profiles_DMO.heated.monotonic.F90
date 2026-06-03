@@ -106,7 +106,7 @@ contains
 
   function heatedMonotonicConstructorInternal(nonAnalyticSolver,toleranceRelativeVelocityDispersion,toleranceRelativeVelocityDispersionMaximum,darkMatterProfileDMO_,darkMatterHaloScale_,darkMatterProfileHeating_) result(self)
     !!{
-    Internal constructor for the \refClass{darkMatterProfileDMOHeatedMonotonic} dark matter profile class.
+    Internal constructor for the \refClass{darkMatterProfileDMOHeatedMonotonic} dark matter halo profile class.
     !!}
     use :: Mass_Distributions, only : enumerationNonAnalyticSolversIsValid
     use :: Error             , only : Error_Report

@@ -26,10 +26,11 @@
 
   !![
   <posteriorSampleLikelihood name="posteriorSampleLikelihoodGalaxyPopulation">
-   <description>A posterior sampling likelihood class which evaluates the likelihood of \glc\ galaxy formation model outputs
-   against observational constraints, supporting parallelized model evaluation across MPI process groups. The number of
-   collaborative MPI groups is set by \mono{[evaluationsPerThread]}, with analysis storage controlled by \mono{[storeResults]} and
-   model randomization by \mono{[randomize]}.</description>
+   <description>
+    A posterior sampling likelihood class which evaluates the likelihood of \glc\ galaxy formation model outputs
+    against observational constraints, supporting parallelized model evaluation across MPI process groups. The number of
+    collaborative MPI groups is set by \mono{[countCollaborativeGroups]}, with analysis storage controlled by \mono{[storeResults]}.    
+   </description>
   </posteriorSampleLikelihood>
   !!]
   type, extends(posteriorSampleLikelihoodBaseParameters) :: posteriorSampleLikelihoodGalaxyPopulation
@@ -38,9 +39,9 @@
      !!}
      private
      type   (varying_string               )          :: failedParametersFileName
-     logical                                         :: randomize                         , outputAnalyses, &
+     logical                                         :: doPing                            , outputAnalyses, &
           &                                             reportEvaluationTimes             , setOutputGroup, &
-          &                                             firstComeFirstServed              , doPing
+          &                                             firstComeFirstServed
      integer                                         :: countCollaborativeGroups
      type   (enumerationVerbosityLevelType)          :: evolveForestsVerbosity
      class  (*                            ), pointer :: task_                    => null()
@@ -79,10 +80,10 @@ contains
     type   (varying_string)                                                         :: baseParametersFileName   , failedParametersFileName
     type   (varying_string)                           , allocatable  , dimension(:) :: changeParametersFileNames
     integer                                                                         :: countCollaborativeGroups
-    logical                                                                         :: randomize                , outputAnalyses          , &
+    logical                                                                         :: doPing                   , outputAnalyses          , &
          &                                                                             reportEvaluationTimes    , reportFileName          , &
          &                                                                             reportState              , setOutputGroup          , &
-         &                                                                             firstComeFirstServed     , doPing
+         &                                                                             firstComeFirstServed
     type   (varying_string)                                                         :: evolveForestsVerbosity
     type   (inputParameters                          ), pointer                     :: parametersModel
 
@@ -107,12 +108,6 @@ contains
      <inputParameter>
      <name>reportEvaluationTimes</name>
       <description>If true, report the time taken to evaluate each model.</description>
-      <defaultValue>.false.</defaultValue>
-      <source>parameters</source>
-    </inputParameter>
-    <inputParameter>
-      <name>randomize</name>
-      <description>If true, randomize models (i.e. change the random seed).</description>
       <defaultValue>.false.</defaultValue>
       <source>parameters</source>
     </inputParameter>
@@ -174,7 +169,7 @@ contains
     end if
     allocate(parametersModel)
     parametersModel=inputParameters                          (baseParametersFileName,noOutput=.true.,changeFiles=changeParametersFileNames)
-    self           =posteriorSampleLikelihoodGalaxyPopulation(parametersModel,baseParametersFileName,randomize,outputAnalyses,setOutputGroup,reportEvaluationTimes,countCollaborativeGroups,firstComeFirstServed,doPing,reportFileName,reportState,enumerationVerbosityLevelEncode(evolveForestsVerbosity,includesPrefix=.false.),failedParametersFileName,changeParametersFileNames)
+    self           =posteriorSampleLikelihoodGalaxyPopulation(parametersModel,baseParametersFileName,outputAnalyses,setOutputGroup,reportEvaluationTimes,countCollaborativeGroups,firstComeFirstServed,doPing,reportFileName,reportState,enumerationVerbosityLevelEncode(evolveForestsVerbosity,includesPrefix=.false.),failedParametersFileName,changeParametersFileNames)
     !![
     <inputParametersValidate source="parameters"/>
     !!]
@@ -182,7 +177,8 @@ contains
     return
   end function galaxyPopulationConstructorParameters
 
-  function galaxyPopulationConstructorInternal(parametersModel,baseParametersFileName,randomize,outputAnalyses,setOutputGroup,reportEvaluationTimes,countCollaborativeGroups,firstComeFirstServed,doPing,reportFileName,reportState,evolveForestsVerbosity,failedParametersFileName,changeParametersFileNames) result(self)
+
+  function galaxyPopulationConstructorInternal(parametersModel,baseParametersFileName,outputAnalyses,setOutputGroup,reportEvaluationTimes,countCollaborativeGroups,firstComeFirstServed,doPing,reportFileName,reportState,evolveForestsVerbosity,failedParametersFileName,changeParametersFileNames) result(self)
     !!{
     Constructor for the \refClass{posteriorSampleLikelihoodGalaxyPopulation} posterior sampling likelihood class.
     !!}
@@ -194,17 +190,17 @@ contains
     implicit none
     type   (posteriorSampleLikelihoodGalaxyPopulation)                              :: self
     type   (inputParameters                          ), intent(inout), target       :: parametersModel
-    logical                                           , intent(in   )               :: randomize                , outputAnalyses        , &
+    logical                                           , intent(in   )               :: doPing                   , outputAnalyses        , &
          &                                                                             reportEvaluationTimes    , reportFileName        , &
          &                                                                             reportState              , setOutputGroup        , &
-         &                                                                             firstComeFirstServed     , doPing
+         &                                                                             firstComeFirstServed
     integer                                           , intent(in   )               :: countCollaborativeGroups
     type   (enumerationVerbosityLevelType            ), intent(in   )               :: evolveForestsVerbosity
     type   (varying_string                           ), intent(in   )               :: failedParametersFileName , baseParametersFileName
     type   (varying_string                           ), intent(in   ), dimension(:) :: changeParametersFileNames
     class  (*                                        ), pointer                     :: dummyPointer_
     !![
-    <constructorAssign variables="baseParametersFileName, randomize, outputAnalyses, setOutputGroup, reportEvaluationTimes, countCollaborativeGroups, firstComeFirstServed, doPing, reportFileName, reportState, evolveForestsVerbosity, failedParametersFileName, changeParametersFileNames"/>
+    <constructorAssign variables="baseParametersFileName, outputAnalyses, setOutputGroup, reportEvaluationTimes, countCollaborativeGroups, firstComeFirstServed, doPing, reportFileName, reportState, evolveForestsVerbosity, failedParametersFileName, changeParametersFileNames"/>
     !!]
 
     ! Validate.

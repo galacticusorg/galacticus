@@ -37,11 +37,12 @@ Implements a node property extractor class for parameters of the \cite{hearin_di
      procedure :: names        => massAccretionHistoryHearin2021Names
      procedure :: descriptions => massAccretionHistoryHearin2021Descriptions
      procedure :: unitsInSI    => massAccretionHistoryHearin2021UnitsInSI
+     procedure :: units       => massAccretionHistoryHearin2021Units
   end type nodePropertyExtractorMassAccretionHistoryHearin2021
 
   interface nodePropertyExtractorMassAccretionHistoryHearin2021
      !!{
-     Constructors for the \refClass{nodePropertyExtractorMassAccretionHistoryHearin2021} output analysis class.
+     Constructors for the \refClass{nodePropertyExtractorMassAccretionHistoryHearin2021} property extractor class.
      !!}
      module procedure massAccretionHistoryHearin2021ConstructorParameters
   end interface nodePropertyExtractorMassAccretionHistoryHearin2021
@@ -50,7 +51,7 @@ contains
 
   function massAccretionHistoryHearin2021ConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the \refClass{nodePropertyExtractorMassAccretionHistoryHearin2021} node property extractor class which takes a parameter set as input.
+    Constructor for the \refClass{nodePropertyExtractorMassAccretionHistoryHearin2021} property extractor class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -163,7 +164,25 @@ contains
     !$GLC attributes unused :: self, time
 
     allocate(massAccretionHistoryHearin2021UnitsInSI(3))
-    massAccretionHistoryHearin2021UnitsInSI=0.0d0
+    massAccretionHistoryHearin2021UnitsInSI=1.0d0
     return
   end function massAccretionHistoryHearin2021UnitsInSI
 
+  function massAccretionHistoryHearin2021Units(self,time) result(units)
+    !!{
+    Return the units of the massAccretionHistoryHearin2021 properties.
+    !!}
+    use :: Units_MetaData, only : unitType
+    implicit none
+    type            (unitType                                           ), dimension(:) , allocatable :: units
+    class           (nodePropertyExtractorMassAccretionHistoryHearin2021), intent(inout)              :: self
+    double precision                                                     , intent(in   )              :: time
+    integer                                                                                           :: i
+    !$GLC attributes unused :: self, time
+
+    allocate(units(3))
+    do i=1,3
+       units(i)=unitType(1.0d0)
+    end do
+    return
+  end function massAccretionHistoryHearin2021Units

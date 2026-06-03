@@ -43,11 +43,12 @@ Implements a class which extracts fluxes from luminosities.
      procedure :: names        => fluxFromLuminosityNames
      procedure :: descriptions => fluxFromLuminosityDescriptions
      procedure :: unitsInSI    => fluxFromLuminosityUnitsInSI
+     procedure :: units        => fluxFromLuminosityUnits
   end type nodePropertyExtractorFluxFromLuminosity
 
   interface nodePropertyExtractorFluxFromLuminosity
      !!{
-     Constructors for the \refClass{nodePropertyExtractorFluxFromLuminosity} output analysis class.
+     Constructors for the \refClass{nodePropertyExtractorFluxFromLuminosity} property extractor class.
      !!}
      module procedure fluxFromLuminosityConstructorParameters
      module procedure fluxFromLuminosityConstructorInternal
@@ -57,7 +58,7 @@ contains
 
   function fluxFromLuminosityConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the \refClass{nodePropertyExtractorFluxFromLuminosity} output analysis property extractor class which takes a parameter set as input.
+    Constructor for the \refClass{nodePropertyExtractorFluxFromLuminosity} property extractor class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -93,7 +94,7 @@ contains
   
   subroutine fluxFromLuminosityDestructor(self)
     !!{
-    Destructor for the \refClass{nodePropertyExtractorFluxFromLuminosity} output analysis property extractor class.
+    Destructor for the \refClass{nodePropertyExtractorFluxFromLuminosity} property extractor class.
     !!}
     implicit none
     type(nodePropertyExtractorFluxFromLuminosity), intent(inout) :: self
@@ -247,3 +248,23 @@ contains
     unitsInSI=ergs/centi**2
     return
   end function fluxFromLuminosityUnitsInSI
+
+  function fluxFromLuminosityUnits(self,time) result(units)
+    !!{
+    Return the units of the fluxFromLuminosity properties.
+    !!}
+    use :: Units_MetaData, only : unitType
+    implicit none
+    type            (unitType                               ), dimension(:) , allocatable :: units
+    class           (nodePropertyExtractorFluxFromLuminosity), intent(inout)              :: self
+    double precision                                         , intent(in   )              :: time
+    double precision                                         , dimension(:) , allocatable :: siValues
+    integer                                                                               :: i
+
+    siValues=self%unitsInSI(time)
+    allocate(units(size(siValues)))
+    do i=1,size(siValues)
+       units(i)=unitType(siValues(i),description='erg/cm²',quantity='erg/cm^2')
+    end do
+    return
+  end function fluxFromLuminosityUnits

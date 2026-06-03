@@ -125,7 +125,7 @@ contains
 
   function ciotti2009ConstructorInternal(efficiencyWind,efficiencyWindScalesWithEfficiencyRadiative,blackHoleAccretionRate_,accretionDisks_) result(self)
     !!{
-    Internal constructor for the \refClass{blackHoleWindCiotti2009} node operator class.
+    Internal constructor for the \refClass{blackHoleWindCiotti2009} black hole winds class.
     !!}
     implicit none
     type            (blackHoleWindCiotti2009    )                        :: self

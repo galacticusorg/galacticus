@@ -33,11 +33,12 @@
      procedure :: names        => labelsNames
      procedure :: descriptions => labelsDescriptions
      procedure :: unitsInSI    => labelsUnitsInSI
+     procedure :: units        => labelsUnits
   end type nodePropertyExtractorLabels
 
   interface nodePropertyExtractorLabels
      !!{
-     Constructors for the \refClass{nodePropertyExtractorLabels} output extractor class.
+     Constructors for the \refClass{nodePropertyExtractorLabels} property extractor class.
      !!}
      module procedure labelsConstructorParameters
   end interface nodePropertyExtractorLabels
@@ -136,7 +137,24 @@ contains
     double precision                             , intent(in   )              :: time
 
     allocate(labelsUnitsInSI(self%elementCount(time)))
-    labelsUnitsInSI=0.0d0
+    labelsUnitsInSI=1.0d0
     return
   end function labelsUnitsInSI
 
+  function labelsUnits(self,time) result(units)
+    !!{
+    Return the units of the labels properties.
+    !!}
+    use :: Units_MetaData, only : unitType
+    implicit none
+    type            (unitType                   ), dimension(:), allocatable :: units
+    class           (nodePropertyExtractorLabels), intent(inout)             :: self
+    double precision                             , intent(in   )             :: time
+    integer                                                                  :: i
+
+    allocate(units(self%elementCount(time)))
+    do i=1,size(units)
+       units(i)=unitType(1.0d0)
+    end do
+    return
+  end function labelsUnits

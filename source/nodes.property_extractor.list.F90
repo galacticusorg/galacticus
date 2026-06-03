@@ -17,7 +17,8 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  use :: Hashes, only : doubleHash, rank1DoubleHash
+  use :: Hashes        , only : doubleHash, rank1DoubleHash
+  use :: Units_MetaData, only : unitType
 
   !![
   <nodePropertyExtractor name="nodePropertyExtractorList" abstract="yes">
@@ -32,12 +33,13 @@
    contains
      !![
      <methods>
-       <method method="elementCount" description="Return a count of the number of properties extracted."              />
-       <method method="extract"      description="Extract the properties from the given \mono{node}."/>
-       <method method="names"        description="Return the name of the properties extracted."                       />
-       <method method="descriptions" description="Return a description of the properties extracted."                  />
-       <method method="unitsInSI"    description="Return the units of the properties extracted in the SI system."     />
-       <method method="metaData"     description="Populate a hash with meta-data for the property."                   />
+       <method method="elementCount" description="Return a count of the number of properties extracted."         />
+       <method method="extract"      description="Extract the properties from the given \mono{node}."            />
+       <method method="names"        description="Return the name of the properties extracted."                  />
+       <method method="descriptions" description="Return a description of the properties extracted."             />
+       <method method="unitsInSI"    description="Return the units of the properties extracted in the SI system."/>
+       <method method="units"        description="Return an object containing units metadata for the properties."/>
+       <method method="metaData"     description="Populate a hash with meta-data for the property."              />
      </methods>
      !!]
      procedure(listElementCount), deferred :: elementCount
@@ -45,6 +47,7 @@
      procedure(listNames       ), deferred :: names
      procedure(listDescriptions), deferred :: descriptions
      procedure(listUnitsInSI   ), deferred :: unitsInSI
+     procedure                             :: units        => listUnits
      procedure                             :: metaData     => listMetaData
   end type nodePropertyExtractorList
 
@@ -106,7 +109,26 @@
   end interface
 
 contains
-  
+
+  function listUnits(self) result(units)
+    !!{
+    Default implementation: wraps the deferred \mono{nodePropertyExtractorList} \mono{unitsInSI} array into an array of
+    \mono{unitType}.
+    !!}
+    implicit none
+    type (unitType                 ), dimension(:) , allocatable :: units
+    class(nodePropertyExtractorList), intent(inout)              :: self
+    double precision                , dimension(:) , allocatable :: siValues
+    integer                                                      :: i
+
+    siValues=self%unitsInSI()
+    allocate(units(size(siValues)))
+    do i=1,size(siValues)
+       units(i)=unitType(siValues(i))
+    end do
+    return
+  end function listUnits
+
   subroutine listMetaData(self,node,metaDataRank0,metaDataRank1)
     !!{
     Interface for list property meta-data.

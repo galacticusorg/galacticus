@@ -52,11 +52,12 @@ Implements an intracluster medium cooling power in band property extractor class
      procedure :: name        => icmCoolingPowerInBandName
      procedure :: description => icmCoolingPowerInBandDescription
      procedure :: unitsInSI   => icmCoolingPowerInBandUnitsInSI
+     procedure :: units       => iCMCoolingPowerInBandUnits
   end type nodePropertyExtractorICMCoolingPowerInBand
 
   interface nodePropertyExtractorICMCoolingPowerInBand
      !!{
-     Constructors for the \refClass{nodePropertyExtractorICMCoolingPowerInBand} output analysis class.
+     Constructors for the \refClass{nodePropertyExtractorICMCoolingPowerInBand} property extractor class.
      !!}
      module procedure icmCoolingPowerInBandConstructorParameters
      module procedure icmCoolingPowerInBandConstructorInternal
@@ -327,4 +328,16 @@ contains
     return
   end function icmCoolingPowerInBandUnitsInSI
 
+  function icmCoolingPowerInBandUnits(self) result(units)
+    !!{
+    Return the units of the iCMCoolingPowerInBand property.
+    !!}
+    use :: Units_MetaData, only : unitType
+    implicit none
+    type (unitType                                  )                :: units
+    class(nodePropertyExtractorICMCoolingPowerInBand), intent(inout) :: self
+    !$GLC attributes unused :: self
 
+    units=unitType(1.0d0)
+    return
+  end function icmCoolingPowerInBandUnits

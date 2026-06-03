@@ -246,9 +246,10 @@ contains
 #ifdef USEMPI
     use :: MPI_Utilities, only : mpiSelf
 #endif
-    use :: Output_HDF5  , only : outputFile
-    use :: HDF5_Access  , only : hdf5Access
-    use :: IO_HDF5      , only : hdf5Object
+    use :: Output_HDF5   , only : outputFile
+    use :: HDF5_Access   , only : hdf5Access
+    use :: IO_HDF5       , only : hdf5Object
+    use :: Units_MetaData, only : unitType
     implicit none
     class           (outputAnalysisTidalTracksVelocityMaximum), intent(inout)              :: self
     type            (varying_string                          ), intent(in   ), optional    :: groupName
@@ -319,14 +320,11 @@ contains
     call analysisGroup%writeAttribute(self%logLikelihood()                                                       ,'logLikelihood'                        )
     call analysisGroup%writeAttribute('Pe\\~narrubia et al. (2010)'                                              ,'targetLabel'                          )
     call analysisGroup%writeDataset  (self%fractionMassBound            ,'fractionMassBound'            ,'Fraction of bound mass remaining'           ,datasetReturned=dataset)
-    call dataset      %writeAttribute(' '                               ,'units'                                                                                              )
-    call dataset      %writeAttribute(1.0d0                             ,'unitsInSI'                                                                                          )
+    call dataset      %writeAttribute(unitType(1.0d0),'units'                                                                                              )
     call analysisGroup%writeDataset  (self%fractionVelocityMaximum      ,'fractionVelocityMaximum'      ,'Fraction of peak rotation velocity'         ,datasetReturned=dataset)
-    call dataset      %writeAttribute(' '                               ,'units'                                                                                              )
-    call dataset      %writeAttribute(1.0d0                             ,'unitsInSI'                                                                                          )
+    call dataset      %writeAttribute(unitType(1.0d0),'units'                                                                                              )
     call analysisGroup%writeDataset  (self%fractionVelocityMaximumTarget,'fractionVelocityMaximumTarget','Fraction of peak rotation velocity [target]',datasetReturned=dataset)
-    call dataset      %writeAttribute(' '                               ,'units'                                                                                              )
-    call dataset      %writeAttribute(1.0d0                             ,'unitsInSI'                                                                                          )
+    call dataset      %writeAttribute(unitType(1.0d0),'units'                                                                                              )
     !$ call hdf5Access%unset()
     return
   end subroutine tidalTracksVelocityMaximumFinalize

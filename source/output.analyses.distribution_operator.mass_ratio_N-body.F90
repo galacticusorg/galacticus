@@ -53,7 +53,7 @@ contains
 
   function massRatioNBodyConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the \refClass{outputAnalysisDistributionOperatorMassRatioNBody} output analysis weight operator class which takes a parameter
+    Constructor for the \refClass{outputAnalysisDistributionOperatorMassRatioNBody} output analysis distribution operator class which takes a parameter
     set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
@@ -113,7 +113,7 @@ contains
 
   subroutine massRatioNBodyDestructor(self)
     !!{
-    Destructor for the \refClass{outputAnalysisDistributionOperatorMassRatioNBody} output analysis weight operator class.
+    Destructor for the \refClass{outputAnalysisDistributionOperatorMassRatioNBody} output analysis distribution operator class.
     !!}
     type(outputAnalysisDistributionOperatorMassRatioNBody), intent(inout) :: self
 
@@ -130,6 +130,7 @@ contains
     !!}
     use :: Arrays_Search          , only : searchArray
     use :: Error                  , only : Error_Report
+    use :: Error_Functions        , only : Error_Function_Difference
     use :: Galacticus_Nodes       , only : nodeComponentBasic
     use :: Numerical_Comparison   , only : Values_Agree
     use :: Numerical_Integration  , only : integrator
@@ -143,7 +144,7 @@ contains
     type            (treeNode                                        ), intent(inout)                                        :: node
     double precision                                                                 , dimension(size(propertyValueMinimum)) :: massRatioNBodyOperateScalar
     double precision                                                  , parameter                                            :: timeTolerance              =1.0d-4
-    double precision                                                  , parameter                                            :: integrationExtent          =1.0d+1
+    double precision                                                  , parameter                                            :: integrationExtent          =1.0d+2
     type            (treeNode                                        ), pointer                                              :: nodeParent
     class           (nodeComponentBasic                              ), pointer                                              :: basic
     double precision                                                                                                         :: massUncertaintyRatio              , massUncertaintyParent      , &
@@ -258,22 +259,22 @@ contains
                   &    +massParent+integrationExtent*massUncertaintyParent <= self%massParentMaximum &
                   &  ) then
                 ! Full parent mass range is included, so use analytic integral over the mass ratio.
-                massRatioNBodyOperateScalar(binIndex)=+0.5d0                                                                      &
-                     &                                *(                                                                          &
-                     &                                  +erf((massRatioMaximum    -massRatio)/massUncertaintyRatio  /sqrt(2.0d0)) &
-                     &                                  -erf((massRatioMinimum    -massRatio)/massUncertaintyRatio  /sqrt(2.0d0)) &
-                     &                                 )
+                massRatioNBodyOperateScalar       (binIndex)=+0.5d0                                                                                          &
+                     &                                       *Error_Function_Difference(                                                                     &
+                     &                                                                  (massRatioMinimum    -massRatio)/massUncertaintyRatio  /sqrt(2.0d0), &
+                     &                                                                  (massRatioMaximum    -massRatio)/massUncertaintyRatio  /sqrt(2.0d0)  &
+                     &                                                                 )
              else if (                                                                               &
                   &    +massRatio -integrationExtent*massUncertaintyRatio  >= massRatioMinimum       &
                   &   .and.                                                                          &
                   &    +massRatio +integrationExtent*massUncertaintyRatio  <= massRatioMaximum       &
-                  &) then
+                  &  ) then
                 ! Full mass ratio range is included, so use analytic integral over the parent mass.
-                massRatioNBodyOperateScalar(binIndex)=+0.5d0                                                                      &
-                     &                                *(                                                                          &
-                     &                                  +erf((massParentLimitUpper-massParent)/massUncertaintyParent/sqrt(2.0d0)) &
-                     &                                  -erf((massParentLimitLower-massParent)/massUncertaintyParent/sqrt(2.0d0)) &
-                     &                                 )
+                massRatioNBodyOperateScalar       (binIndex)=+0.5d0                                                                                          &
+                     &                                       *Error_Function_Difference(                                                                     &
+                     &                                                                  (massParentLimitLower-massParent)/massUncertaintyParent/sqrt(2.0d0), &
+                     &                                                                  (massParentLimitUpper-massParent)/massUncertaintyParent/sqrt(2.0d0)  &
+                     &                                                                 )
              else
                 massRatioNBodyOperateScalar(binIndex)=max(                                                                  &
                      &                                    integrator_%integrate(massParentLimitLower,massParentLimitUpper), &
@@ -296,20 +297,24 @@ contains
       remaining integral over the parent mass must then be found numerically.
       !!}
       use :: Numerical_Constants_Math, only : Pi
+      use :: Kind_Numbers            , only : kind_quad
       implicit none
       double precision, intent(in   ) :: massParentPrimed
-      double precision                :: xParent         , xRatioMinimum, &
-           &                             xRatioMaximum
+      double precision                :: xParent         , xRatioMinimum    , &
+           &                             xRatioMaximum   , errorFunctionTerm
 
       xParent                          =+(massParentPrimed-massParent)/massUncertaintyParent
       xRatioMinimum                    =-(massRatioMinimum-massRatio )/massUncertaintyRatio
       xRatioMaximum                    =-(massRatioMaximum-massRatio )/massUncertaintyRatio
-      massRatioBivariateNormalIntegrand=+(                                                                                                                                       &
-           &                              +exp(-0.5d0*xParent**2)*erf((-xRatioMaximum+xParent*massUncertaintyCorrelation)/sqrt(2.0d0)/sqrt(1.0d0-massUncertaintyCorrelation**2)) &
-           &                              -exp(-0.5d0*xParent**2)*erf((-xRatioMinimum+xParent*massUncertaintyCorrelation)/sqrt(2.0d0)/sqrt(1.0d0-massUncertaintyCorrelation**2)) &
-           &                             )                                                                                                                                       &
-           &                            /     2.0d0                                                                                                                              &
-           &                            /sqrt(2.0d0*Pi)                                                                                                                          &
+      ! Evaluate the error function term.
+      errorFunctionTerm                =+Error_Function_Difference(                                                                                                           &
+           &                                                       (-xRatioMinimum+xParent*massUncertaintyCorrelation)/sqrt(2.0d0)/sqrt(1.0d0-massUncertaintyCorrelation**2), &
+           &                                                       (-xRatioMaximum+xParent*massUncertaintyCorrelation)/sqrt(2.0d0)/sqrt(1.0d0-massUncertaintyCorrelation**2)  &
+           &                                                      )     
+      massRatioBivariateNormalIntegrand=+exp(-0.5d0*xParent**2) &
+           &                            *errorFunctionTerm      &
+           &                            /     2.0d0             &
+           &                            /sqrt(2.0d0*Pi)         &
            &                            /massUncertaintyParent
       return
     end function massRatioBivariateNormalIntegrand

@@ -139,7 +139,7 @@ contains
 
   subroutine correlationFunctionDestructor(self)
     !!{
-    Destructor for the \refClass{massDistributionCorrelationFunction} accretion flow mass distribution class.
+    Destructor for the \refClass{massDistributionCorrelationFunction} mass distribution class.
     !!}
     implicit none
     type(massDistributionCorrelationFunction), intent(inout) :: self
