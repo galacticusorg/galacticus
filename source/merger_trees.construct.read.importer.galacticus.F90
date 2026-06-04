@@ -50,39 +50,11 @@
   <mergerTreeImporter name="mergerTreeImporterGalacticus">
     <description>
     A merger tree importer class which imports trees from an HDF5 file. HDF5 file should follow the general purpose format
-    described \href{https://github.com/galacticusorg/galacticus/wiki/Merger-Tree-File-Format}{here}. An example of how to
-    construct such a file can be found in the \mono{tests/nBodyMergerTrees} folder. In that folder, the
-    \mono{getMillenniumTrees.pl} script will retrieve a sample of merger trees from the
-    \href{https://virgodb.dur.ac.uk:8443/Millennium/}{Millennium Simulation database} and use the \mono{Merger\_Tree\_File\_Maker.exe} code supplied with \glc\ to convert these into an HDF5 file suitable for reading into \glc. The
-    \mono{getMillenniumTrees.pl} script requires you to have a username and password to access the Millennium
-    Simulation database\footnote{If you do not have a username and password for the Millennium Simulation database you can request
-    one from \href{mailto:contact@g-vo.org}{\mono{contact@g-vo.org}}.}. These can be entered manually or stored in
-    a section of the
-    \href{https://github.com/galacticusorg/galacticus/releases/download/bleeding-edge/Galacticus_Usage.pdf#sec.ConfigFile}{\mono{galacticusConfig.xml}} file as follows:
-    \begin{verbatim}
-      &lt;millenniumDB>
-        &lt;host>
-          &lt;name>^myHost$&lt;/name>
-          &lt;user>myUserName&lt;/user>
-          &lt;passwordFrom>input&lt;/passwordFrom>
-          &lt;treePath>/path/to/trees&lt;/treePath>
-        &lt;/host>
-        &lt;host>
-          &lt;name>default&lt;/name>
-          &lt;user>myUserName&lt;/user>
-          &lt;password>myPassword&lt;/password>
-        &lt;/host>
-      &lt;/millenniumDB>
-    \end{verbatim}
-    Here, each \mono{host} section describes rules for a given computer (with ``default'' being used if no specific
-    match to the regular expression give in \mono{name} is found). The \mono{user} element gives the
-    user name to use, while the \mono{passwordFrom} element specifies how the password should be obtained. Currently
-    the only allowed mechanism is ``input'', in which case the password is read from standard input. Alternatively, you can include a
-    \mono{password} element which contains the password itself. Of course, this is insecure\ldots
-    
-    The optional \mono{treePath} element gives the location where merger trees from the Millennium Simulation can be
-    stored. Some scripts will make use of this location so that Millennium Simulation merger trees can be shared between multiple
-    scripts.
+    described \href{https://github.com/galacticusorg/galacticus/wiki/Merger-Tree-File-Format}{here}. To generate HDF5 files
+    in this format from merger tree data produced by a variety of tree builders (e.g.\ \mono{Rockstar}/\mono{ConsistentTrees}),
+    the \mono{astrosylva} tool (\href{https://github.com/galacticusorg/astrosylva}{GitHub};
+    \href{https://pypi.org/project/astrosylva/}{PyPI};
+    \href{https://astrosylva.readthedocs.io/en/latest/}{documentation}) can be used.
     </description>
   </mergerTreeImporter>
   !!]

@@ -236,7 +236,7 @@ contains
     if (present(luminosity       )) call Error_Report(       '`luminosity` is not supported'//{introspection:location})
     if (present(starFormationRate)) call Error_Report('`starFormationRate` is not supported'//{introspection:location})
     ! Find the limiting redshift for this mass completeness limits from Moustakas et al. (2013; Table 2). (See
-    ! constraints/dataAnalysis/stellarMassFunctions_PRIMUS_z0_1/massRedshiftRelation.pl for details.)
+    ! constraints/dataAnalysis/stellarMassFunctions_PRIMUS_z0_1/massRedshiftRelation.py for details.)
     if (present(mass)) then
        logarithmicMass=log10(mass)
        select case (field)

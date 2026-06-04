@@ -209,7 +209,7 @@ contains
     if (present(luminosity       )) call Error_Report(       '`luminosity` is not supported'//{introspection:location})
     if (present(starFormationRate)) call Error_Report('`starFormationRate` is not supported'//{introspection:location})
     ! Find the limiting redshift for this mass using a fit derived from Millennium Simulation SAMs. (See
-    ! constraints/dataAnalysis/stellarMassFunctions_UKIDSS_UDS_z3_5/massLuminosityRelation.pl for details.)
+    ! constraints/dataAnalysis/stellarMassFunctions_UKIDSS_UDS_z3_5/massLuminosityRelation.py for details.)
     if (present(mass)) then
        logarithmicMass=log10(mass)
        redshift=-56.247426278132d0+logarithmicMass*(5.88091022342758d0)
@@ -255,7 +255,7 @@ contains
 
   double precision function caputi2011UKIDSSUDSSolidAngle(self,field)
     !!{
-    Return the solid angle of the \cite{caputi_stellar_2011} sample. Computed from survey mask (see \mono{constraints/dataAnalysis/stellarMassFunctions\_UKIDSS\_UDS\_z3\_5/surveyGeometryRandoms.pl}).
+    Return the solid angle of the \cite{caputi_stellar_2011} sample. Computed from survey mask (see \mono{constraints/dataAnalysis/stellarMassFunctions\_UKIDSS\_UDS\_z3\_5/surveyGeometryRandoms.py}).
     !!}
     use :: Error, only : Error_Report
     implicit none
@@ -276,7 +276,7 @@ contains
     !!}
     use :: File_Utilities , only : File_Exists
     use :: Error          , only : Error_Report
-    use :: Input_Paths    , only : inputPath        , pathTypeDataDynamic
+    use :: Input_Paths    , only : inputPath        , pathTypeDataDynamic, pathTypeDataStatic
     use :: HDF5_Access    , only : hdf5Access
     use :: IO_HDF5        , only : hdf5Object
     use :: String_Handling, only : operator(//)
@@ -288,7 +288,7 @@ contains
     ! Generate the randoms file if necessary.
     if (.not.File_Exists(inputPath(pathTypeDataDynamic)//&
          & "surveys/UKIDSS_UDS/data/surveyGeometryRandoms.hdf5")) then
-       call System_Command_Do(inputPath(pathTypeDataDynamic)//"surveyGeometry/UKIDDS_UDS/surveyGeometryRandoms.pl")
+       call System_Command_Do(inputPath(pathTypeDataStatic)//"surveyGeometry/UKIDSS_UDS/surveyGeometryRandoms.py")
        if (.not.File_Exists(inputPath(pathTypeDataDynamic)//"surveys/UKIDSS_UDS/surveyGeometryRandoms.hdf5")) call Error_Report('unable to create survey geometry randoms file'//{introspection:location})
     end if
     ! Read the distribution of random points from file.

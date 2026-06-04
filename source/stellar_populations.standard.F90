@@ -491,9 +491,11 @@ contains
     type            (populationTable                  ), intent(inout)         :: property
     double precision                                   , dimension(2)          :: metallicityFactors, rate            , &
          &                                                                        propertyCumulative, age
+    double precision                                   , dimension(0:1,2)      :: ageFactors
     type            (inputParameters                  ), save                  :: descriptor
     !$omp threadprivate(descriptor)
     integer         (c_size_t                         )                        :: metallicityIndex
+    integer         (c_size_t                         ), dimension(2)          :: ageIndex
     type            (integratorCompositeGaussKronrod1D)                        :: integrator_
     integer                                                                    :: fileFormat        , iAge            , &
          &                                                                        iMetallicity      , loopCount       , &
@@ -501,12 +503,13 @@ contains
     double precision                                                           :: maximumMass       , minimumMass     , &
          &                                                                        metallicity
     character       (len=20                           )                        :: progressMessage
-    type            (varying_string                   )                        :: fileName          , descriptorString
-    logical                                                                    :: makeFile
-    type            (lockDescriptor                   )                        :: lock
 
     ! Compute the property if not already done.
     if (.not.property%computed) then
+     coldPathScope: block
+       type   (varying_string) :: fileName, descriptorString
+       type   (lockDescriptor) :: lock
+       logical                 :: makeFile
        ! Check for previously computed data.
        makeFile=.false.
        fileName=inputPath(pathTypeDataDynamic)//'stellarPopulations/'//property%label//'_'//self%hashedDescriptor(includeSourceDigest=.true.,includeFileModificationTimes=.true.)//'.hdf5'
@@ -658,6 +661,7 @@ contains
        property%interpolatorAge        =interpolator(property%age        ,extrapolationType=extrapolationTypeExtrapolate)
        ! Record that this IMF has now been tabulated.
        property%computed=.true.
+     end block coldPathScope
     end if
     ! Interpolate to get the derivative in the property at two adjacent metallicities.
     metallicity=max(Abundances_Get_Metallicity(abundances_),0.0d0)
@@ -667,14 +671,23 @@ contains
     else
        call property%interpolatorMetallicity%linearFactors(metallicity,metallicityIndex,metallicityFactors)
     end if
-    ! Interpolate in age at both metallicities.
+    ! Interpolate in age at both metallicities. The age interpolator is linear
+    ! (and constructed with no interpolationType override), so the locate+weights
+    ! returned by linearFactors are sufficient to compute the result manually.
+    ! Computing them once per age, then forming each metallicity slice as a cheap
+    ! weighted sum, halves the number of interpolator method calls relative to
+    ! calling %interpolate four times.
     age=[ageMinimum,ageMaximum]
+    do iAge=1,2
+       if (age(iAge) > 0.0d0) call property%interpolatorAge%linearFactors(age(iAge),ageIndex(iAge),ageFactors(:,iAge))
+    end do
     do iMetallicity=0,1
        if (metallicityFactors(iMetallicity+1) /= 0.0d0) then
           ! Get average property between ageMinimum and ageMaximum.
           do iAge=1,2
              if (age(iAge) > 0.0d0) then
-                propertyCumulative(iAge)=property%interpolatorAge%interpolate(age(iAge),property%property(:,metallicityIndex+iMetallicity))
+                propertyCumulative(iAge)=+ageFactors(0,iAge)*property%property(ageIndex(iAge)  ,metallicityIndex+iMetallicity) &
+                     &                   +ageFactors(1,iAge)*property%property(ageIndex(iAge)+1,metallicityIndex+iMetallicity)
              else
                 propertyCumulative(iAge)=0.0d0
              end if
@@ -831,13 +844,6 @@ contains
     return
   end function standardYieldInstantaneous
 
-  !![
-  <workaround type="gfortran" PR="93422" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=93422">
-   <description>
-    If the function name is used as the result variable, instead of using "result(spectra)", this PR is triggered.
-   </description>
-  </workaround>
-  !!]
   function standardSpectra(self) result(spectra)
     !!{
     Return the stellar spectra associated with this population.

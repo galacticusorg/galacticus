@@ -69,6 +69,7 @@ contains
     class           (darkMatterHaloScaleClass                         ), pointer                     :: darkMatterHaloScale_
     double precision                                                                                 :: randomErrorMinimum                         , randomErrorMaximum
     double precision                                                   , parameter                   :: toleranceRelative                   =1.0d-3
+    logical                                                                                          :: report
 
     allocate(systematicErrorPolynomialCoefficient(max(1,parameters%count('systematicErrorPolynomialCoefficient',zeroIfNotPresent=.true.))))
     allocate(    randomErrorPolynomialCoefficient(max(1,parameters%count(    'randomErrorPolynomialCoefficient',zeroIfNotPresent=.true.))))
@@ -101,12 +102,18 @@ contains
       <defaultValue>0.01d0</defaultValue>
       <description>The minimum random error for velocity dispersions.</description>
     </inputParameter>
+    <inputParameter>
+      <name>report</name>
+      <source>parameters</source>
+      <defaultValue>.false.</defaultValue>
+      <description>If true, report on statistics accumulation.</description>
+    </inputParameter>
     <objectBuilder class="cosmologyFunctions"  name="cosmologyFunctions_"  source="parameters"/>
     <objectBuilder class="outputTimes"         name="outputTimes_"         source="parameters"/>
     <objectBuilder class="darkMatterHaloScale" name="darkMatterHaloScale_" source="parameters"/>
     !!]
     ! Build the object.
-    self=outputAnalysisBlackHoleVelocityDispersionRelation(systematicErrorPolynomialCoefficient,randomErrorPolynomialCoefficient,randomErrorMinimum,randomErrorMaximum,cosmologyFunctions_,outputTimes_,toleranceRelative=1.0d-3,darkMatterHaloScale_=darkMatterHaloScale_)
+    self=outputAnalysisBlackHoleVelocityDispersionRelation(systematicErrorPolynomialCoefficient,randomErrorPolynomialCoefficient,randomErrorMinimum,randomErrorMaximum,report,cosmologyFunctions_,outputTimes_,toleranceRelative=1.0d-3,darkMatterHaloScale_=darkMatterHaloScale_)
     !![
     <inputParametersValidate source="parameters"/>
     <objectDestructor name="cosmologyFunctions_" />
@@ -116,7 +123,7 @@ contains
     return
   end function blackHoleVelocityDispersionRelationConstructorParameters
 
-  function blackHoleVelocityDispersionRelationConstructorInternal(systematicErrorPolynomialCoefficient,randomErrorPolynomialCoefficient,randomErrorMinimum,randomErrorMaximum,cosmologyFunctions_,outputTimes_,toleranceRelative,darkMatterHaloScale_) result (self)
+  function blackHoleVelocityDispersionRelationConstructorInternal(systematicErrorPolynomialCoefficient,randomErrorPolynomialCoefficient,randomErrorMinimum,randomErrorMaximum,report,cosmologyFunctions_,outputTimes_,toleranceRelative,darkMatterHaloScale_) result (self)
     !!{
     Constructor for the \refClass{outputAnalysisBlackHoleVelocityDispersionRelation} output analysis class for internal use.
     !!}
@@ -143,6 +150,7 @@ contains
     double precision                                                     , intent(in   )                 :: randomErrorMinimum                                      , randomErrorMaximum                                , &
          &                                                                                                  toleranceRelative
     double precision                                                     , intent(in   ), dimension(:  ) :: systematicErrorPolynomialCoefficient                    , randomErrorPolynomialCoefficient
+    logical                                                              , intent(in   )                 :: report
     class           (cosmologyFunctionsClass                            ), intent(inout), target         :: cosmologyFunctions_
     class           (outputTimesClass                                   ), intent(inout), target         :: outputTimes_
     class           (darkMatterHaloScaleClass                           ), intent(in   ), target         :: darkMatterHaloScale_
@@ -176,7 +184,7 @@ contains
     type            (varying_string                                     )               , dimension(1  ) :: radiusSpecifiers
     type            (outputAnalysisTargetDataStandard)                              :: outputAnalysisTargetData_
     !![
-    <constructorAssign variables="systematicErrorPolynomialCoefficient, randomErrorPolynomialCoefficient, randomErrorMinimum, randomErrorMaximum, *cosmologyFunctions_, *outputTimes_, toleranceRelative, *darkMatterHaloScale_"/>
+    <constructorAssign variables="systematicErrorPolynomialCoefficient, randomErrorPolynomialCoefficient, randomErrorMinimum, randomErrorMaximum, report, *cosmologyFunctions_, *outputTimes_, toleranceRelative, *darkMatterHaloScale_"/>
     !!]
     
     !$ call hdf5Access%set()
@@ -351,6 +359,8 @@ contains
          &                                                         likelihoodNormalize                                              , &
          &                                                         outputAnalysisTargetData_                                          &
          &                                                        )
+    ! Activate reporting if requested.
+    if (report) call self%setReporting(.true.,"black hole M-σ")
     ! Clean up.
     !![
     <objectDestructor name="galacticFilter_"                                 />

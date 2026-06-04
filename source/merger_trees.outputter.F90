@@ -30,6 +30,19 @@ module Merger_Tree_Outputters
   private
 
   !![
+  <enumeration>
+   <name>outputGroupType</name>
+   <description>Enumeration of the types of output groups.</description>
+   <decodeFunction>yes</decodeFunction>
+   <visibility>public</visibility>
+   <entry label="tree"     />
+   <entry label="node"     />
+   <entry label="snapshot" />
+   <entry label="lightcone"/>
+  </enumeration>
+  !!]
+
+  !![
   <functionClass>
    <name>mergerTreeOutputter</name>
    <descriptiveName>Merger Tree Outputters</descriptiveName>
@@ -41,22 +54,24 @@ module Merger_Tree_Outputters
     properties as defined by the active \refClass{nodePropertyExtractorClass} instances.</description>
    <default>standard</default>
    <method name="outputTree" >
-    <description>Serialize all galaxy and halo properties from the given \mono{tree} to the output dataset corresponding to output index \mono{indexOutput} at cosmic time \mono{time}.</description>
+    <description>Serialize all galaxy and halo properties from the given \mono{tree} to the output dataset corresponding to output index \mono{indexOutput} at cosmic time \mono{time}. Optionally provide an \mono{outputType} describing the type of output.</description>
     <type>void</type>
     <pass>yes</pass>
-    <argument>type            (mergerTree), intent(inout), target :: tree       </argument>
-    <argument>integer         (c_size_t  ), intent(in   )         :: indexOutput</argument>
-    <argument>double precision            , intent(in   )         :: time       </argument>
+    <argument>type            (mergerTree                    ), intent(inout), target   :: tree       </argument>
+    <argument>integer         (c_size_t                      ), intent(in   )           :: indexOutput</argument>
+    <argument>double precision                                , intent(in   )           :: time       </argument>
+    <argument>type            (enumerationOutputGroupTypeType), intent(in   ), optional :: outputType </argument>
    </method>
    <method name="outputNode" >
     <description>Serialize galaxy and halo properties of the given individual \mono{node} to the output dataset corresponding to output index \mono{indexOutput}.</description>
     <type>void</type>
     <pass>yes</pass>
-    <argument>type   (treeNode), intent(inout) :: node       </argument>
-    <argument>integer(c_size_t), intent(in   ) :: indexOutput</argument>
+    <argument>type   (treeNode                      ), intent(inout)           :: node       </argument>
+    <argument>integer(c_size_t                      ), intent(in   )           :: indexOutput</argument>
+    <argument>type   (enumerationOutputGroupTypeType), intent(in   ), optional :: outputType </argument>
    </method>
    <method name="finalize" >
-    <description>Finalize the output of merger trees, flushing any buffered data to persistent storage and performing any post-processing required after all trees have been serialized.</description>
+    <description>Finalize the output of merger trees, flushing any buffered data to persistent storage and performing any post-processing required after all trees have been serialized. Optionally provide an \mono{outputType} describing the type of output.</description>
     <type>void</type>
     <pass>yes</pass>
     <code>

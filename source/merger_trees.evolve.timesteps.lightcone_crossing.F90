@@ -207,6 +207,7 @@ contains
     use :: Display                            , only : displayMessage
     use :: Error                              , only : Error_Report
     use :: Merger_Trees_Evolve_Deadlock_Status, only : deadlockStatusIsNotDeadlocked
+    use :: Merger_Tree_Outputters             , only : outputGroupTypeLightcone
     use :: Galacticus_Nodes                   , only : nodeComponentBasic
     implicit none
     class           (*                            ), intent(inout)               :: self
@@ -223,7 +224,7 @@ contains
        basic         => node %basic                    (                    )     
        timesCrossing =  basic%floatRank1MetaPropertyGet(self%timesCrossingID)
        if (basic%time() /= timesCrossing(1)) return
-       call self%mergerTreeOutputter_%outputNode(node,1_c_size_t)
+       call self%mergerTreeOutputter_%outputNode(node,1_c_size_t,outputGroupTypeLightcone)
        if (any(node%index() == self%nodeIndicesReport)) then
           write (label,'(i12,1x,"/",1x,e12.6)') node%index(),timesCrossing(1)
           call displayMessage('Lightcone crossing timestep {process} for node/time: '//trim(adjustl(label)))

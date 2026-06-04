@@ -852,7 +852,7 @@ contains
                 end if
              else if (any(isAncestorOfParameters == 0)) then
                 ! Parameter file is missing migrations - issue a warning.
-                message="parameter file may be missing important parameter updates - consider updating by running:"//char(10)//char(10)//"              ./scripts/aux/parametersMigrate.pl "//trim(fileName)//" newParameterFile.xml"
+                message="parameter file may be missing important parameter updates - consider updating by running:"//char(10)//char(10)//"              ./scripts/aux/parametersMigrate.py "//trim(fileName)//" newParameterFile.xml"
                 if (self%strict) then
                    call Error_Report(message//{introspection:location})
                 else

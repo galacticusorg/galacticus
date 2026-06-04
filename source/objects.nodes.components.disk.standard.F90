@@ -341,7 +341,7 @@ contains
        !![
        <inputParameter>
          <name>ratioAngularMomentumSolverRadius</name>
-         <defaultSource>($I_1/I_2$ where $I_n=\int_0^\infty \Sigma(R) R^n \mathrm{d}R$, where $\Sigma(R)$ is the disk surface density profile, unless either $I_1$ or $I_2$ is infinite, in which case a default of $1/2$ is used instead.)</defaultSource>
+         <defaultSource>(Assuming a flat rotation curve this ratio is $I_1/I_2$ where $I_n=\int_0^\infty \Sigma(R) R^n \mathrm{d}R$, where $\Sigma(R)$ is the disk surface density profile, unless either $I_1$ or $I_2$ is infinite, in which case a default of $1/2$ is used instead. For a fully self-gravitating, razor-thin exponential disk a ratio of $0.6679$ would be found instead.)</defaultSource>
          <defaultValue>ratioAngularMomentumSolverRadiusDefault</defaultValue>
          <description>The assumed ratio of the specific angular momentum at the structure solver radius to the mean specific angular momentum of the standard disk component.</description>
          <source>subParameters</source>
@@ -848,11 +848,10 @@ contains
     disk => node%disk()
     select type (disk)
     class is (nodeComponentDiskStandard)
-       spheroid => node%spheroid()
+       spheroid => node    %spheroid  (                 )
        ! Find the node to merge with.
-       nodeHost     => node%mergesWith  (                 )
-       diskHost     => nodeHost%disk    (autoCreate=.true.)
-       spheroidHost => nodeHost%spheroid(autoCreate=.true.)
+       nodeHost => node    %mergesWith(                 )
+       diskHost => nodeHost%disk      (autoCreate=.true.)
        ! Get specific angular momentum of the disk material.
        if (                                               disk%massGas()+disk%massStellar() > 0.0d0) then
           specificAngularMomentum=disk%angularMomentum()/(disk%massGas()+disk%massStellar())
@@ -861,6 +860,12 @@ contains
        end if
        ! Get mass movement descriptors.
        call mergerMassMovements_%get(node,destinationGasSatellite,destinationStarsSatellite,destinationGasHost,destinationStarsHost,mergerIsMajor)
+       ! Get the host spheroid component if needed (creating it if needed).
+       if     (                                                              &
+            &   destinationGasSatellite  %ID == destinationMergerSpheroid%ID &
+            &  .or.                                                          &
+            &   destinationStarsSatellite%ID == destinationMergerSpheroid%ID &
+            & ) spheroidHost => nodeHost%spheroid(autoCreate=.true.)
        ! Move the gas component of the standard disk to the host.
        select case (destinationGasSatellite%ID)
        case (destinationMergerDisk%ID)

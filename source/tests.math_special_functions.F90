@@ -794,11 +794,11 @@ program Test_Math_Special_Functions
        &     )
 
   ! Test difference in error functions for extreme values. Target computed using Mathematica.
-  call Assert(                                                                                     &
-       &      "difference in error functions"                                                    , &
-       &      [Error_Function_Difference(11.9d0,12.1d0),Error_Function_Difference(-12.1,-11.9d0)], &
-       &      [1.480425801261648772d-63                ,1.480425801261648772d-63                ], &
-       &      relTol=1.0d-6                                                                        &
+  call Assert(                                                                                       &
+       &      "difference in error functions"                                                      , &
+       &      [Error_Function_Difference(11.9d0,12.1d0),Error_Function_Difference(-12.1d0,-11.9d0)], &
+       &      [1.480425801261648772d-63                ,1.480425801261648772d-63                  ], &
+       &      relTol=1.0d-6                                                                          &
        &      )
   
   ! Test binomial coefficients.
