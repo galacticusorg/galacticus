@@ -26,7 +26,7 @@ Contains a module which implements an N-body data operator which computes progen
 
   !![
   <nbodyOperator name="nbodyOperatorTimeLastMajorMerger">
-   <description>An N-body data operator which computes progenitor halo order statistics.</description>
+   <description>An N-body data operator which computes the time of the last major merger.</description>
   </nbodyOperator>
   !!]
   type, extends(nbodyOperatorClass) :: nbodyOperatorTimeLastMajorMerger
@@ -34,15 +34,14 @@ Contains a module which implements an N-body data operator which computes progen
      An N-body data operator which computes progenitor halo order statistics.
      !!}
      private
-     class           (cosmologyParametersClass), pointer                   :: cosmologyParameters_     => null()
-     integer         (c_size_t                ), allocatable, dimension(:) :: snapshotsProgenitors
-     double precision                                                      :: massParentMinimum                 , massParentMaximum         , &
-          &                                                                   redshiftMergerMinimum             , redshiftMergerMaximum     , &
-          &                                                                   ratioMajor
-     integer         (c_size_t                )                            :: massParentCountPerDecade          , redshiftMergerCountPerUnit, &
-          &                                                                   snapshotParents
-     type            (varying_string          )                            :: simulationReference               , simulationURL             , &
-          &                                                                   description
+     class           (cosmologyParametersClass), pointer :: cosmologyParameters_     => null()
+     double precision                                    :: massParentMinimum                 , massParentMaximum         , &
+          &                                                 redshiftMergerMinimum             , redshiftMergerMaximum     , &
+          &                                                 ratioMajor
+     integer         (c_size_t                )          :: massParentCountPerDecade          , redshiftMergerCountPerUnit, &
+          &                                                 snapshotParents
+     type            (varying_string          )          :: simulationReference               , simulationURL             , &
+          &                                                 description
    contains
      final     ::            timeLastMajorMergerDestructor
      procedure :: operate => timeLastMajorMergerOperate
