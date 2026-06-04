@@ -90,19 +90,20 @@ contains
     return
   end function fullStateConstructorInternal
   
-  subroutine fullStateOutputTree(self,tree,indexOutput,time)
+  subroutine fullStateOutputTree(self,tree,indexOutput,time,outputType)
     !!{
     Write properties of nodes in \mono{tree} to the \glc\ output file.
     !!}
     use :: File_Utilities          , only : File_Lock           , File_Unlock, lockDescriptor
     use :: Merger_Tree_Construction, only : mergerTreeStateStore
     implicit none
-    class           (mergerTreeOutputterFullState), intent(inout)         :: self
-    type            (mergerTree                  ), intent(inout), target :: tree
-    integer         (c_size_t                    ), intent(in   )         :: indexOutput
-    double precision                              , intent(in   )         :: time
-    type            (lockDescriptor              )                        :: fileLock
-    !$GLC attributes unused :: time
+    class           (mergerTreeOutputterFullState  ), intent(inout)           :: self
+    type            (mergerTree                    ), intent(inout), target   :: tree
+    integer         (c_size_t                      ), intent(in   )           :: indexOutput
+    double precision                                , intent(in   )           :: time
+    type            (enumerationOutputGroupTypeType), intent(in   ), optional :: outputType
+    type            (lockDescriptor                )                          :: fileLock
+    !$GLC attributes unused :: time, outputType
     
     call File_Lock(char(self%fileName),fileLock,lockIsShared=.false.)
     call mergerTreeStateStore(tree,char(self%fileName),indexOutput=indexOutput,snapshot=.false.,append=.true.)
@@ -110,16 +111,17 @@ contains
     return
   end subroutine fullStateOutputTree
 
-  subroutine fullStateOutputNode(self,node,indexOutput)
+  subroutine fullStateOutputNode(self,node,indexOutput,outputType)
     !!{
     Perform no output.
     !!}
     use :: Error, only : Error_Report
     implicit none
-    class  (mergerTreeOutputterFullState), intent(inout) :: self
-    type   (treeNode                    ), intent(inout) :: node
-    integer(c_size_t                    ), intent(in   ) :: indexOutput
-    !$GLC attributes unused :: self, node, indexOutput
+    class  (mergerTreeOutputterFullState  ), intent(inout)           :: self
+    type   (treeNode                      ), intent(inout)           :: node
+    integer(c_size_t                      ), intent(in   )           :: indexOutput
+    type   (enumerationOutputGroupTypeType), intent(in   ), optional :: outputType
+    !$GLC attributes unused :: self, node, indexOutput, outputType
 
     call Error_Report('output of single nodes is not supported'//{introspection:location})
     return

@@ -23,7 +23,7 @@
   !!}
 
   use :: ISO_Varying_String         , only : varying_string
-  use :: Output_Analysis_Target_Data, only : outputAnalysisTargetDataClass, outputAnalysisTargetDataStandard
+  use :: Output_Analysis_Target_Data, only : outputAnalysisTargetDataClass     , outputAnalysisTargetDataStandard
   use :: Output_Analyses_Options    , only : enumerationOutputAnalysisStateType
 
   !![
@@ -46,14 +46,14 @@
           &                                                                                         propertyLabel                                  , propertyComment                                 , &
           &                                                                                         meanLabel                                      , meanComment                                     , &
           &                                                                                         propertyUnits                                  , meanUnits                                       , &
-          &                                                                                         propertyQuantity                               , meanQuantity                                    , &
-          &                                                                                         reportLabel
+          &                                                                                         propertyQuantity                               , meanQuantity
      ! Axis labels, log-scale flags, and (optional) target dataset are all bundled into a single
      ! `outputAnalysisTargetDataStandard` instance so the wrapper-pipeline doesn't have to enumerate
      ! 2^N presence combinations for these otherwise individually-optional fields.  Stored
      ! concretely (not polymorphically) since there's only ever one impl and we want plain
      ! `self%targetData_%xAxisLabel` access throughout the rest of this module.
      type            (outputAnalysisTargetDataStandard            )                              :: targetData_
+     type            (varying_string                              )                              :: reportLabel
      type            (enumerationOutputAnalysisCovarianceModelType)                              :: covarianceModel
      type            (enumerationOutputAnalysisStateType          )                              :: state
      double precision                                                                            :: propertyUnitsInSI                              , meanUnitsInSI

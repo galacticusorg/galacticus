@@ -131,6 +131,20 @@ FCFLAGS_NOOPT += -fPIC
 F77FLAGS      += -fPIC
 CFLAGS        += -fPIC
 CPPFLAGS      += -fPIC
+# Place GNU Fortran trampolines (used when internal procedures are passed as actual arguments) on the heap
+# rather than the stack. Stack-based trampolines require an executable stack, which causes the resulting
+# shared library to be marked as such; newer kernels/loaders then refuse to `dlopen()` it, breaking the
+# Python interface with "cannot enable executable stack as shared object requires: Invalid argument". Heap
+# trampolines avoid this without an executable stack. This flag requires GCC 14+ (Galacticus requires GCC
+# 16+) and is applied only to library builds.
+FCFLAGS       += -ftrampoline-impl=heap
+FCFLAGS_NOOPT += -ftrampoline-impl=heap
+# The `-z noexecstack` linker option (used below when linking libgalacticus.so) is specific to GNU ld.
+# Apple's linker does not understand it, and Mach-O has no executable-stack marking to begin with, so set
+# it only on non-Darwin (Linux) systems.
+ifneq ($(UNAME_S),Darwin)
+LINKNOEXECSTACK := -Wl,-z,noexecstack
+endif
 endif
 
 # Detect GProf compile.
@@ -622,7 +636,12 @@ libgalacticus.so: $(BUILDPATH)/libgalacticus.o $(BUILDPATH)/libgalacticus_classe
 	fi; \
 	./scripts/build/sourceDigests.py `pwd` libgalacticus.o $$useLocks
 	$(CCOMPILER) -c $(BUILDPATH)/libgalacticus.md5s.c -o $(BUILDPATH)/libgalacticus.md5s.o $(CFLAGS)
-	$(FCCOMPILER) -shared `sort -u $(BUILDPATH)/libgalacticus.d $(BUILDPATH)/libgalacticus_classes.d` $(BUILDPATH)/libgalacticus.parameters.o $(BUILDPATH)/libgalacticus.md5s.o -o libgalacticus.so $(FCFLAGS) `scripts/build/libraryDependencies.py libgalacticus.o $(FCFLAGS)`
+# Link with a non-executable stack (`-z noexecstack`). Without this the shared library can be marked as
+# requiring an executable stack (e.g. because an input object lacks a `.note.GNU-stack` section, or because
+# GNU Fortran emits stack-based trampolines). Newer kernels/loaders refuse to `dlopen()` such a library,
+# causing the Python interface to fail with "cannot enable executable stack as shared object requires:
+# Invalid argument". This flag is applied only to the library link, leaving executable builds unchanged.
+	$(FCCOMPILER) -shared $(LINKNOEXECSTACK) `sort -u $(BUILDPATH)/libgalacticus.d $(BUILDPATH)/libgalacticus_classes.d` $(BUILDPATH)/libgalacticus.parameters.o $(BUILDPATH)/libgalacticus.md5s.o -o libgalacticus.so $(FCFLAGS) `scripts/build/libraryDependencies.py libgalacticus.o $(FCFLAGS)`
 endif
 
 # Ensure that we don't delete object files which make considers to be intermediate

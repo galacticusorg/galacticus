@@ -64,7 +64,7 @@ jobs:
   Test-Model:
     runs-on: ${{ inputs.runner }}
     container:
-      image: ${{ startsWith( format('{0}',inputs.runner), 'ubuntu') && 'ghcr.io/galacticusorg/buildenv:gfortranFinalization' || '' }}
+      image: ${{ startsWith( format('{0}',inputs.runner), 'ubuntu') && 'ghcr.io/galacticusorg/buildenv:latest' || '' }}
     steps:
       - run: echo "The job was automatically triggered by a ${{ github.event_name }} event."
       - run: echo "This job is now running on a ${{ runner.os }} server."
@@ -169,7 +169,7 @@ jobs:
            echo Preparing for Python installing...
            apt -y update && apt -y upgrade
            echo Installing Python...
-           apt -y --no-install-recommends install python3-numpy python3-h5py python3-lxml python3-blessings python3-matplotlib
+           apt -y --no-install-recommends install python3-numpy python3-h5py python3-lxml python3-matplotlib
            echo "   ...done Python installation"
            cd ${{ inputs.runPath }}
            chmod u=wrx ./${{ inputs.file }}

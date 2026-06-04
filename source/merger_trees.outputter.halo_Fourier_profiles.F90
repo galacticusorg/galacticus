@@ -173,7 +173,7 @@ contains
     return
   end subroutine haloFourierProfilesDestructor
   
-  subroutine haloFourierProfilesOutputTree(self,tree,indexOutput,time)
+  subroutine haloFourierProfilesOutputTree(self,tree,indexOutput,time,outputType)
     !!{
     Write properties of nodes in \mono{tree} to the \glc\ output file.
     !!}
@@ -191,6 +191,7 @@ contains
     type            (mergerTree                            ), intent(inout), target       :: tree
     integer         (c_size_t                              ), intent(in   )               :: indexOutput
     double precision                                        , intent(in   )               :: time
+    type            (enumerationOutputGroupTypeType        ), intent(in   ), optional     :: outputType
     type            (treeNode                              )               , pointer      :: node
     class           (nodeComponentBasic                    )               , pointer      :: basic
     class           (massDistributionClass                 )               , pointer      :: massDistribution_
@@ -201,7 +202,7 @@ contains
     integer         (c_size_t                              )                              :: treeIndexPrevious
     double precision                                                                      :: expansionFactor  , radiusVirial
     integer                                                                               :: i
-    !$GLC attributes unused :: time
+    !$GLC attributes unused :: time, outputType
     
     allocate(fourierProfile(self%wavenumberCount))
     !$ call hdf5Access%set  ()
@@ -241,16 +242,17 @@ contains
     return
   end subroutine haloFourierProfilesOutputTree
 
-  subroutine haloFourierProfilesOutputNode(self,node,indexOutput)
+  subroutine haloFourierProfilesOutputNode(self,node,indexOutput, outputType)
     !!{
     Perform no output.
     !!}
     use :: Error, only : Error_Report
     implicit none
-    class  (mergerTreeOutputterHaloFourierProfiles), intent(inout) :: self
-    type   (treeNode                              ), intent(inout) :: node
-    integer(c_size_t                              ), intent(in   ) :: indexOutput
-    !$GLC attributes unused :: self, node, indexOutput
+    class  (mergerTreeOutputterHaloFourierProfiles), intent(inout)           :: self
+    type   (treeNode                              ), intent(inout)           :: node
+    integer(c_size_t                              ), intent(in   )           :: indexOutput
+    type   (enumerationOutputGroupTypeType        ), intent(in   ), optional :: outputType
+    !$GLC attributes unused :: self, node, indexOutput, outputType
 
     call Error_Report('output of single nodes is not supported'//{introspection:location})
     return

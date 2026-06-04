@@ -290,6 +290,7 @@ galacticus.hdf5
  |    |    x-> ...                            Group              [optional]
  |    |    x-> mergerTree<treeCount>          Group              [optional]
  |    |    |
+ |    |    +-> outputType                     Attribute {1}
  |    |    +-> outputExpansionFactor          Attribute {1}
  |    |    +-> outputTime                     Attribute {1}
  |    |
@@ -382,6 +383,7 @@ The \mono{Version} group contains a record of the \glc\ version used for this mo
 
 The \mono{Outputs} group contains one or more sub-groups corresponding to the output times requested from \glc. Each sub-group contains the following information:
 \begin{description}
+ \item[\mono{outputTiype} \emph{(attribute)}] The type of the output---common types are \mono{snapshot} (for outputs containing halos/galaxies at a single snapshot in time) and \mono{lightcone} (for outputs containing halos/galaxies on an observer's past lightcone);
  \item[\mono{outputTime} \emph{(attribute)}] The cosmic time (in Gyr) at this output;
  \item[\mono{outputExpansionFactor} \emph{(attribute)}] The expansion factor at this output;
  \item[\mono{nodeData}] A group of node properties as described below.
