@@ -272,8 +272,26 @@ contains
              datasetDescription="Halo virial radius."
              unitName="megaParsec"
              unitscgs=[megaParsec*hecto,0.0d0,0.0d0]
+          case ('velocityMaximum'          )
+             datasetDescription="Rotation curve peak velocity."
+             unitName="km/s"
+             unitscgs=[kilo*hecto,0.0d0,0.0d0]
+          case ('axisRatioBToA'           )
+             datasetDescription="Ratio of intermediate to major axis length."
+             unitName="dimensionless"
+             unitscgs=0.0d0
+          case ('axisRatioCToA'           )
+             datasetDescription="Ratio of minor to major axis length."
+             unitName="dimensionless"
+             unitscgs=0.0d0
+          case ('virialRatio'           )
+             datasetDescription="The ratio $2T/|U|$ where $T$ is kinetic and $U$ is gravitational potential energy."
+             unitName="dimensionless"
+             unitscgs=0.0d0
           case default
              datasetDescription="Unknown property."
+             unitName="unknown"
+             unitscgs=0.0d0
           end select
           propertyReal    => simulations(1)%propertiesReal   %value(i)
           call halosGroup%writeDataset  (propertyReal   ,char(simulations(1)%propertiesReal   %key(i)),char(datasetDescription),datasetReturned=dataset,chunkSize=-1_c_size_t)
