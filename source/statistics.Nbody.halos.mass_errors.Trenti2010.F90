@@ -33,6 +33,7 @@ Implements an N-body dark matter halo mass error class using the model of \cite{
      An N-body halo mass error class using the model of \cite{trenti_how_2010}.
      !!}
      private
+     double precision :: massParticle
   end type nbodyHaloMassErrorTrenti2010
 
   interface nbodyHaloMassErrorTrenti2010
@@ -122,13 +123,13 @@ contains
 
     ! Compute the power-law normalization, sigma_12, that reproduces the Trenti et al. (2010) fractional error formula when
     ! combined with an exponent of -1/3 and zero high-mass error.
-    normalization=+         normalizationTrenti                  &
-         &        *cubeRoot(                                     &
-         &                  +particleNumberReference             &
-         &                  *massParticle                        &
-         &                  /                   massReference    &
+    normalization=+         normalizationTrenti      &
+         &        *cubeRoot(                         &
+         &                  +particleNumberReference &
+         &                  *massParticle            &
+         &                  /massReference           &
          &                 )
-    self%nbodyHaloMassErrorPowerLaw=nbodyHaloMassErrorPowerLaw(                                             &
+    self%nbodyHaloMassErrorPowerLaw=nbodyHaloMassErrorPowerLaw(                                                         &
          &                                                     normalization              =normalization              , &
          &                                                     exponent                   =-1.0d0/3.0d0               , &
          &                                                     fractionalErrorHighMass    =+0.0d0                     , &

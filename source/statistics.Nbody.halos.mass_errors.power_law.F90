@@ -68,8 +68,8 @@ contains
     type            (nbodyHaloMassErrorPowerLaw)                :: self
     type            (inputParameters           ), intent(inout) :: parameters
     class           (cosmologyFunctionsClass   ), pointer       :: cosmologyFunctions_
-    double precision                                            :: normalization              , fractionalErrorHighMass, &
-         &                                                         exponent                   , correlationNormalization, &
+    double precision                                            :: normalization              , fractionalErrorHighMass    , &
+         &                                                         exponent                   , correlationNormalization   , &
          &                                                         correlationMassExponent    , correlationRedshiftExponent
     logical                                                     :: correlationModelTrivial
 
@@ -186,11 +186,9 @@ contains
     implicit none
     type(nbodyHaloMassErrorPowerLaw), intent(inout) :: self
 
-    if (associated(self%cosmologyFunctions_)) then
-       !![
-       <objectDestructor name="self%cosmologyFunctions_"/>
-       !!]
-    end if
+    !![
+    <objectDestructor name="self%cosmologyFunctions_"/>
+    !!]
     return
   end subroutine powerLawDestructor
 

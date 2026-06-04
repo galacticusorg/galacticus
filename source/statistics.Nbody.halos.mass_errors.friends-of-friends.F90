@@ -95,7 +95,7 @@ contains
          &                              +massReference                          &
          &                              /massParticle                           &
          &                             )**exponentLocal
-    self%nbodyHaloMassErrorPowerLaw =  nbodyHaloMassErrorPowerLaw(                                          &
+    self%nbodyHaloMassErrorPowerLaw =  nbodyHaloMassErrorPowerLaw(                                             &
          &                                                        normalization          =normalizationParent, &
          &                                                        exponent               =exponentLocal      , &
          &                                                        fractionalErrorHighMass=errorHighMass      , &
