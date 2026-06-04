@@ -6,19 +6,19 @@ window.PONOSV_DATA = {
             "name": "Andrew Benson",
             "email": "abenson@obs.carnegiescience.edu"
         },
-        "id": "d5877a89b6b73b008e860f86df9ea90a5f5d3ba8",
-        "message": "Merge pull request #1136 from galacticusorg/fixBHMSigmaReport\n\nSet default weights when decoding radius specifiers",
-        "timestamp": "2026-05-29 16:52:07-07:00",
-        "url": "https://github.com/galacticusorg/galacticus/commit/d5877a89b6b73b008e860f86df9ea90a5f5d3ba8"
+        "id": "b9b0b4917d1fcb2b05e0bb45212bc73419651e5e",
+        "message": "Merge pull request #1010 from galacticusorg/dmConstraintPipeline\n\nAdd infrastructure for calibration of halo mass functions",
+        "timestamp": "2026-06-03 16:22:28-07:00",
+        "url": "https://github.com/galacticusorg/galacticus/commit/b9b0b4917d1fcb2b05e0bb45212bc73419651e5e"
     },
     "surfaceDensity": {
-        "percentageBelow": 39.285714285714285,
-        "percentageAbove": 60.714285714285715,
+        "percentageBelow": 28.57142857142857,
+        "percentageAbove": 71.42857142857143,
         "target": 0.006
     },
     "slope": {
-        "percentageBelow": 60.0,
-        "percentageAbove": 40.0,
+        "percentageBelow": 50.0,
+        "percentageAbove": 50.0,
         "target": 0.85
     }
 }
