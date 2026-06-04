@@ -45,7 +45,7 @@ def Tree_Node_Copy(build):
             {
                 'intrinsic':  'class',
                 'type':       'treeNode',
-                'attributes': ['intent(inout)'],
+                'attributes': ['intent(inout)', 'target'],
                 'variables':  ['targetNode'],
             },
             {
@@ -84,18 +84,13 @@ def Tree_Node_Copy(build):
         cap = _ucfirst(class_name)
         content += f"targetNode%component{cap} = self%component{cap}\n"
 
-    content += (
-        "select type (targetNode)\n"
-        "type is (treeNode)\n"
-    )
     for class_dict in _active_classes(build):
         cap = _ucfirst(class_dict['name'])
         content += (
-            f"   do i=1,size(self%component{cap})\n"
-            f"     targetNode%component{cap}(i)%hostNode => targetNode\n"
-            f"   end do\n"
+            f"do i=1,size(self%component{cap})\n"
+            f"  targetNode%component{cap}(i)%hostNode => targetNode\n"
+            f"end do\n"
         )
-    content += "end select\n"
 
     function['content'] = content
 
