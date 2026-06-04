@@ -48,8 +48,22 @@ jobs:
           else
             echo "refresh_all=false" >> "$GITHUB_OUTPUT"
           fi
+      - name: "Check for an existing open PR"
+        id: existing
+        if: ${{ ( env.appid != '' ) && ( env.adstoken != '' ) }}
+        env:
+          GH_TOKEN: ${{ steps.generate-token.outputs.token }}
+        run: |
+          branch="${{ steps.mode.outputs.refresh_all == 'true' && 'update/bibliography-refresh' || 'update/bibliography' }}"
+          count=$(gh pr list --repo "${{ github.repository }}" --head "$branch" --state open --json number --jq 'length')
+          if [[ "$count" -gt 0 ]]; then
+            echo "An open PR already exists for '$branch'; skipping to avoid force-push / CI restart."
+            echo "skip=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "skip=false" >> "$GITHUB_OUTPUT"
+          fi
       - name: Update the bibliography
-        if: ${{ env.adstoken != '' }}
+        if: ${{ ( env.adstoken != '' ) && ( steps.existing.outputs.skip != 'true' ) }}
         run: |
           flags=()
           if [[ "${{ steps.mode.outputs.refresh_all }}" == "true" ]]; then
@@ -57,19 +71,19 @@ jobs:
           fi
           PYTHONPATH=$GITHUB_WORKSPACE/python python3 scripts/aux/bibliographyUpdate.py "${flags[@]}" --summary "$RUNNER_TEMP/bibliographyChanges.md" "${{ secrets.NASA_ADS_API_TOKEN }}"
       - name: "Install bibtool"
-        if: ${{ env.adstoken != '' }}
+        if: ${{ ( env.adstoken != '' ) && ( steps.existing.outputs.skip != 'true' ) }}
         run: |
           sudo apt-get update
           sudo apt-get install -y bibtool
       - name: "Tidy the bibliography"
-        if: ${{ env.adstoken != '' }}
+        if: ${{ ( env.adstoken != '' ) && ( steps.existing.outputs.skip != 'true' ) }}
         run: |
           bibtool -r scripts/aux/bibliography.rsc \
                   -i doc/Galacticus.bib \
                   -o doc/Galacticus.bib.tidy
           mv doc/Galacticus.bib.tidy doc/Galacticus.bib
       - name: "Build PR body"
-        if: ${{ ( env.appid != '' ) && ( env.adstoken != '' ) }}
+        if: ${{ ( env.appid != '' ) && ( env.adstoken != '' ) && ( steps.existing.outputs.skip != 'true' ) }}
         id: pr-body
         run: |
           {
@@ -86,7 +100,7 @@ jobs:
             echo '__PR_BODY_EOF__'
           } >> "$GITHUB_OUTPUT"
       - name: Create Pull Request
-        if: ${{ ( env.appid != '' ) && ( env.adstoken != '' ) }}
+        if: ${{ ( env.appid != '' ) && ( env.adstoken != '' ) && ( steps.existing.outputs.skip != 'true' ) }}
         uses: peter-evans/create-pull-request@v8
         with:
           title: "${{ steps.mode.outputs.refresh_all == 'true' && 'fix: Refresh bibliography metadata' || 'fix: Update bibliography records' }}"
