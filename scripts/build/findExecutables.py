@@ -64,7 +64,7 @@ with open(os.path.join(build_path, "Makefile_All_Execs"), 'w') as out:
 \tfi; \\
 \t./scripts/build/sourceDigests.py `pwd` {file_name_root}.exe $$useLocks
 \t$(CCOMPILER) -c {work_dir}{file_name_root}.md5s.c -o {work_dir}{file_name_root}.md5s.o $(CFLAGS)
-\t$(FCCOMPILER) `cat {work_dir}{file_name_root}.d` {work_dir}{file_name_root}.parameters.o {work_dir}{file_name_root}.md5s.o -o {file_name_root}.exe$(SUFFIX) $(FCFLAGS) `./scripts/build/libraryDependencies.py {file_name_root}.exe $(FCFLAGS)` 2>&1 | ./scripts/build/postprocessLinker.py
+\t$(FCCOMPILER) `cat {work_dir}{file_name_root}.d` {work_dir}{file_name_root}.parameters.o {work_dir}{file_name_root}.md5s.o -o {file_name_root}.exe$(SUFFIX) $(FCFLAGS) $(FCFLAGS_LINK) `./scripts/build/libraryDependencies.py {file_name_root}.exe $(FCFLAGS)` 2>&1 | ./scripts/build/postprocessLinker.py
 
 """
         out.write(rule)
