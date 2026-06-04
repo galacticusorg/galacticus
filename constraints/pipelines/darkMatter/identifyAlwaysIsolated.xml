@@ -11,8 +11,8 @@
   <task value="NBodyAnalyze"/>
 
   <nbodyImporter value="rockstar">
-    <fileName    value="tree_0_0_0.dat"                                                       />
-    <readColumns value="scale id desc_id pid upid mmp Mvir Rvir Rs_Klypin Spin X Y Z Snap_num"/>
+    <fileName    value="tree_0_0_0.dat"                                                                        />
+    <readColumns value="scale id desc_id pid upid mmp Mvir Rvir Rs_Klypin Spin X Y Z Snap_num TU b_to_a c_to_a"/>
   </nbodyImporter>
 
   <nbodyOperator value="sequence">
@@ -25,8 +25,13 @@
     <nbodyOperator value="hostedRootID" >
       <missingHalosAreFatal value="false"/>
     </nbodyOperator>
+    <nbodyOperator value="timeOfFormation" >
+      <fractionFormation value="0.5"/>
+    </nbodyOperator>
+    <nbodyOperator value="haloCrossingTime"/>
+    <nbodyOperator value="timeSinceFormationFractional"/>
     <nbodyOperator value="deleteProperties">
-      <propertyNames value="hostID isolatedHostID isMostMassiveProgenitor position"/>
+      <propertyNames value="hostID isolatedHostID isMostMassiveProgenitor position timeCrossing timeFormation"/>
     </nbodyOperator>
     <nbodyOperator value="exportIRATE">
       <fileName value="alwaysIsolated_subVolume0_0_0.hdf5"/>
