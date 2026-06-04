@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1780134021724,
+  "lastUpdate": 1780589137663,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Dark matter-only subhalos benchmarks (Symphony Milky Way resolutionX8)": [
@@ -2327,6 +2327,45 @@ window.BENCHMARK_DATA = {
           {
             "name": "Dark Matter Only Subhalos (Symphony CDM resolution X8 Milky Way) - Likelihood - subhaloVelocityMaximumMean",
             "value": 45.59904490231883,
+            "unit": "-logℒ"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abenson@obs.carnegiescience.edu",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "b9b0b4917d1fcb2b05e0bb45212bc73419651e5e",
+          "message": "Merge pull request #1010 from galacticusorg/dmConstraintPipeline\n\nAdd infrastructure for calibration of halo mass functions",
+          "timestamp": "2026-06-03T16:22:28-07:00",
+          "tree_id": "675d4dd1593eb741c844e671ec04811581cc203b",
+          "url": "https://github.com/galacticusorg/galacticus/commit/b9b0b4917d1fcb2b05e0bb45212bc73419651e5e"
+        },
+        "date": 1780589137116,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Dark Matter Only Subhalos (Symphony CDM resolution X8 Milky Way) - Likelihood - subhaloMassFunction",
+            "value": 3.5555793809733505,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Dark Matter Only Subhalos (Symphony CDM resolution X8 Milky Way) - Likelihood - subhaloRadialDistribution",
+            "value": 2.2514461204977714,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Dark Matter Only Subhalos (Symphony CDM resolution X8 Milky Way) - Likelihood - subhaloVelocityMaximumMean",
+            "value": 34.935162513809,
             "unit": "-logℒ"
           }
         ]
