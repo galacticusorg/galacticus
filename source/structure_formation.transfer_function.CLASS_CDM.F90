@@ -22,7 +22,6 @@ Implements a transfer function class using the CLASS code.
 !!}
 
   use :: Dark_Matter_Particles, only : darkMatterParticleClass
-  use :: File_Utilities       , only : lockDescriptor
 
   !![
   <transferFunction name="transferFunctionCLASSCDM">
@@ -83,8 +82,15 @@ contains
     class           (darkMatterParticleClass ), pointer       :: darkMatterParticle_
     double precision                                          :: redshift
     integer                                                   :: countPerDecade
+    type            (varying_string          )                :: transferFunctionType
 
     !![
+    <inputParameter>
+      <name>transferFunctionType</name>
+      <source>parameters</source>
+      <defaultValue>var_str('darkMatter')</defaultValue>
+      <description>Specifies whether to use the \mono{darkMatter} or \mono{total} transfer function.</description>
+    </inputParameter>
     <inputParameter>
       <name>redshift</name>
       <source>parameters</source>
@@ -101,7 +107,7 @@ contains
     <objectBuilder class="cosmologyFunctions"  name="cosmologyFunctions_"  source="parameters"/>
     <objectBuilder class="darkMatterParticle"  name="darkMatterParticle_"  source="parameters"/>
     !!]
-    self=transferFunctionCLASSCDM(darkMatterParticle_,cosmologyParameters_,cosmologyFunctions_,redshift,countPerDecade)
+    self=transferFunctionCLASSCDM(darkMatterParticle_,cosmologyParameters_,cosmologyFunctions_,enumerationTransferFunctionTypeEncode(char(transferFunctionType),includesPrefix=.false.),redshift,countPerDecade)
     !![
     <inputParametersValidate source="parameters"/>
     <objectDestructor name="cosmologyParameters_"/>
@@ -111,7 +117,7 @@ contains
     return
   end function classCDMConstructorParameters
 
-  function classCDMConstructorInternal(darkMatterParticle_,cosmologyParameters_,cosmologyFunctions_,redshift,countPerDecade) result(self)
+  function classCDMConstructorInternal(darkMatterParticle_,cosmologyParameters_,cosmologyFunctions_,transferFunctionType,redshift,countPerDecade) result(self)
     !!{
     Internal constructor for the \refClass{transferFunctionCLASSCDM} transfer function class.
     !!}
@@ -119,14 +125,15 @@ contains
     use :: Dark_Matter_Particles, only : darkMatterParticleCDM
     use :: Error                , only : Error_Report
     implicit none
-    type            (transferFunctionCLASSCDM)                          :: self
-    class           (darkMatterParticleClass ), intent(in   ), target   :: darkMatterParticle_
-    class           (cosmologyParametersClass), intent(in   ), target   :: cosmologyParameters_
-    class           (cosmologyFunctionsClass ), intent(in   ), target   :: cosmologyFunctions_
-    double precision                          , intent(in   )           :: redshift
-    integer                                   , intent(in   )           :: countPerDecade
+    type            (transferFunctionCLASSCDM           )                        :: self
+    class           (darkMatterParticleClass            ), intent(in   ), target :: darkMatterParticle_
+    class           (cosmologyParametersClass           ), intent(in   ), target :: cosmologyParameters_
+    class           (cosmologyFunctionsClass            ), intent(in   ), target :: cosmologyFunctions_
+    type            (enumerationTransferFunctionTypeType), intent(in   )         :: transferFunctionType
+    double precision                                     , intent(in   )         :: redshift
+    integer                                              , intent(in   )         :: countPerDecade
     !![
-    <constructorAssign variables="countPerDecade, redshift, *darkMatterParticle_, *cosmologyParameters_, *cosmologyFunctions_"/>
+    <constructorAssign variables="countPerDecade, transferFunctionType, redshift, *darkMatterParticle_, *cosmologyParameters_, *cosmologyFunctions_"/>
     !!]
 
     ! Require that the dark matter be cold dark matter.
@@ -136,6 +143,8 @@ contains
     class default
        call Error_Report('transfer function expects a cold dark matter particle'//{introspection:location})
     end select
+    ! Transfer functions are created on the fly, so locking must be used.
+    self%useLock                            =  .true.
     ! Set initialization state.
     self%initialized                        =  .false.
     self%massHalfModeAvailable              =  .false.
@@ -151,6 +160,8 @@ contains
     self%wavenumberMaximum=+classWavenumberMaximumLimit                                        &
          &                 *self%cosmologyParameters_%hubbleConstant(units=hubbleUnitsLittleH)
     self%wavenumberMaximumReached=.false.
+    ! Set smooth extrapolation beyond the maximum wavenumber.
+    self%factorWavenumberSmoothExtrapolation=2.0d0
     return
   end function classCDMConstructorInternal
 
@@ -174,13 +185,11 @@ contains
     Check that the provided wavenumber is within the tabulated range and, if not, recompute
     the CLASS transfer function.
     !!}
-    use :: File_Utilities  , only : File_Lock                        , File_Unlock
     use :: Interfaces_CLASS, only : Interface_CLASS_Transfer_Function
     implicit none
     class           (transferFunctionCLASSCDM), intent(inout) :: self
     double precision                          , intent(in   ) :: wavenumber
     logical                                                   :: makeTransferFunction
-    type            (lockDescriptor          )                :: fileLock
 
     ! If the file has been read and the wavenumber is within range, simply return.
     makeTransferFunction=.false.
@@ -196,12 +205,8 @@ contains
     if (.not.makeTransferFunction) return
     ! Retrieve the transfer function.
     call Interface_CLASS_Transfer_Function(self%cosmologyParameters_,[self%redshift],wavenumber,self%wavenumberMaximum,self%countPerDecade,self%fileName,self%wavenumberMaximumReached)
-    ! Get a lock on the relevant lock file.
-    call File_Lock(char(self%fileName),fileLock)
     ! Read the newly created file.
     call self%readFile(char(self%fileName))
-    ! Unlock the lock file.
-    call File_Unlock(fileLock)
     ! Check the maximum wavenumber.
     if (self%transfer%x(-1) > log(self%wavenumberMaximum)-0.01d0) self%wavenumberMaximumReached=.true.
     ! Record that the transfer function has now been initialized.

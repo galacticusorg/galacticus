@@ -8,7 +8,7 @@ import time
 # Andrew Benson (17-September-2021) [Perl]; ported to Python 2026
 
 WORKAROUNDS = {}
-DIRECTORIES = ("./source", "./perl/Galacticus/Build")
+DIRECTORIES = ("./source",)
 PATTERN = re.compile(r'^\s*#?\s*<workaround\s.*PR="(\d+)"')
 
 
@@ -16,7 +16,7 @@ def file_matcher() -> None:
     for directory in DIRECTORIES:
         for root, _, files in os.walk(directory):
             for file_name in files:
-                if not file_name.endswith((".F90", ".Inc", ".pm")):
+                if not file_name.endswith((".F90", ".Inc")):
                     continue
                 full_name = os.path.join(root, file_name)
                 print(f"Scanning {full_name}")

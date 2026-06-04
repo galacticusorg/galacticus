@@ -103,7 +103,7 @@ contains
        call displayMessage("compiling CLASS code",verbosityLevelWorking)
        command='cd '//classPath//'; cp Makefile Makefile.tmp; '
        ! Include Galacticus compilation flags here.
-       command=command//'sed -E -i~ s/"^CC[[:space:]]+=[[:space:]]+gcc"/"CC='//char(compiler(languageC))//'"/ Makefile.tmp; sed -E -i~ s/"^(CC|LD)FLAG = "/"\1FLAG = '//char(stringSubstitute(compilerOptions(languageC),"/","\/"))
+       command=command//'sed -E -i~ s/"^CC[[:space:]]+=[[:space:]]+gcc"/"CC='//char(stringSubstitute(compiler(languageC),"/","\/"))//'"/ Makefile.tmp; sed -E -i~ s/"^(CC|LD)FLAG = "/"\1FLAG = '//char(stringSubstitute(compilerOptions(languageC),"/","\/"))
        if (static_) command=command//' -static -Wl,--whole-archive -lpthread -Wl,--no-whole-archive'
        command=command//' "/ Makefile.tmp; make -f Makefile.tmp -j1 class'
        call System_Command_Do(char(command),status);
@@ -224,30 +224,29 @@ contains
     if (File_Exists(fileName_)) then
        allEpochsFound=.true.
        !$ call hdf5Access%set()
-       call classOutput%openFile(char(fileName_))
-       call classOutput%readDataset('wavenumber',wavenumbers)
-       allocate(perturbations(size(wavenumbers),3,size(redshifts)))
-       speciesGroup=classOutput%openGroup('darkMatter')
-       do i=1,size(redshifts)
-          datasetName='perturbationsZ'//trim(adjustl(redshiftLabels(i)))
-          if (speciesGroup%hasDataset(datasetName)) then
-             call speciesGroup%readDatasetStatic(datasetName,perturbations(:,classSpeciesDarkMatter%ID,i))
-          else
-             allEpochsFound=.false.
-          end if
-       end do
-       call speciesGroup%close()
-       speciesGroup=classOutput%openGroup('baryons')
-       do i=1,size(redshifts)
-          datasetName='perturbationsZ'//trim(adjustl(redshiftLabels(i)))
-          if (speciesGroup%hasDataset(datasetName)) then
-             call speciesGroup%readDatasetStatic(datasetName,perturbations(:,classSpeciesBaryons   %ID,i))
-          else
-             allEpochsFound=.false.
-          end if
-       end do
-       call   speciesGroup%close()
-       call   classOutput %close()
+       hdf5ReadScope: block
+         classOutput=hdf5Object(fileName_)
+         call classOutput%readDataset('wavenumber',wavenumbers)
+         allocate(perturbations(size(wavenumbers),3,size(redshifts)))
+         speciesGroup=classOutput%openGroup('darkMatter')
+         do i=1,size(redshifts)
+            datasetName='perturbationsZ'//trim(adjustl(redshiftLabels(i)))
+            if (speciesGroup%hasDataset(datasetName)) then
+               call speciesGroup%readDatasetStatic(datasetName,perturbations(:,classSpeciesDarkMatter%ID,i))
+            else
+               allEpochsFound=.false.
+            end if
+         end do
+         speciesGroup=classOutput%openGroup('baryons')
+         do i=1,size(redshifts)
+            datasetName='perturbationsZ'//trim(adjustl(redshiftLabels(i)))
+            if (speciesGroup%hasDataset(datasetName)) then
+               call speciesGroup%readDatasetStatic(datasetName,perturbations(:,classSpeciesBaryons   %ID,i))
+            else
+               allEpochsFound=.false.
+            end if
+         end do
+       end block hdf5ReadScope
        !$ call hdf5Access %unset()
     end if
     if (.not.allocated(wavenumbers) .or. wavenumberRequired > wavenumbers(size(wavenumbers)) .or. .not.allEpochsFound) then
@@ -255,11 +254,11 @@ contains
        ! Find all existing epochs in the file, create a union of these and the requested epochs.
        if (File_Exists(fileName_)) then
           !$ call hdf5Access%set       (               )
-          call    classOutput%openFile  (char(fileName_))
-          speciesGroup=classOutput%openGroup('darkMatter')
-          call    speciesGroup%datasets(datasetNames   )
-          call    speciesGroup%close   (               )
-          call    classOutput  %close   (               )
+          hdf5DatasetsScope: block
+            classOutput=hdf5Object(fileName_)
+            speciesGroup=classOutput%openGroup('darkMatter')
+            call    speciesGroup%datasets(datasetNames   )
+          end block hdf5DatasetsScope
           !$ call hdf5Access  %unset   (               )
        else
           allocate(datasetNames(0))
@@ -296,90 +295,86 @@ contains
        ! Run CLASS to get perturbations.
        call Interface_CLASS_Run(cosmologyParameters_,redshiftsCombined,wavenumberRequired,wavenumberMaximum,countPerDecade,wavenumberMaximumReached,wavenumbers,perturbations=perturbations)
        ! Construct the output HDF5 file.
-       !$ call hdf5Access  %set     (                                          )
-       call    classOutput %openFile(char(fileName_),objectsOverwritable=.true.)
-       call    classOutput %writeAttribute('Perturbations created by CLASS.','description')
-       call    classOutput %writeAttribute(classFormatVersionCurrent,'fileFormat')
-       call    classOutput %writeDataset(wavenumbers ,'wavenumber'                               ,chunkSize=chunkSize,appendTo=.not. classOutput%hasDataset('wavenumber'))
-       speciesGroup=classOutput%openGroup('darkMatter','Group containing perturbations for dark matter.')
-       do i=1,countRedshiftsUnique
-          datasetName='perturbationsZ'//trim(adjustl(redshiftLabelsCombined(i)))
-          call speciesGroup%writeDataset(perturbations(:,classSpeciesDarkMatter%ID,i),datasetName,chunkSize=chunkSize,appendTo=.not.speciesGroup%hasDataset(datasetName ))
-       end do
-       call speciesGroup%close()
-       speciesGroup=classOutput%openGroup('baryons'   ,'Group containing perturbations for baryons.'    )
-       do i=1,countRedshiftsUnique
-          datasetName='perturbationsZ'//trim(adjustl(redshiftLabelsCombined(i)))
-          call speciesGroup%writeDataset(perturbations(:,classSpeciesBaryons   %ID,i),datasetName,chunkSize=chunkSize,appendTo=.not.speciesGroup%hasDataset(datasetName ))
-       end do
-       call speciesGroup%close()
-       parametersGroup=classOutput%openGroup('parameters')
-       call parametersGroup%writeAttribute(cosmologyParameters_%HubbleConstant (),'HubbleConstant' )
-       call parametersGroup%writeAttribute(cosmologyParameters_%OmegaBaryon    (),'OmegaBaryon'    )
-       call parametersGroup%writeAttribute(cosmologyParameters_%OmegaDarkEnergy(),'OmegaDarkEnergy')
-       call parametersGroup%writeAttribute(cosmologyParameters_%OmegaMatter    (),'OmegaMatter'    )
-       call parametersGroup%writeAttribute(cosmologyParameters_%temperatureCMB (),'temperatureCMB' )
-       call parametersGroup%close()
-       extrapolationGroup          =classOutput       %openGroup('extrapolation')
-       extrapolationWavenumberGroup=extrapolationGroup%openGroup('wavenumber'   )
-       call    extrapolationWavenumberGroup%writeAttribute('extrapolate','low' )
-       call    extrapolationWavenumberGroup%writeAttribute('extrapolate','high')
-       call    extrapolationWavenumberGroup%close()
-       call    extrapolationGroup          %close()
-       call    classOutput                 %close()
+       !$ call hdf5Access  %set()
+       hdf5WriteScope: block
+         classOutput=hdf5Object(fileName_,objectsOverwritable=.true.)
+         call    classOutput %writeAttribute('Perturbations created by CLASS.','description')
+         call    classOutput %writeAttribute(classFormatVersionCurrent,'fileFormat')
+         call    classOutput %writeDataset(wavenumbers ,'wavenumber'                               ,chunkSize=chunkSize,appendTo=.not. classOutput%hasDataset('wavenumber'))
+         speciesGroup=classOutput%openGroup('darkMatter','Group containing perturbations for dark matter.')
+         do i=1,countRedshiftsUnique
+            datasetName='perturbationsZ'//trim(adjustl(redshiftLabelsCombined(i)))
+            call speciesGroup%writeDataset(perturbations(:,classSpeciesDarkMatter%ID,i),datasetName,chunkSize=chunkSize,appendTo=.not.speciesGroup%hasDataset(datasetName ))
+         end do
+         speciesGroup=classOutput%openGroup('baryons'   ,'Group containing perturbations for baryons.'    )
+         do i=1,countRedshiftsUnique
+            datasetName='perturbationsZ'//trim(adjustl(redshiftLabelsCombined(i)))
+            call speciesGroup%writeDataset(perturbations(:,classSpeciesBaryons   %ID,i),datasetName,chunkSize=chunkSize,appendTo=.not.speciesGroup%hasDataset(datasetName ))
+         end do
+         parametersGroup=classOutput%openGroup('parameters')
+         call parametersGroup%writeAttribute(cosmologyParameters_%HubbleConstant (),'HubbleConstant' )
+         call parametersGroup%writeAttribute(cosmologyParameters_%OmegaBaryon    (),'OmegaBaryon'    )
+         call parametersGroup%writeAttribute(cosmologyParameters_%OmegaDarkEnergy(),'OmegaDarkEnergy')
+         call parametersGroup%writeAttribute(cosmologyParameters_%OmegaMatter    (),'OmegaMatter'    )
+         call parametersGroup%writeAttribute(cosmologyParameters_%temperatureCMB (),'temperatureCMB' )
+         extrapolationGroup          =classOutput       %openGroup('extrapolation')
+         extrapolationWavenumberGroup=extrapolationGroup%openGroup('wavenumber'   )
+         call    extrapolationWavenumberGroup%writeAttribute('extrapolate','low' )
+         call    extrapolationWavenumberGroup%writeAttribute('extrapolate','high')
+       end block hdf5WriteScope
        !$ call hdf5Access                  %unset()
     end if
     ! If necessary, construct tables of perturbations.
     if (present(perturbationsDarkMatter)) then
        !$ call hdf5Access%set()
-       call classOutput%openFile(char(fileName_))
-       call classOutput%readDataset('wavenumber',wavenumbersLogarithmic)
-       wavenumbersLogarithmic=log(wavenumbersLogarithmic)
-       call perturbationsDarkMatter%create(                                                 &
-            &                                                   wavenumbersLogarithmic       , &
-            &                                 tableCount       =size(redshifts)              , &
-            &                                 extrapolationType=[                              &
-            &                                                    extrapolationTypeExtrapolate, &
-            &                                                    extrapolationTypeExtrapolate  &
-            &                                                   ]                            , &
-            &                                 interpolationType=GSL_Interp_cSpline             &
-            &                                )
-       deallocate(wavenumbersLogarithmic)
-       speciesGroup=classOutput%openGroup('darkMatter')
-       do i=1,size(redshifts)
-          datasetName='perturbationsZ'//trim(adjustl(redshiftLabels(i)))
-          call speciesGroup%readDataset(datasetName,perturbations_)
-          call perturbationsDarkMatter%populate(perturbations_,table=int(redshiftRanks(i)))
-          deallocate(perturbations_)
-       end do
-       call    speciesGroup%close()
-       call    classOutput  %close()
+       hdf5DarkMatterScope: block
+         classOutput=hdf5Object(fileName_)
+         call classOutput%readDataset('wavenumber',wavenumbersLogarithmic)
+         wavenumbersLogarithmic=log(wavenumbersLogarithmic)
+         call perturbationsDarkMatter%create(                                                 &
+              &                                                   wavenumbersLogarithmic       , &
+              &                                 tableCount       =size(redshifts)              , &
+              &                                 extrapolationType=[                              &
+              &                                                    extrapolationTypeExtrapolate, &
+              &                                                    extrapolationTypeExtrapolate  &
+              &                                                   ]                            , &
+              &                                 interpolationType=GSL_Interp_cSpline             &
+              &                                )
+         deallocate(wavenumbersLogarithmic)
+         speciesGroup=classOutput%openGroup('darkMatter')
+         do i=1,size(redshifts)
+            datasetName='perturbationsZ'//trim(adjustl(redshiftLabels(i)))
+            call speciesGroup%readDataset(datasetName,perturbations_)
+            call perturbationsDarkMatter%populate(perturbations_,table=int(redshiftRanks(i)))
+            deallocate(perturbations_)
+         end do
+       end block hdf5DarkMatterScope
        !$ call hdf5Access  %unset()
     end if
     if (present(perturbationsBaryons)) then
        !$ call hdf5Access%set()
-       call    classOutput%openFile(char(fileName_))
-       call    classOutput%readDataset('wavenumber',wavenumbersLogarithmic)
-       wavenumbersLogarithmic=log(wavenumbersLogarithmic)
-       call perturbationsBaryons   %create(                                                 &
-            &                                                   wavenumbersLogarithmic       , &
-            &                                 tableCount       =size(redshifts)              , &
-            &                                 extrapolationType=[                              &
-            &                                                    extrapolationTypeExtrapolate, &
-            &                                                    extrapolationTypeExtrapolate  &
-            &                                                   ]                            , &
-            &                                 interpolationType=GSL_Interp_cSpline             &
-            &                                )
-       deallocate(wavenumbersLogarithmic)
-       speciesGroup=classOutput%openGroup('baryons')
-       do i=1,size(redshifts)
-          datasetName='perturbationsZ'//trim(adjustl(redshiftLabels(i)))
-          call speciesGroup%readDataset(datasetName,perturbations_)
-          call perturbationsBaryons   %populate(perturbations_,table=int(redshiftRanks(i)))
-          deallocate(perturbations_)
-       end do
-       call    speciesGroup%close()
-       call    classOutput  %close()
+       hdf5BaryonsScope: block
+         classOutput=hdf5Object(fileName_)
+         call    classOutput%readDataset('wavenumber',wavenumbersLogarithmic)
+         wavenumbersLogarithmic=log(wavenumbersLogarithmic)
+         call perturbationsBaryons   %create(                                                    &
+              &                                                   wavenumbersLogarithmic       , &
+              &                                 tableCount       =size(redshifts)              , &
+              &                                 extrapolationType=[                              &
+              &                                                    extrapolationTypeExtrapolate, &
+              &                                                    extrapolationTypeExtrapolate  &
+              &                                                   ]                            , &
+              &                                 interpolationType=GSL_Interp_cSpline             &
+              &                                )
+         deallocate(wavenumbersLogarithmic)
+         speciesGroup=classOutput%openGroup('baryons')
+         do i=1,size(redshifts)
+            datasetName='perturbationsZ'//trim(adjustl(redshiftLabels(i)))
+            call speciesGroup%readDataset(datasetName,perturbations_)
+            call perturbationsBaryons   %populate(perturbations_,table=int(redshiftRanks(i)))
+            deallocate(perturbations_)
+         end do
+         end block hdf5BaryonsScope
        !$ call hdf5Access  %unset()
     end if
     ! Unlock the file.
@@ -404,9 +399,6 @@ contains
     use               :: ISO_Varying_String              , only : assignment(=)               , char               , extract       , len           , &
           &                                                       operator(//)                , operator(==)       , varying_string
     use               :: Input_Parameters                , only : inputParameters
-#ifdef USEMPI
-    use               :: MPI_Utilities                   , only : mpiSelf
-#endif
     use               :: Numerical_Constants_Astronomical, only : heliumByMassPrimordial
     use               :: Numerical_Interpolation         , only : GSL_Interp_cSpline
     !$ use            :: OMP_Lib                         , only : OMP_Get_Thread_Num
@@ -481,43 +473,42 @@ contains
     if (File_Exists(fileName_)) then
        allEpochsFound=.true.
        !$ call hdf5Access%set()
-       call    classOutput%openFile(char(fileName_))
-       call    classOutput%readDataset           ('wavenumber',wavenumbers                                    )
-       allocate(transferFunctions(size(wavenumbers),3,size(redshifts)))
-       speciesGroup=classOutput%openGroup('darkMatter')
-       do i=1,size(redshifts)
-          datasetName='transferFunctionZ'//trim(adjustl(redshiftLabels(i)))
-          if (speciesGroup%hasDataset(datasetName)) then
-             call speciesGroup%readDatasetStatic(datasetName,transferFunctions(:,classSpeciesDarkMatter%ID,i))
-          else
-             allEpochsFound=.false.
-          end if
-       end do
-       call speciesGroup%close()
-       speciesGroup=classOutput%openGroup('baryons')
-       do i=1,size(redshifts)
-          datasetName='transferFunctionZ'//trim(adjustl(redshiftLabels(i)))
-          if (speciesGroup%hasDataset(datasetName)) then
-             call speciesGroup%readDatasetStatic(datasetName,transferFunctions(:,classSpeciesBaryons   %ID,i))
-          else
-             allEpochsFound=.false.
-          end if
-       end do
-       call   speciesGroup%close()
-       call   classOutput %close()
-       !$ call hdf5Access %unset()
+       hdf5ReadScope: block
+         classOutput=hdf5Object(char(fileName_))
+         call classOutput%readDataset('wavenumber',wavenumbers)
+         allocate(transferFunctions(size(wavenumbers),3,size(redshifts)))
+         speciesGroup=classOutput%openGroup('darkMatter')
+         do i=1,size(redshifts)
+            datasetName='transferFunctionZ'//trim(adjustl(redshiftLabels(i)))
+            if (speciesGroup%hasDataset(datasetName)) then
+               call speciesGroup%readDatasetStatic(datasetName,transferFunctions(:,classSpeciesDarkMatter%ID,i))
+            else
+               allEpochsFound=.false.
+            end if
+         end do
+         speciesGroup=classOutput%openGroup('baryons')
+         do i=1,size(redshifts)
+            datasetName='transferFunctionZ'//trim(adjustl(redshiftLabels(i)))
+            if (speciesGroup%hasDataset(datasetName)) then
+               call speciesGroup%readDatasetStatic(datasetName,transferFunctions(:,classSpeciesBaryons   %ID,i))
+            else
+               allEpochsFound=.false.
+            end if
+         end do
+       end block hdf5ReadScope
+       !$ call hdf5Access%unset()
     end if
     if (.not.allocated(wavenumbers) .or. wavenumberRequired > wavenumbers(size(wavenumbers)) .or. .not.allEpochsFound) then
        ! If the wavenumber is out of range, or if not all requested epochs exist within the file, recompute the CLASS transfer function.
        ! Find all existing epochs in the file, create a union of these and the requested epochs.
        if (File_Exists(fileName_)) then
-          !$ call hdf5Access%set       (               )
-          call    classOutput%openFile  (char(fileName_))
-          speciesGroup=classOutput%openGroup('darkMatter')
-          call    speciesGroup%datasets(datasetNames   )
-          call    speciesGroup%close   (               )
-          call    classOutput  %close   (               )
-          !$ call hdf5Access  %unset   (               )
+          !$ call hdf5Access%set()
+          hdf5DatasetsScope: block
+            classOutput=hdf5Object(char(fileName_))
+            speciesGroup=classOutput%openGroup('darkMatter')
+            call speciesGroup%datasets(datasetNames)
+          end block hdf5DatasetsScope
+          !$ call hdf5Access%unset()
        else
           allocate(datasetNames(0))
        end if
@@ -553,93 +544,89 @@ contains
        ! Run CLASS to get transfer functions.
        call Interface_CLASS_Run(cosmologyParameters_,redshiftsCombined,wavenumberRequired,wavenumberMaximum,countPerDecade,wavenumberMaximumReached,wavenumbers,transferFunctions)
        ! Construct the output HDF5 file.
-       !$ call hdf5Access  %set     (                                          )
-       call    classOutput %openFile(char(fileName_),objectsOverwritable=.true.)
-       call    classOutput %writeAttribute('Transfer functions created by CLASS.','description')
-       call    classOutput %writeAttribute(classFormatVersionCurrent,'fileFormat')
-       call    classOutput %writeDataset(wavenumbers ,'wavenumber'                               ,chunkSize=chunkSize,appendTo=.not. classOutput%hasDataset('wavenumber'))
-       speciesGroup=classOutput%openGroup('darkMatter','Group containing transfer functions for dark matter.')
-       do i=1,countRedshiftsUnique
-          datasetName='transferFunctionZ'//trim(adjustl(redshiftLabelsCombined(i)))
-          call speciesGroup%writeDataset(transferFunctions(:,classSpeciesDarkMatter%ID,i),datasetName,chunkSize=chunkSize,appendTo=.not.speciesGroup%hasDataset(datasetName ))
-       end do
-       call speciesGroup%close()
-       speciesGroup=classOutput%openGroup('baryons'   ,'Group containing transfer functions for baryons.'    )
-       do i=1,countRedshiftsUnique
-          datasetName='transferFunctionZ'//trim(adjustl(redshiftLabelsCombined(i)))
-          call speciesGroup%writeDataset(transferFunctions(:,classSpeciesBaryons   %ID,i),datasetName,chunkSize=chunkSize,appendTo=.not.speciesGroup%hasDataset(datasetName ))
-       end do
-       call speciesGroup%close()
-       parametersGroup=classOutput%openGroup('parameters')
-       call parametersGroup%writeAttribute(cosmologyParameters_%HubbleConstant (),'HubbleConstant' )
-       call parametersGroup%writeAttribute(cosmologyParameters_%OmegaBaryon    (),'OmegaBaryon'    )
-       call parametersGroup%writeAttribute(cosmologyParameters_%OmegaDarkEnergy(),'OmegaDarkEnergy')
-       call parametersGroup%writeAttribute(cosmologyParameters_%OmegaMatter    (),'OmegaMatter'    )
-       call parametersGroup%writeAttribute(cosmologyParameters_%temperatureCMB (),'temperatureCMB' )
-       call parametersGroup%close()
-       extrapolationGroup          =classOutput       %openGroup('extrapolation')
-       extrapolationWavenumberGroup=extrapolationGroup%openGroup('wavenumber'   )
-       call    extrapolationWavenumberGroup%writeAttribute('extrapolate','low' )
-       call    extrapolationWavenumberGroup%writeAttribute('extrapolate','high')
-       call    extrapolationWavenumberGroup%close()
-       call    extrapolationGroup          %close()
-       call    classOutput                 %close()
-       !$ call hdf5Access                  %unset()
+       !$ call hdf5Access%set()
+       hdf5WriteScope: block
+         classOutput=hdf5Object(char(fileName_),objectsOverwritable=.true.)
+         call classOutput %writeAttribute('Transfer functions created by CLASS.','description')
+         call classOutput %writeAttribute(classFormatVersionCurrent,'fileFormat')
+         call classOutput %writeDataset(wavenumbers ,'wavenumber'                               ,chunkSize=chunkSize,appendTo=.not. classOutput%hasDataset('wavenumber'))
+         speciesGroup=classOutput%openGroup('darkMatter','Group containing transfer functions for dark matter.')
+         do i=1,countRedshiftsUnique
+            datasetName='transferFunctionZ'//trim(adjustl(redshiftLabelsCombined(i)))
+            call speciesGroup%writeDataset(transferFunctions(:,classSpeciesDarkMatter%ID,i),datasetName,chunkSize=chunkSize,appendTo=.not.speciesGroup%hasDataset(datasetName ))
+         end do
+         speciesGroup=classOutput%openGroup('baryons'   ,'Group containing transfer functions for baryons.'    )
+         do i=1,countRedshiftsUnique
+            datasetName='transferFunctionZ'//trim(adjustl(redshiftLabelsCombined(i)))
+            call speciesGroup%writeDataset(transferFunctions(:,classSpeciesBaryons   %ID,i),datasetName,chunkSize=chunkSize,appendTo=.not.speciesGroup%hasDataset(datasetName ))
+         end do
+         parametersGroup=classOutput%openGroup('parameters')
+         call parametersGroup%writeAttribute(cosmologyParameters_%HubbleConstant (),'HubbleConstant' )
+         call parametersGroup%writeAttribute(cosmologyParameters_%OmegaBaryon    (),'OmegaBaryon'    )
+         call parametersGroup%writeAttribute(cosmologyParameters_%OmegaDarkEnergy(),'OmegaDarkEnergy')
+         call parametersGroup%writeAttribute(cosmologyParameters_%OmegaMatter    (),'OmegaMatter'    )
+         call parametersGroup%writeAttribute(cosmologyParameters_%temperatureCMB (),'temperatureCMB' )
+         extrapolationGroup          =classOutput       %openGroup('extrapolation')
+         extrapolationWavenumberGroup=extrapolationGroup%openGroup('wavenumber'   )
+         call extrapolationWavenumberGroup%writeAttribute('extrapolate','low' )
+         call extrapolationWavenumberGroup%writeAttribute('extrapolate','high')
+       end block hdf5WriteScope
+       !$ call hdf5Access%unset()
     end if
     ! If necessary, construct tables of transfer functions.
     if (present(transferFunctionDarkMatter)) then
        !$ call hdf5Access%set()
-       call classOutput%openFile(char(fileName_))
-       call classOutput%readDataset('wavenumber',wavenumbersLogarithmic)
-       wavenumbersLogarithmic=log(wavenumbersLogarithmic)
-       call transferFunctionDarkMatter%create(                                                 &
-            &                                                   wavenumbersLogarithmic       , &
-            &                                 tableCount       =size(redshifts)              , &
-            &                                 extrapolationType=[                              &
-            &                                                    extrapolationTypeExtrapolate, &
-            &                                                    extrapolationTypeExtrapolate  &
-            &                                                   ]                            , &
-            &                                 interpolationType=GSL_Interp_cSpline             &
-            &                                )
-       deallocate(wavenumbersLogarithmic)
-       speciesGroup=classOutput%openGroup('darkMatter')
-       do i=1,size(redshifts)
-          datasetName='transferFunctionZ'//trim(adjustl(redshiftLabels(i)))
-          call speciesGroup%readDataset(datasetName,transferFunctionLogarithmic)
-          transferFunctionLogarithmic=log(transferFunctionLogarithmic)
-          call transferFunctionDarkMatter%populate(transferFunctionLogarithmic,table=int(redshiftRanks(i)))
-          deallocate(transferFunctionLogarithmic)
-       end do
-       call    speciesGroup%close()
-       call    classOutput  %close()
-       !$ call hdf5Access  %unset()
+       hdf5DarkMatterScope: block
+         classOutput=hdf5Object(char(fileName_))
+         call classOutput%readDataset('wavenumber',wavenumbersLogarithmic)
+         wavenumbersLogarithmic=log(wavenumbersLogarithmic)
+         call transferFunctionDarkMatter%create(                                                 &
+              &                                                   wavenumbersLogarithmic       , &
+              &                                 tableCount       =size(redshifts)              , &
+              &                                 extrapolationType=[                              &
+              &                                                    extrapolationTypeExtrapolate, &
+              &                                                    extrapolationTypeExtrapolate  &
+              &                                                   ]                            , &
+              &                                 interpolationType=GSL_Interp_cSpline             &
+              &                                )
+         deallocate(wavenumbersLogarithmic)
+         speciesGroup=classOutput%openGroup('darkMatter')
+         do i=1,size(redshifts)
+            datasetName='transferFunctionZ'//trim(adjustl(redshiftLabels(i)))
+            call speciesGroup%readDataset(datasetName,transferFunctionLogarithmic)
+            transferFunctionLogarithmic=log(transferFunctionLogarithmic)
+            call transferFunctionDarkMatter%populate(transferFunctionLogarithmic,table=int(redshiftRanks(i)))
+            deallocate(transferFunctionLogarithmic)
+         end do
+       end block hdf5DarkMatterScope
+       !$ call hdf5Access%unset()
     end if
     if (present(transferFunctionBaryons)) then
        !$ call hdf5Access%set()
-       call    classOutput%openFile(char(fileName_))
-       call    classOutput%readDataset('wavenumber',wavenumbersLogarithmic)
-       wavenumbersLogarithmic=log(wavenumbersLogarithmic)
-       call transferFunctionBaryons   %create(                                                 &
-            &                                                   wavenumbersLogarithmic       , &
-            &                                 tableCount       =size(redshifts)              , &
-            &                                 extrapolationType=[                              &
-            &                                                    extrapolationTypeExtrapolate, &
-            &                                                    extrapolationTypeExtrapolate  &
-            &                                                   ]                            , &
-            &                                 interpolationType=GSL_Interp_cSpline             &
-            &                                )
-       deallocate(wavenumbersLogarithmic)
-       speciesGroup=classOutput%openGroup('baryons')
-       do i=1,size(redshifts)
-          datasetName='transferFunctionZ'//trim(adjustl(redshiftLabels(i)))
-          call speciesGroup%readDataset(datasetName,transferFunctionLogarithmic)
-          transferFunctionLogarithmic=log(transferFunctionLogarithmic)
-          call transferFunctionBaryons   %populate(transferFunctionLogarithmic,table=int(redshiftRanks(i)))
-          deallocate(transferFunctionLogarithmic)
-       end do
-       call    speciesGroup%close()
-       call    classOutput  %close()
-       !$ call hdf5Access  %unset()
+       hdf5BaryonsScope: block
+         classOutput=hdf5Object(char(fileName_))
+         call classOutput%readDataset('wavenumber',wavenumbersLogarithmic)
+         wavenumbersLogarithmic=log(wavenumbersLogarithmic)
+         call transferFunctionBaryons   %create(                                                 &
+              &                                                   wavenumbersLogarithmic       , &
+              &                                 tableCount       =size(redshifts)              , &
+              &                                 extrapolationType=[                              &
+              &                                                    extrapolationTypeExtrapolate, &
+              &                                                    extrapolationTypeExtrapolate  &
+              &                                                   ]                            , &
+              &                                 interpolationType=GSL_Interp_cSpline             &
+              &                                )
+         deallocate(wavenumbersLogarithmic)
+         speciesGroup=classOutput%openGroup('baryons')
+         do i=1,size(redshifts)
+            datasetName='transferFunctionZ'//trim(adjustl(redshiftLabels(i)))
+            call speciesGroup%readDataset(datasetName,transferFunctionLogarithmic)
+            transferFunctionLogarithmic=log(transferFunctionLogarithmic)
+            call transferFunctionBaryons   %populate(transferFunctionLogarithmic,table=int(redshiftRanks(i)))
+            deallocate(transferFunctionLogarithmic)
+         end do
+       end block hdf5BaryonsScope
+       !$ call hdf5Access%unset()
     end if
     ! Unlock the file.
     call File_Unlock(fileLock)
@@ -693,20 +680,22 @@ contains
     ! Always obtain the file lock before the hdf5Access lock to avoid deadlocks between OpenMP threads.
     call File_Lock(char(fileName),fileLock)
     if (File_Exists(fileName)) then
-       !$ call hdf5Access %set          (                                 )
-       call    classOutput%openFile     (char(fileName     )              )
-       call    classOutput%readAttribute(    'normalization',normalization)      
-       call    classOutput%close        (                                 )
-       !$ call hdf5Access %unset        (                                 )
+       !$ call hdf5Access %set          (                             )
+       hdf5ReadScope: block
+         classOutput=hdf5Object(char(fileName))
+         call    classOutput%readAttribute('normalization',normalization)      
+       end block hdf5ReadScope
+       !$ call hdf5Access %unset        (                             )
     else
        ! Run CLASS to compute the normalization.
        call Interface_CLASS_Run(cosmologyParameters_,ratioSigma8SquaredAs=normalization)
        ! Construct the output HDF5 file.
-       !$ call hdf5Access %set           (                                              )
-       call    classOutput%openFile      (char(fileName     ),objectsOverwritable=.true.)
-       call    classOutput%writeAttribute(     normalization ,'normalization'           )
-       call    classOutput%close         (                                              )
-       !$ call hdf5Access %unset         (                                              )
+       !$ call hdf5Access %set           (                              )
+       hdf5WriteScope: block
+         classOutput=hdf5Object(char(fileName),objectsOverwritable=.true.)
+         call    classOutput%writeAttribute(normalization ,'normalization')
+       end block hdf5WriteScope
+       !$ call hdf5Access %unset         (                              )
     end if
     ! Unlock the file.
     call File_Unlock(fileLock)

@@ -48,11 +48,12 @@ Implements a property extractor class for the orbital adiabatic ratio of disks.
      procedure :: name        => adiabaticRatioOrbitalDiskName
      procedure :: description => adiabaticRatioOrbitalDiskDescription
      procedure :: unitsInSI   => adiabaticRatioOrbitalDiskUnitsInSI
+     procedure :: units       => adiabaticRatioOrbitalDiskUnits
   end type nodePropertyExtractorAdiabaticRatioOrbitalDisk
 
   interface nodePropertyExtractorAdiabaticRatioOrbitalDisk
      !!{
-     Constructors for the \refClass{nodePropertyExtractorAdiabaticRatioOrbitalDisk} output analysis class.
+     Constructors for the \refClass{nodePropertyExtractorAdiabaticRatioOrbitalDisk} property extractor class.
      !!}
      module procedure adiabaticRatioOrbitalDiskConstructorParameters
      module procedure adiabaticRatioOrbitalDiskConstructorInternal
@@ -83,7 +84,7 @@ contains
 
   function adiabaticRatioOrbitalDiskConstructorInternal(darkMatterHaloScale_) result(self)
     !!{
-    Internal constructor for the \refClass{nodePropertyExtractorAdiabaticRatioOrbitalDisk} node operator class.
+    Internal constructor for the \refClass{nodePropertyExtractorAdiabaticRatioOrbitalDisk} property extractor class.
     !!}
     implicit none
     type (nodePropertyExtractorAdiabaticRatioOrbitalDisk)                        :: self
@@ -97,7 +98,7 @@ contains
 
   subroutine adiabaticRatioOrbitalDiskDestructor(self)
     !!{
-    Destructor for the \refClass{nodePropertyExtractorAdiabaticRatioOrbitalDisk} node operator class.
+    Destructor for the \refClass{nodePropertyExtractorAdiabaticRatioOrbitalDisk} property extractor class.
     !!}
     implicit none
     type(nodePropertyExtractorAdiabaticRatioOrbitalDisk), intent(inout) :: self
@@ -186,4 +187,15 @@ contains
     return
   end function adiabaticRatioOrbitalDiskUnitsInSI
 
+  function adiabaticRatioOrbitalDiskUnits(self) result(units)
+    !!{
+    Return the units of the adiabaticRatioOrbitalDisk property.
+    !!}
+    use :: Units_MetaData, only : unitType
+    implicit none
+    type (unitType                                      )                :: units
+    class(nodePropertyExtractorAdiabaticRatioOrbitalDisk), intent(inout) :: self
 
+    units=unitType(1.0d0)
+    return
+  end function adiabaticRatioOrbitalDiskUnits

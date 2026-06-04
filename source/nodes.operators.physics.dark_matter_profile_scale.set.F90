@@ -124,7 +124,7 @@ contains
 
   subroutine darkMatterProfileScaleSetConstructorDestructor(self)
     !!{
-    Destructor for the \refClass{nodeOperatorDarkMatterProfileScaleSet} dark matter halo profile scale radius class.
+    Destructor for the \refClass{nodeOperatorDarkMatterProfileScaleSet} node operator class.
     !!}
     implicit none
     type(nodeOperatorDarkMatterProfileScaleSet), intent(inout) :: self

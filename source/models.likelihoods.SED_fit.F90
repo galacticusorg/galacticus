@@ -32,7 +32,7 @@
    <description>Used to specify the type of dust model to use in SED fitting likelihoods.</description>
    <encodeFunction>yes</encodeFunction>
    <validator>yes</validator>
-   <visibility>private</visibility>
+   <visibility>public</visibility>
    <entry label="null"           />
    <entry label="charlotFall2000"/>
    <entry label="cardelli1989"   />
@@ -48,7 +48,7 @@
    <description>Used to specify the type of start time to use in SED fitting likelihoods.</description>
    <encodeFunction>yes</encodeFunction>
    <validator>yes</validator>
-   <visibility>private</visibility>
+   <visibility>public</visibility>
    <entry label="time"/>
    <entry label="age" />
   </enumeration>
@@ -88,7 +88,7 @@
 
   interface posteriorSampleLikelihoodSEDFit
      !!{
-     Constructors for the \refClass{posteriorSampleLikelihoodSEDFit} posterior sampling convergence class.
+     Constructors for the \refClass{posteriorSampleLikelihoodSEDFit} posterior sampling likelihood class.
      !!}
      module procedure sedFitConstructorParameters
      module procedure sedFitConstructorInternal
@@ -98,7 +98,7 @@ contains
 
   function sedFitConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the \refClass{posteriorSampleLikelihoodSEDFit} posterior sampling convergence class which builds the object from a
+    Constructor for the \refClass{posteriorSampleLikelihoodSEDFit} posterior sampling likelihood class which builds the object from a
     parameter set.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters

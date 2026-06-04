@@ -310,6 +310,17 @@ module Cosmological_Density_Field
     linear matter power spectrum through a window function (e.g.\ top-hat in real space) and integrate over
     wavenumber, with normalization set by $\sigma_8$.</description>
    <default>filteredPower</default>
+   <method name="descriptorNormalizationOnly" >
+    <description>Return a descriptor for this object suitable for normalization-only usage.</description>
+    <type>void</type>
+    <pass>yes</pass>
+    <modules>Input_Parameters</modules>
+    <argument>type   (inputParameters), intent(inout)           :: descriptor                                </argument>
+    <argument>logical                 , intent(in   ), optional :: includeClass, includeFileModificationTimes</argument>
+    <code>
+      call self%descriptor(descriptor,includeClass,includeFileModificationTimes)
+    </code>
+   </method>
    <method name="powerNormalization" >
     <description>Return the overall amplitude normalization of the linear matter power spectrum, used to scale the dimensionless power $\Delta^2(k)$ so that the integrated variance matches the observed $\sigma_8$.</description>
     <type>double precision</type>

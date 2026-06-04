@@ -44,7 +44,7 @@
 
   interface posteriorSampleStoppingCriterionCorrelationLength
      !!{
-     Constructors for the \refClass{posteriorSampleStoppingCriterionCorrelationLength} posterior sampling stopping criterion class.
+     Constructors for the \refClass{posteriorSampleStoppingCriterionCorrelationLength} posterior sampling stopping class.
      !!}
      module procedure correlationLengthConstructorParameters
      module procedure correlationLengthConstructorInternal

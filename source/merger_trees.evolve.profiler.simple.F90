@@ -168,6 +168,7 @@ contains
     use :: HDF5_Access                     , only : hdf5Access
     use :: IO_HDF5                         , only : hdf5Object
     use :: Numerical_Constants_Astronomical, only : gigaYear
+    use :: Units_MetaData                  , only : unitType
     use :: ISO_Varying_String              , only : assignment(=)
     implicit none
     type            (mergerTreeEvolveProfilerSimple), intent(inout)               :: self
@@ -223,8 +224,7 @@ contains
        call self%propertyHits%keys  (propertyNames   )
        call self%propertyHits%values(propertyHitCount)
        call profilerDataGroup%writeDataset  (self%timeStep                  ,"timeStep"                  ,"Timestep [Gyr]"                             ,datasetReturned=metaDataDataset)
-       call metaDataDataset  %writeAttribute(     gigaYear                  ,"unitsInSI"                                                                                               )
-       call metaDataDataset  %close         (                                                                                                                                          )
+       call metaDataDataset  %writeAttribute(unitType(gigaYear,"Gyr","Gyr"),"units")
        call profilerDataGroup%writeDataset  (self%  timeStepCount           ,"timeStepCount"             ,"Timestep histogram []"                                                      )
        call profilerDataGroup%writeDataset  (self%evaluationCount           ,"evaluationCount"           ,"Evaluations at this timestep []"                                            )
        call profilerDataGroup%writeDataset  (self%  timeCPU                 ,"timeCPU"                   ,"CPU time histogram [s]"                                                     )
@@ -233,8 +233,6 @@ contains
        call profilerDataGroup%writeDataset  (self%        timeCPUInterrupted,"timeCPUInterrupted"        ,"Interrupted CPU time histogram [s]"                                         )
        call profilerDataGroup%writeDataset  (     propertyNames             ,"propertyNames"             ,"Property names"                                                             )
        call profilerDataGroup%writeDataset  (     propertyHitCount          ,"propertyHitCount"          ,"Property hit count"                                                         )
-       call profilerDataGroup%close         (                                                                                                                                          )
-       call metaDataGroup    %close         (                                                                                                                                          )
        !$ call hdf5Access%unset()
        ! Report on the node causing the smallest timestep.
        if (associated(self%node)) then

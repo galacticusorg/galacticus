@@ -39,7 +39,7 @@
 
   interface nodePropertyExtractorIsPhysicallyPlausible
      !!{
-     Constructors for the \refClass{nodePropertyExtractorIsPhysicallyPlausible} output analysis class.
+     Constructors for the \refClass{nodePropertyExtractorIsPhysicallyPlausible} property extractor class.
      !!}
      module procedure isPhysicallyPlausibleConstructorParameters
   end interface nodePropertyExtractorIsPhysicallyPlausible
@@ -48,7 +48,7 @@ contains
 
   function isPhysicallyPlausibleConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the \refClass{nodePropertyExtractorIsPhysicallyPlausible} node property extractor class which takes a parameter set as input.
+    Constructor for the \refClass{nodePropertyExtractorIsPhysicallyPlausible} property extractor class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none

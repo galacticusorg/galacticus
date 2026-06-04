@@ -53,7 +53,7 @@ Implements a sequence output analysis property operator class.
 
   interface outputAnalysisPropertyOperatorSequence
      !!{
-     Constructors for the \refClass{outputAnalysisPropertyOperatorSequence} output analysis class.
+     Constructors for the \refClass{outputAnalysisPropertyOperatorSequence} output analysis property operator class.
      !!}
      module procedure sequenceConstructorParameters
      module procedure sequenceConstructorInternal

@@ -85,15 +85,15 @@
      !!{
      Constructors for the \refClass{darkMatterHaloScaleVirialDensityContrastDefinition} dark matter halo scales class.
      !!}
-     module procedure virialDensityContrastDefinitionParameters
-     module procedure virialDensityContrastDefinitionInternal
+     module procedure virialDensityContrastDefinitionConstructorParameters
+     module procedure virialDensityContrastDefinitionConstructorInternal
   end interface darkMatterHaloScaleVirialDensityContrastDefinition
 
   integer, parameter :: meanDensityTablePointsPerDecade=100
 
 contains
 
-  recursive function virialDensityContrastDefinitionParameters(parameters) result(self)
+  recursive function virialDensityContrastDefinitionConstructorParameters(parameters) result(self)
     !!{
     Constructor for the \refClass{darkMatterHaloScaleVirialDensityContrastDefinition} dark matter halo scales class which takes a parameter set as input.
     !!}
@@ -118,9 +118,9 @@ contains
     <objectDestructor name="virialDensityContrast_"/>
     !!]
     return
-  end function virialDensityContrastDefinitionParameters
+  end function virialDensityContrastDefinitionConstructorParameters
 
-  recursive function virialDensityContrastDefinitionInternal(cosmologyParameters_,cosmologyFunctions_,virialDensityContrast_) result(self)
+  recursive function virialDensityContrastDefinitionConstructorInternal(cosmologyParameters_,cosmologyFunctions_,virialDensityContrast_) result(self)
     !!{
     Default constructor for the \mono{virialDensityContrastDefinition} dark matter halo scales class.
     !!}
@@ -146,7 +146,7 @@ contains
     self%isRecursive               =.false.
     self%parentDeferred            =.false.
     return
-  end function virialDensityContrastDefinitionInternal
+  end function virialDensityContrastDefinitionConstructorInternal
 
   subroutine virialDensityContrastDefinitionAutoHook(self)
     !!{

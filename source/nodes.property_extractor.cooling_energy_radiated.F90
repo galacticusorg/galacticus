@@ -37,11 +37,12 @@ Implements a cooling energy radiated property extractor class.
      procedure :: name        => coolingEnergyRadiatedName
      procedure :: description => coolingEnergyRadiatedDescription
      procedure :: unitsInSI   => coolingEnergyRadiatedUnitsInSI
+     procedure :: units       => coolingEnergyRadiatedUnits
   end type nodePropertyExtractorCoolingEnergyRadiated
 
   interface nodePropertyExtractorCoolingEnergyRadiated
      !!{
-     Constructors for the \refClass{nodePropertyExtractorCoolingEnergyRadiated} output analysis class.
+     Constructors for the \refClass{nodePropertyExtractorCoolingEnergyRadiated} property extractor class.
      !!}
      module procedure coolingEnergyRadiatedConstructorParameters
      module procedure coolingEnergyRadiatedConstructorInternal
@@ -51,7 +52,7 @@ contains
 
   function coolingEnergyRadiatedConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the \refClass{nodePropertyExtractorCoolingEnergyRadiated} output analysis property extractor class which takes a parameter set as input.
+    Constructor for the \refClass{nodePropertyExtractorCoolingEnergyRadiated} property extractor class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -134,3 +135,17 @@ contains
     coolingEnergyRadiatedUnitsInSI=ergs*gigaYear
     return
   end function coolingEnergyRadiatedUnitsInSI
+
+  function coolingEnergyRadiatedUnits(self) result(units)
+    !!{
+    Return the units of the coolingEnergyRadiated property.
+    !!}
+    use :: Units_MetaData, only : unitType
+    implicit none
+    type (unitType                                  )                :: units
+    class(nodePropertyExtractorCoolingEnergyRadiated), intent(inout) :: self
+    !$GLC attributes unused :: self
+
+    units=unitType(self%unitsInSI(),description='ergs Gyr',quantity='erg*Gyr')
+    return
+  end function coolingEnergyRadiatedUnits

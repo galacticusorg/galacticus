@@ -83,7 +83,7 @@ contains
 
   function standardConstructorInternal(mass_,spin_) result(self)
     !!{
-    Internal constructor for the \refClass{blackHoleSeedsFixed} black hole seed class.
+    Internal constructor for the \refClass{blackHoleSeedsFixed} black hole seeds class.
     !!}
     implicit none
     type            (blackHoleSeedsFixed)                :: self

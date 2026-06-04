@@ -190,7 +190,7 @@ contains
 
   subroutine shi2016Destructor(self)
     !!{
-    Destructor for the \refClass{massDistributionShi2016} accretion flow mass distribution class.
+    Destructor for the \refClass{massDistributionShi2016} mass distribution class.
     !!}
     implicit none
     type(massDistributionShi2016), intent(inout) :: self

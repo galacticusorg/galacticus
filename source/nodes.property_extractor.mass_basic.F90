@@ -36,11 +36,12 @@ Implements an output analysis property extractor class that extracts the basic m
      procedure :: name        => massBasicName
      procedure :: description => massBasicDescription
      procedure :: unitsInSI   => massBasicUnitsInSI
+     procedure :: units       => massBasicUnits
   end type nodePropertyExtractorMassBasic
 
   interface nodePropertyExtractorMassBasic
      !!{
-     Constructors for the \refClass{nodePropertyExtractorMassBasic} output analysis class.
+     Constructors for the \refClass{nodePropertyExtractorMassBasic} property extractor class.
      !!}
      module procedure massBasicConstructorParameters
   end interface nodePropertyExtractorMassBasic
@@ -49,7 +50,7 @@ contains
 
   function massBasicConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the \refClass{nodePropertyExtractorMassBasic} output analysis property extractor class which takes a parameter set as input.
+    Constructor for the \refClass{nodePropertyExtractorMassBasic} property extractor class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -109,7 +110,7 @@ contains
 
   double precision function massBasicUnitsInSI(self)
     !!{
-    Return the units of the massBasic property in the SI system.
+    Return the units of the basic mass property in the SI system.
     !!}
     use :: Numerical_Constants_Astronomical, only : massSolar
     implicit none
@@ -119,3 +120,16 @@ contains
     massBasicUnitsInSI=massSolar
     return
   end function massBasicUnitsInSI
+
+  function massBasicUnits(self) result(units)
+    !!{
+    Return the units of the basic mass property.
+    !!}
+    use :: Units_MetaData, only : unitType
+    implicit none
+    type (unitType                      )                :: units
+    class(nodePropertyExtractorMassBasic), intent(inout) :: self
+
+    units=unitType(self%unitsInSI(),description='Solar masses',quantity='solMass')
+    return
+  end function massBasicUnits

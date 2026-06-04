@@ -55,11 +55,12 @@
      procedure :: name        => haloCollapseEpochName
      procedure :: description => haloCollapseEpochDescription
      procedure :: unitsInSI   => haloCollapseEpochUnitsInSI
+     procedure :: units       => haloCollapseEpochUnits
   end type nodePropertyExtractorHaloCollapseEpoch
 
   interface nodePropertyExtractorHaloCollapseEpoch
      !!{
-     Constructors for the \refClass{nodePropertyExtractorHaloCollapseEpoch} output extractor class.
+     Constructors for the \refClass{nodePropertyExtractorHaloCollapseEpoch} property extractor class.
      !!}
      module procedure haloCollapseEpochConstructorParameters
      module procedure haloCollapseEpochConstructorInternal
@@ -103,7 +104,7 @@ contains
 
   function haloCollapseEpochConstructorInternal(massFractionFormation,criticalOverdensity_,cosmologicalMassvariance_,cosmologyFunctions_) result(self)
     !!{
-    Internal constructor for the \refClass{nodePropertyExtractorHaloCollapseEpoch} output extractor property extractor class.
+    Internal constructor for the \refClass{nodePropertyExtractorHaloCollapseEpoch} property extractor class.
     !!}
     implicit none
     type            (nodePropertyExtractorHaloCollapseEpoch)                        :: self
@@ -120,7 +121,7 @@ contains
 
   subroutine haloCollapseEpochDestructor(self)
     !!{
-    Destructor for the \refClass{nodePropertyExtractorHaloCollapseEpoch} output extractor property extractor class.
+    Destructor for the \refClass{nodePropertyExtractorHaloCollapseEpoch} property extractor class.
     !!}
     implicit none
     type(nodePropertyExtractorHaloCollapseEpoch), intent(inout) :: self
@@ -221,3 +222,17 @@ contains
     haloCollapseEpochUnitsInSI=1.0d0
     return
   end function haloCollapseEpochUnitsInSI
+
+  function haloCollapseEpochUnits(self) result(units)
+    !!{
+    Return the units of the haloCollapseEpoch property.
+    !!}
+    use :: Units_MetaData, only : unitType
+    implicit none
+    type (unitType                              )                :: units
+    class(nodePropertyExtractorHaloCollapseEpoch), intent(inout) :: self
+    !$GLC attributes unused :: self
+
+    units=unitType(1.0d0)
+    return
+  end function haloCollapseEpochUnits

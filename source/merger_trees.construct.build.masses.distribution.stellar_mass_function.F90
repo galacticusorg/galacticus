@@ -355,7 +355,7 @@ contains
 
   subroutine stellarMassFunctionDestructor(self)
     !!{
-    Destructor for the \refClass{mergerTreeBuildMassDistributionStllrMssFnctn} merger tree halo mass sampling class.
+    Destructor for the \refClass{mergerTreeBuildMassDistributionStllrMssFnctn} merger tree halo mass function sampling class.
     !!}
     implicit none
     type(mergerTreeBuildMassDistributionStllrMssFnctn), intent(inout) :: self

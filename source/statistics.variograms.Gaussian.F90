@@ -55,7 +55,7 @@
 
   interface variogramGaussian
      !!{
-     Constructors for the \refClass{variogramGaussian} posterior sampling likelihood class.
+     Constructors for the \refClass{variogramGaussian} variogram class.
      !!}
      module procedure gaussianConstructorParameters
      module procedure gaussianConstructorInternal

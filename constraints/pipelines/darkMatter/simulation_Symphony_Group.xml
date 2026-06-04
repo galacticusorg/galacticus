@@ -1,0 +1,19 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<parameters>
+  <formatVersion>2</formatVersion>
+  <lastModified revision="23263e8c1dfc569099e2c1fbdedbc04ed6446e59" time="2026-05-18T15:53:57"/>
+
+  <!-- Simulation defintion -->
+  <simulation value="" ignoreWarnings="true">
+    <!-- Milky Way zoom-in simulation properties -->
+    <massParticle value="" ignoreWarnings="true">
+      <resolutionX1 value="3.22264e6"/>
+    </massParticle>
+    <subvolumes value="" ignoreWarnings="true">
+      <resolutionX1  value="2"/>
+    </subvolumes>
+    <simulationReference value="Nadler et al. (2023; https://ui.adsabs.harvard.edu/abs/2023ApJ...945..159N)"/>
+    <simulationURL       value="https://web.stanford.edu/group/gfc/symphony/build/html/simulations.html"    />
+  </simulation>
+
+</parameters>

@@ -2,7 +2,7 @@
 <!-- Test pre-infall subhalo evolution is not applied to tj=he main branch. -->
 
 <parameters>
-  <lastModified revision="61711340399619cdd6d89322db6e90ce228d3d93" time="2026-04-14T18:10:17"/>
+  <lastModified revision="23263e8c1dfc569099e2c1fbdedbc04ed6446e59" time="2026-05-18T15:53:57"/>
 
   <lastModified>acecf6cc0b0da2604d667e770b26c791aa2eafc9</lastModified>
   <formatVersion>2</formatVersion>
@@ -20,16 +20,6 @@
   <!-- Baryonic components are set to null since we are not modeling them here. -->
   <componentBasic value="standard"/>
   <componentBlackHole value="standard"/>
-  <blackHoleWind value="ciotti2009">
-    <efficiencyWind value="2.4e-3"/>
-    <efficiencyWindScalesWithEfficiencyRadiative value="false"/>
-  </blackHoleWind>
-  <blackHoleAccretionRate value="standard">
-    <bondiHoyleAccretionEnhancementSpheroid value="5.0e0"/>
-    <bondiHoyleAccretionEnhancementHotHalo value="6.0e0"/>
-    <bondiHoyleAccretionHotModeOnly value="true"/>
-    <bondiHoyleAccretionTemperatureSpheroid value="1.0e2"/>
-  </blackHoleAccretionRate>
   <componentDarkMatterProfile value="scale"/>
   <componentDisk value="standard">
     <massDistributionDisk value="exponentialDisk">
@@ -424,7 +414,7 @@
     </nodeOperator>
     <nodeOperator value="satelliteDestructionMassThreshold">
       <!-- Subhalos will be removed if they fall below the merger tree mass resolution limit. -->
-      <massDestructionAbsolute value="=[mergerTreeMassResolution::massResolution]"/>
+      <massDestructionAbsolute value="=[mergerTreeMassResolution/massResolution]"/>
       <massDestructionMassInfallFraction value="0.0"/>
     </nodeOperator>
     <!-- CGM -->

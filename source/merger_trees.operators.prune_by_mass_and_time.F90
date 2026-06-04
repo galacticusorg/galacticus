@@ -95,7 +95,7 @@ contains
 
   subroutine pruneByMassAndTimeDestructor(self)
     !!{
-    Destructor for the \refClass{mergerTreeOperatorPruneByMassAndTime} output times class.
+    Destructor for the \refClass{mergerTreeOperatorPruneByMassAndTime} merger tree operator class.
     !!}
     implicit none
     type(mergerTreeOperatorPruneByMassAndTime), intent(inout) :: self

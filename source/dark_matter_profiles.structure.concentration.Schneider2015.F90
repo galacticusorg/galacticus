@@ -141,7 +141,7 @@ contains
 
   function schneider2015ConstructorInternal(massFractionFormation,referenceConcentration,referenceCriticalOverdensity,referenceCosmologicalMassVariance,referenceCosmologyFunctions,criticalOverdensity_,cosmologicalMassvariance_,cosmologyFunctions_) result(self)
     !!{
-    Internal constructor for the \refClass{darkMatterProfileConcentrationSchneider2015} dark matter halo concentration class.
+    Internal constructor for the \refClass{darkMatterProfileConcentrationSchneider2015} dark matter halo profile concentration class.
     !!}
     use :: Root_Finder, only : rangeExpandMultiplicative
     implicit none

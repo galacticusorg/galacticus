@@ -45,7 +45,7 @@ Implements a polynomial systematic shift output analysis property operator class
 
   interface outputAnalysisPropertyOperatorSystmtcPolynomial
      !!{
-     Constructors for the \refClass{outputAnalysisPropertyOperatorSystmtcPolynomial} output analysis class.
+     Constructors for the \refClass{outputAnalysisPropertyOperatorSystmtcPolynomial} output analysis property operator class.
      !!}
      module procedure systmtcPolynomialConstructorParameters
      module procedure systmtcPolynomialConstructorInternal
@@ -90,7 +90,7 @@ contains
 
   function systmtcPolynomialConstructorInternal(zeroPoint,coefficient) result(self)
     !!{
-    Internal constructor for the \refClass{outputAnalysisPropertyOperatorSystmtcPolynomial} output analysis distribution operator class.
+    Internal constructor for the \refClass{outputAnalysisPropertyOperatorSystmtcPolynomial} output analysis property operator class.
     !!}
     implicit none
     type            (outputAnalysisPropertyOperatorSystmtcPolynomial)                              :: self

@@ -36,11 +36,12 @@
      procedure :: name        => massBoundMaximumName
      procedure :: description => massBoundMaximumDescription
      procedure :: unitsInSI   => massBoundMaximumUnitsInSI
+     procedure :: units       => massBoundMaximumUnits
   end type nodePropertyExtractorMassBoundMaximum
 
   interface nodePropertyExtractorMassBoundMaximum
      !!{
-     Constructors for the \refClass{nodePropertyExtractorMassBoundMaximum} output extractor class.
+     Constructors for the \refClass{nodePropertyExtractorMassBoundMaximum} property extractor class.
      !!}
      module procedure massBoundMaximumConstructorParameters
      module procedure massBoundMaximumConstructorInternal
@@ -66,7 +67,7 @@ contains
 
   function massBoundMaximumConstructorInternal() result(self)
     !!{
-    Internal constructor for the \refClass{nodePropertyExtractorMassBoundMaximum} output extractor property extractor class.
+    Internal constructor for the \refClass{nodePropertyExtractorMassBoundMaximum} property extractor class.
     !!}
     implicit none
     type(nodePropertyExtractorMassBoundMaximum) :: self
@@ -140,3 +141,16 @@ contains
     massBoundMaximumUnitsInSI=massSolar
     return
   end function massBoundMaximumUnitsInSI
+
+  function massBoundMaximumUnits(self) result(units)
+    !!{
+    Return the units of the massBoundMaximum property.
+    !!}
+    use :: Units_MetaData, only : unitType
+    implicit none
+    type (unitType                             )                :: units
+    class(nodePropertyExtractorMassBoundMaximum), intent(inout) :: self
+
+    units=unitType(self%unitsInSI(),description='Solar masses',quantity='solMass')
+    return
+  end function massBoundMaximumUnits

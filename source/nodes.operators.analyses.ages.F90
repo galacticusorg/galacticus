@@ -31,7 +31,7 @@
   <nodeOperator name="nodeOperatorAgesStellarMassWeighted">
     <description>
       A node operator class that computes the stellar mass-weighted ages of disk, spheroid and nuclear star cluster components. Intended to be paired
-      with the \refClass{nodePropertyExtractorAgesStellarMassWeighted} class to extract those ages for output.
+      with the \refClass{nodePropertyExtractorAgesStellarMassWeighted} property extractor class to extract those ages for output.
     </description>
   </nodeOperator>
   !!]

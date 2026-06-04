@@ -36,11 +36,12 @@ Implements a dark matter profile scale radius output analysis property extractor
      procedure :: name        => darkMatterProfileScaleRadiusName
      procedure :: description => darkMatterProfileScaleRadiusDescription
      procedure :: unitsInSI   => darkMatterProfileScaleRadiusUnitsInSI
+     procedure :: units       => darkMatterProfileScaleRadiusUnits
   end type nodePropertyExtractorDarkMatterProfileScaleRadius
 
   interface nodePropertyExtractorDarkMatterProfileScaleRadius
      !!{
-     Constructors for the \refClass{nodePropertyExtractorDarkMatterProfileScaleRadius} output analysis class.
+     Constructors for the \refClass{nodePropertyExtractorDarkMatterProfileScaleRadius} property extractor class.
      !!}
      module procedure darkMatterProfileScaleRadiusConstructorParameters
   end interface nodePropertyExtractorDarkMatterProfileScaleRadius
@@ -49,7 +50,7 @@ contains
 
   function darkMatterProfileScaleRadiusConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the \refClass{nodePropertyExtractorDarkMatterProfileScaleRadius} output analysis property extractor class which takes a parameter set as input.
+    Constructor for the \refClass{nodePropertyExtractorDarkMatterProfileScaleRadius} property extractor class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -119,3 +120,16 @@ contains
     darkMatterProfileScaleRadiusUnitsInSI=megaParsec
     return
   end function darkMatterProfileScaleRadiusUnitsInSI
+
+  function darkMatterProfileScaleRadiusUnits(self) result(units)
+    !!{
+    Return the units of the darkMatterProfileScaleRadius property.
+    !!}
+    use :: Units_MetaData, only : unitType
+    implicit none
+    type (unitType                                         )                :: units
+    class(nodePropertyExtractorDarkMatterProfileScaleRadius), intent(inout) :: self
+
+    units=unitType(self%unitsInSI(),description='Mpc',quantity='Mpc')
+    return
+  end function darkMatterProfileScaleRadiusUnits

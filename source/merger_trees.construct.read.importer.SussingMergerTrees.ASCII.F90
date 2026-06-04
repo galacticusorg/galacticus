@@ -108,7 +108,7 @@
 
   interface mergerTreeImporterSussingASCII
      !!{
-     Constructors for the \refClass{mergerTreeImporterSussingASCII} ASCII format merger tree importer class.
+     Constructors for the \refClass{mergerTreeImporterSussingASCII} merger tree importer class.
      !!}
      module procedure sussingASCIIConstructorParameters
      module procedure sussingASCIIConstructorInternal
@@ -358,7 +358,6 @@ contains
        end if
     end do
     close(fileUnit)
-    call parameterRegEx%destroy()
     return
   end subroutine sussingASCIIOpen
 

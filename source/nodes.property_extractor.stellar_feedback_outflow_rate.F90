@@ -52,11 +52,12 @@
      procedure :: name        => stellarFeedbackOutflowRateName
      procedure :: description => stellarFeedbackOutflowRateDescription
      procedure :: unitsInSI   => stellarFeedbackOutflowRateUnitsInSI
+     procedure :: units       => stellarFeedbackOutflowRateUnits
   end type nodePropertyExtractorStellarFeedbackOutflowRate
 
   interface nodePropertyExtractorStellarFeedbackOutflowRate
      !!{
-     Constructors for the \refClass{nodePropertyExtractorStellarFeedbackOutflowRate} output analysis class.
+     Constructors for the \refClass{nodePropertyExtractorStellarFeedbackOutflowRate} property extractor class.
      !!}
      module procedure stellarFeedbackOutflowRateConstructorParameters
      module procedure stellarFeedbackOutflowRateConstructorInternal
@@ -284,3 +285,17 @@ contains
     stellarFeedbackOutflowRateUnitsInSI=massSolar/gigaYear
     return
   end function stellarFeedbackOutflowRateUnitsInSI
+
+  function stellarFeedbackOutflowRateUnits(self) result(units)
+    !!{
+    Return the units of the stellarFeedbackOutflowRate property.
+    !!}
+    use :: Units_MetaData, only : unitType
+    implicit none
+    type (unitType                                       )                :: units
+    class(nodePropertyExtractorStellarFeedbackOutflowRate), intent(inout) :: self
+    !$GLC attributes unused :: self
+
+    units=unitType(self%unitsInSI(),description='M☉/Gyr',quantity='solMass/Gyr')
+    return
+  end function stellarFeedbackOutflowRateUnits

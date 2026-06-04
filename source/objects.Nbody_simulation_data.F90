@@ -133,6 +133,8 @@ contains
        nBodyDataPropertyType=propertyTypeInteger
     case('hostID'                   )
        nBodyDataPropertyType=propertyTypeInteger
+    case('hostedRootID'             )
+       nBodyDataPropertyType=propertyTypeInteger
     case('isolatedHostID'           )
        nBodyDataPropertyType=propertyTypeInteger
     case('descendantHostID'         )

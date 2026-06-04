@@ -23,13 +23,12 @@
   Implements an emission line luminosity for AGN node property extractor class.
   !!}
 
-  use    :: Numerical_Interpolation             , only : interpolator
-  use    :: ISO_Varying_String                  , only : varying_string
-  !$ use :: OMP_Lib                             , only : omp_lock_kind
-  use    :: Output_Times                        , only : outputTimesClass
-  use    :: Black_Hole_Accretion_Rates          , only : blackHoleAccretionRateClass
-  use    :: Accretion_Disks                     , only : accretionDisksClass
-  use    :: Atomic_Rates_Recombination_Radiative, only : atomicRecombinationRateRadiativeClass
+  use :: Numerical_Interpolation             , only : interpolator
+  use :: ISO_Varying_String                  , only : varying_string
+  use :: Output_Times                        , only : outputTimesClass
+  use :: Black_Hole_Accretion_Rates          , only : blackHoleAccretionRateClass
+  use :: Accretion_Disks                     , only : accretionDisksClass
+  use :: Atomic_Rates_Recombination_Radiative, only : atomicRecombinationRateRadiativeClass
   !![
   <nodePropertyExtractor name="nodePropertyExtractorLmnstyEmssnLineAGN">
     <description>
@@ -62,7 +61,6 @@
      double precision                                                                           :: indexSpectralShortWavelength               , factorFillingVolume     , &
           &                                                                                        densityHydrogen_                           , temperature
      type            (varying_string                       )                                    :: cloudyTableFileName
-     !$ integer      (omp_lock_kind                        )                                    :: interpolateLock
    contains
      final     ::                 lmnstyEmssnLineAGNDestructor
      procedure :: elementCount => lmnstyEmssnLineAGNElementCount
@@ -71,11 +69,12 @@
      procedure :: descriptions => lmnstyEmssnLineAGNDescriptions
      procedure :: unitsInSI    => lmnstyEmssnLineAGNUnitsInSI
      procedure :: metaData     => lmnstyEmssnLineAGNMetaData
+     procedure :: units       => lmnstyEmssnLineAGNUnits
   end type nodePropertyExtractorLmnstyEmssnLineAGN
 
   interface nodePropertyExtractorLmnstyEmssnLineAGN
      !!{
-     Constructors for the \refClass{nodePropertyExtractorLmnstyEmssnLineAGN} output analysis class.
+     Constructors for the \refClass{nodePropertyExtractorLmnstyEmssnLineAGN} property extractor class.
      !!}
      module procedure lmnstyEmssnLineAGNConstructorParameters
      module procedure lmnstyEmssnLineAGNConstructorInternal
@@ -96,7 +95,7 @@
 contains
   function lmnstyEmssnLineAGNConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the \refClass{nodePropertyExtractorLmnstyEmssnLineAGN} output analysis property extractor class which takes a parameter set as input.
+    Constructor for the \refClass{nodePropertyExtractorLmnstyEmssnLineAGN} property extractor class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -166,7 +165,7 @@ contains
 
   function lmnstyEmssnLineAGNConstructorInternal(cloudyTableFileName,accretionDisks_,blackHoleAccretionRate_,outputTimes_,atomicRecombinationRateRadiative_,lineNames,indexSpectralShortWavelength,factorFillingVolume,densityHydrogen_,temperature,outputMask) result(self)
     !!{
-    Internal constructor for the \refClass{nodePropertyExtractorLmnstyEmssnLineAGN} output analysis property extractor class.
+    Internal constructor for the \refClass{nodePropertyExtractorLmnstyEmssnLineAGN} property extractor class.
     !!}
     use            :: Error                         , only : Error_Report
     use            :: Input_Paths                   , only : inputPath             , pathTypeDataStatic
@@ -200,7 +199,7 @@ contains
     
     ! Read the table of emission line luminosities.
     !$ call hdf5Access%set()
-    call emissionLinesFile%openFile(self%cloudyTableFileName,readOnly=.true.)
+    emissionLinesFile=hdf5Object(self%cloudyTableFileName,readOnly=.true.)
     lines=emissionLinesFile%openGroup('lines')
     do i=1,size(lineNames)
        if (.not.lines%hasDataset(char(self%lineNames(i)))) call Error_Report('line "'//char(self%lineNames(i))//'" not found'//{introspection:location})
@@ -212,16 +211,12 @@ contains
     ! Extract indexing into the lines arrays.
     dataset=emissionLinesFile%openDataset('densityHydrogen'    )
     call dataset%readAttribute('index',self%indexDensityHydrogen    )
-    call dataset%close        (                                     )
     dataset=emissionLinesFile%openDataset('ionizationParameter')
     call dataset%readAttribute('index',self%indexIonizationParameter)
-    call dataset%close        (                                     )
     dataset=emissionLinesFile%openDataset('metallicity'        )
     call dataset%readAttribute('index',self%indexMetallicity        )
-    call dataset%close        (                                     )
     dataset=emissionLinesFile%openDataset('spectralIndex'      )
     call dataset%readAttribute('index',self%indexSpectralIndex      )
-    call dataset%close        (                                     )
     ! Offset indexing to Fortran standard (i.e. starting from 1 instead of 0).
     self%indexDensityHydrogen    =self%indexDensityHydrogen    +1
     self%indexIonizationParameter=self%indexIonizationParameter+1
@@ -243,10 +238,7 @@ contains
        call lines%readDatasetStatic(char(self%lineNames(i)),luminosity(:,:,:,:,i))
        lineDataset=lines%openDataset(char(self%lineNames(i)))
        call lineDataset%readAttribute('wavelength',self%wavelengths(i))
-       call lineDataset%close        (                                )
     end do
-    call lines            %close()
-    call emissionLinesFile%close()
     !$ call hdf5Access%unset()
     ! Re-order the luminosities table into our preferred order.
     !! First, allocate our final table array with our preferred ordering of dimensions.
@@ -280,7 +272,6 @@ contains
     self%interpolator_(interpolantsIonizationParameter%ID)=interpolator(self%ionizationParameter,extrapolationType=extrapolationTypeFix)
     self%interpolator_(interpolantsMetallicity        %ID)=interpolator(self%metallicity        ,extrapolationType=extrapolationTypeFix)
     self%interpolator_(interpolantsSpectralIndex      %ID)=interpolator(self%spectralIndex      ,extrapolationType=extrapolationTypeFix)
-    !$ call OMP_Init_Lock(self%interpolateLock)
     ! Construct names and descriptions.
     allocate(self%names_       (size(lineNames)))
     allocate(self%descriptions_(size(lineNames)))
@@ -294,12 +285,11 @@ contains
 
   subroutine lmnstyEmssnLineAGNDestructor(self)
     !!{
-    Destructor for the \refClass{nodePropertyExtractorLmnstyEmssnLineAGN} output analysis property extractor class.
+    Destructor for the \refClass{nodePropertyExtractorLmnstyEmssnLineAGN} property extractor class.
     !!}
     implicit none
     type(nodePropertyExtractorLmnstyEmssnLineAGN), intent(inout) :: self
 
-    !$ call OMP_Destroy_Lock(self%interpolateLock)
     !![
     <objectDestructor name="self%accretionDisks_"                  />
     <objectDestructor name="self%blackHoleAccretionRate_"          />
@@ -485,12 +475,10 @@ contains
        ionizationParameterLogarithmicTruncated=ionizationParameterLogarithmic
     end if
     ! Find interpolating factors in all four interpolants, preventing extrapolation beyond the tabulated ranges.
-    !$ call OMP_Set_Lock  (self%interpolateLock)
     call self%interpolator_(interpolantsDensity            %ID)%linearFactors(densityHydrogenLogarithmic             ,interpolateIndex(0,interpolantsDensity            %ID),interpolateFactor(:,interpolantsDensity            %ID))
     call self%interpolator_(interpolantsIonizationParameter%ID)%linearFactors(ionizationParameterLogarithmicTruncated,interpolateIndex(0,interpolantsIonizationParameter%ID),interpolateFactor(:,interpolantsIonizationParameter%ID))
     call self%interpolator_(interpolantsMetallicity        %ID)%linearFactors(metallicityGas                         ,interpolateIndex(0,interpolantsMetallicity        %ID),interpolateFactor(:,interpolantsMetallicity        %ID))
     call self%interpolator_(interpolantsSpectralIndex      %ID)%linearFactors(self%indexSpectralShortWavelength      ,interpolateIndex(0,interpolantsSpectralIndex      %ID),interpolateFactor(:,interpolantsSpectralIndex      %ID))
-    !$ call OMP_Unset_Lock(self%interpolateLock)
     interpolateIndex (1,:)=interpolateIndex(0,:)+1
     interpolateFactor     =max(min(interpolateFactor,1.0d0),0.0d0)
     ! Iterate over lines.
@@ -601,3 +589,23 @@ contains
     call metaDataRank0%set('wavelength',self%wavelengths(indexProperty))
     return
   end subroutine lmnstyEmssnLineAGNMetaData
+
+  function lmnstyEmssnLineAGNUnits(self,time) result(units)
+    !!{
+    Return the units of the lmnstyEmssnLineAGN properties.
+    !!}
+    use :: Units_MetaData, only : unitType
+    implicit none
+    type            (unitType                               ), dimension(:), allocatable :: units
+    class           (nodePropertyExtractorLmnstyEmssnLineAGN), intent(inout)             :: self
+    double precision                                         , intent(in   )             :: time
+    double precision                                         , dimension(:), allocatable :: siValues
+    integer                                                                              :: i
+
+    siValues=self%unitsInSI(time)
+    allocate(units(size(siValues)))
+    do i=1,size(siValues)
+       units(i)=unitType(siValues(i),description='ergs',quantity='erg')
+    end do
+    return
+  end function lmnstyEmssnLineAGNUnits

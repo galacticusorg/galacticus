@@ -175,7 +175,7 @@ contains
 
   subroutine sphericalTruncatedExponentialDestructor(self)
     !!{
-    Destructor for the abstract \refClass{massDistributionSphericalTruncatedExponential} class.
+    Destructor for the abstract \refClass{massDistributionSphericalTruncatedExponential} mass distribution class.
     !!}
     implicit none
     type(massDistributionSphericalTruncatedExponential), intent(inout) :: self

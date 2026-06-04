@@ -96,7 +96,7 @@ contains
 
   subroutine computedDestructor(self)
     !!{
-    Destructor for the \refClass{atomicRecombinationRateRadiativeComputed} recombination recombination class.
+    Destructor for the \refClass{atomicRecombinationRateRadiativeComputed} atomic radiative recombination class.
     !!}
     implicit none
     type(atomicRecombinationRateRadiativeComputed), intent(inout) :: self

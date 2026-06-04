@@ -219,7 +219,7 @@ contains
           if (mod(i,mpiSelf%count()) /= mpiSelf%rank()) cycle
 #endif
           ! Accumulate particles into bins.
-          j=int(log10(mass(i)/self%massMinimum)*binWidthInverse)+1
+          j=floor(log10(mass(i)/self%massMinimum)*binWidthInverse)+1
           if (j >= 1 .and. j <= massCount)  &
                & countBin(j)=+countBin  (j) &
                &             +1_c_size_t
@@ -258,6 +258,7 @@ contains
 #ifdef USEMPI
        if (mpiSelf%isMaster()) then
 #endif
+          !$ call hdf5Access%set()
           call simulations(iSimulation)%analysis%writeDataset  (massBin                  ,'mass'        )
           call simulations(iSimulation)%analysis%writeDataset  (countBin                 ,'count'       )
           call simulations(iSimulation)%analysis%writeDataset  (massFunction             ,'massFunction')
@@ -267,14 +268,12 @@ contains
           call cosmologyGroup%writeAttribute(self%cosmologyParameters_%OmegaMatter    (),'OmegaMatter'    )
           call cosmologyGroup%writeAttribute(self%cosmologyParameters_%OmegaDarkEnergy(),'OmegaDarkEnergy')
           call cosmologyGroup%writeAttribute(self%cosmologyParameters_%HubbleConstant (),'HubbleConstant' )
-          call cosmologyGroup%close         (                                                             )
           simulationGroup=simulations(iSimulation)%analysis%openGroup('simulation')
           call simulationGroup%writeAttribute(     boxSize            ,'boxSize'  )
           call simulationGroup%writeAttribute(self%simulationReference,'reference')
           call simulationGroup%writeAttribute(self%simulationURL      ,'URL'      )
           if (simulations(iSimulation)%attributesReal%exists('massParticle')) &
                & call simulationGroup%writeAttribute(simulations(iSimulation)%attributesReal%value('massParticle'),'massParticle')
-          call simulationGroup%close         (                                    )
           !$ call hdf5Access%unset()
 #ifdef USEMPI
        end if

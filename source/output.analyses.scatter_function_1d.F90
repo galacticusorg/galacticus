@@ -22,7 +22,8 @@
   objects binned by some property) output analysis class.
   !!}
 
-  use :: ISO_Varying_String, only : varying_string
+  use :: ISO_Varying_String         , only : varying_string
+  use :: Output_Analysis_Target_Data, only : outputAnalysisTargetDataClass, outputAnalysisTargetDataStandard
 
   !![
   <outputAnalysis name="outputAnalysisScatterFunction1D">
@@ -54,15 +55,25 @@
           &                                                                                         propertyLabel                                  , propertyComment                                 , &
           &                                                                                         scatterLabel                                   , scatterComment                                  , &
           &                                                                                         propertyUnits                                  , scatterUnits                                    , &
+          &                                                                                         propertyQuantity                               , scatterQuantity                                 , &
           &                                                                                         xAxisLabel                                     , yAxisLabel                                      , &
           &                                                                                         targetLabel
+     ! Axis labels, log-scale flags, and the (optional) target dataset are also bundled into a
+     ! single `outputAnalysisTargetDataStandard` instance so the wrapper-pipeline doesn't have
+     ! to enumerate 2^N presence combinations for the otherwise individually-optional fields.
+     ! The shadow `xAxisLabel` / `yAxisLabel` / `targetLabel` / `xAxisIsLog` / `yAxisIsLog` /
+     ! `scatterValueTarget` / `scatterCovarianceTarget1D` fields are kept on the outer type so
+     ! the auto-built descriptor (which walks the type definition, not contained types) can
+     ! reconstruct a parameter block that recreates this object.
+     type            (outputAnalysisTargetDataStandard            )                              :: targetData_
      double precision                                                                            :: propertyUnitsInSI                              , scatterUnitsInSI                                , &
           &                                                                                         covarianceBinomialMassHaloMinimum              , covarianceBinomialMassHaloMaximum
+     logical                                                                                     :: propertyIsComoving                             , scatterIsComoving
      type            (outputAnalysisMeanFunction1D                ), pointer                     :: meanFunction                          => null(), meanSquaredFunction                    => null()
      double precision                                              , allocatable, dimension(:  ) :: binCenter                                      , scatterValue                                    , &
           &                                                                                         scatterValueTarget                             , scatterCovarianceTarget1D                       , &
           &                                                                                         outputWeight
-     double precision                                              , allocatable, dimension(:,:) :: scatterCovariance                              , scatterCovarianceTarget
+     double precision                                              , allocatable, dimension(:,:) :: scatterCovariance
      logical                                                                                     :: finalized                                      , likelihoodNormalize                             , &
           &                                                                                         xAxisIsLog                                     , yAxisIsLog
    contains
@@ -108,6 +119,7 @@ contains
     class           (outputAnalysisDistributionOperatorClass), pointer                     :: outputAnalysisDistributionOperator_
     class           (galacticFilterClass                    ), pointer                     :: galacticFilter_
     class           (outputTimesClass                       ), pointer                     :: outputTimes_
+    type            (outputAnalysisTargetDataStandard       )                              :: targetData_
     double precision                                         , dimension(:  ), allocatable :: binCenter                            , outputWeight                          , &
          &                                                                                    scatterValueTarget                   , scatterCovarianceTarget1D
     double precision                                         , dimension(:,:), allocatable :: scatterCovarianceTarget
@@ -116,6 +128,7 @@ contains
          &                                                                                    propertyLabel                        , propertyComment                       , &
          &                                                                                    scatterLabel                         , scatterComment                        , &
          &                                                                                    propertyUnits                        , scatterUnits                          , &
+         &                                                                                    propertyQuantity                     , scatterQuantity                       , &
          &                                                                                    covarianceModel                      , xAxisLabel                            , &
          &                                                                                    yAxisLabel                           , targetLabel
     integer                                                                                :: covarianceBinomialBinsPerDecade
@@ -123,8 +136,9 @@ contains
     type            (inputParameters                        )                              :: weightParameters
     double precision                                                                       :: propertyUnitsInSI                    , scatterUnitsInSI                      , &
          &                                                                                    covarianceBinomialMassHaloMinimum    , covarianceBinomialMassHaloMaximum
-    logical                                                                                :: likelihoodNormalize                  , xAxisIsLog                            , &
-         &                                                                                    yAxisIsLog
+    logical                                                                                :: xAxisIsLog                           , yAxisIsLog                            , &
+         &                                                                                    propertyIsComoving                   , scatterIsComoving                     , &
+         &                                                                                    likelihoodNormalize
 
     !![
     <objectBuilder class="nodePropertyExtractor"    name="nodePropertyExtractor_"       source="parameters"          />
@@ -195,6 +209,18 @@ contains
       <description>A human-readable description of the units for the property.</description>
     </inputParameter>
     <inputParameter>
+      <name>propertyQuantity</name>
+      <source>parameters</source>
+      <variable>propertyQuantity</variable>
+      <description>An \mono{astropy.units}-parseable units string for the property.</description>
+    </inputParameter>
+    <inputParameter>
+      <name>propertyIsComoving</name>
+      <source>parameters</source>
+      <variable>propertyIsComoving</variable>
+      <description>If true, the property is in comoving units.</description>
+    </inputParameter>
+    <inputParameter>
       <name>propertyUnitsInSI</name>
       <source>parameters</source>
       <variable>propertyUnitsInSI</variable>
@@ -217,6 +243,18 @@ contains
       <source>parameters</source>
       <variable>scatterUnits</variable>
       <description>A human-readable description of the units for the scatter.</description>
+    </inputParameter>
+    <inputParameter>
+      <name>scatterQuantity</name>
+      <source>parameters</source>
+      <variable>scatterQuantity</variable>
+      <description>An \mono{astropy.units}-parseable units string for the scatter.</description>
+    </inputParameter>
+    <inputParameter>
+      <name>scatterIsComoving</name>
+      <source>parameters</source>
+      <variable>scatterIsComoving</variable>
+      <description>If true, the scatter is in comoving units.</description>
     </inputParameter>
     <inputParameter>
       <name>scatterUnitsInSI</name>
@@ -308,49 +346,54 @@ contains
       <defaultValue>var_str('')</defaultValue>
     </inputParameter>
     !!]
-    ! Build the object.
+    ! Bundle the (potentially partial) target data into a single object for the internal constructor.
+    targetData_=outputAnalysisTargetDataStandard(                                         &
+         &                                       xAxisLabel      =xAxisLabel            , &
+         &                                       yAxisLabel      =yAxisLabel            , &
+         &                                       targetLabel     =targetLabel           , &
+         &                                       xAxisIsLog      =xAxisIsLog            , &
+         &                                       yAxisIsLog      =yAxisIsLog            , &
+         &                                       valueTarget     =scatterValueTarget    , &
+         &                                       covarianceTarget=scatterCovarianceTarget &
+         &                                      )
+    ! Build the object.  No conditional arguments to dispatch on (scatter doesn't take a
+    ! `binWidth`), so a plain Fortran call is enough — no need for a `<conditionalCall>`
+    ! directive.
+    self=outputAnalysisScatterFunction1D(                                                                                       &
+         &                               label                                                                                , &
+         &                               comment                                                                              , &
+         &                               propertyLabel                                                                        , &
+         &                               propertyComment                                                                      , &
+         &                               propertyUnits                                                                        , &
+         &                               propertyQuantity                                                                     , &
+         &                               propertyIsComoving                                                                   , &
+         &                               propertyUnitsInSI                                                                    , &
+         &                               scatterLabel                                                                         , &
+         &                               scatterComment                                                                       , &
+         &                               scatterUnits                                                                         , &
+         &                               scatterQuantity                                                                      , &
+         &                               scatterIsComoving                                                                    , &
+         &                               scatterUnitsInSI                                                                     , &
+         &                               binCenter                                                                            , &
+         &                               bufferCount                                                                          , &
+         &                               reshape(outputWeight,[int(parameters%count('binCenter'),kind=c_size_t),outputTimes_%count()]), &
+         &                               nodePropertyExtractor_                                                               , &
+         &                               outputAnalysisWeightPropertyExtractor_                                               , &
+         &                               outputAnalysisPropertyOperator_                                                      , &
+         &                               outputAnalysisWeightPropertyOperator_                                                , &
+         &                               outputAnalysisPropertyUnoperator_                                                    , &
+         &                               outputAnalysisWeightOperator_                                                        , &
+         &                               outputAnalysisDistributionOperator_                                                  , &
+         &                               galacticFilter_                                                                      , &
+         &                               outputTimes_                                                                         , &
+         &                               enumerationOutputAnalysisCovarianceModelEncode(char(covarianceModel),includesPrefix=.false.) , &
+         &                               covarianceBinomialBinsPerDecade                                                      , &
+         &                               covarianceBinomialMassHaloMinimum                                                    , &
+         &                               covarianceBinomialMassHaloMaximum                                                    , &
+         &                               likelihoodNormalize                                                                  , &
+         &                               targetData_                                                                            &
+         &                              )
     !![
-    <conditionalCall>
-     <call>
-      self=outputAnalysisScatterFunction1D(                                                                                            &amp;
-           &amp;                        label                                                                                        , &amp;
-           &amp;                        comment                                                                                      , &amp;
-           &amp;                        propertyLabel                                                                                , &amp;
-           &amp;                        propertyComment                                                                              , &amp;
-           &amp;                        propertyUnits                                                                                , &amp;
-           &amp;                        propertyUnitsInSI                                                                            , &amp;
-           &amp;                        scatterLabel                                                                                 , &amp;
-           &amp;                        scatterComment                                                                               , &amp;
-           &amp;                        scatterUnits                                                                                 , &amp;
-           &amp;                        scatterUnitsInSI                                                                             , &amp;
-           &amp;                        binCenter                                                                                    , &amp;
-           &amp;                        bufferCount                                                                                  , &amp;
-           &amp;                        reshape(outputWeight,[int(parameters%count('binCenter'),kind=c_size_t),outputTimes_%count()]), &amp;
-           &amp;                        nodePropertyExtractor_                                                             , &amp;
-           &amp;                        outputAnalysisWeightPropertyExtractor_                                                       , &amp;
-           &amp;                        outputAnalysisPropertyOperator_                                                              , &amp;
-           &amp;                        outputAnalysisWeightPropertyOperator_                                                        , &amp;
-           &amp;                        outputAnalysisPropertyUnoperator_                                                            , &amp;
-           &amp;                        outputAnalysisWeightOperator_                                                                , &amp;
-           &amp;                        outputAnalysisDistributionOperator_                                                          , &amp;
-           &amp;                        galacticFilter_                                                                              , &amp;
-           &amp;                        outputTimes_                                                                                 , &amp;
-           &amp;                        enumerationOutputAnalysisCovarianceModelEncode(char(covarianceModel),includesPrefix=.false.) , &amp;
-           &amp;                        covarianceBinomialBinsPerDecade                                                              , &amp;
-           &amp;                        covarianceBinomialMassHaloMinimum                                                            , &amp;
-           &amp;                        covarianceBinomialMassHaloMaximum                                                            , &amp;
-           &amp;                        likelihoodNormalize                                                                          , &amp;
-           &amp;                        xAxisLabel                                                                                   , &amp;
-           &amp;                        yAxisLabel                                                                                   , &amp;
-           &amp;                        xAxisIsLog                                                                                   , &amp;
-           &amp;                        yAxisIsLog                                                                                   , &amp;
-           &amp;                        targetLabel                                                                                    &amp;
-           &amp;                        {conditions}                                                                                   &amp;
-           &amp;                       )
-     </call>
-     <argument name="scatterValueTarget"      value="scatterValueTarget"      parameterPresent="parameters"/>
-     <argument name="scatterCovarianceTarget" value="scatterCovarianceTarget" parameterPresent="parameters"/>
-    </conditionalCall>
     <inputParametersValidate source="parameters"/>
     <objectDestructor name="nodePropertyExtractor_"      />
     <objectDestructor name="outputAnalysisWeightPropertyExtractor_"/>
@@ -365,10 +408,11 @@ contains
     return
   end function scatterFunction1DConstructorParameters
 
-  function scatterFunction1DConstructorInternal(label,comment,propertyLabel,propertyComment,propertyUnits,propertyUnitsInSI,scatterLabel,scatterComment,scatterUnits,scatterUnitsInSI,binCenter,bufferCount,outputWeight,nodePropertyExtractor_,outputAnalysisWeightPropertyExtractor_,outputAnalysisPropertyOperator_,outputAnalysisWeightPropertyOperator_,outputAnalysisPropertyUnoperator_,outputAnalysisWeightOperator_,outputAnalysisDistributionOperator_,galacticFilter_,outputTimes_,covarianceModel,covarianceBinomialBinsPerDecade,covarianceBinomialMassHaloMinimum,covarianceBinomialMassHaloMaximum,likelihoodNormalize,xAxisLabel,yAxisLabel,xAxisIsLog,yAxisIsLog,targetLabel,scatterValueTarget,scatterCovarianceTarget) result (self)
+  function scatterFunction1DConstructorInternal(label,comment,propertyLabel,propertyComment,propertyUnits,propertyQuantity,propertyIsComoving,propertyUnitsInSI,scatterLabel,scatterComment,scatterUnits,scatterQuantity,scatterIsComoving,scatterUnitsInSI,binCenter,bufferCount,outputWeight,nodePropertyExtractor_,outputAnalysisWeightPropertyExtractor_,outputAnalysisPropertyOperator_,outputAnalysisWeightPropertyOperator_,outputAnalysisPropertyUnoperator_,outputAnalysisWeightOperator_,outputAnalysisDistributionOperator_,galacticFilter_,outputTimes_,covarianceModel,covarianceBinomialBinsPerDecade,covarianceBinomialMassHaloMinimum,covarianceBinomialMassHaloMaximum,likelihoodNormalize,targetData_) result (self)
     !!{
     Constructor for the \refClass{outputAnalysisScatterFunction1D} output analysis class for internal use.
     !!}
+    use :: Error                             , only : Error_Report
     use :: Output_Analysis_Property_Operators, only : outputAnalysisPropertyOperatorClass         , outputAnalysisPropertyOperatorSequence, outputAnalysisPropertyOperatorSquare, propertyOperatorList
     use :: Output_Analysis_Weight_Operators  , only : outputAnalysisWeightOperatorClass           , weightOperatorList
     use :: Output_Analyses_Options           , only : enumerationOutputAnalysisCovarianceModelType
@@ -377,16 +421,15 @@ contains
     type            (varying_string                              ), intent(in   )                           :: label                                       , comment                                      , &
          &                                                                                                     propertyLabel                               , propertyComment                              , &
          &                                                                                                     scatterLabel                                , scatterComment                               , &
-         &                                                                                                     propertyUnits                               , scatterUnits
-    type            (varying_string                              ), intent(in   ), optional                 :: xAxisLabel                                  , yAxisLabel                                   , &
-         &                                                                                                     targetLabel
+         &                                                                                                     propertyUnits                               , scatterUnits                                 , &
+         &                                                                                                     propertyQuantity                            , scatterQuantity
     double precision                                              , intent(in   )                           :: propertyUnitsInSI                           , scatterUnitsInSI
     double precision                                              , intent(in   )          , dimension(:  ) :: binCenter
     integer         (c_size_t                                    ), intent(in   )                           :: bufferCount
     double precision                                              , intent(in   )          , dimension(:,:) :: outputWeight
-    logical                                                       , intent(in   ), optional                 :: xAxisIsLog                                  , yAxisIsLog                                   , &
-         &                                                                                                     likelihoodNormalize
-    class           (nodePropertyExtractorClass                  ), intent(inout), target                   :: nodePropertyExtractor_            , outputAnalysisWeightPropertyExtractor_
+    logical                                                       , intent(in   ), optional                 :: likelihoodNormalize
+    logical                                                       , intent(in   )                           :: propertyIsComoving                          , scatterIsComoving
+    class           (nodePropertyExtractorClass                  ), intent(inout), target                   :: nodePropertyExtractor_                      , outputAnalysisWeightPropertyExtractor_
     class           (outputAnalysisPropertyOperatorClass         ), intent(inout), target                   :: outputAnalysisPropertyOperator_             , outputAnalysisPropertyUnoperator_            , &
          &                                                                                                     outputAnalysisWeightPropertyOperator_
     class           (outputAnalysisWeightOperatorClass           ), intent(inout), target                   :: outputAnalysisWeightOperator_
@@ -396,20 +439,43 @@ contains
     type            (enumerationOutputAnalysisCovarianceModelType), intent(in   )                           :: covarianceModel
     integer                                                       , intent(in   ), optional                 :: covarianceBinomialBinsPerDecade
     double precision                                              , intent(in   ), optional                 :: covarianceBinomialMassHaloMinimum           , covarianceBinomialMassHaloMaximum
-    double precision                                              , intent(in   ), optional, dimension(:  ) :: scatterValueTarget
-    double precision                                              , intent(in   ), optional, dimension(:,:) :: scatterCovarianceTarget
+    class           (outputAnalysisTargetDataClass               ), intent(in   ), optional                 :: targetData_
     type            (weightOperatorList                          ), pointer                                 :: weightOperatorWeight_                       , weightOperatorSquared_
     type            (propertyOperatorList                        ), pointer                                 :: propertyOperators_
     type            (outputAnalysisPropertyOperatorSequence      ), pointer                                 :: outputAnalysisWeightPropertyOperatorSquaring_
     type            (outputAnalysisPropertyOperatorSquare        ), pointer                                 :: outputAnalysisWeightPropertyOperatorSquare_
     !![
-    <constructorAssign variables="label, comment, propertyLabel, propertyComment, propertyUnits, propertyUnitsInSI, scatterLabel, scatterComment, scatterUnits, scatterUnitsInSI, xAxisLabel, yAxisLabel, xAxisIsLog, yAxisIsLog, targetLabel, scatterValueTarget, scatterCovarianceTarget, *nodePropertyExtractor_, *outputAnalysisWeightPropertyExtractor_, *outputAnalysisPropertyOperator_, *outputAnalysisWeightPropertyOperator_, *outputAnalysisPropertyUnoperator_, *outputAnalysisWeightOperator_, *outputAnalysisDistributionOperator_, *galacticFilter_, *outputTimes_, bufferCount, covarianceModel, covarianceBinomialBinsPerDecade, covarianceBinomialMassHaloMinimum, covarianceBinomialMassHaloMaximum"/>
+    <constructorAssign variables="label, comment, propertyLabel, propertyComment, propertyUnits, propertyQuantity, propertyIsComoving, propertyUnitsInSI, scatterLabel, scatterComment, scatterUnits, scatterQuantity, scatterIsComoving, scatterUnitsInSI, *nodePropertyExtractor_, *outputAnalysisWeightPropertyExtractor_, *outputAnalysisPropertyOperator_, *outputAnalysisWeightPropertyOperator_, *outputAnalysisPropertyUnoperator_, *outputAnalysisWeightOperator_, *outputAnalysisDistributionOperator_, *galacticFilter_, *outputTimes_, bufferCount, covarianceModel, covarianceBinomialBinsPerDecade, covarianceBinomialMassHaloMinimum, covarianceBinomialMassHaloMaximum"/>
     !!]
 
-    ! Set properties needed for descriptor.
-    if (present(scatterCovarianceTarget))                                                                  &
-         & self%scatterCovarianceTarget1D=reshape(scatterCovarianceTarget,[size(scatterCovarianceTarget)])
-    self       %outputWeight             =reshape(outputWeight           ,[size(outputWeight           )])
+    ! Initialise the bundled target-data fields.  An explicit `targetData_` must be of the
+    ! concrete `outputAnalysisTargetDataStandard` type (the only impl in the project today);
+    ! without one we default-construct, matching the per-arg defaults the previous signature
+    ! exposed.
+    if (present(targetData_)) then
+       select type (targetData_)
+       type is (outputAnalysisTargetDataStandard)
+          self%targetData_=targetData_
+       class default
+          call Error_Report('targetData_ must be of type outputAnalysisTargetDataStandard'//{introspection:location})
+       end select
+    else
+       self%targetData_=outputAnalysisTargetDataStandard()
+    end if
+    ! Mirror the bundled target-data fields onto the outer object so the auto-built descriptor
+    ! (which walks the type definition, not contained types) can reconstruct a parameter block
+    ! that recreates this object.  Reshape the 2D covariance into the 1D form the parameter
+    ! reader produces.
+    self%xAxisLabel =self%targetData_%xAxisLabel
+    self%yAxisLabel =self%targetData_%yAxisLabel
+    self%targetLabel=self%targetData_%targetLabel
+    self%xAxisIsLog =self%targetData_%xAxisIsLog
+    self%yAxisIsLog =self%targetData_%yAxisIsLog
+    if (self%targetData_%hasTarget()) then
+       self%scatterValueTarget       =self%targetData_%valueTarget
+       self%scatterCovarianceTarget1D=reshape(self%targetData_%covarianceTarget,[size(self%targetData_%covarianceTarget)])
+    end if
+    self%outputWeight=reshape(outputWeight,[size(outputWeight)])
     ! Mark as unfinalized.
     self%finalized=.false.
     ! Set normalization state for likelihood.
@@ -440,15 +506,19 @@ contains
        &amp;                       propertyLabel                                , &amp;
        &amp;                       propertyComment                              , &amp;
        &amp;                       propertyUnits                                , &amp;
+       &amp;                       propertyQuantity                             , &amp;
+       &amp;                       propertyIsComoving                           , &amp;
        &amp;                       propertyUnitsInSI                            , &amp;
        &amp;                       scatterLabel                                 , &amp;
        &amp;                       scatterComment                               , &amp;
        &amp;                       scatterUnits                                 , &amp;
+       &amp;                       scatterQuantity                              , &amp;
+       &amp;                       scatterIsComoving                            , &amp;
        &amp;                       scatterUnitsInSI                             , &amp;
        &amp;                       binCenter                                    , &amp;
        &amp;                       bufferCount                                  , &amp;
        &amp;                       outputWeight                                 , &amp;
-       &amp;                       nodePropertyExtractor_             , &amp;
+       &amp;                       nodePropertyExtractor_                       , &amp;
        &amp;                       outputAnalysisWeightPropertyExtractor_       , &amp;
        &amp;                       outputAnalysisPropertyOperator_              , &amp;
        &amp;                       outputAnalysisWeightPropertyOperator_        , &amp;
@@ -472,15 +542,19 @@ contains
        &amp;                       propertyLabel                                , &amp;
        &amp;                       propertyComment                              , &amp;
        &amp;                       propertyUnits                                , &amp;
+       &amp;                       propertyQuantity                             , &amp;
+       &amp;                       propertyIsComoving                           , &amp;
        &amp;                       propertyUnitsInSI                            , &amp;
        &amp;                       scatterLabel                                 , &amp;
        &amp;                       scatterComment                               , &amp;
        &amp;                       scatterUnits                                 , &amp;
+       &amp;                       scatterQuantity                              , &amp;
+       &amp;                       scatterIsComoving                            , &amp;
        &amp;                       scatterUnitsInSI                             , &amp;
        &amp;                       binCenter                                    , &amp;
        &amp;                       bufferCount                                  , &amp;
        &amp;                       outputWeight                                 , &amp;
-       &amp;                       nodePropertyExtractor_             , &amp;
+       &amp;                       nodePropertyExtractor_                       , &amp;
        &amp;                       outputAnalysisWeightPropertyExtractor_       , &amp;
        &amp;                       outputAnalysisPropertyOperator_              , &amp;
        &amp;                       outputAnalysisWeightPropertyOperatorSquaring_, &amp;
@@ -606,9 +680,10 @@ contains
     !!{
     Implement a \mono{scatterFunction1D} output analysis finalization.
     !!}
-    use :: Output_HDF5, only : outputFile
-    use :: HDF5_Access, only : hdf5Access
-    use :: IO_HDF5    , only : hdf5Object
+    use :: Output_HDF5   , only : outputFile
+    use :: HDF5_Access   , only : hdf5Access
+    use :: IO_HDF5       , only : hdf5Object
+    use :: Units_MetaData, only : unitType
     implicit none
     class(outputAnalysisScatterFunction1D), intent(inout)           :: self
     type (varying_string                 ), intent(in   ), optional :: groupName
@@ -628,12 +703,12 @@ contains
     end if
     analysisGroup=inGroup%openGroup(char(self%label),char(self%comment))
     ! Write metadata describing this analysis.
-    call    analysisGroup%writeAttribute(     char(self%   comment   )                    ,'description'                                                                                                      )
+    call    analysisGroup%writeAttribute(     char(self%             comment    )         ,'description'                                                                                                      )
     call    analysisGroup%writeAttribute("function1D"                                     ,'type'                                                                                                             )
-    call    analysisGroup%writeAttribute(     char(self%   xAxisLabel)                    ,'xAxisLabel'                                                                                                       )
-    call    analysisGroup%writeAttribute(     char(self%   yAxisLabel)                    ,'yAxisLabel'                                                                                                       )
-    call    analysisGroup%writeAttribute(          self%   xAxisIsLog                     ,'xAxisIsLog'                                                                                                       )
-    call    analysisGroup%writeAttribute(          self%   yAxisIsLog                     ,'yAxisIsLog'                                                                                                       )
+    call    analysisGroup%writeAttribute(     char(self%targetData_%xAxisLabel  )         ,'xAxisLabel'                                                                                                       )
+    call    analysisGroup%writeAttribute(     char(self%targetData_%yAxisLabel  )         ,'yAxisLabel'                                                                                                       )
+    call    analysisGroup%writeAttribute(          self%targetData_%xAxisIsLog            ,'xAxisIsLog'                                                                                                       )
+    call    analysisGroup%writeAttribute(          self%targetData_%yAxisIsLog            ,'yAxisIsLog'                                                                                                       )
     call    analysisGroup%writeAttribute(     char(self%propertyLabel)                    ,'xDataset'                                                                                                         )
     call    analysisGroup%writeAttribute(     char(self% scatterLabel)                    ,'yDataset'                                                                                                         )
     call    analysisGroup%writeAttribute(     char(self% scatterLabel)//"Target"          ,'yDatasetTarget'                                                                                                   )
@@ -641,34 +716,20 @@ contains
     call    analysisGroup%writeAttribute(     char(self% scatterLabel)//"CovarianceTarget",'yCovarianceTarget'                                                                                                )
     ! Write computed datasets.
     call    analysisGroup%writeDataset  (          self%binCenter                         ,char(self%propertyLabel)                       ,char(self%propertyComment)                 ,datasetReturned=dataset)
-    call    dataset      %writeAttribute(     char(self%propertyUnits       )             ,'units'                                                                                                            )
-    call    dataset      %writeAttribute(          self%propertyUnitsInSI                 ,'unitsInSI'                                                                                                        )
-    call    dataset      %close         (                                                                                                                                                                     )
+    call    dataset      %writeAttribute(unitType(self%propertyUnitsInSI  ,description=     char(self%propertyUnits)      ,quantity=     char(self%propertyQuantity)       ,isComoving=self%propertyIsComoving),'units')
     call    analysisGroup%writeDataset  (          self%scatterValue                      ,char(self% scatterLabel)                       ,char(self% scatterComment)                 ,datasetReturned=dataset)
-    call    dataset      %writeAttribute(     char(self%    scatterUnits    )             ,'units'                                                                                                            )
-    call    dataset      %writeAttribute(          self%scatterUnitsInSI                  ,'unitsInSI'                                                                                                        )
-    call    dataset      %close         (                                                                                                                                                                     )
+    call    dataset      %writeAttribute(unitType(self%scatterUnitsInSI   ,description=     char(self%scatterUnits )      ,quantity=     char(self%scatterQuantity )       ,isComoving=self%scatterIsComoving ),'units')
     call    analysisGroup%writeDataset  (          self%scatterCovariance                 ,char(self% scatterLabel)//"Covariance"         ,char(self% scatterComment)//" [covariance]",datasetReturned=dataset)
-    call    dataset      %writeAttribute("["//char(self%    scatterUnits    )//"]²"       ,'units'                                                                                                            )
-    call    dataset      %writeAttribute(          self%    scatterUnitsInSI   **2        ,'unitsInSI'                                                                                                        )
-    call    dataset      %close         (                                                                                                                                                                     )
+    call    dataset      %writeAttribute(unitType(self%scatterUnitsInSI**2,description="["//char(self%scatterUnits )//"]²",quantity="("//char(self%scatterQuantity )//")^2",isComoving=self%scatterIsComoving ),'units')
     ! If available, include the log-likelihood and target dataset.
-    if (allocated(self%scatterValueTarget)) then
-       call analysisGroup%writeAttribute(          self%logLikelihood()                   ,'logLikelihood'                                                                                                    )
-       call analysisGroup%writeAttribute(     char(self%targetLabel         )             ,'targetLabel'                                                                                                      )
-       call analysisGroup%writeDataset  (          self%scatterValueTarget                ,char(self%    scatterLabel)//"Target"          ,char(self% scatterComment)                 ,datasetReturned=dataset)
-       call dataset      %writeAttribute(     char(self%    scatterUnits    )             ,'units'                                                                                                            )
-       call dataset      %writeAttribute(          self%scatterUnitsInSI                  ,'unitsInSI'                                                                                                        )
-       call dataset      %close         (                                                                                                                                                                     )
-       call analysisGroup%writeDataset  (          self%scatterCovarianceTarget           ,char(self%    scatterLabel)//"CovarianceTarget",char(self% scatterComment)//" [covariance]",datasetReturned=dataset)
-       call dataset      %writeAttribute("["//char(self%    scatterUnits    )//"]²"       ,'units'                                                                                                            )
-       call dataset      %writeAttribute(          self%    scatterUnitsInSI   **2        ,'unitsInSI'                                                                                                        )
-       call dataset      %close         (                                                                                                                                                                     )
+    if (self%targetData_%hasTarget()) then
+       call analysisGroup%writeAttribute(          self%logLikelihood()                       ,'logLikelihood'                                                                                                )
+       call analysisGroup%writeAttribute(     char(self%targetData_%targetLabel)              ,'targetLabel'                                                                                                  )
+       call analysisGroup%writeDataset  (          self%targetData_%valueTarget               ,char(self%    scatterLabel)//"Target"          ,char(self% scatterComment)                 ,datasetReturned=dataset)
+       call dataset      %writeAttribute(unitType(self%scatterUnitsInSI   ,description=     char(self%scatterUnits )      ,quantity=     char(self%scatterQuantity )       ,isComoving=self%scatterIsComoving ),'units')
+       call analysisGroup%writeDataset  (          self%targetData_%covarianceTarget          ,char(self%    scatterLabel)//"CovarianceTarget",char(self% scatterComment)//" [covariance]",datasetReturned=dataset)
+       call dataset      %writeAttribute(unitType(self%scatterUnitsInSI**2,description="["//char(self%scatterUnits )//"]²",quantity="("//char(self%scatterQuantity )//")^2",isComoving=self%scatterIsComoving ),'units')
     end if
-    call    analysisGroup%close         (                                                                                                                                                                     )
-    if (present(groupName)) &
-         & call subGroup %close         (                                                                                                                                                                     )
-    call    analysesGroup%close         (                                                                                                                                                                     )
     !$ call hdf5Access%unset()
     return
   end subroutine scatterFunction1DFinalize
@@ -721,17 +782,17 @@ contains
     integer                                                                          :: status
 
     ! Check for existence of a target distribution.
-    if (allocated(self%scatterValueTarget)) then
+    if (self%targetData_%hasTarget()) then
        ! Finalize analysis.
        call self%finalizeAnalysis()
        ! Allocate workspaces.
        allocate(scatterCovarianceCombined(size(self%binCenter),size(self%binCenter)))
        allocate(scatterValueDifference   (size(self%binCenter)                     ))
        ! Find combined covariance and difference between model and target.
-       scatterValueDifference   =+self%scatterValue            &
-            &                    -self%scatterValueTarget
-       scatterCovarianceCombined=+self%scatterCovariance       &
-            &                    +self%scatterCovarianceTarget
+       scatterValueDifference   =+self%scatterValue                  &
+            &                    -self%targetData_%valueTarget
+       scatterCovarianceCombined=+self%scatterCovariance             &
+            &                    +self%targetData_%covarianceTarget
        residual                 = vector(scatterValueDifference   )
        covariance               = matrix(scatterCovarianceCombined)
        ! Compute the log-likelihood.

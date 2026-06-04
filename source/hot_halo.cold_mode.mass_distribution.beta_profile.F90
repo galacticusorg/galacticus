@@ -62,8 +62,7 @@ contains
 
   function betaProfileConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the \refClass{hotHaloColdModeMassDistributionBetaProfile} hot halo cold mode mass distributionclass which builds the object from a
-    parameter set.
+    Constructor for the \refClass{hotHaloColdModeMassDistributionBetaProfile} hot halo cold mode mass distribution class which takes a parameter set as input.
     !!}
     use :: Array_Utilities , only : operator(.intersection.)
     use :: Error           , only : Component_List          , Error_Report
@@ -121,7 +120,7 @@ contains
 
   function betaProfileConstructorInternal(beta,hotHaloColdModeCoreRadii_) result(self)
     !!{
-    Internal constructor for the \refClass{hotHaloColdModeMassDistributionBetaProfile} hot halo mass distribution class.
+    Internal constructor for the \refClass{hotHaloColdModeMassDistributionBetaProfile} hot halo cold mode mass distribution class.
     !!}
     implicit none
     type            (hotHaloColdModeMassDistributionBetaProfile)                        :: self
@@ -136,7 +135,7 @@ contains
 
   subroutine betaProfileDestructor(self)
     !!{
-    Destructor for the \refClass{hotHaloColdModeMassDistributionBetaProfile} hot halo mass distribution class.
+    Destructor for the \refClass{hotHaloColdModeMassDistributionBetaProfile} hot halo cold mode mass distribution class.
     !!}
     implicit none
     type(hotHaloColdModeMassDistributionBetaProfile), intent(inout) :: self

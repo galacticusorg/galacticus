@@ -288,6 +288,7 @@ contains
     use            :: ISO_Varying_String              , only : var_str              , varying_string
     use            :: Kind_Numbers                    , only : kind_int8
     use            :: Numerical_Constants_Astronomical, only : gigaYear             , massSolar
+    use            :: Units_MetaData                  , only : unitType
     use            :: String_Handling                 , only : operator(//)
     use            :: Locks                           , only : ompLock
     implicit none
@@ -308,22 +309,17 @@ contains
           outputGroup=outputFile%openGroup("mainProgenitorEvolution","Evolution data of main progenitors.")
           if (.not.self%oneTimeDatasetsWritten) then
              call outputGroup%writeDataset  (self%time           ,"time"           ,"The time of the main progenitor."            ,datasetReturned=dataset)
-             call dataset    %writeAttribute(gigaYear            ,"unitsInSI"                                                                             )
-             call dataset    %close         (                                                                                                             )
+             call dataset    %writeAttribute(unitType(gigaYear,"Gyr"         ,"Gyr"    ),"units")
              call outputGroup%writeDataset  (self%expansionFactor,"expansionFactor","The expansion factor of the main progenitor."                        )
              self%oneTimeDatasetsWritten=.true.
           end if
           datasetName=var_str("stellarMass")//treeIndex
           call outputGroup%writeDataset  (self%massStellar,char(datasetName),"The stellar mass of the main progenitor."           ,datasetReturned=dataset)
-          call dataset    %writeAttribute(massSolar       ,"unitsInSI"                                                                                    )
-          call dataset    %close         (                                                                                                                )
+          call dataset    %writeAttribute(unitType(massSolar  ,"Solar masses","solMass"),"units")
           datasetName=var_str("totalMass"  )//treeIndex
           call outputGroup%writeDataset  (self%massTotal  ,char(datasetName),"The total baryonic mass of the main progenitor."    ,datasetReturned=dataset)
-          call dataset    %writeAttribute(massSolar       ,"unitsInSI"                                                                                    )
-          call dataset    %close         (                                                                                                                )
-          call outputGroup%close         (                                                                                                                )
-          !$ call hdf5Access%unset()
-          call    self      %reset()
+          call dataset    %writeAttribute(unitType(massSolar  ,"Solar masses","solMass"),"units")
+          call    self    %reset         (                                                                                                                )
        end if
     class default
        call Error_Report('incorrect class'//{introspection:location})

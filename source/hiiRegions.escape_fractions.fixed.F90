@@ -54,7 +54,7 @@ contains
 
   function escapeFractionFixedConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the \refClass{hiiRegionEscapeFractionFixed} timescale for star formation class which takes a parameter set as
+    Constructor for the \refClass{hiiRegionEscapeFractionFixed} HII region escape fraction class which takes a parameter set as
     input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters

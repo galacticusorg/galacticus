@@ -36,11 +36,12 @@ Implements a massHost property extractor class.
      procedure :: name        => massHostName
      procedure :: description => massHostDescription
      procedure :: unitsInSI   => massHostUnitsInSI
+     procedure :: units       => massHostUnits
   end type nodePropertyExtractorMassHost
 
   interface nodePropertyExtractorMassHost
      !!{
-     Constructors for the \refClass{nodePropertyExtractorMassHost} output analysis class.
+     Constructors for the \refClass{nodePropertyExtractorMassHost} property extractor class.
      !!}
      module procedure massHostConstructorParameters
   end interface nodePropertyExtractorMassHost
@@ -125,3 +126,16 @@ contains
     return
   end function massHostUnitsInSI
 
+  function massHostUnits(self) result(units)
+    !!{
+    Return the units of the massHost property.
+    !!}
+    use :: Units_MetaData, only : unitType
+    implicit none
+    type (unitType                     )                :: units
+    class(nodePropertyExtractorMassHost), intent(inout) :: self
+    !$GLC attributes unused :: self
+
+    units=unitType(self%unitsInSI(),description='Solar masses',quantity='solMass')
+    return
+  end function massHostUnits

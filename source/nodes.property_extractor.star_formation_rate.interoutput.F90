@@ -21,7 +21,7 @@
   <nodePropertyExtractor name="nodePropertyExtractorStarFormationRateInterOutput">
    <description>
     A node property extractor which extracts the mean star formation rate between successive outputs. Intended to be paired with the
-    \refClass{nodeOperatorStarFormationRateInterOutput} class to compute those rates.
+    \refClass{nodeOperatorStarFormationRateInterOutput} node operator class to compute those rates.
    </description>
   </nodePropertyExtractor>
   !!]
@@ -38,11 +38,12 @@
      procedure :: names        => starFormationRateInterOutputNames
      procedure :: descriptions => starFormationRateInterOutputDescriptions
      procedure :: unitsInSI    => starFormationRateInterOutputUnitsInSI
+     procedure :: units       => starFormationRateInterOutputUnits
   end type nodePropertyExtractorStarFormationRateInterOutput
 
   interface nodePropertyExtractorStarFormationRateInterOutput
      !!{
-     Constructors for the \refClass{nodePropertyExtractorStarFormationRateInterOutput} output extractor class.
+     Constructors for the \refClass{nodePropertyExtractorStarFormationRateInterOutput} property extractor class.
      !!}
      module procedure starFormationRateInterOutputConstructorParameters
      module procedure starFormationRateInterOutputConstructorInternal
@@ -68,7 +69,7 @@ contains
 
   function starFormationRateInterOutputConstructorInternal() result(self)
     !!{
-    Internal constructor for the \refClass{nodePropertyExtractorStarFormationRateInterOutput} output extractor property extractor class.
+    Internal constructor for the \refClass{nodePropertyExtractorStarFormationRateInterOutput} property extractor class.
     !!}
     implicit none
     type (nodePropertyExtractorStarFormationRateInterOutput) :: self
@@ -197,3 +198,23 @@ contains
     return
   end function starFormationRateInterOutputUnitsInSI
 
+  function starFormationRateInterOutputUnits(self,time) result(units)
+    !!{
+    Return the units of the starFormationRateInterOutput properties.
+    !!}
+    use :: Units_MetaData, only : unitType
+    implicit none
+    type            (unitType                                         ), dimension(:), allocatable :: units
+    class           (nodePropertyExtractorStarFormationRateInterOutput), intent(inout)             :: self
+    double precision                                                   , intent(in   )             :: time
+    double precision                                                   , dimension(:), allocatable :: siValues
+    integer                                                                                        :: i
+    !$GLC attributes unused :: self
+
+    siValues=self%unitsInSI(time)
+    allocate(units(size(siValues)))
+    do i=1,size(siValues)
+       units(i)=unitType(siValues(i),description='M☉/Gyr',quantity='solMass/Gyr')
+    end do
+    return
+  end function starFormationRateInterOutputUnits

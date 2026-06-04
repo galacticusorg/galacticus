@@ -38,7 +38,7 @@
 
   interface outputAnalysisDistributionOperatorIdentity
      !!{
-     Constructors for the \refClass{outputAnalysisDistributionOperatorIdentity} output analysis class.
+     Constructors for the \refClass{outputAnalysisDistributionOperatorIdentity} output analysis distribution operator class.
      !!}
      module procedure identityConstructorParameters
   end interface outputAnalysisDistributionOperatorIdentity

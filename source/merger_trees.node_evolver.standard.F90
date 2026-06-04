@@ -464,6 +464,7 @@ contains
        allocate(self%odeTolerancesInactiveAbsolute(self%propertyCountAll))
        self%propertyCountMaximum  =self%propertyCountAll
        self%propertyValuesPrevious=0.0d0
+       self%isNonNegative         =.false.
     end if
     ! Iterate until the step has been solved numerically.
     solvedNumerically=.false.
@@ -1312,12 +1313,7 @@ contains
        message=message//node%index()//' a satellite in '//node%parent%index()//' at time '//trim(adjustl(label))//' Gyr'
        call displayMessage(message,verbosityLevelInfo)
     end if
-    ! Call subroutines to perform any necessary processing prior to this node merger event.
-    !![
-    <eventHookStatic name="nodeMergerTask">
-     <callWith>node</callWith>
-    </eventHookStatic>
-    !!]
+    ! Perform any necessary processing prior to this node merger event.
     call self%nodeOperator_        %nodesMerge(node)
     ! Process the merger.
     call self%mergerTreeNodeMerger_%process   (node)

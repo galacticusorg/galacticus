@@ -37,7 +37,7 @@ Implements an identity output analysis property operator class.
 
   interface outputAnalysisPropertyOperatorIdentity
      !!{
-     Constructors for the \refClass{outputAnalysisPropertyOperatorIdentity} output analysis class.
+     Constructors for the \refClass{outputAnalysisPropertyOperatorIdentity} output analysis property operator class.
      !!}
      module procedure identityConstructorParameters
   end interface outputAnalysisPropertyOperatorIdentity

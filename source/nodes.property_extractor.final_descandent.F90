@@ -39,7 +39,7 @@ Implements an ISM mass output analysis property extractor class.
 
   interface nodePropertyExtractorFinalDescendant
      !!{
-     Constructors for the \refClass{nodePropertyExtractorFinalDescendant} output analysis class.
+     Constructors for the \refClass{nodePropertyExtractorFinalDescendant} property extractor class.
      !!}
      module procedure finalDescendantConstructorParameters
   end interface nodePropertyExtractorFinalDescendant
@@ -48,7 +48,7 @@ contains
 
   function finalDescendantConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the \refClass{nodePropertyExtractorFinalDescendant} node property extractor class which takes a parameter set as input.
+    Constructor for the \refClass{nodePropertyExtractorFinalDescendant} property extractor class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -87,7 +87,6 @@ contains
     return
   end function finalDescendantExtract
 
-
   function finalDescendantName(self)
     !!{
     Return the name of the finalDescendant property.
@@ -113,6 +112,3 @@ contains
     finalDescendantDescription=var_str('ID of the node which this node will have descended into at the base of the tree.')
     return
   end function finalDescendantDescription
-
-
-

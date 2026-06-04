@@ -33,11 +33,12 @@
      procedure :: names        => massBlackHolesNames
      procedure :: descriptions => massBlackHolesDescriptions
      procedure :: unitsInSI    => massBlackHolesUnitsInSI
+     procedure :: units        => massBlackHolesUnits
   end type nodePropertyExtractorMassBlackHoles
 
   interface nodePropertyExtractorMassBlackHoles
      !!{
-     Constructors for the \refClass{nodePropertyExtractorMassBlackHoles} output extractor class.
+     Constructors for the \refClass{nodePropertyExtractorMassBlackHoles} property extractor class.
      !!}
      module procedure massBlackHolesConstructorParameters
   end interface nodePropertyExtractorMassBlackHoles
@@ -124,7 +125,7 @@ contains
 
   function massBlackHolesUnitsInSI(self) result(unitsInSI)
     !!{
-    Return the units of the \mono{massBlackHoles} properties in the SI system.
+    Return the units of the black hole mass properties in the SI system.
     !!}
     use :: Numerical_Constants_Astronomical, only : massSolar
     implicit none
@@ -136,3 +137,22 @@ contains
     unitsInSI(1)=massSolar
     return
   end function massBlackHolesUnitsInSI
+
+  function massBlackHolesUnits(self) result(units)
+    !!{
+    Return the units of the black hole mass properties.
+    !!}
+    use :: Units_MetaData, only : unitType
+    implicit none
+    type            (unitType                           ), dimension(:) , allocatable :: units
+    class           (nodePropertyExtractorMassBlackHoles), intent(inout)              :: self
+    double precision                                     , dimension(:) , allocatable :: siValues
+    integer                                                                           :: i
+
+    siValues=self%unitsInSI()
+    allocate(units(size(siValues)))
+    do i=1,size(siValues)
+       units(i)=unitType(siValues(i),description='Solar masses',quantity='solMass')
+    end do
+    return
+  end function massBlackHolesUnits

@@ -51,7 +51,7 @@ Implements a sequence output analysis weight operator class.
 
   interface outputAnalysisWeightOperatorSequence
      !!{
-     Constructors for the \refClass{outputAnalysisWeightOperatorSequence} output analysis class.
+     Constructors for the \refClass{outputAnalysisWeightOperatorSequence} output analysis weight operator class.
      !!}
      module procedure sequenceConstructorParameters
      module procedure sequenceConstructorInternal

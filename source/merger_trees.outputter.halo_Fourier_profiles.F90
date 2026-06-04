@@ -71,7 +71,6 @@
      final     ::               haloFourierProfilesDestructor
      procedure :: outputTree => haloFourierProfilesOutputTree
      procedure :: outputNode => haloFourierProfilesOutputNode
-     procedure :: finalize   => haloFourierProfilesFinalize
   end type mergerTreeOutputterHaloFourierProfiles
 
   interface mergerTreeOutputterHaloFourierProfiles
@@ -165,7 +164,6 @@ contains
     implicit none
     type(mergerTreeOutputterHaloFourierProfiles), intent(inout) :: self
     
-    call self%finalize()
     !![
     <objectDestructor name="self%galacticFilter_"      />
     <objectDestructor name="self%cosmologyFunctions_"  />
@@ -174,22 +172,8 @@ contains
     !!]
     return
   end subroutine haloFourierProfilesDestructor
-
-  subroutine haloFourierProfilesFinalize(self)
-    !!{
-    Write properties of nodes in \mono{tree} to the \glc\ output file.
-    !!}
-    !$ use :: HDF5_Access, only : hdf5Access
-    implicit none
-    class(mergerTreeOutputterHaloFourierProfiles), intent(inout) :: self
-
-    !$ call hdf5Access%set  ()
-    if (self%outputGroup%isOpen()) call self%outputGroup%close()
-    !$ call hdf5Access%unset()
-    return
-  end subroutine haloFourierProfilesFinalize
   
-  subroutine haloFourierProfilesOutputTree(self,tree,indexOutput,time)
+  subroutine haloFourierProfilesOutputTree(self,tree,indexOutput,time,outputType)
     !!{
     Write properties of nodes in \mono{tree} to the \glc\ output file.
     !!}
@@ -200,12 +184,14 @@ contains
     use    :: Mass_Distributions              , only : massDistributionClass
     use    :: Merger_Tree_Walkers             , only : mergerTreeWalkerAllNodes
     use    :: Numerical_Constants_Astronomical, only : megaParsec
+    use    :: Units_MetaData                  , only : unitType
     use    :: String_Handling                 , only : operator(//)
     implicit none
     class           (mergerTreeOutputterHaloFourierProfiles), intent(inout)               :: self
     type            (mergerTree                            ), intent(inout), target       :: tree
     integer         (c_size_t                              ), intent(in   )               :: indexOutput
     double precision                                        , intent(in   )               :: time
+    type            (enumerationOutputGroupTypeType        ), intent(in   ), optional     :: outputType
     type            (treeNode                              )               , pointer      :: node
     class           (nodeComponentBasic                    )               , pointer      :: basic
     class           (massDistributionClass                 )               , pointer      :: massDistribution_
@@ -216,15 +202,14 @@ contains
     integer         (c_size_t                              )                              :: treeIndexPrevious
     double precision                                                                      :: expansionFactor  , radiusVirial
     integer                                                                               :: i
-    !$GLC attributes unused :: time
+    !$GLC attributes unused :: time, outputType
     
     allocate(fourierProfile(self%wavenumberCount))
     !$ call hdf5Access%set  ()
     if (.not.self%outputGroup%isOpen()) then
        self%outputGroup=outputFile%openGroup("haloFourierProfiles","Halo model data.")
        call self   %outputGroup%writeDataset  (self%wavenumber ,'wavenumber','Wavenumber at which Fourier transform of density profile is tabulated [Mpc⁻¹].',datasetReturned=dataset)
-       call dataset            %writeAttribute(1.0d0/megaParsec,'unitsInSI'                                                                                                          )
-       call dataset            %close         (                                                                                                                                      )
+       call dataset            %writeAttribute(unitType(1.0d0/megaParsec,"Mpc⁻¹","Mpc^-1",.true.),'units'                                                                                          )
     end if
     outputGroup=self%outputGroup%openGroup(char(var_str('output')//indexOutput),char(var_str("Fourier space density profiles of halos for all trees at output number ")//indexOutput//"."))
     !$ call hdf5Access%unset()
@@ -235,7 +220,6 @@ contains
        if (node%hostTree%index /= treeIndexPrevious) then
           treeIndexPrevious=node%hostTree%index
           !$ call hdf5Access%set  ()
-          if (treeGroup%isOpen()) call treeGroup%close()
           treeGroup=outputGroup%openGroup(char(var_str('tree')//node%hostTree%index),"Fourier space density profiles of halos for each tree.")
           !$ call hdf5Access%unset()
        end if
@@ -255,23 +239,20 @@ contains
        call treeGroup%writeDataset(fourierProfile,char(var_str('node')//node%index()),"The Fourier-space density profile.")
        !$ call hdf5Access%unset()
     end do
-    !$ call hdf5Access%set  ()
-    if (treeGroup%isOpen()) call treeGroup  %close()
-    call                         outputGroup%close()
-    !$ call hdf5Access%unset()
     return
   end subroutine haloFourierProfilesOutputTree
 
-  subroutine haloFourierProfilesOutputNode(self,node,indexOutput)
+  subroutine haloFourierProfilesOutputNode(self,node,indexOutput, outputType)
     !!{
     Perform no output.
     !!}
     use :: Error, only : Error_Report
     implicit none
-    class  (mergerTreeOutputterHaloFourierProfiles), intent(inout) :: self
-    type   (treeNode                              ), intent(inout) :: node
-    integer(c_size_t                              ), intent(in   ) :: indexOutput
-    !$GLC attributes unused :: self, node, indexOutput
+    class  (mergerTreeOutputterHaloFourierProfiles), intent(inout)           :: self
+    type   (treeNode                              ), intent(inout)           :: node
+    integer(c_size_t                              ), intent(in   )           :: indexOutput
+    type   (enumerationOutputGroupTypeType        ), intent(in   ), optional :: outputType
+    !$GLC attributes unused :: self, node, indexOutput, outputType
 
     call Error_Report('output of single nodes is not supported'//{introspection:location})
     return

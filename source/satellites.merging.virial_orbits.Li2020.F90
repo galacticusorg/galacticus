@@ -79,7 +79,7 @@
 
   interface virialOrbitLi2020
      !!{
-     Constructors for the \refClass{virialOrbitLi2020} virial orbit class.
+     Constructors for the \refClass{virialOrbitLi2020} virial orbits class.
      !!}
      module procedure li2020ConstructorParameters
      module procedure li2020ConstructorInternal

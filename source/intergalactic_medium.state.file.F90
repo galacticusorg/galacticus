@@ -20,7 +20,7 @@
 !+    Contributions to this file made by:  Luiz Felippe S. Rodrigues.
 
   !!{
-  An implementation of the intergalactic medium state class in which state is read from file.
+  An implementation of the \gls{igm} state class in which state is read from file.
   !!}
 
   use :: Numerical_Interpolation, only : interpolator
@@ -32,7 +32,7 @@
   !![
   <intergalacticMediumState name="intergalacticMediumStateFile">
    <description>
-    An intergalactic medium state class which reads the state of the intergalactic medium from a file and interpolates in the
+    An \gls{igm} state class which reads the state of the intergalactic medium from a file and interpolates in the
     tabulated results. The HDF5 file containing the table should have the following form:
     \begin{verbatim}
     HDF5 "igmState.hdf5" {
@@ -164,7 +164,7 @@
 
   interface intergalacticMediumStateFile
      !!{
-     Constructors for the file intergalactic medium state class.
+     Constructors for the file \gls{igm} state class.
      !!}
      module procedure fileConstructorParameters
      module procedure fileConstructorInternal
@@ -253,11 +253,11 @@ contains
     if (self%dataRead) return
     block
       type(hdf5Object) :: file
-
+      
       if (.not.File_Exists(self%fileName)) call Error_Report('Unable to find intergalactic medium state file "' //char(self%fileName)//'"'//{introspection:location})
       !$ call hdf5Access%set()
       ! Open the file.
-      call file%openFile(self%fileName,readOnly=.true.)
+      file=hdf5Object(self%fileName,readOnly=.true.)
       ! Check the file format version of the file.
       call file%readAttribute('fileFormat',fileFormatVersion)
       if (fileFormatVersion /= fileFormatVersionCurrent) call Error_Report('file format version is out of date'//{introspection:location})
@@ -274,7 +274,6 @@ contains
       call file%readDataset('hIonizedFraction' ,self%ionizedHydrogenFractionTable)
       call file%readDataset('heIonizedFraction',self%ionizedHeliumFractionTable  )
       call file%readDataset('matterTemperature',self%temperatureTable            )
-      call file%close      (                                                     )
       !$ call hdf5Access%unset()
       self%redshiftCount=size(self%timeTable)
       ! Convert redshifts to times.

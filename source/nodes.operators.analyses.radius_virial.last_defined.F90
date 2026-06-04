@@ -27,7 +27,7 @@
   <nodeOperator name="nodeOperatorRadiusVirialLastDefined">
     <description>
       A node operator class that tracks the last-defined virial radius. Intended to be paired with the
-      \refClass{nodePropertyExtractorRadiusVirialLastDefined} class to extract these times for output.
+      \refClass{nodePropertyExtractorRadiusVirialLastDefined} property extractor class to extract these times for output.
     </description>
   </nodeOperator>
   !!]
@@ -93,7 +93,7 @@ contains
   
   subroutine radiusVirialLastDefinedDestructor(self)
     !!{
-    Destructor for the \refClass{nodeOperatorRadiusVirialLastDefined} property extractor class.
+    Destructor for the \refClass{nodeOperatorRadiusVirialLastDefined} node operator class.
     !!}
     implicit none
     type(nodeOperatorRadiusVirialLastDefined), intent(inout) :: self

@@ -44,11 +44,12 @@ Implements an intracluster medium X-ray luminosity-weighted temperature property
      procedure :: name        => icmXRayTemperatureName
      procedure :: description => icmXRayTemperatureDescription
      procedure :: unitsInSI   => icmXRayTemperatureUnitsInSI
+     procedure :: units       => iCMXRayTemperatureUnits
   end type nodePropertyExtractorICMXRayTemperature
 
   interface nodePropertyExtractorICMXRayTemperature
      !!{
-     Constructors for the \refClass{nodePropertyExtractorICMXRayTemperature} output analysis class.
+     Constructors for the \refClass{nodePropertyExtractorICMXRayTemperature} property extractor class.
      !!}
      module procedure icmXRayTemperatureConstructorParameters
      module procedure icmXRayTemperatureConstructorInternal
@@ -289,3 +290,16 @@ contains
     return
   end function icmXRayTemperatureUnitsInSI
 
+  function iCMXRayTemperatureUnits(self) result(units)
+    !!{
+    Return the units of the iCMXRayTemperature property.
+    !!}
+    use :: Units_MetaData, only : unitType
+    implicit none
+    type (unitType                               )                :: units
+    class(nodePropertyExtractorICMXRayTemperature), intent(inout) :: self
+    !$GLC attributes unused :: self
+
+    units=unitType(self%unitsInSI(),description='keV',quantity='keV')
+    return
+  end function iCMXRayTemperatureUnits

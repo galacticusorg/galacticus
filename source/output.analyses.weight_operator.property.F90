@@ -42,7 +42,7 @@ Implements an analysis weight operator class which weights by a property value.
 
   interface outputAnalysisWeightOperatorProperty
      !!{
-     Constructors for the \refClass{outputAnalysisWeightOperatorProperty} output analysis class.
+     Constructors for the \refClass{outputAnalysisWeightOperatorProperty} output analysis weight operator class.
      !!}
      module procedure propertyConstructorParameters
      module procedure propertyConstructorInternal

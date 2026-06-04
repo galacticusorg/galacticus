@@ -43,11 +43,12 @@ Implements a tidal field property extractor class.
      procedure :: name        => tidalFieldName
      procedure :: description => tidalFieldDescription
      procedure :: unitsInSI   => tidalFieldUnitsInSI
+     procedure :: units       => tidalFieldUnits
   end type nodePropertyExtractorTidalField
 
   interface nodePropertyExtractorTidalField
      !!{
-     Constructors for the \refClass{nodePropertyExtractorTidalField} output analysis class.
+     Constructors for the \refClass{nodePropertyExtractorTidalField} property extractor class.
      !!}
      module procedure tidalFieldConstructorParameters
      module procedure tidalFieldConstructorInternal
@@ -78,7 +79,7 @@ contains
 
   function tidalFieldConstructorInternal(satelliteTidalField_) result(self)
     !!{
-    Internal constructor for the \refClass{nodePropertyExtractorTidalField} class.
+    Internal constructor for the \refClass{nodePropertyExtractorTidalField} property extractor class.
     !!}
     implicit none
     type (nodePropertyExtractorTidalField)                        :: self
@@ -92,7 +93,7 @@ contains
 
   subroutine tidalFieldDestructor(self)
     !!{
-    Destructor for the \refClass{nodePropertyExtractorTidalField} class.
+    Destructor for the \refClass{nodePropertyExtractorTidalField} property extractor class.
     !!}
     implicit none
     type(nodePropertyExtractorTidalField), intent(inout) :: self
@@ -167,4 +168,16 @@ contains
     return
   end function tidalFieldUnitsInSI
 
+  function tidalFieldUnits(self) result(units)
+    !!{
+    Return the units of the tidalField property.
+    !!}
+    use :: Units_MetaData, only : unitType
+    implicit none
+    type (unitType                       )                :: units
+    class(nodePropertyExtractorTidalField), intent(inout) :: self
+    !$GLC attributes unused :: self
 
+    units=unitType(self%unitsInSI(),description='Gyr⁻²',quantity='Gyr^-2')
+    return
+  end function tidalFieldUnits

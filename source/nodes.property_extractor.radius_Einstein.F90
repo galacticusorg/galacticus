@@ -48,11 +48,12 @@ Implements an output analysis property extractor class that extracts the Einstei
      procedure :: name        => radiusEinsteinName
      procedure :: description => radiusEinsteinDescription
      procedure :: unitsInSI   => radiusEinsteinUnitsInSI
+     procedure :: units       => radiusEinsteinUnits
   end type nodePropertyExtractorRadiusEinstein
 
   interface nodePropertyExtractorRadiusEinstein
      !!{
-     Constructors for the \refClass{nodePropertyExtractorRadiusEinstein} output analysis class.
+     Constructors for the \refClass{nodePropertyExtractorRadiusEinstein} property extractor class.
      !!}
      module procedure radiusEinsteinConstructorParameters
      module procedure radiusEinsteinConstructorInternal
@@ -69,7 +70,7 @@ contains
 
   function radiusEinsteinConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the \refClass{nodePropertyExtractorRadiusEinstein} node property extractor class which takes a parameter set as input.
+    Constructor for the \refClass{nodePropertyExtractorRadiusEinstein} property extractor class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -140,7 +141,7 @@ contains
 
   subroutine radiusEinsteinDestructor(self)
     !!{
-    Destructor for the \refClass{nodePropertyExtractorRadiusEinstein} node property extractor class.
+    Destructor for the \refClass{nodePropertyExtractorRadiusEinstein} property extractor class.
     !!}
     implicit none
     type(nodePropertyExtractorRadiusEinstein), intent(inout) :: self
@@ -206,7 +207,7 @@ contains
        radiusEinsteinExtract=+self%finder%find(rootGuess=self%darkMatterHaloScale_%radiusVirial(node)) &
             &                /distanceAngularLens                                                      &
             &                /degreesToRadians                                                         &
-            &                /arcsecondstoDegrees
+            &                /arcsecondsToDegrees
     end if
     return
   end function radiusEinsteinExtract
@@ -313,3 +314,17 @@ contains
          &                  *arcsecondsToDegrees
     return
   end function radiusEinsteinUnitsInSI
+
+  function radiusEinsteinUnits(self) result(units)
+    !!{
+    Return the units of the Einstein radius property.
+    !!}
+    use :: Units_MetaData, only : unitType
+    implicit none
+    type (unitType                           )                :: units
+    class(nodePropertyExtractorRadiusEinstein), intent(inout) :: self
+    !$GLC attributes unused :: self
+
+    units=unitType(self%unitsInSI(),description='arcseconds',quantity='arcsecond')
+    return
+  end function radiusEinsteinUnits

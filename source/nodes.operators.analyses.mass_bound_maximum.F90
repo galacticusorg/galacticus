@@ -25,7 +25,7 @@
   <nodeOperator name="nodeOperatorMassBoundMaximum">
     <description>
       A node operator class that tracks the maximum bound mass achieved by a node. Intended to be paired with the
-      \refClass{nodePropertyExtractorMassBoundMaximum} class to extract these masses for output.
+      \refClass{nodePropertyExtractorMassBoundMaximum} property extractor class to extract these masses for output.
     </description>
   </nodeOperator>
   !!]

@@ -38,7 +38,7 @@ Implements a multiplication analysis property operator class.
 
   interface outputAnalysisPropertyOperatorMultiply
      !!{
-     Constructors for the \refClass{outputAnalysisPropertyOperatorMultiply} output analysis class.
+     Constructors for the \refClass{outputAnalysisPropertyOperatorMultiply} output analysis property operator class.
      !!}
      module procedure multiplyConstructorParameters
      module procedure multiplyConstructorInternal
@@ -74,7 +74,7 @@ contains
 
   function multiplyConstructorInternal(multiplier) result (self)
     !!{
-    Internal constructor for the \refClass{outputAnalysisPropertyOperatorMultiply} output analysis distribution operator class.
+    Internal constructor for the \refClass{outputAnalysisPropertyOperatorMultiply} output analysis property operator class.
     !!}
     implicit none
     type            (outputAnalysisPropertyOperatorMultiply)                :: self

@@ -46,7 +46,7 @@
 
   interface radiativeTransferOutputterContinuuaRates
      !!{
-     Constructors for the \refClass{radiativeTransferOutputterContinuuaRates} radiative transfer outputter packet class.
+     Constructors for the \refClass{radiativeTransferOutputterContinuuaRates} radiative transfer outputter class.
      !!}
      module procedure continuuaRatesConstructorParameters
      module procedure continuuaRatesConstructorInternal

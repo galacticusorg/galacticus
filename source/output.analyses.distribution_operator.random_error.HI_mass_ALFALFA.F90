@@ -154,7 +154,7 @@ contains
   double precision function randomErrorHIALFALFARootVariance(self,propertyValue,node)
     !!{
     Computes errors on $\log_{10}($HI masses$)$ for the ALFALFA survey analysis. Uses a simple fitting function. See
-    \mono{constraints/dataAnalysis/hiMassFunction\_ALFALFA\_z0.00/alfalfaHIMassErrorModel.pl} for details.
+    \mono{constraints/dataAnalysis/hiMassFunction\_ALFALFA\_z0.00/alfalfaHIMassErrorModel.py} for details.
     !!}
     implicit none
     class           (outputAnalysisDistributionOperatorRandomErrorALFLF), intent(inout) :: self

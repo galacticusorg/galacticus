@@ -32,7 +32,7 @@
 
   interface radiativeTransferOutputterNull
      !!{
-     Constructors for the \refClass{radiativeTransferOutputterNull} radiative transfer outputter packet class.
+     Constructors for the \refClass{radiativeTransferOutputterNull} radiative transfer outputter class.
      !!}
      module procedure nullConstructorParameters
   end interface radiativeTransferOutputterNull

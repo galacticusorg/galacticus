@@ -124,7 +124,7 @@ contains
 
   function adaptiveConstructorInternal(exponentInitial,exponentMinimum,exponentMaximum,exponentAdjustFactor,gradientMinimum,gradientMaximum,updateCount) result(self)
     !!{
-    Constructor for the \refClass{posteriorSampleDffrntlEvltnPrpslSzTmpExpAdaptive} differential evolution proposal size class.
+    Constructor for the \refClass{posteriorSampleDffrntlEvltnPrpslSzTmpExpAdaptive} posterior sampling differential evolution random jump class.
     !!}
     implicit none
     type            (posteriorSampleDffrntlEvltnPrpslSzTmpExpAdaptive)                :: self

@@ -55,7 +55,7 @@ module Node_Component_Disk_Standard
       <type>double</type>
       <rank>0</rank>
       <attributes isSettable="true" isGettable="true" isEvolvable="true" isNonNegative="true" />
-      <output unitsInSI="massSolar" comment="Mass of stars in the standard disk."/>
+      <output unitsInSI="massSolar" unitsDescription="Solar masses" unitsQuantity="solMass" comment="Mass of stars in the standard disk."/>
     </property>
     <property>
       <name>massStellarFormed</name>
@@ -74,35 +74,35 @@ module Node_Component_Disk_Standard
       <type>abundances</type>
       <rank>0</rank>
       <attributes isSettable="true" isGettable="true" isEvolvable="true" isNonNegative="true" />
-      <output unitsInSI="massSolar" comment="Mass of metals in the stellar phase of the standard disk."/>
+      <output unitsInSI="massSolar" unitsDescription="Solar masses" unitsQuantity="solMass" comment="Mass of metals in the stellar phase of the standard disk."/>
     </property>
     <property>
       <name>massGas</name>
       <type>double</type>
       <rank>0</rank>
       <attributes isSettable="true" isGettable="true" isEvolvable="true" createIfNeeded="true" isNonNegative="true" />
-      <output unitsInSI="massSolar" comment="Mass of gas in the standard disk."/>
+      <output unitsInSI="massSolar" unitsDescription="Solar masses" unitsQuantity="solMass" comment="Mass of gas in the standard disk."/>
     </property>
     <property>
       <name>abundancesGas</name>
       <type>abundances</type>
       <rank>0</rank>
       <attributes isSettable="true" isGettable="true" isEvolvable="true" createIfNeeded="true" isNonNegative="true" />
-      <output unitsInSI="massSolar" comment="Mass of metals in the gas phase of the standard disk."/>
+      <output unitsInSI="massSolar" unitsDescription="Solar masses" unitsQuantity="solMass" comment="Mass of metals in the gas phase of the standard disk."/>
     </property>
     <property>
       <name>angularMomentum</name>
       <type>double</type>
       <rank>0</rank>
       <attributes isSettable="true" isGettable="true" isEvolvable="true" createIfNeeded="true" isNonNegative="true" />
-      <output unitsInSI="massSolar*megaParsec*kilo" comment="Angular momentum of the standard disk."/>
+      <output unitsInSI="massSolar*megaParsec*kilo" unitsDescription="Msun Mpc km/s" unitsQuantity="solMass Mpc km/s" comment="Angular momentum of the standard disk."/>
     </property>
     <property>
       <name>radius</name>
       <type>double</type>
       <rank>0</rank>
       <attributes isSettable="true" isGettable="true" isEvolvable="false" />
-      <output unitsInSI="megaparsec" comment="Radial scale length in the standard disk."/>
+      <output unitsInSI="megaparsec" unitsDescription="Mpc" unitsQuantity="Mpc" comment="Radial scale length in the standard disk."/>
     </property>
     <property>
       <name>halfMassRadius</name>
@@ -116,14 +116,14 @@ module Node_Component_Disk_Standard
       <type>double</type>
       <rank>0</rank>
       <attributes isSettable="true" isGettable="true" isEvolvable="false" />
-      <output unitsInSI="kilo" comment="Circular velocity of the standard disk at scale length."/>
+      <output unitsInSI="kilo" unitsDescription="km/s" unitsQuantity="km/s" comment="Circular velocity of the standard disk at scale length."/>
     </property>
     <property>
       <name>luminositiesStellar</name>
       <type>stellarLuminosities</type>
       <rank>0</rank>
       <attributes isSettable="true" isGettable="true" isEvolvable="true" isNonNegative="true" />
-      <output unitsInSI="luminosityZeroPointAB" comment="Luminosity of disk stars."/>
+      <output unitsInSI="luminosityZeroPointAB" unitsDescription="AB-magnitude zero point" unitsQuantity="4.465920e17 W/Hz" comment="Luminosity of disk stars."/>
     </property>
     <property>
       <name>stellarPropertiesHistory</name>
@@ -848,11 +848,10 @@ contains
     disk => node%disk()
     select type (disk)
     class is (nodeComponentDiskStandard)
-       spheroid => node%spheroid()
+       spheroid => node    %spheroid  (                 )
        ! Find the node to merge with.
-       nodeHost     => node%mergesWith  (                 )
-       diskHost     => nodeHost%disk    (autoCreate=.true.)
-       spheroidHost => nodeHost%spheroid(autoCreate=.true.)
+       nodeHost => node    %mergesWith(                 )
+       diskHost => nodeHost%disk      (autoCreate=.true.)
        ! Get specific angular momentum of the disk material.
        if (                                               disk%massGas()+disk%massStellar() > 0.0d0) then
           specificAngularMomentum=disk%angularMomentum()/(disk%massGas()+disk%massStellar())
@@ -861,6 +860,12 @@ contains
        end if
        ! Get mass movement descriptors.
        call mergerMassMovements_%get(node,destinationGasSatellite,destinationStarsSatellite,destinationGasHost,destinationStarsHost,mergerIsMajor)
+       ! Get the host spheroid component if needed (creating it if needed).
+       if     (                                                              &
+            &   destinationGasSatellite  %ID == destinationMergerSpheroid%ID &
+            &  .or.                                                          &
+            &   destinationStarsSatellite%ID == destinationMergerSpheroid%ID &
+            & ) spheroidHost => nodeHost%spheroid(autoCreate=.true.)
        ! Move the gas component of the standard disk to the host.
        select case (destinationGasSatellite%ID)
        case (destinationMergerDisk%ID)

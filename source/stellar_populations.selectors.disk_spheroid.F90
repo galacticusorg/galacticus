@@ -54,7 +54,7 @@ contains
 
   function diskSpheroidConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the \refClass{stellarPopulationSelectorDiskSpheroid} stellar population class which takes a parameter list as input.
+    Constructor for the \refClass{stellarPopulationSelectorDiskSpheroid} stellar population selector class which takes a parameter list as input.
     !!}
     use :: Input_Parameters   , only : inputParameter   , inputParameters
     use :: Stellar_Populations, only : stellarPopulation, stellarPopulationClass

@@ -373,7 +373,7 @@ contains
 
   subroutine duttonMaccio2014Destructor(self)
     !!{
-    Destructor for the \refClass{darkMatterProfileConcentrationDuttonMaccio2014} dark matter profile concentration class.
+    Destructor for the \refClass{darkMatterProfileConcentrationDuttonMaccio2014} dark matter halo profile concentration class.
     !!}
     implicit none
     type(darkMatterProfileConcentrationDuttonMaccio2014), intent(inout) :: self

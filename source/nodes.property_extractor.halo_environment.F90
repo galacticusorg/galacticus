@@ -41,11 +41,12 @@ Implements a node property extractor class for halo environment.
      procedure :: names        => haloEnvironmentNames
      procedure :: descriptions => haloEnvironmentDescriptions
      procedure :: unitsInSI    => haloEnvironmentUnitsInSI
+     procedure :: units        => haloEnvironmentUnits
   end type nodePropertyExtractorHaloEnvironment
 
   interface nodePropertyExtractorHaloEnvironment
      !!{
-     Constructors for the \refClass{nodePropertyExtractorHaloEnvironment} output analysis class.
+     Constructors for the \refClass{nodePropertyExtractorHaloEnvironment} property extractor class.
      !!}
      module procedure haloEnvironmentConstructorParameters
      module procedure haloEnvironmentConstructorInternal
@@ -55,7 +56,7 @@ contains
 
   function haloEnvironmentConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the \refClass{nodePropertyExtractorHaloEnvironment} node property extractor class which takes a parameter set as input.
+    Constructor for the \refClass{nodePropertyExtractorHaloEnvironment} property extractor class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -76,7 +77,7 @@ contains
 
   function haloEnvironmentConstructorInternal(haloEnvironment_) result(self)
     !!{
-    Internal constructor for the \refClass{nodePropertyExtractorHaloEnvironment} output analysis property extractor class.
+    Internal constructor for the \refClass{nodePropertyExtractorHaloEnvironment} property extractor class.
     !!}
     implicit none
     type (nodePropertyExtractorHaloEnvironment)                        :: self
@@ -90,7 +91,7 @@ contains
 
   subroutine haloEnvironmentDestructor(self)
     !!{
-    Destructor for the \refClass{nodePropertyExtractorHaloEnvironment} output analysis property extractor class.
+    Destructor for the \refClass{nodePropertyExtractorHaloEnvironment} property extractor class.
     !!}
     implicit none
     type(nodePropertyExtractorHaloEnvironment), intent(inout) :: self
@@ -177,7 +178,25 @@ contains
     !$GLC attributes unused :: self, time
 
     allocate(haloEnvironmentUnitsInSI(2))
-    haloEnvironmentUnitsInSI=0.0d0
+    haloEnvironmentUnitsInSI=1.0d0
     return
   end function haloEnvironmentUnitsInSI
 
+  function haloEnvironmentUnits(self,time) result(units)
+    !!{
+    Return the units of the haloEnvironment properties.
+    !!}
+    use :: Units_MetaData, only : unitType
+    implicit none
+    type            (unitType                            ), dimension(:), allocatable :: units
+    class           (nodePropertyExtractorHaloEnvironment), intent(inout)             :: self
+    double precision                                      , intent(in   )             :: time
+    integer                                                                           :: i
+    !$GLC attributes unused :: self, time
+
+    allocate(units(2))
+    do i=1,2
+       units(i)=unitType(1.0d0)
+    end do
+    return
+  end function haloEnvironmentUnits

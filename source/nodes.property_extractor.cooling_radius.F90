@@ -42,11 +42,12 @@ Implements a radiusCooling property extractor class.
      procedure :: name        => radiusCoolingName
      procedure :: description => radiusCoolingDescription
      procedure :: unitsInSI   => radiusCoolingUnitsInSI
+     procedure :: units       => radiusCoolingUnits
   end type nodePropertyExtractorRadiusCooling
 
   interface nodePropertyExtractorRadiusCooling
      !!{
-     Constructors for the \refClass{nodePropertyExtractorRadiusCooling} output analysis class.
+     Constructors for the \refClass{nodePropertyExtractorRadiusCooling} property extractor class.
      !!}
      module procedure radiusCoolingConstructorParameters
      module procedure radiusCoolingConstructorInternal
@@ -155,4 +156,16 @@ contains
     return
   end function radiusCoolingUnitsInSI
 
+  function radiusCoolingUnits(self) result(units)
+    !!{
+    Return the units of the radiusCooling property.
+    !!}
+    use :: Units_MetaData, only : unitType
+    implicit none
+    type (unitType                          )                :: units
+    class(nodePropertyExtractorRadiusCooling), intent(inout) :: self
+    !$GLC attributes unused :: self
 
+    units=unitType(self%unitsInSI(),description='Mpc',quantity='Mpc')
+    return
+  end function radiusCoolingUnits

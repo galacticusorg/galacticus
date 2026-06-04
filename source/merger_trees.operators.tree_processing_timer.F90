@@ -310,6 +310,7 @@ contains
     use :: IO_HDF5                         , only : hdf5Object
     use :: HDF5                            , only : hsize_t
     use :: Numerical_Constants_Astronomical, only : massSolar
+    use :: Units_MetaData                  , only : unitType
     implicit none
     class  (mergerTreeOperatorTreeProcessingTimer), intent(inout) :: self
     integer(hsize_t                              ), parameter     :: chunkSize      =100_hsize_t
@@ -324,21 +325,16 @@ contains
        call timingDataGroup       %writeDataset  (self%treeIDs         (1:self%countTrees),"treeID"         ,"Tree ID"                    ,chunkSize=chunkSize                                ,appendTo=.true.)
        call timingDataGroup       %writeDataset  (self%masses          (1:self%countTrees),"treeMass"       ,"Tree mass [M⊙]"             ,chunkSize=chunkSize,datasetReturned=metaDataDataset,appendTo=.true.)
        if (.not.preExists) &
-            & call metaDataDataset%writeAttribute(massSolar                               ,"unitsInSI"                                                                                                        )
-       call metaDataDataset       %close         (                                                                                                                                                            )
+            & call metaDataDataset%writeAttribute(unitType(massSolar,"Solar masses","solMass"),"units")
        call timingDataGroup       %writeDataset  (self%timesConstruct  (1:self%countTrees),"timeConstruct"  ,"Tree construction time [s]" ,chunkSize=chunkSize,datasetReturned=metaDataDataset,appendTo=.true.)
        if (.not.preExists) &
-            & call metaDataDataset%writeAttribute(1.0d0                                   ,"unitsInSI"                                                                                                        )
-       call metaDataDataset       %close         (                                                                                                                                                            )
+            & call metaDataDataset%writeAttribute(unitType(1.0d0                             ),"units")
        call timingDataGroup       %writeDataset  (self%timesEvolve     (1:self%countTrees),"timeEvolve"     ,"Tree evolution time [s]"    ,chunkSize=chunkSize,datasetReturned=metaDataDataset,appendTo=.true.)
        if (.not.preExists) &
-            & call metaDataDataset%writeAttribute(1.0d0                                   ,"unitsInSI"                                                                                                        )
-       call metaDataDataset       %close         (                                                                                                                                                            )
+            & call metaDataDataset%writeAttribute(unitType(1.0d0                             ),"units")
        call timingDataGroup       %writeDataset  (self%countsNodes     (1:self%countTrees),"countNodes"     ,"Number of nodes in the tree",chunkSize=chunkSize                                ,appendTo=.true.)
        if (self%collectMemoryUsageData) &
             & call timingDataGroup%writeDataset  (self%memoryUsagesPeak(1:self%countTrees),"memoryUsagePeak","Peak memory usage [bytes]"  ,chunkSize=chunkSize                                ,appendTo=.true.)
-       call timingDataGroup       %close         (                                                                                                                                                            )
-       call metaDataGroup         %close         (                                                                                                                                                            )
        !$ call hdf5Access%unset()
     end if
     return

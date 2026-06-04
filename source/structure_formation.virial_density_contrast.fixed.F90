@@ -137,7 +137,7 @@ contains
 
   subroutine fixedDestructor(self)
     !!{
-    Destructor for the \refClass{virialDensityContrastFixed} virial density contrast class.
+    Destructor for the \refClass{virialDensityContrastFixed} dark matter halo virial density contrast class.
     !!}
     implicit none
     type(virialDensityContrastFixed), intent(inout) :: self

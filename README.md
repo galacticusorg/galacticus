@@ -24,10 +24,19 @@ Before building, make sure you have the following available:
 - HDF5 libraries (the code writes output in HDF5 format)
 - FFTW3 libraries
 - GSL (GNU Scientific Library)
-- Perl (used by the build system for code generation)
-- Python 3 (used by various scripts)
+- Python 3 (≥ 3.9; used by the build system for code generation and various supporting scripts)
 
 > **Tip:** The easiest way to get a fully configured environment is to use [GitHub Codespaces](#open-in-github-codespaces) (click the badge above). All dependencies are pre-installed.
+
+### Installing Python dependencies
+
+The build system imports modules from `python/`. Make those modules importable, and install the third-party packages they depend on (numpy, scipy, h5py, lxml, matplotlib, …), with a single editable install from the repo root:
+
+```bash
+pip install -e .
+```
+
+This is sufficient for building Galacticus and running its supporting scripts. Heavy emulation pipelines have additional dependencies (TensorFlow, lenstronomy, etc.); install those on demand with `pip install -e '.[emulation]'`. To run the Python test suite, install with `pip install -e '.[test]'`.
 
 ### Building Galacticus
 
@@ -71,3 +80,11 @@ To find the output file path, inspect the `outputFileName` element near the top 
 | Missing library errors at link time | Verify that HDF5, FFTW3, and GSL development packages are installed and that their locations are on the relevant library paths. |
 
 For further help, visit the [wiki](https://github.com/galacticusorg/galacticus/wiki) or ask in the [discussion forum](https://github.com/galacticusorg/galacticus/discussions).
+
+## Analyzing Galacticus output
+
+Analysis and visualization of Galacticus outputs - including plotting of on-the-fly analyses, MCMC chain diagnostics, and posterior corner plots - is provided by the [Dendros](https://github.com/galacticusorg/dendros) package, available on [PyPI](https://pypi.org/project/dendros/):
+
+```bash
+python3 -m pip install dendros
+```

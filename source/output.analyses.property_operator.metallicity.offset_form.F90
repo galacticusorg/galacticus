@@ -40,7 +40,7 @@
 
   interface outputAnalysisPropertyOperatorMetallicity12LogNH
      !!{
-     Constructors for the \refClass{outputAnalysisPropertyOperatorMetallicity12LogNH} output analysis class.
+     Constructors for the \refClass{outputAnalysisPropertyOperatorMetallicity12LogNH} output analysis property operator class.
      !!}
      module procedure metallicity12LogNHConstructorParameters
      module procedure metallicity12LogNHConstructorInternal
@@ -75,7 +75,7 @@ contains
 
   function metallicity12LogNHConstructorInternal(massElement) result (self)
     !!{
-    Internal constructor for the \refClass{outputAnalysisPropertyOperatorMetallicity12LogNH} output analysis distribution operator class.
+    Internal constructor for the \refClass{outputAnalysisPropertyOperatorMetallicity12LogNH} output analysis property operator class.
     !!}
     implicit none
     type            (outputAnalysisPropertyOperatorMetallicity12LogNH)                :: self

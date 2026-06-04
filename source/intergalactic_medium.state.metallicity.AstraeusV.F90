@@ -26,13 +26,13 @@
   !![
   <intergalacticMediumState name="intergalacticMediumStateMetallicityAstraeusV">
    <description>
-    An intergalactic medium state class which provides a fit to the metallicity evolution of the \gls{igm} reported by \cite{ucci_astraeus_2023}.
+    An \gls{igm} state class which provides a fit to the metallicity evolution of the \gls{igm} reported by \cite{ucci_astraeus_2023}.
    </description>
   </intergalacticMediumState>
   !!]
   type, extends(intergalacticMediumStateClass) :: intergalacticMediumStateMetallicityAstraeusV
      !!{
-     An intergalactic medium state class which provides a fit to the metallicity evolution of the \gls{igm} reported by \cite{ucci_astraeus_2023}.
+     An \gls{igm} state class which provides a fit to the metallicity evolution of the \gls{igm} reported by \cite{ucci_astraeus_2023}.
      !!}
      private
      class(intergalacticMediumStateClass), pointer :: intergalacticMediumState_ => null()
@@ -48,7 +48,7 @@
 
   interface intergalacticMediumStateMetallicityAstraeusV
      !!{
-     Constructors for the \refClass{intergalacticMediumStateMetallicityAstraeusV} intergalactic medium state class.
+     Constructors for the \refClass{intergalacticMediumStateMetallicityAstraeusV} \gls{igm} state class.
      !!}
      module procedure metallicityAstraeusVIGMConstructorParameters
      module procedure metallicityAstraeusVIGMConstructorInternal

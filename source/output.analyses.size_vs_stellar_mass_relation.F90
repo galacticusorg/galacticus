@@ -277,6 +277,7 @@ contains
     use :: Numerical_Constants_Prefixes          , only : giga
     use :: Output_Analyses_Options               , only : outputAnalysisCovarianceModelPoisson
     use :: Output_Analysis_Distribution_Operators, only : outputAnalysisDistributionOperatorRandomErrorPlynml
+    use :: Output_Analysis_Target_Data           , only : outputAnalysisTargetDataStandard
     use :: Output_Analysis_Property_Operators    , only : outputAnalysisPropertyOperatorAntiLog10                       , outputAnalysisPropertyOperatorCsmlgyLmnstyDstnc, propertyOperatorList                          , outputAnalysisPropertyOperatorLog10, &
           &                                               outputAnalysisPropertyOperatorSequence                        , outputAnalysisPropertyOperatorSystmtcPolynomial, outputAnalysisPropertyOperatorCsmlgyAnglrDstnc
     use :: Output_Analysis_Utilities             , only : Output_Analysis_Output_Weight_Survey_Volume
@@ -342,13 +343,14 @@ contains
          &                                                                                                  groupCosmology
     character       (len=4                                              )                                :: redshiftMinimumLabel                                          , redshiftMaximumLabel
     type            (enumerationFilterTypeType                          )                                :: filterType
+    type            (outputAnalysisTargetDataStandard)                              :: outputAnalysisTargetData_
     !![
     <constructorAssign variables="fileNameTarget, sample, likelihoodBins, likelihoodBinsAutomatic, likelihoodNormalize, computeScatter, systematicErrorPolynomialCoefficient, systematicErrorMassStellarPolynomialCoefficient, randomErrorMassStellarPolynomialCoefficient, randomErrorMassStellarMinimum, randomErrorMassStellarMaximum, *cosmologyParameters_, *cosmologyFunctions_, *outputTimes_, *starFormationRateDisks_, *starFormationRateSpheroids_, *starFormationRateNuclearStarClusters_"/>
     !!]
 
     ! Open the target data file and read basic information.
     !$ call hdf5Access%set()
-    call fileTarget%openFile(self%fileNameTarget,readOnly=.true.)
+    fileTarget=hdf5Object(self%fileNameTarget,readOnly=.true.)
     ! Find the requested sample.
     groupSampleName=var_str('sample')//sample
     if (.not.fileTarget%hasGroup(char(groupSampleName))) call Error_Report(var_str('redshift interval ')//sample//' is not present in `'//self%fileNameTarget//'`'//{introspection:location})
@@ -366,21 +368,17 @@ contains
        call groupSample%readDataset  ('mainSequenceSFR'            ,rateStarFormationMainSequence    )
        call groupSample%readAttribute('offsetMainSequenceSFR'      ,offsetMainSequenceSFR            )
     end if
-    call groupSample%close           (                                                               )
     ! Get the cosmological parameters used in analyzing the target data.
     groupCosmology=fileTarget%openGroup('cosmology')
     call groupCosmology%readAttribute('OmegaMatter'    ,OmegaMatterTarget    )
     call groupCosmology%readAttribute('OmegaDarkEnergy',OmegaDarkEnergyTarget)
     call groupCosmology%readAttribute('OmegaBaryon'    ,OmegaBaryonTarget    )
     call groupCosmology%readAttribute('HubbleConstant' ,HubbleConstantTarget )
-    call groupCosmology%close()
     ! Get the analysis label and target dataset reference.
     call fileTarget%readAttribute('label'    ,labelTarget    )
     call fileTarget%readAttribute('reference',referenceTarget)
-    ! Close the target data file.
-    call fileTarget%close()
     !$ call hdf5Access%unset()
-    ! Construct survey geometry. A fully-sky geometry is used here as only the redshift range is important.
+    ! Construct survey geometry. A full-sky geometry is used here as only the redshift range is important.
     write (redshiftMinimumLabel,'(f4.2)') redshiftMinimum
     write (redshiftMaximumLabel,'(f4.2)') redshiftMaximum
     allocate(surveyGeometry_)
@@ -621,6 +619,15 @@ contains
     ! is appropriate to counting analyses (e.g. mass functions), but not to this type of mean or scatter analysis.
     select type (outputAnalysis_ => self%outputAnalysis_)
     type is (outputAnalysisScatterFunction1D)
+       outputAnalysisTargetData_=outputAnalysisTargetDataStandard(                                                                                                                              &
+          &                                                                                   xAxisLabel      =var_str('$M_\star/\mathrm{M}_\odot$'                       )                                              , &
+          &                                                                                   yAxisLabel      =var_str('$\sigma_{\log_{10}(R_\mathrm{eff}/\mathrm{Mpc})}$')                                              , &
+          &                                                                                   xAxisIsLog      =.true.                                                                                                     , &
+          &                                                                                   yAxisIsLog      =.false.                                                                                                    , &
+          &                                                                                   targetLabel     =referenceTarget                                                                                            , &
+          &                                                                                   valueTarget     =radiusEffectiveScatterTarget                                                                               , &
+          &                                                                                   covarianceTarget=radiusEffectiveScatterCovarianceTarget                                                                       &
+          &                                                                                  )
        !![
        <referenceConstruct isResult="yes" object="outputAnalysis_">
         <constructor>
@@ -630,10 +637,14 @@ contains
           &amp;                                                  var_str('massStellar'                                            )                                                                 , &amp;
           &amp;                                                  var_str('Stellar mass'                                           )                                                                 , &amp;
           &amp;                                                  var_str('M☉'                                                     )                                                                 , &amp;
+          &amp;                                                  var_str('solMass'                                                )                                                                 , &amp;
+          &amp;                                                  .false.                                                                                                                            , &amp;
           &amp;                                                  massSolar                                                                                                                          , &amp;
           &amp;                                                  weightPropertyLabel                                                                                                                , &amp;
           &amp;                                                  weightPropertyDescription                                                                                                          , &amp;
           &amp;                                                  var_str(' '                                                      )                                                                 , &amp;
+          &amp;                                                  var_str(' '                                                      )                                                                 , &amp;
+          &amp;                                                  .false.                                                                                                                            , &amp;
           &amp;                                                  0.0d0                                                                                                                              , &amp;
           &amp;                                                  massStellarLogarithmic                                                                                                             , &amp;
           &amp;                                                  0_c_size_t                                                                                                                         , &amp;
@@ -649,18 +660,21 @@ contains
           &amp;                                                  outputTimes_                                                                                                                       , &amp;
           &amp;                                                  outputAnalysisCovarianceModelPoisson                                                                                               , &amp;
           &amp;                          likelihoodNormalize    =likelihoodNormalize                                                                                                                , &amp;
-          &amp;                          xAxisLabel             =var_str('$M_\star/\mathrm{M}_\odot$'                       )                                                                       , &amp;
-          &amp;                          yAxisLabel             =var_str('$\sigma_{\log_{10}(R_\mathrm{eff}/\mathrm{Mpc})}$')                                                                       , &amp;
-          &amp;                          xAxisIsLog             =.true.                                                                                                                             , &amp;
-          &amp;                          yAxisIsLog             =.false.                                                                                                                            , &amp;
-          &amp;                          targetLabel            =referenceTarget                                                                                                                    , &amp;
-          &amp;                          scatterValueTarget     =radiusEffectiveScatterTarget                                                                                                       , &amp;
-          &amp;                          scatterCovarianceTarget=radiusEffectiveScatterCovarianceTarget                                                                                               &amp;
+          &amp;                          targetData_            =outputAnalysisTargetData_                                                                                                                              &amp;
           &amp;                         )
         </constructor>
        </referenceConstruct>
        !!]
     type is (outputAnalysisMeanFunction1D   )
+       outputAnalysisTargetData_=outputAnalysisTargetDataStandard(                                                                      &
+          &                                                       xAxisLabel      =var_str('$M_\star\mathrm{M}_\odot$'               ), &
+          &                                                       yAxisLabel      =var_str('$\log_{10}(R_\mathrm{eff}/\mathrm{Mpc})$'), &
+          &                                                       xAxisIsLog      =.true.                                             , &
+          &                                                       yAxisIsLog      =.false.                                            , &
+          &                                                       targetLabel     =referenceTarget                                    , &
+          &                                                       valueTarget     =radiusEffectiveLogarithmicTarget                   , &
+          &                                                       covarianceTarget=radiusEffectiveLogarithmicCovarianceTarget           &
+          &                                                      )
        !![
        <referenceConstruct isResult="yes" object="outputAnalysis_">
         <constructor>
@@ -670,10 +684,14 @@ contains
           &amp;                                               var_str('massStellar'                                 )                                                                 , &amp;
           &amp;                                               var_str('Stellar mass'                                )                                                                 , &amp;
           &amp;                                               var_str('M☉'                                          )                                                                 , &amp;
+          &amp;                                               var_str('solMass'                                     )                                                                 , &amp;
+          &amp;                                               .false.                                                                                                                 , &amp;
           &amp;                                               massSolar                                                                                                               , &amp;
           &amp;                                               weightPropertyLabel                                                                                                     , &amp;
           &amp;                                               weightPropertyDescription                                                                                               , &amp;
           &amp;                                               var_str(' '                                           )                                                                 , &amp;
+          &amp;                                               var_str(' '                                           )                                                                 , &amp;
+          &amp;                                               .false.                                                                                                                 , &amp;
           &amp;                                               0.0d0                                                                                                                   , &amp;
           &amp;                                               massStellarLogarithmic                                                                                                  , &amp;
           &amp;                                               0_c_size_t                                                                                                              , &amp;
@@ -689,13 +707,7 @@ contains
           &amp;                                               outputTimes_                                                                                                            , &amp;
           &amp;                                               outputAnalysisCovarianceModelPoisson                                                                                    , &amp;
           &amp;                          likelihoodNormalize =likelihoodNormalize                                                                                                     , &amp;
-          &amp;                          xAxisLabel          =var_str('$M_\star\mathrm{M}_\odot$'               )                                                                     , &amp;
-          &amp;                          yAxisLabel          =var_str('$\log_{10}(R_\mathrm{eff}/\mathrm{Mpc})$')                                                                     , &amp;
-          &amp;                          xAxisIsLog          =.true.                                                                                                                  , &amp;
-          &amp;                          yAxisIsLog          =.false.                                                                                                                 , &amp;
-          &amp;                          targetLabel         =referenceTarget                                                                                                         , &amp;
-          &amp;                          meanValueTarget     =radiusEffectiveLogarithmicTarget                                                                                        , &amp;
-          &amp;                          meanCovarianceTarget=radiusEffectiveLogarithmicCovarianceTarget                                                                                &amp;
+          &amp;                          targetData_         =outputAnalysisTargetData_                                                                                                 &amp;
           &amp;                         )
         </constructor>
        </referenceConstruct>
@@ -808,12 +820,8 @@ contains
        inGroup    => subGroup
     end if
     analysisGroup=inGroup%openGroup(char(self%analysisLabel))
-    call    analysisGroup%writeAttribute(self%logLikelihood(),'logLikelihood')
-    call    analysisGroup%writeAttribute(self%selection      ,'selection'    )
-    call    analysisGroup%close         (                                    )
-    if (present(groupName)) &
-         & call subGroup %close         (                                    )
-    call    analysesGroup%close         (                                    )
+    call analysisGroup%writeAttribute(self%logLikelihood(),'logLikelihood')
+    call analysisGroup%writeAttribute(self%selection      ,'selection'    )
     !$ call hdf5Access%unset()
     return
   end subroutine sizeVsStellarMassRelationFinalize

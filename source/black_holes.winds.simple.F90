@@ -82,7 +82,7 @@ contains
 
   function simpleConstructorInternal(efficiencyWind,blackHoleAccretionRate_) result(self)
     !!{
-    Internal constructor for the \refClass{blackHoleWindSimple} node operator class.
+    Internal constructor for the \refClass{blackHoleWindSimple} black hole winds class.
     !!}
     implicit none
     type            (blackHoleWindSimple        )                        :: self

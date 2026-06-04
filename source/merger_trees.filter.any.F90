@@ -81,7 +81,7 @@ contains
 
   function anyConstructorInternal(filters) result(self)
     !!{
-    Internal constructor for the \refClass{mergerTreeFilterAny} filter class.
+    Internal constructor for the \refClass{mergerTreeFilterAny} merger tree filter class.
     !!}
     implicit none
     type(mergerTreeFilterAny)                        :: self

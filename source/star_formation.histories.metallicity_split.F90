@@ -248,7 +248,7 @@ contains
 
   subroutine metallicitySplitDestructor(self)
     !!{
-    Destructor for the \refClass{starFormationHistoryMetallicitySplit} star formation histories class.
+    Destructor for the \refClass{starFormationHistoryMetallicitySplit} star formation history class.
     !!}
     implicit none
     type(starFormationHistoryMetallicitySplit), intent(inout) :: self

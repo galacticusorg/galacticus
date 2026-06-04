@@ -52,7 +52,7 @@ Implements a cosmological angular distance corrector analysis property operator 
 
   interface outputAnalysisPropertyOperatorCsmlgyAnglrDstnc
      !!{
-     Constructors for the \refClass{outputAnalysisPropertyOperatorCsmlgyAnglrDstnc} output analysis class.
+     Constructors for the \refClass{outputAnalysisPropertyOperatorCsmlgyAnglrDstnc} output analysis property operator class.
      !!}
      module procedure csmlgyAngularDistanceConstructorParameters
      module procedure csmlgyAngularDistanceConstructorInternal

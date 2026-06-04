@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Changes file to switch off CDM assumptions for merger tree building -->
+<changes>
+  <change type="update" path="mergerTreeBranchingProbability/cdmAssumptions" value="false"/>
+</changes>

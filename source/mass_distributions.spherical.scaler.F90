@@ -122,7 +122,7 @@ contains
   
   function sphericalScalerConstructorInternal(factorScalingLength,factorScalingMass,massDistribution_,chandrasekharIntegralComputeVelocityDispersion) result(self)
     !!{
-    Constructor for the \refClass{massDistributionSphericalScaler} convergence class.
+    Constructor for the \refClass{massDistributionSphericalScaler} mass distribution class.
     !!}
     implicit none
     type            (massDistributionSphericalScaler)                          :: self

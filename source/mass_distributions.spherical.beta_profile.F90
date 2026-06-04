@@ -143,7 +143,7 @@ contains
 
   function betaProfileConstructorInternal(beta,densityNormalization,mass,outerRadius,coreRadius,dimensionless,truncateAtOuterRadius,componentType,massType) result(self)
     !!{
-    Constructor for the \refClass{massDistributionBetaProfile} convergence class.
+    Constructor for the \refClass{massDistributionBetaProfile} mass distribution class.
     !!}
     use :: Display                 , only : displayIndent      , displayMessage, displayUnindent, displayVerbosity, &
           &                                 verbosityLevelDebug

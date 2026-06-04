@@ -261,10 +261,7 @@ contains
           self%metallicityTable(countMetallicities+1)=metallicityInfinite
        end select
     end if
-    ! Construct the time bins and rebinning strategy to be used for each output. Two passes are made: the
-    ! first holds a shared lock (allowing concurrent reads of an existing file), while the second holds an
-    ! exclusive lock. Building and writing the file are skipped on the first pass so that writes occur only
-    ! while an exclusive lock is held, avoiding corruption from concurrent writers.
+    ! Construct the time bins and rebinning strategy to be used for each output.
     fileName=inputPath(pathTypeDataDynamic)//"starFormation/"//self%objectType()//"_"//self%hashedDescriptor(includeSourceDigest=.true.)//".hdf5"
     allocate(self%intervals(self%outputTimes_%count()))
     ! Ensure the directory exists before locking, since the lock file is created alongside the data file.
@@ -274,14 +271,15 @@ contains
        call File_Lock(fileName,fileLock,lockIsShared=iLock == 1)
        if (File_Exists(fileName)) then
           !$ call hdf5Access%set()
-          call file%openFile(fileName,readOnly=.true.)
-          do iOutput=1,self%outputTimes_%count()
-             write (name,'(a,i4.4)') 'times'   ,iOutput
-             call file%readDataset(name,self%intervals(iOutput)%time    )
-             write (name,'(a,i4.4)') 'indexMap',iOutput
-             call file%readDataset(name,self%intervals(iOutput)%indexMap)
-          end do
-          call file%close()
+          hdf5ReadScope: block
+            file=hdf5Object(fileName,readOnly=.true.)
+            do iOutput=1,self%outputTimes_%count()
+               write (name,'(a,i4.4)') 'times'   ,iOutput
+               call file%readDataset(name,self%intervals(iOutput)%time    )
+               write (name,'(a,i4.4)') 'indexMap',iOutput
+               call file%readDataset(name,self%intervals(iOutput)%indexMap)       
+            end do
+          end block hdf5ReadScope
           !$ call hdf5Access%unset()
           call File_Unlock(fileLock)
           exit
@@ -385,24 +383,25 @@ contains
              call move_alloc(indexMap,self%intervals(iOutput)%indexMap)
           end do
           !$ call hdf5Access%set()
-          call file%openFile(char(fileName),overWrite=.false.,readOnly=.false.)
-          do iOutput=1,self%outputTimes_%count()
-             write (name,'(a,i4.4)') 'times'   ,iOutput
-             call file%writeDataset(self%intervals(iOutput)%time    ,name)
-             write (name,'(a,i4.4)') 'indexMap',iOutput
-             call file%writeDataset(self%intervals(iOutput)%indexMap,name)
-          end do
-          call file%close()
+          hdfWriteScope: block
+            file=hdf5Object(char(fileName),overWrite=.false.,readOnly=.false.)
+            do iOutput=1,self%outputTimes_%count()
+               write (name,'(a,i4.4)') 'times'   ,iOutput
+               call file%writeDataset(self%intervals(iOutput)%time    ,name)
+               write (name,'(a,i4.4)') 'indexMap',iOutput
+               call file%writeDataset(self%intervals(iOutput)%indexMap,name)       
+            end do
+          end block hdfWriteScope
           !$ call hdf5Access%unset()
           call File_Unlock(fileLock)
        end if
-    end do
-    return
+     end do
+     return
   end function adaptiveConstructorInternal
 
   subroutine adaptiveDestructor(self)
     !!{
-    Destructor for the \refClass{starFormationHistoryAdaptive} star formation histories class.
+    Destructor for the \refClass{starFormationHistoryAdaptive} star formation history class.
     !!}
     implicit none
     type(starFormationHistoryAdaptive), intent(inout) :: self

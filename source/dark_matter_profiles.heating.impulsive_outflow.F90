@@ -28,8 +28,8 @@
     \begin{equation}
      \dot{\epsilon}^\prime = \dot{M}_\mathrm{outflow} f\left( \frac{t_\phi}{t_\mathrm{dyn}} \right),
     \end{equation}    
-    has been accumulated by the \refClass{nodeOperatorImpulsiveOutflowEnergy} object---radially-dependent factors are then applied
-    in the \refClass{massDistributionHeatingImpulsiveOutflow} object returned from our factory.
+    has been accumulated by the \refClass{nodeOperatorImpulsiveOutflowEnergy} node operator object---radially-dependent factors are then applied
+    in the \refClass{massDistributionHeatingImpulsiveOutflow} mass distribution object returned from our factory.
    </description>
   </darkMatterProfileHeating>
   !!]
@@ -56,7 +56,7 @@ contains
 
   function impulsiveOutflowConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the \refClass{darkMatterProfileHeatingImpulsiveOutflow} dark matter profile heating scales class which takes a parameter set as input.
+    Constructor for the \refClass{darkMatterProfileHeatingImpulsiveOutflow} dark matter profile heating class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -81,7 +81,7 @@ contains
 
   function impulsiveOutflowConstructorInternal(impulsiveEnergyFactor) result(self)
     !!{
-    Internal constructor for the \refClass{darkMatterProfileHeatingImpulsiveOutflow} dark matter profile heating scales class.
+    Internal constructor for the \refClass{darkMatterProfileHeatingImpulsiveOutflow} dark matter profile heating class.
     !!}
     implicit none
     type            (darkMatterProfileHeatingImpulsiveOutflow)                :: self

@@ -32,11 +32,12 @@ Implements a property extractor class for the mass and radii of spheres are spec
   <nodePropertyExtractor name="nodePropertyExtractorDensityContrasts">
    <description>
     A property extractor class for the mass and radii of spheres of specified density contrast. A list of density contrasts,
-    $\Delta$ (defined in units of the mean density of the Universe), is specified via the \mono{[densityContrasts]} parameter. For each specified density contrast, two properties are output for each node: \mono{nodeRadius}$\Delta$ and \mono{nodeMass}$\Delta$ which give the radius enclosing a mean density
-    contrast of $\Delta$ and the mass enclosed within that radius. The parameter \mono{[darkMatterOnly]}
-    controls whether density contrasts are measured for total mass (\mono{false}) or dark matter mass only
-    (\mono{true}). In the latter case, density contrasts are defined relative to the mean dark matter density
-    of the Universe.
+    $\Delta$ (defined in units of the mean density of the Universe), is specified via the \mono{[densityContrasts]} parameter. For
+    each specified density contrast, two properties are output for each node: \mono{nodeRadius}$\Delta$ and
+    \mono{nodeMass}$\Delta$ which give the radius enclosing a mean density contrast of $\Delta$ and the mass enclosed within that
+    radius. The parameter \mono{[darkMatterOnly]} controls whether density contrasts are measured for total mass (\mono{false}) or
+    dark matter mass only (\mono{true}). In the latter case, density contrasts are defined relative to the mean dark matter
+    density of the Universe.
    </description>
   </nodePropertyExtractor>
   !!]
@@ -63,11 +64,12 @@ Implements a property extractor class for the mass and radii of spheres are spec
      procedure :: descriptions       => densityContrastsDescriptions
      procedure :: columnDescriptions => densityContrastsColumnDescriptions
      procedure :: unitsInSI          => densityContrastsUnitsInSI
+     procedure :: units              => densityContrastsUnits
   end type nodePropertyExtractorDensityContrasts
 
   interface nodePropertyExtractorDensityContrasts
      !!{
-     Constructors for the \refClass{nodePropertyExtractorDensityContrasts} output analysis class.
+     Constructors for the \refClass{nodePropertyExtractorDensityContrasts} property extractor class.
      !!}
      module procedure densityContrastsConstructorParameters
      module procedure densityContrastsConstructorInternal
@@ -304,7 +306,7 @@ contains
     return
   end subroutine densityContrastsDescriptions
 
-  subroutine densityContrastsColumnDescriptions(self,descriptions,values,valuesDescription,valuesUnitsInSI,time)
+  subroutine densityContrastsColumnDescriptions(self,descriptions,values,valuesDescription,valuesUnits,time)
     !!{
     Return column descriptions of the \mono{densityContrasts} property.
     !!}
@@ -314,7 +316,7 @@ contains
     type            (varying_string                       ), intent(inout), dimension(:), allocatable :: descriptions
     double precision                                       , intent(inout), dimension(:), allocatable :: values
     type            (varying_string                       ), intent(  out)                            :: valuesDescription
-    double precision                                       , intent(  out)                            :: valuesUnitsInSI
+    type            (unitType                             ), intent(  out)                            :: valuesUnits
     character       (len=32                               )                                           :: label
     integer         (c_size_t                             )                                           :: i
     !$GLC attributes unused :: time
@@ -326,7 +328,7 @@ contains
        descriptions(i)=trim(label)
     end do
     valuesDescription=var_str('')
-    valuesUnitsInSI  =0.0d0
+    valuesUnits      =unitType(1.0d0)
     return
   end subroutine densityContrastsColumnDescriptions
 
@@ -346,6 +348,23 @@ contains
     return
   end function densityContrastsUnitsInSI
 
+  function densityContrastsUnits(self,time) result(units)
+    !!{
+    Return the units of the densityContrasts properties.
+    !!}
+    use :: Numerical_Constants_Astronomical, only : massSolar, megaParsec
+    use :: Units_MetaData                  , only : unitType
+    implicit none
+    type            (unitType                             ), dimension(:), allocatable :: units
+    class           (nodePropertyExtractorDensityContrasts), intent(inout)             :: self
+    double precision                                       , intent(in   ), optional   :: time
+    !$GLC attributes unused :: time
+
+    allocate(units(self%elementCount_))
+    units(1)=unitType(megaParsec,description='Mpc',quantity='Mpc'    )
+    units(2)=unitType(massSolar ,description='M☉' ,quantity='solMass')
+    return
+  end function densityContrastsUnits
 
   double precision function densityContrastsRoot(radius)
     !!{

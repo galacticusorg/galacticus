@@ -122,7 +122,7 @@ contains
 
   function finiteResolutionConstructorInternal(lengthResolution,massResolution,resolutionIsComoving,nonAnalyticSolver,darkMatterProfileDMO_,cosmologyFunctions_) result(self)
     !!{
-    Internal constructor for the \refClass{darkMatterProfileDMOFiniteResolution} dark matter profile class.
+    Internal constructor for the \refClass{darkMatterProfileDMOFiniteResolution} dark matter halo profile class.
     !!}
     use :: Error, only : Error_Report
     implicit none

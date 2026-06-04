@@ -97,7 +97,7 @@ contains
 
   function wdmBose2016ConstructorInternal(cdmConcentration,transferFunction_,cosmologyFunctions_) result(self)
     !!{
-    Internal constructor for the \refClass{darkMatterProfileConcentrationWDMBose2016} dark matter halo concentration class.
+    Internal constructor for the \refClass{darkMatterProfileConcentrationWDMBose2016} dark matter halo profile concentration class.
     !!}
     implicit none
     type (darkMatterProfileConcentrationWDMBose2016)                        :: self

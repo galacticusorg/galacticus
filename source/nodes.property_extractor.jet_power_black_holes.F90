@@ -39,11 +39,12 @@
      procedure :: names        => jetPowerBlackHolesNames
      procedure :: descriptions => jetPowerBlackHolesDescriptions
      procedure :: unitsInSI    => jetPowerBlackHolesUnitsInSI
+     procedure :: units        => jetPowerBlackHolesUnits
   end type nodePropertyExtractorJetPowerBlackHoles
 
   interface nodePropertyExtractorJetPowerBlackHoles
      !!{
-     Constructors for the \refClass{nodePropertyExtractorJetPowerBlackHoles} output extractor class.
+     Constructors for the \refClass{nodePropertyExtractorJetPowerBlackHoles} property extractor class.
      !!}
      module procedure jetPowerBlackHolesConstructorParameters
      module procedure jetPowerBlackHolesConstructorInternal
@@ -77,7 +78,7 @@ contains
 
   function jetPowerBlackHolesConstructorInternal(blackHoleAccretionRate_,accretionDisks_) result(self)
     !!{
-    Internal constructor for the \refClass{nodePropertyExtractorJetPowerBlackHoles} node operator class.
+    Internal constructor for the \refClass{nodePropertyExtractorJetPowerBlackHoles} property extractor class.
     !!}
     implicit none
     type (nodePropertyExtractorJetPowerBlackHoles)                        :: self
@@ -186,3 +187,22 @@ contains
          &       /gigaYear
     return
   end function jetPowerBlackHolesUnitsInSI
+
+  function jetPowerBlackHolesUnits(self) result(units)
+    !!{
+    Return the units of the jetPowerBlackHoles properties.
+    !!}
+    use :: Units_MetaData, only : unitType
+    implicit none
+    type            (unitType                               ), dimension(:), allocatable :: units
+    class           (nodePropertyExtractorJetPowerBlackHoles), intent(inout)             :: self
+    double precision                                         , dimension(:), allocatable :: siValues
+    integer                                                                             :: i
+
+    siValues=self%unitsInSI()
+    allocate(units(size(siValues)))
+    do i=1,size(siValues)
+       units(i)=unitType(siValues(i),description='M☉ km²s⁻¹ Gyr⁻¹',quantity='solMass km^2 s^-2 / Gyr')
+    end do
+    return
+  end function jetPowerBlackHolesUnits

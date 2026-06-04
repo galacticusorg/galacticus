@@ -49,7 +49,7 @@ contains
 
   function nullConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the \refClass{darkMatterProfileHeatingNull} dark matter profile heating scales class which takes a parameter set as input.
+    Constructor for the \refClass{darkMatterProfileHeatingNull} dark matter profile heating class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none

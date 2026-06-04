@@ -152,9 +152,8 @@ contains
     
     ! Construct mass bins matched to those used by Ludlow et al. (2016).
     !$ call hdf5Access%set()
-    call dataFile%openFile   (char(inputPath(pathTypeDataStatic)//'darkMatter/concentrationMassRelationCDMLudlow2016.hdf5'),readOnly=.true.             )
-    call dataFile%readDataset(                                    'massHalo'                                               ,         massHaloLogarithmic)
-    call dataFile%close      (                                                                                                                          )
+    dataFile=hdf5Object(char(inputPath(pathTypeDataStatic)//'darkMatter/concentrationMassRelationCDMLudlow2016.hdf5'),readOnly=.true.)
+    call dataFile%readDataset('massHalo',massHaloLogarithmic)
     !$ call hdf5Access%unset()
     massHaloLogarithmic=log10(massHaloLogarithmic)
     ! Compute weights that apply to each output redshift.
@@ -206,11 +205,15 @@ contains
          &                                                         var_str('massHalo'                                  ), &
          &                                                         var_str('Halo mass [M₂₀₀c]'                         ), &
          &                                                         var_str('M☉'                                        ), &
+         &                                                         var_str('solMass'                                   ), &
+         &                                                         .false.                                              , &
          &                                                         massSolar                                            , &
          &                                                         var_str('log10Concentration'                        ), &
          &                                                         var_str('log₁₀ of Concentration [log₁₀(r₂₀₀c/rs)]'  ), &
          &                                                         var_str(' '                                         ), &
-         &                                                         0.0d0                                                , &
+         &                                                         var_str(' '                                         ), &
+         &                                                         .false.                                              , &
+         &                                                         1.0d0                                                , &
          &                                                         massHaloLogarithmic                                  , &
          &                                                         5_c_size_t                                           , &
          &                                                         outputWeight                                         , &

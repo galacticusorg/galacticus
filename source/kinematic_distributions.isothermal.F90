@@ -93,7 +93,7 @@ contains
   
   function isothermalConstructorInternal(temperature_,massAtomicMean,velocityDispersion_) result(self)
     !!{
-    Constructor for the \refClass{kinematicsDistributionIsothermal} kinematics distribution class.
+    Constructor for the \refClass{kinematicsDistributionIsothermal} kinematic distribution class.
     !!}
     use :: Error                       , only : Error_Report
     use :: Numerical_Constants_Atomic  , only : atomicMassUnit

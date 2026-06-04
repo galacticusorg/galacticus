@@ -17,7 +17,8 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  use :: Hashes, only : doubleHash, rank1DoubleHash
+  use :: Hashes        , only : doubleHash, rank1DoubleHash
+  use :: Units_MetaData, only : unitType
 
   !![
   <nodePropertyExtractor name="nodePropertyExtractorTuple" abstract="yes">
@@ -32,12 +33,13 @@
    contains
      !![
      <methods>
-       <method method="elementCount" description="Return the number of properties in the tuple."                      />
-       <method method="extract"      description="Extract the properties from the given \mono{node}."/>
-       <method method="names"        description="Return the names of the properties extracted."                      />
-       <method method="descriptions" description="Return descriptions of the properties extracted."                   />
-       <method method="unitsInSI"    description="Return the units of the properties extracted in the SI system."     />
-       <method method="metaData"     description="Populate a hash with meta-data for the property."                   />
+       <method method="elementCount" description="Return the number of properties in the tuple."                 />
+       <method method="extract"      description="Extract the properties from the given \mono{node}."            />
+       <method method="names"        description="Return the names of the properties extracted."                 />
+       <method method="descriptions" description="Return descriptions of the properties extracted."              />
+       <method method="unitsInSI"    description="Return the units of the properties extracted in the SI system."/>
+       <method method="units"        description="Return an object containing units metadata for the properties."/>
+       <method method="metaData"     description="Populate a hash with meta-data for the property."              />
      </methods>
      !!]
      procedure(tupleElementCount), deferred :: elementCount
@@ -45,6 +47,7 @@
      procedure(tupleNames       ), deferred :: names
      procedure(tupleDescriptions), deferred :: descriptions
      procedure(tupleUnitsInSI   ), deferred :: unitsInSI
+     procedure                              :: units        => tupleUnits
      procedure                              :: metaData     => tupleMetaData
   end type nodePropertyExtractorTuple
 
@@ -110,7 +113,27 @@
   end interface
 
 contains
-  
+
+  function tupleUnits(self,time) result(units_)
+    !!{
+    Default implementation: wraps the deferred \mono{nodePropertyExtractorTuple}{unitsInSI} array into an array of
+    \mono{unitType}.  Subclasses may override this to populate \mono{description}, \mono{quantity}, and \mono{isComoving}.
+    !!}
+    implicit none
+    type            (unitType                  ), dimension(:), allocatable :: units_
+    class           (nodePropertyExtractorTuple), intent(inout)             :: self
+    double precision                            , intent(in   )             :: time
+    double precision                            , dimension(:), allocatable :: siValues
+    integer                                                                 :: i
+
+    siValues=self%unitsInSI(time)
+    allocate(units_(size(siValues)))
+    do i=1,size(siValues)
+       units_(i)=unitType(siValues(i),isComoving=.false.)
+    end do
+    return
+  end function tupleUnits
+
   subroutine tupleMetaData(self,node,indexProperty,metaDataRank0,metaDataRank1)
     !!{
     Interface for tuple property meta-data.

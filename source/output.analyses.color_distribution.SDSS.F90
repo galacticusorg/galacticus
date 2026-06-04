@@ -95,6 +95,7 @@ contains
     use :: Node_Property_Extractors                , only : nodePropertyExtractorLmnstyStllrCF2000            , nodePropertyExtractorRatio
     use :: Output_Analyses_Options                 , only : outputAnalysisCovarianceModelPoisson
     use :: Output_Analysis_Distribution_Normalizers, only : normalizerList                                    , outputAnalysisDistributionNormalizerBinWidth, outputAnalysisDistributionNormalizerSequence, outputAnalysisDistributionNormalizerUnitarity
+    use :: Output_Analysis_Target_Data             , only : outputAnalysisTargetDataStandard
     use :: Output_Analysis_Distribution_Operators  , only : outputAnalysisDistributionOperatorRandomErrorFixed
     use :: Output_Analysis_Property_Operators      , only : outputAnalysisPropertyOperatorCsmlgyLmnstyDstnc   , outputAnalysisPropertyOperatorIdentity      , outputAnalysisPropertyOperatorMagnitude     , outputAnalysisPropertyOperatorSequence       , &
           &                                                 propertyOperatorList
@@ -136,6 +137,7 @@ contains
     character       (len=16                                            )                              :: distributionName                                 , magnitudeMinimumLabel                               , &
          &                                                                                               magnitudeMaximumLabel
     type            (varying_string                                    )                              :: description
+    type            (outputAnalysisTargetDataStandard)                              :: outputAnalysisTargetData_
     !![
     <constructorAssign variables="distributionNumber, *cosmologyFunctions_"/>
     !!]
@@ -145,15 +147,13 @@ contains
     ! Construct colors matched to those used by Baldry et al. (2004). Also read magnitude range.
     write (distributionName,'(a,i2.2)') 'distribution',distributionNumber
     !$ call hdf5Access%set()
-    call dataFile    %openFile     (char(inputPath(pathTypeDataStatic)//'observations/galaxyColors/colorDistributionsBaldry2004.hdf5'),readOnly=.true.             )
-    distribution=dataFile%openGroup(distributionName)
-    call distribution%readDataset  (                                         'color'                                                  ,         colors             )
-    call distribution%readDataset  (                                         'distribution'                                           ,         functionValueTarget)
-    call distribution%readDataset  (                                         'distributionError'                                      ,         functionErrorTarget)
-    call distribution%readAttribute(                                         'magnitudeMinimum'                                       ,         magnitudeMinimum   )
-    call distribution%readAttribute(                                         'magnitudeMaximum'                                       ,         magnitudeMaximum   )
-    call distribution%close        (                                                                                                                               )
-    call dataFile    %close        (                                                                                                                               )
+    dataFile    =hdf5Object          (char(inputPath(pathTypeDataStatic)//'observations/galaxyColors/colorDistributionsBaldry2004.hdf5'),readOnly=.true.)
+    distribution=dataFile  %openGroup(distributionName                                                                                                  )
+    call distribution%readDataset  ('color'            ,colors             )
+    call distribution%readDataset  ('distribution'     ,functionValueTarget)
+    call distribution%readDataset  ('distributionError',functionErrorTarget)
+    call distribution%readAttribute('magnitudeMinimum' ,magnitudeMinimum   )
+    call distribution%readAttribute('magnitudeMaximum' ,magnitudeMaximum   )
     !$ call hdf5Access%unset()
     self %binCount=size(colors)
    allocate(functionCovarianceTarget(self%binCount,self%binCount))
@@ -274,6 +274,15 @@ contains
     write (magnitudeMinimumLabel,'(f6.2)') magnitudeMinimum
     write (magnitudeMaximumLabel,'(f6.2)') magnitudeMaximum
     description=description//"$"//trim(adjustl(magnitudeMinimumLabel))//" < r < "//trim(adjustl(magnitudeMaximumLabel))//"$"
+    outputAnalysisTargetData_=outputAnalysisTargetDataStandard(                                                           &
+         &                                                     xAxisLabel      =var_str('$u-r$'                        ), &
+         &                                                     yAxisLabel      =var_str('$\mathrm{d}p/\mathrm{d}(u-r)$'), &
+         &                                                     xAxisIsLog      =.false.                                 , &
+         &                                                     yAxisIsLog      =.false.                                 , &
+         &                                                     targetLabel     =var_str('Baldry et al. (2004)')         , &
+         &                                                     valueTarget     =functionValueTarget                     , &
+         &                                                     covarianceTarget=functionCovarianceTarget                  &
+         &                                                    )
     self%outputAnalysisVolumeFunction1D=                                                            &
          & outputAnalysisVolumeFunction1D(                                                          &
          &                                var_str('colorDistributionSDSS')//trim(distributionName), &
@@ -281,15 +290,19 @@ contains
          &                                var_str('color'                                        ), &
          &                                var_str('Color at the bin center'                      ), &
          &                                var_str('dimensionless'                                ), &
-         &                                0.0d0                                                   , &
+         &                                var_str(' '                                            ), &
+         &                                .false.                                                 , &
+         &                                1.0d0                                                   , &
          &                                var_str('colorDistributionSDSSFunction'                ), &
          &                                var_str('Color distribution averaged over each bin'    ), &
          &                                var_str('dimensionless'                                ), &
-         &                                0.0d0                                                   , &
+         &                                var_str(' '                                            ), &
+         &                                .false.                                                 , &
+         &                                1.0d0                                                   , &
          &                                colors                                                  , &
          &                                bufferCount                                             , &
          &                                outputWeight                                            , &
-         &                                nodePropertyExtractorRatio_                   , &
+         &                                nodePropertyExtractorRatio_                             , &
          &                                outputAnalysisPropertyOperatorMagnitude_                , &
          &                                outputAnalysisPropertyOperatorIdentity_                 , &
          &                                outputAnalysisWeightOperator_                           , &
@@ -302,13 +315,7 @@ contains
          &                                covarianceBinomialMassHaloMinimum                       , &
          &                                covarianceBinomialMassHaloMaximum                       , &
          &                                .false.                                                 , &
-         &                                var_str('$u-r$'                        )                , &
-         &                                var_str('$\mathrm{d}p/\mathrm{d}(u-r)$')                , &
-         &                                .false.                                                 , &
-         &                                .false.                                                 , &
-         &                                var_str('Baldry et al. (2004)')                         , &
-         &                                functionValueTarget                                     , &
-         &                                functionCovarianceTarget                                  &
+         &                                outputAnalysisTargetData_                                 &
          &                               )
     ! Clean up.
     !![

@@ -40,7 +40,7 @@ Implements a node property extractor for the index of the last host node.
 
   interface nodePropertyExtractorIndexLastHost
      !!{
-     Constructors for the \refClass{nodePropertyExtractorIndexLastHost} output analysis class.
+     Constructors for the \refClass{nodePropertyExtractorIndexLastHost} property extractor class.
      !!}
      module procedure indexLastHostConstructorParameters
      module procedure indexLastHostConstructorInternal
@@ -50,7 +50,7 @@ contains
 
   function indexLastHostConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the \refClass{nodePropertyExtractorIndexLastHost} node property extractor class which takes a parameter set as input.
+    Constructor for the \refClass{nodePropertyExtractorIndexLastHost} property extractor class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -66,7 +66,7 @@ contains
 
   function indexLastHostConstructorInternal() result(self)
     !!{
-    Internal constructor for the \refClass{nodePropertyExtractorIndexLastHost} node property extractor class.
+    Internal constructor for the \refClass{nodePropertyExtractorIndexLastHost} property extractor class.
     !!}
     implicit none
     type(nodePropertyExtractorIndexLastHost) :: self
@@ -121,4 +121,3 @@ contains
     indexLastHostDescription=var_str('Index of the node in whcih this node was last a satellite.')
     return
   end function indexLastHostDescription
-

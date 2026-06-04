@@ -135,7 +135,7 @@ contains
 
   subroutine sphericalFiniteResolutionDestructor(self)
     !!{
-    Destructor for the abstract \refClass{massDistributionSphericalFiniteResolution} class.
+    Destructor for the abstract \refClass{massDistributionSphericalFiniteResolution} mass distribution class.
     !!}
     implicit none
     type(massDistributionSphericalFiniteResolution), intent(inout) :: self

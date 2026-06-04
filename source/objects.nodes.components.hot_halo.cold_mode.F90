@@ -52,21 +52,21 @@ module Node_Component_Hot_Halo_Cold_Mode
       <type>double</type>
       <rank>0</rank>
       <attributes isSettable="true" isGettable="true" isEvolvable="true" createIfNeeded="true" />
-      <output unitsInSI="massSolar" comment="Mass of cold-mode gas in the hot halo."/>
+      <output unitsInSI="massSolar" unitsDescription="Solar masses" unitsQuantity="solMass" comment="Mass of cold-mode gas in the hot halo."/>
     </property>
     <property>
       <name>abundancesCold</name>
       <type>abundances</type>
       <rank>0</rank>
       <attributes isSettable="true" isGettable="true" isEvolvable="true" createIfNeeded="true" />
-      <output unitsInSI="massSolar" comment="Mass of metals in the cold-mode of the hot halo."/>
+      <output unitsInSI="massSolar" unitsDescription="Solar masses" unitsQuantity="solMass" comment="Mass of metals in the cold-mode of the hot halo."/>
     </property>
     <property>
       <name>angularMomentumCold</name>
       <type>double</type>
       <rank>0</rank>
       <attributes isSettable="true" isGettable="true" isEvolvable="true" createIfNeeded="true" />
-      <output unitsInSI="massSolar*megaParsec*kilo" comment="Angular momentum of cold-mode gas in the hot halo."/>
+      <output unitsInSI="massSolar*megaParsec*kilo" unitsDescription="Msun Mpc km/s" unitsQuantity="solMass Mpc km/s" comment="Angular momentum of cold-mode gas in the hot halo."/>
     </property>
    </properties>
    <bindings>

@@ -69,7 +69,7 @@ contains
 
   function vergara2023ConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the \refClass{blackHoleSeedsVergara2023} node operator class which takes a parameter set as input.
+    Constructor for the \refClass{blackHoleSeedsVergara2023} black hole seeds class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -123,7 +123,7 @@ contains
   
   function vergara2023ConstructorInternal(massSingleStar, radiusSingleStar, massEfficiency, radiusEfficiency, massThreshold,cosmologyFunctions_) result(self)
     !!{
-    Internal constructor for the \refClass{blackHoleSeedsVergara2023} node operator class.
+    Internal constructor for the \refClass{blackHoleSeedsVergara2023} black hole seeds class.
     !!}
     implicit none
     type            (blackHoleSeedsVergara2023)                        :: self

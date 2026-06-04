@@ -37,11 +37,12 @@
      procedure :: names        => massAccretionRateBlackHolesNames
      procedure :: descriptions => massAccretionRateBlackHolesDescriptions
      procedure :: unitsInSI    => massAccretionRateBlackHolesUnitsInSI
+     procedure :: units       => massAccretionRateBlackHolesUnits
   end type nodePropertyExtractorMassAccretionRateBlackHoles
 
   interface nodePropertyExtractorMassAccretionRateBlackHoles
      !!{
-     Constructors for the \refClass{nodePropertyExtractorMassAccretionRateBlackHoles} output extractor class.
+     Constructors for the \refClass{nodePropertyExtractorMassAccretionRateBlackHoles} property extractor class.
      !!}
      module procedure massAccretionRateBlackHolesConstructorParameters
      module procedure massAccretionRateBlackHolesConstructorInternal
@@ -72,7 +73,7 @@ contains
 
   function massAccretionRateBlackHolesConstructorInternal(blackHoleAccretionRate_) result(self)
     !!{
-    Internal constructor for the \refClass{nodePropertyExtractorMassAccretionRateBlackHoles} node operator class.
+    Internal constructor for the \refClass{nodePropertyExtractorMassAccretionRateBlackHoles} property extractor class.
     !!}
     implicit none
     type (nodePropertyExtractorMassAccretionRateBlackHoles)                        :: self
@@ -178,3 +179,22 @@ contains
     unitsInSI(1)=massSolar/gigaYear
     return
   end function massAccretionRateBlackHolesUnitsInSI
+
+  function massAccretionRateBlackHolesUnits(self) result(units)
+    !!{
+    Return the units of the massAccretionRateBlackHoles properties.
+    !!}
+    use :: Units_MetaData, only : unitType
+    implicit none
+    type            (unitType                                        ), dimension(:) , allocatable :: units
+    class           (nodePropertyExtractorMassAccretionRateBlackHoles), intent(inout)              :: self
+    double precision                                                  , dimension(:) , allocatable :: siValues
+    integer                                                                                        :: i
+
+    siValues=self%unitsInSI()
+    allocate(units(size(siValues)))
+    do i=1,size(siValues)
+       units(i)=unitType(siValues(i),description='M☉/Gyr',quantity='solMass/Gyr')
+    end do
+    return
+  end function massAccretionRateBlackHolesUnits

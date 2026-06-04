@@ -57,7 +57,18 @@ module Statistics_Distributions_Discrete
      <description>Return the cumulative distribution function $P(x) = \sum_{x' \le x} p(x')$, giving the probability that the discrete random variable takes a value less than or equal to integer \mono{x}.</description>
      <type>double precision</type>
      <pass>yes</pass>
-     <argument>integer, intent(in   ) :: x</argument>
+     <argument>integer, intent(in   )           :: x     </argument>
+     <argument>integer, intent(  out), optional :: status</argument>
+   </method>
+   <method name="cumulativeComplementary" >
+     <description>Return the complementary cumulative probability at \mono{x}.</description>
+     <type>double precision</type>
+     <pass>yes</pass>
+     <argument>integer, intent(in   )           :: x     </argument>
+     <argument>integer, intent(  out), optional :: status</argument>
+     <code>
+       distributionFunctionDiscrete1DCumulativeComplementary=1.0d0-self%cumulative(x)
+     </code>
    </method>
    <method name="inverse" >
      <description>Return the value of the independent variable corresponding to cumulative probability \mono{p}.</description>

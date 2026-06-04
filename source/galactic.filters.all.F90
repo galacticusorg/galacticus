@@ -81,7 +81,7 @@ contains
 
   function allConstructorInternal(filters) result(self)
     !!{
-    Internal constructor for the \refClass{galacticFilterAll} filter class.
+    Internal constructor for the \refClass{galacticFilterAll} galactic filter class.
     !!}
     implicit none
     type(galacticFilterAll)                        :: self

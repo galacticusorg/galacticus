@@ -184,7 +184,9 @@ contains
     type            (DOMException  )                              :: exception
     type            (xmlf_t        )                              :: filterDoc
     logical                                                       :: parseSuccess                  , filterConstructed
-    character       (len=64        )                              :: word                          , label
+    character       (len=64        )                              :: word                          , label                     , &
+         &                                                           extracted22                   , extracted25               , &
+         &                                                           extracted21
     double precision                                              :: centralWavelength             , resolution                , &
          &                                                           filterWidth
 
@@ -204,7 +206,10 @@ contains
     ! Store the name of the filter.
     filterResponses(filterIndex)%name=filterName
     ! Check for special filters.
-    if (extract(filterName,1,22)=="fixedResolutionTopHat_") then
+    extracted21=extract(filterName,1,21)
+    extracted22=extract(filterName,1,22)
+    extracted25=extract(filterName,1,25)
+    if (trim(extracted22) == "fixedResolutionTopHat_") then
        ! Construct a top-hat filter. Extract central wavelength and resolution.
        call String_Split_Words(specialFilterWords,char(filterName),separator="_")
        word=char(specialFilterWords(2))
@@ -231,7 +236,7 @@ contains
        filterConstructed=.true.
        write (label,'(f16.8,":",f16.12)') centralWavelength,resolution
        filterDescription="Top-hat filter; wavelength:resolution = "//trim(label)
-    else if (extract(filterName,1,25)=="adaptiveResolutionTopHat_") then
+    else if (extracted25 == "adaptiveResolutionTopHat_") then
        ! Construct an SED top-hat filter. Extract central wavelength and top hat width.
        call String_Split_Words(specialFilterWords,char(filterName),separator="_")
        word=char(specialFilterWords(2))
@@ -258,7 +263,7 @@ contains
        filterConstructed=.true.
        write (label,'(f16.8,":",f16.8)') centralWavelength,filterWidth
        filterDescription="Top-hat filter; wavelength:width = "//trim(label)
-    else if (extract(filterName,1,21)=="emissionLineContinuum") then
+    else if (extracted21 == "emissionLineContinuum") then
        ! Construct a top-hat filter for calculating equivalent width of specified emission line.
        ! From filter name extract line name (to determine central wavelength) and resolution.
        call String_Split_Words(specialFilterWords,char(filterName),separator="_")
@@ -298,9 +303,9 @@ contains
        filterDescription="Emission line continuum filter; wavelength:resolution = "//trim(label)
     else
        ! Construct a file name for the filter.
-       filterFileName=char(inputPath(pathTypeDataStatic))//'filters/'//filterName//'.xml'
+       filterFileName=inputPath(pathTypeDataStatic)//'filters/'//filterName//'.xml'
        if (.not.File_Exists(filterFileName)) then
-          filterFileName=char(inputPath(pathTypeDataDynamic))//'filters/'//filterName//'.xml'
+          filterFileName=inputPath(pathTypeDataDynamic)//'filters/'//filterName//'.xml'
           if (.not.File_Exists(filterFileName)) call Error_Report('filter file for filter "'//filterName//'" can not be found'//{introspection:location})
        end if
        ! Parse the XML file.
@@ -383,6 +388,7 @@ contains
     use :: HDF5_Access              , only : hdf5Access
     use :: IO_HDF5                  , only : hdf5Object
     use :: Numerical_Constants_Units, only : metersToAngstroms
+    use :: Units_MetaData           , only : unitType
     implicit none
     type            (hdf5Object) :: filtersGroup       , dataset
     integer                      :: i
@@ -397,10 +403,7 @@ contains
     filtersGroup=outputFile%openGroup('Filters','Properties of filters used.')
     call filtersGroup%writeDataset(filterResponses(1:countFilterResponses)%name               ,'name'               ,'Filter name.'                                               )
     call filtersGroup%writeDataset(filterResponses(1:countFilterResponses)%wavelengthEffective,'wavelengthEffective','Effective wavelength of filter [Å].',datasetReturned=dataset)
-    call dataset%writeAttribute("Angstroms [Å]"        ,"units"    )
-    call dataset%writeAttribute(1.0d0/metersToAngstroms,"unitsInSI")
-    call dataset     %close()
-    call filtersGroup%close()
+    call dataset%writeAttribute(unitType(1.0d0/metersToAngstroms,"Angstroms [Å]",quantity="angstrom"),"units")
     !$ call hdf5Access%unset()
     return
   end subroutine Filters_Output

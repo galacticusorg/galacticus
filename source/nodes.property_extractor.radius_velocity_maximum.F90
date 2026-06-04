@@ -44,11 +44,12 @@
      procedure :: name        => radiusVelocityMaximumName
      procedure :: description => radiusVelocityMaximumDescription
      procedure :: unitsInSI   => radiusVelocityMaximumUnitsInSI
+     procedure :: units       => radiusVelocityMaximumUnits
   end type nodePropertyExtractorRadiusVelocityMaximum
 
   interface nodePropertyExtractorRadiusVelocityMaximum
      !!{
-     Constructors for the \refClass{nodePropertyExtractorRadiusVelocityMaximum} output analysis class.
+     Constructors for the \refClass{nodePropertyExtractorRadiusVelocityMaximum} property extractor class.
      !!}
      module procedure radiusVelocityMaximumConstructorParameters
      module procedure radiusVelocityMaximumConstructorInternal
@@ -172,3 +173,16 @@ contains
     return
   end function radiusVelocityMaximumUnitsInSI
 
+  function radiusVelocityMaximumUnits(self) result(units)
+    !!{
+    Return the units of the radiusVelocityMaximum property.
+    !!}
+    use :: Units_MetaData, only : unitType
+    implicit none
+    type (unitType                                  )                :: units
+    class(nodePropertyExtractorRadiusVelocityMaximum), intent(inout) :: self
+    !$GLC attributes unused :: self
+
+    units=unitType(self%unitsInSI(),description='Mpc',quantity='Mpc')
+    return
+  end function radiusVelocityMaximumUnits

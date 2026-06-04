@@ -16,30 +16,6 @@ on:
       - 'source/pFq/**'
       - 'source/gslSpecFuncApprox/**'
       - 'source/FFTlog/**'
-      - 'perl/**'
-      - 'perl/File/**'
-      - 'perl/Galacticus/**'
-      - 'perl/Galacticus/Launch/**'
-      - 'perl/Galacticus/Constraints/**'
-      - 'perl/Galacticus/Build/**'
-      - 'perl/Galacticus/Build/Components/**'
-      - 'perl/Galacticus/Build/Components/Classes/**'
-      - 'perl/Galacticus/Build/Components/Implementations/**'
-      - 'perl/Galacticus/Build/Components/Properties/**'
-      - 'perl/Galacticus/Build/Components/TreeNodes/**'
-      - 'perl/Galacticus/Build/Components/Hierarchy/**'
-      - 'perl/Galacticus/Build/SourceTree/**'
-      - 'perl/Galacticus/Build/SourceTree/Parse/**'
-      - 'perl/Galacticus/Build/SourceTree/Analyze/**'
-      - 'perl/Galacticus/Build/SourceTree/Process/**'
-      - 'perl/Galacticus/Build/SourceTree/Process/FunctionClass/**'
-      - 'perl/List/**'
-      - 'perl/Sort/**'
-      - 'perl/LaTeX/**'
-      - 'perl/IO/**'
-      - 'perl/IO/Compress/**'
-      - 'perl/System/**'
-      - 'perl/Fortran/**'
       - 'python/**'
       - 'scripts/build/**'
       - 'schema/**'
@@ -50,6 +26,29 @@ defaults:
   run:
     shell: bash
 jobs:
+  # Preprocessor regression tests
+  ## Fast pure-Python checks that the preprocessor stack still emits the
+  ## fixes we have committed regression tests for.  Runs in parallel with
+  ## the build jobs and gives an early signal if any change to
+  ## `python/Galacticus/Build/SourceTree/**` regresses a known bug.
+  Test-Preprocessor:
+    if: ${{ github.event_name != 'pull_request' || !github.event.pull_request.draft }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository code
+        uses: actions/checkout@v6
+      - name: Set up Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: '3.x'
+      - name: Install pytest
+        run: python -m pip install --upgrade pip pytest
+      - name: Run Python regression tests
+        run: |
+          cd $GITHUB_WORKSPACE
+          export GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE
+          python -m pytest -v
+      - run: echo "This job's status is ${{ job.status }}."
   # Build and deploy
   ## Linux
   ### Static executable and test codes
@@ -69,6 +68,9 @@ jobs:
           echo "GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
           echo "GALACTICUS_FCFLAGS=$GALACTICUS_FCFLAGS -static" >> $GITHUB_ENV
           echo "DEBIAN_FRONTEND=noninteractive" >> $GITHUB_ENV
+      - name: "Install build profiling tools"
+        # GNU `time` provides the per-task peak memory measurements used by the build profiler.
+        run: apt-get install --yes time || { apt-get update && apt-get install --yes time ; }
       - name: Build the code
         run: |
           cd $GALACTICUS_EXEC_PATH
@@ -592,13 +594,6 @@ jobs:
       - name: Build tools
         id: buildTools
         run: |
-          export GALACTICUS_EXEC_PATH=`pwd`
-          export FCCOMPILER=gfortran-12
-          export CCOMPILER=gcc-15
-          export CPPCOMPILER=g++-15
-          export GALACTICUS_FCFLAGS="-fintrinsic-modules-path /usr/local/include -L/usr/local/lib -L/opt/local/lib"
-          export GALACTICUS_CFLAGS="-I/usr/local/include -I/opt/local/include"
-          export GALACTICUS_CPPFLAGS="-I/usr/local/include -I/opt/local/include"
           classVersion=`awk '{if ($1 == "class:") print $2}' ${GALACTICUS_EXEC_PATH}/aux/dependencies.yml`
           cambVersion=`awk '{if ($1 == "camb:") print $2}' ${GALACTICUS_EXEC_PATH}/aux/dependencies.yml`
           forutilsVersion=`awk '{if ($1 == "forutils:") print $2}' ${GALACTICUS_EXEC_PATH}/aux/dependencies.yml`
@@ -611,18 +606,19 @@ jobs:
           set -o pipefail
           ./Galacticus.exe parameters/buildTools.xml 2>&1 | tee build.log
           cd $GALACTICUS_DATA_PATH/dynamic/CAMB-${cambVersion}/fortran/
-          $GALACTICUS_EXEC_PATH/scripts/build/staticRelinker.py gfortran-12 -cpp -Ofast -fopenmp -fintrinsic-modules-path /usr/local/include -L/usr/local/lib -L/opt/local/lib -JRelease -IRelease/ -I"/Users/runner/work/galacticus/galacticus/datasets/dynamic/CAMB-${cambVersion}/fortran/../forutils/Release/" Release/inidriver.o Release/libcamb.a  -L"/Users/runner/work/galacticus/galacticus/datasets/dynamic/CAMB-${cambVersion}/fortran/../forutils/Release/" -lforutils -o camb
+          $GALACTICUS_EXEC_PATH/scripts/build/staticRelinker.py ${FCCOMPILER} -cpp -Ofast -fopenmp -fintrinsic-modules-path /usr/local/include -L/usr/local/lib -L/opt/local/lib -JRelease -IRelease/ -I"/Users/runner/work/galacticus/galacticus/datasets/dynamic/CAMB-${cambVersion}/fortran/../forutils/Release/" Release/inidriver.o Release/libcamb.a  -L"/Users/runner/work/galacticus/galacticus/datasets/dynamic/CAMB-${cambVersion}/fortran/../forutils/Release/" -lforutils -o camb
           cd $GALACTICUS_DATA_PATH/dynamic/AxionCAMB/
-          $GALACTICUS_EXEC_PATH/scripts/build/staticRelinker.py gfortran-12 -O3 -fintrinsic-modules-path /usr/local/include -L/usr/local/lib -L/opt/local/lib constants.o utils.o  subroutines.o inifile.o power_tilt.o recfast_axion.o reionization.o modules.o bessels.o equations_ppf.o halofit_ppf.o lensing.o SeparableBispectrum.o cmbmain.o camb.o axion_background.o inidriver_axion.F90 -o camb          
+          $GALACTICUS_EXEC_PATH/scripts/build/staticRelinker.py ${FCCOMPILER} -O3 -fintrinsic-modules-path /usr/local/include -L/usr/local/lib -L/opt/local/lib constants.o utils.o  subroutines.o inifile.o power_tilt.o recfast_axion.o reionization.o modules.o bessels.o equations_ppf.o halofit_ppf.o lensing.o SeparableBispectrum.o cmbmain.o camb.o axion_background.o inidriver_axion.F90 -o camb          
           cd $GALACTICUS_DATA_PATH/dynamic/class_public-${classVersion}/
           $GALACTICUS_EXEC_PATH/scripts/build/staticRelinker.py `grep -E '\-o class ' $GALACTICUS_EXEC_PATH/build.log`
           cd $GALACTICUS_DATA_PATH/dynamic/RecFast/
-          $GALACTICUS_EXEC_PATH/scripts/build/staticRelinker.py gfortran-12 recfast.for -o recfast.exe -O3 -ffixed-form -ffixed-line-length-none
+          $GALACTICUS_EXEC_PATH/scripts/build/staticRelinker.py ${FCCOMPILER} recfast.for -o recfast.exe -O3 -ffixed-form -ffixed-line-length-none
           cd $GALACTICUS_DATA_PATH/dynamic/c${cloudyVersion}/source/
           $GALACTICUS_EXEC_PATH/scripts/build/staticRelinker.py `grep -E '\-o cloudy.exe' $GALACTICUS_EXEC_PATH/build.log`
           cd $GALACTICUS_DATA_PATH/dynamic/fsps-${fspsVersion}/src
           $GALACTICUS_EXEC_PATH/scripts/build/staticRelinker.py `grep -E '\-o autosps.exe' $GALACTICUS_EXEC_PATH/build.log`
-          cd $GALACTICUS_DATA_PATH/dynamic/mangle-${mangleVersion}/bin/
+          cd $GALACTICUS_DATA_PATH/dynamic/mangle-${mangleVersion}/src/
+          cp ../bin/harmonize .
           $GALACTICUS_EXEC_PATH/scripts/build/staticRelinker.py `grep -E '\-o harmonize' $GALACTICUS_EXEC_PATH/build.log`
           echo "camb=${GALACTICUS_DATA_PATH}/dynamic/CAMB-${cambVersion}/fortran/camb" >> "$GITHUB_OUTPUT"
           echo "axioncamb=${GALACTICUS_DATA_PATH}/dynamic/AxionCAMB/camb" >> "$GITHUB_OUTPUT"
@@ -689,13 +685,6 @@ jobs:
       - name: Build tools
         id: buildTools
         run: |
-          export GALACTICUS_EXEC_PATH=`pwd`
-          export FCCOMPILER=gfortran-12
-          export CCOMPILER=gcc-15
-          export CPPCOMPILER=g++-15
-          export GALACTICUS_FCFLAGS="-fintrinsic-modules-path /usr/local/include -L/usr/local/lib -L/opt/local/lib"
-          export GALACTICUS_CFLAGS="-I/usr/local/include -I/opt/local/include"
-          export GALACTICUS_CPPFLAGS="-I/usr/local/include -I/opt/local/include"
           classVersion=`awk '{if ($1 == "class:") print $2}' ${GALACTICUS_EXEC_PATH}/aux/dependencies.yml`
           cambVersion=`awk '{if ($1 == "camb:") print $2}' ${GALACTICUS_EXEC_PATH}/aux/dependencies.yml`
           forutilsVersion=`awk '{if ($1 == "forutils:") print $2}' ${GALACTICUS_EXEC_PATH}/aux/dependencies.yml`
@@ -708,18 +697,19 @@ jobs:
           set -o pipefail
           ./Galacticus.exe parameters/buildTools.xml 2>&1 | tee build.log
           cd $GALACTICUS_DATA_PATH/dynamic/CAMB-${cambVersion}/fortran/
-          $GALACTICUS_EXEC_PATH/scripts/build/staticRelinker.py gfortran-12 -cpp -Ofast -fopenmp -fintrinsic-modules-path /usr/local/include -L/usr/local/lib -L/opt/local/lib -JRelease -IRelease/ -I"/Users/runner/work/galacticus/galacticus/datasets/dynamic/CAMB-${cambVersion}/fortran/../forutils/Release/" Release/inidriver.o Release/libcamb.a  -L"/Users/runner/work/galacticus/galacticus/datasets/dynamic/CAMB-${cambVersion}/fortran/../forutils/Release/" -lforutils -o camb
+          $GALACTICUS_EXEC_PATH/scripts/build/staticRelinker.py ${FCCOMPILER} -cpp -Ofast -fopenmp -fintrinsic-modules-path /usr/local/include -L/usr/local/lib -L/opt/local/lib -JRelease -IRelease/ -I"/Users/runner/work/galacticus/galacticus/datasets/dynamic/CAMB-${cambVersion}/fortran/../forutils/Release/" Release/inidriver.o Release/libcamb.a  -L"/Users/runner/work/galacticus/galacticus/datasets/dynamic/CAMB-${cambVersion}/fortran/../forutils/Release/" -lforutils -o camb
           cd $GALACTICUS_DATA_PATH/dynamic/AxionCAMB/
-          $GALACTICUS_EXEC_PATH/scripts/build/staticRelinker.py gfortran-12 -O3 -fintrinsic-modules-path /usr/local/include -L/usr/local/lib -L/opt/local/lib constants.o utils.o  subroutines.o inifile.o power_tilt.o recfast_axion.o reionization.o modules.o bessels.o equations_ppf.o halofit_ppf.o lensing.o SeparableBispectrum.o cmbmain.o camb.o axion_background.o inidriver_axion.F90 -o camb          
+          $GALACTICUS_EXEC_PATH/scripts/build/staticRelinker.py ${FCCOMPILER} -O3 -fintrinsic-modules-path /usr/local/include -L/usr/local/lib -L/opt/local/lib constants.o utils.o  subroutines.o inifile.o power_tilt.o recfast_axion.o reionization.o modules.o bessels.o equations_ppf.o halofit_ppf.o lensing.o SeparableBispectrum.o cmbmain.o camb.o axion_background.o inidriver_axion.F90 -o camb          
           cd $GALACTICUS_DATA_PATH/dynamic/class_public-${classVersion}/
           $GALACTICUS_EXEC_PATH/scripts/build/staticRelinker.py `grep -E '\-o class ' $GALACTICUS_EXEC_PATH/build.log`
           cd $GALACTICUS_DATA_PATH/dynamic/RecFast/
-          $GALACTICUS_EXEC_PATH/scripts/build/staticRelinker.py gfortran-12 recfast.for -o recfast.exe -O3 -ffixed-form -ffixed-line-length-none
+          $GALACTICUS_EXEC_PATH/scripts/build/staticRelinker.py ${FCCOMPILER} recfast.for -o recfast.exe -O3 -ffixed-form -ffixed-line-length-none
           cd $GALACTICUS_DATA_PATH/dynamic/c${cloudyVersion}/source/
           $GALACTICUS_EXEC_PATH/scripts/build/staticRelinker.py `grep -E '\-o cloudy.exe' $GALACTICUS_EXEC_PATH/build.log`
           cd $GALACTICUS_DATA_PATH/dynamic/fsps-${fspsVersion}/src
           $GALACTICUS_EXEC_PATH/scripts/build/staticRelinker.py `grep -E '\-o autosps.exe' $GALACTICUS_EXEC_PATH/build.log`
-          cd $GALACTICUS_DATA_PATH/dynamic/mangle-${mangleVersion}/bin/
+          cd $GALACTICUS_DATA_PATH/dynamic/mangle-${mangleVersion}/src
+          cp ../bin/harmonize .
           $GALACTICUS_EXEC_PATH/scripts/build/staticRelinker.py `grep -E '\-o harmonize' $GALACTICUS_EXEC_PATH/build.log`
           echo "camb=${GALACTICUS_DATA_PATH}/dynamic/CAMB-${cambVersion}/fortran/camb" >> "$GITHUB_OUTPUT"
           echo "axioncamb=${GALACTICUS_DATA_PATH}/dynamic/AxionCAMB/camb" >> "$GITHUB_OUTPUT"
@@ -903,7 +893,7 @@ jobs:
         run: |
           cd $GALACTICUS_EXEC_PATH
           git config --global --add safe.directory $GALACTICUS_EXEC_PATH
-          python3 scripts/aux/updateMonitor.py ${{ steps.changed-files.outputs.all_changed_files }}
+          PYTHONPATH=$GALACTICUS_EXEC_PATH/python python3 scripts/aux/updateMonitor.py ${{ steps.changed-files.outputs.all_changed_files }}
       - name: Check file existence
         id: check_files
         uses: andstor/file-existence-action@v3
@@ -1098,6 +1088,7 @@ jobs:
                       tests.make_ranges.exe,
                       tests.mass_distributions.exe,
                       tests.mass_distributions.tabulated.exe,
+                      tests.kinematic_distributions.NFW.exe,
                       tests.prompt_cusps.exe,
                       tests.math_special_functions.exe,
                       tests.math_distributions.exe,
@@ -1358,7 +1349,7 @@ jobs:
                 test-output-tree-contiguousity.py,
                 test-outputSelector.py,
                 test-parameter-validation.py,
-                test-perl-modules.py,
+                test-python-modules.py,
                 test-reproducibility.py,
                 test-splitForests.py,
                 test-parameters-diff.py,
@@ -1395,7 +1386,8 @@ jobs:
                 test-promptCuspNFW.py,
                 test-postprocessing.py,
                 test-merger-tree-export.sh,
-                test-AGNSED.py ]
+                test-AGNSED.py,
+                test-library-interfaces.py ]
     uses: ./.github/workflows/testModel.yml
     with:
       file: ${{ matrix.file }}
@@ -1635,69 +1627,69 @@ jobs:
     secrets: inherit
   ## Emulation
   Emulation-Subhalos:
+    # TEMPORARILY DISABLED. The `buildenv:latest` container is built `FROM ubuntu:latest`, which is
+    # required to provide `gfortran-16` for the Galacticus build. As of Ubuntu 26.04 the default
+    # Python is 3.13, for which TensorFlow does not yet publish wheels, so the `pip install
+    # TensorFlow ...` step below fails with "No matching distribution found for TensorFlow". This
+    # test is not crucial, so for now the job simply emits a warning to the job summary instead of
+    # running. To re-enable, restore the original steps (see git history) once TensorFlow ships
+    # wheels for the container's Python version.
+    runs-on: ubuntu-latest
+    steps:
+      - name: Report disabled
+        run: |
+          {
+            echo "## ⚠️ Emulation-Subhalos test disabled"
+            echo ""
+            echo "This test is temporarily disabled and did **not** run."
+            echo ""
+            echo "**Reason:** TensorFlow does not publish wheels for the Python version (3.13)"
+            echo "shipped by the \`buildenv:latest\` container, which is built \`FROM ubuntu:latest\`"
+            echo "in order to provide \`gfortran-16\` for the Galacticus build. The"
+            echo "\`pip install TensorFlow ...\` step therefore fails with \"No matching distribution"
+            echo "found for TensorFlow\"."
+            echo ""
+            echo "Re-enable this job (restore the original steps from git history) once TensorFlow"
+            echo "publishes wheels compatible with the container's Python version."
+          } >> "$GITHUB_STEP_SUMMARY"
+          echo "::warning title=Emulation-Subhalos disabled::Skipped because TensorFlow has no wheels for the container's Python 3.13."
+  ## Python Utility Unit Tests
+  Python-Utils-Tests:
     runs-on: ubuntu-latest
     container: ghcr.io/galacticusorg/buildenv:latest
-    needs: Build-Executable-DMO-Linux
     steps:
       - run: echo "The job was automatically triggered by a ${{ github.event_name }} event."
       - run: echo "This job is now running on a ${{ runner.os }} server."
-      - run: echo "The name of the branch is ${{ github.ref }} and the repository is ${{ github.repository }}."
       - name: Check out repository code
         uses: actions/checkout@v6
-      - run: echo "The ${{ github.repository }} repository has been cloned to the runner."
-      - name: Check out repository datasets
-        uses: actions/checkout@v6      
-        with:
-          repository: galacticusorg/datasets
-          path: datasets
       - name: "Set environmental variables"
         run: |
           echo "GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
-          echo "GALACTICUS_DATA_PATH=$GITHUB_WORKSPACE/datasets" >> $GITHUB_ENV
-          echo "PYTHONPATH=$GITHUB_WORKSPACE/python" >> $GITHUB_ENV
-          echo "DEBIAN_FRONTEND=noninteractive" >> $GITHUB_ENV
-      - name: Download executables
-        uses: actions/download-artifact@v8
-        with:
-          name: galacticus-exec-dmo
+          # `test-python-utils.py` exercises a handful of sub-tests
+          # (`process_generics_subtree_expansion`, `process_event_hooks`,
+          # …) that internally call `process_tree(...)` on a synthetic
+          # subtree.  `process_tree` runs every registered process hook,
+          # including ones that read fixed files out of `$BUILDPATH`
+          # (`directiveLocations.xml`, `stateStorables.xml`,
+          # `hdf5FCInterop.dat`, `Makefile_All_Execs`).  Stub those into
+          # an otherwise-empty BUILDPATH so the tests can run without a
+          # full Galacticus build.
+          BP="$GITHUB_WORKSPACE/work/build"
+          mkdir -p "$BP"
+          echo '<directiveLocations></directiveLocations>' > "$BP/directiveLocations.xml"
+          echo '<storables></storables>'                   > "$BP/stateStorables.xml"
+          : > "$BP/hdf5FCInterop.dat"
+          echo 'all_exes ='                                > "$BP/Makefile_All_Execs"
+          echo "BUILDPATH=$BP" >> $GITHUB_ENV
       - name: Install Python
         run: |
           apt -y update && apt -y upgrade
-          apt -y install python3-full python3-dev python3-pip python3-venv
-      - name: Create VirtualEnv
+          apt -y install python3
+      - name: Run Python utility unit tests
         run: |
-          python3 -m venv virtualenv
-          source virtualenv/bin/activate
-      - name: Install Python packages
-        run: |
-          ${GITHUB_WORKSPACE}/virtualenv/bin/pip3 install --upgrade pip
-          ${GITHUB_WORKSPACE}/virtualenv/bin/pip3 install --upgrade TensorFlow tensorflow_probability tf_keras matplotlib scipy lenstronomy tqdm colossus mcfit
-      - name: Install Samana
-        run: |
-          git clone https://github.com/dangilman/samana.git
-          cd samana
-          ${GITHUB_WORKSPACE}/virtualenv/bin/python3 setup.py install
-          cd -
-      - name: Install pyHalo
-        run: |
-          git clone https://github.com/dangilman/pyHalo.git
-          cd pyHalo
-          ${GITHUB_WORKSPACE}/virtualenv/bin/python3 setup.py install
-          cd -
-      - name: Generate training data
-        run: |
-          mkdir -p testSuite/outputs/emulation-subhalos
-          chmod u=wrx ./Galacticus.exe
-          ./Galacticus.exe testSuite/parameters/emulation-lensSubhalos.xml
-      - name: Train the emulator
-        run: ${GITHUB_WORKSPACE}/virtualenv/bin/python3 scripts/emulation/emulatorSubhalosTraining.py testSuite/outputs/emulation-subhalos/emulation-lensSubhalos.hdf5 --outputDirectory testSuite/outputs/emulation-subhalos
-      - name: Perform a test inference
-        run: ${GITHUB_WORKSPACE}/virtualenv/bin/python3 scripts/emulation/emulatorSubhaloQuadLensingInference.py --outputDirectory testSuite/outputs/emulation-subhalos
-      - name: Upload plots
-        uses: actions/upload-artifact@v7
-        with:
-          name: emulation-subhalos
-          path: ./testSuite/outputs/emulation-subhalos/*.pdf
+          cd $GALACTICUS_EXEC_PATH
+          python3 testSuite/test-python-utils.py 2>&1 | tee test.log
+          ! grep -q -e FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
   ## Python Interface
   Python-Interface:
@@ -1719,7 +1711,7 @@ jobs:
       - name: Install Python
         run: |
           apt -y update && apt -y upgrade
-          apt -y install python3
+          apt -y install python3 python3-numpy
       - name: Download library
         uses: actions/download-artifact@v8
         with:
@@ -1727,7 +1719,8 @@ jobs:
       - name: Test interface
         run: |
           tar xvfj libgalacticus.tar.bz2
-          python3 testSuite/test-Python-interface.py
+          python3 testSuite/test-Python-interface.py 2>&1 | tee pythonTest.log
+          ! grep -q -e FAIL pythonTest.log
       - run: echo "This job's status is ${{ job.status }}."
   ## MacOS
   ### Test Codes
@@ -1760,9 +1753,12 @@ jobs:
           echo "GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
           echo "PYTHONPATH=$GITHUB_WORKSPACE/galacticus/python" >> $GITHUB_ENV
           echo "DEBIAN_FRONTEND=noninteractive" >> $GITHUB_ENV
+          # Prepend /opt/local/bin so the MacPorts-installed `python3` (with numpy) is
+          # picked up ahead of the runner's pre-installed Python, which lacks numpy.
+          echo "PATH=/opt/local/bin:$PATH" >> $GITHUB_ENV
       - name: Install Python
         run: |
-          sudo port install python312
+          sudo port install python312 py312-numpy
           sudo port select --set python python312
           sudo port select --set python3 python312
       - name: Build Galacticus
@@ -1775,7 +1771,8 @@ jobs:
           mv libgalacticus.so galacticus/lib/
       - name: Test interface
         run: |
-          python3 testSuite/test-Python-interface.py
+          python3 testSuite/test-Python-interface.py 2>&1 | tee pythonTest.log
+          ! grep -q -e FAIL pythonTest.log
       - run: echo "This job's status is ${{ job.status }}."
   # Validate, deploy and update
   Validate:

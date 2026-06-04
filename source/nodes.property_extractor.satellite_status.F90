@@ -26,7 +26,7 @@ Implements an ISM mass output analysis property extractor class.
    <name>satelliteStatusDiscriminator</name>
    <description>Enumeration of possible discriminators for satellite orphan status.</description>
    <encodeFunction>yes</encodeFunction>
-   <visibility>private</visibility>
+   <visibility>public</visibility>
    <entry label="boundMass"/>
    <entry label="position" />
   </enumeration>
@@ -52,11 +52,12 @@ Implements an ISM mass output analysis property extractor class.
      procedure :: extract     => satelliteStatusExtract
      procedure :: name        => satelliteStatusName
      procedure :: description => satelliteStatusDescription
+     procedure :: units       => satelliteStatusUnits
   end type nodePropertyExtractorSatelliteStatus
 
   interface nodePropertyExtractorSatelliteStatus
      !!{
-     Constructors for the \refClass{nodePropertyExtractorSatelliteStatus} output analysis class.
+     Constructors for the \refClass{nodePropertyExtractorSatelliteStatus} property extractor class.
      !!}
      module procedure satelliteStatusConstructorParameters
      module procedure satelliteStatusConstructorInternal
@@ -66,7 +67,7 @@ contains
 
   function satelliteStatusConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the \refClass{nodePropertyExtractorSatelliteStatus} node property extractor class which takes a parameter set as input.
+    Constructor for the \refClass{nodePropertyExtractorSatelliteStatus} property extractor class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -91,7 +92,7 @@ contains
 
   function satelliteStatusConstructorInternal(discriminator) result(self)
     !!{
-    Internal constructor for the \refClass{nodePropertyExtractorSatelliteStatus} node property extractor class.
+    Internal constructor for the \refClass{nodePropertyExtractorSatelliteStatus} property extractor class.
     !!}
     use :: Error           , only : Component_List          , Error_Report
     use :: Galacticus_Nodes, only : defaultPositionComponent, defaultSatelliteComponent
@@ -211,4 +212,16 @@ contains
     return
   end function satelliteStatusDescription
 
+  function satelliteStatusUnits(self) result(units)
+    !!{
+    Return the units of the satelliteStatus property.
+    !!}
+    use :: Units_MetaData, only : unitType
+    implicit none
+    type (unitType                            )                :: units
+    class(nodePropertyExtractorSatelliteStatus), intent(inout) :: self
+    !$GLC attributes unused :: self
 
+    units=unitType(1.0d0)
+    return
+  end function satelliteStatusUnits

@@ -85,15 +85,19 @@ contains
     Initialize an array of test functions for integration tests.
     !!}
     implicit none
-    testFunctions     =[                                                                                                                                                      &
-         &              testFunction     ('log(x) sin( x)    ',1.0d0,10.0d0,  1.549173238901735869d0                        ,function1Scalar,function1Vector               ), &
-         &              testFunction     ('1/sqrt(x)         ',1.0d0,10.0d0,  4.324555320336759000d0                        ,function2Scalar,function2Vector               ), &
-         &              testFunction     ('1/(10⁻³+[x-3]²)   ',1.0d0,10.0d0, 98.703068147327100000d0                        ,function3Scalar,function3Vector               ), &
-         &              testFunction     ('log(x) sin(2x)    ',1.0d0,10.0d0, -0.659102340089651400d0                        ,function4Scalar,function4Vector               )  &
-         &             ]
-    testFunctionsMulti=[                                                                                                                                                      &
-         &              testFunctionMulti('log(x) sin({1,2}x)',1.0d0,10.0d0,[ 1.549173238901735869d0, -0.6591023400896514d0]                ,function14Vector              )  &
-         &             ]
+    double precision, dimension(2) :: multiTarget
+    
+    testFunctions        =[                                                                                                              &
+         &                 testFunction     ('log(x) sin( x)    ',1.0d0,10.0d0, 1.549173238901735869d0,function1Scalar,function1Vector), &
+         &                 testFunction     ('1/sqrt(x)         ',1.0d0,10.0d0, 4.324555320336759000d0,function2Scalar,function2Vector), &
+         &                 testFunction     ('1/(10⁻³+[x-3]²)   ',1.0d0,10.0d0,98.703068147327100000d0,function3Scalar,function3Vector), &
+         &                 testFunction     ('log(x) sin(2x)    ',1.0d0,10.0d0,-0.659102340089651400d0,function4Scalar,function4Vector)  &
+         &                ]
+    multiTarget          =[                         &
+         &                 +1.549173238901735869d0, &
+         &                 -0.659102340089651400d0  &
+         &                ]
+    testFunctionsMulti(1)=testFunctionMulti('log(x) sin({1,2}x)',1.0d0,10.0d0,multiTarget                            ,function14Vector)
     return
   end subroutine testFunctionsInitialize
 

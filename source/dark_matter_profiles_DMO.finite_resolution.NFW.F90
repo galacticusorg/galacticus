@@ -105,7 +105,7 @@ contains
 
   function finiteResolutionNFWConstructorInternal(lengthResolution,massResolution,resolutionIsComoving,nonAnalyticSolver,darkMatterHaloScale_,cosmologyFunctions_) result(self)
     !!{
-    Internal constructor for the \refClass{darkMatterProfileDMOFiniteResolutionNFW} dark matter profile class.
+    Internal constructor for the \refClass{darkMatterProfileDMOFiniteResolutionNFW} dark matter halo profile class.
     !!}
     use :: Mass_Distributions, only : enumerationNonAnalyticSolversEncode
     implicit none

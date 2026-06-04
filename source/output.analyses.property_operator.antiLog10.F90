@@ -37,7 +37,7 @@ Implements an anti-$\log_{10}()$ output analysis property operator class.
 
   interface outputAnalysisPropertyOperatorAntiLog10
      !!{
-     Constructors for the \refClass{outputAnalysisPropertyOperatorAntiLog10} output analysis class.
+     Constructors for the \refClass{outputAnalysisPropertyOperatorAntiLog10} output analysis property operator class.
      !!}
      module procedure antiLog10ConstructorParameters
   end interface outputAnalysisPropertyOperatorAntiLog10

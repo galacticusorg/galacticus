@@ -34,11 +34,12 @@
      procedure :: names        => galaxyMergersIndicesNames
      procedure :: descriptions => galaxyMergersIndicesDescriptions
      procedure :: unitsInSI    => galaxyMergersIndicesUnitsInSI
+     procedure :: units        => galaxyMergersIndicesUnits
   end type nodePropertyExtractorGalaxyMergersIndices
 
   interface nodePropertyExtractorGalaxyMergersIndices
      !!{
-     Constructors for the \refClass{nodePropertyExtractorGalaxyMergersIndices} output extractor class.
+     Constructors for the \refClass{nodePropertyExtractorGalaxyMergersIndices} property extractor class.
      !!}
      module procedure galaxyMergersIndicesConstructorParameters
      module procedure galaxyMergersIndicesConstructorInternal
@@ -64,7 +65,7 @@ contains
 
   function galaxyMergersIndicesConstructorInternal() result(self)
     !!{
-    Internal constructor for the \refClass{nodePropertyExtractorGalaxyMergersIndices} output extractor property extractor class.
+    Internal constructor for the \refClass{nodePropertyExtractorGalaxyMergersIndices} property extractor class.
     !!}
     implicit none
     type(nodePropertyExtractorGalaxyMergersIndices) :: self
@@ -146,6 +147,21 @@ contains
     !$GLC attributes unused :: self
 
     allocate(unitsInSI(1))
-    unitsInSI(1)=0.0d0
+    unitsInSI(1)=1.0d0
     return
   end function galaxyMergersIndicesUnitsInSI
+
+  function galaxyMergersIndicesUnits(self) result(units)
+    !!{
+    Return the units of the galaxyMergersIndices properties.
+    !!}
+    use :: Units_MetaData, only : unitType
+    implicit none
+    type            (unitType                                 ), dimension(:), allocatable :: units
+    class           (nodePropertyExtractorGalaxyMergersIndices), intent(inout)             :: self
+    !$GLC attributes unused :: self
+
+    allocate(units(1))
+    units(1)=unitType(1.0d0)
+    return
+  end function galaxyMergersIndicesUnits
