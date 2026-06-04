@@ -16,6 +16,11 @@
       <names  value="massParticle"/>
       <values value="1.0e9       "/>
     </nbodyOperator>
+    <nbodyOperator value="filterProperties"   >
+      <propertyNames value="virialRatio timeSinceFormationFractional"/>
+      <rangeLow      value="0.5         1.25                        "/>
+      <rangeHigh     value="1.5         +infinity                   "/>
+    </nbodyOperator>
     <nbodyOperator value="spinDistributionFunction">
       <description                       value=""       />
       <simulationReference               value=""       />
