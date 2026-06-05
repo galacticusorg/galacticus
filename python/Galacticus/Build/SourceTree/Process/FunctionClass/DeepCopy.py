@@ -335,7 +335,19 @@ def deep_copy_declarations(class_record, non_abstract_class, node,
                             f"destination%{st['variable']}={state}\n"
                         )
 
-        # ---- 7. Explicit deepCopy blocks ----
+        # ---- 7. deallocate blocks ----
+        deallocate_block = (class_record or {}).get('deepCopy', {}).get('deallocate')
+        if deallocate_block:
+            deallocate_vars = _variables_attr(deallocate_block)
+            for obj in variables:
+                name = strip_variable_name(obj)
+                for v in deallocate_vars:
+                    if v.lower() == name.lower():
+                        deep_copy['assignments'] += (
+                            f"if (allocated(destination%{v})) deallocate(destination%{v})\n"
+                        )
+
+        # ---- 8. Explicit deepCopy blocks ----
         dc_block = (class_record or {}).get('deepCopy', {}).get('deepCopy')
         if dc_block and isinstance(dc_block, dict):
             dc_vars = _variables_attr(dc_block)
