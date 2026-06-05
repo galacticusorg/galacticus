@@ -804,6 +804,19 @@ module Mass_Distributions
       solversCount=solversCount-1
     </code>
    </method>
+   <method name="reset" >
+    <description>Reset memoized (cached) velocity-dispersion state, so that a kinematics distribution attached to a re-initialized (e.g. pooled) mass distribution never returns stale results.</description>
+    <type>void</type>
+    <pass>yes</pass>
+    <code>
+      if (allocated(self%velocityDispersion1D__            )) deallocate(self%velocityDispersion1D__            )
+      if (allocated(self%velocityDispersionRadialRadius__  )) deallocate(self%velocityDispersionRadialRadius__  )
+      if (allocated(self%velocityDispersionRadialVelocity__)) deallocate(self%velocityDispersionRadialVelocity__)
+      self%velocityDispersionRadialRadiusMinimum__=+huge(0.0d0)
+      self%velocityDispersionRadialRadiusMaximum__=-huge(0.0d0)
+      self%velocityDispersionRadialRadiusOuter__  =+huge(0.0d0)
+    </code>
+   </method>
    <data>type            (interpolator), allocatable               :: velocityDispersion1D__                                                                                       </data>
    <data>double precision              , allocatable, dimension(:) :: velocityDispersionRadialVelocity__                     , velocityDispersionRadialRadius__                    </data>
    <data>double precision                                          :: velocityDispersionRadialRadiusMinimum__   =+huge(0.0d0), velocityDispersionRadialRadiusMaximum__=-huge(0.0d0)</data>

@@ -22,7 +22,15 @@
   !!}
 
   use :: Dark_Matter_Halo_Scales, only : darkMatterHaloScaleClass
+  use :: Mass_Distributions     , only : massDistributionNFW
 
+  type :: pool
+     !!{
+     Type used to maintain a pool of NFW mass distribution objects.
+     !!}
+     type(massDistributionNFW), pointer :: massDistribution_ => null()
+  end type pool
+  
   !![
   <darkMatterProfileDMO name="darkMatterProfileDMONFW">
    <description>
@@ -31,6 +39,9 @@
     with the scale length $r_\mathrm{s} = r_\mathrm{virial}/c$ where $c$ is the halo concentration (see
     \refPhysics{darkMatterProfileConcentration}).
    </description>
+   <deepCopy>
+     <deallocate variables="pool_"/>
+   </deepCopy>
   </darkMatterProfileDMO>
   !!]
   type, extends(darkMatterProfileDMOClass) :: darkMatterProfileDMONFW
@@ -38,8 +49,9 @@
      A dark matter halo profile class implementing \cite{navarro_universal_1997} dark matter halos.
      !!}
      private
-     class  (darkMatterHaloScaleClass), pointer :: darkMatterHaloScale_                 => null()
-     logical                                    :: velocityDispersionUseSeriesExpansion
+     class  (darkMatterHaloScaleClass), pointer                   :: darkMatterHaloScale_                 => null()
+     logical                                                      :: velocityDispersionUseSeriesExpansion
+     type   (pool                    ), allocatable, dimension(:) :: pool_
    contains
      final     ::        nfwDestructor
      procedure :: get => nfwGet
@@ -116,8 +128,21 @@ contains
     Destructor for the \refClass{darkMatterProfileDMONFW} dark matter halo profile class.
     !!}
     implicit none
-    type(darkMatterProfileDMONFW), intent(inout) :: self
+    type   (darkMatterProfileDMONFW), intent(inout) :: self
+    type   (massDistributionNFW    ), pointer       :: massDistribution_
+    integer                                         :: i
 
+    ! Release any pooled mass distributions (and their attached kinematics
+    ! distributions) so that they are not leaked when this profile is destroyed.
+    if (allocated(self%pool_)) then
+       do i=1,size(self%pool_)
+          massDistribution_ => self%pool_(i)%massDistribution_
+          !![
+          <objectDestructor name="massDistribution_"/>
+          !!]
+          self%pool_(i)%massDistribution_ => null()
+       end do
+    end if
     !![
     <objectDestructor name="self%darkMatterHaloScale_" />
     !!]
@@ -132,14 +157,17 @@ contains
     use :: Galactic_Structure_Options, only : componentTypeDarkHalo, massTypeDark                   , weightByMass
     use :: Mass_Distributions        , only : massDistributionNFW  , kinematicsDistributionNFW
     implicit none
-    class           (massDistributionClass         ), pointer                 :: massDistribution_
-    type            (kinematicsDistributionNFW     ), pointer                 :: kinematicsDistribution_
-    class           (darkMatterProfileDMONFW       ), intent(inout)           :: self
-    type            (treeNode                      ), intent(inout)           :: node
-    type            (enumerationWeightByType       ), intent(in   ), optional :: weightBy
-    integer                                         , intent(in   ), optional :: weightIndex
-    class           (nodeComponentBasic            ), pointer                 :: basic
-    class           (nodeComponentDarkMatterProfile), pointer                 :: darkMatterProfile
+    class  (massDistributionClass         ), pointer                     :: massDistribution_
+    type   (kinematicsDistributionNFW     ), pointer                     :: kinematicsDistribution_
+    class  (darkMatterProfileDMONFW       ), intent(inout)               :: self
+    type   (treeNode                      ), intent(inout)               :: node
+    type   (enumerationWeightByType       ), intent(in   ), optional     :: weightBy
+    integer                                , intent(in   ), optional     :: weightIndex
+    class  (nodeComponentBasic            ), pointer                     :: basic
+    class  (nodeComponentDarkMatterProfile), pointer                     :: darkMatterProfile
+    type   (pool                          ), allocatable  , dimension(:) :: poolTmp
+    logical                                                              :: createMassDistribution
+    integer                                                              :: i
     !![
     <optionalArgument name="weightBy" defaultsTo="weightByMass" />
     !!]
@@ -148,14 +176,56 @@ contains
     massDistribution_ => null()
     ! If weighting is not by mass, return a null profile.
     if (weightBy_ /= weightByMass) return
-    ! Create the mass distribution.
-    allocate(massDistributionNFW :: massDistribution_)
-    select type(massDistribution_)
-    type is (massDistributionNFW)
-       basic             => node%basic            ()
-       darkMatterProfile => node%darkMatterProfile()
+    ! Get the components needed to define the NFW profile.
+    basic             => node%basic            ()
+    darkMatterProfile => node%darkMatterProfile()
+    ! Determine if we must create a new mass distribution, or if we can re-use one.
+    if (.not.allocated(self%pool_)) then
+       ! No pool exists - we must create the pool and a mass distribution.
+       allocate(self%pool_(1))
+       i=1
+    else
+       ! Pool exists - check if a pool object is available for use.
+       createMassDistribution=.true.
+       do i=1,size(self%pool_)
+          ! If the object has a reference count of 1 (i.e. the only reference to it is from our
+          ! pool itself) it is available for use.
+          if (self%pool_(i)%massDistribution_%referenceCount == 1) then
+             createMassDistribution=.false.
+             exit
+          end if
+       end do
+       ! If no available pool object was found we must create a new NFW mass distribution.
+       if (createMassDistribution) then
+          ! Expand the pool size.
+          call move_alloc(self%pool_,poolTmp)
+          allocate(self%pool_(size(poolTmp)+1))
+          do i=1,size(poolTmp)
+             self%pool_(i)%massDistribution_ => poolTmp(i)%massDistribution_
+          end do
+          i=size(poolTmp)+1
+       else
+          ! An existing mass distribution in the pool is available for re-use - return a pointer to it.
+          massDistribution_ => self%pool_(i)%massDistribution_
+          ! Update the properties of the pool mass distribution.
+          call self%pool_(i)%massDistribution_%initialize(                                                                         &
+               &                                          mass         =basic            %mass                             (    ), &
+               &                                          virialRadius =self             %darkMatterHaloScale_%radiusVirial(node), &
+               &                                          scaleLength  =darkMatterProfile%scale                            (    )  &
+               &                                         )
+          ! Increment the reference count for the object since we are returning it to a calling
+          ! function which will therefore hold a reference to it.
+          !![
+	  <referenceCountIncrement object="self%pool_(i)%massDistribution_"/>
+	  !!]
+          return
+       end if
+    end if
+    ! No pool object was available - we must create the mass distribution.
+    allocate(massDistributionNFW :: self%pool_(i)%massDistribution_)
+    associate(massDistribution__ => self%pool_(i)%massDistribution_)
        !![
-       <referenceConstruct object="massDistribution_">
+       <referenceConstruct object="massDistribution__">
 	 <constructor>
            massDistributionNFW(                                                                                  &amp;
            &amp;               mass         =basic            %mass                                      (    ), &amp;
@@ -167,20 +237,26 @@ contains
 	 </constructor>
        </referenceConstruct>
        !!]
-    end select
-    allocate(kinematicsDistribution_)
-    !![
-    <referenceConstruct object="kinematicsDistribution_">
-      <constructor>
-        kinematicsDistributionNFW(                                                                 &amp;
-	 &amp;                    useSeriesApproximation=self%velocityDispersionUseSeriesExpansion &amp;
-	 &amp;                   )
-      </constructor>
-    </referenceConstruct>
-    !!]
-    call massDistribution_%setKinematicsDistribution(kinematicsDistribution_)
-    !![
-    <objectDestructor name="kinematicsDistribution_"/>
-    !!]
+       allocate(kinematicsDistribution_)
+       !![
+       <referenceConstruct object="kinematicsDistribution_">
+	 <constructor>
+           kinematicsDistributionNFW(                                                                 &amp;
+	    &amp;                    useSeriesApproximation=self%velocityDispersionUseSeriesExpansion &amp;
+	    &amp;                   )
+	 </constructor>
+       </referenceConstruct>
+       !!]
+       call massDistribution__%setKinematicsDistribution(kinematicsDistribution_)
+       !![
+       <objectDestructor name="kinematicsDistribution_"/>
+       !!]
+       ! Increment the reference count for the object since we are returning it to a calling
+       ! function which will therefore hold a reference to it.
+       !![
+       <referenceCountIncrement object="self%pool_(i)%massDistribution_"/>
+       !!]
+     end associate
+     massDistribution_ => self%pool_(i)%massDistribution_
     return
   end function nfwGet
