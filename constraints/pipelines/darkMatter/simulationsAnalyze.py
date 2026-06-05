@@ -10,7 +10,6 @@ import math
 import os
 import re
 import sys
-import shutil
 import time
 from datetime import datetime
 from itertools import product
@@ -60,6 +59,13 @@ def wait_for_file(path, timeout=30):
             raise TimeoutError(f"File {path} not found within {timeout} seconds.")
         time.sleep(1)
     return True
+
+def copy_simulation_group(src, dst, group_name='simulation0001'):
+    """Copy only the key simulation group from a Galacticus output file into a
+    new file in the datasets repo, dropping the bulky `Build`, `Parameters`, and
+    `Version` metadata groups that we do not want to store there."""
+    with h5py.File(src, 'r') as src_hdf, h5py.File(dst, 'w') as dst_hdf:
+        src_hdf.copy(group_name, dst_hdf, name=group_name)
 
 # ---------------------------------------------------------------------------
 # Active-step resolution
@@ -1400,7 +1406,7 @@ def store_results(active_analyses, entries, options):
                     src = entry['path'] + f'haloMassFunction_{rl}:MPI0000.hdf5'
                     dst = dst_dir + f'/haloMassFunction_{rl}.hdf5'
                     if wait_for_file(src,timeout=300):
-                        shutil.copy(src, dst)
+                        copy_simulation_group(src, dst)
 
         elif step_id == 'progenitorMassFunction':
             for entry in entries:
@@ -1419,7 +1425,7 @@ def store_results(active_analyses, entries, options):
                 os.makedirs(dst_dir, exist_ok=True)
                 dst = dst_dir + f'/progenitorMassFunction_{rl}.hdf5'
                 if wait_for_file(src,timeout=300):
-                    shutil.copy(src, dst)
+                    copy_simulation_group(src, dst)
 
         elif step_id == 'concentrationDistributionFunction':
             for entry in entries:
@@ -1437,7 +1443,7 @@ def store_results(active_analyses, entries, options):
                     src = entry['path'] + f'concentrationDistributionFunction_{rl}:MPI0000.hdf5'
                     dst = dst_dir + f'/concentrationDistributionFunction_{rl}.hdf5'
                     if wait_for_file(src,timeout=300):
-                        shutil.copy(src, dst)
+                        copy_simulation_group(src, dst)
 
         elif step_id == 'spinDistributionFunction':
             for entry in entries:
@@ -1455,7 +1461,7 @@ def store_results(active_analyses, entries, options):
                     src = entry['path'] + f'spinDistributionFunction_{rl}:MPI0000.hdf5'
                     dst = dst_dir + f'/spinDistributionFunction_{rl}.hdf5'
                     if wait_for_file(src,timeout=300):
-                        shutil.copy(src, dst)
+                        copy_simulation_group(src, dst)
 
         elif step_id == 'subhaloStatistics':
             subhalo_stats = {}
