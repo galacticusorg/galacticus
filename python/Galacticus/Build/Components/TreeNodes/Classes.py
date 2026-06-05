@@ -158,10 +158,10 @@ def Tree_Node_Class_Get(build, class_dict):
         )
     else:
         function['content'] = (
-            "!$GLC attributes unused :: self, instance, instanceActual\n"
-            "autoCreateActual=.false.\n"
-            "if (present(autoCreate)) autoCreateActual=autoCreate\n"
-            "if (autoCreateActual) then\n"
+            "!$GLC attributes unused :: self, instance, instance_\n"
+            "autoCreate_=.false.\n"
+            "if (present(autoCreate)) autoCreate_=autoCreate\n"
+            "if (autoCreate_) then\n"
             " ! Support for this component was not compiled, so we can not "
             "create it.\n"
             " component => null()\n"
