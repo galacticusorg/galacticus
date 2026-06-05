@@ -81,7 +81,7 @@ module Points_Convex_Hull
        !!}
        import c_ptr, c_double, c_int, c_long
        type   (c_ptr   )                 :: convexHullConstructorC
-       integer(c_long  ), value          :: n
+       integer(c_int   ), value          :: n
        real   (c_double), dimension(:,:) :: points
        integer(c_int   )                 :: status
      end function convexHullConstructorC
@@ -119,7 +119,7 @@ contains
     Constructor for \mono{convexHull} objects.
     !!}
 #ifdef QHULLAVAIL
-    use, intrinsic :: ISO_C_Binding           , only : c_size_t                  , c_long
+    use, intrinsic :: ISO_C_Binding           , only : c_size_t                  , c_long                , c_int
     use            :: Error                   , only : Error_Report
     use            :: Sorting                 , only : sortIndex
 #endif
@@ -172,12 +172,12 @@ contains
              self%pointsSubsample(:,i)=points(:,order(i))
           end do
           deallocate(order)
-          self%qhull_%qhull_=convexHullConstructorC(countMaximum,self%pointsSubsample,status)
+          self%qhull_%qhull_=convexHullConstructorC(int(countMaximum,kind=c_int),self%pointsSubsample,status)
        else
           call Error_Report('too many points for convex hull construction - you could set `allowSubsampling=.true.` to construct a convex hull from a subsample of points (consisting of a random sample of points with size equal to the maximum allowed)'//{introspection:location})
        end if
     else
-       self%qhull_%qhull_=convexHullConstructorC(size(points,dim=2,kind=c_long),points,status)
+       self%qhull_%qhull_=convexHullConstructorC(size(points,dim=2,kind=c_int),points,status)
     end if
     if (status /= 0) call Error_Report('convex hull construction failed'//{introspection:location}) 
 #else
