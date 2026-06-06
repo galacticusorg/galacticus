@@ -511,12 +511,7 @@ jobs:
           set -o pipefail
           make -j`sysctl -n hw.activecpu` USEGIT2=no Galacticus.exe 2>&1 | tee build.log
           ./scripts/build/staticRelinker.py `grep '\-o Galacticus.exe' build.log`
-          # Limit dsymutil to a single thread. With link-time optimization (`-flto`) enabled the DWARF
-          # emitted into the LTO object files is large and only loosely matches the final, link-time
-          # recompiled code, so dsymutil's per-thread memory usage balloons. The Apple Silicon runner has
-          # many cores but limited RAM, so the default (one thread per core) is OOM-killed (exit 137);
-          # restricting to a single thread keeps peak memory within the runner's budget.
-          dsymutil --num-threads 1 -o Galacticus.exe.dSYM Galacticus.exe
+          dsymutil -o Galacticus.exe.dSYM Galacticus.exe
           zip -r debugSymbolsMacOS-M1.zip Galacticus.exe.dSYM
           mv Galacticus.exe Galacticus_MacOS-M1.exe
       - name: Sign Galacticus executable

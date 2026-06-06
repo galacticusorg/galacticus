@@ -5,6 +5,9 @@
 # Detect Operating System
 UNAME_S := $(shell uname -s)
 
+# Detect machine architecture (used to identify Apple Silicon below).
+UNAME_M := $(shell uname -m)
+
 # Conditional assignment for macOS
 ifeq ($(UNAME_S),Darwin)
     # For MacOS we must set LC_ALL=C to avoid problems with non-UTF8 characters and sed.
@@ -112,10 +115,15 @@ FCFLAGS += -O3 -ffinite-math-only -fno-math-errno
 FCFLAGS  += -fopenmp
 CFLAGS   += -fopenmp
 CPPFLAGS += -fopenmp
-# For link-time optimaization
+# For link-time optimaization. Disabled on Apple Silicon (Darwin + arm64): the DWARF that LTO emits into
+# the object files is large and only loosely matches the final, link-time recompiled code, which makes
+# `dsymutil` balloon in memory and get OOM-killed on the Apple Silicon CI runner (limited RAM, many cores).
+# Even `dsymutil --num-threads 1` is insufficient. LTO is retained on Linux and Intel macOS.
+ifeq ($(filter Darwin-arm64,$(UNAME_S)-$(UNAME_M)),)
 FCFLAGS  += -flto=auto
 CFLAGS   += -flto=auto
 CPPFLAGS += -flto=auto
+endif
 # Detect static compilation
 STATIC=$(findstring -static,${FCFLAGS})
 ifeq '${STATIC}' '-static'
