@@ -18,13 +18,13 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
   !!{
-  Implements the standard \refClass{outputAnalysisTargetData} class --- a plain struct of axis-labelling
+  Implements the standard \refClass{outputAnalysisTargetDataClass} class --- a plain struct of axis-labelling
   and target-dataset fields, with all fields optional at construction.
   !!}
 
   !![
   <outputAnalysisTargetData name="outputAnalysisTargetDataStandard">
-   <description>The standard \refClass{outputAnalysisTargetData} class --- a simple struct holding axis labels,
+   <description>The standard \refClass{outputAnalysisTargetDataClass} class --- a simple struct holding axis labels,
     log-scale flags, and target value/covariance arrays.  All fields are optional at construction; omitted
     axis labels default to \mono{'x'}/\mono{'y'}, omitted target/log-scale flags default to empty/false, and
     the target arrays remain unallocated.</description>
@@ -32,7 +32,7 @@
   !!]
   type, extends(outputAnalysisTargetDataClass) :: outputAnalysisTargetDataStandard
      !!{
-     The standard \refClass{outputAnalysisTargetData} class.
+     The standard \refClass{outputAnalysisTargetDataClass} class.
      !!}
      type            (varying_string)                              :: xAxisLabel
      type            (varying_string)                              :: yAxisLabel

@@ -567,37 +567,31 @@ def process_class_documentation(tree, options):
     classes = {}
     function_list = []
 
-    # Outer-tree source: child class type nodes that FunctionClass inserts
-    # into THIS parent's tree (via `insert_pre_contains` of the
-    # `code_content['module']['interfaces']` list it accumulated from
-    # parsing each child class file) carry the CHILD source filename in
-    # their `source` field, NOT the parent's.  Their function bodies
-    # stay in separate submodule files, so walking those types here
-    # would record them with empty `<arguments>` / `<argumentList>` /
-    # `<type>` (no function nodes available to feed
-    # `_process_function`).  Each child file gets its own preprocess.py
-    # invocation that writes a complete record; let that own the
-    # documentation for the child types.
-    outer_source = (tree.get('source') or tree.get('name') or '')
-    def _is_inserted_from_other_source_file(node):
-        """True for a `type` node whose `source` is a *different real
-        Fortran source file*.  Synthetic sources from FunctionClass /
-        Generics inner parses (those starting with `Galacticus.`) and
-        nodes with no `source` attribution still pass through, since
-        their function bodies live in this same outer tree."""
-        src = node.get('source') or ''
-        if not src or src == outer_source:
-            return False
-        if src.startswith('Galacticus.'):
-            return False
-        return src.endswith('.F90') or src.endswith('.Inc')
-
+    # Walk EVERY `type` node, including the function-class implementation
+    # types that FunctionClass inserts into THIS parent's tree (via
+    # `insert_pre_contains` of the `code_content['module']['interfaces']`
+    # list it accumulated from parsing each child class file).  Those
+    # inserted nodes carry the CHILD source filename in their `source`
+    # field, NOT the parent's — but they are nonetheless the ONLY place
+    # the implementation type is ever seen during a documentation pass.
+    #
+    # Function-class implementations are compiled as *submodules*
+    # (see "Split functionClass modules into submodules", 83f62a184a):
+    # the implementation file's own preprocess.py invocation yields a
+    # `submodule (...) <name>_` containing only `module procedure`
+    # bodies — the `type, extends(...) :: <name>` definition lives in the
+    # parent function-class module, not the child file.  So the child
+    # file's `<child>.classes.xml` contains NO record for the type, and
+    # skipping the inserted node here (as a previous version did, keyed on
+    # the differing `source`) meant the implementation class was
+    # documented NOWHERE.  That dropped its `\hyperdef{class}{<name>}`
+    # anchor from `dataMethods.tex` / the Development PDF, breaking every
+    # `\refClass{<name>}` link to it — exactly the behaviour the Perl
+    # original (which never filtered on `source`) avoided.
     for t in trees:
         for node in walk_tree(t):
             ntype = node.get('type')
             if ntype == 'type':
-                if _is_inserted_from_other_source_file(node):
-                    continue
                 class_name = node.get('name')
                 class_record = classes.setdefault(class_name, {
                     'name': class_name,
